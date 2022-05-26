@@ -1,0 +1,279 @@
+import { ForwardRefComponent } from "framer-motion";
+import {
+  useEffect,
+  forwardRef,
+  useRef,
+  useState,
+  useContext,
+  FC,
+  RefForwardingComponent,
+} from "react";
+import { useRowSelect, useTable } from "react-table";
+import { api } from "../../api";
+import { EventContextProvider } from "../../context";
+import Invitados from "../../pages/invitados";
+import { CheckIcon } from "../icons";
+import { guests } from "../../utils/Interfaces";
+import { DataTableGroupContextProvider } from "../../context/DataTableGroupContext";
+
+// Para checkbox
+export const IndeterminateCheckbox: ForwardRefComponent<HTMLInputElement, any> =
+  forwardRef(({ indeterminate, checked, propParent, ...rest }, ref) => {
+    const [ischecked, setChecked] = useState<boolean>(false);
+    //@ts-ignore
+    const ref1: any = ref;
+    const ref2 = useRef<any>();
+
+    const defaultRef = ref1 || ref2;
+
+    useEffect(() => {
+      if (checked !== ischecked) {
+        setChecked(checked);
+      } else {
+        //@ts-ignore
+        defaultRef?.current?.checked = ischecked;
+      }
+    }, [checked, ischecked, defaultRef]);
+
+    useEffect(() => {
+      //@ts-ignore
+      defaultRef?.current?.indeterminate = indeterminate;
+    }, [defaultRef, indeterminate]);
+
+    const handleCheck = (e: any) => {
+      setChecked(e.target.checked);
+      propParent.row.toggleRowSelected(!ischecked);
+    };
+
+    IndeterminateCheckbox.displayName = "IndeterminateCheckbox";
+
+    return (
+      <label className="relative">
+        <input
+          onClick={handleCheck}
+          type="checkbox"
+          className="rounded-full text-primary focus:ring-primary border-gray-400"
+          ref={defaultRef}
+          checked={ischecked}
+          {...rest}
+        />
+      </label>
+    );
+  });
+
+interface propsDataTableFinal {
+  data: guests[];
+  columns: any;
+}
+
+const DataTableFinal: FC<propsDataTableFinal> = (props) => {
+  const { children, data = [], columns = []} = props;
+  const { event } = EventContextProvider();
+
+  // Uso de useTable para pasar data y cargar propiedades
+  const tableInstance = useTable(
+    { columns, data },
+    useRowSelect,
+    (hooks: any) => {
+      hooks.visibleColumns.push((columns: any) => [
+        {
+          id: "selection",
+          Header: (props: any) => {
+            return false;
+          },
+
+          Cell: (props) => {
+            const { row } = props;
+            const {dispatch, dataTableGroup: {arrIDs, checkedAll}} = DataTableGroupContextProvider()
+
+            useEffect(() => {
+              checkedAll
+                ? row.toggleRowSelected(true)
+                : row.toggleRowSelected(false);
+            }, [checkedAll]);
+
+            useEffect(() => {
+              const id = row?.original?._id;
+                if(row.isSelected && !arrIDs.includes(id)){
+                  console.log("hola")
+                  dispatch({type: "ADD_ROW_SELECTED", payload: id})
+                }
+
+                if(!row.isSelected && arrIDs.includes(id)){
+                  dispatch({type: "REMOVE_ROW_SELECTED", payload: id})
+                }
+
+             }, [row.isSelected]);
+
+            return (
+              <div className="w-full flex justify-center items-center">
+                <IndeterminateCheckbox
+                  propParent={props}
+                  {...row.getToggleRowSelectedProps()}
+                />
+              </div>
+            );
+          },
+        },
+        ...columns,
+      ]);
+    }
+  );
+
+  const {
+    getTableProps,
+    getTableBodyProps,
+    headerGroups,
+    prepareRow,
+    rows,
+    toggleHideColumn,
+  } = tableInstance;
+
+  const ColSpan = (id: string, headers : {id: string}[], columns: number = 12) => {
+
+    const values = {
+      selection: 10,
+      nombre: 30,
+      asistencia: 20,
+      nombre_menu: 20,
+      nombre_mesa: 20,
+      delete: 10
+    }
+
+    type conteo = {
+      base: number
+      residuo: number
+      totalCount: number
+    }
+
+    const {residuo, totalCount} = headers.reduce((acc : conteo , header) => {
+      if(values[header.id]){
+        acc.base = acc.base + values[header.id]
+        acc.totalCount = acc.totalCount + 1
+      }
+      acc.residuo = 100 - acc.base
+      return acc
+    }, {base: 0, residuo: 0, totalCount: 0})
+
+    if(residuo){
+      const sumar = residuo / totalCount
+      const span = Math.round((values[id] + sumar) * columns / 100)
+      return span
+    }
+
+  };
+
+  const handleRemoveGroup = async (e, nombre_grupo) => {
+    e.preventDefault();
+    let grupos = [];
+    try {
+      const params = {
+        query: `mutation {
+             borraGrupo(evento_id:"${event._id}",nombre_grupo:"${nombre_grupo}"){
+             grupos_array
+           }
+         }`,
+        variables: {},
+      };
+      const { data } = await api.ApiBodas(params);
+      grupos = data.data.borraGrupo.grupos_array;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  return (
+    // apply the table props
+    <div className={`bg-transparent pb-4 mt-5 rounded-md w-full grid col-span-4 `}>
+      {children}
+      <table
+        {...getTableProps()}
+        className="w-full text-sm text-left text-gray-500"
+      >
+        <thead className="relative text-xs text-gray-700 uppercase bg-gray-50 w-full">
+          {
+            // Loop over the header rows
+            headerGroups.map((headerGroup, i) => (
+              // Apply the header row props
+              <>
+                <tr
+                  {...headerGroup.getHeaderGroupProps()}
+                  key={i}
+                  className="grid grid-cols-12"
+                >
+                  {
+                    // Loop over the headers in each row
+                    headerGroup.headers.map((column, i) => {
+                      return (
+                        // Apply the header cell props
+                        <th
+                          {...column.getHeaderProps()}
+                          key={i}
+                          className={`px-6 py-3 text-center text-sm font-light font-display col-span-${ColSpan(column.id, headerGroup.headers,12)}`}
+                        >
+                          {
+                            // Render the header
+                            column.render("Header")
+                          }
+                        </th>
+                      )
+                    })
+                  }
+                </tr>
+              </>
+            ))
+          }
+        </thead>
+        <tbody {...getTableBodyProps()}>
+          {rows?.length == 0 && (
+            <tr className="bg-white border-b font-display text-sm w-full grid grid-cols-12">
+              <td className="pl-6 py-4 col-span-1 table-cell	">
+              </td>
+              <td className="py-4 w-max pl-5 text-gray-300">
+                No hay invitados
+              </td>
+            </tr>
+          )}
+          {
+            // Loop over the table rows
+            rows.map((row, i) => {
+              // Prepare the row for display
+              prepareRow(row);
+              return (
+                // Apply the row props
+                <tr
+                  {...row.getRowProps()}
+                  key={i}
+                  className="w-full bg-white border-b font-display text-sm grid grid-cols-12"
+                >
+                  {
+                    // Loop over the rows cells
+                    row.cells.map((cell, i) => {
+                      return (
+                        <td
+                        key={i}
+                          {...cell.getCellProps()}
+                          className={`px-6 py-2 flex items-center col-span-${ColSpan(cell.column.id, row.cells.map(item => item.column),12)}`}
+                          
+                        >
+                          {
+                            // Render the cell contents
+                            cell.render("Cell")
+                          }
+                        </td>
+                      );
+                    })
+                  }
+                </tr>
+              );
+            })
+          }
+        </tbody>
+      </table>
+      
+     
+    </div>
+  );
+};
+
+export default DataTableFinal;
