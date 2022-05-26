@@ -7,7 +7,7 @@ import {
   EventsGroupContextProvider,
 } from "../../context";
 import BarraLoading from "./BarraLoading";
-import { api } from "../../api";
+//import { api } from "../../api";
 import NavigationMobile from "./NavigationMobile";
 import Navigation from "./Navigation";
 
@@ -34,7 +34,7 @@ const Container = (props) => {
 
   const [conectado, setConectado] = useState("false");
 
-  useEffect(() => {
+  /* useEffect(() => {
     async function Suscripcion() {
       if (user) {
         const query = `subscription{
@@ -69,17 +69,17 @@ const Container = (props) => {
     if (conectado == "false") {
       Suscripcion();
     }
-  }, [user]);
+  }, [user]); */
 
   return (
     <>
       <NavigationMobile />
-      <Navigation
+      {/* <Navigation
         notificaciones={notificaciones}
         set={(accion) => setShow(accion)}
         state={show}
         active={active}
-      />
+      /> */}
 
       <BarraLoading />
       <main>{children}</main>
