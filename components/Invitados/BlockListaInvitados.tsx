@@ -4,7 +4,7 @@ import { EventContextProvider } from "../../context";
 import { ImageProfile, useDelayUnmount } from "../../utils/Funciones";
 import FormEditarInvitado from "../Forms/FormEditarInvitado";
 import { InvitacionesIcon, PlusIcon } from "../icons";
-import ModalBottom from "../utils/ModalBottom";
+import ModalBottom from "../Utils/ModalBottom";
 import DatatableGroup from "./GrupoTablas";
 import SentarBlock from "./SentarBlock";
 
@@ -149,7 +149,7 @@ const TabladeInvitados = ({ evento, idInvitado }) => {
     return invitados;
   }, [evento]);
 
-  useEffect(() => {}, []);
+  useEffect(() => { }, []);
   return (
     <div>
       <DataTable data={Data} columns={Columna} />

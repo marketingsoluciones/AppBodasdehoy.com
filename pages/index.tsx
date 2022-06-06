@@ -2,11 +2,11 @@ import { SetStateAction, useEffect, useState, Dispatch, FC } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { motion } from "framer-motion";
 import { CircleBanner, CrearEventoIcon, LineaHome } from "../components/icons";
-import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider,  } from "../context";
+import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, } from "../context";
 import Card from "../components/Home/Card";
 import CardEmpty from "../components/Home/CardEmpty";
 import FormCrearEvento from "../components/Forms/FormCrearEvento";
-import ModalLeft from "../components/utils/ModalLeft";
+import ModalLeft from "../components/Utils/ModalLeft";
 import { useDelayUnmount } from "../utils/Funciones";
 import { NextPage } from "next";
 import { Event } from "../utils/Interfaces";
@@ -15,16 +15,16 @@ import { fetchApiEventos, queries } from "../utils/Fetching";
 const Home: NextPage = () => {
   const [isMounted, setIsMounted] = useState<boolean>(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
-  const {user} = AuthContextProvider()
-  const {setEventsGroup} = EventsGroupContextProvider()
-  
+  const { user } = AuthContextProvider()
+  const { setEventsGroup } = EventsGroupContextProvider()
+
   useEffect(() => {
-      fetchApiEventos({
-        query: queries.getEventsByID,
-        variables: { userID: user?.uid },
-      })
-        .then((events: Event[]) => setEventsGroup({type: "INITIAL_STATE", payload: events}))
-        .catch((error) => console.log(error));
+    fetchApiEventos({
+      query: queries.getEventsByID,
+      variables: { userID: user?.uid },
+    })
+      .then((events: Event[]) => setEventsGroup({ type: "INITIAL_STATE", payload: events }))
+      .catch((error) => console.log(error));
   }, []);
 
 
@@ -114,7 +114,7 @@ interface propsBanner {
   state: boolean;
   set: Dispatch<SetStateAction<boolean>>;
 }
-const Banner : FC <propsBanner> = ({ set, state }) => {
+const Banner: FC<propsBanner> = ({ set, state }) => {
   return (
     <div className="banner bg-base w-full flex justify-center h-3/6 md:h-3/5 px-5 md:px-0 overflow-hidden relative">
       <div className="md:max-w-screen-lg 2xl:max-w-screen-xl w-full grid md:grid-cols-2 h-full">
@@ -205,7 +205,7 @@ const GridCards: FC<propsGridCards> = ({ state, set }) => {
         return [];
       };
 
-      const result : dataTab[] = Object.entries(arrNuevo).map((evento: any[]) => ({
+      const result: dataTab[] = Object.entries(arrNuevo).map((evento: any[]) => ({
         status: evento[0],
         data: evento[1],
         vacio: countEmptys(evento[1]),
@@ -229,13 +229,11 @@ const GridCards: FC<propsGridCards> = ({ state, set }) => {
             <button
               onClick={(e) => setIsActive(idx)}
               key={idx}
-              className={`${
-                isActive == idx
+              className={`${isActive == idx
                   ? `bg-${item.color} text-gray-500`
                   : "bg-white text-gray-500"
-              } w-max px-4 py-0.5 rounded-xl flex items-center justify-center cursor-pointer hover:bg-${
-                item.color
-              } hover:text-gray-500 transition focus:outline-none text-sm`}
+                } w-max px-4 py-0.5 rounded-xl flex items-center justify-center cursor-pointer hover:bg-${item.color
+                } hover:text-gray-500 transition focus:outline-none text-sm`}
             >
               {item.nombre}
             </button>

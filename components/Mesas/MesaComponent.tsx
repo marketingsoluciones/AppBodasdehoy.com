@@ -1,6 +1,7 @@
 import React, {
   cloneElement,
   FC,
+  ReactNode,
   useContext,
   useEffect,
   useState,
@@ -135,6 +136,7 @@ interface propsChair {
   index: number;
   className: string;
   tipoMesa: string;
+  children?: ReactNode;
 }
 
 const Chair: FC<propsChair> = ({
@@ -145,7 +147,7 @@ const Chair: FC<propsChair> = ({
   index,
   className,
 }) => {
-  const {setEvent} = EventContextProvider()
+  const { setEvent } = EventContextProvider()
   const [{ canDrop, isOver }, drop] = useDrop(() => ({
     accept: "invitado",
     drop: (item: signalItem) => {
@@ -165,11 +167,9 @@ const Chair: FC<propsChair> = ({
       <div
         ref={drop}
         role={"Droppeable"}
-        className={`silla w-5 h-5 rounded-full absolute border-2 shadow border-gray-500 overflow-hidden  ${
-          isOver ? "bg-opacity-50" : null
-        }  ${
-          isOver || canDrop ? "bg-secondary" : "bg-white"
-        } flex items-center justify-center ${className}`}
+        className={`silla w-5 h-5 rounded-full absolute border-2 shadow border-gray-500 overflow-hidden  ${isOver ? "bg-opacity-50" : null
+          }  ${isOver || canDrop ? "bg-secondary" : "bg-white"
+          } flex items-center justify-center ${className}`}
       >
         {children}
       </div>
@@ -192,10 +192,10 @@ const Chair: FC<propsChair> = ({
 
 interface propsTableType {
   cantidad_sillas?: number
-
+  children?: ReactNode
 }
 
-const MesaRedonda : FC <propsTableType> = ({ cantidad_sillas, children }) => {
+const MesaRedonda: FC<propsTableType> = ({ cantidad_sillas, children }) => {
   return (
     <div
       className="rounded-full transform bg-white w-20 h-20 shadow border border-gray-500 relative "
@@ -205,7 +205,7 @@ const MesaRedonda : FC <propsTableType> = ({ cantidad_sillas, children }) => {
   );
 };
 
-const MesaCuadrada : FC <propsTableType> = ({ cantidad_sillas, children }) => {
+const MesaCuadrada: FC<propsTableType> = ({ cantidad_sillas, children }) => {
   return (
     <div
       className="w-20 h-20 shadow border border-gray-500 relative bg-white"
@@ -215,7 +215,7 @@ const MesaCuadrada : FC <propsTableType> = ({ cantidad_sillas, children }) => {
   );
 };
 
-const MesaPodio : FC <propsTableType> = ({ cantidad_sillas, children }) => {
+const MesaPodio: FC<propsTableType> = ({ cantidad_sillas, children }) => {
   return (
     <div
       className="w-max h-20 shadow border border-gray-500 relative bg-white"
@@ -233,7 +233,7 @@ interface propsMesaImperial {
   AddInvitado?: CallableFunction
   invitados?: guests[]
 }
-const MesaImperial : FC <propsMesaImperial> = ({ mesa, AddInvitado, invitados }) => {
+const MesaImperial: FC<propsMesaImperial> = ({ mesa, AddInvitado, invitados }) => {
   const [arrTotal, setArrTotal] = useState(() => {
     let arr = [];
     for (let i = 0; i < mesa?.cantidad_sillas; i++) {
@@ -331,10 +331,10 @@ const MesaImperial : FC <propsMesaImperial> = ({ mesa, AddInvitado, invitados })
 };
 
 interface propsSentadoItem {
-  invitado : guests,
+  invitado: guests,
   posicion?: number
 }
-const SentadoItem : FC <propsSentadoItem> = ({ invitado, posicion }) => {
+const SentadoItem: FC<propsSentadoItem> = ({ invitado, posicion }) => {
   const [hoverRef, isHovered] = useHover();
   const [{ isDragging }, drag, dragPreview] = useDrag(() => ({
     type: "invitado",

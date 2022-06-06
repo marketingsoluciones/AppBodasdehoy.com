@@ -93,15 +93,15 @@ const DatatableGroup: FC<propsDatatableGroup> = ({
           }
         }
       });
-      
-        if(!event.grupos_array.includes(invitado.rol)){
-          acc["no asignado"] = {
-            titulo: "no asignado",
-            data: acc["no asignado"]?.data
-              ? [...acc["no asignado"]?.data, invitado]
-              : [invitado],
-          };
-        }
+
+      if (!event.grupos_array.includes(invitado.rol)) {
+        acc["no asignado"] = {
+          titulo: "no asignado",
+          data: acc["no asignado"]?.data
+            ? [...acc["no asignado"]?.data, invitado]
+            : [invitado],
+        };
+      }
       return acc;
     }, {});
 
@@ -251,9 +251,8 @@ const DatatableGroup: FC<propsDatatableGroup> = ({
                 </button>
 
                 <ul
-                  className={`${
-                    show ? "block opacity-100" : "hidden opacity-0"
-                  } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 -top-2 z-40`}
+                  className={`${show ? "block opacity-100" : "hidden opacity-0"
+                    } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 -top-2 z-40`}
                 >
                   {Lista.map((item, index) => {
                     return (
@@ -318,9 +317,8 @@ const DatatableGroup: FC<propsDatatableGroup> = ({
                 )}
 
                 <ul
-                  className={`${
-                    show ? "block" : "hidden"
-                  } top-0 absolute mt-2 w-48 bg-white capitalize rounded-md  shadow-xl z-10 overflow-auto h-max max-h-40`}
+                  className={`${show ? "block" : "hidden"
+                    } top-0 absolute mt-2 w-48 bg-white capitalize rounded-md  shadow-xl z-10 overflow-auto h-max max-h-40`}
                 >
                   {event?.mesas_array?.map((mesa, index) => {
                     return (
@@ -380,9 +378,8 @@ const DatatableGroup: FC<propsDatatableGroup> = ({
               </span>
               <ClickAwayListener onClickAway={() => show && setShow(false)}>
                 <ul
-                  className={`${
-                    show ? "block" : "hidden"
-                  } top-0 right-0 absolute w-max border border-base bg-white capitalize rounded-md overflow-hidden shadow-lg z-10`}
+                  className={`${show ? "block" : "hidden"
+                    } top-0 right-0 absolute w-max border border-base bg-white capitalize rounded-md overflow-hidden shadow-lg z-10`}
                 >
                   {Lista.map((item, idx) => (
                     <li
@@ -458,9 +455,8 @@ const DatatableGroup: FC<propsDatatableGroup> = ({
               </span>
               <ClickAwayListener onClickAway={() => show && setShow(false)}>
                 <ul
-                  className={`${
-                    show ? "block" : "hidden"
-                  } top-0 left-0 absolute w-20 border border-base bg-white capitalize rounded-md overflow-hidden shadow-lg z-10`}
+                  className={`${show ? "block" : "hidden"
+                    } top-0 left-0 absolute w-20 border border-base bg-white capitalize rounded-md overflow-hidden shadow-lg z-10`}
                 >
                   {Lista.map((item, idx) => (
                     <li
@@ -507,7 +503,7 @@ const CheckBoxAll: FC<any> = ({ check, ...rest }) => {
   } = DataTableGroupContextProvider();
   const { event, setEvent } = EventContextProvider();
   const toast = useToast();
-  const refCheckbox = useRef();
+  const refCheckbox: any = useRef();
 
   const getToggleAllRowsSelectedProps = () => {
     const totalGuests: number = event?.invitados_array?.length;
@@ -547,8 +543,9 @@ const CheckBoxAll: FC<any> = ({ check, ...rest }) => {
 
   useEffect(() => {
     const { indeterminate } = getToggleAllRowsSelectedProps();
-    //@ts-ignore
-    refCheckbox?.current?.indeterminate = indeterminate;
+    if (refCheckbox?.current?.indeterminate) {
+      refCheckbox.current.indeterminate = indeterminate;
+    }
   }, [refCheckbox, arrIDs]);
 
   return (

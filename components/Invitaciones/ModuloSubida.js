@@ -77,7 +77,6 @@ const ModuloSubida = ({ evento }) => {
         {imagePreviewUrl.preview == false && (
           <label
             className="hover:scale-120 transform font-display text-md font-medium flex flex-col items-center justify-center gap-1 cursor-pointer"
-            for="file"
           >
             <SubirImagenIcon />
             {imagePreviewUrl.preview ? cargado.titulo : "Añadir invitacion"}
@@ -89,7 +88,6 @@ const ModuloSubida = ({ evento }) => {
             <BotonConfirmar onClick={subir_archivo} />
 
             <label
-              for="file"
               className="flex gap-1 items-center justify-center w-full bg-white px-3 py-1 hover:scale-105 transition transform cursor-pointer"
             >
               Cambiar <EditarIcon />
@@ -101,7 +99,7 @@ const ModuloSubida = ({ evento }) => {
         {`
           .background-image {
             background-image: url(${imagePreviewUrl.preview &&
-            imagePreviewUrl?.image});
+          imagePreviewUrl?.image});
             background-size: contain;
             background-position: center;
             background-repeat: no-repeat;

@@ -1,11 +1,11 @@
 //@ts-check
 import { ErrorMessage, Formik, useField, FormikValues, Form } from 'formik';
 import { useContext, useEffect, useState } from "react";
-import {EventContextProvider} from "../../context";
+import { EventContextProvider } from "../../context";
 import { BorrarInvitado, EditarInvitado } from "../../hooks/EditarInvitado";
 import { BorrarIcon } from "../icons";
 import InputField from "./InputField";
-import {ImageProfile} from '../../utils/Funciones'
+import { ImageProfile } from '../../utils/Funciones'
 import { guests } from '../../utils/Interfaces';
 import { fetchApiEventos, queries } from '../../utils/Fetching';
 import { useToast } from '../../hooks/useToast';
@@ -14,7 +14,7 @@ import SelectField from './SelectField';
 import { BooleanSwitch } from './FormInvitado';
 import * as yup from 'yup'
 
-const msgAuto = ({path}) => `${capitalize(path)} requerido`
+const msgAuto = ({ path }) => `${capitalize(path)} requerido`
 
 const validationSchema = yup.object().shape({
   nombre: yup.string().required(msgAuto),
@@ -33,7 +33,7 @@ const FormEditarInvitado = ({
 }) => {
   const { event, setEvent } = EventContextProvider();
   const toast = useToast()
- 
+
 
   type MyValues = {
     nombre: string
@@ -44,7 +44,7 @@ const FormEditarInvitado = ({
     rol: string
   }
 
-  const initialValues : MyValues = {
+  const initialValues: MyValues = {
     nombre: "",
     sexo: "",
     grupo_edad: "",
@@ -73,12 +73,12 @@ const FormEditarInvitado = ({
     }
   };
 
-  const handleBlurData = async (variable: string, value : string) => {
-    if(invitado[variable] !== value){
+  const handleBlurData = async (variable: string, value: string) => {
+    if (invitado[variable] !== value) {
       try {
         const result = await fetchApiEventos({
           query: queries.editGuests,
-          variables:{
+          variables: {
             eventID: event._id,
             guestID: invitado._id,
             variable,
@@ -87,9 +87,9 @@ const FormEditarInvitado = ({
         })
         console.log(result)
         console.log(invitado._id)
-        setEvent(old => {
+        setEvent((old: any) => {
           const newGuests = old.invitados_array.map(guest => {
-            if(guest._id === invitado._id) {
+            if (guest._id === invitado._id) {
               return result
             }
             return guest
@@ -106,7 +106,7 @@ const FormEditarInvitado = ({
       }
     }
 
-    
+
   };
   return (
     <Formik
@@ -114,73 +114,73 @@ const FormEditarInvitado = ({
       onSubmit={handleSubmit}
       validationSchema={validationSchema}
     >
-      {({values, isSubmitting}) => (
+      {({ values, isSubmitting }) => (
         <>
-        <Form
-          className="text-gray-500 font-body lg:overflow-auto flex flex-col gap-8 w-full my-4 px-2"
-        >
-          <div className="grid md:grid-cols-2 w-full gap-6">
-            {/* INPUT NOMBRE */}
-            <div className="w-full flex items-center justify-center">
-              <img
-                src={ImageProfile[invitado?.sexo]?.image}
-                alt="imagen-invitados"
-                className="w-14 h-14 rounded-full mx-3 "
-                
-              />
-              <InputField
-                name="nombre"
-                label="Nombre"
-                onBlur={() => handleBlurData("nombre", values.nombre)}
-                type="text"
-              />
-            </div>
-            {/* INPUT ASISTENCIA */}
+          <Form
+            className="text-gray-500 font-body lg:overflow-auto flex flex-col gap-8 w-full my-4 px-2"
+          >
+            <div className="grid md:grid-cols-2 w-full gap-6">
+              {/* INPUT NOMBRE */}
+              <div className="w-full flex items-center justify-center">
+                <img
+                  src={ImageProfile[invitado?.sexo]?.image}
+                  alt="imagen-invitados"
+                  className="w-14 h-14 rounded-full mx-3 "
+
+                />
+                <InputField
+                  name="nombre"
+                  label="Nombre"
+                  onBlur={() => handleBlurData("nombre", values.nombre)}
+                  type="text"
+                />
+              </div>
+              {/* INPUT ASISTENCIA */}
               <SelectField
                 options={["pendiente", "confirmado", "cancelado"]}
                 name="asistencia"
                 label="Asistencia"
-                onChangeCapture={(e : any) => handleBlurData("asistencia", e?.target?.value)}
+                onChangeCapture={(e: any) => handleBlurData("asistencia", e?.target?.value)}
               />
-          </div>
-  
-          <div className="w-full h-full gap-2 flex-col flex">
-              <div className="grid md:grid-cols-3 w-full gap-6 relative border-b  border-base ">
-                  <SelectField
-                    options={event?.grupos_array}
-                    name="rol"
-                    label="Grupo"
-                    onChangeCapture={(e: any) => handleBlurData("rol", e?.target?.value)}
-                  />
-  
-                  <SelectField
-                    options={event?.mesas_array?.map((item) => item?.nombre_mesa)}
-                    name="nombre_mesa"
-                    label="Mesa"
-                    onChangeCapture={(e : any) => handleBlurData("nombre_mesa", e.target.value)}
-                  />
-                  <SelectField
-                    options={[]}
-                    name="nombre_menu"
-                    label="Menú"
-                    onChangeCapture={(e : any) => handleBlurData("nombre_menu", e.target.value)}
-                  />
             </div>
+
+            <div className="w-full h-full gap-2 flex-col flex">
+              <div className="grid md:grid-cols-3 w-full gap-6 relative border-b  border-base ">
+                <SelectField
+                  options={event?.grupos_array}
+                  name="rol"
+                  label="Grupo"
+                  onChangeCapture={(e: any) => handleBlurData("rol", e?.target?.value)}
+                />
+
+                <SelectField
+                  options={event?.mesas_array?.map((item) => item?.nombre_mesa)}
+                  name="nombre_mesa"
+                  label="Mesa"
+                  onChangeCapture={(e: any) => handleBlurData("nombre_mesa", e.target.value)}
+                />
+                <SelectField
+                  options={[]}
+                  name="nombre_menu"
+                  label="Menú"
+                  onChangeCapture={(e: any) => handleBlurData("nombre_menu", e.target.value)}
+                />
+              </div>
             </div>
             <div className="grid grid-cols-2 w-full gap-6 relative">
-                <BooleanSwitch
-                  label="Sexo"
-                  lista={["hombre", "mujer"]}
-                  name="sexo"
-                  onChangeCapture={(e: any) => handleBlurData("sexo", e.target.value)}
-                  
-                />
-                <BooleanSwitch
-                  label="Edad"
-                  lista={["adulto", "niño"]}
-                  name="grupo_edad"
-                  onChangeCapture={(e:any) => handleBlurData("grupo_edad", e.target.value)}
-                />
+              <BooleanSwitch
+                label="Sexo"
+                lista={["hombre", "mujer"]}
+                name="sexo"
+                onChangeCapture={(e: any) => handleBlurData("sexo", e.target.value)}
+
+              />
+              <BooleanSwitch
+                label="Edad"
+                lista={["adulto", "niño"]}
+                name="grupo_edad"
+                onChangeCapture={(e: any) => handleBlurData("grupo_edad", e.target.value)}
+              />
             </div>
             <div className="grid md:grid-cols-3 w-full gap-6 relative">
               <InputField
@@ -223,8 +223,8 @@ const FormEditarInvitado = ({
                 type="text"
               />
             </div>
-          
-        </Form>
+
+          </Form>
           <div className="flex justify-between items-center text-gray-500 pt-2">
             <div
               className="flex gap-1 items-center justify-center hover:text-red transform transition duration-200 cursor-pointer"
@@ -236,16 +236,15 @@ const FormEditarInvitado = ({
               </span>
             </div>
             <button
-              className={`font-display float-right relative rounded-lg py-2 px-6 text-white font-medium transition w-max hover:opacity-70  ${
-                isSubmitting ? "bg-secondary" : "bg-primary"
-              }`}
+              className={`font-display float-right relative rounded-lg py-2 px-6 text-white font-medium transition w-max hover:opacity-70  ${isSubmitting ? "bg-secondary" : "bg-primary"
+                }`}
               disabled={isSubmitting}
               type="submit"
             >
               Guardar
             </button>
           </div>
-      </>
+        </>
       )}
     </Formik>
   );

@@ -1,24 +1,24 @@
 import { Doughnut } from "react-chartjs-2";
 import { useEffect, useState } from "react";
-import { Capitalize } from "../../utils/Funciones";
+import { capitalize } from "../../utils/Capitalize";
 
-const Grafico = ({categorias}) => {
+const Grafico = ({ categorias }) => {
   const [labels, setLabels] = useState()
   const [data, setData] = useState()
 
   const DefinirData = () => {
     return categorias?.map(item => {
-      if(item.coste_final >= item.coste_estimado) {
+      if (item.coste_final >= item.coste_estimado) {
         return item.coste_final.toFixed(2)
       } else {
         return item.coste_estimado.toFixed(2)
       }
     })
   }
-  
+
   useEffect(() => {
     setData(DefinirData())
-    setLabels(categorias?.map(item => Capitalize(item.nombre)))
+    setLabels(categorias?.map(item => capitalize(item.nombre)))
   }, [categorias])
 
   return (
@@ -29,21 +29,21 @@ const Grafico = ({categorias}) => {
             type="Doughnut"
             className="chart"
             options={{
-                plugins: {
-                    legend: {
-                        position:"bottom",
-                        align: "start",
-                        labels: {
-                            font: {
-                                size: 12,
-                                family: "Poppins"
-                            }
-                        }
-                    },
+              plugins: {
+                legend: {
+                  position: "bottom",
+                  align: "start",
+                  labels: {
+                    font: {
+                      size: 12,
+                      family: "Poppins"
+                    }
+                  }
                 },
-                
+              },
+
             }}
-            
+
             data={{
               labels: labels,
               datasets: [

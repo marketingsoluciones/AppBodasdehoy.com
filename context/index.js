@@ -4,3 +4,4 @@ export { EventsGroupContextProvider, EventsGroupProvider } from './EventsGroupCo
 export { EventContextProvider, EventProvider } from './EventContext'
 export { ChatContextProvider, ChatProvider } from './ChatContext'
 export { ToastContextProvider, ToastProvider } from './ToastContext'
+export { AlertContextProvider, AlertProvider } from './AlertContext'

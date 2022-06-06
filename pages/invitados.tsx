@@ -6,9 +6,9 @@ import BlockCabecera from "../components/Invitados/BlockCabecera"
 import BlockListaInvitados from "../components/Invitados/BlockListaInvitados";
 import { useDelayUnmount } from "../utils/Funciones";
 import { motion } from "framer-motion";
-import ModalLeft from "../components/utils/ModalLeft";
+import ModalLeft from "../components/Utils/ModalLeft";
 
-const Invitados : FC = () => {
+const Invitados: FC = () => {
   const [isMounted, setIsMounted] = useState<boolean>(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const [formShow, setFormShow] = useState<string | null>(null)
@@ -17,23 +17,23 @@ const Invitados : FC = () => {
     setIsMounted(accion.state)
     setFormShow(accion.click)
   }
-    return (
-        <>
-        {shouldRenderChild && (
-        <ModalLeft  state={isMounted} set={setIsMounted}>
-          {formShow == "invitado" 
-          ? <FormInvitado state={isMounted} set={setIsMounted}/>
-          : <FormCrearGrupo state={isMounted} set={setIsMounted} /> }
-           </ModalLeft> 
-           )}
-        <section className="bg-base w-full h-full ">
-            <motion.div initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}}  className="max-w-screen-lg mx-auto inset-x-0 w-full px-5 md:px-0 gap-4">
-            <Breadcumbs/>
-              <BlockCabecera/>
-              <BlockListaInvitados state={isMounted} set={reciboClick}/>
-            </motion.div>
-        </section>
-        <style jsx>
+  return (
+    <>
+      {shouldRenderChild && (
+        <ModalLeft state={isMounted} set={setIsMounted}>
+          {formShow == "invitado"
+            ? <FormInvitado state={isMounted} set={setIsMounted} />
+            : <FormCrearGrupo state={isMounted} set={setIsMounted} />}
+        </ModalLeft>
+      )}
+      <section className="bg-base w-full h-full ">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="max-w-screen-lg mx-auto inset-x-0 w-full px-5 md:px-0 gap-4">
+          <Breadcumbs />
+          <BlockCabecera />
+          <BlockListaInvitados state={isMounted} set={reciboClick} />
+        </motion.div>
+      </section>
+      <style jsx>
         {`
           section {
             min-height: calc(100vh - 9rem);
@@ -41,8 +41,8 @@ const Invitados : FC = () => {
           }
         `}
       </style>
-        </>
-    )
+    </>
+  )
 }
 
 export default Invitados

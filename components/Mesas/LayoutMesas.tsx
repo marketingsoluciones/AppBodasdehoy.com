@@ -18,12 +18,12 @@ interface propsLayoutMesas {
 const LayoutMesas: FC<propsLayoutMesas> = ({ AddInvitado }) => {
   const { event, setEvent } = EventContextProvider();
   const [disableLayout, setDisableLayout] = useState<boolean>(false);
-  
+
   const [{ canDrop, isOver }, drop] = useDrop(() => ({
     accept: "invitado",
     drop: (item: signalItem) => {
       console.log("HOLA MUNDO", item)
-       item && AddInvitado({ ...item, nombre_mesa: "no asignado" }, setEvent);
+      item && AddInvitado({ ...item, nombre_mesa: "no asignado" }, setEvent);
     },
     collect: (monitor) => ({
       isOver: !!monitor.isOver(),
@@ -115,12 +115,12 @@ const LayoutMesas: FC<propsLayoutMesas> = ({ AddInvitado }) => {
             </div>
             <TransformComponent wrapperClass="w-full h-full">
               <div className="w-full paper" >
-                <div className="w-full h-full absolute top-0 left-0" ref={drop}/>
+                <div className="w-full h-full absolute top-0 left-0" ref={drop} />
                 {event?.mesas_array?.map((mesa, index) => {
                   return (
                     <Table
                       key={mesa._id}
-                      mesa={{...mesa, posicion: mesa.posicion[0]}}
+                      mesa={{ ...mesa, posicion: mesa.posicion[0] }}
                       setDisableLayout={setDisableLayout}
                       index={index}
                       AddInvitado={AddInvitado}
@@ -237,7 +237,7 @@ interface propsTable {
   ActualizarPosicion: CallableFunction
   setDisableLayout: Dispatch<SetStateAction<boolean>>
 }
-const Table : FC <propsTable> = ({
+const Table: FC<propsTable> = ({
   mesa,
   index,
   AddInvitado,
@@ -247,11 +247,11 @@ const Table : FC <propsTable> = ({
 }) => {
   const { event } = EventContextProvider();
   const [invitados, setInvitados] = useState([]);
-  const [showOptions, setShowOptions] = useState<{x: number, y: number} | null>(null)
+  const [showOptions, setShowOptions] = useState<{ x: number, y: number } | null>(null)
 
   useEffect(() => {
     setInvitados(
-      event?.invitados_array?.filter( guest => guest.nombre_mesa === mesa.nombre_mesa)
+      event?.invitados_array?.filter(guest => guest.nombre_mesa === mesa.nombre_mesa)
     );
   }, [event?.invitados_array, mesa?.nombre_mesa]);
 
@@ -281,11 +281,11 @@ const Table : FC <propsTable> = ({
             y: e.pageY
           })
         }} className="relative w-max">
-         {showOptions && (
-           <div className={`absolute bg-red-500 w-max top-[${400}px] left-[${showOptions.x}px]`}>
-             hola mundo
-           </div>
-           )}
+          {showOptions && (
+            <div className={`absolute bg-red-500 w-max top-[${400}px] left-[${showOptions.x}px]`}>
+              hola mundo
+            </div>
+          )}
           {/* {validar && (
             <BlockValidacion
               nombreMesa={mesa.nombre_mesa}

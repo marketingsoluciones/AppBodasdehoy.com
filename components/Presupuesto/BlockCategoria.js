@@ -1,7 +1,7 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useExpanded, useTable } from "react-table";
 import { api } from "../../api";
-import {EventContextProvider} from "../../context";
+import { EventContextProvider } from "../../context";
 import { Capitalize, getCurrency } from "../../utils/Funciones";
 import FormAddPago from "../Forms/FormAddPago";
 import {
@@ -17,7 +17,7 @@ const BlockCategoria = ({ cate, set }) => {
   const { event, setEvent } = EventContextProvider()
   const [categoria, setCategoria] = useState({});
   const [data, setData] = useState([]);
-  const [GastoID, setGastoID] = useState({id: "", crear: false})
+  const [GastoID, setGastoID] = useState({ id: "", crear: false })
 
   useEffect(() => {
     setCategoria(
@@ -30,10 +30,10 @@ const BlockCategoria = ({ cate, set }) => {
         (item) => item._id == cate
       )?.gastos_array
     );
-    setGastoID(old => ({...old, crear:false}))
+    setGastoID(old => ({ ...old, crear: false }))
   }, [cate, event]);
 
-  
+
 
   const saldo = categoria?.coste_estimado - categoria?.coste_final;
 
@@ -41,31 +41,31 @@ const BlockCategoria = ({ cate, set }) => {
     () => [
       {
         Header: "Concepto",
-        accessor: "nombre", 
+        accessor: "nombre",
         id: "nombre",
         Cell: (props) => <CellEdit categoriaID={categoria?._id} type={"text"} autofocus {...props} />
       },
       {
         Header: "Estimado",
-        accessor: "coste_estimado", 
+        accessor: "coste_estimado",
         id: "coste_estimado",
         Cell: (props) => <CellEdit categoriaID={categoria?._id} type={"number"} {...props} />
       },
       {
         Header: "Coste final",
-        accessor: "coste_final", 
+        accessor: "coste_final",
         id: "coste_final",
         Cell: (props) => <CellEdit categoriaID={categoria?._id} type={"number"} {...props} />
       },
       {
         Header: "Pagado",
-        accessor: "pagado", 
+        accessor: "pagado",
         id: "pagado",
-        Cell: (props) => <CellPagado {...props} set={ act => setGastoID(act)} />,
+        Cell: (props) => <CellPagado {...props} set={act => setGastoID(act)} />,
       },
       {
         Header: "",
-        accessor: "options", 
+        accessor: "options",
         id: "options",
         Cell: (props) => {
           const handleRemove = async () => {
@@ -86,7 +86,7 @@ const BlockCategoria = ({ cate, set }) => {
                 }`,
                 variables: {},
               }
-              const {data:res} = await api.ApiBodas(params);
+              const { data: res } = await api.ApiBodas(params);
               data = res?.data?.borraGasto
               console.log(data)
             } catch (error) {
@@ -109,7 +109,7 @@ const BlockCategoria = ({ cate, set }) => {
                 old.presupuesto_objeto.coste_estimado = data?.coste_estimado
                 old.presupuesto_objeto.coste_final = data?.coste_final
                 old.presupuesto_objeto.pagado = data?.pagado
-                
+
                 //Actualizar estimado, final y pagado de la categoria
                 old.presupuesto_objeto.categorias_array[idxCategoria].coste_estimado = data?.categorias_array[0]?.coste_estimado
                 old.presupuesto_objeto.categorias_array[idxCategoria].coste_final = data?.categorias_array[0]?.coste_final
@@ -125,7 +125,7 @@ const BlockCategoria = ({ cate, set }) => {
 
           return (
             <>
-            
+
               <div className="w-full h-full flex items-center justify-center cursor-pointer relative">
                 <BorrarIcon
                   onClick={handleRemove}
@@ -178,24 +178,24 @@ const BlockCategoria = ({ cate, set }) => {
     }
   };
 
-  
 
-  const renderRowSubComponent = useCallback( ({ row, cate, gasto }) =>  (
-        <SubComponentePagos row={row} cate={cate} gasto={gasto} wantCreate={act => setGastoID(old => ({...old, crear: act}))} />
-    ),
+
+  const renderRowSubComponent = useCallback(({ row, cate, gasto }) => (
+    <SubComponentePagos row={row} cate={cate} gasto={gasto} wantCreate={act => setGastoID(old => ({ ...old, crear: act }))} />
+  ),
     []
   )
 
- 
-  
+
+
   return (
     <>
-    {GastoID.crear && (
-    <div className="absolute bg-white w-full h-full grid place-items-center z-20 rounded-xl white shadow-lg top-0 left-0 p-8">
-            <div className="font-display text-gray-500 hover:text-gray-300 transition text-lg absolute top-5 right-5 cursor-pointer hover:scale-125" onClick={() => setGastoID("")}>X</div>
-            <FormAddPago GastoID={GastoID?.id} cate={categoria?._id} />
+      {GastoID.crear && (
+        <div className="absolute bg-white w-full h-full grid place-items-center z-20 rounded-xl white shadow-lg top-0 left-0 p-8">
+          <div className="font-display text-gray-500 hover:text-gray-300 transition text-lg absolute top-5 right-5 cursor-pointer hover:scale-125" onClick={() => setGastoID("")}>X</div>
+          <FormAddPago GastoID={GastoID?.id} cate={categoria?._id} />
         </div>
-    )}
+      )}
       <div className="bg-white block-categoria h-max py-10 w-full rounded-xl shadow-lg overflow-hidden flex flex-col items-center relative ">
         <div
           onClick={() => set({ isVisible: false, id: "" })}
@@ -225,9 +225,8 @@ const BlockCategoria = ({ cate, set }) => {
             <h3 className="text-sm font-medium">
               Coste final:
               <span
-                className={`text-sm text-${
-                  Math.abs(saldo) == saldo ? "green" : "red"
-                }`}
+                className={`text-sm text-${Math.abs(saldo) == saldo ? "green" : "red"
+                  }`}
               >
                 {getCurrency(categoria?.coste_final)}
               </span>
@@ -241,9 +240,8 @@ const BlockCategoria = ({ cate, set }) => {
               {getCurrency(saldo)}
             </p>
             <svg
-              className={`bg-${
-                Math.abs(saldo) == saldo ? "green" : "red"
-              } h-full absolute top-0 left-0 z-0 transition`}
+              className={`bg-${Math.abs(saldo) == saldo ? "green" : "red"
+                } h-full absolute top-0 left-0 z-0 transition`}
               width={`${50}%`}
             ></svg>
           </div>
@@ -295,17 +293,18 @@ export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate
       className="table w-full rounded-lg relative mt-6"
     >
       <thead>
-        {headerGroups.map((headerGroup) => (
+        {headerGroups.map((headerGroup, id) => (
           <tr
             {...headerGroup.getHeaderGroupProps()}
             className="w-full grid grid-cols-10 py-2 bg-base"
+            key={id}
           >
-            {headerGroup.headers.map((column) => (
+            {headerGroup.headers.map((column, id) => (
               <th
                 {...column.getHeaderProps()}
-                className={`font-display font-semibold text-gray-500 text-sm col-span-${
-                  colSpan[column.id]
-                }`}
+                className={`font-display font-semibold text-gray-500 text-sm col-span-${colSpan[column.id]
+                  }`}
+                key={id}
               >
                 {column.render("Header")}
               </th>
@@ -318,33 +317,32 @@ export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate
           prepareRow(row);
           return (
             <>
-            <tr
-              key={i}
-              {...row.getRowProps()}
-              className="w-full transition border-b border-base hover:bg-base  w-full grid grid-cols-10"
-            >
-              {row.cells.map((cell, i) => {
-                return (
-                  <td
-                    key={i}
-                    {...cell.getCellProps()}
-                    className={`font-display text-sm w-full text-center text-left py-2 col-span-${
-                      colSpan[cell.column.id]
-                    }`}
-                  >
-                    {cell.render("Cell")}
-                  </td>
-                );
-              })}
-            </tr>
-            {row.isExpanded ? (
-                  <tr key={i} className="h-40 w-full">
-                    <td >
-                      {renderRowSubComponent({ row, cate, gasto })}
+              <tr
+                key={i}
+                {...row.getRowProps()}
+                className="w-full transition border-b border-base hover:bg-base  w-full grid grid-cols-10"
+              >
+                {row.cells.map((cell, i) => {
+                  return (
+                    <td
+                      key={i}
+                      {...cell.getCellProps()}
+                      className={`font-display text-sm w-full text-center text-left py-2 col-span-${colSpan[cell.column.id]
+                        }`}
+                    >
+                      {cell.render("Cell")}
                     </td>
-                  </tr>
-                ) : null}
-            </> 
+                  );
+                })}
+              </tr>
+              {row.isExpanded ? (
+                <tr key={i} className="h-40 w-full">
+                  <td >
+                    {renderRowSubComponent({ row, cate, gasto })}
+                  </td>
+                </tr>
+              ) : null}
+            </>
           );
         })}
         <tr className="w-full transition border-b border-base  cursor-pointer w-full grid grid-cols-4">

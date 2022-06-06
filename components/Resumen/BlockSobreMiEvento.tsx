@@ -24,7 +24,7 @@ import { capitalize } from "../../utils/Capitalize";
 import { Form, Formik } from "formik";
 import InputField from "../Forms/InputField";
 import { useDelayUnmount } from "../../utils/Funciones";
-import ModalBottom from "../utils/ModalBottom";
+import ModalBottom from "../Utils/ModalBottom";
 import { fetchApiEventos, queries } from '../../utils/Fetching';
 import { EventContextProvider, EventsGroupContextProvider } from "../../context";
 import { useToast } from "../../hooks/useToast";
@@ -52,13 +52,13 @@ const InsideBlockWithButtons: FC<propsInsideBlock> = ({
         <ElementItemInsideBlock
           key={idx}
           {...item}
-          onClick={ async () => {
+          onClick={async () => {
             try {
-              const result: any = await fetchApiEventos({query: queries.eventUpdate, variables: {idEvento: event._id, variable: title, value: item.title }, token: null})
-              if(result.errors){
+              const result: any = await fetchApiEventos({ query: queries.eventUpdate, variables: { idEvento: event._id, variable: title, value: item.title }, token: null })
+              if (result.errors) {
                 throw new Error("Hubo un error")
               }
-              setEvent({...event, [title] : item.title})
+              setEvent({ ...event, [title]: item.title })
               setFieldValue(title, item)
               setEditing(false)
               toast("success", "Guardado con exito")
@@ -71,35 +71,36 @@ const InsideBlockWithButtons: FC<propsInsideBlock> = ({
       ))}
     </div>
   );
-}; 
+};
 
-const InsideBlockWithForm: FC <propsInsideBlock> = ({setEditing, setFieldValue, title, values}) => {
+const InsideBlockWithForm: FC<propsInsideBlock> = ({ setEditing, setFieldValue, title, values }) => {
   const { event, setEvent } = EventContextProvider()
-  console.log("values",values)
-    return (
-      <div className="px-5">
+  console.log("values", values)
+  return (
+    <div className="px-5">
       <Formik initialValues={values[title]} onSubmit={async (values) => {
-        
+
         try {
-          const result : any = await fetchApiEventos({
-            query: queries.eventUpdate, 
-            variables: {idEvento: event._id, variable: title, value: values.title }, token: null})
-          if(result?.errors){
+          const result: any = await fetchApiEventos({
+            query: queries.eventUpdate,
+            variables: { idEvento: event._id, variable: title, value: values.title }, token: null
+          })
+          if (result?.errors) {
             throw new Error("Hubo un error")
           }
-          setFieldValue(title,{...values, icon: null})
-          setEvent({...event, ...values})
+          setFieldValue(title, { ...values, icon: null })
+          setEvent({ ...event, ...values })
           setEditing(false)
         } catch (error) {
           console.log(error)
         }
-        
+
       }}>
         <Form className="w-full">
-        <InputField
-          name={"title"}
-          placeholder={"Escribe tu tematica"}
-          label={"Tématica del evento"}
+          <InputField
+            name={"title"}
+            placeholder={"Escribe tu tematica"}
+            label={"Tématica del evento"}
           />
         </Form>
       </Formik>
@@ -146,7 +147,7 @@ const schema: schemaItem[] = [
     title: "temporada",
     list: [
       { title: "Invierno", icon: <SnowIcon />, color: "text-cyan-600" },
-      { title: "Primavera", icon: <SpringIcon />, color: "text-lime-600"},
+      { title: "Primavera", icon: <SpringIcon />, color: "text-lime-600" },
       { title: "Verano", icon: <SummerIcon />, color: "text-yellow-500" },
       { title: "Otoño", icon: <FallIcon />, color: "text-yellow-700" },
     ].map((item) => ({ ...item })),
@@ -168,7 +169,7 @@ const schema: schemaItem[] = [
     title: "tarta",
     list: null,
   },
-  
+
 ];
 
 
@@ -190,8 +191,8 @@ interface typeEvent {
 
 const BlockSobreMiEvento: FC = () => {
   const { event } = EventContextProvider()
-  const initialValues2 : values | {} = schema.reduce((acc, item) => {
-    if(event){
+  const initialValues2: values | {} = schema.reduce((acc, item) => {
+    if (event) {
       acc[item.title] = {
         title: event[item.title] ?? "",
         color: item?.list?.find(e => e.title === event[item.title])?.color ?? null,
@@ -215,45 +216,45 @@ const BlockSobreMiEvento: FC = () => {
 
   const settings = {
     spaceBetween: 50,
-    loop:true,
-    autoplay:{
+    loop: true,
+    autoplay: {
       delay: 2500,
       disableOnInteraction: false,
     },
-    breakpoints : {
+    breakpoints: {
       "0": {
-        slidesPerView:2
+        slidesPerView: 2
       },
       "480": {
-        slidesPerView:4
+        slidesPerView: 4
       }
     }
-   
+
   };
 
   useEffect(() => {
-    !shouldRenderChild && setItemSelected(null) 
+    !shouldRenderChild && setItemSelected(null)
   }, [shouldRenderChild])
-  
+
   return (
     <div className="w-full h-max">
       {shouldRenderChild && (
         <ModalBottom state={isMounted} set={setIsMounted}>
           {itemSelected &&
-          (itemSelected?.list ? (
+            (itemSelected?.list ? (
               <InsideBlockWithButtons
                 {...itemSelected}
                 setEditing={setIsMounted}
                 setFieldValue={setFieldValue}
               />
-          ) : (
-              <InsideBlockWithForm 
+            ) : (
+              <InsideBlockWithForm
                 {...itemSelected}
                 values={values}
                 setEditing={setIsMounted}
                 setFieldValue={setFieldValue}
               />
-          ))}
+            ))}
         </ModalBottom>
       )}
       <h2 className="font-display text-xl font-semibold text-gray-500 pb-2 text-left">
@@ -267,9 +268,9 @@ const BlockSobreMiEvento: FC = () => {
             <AboutItem
               {...item}
               toggleClick={() => {
-                if(!isMounted){
+                if (!isMounted) {
                   setItemSelected(item)
-                setIsMounted(true)
+                  setIsMounted(true)
                 }
               }}
               value={values[item.title]}
@@ -292,26 +293,26 @@ const AboutItem: FC<propsElement> = ({ title, value, toggleClick }) => {
 
   return (
     <>
-        <button
-          onClick={toggleClick}
-          className="relative bg-white rounded-full w-32 md:w-40 h-32 md:h-40 shadow-md relative gap-2 flex flex-col items-center justify-center focus:outline-none mx-auto inset-x-0"
-        >
-          {!value ? (
-            <InterrogacionIcon />
-          ) : (
-            value?.icon && cloneElement(value?.icon, {
-              className: `${value?.color} w-10 h-10`,
-            })
-          )}
-          <span className="leading-4 text-center">
-            <p className="font-display font-light md:text-md text-gray-500">
-              {title && capitalize(title)}
-            </p>
-            <p className="font-display font-base text-xs md:text-sm text-gray-700 font-semibold">
-              {value?.title && value.title}
-            </p>
-          </span>
-        </button>
-      </>
+      <button
+        onClick={toggleClick}
+        className="relative bg-white rounded-full w-32 md:w-40 h-32 md:h-40 shadow-md relative gap-2 flex flex-col items-center justify-center focus:outline-none mx-auto inset-x-0"
+      >
+        {!value ? (
+          <InterrogacionIcon />
+        ) : (
+          value?.icon && cloneElement(value?.icon, {
+            className: `${value?.color} w-10 h-10`,
+          })
+        )}
+        <span className="leading-4 text-center">
+          <p className="font-display font-light md:text-md text-gray-500">
+            {title && capitalize(title)}
+          </p>
+          <p className="font-display font-base text-xs md:text-sm text-gray-700 font-semibold">
+            {value?.title && value.title}
+          </p>
+        </span>
+      </button>
+    </>
   );
 };

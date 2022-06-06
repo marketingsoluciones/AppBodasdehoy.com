@@ -1,36 +1,40 @@
 import Image from "next/image";
 import React, { FC, useState } from "react";
 import { PencilEdit } from "../icons";
-import {capitalize} from '../../utils/Capitalize'
+import { capitalize } from '../../utils/Capitalize'
 import { EventContextProvider } from "../../context";
-import ModalLeft from "../utils/ModalLeft";
+import ModalLeft from "../Utils/ModalLeft";
 import { useDelayUnmount } from "../../utils/Funciones";
 import FormCrearEvento from "../Forms/FormCrearEvento";
 
-const BlockVista : FC= ({children}) => {
+interface propsBlockVista {
+  children?: React.ReactNode;
+}
+
+const BlockVista: FC<propsBlockVista> = ({ children }) => {
   const { event } = EventContextProvider();
-  const images : object = {
+  const images: object = {
     boda: "/cards/boda.webp",
     comunión: "/cards/comunion.webp",
     cumpleaños: "/cards/cumpleanos.webp",
-    bautizo : "/cards/bautizo.webp",
-    babyshower : "/cards/baby.webp",
+    bautizo: "/cards/bautizo.webp",
+    babyshower: "/cards/baby.webp",
     "desdepida de soltero": "/cards/despedida.webp",
-    graduación : "/cards/graduacion.webp"
+    graduación: "/cards/graduacion.webp"
 
   };
 
-  const seatedGuests : number = event?.invitados_array?.filter(
+  const seatedGuests: number = event?.invitados_array?.filter(
     (item) => item?.nombre_mesa?.toLowerCase() !== "no asignado"
   )?.length;
 
-  const newDate : Date = new Date(parseInt(event?.fecha));
-  const options : object = { year: "numeric", month: "long", day: "numeric" };
+  const newDate: Date = new Date(parseInt(event?.fecha));
+  const options: object = { year: "numeric", month: "long", day: "numeric" };
 
   return (
     <div className="w-full bg-white shadow rounded-xl overflow-hidden relative flex flex-col-reverse md:flex-row md:h-72 gap-12 md:gap-0 pt-12 md:pt-0">
       {event?.tipo && (
-          <img
+        <img
           src={images[event?.tipo]}
           className="md:w-1/2 md:h-full h-60 object-cover object-top rounded-xl"
           alt={event?.nombre}
@@ -97,35 +101,35 @@ const BlockVista : FC= ({children}) => {
   );
 };
 
-const BlockPrincipal : FC = () => {
+const BlockPrincipal: FC = () => {
   const [isMounted, setIsMounted] = useState<boolean>(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
-  const {event} = EventContextProvider()
-  
-  const handleEdit = () : void => {
+  const { event } = EventContextProvider()
+
+  const handleEdit = (): void => {
     setIsMounted(!isMounted);
   };
   return (
     <>
-    {shouldRenderChild && (
-      <ModalLeft set={setIsMounted} state={isMounted}>
-        <FormCrearEvento set={setIsMounted} state={isMounted} initialValues={event} />
-    </ModalLeft>
-    )}
-        <BlockVista >
-          <span
-            className="absolute top-5 right-5 transition transform hover:scale-105 hover:rotate-12 cursor-pointer z-30"
-            onClick={handleEdit}
-          >
-            <PencilEdit className="w-5 h-5 text-primary" />
-          </span>
-        </BlockVista>
+      {shouldRenderChild && (
+        <ModalLeft set={setIsMounted} state={isMounted}>
+          <FormCrearEvento set={setIsMounted} state={isMounted} initialValues={event} />
+        </ModalLeft>
+      )}
+      <BlockVista >
+        <span
+          className="absolute top-5 right-5 transition transform hover:scale-105 hover:rotate-12 cursor-pointer z-30"
+          onClick={handleEdit}
+        >
+          <PencilEdit className="w-5 h-5 text-primary" />
+        </span>
+      </BlockVista>
     </>
   );
 };
 export default BlockPrincipal;
 
-const BlockEditar = ({set, state}) => {
+const BlockEditar = ({ set, state }) => {
   return (
     <div className="w-full bg-white shadow rounded-xl overflow-hidden relative flex flex-col-reverse md:flex-row md:h-72 gap-12 md:gap-0 p-8">
       <div className="col-span-2 border-l-2 border-gray-100 pl-3 h-20 w-full ">

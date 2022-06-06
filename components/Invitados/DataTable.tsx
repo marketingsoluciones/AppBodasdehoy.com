@@ -6,7 +6,7 @@ import {
   useState,
   useContext,
   FC,
-  RefForwardingComponent,
+  ReactNode
 } from "react";
 import { useRowSelect, useTable } from "react-table";
 import { api } from "../../api";
@@ -30,14 +30,16 @@ export const IndeterminateCheckbox: ForwardRefComponent<HTMLInputElement, any> =
       if (checked !== ischecked) {
         setChecked(checked);
       } else {
-        //@ts-ignore
-        defaultRef?.current?.checked = ischecked;
+        if (defaultRef?.current?.checked) {
+          defaultRef.current.checked = ischecked;
+        }
       }
     }, [checked, ischecked, defaultRef]);
 
     useEffect(() => {
-      //@ts-ignore
-      defaultRef?.current?.indeterminate = indeterminate;
+      if (defaultRef?.current?.indeterminate) {
+        defaultRef.current.indeterminate = indeterminate;
+      }
     }, [defaultRef, indeterminate]);
 
     const handleCheck = (e: any) => {
@@ -64,10 +66,11 @@ export const IndeterminateCheckbox: ForwardRefComponent<HTMLInputElement, any> =
 interface propsDataTableFinal {
   data: guests[];
   columns: any;
+  children?: ReactNode;
 }
 
 const DataTableFinal: FC<propsDataTableFinal> = (props) => {
-  const { children, data = [], columns = []} = props;
+  const { children, data = [], columns = [] } = props;
   const { event } = EventContextProvider();
 
   // Uso de useTable para pasar data y cargar propiedades
@@ -84,7 +87,7 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
 
           Cell: (props) => {
             const { row } = props;
-            const {dispatch, dataTableGroup: {arrIDs, checkedAll}} = DataTableGroupContextProvider()
+            const { dispatch, dataTableGroup: { arrIDs, checkedAll } } = DataTableGroupContextProvider()
 
             useEffect(() => {
               checkedAll
@@ -94,16 +97,16 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
 
             useEffect(() => {
               const id = row?.original?._id;
-                if(row.isSelected && !arrIDs.includes(id)){
-                  console.log("hola")
-                  dispatch({type: "ADD_ROW_SELECTED", payload: id})
-                }
+              if (row.isSelected && !arrIDs.includes(id)) {
+                console.log("hola")
+                dispatch({ type: "ADD_ROW_SELECTED", payload: id })
+              }
 
-                if(!row.isSelected && arrIDs.includes(id)){
-                  dispatch({type: "REMOVE_ROW_SELECTED", payload: id})
-                }
+              if (!row.isSelected && arrIDs.includes(id)) {
+                dispatch({ type: "REMOVE_ROW_SELECTED", payload: id })
+              }
 
-             }, [row.isSelected]);
+            }, [row.isSelected]);
 
             return (
               <div className="w-full flex justify-center items-center">
@@ -129,7 +132,7 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
     toggleHideColumn,
   } = tableInstance;
 
-  const ColSpan = (id: string, headers : {id: string}[], columns: number = 12) => {
+  const ColSpan = (id: string, headers: { id: string }[], columns: number = 12) => {
 
     const values = {
       selection: 10,
@@ -146,16 +149,16 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
       totalCount: number
     }
 
-    const {residuo, totalCount} = headers.reduce((acc : conteo , header) => {
-      if(values[header.id]){
+    const { residuo, totalCount } = headers.reduce((acc: conteo, header) => {
+      if (values[header.id]) {
         acc.base = acc.base + values[header.id]
         acc.totalCount = acc.totalCount + 1
       }
       acc.residuo = 100 - acc.base
       return acc
-    }, {base: 0, residuo: 0, totalCount: 0})
+    }, { base: 0, residuo: 0, totalCount: 0 })
 
-    if(residuo){
+    if (residuo) {
       const sumar = residuo / totalCount
       const span = Math.round((values[id] + sumar) * columns / 100)
       return span
@@ -209,7 +212,7 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
                         <th
                           {...column.getHeaderProps()}
                           key={i}
-                          className={`px-6 py-3 text-center text-sm font-light font-display col-span-${ColSpan(column.id, headerGroup.headers,12)}`}
+                          className={`px-6 py-3 text-center text-sm font-light font-display col-span-${ColSpan(column.id, headerGroup.headers, 12)}`}
                         >
                           {
                             // Render the header
@@ -251,10 +254,10 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
                     row.cells.map((cell, i) => {
                       return (
                         <td
-                        key={i}
+                          key={i}
                           {...cell.getCellProps()}
-                          className={`px-6 py-2 flex items-center col-span-${ColSpan(cell.column.id, row.cells.map(item => item.column),12)}`}
-                          
+                          className={`px-6 py-2 flex items-center col-span-${ColSpan(cell.column.id, row.cells.map(item => item.column), 12)}`}
+
                         >
                           {
                             // Render the cell contents
@@ -270,8 +273,8 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
           }
         </tbody>
       </table>
-      
-     
+
+
     </div>
   );
 };

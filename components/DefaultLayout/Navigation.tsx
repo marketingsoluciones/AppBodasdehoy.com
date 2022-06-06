@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useMemo, useEffect, useState } from "react";
+import { FC, useMemo, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 
 import {
@@ -24,7 +24,12 @@ import Sidebar from "../Utils/Sidebar";
 import BlockNotification from "./BlockNotification";
 import { useToast } from "../../hooks/useToast";
 
-const Navigation = () => {
+const Navigation: any = (
+  notificaciones: any,
+  set: any,
+  state: any,
+  active: any,
+): any => {
   const toast = useToast();
   const { event } = EventContextProvider();
   const { setLoading } = LoadingContextProvider();
@@ -67,7 +72,7 @@ const Navigation = () => {
   }, [router]);
 
   const handleClick = (idx, event) => {
-    if(idx > 0 && !event._id){
+    if (idx > 0 && !event._id) {
       toast("warning", "Debes seleccionar un evento")
     }
     return
@@ -84,27 +89,27 @@ const Navigation = () => {
       )}
       <Sidebar state={showSidebar} set={(accion) => setShowSidebar(accion)} />
       <header className="relative w-full bg-white">
-          <div className="max-w-screen-lg h-16 px-5 lg:px-0 w-full flex justify-between items-center mx-auto inset-x-0 ">
-            <MenuIcon
-              onClick={() => setShowSidebar(!showSidebar)}
-              className="md:hidden cursor-pointer"
-            />
-            <span
-              onClick={() => {
-                Loading(setLoading);
-              }}
-              className="cursor-pointer w-40 items-center flex justify-center"
-            >
-              <Link href="/">
-                <LogoNuevoBodasBlanco className="hover:opacity-80 transition text-primary" />
-              </Link>
-            </span>
-            <Profile
-              state={isMounted}
-              set={(act) => setIsMounted(act)}
-              user={user}
-            />
-          </div>
+        <div className="max-w-screen-lg h-16 px-5 lg:px-0 w-full flex justify-between items-center mx-auto inset-x-0 ">
+          <MenuIcon
+            onClick={() => setShowSidebar(!showSidebar)}
+            className="md:hidden cursor-pointer"
+          />
+          <span
+            onClick={() => {
+              Loading(setLoading);
+            }}
+            className="cursor-pointer w-40 items-center flex justify-center"
+          >
+            <Link href="/">
+              <LogoNuevoBodasBlanco className="hover:opacity-80 transition text-primary" />
+            </Link>
+          </span>
+          <Profile
+            state={isMounted}
+            set={(act) => setIsMounted(act)}
+            user={user}
+          />
+        </div>
 
         <div className={`w-full h-20 relative hidden md:block bg-base z-10`}>
           <ul className="absolute m-auto inset-0 py-4 w-max h-max flex gap-12">
@@ -112,13 +117,12 @@ const Navigation = () => {
               <Link key={idx} href={item.route} passHref>
                 <li
                   onClick={() => handleClick(idx, event)}
-                  className={`w-max flex flex-col justify-between items-center hover:opacity-80 cursor-pointer transition ${
-                    router.pathname.slice(1) == item.title.toLowerCase()
-                      ? "text-primary transform scale-105"
-                      : router.pathname == "/"
+                  className={`w-max flex flex-col justify-between items-center hover:opacity-80 cursor-pointer transition ${router.pathname.slice(1) == item.title.toLowerCase()
+                    ? "text-primary transform scale-105"
+                    : router.pathname == "/"
                       ? "text-white"
                       : "text-gray-400"
-                  }`}
+                    }`}
                 >
                   {item.icon}
                   <p className="font-display text-sm h-max">{item.title}</p>
@@ -127,9 +131,8 @@ const Navigation = () => {
             ))}
           </ul>
           <Banner
-            className={`${
-              pink ? "text-primary" : "text-white"
-            } w-full transition`}
+            className={`${pink ? "text-primary" : "text-white"
+              } w-full transition`}
           />
         </div>
       </header>

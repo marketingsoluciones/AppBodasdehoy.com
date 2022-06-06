@@ -1,9 +1,10 @@
 import { Formik, ErrorMessage } from "formik";
-import {useContext} from 'react'
-import EventoContext from '../../context/EventoContext'
-import {api} from '../../api'
+import { useContext } from 'react'
+import EventoContext from '../../context/EventContext'
+import { EventContextProvider } from "../../context";
+import { api } from '../../api'
 export default function Test() {
-    const { evento } = EventContextProvider()
+  const { event } = EventContextProvider()
   const initialValue = {
     email: "",
   };
@@ -23,26 +24,26 @@ export default function Test() {
 
   const handleClick = async (values, actions) => {
     const params = {
-        query: `mutation TestInvitacion ($eventoID : String, $email : [String]){
+      query: `mutation TestInvitacion ($eventoID : String, $email : [String]){
           testInvitacion(evento_id:$eventoID,
           email:$email)
         }        
         `,
-        variables: {
-          eventoID : evento?._id,
-          email : [values.email],
-        },
-      };
-      
-      try {
-        actions.setSubmitting(true)
-        const {data} = await api.ApiBodas(params)
-        console.log(data)
-      } catch (error) {
-        console.log(error)
-      } finally {
-        actions.setSubmitting(false)
-      }
+      variables: {
+        eventoID: evento?._id,
+        email: [values.email],
+      },
+    };
+
+    try {
+      actions.setSubmitting(true)
+      const { data } = await api.ApiBodas(params)
+      console.log(data)
+    } catch (error) {
+      console.log(error)
+    } finally {
+      actions.setSubmitting(false)
+    }
   }
 
   return (
@@ -50,7 +51,7 @@ export default function Test() {
       <h3 className="font-medium">Enviar correo de prueba</h3>
       <Formik
         validate={validacion}
-        onSubmit={(values, actions) => handleClick(values, actions) }
+        onSubmit={(values, actions) => handleClick(values, actions)}
         initialValues={initialValue}
       >
         {({ handleSubmit, handleChange, values }) => (
@@ -83,26 +84,26 @@ export default function Test() {
 
 
 const Aceptar = async () => {
-    
-  
-    try {
-      await api.ApiBodas(params);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setEvento((old) => {
-        arrEnviarInvitaciones.forEach((invitado) => {
-          const idxInvitado = evento?.invitados_array?.findIndex(
-            (inv) => inv._id == invitado
-          );
-          old.invitados_array[idxInvitado] = {
-            ...old.invitados_array[idxInvitado],
-            invitacion: true,
-          };
-        });
-  
-        return { ...old };
+
+
+  try {
+    await api.ApiBodas(params);
+  } catch (error) {
+    console.log(error);
+  } finally {
+    setEvento((old) => {
+      arrEnviarInvitaciones.forEach((invitado) => {
+        const idxInvitado = evento?.invitados_array?.findIndex(
+          (inv) => inv._id == invitado
+        );
+        old.invitados_array[idxInvitado] = {
+          ...old.invitados_array[idxInvitado],
+          invitacion: true,
+        };
       });
-      set([])
-    }
-  };
+
+      return { ...old };
+    });
+    set([])
+  }
+};

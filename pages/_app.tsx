@@ -7,13 +7,13 @@ import { AnimatePresence } from 'framer-motion';
 const MyApp = ({ Component, pageProps }) => {
   return (
     <>
-  <AnimatePresence exitBeforeEnter initial={false}>
-  <DefaultLayout>
-  <Component {...pageProps} />
-  </DefaultLayout>
-  </AnimatePresence>
-  <style jsx global>
-      {`
+      <AnimatePresence exitBeforeEnter initial={false}>
+        <DefaultLayout>
+          <Component {...pageProps} />
+        </DefaultLayout>
+      </AnimatePresence>
+      <style jsx global>
+        {`
         ::-webkit-scrollbar {
           width: 8px;
         }
@@ -28,8 +28,9 @@ const MyApp = ({ Component, pageProps }) => {
           height: 50%;
         }
       `}
-    </style>
-  </>
-  )}
+      </style>
+    </>
+  )
+}
 
 export default MyApp

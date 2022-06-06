@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { useTable } from "react-table";
-import {EventContextProvider} from "../../context";
+import { EventContextProvider } from "../../context";
 import { Capitalize, getCurrency } from "../../utils/Funciones";
 import FormEditarPago from "../Forms/FormEditarPago";
 import { EditarIcon } from "../icons";
@@ -52,7 +52,7 @@ const TablaDatosPagos = () => {
   const [PagoID, setPagoID] = useState("")
 
 
-  
+
   const Columna = useMemo(
     () => [
       {
@@ -64,9 +64,8 @@ const TablaDatosPagos = () => {
           return (
             <div className="grid place-items-center h-full w-full">
               <p
-                className={`${
-                  value == "pendiente" ? "text-gray-100" : "text-green"
-                } font-display font-medium capitalize`}
+                className={`${value == "pendiente" ? "text-gray-100" : "text-green"
+                  } font-display font-medium capitalize`}
               >
                 {value}
               </p>
@@ -86,7 +85,7 @@ const TablaDatosPagos = () => {
           return (
             <div className="w-full pl-20">
               <p className="font-display font-semibold text-gray-300 text-lg text-left leading-5">
-              {Capitalize(value)} <br />
+                {Capitalize(value)} <br />
                 <span className="text-xs font-light">{Capitalize(props?.row?.original?.nombreCategoria)}</span>
               </p>
             </div>
@@ -159,7 +158,7 @@ const TablaDatosPagos = () => {
       // Recorrer cada gasto
       const reduce = categoria?.gastos_array?.reduce((arr, gasto) => {
         if (gasto?.pagos_array?.length >= 1) {
-          
+
           // Recorrer cada pago
           const reducePagos = gasto?.pagos_array?.reduce((arrPagos, pago) => {
             const objetoNuevo = {
@@ -191,18 +190,18 @@ const TablaDatosPagos = () => {
 
   return (
     <>
-    {PagosOrFormAdd
-    ? <DataTable columns={Columna} data={data} />
-    : (
-    <div className="bg-white p-6">
-      <p onClick={() => setShowPagos(!PagosOrFormAdd)} className="absolute font-display text-xl transform transition top-5 right-5 text-gray-500 hover:scale-125 cursor-pointer">X</p>
-    <FormEditarPago ListaPagos={data} IDPagoAModificar={PagoID} set={act => setShowPagos(act)} state={PagosOrFormAdd} />
-    </div>
-    )
-    }
-    
+      {PagosOrFormAdd
+        ? <DataTable columns={Columna} data={data} />
+        : (
+          <div className="bg-white p-6">
+            <p onClick={() => setShowPagos(!PagosOrFormAdd)} className="absolute font-display text-xl transform transition top-5 right-5 text-gray-500 hover:scale-125 cursor-pointer">X</p>
+            <FormEditarPago ListaPagos={data} IDPagoAModificar={PagoID} set={act => setShowPagos(act)} state={PagosOrFormAdd} />
+          </div>
+        )
+      }
+
     </>
-  ) 
+  )
 };
 
 const DataTable = ({ columns, data }) => {
@@ -218,15 +217,17 @@ const DataTable = ({ columns, data }) => {
   return (
     <table {...getTableProps()} className="table w-full rounded-lg relative">
       <thead>
-        {headerGroups.map((headerGroup) => (
+        {headerGroups.map((headerGroup, id) => (
           <tr
             {...headerGroup.getHeaderGroupProps()}
             className="w-full grid grid-cols-10 py-2 bg-base uppercase "
+            key={id}
           >
-            {headerGroup.headers.map((column, idx) => (
+            {headerGroup.headers.map((column, idx, id) => (
               <th
                 {...column.getHeaderProps()}
                 className={`font-display font-light text-gray-500 text-sm col-span-${colSpan[idx]}`}
+                key={id}
               >
                 {column.render("Header")}
               </th>
@@ -235,12 +236,13 @@ const DataTable = ({ columns, data }) => {
         ))}
       </thead>
       <tbody {...getTableBodyProps()} className="text-gray-300 text-sm ">
-        {rows.length >= 1 ? rows.map((row, i) => {
+        {rows.length >= 1 ? rows.map((row, id) => {
           prepareRow(row);
           return (
             <tr
               {...row.getRowProps()}
               className="w-full transition border-b border-base hover:bg-base cursor-pointer w-full grid grid-cols-10"
+              key={id}
             >
               {row.cells.map((cell, idx) => {
                 return (

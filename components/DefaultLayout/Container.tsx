@@ -7,7 +7,7 @@ import {
   EventsGroupContextProvider,
 } from "../../context";
 import BarraLoading from "./BarraLoading";
-//import { api } from "../../api";
+import { api } from "../../api";
 import NavigationMobile from "./NavigationMobile";
 import Navigation from "./Navigation";
 
@@ -34,7 +34,7 @@ const Container = (props) => {
 
   const [conectado, setConectado] = useState("false");
 
-  /* useEffect(() => {
+  useEffect(() => {
     async function Suscripcion() {
       if (user) {
         const query = `subscription{
@@ -47,7 +47,7 @@ const Container = (props) => {
         cliente.request({ query }).subscribe(({ data }) => {
           const noti = data.canal;
           if (noti.tipo == "notificacion") {
-            setEventsGroup((eventos) => {
+            setEventsGroup((eventos: any): any => {
               const index = eventos.findIndex(
                 (evento) => evento._id == noti.evento_id
               );
@@ -60,26 +60,26 @@ const Container = (props) => {
               ];
             });
           }
-          if (noti.tipo == "chat") {
+          /*if (noti.tipo == "chat") {
             setChat((old) => ({ ...old, canales: ["1", "2", "3"] }));
-          }
+          }*/
         });
       }
     }
     if (conectado == "false") {
       Suscripcion();
     }
-  }, [user]); */
+  }, [user]);
 
   return (
     <>
       <NavigationMobile />
-      {/* <Navigation
+      <Navigation
         notificaciones={notificaciones}
-        set={(accion) => setShow(accion)}
+        set={(accion: any) => setShow(accion)}
         state={show}
         active={active}
-      /> */}
+      />
 
       <BarraLoading />
       <main>{children}</main>
