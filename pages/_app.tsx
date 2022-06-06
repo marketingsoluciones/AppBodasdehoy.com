@@ -7,11 +7,11 @@ import { AnimatePresence } from 'framer-motion';
 const MyApp = ({ Component, pageProps }) => {
   return (
     <>
-      <AnimatePresence exitBeforeEnter initial={false}>
-        <DefaultLayout>
-          <Component {...pageProps} />
-        </DefaultLayout>
-      </AnimatePresence>
+      {/*<AnimatePresence exitBeforeEnter initial={false}>*/}
+      <DefaultLayout>
+        <Component {...pageProps} />
+      </DefaultLayout>
+      {/*</AnimatePresence>*/}
       <style jsx global>
         {`
         ::-webkit-scrollbar {
