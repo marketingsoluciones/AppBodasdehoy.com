@@ -42,7 +42,9 @@ const Container = (props) => {
             usuario_id,evento_id,_id,fecha_creacion,mensaje,tipo
           }
         }`;
-        const cliente = await api.Suscripcion();
+
+        // para conectarse a supscripciones de graphql
+        /*const cliente = await api.Suscripcion();
         setConectado("true");
         cliente.request({ query }).subscribe(({ data }) => {
           const noti = data.canal;
@@ -60,10 +62,10 @@ const Container = (props) => {
               ];
             });
           }
-          /*if (noti.tipo == "chat") {
-            setChat((old) => ({ ...old, canales: ["1", "2", "3"] }));
-          }*/
-        });
+          //if (noti.tipo == "chat") {
+          //  setChat((old) => ({ ...old, canales: ["1", "2", "3"] }));
+          //}
+        });*/
       }
     }
     if (conectado == "false") {
