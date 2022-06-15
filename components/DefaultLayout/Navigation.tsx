@@ -100,7 +100,7 @@ const Navigation: any = (
             }}
             className="cursor-pointer w-40 items-center flex justify-center"
           >
-            <Link href="/">
+            <Link href={process.env.NEXT_PUBLIC_DIRECTORY ?? ""}>
               <LogoNuevoBodasBlanco className="hover:opacity-80 transition text-primary" />
             </Link>
           </span>
