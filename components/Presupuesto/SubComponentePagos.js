@@ -1,4 +1,5 @@
-import { Capitalize, getCurrency } from "../../utils/Funciones";
+import { getCurrency } from "../../utils/Funciones";
+import { capitalize } from '../../utils/Capitalize';
 import { BorrarIcon, EditarIcon, PlusIcon } from "../icons";
 import { api } from "../../api";
 import { useContext, useEffect, useState } from "react";
@@ -32,7 +33,7 @@ const SubComponentePagos = ({ row, cate, gasto, wantCreate }) => {
       ) : (
         <div className="w-full h-max p-6 bg-white relative">
           <p onClick={() => setShow(!show)} className="absolute font-display text-xl transform transition top-5 right-5 text-gray-500 hover:scale-125 cursor-pointer">X</p>
-          <FormEditarPago ListaPagos={row.original.pagos_array} IDPagoAModificar={PagoModificar} IDs={{idGasto: gasto, idCategoria: cate}} set={act => setShow(act)} state={show}/>
+          <FormEditarPago ListaPagos={row.original.pagos_array} IDPagoAModificar={PagoModificar} IDs={{ idGasto: gasto, idCategoria: cate }} set={act => setShow(act)} state={show} />
         </div>
       )}
     </div>
@@ -134,11 +135,10 @@ const ListadoComponent = ({ pagos_array, cate, gasto, wantCreate, idModificar, r
           <span className="items-center col-span-2 flex flex-col justify-center">
             <p className="font-display text-md font-medium">DETALLES</p>
             <p
-              className={`font-display text-md ${
-                item.estado == "pagado" ? "text-green" : ""
-              }`}
+              className={`font-display text-md ${item.estado == "pagado" ? "text-green" : ""
+                }`}
             >
-              {Capitalize(item.estado)}
+              {capitalize(item.estado)}
             </p>
           </span>
 

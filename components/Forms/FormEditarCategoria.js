@@ -1,8 +1,8 @@
 import { Formik } from "formik";
 import { useContext, useState } from "react";
 import { api } from "../../api";
-import {EventContextProvider} from "../../context";
-import { Capitalize } from "../../utils/Funciones";
+import { EventContextProvider } from "../../context";
+import { capitalize } from '../../utils/Capitalize';
 import InputField from "./InputField";
 
 const validacion = (values) => {
@@ -19,7 +19,7 @@ const FormEditarCategoria = ({ set, state, categoria }) => {
   return (
     <Formik
       initialValues={{
-        nombre: categoria?.nombre && Capitalize(categoria?.nombre),
+        nombre: categoria?.nombre && capitalize(categoria?.nombre),
       }}
       onSubmit={async (values, actions) => {
         const params = {
@@ -42,7 +42,7 @@ const FormEditarCategoria = ({ set, state, categoria }) => {
           setEvent(old => {
             const index = old?.presupuesto_objeto?.categorias_array?.findIndex(item => item._id == categoria._id)
             old.presupuesto_objeto.categorias_array[index].nombre = values.nombre
-            return {...old}
+            return { ...old }
           });
           actions.setSubmitting(false);
         }
@@ -93,9 +93,8 @@ export const BasicForm = ({
           </div>
         </div>
         <button
-          className={`font-display rounded-full mt-4 py-2 px-6 text-white font-medium transition w-full hover:opacity-70 ${
-            isSubmitting ? "bg-secondary" : "bg-primary"
-          }`}
+          className={`font-display rounded-full mt-4 py-2 px-6 text-white font-medium transition w-full hover:opacity-70 ${isSubmitting ? "bg-secondary" : "bg-primary"
+            }`}
           disabled={isSubmitting}
           type="submit"
         >

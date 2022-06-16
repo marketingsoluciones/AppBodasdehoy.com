@@ -2,7 +2,8 @@ import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useExpanded, useTable } from "react-table";
 import { api } from "../../api";
 import { EventContextProvider } from "../../context";
-import { Capitalize, getCurrency } from "../../utils/Funciones";
+import { getCurrency } from "../../utils/Funciones";
+import { capitalize } from '../../utils/Capitalize';
 import FormAddPago from "../Forms/FormAddPago";
 import {
   BorrarIcon,
@@ -209,7 +210,7 @@ const BlockCategoria = ({ cate, set }) => {
             <MisEventosIcon className="text-white w-7 h-7" />
           </div>
           <h2 className="font-display font-medium text-lg text-primary">
-            {Capitalize(categoria?.nombre)}
+            {capitalize(categoria?.nombre)}
           </h2>
         </div>
         <div className="justify-between w-4/6 gap-3 flex items-center font-display text-gray-500">
