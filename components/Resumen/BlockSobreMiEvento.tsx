@@ -292,7 +292,7 @@ const AboutItem: FC<propsElement> = ({ title, value, toggleClick }) => {
           <p className="font-display font-light md:text-md text-gray-500">
             {title && capitalize(title)}
           </p>
-          <p className="font-display font-base text-xs md:text-sm text-gray-700 font-semibold">
+          <p className={'overflow-auto font-display font-base text-xs md:text-sm text-gray-700 font-semibold'}>
             {value?.title && value.title}
           </p>
         </span>
