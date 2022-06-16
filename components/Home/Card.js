@@ -72,23 +72,24 @@ const Card = ({ evento }) => {
           isHovered ? "transform translate-x-1/2 duration-700" : ""
         } transition h-32 w-16 bg-secondary absolute right-0  rounded-xl flex flex-col items-end justify-center px-2 gap-5 `}
       >
-        <span ref={refVista}>
+        {/* <span 
+        ref={refVista}>
           <VistaPreviaIcon className="cursor-pointer text-white hover:text-gray-500" />
           {isVista ? (
             <span className="bg-white absolute transition w-max h-max rounded-xl px-3 py-1 shadow font-display text-sm text-gray-500 top-2 right-0 transform translate-x-full">
               Ver
             </span>
           ) : null}
-        </span>
+        </span> */}
 
-        <span className="w-max h-max" ref={refEditar}>
+        {/* <span className="w-max h-max" ref={refEditar}>
           <EditarIcon className="cursor-pointer text-white hover:text-gray-500" />
           {isEditar ? (
             <span className="bg-white absolute transition w-max h-max rounded-xl px-3 py-1 shadow font-display text-sm text-gray-500 top-12 right-0 transform translate-x-full">
               Editar
             </span>
           ) : null}
-        </span>
+        </span> */}
 
         <span
           onClick={handleRemoveEvent}
@@ -97,7 +98,7 @@ const Card = ({ evento }) => {
         >
           <BorrarIcon className="cursor-pointer text-white hover:text-gray-500" />
           {isBorrar ? (
-            <span className="bg-white absolute transition w-max h-max rounded-xl px-3 py-1 shadow font-display text-sm text-gray-500 bottom-3 right-0 transform translate-x-full">
+            <span className="bg-white absolute transition w-max h-max rounded-xl px-3  shadow font-display text-sm text-gray-500 top-14  right-0 transform translate-x-full">
               Borrar
             </span>
           ) : null}
