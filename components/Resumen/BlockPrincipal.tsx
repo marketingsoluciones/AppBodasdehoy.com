@@ -34,11 +34,11 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
 
   return (
     <>
-      <span className="text-tertiary text-sm">
+      <span className="text-gray-500 text-xs">
         {event?._id}
       </span>
 
-      <div className="w-full bg-white shadow rounded-xl overflow-hidden relative flex flex-col-reverse md:flex-row md:h-72 gap-12 md:gap-0 pt-12 md:pt-0">
+      <div className="w-full bg-white shadow rounded-xl overflow-hidden relative flex flex-col-reverse md:flex-row md:h-72 gap-12 md:gap-0 pt-6 md:pt-0">
         {event?.tipo && (
           <img
             src={images[event?.tipo]}
