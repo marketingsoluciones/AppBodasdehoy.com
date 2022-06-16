@@ -2,6 +2,10 @@ import '../styles/globals.css'
 import DefaultLayout from '../layouts/DefaultLayout'
 import "swiper/components/pagination/pagination.min.css"
 import "swiper/swiper.min.css";
+
+
+
+
 import { AnimatePresence } from 'framer-motion';
 
 const MyApp = ({ Component, pageProps }) => {

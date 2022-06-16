@@ -1,25 +1,6 @@
-import {
-  FallIcon,
-  IconColors,
-  InterrogacionIcon,
-  ParkIcon,
-  SnowIcon,
-  SpringIcon,
-  SummerIcon,
-  LivingRoomIcon,
-  PoolIcon,
-  HouseIcon,
-} from "../icons";
-import { Swiper, SwiperSlide } from "swiper/react";
-import {
-  cloneElement,
-  Dispatch,
-  FC,
-  MouseEventHandler,
-  SetStateAction,
-  useEffect,
-  useState,
-} from "react";
+import {FallIcon,IconColors,InterrogacionIcon,ParkIcon,SnowIcon,SpringIcon,SummerIcon,LivingRoomIcon,PoolIcon,HouseIcon,} from "../icons";
+import { Swiper, SwiperSlide, } from "swiper/react";
+import {cloneElement,Dispatch,FC,MouseEventHandler,SetStateAction,useEffect,useState,} from "react";
 import { capitalize } from "../../utils/Capitalize";
 import { Form, Formik } from "formik";
 import InputField from "../Forms/InputField";
@@ -28,6 +9,10 @@ import ModalBottom from "../Utils/ModalBottom";
 import { fetchApiEventos, queries } from '../../utils/Fetching';
 import { EventContextProvider, EventsGroupContextProvider } from "../../context";
 import { useToast } from "../../hooks/useToast";
+
+import "swiper/components/pagination/pagination.min.css"
+import "swiper/swiper.min.css";
+
 
 interface propsInsideBlock extends schemaItem {
   setSelected?: Dispatch<
@@ -169,11 +154,7 @@ const schema: schemaItem[] = [
     title: "tarta",
     list: null,
   },
-
 ];
-
-
-
 
 interface values {
   color: typeEvent,
@@ -191,6 +172,7 @@ interface typeEvent {
 
 const BlockSobreMiEvento: FC = () => {
   const { event } = EventContextProvider()
+  
   const initialValues2: values | {} = schema.reduce((acc, item) => {
     if (event) {
       acc[item.title] = {
@@ -217,6 +199,7 @@ const BlockSobreMiEvento: FC = () => {
   const settings = {
     spaceBetween: 50,
     loop: true,
+    navigation: true,
     autoplay: {
       delay: 2500,
       disableOnInteraction: false,
@@ -261,6 +244,7 @@ const BlockSobreMiEvento: FC = () => {
         Sobre mi evento
       </h2>
       <Swiper
+        
         {...settings}
       >
         {schema.map((item, idx) => (

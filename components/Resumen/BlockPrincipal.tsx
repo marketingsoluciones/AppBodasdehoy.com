@@ -29,75 +29,83 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
   )?.length;
 
   const newDate: Date = new Date(parseInt(event?.fecha));
+
   const options: object = { year: "numeric", month: "long", day: "numeric" };
 
   return (
-    <div className="w-full bg-white shadow rounded-xl overflow-hidden relative flex flex-col-reverse md:flex-row md:h-72 gap-12 md:gap-0 pt-12 md:pt-0">
-      {event?.tipo && (
-        <img
-          src={images[event?.tipo]}
-          className="md:w-1/2 md:h-full h-60 object-cover object-top rounded-xl"
-          alt={event?.nombre}
-        />
-      )}
+    <>
+      <span className="text-tertiary text-sm">
+        {event?._id}
+      </span>
 
-      {children}
-      <div className="md:w-1/2 h-full flex flex-col items-center justify-center px-8 gap-6 relative">
-        <div className="w-max mx-auto inset-x-0 text-center">
-          <h1 className="font-display font-semibold text-3xl text-gray-500">
-            {event?.nombre}
-          </h1>
-          <span className="font-display font-base text-sm flex gap-2 mx-auto w-max inset-x-0">
-            <p className="text-gray-500">
-              {/* @ts-ignore */}
-              {newDate.toLocaleDateString("es-VE", options)}
-            </p>
-            -<p className="text-primary">{event?.tipo && capitalize(event?.tipo)}</p>
-          </span>
-        </div>
+      <div className="w-full bg-white shadow rounded-xl overflow-hidden relative flex flex-col-reverse md:flex-row md:h-72 gap-12 md:gap-0 pt-12 md:pt-0">
+        {event?.tipo && (
+          <img
+            src={images[event?.tipo]}
+            className="md:w-1/2 md:h-full h-60 object-cover object-top rounded-xl"
+            alt={event?.nombre}
+          />
+        )}
 
-        <div className="w-full">
-          <span className="w-full justify-between flex">
-            <p className="font-display text-xs text-gray-500">Estado</p>
-            <p className="font-display text-xs text-gray-500">
-              ¡A celebrar! ¿Empezamos?
-            </p>
-          </span>
-          <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-            <svg className="bg-primary h-full" width="46%" />
-          </div>
-        </div>
-
-        <div className="w-full justify-between flex">
-          <div className="w-1/3 grid place-items-center">
-            <p className="font-display text-lg font-base text-gray-500">
-              2 de 13
-            </p>
-            <p className="font-display text-xs font-base text-gray-500">
-              servicios contratados
-            </p>
+        {children}
+        <div className="md:w-1/2 h-full flex flex-col items-center justify-center px-8 gap-6 relative">
+          <div className="w-max mx-auto inset-x-0 text-center">
+            
+            <h1 className="font-display font-semibold text-3xl text-gray-500">
+              {event?.nombre}
+            </h1>
+            <span className="font-display font-base text-sm flex gap-2 mx-auto w-max inset-x-0">
+              <p className="text-gray-500">
+                {/* @ts-ignore */}
+                {newDate.toLocaleDateString("es-VE", options)}
+              </p>
+              -<p className="text-primary">{event?.tipo && capitalize(event?.tipo)}</p>
+            </span>
           </div>
 
-          <div className="w-1/3 grid place-items-center">
-            <p className="font-display text-lg font-base text-gray-500">
-              {event?.invitados_array?.length}
-            </p>
-            <p className="font-display text-xs font-base text-gray-500">
-              invitado{event?.invitados_array?.length > 1 ? "s" : ""}
-            </p>
+          <div className="w-full">
+            <span className="w-full justify-between flex">
+              <p className="font-display text-xs text-gray-500">Estado</p>
+              <p className="font-display text-xs text-gray-500">
+                ¡A celebrar! ¿Empezamos?
+              </p>
+            </span>
+            <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+              <svg className="bg-primary h-full" width="46%" />
+            </div>
           </div>
 
-          <div className="w-1/3 grid place-items-center">
-            <p className="font-display text-lg font-base text-gray-500">
-              {seatedGuests} de {event?.invitados_array?.length}
-            </p>
-            <p className="font-display text-xs font-base text-gray-500">
-              invitados sentados
-            </p>
+          <div className="w-full justify-between flex">
+            <div className="w-1/3 grid place-items-center">
+              <p className="font-display text-lg font-base text-gray-500">
+                2 de 13
+              </p>
+              <p className="font-display text-xs font-base text-gray-500">
+                servicios contratados
+              </p>
+            </div>
+
+            <div className="w-1/3 grid place-items-center">
+              <p className="font-display text-lg font-base text-gray-500">
+                {event?.invitados_array?.length}
+              </p>
+              <p className="font-display text-xs font-base text-gray-500">
+                invitado{event?.invitados_array?.length > 1 ? "s" : ""}
+              </p>
+            </div>
+
+            <div className="w-1/3 grid place-items-center">
+              <p className="font-display text-lg font-base text-gray-500">
+                {seatedGuests} de {event?.invitados_array?.length}
+              </p>
+              <p className="font-display text-xs font-base text-gray-500">
+                invitados sentados
+              </p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
