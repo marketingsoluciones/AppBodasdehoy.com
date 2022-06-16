@@ -1,5 +1,5 @@
 //@ts-check
-import { motion } from "framer-motion";
+import {motion } from "framer-motion"
 import { useContext, useEffect, useState } from "react";
 import BlockInvitaciones from "../components/Resumen/BlockInvitaciones";
 import BlockInvitados from "../components/Resumen/BlockInvitados";
