@@ -2,9 +2,11 @@ import { motion } from "framer-motion";
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { useTable } from "react-table";
 import { EventContextProvider } from "../../context";
-import { Capitalize, getCurrency } from "../../utils/Funciones";
+import { getCurrency } from "../../utils/Funciones";
 import FormEditarPago from "../Forms/FormEditarPago";
 import { EditarIcon } from "../icons";
+import { capitalize } from '../../utils/Capitalize';
+
 
 const BlockPagos = () => {
   const [active, setActive] = useState(0);
@@ -85,8 +87,8 @@ const TablaDatosPagos = () => {
           return (
             <div className="w-full pl-20">
               <p className="font-display font-semibold text-gray-300 text-lg text-left leading-5">
-                {Capitalize(value)} <br />
-                <span className="text-xs font-light">{Capitalize(props?.row?.original?.nombreCategoria)}</span>
+                {capitalize(value)} <br />
+                <span className="text-xs font-light">{capitalize(props?.row?.original?.nombreCategoria)}</span>
               </p>
             </div>
           );

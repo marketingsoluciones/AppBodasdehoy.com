@@ -2,7 +2,9 @@ import { useContext, useEffect, useState } from "react";
 import ClickAwayListener from "react-click-away-listener";
 import { api } from "../../api";
 import { EventContextProvider } from "../../context";
-import { Capitalize, getCurrency } from "../../utils/Funciones";
+import { getCurrency } from "../../utils/Funciones";
+import { capitalize } from '../../utils/Capitalize';
+
 
 const CellEdit = (props) => {
     const { event, setEvent } = EventContextProvider()
@@ -11,7 +13,7 @@ const CellEdit = (props) => {
     const [value, setValue] = useState();
 
     useEffect(() => {
-      setValue(typeof props?.value == "string" ? Capitalize(props?.value) : props?.value)
+      setValue(typeof props?.value == "string" ? capitalize(props?.value) : props?.value)
     }, [props.value])
 
     useEffect(() => {
@@ -113,7 +115,7 @@ const CellEdit = (props) => {
             />
           ) : (
             <p className="cursor-pointer hover:scale-105 transform transition text-center w-full truncate px-2 py-1 h-6" onClick={() => setEdit(true)}>
-              {typeof value == "string" ? Capitalize(value) : mask}
+                {typeof value == "string" ? capitalize(value) : mask}
             </p>
           )}
           <style jsx>
