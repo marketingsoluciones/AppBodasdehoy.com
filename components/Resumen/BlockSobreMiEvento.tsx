@@ -295,9 +295,7 @@ const AboutItem: FC<propsElement> = ({ title, value, toggleClick }) => {
             {title && capitalize(title)}
           </p>
           <p className={'font-display font-base text-xs md:text-sm text-gray-700 font-semibold'}>
-            <p className={value.title.length>10?textoRecortado:null}>
-              {value?.title && value.title}
-            </p>
+            {value?.title && value.title? textoRecortado: value.title}
           </p>
         </span>
       </button>
