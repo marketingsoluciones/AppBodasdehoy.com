@@ -86,7 +86,7 @@ const TablaDatosPagos = () => {
           }, [props?.value])
           return (
             <div className="w-full pl-20">
-              <p className="font-display font-semibold text-gray-300 text-lg text-left leading-5">
+              <p className="font-display font-semibold text-gray-500 text-lg text-left leading-5">
                 {capitalize(value)} <br />
                 <span className="text-xs font-light">{capitalize(props?.row?.original?.nombreCategoria)}</span>
               </p>
@@ -120,7 +120,7 @@ const TablaDatosPagos = () => {
             setValue(props?.value)
           }, [props?.value])
           return (
-            <div className="font-display font-semibold text-gray-300 text-lg grid place-items-center h-full">
+            <div className="font-display font-semibold text-gray-500 text-lg grid place-items-center h-full">
               <p>{getCurrency(value)}</p>
             </div>
           );
@@ -237,7 +237,7 @@ const DataTable = ({ columns, data }) => {
           </tr>
         ))}
       </thead>
-      <tbody {...getTableBodyProps()} className="text-gray-300 text-sm ">
+      <tbody {...getTableBodyProps()} className="text-gray-500 text-sm ">
         {rows.length >= 1 ? rows.map((row, id) => {
           prepareRow(row);
           return (

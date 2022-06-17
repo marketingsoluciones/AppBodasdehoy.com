@@ -15,7 +15,7 @@ import BlockCategoria from "../components/Presupuesto/BlockCategoria";
 import BlockPagos from "../components/Presupuesto/BlockPagos";
 import Grafico from "../components/Presupuesto/Grafico";
 import ModalLeft from "../components/Utils/ModalLeft";
-import {EventContextProvider} from "../context";
+import { EventContextProvider } from "../context";
 import { getCurrency, useDelayUnmount } from "../utils/Funciones";
 
 const Presupuesto = () => {
@@ -32,8 +32,8 @@ const Presupuesto = () => {
   }, [event])
 
   useEffect(() => {
-     const condicion = event?.presupuesto_objeto?.categorias_array?.findIndex(item => item._id == showCategoria.id)
-     condicion == -1 && setShowCategoria({isVisible: false, id: ""})
+    const condicion = event?.presupuesto_objeto?.categorias_array?.findIndex(item => item._id == showCategoria.id)
+    condicion == -1 && setShowCategoria({ isVisible: false, id: "" })
   }, [event?.presupuesto_objeto?.categorias_array, showCategoria?.id])
 
   return (
@@ -50,17 +50,15 @@ const Presupuesto = () => {
           <div className="w-80 mx-auto inset-x-0 h-max flex my-2 rounded-2xl overflow-hidden">
             <div
               onClick={() => setActive(true)}
-              className={`w-1/2 py-1 ${
-                active ? "bg-primary text-white" : "bg-white text-primary"
-              } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
+              className={`w-1/2 py-1 ${active ? "bg-primary text-white" : "bg-white text-primary"
+                } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
             >
               <p>Presupuesto</p>
             </div>
             <div
               onClick={() => setActive(false)}
-              className={`w-1/2 py-1 ${
-                active ? "bg-white text-primary" : "bg-primary text-white"
-              } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
+              className={`w-1/2 py-1 ${active ? "bg-white text-primary" : "bg-primary text-white"
+                } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
             >
               <p>Pagos</p>
             </div>
@@ -114,13 +112,13 @@ const Presupuesto = () => {
                           <div className=" w-full rounded-xl overflow-hidden flex my-2">
                             <div className="w-1/2 bg-primary py-1 px-3">
                               <p className="text-xs font-display text-white">
-                                Pagado 0 €
+                                Pagado {event?.presupuesto_objeto?.pagado} €
                               </p>
                             </div>
 
                             <div className="w-1/2 bg-tertiary py-1 px-3">
                               <p className="text-xs font-display text-primary">
-                                Por pagar 0 €
+                                Por pagar {event?.presupuesto_objeto?.coste_final - event?.presupuesto_objeto?.pagado} €
                               </p>
                             </div>
                           </div>
@@ -213,13 +211,13 @@ const MontoPresupuesto = ({ estimado }) => {
     }
     let datos;
     try {
-      const {data} = await api.ApiBodas(params)
+      const { data } = await api.ApiBodas(params)
       datos = data.data.editPresupuesto
     } catch (error) {
       console.log(error)
     } finally {
       setModificar(false)
-      setEvent(old => ({...old, presupuesto_objeto : datos}))
+      setEvent(old => ({ ...old, presupuesto_objeto: datos }))
     }
 
   }
@@ -268,23 +266,30 @@ const BlockListaCategorias = ({ categorias_array, set }) => {
   const [isMounted, setIsMounted] = useState([false, ""]);
   const shouldRenderChild = useDelayUnmount(isMounted[0], 500);
   const [categorias, setCategorias] = useState([]);
+  const { event, setEvent } = EventContextProvider()
+  const [colorText, setColorText] = useState(event?.presupuesto_objeto?.coste_estimado == 0 ? "text-gray-300" : "text-gray-500");
 
   useEffect(() => {
     setCategorias(categorias_array)
   }, [categorias_array])
 
+  useEffect(() => {
+    if (event?.presupuesto_objeto?.coste_estimado != 0) {
+      setColorText("text-gray-500")
+    }
+  }, [event?.presupuesto_objeto?.coste_estimado])
 
   const Forms = {
-    crear:  <FormCrearCategoria
-    state={isMounted}
-    set={(accion) => setIsMounted(accion)}
-  />,
+    crear: <FormCrearCategoria
+      state={isMounted}
+      set={(accion) => setIsMounted(accion)}
+    />,
     editar: <FormEditarCategoria
-    categoria={isMounted[2]}
-    state={isMounted}
-    set={(accion) => setIsMounted(accion)}
-  />,
-    
+      categoria={isMounted[2]}
+      state={isMounted}
+      set={(accion) => setIsMounted(accion)}
+    />,
+
   }
 
   return (
@@ -302,10 +307,10 @@ const BlockListaCategorias = ({ categorias_array, set }) => {
           <PlusIcon className="text-white w-4 h-4" />
           Nueva Categoria
         </button>
-        <ul className="w-full flex flex-col font-display text-sm text-gray-300">
+        <ul className={`w-full flex flex-col font-display text-sm ${colorText}`}>
           {categorias?.map((item, idx) => (
             <ItemCategoria key={idx} item={item} setVisible={act => set(act)}
-            set={(accion) => setIsMounted(accion)} />
+              set={(accion) => setIsMounted(accion)} />
           ))}
         </ul>
       </div>
@@ -326,42 +331,42 @@ const ItemCategoria = ({ item, setVisible, set }) => {
   const { event, setEvent } = EventContextProvider()
   const [show, setShow] = useState(false);
 
-  const BorrarCategoria = async() => {
-      setShow(!show)
-      const params = {
-        query: `mutation{
+  const BorrarCategoria = async () => {
+    setShow(!show)
+    const params = {
+      query: `mutation{
           borraCategoria(evento_id:"${event?._id}",
           categoria_id: "${item?._id}"){
             coste_final
           }
         }
         `,
-        variables: {},
-      };
-      try {
-        await api.ApiBodas(params)
-      } catch (error) {
-        console.log(error)
-      } finally {
-        setEvent(old => {
-          old.presupuesto_objeto.categorias_array = old?.presupuesto_objeto?.categorias_array?.filter(elemento => elemento._id !== item._id)
-          return {...old}
-        })
-      }
+      variables: {},
+    };
+    try {
+      await api.ApiBodas(params)
+    } catch (error) {
+      console.log(error)
+    } finally {
+      setEvent(old => {
+        old.presupuesto_objeto.categorias_array = old?.presupuesto_objeto?.categorias_array?.filter(elemento => elemento._id !== item._id)
+        return { ...old }
+      })
     }
+  }
 
-    const EditarCategoria = () => {
-        setShow(!show)
-        set([true, "editar", item])
-    }
+  const EditarCategoria = () => {
+    setShow(!show)
+    set([true, "editar", item])
+  }
 
-    const DefinirCoste = (item) => {
-        if(item.coste_final >= item.coste_estimado) {
-          return item.coste_final
-        } else {
-          return item.coste_estimado
-        }
+  const DefinirCoste = (item) => {
+    if (item.coste_final >= item.coste_estimado) {
+      return item.coste_final
+    } else {
+      return item.coste_estimado
     }
+  }
 
   const Lista = [
     { title: "Editar", function: EditarCategoria },
@@ -371,7 +376,7 @@ const ItemCategoria = ({ item, setVisible, set }) => {
   return (
     <li onClick={() => setVisible({ isVisible: true, id: item._id })} className="w-full justify-between items-center flex border-b border-secondary  px-5 cursor-pointer transition hover:bg-base">
       <span
-        
+
         className="gap-2 py-3 flex items-center capitalize"
       >
         {item?.icon}
@@ -379,7 +384,7 @@ const ItemCategoria = ({ item, setVisible, set }) => {
       </span>
       <span className="gap-4 flex items-center" >
         <div >
-        {getCurrency(DefinirCoste(item))}
+          {getCurrency(DefinirCoste(item))}
         </div>
         <div className="relative">
           <DotsOpcionesIcon

@@ -43,7 +43,7 @@ const SubComponentePagos = ({ row, cate, gasto, wantCreate }) => {
 export default SubComponentePagos;
 
 const ListadoComponent = ({ pagos_array, cate, gasto, wantCreate, idModificar, row }) => {
-  const { event, setEvent } = useContext(EventContextProvider);
+  const { event, setEvent } = EventContextProvider();
   const BorrarPago = async (pagoID) => {
     let data;
     const params = {
@@ -114,7 +114,7 @@ const ListadoComponent = ({ pagos_array, cate, gasto, wantCreate, idModificar, r
       >
         X
       </button>
-      <p className="text-gray-300 font-display text-lg pb-2">
+      <p className="text-gray-500 font-display text-lg pb-2">
         Detalles de pagos
       </p>
       {pagos_array.map((item, idx) => (

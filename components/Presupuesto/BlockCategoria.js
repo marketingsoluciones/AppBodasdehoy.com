@@ -200,7 +200,7 @@ const BlockCategoria = ({ cate, set }) => {
       <div className="bg-white block-categoria h-max py-10 w-full rounded-xl shadow-lg overflow-hidden flex flex-col items-center relative ">
         <div
           onClick={() => set({ isVisible: false, id: "" })}
-          className="cursor-pointer w-max absolute top-5 right-5 font-display hover:scale-125 transition transform text-gray-100 hover:text-gray-500 font-semibold text-lg"
+          className="cursor-pointer w-max absolute top-5 right-5 font-display hover:scale-125 transition transform text-gray-300 hover:text-gray-500 font-semibold text-lg"
         >
           X
         </div>
@@ -217,7 +217,7 @@ const BlockCategoria = ({ cate, set }) => {
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-medium">
               Coste estimado:
-              <span className="text-sm text-gray-300">
+              <span className="text-sm text-gray-500">
                 {getCurrency(categoria?.coste_estimado)}
               </span>
             </h3>
@@ -236,9 +236,9 @@ const BlockCategoria = ({ cate, set }) => {
         </div>
         {/* Barra de estado */}
         <div className=" w-4/6 mx-auto flex gap-1 items-center py-2 inset-x-0">
-          <div className="bg-gray-100 rounded-xl flex items-center overflow-hidden h-5 w-full relative">
+          <div className="bg-gray-300 rounded-xl flex items-center overflow-hidden h-5 w-full relative">
             <p className="font-display text-xs text-white pl-2 z-10 relative">
-              {getCurrency(saldo)}
+              Diferencia en su saldo final {getCurrency(saldo)}
             </p>
             <svg
               className={`bg-${Math.abs(saldo) == saldo ? "green" : "red"
@@ -313,7 +313,7 @@ export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate
           </tr>
         ))}
       </thead>
-      <tbody {...getTableBodyProps()} className="text-gray-300 text-sm ">
+      <tbody {...getTableBodyProps()} className="text-gray-500 text-sm ">
         {rows.map((row, i) => {
           prepareRow(row);
           return (
