@@ -7,16 +7,18 @@ import BlockListaInvitados from "../components/Invitados/BlockListaInvitados";
 import { useDelayUnmount } from "../utils/Funciones";
 import { motion } from "framer-motion";
 import ModalLeft from "../components/Utils/ModalLeft";
+import {EventContextProvider} from "../context";
 
 const Invitados: FC = () => {
   const [isMounted, setIsMounted] = useState<boolean>(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const [formShow, setFormShow] = useState<string | null>(null)
-
+  const { event } = EventContextProvider();
   const reciboClick = (accion) => {
     setIsMounted(accion.state)
     setFormShow(accion.click)
   }
+  
   return (
     <>
       {shouldRenderChild && (

@@ -25,7 +25,7 @@ import { useDelayUnmount } from "../utils/Funciones";
 import ModalLeft from "../components/Utils/ModalLeft";
 import FormInvitado from "../components/Forms/FormInvitado";
 import { api } from "../api";
-
+import Breadcumb from "../components/DefaultLayout/Breadcumb";
 import { Event, guests } from "../utils/Interfaces";
 import { fetchApiEventos, queries } from "../utils/Fetching";
 
@@ -56,8 +56,6 @@ const Mesas: FC = () => {
       return acc
     }, { sentados: [], noSentados: [] }))
   }, [event?.invitados_array, event?.mesas_array])
-
-
 
   // Añadir invitado | Carga en BD y estado
   const AddInvitado = async (item: { tipo: string, invitado: guests, index: number, nombre_mesa: string }, set: Dispatch<SetStateAction<Event>>): Promise<void> => {
@@ -132,7 +130,11 @@ const Mesas: FC = () => {
           <section className={`w-full grid md:grid-cols-12 bg-base overflow-hidden`}>
             <div
               className={`hidden md:flex z-10 h-full col-span-3 box-border px-2 flex-col  gap-6 transform transition duration-700 overflow-y-auto `}
-            >-
+            >
+              <div className=" pl-5">
+                <Breadcumb/>
+             </div>
+              
               <BlockPanelMesas
                 setModelo={setModelo}
                 state={showForm}
