@@ -378,12 +378,12 @@ export const queries = {
         }
       }
     }`,
-  createGroup : `mutation ($eventID: String, $name: String) {
+  createGroup: `mutation ($eventID: String, $name: String) {
     creaGrupo(evento_id:$eventID, nombre_grupo: $name){
       grupos_array
     }
   }`,
-  createTable : `mutation ($eventID:String, $tableName: String, $tableType:String, $numberChairs:  Int, $position: [posicionAinput]) {
+  createTable: `mutation ($eventID:String, $tableName: String, $tableType:String, $numberChairs:  Int, $position: [posicionAinput]) {
     creaMesa(evento_id:$eventID,mesas_array:{nombre_mesa:$tableName, tipo:$tableType, cantidad_sillas:$numberChairs, posicion:$position}){
       mesas_array{
         _id
@@ -397,8 +397,8 @@ export const queries = {
       }
     }
   }`,
-  editTable : `mutation ($eventID:String, $tableID: String, $variable: String, $coordinates: [posicionAinput]) {
-    editMesa(evento_id:$eventID,mesa_id:$tableID, variable_reemplazar:$variable, coordenadas:$coordinates) {
+  editTable: `mutation ($eventID:String, $tableID: String, $variable: String, $coordenadas: [posicionAinput]) {
+    editMesa(evento_id:$eventID,mesa_id:$tableID, variable_reemplazar:$variable, coordenadas:$coordenadas) {
       _id
       nombre_mesa
       posicion {
