@@ -197,6 +197,7 @@ const BlockSobreMiEvento: FC = () => {
   };
 
   const settings = {
+    
     spaceBetween: 50,
     loop: true,
     navigation: true,
@@ -244,11 +245,12 @@ const BlockSobreMiEvento: FC = () => {
         Sobre mi evento
       </h2>
       <Swiper
-        
+        pagination={{clickable: true}}
         {...settings}
+        
       >
         {schema.map((item, idx) => (
-          <SwiperSlide key={idx} className="py-2 relative">
+          <SwiperSlide key={idx} className="py-2 pb-8 relative">
             <AboutItem
               {...item}
               toggleClick={() => {
@@ -295,7 +297,7 @@ const AboutItem: FC<propsElement> = ({ title, value, toggleClick }) => {
             {title && capitalize(title)}
           </p>
           <p className={'font-display font-base text-xs md:text-sm text-gray-700 font-semibold'}>
-            {value?.title && value.title ? value?.title && value.title.substring(0,10)+"...": value?.title && value.title}
+            {value?.title && value.title.length > 10 ? value?.title && value.title.substring(0,10)+"...": value?.title && value.title}
           </p>
         </span>
       </button>
