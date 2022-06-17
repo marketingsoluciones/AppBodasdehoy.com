@@ -1,25 +1,6 @@
-import {
-  FallIcon,
-  IconColors,
-  InterrogacionIcon,
-  ParkIcon,
-  SnowIcon,
-  SpringIcon,
-  SummerIcon,
-  LivingRoomIcon,
-  PoolIcon,
-  HouseIcon,
-} from "../icons";
-import { Swiper, SwiperSlide } from "swiper/react";
-import {
-  cloneElement,
-  Dispatch,
-  FC,
-  MouseEventHandler,
-  SetStateAction,
-  useEffect,
-  useState,
-} from "react";
+import {FallIcon,IconColors,InterrogacionIcon,ParkIcon,SnowIcon,SpringIcon,SummerIcon,LivingRoomIcon,PoolIcon,HouseIcon,} from "../icons";
+import { Swiper, SwiperSlide, } from "swiper/react";
+import {cloneElement,Dispatch,FC,MouseEventHandler,SetStateAction,useEffect,useState,} from "react";
 import { capitalize } from "../../utils/Capitalize";
 import { Form, Formik } from "formik";
 import InputField from "../Forms/InputField";
@@ -28,6 +9,10 @@ import ModalBottom from "../Utils/ModalBottom";
 import { fetchApiEventos, queries } from '../../utils/Fetching';
 import { EventContextProvider, EventsGroupContextProvider } from "../../context";
 import { useToast } from "../../hooks/useToast";
+
+import "swiper/components/pagination/pagination.min.css"
+import "swiper/swiper.min.css";
+
 
 interface propsInsideBlock extends schemaItem {
   setSelected?: Dispatch<
@@ -169,11 +154,7 @@ const schema: schemaItem[] = [
     title: "tarta",
     list: null,
   },
-
 ];
-
-
-
 
 interface values {
   color: typeEvent,
@@ -191,6 +172,7 @@ interface typeEvent {
 
 const BlockSobreMiEvento: FC = () => {
   const { event } = EventContextProvider()
+  
   const initialValues2: values | {} = schema.reduce((acc, item) => {
     if (event) {
       acc[item.title] = {
@@ -215,8 +197,10 @@ const BlockSobreMiEvento: FC = () => {
   };
 
   const settings = {
+    
     spaceBetween: 50,
     loop: true,
+    navigation: true,
     autoplay: {
       delay: 2500,
       disableOnInteraction: false,
@@ -261,10 +245,12 @@ const BlockSobreMiEvento: FC = () => {
         Sobre mi evento
       </h2>
       <Swiper
+        pagination={{clickable: true}}
         {...settings}
+        
       >
         {schema.map((item, idx) => (
-          <SwiperSlide key={idx} className="py-2 relative">
+          <SwiperSlide key={idx} className="py-2 pb-8 relative">
             <AboutItem
               {...item}
               toggleClick={() => {
@@ -291,6 +277,8 @@ interface propsElement extends schemaItem {
 
 const AboutItem: FC<propsElement> = ({ title, value, toggleClick }) => {
 
+  
+
   return (
     <>
       <button
@@ -308,8 +296,8 @@ const AboutItem: FC<propsElement> = ({ title, value, toggleClick }) => {
           <p className="font-display font-light md:text-md text-gray-500">
             {title && capitalize(title)}
           </p>
-          <p className="font-display font-base text-xs md:text-sm text-gray-700 font-semibold">
-            {value?.title && value.title}
+          <p className={'font-display font-base text-xs md:text-sm text-gray-700 font-semibold'}>
+            {value?.title && value.title.length > 10 ? value?.title && value.title.substring(0,10)+"...": value?.title && value.title}
           </p>
         </span>
       </button>
