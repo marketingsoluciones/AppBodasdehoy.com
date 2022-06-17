@@ -30,10 +30,9 @@ const Invitados: FC = () => {
       )}
       <section className="bg-base w-full h-full ">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="max-w-screen-lg mx-auto inset-x-0 w-full px-5 md:px-0 gap-4">
-          <div className="flex gap-2">
+         
           <Breadcumbs />
-          <span className="text-gray-500 py-2.5">{event.nombre}</span>
-          </div>
+        
           
           <BlockCabecera />
           <BlockListaInvitados state={isMounted} set={reciboClick} />

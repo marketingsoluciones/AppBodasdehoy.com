@@ -45,10 +45,9 @@ const Presupuesto = () => {
           exit={{ opacity: 0 }}
           className="max-w-screen-lg mx-auto inset-x-0 w-full"
         >
-          <div className="flex gap-2">
+          
           <Breadcumbs />
-          <span className="text-gray-500 py-2.5">{event.nombre}</span>
-          </div>
+        
           
           
 

@@ -131,10 +131,9 @@ const Mesas: FC = () => {
             <div
               className={`hidden md:flex z-10 h-full col-span-3 box-border px-2 flex-col  gap-6 transform transition duration-700 overflow-y-auto `}
             >
-              <div className=" pl-5  gap-2 flex ">
+             
                 <Breadcumb/> 
-                <span className="text-gray-500 py-2.5   ">{event.nombre}</span>
-             </div>
+             
               
               <BlockPanelMesas
                 setModelo={setModelo}
