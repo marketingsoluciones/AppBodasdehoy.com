@@ -295,7 +295,7 @@ const AboutItem: FC<propsElement> = ({ title, value, toggleClick }) => {
             {title && capitalize(title)}
           </p>
           <p className={'font-display font-base text-xs md:text-sm text-gray-700 font-semibold'}>
-            {value?.title  ? value.title.substring(0,10)+"...": value.title}
+            {value?.title && value.title ? value?.title && value.title.substring(0,10)+"...": value?.title && value.title}
           </p>
         </span>
       </button>
