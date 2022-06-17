@@ -37,7 +37,11 @@ const Invitaciones = () => {
         exit={{ opacity: 0 }}
         className="max-w-screen-lg mx-auto inset-x-0 w-full px-5 md:px-0 gap-4"
       >
+        <div className="flex gap-2 ">
         <Breadcumbs />
+          <span className="text-gray-500 py-2.5"> {event.nombre}</span>
+        </div>
+        
         <BlockTitle title="Invitaciones" />
         <div className="w-full flex-col flex md:flex-row my-6 gap-6 relative">
           <div ref={hoverRef} className="relative w-full h-96 md:w-1/3 ">

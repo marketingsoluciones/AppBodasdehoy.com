@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import Breadcumbs from "../components/DefaultLayout/Breadcumb";
+import Breadcumb from "../components/DefaultLayout/Breadcumb";
 import {
   AmazonIcon,
   CochinoIcon,
@@ -9,15 +9,24 @@ import {
   ListaTwo,
 } from "../components/icons";
 import BlockTitle from "../components/Utils/BlockTitle";
+import { EventContextProvider } from "../context";
 
 const listaRegalos = () => {
+const {event} = EventContextProvider()
+
   return (
     <>
       <section className="w-full bg-base">
         <motion.div initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }} className="max-w-screen-lg mx-auto inset-x-0 flex-col gap-6 flex pb-28 md:pb-10 px-5">
-          <Breadcumbs />
+          <div className=" pl-5  gap-2 flex ">
+                <Breadcumb/> 
+                {/* <span className="text-gray-500 py-2.5">
+                  {event.nombre}
+                </span> */}
+          </div>
+       {event.nombre}
           <BlockTitle title={"Lista de regalos"} />
           <div className="w-full flex flex-col md:flex-row justify-center items-center gap-6 ">
             <div className="w-full md:w-1/2 bg-white shadow-lg flex gap-8 items-center justify-center p-6 rounded-xl">
