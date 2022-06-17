@@ -16,7 +16,9 @@ interface propsLayoutMesas {
 }
 
 const LayoutMesas: FC<propsLayoutMesas> = ({ AddInvitado }) => {
+
   const { event, setEvent } = EventContextProvider();
+
   const [disableLayout, setDisableLayout] = useState<boolean>(false);
 
   const [{ canDrop, isOver }, drop] = useDrop(() => ({
@@ -248,6 +250,7 @@ const Table: FC<propsTable> = ({
   const { event } = EventContextProvider();
   const [invitados, setInvitados] = useState([]);
   const [showOptions, setShowOptions] = useState<{ x: number, y: number } | null>(null)
+  console.log("position", showOptions)
 
   useEffect(() => {
     setInvitados(
@@ -283,7 +286,7 @@ const Table: FC<propsTable> = ({
         }} className="relative w-max">
           {showOptions && (
             <div className={`absolute bg-red-500 w-max top-[${400}px] left-[${showOptions.x}px]`}>
-              hola mundo
+             {/*  hola mundo */}
             </div>
           )}
           {/* {validar && (

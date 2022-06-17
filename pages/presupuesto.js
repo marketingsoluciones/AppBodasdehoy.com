@@ -45,7 +45,11 @@ const Presupuesto = () => {
           exit={{ opacity: 0 }}
           className="max-w-screen-lg mx-auto inset-x-0 w-full"
         >
+          
           <Breadcumbs />
+        
+          
+          
 
           <div className="w-80 mx-auto inset-x-0 h-max flex my-2 rounded-2xl overflow-hidden">
             <div
