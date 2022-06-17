@@ -5,12 +5,7 @@ import { api } from "../api";
 import Breadcumbs from "../components/DefaultLayout/Breadcumb";
 import FormCrearCategoria from "../components/Forms/FormCrearCategoria";
 import FormEditarCategoria from "../components/Forms/FormEditarCategoria";
-import {
-  CochinoIcon,
-  DineroIcon,
-  DotsOpcionesIcon,
-  PlusIcon,
-} from "../components/icons";
+import {CochinoIcon,DineroIcon,DotsOpcionesIcon,PlusIcon} from "../components/icons";
 import BlockCategoria from "../components/Presupuesto/BlockCategoria";
 import BlockPagos from "../components/Presupuesto/BlockPagos";
 import Grafico from "../components/Presupuesto/Grafico";
@@ -19,10 +14,12 @@ import { EventContextProvider } from "../context";
 import { getCurrency, useDelayUnmount } from "../utils/Funciones";
 
 const Presupuesto = () => {
+
   const [showCategoria, setShowCategoria] = useState({
     isVisible: false,
     id: "",
   });
+
   const [active, setActive] = useState(true);
   const { event } = EventContextProvider();
   const [categorias, setCategorias] = useState([]);
@@ -45,11 +42,8 @@ const Presupuesto = () => {
           exit={{ opacity: 0 }}
           className="max-w-screen-lg mx-auto inset-x-0 w-full"
         >
-          
-          <Breadcumbs />
-        
-          
-          
+    
+          <Breadcumbs />                
 
           <div className="w-80 mx-auto inset-x-0 h-max flex my-2 rounded-2xl overflow-hidden">
             <div
