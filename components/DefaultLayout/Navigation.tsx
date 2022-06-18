@@ -87,7 +87,7 @@ const Navigation: any = (
           set={(accion) => setIsMounted(accion)}
         />
       )}
-      <Sidebar state={showSidebar} set={(accion) => setShowSidebar(accion)} />
+      <Sidebar state={showSidebar} set={(accion) => setShowSidebar(accion)}  />
       <header className="relative w-full bg-white">
         {/* menu mobile */}
         <div className="max-w-screen-lg h-16 px-5 lg:px-0 w-full flex justify-between items-center mx-auto inset-x-0 ">
