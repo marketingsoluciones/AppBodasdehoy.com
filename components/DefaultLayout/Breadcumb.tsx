@@ -9,7 +9,7 @@ const Breadcumbs = () => {
         <div className="flex gap-2 items-center w-full py-2 font-display text-sm text-gray-500 cursor-pointer hover:text-gray-400  transform transition">
             <FlechaIcon />
             <Link href="/resumen-evento" passHref>
-                <p >Volver a resumen del evento: {event?.nombre} </p>
+            <p >Volver a resumen del evento: {event?.nombre}</p>
             </Link>
         </div>
     )
