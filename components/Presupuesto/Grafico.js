@@ -50,7 +50,7 @@ const Grafico = ({ categorias }) => {
                 {
                   label: "Categorias",
                   data: data,
-                  backgroundColor: ["#F7628C", "#87F3B5", "#FBFF4E", "#F2F2F2"],
+                  backgroundColor: ["#F7628C", "#87F3B5", "#FBFF4E", "#F2F2F2", "#DC7633", "#BFC9CA", "#2C3E50", "C0392B", "#AF7AC5", "#0E6251", "#FF00FF", "#641E16", "#CCFF00", "#00E3FF"],
                   borderWidth: 0,
                 },
               ],
