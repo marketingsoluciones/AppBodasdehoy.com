@@ -46,13 +46,13 @@ const LayoutMesas: FC<propsLayoutMesas> = ({ AddInvitado }) => {
     mesaID: string;
   }): Promise<void> => {
     try {
-      const result = fetchApiEventos({
+      fetchApiEventos({
         query: queries.editTable,
         variables: {
           eventID: event._id,
           tableID: mesaID,
           variable: "posicion",
-          value: { x, y },
+          coordenadas: [{ x, y }],
         },
       });
       const nuevoArr = [...event?.mesas_array];
