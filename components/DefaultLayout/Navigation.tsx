@@ -38,7 +38,7 @@ const Navigation: any = (
   const router = useRouter();
 
   const [pink, setPink] = useState(true);
-  const [showSidebar, setShowSidebar] = useState(true);
+  const [showSidebar, setShowSidebar] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
 
@@ -89,10 +89,9 @@ const Navigation: any = (
       )}
       <Sidebar state={showSidebar} set={(accion) => setShowSidebar(accion)} />
       <header className="relative w-full bg-white">
-        {/* menu mobile */}
         <div className="max-w-screen-lg h-16 px-5 lg:px-0 w-full flex justify-between items-center mx-auto inset-x-0 ">
           <MenuIcon
-            onClick={()=> setShowSidebar(!showSidebar)}
+            onClick={() => setShowSidebar(!showSidebar)}
             className="md:hidden cursor-pointer"
           />
           <span
@@ -112,7 +111,6 @@ const Navigation: any = (
           />
         </div>
 
-        {/* menu desktop */}
         <div className={`w-full h-20 relative hidden md:block bg-base z-10`}>
           <ul className="absolute m-auto inset-0 py-4 w-max h-max flex gap-12">
             {Navbar.map((item, idx) => (
