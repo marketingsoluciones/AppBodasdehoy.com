@@ -213,20 +213,20 @@ const BlockCategoria = ({ cate, set }) => {
             {capitalize(categoria?.nombre)}
           </h2>
         </div>
-        <div className="justify-between w-4/6 gap-3 flex items-center font-display text-gray-500">
+        <div className="md:justify-between w-4/6 gap-3 md:flex items-center font-display text-gray-500">
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-medium">
-              Coste estimado:
-              <span className="text-sm text-gray-500">
+            <h3 className="text-sm font-medium ">
+              Coste estimado: 
+              <span className="text-sm text-gray-500 pl-1">
                 {getCurrency(categoria?.coste_estimado)}
               </span>
             </h3>
           </div>
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-medium">
-              Coste final:
+            <h3 className="text-sm font-medium ">
+              Coste final: 
               <span
-                className={`text-sm text-${Math.abs(saldo) == saldo ? "green" : "red"
+                className={`text-sm pl-1 text-${Math.abs(saldo) == saldo ? "green" : "red"
                   }`}
               >
                 {getCurrency(categoria?.coste_final)}
@@ -236,8 +236,8 @@ const BlockCategoria = ({ cate, set }) => {
         </div>
         {/* Barra de estado */}
         <div className=" w-4/6 mx-auto flex gap-1 items-center py-2 inset-x-0">
-          <div className="bg-gray-300 rounded-xl flex items-center overflow-hidden h-5 w-full relative">
-            <p className="font-display text-xs text-white pl-2 z-10 relative">
+          <div className="bg-gray-300 rounded-xl flex items-center overflow-hidden md:h-5 w-full relative">
+            <p className="font-display text-xs text-white pl-2 z-10 relative p-3">
               Diferencia en su saldo final {getCurrency(saldo)}
             </p>
             <svg

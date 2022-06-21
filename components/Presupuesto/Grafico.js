@@ -23,8 +23,8 @@ const Grafico = ({ categorias }) => {
 
   return (
     <>
-      <div className="w-full h-max bg-white rounded-xl shadow-md grid grid place-items-center py-6 ">
-        <div className="w-3/5">
+      <div className="w-full h-full md:h-max bg-white rounded-xl shadow-md grid  place-items-center py-6 ">
+        <div className="w-3/5  ">
           <Doughnut
             type="Doughnut"
             className="chart"

@@ -73,14 +73,14 @@ export default VistaPrevia;
 const HeaderEmail = () => {
   return (
     <div className="w-full h-max gap-6 bg-gray-100 rounded-t-xl p-6 flex flex-col">
-      <div className="flex gap-2 items-center">
+      <div className=" hidden md:block flex gap-2 items-center">
         <div className="w-4 h-4 rounded-full bg-red" />
         <div className="w-4 h-4 rounded-full bg-tertiary" />
         <div className="w-4 h-4 rounded-full bg-green" />
       </div>
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="bg-base p-2 rounded flex gap-2 items-center">
+        <div className="hidden md:block flex items-center gap-3">
+          <div className="  bg-base p-2 rounded flex gap-2 items-center">
             <BorrarIcon className="text-gray-100 w-6 h-6" />
             <CompartirIcon className="text-gray-100 w-6 h-6" />
           </div>
@@ -90,11 +90,11 @@ const HeaderEmail = () => {
           </div>
         </div>
         <div className="flex items-center justify-center">
-            <div className="bg-base p-2 rounded flex gap-2 items-center px-16">
-          <h2 className="text-gray-500 text-lg font-body">Vista previa de invitacion por email</h2>
-          </div>
+            <div className="bg-base p-2 rounded flex gap-2 items-center md:px-16">
+              <h2 className=" text-gray-500 text-lg font-body">Vista previa de invitacion por email</h2>
+            </div>
         </div>
-        <div className="flex items-center justify-center">
+        <div className=" hidden md:block flex items-center justify-center">
           <div className="bg-base p-2 rounded flex gap-2 items-center">
             <SubirImagenIcon className="text-gray-100 w-6 h-6" />
             <CompartirIcon className="text-gray-100 w-6 h-6" />

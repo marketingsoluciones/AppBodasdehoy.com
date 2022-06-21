@@ -87,7 +87,7 @@ const LayoutMesas: FC<propsLayoutMesas> = ({ AddInvitado }) => {
   };
 
   return (
-    <div className="w-full h-full col-span-9 wrapperLayout relative">
+    <div className="  w-full h-full col-span-9 wrapperLayout relative">
       <TransformWrapper disabled={disableLayout} limitToBounds={true}>
         {({ zoomIn, zoomOut, resetTransform, ...rest }) => (
           <>

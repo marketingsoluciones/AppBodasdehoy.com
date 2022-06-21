@@ -42,8 +42,9 @@ const Presupuesto = () => {
           exit={{ opacity: 0 }}
           className="max-w-screen-lg mx-auto inset-x-0 w-full"
         >
-    
-          <Breadcumbs />                
+          <div className="pl-5">              
+            <Breadcumbs />                
+          </div>
 
           <div className="w-80 mx-auto inset-x-0 h-max flex my-2 rounded-2xl overflow-hidden">
             <div
@@ -67,7 +68,7 @@ const Presupuesto = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="grid grid-cols-3 w-full gap-6 pb-4 pt-8"
+              className="grid grid-cols-3 w-full gap-6 pb-4 pt-8 pl-3"
             >
               <>
                 <BlockListaCategorias
@@ -75,7 +76,7 @@ const Presupuesto = () => {
                   categorias_array={categorias}
                 />
 
-                <div className="col-span-2 w-full flex flex-col gap-6 relative">
+                <div className="col-span-2 w-full flex flex-col gap-6 relative pr-3">
                   {showCategoria?.isVisible ? (
                     <BlockCategoria
                       set={(act) => setShowCategoria(act)}
@@ -83,13 +84,13 @@ const Presupuesto = () => {
                     />
                   ) : (
                     <>
-                      <div className="w-full bg-white rounded-xl shadow-md">
+                      <div className="w-full bg-white rounded-xl shadow-md" >
                         <h1 className="font-display text-2xl text-center font-semibold text-gray-500 p-4">
                           Presupuesto
                         </h1>
                       </div>
-                      <div className="flex gap-6">
-                        <div className="w-1/2 bg-white shadow-md rounded-xl grid place-items-center p-4">
+                      <div className=" grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div className=" bg-white shadow-md rounded-xl grid place-items-center p-4">
                           <MontoPresupuesto
                             estimado={
                               event?.presupuesto_objeto?.coste_estimado
@@ -97,7 +98,7 @@ const Presupuesto = () => {
                           />
                         </div>
 
-                        <div className="w-1/2 bg-white shadow-md rounded-xl grid place-items-center p-4">
+                        <div className=" bg-white shadow-md rounded-xl grid place-items-center p-4">
                           <DineroIcon className="w-12 h-12 text-primary " />
                           <p className="font-display text-gray-500 font-light text-md grid place-items-center">
                             Coste Final <br />
@@ -374,17 +375,16 @@ const ItemCategoria = ({ item, setVisible, set }) => {
   return (
     <li onClick={() => setVisible({ isVisible: true, id: item._id })} className="w-full justify-between items-center flex border-b border-secondary  px-5 cursor-pointer transition hover:bg-base">
       <span
-
-        className="gap-2 py-3 flex items-center capitalize"
+        className="gap-2 py-3 flex items-center capitalize hidden md:block "
       >
         {item?.icon}
         {item?.nombre?.toLowerCase()}
       </span>
-      <span className="gap-4 flex items-center" >
+      <span className="gap-4 flex items-center py-3 md:py-0" >
         <div >
           {getCurrency(DefinirCoste(item))}
         </div>
-        <div className="relative">
+        <div className="relative ">
           <DotsOpcionesIcon
             onClick={() => setShow(!show)}
             className="w-3 h-3 cursor-pointer"

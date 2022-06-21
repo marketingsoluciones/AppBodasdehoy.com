@@ -3,17 +3,12 @@
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { TouchBackend } from "react-dnd-touch-backend";
-
 // Importaciones de dependencias NEW
 import React, { Dispatch, FC, SetStateAction, useCallback, useEffect, useState } from "react";
 //import { DndProvider } from 'react-dnd-multi-backend';
 import HTML5toTouch from 'react-dnd-multi-backend/dist/esm/HTML5toTouch'
-
-
 // Importaciones de contextos
 import { EventContextProvider } from "../context";
-
-
 // Importaciones de componentes
 import FormCrearMesa from "../components/Forms/FormCrearMesa";
 import BlockPanelMesas from "../components/Mesas/BlockPanelMesas";
@@ -28,9 +23,6 @@ import { api } from "../api";
 import Breadcumb from "../components/DefaultLayout/Breadcumb";
 import { Event, guests } from "../utils/Interfaces";
 import { fetchApiEventos, queries } from "../utils/Fetching";
-
-
-
 
 const Mesas: FC = () => {
   const { event, setEvent } = EventContextProvider();
@@ -129,7 +121,7 @@ const Mesas: FC = () => {
         <DndProvider backend={movil ? TouchBackend : HTML5Backend}>
           <section className={`w-full grid md:grid-cols-12 bg-base overflow-hidden`}>
             <div
-              className={`hidden md:flex z-10 h-full col-span-3 box-border px-2 flex-col  gap-6 transform transition duration-700 overflow-y-auto `}
+              className={`hidden flex z-10 h-full col-span-3 box-border px-2 flex-col  gap-6 transform transition duration-700 overflow-y-auto `}
             >
              
                 <Breadcumb/> 

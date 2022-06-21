@@ -1,20 +1,8 @@
-import {
-  forwardRef,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import {forwardRef,useContext,useEffect,useMemo,useRef,useState,} from "react";
 import Breadcumbs from "../components/DefaultLayout/Breadcumb";
-import {
-  CompartirIcon,
-  InvitacionesIcon,
-  SubirImagenIcon2,
-} from "../components/icons";
+import {CompartirIcon,InvitacionesIcon,SubirImagenIcon2,} from "../components/icons";
 import BlockTitle from "../components/Utils/BlockTitle";
 import useHover from "../hooks/useHover";
-
 import { Swiper, SwiperSlide } from "swiper/react";
 import ModuloSubida from "../components/Invitaciones/ModuloSubida";
 import { motion } from "framer-motion";
@@ -39,15 +27,13 @@ const Invitaciones = () => {
       >
         
         <Breadcumbs />
-       
-        
+    
         <BlockTitle title="Invitaciones" />
+
         <div className="w-full flex-col flex md:flex-row my-6 gap-6 relative">
+          
           <div ref={hoverRef} className="relative w-full h-96 md:w-1/3 ">
-            <div
-              className={`hidden md:block h-40 bg-secondary w-20 rounded-xl  absolute z-0 left-0 top-0 bottom-0 m-auto transform transition duration-400 ${isHovered && "-translate-x-1/2"
-                } `}
-            >
+            <div className={`hidden md:block h-40 bg-secondary w-20 rounded-xl  absolute z-0 left-0 top-0 bottom-0 m-auto transform transition duration-400 ${isHovered && "-translate-x-1/2"} `}>
               <div className="w-1/2 text-white flex flex-col items-center justify-center h-full gap-4">
                 <CompartirIcon />
                 <SubirImagenIcon2 />
@@ -60,23 +46,27 @@ const Invitaciones = () => {
             <EstadisticasInvitaciones />
             <Test />
           </div>
+
         </div>
+
         {event?.invitados_array?.length > 0 && (
           <div className="bg-white w-full rounded-xl shadow-md relative mt-4 mb-8">
             <TablaDeInvitados />
           </div>
         )}
+
         <VistaPrevia evento={event} />
+
         <h2 className="font-display font-semibold text-2xl text-gray-500 p-4">
           Diseña tu invitación
         </h2>
         <div className="w-full rounded-xl bg-secondary shadow-lg py-3 mb-10 px-6">
-          <p className="text-gray-300 font-display">
+          <p className=" font-display">
             Encuentra a un diseñador para tu invitación
           </p>
         </div>
         <Banner />
-      </motion.div>
+        </motion.div>
       <style jsx>
         {`
           section {
