@@ -121,12 +121,12 @@ const Mesas: FC = () => {
         <DndProvider backend={movil ? TouchBackend : HTML5Backend}>
           <section className={`w-full grid md:grid-cols-12 bg-base overflow-hidden`}>
             <div
-              className={`hidden flex z-10 h-full col-span-3 box-border px-2 flex-col  gap-6 transform transition duration-700 overflow-y-auto `}
+              className={`hidden md:block flex z-10 h-full col-span-3 box-border px-2 flex-col  gap-6 transform transition duration-700 overflow-y-auto `}
             >
-             
-                <Breadcumb/> 
-             
-              
+
+              <Breadcumb />
+
+
               <BlockPanelMesas
                 setModelo={setModelo}
                 state={showForm}
