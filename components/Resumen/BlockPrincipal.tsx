@@ -50,7 +50,7 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
         {children}
         <div className="md:w-1/2 h-full flex flex-col items-center justify-center px-8 gap-6 relative">
           <div className="w-max mx-auto inset-x-0 text-center">
-            
+
             <h1 className="font-display font-semibold text-3xl text-gray-500">
               {event?.nombre}
             </h1>
@@ -121,7 +121,7 @@ const BlockPrincipal: FC = () => {
     <>
       {shouldRenderChild && (
         <ModalLeft set={setIsMounted} state={isMounted}>
-          <FormCrearEvento set={setIsMounted} state={isMounted} initialValues={event} />
+          <FormCrearEvento set={setIsMounted} state={isMounted} initialValues={{ ...event }} />
         </ModalLeft>
       )}
       <BlockVista >
