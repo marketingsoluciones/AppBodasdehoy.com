@@ -1,4 +1,5 @@
 import React, { FC } from "react";
+import router from "next/router";
 
 const BlockListaRegalos: FC = () => {
   const ListaBlockRegalos : {amount :number, subtitle: string}[] = [
@@ -26,7 +27,7 @@ const BlockListaRegalos: FC = () => {
         ))}
         </div>
 
-        <button className="bg-tertiary w-2/3 rounded-lg font-display text-gray-700 text-sm py-1 hover:bg-gray-300 hover:text-white transition focus:outline-none">
+        <button  onClick={() => router.push("/lista-regalos")} className="bg-tertiary w-2/3 rounded-lg font-display text-gray-700 text-sm py-1 hover:bg-gray-300 hover:text-white transition focus:outline-none">
           Activar lista
         </button>
       </div>

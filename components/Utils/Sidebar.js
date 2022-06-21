@@ -17,7 +17,10 @@ const Sidebar = ({  set , state }) => {
     return (
         <ClickAwayListener onClickAway={() => state ? set(false) : set(true) }>
             <div className={`w-2/3 pl-4 opacity-95 z-50 bg-white shadow-lg fixed top-0 left-0 h-screen md:hidden transform transition duration-300 ${state ? "translate-x-0" : "-translate-x-full"}`}>
-                <p className="py-4 font-display text-sm text-gray-500">{user?.displayName}</p>
+                <div className="flex justify-between  font-display text-sm text-gray-500">
+                    <p className="py-4">{user?.displayName}</p>
+                    <p onClick={() => set(!state)} className="text-2xl pr-5 py-3">x</p>
+                </div>
                 <ul className="flex flex-col ">
                     {ListaNavbar.map((item, idx) => (
                         // eslint-disable-next-line @next/next/link-passhref
