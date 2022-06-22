@@ -22,8 +22,10 @@ const Profile = ({ user, state, set, ...rest }) => {
             className="cursor-pointer hover:opacity-80 transition"
             onClick={() => set(!state)}
           />
-          <Link href="/chat">
-            <MensajeIcon className="cursor-pointer hover:opacity-80 transition" />
+          <Link href="https://devchat.bodasdehoy.com/"> {/* href anterior: /chat */}
+            <a>
+              <MensajeIcon className="cursor-pointer hover:opacity-80 transition" />
+            </a>            
           </Link>
         </span>
 
