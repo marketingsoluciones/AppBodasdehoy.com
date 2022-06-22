@@ -22,11 +22,11 @@ const Profile = ({ user, state, set, ...rest }) => {
             className="cursor-pointer hover:opacity-80 transition"
             onClick={() => set(!state)}
           />
-          <Link href="https://devchat.bodasdehoy.com/"> {/* href anterior: /chat */}
-            <a>
+           {/* href anterior: /chat */}
+            <a href="https://devchat.bodasdehoy.com/">
               <MensajeIcon className="cursor-pointer hover:opacity-80 transition" />
             </a>            
-          </Link>
+          
         </span>
 
         <ClickAwayListener onClickAway={() => dropdown && setDropwdon(false)}>
