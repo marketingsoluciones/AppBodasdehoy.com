@@ -5,8 +5,6 @@ import { EventContextProvider } from "../../context";
 const Banner = () => {
   const { event } = EventContextProvider()
 
-  console.log("evento", event)
-
   const banners = {
     boda: "boda.webp",
     bautizo: "bautizo.webp",

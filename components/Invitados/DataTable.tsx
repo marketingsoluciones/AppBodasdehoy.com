@@ -98,7 +98,6 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
             useEffect(() => {
               const id = row?.original?._id;
               if (row.isSelected && !arrIDs.includes(id)) {
-                console.log("hola")
                 dispatch({ type: "ADD_ROW_SELECTED", payload: id })
               }
 
@@ -106,7 +105,7 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
                 dispatch({ type: "REMOVE_ROW_SELECTED", payload: id })
               }
 
-            }, [row.isSelected]);
+            }, [row.isSelected, dispatch, arrIDs, row]);
 
             return (
               <div className="w-full flex justify-center items-center">

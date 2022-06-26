@@ -1,35 +1,57 @@
 import { FC, useEffect, useState } from "react";
 import { useRowSelect, useSortBy, useTable } from "react-table";
 import { IndeterminateCheckbox } from "./IndeterminateCheckbox";
+import { DataTableGroupContextProvider } from "../../context/DataTableGroupContext";
 
 
 
-export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false }) => {
+export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, setArrEnviatInvitaciones }) => {
+
 
   const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows } =
     useTable({ columns, data }, useSortBy, useRowSelect, (hooks) => {
       hooks.visibleColumns.push((columns) => [
         {
           id: "selection",
-          Header: ({ getToggleAllRowsSelectedProps }) => (
-            multiSeled &&
-            <div className="">
-              <p className="cursor-pointer gap-2 rounded-xl md:rounded-2xl border border-gray-300 hover:bg-gray-200 hover:text-white transition text-center text-[10px] md:text-sm text-gray-500 font-display md:py-1">
-                Enviar
-              </p>
-              <IndeterminateCheckbox  {...getToggleAllRowsSelectedProps()} />
-            </div>
-          ),
+          Header: ({ getToggleAllRowsSelectedProps }) => {
+            const { dataTableGroup: { arrIDs } } = DataTableGroupContextProvider()
+            const [valir, setValir] = useState(false)
+            useEffect(() => {
+              if (arrIDs.length > 0) {
+                setValir(true)
+              } else {
+                setValir(false)
+              }
+            }, [arrIDs, valir]);
+            return (
+              multiSeled &&
+              <div className="">
+                {
+                  valir ? (
+                    <p onClick={() => { setArrEnviatInvitaciones(arrIDs) }} className="cursor-pointer gap-2 rounded-xl md:rounded-2xl border border-gray-300 hover:bg-gray-200 hover:text-white transition text-center text-[10px] md:text-sm text-gray-500 font-display md:py-1">
+                      Enviar
+                    </p>
+                  ) : (
+                    <p className="cursor-pointer gap-2 rounded-xl md:rounded-2xl border border-gray-300 text-center text-[10px] md:text-sm text-gray-500 font-display md:py-1">
+                      Enviar
+                    </p>
+                  )
+                }
+                <IndeterminateCheckbox  {...getToggleAllRowsSelectedProps()} />
+              </div>
+            )
+          },
           Cell: ({ row }) => {
+            const { dispatch, dataTableGroup: { arrIDs } } = DataTableGroupContextProvider()
             useEffect(() => {
               const id = row?.original?._id;
-              if (row.isSelected && !row?.original?.invitacion) {
-                console.log("ADD_ROW_SELECTED", row?.original)
+              if (row.isSelected && !arrIDs.includes(id)) {
+                dispatch({ type: "ADD_ROW_SELECTED", payload: id })
               }
-              if (!row.isSelected) {
-                console.log("REMOVE_ROW_SELECTED", row?.original)
+              if (!row.isSelected && arrIDs.includes(id)) {
+                dispatch({ type: "REMOVE_ROW_SELECTED", payload: id })
               }
-            }, [row.isSelected, row]);
+            }, [row.isSelected, row, dispatch, arrIDs]);
 
             return (
               <>

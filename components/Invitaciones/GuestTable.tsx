@@ -7,24 +7,7 @@ import { ConfirmationBlock } from "../../components/Invitaciones/ConfirmationBlo
 import { DataTable } from "../../components/Invitaciones/DataTable"
 
 export const GuestTable: FC<any> = ({ data, multiSeled }) => {
-  console.log(data)
-  const { event } = EventContextProvider();
   const [arrEnviarInvitaciones, setArrEnviatInvitaciones] = useState([]);
-  //const [data, setData] = useState([]);
-
-  /*useEffect(() => {
-    setData(
-      event?.invitados_array?.map((invitado) => {
-        return {
-          _id: invitado._id,
-          nombre: invitado.nombre,
-          correo: invitado.correo,
-          sexo: invitado.sexo,
-          invitacion: invitado.invitacion,
-        };
-      })
-    );
-  }, [event]);*/
 
   const Columna = useMemo(
     () => [
@@ -118,15 +101,13 @@ export const GuestTable: FC<any> = ({ data, multiSeled }) => {
     <>
       {arrEnviarInvitaciones.length > 0 && (
         <>
-          {console.log(222222)}
           <ConfirmationBlock
             arrEnviarInvitaciones={arrEnviarInvitaciones}
             set={(act) => setArrEnviatInvitaciones(act)}
           />
         </>
       )}
-      {console.log(3333333)}
-      <DataTable columns={Columna} data={data} multiSeled={multiSeled} />
+      <DataTable columns={Columna} data={data} multiSeled={multiSeled} setArrEnviatInvitaciones={setArrEnviatInvitaciones} />
     </>
   );
 };
