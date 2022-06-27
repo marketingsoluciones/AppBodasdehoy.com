@@ -28,13 +28,14 @@ export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, set
               <div className="">
                 {
                   valir ? (
-                    <p onClick={() => { setArrEnviatInvitaciones(arrIDs) }} className="cursor-pointer gap-2 rounded-xl md:rounded-2xl border border-gray-300 hover:bg-gray-200 hover:text-white transition text-center text-[10px] md:text-sm text-gray-500 font-display md:py-1">
+                    <button onClick={() => { setArrEnviatInvitaciones(arrIDs) }} className="focus:outline-none hover:bg-secondary hover:text-gray-300 transition bg-primary text-white py-1 rounded-xl text-center text-[10px] md:text-sm  w-full">
+
                       Enviar
-                    </p>
+                    </button>
                   ) : (
-                    <p className="cursor-pointer gap-2 rounded-xl md:rounded-2xl border border-gray-300 text-center text-[10px] md:text-sm text-gray-500 font-display md:py-1">
+                    <button className="focus:outline-none bg-primary text-white py-1 rounded-xl text-center text-[10px] md:text-sm  w-full">
                       Enviar
-                    </p>
+                    </button>
                   )
                 }
                 <IndeterminateCheckbox  {...getToggleAllRowsSelectedProps()} />
