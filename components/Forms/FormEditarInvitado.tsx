@@ -13,6 +13,7 @@ import { capitalize } from '../../utils/Capitalize';
 import SelectField from './SelectField';
 import { BooleanSwitch } from './FormInvitado';
 import * as yup from 'yup'
+import useHover from "../../hooks/useHover";
 
 const msgAuto = ({ path }) => `${capitalize(path)} requerido`
 
@@ -33,6 +34,7 @@ const FormEditarInvitado = ({
 }) => {
   const { event, setEvent } = EventContextProvider();
   const toast = useToast()
+  const [hoverRef, isHovered] = useHover();
 
 
   type MyValues = {
@@ -182,15 +184,22 @@ const FormEditarInvitado = ({
                 onChangeCapture={(e: any) => handleBlurData("grupo_edad", e.target.value)}
               />
             </div>
-            <div className="grid md:grid-cols-3 w-full gap-6 relative">
-              <InputField
-                placeholder="Ej. jhon@doe.com"
-                name="correo"
-                label="Correo"
-                onBlur={(e: any) => handleBlurData("correo", e.target.value)}
-                type="email"
-                disabled={invitado.invitacion ? true : false}
-              />
+            <div className="grid md:grid-cols-3 w-full gap-6 relative hover:{<p>algo<p/>}">
+              <div ref={hoverRef}>
+                <InputField
+                  placeholder="Ej. jhon@doe.com"
+                  name="correo"
+                  label="Correo"
+                  onBlur={(e: any) => handleBlurData("correo", e.target.value)}
+                  type="email"
+                  disabled={true /*invitado.invitacion ? true : false*/}
+                />
+                {isHovered && (
+                  <div className="transform bg-white w-2/3 shadow absolute top-0 left-20 md:top-14 md:left-4 rounded-lg text-red-500 text-xs">
+                    Para cambiar el correo elmine el invitado y créelo nuevamente.
+                  </div>
+                )}
+              </div>
               <InputField
                 placeholder="960 66 66 66"
                 name="telefono"
