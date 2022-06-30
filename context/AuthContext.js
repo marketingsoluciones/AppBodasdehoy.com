@@ -16,7 +16,7 @@ const AuthContext = createContext(initialContext);
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(initialContext.user);
 
-  
+
   useEffect(() => {
     auth.onAuthStateChanged(async (user) => {
       const sessionCookie = Cookies.get("sessionBodas");
@@ -47,11 +47,11 @@ const AuthProvider = ({ children }) => {
     });
   }, []);
 
-   useEffect(() => {
+  useEffect(() => {
     auth.onIdTokenChanged(async user => {
       const sessionCookie = Cookies.get("sessionBodas");
-      if(user && sessionCookie){
-        Cookies.set("idToken", await user.getIdToken())
+      if (user && sessionCookie) {
+        Cookies.set("idToken", await user.getIdToken(), { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "" })
       }
     })
   }, [])
@@ -65,4 +65,4 @@ const AuthProvider = ({ children }) => {
 };
 
 const AuthContextProvider = () => useContext(AuthContext)
-export {AuthContextProvider, AuthProvider};
+export { AuthContextProvider, AuthProvider };
