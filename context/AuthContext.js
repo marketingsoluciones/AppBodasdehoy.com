@@ -51,7 +51,8 @@ const AuthProvider = ({ children }) => {
     auth.onIdTokenChanged(async user => {
       const sessionCookie = Cookies.get("sessionBodas");
       if (user && sessionCookie) {
-        Cookies.set("idToken", await user.getIdToken(), { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "" })
+        console.log(1111111, "Cookies.set: idToken en ", process.env.NEXT_PUBLIC_DOMINIO ?? "")
+        Cookies.set("idToken", await user.getIdToken())
       }
     })
   }, [])
