@@ -1,6 +1,6 @@
 
 export interface Event {
-    _id : string
+    _id: string
     fecha_creacion: string
     estatus: string
     fecha_actualizacion: string
@@ -14,11 +14,10 @@ export interface Event {
     pais: string
     cant_invitados: number
     invitados_array: guests[]
-    mesas_array : table[]
+    mesas_array: table[]
     grupos_array: string[]
     notificaciones_array: notification[]
-    files_array: file[]
-    invitacion_objeto: invitation
+    imgInvitacion: image
     presupuesto_objeto: estimate
 }
 
@@ -26,7 +25,7 @@ interface estimate {
     coste_estimado: number
     coste_final: number
     pagado: number
-    categorias_array : estimateCategory[]
+    categorias_array: estimateCategory[]
 }
 
 interface cost {
@@ -42,7 +41,7 @@ interface estimateCategory extends cost {
 }
 
 interface expenses extends cost {
-    pagos_array: pay[] 
+    pagos_array: pay[]
 }
 
 interface pay {
@@ -56,22 +55,14 @@ interface pay {
     pagado_por: string
 }
 
-interface invitation {
-    id: string
-    path: string
-    path_public: string
-    filename: string
-    mimetype: string
-    fecha_subida: string
+interface image {
+    _id: string
+    i1024: string
+    i800: string
+    i640: string
+    i320: string
+    createdAt: string
 }
-
-interface file {
-    id: string
-    path: string
-    filename: string
-    mimetype: string
-}
-
 interface notification {
     _id: string
     fecha_creacion: string,
@@ -80,8 +71,8 @@ interface notification {
 }
 
 export interface table {
-    _id : string
-    nombre_mesa : string
+    _id: string
+    nombre_mesa: string
     tipo: string
     posicion: {
         x: number
@@ -91,7 +82,7 @@ export interface table {
 }
 
 export interface guests {
-    _id : string
+    _id: string
     invitacion: boolean
     fecha_invitacion: string
     estatus: string
@@ -128,4 +119,4 @@ interface chat {
 export interface signalItem {
     tipo: string;
     invitado: guests;
-  }
+}

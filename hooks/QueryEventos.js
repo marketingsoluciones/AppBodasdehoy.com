@@ -17,13 +17,13 @@ export const GetEventosUser = async (userID, set) => {
        fecha
        poblacion
        pais
-       invitacion_objeto{
-         id
-         path
-         fecha_subida
-         filename
-         mimetype
-         path_public
+       imgInvitacion{
+        _id
+        i1024
+        i800
+        i640
+        i320
+        createdAt
        }
        notificaciones_array{
          _id

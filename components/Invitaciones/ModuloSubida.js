@@ -1,31 +1,38 @@
 import { useCallback, useContext, useEffect, useState } from "react";
 import { api } from "../../api";
+import { EventContextProvider } from "../../context";
 import AlertContext from "../../context/AlertContext";
 import { CheckIcon, EditarIcon, SubirImagenIcon } from "../icons";
 
-const ModuloSubida = ({ evento }) => {
+const ModuloSubida = ({ evento, use }) => {
   const [cargado, setCargado] = useState({ titulo: "esperando archivo" });
   const [imagePreviewUrl, setImagePreviewUrl] = useState({
     file: {},
     preview: false,
-    image: evento?.invitacion_objeto?.path,
+    image: `${process.env.NEXT_PUBLIC_BASE_URL}${evento?.imgInvitacion?.i800}`,
   });
+
   const { setAlerts } = useContext(AlertContext);
+  const { setEvent } = EventContextProvider()
 
   const subir_archivo = async () => {
     const newFile = new FormData();
     const params = {
-      query: `mutation ($file: Upload!) {
-                singleUpload(file: $file, evento_id:"${evento?._id}"){
-                  id
-                  path
-                  filename
-                  mimetype
+      query: `mutation ($file: Upload!, $_id : String, $use : String) {
+                singleUpload(file: $file, _id:$_id, use : $use){
+                  _id
+                  i1024
+                  i800
+                  i640
+                  i320
+                  createdAt
                 }
               }
             `,
       variables: {
         file: null,
+        _id: evento?._id,
+        use: use,
       },
     };
 
@@ -38,7 +45,10 @@ const ModuloSubida = ({ evento }) => {
     newFile.append("0", imagePreviewUrl.file, imagePreviewUrl.file.name);
 
     try {
-      await api.UploadFile(newFile);
+      const { data } = await api.UploadFile(newFile);
+      setEvent((old) => {
+        return { ...old, imgInvitacion: data?.data?.singleUpload }
+      })
     } catch (error) {
       console.log(error);
     }
@@ -50,6 +60,7 @@ const ModuloSubida = ({ evento }) => {
     let file = e.target.files[0];
     if (file.size < 5120000) {
       reader.onloadend = () => {
+        console.log(1, e)
         setImagePreviewUrl({ file: file, image: reader.result, preview: true });
       };
     } else {
@@ -83,7 +94,7 @@ const ModuloSubida = ({ evento }) => {
           </label>
         )}
 
-        {imagePreviewUrl.preview && (
+        {true && (
           <div className="w-full font-dsplay flex text-gray-500 bottom-0 absolute ">
             <BotonConfirmar onClick={subir_archivo} />
 
@@ -95,11 +106,12 @@ const ModuloSubida = ({ evento }) => {
           </div>
         )}
       </div>
+      hola<br />
+      hola<br />
       <style jsx>
         {`
           .background-image {
-            background-image: url(${imagePreviewUrl.preview &&
-          imagePreviewUrl?.image});
+            background-image: url('${imagePreviewUrl?.image}');
             background-size: contain;
             background-position: center;
             background-repeat: no-repeat;
@@ -107,7 +119,7 @@ const ModuloSubida = ({ evento }) => {
             width: 100%;
           }
           input[type="file"] {
-            display: none;
+            //display: none;
           }
         `}
       </style>

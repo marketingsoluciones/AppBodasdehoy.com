@@ -53,7 +53,7 @@ const Invitaciones = () => {
           className="max-w-screen-lg mx-auto inset-x-0 w-full px-5 md:px-0 gap-4"
         >
 
-          <Breadcumbs />
+          <Breadcumbs />{/*volver a resumen */}
 
           <BlockTitle title="Invitaciones" />
 
@@ -66,7 +66,7 @@ const Invitaciones = () => {
                   <SubirImagenIcon2 />
                 </div>
               </div>
-              <ModuloSubida evento={event} />
+              <ModuloSubida evento={event} use={"imgInvitacion"} />
             </div>
 
             <div className="w-full md:w-2/3 gap-6 h-full relative flex-col flex justify-end">

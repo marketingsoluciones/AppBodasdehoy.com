@@ -32,7 +32,7 @@ export const api = {
 
   UploadFile: async (data, token) => {
     const token_final = token || Cookies.get("idToken")
-    return await instance.post("/api/graphql", data, {
+    return await instance.post("/graphql", data, {
       headers: {
         'Authorization': `Bearer ${token_final}`,
         "Content-Type": "multipart/form-data"
