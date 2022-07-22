@@ -4,12 +4,12 @@ import { EventContextProvider } from "../../context";
 import AlertContext from "../../context/AlertContext";
 import { CheckIcon, EditarIcon, SubirImagenIcon } from "../icons";
 
-const ModuloSubida = ({ evento, use }) => {
+const ModuloSubida = ({ event, use }) => {
   const [cargado, setCargado] = useState({ titulo: "esperando archivo" });
   const [imagePreviewUrl, setImagePreviewUrl] = useState({
     file: {},
     preview: false,
-    image: `${process.env.NEXT_PUBLIC_BASE_URL}${evento?.imgInvitacion?.i800}`,
+    image: `${process.env.NEXT_PUBLIC_BASE_URL}${event?.imgInvitacion?.i800}`,
   });
 
   const { setAlerts } = useContext(AlertContext);
@@ -31,7 +31,7 @@ const ModuloSubida = ({ evento, use }) => {
             `,
       variables: {
         file: null,
-        _id: evento?._id,
+        _id: event?._id,
         use: use,
       },
     };

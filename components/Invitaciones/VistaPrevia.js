@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { api } from "../../api";
 import { BorrarIcon, CompartirIcon, FlechaIcon, SubirImagenIcon } from "../icons";
 
-const VistaPrevia = ({ evento }) => {
+const VistaPrevia = ({ event }) => {
+  console.log(12345, event)
   const [content, setContent] = useState();
 
   async function FetchHtmlContent(idEvento) {
@@ -19,15 +20,13 @@ const VistaPrevia = ({ evento }) => {
       const res = await api.ApiBodas(params);
       if (res.data) {
         let contenido = res.data.data.obtenerTemplate;
-        const refImg =
-          '<img width="20" height="38" style="display:block; max-height:38px; max-width:20px;" alt="" src="https://img.mailinblue.com/new_images/rnb/rnb_space.gif">';
-        const pathImage =
-          "https://banderas.top/wp-content/webp-express/webp-images/doc-root/wp-content/uploads/2020/08/Rep%C3%BAblica-Bolivariana-de-Venezuela.png.webp";
+        const refImg = `<img width="20" height="38" style="display:block; max-height:38px; max-width:20px;" alt="" src="https://img.mailinblue.com/new_images/rnb/rnb_space.gif">`;
+        const pathImage = `${process.env.NEXT_PUBLIC_BASE_URL}${event?.imgInvitacion?.i640}`;
         const img = `<img style="display:block; object-fit: contain; width:500px; right:0; left:0; margin:auto; " alt="imagen" src=${pathImage} />`;
         setContent(contenido
-            .replace("{{params.tipoEvento}}", evento.tipo)
-            .replace("{{params.invitadoNombre}}", "Nombre y Apellido")
-            .replace(refImg, img));
+          .replace("{{params.tipoEvento}}", event.tipo)
+          .replace("{{params.invitadoNombre}}", event?.invitados_array[0]?.nombre)
+          .replace(refImg, img));
         return res.data.data.obtenerTemplate;
       }
     } catch (error) {
@@ -36,17 +35,17 @@ const VistaPrevia = ({ evento }) => {
   }
 
   useEffect(() => {
-    if (evento._id) {
-      FetchHtmlContent(evento._id);
+    if (event._id) {
+      FetchHtmlContent(event._id);
     }
-  }, [evento]);
+  }, [event]);
 
   const PlantillaCorreo = () => {
     return (
-        <>
-        <iframe sandbox="allow-same-origin"  seamless="seamless"  srcDoc={content} />;
+      <>
+        <iframe sandbox="allow-same-origin" seamless="seamless" srcDoc={content} />;
         <style jsx>
-            {`
+          {`
             iframe {
                 width: 100%;
                 height: 55rem;
@@ -56,8 +55,8 @@ const VistaPrevia = ({ evento }) => {
             }
             `}
         </style>
-        </>
-    ) 
+      </>
+    )
   };
 
   return (
@@ -90,9 +89,9 @@ const HeaderEmail = () => {
           </div>
         </div>
         <div className="flex items-center justify-center">
-            <div className="bg-base p-2 rounded flex gap-2 items-center md:px-16">
-              <h2 className=" text-gray-500 text-lg font-body">Vista previa de invitacion por email</h2>
-            </div>
+          <div className="bg-base p-2 rounded flex gap-2 items-center md:px-16">
+            <h2 className=" text-gray-500 text-lg font-body">Vista previa de invitacion por email</h2>
+          </div>
         </div>
         <div className=" hidden md:block flex items-center justify-center">
           <div className="bg-base p-2 rounded flex gap-2 items-center">

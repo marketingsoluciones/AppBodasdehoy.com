@@ -24,14 +24,20 @@ export default function Test() {
 
   const handleClick = async (values, actions) => {
     const params = {
-      query: `mutation TestInvitacion ($eventoID : String, $email : [String]){
-          testInvitacion(evento_id:$eventoID,
-          email:$email)
+      query: `mutation TestInvitacion ($eventoID : String, $email : [String], $linkUrl: String, $imgUrl: String){
+          testInvitacion(
+            evento_id:$eventoID,
+            email:$email,
+            linkUrl:$linkUrl,
+            imgUrl:$imgUrl
+          )
         }        
         `,
       variables: {
-        eventoID: evento?._id,
+        eventoID: event?._id,
         email: [values.email],
+        linkUrl: `${process.env.NEXT_PUBLIC_CHAT}`,
+        imgUrl: `${process.env.NEXT_PUBLIC_BASE_URL}${event?.imgInvitacion?.i640}`
       },
     };
 

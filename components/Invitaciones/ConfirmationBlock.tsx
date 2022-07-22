@@ -12,17 +12,36 @@ export const ConfirmationBlock: FC<any> = ({ arrEnviarInvitaciones, set }) => {
 
   const Aceptar = async () => {
     const params = {
-      query: `mutation{
-        enviaInvitacion(evento_id:"${event?._id
-        }",invitados_ids_array:${JSON.stringify(arrEnviarInvitaciones)}){
-          _id,
-          invitados_array{_id,invitacion,nombre,correo,rol
-            chats_array{_id,tipo}
+      query: `mutation enviaInvitacion (
+          $evento_id : String,
+          $invitados_ids_array : [String],
+          $dominio: String
+        ){
+          enviaInvitacion(
+            evento_id:$evento_id,
+            invitados_ids_array:$invitados_ids_array,
+            dominio:$dominio
+          ){
+            _id,
+            invitados_array{
+              _id,
+              invitacion,
+              nombre,
+              correo,
+              rol,
+              chats_array{
+                _id,
+                tipo
+              }
+            }
           }
-        }
-      }
-      `,
-      variables: {},
+        }        
+        `,
+      variables: {
+        evento_id: event?._id,
+        invitados_ids_array: arrEnviarInvitaciones,
+        dominio: process.env.NEXT_PUBLIC_BASE_URL
+      },
     };
 
     try {

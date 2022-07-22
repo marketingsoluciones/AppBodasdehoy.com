@@ -66,7 +66,7 @@ const Invitaciones = () => {
                   <SubirImagenIcon2 />
                 </div>
               </div>
-              <ModuloSubida evento={event} use={"imgInvitacion"} />
+              <ModuloSubida event={event} use={"imgInvitacion"} />
             </div>
 
             <div className="w-full md:w-2/3 gap-6 h-full relative flex-col flex justify-end">
@@ -90,7 +90,7 @@ const Invitaciones = () => {
           )}
 
           { /*error de http://96.126.110.203:3001/%7B%7Bparams.imgUrl%7D%7D */}
-          {/*<VistaPrevia evento={event} />*/}
+          <VistaPrevia event={event} />
 
           <h2 className="font-display font-semibold text-2xl text-gray-500 p-4">
             Diseña tu invitación
