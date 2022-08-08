@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { api } from "../../api";
 import { BorrarIcon, CompartirIcon, FlechaIcon, SubirImagenIcon } from "../icons";
 
+
 const VistaPrevia = ({ event }) => {
   console.log(12345, event)
   const [content, setContent] = useState();
@@ -21,7 +22,7 @@ const VistaPrevia = ({ event }) => {
       if (res.data) {
         let contenido = res.data.data.obtenerTemplate;
         const refImg = `<img width="20" height="38" style="display:block; max-height:38px; max-width:20px;" alt="" src="https://img.mailinblue.com/new_images/rnb/rnb_space.gif">`;
-        const pathImage = `${process.env.NEXT_PUBLIC_BASE_URL}${event?.imgInvitacion?.i640}`;
+        const pathImage = `${process.env.NEXT_PUBLIC_BASE_URL}${event?.imgInvitacion?.i640?event?.imgInvitacion?.i640:"boda.webp"}`;
         const img = `<img style="display:block; object-fit: contain; width:500px; right:0; left:0; margin:auto; " alt="imagen" src=${pathImage} />`;
         setContent(contenido
           .replace("{{params.tipoEvento}}", event.tipo)
@@ -72,12 +73,12 @@ export default VistaPrevia;
 const HeaderEmail = () => {
   return (
     <div className="w-full h-max gap-6 bg-gray-100 rounded-t-xl p-6 flex flex-col">
-      <div className=" hidden md:block flex gap-2 items-center">
+     {/*  <div className=" hidden md:block flex gap-2 items-center">
         <div className="w-4 h-4 rounded-full bg-red" />
         <div className="w-4 h-4 rounded-full bg-tertiary" />
         <div className="w-4 h-4 rounded-full bg-green" />
-      </div>
-      <div className="flex items-center justify-between">
+      </div> */}
+      <div className="flex items-center justify-between justify-center">
        {/*  <div className="hidden md:block flex items-center gap-3">
           <div className="  bg-base p-2 rounded flex gap-2 items-center">
             <BorrarIcon className="text-gray-100 w-6 h-6" />
