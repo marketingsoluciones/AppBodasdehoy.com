@@ -34,9 +34,7 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
 
   return (
     <>
-      <span className="text-gray-500 text-xs gap-0">
-        ID: {event?._id}
-      </span>
+      
 
       <div className="w-full bg-white shadow rounded-xl overflow-hidden relative flex flex-col-reverse md:flex-row md:h-72 gap-12  md:gap-0 pt-6 md:pt-0">
         {event?.tipo && (
