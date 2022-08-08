@@ -5,7 +5,7 @@ import BlockTitle from "../components/Utils/BlockTitle";
 import useHover from "../hooks/useHover";
 import { Swiper, SwiperSlide } from "swiper/react";
 import ModuloSubida from "../components/Invitaciones/ModuloSubida";
-import { motion } from "framer-motion/";
+import { motion } from "framer-motion";
 import { EventContextProvider } from "../context";
 import { useRowSelect, useSortBy, useTable } from "react-table";
 import { api } from "../api";
