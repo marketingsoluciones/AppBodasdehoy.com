@@ -106,8 +106,8 @@ const ModuloSubida = ({ event, use }) => {
           </div>
         )}
       </div>
-      hola<br />
-      hola<br />
+      <br />
+      <br />
       <style jsx>
         {`
           .background-image {
