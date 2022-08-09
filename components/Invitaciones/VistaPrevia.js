@@ -20,10 +20,10 @@ const VistaPrevia = ({ event }) => {
     try {
       const res = await api.ApiBodas(params);
       if (res.data) {
-        let contenido = res.data.data.obtenerTemplate;
+        let contenido = res.data.data.obtenerTemplate
         const refImg = `<img width="20" height="38" style="display:block; max-height:38px; max-width:20px;" alt="" src="https://img.mailinblue.com/new_images/rnb/rnb_space.gif">`;
-        const pathImage = `${process.env.NEXT_PUBLIC_BASE_URL}${event?.imgInvitacion?.i640?event?.imgInvitacion?.i640:"boda.webp"}`;
-        const img = `<img style="display:block; object-fit: contain; width:500px; right:0; left:0; margin:auto; " alt="imagen" src=${pathImage} />`;
+        const pathImage = `${process.env.NEXT_PUBLIC_BASE_URL}${event?.imgInvitacion?.i640}`;
+        const img = `<img style="display:block; object-fit: contain; width:500px; right:0; left:0; margin:auto;  alt="" src=${pathImage?pathImage:"https://asset1.zankyou.com/images/mag-post/a65/bf62/685//-/mx/wp-content/uploads/2016/07/destination-wedding-photographer-liabd0131.jpg"} />`;
         setContent(contenido
           .replace("{{params.tipoEvento}}", event.tipo)
           .replace("{{params.invitadoNombre}}", event?.invitados_array[0]?.nombre)
@@ -49,7 +49,7 @@ const VistaPrevia = ({ event }) => {
           {`
             iframe {
                 width: 100%;
-                height: 55rem;
+                height: 40rem;
             }
             ::-webkit-scrollbar {
                 display: none;
@@ -72,13 +72,13 @@ export default VistaPrevia;
 
 const HeaderEmail = () => {
   return (
-    <div className="w-full h-max gap-6 bg-gray-100 rounded-t-xl p-6 flex flex-col">
+    <div className="w-full h-max gap-6 bg-gray-100 rounded-t-xl p-6 flex flex-col justify-center">
      {/*  <div className=" hidden md:block flex gap-2 items-center">
         <div className="w-4 h-4 rounded-full bg-red" />
         <div className="w-4 h-4 rounded-full bg-tertiary" />
         <div className="w-4 h-4 rounded-full bg-green" />
       </div> */}
-      <div className="flex items-center justify-between justify-center">
+      <div className="flex items-center  justify-center">
        {/*  <div className="hidden md:block flex items-center gap-3">
           <div className="  bg-base p-2 rounded flex gap-2 items-center">
             <BorrarIcon className="text-gray-100 w-6 h-6" />
