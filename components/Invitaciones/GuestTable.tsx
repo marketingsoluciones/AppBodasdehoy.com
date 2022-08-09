@@ -37,7 +37,7 @@ export const GuestTable: FC<any> = ({ data, multiSeled }) => {
                 src={image[sexo]?.image}
                 className="rounded-full object-cover w-10 h-10"
               />
-              <p className="font-display text-sm capitalize overflow-ellipsis">
+              <p className="font-display text-sm capitalize overflow-ellipsis text-black">
                 {value}
               </p>
             </div>
@@ -82,7 +82,7 @@ export const GuestTable: FC<any> = ({ data, multiSeled }) => {
                 onClick={handleClick}
               >
                 <InvitacionesIcon className="w-5 h-5 " />
-                <p className="font-display text-md">{mensaje[value]}</p>
+                <p className="font-display text-md text-black">{mensaje[value]}</p>
                 {value && isHovered && (
                   <div className="transform bg-white w-2/3 shadow absolute right-0 mx-auto inset-x-0 translate-x-full rounded-lg text-gray-500 text-sm">
                     Enviado el <br /> 27 Junio 2021

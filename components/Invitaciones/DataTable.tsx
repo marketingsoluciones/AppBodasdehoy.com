@@ -117,7 +117,7 @@ export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, set
                       <td
                         key={i}
                         {...cell.getCellProps()}
-                        className={`font-display grid place-items-center text-sm w-full h-full text-center text-left py-2 col-span-${colSpan[cell.column.id]
+                        className={`font-display grid place-items-center text-sm w-full text-black h-full text-center text-left py-2 col-span-${colSpan[cell.column.id]
                           }`}
                       >
                         {cell.render("Cell")}
