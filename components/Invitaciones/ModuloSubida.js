@@ -77,17 +77,20 @@ const ModuloSubida = ({ event, use }) => {
 
   return (
     <>
-      <div className="relative w-full z-10 h-full background-image bg-gradient-to-r from-gray-200 to-gray-300 rounded-xl shadow-lg flex flex-col text-white items-center justify-center cursor-pointer transition overflow-hidden">
+      <div className=" w-full z-10 h-full background-image bg-gradient-to-r from-gray-200 to-gray-300 rounded-xl shadow-lg flex flex-col text-white items-center justify-center  overflow-hidden">
         <input
           id="file"
           type="file"
+          name="file"
           accept="image/*"
           required
           onChange={(e) => handleChange(e)}
+          className="hidden"
         />
         {imagePreviewUrl.preview == false && (
           <label
-            className="hover:scale-120 transform font-display text-md font-medium flex flex-col items-center justify-center gap-1 cursor-pointer"
+            htmlFor="file"
+            className="hover:scale-120 transform font-display text-md font-medium flex flex-col items-center justify-center gap-1 cursor-pointer relative"
           >
             <SubirImagenIcon />
             {imagePreviewUrl.preview ? cargado.titulo : "Añadir invitacion"}
@@ -95,10 +98,11 @@ const ModuloSubida = ({ event, use }) => {
         )}
 
         {true && (
-          <div className="w-full font-dsplay flex text-gray-500 bottom-0 absolute ">
+          <div className="w-full font-dsplay flex text-gray-500 bottom-0 absolute cursor-pointer ">
             <BotonConfirmar onClick={subir_archivo} />
 
             <label
+              htmlFor="file"
               className="flex gap-1 items-center justify-center w-full bg-white px-3 py-1 hover:scale-105 transition transform cursor-pointer"
             >
               Cambiar <EditarIcon />

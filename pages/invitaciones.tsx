@@ -60,12 +60,12 @@ const Invitaciones = () => {
           <div className="w-full flex-col flex md:flex-row my-6 gap-6 relative">
             { /*error de http://96.126.110.203:3001/false*/}
             <div ref={hoverRef} className="relative w-full h-96 md:w-1/3 ">
-              <div className={`hidden md:block h-40 bg-secondary w-20 rounded-xl  absolute z-0 left-0 top-0 bottom-0 m-auto transform transition duration-400 ${isHovered && "-translate-x-1/2"} `}>
+              {/* <div className={`hidden md:block h-40 bg-secondary w-20 rounded-xl  absolute z-0 left-0 top-0 bottom-0 m-auto transform transition duration-400 ${isHovered && "-translate-x-1/2"} `}>
                 <div className="w-1/2 text-white flex flex-col items-center justify-center h-full gap-4">
                   <CompartirIcon />
                   <SubirImagenIcon2 />
                 </div>
-              </div>
+              </div> */}
               <ModuloSubida event={event} use={"imgInvitacion"} />
             </div>
 
