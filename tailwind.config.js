@@ -13,7 +13,8 @@ module.exports = {
         secondary: "#87F3B5",
         tertiary: "#FBFF4E", 
         base: "#F2F2F2",
-        green: "#13ce66"
+        green: "#13ce66",
+        red: "#fa0202"
   
       },
     }

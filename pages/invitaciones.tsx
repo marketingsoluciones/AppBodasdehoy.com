@@ -79,7 +79,7 @@ const Invitaciones = () => {
           {event?.invitados_array?.length > 0 && (
             <div>
               <div className="bg-white w-full rounded-xl shadow-md relative mt-4 mb-8">
-                <Separator title="Invitaciones pendientes" />
+                <Separator title="  Invitaciones pendientes"  />
                 {/*dataInvitationNotSent &&*/ <GuestTable data={dataInvitationNotSent} multiSeled={true} />}
               </div>
               <div className="bg-white w-full rounded-xl shadow-md relative mt-4 mb-8">
