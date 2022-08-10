@@ -11,13 +11,14 @@ import { useDelayUnmount } from "../utils/Funciones";
 import { NextPage } from "next";
 import { Event } from "../utils/Interfaces";
 import { fetchApiEventos, queries } from "../utils/Fetching";
+import VistaSinCookie from "../pages/vista-sin-cookie"
 
 const Home: NextPage = () => {
   const [isMounted, setIsMounted] = useState<boolean>(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
-  const { user } = AuthContextProvider()
+  const { user, verificandoCookie, emailpassword, setEmailPassword,  } = AuthContextProvider()
   const { setEventsGroup } = EventsGroupContextProvider()
-
+  
   useEffect(() => {
     fetchApiEventos({
       query: queries.getEventsByID,
@@ -27,8 +28,36 @@ const Home: NextPage = () => {
       .catch((error) => console.log(error));
   }, []);
 
+  console.log("revisando que devuelve la cookie",verificandoCookie)
+  if (user){
+    return (
+      <>
+        {shouldRenderChild && (
+          <ModalLeft state={isMounted} set={setIsMounted}>
+            <FormCrearEvento state={isMounted} set={setIsMounted} />
+          </ModalLeft>
+        )}
+  
+        <section className="section relative w-full ">
+          <Banner state={isMounted} set={setIsMounted} />
+          <GridCards state={isMounted} set={setIsMounted} />
+        </section>
+        <style jsx>
+          {`
+            .section {
+              height: calc(100vh - 190px);
+            }
+          `}
+        </style>
+      </>
+    );
 
-  return (
+    }
+    return(
+      <VistaSinCookie/>
+    )
+    
+  /* return (
     <>
       {shouldRenderChild && (
         <ModalLeft state={isMounted} set={setIsMounted}>
@@ -48,9 +77,8 @@ const Home: NextPage = () => {
         `}
       </style>
     </>
-  );
+  ); */
 };
-
 export default Home;
 
 export async function getServerSideProps({ req, res }) {
