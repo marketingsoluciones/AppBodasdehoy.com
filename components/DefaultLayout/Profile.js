@@ -3,14 +3,16 @@ import { useState } from "react";
 import ClickAwayListener from "react-click-away-listener";
 import { capitalize } from "../../utils/Capitalize";
 import { CorazonIcono, MensajeIcon } from "../icons";
+import { useAuthentication } from "../../utils/Authentication";
 
 const Profile = ({ user, state, set, ...rest }) => {
   const [dropdown, setDropwdon] = useState(false);
   const ListaDropdown = [
     { title: "Ir al directorio", route: process.env.NEXT_PUBLIC_DIRECTORY },
-    { title: "perfil", route: "/perfil" },
-    { title: "prueba", route: "/prueba" },
+    /* { title: "perfil", route: "/perfil" },
+    { title: "prueba", route: "/prueba" }, */
   ];
+  /* const {_signOut} = useAuthentication() */
   return (
     <>
       <div
@@ -47,6 +49,7 @@ const Profile = ({ user, state, set, ...rest }) => {
                       </li>
                     </Link>
                   ))}
+                  {/* <button onClick={async()=>{_signOut()}}>cerrar</button> */}
                 </ul>
               </div>
             )}

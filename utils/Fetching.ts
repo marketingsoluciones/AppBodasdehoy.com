@@ -407,5 +407,8 @@ export const queries = {
       }
       cantidad_sillas
     }
-  }`
+  }`,
+  signOut: `mutation ($sessionCookie :String){
+    signOut(sessionCookie:$sessionCookie)
+  }`,
 };
