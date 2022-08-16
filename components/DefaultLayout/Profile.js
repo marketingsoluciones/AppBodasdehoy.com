@@ -9,10 +9,9 @@ const Profile = ({ user, state, set, ...rest }) => {
   const [dropdown, setDropwdon] = useState(false);
   const ListaDropdown = [
     { title: "Ir al directorio", route: process.env.NEXT_PUBLIC_DIRECTORY },
-    /* { title: "perfil", route: "/perfil" },
-    { title: "prueba", route: "/prueba" }, */
+
   ];
-  /* const {_signOut} = useAuthentication() */
+  
   return (
     <>
       <div
@@ -20,15 +19,14 @@ const Profile = ({ user, state, set, ...rest }) => {
         {...rest}
       >
         <span className="flex items-center gap-2 relative">
-          <CorazonIcono
+          {/* <CorazonIcono
             className="cursor-pointer hover:opacity-80 transition"
             onClick={() => set(!state)}
-          />
-          {/* href anterior: /chat */}
-          <a href={process.env.NEXT_PUBLIC_CHAT ?? ""}>
+          /> */}
+         
+          <a href={process.env.NEXT_PUBLIC_CHAT ?? "" } target="_blank">
             <MensajeIcon className="cursor-pointer hover:opacity-80 transition" />
           </a>
-
         </span>
 
         <ClickAwayListener onClickAway={() => dropdown && setDropwdon(false)}>

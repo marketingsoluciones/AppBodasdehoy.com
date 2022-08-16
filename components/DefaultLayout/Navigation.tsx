@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { FC, useMemo, useEffect, useState } from "react";
 import { useRouter } from "next/router";
-
 import {
   AuthContextProvider,
   EventContextProvider,
@@ -34,22 +33,24 @@ const Navigation: any = (
   const { event } = EventContextProvider();
   const { setLoading } = LoadingContextProvider();
   const { user } = AuthContextProvider();
-
   const router = useRouter();
-
   const [pink, setPink] = useState(true);
   const [showSidebar, setShowSidebar] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
 
   const Navbar = useMemo(() => [
-    { title: "Mis eventos", icon: <MisEventosIcon />, route: "/" },
+    { title: "Mis eventos", 
+      icon: <MisEventosIcon />, 
+      route: "/" },
     {
       title: "Invitados",
       icon: <InvitadosIcon />,
       route: event?._id ? "/invitados" : "/",
     },
-    { title: "Mesas", icon: <MesasIcon />, route: event?._id ? "/mesas" : "/" },
+    { title: "Mesas", 
+      icon: <MesasIcon />, route: 
+      event?._id ? "/mesas" : "/" },
     {
       title: "Lista",
       icon: <ListaRegalosIcon />,
