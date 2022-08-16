@@ -45,9 +45,13 @@ const Profile = ({ user, state, set, ...rest }) => {
                       >
                         {item.title && capitalize(item.title)}
                       </li>
+                      
                     </Link>
                   ))}
-                  {/* <button onClick={async()=>{_signOut()}}>cerrar</button> */}
+                  <li className="w-full pl-5 py-1 text-gray-500 transition  hover:bg-primary hover:text-white font-display text-sm">
+                  <button onClick={async()=>{_signOut()}}>cerrar</button>
+                  </li>
+                  
                 </ul>
               </div>
             )}
