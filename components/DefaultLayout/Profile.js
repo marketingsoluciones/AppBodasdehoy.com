@@ -24,7 +24,7 @@ const Profile = ({ user, state, set, ...rest }) => {
             onClick={() => set(!state)}
           /> */}
          
-          <a href={process.env.NEXT_PUBLIC_CHAT ?? "" } target="_blank">
+          <a href={process.env.NEXT_PUBLIC_CHAT ?? "" } >
             <MensajeIcon className="cursor-pointer hover:opacity-80 transition" />
           </a>
         </span>
