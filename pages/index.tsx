@@ -16,9 +16,9 @@ import VistaSinCookie from "../pages/vista-sin-cookie"
 const Home: NextPage = () => {
   const [isMounted, setIsMounted] = useState<boolean>(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
-  const { user, verificandoCookie, emailpassword, setEmailPassword,  } = AuthContextProvider()
+  const { user, verificationDone } = AuthContextProvider()
   const { setEventsGroup } = EventsGroupContextProvider()
-  
+
   useEffect(() => {
     fetchApiEventos({
       query: queries.getEventsByID,
@@ -28,35 +28,35 @@ const Home: NextPage = () => {
       .catch((error) => console.log(error));
   }, []);
 
-  console.log("revisando que devuelve la cookie",verificandoCookie)
-  if (user){
-    return (
-      <>
-        {shouldRenderChild && (
-          <ModalLeft state={isMounted} set={setIsMounted}>
-            <FormCrearEvento state={isMounted} set={setIsMounted} />
-          </ModalLeft>
-        )}
-  
-        <section className="section relative w-full ">
-          <Banner state={isMounted} set={setIsMounted} />
-          <GridCards state={isMounted} set={setIsMounted} />
-        </section>
-        <style jsx>
-          {`
-            .section {
-              height: calc(100vh - 190px);
-            }
-          `}
-        </style>
-      </>
-    );
+  if (verificationDone) {
+    if (user) {
+      return (
+        <>
+          {shouldRenderChild && (
+            <ModalLeft state={isMounted} set={setIsMounted}>
+              <FormCrearEvento state={isMounted} set={setIsMounted} />
+            </ModalLeft>
+          )}
 
+          <section className="section relative w-full ">
+            <Banner state={isMounted} set={setIsMounted} />
+            <GridCards state={isMounted} set={setIsMounted} />
+          </section>
+          <style jsx>
+            {`
+              .section {
+                height: calc(100vh - 190px);
+              }
+            `}
+          </style>
+        </>
+      );
     }
-    return(
-      <VistaSinCookie/>
+    return (
+      <VistaSinCookie />
     )
-    
+  }
+
   /* return (
     <>
       {shouldRenderChild && (
@@ -258,8 +258,8 @@ const GridCards: FC<propsGridCards> = ({ state, set }) => {
               onClick={(e) => setIsActive(idx)}
               key={idx}
               className={`${isActive == idx
-                  ? `bg-${item.color} text-gray-500`
-                  : "bg-white text-gray-500"
+                ? `bg-${item.color} text-gray-500`
+                : "bg-white text-gray-500"
                 } w-max px-4 py-0.5 rounded-xl flex items-center justify-center cursor-pointer hover:bg-${item.color
                 } hover:text-gray-500 transition focus:outline-none text-sm`}
             >

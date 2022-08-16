@@ -4,10 +4,13 @@ import Cookies from 'js-cookie'
 
 import { auth } from "../firebase";
 import { fetchApi, queries } from "../utils/Fetching";
+import { boolean } from "yup";
 
 const initialContext = {
   user: null,
   setUser: () => null,
+  verificationDone: boolean,
+  setVerificationDone: () => false
 }
 
 const AuthContext = createContext(initialContext);
@@ -15,7 +18,7 @@ const AuthContext = createContext(initialContext);
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(initialContext.user);
-
+  const [verificationDone, setVerificationDone] = useState(false);
 
   useEffect(() => {
     auth.onAuthStateChanged(async (user) => {
@@ -44,6 +47,7 @@ const AuthProvider = ({ children }) => {
           console.info("Hago sesion con el custom token");
         }
       }
+      setVerificationDone(true)
     });
   }, []);
 
@@ -59,7 +63,7 @@ const AuthProvider = ({ children }) => {
 
 
   return (
-    <AuthContext.Provider value={{ user, setUser }}>
+    <AuthContext.Provider value={{ user, setUser, verificationDone, setVerificationDone }}>
       {children}
     </AuthContext.Provider>
   );
