@@ -26,7 +26,7 @@ const Banner = () => {
 
   return (
     <>
-      <div  className="h-40 my-4 w-full bg-white bg-[url('/banners/bautizo.webp')] grid place-items-center rounded-xl my-4 relative">
+      <div  className="h-40 my-4 w-full bg-white banner grid place-items-center rounded-xl my-4 relative">
         <div className="bg-primary w-40 h-40 rounded-full absolute right-0 inset-y-0 my-auto p-8 flex items-center justify-center">
           <div className="w-max h-max relative">
             <p className="font-display text-xs text-white">Por solo</p>
@@ -41,7 +41,7 @@ const Banner = () => {
       <style jsx>
         {`
             .banner {
-                background-image : url("/banners/${banners[event?.tipo]}");
+                background-image : url("/${banners[event?.tipo]}");
                 background-repeat: no-repeat;
                 baground-size: contain;
                 background-position: top center;
