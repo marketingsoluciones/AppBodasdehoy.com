@@ -4,6 +4,7 @@ import ClickAwayListener from "react-click-away-listener";
 import { capitalize } from "../../utils/Capitalize";
 import { CorazonIcono, MensajeIcon } from "../icons";
 import { useAuthentication } from "../../utils/Authentication";
+import router from "next/router";
 
 const Profile = ({ user, state, set, ...rest }) => {
   const [dropdown, setDropwdon] = useState(false);
@@ -11,7 +12,7 @@ const Profile = ({ user, state, set, ...rest }) => {
     { title: "Ir al directorio", route: process.env.NEXT_PUBLIC_DIRECTORY },
 
   ];
-  
+
   return (
     <>
       <div
@@ -23,8 +24,8 @@ const Profile = ({ user, state, set, ...rest }) => {
             className="cursor-pointer hover:opacity-80 transition"
             onClick={() => set(!state)}
           /> */}
-         
-          <a href={process.env.NEXT_PUBLIC_CHAT ?? "" } >
+
+          <a href={process.env.NEXT_PUBLIC_CHAT ?? ""} >
             <MensajeIcon className="cursor-pointer hover:opacity-80 transition" />
           </a>
         </span>
@@ -45,13 +46,13 @@ const Profile = ({ user, state, set, ...rest }) => {
                       >
                         {item.title && capitalize(item.title)}
                       </li>
-                      
+
                     </Link>
                   ))}
                   <li className="w-full pl-5 py-1 text-gray-500 transition  hover:bg-primary hover:text-white font-display text-sm">
-                  <button onClick={async()=>{_signOut()}}>cerrar</button>
+                    <button onClick={async () => { router.push(`${process.env.NEXT_PUBLIC_DIRECTORY}/signout?end=true` ?? "") }}>Cerrar Sesión</button>
                   </li>
-                  
+
                 </ul>
               </div>
             )}

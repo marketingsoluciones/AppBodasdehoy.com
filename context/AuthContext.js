@@ -47,7 +47,9 @@ const AuthProvider = ({ children }) => {
           console.info("Hago sesion con el custom token");
         }
       }
-      setVerificationDone(true)
+      setTimeout(() => {
+        setVerificationDone(true)
+      }, 100);
     });
   }, []);
 
