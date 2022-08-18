@@ -49,7 +49,7 @@ const AuthProvider = ({ children }) => {
       }
       setTimeout(() => {
         setVerificationDone(true)
-      }, 100);
+      }, 800);
     });
   }, []);
 
