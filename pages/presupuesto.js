@@ -5,7 +5,7 @@ import { api } from "../api";
 import Breadcumbs from "../components/DefaultLayout/Breadcumb";
 import FormCrearCategoria from "../components/Forms/FormCrearCategoria";
 import FormEditarCategoria from "../components/Forms/FormEditarCategoria";
-import {CochinoIcon,DineroIcon,DotsOpcionesIcon,PlusIcon} from "../components/icons";
+import { CochinoIcon, DineroIcon, DotsOpcionesIcon, PlusIcon } from "../components/icons";
 import BlockCategoria from "../components/Presupuesto/BlockCategoria";
 import BlockPagos from "../components/Presupuesto/BlockPagos";
 import Grafico from "../components/Presupuesto/Grafico";
@@ -35,15 +35,15 @@ const Presupuesto = () => {
 
   return (
     <>
-      <section className="bg-base w-full h-full pb-20 ">
+      {event && <section className="bg-base w-full h-full pb-20 ">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="max-w-screen-lg mx-auto inset-x-0 w-full"
         >
-          <div className="pl-5">              
-            <Breadcumbs />                
+          <div className="pl-5">
+            <Breadcumbs />
           </div>
 
           <div className="w-80 mx-auto inset-x-0 h-max flex my-2 rounded-2xl overflow-hidden">
@@ -138,7 +138,7 @@ const Presupuesto = () => {
             <BlockPagos />
           )}
         </motion.div>
-      </section>
+      </section>}
       <style jsx>
         {`
           section {

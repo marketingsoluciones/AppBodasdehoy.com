@@ -38,8 +38,8 @@ const Invitaciones = () => {
       item.invitacion ? acc.sent.push(asd) : acc.notSent.push(asd);
       return acc;
     }, { sent: [], notSent: [] })
-    reduce.sent.length != dataInvitationSent.length && setDataInvitationSent(reduce.sent);
-    reduce.notSent.length != dataInvitationNotSent.length && setDataInvitationNotSent(reduce.notSent);
+    reduce?.sent?.length != dataInvitationSent?.length && setDataInvitationSent(reduce?.sent);
+    reduce?.notSent.length != dataInvitationNotSent?.length && setDataInvitationNotSent(reduce?.notSent);
   }, [event, dataInvitationSent, dataInvitationNotSent]);
 
   return (
