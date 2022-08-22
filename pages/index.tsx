@@ -16,7 +16,6 @@ import VistaSinCookie from "../pages/vista-sin-cookie"
 const Home: NextPage = () => {
   const [isMounted, setIsMounted] = useState<boolean>(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
-  const { user, verificationDone } = AuthContextProvider()
   const { setEventsGroup } = EventsGroupContextProvider()
 
   useEffect(() => {
@@ -28,34 +27,37 @@ const Home: NextPage = () => {
       .catch((error) => console.log(error));
   }, []);
 
+  const { user, verificationDone } = AuthContextProvider()
   if (verificationDone) {
-    if (user) {
+    console.log(23456789, verificationDone, user)
+    if (!user) {
       return (
-        <>
-          {shouldRenderChild && (
-            <ModalLeft state={isMounted} set={setIsMounted}>
-              <FormCrearEvento state={isMounted} set={setIsMounted} />
-            </ModalLeft>
-          )}
+        <VistaSinCookie />
+      )
+    }
+    return (
+      <>
+        {shouldRenderChild && (
+          <ModalLeft state={isMounted} set={setIsMounted}>
+            <FormCrearEvento state={isMounted} set={setIsMounted} />
+          </ModalLeft>
+        )}
 
-          <section className="section relative w-full ">
-            <Banner state={isMounted} set={setIsMounted} />
-            <GridCards state={isMounted} set={setIsMounted} />
-          </section>
-          <style jsx>
-            {`
+        <section className="section relative w-full ">
+          <Banner state={isMounted} set={setIsMounted} />
+          <GridCards state={isMounted} set={setIsMounted} />
+        </section>
+        <style jsx>
+          {`
               .section {
                 height: calc(100vh - 190px);
               }
             `}
-          </style>
-        </>
-      );
-    }
-    return (
-      <VistaSinCookie />
-    )
+        </style>
+      </>
+    );
   }
+
 
   /* return (
     <>
