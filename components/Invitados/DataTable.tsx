@@ -197,32 +197,32 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
             // Loop over the header rows
             headerGroups.map((headerGroup, i) => (
               // Apply the header row props
-              <>
-                <tr
-                  {...headerGroup.getHeaderGroupProps()}
-                  key={i}
-                  className="grid grid-cols-12"
-                >
-                  {
-                    // Loop over the headers in each row
-                    headerGroup.headers.map((column, i) => {
-                      return (
-                        // Apply the header cell props
-                        <th
-                          {...column.getHeaderProps()}
-                          key={i}
-                          className={`px-6 py-3 text-center text-sm font-light font-display col-span-${ColSpan(column.id, headerGroup.headers, 12)}`}
-                        >
-                          {
-                            // Render the header
-                            column.render("Header")
-                          }
-                        </th>
-                      )
-                    })
-                  }
-                </tr>
-              </>
+
+              <tr
+                {...headerGroup.getHeaderGroupProps()}
+                key={i}
+                className="grid grid-cols-12"
+              >
+                {
+                  // Loop over the headers in each row
+                  headerGroup.headers.map((column, i) => {
+                    return (
+                      // Apply the header cell props
+                      <th
+                        {...column.getHeaderProps()}
+                        key={i}
+                        className={`px-6 py-3 text-center text-sm font-light font-display col-span-${ColSpan(column.id, headerGroup.headers, 12)}`}
+                      >
+                        {
+                          // Render the header
+                          column.render("Header")
+                        }
+                      </th>
+                    )
+                  })
+                }
+              </tr>
+
             ))
           }
         </thead>

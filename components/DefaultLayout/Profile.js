@@ -10,7 +10,6 @@ const Profile = ({ user, state, set, ...rest }) => {
   const [dropdown, setDropwdon] = useState(false);
   const ListaDropdown = [
     { title: "Ir al directorio", route: process.env.NEXT_PUBLIC_DIRECTORY },
-
   ];
 
   return (
@@ -38,6 +37,9 @@ const Profile = ({ user, state, set, ...rest }) => {
             {dropdown && (
               <div className="bg-white rounded-lg w-48 h-max shadow-lg absolute bottom-0 transform translate-y-full overflow-hidden z-40 ">
                 <ul className="w-full">
+                  {!user && <li className="w-full pl-5 py-1 text-gray-500 transition  hover:bg-primary hover:text-white font-display text-sm">
+                    <button onClick={async () => { router.push(`${process.env.NEXT_PUBLIC_DIRECTORY}/login?d=app` ?? "") }}>Login</button>
+                  </li>}
                   {ListaDropdown?.map((item, idx) => (
                     <Link href={item?.route ?? ""} key={idx} passHref>
                       <li
@@ -49,10 +51,9 @@ const Profile = ({ user, state, set, ...rest }) => {
 
                     </Link>
                   ))}
-                  <li className="w-full pl-5 py-1 text-gray-500 transition  hover:bg-primary hover:text-white font-display text-sm">
+                  {user && <li className="w-full pl-5 py-1 text-gray-500 transition  hover:bg-primary hover:text-white font-display text-sm">
                     <button onClick={async () => { router.push(`${process.env.NEXT_PUBLIC_DIRECTORY}/signout?end=true` ?? "") }}>Cerrar Sesión</button>
-                  </li>
-
+                  </li>}
                 </ul>
               </div>
             )}

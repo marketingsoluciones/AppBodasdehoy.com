@@ -11,7 +11,9 @@ const VistaSinCookie = () => {
             <h2 className="w-full text-2xl font-bold font-display text-center pb-3">Te invito a iniciar sesion en </h2>
             <samp className="flex justify-center">
               <Link href={`${process.env.NEXT_PUBLIC_DIRECTORY}/login?d=app` ?? ""} passHref>
-                <LogoNuevoBodasBlanco className="text-primary cursor-pointer" />
+                <>
+                  <LogoNuevoBodasBlanco className="text-primary cursor-pointer" />
+                </>
               </Link>
             </samp>
             <p className=" pt-3 text-sm  text-center">

@@ -36,7 +36,6 @@ const Presupuesto = () => {
 
   const { user, verificationDone } = AuthContextProvider()
   if (verificationDone) {
-    console.log(23456789, verificationDone, user)
     if (!user) {
       return (
         <VistaSinCookie />

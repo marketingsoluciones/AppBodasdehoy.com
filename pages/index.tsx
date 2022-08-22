@@ -29,7 +29,6 @@ const Home: NextPage = () => {
 
   const { user, verificationDone } = AuthContextProvider()
   if (verificationDone) {
-    console.log(23456789, verificationDone, user)
     if (!user) {
       return (
         <VistaSinCookie />
@@ -271,7 +270,7 @@ const GridCards: FC<propsGridCards> = ({ state, set }) => {
         </div>
         <div className="w-full ">
           {tabsGroup.map((group, idx) => (
-            <>
+            <div key={idx}>
               {isActive == idx ? (
                 <Swiper
                   key={idx}
@@ -307,7 +306,7 @@ const GridCards: FC<propsGridCards> = ({ state, set }) => {
                   ))}
                 </Swiper>
               ) : null}
-            </>
+            </div>
           ))}
         </div>
       </div>

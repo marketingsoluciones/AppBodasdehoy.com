@@ -546,7 +546,7 @@ const CheckBoxAll: FC<any> = ({ check, ...rest }) => {
     if (refCheckbox?.current?.indeterminate) {
       refCheckbox.current.indeterminate = indeterminate;
     }
-  }, [refCheckbox, arrIDs]);
+  }, [refCheckbox, arrIDs, getToggleAllRowsSelectedProps]);
 
   return (
     <div className="h-8 w-full grid grid-cols-12 items-center">
