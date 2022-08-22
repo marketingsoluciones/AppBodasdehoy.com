@@ -9,13 +9,13 @@ const VistaSinCookie = () => {
         <div className="mx-auto w-1/2 mt-40">
           <div className="pb-6 w-1/2 mx-auto ">
             <h2 className="w-full text-2xl font-bold font-display text-center pb-3">Te invito a iniciar sesion en </h2>
-            <samp className="flex justify-center">
-              <Link href={`${process.env.NEXT_PUBLIC_DIRECTORY}/login?d=app` ?? ""} passHref>
-                <>
-                  <LogoNuevoBodasBlanco className="text-primary cursor-pointer" />
-                </>
-              </Link>
-            </samp>
+            <Link href={`${process.env.NEXT_PUBLIC_DIRECTORY}/login?d=app` ?? ""} passHref >
+              <samp className="flex justify-center">
+
+                <LogoNuevoBodasBlanco className="text-primary cursor-pointer" />
+
+              </samp>
+            </Link>
             <p className=" pt-3 text-sm  text-center">
               Para poder utilizar la aplicación y organizar el evento de tus sueños
             </p>

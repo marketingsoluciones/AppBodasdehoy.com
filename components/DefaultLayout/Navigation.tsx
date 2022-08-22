@@ -100,18 +100,16 @@ const Navigation: any = (
             onClick={() => setShowSidebar(!showSidebar)}
             className="md:hidden cursor-pointer"
           />
-          <span
-            onClick={() => {
-              Loading(setLoading);
-            }}
-            className="cursor-pointer w-40 items-center flex justify-center"
-          >
-            <Link href={process.env.NEXT_PUBLIC_DIRECTORY ?? ""}>
-              <>
-                <LogoNuevoBodasBlanco className="hover:opacity-80 transition text-primary" />
-              </>
-            </Link>
-          </span>
+          <Link href={process.env.NEXT_PUBLIC_DIRECTORY ?? ""} passHref>
+            <span
+              onClick={() => {
+                Loading(setLoading);
+              }}
+              className="cursor-pointer w-40 items-center flex justify-center"
+            >
+              <LogoNuevoBodasBlanco className="hover:opacity-80 transition text-primary" />
+            </span>
+          </Link>
           <Profile
             state={isMounted}
             set={(act) => setIsMounted(act)}
