@@ -8,7 +8,7 @@ import React, { Dispatch, FC, SetStateAction, useCallback, useEffect, useState }
 //import { DndProvider } from 'react-dnd-multi-backend';
 import HTML5toTouch from 'react-dnd-multi-backend/dist/esm/HTML5toTouch'
 // Importaciones de contextos
-import { EventContextProvider } from "../context";
+import { AuthContextProvider, EventContextProvider } from "../context";
 // Importaciones de componentes
 import FormCrearMesa from "../components/Forms/FormCrearMesa";
 import BlockPanelMesas from "../components/Mesas/BlockPanelMesas";
@@ -23,6 +23,7 @@ import { api } from "../api";
 import Breadcumb from "../components/DefaultLayout/Breadcumb";
 import { Event, guests } from "../utils/Interfaces";
 import { fetchApiEventos, queries } from "../utils/Fetching";
+import VistaSinCookie from "./vista-sin-cookie";
 
 const Mesas: FC = () => {
   const { event, setEvent } = EventContextProvider();
@@ -96,64 +97,71 @@ const Mesas: FC = () => {
       }
     }
   }
-
-  return (
-    <>
-      {showForm ? (
-        <ModalCrearMesa set={setShowForm} state={showForm}>
-          <FormCrearMesa
-            modelo={modelo}
-            set={setShowForm}
-            state={showForm}
-          />
-        </ModalCrearMesa>
-      ) : null}
-
-      {shouldRenderChild && (
-        <ModalLeft state={isMounted} set={setIsMounted}>
-          <FormInvitado
-            state={isMounted}
-            set={setIsMounted}
-          />
-        </ModalLeft>
-      )}
-      <div>
-        <DndProvider backend={movil ? TouchBackend : HTML5Backend}>
-          <section className={`w-full grid md:grid-cols-12 bg-base overflow-hidden`}>
-            <div
-              className={`hidden md:block flex z-10 h-full col-span-3 box-border px-2 flex-col  gap-6 transform transition duration-700 overflow-y-auto `}
-            >
-
-              <Breadcumb />
-
-
-              <BlockPanelMesas
-                setModelo={setModelo}
-                state={showForm}
-                set={setShowForm}
-              />
-              <BlockResumen InvitadoSentados={filterGuests?.sentados} />
-              <BlockInvitados
-                AddInvitado={AddInvitado}
-                set={setIsMounted}
-                InvitadoNoSentado={filterGuests?.noSentados}
-              />
-            </div>
-            <LayoutMesas
-              AddInvitado={AddInvitado}
+  const { user, verificationDone } = AuthContextProvider()
+  if (verificationDone) {
+    if (!user) {
+      return (
+        <VistaSinCookie />
+      )
+    }
+    return (
+      <>
+        {showForm ? (
+          <ModalCrearMesa set={setShowForm} state={showForm}>
+            <FormCrearMesa
+              modelo={modelo}
+              set={setShowForm}
+              state={showForm}
             />
-          </section>
-        </DndProvider>
-        <style jsx>
-          {`
+          </ModalCrearMesa>
+        ) : null}
+
+        {shouldRenderChild && (
+          <ModalLeft state={isMounted} set={setIsMounted}>
+            <FormInvitado
+              state={isMounted}
+              set={setIsMounted}
+            />
+          </ModalLeft>
+        )}
+        <div>
+          <DndProvider backend={movil ? TouchBackend : HTML5Backend}>
+            <section className={`w-full grid md:grid-cols-12 bg-base overflow-hidden`}>
+              <div
+                className={`hidden md:block flex z-10 h-full col-span-3 box-border px-2 flex-col  gap-6 transform transition duration-700 overflow-y-auto `}
+              >
+
+                <Breadcumb />
+
+
+                <BlockPanelMesas
+                  setModelo={setModelo}
+                  state={showForm}
+                  set={setShowForm}
+                />
+                <BlockResumen InvitadoSentados={filterGuests?.sentados} />
+                <BlockInvitados
+                  AddInvitado={AddInvitado}
+                  set={setIsMounted}
+                  InvitadoNoSentado={filterGuests?.noSentados}
+                />
+              </div>
+              <LayoutMesas
+                AddInvitado={AddInvitado}
+              />
+            </section>
+          </DndProvider>
+          <style jsx>
+            {`
             section {
               height: calc(100vh - 9rem);
             }
           `}
-        </style>
-      </div>
-    </>
-  );
+          </style>
+        </div>
+      </>
+    );
+  }
 };
 
 export default Mesas;

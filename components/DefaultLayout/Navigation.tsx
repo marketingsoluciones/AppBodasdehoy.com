@@ -40,17 +40,21 @@ const Navigation: any = (
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
 
   const Navbar = useMemo(() => [
-    { title: "Mis eventos", 
-      icon: <MisEventosIcon />, 
-      route: "/" },
+    {
+      title: "Mis eventos",
+      icon: <MisEventosIcon />,
+      route: "/"
+    },
     {
       title: "Invitados",
       icon: <InvitadosIcon />,
       route: event?._id ? "/invitados" : "/",
     },
-    { title: "Mesas", 
-      icon: <MesasIcon />, route: 
-      event?._id ? "/mesas" : "/" },
+    {
+      title: "Mesas",
+      icon: <MesasIcon />, route:
+        event?._id ? "/mesas" : "/"
+    },
     {
       title: "Lista",
       icon: <ListaRegalosIcon />,
@@ -73,7 +77,7 @@ const Navigation: any = (
   }, [router]);
 
   const handleClick = (idx, event) => {
-    if (idx > 0 && !event._id) {
+    if (idx > 0 && !event?._id) {
       toast("warning", "Debes seleccionar un evento")
     }
     return
@@ -93,19 +97,19 @@ const Navigation: any = (
         {/* menu mobile */}
         <div className="max-w-screen-lg h-16 px-5 lg:px-0 w-full flex justify-between items-center mx-auto inset-x-0 ">
           <MenuIcon
-            onClick={()=> setShowSidebar(!showSidebar)}
+            onClick={() => setShowSidebar(!showSidebar)}
             className="md:hidden cursor-pointer"
           />
-          <span
-            onClick={() => {
-              Loading(setLoading);
-            }}
-            className="cursor-pointer w-40 items-center flex justify-center"
-          >
-            <Link href={process.env.NEXT_PUBLIC_DIRECTORY ?? ""}>
+          <Link href={process.env.NEXT_PUBLIC_DIRECTORY ?? ""} passHref>
+            <span
+              onClick={() => {
+                Loading(setLoading);
+              }}
+              className="cursor-pointer w-40 items-center flex justify-center"
+            >
               <LogoNuevoBodasBlanco className="hover:opacity-80 transition text-primary" />
-            </Link>
-          </span>
+            </span>
+          </Link>
           <Profile
             state={isMounted}
             set={(act) => setIsMounted(act)}
