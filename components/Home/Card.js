@@ -43,6 +43,7 @@ const Card = ({ evento }) => {
     babyshower: "/cards/baby.webp",
     "desdepida de soltero": "/cards/despedida.webp",
     graduación: "/cards/graduacion.webp",
+    otro:"/cards/pexels-pixabay-50675.jpg"
   };
 
   const toast = useToast()
@@ -113,7 +114,7 @@ const Card = ({ evento }) => {
           className="object-cover w-full h-full absolute top-0 left-0 z-0 object-top "
         />
         <p className="text-xs font-display text-white capitalize z-10 relative">
-          {tipo}
+          {tipo == "otro" ? "mi evento especial": tipo}
         </p>
         <h2 className="capitalize text-lg font-display text-white z-10 relative">
           {nombre}

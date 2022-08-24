@@ -23,7 +23,8 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
     bautizo: "/cards/bautizo.webp",
     babyshower: "/cards/baby.webp",
     "desdepida de soltero": "/cards/despedida.webp",
-    graduación: "/cards/graduacion.webp"
+    graduación: "/cards/graduacion.webp",
+    otro:"/cards/pexels-pixabay-50675.jpg"
 
   };
 
@@ -79,7 +80,7 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
                 {/* @ts-ignore */}
                 {newDate.toLocaleDateString("es-VE", options)}
               </p>
-              -<p className="text-primary">{event?.tipo && capitalize(event?.tipo)}</p>
+              -<p className="text-primary">{event?.tipo == "otro"? "mi evento especial":event?.tipo && capitalize(event?.tipo)}</p>
             </span>
           </div>
 

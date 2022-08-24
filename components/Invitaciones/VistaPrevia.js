@@ -25,7 +25,7 @@ const VistaPrevia = ({ event }) => {
         const pathImage = `${process.env.NEXT_PUBLIC_BASE_URL}${event?.imgInvitacion?.i640}`;
         const img = `<img style="display:block; object-fit: contain; width:500px; right:0; left:0; margin:auto;  alt="" src=${pathImage ? pathImage : "https://asset1.zankyou.com/images/mag-post/a65/bf62/685//-/mx/wp-content/uploads/2016/07/destination-wedding-photographer-liabd0131.jpg"} />`;
         setContent(contenido
-          .replace("{{params.tipoEvento}}", event.tipo)
+          .replace("{{params.tipoEvento}}", event.tipo== "otro"? "Evento Especial": event.tipo)
           .replace("{{params.invitadoNombre}}", event?.invitados_array[0]?.nombre)
           .replace(refImg, img));
         return res.data.data.obtenerTemplate;
