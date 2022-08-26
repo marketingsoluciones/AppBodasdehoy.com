@@ -15,7 +15,8 @@ const DefaultLayout = ({ children }) => {
   return (
     <>
       <Head>
-        <title>App Bodasdehoy</title>
+        <title>Bodas de hoy - Organizador de Bodas</title>
+        <meta name="description" content="¡Bodas de Hoy Organizador! Organiza tu boda en un sólo click." />
       </Head>
 
       <AuthProvider>
