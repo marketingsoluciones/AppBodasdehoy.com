@@ -11,8 +11,11 @@ interface propsBlockVista {
   children?: React.ReactNode;
 }
 
+
 const BlockVista: FC<propsBlockVista> = ({ children }) => {
+  const [state, setState] = useState(0)
   const { event } = EventContextProvider();
+
   const images: object = {
     boda: "/cards/boda.webp",
     comunión: "/cards/comunion.webp",
@@ -20,7 +23,8 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
     bautizo: "/cards/bautizo.webp",
     babyshower: "/cards/baby.webp",
     "desdepida de soltero": "/cards/despedida.webp",
-    graduación: "/cards/graduacion.webp"
+    graduación: "/cards/graduacion.webp",
+    otro:"/cards/pexels-pixabay-50675.jpg"
 
   };
 
@@ -31,10 +35,29 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
   const newDate: Date = new Date(parseInt(event?.fecha));
 
   const options: object = { year: "numeric", month: "long", day: "numeric" };
+  let count: any
+
+  if (event?.presupuesto_objeto?.coste_estimado) {
+    if (event.invitados_array.length) {
+      if (seatedGuests !== 0) {
+        count = state + 3
+        console.log("el state esta en: ", state + 3)
+      } else {
+        count = state + 2
+        console.log("el state esta en: ", state + 2)
+      }
+    } else {
+      count = state + 1
+      console.log("el state esta en: ", state + 1)
+    }
+  } else {
+    count = state + 0
+    console.log("no haz iniciado los preparativos del evento")
+  }
 
   return (
     <>
-      
+
 
       <div className="w-full bg-white shadow rounded-xl overflow-hidden relative flex flex-col-reverse md:flex-row md:h-72 gap-12  md:gap-0 pt-6 md:pt-0">
         {event?.tipo && (
@@ -57,7 +80,7 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
                 {/* @ts-ignore */}
                 {newDate.toLocaleDateString("es-VE", options)}
               </p>
-              -<p className="text-primary">{event?.tipo && capitalize(event?.tipo)}</p>
+              -<p className="text-primary">{event?.tipo == "otro"? "mi evento especial":event?.tipo && capitalize(event?.tipo)}</p>
             </span>
           </div>
 
@@ -68,18 +91,20 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
                 ¡A celebrar! ¿Empezamos?
               </p>
             </span>
-            <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-              <svg className="bg-primary h-full" width="46%" />
-            </div>
+            {/* <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+              
+              <svg className="bg-primary h-full" width={ count <= 1 ? "20%": "50%" || count > 2? "100%": "60%" }  />
+            </div> */}
+            <StateBar />
           </div>
 
           <div className="w-full justify-between flex">
             <div className="w-1/3 grid place-items-center">
               <p className="font-display text-lg font-base text-gray-500">
-                2 de 13
+                {count} de 3
               </p>
-              <p className="font-display text-xs font-base text-gray-500">
-                servicios contratados
+              <p className="font-display text-center text-xs font-base text-gray-500">
+                pasos para completar tu evento
               </p>
             </div>
 
@@ -87,7 +112,7 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
               <p className="font-display text-lg font-base text-gray-500">
                 {event?.invitados_array?.length}
               </p>
-              <p className="font-display text-xs font-base text-gray-500">
+              <p className="font-display text-xs font-base text-gray-500 pb-4">
                 invitado{event?.invitados_array?.length > 1 ? "s" : ""}
               </p>
             </div>
@@ -96,8 +121,8 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
               <p className="font-display text-lg font-base text-gray-500">
                 {seatedGuests} de {event?.invitados_array?.length}
               </p>
-              <p className="font-display text-xs font-base text-gray-500">
-                invitados sentados
+              <p className="font-display text-xs text-center font-base text-gray-500">
+                invitados sentados en tu evento
               </p>
             </div>
           </div>
@@ -150,3 +175,65 @@ const BlockEditar = ({ set, state }) => {
     </div>
   );
 };
+
+export const StateBar = () => {
+  const [state, setState] = useState(0)
+  const { event } = EventContextProvider();
+  const seatedGuests: number = event?.invitados_array?.filter(
+    (item) => item?.nombre_mesa?.toLowerCase() !== "no asignado"
+  )?.length;
+  let count: any
+
+  if (event?.presupuesto_objeto?.coste_estimado) {
+    if (event.invitados_array.length) {
+      if (seatedGuests !== 0) {
+        count = state + 3
+        console.log("el state esta en: ", state + 3)
+      } else {
+        count = state + 2
+        console.log("el state esta en: ", state + 2)
+      }
+    } else {
+      count = state + 1
+      console.log("el state esta en: ", state + 1)
+    }
+  } else {
+    console.log("no haz iniciado los preparativos del evento")
+  }
+
+  return (
+    <>
+      {(() => {
+        if (count >= 1) {
+          if (count >= 2) {
+            if (count >= 3) {
+              return (
+                <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden ">
+                  <svg className="bg-primary h-full" width="100%" />
+                </div>
+              )
+            } else {
+              return (
+                <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <svg className="bg-primary h-full" width="70%" />
+                </div>
+              )
+            }
+          } else {
+            return (
+              <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <svg className="bg-primary h-full" width="50%" />
+              </div>
+            )
+          }
+        } else {
+          return (
+            <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+              <svg className="bg-primary h-full" width="20%" />
+            </div>
+          )
+        }
+      })()}
+    </>
+  )
+}

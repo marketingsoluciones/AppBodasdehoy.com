@@ -215,6 +215,7 @@ const GridCards: FC<propsGridCards> = ({ state, set }) => {
   const [tabsGroup, setTabsGroup] = useState<dataTab[]>([]);
   const [isActive, setIsActive] = useState<number>(0);
 
+  console.log(eventsGroup)
   useEffect(() => {
     if (eventsGroup) {
       const arrNuevo = eventsGroup?.reduce(
@@ -247,7 +248,7 @@ const GridCards: FC<propsGridCards> = ({ state, set }) => {
   const Lista = [
     { nombre: "Pendientes", value: "pendiente", color: "tertiary" },
     { nombre: "Realizados", value: "realizado", color: "secondary" },
-    { nombre: "Eliminados", value: "borrado", color: "gray-100" },
+    /* { nombre: "Eliminados", value: "borrado", color: "gray-100" }, */
   ];
 
   return (
