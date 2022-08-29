@@ -3,7 +3,7 @@ import ClickAwayListener from "react-click-away-listener"
 import { AuthContextProvider } from "../../context"
 import { InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, MesasIcon, MisEventosIcon, PresupuestoIcon } from "../icons"
 
-const Sidebar = ({  set , state }) => {
+const Sidebar = ({  set  , state }) => {
     const { user } = AuthContextProvider()
 
     const ListaNavbar = [
@@ -15,7 +15,7 @@ const Sidebar = ({  set , state }) => {
         { title: "Invitaciones", icon: <InvitacionesIcon className="w-6 h-6" />, route: "/invitaciones" }
     ]
     return (
-        <ClickAwayListener onClickAway={() => state ? set(true) : null }>
+        <ClickAwayListener onClickAway={() => state ? set(true) : false }>
             <div className={`w-2/3 pl-4 opacity-95 z-50 bg-white shadow-lg fixed top-0 left-0 h-screen md:hidden transform transition duration-300 ${state ? "translate-x-0" : "-translate-x-full"}`}>
                 <div className="flex justify-between  font-display text-sm text-gray-500">
                     <p className="py-4">{user?.displayName}</p>

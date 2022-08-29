@@ -35,7 +35,7 @@ const Navigation: any = (
   const { user } = AuthContextProvider();
   const router = useRouter();
   const [pink, setPink] = useState(true);
-  const [showSidebar, setShowSidebar] = useState(true);
+  const [showSidebar, setShowSidebar] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
 

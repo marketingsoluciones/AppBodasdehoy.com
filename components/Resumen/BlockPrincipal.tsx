@@ -80,7 +80,7 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
                 {/* @ts-ignore */}
                 {newDate.toLocaleDateString("es-VE", options)}
               </p>
-              -<p className="text-primary">{event?.tipo == "otro"? "mi evento especial":event?.tipo && capitalize(event?.tipo)}</p>
+              -<p className="text-primary">{event?.tipo == "otro"? "Mi Evento Especial":event?.tipo && capitalize(event?.tipo)}</p>
             </span>
           </div>
 
