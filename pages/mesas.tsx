@@ -33,6 +33,7 @@ const Mesas: FC = () => {
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const [filterGuests, setFilterGuests] = useState<{ sentados: guests[], noSentados: guests[] }>({ sentados: [], noSentados: [] })
   const [movil, setMovil] = useState(false);
+  const [visible, setVisible] = useState<boolean> (true)
 
   /*useEffect(() => {
     window.innerWidth <= 768 && setMovil(true);
@@ -126,9 +127,9 @@ const Mesas: FC = () => {
         )}
         <div>
           <DndProvider backend={movil ? TouchBackend : HTML5Backend}>
-            <section className={`w-full grid md:grid-cols-12 bg-base overflow-hidden`}>
+            <section className={`w-full grid  md:grid-cols-12 bg-base overflow-hidden`}>
               <div
-                className={`hidden md:block flex z-10 h-full col-span-3 box-border px-2 flex-col  gap-6 transform transition duration-700 overflow-y-auto `}
+                className={` ${visible ?"block":"hidden"} md:block  flex z-10 h-full col-span-3 box-border px-2 flex-col  gap-6 transform transition duration-700 overflow-y-auto `}
               >
 
                 <Breadcumb />
@@ -146,9 +147,19 @@ const Mesas: FC = () => {
                   InvitadoNoSentado={filterGuests?.noSentados}
                 />
               </div>
-              <LayoutMesas
-                AddInvitado={AddInvitado}
-              />
+              <div className={`${visible?"hidden":"block"}`}>
+                <LayoutMesas
+                  AddInvitado={AddInvitado}
+                />
+              </div>
+              <div className="absolute bottom-24 right-5 z-20">
+                <button
+                  className="bg-primary  block md:hidden p-2 rounded-lg text-lg"
+                  onClick={ ()=>setVisible(!visible) }
+                  >
+                  {!visible?"crear mesa":"ver mesas"}
+                </button>
+              </div>
             </section>
           </DndProvider>
           <style jsx>
