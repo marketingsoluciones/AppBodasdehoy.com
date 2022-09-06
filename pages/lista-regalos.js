@@ -92,13 +92,16 @@ const ListaRegalos = () => {
                   <a
                     href="https://www.amazon.com/-/es/registries/create-registry?ref_=gr_universal_landing"
                     className="button-secondary uppercase mt-2 text-sm"
-                   
+                    target={"_blank"}
+                    rel={"noopener noreferrer"}
                   >
                     Crea tu lista de regalos en amazon
                   </a >
                   <a
                     href="https://www.amazon.com/-/es/registries/create-registry?ref_=gr_universal_landing"
                     className="button-secondary uppercase mt-2 text-sm"
+                    target={"_blank"}
+                    rel={"noopener noreferrer"}
                   >
                     Tu lista de regalos
                   </a >
@@ -118,6 +121,7 @@ const ListaRegalos = () => {
                 className="bg-secondary rounded-xl shadow-lg col-span-1 flex justify-center flex-col items-center font-display h-max p-6 gap-4 hover:scale-105 transition duration-200 transform "
                 href="https://www.amazon.com/-/es/registries/create-registry?ref_=gr_universal_landing"
                 target={"_blank"}
+                rel={"noopener noreferrer"}
               >
                 <ListaOne />
                 <h3 className="text-lg font-semibold text-primary text-center leading-4 flex flex-col gap-2 ">
