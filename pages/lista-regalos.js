@@ -92,16 +92,13 @@ const ListaRegalos = () => {
                   <a
                     href="https://www.amazon.com/-/es/registries/create-registry?ref_=gr_universal_landing"
                     className="button-secondary uppercase mt-2 text-sm"
-                    target={"_blank"}
-                    rel="noopener noreferrer"
+                   
                   >
                     Crea tu lista de regalos en amazon
                   </a >
                   <a
                     href="https://www.amazon.com/-/es/registries/create-registry?ref_=gr_universal_landing"
                     className="button-secondary uppercase mt-2 text-sm"
-                    target={"_blank"}
-                    rel="noopener noreferrer"
                   >
                     Tu lista de regalos
                   </a >
