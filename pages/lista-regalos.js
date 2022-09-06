@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useState } from "react";
 import Breadcumb from "../components/DefaultLayout/Breadcumb";
 import {
   AmazonIcon,
@@ -8,14 +9,19 @@ import {
   ListaOne,
   ListaTwo,
 } from "../components/icons";
+import ModalGuardarRegalo from "../components/ListaDeRegalos/ModalGuardarRegalo";
 import BlockTitle from "../components/Utils/BlockTitle";
 import { AuthContextProvider, EventContextProvider } from "../context";
 import VistaSinCookie from "./vista-sin-cookie";
+import FormGuardarRegalos from "../components/Forms/FormGuardarRegalos"
 
 
 const listaRegalos = () => {
   const { event } = EventContextProvider()
   const { user, verificationDone } = AuthContextProvider()
+  const [showForm, setShowForm] = useState(false)
+  
+
   if (verificationDone) {
     if (!user) {
       return (
@@ -24,6 +30,18 @@ const listaRegalos = () => {
     }
     return (
       <>
+        {showForm ? (
+          <ModalGuardarRegalo set={setShowForm} state={showForm}>
+            
+          <FormGuardarRegalos
+           set={setShowForm}
+           state={showForm}
+          />
+
+          </ModalGuardarRegalo>
+        ) : null}
+
+
         <section className="w-full bg-base">
           <motion.div initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -70,18 +88,38 @@ const listaRegalos = () => {
                     con millones de opciones para elegir.
                   </span>
                 </h3>
-                <button className="button-secondary uppercase mt-2 text-sm">
-                  Crea tu lista de regalos en amazon
-                </button>
+                <div className=" flex gap-4">
+                  <a
+                    href="https://www.amazon.com/-/es/registries/create-registry?ref_=gr_universal_landing"
+                    className="button-secondary uppercase mt-2 text-sm"
+                    target={"_blank"}
+                  >
+                    Crea tu lista de regalos en amazon
+                  </a >
+                  <a
+                    href="https://www.amazon.com/-/es/registries/create-registry?ref_=gr_universal_landing"
+                    className="button-secondary uppercase mt-2 text-sm"
+                    target={"_blank"}
+                  >
+                    Tu lista de regalos
+                  </a >
+                </div>
+
               </div>
             </div>
 
             <h3 className="font-display text-xl text-gray-500 w-max inset-x-0 mx-auto pt-2 pb-2">
               ¿Como funciona la lista?
             </h3>
+
             <div className="w-full grid-cols-2 md:grid-cols-3 grid gap-6">
+
               {/* First Card */}
-              <div className="bg-secondary rounded-xl shadow-lg col-span-1 flex justify-center flex-col items-center font-display h-max p-6 gap-4 hover:scale-105 transition duration-200 transform ">
+              <a
+                className="bg-secondary rounded-xl shadow-lg col-span-1 flex justify-center flex-col items-center font-display h-max p-6 gap-4 hover:scale-105 transition duration-200 transform "
+                href="https://www.amazon.com/-/es/registries/create-registry?ref_=gr_universal_landing"
+                target={"_blank"}
+              >
                 <ListaOne />
                 <h3 className="text-lg font-semibold text-primary text-center leading-4 flex flex-col gap-2 ">
                   Crea tu lista
@@ -90,10 +128,15 @@ const listaRegalos = () => {
                     y elige tus regalos <br /> favoritos
                   </span>
                 </h3>
-              </div>
+              </a>
 
               {/* Second Card */}
-              <div className="bg-primary rounded-xl shadow-lg col-span-1 flex justify-center flex-col items-center font-display h-max p-6 gap-4 hover:scale-105 transition duration-200 transform ">
+              <buttom
+                className="bg-primary rounded-xl shadow-lg col-span-1 flex justify-center flex-col items-center font-display h-max p-6 gap-4 hover:scale-105 transition duration-200 transform "
+                state={showForm}
+                set={setShowForm}
+                onClick={()=>setShowForm(!showForm)}
+              >
                 <CompartirIcon className="text-white w-10 h-10" />
                 <h3 className="text-lg font-semibold text-white text-center leading-4 flex flex-col gap-2 ">
                   Compartela
@@ -102,7 +145,7 @@ const listaRegalos = () => {
                     con tus invitados para <br />que puedan participar
                   </span>
                 </h3>
-              </div>
+              </buttom>
 
               {/* Tertiary Card */}
               <div className="bg-tertiary rounded-xl shadow-lg col-span-1 flex justify-center flex-col items-center font-display h-max p-6 gap-4 hover:scale-105 transition duration-200 transform ">

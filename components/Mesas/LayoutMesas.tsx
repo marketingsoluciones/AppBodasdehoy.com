@@ -250,7 +250,7 @@ const Table: FC<propsTable> = ({
   const { event } = EventContextProvider();
   const [invitados, setInvitados] = useState([]);
   const [showOptions, setShowOptions] = useState<{ x: number, y: number } | null>(null)
-  console.log("position", showOptions)
+ /*  console.log("position", showOptions) */
 
   useEffect(() => {
     setInvitados(

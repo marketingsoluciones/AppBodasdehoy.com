@@ -147,14 +147,14 @@ const Mesas: FC = () => {
                   InvitadoNoSentado={filterGuests?.noSentados}
                 />
               </div>
-              <div className={`${visible?"hidden":"block"}`}>
+              <div className={`${visible?"hidden":"block"} md:block`}>
                 <LayoutMesas
                   AddInvitado={AddInvitado}
                 />
               </div>
               <div className="absolute bottom-24 right-5 z-20">
                 <button
-                  className="bg-primary  block md:hidden p-2 rounded-lg text-lg"
+                  className="bg-primary  block md:hidden p-2 rounded-lg text-lg text-white"
                   onClick={ ()=>setVisible(!visible) }
                   >
                   {!visible?"crear mesa":"ver mesas"}
