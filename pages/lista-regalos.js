@@ -16,7 +16,7 @@ import VistaSinCookie from "./vista-sin-cookie";
 import FormGuardarRegalos from "../components/Forms/FormGuardarRegalos"
 
 
-const listaRegalos = () => {
+const ListaRegalos = () => {
   const { event } = EventContextProvider()
   const { user, verificationDone } = AuthContextProvider()
   const [showForm, setShowForm] = useState(false)
@@ -93,6 +93,7 @@ const listaRegalos = () => {
                     href="https://www.amazon.com/-/es/registries/create-registry?ref_=gr_universal_landing"
                     className="button-secondary uppercase mt-2 text-sm"
                     target={"_blank"}
+                    rel="noopener noreferrer"
                   >
                     Crea tu lista de regalos en amazon
                   </a >
@@ -100,6 +101,7 @@ const listaRegalos = () => {
                     href="https://www.amazon.com/-/es/registries/create-registry?ref_=gr_universal_landing"
                     className="button-secondary uppercase mt-2 text-sm"
                     target={"_blank"}
+                    rel="noopener noreferrer"
                   >
                     Tu lista de regalos
                   </a >
@@ -174,4 +176,4 @@ const listaRegalos = () => {
   }
 };
 
-export default listaRegalos;
+export default ListaRegalos;
