@@ -24,6 +24,7 @@ import Breadcumb from "../components/DefaultLayout/Breadcumb";
 import { Event, guests } from "../utils/Interfaces";
 import { fetchApiEventos, queries } from "../utils/Fetching";
 import VistaSinCookie from "./vista-sin-cookie";
+import VistaSinInvitados from "../components/Mesas/VistaSinInvitados";
 
 const Mesas: FC = () => {
   const { event, setEvent } = EventContextProvider();
@@ -33,7 +34,7 @@ const Mesas: FC = () => {
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const [filterGuests, setFilterGuests] = useState<{ sentados: guests[], noSentados: guests[] }>({ sentados: [], noSentados: [] })
   const [movil, setMovil] = useState(false);
-  const [visible, setVisible] = useState<boolean> (true)
+  const [visible, setVisible] = useState<boolean>(true)
 
   /*useEffect(() => {
     window.innerWidth <= 768 && setMovil(true);
@@ -80,7 +81,7 @@ const Mesas: FC = () => {
 
         }
 
-        console.log(item, set)
+
         //Añadir al array de la mesa
         set(oldEvent => {
           const modifiedGuests: guests[] = oldEvent.invitados_array.map(invitado => {
@@ -107,6 +108,7 @@ const Mesas: FC = () => {
     }
     return (
       <>
+        {/* formulario emergente para crear mesas */}
         {showForm ? (
           <ModalCrearMesa set={setShowForm} state={showForm}>
             <FormCrearMesa
@@ -117,6 +119,7 @@ const Mesas: FC = () => {
           </ModalCrearMesa>
         ) : null}
 
+        {/* formulario emergente para agregar un invitado */}
         {shouldRenderChild && (
           <ModalLeft state={isMounted} set={setIsMounted}>
             <FormInvitado
@@ -125,39 +128,55 @@ const Mesas: FC = () => {
             />
           </ModalLeft>
         )}
+
         <div>
           <DndProvider backend={movil ? TouchBackend : HTML5Backend}>
             <section className={`w-full grid  md:grid-cols-12 bg-base overflow-hidden`}>
               <div
-                className={` ${visible ?"block":"hidden"} md:block  flex z-10 h-full col-span-3 box-border px-2 flex-col  gap-6 transform transition duration-700 overflow-y-auto `}
+                className={` ${visible ? "block" : "hidden"} md:block  flex z-10 h-full col-span-3 box-border px-2 flex-col  gap-6 transform transition duration-700 overflow-y-auto `}
               >
 
                 <Breadcumb />
-
 
                 <BlockPanelMesas
                   setModelo={setModelo}
                   state={showForm}
                   set={setShowForm}
                 />
+
                 <BlockResumen InvitadoSentados={filterGuests?.sentados} />
+
                 <BlockInvitados
                   AddInvitado={AddInvitado}
                   set={setIsMounted}
                   InvitadoNoSentado={filterGuests?.noSentados}
                 />
+
               </div>
-              <div className={`${visible?"hidden":"block"} md:block`}>
-                <LayoutMesas
-                  AddInvitado={AddInvitado}
-                />
-              </div>
+              {(() => {
+                if (event.invitados_array.length>0) {
+                  return (
+                    <div className={`${visible ? "hidden" : "block"} md:block `}>
+                      <LayoutMesas
+                        AddInvitado={AddInvitado}
+                      />
+                    </div>
+                  )
+                } else {
+                  return (
+                    <div className={`${visible ? "hidden" : "block"} md:block md:col-span-8 md:p-60 pt-60 md:pt-0 `}>
+                      <VistaSinInvitados/>
+                    </div>
+                  )
+                }
+              })()}
+
               <div className="absolute bottom-24 right-5 z-20">
                 <button
                   className="bg-primary  block md:hidden p-2 rounded-lg text-lg text-white"
-                  onClick={ ()=>setVisible(!visible) }
-                  >
-                  {!visible?"crear mesa":"ver mesas"}
+                  onClick={() => setVisible(!visible)}
+                >
+                  {!visible ? "crear mesa" : "ver mesas"}
                 </button>
               </div>
             </section>
