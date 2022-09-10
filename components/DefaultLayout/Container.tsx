@@ -5,6 +5,7 @@ import {
   EventContextProvider,
   AuthContextProvider,
   EventsGroupContextProvider,
+  LoadingContextProvider,
 } from "../../context";
 import BarraLoading from "./BarraLoading";
 import { api } from "../../api";
@@ -18,6 +19,7 @@ const Container = (props) => {
   const { setChat } = ChatContextProvider();
   const { event } = EventContextProvider();
   const { setEventsGroup } = EventsGroupContextProvider();
+  const { loading } = LoadingContextProvider();
 
   const [show, setShow] = useState(false);
   const [active, setActive] = useState<string | null>(null);
@@ -83,7 +85,7 @@ const Container = (props) => {
         active={active}
       />
 
-      <BarraLoading />
+      {loading && <BarraLoading />}
       <main>{children}</main>
     </>
   );
