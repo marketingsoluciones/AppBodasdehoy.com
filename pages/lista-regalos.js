@@ -20,8 +20,8 @@ const ListaRegalos = () => {
   const { event } = EventContextProvider()
   const { user, verificationDone } = AuthContextProvider()
   const [showForm, setShowForm] = useState(false)
-  
-console.log(event)  
+
+  console.log(event)
 
   if (verificationDone) {
     if (!user) {
@@ -33,11 +33,11 @@ console.log(event)
       <>
         {showForm ? (
           <ModalGuardarRegalo set={setShowForm} state={showForm}>
-            
-          <FormGuardarRegalos
-           set={setShowForm}
-           state={showForm}
-          />
+
+            <FormGuardarRegalos
+              set={setShowForm}
+              state={showForm}
+            />
 
           </ModalGuardarRegalo>
         ) : null}
@@ -83,7 +83,7 @@ console.log(event)
               <AmazonIcon className="w-28 h-28 text-primary" />
               <div className="font-display flex flex-col items-start">
                 <h3 className="text-lg text-gray-300 font-medium leading-5">
-                  Constribuye en vuestra lista de regalos
+                  Construye vuestra lista de regalos
                   <br />
                   <span className="text-sm">
                     con millones de opciones para elegir.
@@ -98,14 +98,22 @@ console.log(event)
                   >
                     Crea tu lista de regalos en amazon
                   </a >
-                  <a
-                    href="https://www.amazon.com/-/es/registries/create-registry?ref_=gr_universal_landing"
-                    className="button-secondary uppercase mt-2 text-sm"
-                    target={"_blank"}
-                    rel={"noopener noreferrer"}
-                  >
-                    Tu lista de regalos
-                  </a >
+                  {/* {
+                    (()=>{
+                      if(event.listaRegalos)
+                    })()
+                  } */}
+                  <div className={`${event.listaRegalos ? "block mt-2.5" : "hidden"}`}>
+                    <a
+                      href={event.listaRegalos}
+                      className={`button-secondary uppercase  text-sm`}
+                      target={"_blank"}
+                      rel={"noopener noreferrer"}
+                    >
+                      Tu lista de regalos
+                    </a >
+                  </div>
+
                 </div>
 
               </div>
@@ -139,7 +147,7 @@ console.log(event)
                 className="bg-primary rounded-xl shadow-lg col-span-1 flex justify-center flex-col items-center font-display h-max p-6 gap-4 hover:scale-105 transition duration-200 transform "
                 state={showForm}
                 set={setShowForm}
-                onClick={()=>setShowForm(!showForm)}
+                onClick={() => setShowForm(!showForm)}
               >
                 <CompartirIcon className="text-white w-10 h-10" />
                 <h3 className="text-lg font-semibold text-white text-center leading-4 flex flex-col gap-2 ">

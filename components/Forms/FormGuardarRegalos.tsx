@@ -14,18 +14,22 @@ interface propsFormCrearMesa {
 const FormGuardarRegalos: FC<propsFormCrearMesa> = ({ modelo, set, state }) => {
   const { event, setEvent } = EventContextProvider();
   const toast = useToast()
+
   const handleSubmit = async (values: FormikValues, actions: any) => {
     try {
-       const lista = await fetchApiEventos({
-        query: queries.eventUpdate,
+        console.log("values",values.valor_reemplazar)
+       const {listaRegalos}: any = await fetchApiEventos({
+        query: queries.guardarListaRegalos,
         variables: {
-          eventID: event._id,
-          variable_reemplazar:"listaRegalos"
+          evento_id: event._id,
+          variable_reemplazar:event.listaRegalos,
+          valor_reemplazar: values.valor_reemplazar
         }
       })
-      console.log(lista,"esta es la lista de regalos")
+     /*  setEvent((old)=>({...old,listaRegalos,})); */
+      console.log("propiedades de la lista: ",listaRegalos )
       toast("success", "se guardo tu lista de regalos")
-      setEvent({...event})
+      
     } catch (err) {
       toast("error", "Ha ocurrido un error al guardar la lista")
       console.log(err);
@@ -34,16 +38,14 @@ const FormGuardarRegalos: FC<propsFormCrearMesa> = ({ modelo, set, state }) => {
       set(!state)
     }
   }
-
+  
   const initialValues = {
-    variable_reemplazar: "listaRegalos",
     valor_reemplazar: "",
   }  
 
   return (
     <Formik
       initialValues={initialValues}
-      /* validationSchema={validationSchema} */
       onSubmit={handleSubmit}
     >
       {({ isSubmitting }) => (

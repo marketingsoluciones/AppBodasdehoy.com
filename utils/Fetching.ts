@@ -321,6 +321,15 @@ export const queries = {
      }
     }
   }`,
+  getListaRegalos:`query($_id: String){
+    queryenEvento_id(
+      var_1:$_id
+    ){
+      _id
+      nombre
+      listaRegalos
+    }
+  }`,
   eventDelete: `mutation ($eventoID : String!) {
     borrarEvento(evento_id:$eventoID){
       modificado
@@ -328,7 +337,11 @@ export const queries = {
   }
   `,
   eventUpdate: `mutation ($idEvento: String!, $variable:String, $value : String){
-    editEvento(evento_id: $idEvento, variable_reemplazar: $variable, valor_reemplazar: $value){
+    editEvento(
+      evento_id: $idEvento, 
+      variable_reemplazar: $variable, 
+      valor_reemplazar: $value
+      ){
       _id
     }
   }`,
