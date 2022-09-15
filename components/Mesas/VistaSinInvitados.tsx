@@ -11,7 +11,7 @@ const VistaSinInvitados = () => {
             {/* <Link href={`${process.env.NEXT_PUBLIC_DIRECTORY}/login?d=app` ?? ""} passHref > */}
               <samp className="">
 
-                <LogoNuevoBodasBlanco className="text-primary pl-32 md:pl-0 mr-0" />
+                <LogoNuevoBodasBlanco className="text-primary pl-28 md:pl-0 mr-0" />
 
               </samp>
            {/*  </Link> */}

@@ -21,6 +21,7 @@ const ListaRegalos = () => {
   const { user, verificationDone } = AuthContextProvider()
   const [showForm, setShowForm] = useState(false)
   
+console.log(event)  
 
   if (verificationDone) {
     if (!user) {
