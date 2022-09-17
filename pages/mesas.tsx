@@ -24,6 +24,10 @@ import Breadcumb from "../components/DefaultLayout/Breadcumb";
 import { Event, guests } from "../utils/Interfaces";
 import { fetchApiEventos, queries } from "../utils/Fetching";
 import VistaSinCookie from "./vista-sin-cookie";
+import SwiperCore, { Pagination, Navigation } from 'swiper';
+import { Swiper, SwiperSlide } from "swiper/react";
+import Prueba from "./prueba";
+SwiperCore.use([Pagination]);
 
 const Mesas: FC = () => {
   const { event, setEvent } = EventContextProvider();
@@ -33,7 +37,7 @@ const Mesas: FC = () => {
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const [filterGuests, setFilterGuests] = useState<{ sentados: guests[], noSentados: guests[] }>({ sentados: [], noSentados: [] })
   const [movil, setMovil] = useState(false);
-  const [visible, setVisible] = useState<boolean> (true)
+  const [visible, setVisible] = useState<boolean>(true)
 
   /*useEffect(() => {
     window.innerWidth <= 768 && setMovil(true);
@@ -126,43 +130,75 @@ const Mesas: FC = () => {
           </ModalLeft>
         )}
         <div>
-          <DndProvider backend={movil ? TouchBackend : HTML5Backend}>
-            <section className={`w-full grid  md:grid-cols-12 bg-base overflow-hidden`}>
-              <div
-                className={` ${visible ?"block":"hidden"} md:block  flex z-10 h-full col-span-3 box-border px-2 flex-col  gap-6 transform transition duration-700 overflow-y-auto `}
-              >
+          <div className="">
+            <DndProvider backend={movil ? TouchBackend : HTML5Backend}>
+              <section className={`w-full grid md:grid-cols-12 bg-base overflow-hidden`}>
 
-                <Breadcumb />
+                <div className="flex md:hidden h-[calc(250px)] flex-col ">
+                  <div className="p-2 px-4">
+                    <Swiper
+                      pagination={{ clickable: true }}
+                      navigation
+                      spaceBetween={20}
+                      breakpoints={{
+                        0: {
+                          "slidesPerView": 1,
+                        },
+                        1024: {
+                          "slidesPerView": 3,
+                        },
 
+                      }}
+                      className="w-[calc(100vw-30px)] h-[calc(250px)] justify-start items-center"
+                    >
+                      <SwiperSlide className="flex flex-col justify-start items-center cursor-pointer ">
+                        <div className=" w-[calc(100vw-30px)] ">
+                          <BlockPanelMesas
+                            setModelo={setModelo}
+                            state={showForm}
+                            set={setShowForm}
+                          />
+                        </div>
+                        <BlockResumen InvitadoSentados={filterGuests?.sentados} />
 
-                <BlockPanelMesas
-                  setModelo={setModelo}
-                  state={showForm}
-                  set={setShowForm}
-                />
-                <BlockResumen InvitadoSentados={filterGuests?.sentados} />
-                <BlockInvitados
-                  AddInvitado={AddInvitado}
-                  set={setIsMounted}
-                  InvitadoNoSentado={filterGuests?.noSentados}
-                />
-              </div>
-              <div className={`${visible?"hidden":"block"} md:block`}>
-                <LayoutMesas
-                  AddInvitado={AddInvitado}
-                />
-              </div>
-              <div className="absolute bottom-24 right-5 z-20">
-                <button
-                  className="bg-primary  block md:hidden p-2 rounded-lg text-lg text-white"
-                  onClick={ ()=>setVisible(!visible) }
-                  >
-                  {!visible?"crear mesa":"ver mesas"}
-                </button>
-              </div>
-            </section>
-          </DndProvider>
-          <style jsx>
+                      </SwiperSlide>
+
+                      <SwiperSlide className="flex flex-col justify-start items-center cursor-pointer ">
+                        <BlockInvitados
+                          AddInvitado={AddInvitado}
+                          set={setIsMounted}
+                          InvitadoNoSentado={filterGuests?.noSentados}
+                        />
+                      </SwiperSlide>
+                    </Swiper>
+                  </div>
+                </div>
+
+                <div className={`hidden md:flex h-full col-span-3 box-border px-2 flex-col gap-6 transform transition duration-700 overflow-y-auto`}>
+                  <Breadcumb />
+                  <BlockPanelMesas
+                    setModelo={setModelo}
+                    state={showForm}
+                    set={setShowForm}
+                  />
+                  <BlockResumen InvitadoSentados={filterGuests?.sentados} />
+                  <BlockInvitados
+                    AddInvitado={AddInvitado}
+                    set={setIsMounted}
+                    InvitadoNoSentado={filterGuests?.noSentados}
+                  />
+                </div>
+                <div className="pt-2 md:pt-0 md:block flex justify-center items-center ">
+                  <Prueba />
+                  {/* <LayoutMesas
+                    AddInvitado={AddInvitado}
+                  /> */}
+                </div>
+
+              </section>
+            </DndProvider>
+          </div>
+          <style>
             {`
             section {
               height: calc(100vh - 9rem);
