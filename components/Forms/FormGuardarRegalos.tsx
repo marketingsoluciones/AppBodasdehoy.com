@@ -26,7 +26,7 @@ const FormGuardarRegalos: FC<propsFormCrearMesa> = ({ modelo, set, state }) => {
           valor_reemplazar: values.valor_reemplazar
         }
       })
-     /*  setEvent((old)=>({...old,listaRegalos,})); */
+      setEvent((old)=>({...old,listaRegalos}));
       console.log("propiedades de la lista: ",listaRegalos )
       toast("success", "se guardo tu lista de regalos")
       
@@ -40,6 +40,7 @@ const FormGuardarRegalos: FC<propsFormCrearMesa> = ({ modelo, set, state }) => {
   }
   
   const initialValues = {
+    variable_reemplazar:"listaRegalos",
     valor_reemplazar: "",
   }  
 
