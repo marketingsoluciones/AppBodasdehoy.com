@@ -35,12 +35,7 @@ type schemaType = {
   podio: tableType;
 };
 
-const MesaComponent: FC<propsMesaComponent> = ({
-  posicion,
-  mesa,
-  AddInvitado,
-  invitados,
-}) => {
+const MesaComponent: FC<propsMesaComponent> = ({ posicion, mesa, AddInvitado, invitados, }) => {
   const { cantidad_sillas } = mesa;
   const [nSillas, setNSillas] = useState([]);
 

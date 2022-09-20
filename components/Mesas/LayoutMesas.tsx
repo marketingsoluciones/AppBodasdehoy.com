@@ -12,7 +12,7 @@ import { guests, signalItem, table } from '../../utils/Interfaces';
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 
 interface propsLayoutMesas {
-  AddInvitado: CallableFunction;
+  AddInvitado?: CallableFunction;
 }
 
 const LayoutMesas: FC<propsLayoutMesas> = ({ AddInvitado }) => {
@@ -67,10 +67,7 @@ const LayoutMesas: FC<propsLayoutMesas> = ({ AddInvitado }) => {
   };
 
   // Calculadora de posicion de sillas (Grados °) en mesa redonda
-  const DefinePosition: CallableFunction = (
-    valor: number,
-    mesa: { tipo: string | number }
-  ): number[] | number => {
+  const DefinePosition: CallableFunction = (valor: number, mesa: { tipo: string | number }): number[] | number => {
     if (mesa.tipo == "redonda") {
       let arr = [];
       let deg = 0;
@@ -236,22 +233,34 @@ interface propsTable {
   index: number,
   AddInvitado: CallableFunction
   DefinePosition: CallableFunction
-  ActualizarPosicion: CallableFunction
+  ActualizarPosicion?: CallableFunction
   setDisableLayout: Dispatch<SetStateAction<boolean>>
+  setDisableWrapper?: any
+  setEvent?: any
 }
-const Table: FC<propsTable> = ({
+export const Table: FC<propsTable> = ({
   mesa,
   index,
   AddInvitado,
   DefinePosition,
   ActualizarPosicion,
   setDisableLayout,
+  setDisableWrapper,
+  setEvent
 }) => {
+  // mesa.posicion.x = 100
+  // mesa.posicion.y = 200
   const { event } = EventContextProvider();
   const [invitados, setInvitados] = useState([]);
   const [showOptions, setShowOptions] = useState<{ x: number, y: number } | null>(null)
-  /*  console.log("position", showOptions) */
+  useEffect(() => {
+    const el = document.getElementById(mesa._id)
+    el.setAttribute('style', `left: ${mesa.posicion.x}px; top: ${mesa.posicion.y}px`)
+    el.setAttribute('data-x', `${mesa.posicion.x}`)
+    el.setAttribute('data-y', `${mesa.posicion.y}`)
+  }, [mesa.posicion.x, mesa.posicion.y, mesa._id])
 
+  /*  console.log("position", showOptions) */
   useEffect(() => {
     setInvitados(
       event?.invitados_array?.filter(guest => guest.nombre_mesa === mesa.nombre_mesa)
@@ -260,7 +269,7 @@ const Table: FC<propsTable> = ({
 
   return (
     <>
-      <Draggable
+      {/* <Draggable
         key={mesa._id}
         defaultPosition={mesa.posicion}
         defaultClassName="w-max"
@@ -274,6 +283,8 @@ const Table: FC<propsTable> = ({
             y: data.y,
             index: index,
             mesaID: mesa._id,
+            event: event,
+            setEvent: setEvent
           });
         }}
       >
@@ -286,42 +297,24 @@ const Table: FC<propsTable> = ({
         }} className="relative w-max">
           {showOptions && (
             <div className={`absolute bg-red-500 w-max top-[${400}px] left-[${showOptions.x}px]`}>
-              {/*  hola mundo */}
             </div>
-          )}
-          {/* {validar && (
-            <BlockValidacion
-              nombreMesa={mesa.nombre_mesa}
-              mesaID={validar}
-              set={setValidar}
-            />
-          )}
-          <div
-            className={`scale-50 flex bg-secondary flex-col gap-3 items-start justify-center pl-3 absolute my-auto inset-y-0 h-20 w-28 rounded-lg left-20 transform transition duration-500 ${
-              isHovered ? "-translate-x-full" : "translate-x-0"
-            }`}
-          >
-            <span
-              className="hover:cursor-pointer font-display text-gray-500 cursor-pointer hover:text-gray-300 transition transform hover:scale-105 transition text-sm flex items-center justify-start gap-1"
-              onClick={() => setValidar(mesa._id)}
-            >
-              <BorrarIcon className="w-4 h-4" /> <p>Borrar</p>
-            </span>
-
-            <BotonEditar mesa={mesa} />
-            {mesa.tipo > 0 && <BotonRotar mesa={mesa} />}
-          </div> */}
-
-          <div className=" absolute hover:bg-gray-100 hover:bg-opacity-50 hover:border hover:border-gray-200 hover:shadow-md p-4 rounded-2xl">
-            <MesaComponent
-              posicion={DefinePosition(360 / mesa.cantidad_sillas, mesa)}
-              mesa={mesa}
-              AddInvitado={AddInvitado}
-              invitados={invitados}
-            />
-          </div>
-        </div>
-      </Draggable>
+          )} */}
+      <div
+        id={mesa._id}
+        onTouchStart={() => { setDisableWrapper(true) }}
+        onTouchEnd={() => { setDisableWrapper(false) }}
+        onMouseDown={() => { setDisableWrapper(true) }}
+        onMouseUp={() => { setDisableWrapper(false) }}
+        className="js-drag draggable-touch bg-blue-500 absolute hover:bg-gray-100 hover:bg-opacity-50 hover:border hover:border-gray-200 hover:shadow-md p-4 rounded-2xl">
+        <MesaComponent
+          posicion={DefinePosition(360 / mesa.cantidad_sillas, mesa)}
+          mesa={mesa}
+          AddInvitado={AddInvitado}
+          invitados={invitados}
+        />
+      </div>
+      {/* </div>
+      </Draggable> */}
     </>
   );
 };
