@@ -6,7 +6,6 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import { useDrag, useDrop } from "react-dnd";
 import useHover from "../../hooks/useHover";
 import Tooltip from "../Utils/Tooltip";
 import { guests, signalItem, table } from '../../utils/Interfaces';
@@ -143,24 +142,28 @@ const Chair: FC<propsChair> = ({
   className,
 }) => {
   const { setEvent } = EventContextProvider()
-  const [{ canDrop, isOver }, drop] = useDrop(() => ({
-    accept: "invitado",
-    drop: (item: signalItem) => {
-      if (item) {
-        console.log("ES DENTRO DE LA SILLA", item, nombre_mesa, index)
-        AddInvitado({ ...item, nombre_mesa, index }, setEvent);
-      }
-    },
-    collect: (monitor) => ({
-      isOver: !!monitor.isOver(),
-      canDrop: monitor.canDrop(),
-    }),
-  }));
+  const canDrop = true
+  const isOver = false
+  AddInvitado({ /*...item,*/ nombre_mesa, index }, setEvent);
+
+
+  // const [{ canDrop, isOver }, drop] = useDrop(() => ({
+  //   accept: "invitado",
+  //   drop: (item: signalItem) => {
+  //     if (item) {
+  //       console.log("ES DENTRO DE LA SILLA", item, nombre_mesa, index)
+  //       AddInvitado({ ...item, nombre_mesa, index }, setEvent);
+  //     }
+  //   },
+  //   collect: (monitor) => ({
+  //     isOver: !!monitor.isOver(),
+  //     canDrop: monitor.canDrop(),
+  //   }),
+  // }));
 
   return (
     <>
       <div
-        ref={drop}
         role={"Droppeable"}
         className={`silla w-5 h-5 rounded-full absolute border-2 shadow border-gray-500 overflow-hidden  ${isOver ? "bg-opacity-50" : null
           }  ${isOver || canDrop ? "bg-secondary" : "bg-white"
@@ -331,15 +334,7 @@ interface propsSentadoItem {
 }
 const SentadoItem: FC<propsSentadoItem> = ({ invitado, posicion }) => {
   const [hoverRef, isHovered] = useHover();
-  const [{ isDragging }, drag, dragPreview] = useDrag(() => ({
-    type: "invitado",
-    item: { tipo: "invitado", invitado: { _id: invitado._id } },
-    collect: (monitor) => {
-      return {
-        isDragging: monitor.isDragging(),
-      };
-    },
-  }));
+
 
   return (
     <>
@@ -347,11 +342,9 @@ const SentadoItem: FC<propsSentadoItem> = ({ invitado, posicion }) => {
         <div>
           <div
             className={`w-5 h-5 bg-primary rounded-full text-xs relative grid place-items-center correccion -rotate-90`}
-            ref={drag}
           >
             <div
               className="absolute w-full h-full rounded-full"
-              ref={dragPreview}
             />
             <p className="font-display font-light text-white">
               {invitado.nombre.slice(0, 1)}

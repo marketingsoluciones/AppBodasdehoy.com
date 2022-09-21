@@ -1,6 +1,5 @@
 import { Dispatch, FC, SetStateAction, useEffect, useRef, useState } from "react"
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
-import LayoutMesas from "../components/Mesas/LayoutMesas";
 import { Dragable } from "./PruebaDragable";
 import { ActualizarPosicion, AddInvitado, handleScale, useScreenSize } from "./FuntionsDragable";
 

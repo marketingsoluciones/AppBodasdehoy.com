@@ -1,7 +1,7 @@
 import interact from "interactjs"
 import { Dispatch, SetStateAction, useEffect, useState } from "react"
-import { fetchApiEventos, queries } from "../utils/Fetching"
-import { Event, guests } from "../utils/Interfaces"
+import { fetchApiEventos, queries } from "../../utils/Fetching"
+import { Event, guests } from "../../utils/Interfaces"
 
 const addClass = (element: any, className: any) => {
   if (element.classList) {
@@ -26,10 +26,14 @@ export const setupDropzone = (target: any, accept: any) => {
     .dropzone({
       accept: accept,
       ondropactivate: function (event) {
-        addClass(event.relatedTarget, '-drop-possible')
+        console.log(1001)
+        //addClass(event.relatedTarget, '-drop-possible')
+        event.target.textContent = 'Dropzone1'
       },
       ondropdeactivate: function (event) {
-        removeClass(event.relatedTarget, '-drop-possible')
+        console.log(1002)
+
+        //removeClass(event.relatedTarget, '-drop-possible')
       },
       checker: function (
         dragEvent,         // related dragmove or dragend
@@ -58,6 +62,7 @@ export const setupDropzone = (target: any, accept: any) => {
         return dropped && dropzoneElement.hasChildNodes();
       },
     })
+    //cuando se ACTIVA la zona drogleable
     .on('dropactivate', (event) => {
       const active = event.target.getAttribute('active') | 0
 
@@ -69,27 +74,31 @@ export const setupDropzone = (target: any, accept: any) => {
 
       event.target.setAttribute('active', active + 1)
     })
+    //cuando se DESACTIVA la zona drogleable
     .on('dropdeactivate', (event) => {
       const active = event.target.getAttribute('active') | 0
-
       // change style if it was previously active
       // but will no longer be active
       if (active === 1) {
-        removeClass(event.target, '-drop-possible')
+        event.target.removeChild(event.target.childNodes[0])
+        //removeClass(event.target, '-drop-possible')
         //event.target.textContent = 'Dropzone'
-        event.target.appendChild(document.getElementById("cuadro"))
+        //event.target.appendChild(document.getElementById("cuadro"))
       }
 
       event.target.setAttribute('active', active - 1)
     })
+    //cuando esta SOBRE una zona drogleable
     .on('dragenter', (event) => {
       addClass(event.target, '-drop-over')
       event.relatedTarget.textContent = "I'm in"
     })
+    //cuando SALE de una zona drogleable sin haber soltado
     .on('dragleave', (event) => {
       removeClass(event.target, '-drop-over')
       event.relatedTarget.textContent = 'Drag me…'
     })
+    //cuando SUELTA sobre una zona drogleable
     .on('drop', (event) => {
       removeClass(event.target, '-drop-over')
       event.relatedTarget.textContent = 'Dropped'
@@ -98,7 +107,6 @@ export const setupDropzone = (target: any, accept: any) => {
 
 // Añadir invitado | Carga en BD y estado
 export const AddInvitado = async (item: { tipo: string, invitado: guests, index: number, nombre_mesa: string }, event: Event, set: Dispatch<SetStateAction<Event>>): Promise<void> => {
-  console.log(123, AddInvitado)
   if (item && item.tipo == "invitado") {
     try {
       if (item.index) {
