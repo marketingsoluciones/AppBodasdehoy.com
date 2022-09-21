@@ -129,11 +129,13 @@ export const queries = {
     $poblacion: String,
     $usuario_id: String!
     $usuario_nombre: String!
+    $listaRegalos: String
   ){
     crearEvento(
       nombre: $nombre,
       tipo: $tipo,
       fecha: $fecha,
+      listaRegalos: $listaRegalos
       pais: $pais,
       poblacion: $poblacion,
       usuario_id: $usuario_id,
@@ -215,6 +217,16 @@ export const queries = {
                         }
                       }
   }`,
+  guardarListaRegalos: `mutation($evento_id: String!, $variable_reemplazar: String, $valor_reemplazar: String){
+    editEvento(
+      evento_id:$evento_id
+      variable_reemplazar:$variable_reemplazar
+      valor_reemplazar:$valor_reemplazar
+    ){
+      _id
+      listaRegalos
+    }
+  }`,
   getEventsByID: `query SolicitarEventos($userID : String) {
     queryenEvento(variable: "usuario_id", valor: $userID){
       _id
@@ -231,6 +243,7 @@ export const queries = {
       usuario_id
       usuario_nombre
       fecha
+      listaRegalos
       poblacion
       pais
       imgInvitacion{
@@ -308,6 +321,15 @@ export const queries = {
      }
     }
   }`,
+  getListaRegalos:`query($_id: String){
+    queryenEvento_id(
+      var_1:$_id
+    ){
+      _id
+      nombre
+      listaRegalos
+    }
+  }`,
   eventDelete: `mutation ($eventoID : String!) {
     borrarEvento(evento_id:$eventoID){
       modificado
@@ -315,7 +337,11 @@ export const queries = {
   }
   `,
   eventUpdate: `mutation ($idEvento: String!, $variable:String, $value : String){
-    editEvento(evento_id: $idEvento, variable_reemplazar: $variable, valor_reemplazar: $value){
+    editEvento(
+      evento_id: $idEvento, 
+      variable_reemplazar: $variable, 
+      valor_reemplazar: $value
+      ){
       _id
     }
   }`,

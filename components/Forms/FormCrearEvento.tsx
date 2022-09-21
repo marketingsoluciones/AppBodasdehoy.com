@@ -91,7 +91,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, initialValues: 
         query: queries.eventUpdate,
         variables: { idEvento: values._id, variable: "fecha", value: values.fecha.toString() }, token: null
       })
-      console.log(result)
+      /* console.log(result) */
       setEvent({ ...event, ...values })
     } catch (error) {
       toast("error", "Ha ocurrido un error al modificar el evento");

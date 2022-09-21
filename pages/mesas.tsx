@@ -78,7 +78,7 @@ const Mesas: FC = () => {
 
         }
 
-        console.log(item, set)
+
         //Añadir al array de la mesa
         set(oldEvent => {
           const modifiedGuests: guests[] = oldEvent.invitados_array.map(invitado => {
@@ -105,6 +105,7 @@ const Mesas: FC = () => {
     }
     return (
       <>
+        {/* formulario emergente para crear mesas */}
         {showForm ? (
           <ModalCrearMesa set={setShowForm} state={showForm}>
             <FormCrearMesa
@@ -115,6 +116,7 @@ const Mesas: FC = () => {
           </ModalCrearMesa>
         ) : null}
 
+        {/* formulario emergente para agregar un invitado */}
         {shouldRenderChild && (
           <ModalLeft state={isMounted} set={setIsMounted}>
             <FormInvitado
@@ -123,6 +125,7 @@ const Mesas: FC = () => {
             />
           </ModalLeft>
         )}
+
         <div>
           <div className="">
             <section id="areaDrag" className={`w-full grid md:grid-cols-12 bg-base overflow-hidden`}>
@@ -174,12 +177,15 @@ const Mesas: FC = () => {
                   state={showForm}
                   set={setShowForm}
                 />
+
                 <BlockResumen InvitadoSentados={filterGuests?.sentados} />
+
                 <BlockInvitados
                   AddInvitado={AddInvitado}
                   set={setIsMounted}
                   InvitadoNoSentado={filterGuests?.noSentados}
                 />
+
               </div>
               <div className="pt-2 md:pt-0 md:block flex justify-center items-center ">
                 <Prueba />

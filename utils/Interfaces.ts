@@ -19,6 +19,7 @@ export interface Event {
     notificaciones_array: notification[]
     imgInvitacion: image
     presupuesto_objeto: estimate
+    listaRegalos:string
 }
 
 interface estimate {
