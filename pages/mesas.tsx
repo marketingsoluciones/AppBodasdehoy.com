@@ -1,7 +1,7 @@
 // Importaciones de dependencias OLD
 //import React, { useContext, useEffect, useState } from "react";
 // Importaciones de dependencias NEW
-import React, { Dispatch, FC, SetStateAction, useCallback, useEffect, useState } from "react";
+import React, { FC, useEffect, useState } from "react";
 //import { DndProvider } from 'react-dnd-multi-backend';
 // Importaciones de contextos
 import { AuthContextProvider, EventContextProvider } from "../context";
@@ -16,22 +16,20 @@ import ModalLeft from "../components/Utils/ModalLeft";
 import FormInvitado from "../components/Forms/FormInvitado";
 import Breadcumb from "../components/DefaultLayout/Breadcumb";
 import { Event, guests } from "../utils/Interfaces";
-import { fetchApiEventos, queries } from "../utils/Fetching";
 import VistaSinCookie from "./vista-sin-cookie";
 import SwiperCore, { Pagination, Navigation } from 'swiper';
 import { Swiper, SwiperSlide } from "swiper/react";
 import Prueba from "../components/Mesas/prueba";
+import { AddInvitado } from "../components/Mesas/FuntionsDragable";
 SwiperCore.use([Pagination]);
 
 const Mesas: FC = () => {
-  const { event, setEvent } = EventContextProvider();
+  const { event } = EventContextProvider();
   const [modelo, setModelo] = useState<string | null>(null);
   const [showForm, setShowForm] = useState<boolean>(false);
   const [isMounted, setIsMounted] = useState<boolean>(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const [filterGuests, setFilterGuests] = useState<{ sentados: guests[], noSentados: guests[] }>({ sentados: [], noSentados: [] })
-  const [movil, setMovil] = useState(false);
-  const [visible, setVisible] = useState<boolean>(true)
 
   /*useEffect(() => {
     window.innerWidth <= 768 && setMovil(true);
@@ -49,53 +47,6 @@ const Mesas: FC = () => {
     }, { sentados: [], noSentados: [] }))
   }, [event?.invitados_array, event?.mesas_array])
 
-  // Añadir invitado | Carga en BD y estado
-  const AddInvitado = async (item: { tipo: string, invitado: guests, index: number, nombre_mesa: string }, set: Dispatch<SetStateAction<Event>>): Promise<void> => {
-    if (item && item.tipo == "invitado") {
-      try {
-        if (item.index) {
-          fetchApiEventos({
-            query: queries.editGuests,
-            variables: {
-              eventID: event._id,
-              guestID: item.invitado._id,
-              variable: "puesto",
-              value: item?.index?.toString()
-            }
-          })
-        }
-
-        if (item.nombre_mesa) {
-          fetchApiEventos({
-            query: queries.editGuests,
-            variables: {
-              eventID: event._id,
-              guestID: item.invitado._id,
-              variable: "nombre_mesa",
-              value: item.nombre_mesa
-            }
-          })
-
-        }
-
-
-        //Añadir al array de la mesa
-        set(oldEvent => {
-          const modifiedGuests: guests[] = oldEvent.invitados_array.map(invitado => {
-            if (invitado._id === item.invitado._id) {
-              console.log("ENTRE")
-              return { ...invitado, puesto: item.index, nombre_mesa: item.nombre_mesa }
-            }
-            return invitado
-          })
-          return { ...oldEvent, invitados_array: modifiedGuests }
-        })
-
-      } catch (error) {
-        console.log(error);
-      }
-    }
-  }
   const { user, verificationDone } = AuthContextProvider()
   if (verificationDone) {
     if (!user) {
@@ -115,7 +66,6 @@ const Mesas: FC = () => {
             />
           </ModalCrearMesa>
         ) : null}
-
         {/* formulario emergente para agregar un invitado */}
         {shouldRenderChild && (
           <ModalLeft state={isMounted} set={setIsMounted}>
@@ -125,7 +75,6 @@ const Mesas: FC = () => {
             />
           </ModalLeft>
         )}
-
         <div>
           <div className="">
             <section id="areaDrag" className={`w-full grid md:grid-cols-12 bg-base overflow-hidden`}>
@@ -143,7 +92,6 @@ const Mesas: FC = () => {
                       1024: {
                         "slidesPerView": 3,
                       },
-
                     }}
                     className="w-[calc(100vw-30px)] h-[calc(250px)] justify-start items-center"
                   >
@@ -156,9 +104,7 @@ const Mesas: FC = () => {
                         />
                       </div>
                       <BlockResumen InvitadoSentados={filterGuests?.sentados} />
-
                     </SwiperSlide>
-
                     <SwiperSlide className="flex flex-col justify-start items-center cursor-pointer ">
                       <BlockInvitados
                         AddInvitado={AddInvitado}
@@ -169,7 +115,6 @@ const Mesas: FC = () => {
                   </Swiper>
                 </div>
               </div>
-
               <div className={`hidden md:flex h-full col-span-3 box-border px-2 flex-col gap-6 transform transition duration-700 overflow-y-auto`}>
                 <Breadcumb />
                 <BlockPanelMesas
@@ -177,23 +122,16 @@ const Mesas: FC = () => {
                   state={showForm}
                   set={setShowForm}
                 />
-
                 <BlockResumen InvitadoSentados={filterGuests?.sentados} />
-
                 <BlockInvitados
                   AddInvitado={AddInvitado}
                   set={setIsMounted}
                   InvitadoNoSentado={filterGuests?.noSentados}
                 />
-
               </div>
               <div className="pt-2 md:pt-0 md:block flex justify-center items-center ">
                 <Prueba />
-                {/* <LayoutMesas
-                    AddInvitado={AddInvitado}
-                  /> */}
               </div>
-
             </section>
           </div>
           <style>

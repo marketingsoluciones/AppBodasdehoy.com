@@ -19,8 +19,6 @@ const removeClass = (element: any, className: any) => {
   }
 }
 
-
-
 export const setupDropzone = (target: any, accept: any) => {
   interact(target)
     .dropzone({

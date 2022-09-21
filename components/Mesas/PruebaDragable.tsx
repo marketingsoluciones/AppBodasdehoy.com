@@ -194,26 +194,9 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
         onTouchEnd={() => { setDisableWrapper(false) }}
         onMouseDown={() => { setDisableWrapper(true) }}
         onMouseUp={() => { setDisableWrapper(false) }}
-        className="truncate absolute draggable draggable-touch js-drag">algo</div>
-      {/* <div id="drag2"
-        onTouchStart={() => { setDisableWrapper(true) }}
-        onTouchEnd={() => { setDisableWrapper(false) }}
-        onMouseDown={() => { setDisableWrapper(true) }}
-        onMouseUp={() => { setDisableWrapper(false) }}
-        className="truncate draggable js-drag">Drag2 me…</div>
-      <div id="drag3"
-        onTouchStart={() => { setDisableWrapper(true) }}
-        onTouchEnd={() => { setDisableWrapper(false) }}
-        onMouseDown={() => { setDisableWrapper(true) }}
-        onMouseUp={() => { setDisableWrapper(false) }}
-        className="truncate draggable js-drag">Drag3 me…</div>
-
-      <div id="drag4"
-        onTouchStart={() => { setDisableWrapper(true) }}
-        onTouchEnd={() => { setDisableWrapper(false) }}
-        onMouseDown={() => { setDisableWrapper(true) }}
-        onMouseUp={() => { setDisableWrapper(false) }}
-        className="truncate draggable js-drag">Drag4 me…</div> */}
+        className="truncate absolute draggable draggable-touch js-drag">
+        algo
+      </div>
       <div className="dropzone-wrapper w-[600px]">
         <div id="drop1" className="dropzone h-20 js-drop"></div>
         <div id="drop2" className="dropzone h-20 js-drop"></div>

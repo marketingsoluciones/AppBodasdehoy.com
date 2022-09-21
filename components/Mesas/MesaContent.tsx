@@ -24,11 +24,10 @@ export const MesaContent: FC<propsTable> = ({
   setDisableWrapper,
   setEvent
 }) => {
-  // mesa.posicion.x = 100
-  // mesa.posicion.y = 200
+
   const { event } = EventContextProvider();
   const [invitados, setInvitados] = useState([]);
-  const [showOptions, setShowOptions] = useState<{ x: number, y: number } | null>(null)
+
   useEffect(() => {
     const el = document.getElementById(mesa._id)
     el.setAttribute('style', `left: ${mesa.posicion.x}px; top: ${mesa.posicion.y}px`)
@@ -36,7 +35,6 @@ export const MesaContent: FC<propsTable> = ({
     el.setAttribute('data-y', `${mesa.posicion.y}`)
   }, [mesa.posicion.x, mesa.posicion.y, mesa._id])
 
-  /*  console.log("position", showOptions) */
   useEffect(() => {
     setInvitados(
       event?.invitados_array?.filter(guest => guest.nombre_mesa === mesa.nombre_mesa)
@@ -45,36 +43,6 @@ export const MesaContent: FC<propsTable> = ({
 
   return (
     <>
-      {/* <Draggable
-        key={mesa._id}
-        defaultPosition={mesa.posicion}
-        defaultClassName="w-max"
-        // bounds={".wrapperLayout"}
-        cancel=".silla"
-        onMouseDown={() => setDisableLayout(true)}
-        onStop={(e, data) => {
-          setDisableLayout(false);
-          ActualizarPosicion({
-            x: data.x,
-            y: data.y,
-            index: index,
-            mesaID: mesa._id,
-            event: event,
-            setEvent: setEvent
-          });
-        }}
-      >
-        <div onAuxClick={(e) => {
-          console.log(e.target)
-          setShowOptions({
-            x: e.pageX,
-            y: e.pageY
-          })
-        }} className="relative w-max">
-          {showOptions && (
-            <div className={`absolute bg-red-500 w-max top-[${400}px] left-[${showOptions.x}px]`}>
-            </div>
-          )} */}
       <div
         id={mesa._id}
         onTouchStart={() => { setDisableWrapper(true) }}
@@ -89,8 +57,6 @@ export const MesaContent: FC<propsTable> = ({
           invitados={invitados}
         />
       </div>
-      {/* </div>
-      </Draggable> */}
     </>
   );
 };

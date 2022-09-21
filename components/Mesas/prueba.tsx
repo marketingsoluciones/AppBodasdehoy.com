@@ -93,14 +93,6 @@ const Prueba: FC = () => {
               <TransformComponent wrapperClass="contenedor">
                 <div className="bg-red border-4 lienzo border-indigo-600 flex justify-center items-center ">
                   <Dragable scale={Math.round(scale * 100) / 100} lienzo={lienzo} setDisableWrapper={setDisableWrapper} AddInvitado={AddInvitado} />
-                  {/* <LayoutMesas/> */}
-                  {/* <div className="bg-blue-300 w-[200px] h-[140px] truncate border-2 border-gray-600 ">
-                    <span>scrX:{scrX}</span><br />
-                    <span>scrY:{scrY}</span><br />
-                    <span>width:{width}</span><br />
-                    <span>width:{height}</span><br />
-                    1 <br />2 <br />3 <br />4 <br />5 <br />6 <br />7 <br />8 <br />9 <br />10 <br />11 <br />12 <br />13 <br />14 <br />15 <br /> 16 <br /> 17 <br />18 <br />
-                  </div> */}
                 </div>
               </TransformComponent> </>)}
         </TransformWrapper>
