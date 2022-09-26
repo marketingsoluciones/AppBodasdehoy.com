@@ -33,119 +33,182 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
   const { event, setEvent } = EventContextProvider();
   const [disableLayout, setDisableLayout] = useState<boolean>(false);
   const [dragPositions, setDragPositions] = useState<any>();
+  const [dragables, setDragables] = useState<any>([]);
 
   useEffect(() => {
     // setup drop areas.
     // dropzone #1 accepts draggable #1
-    setupDropzone('#drop1', '#drag1, #pdrag1')
+    setupDropzone('#drop1', `#drag1, #pdrag1 `)
     // dropzone #2 accepts draggable #1 and #2
     setupDropzone('#drop2', '#drag0, #drag1, #pdrag1')
     // every dropzone accepts draggable #3
-    setupDropzone('.js-drop', '#drag3, #pdrag1')
+    setupDropzone('.js-drop', `${dragables}, #pdragInvitado1`)
 
-  }, [])
+  }, [dragables])
   let transformProp: any
   useEffect(() => {
-    const filterGuests = (event?.invitados_array?.reduce((acc, guest) => {
+    const filterGuestsDraggable = (event?.invitados_array?.reduce((acc, guest) => {
       if (event?.mesas_array?.map(table => table.nombre_mesa).includes(guest.nombre_mesa)) {
-        acc.sentados.push(guest)
+        acc.dragables.push(`#dragS${guest._id}`)
+        acc.sentados[`dragS${guest._id}`] = { x: 0, y: 0 }
       } else {
-        acc.noSentados.push(guest)
+        acc.dragables.push(`#dragN${guest._id}`)
+        acc.noSentados[`dragN${guest._id}`] = { x: 0, y: 0 }
       }
       return acc
-    }, { sentados: [], noSentados: [] }))
-    console.log(123456, filterGuests)
+    }, { sentados: {}, noSentados: [], dragables: [] }))
+    console.log(filterGuestsDraggable)
     const mesasDrag = event.mesas_array.reduce((acc, n) => {
       acc[n._id] = { x: n.posicion[0].x, y: n.posicion[0].y }
       return acc
     }, {})
-    setDragPositions({ ...mesasDrag, drag1: { x: 0, y: 0 }, drag0: { x: 0, y: 0 }, pdrag1: { x: 0, y: 0 } })
+    console.log(mesasDrag)
+    setDragables(filterGuestsDraggable.dragables)
+    setDragPositions({
+      ...mesasDrag,
+      ...filterGuestsDraggable.sentados,
+      ...filterGuestsDraggable.noSentados,
+      pdrag1: { x: 0, y: 0 },
+      pdragInvitado1: { x: 0, y: 0 },
+    })
   }, [event.mesas_array, event])
 
   let sizeElement = { w: 0, h: 0 }
   let lienzoLimit = { x: 0, y: 0 }
   interact.maxInteractions(Infinity)
 
-
-  // setup draggable elements.
-  interact('.js-drag').draggable({
+  interact('.js-dragInvitadoN').draggable({
     manualStart: false,
     listeners: {
       start(e) {
-        // console.log("start", e.target.id)
+        console.log("js-dragInvitadoN")
+        console.log("start", e.target.id)
         let position = { x: 0, y: 0 }
-        if (e.target.id.slice(0, 4) == "drag") {
-          const element = document.getElementById(e.target.id.replace(/drag/, "dragM"))
-          position.x = parseInt(element.getAttribute("data-x"), 10) || 0
-          position.y = parseInt(element.getAttribute("data-y"), 10) || 0
-
-
-        } else {
-          position = dragPositions[e.target.id]
-          sizeElement = { w: e.rect.width, h: e.rect.height }
-          lienzoLimit = { x: Math.round(lienzo.ancho - sizeElement.w * 2), y: Math.round(lienzo.alto - sizeElement.h * 2) }
-          // console.log(lienzo)
-          // console.log(sizeElement)
-          // console.log(lienzoLimit)
-
-        }
-
-        // console.log(789, position)
+        const element = document.getElementById(e.target.id.replace(/dragN/, "dragM"))
+        position.x = parseInt(element.getAttribute("data-x"), 10) || 0
+        position.y = parseInt(element.getAttribute("data-y"), 10) || 0
         position.x = parseInt(e.target.getAttribute('data-x'), 10) || 0
         position.y = parseInt(e.target.getAttribute('data-y'), 10) || 0
 
       },
       move(e) {
-        // console.log("==========", e.dx, e.dy)
         let position = { x: 0, y: 0 }
-        if (e.target.id.slice(0, 4) != "drag") {
-          position = dragPositions[e.target.id]
-          position.x >= 0 ? position.x += parseInt(e.dx != 0 ? e.dx / scale : e.dx, 10) || 0 : position.x = 0
-          position.y >= 0 ? position.y += parseInt(e.dy != 0 ? e.dy / scale : e.dy, 10) || 0 : position.y = 0
+        const element = document.getElementById(e.target.id.replace(/dragN/, "dragM"))
+        position.x = parseInt(element.getAttribute("data-x"), 10) || 0
+        position.y = parseInt(element.getAttribute("data-y"), 10) || 0
+        position.x += parseInt(e.dx != 0 ? e.dx : e.dx, 10) || 0
+        position.y += parseInt(e.dy != 0 ? e.dy : e.dy, 10) || 0
 
-          if (position.x >= lienzoLimit.x) { position.x = lienzoLimit.x }
-          if (position.y >= lienzoLimit.y) { position.y = lienzoLimit.y }
-        } else {
-          const element = document.getElementById(e.target.id.replace(/drag/, "dragM"))
-          position.x = parseInt(element.getAttribute("data-x"), 10) || 0
-          position.y = parseInt(element.getAttribute("data-y"), 10) || 0
-          position.x += parseInt(e.dx != 0 ? e.dx : e.dx, 10) || 0
-          position.y += parseInt(e.dy != 0 ? e.dy : e.dy, 10) || 0
-          // console.log(position)
-        }
-
-        // console.log(position.x, position.y)
         if (transformProp) {
-          console.log("move", 0)
+          console.log("moveS", 0)
           e.target.style[transformProp] = 'translate(' + position.x + 'px, ' + position.y + 'px)'
         } else {
-          console.log("move", 1)
-          if (e.target.id.slice(0, 4) != "drag") {
-            //console.log(e.target)
-            e.target.style.left = position.x + 'px'
-            e.target.style.top = position.y + 'px'
-          } else {
-            const element = document.getElementById(e.target.id.replace(/drag/, "dragM"))
-            //console.log(element)
-            element.style.left = position.x + 'px'
-            element.style.top = position.y + 'px'
-            element.setAttribute('data-x', `${position.x}`)
-            element.setAttribute('data-y', `${position.y}`)
-          }
+          const element = document.getElementById(e.target.id.replace(/dragN/, "dragM"))
+          element.style.left = position.x + 'px'
+          element.style.top = position.y + 'px'
+          element.setAttribute('data-x', `${position.x}`)
+          element.setAttribute('data-y', `${position.y}`)
+          // }
         }
 
       },
       end(e) {
         const position = dragPositions[e.target.id]
         console.log("end", position)
-        if (e.target.id.slice(0, 4) != "drag") {
-          ActualizarPosicion({ x: position.x, y: position.y, event: event, mesaID: e.target.getAttribute('id'), setEvent: setEvent })
+        const rootElement = document.getElementById('areaDrag');
+        rootElement?.removeChild(document.getElementById(e.target.id.replace(/dragN/, "dragM")))
+        e.target.style[transformProp] = 'translate(' + position.x + 'px, ' + position.y + 'px)'
+        e.target.style.left = position.x + 'px'
+        e.target.style.top = position.y + 'px'
+        e.target.setAttribute('data-x', position.x)
+        e.target.setAttribute('data-y', position.y)
+      },
+    },
+  })
+
+  interact('.js-dragInvitadoS').draggable({
+    manualStart: false,
+    listeners: {
+      start(e) {
+        console.log("js-dragInvitadoS")
+        // console.log("start", e.target.id)
+        let position = { x: 0, y: 0 }
+        const element = document.getElementById(e.target.id.replace(/dragS/, "dragM"))
+        position.x = parseInt(element.getAttribute("data-x"), 10) || 0
+        position.y = parseInt(element.getAttribute("data-y"), 10) || 0
+        position.x = parseInt(e.target.getAttribute('data-x'), 10) || 0
+        position.y = parseInt(e.target.getAttribute('data-y'), 10) || 0
+
+      },
+      move(e) {
+        let position = { x: 0, y: 0 }
+        const element = document.getElementById(e.target.id.replace(/dragS/, "dragM"))
+        position.x = parseInt(element.getAttribute("data-x"), 10) || 0
+        position.y = parseInt(element.getAttribute("data-y"), 10) || 0
+        position.x += parseInt(e.dx != 0 ? e.dx : e.dx, 10) || 0
+        position.y += parseInt(e.dy != 0 ? e.dy : e.dy, 10) || 0
+
+        if (transformProp) {
+          console.log("moveS", 0)
+          e.target.style[transformProp] = 'translate(' + position.x + 'px, ' + position.y + 'px)'
         } else {
-          const rootElement = document.getElementById('areaDrag');
-          const element = document.getElementById(e.target.id.replace(/drag/, "dragM"))
-          //console.log("*****", element)
-          rootElement.removeChild(document.getElementById(e.target.id.replace(/drag/, "dragM")))
+          const element = document.getElementById(e.target.id.replace(/dragS/, "dragM"))
+          element.style.left = position.x + 'px'
+          element.style.top = position.y + 'px'
+          element.setAttribute('data-x', `${position.x}`)
+          element.setAttribute('data-y', `${position.y}`)
+          // }
         }
+
+      },
+      end(e) {
+        const position = dragPositions[e.target.id]
+        console.log("end", position)
+        const rootElement = document.getElementById('areaDrag');
+        rootElement?.removeChild(document.getElementById(e.target.id.replace(/dragS/, "dragM")))
+        e.target.style[transformProp] = 'translate(' + position.x + 'px, ' + position.y + 'px)'
+        e.target.style.left = position.x + 'px'
+        e.target.style.top = position.y + 'px'
+        e.target.setAttribute('data-x', position.x)
+        e.target.setAttribute('data-y', position.y)
+      },
+    },
+  })
+
+  // setup draggable elements.
+  interact('.js-drag').draggable({
+    ignoreFrom: '.ign',
+    manualStart: false,
+    listeners: {
+      start(e) {
+        console.log("js-drag")
+        let position = { x: 0, y: 0 }
+        position = dragPositions[e.target.id]
+        sizeElement = { w: e.rect.width, h: e.rect.height }
+        lienzoLimit = { x: Math.round(lienzo.ancho - sizeElement.w * 2), y: Math.round(lienzo.alto - sizeElement.h * 2) }
+        position.x = parseInt(e.target.getAttribute('data-x'), 10) || 0
+        position.y = parseInt(e.target.getAttribute('data-y'), 10) || 0
+      },
+      move(e) {
+        let position = { x: 0, y: 0 }
+        position = dragPositions[e.target.id]
+        position.x >= 0 ? position.x += parseInt(e.dx != 0 ? e.dx / scale : e.dx, 10) || 0 : position.x = 0
+        position.y >= 0 ? position.y += parseInt(e.dy != 0 ? e.dy / scale : e.dy, 10) || 0 : position.y = 0
+        if (position.x >= lienzoLimit.x) { position.x = lienzoLimit.x }
+        if (position.y >= lienzoLimit.y) { position.y = lienzoLimit.y }
+        if (transformProp) {
+          console.log("moveN", 0)
+          e.target.style[transformProp] = 'translate(' + position.x + 'px, ' + position.y + 'px)'
+        } else {
+          e.target.style.left = position.x + 'px'
+          e.target.style.top = position.y + 'px'
+        }
+
+      },
+      end(e) {
+        const position = dragPositions[e.target.id]
+        console.log("end", position)
+        ActualizarPosicion({ x: position.x, y: position.y, event: event, mesaID: e.target.getAttribute('id'), setEvent: setEvent })
         e.target.style[transformProp] = 'translate(' + position.x + 'px, ' + position.y + 'px)'
         e.target.style.left = position.x + 'px'
         e.target.style.top = position.y + 'px'
@@ -195,12 +258,17 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
         onMouseDown={() => { setDisableWrapper(true) }}
         onMouseUp={() => { setDisableWrapper(false) }}
         className="truncate absolute draggable draggable-touch js-drag">
+        <div className='ign bg-red w-[30px] h-[30px]'>
+          <div id="pdragInvitado1" className='js-dragInvitadoS absolute bg-white w-[10px] h-[10px]'>
+            x
+          </div>
+        </div>
         algo
       </div>
-      <div className="dropzone-wrapper w-[600px]">
-        <div id="drop1" className="dropzone h-20 js-drop"></div>
-        <div id="drop2" className="dropzone h-20 js-drop"></div>
-        <div id="drop3" className="dropzone h-20 js-drop"></div>
+      <div className="dropzone-wrapper w-[5px]">
+        <div id="drop1" className="dropzone h-[5px] "></div>
+        <div id="drop2" className="dropzone h-[5px] js-drop"></div>
+        <div id="drop3" className="dropzone h-[5px] js-drop"></div>
       </div>
 
       <style>
@@ -250,6 +318,9 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
           }
 
           .draggable.-drop-possible { background-color: #42bd41; }
+          .js-dropListInvitados.-drop-possibleHover:hover {
+            background-color: orange;
+          }
         `}
       </style>
     </>

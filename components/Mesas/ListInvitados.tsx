@@ -13,7 +13,7 @@ const ListInvitados: FC<propsListInvitados> = ({ InvitadoNoSentado, AddInvitado 
 
   return (
     <>
-      <ul className="w-full py-4" >
+      <div id={"listInvitados"} className="js-drop w-full py-4" >
         {InvitadoNoSentado?.map((invitado, index) => (
           <DragInvitado
             key={invitado._id}
@@ -22,7 +22,7 @@ const ListInvitados: FC<propsListInvitados> = ({ InvitadoNoSentado, AddInvitado 
             invitado={invitado}
           />
         ))}
-      </ul>
+      </div>
       <style jsx>
         {`
         ul {

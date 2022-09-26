@@ -80,7 +80,29 @@ const Mesas: FC = () => {
             <section id="areaDrag" className={`w-full grid md:grid-cols-12 bg-base overflow-hidden`}>
 
               <div className="flex md:hidden h-[calc(250px)] flex-col ">
+
                 <div className="p-2 px-4">
+                  {/* <div id="pdrag1" className="bg-red js-dragInvitadoN w-[50px] h-[50px]"
+                    onTouchStart={(e) => {
+                      //e.preventDefault()
+                      console.log(e.touches[0].clientX, e.touches[0].clientY)
+                      const rootElement = document.getElementById('areaDrag');
+                      const element = document.createElement('div');
+                      element.textContent = 'Hello word';
+                      element.className = 'bg-red absolute z-50';
+                      element.id = `dragM${"invitado._id"}`
+                      element.style.left = e.touches[0].clientX + 10 + 'px'
+                      element.style.top = e.touches[0].clientY + 10 + 'px'
+                      element.setAttribute('data-x', (e.touches[0].clientX + 10).toString())
+                      element.setAttribute('data-y', (e.touches[0].clientY + 10).toString())
+                      rootElement.appendChild(element)
+                    }}
+                    onTouchEnd={() => {
+                      const rootElement = document.getElementById('areaDrag');
+                      const element = document.getElementById(`dragM${"invitado._id"}`)
+                      element && rootElement.removeChild(document.getElementById(`dragM${"invitado._id"}`))
+                    }}></div> */}
+
                   <Swiper
                     pagination={{ clickable: true }}
                     navigation

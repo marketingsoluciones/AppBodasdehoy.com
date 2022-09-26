@@ -24,12 +24,14 @@ export const setupDropzone = (target: any, accept: any) => {
     .dropzone({
       accept: accept,
       ondropactivate: function (event) {
-        console.log(1001)
+        //console.log(1001)
         //addClass(event.relatedTarget, '-drop-possible')
-        event.target.textContent = 'Dropzone1'
+
+        //agrega texto al div
+        //event.target.textContent = '1'
       },
       ondropdeactivate: function (event) {
-        console.log(1002)
+        //console.log(1002)
 
         //removeClass(event.relatedTarget, '-drop-possible')
       },
@@ -50,6 +52,7 @@ export const setupDropzone = (target: any, accept: any) => {
           if (dropped) {
             console.log("dropped:", dropped)
             console.log("dropzone:", dropzone.target)
+            console.log("dropzoneElement:", dropzoneElement.id)
             console.log("--------------------------------------")
           }
         }
@@ -67,6 +70,7 @@ export const setupDropzone = (target: any, accept: any) => {
       // change style if it was previously not active
       if (active === 0) {
         addClass(event.target, '-drop-possible')
+        //addClass(event.target, '-drop-possibleHover')
         //event.target.textContent = 'Drop me here!'
       }
 
@@ -78,8 +82,11 @@ export const setupDropzone = (target: any, accept: any) => {
       // change style if it was previously active
       // but will no longer be active
       if (active === 1) {
-        event.target.removeChild(event.target.childNodes[0])
-        //removeClass(event.target, '-drop-possible')
+        //remueve texto del div
+        //event.target.removeChild(event.target.childNodes[0])
+
+        removeClass(event.target, '-drop-possible')
+        //removeClass(event.target, '-drop-possibleHover')
         //event.target.textContent = 'Dropzone'
         //event.target.appendChild(document.getElementById("cuadro"))
       }
@@ -88,18 +95,20 @@ export const setupDropzone = (target: any, accept: any) => {
     })
     //cuando esta SOBRE una zona drogleable
     .on('dragenter', (event) => {
+      console.log("sobre")
       addClass(event.target, '-drop-over')
-      event.relatedTarget.textContent = "I'm in"
+      //event.relatedTarget.textContent = "I'm in"
     })
     //cuando SALE de una zona drogleable sin haber soltado
     .on('dragleave', (event) => {
+      console.log("sale")
       removeClass(event.target, '-drop-over')
-      event.relatedTarget.textContent = 'Drag me…'
+      //event.relatedTarget.textContent = 'Drag me…'
     })
     //cuando SUELTA sobre una zona drogleable
     .on('drop', (event) => {
       removeClass(event.target, '-drop-over')
-      event.relatedTarget.textContent = 'Dropped'
+      //event.relatedTarget.textContent = 'Dropped'
     })
 }
 

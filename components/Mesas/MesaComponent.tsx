@@ -1,7 +1,8 @@
-import React, {
+import {
   cloneElement,
   FC,
   ReactNode,
+  TouchEvent,
   useEffect,
   useState,
 } from "react";
@@ -103,6 +104,7 @@ const MesaComponent: FC<propsMesaComponent> = ({ posicion, mesa, AddInvitado, in
             className={schemaGeneral[mesa.tipo].type}
           >
             {invitados?.map((invitado, index) => {
+              //1
               if (invitado.puesto == idx) {
                 return (
                   <SentadoItem
@@ -145,7 +147,6 @@ const Chair: FC<propsChair> = ({
   const isOver = false
   AddInvitado({ /*...item,*/ nombre_mesa, index }, setEvent);
 
-
   // const [{ canDrop, isOver }, drop] = useDrop(() => ({
   //   accept: "invitado",
   //   drop: (item: signalItem) => {
@@ -163,12 +164,13 @@ const Chair: FC<propsChair> = ({
   return (
     <>
       <div
-        role={"Droppeable"}
-        className={`silla w-5 h-5 rounded-full absolute border-2 shadow border-gray-500 overflow-hidden  ${isOver ? "bg-opacity-50" : null
-          }  ${isOver || canDrop ? "bg-secondary" : "bg-white"
+        id={`${nombre_mesa}-${index}`}
+        // role={"Droppeable"}
+        className={`js-drop silla w-5 h-5 rounded-full absolute border-2 shadow border-gray-500 overflow-hidden  ${isOver ? "bg-opacity-50" : null
+          }  bg-white //${!children[0] && "js-dropListInvitados"} //${isOver || canDrop ? "bg-secondary" : "bg-white"
           } flex items-center justify-center ${className}`}
       >
-        {children}
+        {children[0] ? children : <span />}
       </div>
       <style jsx>
         {`
@@ -266,6 +268,7 @@ const MesaImperial: FC<propsMesaImperial> = ({ mesa, AddInvitado, invitados }) =
         index={0}
       >
         {invitados?.map((invitado, idx) => {
+          //2
           if (invitado.puesto == 0) {
             return <SentadoItem key={idx} invitado={invitado} />;
           }
@@ -280,6 +283,7 @@ const MesaImperial: FC<propsMesaImperial> = ({ mesa, AddInvitado, invitados }) =
         index={1}
       >
         {invitados?.map((invitado, idx) => {
+          //3
           if (invitado.puesto == 1) {
             return <SentadoItem key={idx} invitado={invitado} />;
           }
@@ -297,6 +301,7 @@ const MesaImperial: FC<propsMesaImperial> = ({ mesa, AddInvitado, invitados }) =
             index={item}
           >
             {invitados?.map((invitado, index) => {
+              //4
               if (invitado.puesto == item) {
                 return <SentadoItem key={index} invitado={invitado} />;
               }
@@ -316,6 +321,7 @@ const MesaImperial: FC<propsMesaImperial> = ({ mesa, AddInvitado, invitados }) =
             index={item}
           >
             {invitados?.map((invitado, index) => {
+              //5
               if (invitado.puesto == item) {
                 return <SentadoItem key={index} invitado={invitado} />;
               }
@@ -332,24 +338,76 @@ interface propsSentadoItem {
   posicion?: number
 }
 const SentadoItem: FC<propsSentadoItem> = ({ invitado, posicion }) => {
+  useEffect(() => {
+    const element = document.getElementById(`dragS${invitado._id}`)
+    element.parentElement.classList.remove("js-drop")
+    const padre = element.parentElement
+
+    console.log("aqui", padre)
+  }, [])
+
   const [hoverRef, isHovered] = useHover();
 
 
   return (
     <>
       {invitado ? (
-        <div>
-          <div
-            className={`w-5 h-5 bg-primary rounded-full text-xs relative grid place-items-center correccion -rotate-90`}
+        <div id={`dragS${invitado._id}`} className="ign">
+          <span
+            id={`dragS${invitado._id}`}
+            className="w-full text-left flex js-dragInvitadoS "
+            onMouseDown={(e) => {
+              //e.preventDefault()
+              const rootElement = document.getElementById('areaDrag');
+              const element = document.createElement('div');
+              element.textContent = 'Hello word';
+              element.className = 'bg-red absolute z-50';
+              element.id = `dragM${invitado._id}`
+              element.style.left = e.clientX + 10 + 'px'
+              element.style.top = e.clientY + 10 + 'px'
+              element.setAttribute('data-x', (e.clientX + 10).toString())
+              element.setAttribute('data-y', (e.clientY + 10).toString())
+              rootElement.appendChild(element)
+            }}
+            onMouseUp={() => {
+              const rootElement = document.getElementById('areaDrag');
+              const element = document.getElementById(`dragM${invitado._id}`)
+              element && rootElement.removeChild(document.getElementById(`dragM${invitado._id}`))
+            }}
+            // onTouchStart={() => { alert() }}
+            onTouchStart={(e: TouchEvent<HTMLButtonElement>) => {
+              //e.preventDefault()
+              console.log(e.touches[0].clientX)
+              const rootElement = document.getElementById('areaDrag');
+              const element = document.createElement('div');
+              element.textContent = 'Hello word';
+              element.className = 'bg-red absolute z-50';
+              element.id = `dragM${invitado._id}`
+              element.style.left = e.touches[0].clientX + 10 + 'px'
+              element.style.top = e.touches[0].clientY + 10 + 'px'
+              element.setAttribute('data-x', (e.touches[0].clientX + 10).toString())
+              element.setAttribute('data-y', (e.touches[0].clientY + 10).toString())
+              rootElement.appendChild(element)
+            }}
+            onTouchEnd={() => {
+              const rootElement = document.getElementById('areaDrag');
+              const element = document.getElementById(`dragM${invitado._id}`)
+              element && rootElement.removeChild(document.getElementById(`dragM${invitado._id}`))
+            }}
           >
             <div
-              className="absolute w-full h-full rounded-full"
-            />
-            <p className="font-display font-light text-white">
-              {invitado.nombre.slice(0, 1)}
-            </p>
-            {isHovered && <Tooltip text={invitado?.nombre} />}
-          </div>
+              id={`dragS${invitado._id}`}
+              className={`w-5 h-5 bg-primary rounded-full text-xs relative grid place-items-center correccion -rotate-90`}
+            >
+              <div
+                className="absolute w-full h-full rounded-full"
+              />
+              <p className="font-display font-light text-white">
+                {invitado.nombre.slice(0, 1)}
+              </p>
+              {isHovered && <Tooltip text={invitado?.nombre} />}
+            </div>
+          </span>
         </div>
       ) : null}
       <style jsx>

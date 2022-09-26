@@ -43,7 +43,7 @@ const Prueba: FC = () => {
 
   return (
     <>
-      <div className="bg-orange-500 divOrange flex justify-center " >
+      <div className="bg-orange-500 divOrange flex justify-center relative" >
         <TransformWrapper
           disabled={disableWrapper}
           limitToBounds={true}

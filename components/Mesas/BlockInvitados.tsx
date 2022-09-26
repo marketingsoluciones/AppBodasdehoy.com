@@ -22,7 +22,7 @@ const BlockInvitados: FC<propsBlockInvitados> = ({ InvitadoNoSentado, set, AddIn
                     <p>Añadir invitado</p>
                 </button>
             </div>
-            <div className='pg-3 md:h-max h-[200px] overflow-y-auto'>
+            <div className='pg-3 md:h-max h-[200px] '>
                 <ListInvitados AddInvitado={AddInvitado} InvitadoNoSentado={InvitadoNoSentado} />
             </div>
         </div>

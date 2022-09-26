@@ -18,6 +18,9 @@ const MyApp = ({ Component, pageProps }) => {
       {/*</AnimatePresence>*/}
       <style jsx global>
         {`
+        body {
+  overscroll-behavior: contain;
+}
         ::-webkit-scrollbar {
           width: 8px;
         }
