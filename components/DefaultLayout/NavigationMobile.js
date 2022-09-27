@@ -7,22 +7,22 @@ const NavigationMobile = () => {
   const { user } = AuthContextProvider();
 
   const Navbar = [
-    {title: "Mis eventos", icon: <MisEventosIcon className="text-primary w-7 h-7" />, route: "/"},
-    {title: "Invitados", icon: <InvitadosIcon className="text-primary w-7 h-7"/>, route: "/invitados"},
-    {title: "Invitaciones", icon: <InvitacionesIcon className="text-primary w-7 h-7"/>, route: "/invitaciones"},
-    {title: "Mesas", icon: <MesasIcon className="text-primary w-7 h-7"/>, route: "/mesas"},
+    { title: "Mis eventos", icon: <MisEventosIcon className="text-primary w-7 h-7" />, route: "/" },
+    { title: "Invitados", icon: <InvitadosIcon className="text-primary w-7 h-7" />, route: "/invitados" },
+    { title: "Invitaciones", icon: <InvitacionesIcon className="text-primary w-7 h-7" />, route: "/invitaciones" },
+    { title: "Mesas", icon: <MesasIcon className="text-primary w-7 h-7" />, route: "/mesas" },
   ]
 
   return (
     <>
-      <ul className="md:hidden bg-white z-50 rounded-t-2xl h-max py-5 shadow-lg w-full fixed bottom-0 grid grid-cols-5 place-items-center">
+      <ul className="f-bottom md:hidden bg-white z-50 rounded-t-2xl h-max py-5 shadow-lg w-full fixed bottom-0 grid grid-cols-5 place-items-center">
         {Navbar.map((item, idx) => (
 
-        <Link key={idx} href={item.route}>
-          <li className="cursor-pointer transition text-primary">
-            {item.icon}
-          </li>
-        </Link>
+          <Link key={idx} href={item.route}>
+            <li className="cursor-pointer transition text-primary">
+              {item.icon}
+            </li>
+          </Link>
         ))}
 
 
