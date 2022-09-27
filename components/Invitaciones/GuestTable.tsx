@@ -32,12 +32,12 @@ export const GuestTable: FC<any> = ({ data, multiSeled }) => {
             },
           };
           return (
-            <div className="flex gap-4 items-center w-full">
+            <div className="flex gap-1 items-center w-full md:pl-28  ">
               <img
                 src={image[sexo]?.image}
-                className="rounded-full object-cover w-10 h-10"
+                className="rounded-full object-cover md:w-10 md:h-10 w-7 h-7"
               />
-              <p className="font-display text-sm capitalize overflow-ellipsis text-black">
+              <p className="font-display text-sm capitalize overflow-ellipsis text-black truncate">
                 {value}
               </p>
             </div>
@@ -75,14 +75,14 @@ export const GuestTable: FC<any> = ({ data, multiSeled }) => {
             <>
               <div
                 ref={hoverRef}
-                className={`relative w-full h-full flex items-center justify-center gap-2 text-${value
+                className={`truncate relative w-full h-full flex items-center justify-center pl-3 gap-1 text-${value
                   ? "green"
                   : "red cursor-pointer transform transition hover:scale-105"
                   }`}
                 onClick={handleClick}
               >
                 <InvitacionesIcon className="w-5 h-5 " />
-                <p className="font-display text-md text-black">{mensaje[value]}</p>
+                <p className="font-display text-md text-black truncate">{mensaje[value]}</p>
                 {value && isHovered && (
                   <div className="transform bg-white w-2/3 shadow absolute right-0 mx-auto inset-x-0 translate-x-full rounded-lg text-gray-500 text-sm">
                     Enviado el <br /> 27 Junio 2021
