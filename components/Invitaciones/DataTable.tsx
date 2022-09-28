@@ -84,7 +84,7 @@ export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, set
             {headerGroups.map((headerGroup: any, id: any) => (
               <tr
                 {...headerGroup.getHeaderGroupProps()}
-                className="w-full grid grid-cols-9 py-2 px-4 "
+                className="w-full grid grid-cols-9 py-2 px-2 pr-4"
                 key={id}
               >
                 {headerGroup.headers.map((column: any, id: any) => (
@@ -103,21 +103,21 @@ export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, set
               </tr>
             ))}
           </thead>
-          <tbody {...getTableBodyProps()} className="text-gray-300 text-sm ">
+          <tbody {...getTableBodyProps()} className="text-gray-300 text-sm  ">
             {rows.map((row, i) => {
               prepareRow(row);
               return (
                 <tr
                   key={i}
                   {...row.getRowProps()}
-                  className="w-full transition border-b border-base hover:bg-base  w-full grid grid-cols-9 px-4"
+                  className="w-full transition border-b border-base hover:bg-base w-full grid grid-cols-9 md:px-3 pl-3 "
                 >
                   {row.cells.map((cell, i) => {
                     return (
                       <td
                         key={i}
                         {...cell.getCellProps()}
-                        className={`font-display grid place-items-center text-sm w-full text-black h-full text-center text-left py-2 col-span-${colSpan[cell.column.id]
+                        className={` mr-5 truncate font-display grid place-items-center text-sm w-full text-black h-full text-center text-left py-2 pr-2 col-span-${colSpan[cell.column.id]
                           }`}
                       >
                         {cell.render("Cell")}
