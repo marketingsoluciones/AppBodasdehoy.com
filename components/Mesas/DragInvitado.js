@@ -41,7 +41,7 @@ const DragInvitado = (props) => {
               const rootElement = document.getElementById('areaDrag');
               const element = document.createElement('div');
               //element.textContent = 'Hello word';
-              element.className = 'bg-gray-300 opacity-25 absolute border-2 border-secondary z-50 w-[100px] h-[100px] rounded-full ';
+              element.className = 'bg-gray-300 opacity-25 absolute border-2 border-gray-600 z-50 w-[100px] h-[100px] rounded-full ';
               element.id = `dragM${invitado._id}`
               element.style.left = e.touches[0].clientX - 50 + 'px'
               element.style.top = e.touches[0].clientY - 50 + 'px'
