@@ -39,7 +39,7 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables }) => {
     setScrY(window.innerHeight)
     const scaleResult = handleScale(window.innerWidth, window.innerHeight, lienzo)
     const calScale = scaleResult / 100
-    setScaleIni(calScale)
+    setScaleIni(scaleResult / 100)
     setScale(calScale)
   }, [oculto])
 
@@ -60,7 +60,7 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables }) => {
 
   return (
     <><div>
-      <div className="bg-white w-[30px] h-8 widthCalc">
+      <div className="bg-white h-8 widthCalc">
         {/* <button className="bg-red" onClick={() => { controlsZoom.in }}>reset</button> */}
       </div>
       <div className="bg-orange-500 flex divOrange justify-start relative" >
@@ -124,12 +124,12 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables }) => {
           }
           .divOrange {
             width: calc(${width == 0 ? scrX / 12 * 9 : width / 12 * 9}px);
-            height: calc(100vh - 144px);
+            height: calc(100vh - 144px - 32px);
           }
           .contenedor {
             background-color: cyan;
             calc(${width == 0 ? scrX / 12 * 9 : width / 12 * 9}px);
-            height: calc(100vh - 144px);
+            height: calc(100vh - 144px - 32px);
           }
           .div3 {
             background-color: white;
@@ -145,12 +145,12 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables }) => {
             }
             .divOrange {
               width: calc(${scrX}px - 30px);
-              height: calc(100vh - 144px);
+              height: calc(100vh - 64px - 250px - 32px - 90px);
             }
             .contenedor {
               background-color: cyan;
               width: calc(${scrX}px - 30px);
-              height: calc(100vh / 2);
+              height: calc(100vh - 64px - 250px - 32px - 90px);
             }
             .div3 {
               background-color: yellow;

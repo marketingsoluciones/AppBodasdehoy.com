@@ -217,9 +217,10 @@ export const handleScale = (valorX: any, valorY: any, lienzo: any): any => {
   const s = { x: 0, y: 0 }
   if (valorX > 767) {
     valorX = valorX / 12 * 9
-    valorY = valorY - 144
+    valorY = valorY - 144 - 32
   } else {
-    valorY = valorY / 2
+    valorX = valorX - 30
+    valorY = valorY - 64 - 250 - 32 - 90
   }
   s.x = valorX * 100 / lienzo.ancho
   s.y = valorY * 100 / lienzo.alto

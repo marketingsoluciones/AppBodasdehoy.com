@@ -57,6 +57,7 @@ export const MesaContent: FC<propsTable> = ({
           mesa={mesa}
           AddInvitado={AddInvitado}
           invitados={invitados}
+          setDisableWrapper={setDisableWrapper}
         />
       </div>
     </>

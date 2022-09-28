@@ -16,6 +16,7 @@ interface propsMesaComponent {
   mesa: table;
   AddInvitado: CallableFunction;
   invitados: guests[];
+  setDisableWrapper: any
 }
 
 enum types {
@@ -34,7 +35,7 @@ type schemaType = {
   podio: tableType;
 };
 
-const MesaComponent: FC<propsMesaComponent> = ({ posicion, mesa, AddInvitado, invitados, }) => {
+const MesaComponent: FC<propsMesaComponent> = ({ posicion, mesa, AddInvitado, invitados, setDisableWrapper }) => {
   const { cantidad_sillas } = mesa;
   const [nSillas, setNSillas] = useState([]);
 
@@ -62,8 +63,9 @@ const MesaComponent: FC<propsMesaComponent> = ({ posicion, mesa, AddInvitado, in
     },
     imperial: {
       position: ArraySillas(),
-      component: <MesaImperial />,
+      component: <MesaImperial setDisableWrapper={setDisableWrapper} />,
       type: "relative",
+
     },
     cuadrada: {
       position: [0, 90, 180, 270],
@@ -111,6 +113,7 @@ const MesaComponent: FC<propsMesaComponent> = ({ posicion, mesa, AddInvitado, in
                     key={index}
                     posicion={valor}
                     invitado={invitado}
+                    setDisableWrapper={setDisableWrapper}
                   />
                 );
               }
@@ -231,8 +234,9 @@ interface propsMesaImperial {
   mesa?: table,
   AddInvitado?: CallableFunction
   invitados?: guests[]
+  setDisableWrapper: any
 }
-const MesaImperial: FC<propsMesaImperial> = ({ mesa, AddInvitado, invitados }) => {
+const MesaImperial: FC<propsMesaImperial> = ({ mesa, AddInvitado, invitados, setDisableWrapper }) => {
   const [arrTotal, setArrTotal] = useState(() => {
     let arr = [];
     for (let i = 0; i < mesa?.cantidad_sillas; i++) {
@@ -270,7 +274,7 @@ const MesaImperial: FC<propsMesaImperial> = ({ mesa, AddInvitado, invitados }) =
         {invitados?.map((invitado, idx) => {
           //2
           if (invitado.puesto == 0) {
-            return <SentadoItem key={idx} invitado={invitado} />;
+            return <SentadoItem key={idx} invitado={invitado} setDisableWrapper={setDisableWrapper} />;
           }
         })}
       </Chair>
@@ -285,7 +289,7 @@ const MesaImperial: FC<propsMesaImperial> = ({ mesa, AddInvitado, invitados }) =
         {invitados?.map((invitado, idx) => {
           //3
           if (invitado.puesto == 1) {
-            return <SentadoItem key={idx} invitado={invitado} />;
+            return <SentadoItem key={idx} invitado={invitado} setDisableWrapper={setDisableWrapper} />;
           }
         })}
       </Chair>
@@ -303,7 +307,7 @@ const MesaImperial: FC<propsMesaImperial> = ({ mesa, AddInvitado, invitados }) =
             {invitados?.map((invitado, index) => {
               //4
               if (invitado.puesto == item) {
-                return <SentadoItem key={index} invitado={invitado} />;
+                return <SentadoItem key={index} invitado={invitado} setDisableWrapper={setDisableWrapper} />;
               }
             })}
           </Chair>
@@ -323,7 +327,7 @@ const MesaImperial: FC<propsMesaImperial> = ({ mesa, AddInvitado, invitados }) =
             {invitados?.map((invitado, index) => {
               //5
               if (invitado.puesto == item) {
-                return <SentadoItem key={index} invitado={invitado} />;
+                return <SentadoItem key={index} invitado={invitado} setDisableWrapper={setDisableWrapper} />;
               }
             })}
           </Chair>
@@ -336,8 +340,9 @@ const MesaImperial: FC<propsMesaImperial> = ({ mesa, AddInvitado, invitados }) =
 interface propsSentadoItem {
   invitado: guests,
   posicion?: number
+  setDisableWrapper: any
 }
-const SentadoItem: FC<propsSentadoItem> = ({ invitado, posicion }) => {
+const SentadoItem: FC<propsSentadoItem> = ({ invitado, posicion, setDisableWrapper }) => {
   useEffect(() => {
     const element = document.getElementById(`dragS${invitado._id}`)
     element.parentElement.classList.remove("js-drop")
@@ -358,6 +363,7 @@ const SentadoItem: FC<propsSentadoItem> = ({ invitado, posicion }) => {
             className="w-full text-left flex js-dragInvitadoS "
             onMouseDown={(e) => {
               //e.preventDefault()
+              setDisableWrapper(true)
               const rootElement = document.getElementById('areaDrag');
               const element = document.createElement('div');
               element.textContent = 'Hello word';
@@ -370,6 +376,7 @@ const SentadoItem: FC<propsSentadoItem> = ({ invitado, posicion }) => {
               rootElement.appendChild(element)
             }}
             onMouseUp={() => {
+              setDisableWrapper(false)
               const rootElement = document.getElementById('areaDrag');
               const element = document.getElementById(`dragM${invitado._id}`)
               element && rootElement.removeChild(document.getElementById(`dragM${invitado._id}`))
@@ -377,6 +384,7 @@ const SentadoItem: FC<propsSentadoItem> = ({ invitado, posicion }) => {
             // onTouchStart={() => { alert() }}
             onTouchStart={(e: TouchEvent<HTMLButtonElement>) => {
               //e.preventDefault()
+              setDisableWrapper(true)
               console.log(e.touches[0].clientX)
               const rootElement = document.getElementById('areaDrag');
               const element = document.createElement('div');
@@ -390,6 +398,7 @@ const SentadoItem: FC<propsSentadoItem> = ({ invitado, posicion }) => {
               rootElement.appendChild(element)
             }}
             onTouchEnd={() => {
+              setDisableWrapper(false)
               const rootElement = document.getElementById('areaDrag');
               const element = document.getElementById(`dragM${invitado._id}`)
               element && rootElement.removeChild(document.getElementById(`dragM${invitado._id}`))

@@ -105,8 +105,8 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
           e.target.style[transformProp] = 'translate(' + position.x + 'px, ' + position.y + 'px)'
         } else {
           const element = document.getElementById(e.target.id.replace(/dragN/, "dragM"))
-          //element.style.left = position.x + 'px'
-          //element.style.top = position.y + 'px'
+          element.style.left = position.x + 'px'
+          element.style.top = position.y + 'px'
           element.setAttribute('data-x', `${position.x}`)
           element.setAttribute('data-y', `${position.y}`)
           // }
