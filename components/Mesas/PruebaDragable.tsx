@@ -26,10 +26,11 @@ interface propsDragable {
   lienzo?: { ancho: any, alto: any }
   setDisableWrapper?: any
   AddInvitado?: any
+  disableDrag: any
 }
 
 
-export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, AddInvitado }) => {
+export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, AddInvitado, disableDrag }) => {
   const { event, setEvent } = EventContextProvider();
   const [disableLayout, setDisableLayout] = useState<boolean>(false);
   const [dragPositions, setDragPositions] = useState<any>();
@@ -42,7 +43,7 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
     // dropzone #2 accepts draggable #1 and #2
     setupDropzone('#drop2', '#drag0, #drag1, #pdrag1')
     // every dropzone accepts draggable #3
-    setupDropzone('.js-drop', `${dragables}, #pdragInvitado1`)
+    setupDropzone('.js-drop', `${dragables}, #pdragInvitado1, #invitadoPrueba`)
 
   }, [dragables])
   let transformProp: any
@@ -104,8 +105,8 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
           e.target.style[transformProp] = 'translate(' + position.x + 'px, ' + position.y + 'px)'
         } else {
           const element = document.getElementById(e.target.id.replace(/dragN/, "dragM"))
-          element.style.left = position.x + 'px'
-          element.style.top = position.y + 'px'
+          //element.style.left = position.x + 'px'
+          //element.style.top = position.y + 'px'
           element.setAttribute('data-x', `${position.x}`)
           element.setAttribute('data-y', `${position.y}`)
           // }
@@ -248,6 +249,7 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
             DefinePosition={DefinePosition}
             setDisableWrapper={setDisableWrapper}
             setEvent={setEvent}
+            disableDrag={disableDrag}
           />
         );
       })}
@@ -320,6 +322,10 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
           .draggable.-drop-possible { background-color: #42bd41; }
           .js-dropListInvitados.-drop-possibleHover:hover {
             background-color: orange;
+          }
+          .js-dragInvitadoN {
+            touch-action: none;
+            user-select: none;
           }
         `}
       </style>

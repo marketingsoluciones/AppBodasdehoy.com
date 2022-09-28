@@ -20,13 +20,15 @@ const BlockResumen: FC<propsBlockResumen> = ({ InvitadoSentados }) => {
         { title: `${InvitadoSentados?.length} de ${event?.invitados_array?.length}`, subtitle: "Invitados sentados" },
     ]
     return (
-        <div className="bg-primary w-full px-6 pb-4 rounded-lg">
+        <div className="bg-primary w-full px-3 md:px-6 pb-4 rounded-lg">
             <h2 className="text-tertiary font-display text-medium text-lg py-1">Resumen</h2>
-            <div className="flex md:flex-col md:gap-8">
+            <div className="flex md:flex-col md:gap-6">
                 {Datos.map((item, idx) => (
-                    <div key={idx} className="flex w-max gap-3 items-center justify-center">
+                    <div key={idx} className="flex w-max gap-3 my-3 items-center justify-center">
                         <MesaIcon className="text-white h-5 w-auto" />
-                        <p className="text-white font-display font-semibold text-lg leading-4">{item.title}  <span className="text-xs font-light text-right">{item.subtitle}</span></p>
+                        <p className="text-white font-display font-semibold text-lg leading-4">{item.title}
+                            <span className="text-xs md:text-sm m-1 font-light text-right">{item.subtitle}</span>
+                        </p>
                     </div>
 
                 ))}

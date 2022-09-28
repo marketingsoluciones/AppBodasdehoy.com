@@ -12,6 +12,7 @@ interface propsTable {
   setDisableLayout: Dispatch<SetStateAction<boolean>>
   setDisableWrapper?: any
   setEvent?: any
+  disableDrag: any
 }
 
 export const MesaContent: FC<propsTable> = ({
@@ -22,7 +23,8 @@ export const MesaContent: FC<propsTable> = ({
   ActualizarPosicion,
   setDisableLayout,
   setDisableWrapper,
-  setEvent
+  setEvent,
+  disableDrag
 }) => {
 
   const { event } = EventContextProvider();
@@ -45,11 +47,11 @@ export const MesaContent: FC<propsTable> = ({
     <>
       <div
         id={mesa._id}
-        onTouchStart={() => { setDisableWrapper(true) }}
-        onTouchEnd={() => { setDisableWrapper(false) }}
-        onMouseDown={() => { setDisableWrapper(true) }}
-        onMouseUp={() => { setDisableWrapper(false) }}
-        className="js-drag draggable-touch bg-blue-500 absolute hover:bg-gray-100 hover:bg-opacity-50 hover:border hover:border-gray-200 hover:shadow-md p-4 rounded-2xl">
+        onTouchStart={() => { !disableDrag && setDisableWrapper(true) }}
+        onTouchEnd={() => { !disableDrag && setDisableWrapper(false) }}
+        onMouseDown={() => { !disableDrag && setDisableWrapper(true) }}
+        onMouseUp={() => { !disableDrag && setDisableWrapper(false) }}
+        className={`${!disableDrag && "js-drag"} draggable-touch bg-blue-500 absolute hover:bg-gray-100 hover:bg-opacity-50 hover:border hover:border-gray-200 hover:shadow-md p-4 rounded-2xl`}>
         <MesaComponent
           posicion={DefinePosition(360 / mesa.cantidad_sillas, mesa)}
           mesa={mesa}

@@ -65,6 +65,7 @@ export const setupDropzone = (target: any, accept: any) => {
     })
     //cuando se ACTIVA la zona drogleable
     .on('dropactivate', (event) => {
+      //console.log("dropactivate")
       const active = event.target.getAttribute('active') | 0
 
       // change style if it was previously not active

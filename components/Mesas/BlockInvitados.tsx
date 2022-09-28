@@ -11,6 +11,7 @@ interface propsBlockInvitados {
 
 const BlockInvitados: FC<propsBlockInvitados> = ({ InvitadoNoSentado, set, AddInvitado }) => {
     return (
+        <>
         <div className="w-full shadow-lg relative">
             <div className="bg-white shadow-lg p-2 md:p-6 border-b-4 border-primary rounded-t-lg relative box-border">
                 <div className="flex justify-center">
@@ -22,10 +23,17 @@ const BlockInvitados: FC<propsBlockInvitados> = ({ InvitadoNoSentado, set, AddIn
                     <p>Añadir invitado</p>
                 </button>
             </div>
-            <div className='pg-3 md:h-max h-[200px] '>
+            <div className='pg-3 md:h-max h-[200px] overflow-auto'>
                 <ListInvitados AddInvitado={AddInvitado} InvitadoNoSentado={InvitadoNoSentado} />
             </div>
-        </div>
+            </div>
+            <style>{`
+            .listInvitados {
+                touch-action: none;
+                user-select: none;
+            }
+            `}</style>
+        </>
     )
 }
 

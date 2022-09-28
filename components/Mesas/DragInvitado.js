@@ -41,10 +41,10 @@ const DragInvitado = (props) => {
               element.textContent = 'Hello word';
               element.className = 'bg-red absolute z-50';
               element.id = `dragM${invitado._id}`
-              element.style.left = e.touches[0].clientX + 10 + 'px'
-              element.style.top = e.touches[0].clientY + 10 + 'px'
-              element.setAttribute('data-x', (e.touches[0].clientX + 10).toString())
-              element.setAttribute('data-y', (e.touches[0].clientY + 10).toString())
+              element.style.left = e.touches[0].clientX - 50 + 'px'
+              element.style.top = e.touches[0].clientY - 50 + 'px'
+              element.setAttribute('data-x', (e.touches[0].clientX - 50).toString())
+              element.setAttribute('data-y', (e.touches[0].clientY - 50).toString())
               rootElement.appendChild(element)
             }}
             onTouchEnd={() => {
