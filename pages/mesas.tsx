@@ -22,7 +22,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import Prueba from "../components/Mesas/prueba";
 import { AddInvitado } from "../components/Mesas/FuntionsDragable";
 import PruebaN from "./prueban";
-import { InvitadoPrueba } from "./InvitadoPrueba";
+import { InvitadoPrueba } from "../components/Mesas/InvitadoPrueba";
 SwiperCore.use([Pagination]);
 
 const Mesas: FC = () => {
