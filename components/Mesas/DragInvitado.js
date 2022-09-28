@@ -17,13 +17,13 @@ const DragInvitado = (props) => {
               //e.preventDefault()
               const rootElement = document.getElementById('areaDrag');
               const element = document.createElement('div');
-              element.textContent = 'Hello word';
-              element.className = 'bg-red absolute z-50';
+              element.textContent = invitado?.nombre;
+              element.className = 'bg-primary border-solid border-1 border-gray-300 text-white text-sm absolute z-50 rounded-full px-2 py-1';
               element.id = `dragM${invitado._id}`
               element.style.left = e.clientX + 10 + 'px'
               element.style.top = e.clientY + 10 + 'px'
-              element.setAttribute('data-x', e.clientX + 10)
-              element.setAttribute('data-y', e.clientY + 10)
+              element.setAttribute('data-x', (e.clientX + 10).toString())
+              element.setAttribute('data-y', (e.clientY + 10).toString())
               rootElement.appendChild(element)
             }}
             onMouseUp={(e) => {
