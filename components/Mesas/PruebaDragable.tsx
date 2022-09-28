@@ -86,8 +86,10 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
         console.log("start", e.target.id)
         let position = { x: 0, y: 0 }
         const element = document.getElementById(e.target.id.replace(/dragN/, "dragM"))
-        position.x = parseInt(element.getAttribute("data-x"), 10) || 0
-        position.y = parseInt(element.getAttribute("data-y"), 10) || 0
+        if (element) {
+          position.x = parseInt(element.getAttribute("data-x"), 10) || 0
+          position.y = parseInt(element.getAttribute("data-y"), 10) || 0
+        }
         position.x = parseInt(e.target.getAttribute('data-x'), 10) || 0
         position.y = parseInt(e.target.getAttribute('data-y'), 10) || 0
 
@@ -95,20 +97,24 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
       move(e) {
         let position = { x: 0, y: 0 }
         const element = document.getElementById(e.target.id.replace(/dragN/, "dragM"))
-        position.x = parseInt(element.getAttribute("data-x"), 10) || 0
-        position.y = parseInt(element.getAttribute("data-y"), 10) || 0
+        if (element) {
+          position.x = parseInt(element.getAttribute("data-x"), 10) || 0
+          position.y = parseInt(element.getAttribute("data-y"), 10) || 0
+        }
         position.x += parseInt(e.dx != 0 ? e.dx : e.dx, 10) || 0
         position.y += parseInt(e.dy != 0 ? e.dy : e.dy, 10) || 0
 
         if (transformProp) {
-          console.log("moveS", 0)
+          console.log("moveN", 0)
           e.target.style[transformProp] = 'translate(' + position.x + 'px, ' + position.y + 'px)'
         } else {
           const element = document.getElementById(e.target.id.replace(/dragN/, "dragM"))
-          element.style.left = position.x + 'px'
-          element.style.top = position.y + 'px'
-          element.setAttribute('data-x', `${position.x}`)
-          element.setAttribute('data-y', `${position.y}`)
+          if (element) {
+            element.style.left = position.x + 'px'
+            element.style.top = position.y + 'px'
+            element.setAttribute('data-x', `${position.x}`)
+            element.setAttribute('data-y', `${position.y}`)
+          }
           // }
         }
 
@@ -116,8 +122,11 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
       end(e) {
         const position = dragPositions[e.target.id]
         console.log("end", position)
-        const rootElement = document.getElementById('areaDrag');
-        rootElement?.removeChild(document.getElementById(e.target.id.replace(/dragN/, "dragM")))
+        const element = document.getElementById(e.target.id.replace(/dragN/, "dragM"))
+        if (element) {
+          const rootElement = document.getElementById('areaDrag');
+          rootElement?.removeChild(document.getElementById(e.target.id.replace(/dragN/, "dragM")))
+        }
         e.target.style[transformProp] = 'translate(' + position.x + 'px, ' + position.y + 'px)'
         e.target.style.left = position.x + 'px'
         e.target.style.top = position.y + 'px'
@@ -135,8 +144,10 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
         // console.log("start", e.target.id)
         let position = { x: 0, y: 0 }
         const element = document.getElementById(e.target.id.replace(/dragS/, "dragM"))
-        position.x = parseInt(element.getAttribute("data-x"), 10) || 0
-        position.y = parseInt(element.getAttribute("data-y"), 10) || 0
+        if (element) {
+          position.x = parseInt(element.getAttribute("data-x"), 10) || 0
+          position.y = parseInt(element.getAttribute("data-y"), 10) || 0
+        }
         position.x = parseInt(e.target.getAttribute('data-x'), 10) || 0
         position.y = parseInt(e.target.getAttribute('data-y'), 10) || 0
 
@@ -144,8 +155,10 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
       move(e) {
         let position = { x: 0, y: 0 }
         const element = document.getElementById(e.target.id.replace(/dragS/, "dragM"))
-        position.x = parseInt(element.getAttribute("data-x"), 10) || 0
-        position.y = parseInt(element.getAttribute("data-y"), 10) || 0
+        if (element) {
+          position.x = parseInt(element.getAttribute("data-x"), 10) || 0
+          position.y = parseInt(element.getAttribute("data-y"), 10) || 0
+        }
         position.x += parseInt(e.dx != 0 ? e.dx : e.dx, 10) || 0
         position.y += parseInt(e.dy != 0 ? e.dy : e.dy, 10) || 0
 
@@ -154,10 +167,12 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
           e.target.style[transformProp] = 'translate(' + position.x + 'px, ' + position.y + 'px)'
         } else {
           const element = document.getElementById(e.target.id.replace(/dragS/, "dragM"))
-          element.style.left = position.x + 'px'
-          element.style.top = position.y + 'px'
-          element.setAttribute('data-x', `${position.x}`)
-          element.setAttribute('data-y', `${position.y}`)
+          if (element) {
+            element.style.left = position.x + 'px'
+            element.style.top = position.y + 'px'
+            element.setAttribute('data-x', `${position.x}`)
+            element.setAttribute('data-y', `${position.y}`)
+          }
           // }
         }
 
@@ -165,13 +180,17 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
       end(e) {
         const position = dragPositions[e.target.id]
         console.log("end", position)
-        const rootElement = document.getElementById('areaDrag');
-        rootElement?.removeChild(document.getElementById(e.target.id.replace(/dragS/, "dragM")))
+        const element = document.getElementById(e.target.id.replace(/dragS/, "dragM"))
+        if (element) {
+          const rootElement = document.getElementById('areaDrag');
+          rootElement?.removeChild(document.getElementById(e.target.id.replace(/dragS/, "dragM")))
+        }
         e.target.style[transformProp] = 'translate(' + position.x + 'px, ' + position.y + 'px)'
         e.target.style.left = position.x + 'px'
         e.target.style.top = position.y + 'px'
         e.target.setAttribute('data-x', position.x)
         e.target.setAttribute('data-y', position.y)
+        setDisableWrapper(false)
       },
     },
   })
@@ -253,7 +272,7 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
           />
         );
       })}
-      <div id="cuadro" className='bg-red w-4 h-4'></div>
+      {/* <div id="cuadro" className='bg-red w-4 h-4'></div>
       <div id="pdrag1"
         onTouchStart={() => { setDisableWrapper(true) }}
         onTouchEnd={() => { setDisableWrapper(false) }}
@@ -266,12 +285,12 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
           </div>
         </div>
         algo
-      </div>
-      <div className="dropzone-wrapper w-[5px]">
+      </div> */}
+      {/* <div className="dropzone-wrapper w-[5px]">
         <div id="drop1" className="dropzone h-[5px] "></div>
         <div id="drop2" className="dropzone h-[5px] js-drop"></div>
         <div id="drop3" className="dropzone h-[5px] js-drop"></div>
-      </div>
+      </div> */}
 
       <style>
         {`

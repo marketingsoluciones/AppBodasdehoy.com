@@ -357,17 +357,17 @@ const SentadoItem: FC<propsSentadoItem> = ({ invitado, posicion, setDisableWrapp
   return (
     <>
       {invitado ? (
-        <div id={`dragS${invitado._id}`} className="ign">
+        <div id={`dragS${invitado._id}`} className="ign ">
           <span
             id={`dragS${invitado._id}`}
-            className="w-full text-left flex js-dragInvitadoS "
+            className="w-full flex js-dragInvitadoS "
             onMouseDown={(e) => {
               //e.preventDefault()
               setDisableWrapper(true)
               const rootElement = document.getElementById('areaDrag');
               const element = document.createElement('div');
-              element.textContent = 'Hello word';
-              element.className = 'bg-red absolute z-50';
+              element.textContent = invitado?.nombre;
+              element.className = 'bg-primary border-solid border-1 border-gray-300 text-white text-sm absolute z-50 rounded-full px-2 py-1';
               element.id = `dragM${invitado._id}`
               element.style.left = e.clientX + 10 + 'px'
               element.style.top = e.clientY + 10 + 'px'
@@ -388,14 +388,14 @@ const SentadoItem: FC<propsSentadoItem> = ({ invitado, posicion, setDisableWrapp
               console.log(e.touches[0].clientX)
               const rootElement = document.getElementById('areaDrag');
               const element = document.createElement('div');
-              element.textContent = 'Hello word';
+              element.textContent = invitado?.nombre;
               element.className = 'bg-red absolute z-50';
               element.id = `dragM${invitado._id}`
               element.style.left = e.touches[0].clientX + 10 + 'px'
               element.style.top = e.touches[0].clientY + 10 + 'px'
               element.setAttribute('data-x', (e.touches[0].clientX + 10).toString())
               element.setAttribute('data-y', (e.touches[0].clientY + 10).toString())
-              rootElement.appendChild(element)
+              //rootElement.appendChild(element)
             }}
             onTouchEnd={() => {
               setDisableWrapper(false)
@@ -405,14 +405,14 @@ const SentadoItem: FC<propsSentadoItem> = ({ invitado, posicion, setDisableWrapp
             }}
           >
             <div
-              id={`dragS${invitado._id}`}
-              className={`w-5 h-5 bg-primary rounded-full text-xs relative grid place-items-center correccion -rotate-90`}
+              id={`dragS${invitado._id}B`}
+              className={`w-5 h-5 bg-primary rounded-full text-[4px] relative grid place-items-center correccion -rotate-90`}
             >
               <div
                 className="absolute w-full h-full rounded-full"
               />
-              <p className="font-display font-light text-white">
-                {invitado.nombre.slice(0, 1)}
+              <p className="font-display font-light text-white text-center">
+                {invitado.nombre/*.slice(0, 1)*/}
               </p>
               {isHovered && <Tooltip text={invitado?.nombre} />}
             </div>

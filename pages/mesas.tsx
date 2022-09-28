@@ -172,6 +172,7 @@ const Mesas: FC = () => {
                 <Prueba setShowTables={setShowTables} showTables={showTables} />
               </div>
             </section>
+            <div className="md:hidden w-full h-[80px]" />
           </div>
           <style>
             {`

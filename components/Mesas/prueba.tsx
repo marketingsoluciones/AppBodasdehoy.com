@@ -63,13 +63,16 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables }) => {
       <div className="bg-white h-8 widthCalc">
         {/* <button className="bg-red" onClick={() => { controlsZoom.in }}>reset</button> */}
       </div>
-      <div className="bg-orange-500 flex divOrange justify-start relative" >
+      <div className="*bg-orange-500 flex divOrange justify-start relative" >
         <TransformWrapper
           disabled={disableWrapper}
           limitToBounds={true}
           initialScale={scaleIni}
           minScale={scaleIni}
           maxScale={6}
+          wheel={{ step: 0.7 }}
+          pinch={{ step: 2 }}
+          doubleClick={{ step: 1.01 }}
           //initialPositionX={500}
           //initialPositionY={500}
           //centerZoomedOut={true}
@@ -108,14 +111,17 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables }) => {
                 </div>
               </div>
               <TransformComponent wrapperClass="contenedor">
-                <div className="bg-red border-4 lienzo border-indigo-600 *flex *justify-center *items-center ">
+                <div className="bg-gray-300 paper border-4 lienzo border-indigo-600 *flex *justify-center *items-center ">
                   <Dragable scale={Math.round(scale * 100) / 100} lienzo={lienzo} setDisableWrapper={setDisableWrapper} AddInvitado={AddInvitado} disableDrag={disableDrag} />
                 </div>
-              </TransformComponent> </>)
+              </TransformComponent>
+
+            </>
+          )
           }
         </TransformWrapper>
       </div>
-    </div>
+    </div >
 
       <style >
         {`
@@ -127,7 +133,7 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables }) => {
             height: calc(100vh - 144px - 32px);
           }
           .contenedor {
-            background-color: cyan;
+            *background-color: cyan;
             calc(${width == 0 ? scrX / 12 * 9 : width / 12 * 9}px);
             height: calc(100vh - 144px - 32px);
           }
@@ -148,7 +154,7 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables }) => {
               height: calc(100vh - 64px - 250px - 32px - 90px);
             }
             .contenedor {
-              background-color: cyan;
+              *background-color: cyan;
               width: calc(${scrX}px - 30px);
               height: calc(100vh - 64px - 250px - 32px - 90px);
             }
