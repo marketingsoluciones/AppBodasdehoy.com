@@ -96,19 +96,39 @@ export const setupDropzone = (target: any, accept: any) => {
     })
     //cuando esta SOBRE una zona drogleable
     .on('dragenter', (event) => {
-      console.log("sobre")
-      addClass(event.target, '-drop-over')
+      //console.log("sobre")
+      if (event.target.id != "listInvitados") {
+        addClass(event.target, 'bg-secondary')
+        let element = document.getElementById(event.relatedTarget.id.replace(/dragN/, "dragM"))
+        if (element.id.slice(0, 5) == "dragS") { element = document.getElementById(event.relatedTarget.id.replace(/dragS/, "dragM")) }
+        if (element) {
+          removeClass(element, 'border-gray-600')
+          removeClass(element, 'border-2')
+          addClass(element, 'border-green')
+          addClass(element, 'border-4')
+        }
+      }
       //event.relatedTarget.textContent = "I'm in"
     })
     //cuando SALE de una zona drogleable sin haber soltado
     .on('dragleave', (event) => {
-      console.log("sale")
-      removeClass(event.target, '-drop-over')
+      //console.log("sale")
+      if (event.target.id != "listInvitados") {
+        removeClass(event.target, 'bg-secondary')
+        let element = document.getElementById(event.relatedTarget.id.replace(/dragN/, "dragM"))
+        if (element.id.slice(0, 5) == "dragS") { element = document.getElementById(event.relatedTarget.id.replace(/dragS/, "dragM")) }
+        if (element) {
+          removeClass(element, 'border-green')
+          removeClass(element, 'border-4')
+          addClass(element, 'border-gray-600')
+          addClass(element, 'border-2')
+        }
+      }
       //event.relatedTarget.textContent = 'Drag me…'
     })
     //cuando SUELTA sobre una zona drogleable
     .on('drop', (event) => {
-      removeClass(event.target, '-drop-over')
+      removeClass(event.target, 'bg-secondary')
       //event.relatedTarget.textContent = 'Dropped'
     })
 }

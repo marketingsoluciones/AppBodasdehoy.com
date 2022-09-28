@@ -106,7 +106,7 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables }) => {
                     <span className="text-[10px] w-[90px]">{disableDrag ? 'Desloquear Mesas' : 'Bloquear Mesas'}</span>
                   </ButtonConstrolsLienzo>
                   <ButtonConstrolsLienzo onClick={handleSetShowTables} className="md:hidden">
-                    <span className="text-[10px] w-[60px]">Ver Mesas</span>
+                    <span className="text-[10px] w-[60px]">{showTables ? 'Ver Invitados' : 'Crear Mesas'}</span>
                   </ButtonConstrolsLienzo>
                 </div>
               </div>

@@ -388,14 +388,14 @@ const SentadoItem: FC<propsSentadoItem> = ({ invitado, posicion, setDisableWrapp
               console.log(e.touches[0].clientX)
               const rootElement = document.getElementById('areaDrag');
               const element = document.createElement('div');
-              element.textContent = invitado?.nombre;
-              element.className = 'bg-red absolute z-50';
+              //element.textContent = invitado?.nombre;
+              element.className = 'bg-gray-300 opacity-25 absolute border-2 border-gray-600 z-50 w-[100px] h-[100px] rounded-full ';
               element.id = `dragM${invitado._id}`
-              element.style.left = e.touches[0].clientX + 10 + 'px'
-              element.style.top = e.touches[0].clientY + 10 + 'px'
-              element.setAttribute('data-x', (e.touches[0].clientX + 10).toString())
-              element.setAttribute('data-y', (e.touches[0].clientY + 10).toString())
-              //rootElement.appendChild(element)
+              element.style.left = e.touches[0].clientX - 50 + 'px'
+              element.style.top = e.touches[0].clientY - 50 + 'px'
+              element.setAttribute('data-x', (e.touches[0].clientX - 50).toString())
+              element.setAttribute('data-y', (e.touches[0].clientY - 50).toString())
+              rootElement.appendChild(element)
             }}
             onTouchEnd={() => {
               setDisableWrapper(false)

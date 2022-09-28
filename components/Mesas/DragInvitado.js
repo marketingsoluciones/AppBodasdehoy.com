@@ -40,14 +40,14 @@ const DragInvitado = (props) => {
               console.log(e.touches[0].clientX, e.touches[0].clientY)
               const rootElement = document.getElementById('areaDrag');
               const element = document.createElement('div');
-              element.textContent = 'Hello word';
-              element.className = 'bg-red absolute z-50';
+              //element.textContent = 'Hello word';
+              element.className = 'bg-gray-300 opacity-25 absolute border-2 border-secondary z-50 w-[100px] h-[100px] rounded-full ';
               element.id = `dragM${invitado._id}`
               element.style.left = e.touches[0].clientX - 50 + 'px'
               element.style.top = e.touches[0].clientY - 50 + 'px'
               element.setAttribute('data-x', (e.touches[0].clientX - 50).toString())
               element.setAttribute('data-y', (e.touches[0].clientY - 50).toString())
-              //rootElement.appendChild(element)
+              rootElement.appendChild(element)
             }}
             onTouchEnd={() => {
               document.getElementById(`dragN${invitado._id}`).style.background = "none"
