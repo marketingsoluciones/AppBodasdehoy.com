@@ -1,7 +1,7 @@
 import { Dispatch, FC, SetStateAction, useEffect, useRef, useState } from "react"
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { Dragable } from "./PruebaDragable";
-import { ActualizarPosicion, AddInvitado, handleScale, useScreenSize } from "./FuntionsDragable";
+import { ActualizarPosicion, handleScale, useScreenSize } from "./FuntionsDragable";
 import { SearchIcon } from "../icons";
 import { ButtonConstrolsLienzo } from "./ControlsLienzo";
 
@@ -112,7 +112,7 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables }) => {
               </div>
               <TransformComponent wrapperClass="contenedor">
                 <div className="bg-gray-300 paper border-4 lienzo border-indigo-600 *flex *justify-center *items-center ">
-                  <Dragable scale={Math.round(scale * 100) / 100} lienzo={lienzo} setDisableWrapper={setDisableWrapper} AddInvitado={AddInvitado} disableDrag={disableDrag} />
+                  <Dragable scale={Math.round(scale * 100) / 100} lienzo={lienzo} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} />
                 </div>
               </TransformComponent>
 

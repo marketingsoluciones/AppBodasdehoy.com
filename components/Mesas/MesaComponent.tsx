@@ -1,11 +1,4 @@
-import {
-  cloneElement,
-  FC,
-  ReactNode,
-  TouchEvent,
-  useEffect,
-  useState,
-} from "react";
+import { cloneElement, FC, ReactNode, TouchEvent, useEffect, useState } from "react";
 import useHover from "../../hooks/useHover";
 import Tooltip from "../Utils/Tooltip";
 import { guests, signalItem, table } from '../../utils/Interfaces';
@@ -148,7 +141,7 @@ const Chair: FC<propsChair> = ({
   const { setEvent } = EventContextProvider()
   const canDrop = true
   const isOver = false
-  AddInvitado({ /*...item,*/ nombre_mesa, index }, setEvent);
+  //AddInvitado({ /*...item,*/ nombre_mesa, index }, setEvent);
 
   // const [{ canDrop, isOver }, drop] = useDrop(() => ({
   //   accept: "invitado",
@@ -167,7 +160,7 @@ const Chair: FC<propsChair> = ({
   return (
     <>
       <div
-        id={`${nombre_mesa}-${index}`}
+        id={`${nombre_mesa}-@-${index}`}
         // role={"Droppeable"}
         className={`js-drop silla w-5 h-5 rounded-full absolute border-2 shadow border-gray-500 overflow-hidden  ${isOver ? "bg-opacity-50" : null
           }  bg-white //${!children[0] && "js-dropListInvitados"} //${isOver || canDrop ? "bg-secondary" : "bg-white"
@@ -347,8 +340,6 @@ const SentadoItem: FC<propsSentadoItem> = ({ invitado, posicion, setDisableWrapp
     const element = document.getElementById(`dragS${invitado._id}`)
     element.parentElement.classList.remove("js-drop")
     const padre = element.parentElement
-
-    console.log("aqui", padre)
   }, [])
 
   const [hoverRef, isHovered] = useHover();

@@ -6,10 +6,9 @@ import ListInvitados from "./ListInvitados"
 interface propsBlockInvitados {
     InvitadoNoSentado: guests[]
     set: Dispatch<SetStateAction<boolean>>
-    AddInvitado: CallableFunction
 }
 
-const BlockInvitados: FC<propsBlockInvitados> = ({ InvitadoNoSentado, set, AddInvitado }) => {
+const BlockInvitados: FC<propsBlockInvitados> = ({ InvitadoNoSentado, set }) => {
     return (
         <>
             <div className="w-full shadow-lg relative">
@@ -24,7 +23,7 @@ const BlockInvitados: FC<propsBlockInvitados> = ({ InvitadoNoSentado, set, AddIn
                     </button>
                 </div>
                 <div id={"listInvitados"} className='js-drop pg-3 md:h-max h-[200px] overflow-auto'>
-                    <ListInvitados AddInvitado={AddInvitado} InvitadoNoSentado={InvitadoNoSentado} />
+                    <ListInvitados InvitadoNoSentado={InvitadoNoSentado} />
                 </div>
             </div>
             <style>{`

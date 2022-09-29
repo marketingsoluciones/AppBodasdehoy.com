@@ -20,7 +20,6 @@ import VistaSinCookie from "./vista-sin-cookie";
 import SwiperCore, { Pagination, Navigation } from 'swiper';
 import { Swiper, SwiperSlide } from "swiper/react";
 import Prueba from "../components/Mesas/prueba";
-import { AddInvitado } from "../components/Mesas/FuntionsDragable";
 import PruebaN from "./prueban";
 import { InvitadoPrueba } from "../components/Mesas/InvitadoPrueba";
 SwiperCore.use([Pagination]);
@@ -145,7 +144,6 @@ const Mesas: FC = () => {
                     </div>
                     <div className={`${showTables && 'hidden'} flex flex-col justify-start items-center transform transition duration-700`}>
                       <BlockInvitados
-                        AddInvitado={AddInvitado}
                         set={setIsMounted}
                         InvitadoNoSentado={filterGuests?.noSentados}
                       />
@@ -163,7 +161,6 @@ const Mesas: FC = () => {
                 />
                 <BlockResumen InvitadoSentados={filterGuests?.sentados} />
                 <BlockInvitados
-                  AddInvitado={AddInvitado}
                   set={setIsMounted}
                   InvitadoNoSentado={filterGuests?.noSentados}
                 />

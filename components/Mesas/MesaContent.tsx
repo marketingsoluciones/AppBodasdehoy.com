@@ -38,6 +38,7 @@ export const MesaContent: FC<propsTable> = ({
   }, [mesa.posicion.x, mesa.posicion.y, mesa._id])
 
   useEffect(() => {
+    event?.invitados_array?.filter(guest => guest.nombre_mesa === mesa.nombre_mesa)
     setInvitados(
       event?.invitados_array?.filter(guest => guest.nombre_mesa === mesa.nombre_mesa)
     );

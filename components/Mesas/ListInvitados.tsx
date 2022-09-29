@@ -5,10 +5,9 @@ import DragInvitado from "./DragInvitado";
 
 interface propsListInvitados {
   InvitadoNoSentado: guests[]
-  AddInvitado: CallableFunction
 }
 
-const ListInvitados: FC<propsListInvitados> = ({ InvitadoNoSentado, AddInvitado }) => {
+const ListInvitados: FC<propsListInvitados> = ({ InvitadoNoSentado }) => {
   const { setEvent } = EventContextProvider()
 
   return (

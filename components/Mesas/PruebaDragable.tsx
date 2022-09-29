@@ -39,11 +39,11 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
   useEffect(() => {
     // setup drop areas.
     // dropzone #1 accepts draggable #1
-    setupDropzone('#drop1', `#drag1, #pdrag1 `)
+    // // // setupDropzone('#drop1', `#drag1, #pdrag1 `)
     // dropzone #2 accepts draggable #1 and #2
-    setupDropzone('#drop2', '#drag0, #drag1, #pdrag1')
+    // // // setupDropzone('#drop2', '#drag0, #drag1, #pdrag1')
     // every dropzone accepts draggable #3
-    setupDropzone('.js-drop', `${dragables}, #pdragInvitado1, #invitadoPrueba`)
+    setupDropzone('.js-drop', `${dragables}, #pdragInvitado1, #invitadoPrueba`, setEvent, event._id)
 
   }, [dragables])
   let transformProp: any
@@ -58,12 +58,12 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
       }
       return acc
     }, { sentados: {}, noSentados: [], dragables: [] }))
-    console.log(filterGuestsDraggable)
+    //console.log(filterGuestsDraggable)
     const mesasDrag = event.mesas_array.reduce((acc, n) => {
       acc[n._id] = { x: n.posicion[0].x, y: n.posicion[0].y }
       return acc
     }, {})
-    console.log(mesasDrag)
+    //console.log(mesasDrag)
     setDragables(filterGuestsDraggable.dragables)
     setDragPositions({
       ...mesasDrag,
@@ -179,7 +179,7 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
       },
       end(e) {
         const position = dragPositions[e.target.id]
-        console.log("end", position)
+        console.log("end")
         ActualizarPosicion({ x: position.x, y: position.y, event: event, mesaID: e.target.getAttribute('id'), setEvent: setEvent })
         e.target.style[transformProp] = 'translate(' + position.x + 'px, ' + position.y + 'px)'
         e.target.style.left = position.x + 'px'

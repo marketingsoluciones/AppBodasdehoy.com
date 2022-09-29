@@ -1,5 +1,6 @@
 import interact from "interactjs"
 import { Dispatch, SetStateAction, useEffect, useState } from "react"
+import { string } from "yup/lib/locale"
 import { fetchApiEventos, queries } from "../../utils/Fetching"
 import { Event, guests } from "../../utils/Interfaces"
 
@@ -19,7 +20,7 @@ const removeClass = (element: any, className: any) => {
   }
 }
 
-export const setupDropzone = (target: any, accept: any) => {
+export const setupDropzone = (target: any, accept: any, setEvent: any, eventID: any) => {
   interact(target)
     .dropzone({
       accept: accept,
@@ -50,10 +51,18 @@ export const setupDropzone = (target: any, accept: any) => {
         //console.log("event:", event.button, event.buttons, event.type)
         if (event.type == "pointerup") {
           if (dropped) {
-            console.log("dropped:", dropped)
-            console.log("dropzone:", dropzone.target)
-            console.log("dropzoneElement:", dropzoneElement.id)
-            console.log("--------------------------------------")
+            const invitadoID = draggableElement.id.slice(5, draggableElement.id.length)
+            const nMesaPrev = dropzoneElement.id.split('-@-')[0]
+            const nombre_mesa = nMesaPrev != "listInvitados" ? nMesaPrev : "no asignado"
+            const indexPrev = dropzoneElement.id.split('-@-')[1]
+            const index: string | number = nMesaPrev != "listInvitados" ? indexPrev : "no asignado"
+            MoveInvitado({ eventID: eventID, index: index, invitadoID: invitadoID, nombre_mesa: nombre_mesa, setEvent: setEvent })
+            // console.log("--------------------------------------")
+            // console.log("draggableElement:", draggableElement.id, invitadoID)
+            // console.log("dropped:", dropped)
+            // console.log("dropzone:", dropzone.target)
+            // console.log("dropzoneElement:", dropzoneElement.id, "mesa:", nombre_mesa, "index:", index)
+            // console.log("--------------------------------------")
           }
         }
         //console.log("dropzoneElement:", dropzoneElement)
@@ -134,50 +143,53 @@ export const setupDropzone = (target: any, accept: any) => {
 }
 
 // Añadir invitado | Carga en BD y estado
-export const AddInvitado = async (item: { tipo: string, invitado: guests, index: number, nombre_mesa: string }, event: Event, set: Dispatch<SetStateAction<Event>>): Promise<void> => {
-  if (item && item.tipo == "invitado") {
-    try {
-      if (item.index) {
-        fetchApiEventos({
-          query: queries.editGuests,
-          variables: {
-            eventID: event._id,
-            guestID: item.invitado._id,
-            variable: "puesto",
-            value: item?.index?.toString()
-          }
-        })
-      }
-
-      if (item.nombre_mesa) {
-        fetchApiEventos({
-          query: queries.editGuests,
-          variables: {
-            eventID: event._id,
-            guestID: item.invitado._id,
-            variable: "nombre_mesa",
-            value: item.nombre_mesa
-          }
-        })
-
-      }
-
-      console.log(item, set)
-      //Añadir al array de la mesa
-      set(oldEvent => {
-        const modifiedGuests: guests[] = oldEvent.invitados_array.map(invitado => {
-          if (invitado._id === item.invitado._id) {
-            console.log("ENTRE")
-            return { ...invitado, puesto: item.index, nombre_mesa: item.nombre_mesa }
-          }
-          return invitado
-        })
-        return { ...oldEvent, invitados_array: modifiedGuests }
+type propsMoveInvitado = {
+  invitadoID: string,
+  index: string | number,
+  nombre_mesa: string,
+  eventID: string,
+  setEvent: Dispatch<SetStateAction<Event>>
+}
+const MoveInvitado = async ({ invitadoID, index, nombre_mesa, eventID, setEvent }: propsMoveInvitado): Promise<void> => {
+  try {
+    if (index) {
+      fetchApiEventos({
+        query: queries.editGuests,
+        variables: {
+          eventID: eventID,
+          guestID: invitadoID,
+          variable: "puesto",
+          value: index?.toString()
+        }
       })
-
-    } catch (error) {
-      console.log(error);
     }
+
+    if (nombre_mesa) {
+      fetchApiEventos({
+        query: queries.editGuests,
+        variables: {
+          eventID: eventID,
+          guestID: invitadoID,
+          variable: "nombre_mesa",
+          value: nombre_mesa
+        }
+      })
+    }
+
+    //console.log(123, invitadoID, index)
+    //Añadir al array de la mesa
+    setEvent(old => {
+      const modifiedGuests: guests[] = old.invitados_array.map(item => {
+        if (item._id === invitadoID) {
+          return { ...item, puesto: index, nombre_mesa: nombre_mesa }
+        }
+        return item
+      })
+      const resp = { ...old, invitados_array: modifiedGuests }
+      return resp
+    })
+  } catch (error) {
+    console.log(error);
   }
 }
 
