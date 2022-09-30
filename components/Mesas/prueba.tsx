@@ -30,9 +30,13 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables }) => {
   const handleSetShowTables: any = () => {
     setShowTables(!showTables)
   }
+
   useEffect(() => {
-    console.log(disableDrag)
+    console.log("disableDrag(deshabilita mover mesa)", disableDrag)
   }, [disableDrag])
+  useEffect(() => {
+    console.log("disableWrapper(deshabilita zoom lienzo)", disableWrapper)
+  }, [disableWrapper])
 
   useEffect(() => {
     setScrX(window.innerWidth)
@@ -59,69 +63,70 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables }) => {
   }
 
   return (
-    <><div>
-      <div className="bg-white h-8 widthCalc">
-        {/* <button className="bg-red" onClick={() => { controlsZoom.in }}>reset</button> */}
-      </div>
-      <div className="*bg-orange-500 flex divOrange justify-start relative" >
-        <TransformWrapper
-          disabled={disableWrapper}
-          limitToBounds={true}
-          initialScale={scaleIni}
-          minScale={scaleIni}
-          maxScale={6}
-          wheel={{ step: 0.7 }}
-          pinch={{ step: 2 }}
-          doubleClick={{ step: 1.01 }}
-          //initialPositionX={500}
-          //initialPositionY={500}
-          //centerZoomedOut={true}
-          centerOnInit={false}
-          //minPositionX={0}
-          //minPositionY={0}
-          //maxPositionX={0}
-          //maxPositionY={0}
-          ref={(ref) => {
-            ref && setScale(ref.state.scale)
-          }}
-        >
-          {({ zoomIn, zoomOut, resetTransform, ...rest }) => (
-            <>
-              {!reset ? handleReset(resetTransform) : () => { }}
-              <div className="flex items-start absolute z-10 transform translate-y-[-29px]">
-                <div className="flex widthCalc">
-                  <ButtonConstrolsLienzo onClick={() => zoomIn()}>
-                    <SearchIcon className="w-[13px]" />
-                    <span className="text-sm">+</span>
-                  </ButtonConstrolsLienzo>
-                  <ButtonConstrolsLienzo onClick={() => resetTransform()}>
-                    <SearchIcon className="w-[13px]" />
-                    <span>100%</span>
-                  </ButtonConstrolsLienzo>
-                  <ButtonConstrolsLienzo onClick={() => zoomOut()}>
-                    <SearchIcon className="w-[13px]" />
-                    <span className="text-sm pb-1">- </span>
-                  </ButtonConstrolsLienzo>
-                  <ButtonConstrolsLienzo onClick={handleSetDisableDrag} pulseButton={disableDrag}>
-                    <span className="text-[10px] w-[90px]">{disableDrag ? 'Desloquear Mesas' : 'Bloquear Mesas'}</span>
-                  </ButtonConstrolsLienzo>
-                  <ButtonConstrolsLienzo onClick={handleSetShowTables} className="md:hidden">
-                    <span className="text-[10px] w-[60px]">{showTables ? 'Ver Invitados' : 'Crear Mesas'}</span>
-                  </ButtonConstrolsLienzo>
+    <>
+      <div>
+        <div className="bg-white h-8 widthCalc">
+          {/* <button className="bg-red" onClick={() => { controlsZoom.in }}>reset</button> */}
+        </div>
+        <div className="*bg-orange-500 flex divOrange justify-start relative" >
+          <TransformWrapper
+            disabled={disableWrapper}
+            limitToBounds={true}
+            initialScale={scaleIni}
+            minScale={scaleIni}
+            maxScale={6}
+            wheel={{ step: 0.7 }}
+            pinch={{ step: 2 }}
+            doubleClick={{ step: 1.01 }}
+            //initialPositionX={500}
+            //initialPositionY={500}
+            //centerZoomedOut={true}
+            centerOnInit={false}
+            //minPositionX={0}
+            //minPositionY={0}
+            //maxPositionX={0}
+            //maxPositionY={0}
+            ref={(ref) => {
+              ref && setScale(ref.state.scale)
+            }}
+          >
+            {({ zoomIn, zoomOut, resetTransform, ...rest }) => (
+              <>
+                {!reset ? handleReset(resetTransform) : () => { }}
+                <div className="flex items-start absolute z-10 transform translate-y-[-29px]">
+                  <div className="flex widthCalc">
+                    <ButtonConstrolsLienzo onClick={() => zoomIn()}>
+                      <SearchIcon className="w-[13px]" />
+                      <span className="text-sm">+</span>
+                    </ButtonConstrolsLienzo>
+                    <ButtonConstrolsLienzo onClick={() => resetTransform()}>
+                      <SearchIcon className="w-[13px]" />
+                      <span>100%</span>
+                    </ButtonConstrolsLienzo>
+                    <ButtonConstrolsLienzo onClick={() => zoomOut()}>
+                      <SearchIcon className="w-[13px]" />
+                      <span className="text-sm pb-1">- </span>
+                    </ButtonConstrolsLienzo>
+                    <ButtonConstrolsLienzo onClick={handleSetDisableDrag} pulseButton={disableDrag}>
+                      <span className="text-[10px] w-[90px]">{disableDrag ? 'Desloquear Mesas' : 'Bloquear Mesas'}</span>
+                    </ButtonConstrolsLienzo>
+                    <ButtonConstrolsLienzo onClick={handleSetShowTables} className="md:hidden">
+                      <span className="text-[10px] w-[60px]">{showTables ? 'Ver Invitados' : 'Crear Mesas'}</span>
+                    </ButtonConstrolsLienzo>
+                  </div>
                 </div>
-              </div>
-              <TransformComponent wrapperClass="contenedor">
-                <div className="bg-gray-300 paper border-4 lienzo border-indigo-600 *flex *justify-center *items-center ">
-                  <Dragable scale={Math.round(scale * 100) / 100} lienzo={lienzo} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} />
-                </div>
-              </TransformComponent>
+                <TransformComponent wrapperClass="contenedor">
+                  <div className="bg-gray-300 paper border-4 lienzo border-indigo-600 *flex *justify-center *items-center ">
+                    <Dragable scale={Math.round(scale * 100) / 100} lienzo={lienzo} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} />
+                  </div>
+                </TransformComponent>
 
-            </>
-          )
-          }
-        </TransformWrapper>
-      </div>
-    </div >
+              </>
+            )
+            }
+          </TransformWrapper>
+        </div>
+      </div >
 
       <style >
         {`

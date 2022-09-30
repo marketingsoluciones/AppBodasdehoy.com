@@ -5,30 +5,19 @@ import MesaComponent from "./MesaComponent";
 
 interface propsTable {
   mesa: table
-  index: number,
-  AddInvitado: CallableFunction
   DefinePosition: CallableFunction
-  ActualizarPosicion?: CallableFunction
-  setDisableLayout: Dispatch<SetStateAction<boolean>>
   setDisableWrapper?: any
-  setEvent?: any
   disableDrag: any
 }
 
-export const MesaContent: FC<propsTable> = ({
-  mesa,
-  index,
-  AddInvitado,
-  DefinePosition,
-  ActualizarPosicion,
-  setDisableLayout,
-  setDisableWrapper,
-  setEvent,
-  disableDrag
-}) => {
+export const MesaContent: FC<propsTable> = ({ mesa, DefinePosition, setDisableWrapper, disableDrag }) => {
 
   const { event } = EventContextProvider();
   const [invitados, setInvitados] = useState([]);
+
+  useEffect(() => {
+    console.log("renderiza MesaContent")
+  }, [])
 
   useEffect(() => {
     const el = document.getElementById(mesa._id)
@@ -38,10 +27,8 @@ export const MesaContent: FC<propsTable> = ({
   }, [mesa.posicion.x, mesa.posicion.y, mesa._id])
 
   useEffect(() => {
-    event?.invitados_array?.filter(guest => guest.nombre_mesa === mesa.nombre_mesa)
-    setInvitados(
-      event?.invitados_array?.filter(guest => guest.nombre_mesa === mesa.nombre_mesa)
-    );
+    console.log("setInvitados")
+    setInvitados(event?.invitados_array?.filter(guest => guest.nombre_mesa === mesa.nombre_mesa));
   }, [event?.invitados_array, mesa?.nombre_mesa]);
 
   return (
@@ -56,7 +43,6 @@ export const MesaContent: FC<propsTable> = ({
         <MesaComponent
           posicion={DefinePosition(360 / mesa.cantidad_sillas, mesa)}
           mesa={mesa}
-          AddInvitado={AddInvitado}
           invitados={invitados}
           setDisableWrapper={setDisableWrapper}
         />

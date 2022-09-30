@@ -1,5 +1,5 @@
 import interact from 'interactjs'
-import { FC, useEffect, useMemo, useState } from 'react'
+import { FC, useEffect, useState } from 'react'
 import { MesaContent } from './MesaContent';
 import { EventContextProvider } from '../../context'
 import { ActualizarPosicion, setupDropzone } from './FuntionsDragable'
@@ -25,12 +25,11 @@ interface propsDragable {
   scale?: any
   lienzo?: { ancho: any, alto: any }
   setDisableWrapper?: any
-  AddInvitado?: any
   disableDrag: any
 }
 
 
-export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, AddInvitado, disableDrag }) => {
+export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, disableDrag }) => {
   const { event, setEvent } = EventContextProvider();
   const [disableLayout, setDisableLayout] = useState<boolean>(false);
   const [dragPositions, setDragPositions] = useState<any>();
@@ -103,7 +102,7 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
         }
       },
       end(e) {
-        console.log("end")
+        console.log("end js-dragInvitadoN")
         const element = document.getElementById(e.target.id.replace(/dragN/, "dragM"))
         if (element) {
           const rootElement = document.getElementById('areaDrag');
@@ -137,7 +136,8 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
         }
       },
       end(e) {
-        console.log("end")
+        console.log("end js-dragInvitadoS")
+        setDisableWrapper(false)
         const element = document.getElementById(e.target.id.replace(/dragS/, "dragM"))
         if (element) {
           const rootElement = document.getElementById('areaDrag');
@@ -179,7 +179,7 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
       },
       end(e) {
         const position = dragPositions[e.target.id]
-        console.log("end")
+        console.log("end js-drag")
         ActualizarPosicion({ x: position.x, y: position.y, event: event, mesaID: e.target.getAttribute('id'), setEvent: setEvent })
         e.target.style[transformProp] = 'translate(' + position.x + 'px, ' + position.y + 'px)'
         e.target.style.left = position.x + 'px'
@@ -214,12 +214,8 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
           <MesaContent
             key={mesa._id}
             mesa={{ ...mesa, posicion: mesa.posicion[0] }}
-            setDisableLayout={setDisableLayout}
-            index={index}
-            AddInvitado={AddInvitado}
             DefinePosition={DefinePosition}
             setDisableWrapper={setDisableWrapper}
-            setEvent={setEvent}
             disableDrag={disableDrag}
           />
         );
