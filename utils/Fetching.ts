@@ -129,13 +129,11 @@ export const queries = {
     $poblacion: String,
     $usuario_id: String!
     $usuario_nombre: String!
-    $listaRegalos: String
   ){
     crearEvento(
       nombre: $nombre,
       tipo: $tipo,
       fecha: $fecha,
-      listaRegalos: $listaRegalos
       pais: $pais,
       poblacion: $poblacion,
       usuario_id: $usuario_id,
