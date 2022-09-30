@@ -1,20 +1,32 @@
-import { TouchEvent } from "react";
-import { ImageProfile } from "../../utils/Funciones";
-import { MesaIcon, PendienteIcon } from "../icons";
+import { FC, TouchEvent, useEffect } from "react";
+import useHover from "../../hooks/useHover";
+import { guests } from "../../utils/Interfaces";
+import Tooltip from "../Utils/Tooltip";
 
-const DragInvitado = (props) => {
-  const { tipo, invitado, index } = props;
+interface propsSentadoItem {
+  invitado: guests,
+  posicion?: number
+  setDisableWrapper: any
+}
+export const SentadoItem: FC<propsSentadoItem> = ({ invitado, posicion, setDisableWrapper }) => {
+  useEffect(() => {
+    const element = document.getElementById(`dragS${invitado._id}`)
+    element.parentElement.classList.remove("js-drop")
+  }, [invitado])
+
+  const [hoverRef, isHovered] = useHover();
+
+
   return (
     <>
-      <div
-        className="flex justify-between px-5 py-2 hover:bg-base transition"
-      >
-        <span className="flex gap-3 items-center">
+      {invitado ? (
+        <div id={`dragS${invitado._id}`} className="ign ">
           <span
-            id={`dragN${invitado._id}`}
-            className="w-full h-full text-gray-500 text-left flex js-dragInvitadoN rounded-lg px-2 md:px-0"
+            id={`dragS${invitado._id}`}
+            className="w-full flex js-dragInvitadoS "
             onMouseDown={(e) => {
               //e.preventDefault()
+              setDisableWrapper(true)
               const rootElement = document.getElementById('areaDrag');
               const element = document.createElement('div');
               element.textContent = invitado?.nombre;
@@ -26,21 +38,20 @@ const DragInvitado = (props) => {
               element.setAttribute('data-y', (e.clientY + 10).toString())
               rootElement.appendChild(element)
             }}
-            onMouseUp={(e) => {
-              //e.preventDefault()
+            onMouseUp={() => {
+              setDisableWrapper(false)
               const rootElement = document.getElementById('areaDrag');
               const element = document.getElementById(`dragM${invitado._id}`)
               element && rootElement.removeChild(document.getElementById(`dragM${invitado._id}`))
             }}
             // onTouchStart={() => { alert() }}
-            onTouchStart={(e) => {
+            onTouchStart={(e: TouchEvent<HTMLButtonElement>) => {
               //e.preventDefault()
-              document.getElementById(`dragN${invitado._id}`).style.background = "#f7628c"
-              document.getElementById(`dragN${invitado._id}`).classList.replace("text-gray-500", "text-white")
-              console.log(e.touches[0].clientX, e.touches[0].clientY)
+              setDisableWrapper(true)
+              console.log(e.touches[0].clientX)
               const rootElement = document.getElementById('areaDrag');
               const element = document.createElement('div');
-              //element.textContent = 'Hello word';
+              //element.textContent = invitado?.nombre;
               element.className = 'bg-gray-300 opacity-25 absolute border-2 border-gray-600 z-50 w-[100px] h-[100px] rounded-full ';
               element.id = `dragM${invitado._id}`
               element.style.left = e.touches[0].clientX - 50 + 'px'
@@ -50,24 +61,34 @@ const DragInvitado = (props) => {
               rootElement.appendChild(element)
             }}
             onTouchEnd={() => {
-              document.getElementById(`dragN${invitado._id}`).style.background = "none"
-              document.getElementById(`dragN${invitado._id}`).classList.replace("text-white", "text-gray-500")
+              setDisableWrapper(false)
               const rootElement = document.getElementById('areaDrag');
               const element = document.getElementById(`dragM${invitado._id}`)
               element && rootElement.removeChild(document.getElementById(`dragM${invitado._id}`))
             }}
           >
-            <img
-              className="w-7 h-7 rounded-full mr-2 text-gray-700 border-gray-300"
-              src={ImageProfile[invitado.sexo].image}
-              alt={ImageProfile[invitado.sexo].alt}
-            />
-            <p className="font-display text-sm">{invitado?.nombre}</p>
+            <div
+              id={`dragS${invitado._id}B`}
+              className={`w-5 h-5 bg-primary rounded-full text-[4px] relative grid place-items-center correccion -rotate-90`}
+            >
+              <div
+                className="absolute w-full h-full rounded-full"
+              />
+              <p className="font-display font-light text-white text-center">
+                {invitado.nombre/*.slice(0, 1)*/}
+              </p>
+              {isHovered && <Tooltip text={invitado?.nombre} />}
+            </div>
           </span>
-        </span>
-      </div>
+        </div>
+      ) : null}
+      <style jsx>
+        {`
+          .correccion {
+            transform: rotate(-${posicion}deg);
+          }
+        `}
+      </style>
     </>
   );
 };
-
-export default DragInvitado;

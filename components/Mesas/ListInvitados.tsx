@@ -5,15 +5,14 @@ import DragInvitado from "./DragInvitado";
 
 interface propsListInvitados {
   InvitadoNoSentado: guests[]
-  AddInvitado: CallableFunction
 }
 
-const ListInvitados: FC<propsListInvitados> = ({ InvitadoNoSentado, AddInvitado }) => {
+const ListInvitados: FC<propsListInvitados> = ({ InvitadoNoSentado }) => {
   const { setEvent } = EventContextProvider()
 
   return (
     <>
-      <div id={"listInvitados"} className="js-drop w-full py-4" >
+      <div className="w-full py-4" >
         {InvitadoNoSentado?.map((invitado, index) => (
           <DragInvitado
             key={invitado._id}

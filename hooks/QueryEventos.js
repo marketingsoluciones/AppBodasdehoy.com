@@ -94,24 +94,24 @@ export const GetEventosUser = async (userID, set) => {
    }
     `,
     variables: {
-      userID : JSON.stringify(userID),
+      userID: JSON.stringify(userID),
     },
   }
 
   try {
-  const response = await api.ApiBodas(peticion);
-  const { data: uno } = response;
-  const { data: dos } = uno;
-  const { queryenEvento: data } = dos;
-  
-  eventos = data
-  
+    const response = await api.ApiBodas(peticion);
+    const { data: uno } = response;
+    const { data: dos } = uno;
+    const { queryenEvento: data } = dos;
+
+    eventos = data
+
   } catch (error) {
     console.log(error)
   } finally {
     set(eventos)
   }
-   
+
 }
 
 
@@ -127,7 +127,7 @@ export const EliminarEvento = async (evento, setContext) => {
       variables: {},
     }
     await api.ApiBodas(params)
-    
+
   } catch (error) {
     console.log(error)
   } finally {
@@ -135,7 +135,7 @@ export const EliminarEvento = async (evento, setContext) => {
   }
 }
 
-export const AddInvitado = async (evento, invitado, setContext) => {
+const AddInvitado = async (evento, invitado, setContext) => {
   try {
     const params = {
       query: `mutation {
@@ -147,7 +147,7 @@ export const AddInvitado = async (evento, invitado, setContext) => {
       variables: {},
     }
     await api.ApiBodas(params)
-    
+
   } catch (error) {
     console.log(error)
   } finally {

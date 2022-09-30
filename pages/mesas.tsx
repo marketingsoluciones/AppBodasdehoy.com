@@ -1,7 +1,7 @@
 // Importaciones de dependencias OLD
 //import React, { useContext, useEffect, useState } from "react";
 // Importaciones de dependencias NEW
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, useEffect, useRef, useState } from "react";
 //import { DndProvider } from 'react-dnd-multi-backend';
 // Importaciones de contextos
 import { AuthContextProvider, EventContextProvider } from "../context";
@@ -20,16 +20,20 @@ import VistaSinCookie from "./vista-sin-cookie";
 import SwiperCore, { Pagination, Navigation } from 'swiper';
 import { Swiper, SwiperSlide } from "swiper/react";
 import Prueba from "../components/Mesas/prueba";
-import { AddInvitado } from "../components/Mesas/FuntionsDragable";
+import PruebaN from "./prueban";
+import { InvitadoPrueba } from "../components/Mesas/InvitadoPrueba";
 SwiperCore.use([Pagination]);
 
 const Mesas: FC = () => {
+  const navigationPrevRef = useRef(null)
+  const navigationNextRef = useRef(null)
   const { event } = EventContextProvider();
   const [modelo, setModelo] = useState<string | null>(null);
   const [showForm, setShowForm] = useState<boolean>(false);
   const [isMounted, setIsMounted] = useState<boolean>(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const [filterGuests, setFilterGuests] = useState<{ sentados: guests[], noSentados: guests[] }>({ sentados: [], noSentados: [] })
+  const [showTables, setShowTables] = useState<boolean>(true)
 
   /*useEffect(() => {
     window.innerWidth <= 768 && setMovil(true);
@@ -78,7 +82,12 @@ const Mesas: FC = () => {
         <div>
           <div className="">
             <section id="areaDrag" className={`w-full grid md:grid-cols-12 bg-base overflow-hidden`}>
-
+              {/* <div ref={navigationPrevRef} className="flex z-50 bg-red items-center absolute top-0 bottom-0 left-0 right-auto cursor-pointer">
+                hoooooola
+              </div>
+              <div ref={navigationNextRef} className="flex z-50 bg-red items-center absolute top-0 bottom-0 left-auto right-0 cursor-pointer">
+                hoooooooooola
+              </div> */}
               <div className="flex md:hidden h-[calc(250px)] flex-col ">
 
                 <div className="p-2 px-4">
@@ -102,10 +111,15 @@ const Mesas: FC = () => {
                       const element = document.getElementById(`dragM${"invitado._id"}`)
                       element && rootElement.removeChild(document.getElementById(`dragM${"invitado._id"}`))
                     }}></div> */}
-
-                  <Swiper
+                  {/* <PruebaN /> */}
+                  {/* <InvitadoPrueba /> */}
+                  {/* <Swiper
                     pagination={{ clickable: true }}
-                    navigation
+                    tabIndex={1}
+                    navigation={{
+                      prevEl: navigationPrevRef.current,
+                      nextEl: navigationNextRef.current,
+                    }}
                     spaceBetween={20}
                     breakpoints={{
                       0: {
@@ -116,8 +130,9 @@ const Mesas: FC = () => {
                       },
                     }}
                     className="w-[calc(100vw-30px)] h-[calc(250px)] justify-start items-center"
-                  >
-                    <SwiperSlide className="flex flex-col justify-start items-center cursor-pointer ">
+                  > */}
+                  <div className="w-[calc(100vw-30px)] h-[calc(250px)] justify-start items-center truncate">
+                    <div className={`${!showTables && 'hidden'} flex flex-col justify-start items-center transform transition duration-700`}>
                       <div className=" w-[calc(100vw-30px)] ">
                         <BlockPanelMesas
                           setModelo={setModelo}
@@ -126,15 +141,15 @@ const Mesas: FC = () => {
                         />
                       </div>
                       <BlockResumen InvitadoSentados={filterGuests?.sentados} />
-                    </SwiperSlide>
-                    <SwiperSlide className="flex flex-col justify-start items-center cursor-pointer ">
+                    </div>
+                    <div className={`${showTables && 'hidden'} flex flex-col justify-start items-center transform transition duration-700`}>
                       <BlockInvitados
-                        AddInvitado={AddInvitado}
                         set={setIsMounted}
                         InvitadoNoSentado={filterGuests?.noSentados}
                       />
-                    </SwiperSlide>
-                  </Swiper>
+                    </div>
+                  </div>
+                  {/* </Swiper> */}
                 </div>
               </div>
               <div className={`hidden md:flex h-full col-span-3 box-border px-2 flex-col gap-6 transform transition duration-700 overflow-y-auto`}>
@@ -146,15 +161,15 @@ const Mesas: FC = () => {
                 />
                 <BlockResumen InvitadoSentados={filterGuests?.sentados} />
                 <BlockInvitados
-                  AddInvitado={AddInvitado}
                   set={setIsMounted}
                   InvitadoNoSentado={filterGuests?.noSentados}
                 />
               </div>
               <div className="pt-2 md:pt-0 md:block flex justify-center items-center ">
-                <Prueba />
+                <Prueba setShowTables={setShowTables} showTables={showTables} />
               </div>
             </section>
+            <div className="md:hidden w-full h-[80px]" />
           </div>
           <style>
             {`
