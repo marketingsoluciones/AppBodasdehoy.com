@@ -165,7 +165,7 @@ export const BasicFormLogin = ({
           type="date"
           autoComplete="off" />
 
-        <div className={`${ischecked ? "block w-full" : "hidden"}`}>
+        <div className={``}>
           <InputField
             name="pagadoPor"
             label="Pagado por"
@@ -175,7 +175,7 @@ export const BasicFormLogin = ({
             autoComplete="off" />
         </div>
 
-        <div className={`${ischecked ? "block w-full" : "hidden"}`}>
+        <div className={``}>
           <InputField
             name="modoDePago"
             label="Modo de pago"
