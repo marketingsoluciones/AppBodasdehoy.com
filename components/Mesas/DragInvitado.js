@@ -7,7 +7,7 @@ const DragInvitado = (props) => {
   return (
     <>
       <div
-        className="flex justify-between px-5 py-2 hover:bg-base transition"
+        className="flex justify-between px-5 py-1 hover:bg-base transition"
       >
         <span className="flex gap-3 items-center">
           <span

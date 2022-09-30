@@ -105,9 +105,13 @@ export const setupDropzone = (target: any, accept: any, setEvent: any, eventID: 
     })
     //cuando esta SOBRE una zona drogleable
     .on('dragenter', (event) => {
-      //console.log("sobre")
+      console.log("sobre", event.target.id, " elemen: ", event.relatedTarget.id.slice(0, 5))
+
       if (event.target.id != "listInvitados") {
         addClass(event.target, 'bg-secondary')
+      }
+      if (event.target.id == "listInvitados" && event.relatedTarget.id.slice(0, 5) == "dragN") {
+      } else {
         let element = document.getElementById(event.relatedTarget.id.replace(/dragN/, "dragM"))
         if (element.id.slice(0, 5) == "dragS") { element = document.getElementById(event.relatedTarget.id.replace(/dragS/, "dragM")) }
         if (element) {
@@ -124,6 +128,9 @@ export const setupDropzone = (target: any, accept: any, setEvent: any, eventID: 
       //console.log("sale")
       if (event.target.id != "listInvitados") {
         removeClass(event.target, 'bg-secondary')
+      }
+      if (event.target.id == "listInvitados" && event.relatedTarget.id.slice(0, 5) == "dragN") {
+      } else {
         let element = document.getElementById(event.relatedTarget.id.replace(/dragN/, "dragM"))
         if (element.id.slice(0, 5) == "dragS") { element = document.getElementById(event.relatedTarget.id.replace(/dragS/, "dragM")) }
         if (element) {

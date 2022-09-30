@@ -22,10 +22,10 @@ const DefinePosition: CallableFunction = (valor: number, mesa: { tipo: string | 
 };
 
 interface propsDragable {
-  scale?: any
-  lienzo?: { ancho: any, alto: any }
+  scale?: number
+  lienzo?: { ancho: number, alto: number }
   setDisableWrapper?: any
-  disableDrag: any
+  disableDrag: boolean
 }
 
 

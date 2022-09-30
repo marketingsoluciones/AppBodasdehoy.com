@@ -39,7 +39,7 @@ export const MesaContent: FC<propsTable> = ({ mesa, DefinePosition, setDisableWr
         onTouchEnd={() => { !disableDrag && setDisableWrapper(false) }}
         onMouseDown={() => { !disableDrag && setDisableWrapper(true) }}
         onMouseUp={() => { !disableDrag && setDisableWrapper(false) }}
-        className={`${!disableDrag && "js-drag"} draggable-touch *bg-gray-100 absolute hover:bg-gray-100 hover:bg-opacity-50 hover:border hover:border-gray-200 hover:shadow-md p-4 rounded-2xl`}>
+        className={`${!disableDrag && "js-drag"} draggable-touch *bg-gray-100 absolute hover:bg-gray-100 hover:bg-opacity-50 border border-transparent hover:border-gray-200 hover:shadow-md p-4 rounded-2xl`}>
         <MesaComponent
           posicion={DefinePosition(360 / mesa.cantidad_sillas, mesa)}
           mesa={mesa}

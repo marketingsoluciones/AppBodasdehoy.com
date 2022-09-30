@@ -12,7 +12,7 @@ const ListInvitados: FC<propsListInvitados> = ({ InvitadoNoSentado }) => {
 
   return (
     <>
-      <div className="w-full py-4" >
+      <div className="w-full py-5 md:py-4" >
         {InvitadoNoSentado?.map((invitado, index) => (
           <DragInvitado
             key={invitado._id}

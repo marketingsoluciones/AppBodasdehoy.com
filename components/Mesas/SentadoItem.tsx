@@ -69,7 +69,7 @@ export const SentadoItem: FC<propsSentadoItem> = ({ invitado, posicion, setDisab
           >
             <div
               id={`dragS${invitado._id}B`}
-              className={`w-5 h-5 bg-primary rounded-full text-[4px] relative grid place-items-center correccion -rotate-90`}
+              className={`w-5 h-5 bg-primary rounded-full text-[4px] relative grid place-items-center correccion *-rotate-90`}
             >
               <div
                 className="absolute w-full h-full rounded-full"
