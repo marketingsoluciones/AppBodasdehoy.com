@@ -10,11 +10,13 @@ import { capitalize } from '../../utils/Capitalize';
 
 const BlockPagos = () => {
   const [active, setActive] = useState(0);
+  
   const ListaTabs = [
     { title: "todos" },
     { title: "pagados" },
     { title: "Pendientes" },
   ];
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -66,7 +68,7 @@ const TablaDatosPagos = () => {
           return (
             <div className="grid place-items-center h-full w-full">
               <p
-                className={`${value == "pendiente" ? "text-gray-100" : "text-green"
+                className={`${value == "pendiente" ? "text-red" : "text-green"
                   } font-display font-medium capitalize`}
               >
                 {value}
@@ -120,8 +122,8 @@ const TablaDatosPagos = () => {
             setValue(props?.value)
           }, [props?.value])
           return (
-            <div className="font-display font-semibold text-gray-500 text-lg grid place-items-center h-full">
-              <p>{getCurrency(value)}</p>
+            <div className="font-display font-semibold text-gray-500 text-lg grid place-items-center h-full ">
+              <p className="truncate">{getCurrency(value)}</p>
             </div>
           );
         },
@@ -144,7 +146,7 @@ const TablaDatosPagos = () => {
 
           return (
             <div onClick={handleEdit} className="w-10 h-10 hover:shadow-md items-center justify-center flex right-0 mx-auto">
-              <EditarIcon className="text-gray-100" />
+              <EditarIcon className="" />
             </div>
           );
         },
