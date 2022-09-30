@@ -37,6 +37,9 @@ export const MesaImperial: FC<propsMesaImperial> = ({ mesa, invitados, setDisabl
       return arr;
     },
   });
+  useEffect(() => {
+  }, [Sillas])
+
 
   return (
     <div className="w-40 left-0 h-20 bg-white shadow border border-gray-500 relative">
@@ -46,12 +49,11 @@ export const MesaImperial: FC<propsMesaImperial> = ({ mesa, invitados, setDisabl
         className="absolute flex my-auto inset-y-0 left-1 transform -translate-x-full"
         index={0}
       >
-        {invitados?.map((invitado, idx) => {
-          //2
-          if (invitado.puesto == 0) {
-            return <SentadoItem key={idx} invitado={invitado} setDisableWrapper={setDisableWrapper} />;
-          }
-        })}
+        {invitados.filter(element => element.puesto == "0")[0] && <SentadoItem
+          invitado={invitados.filter(element => element.puesto == "0")[0]}
+          setDisableWrapper={setDisableWrapper}
+        />}
+        <span />
       </Chair>
 
       <Chair
@@ -60,12 +62,11 @@ export const MesaImperial: FC<propsMesaImperial> = ({ mesa, invitados, setDisabl
         className="absolute my-auto inset-y-0 right-1 transform translate-x-full"
         index={1}
       >
-        {invitados?.map((invitado, idx) => {
-          //3
-          if (invitado.puesto == 1) {
-            return <SentadoItem key={idx} invitado={invitado} setDisableWrapper={setDisableWrapper} />;
-          }
-        })}
+        {invitados.filter(element => element.puesto == "1")[0] && <SentadoItem
+          invitado={invitados.filter(element => element.puesto == "1")[0]}
+          setDisableWrapper={setDisableWrapper}
+        />}
+        <span />
       </Chair>
 
       <div className="w-full mx-auto inset-x-0 flex px-3 justify-between absolute top-1 transform -translate-y-full">
@@ -77,13 +78,11 @@ export const MesaImperial: FC<propsMesaImperial> = ({ mesa, invitados, setDisabl
             key={idx}
             index={item}
           >
-            {invitados?.map((invitado, index) => {
-              console.log(invitados)
-              //4
-              if (invitado.puesto == item) {
-                return <SentadoItem key={index} invitado={invitado} setDisableWrapper={setDisableWrapper} />;
-              }
-            })}
+            {invitados.filter(element => element.puesto == item.toString())[0] && <SentadoItem
+              invitado={invitados.filter(element => element.puesto == item.toString())[0]}
+              setDisableWrapper={setDisableWrapper}
+            />}
+            <span />
           </Chair>
         ))}
       </div>
@@ -97,13 +96,11 @@ export const MesaImperial: FC<propsMesaImperial> = ({ mesa, invitados, setDisabl
             key={idx}
             index={item}
           >
-            {invitados?.map((invitado, index) => {
-              //console.log("Mesa:", mesa.nombre_mesa, "Invitado:", invitado.nombre, "Puesto:", index)
-              //5
-              if (invitado.puesto == item) {
-                return <SentadoItem key={index} invitado={invitado} setDisableWrapper={setDisableWrapper} />;
-              }
-            })}
+            {invitados.filter(element => element.puesto == item.toString())[0] && <SentadoItem
+              invitado={invitados.filter(element => element.puesto == item.toString())[0]}
+              setDisableWrapper={setDisableWrapper}
+            />}
+            <span />
           </Chair>
         ))}
       </div>
