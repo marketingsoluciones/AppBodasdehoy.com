@@ -25,11 +25,11 @@ const validacion = (values) => {
   if (!values.fechaVencimiento) {
     errors.fechaVencimiento = "Selecciona una fecha"
   }
-  if (!values.pagadoPor) {
-    errors.pagadoPor = "Favor indicar quien paga"
+  if (!values.pagado_por) {
+    errors.pagado_por = "Favor indicar quien paga"
   }
-  if (!values.modoDePago) {
-    errors.modoDePago = "Modo de pago requerido"
+  if (!values.medio_pago) {
+    errors.medio_pago = "Modo de pago requerido"
   }
 
   return errors
@@ -38,6 +38,7 @@ const validacion = (values) => {
 const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state }) => {
   const { event, setEvent } = EventContextProvider()
   const [pago, setPago] = useState(ListaPagos?.find(item => item._id == IDPagoAModificar))
+  console.log(123, pago)
 
   useEffect(() => {
     setPago(ListaPagos?.find(item => item._id == IDPagoAModificar))
@@ -65,8 +66,8 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state }) => {
         pagado: checkbox[pago?.estado],
         fechaPago: pago?.fecha_pago,
         fechaVencimiento: pago?.fecha_vencimiento,
-        pagadoPor: pago?.pagado_por,
-        modoDePago: pago?.modo_pago
+        pagado_por: pago?.pagado_por,
+        medio_pago: pago?.medio_pago
       }}
 
       onSubmit={async (values, actions) => {
@@ -77,8 +78,8 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state }) => {
                   estado: "${checkbox[values.pagado]}",
                   fecha_pago: "${values.fechaPago}",
                   fecha_vencimiento: "${values.fechaVencimiento}",
-                  medio_pago: "${values.modoDePago}",
-                  pagado_por: "${values.pagadoPor}"
+                  pagado_por: "${values.pagado_por}"
+                  medio_pago: "${values.medio_pago}",
                 }
               ){
                 categorias_array{
@@ -195,19 +196,19 @@ export const BasicFormLogin = ({
 
         <div className={``}>
           <InputField
-            name="pagadoPor"
+            name="pagado_por"
             label="Pagado por"
             onChange={handleChange}
-            value={values.pagadoPor}
+            value={values.pagado_por}
             type="text"
             autoComplete="off" />
         </div>
         <div className={``}>
           <InputField
-            name="modoDePago"
+            name="medio_pago"
             label="Modo de pago"
             onChange={handleChange}
-            value={values.modoDePago}
+            value={values.medio_pago}
             type="text"
             autoComplete="off" />
         </div>

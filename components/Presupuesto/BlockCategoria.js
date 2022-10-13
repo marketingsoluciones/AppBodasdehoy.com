@@ -147,7 +147,7 @@ const BlockCategoria = ({ cate, set }) => {
       const params = {
         query: `mutation{
           nuevoGasto(evento_id:"${event?._id}",
-          categoria_id:"${categoria?._id}",nombre:" "){
+          categoria_id:"${categoria?._id}",nombre:""){
             _id,
             nombre,
             coste_estimado,
@@ -216,7 +216,7 @@ const BlockCategoria = ({ cate, set }) => {
         <div className="md:justify-between w-4/6 gap-3 md:flex items-center font-display text-gray-500">
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-medium ">
-              Coste estimado: 
+              Coste estimado:
               <span className="text-sm text-gray-500 pl-1">
                 {getCurrency(categoria?.coste_estimado)}
               </span>
@@ -224,7 +224,7 @@ const BlockCategoria = ({ cate, set }) => {
           </div>
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-medium ">
-              Coste final: 
+              Coste final:
               <span
                 className={`text-sm pl-1 text-${Math.abs(saldo) == saldo ? "green" : "red"
                   }`}
