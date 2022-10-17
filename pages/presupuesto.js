@@ -76,7 +76,7 @@ const Presupuesto = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="grid grid-cols-3 w-full gap-6 pb-4 pt-8 pl-3"
+                className="grid md:grid-cols-3 w-full gap-6 pb-4 pt-8 pl-3 pr-3 md:pr-0"
               >
                 <>
                   <BlockListaCategorias
@@ -84,7 +84,7 @@ const Presupuesto = () => {
                     categorias_array={categorias}
                   />
 
-                  <div className="col-span-2 w-full flex flex-col gap-6 relative pr-3">
+                  <div className="md:col-span-2 w-full flex flex-col  gap-6 relative pr-3 ">
                     {showCategoria?.isVisible ? (
                       <BlockCategoria
                         set={(act) => setShowCategoria(act)}
@@ -92,7 +92,7 @@ const Presupuesto = () => {
                       />
                     ) : (
                       <>
-                        <div className="w-full bg-white rounded-xl shadow-md" >
+                        <div className="w-full bg-white rounded-xl shadow-md " >
                           <h1 className="font-display text-2xl text-center font-semibold text-gray-500 p-4">
                             Presupuesto
                           </h1>
@@ -104,8 +104,7 @@ const Presupuesto = () => {
                                 event?.presupuesto_objeto?.coste_estimado
                               }
                             />
-                          </div>
-
+                          </div>                      
                           <div className=" bg-white shadow-md rounded-xl grid place-items-center p-4">
                             <DineroIcon className="w-12 h-12 text-primary " />
                             <p className="font-display text-gray-500 font-light text-md grid place-items-center">
@@ -131,11 +130,14 @@ const Presupuesto = () => {
                             </div>
                           </div>
                         </div>
-                        <div className="w-full">
+                        <div className="w-full mb-10  ">
                           <h2 className="font-display text-xl text-gray-500 font-semibold text-center w-full py-2">
                             ¿Cuanto cuesta mi evento?
                           </h2>
+                         
                           <Grafico categorias={categorias} />
+                          
+                          
                         </div>
                       </>
                     )}
@@ -307,7 +309,7 @@ const BlockListaCategorias = ({ categorias_array, set }) => {
           {Forms[isMounted[1]]}
         </ModalLeft>
       )}
-      <div className="bg-white w-full shadow-md rounded-xl h-max">
+      <div className="bg-white w-full shadow-md rounded-xl h-max ">
         <button
           onClick={() => setIsMounted([true, "crear"])}
           className="focus:outline-none bg-primary rounded-xl font-display font-light text-md flex gap-2 w-full transform py-1 items-center justify-center text-white hover:scale-105 transition transform"
@@ -315,7 +317,7 @@ const BlockListaCategorias = ({ categorias_array, set }) => {
           <PlusIcon className="text-white w-4 h-4" />
           Nueva Categoria
         </button>
-        <ul className={`w-full flex flex-col font-display text-sm ${colorText}`}>
+        <ul className={`w-full flex flex-col font-display text-sm h-44 overflow-y-auto md:h-max divide-y ${colorText}`}>
           {categorias?.map((item, idx) => (
             <ItemCategoria key={idx} item={item} setVisible={act => set(act)}
               set={(accion) => setIsMounted(accion)} />
@@ -382,9 +384,9 @@ const ItemCategoria = ({ item, setVisible, set }) => {
   ];
 
   return (
-    <li onClick={() => setVisible({ isVisible: true, id: item._id })} className="w-full justify-between items-center flex border-b border-secondary  px-5 cursor-pointer transition hover:bg-base">
+    <li onClick={() => setVisible({ isVisible: true, id: item._id })} className="w-full justify-between items-center flex   px-5 cursor-pointer transition hover:bg-base">
       <span
-        className="gap-2 py-3 flex items-center capitalize hidden md:block "
+        className="gap-2 py-3 flex items-center capitalize"
       >
         {item?.icon}
         {item?.nombre?.toLowerCase()}
@@ -400,12 +402,12 @@ const ItemCategoria = ({ item, setVisible, set }) => {
           />
           {show && (
             <ClickAwayListener onClickAway={() => show && setShow(false)}>
-              <ul className="w-max z-20 bg-white shadow-md rounded absolute top-0 left-0 font-display text-sm ">
+              <ul className="w-max z-20 bg-white shadow-md rounded absolute top-0 right-0 font-display text-sm divide-y ">
                 {Lista.map((item, idx) => (
                   <li
                     key={idx}
                     onClick={() => item.function()}
-                    className="px-2 py-1 hover:bg-base transition"
+                    className="px-2 py-1 hover:bg-base transition "
                   >
                     {item.title}
                   </li>

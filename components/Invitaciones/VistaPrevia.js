@@ -19,7 +19,7 @@ const VistaPrevia = ({ event }) => {
 
     try {
       const res = await api.ApiBodas(params);
-      console.log(res.data.data.obtenerTemplate,"hola a todoas")
+      console.log(res.data.data.obtenerTemplate,"data de la invitacion")
       if (res.data) {
         let contenido = res.data.data.obtenerTemplate
         const refImg = `<img width="20" height="38" style="display:block; max-height:38px; max-width:20px;" alt="" src="https://img.mailinblue.com/new_images/rnb/rnb_space.gif">`;
@@ -28,7 +28,9 @@ const VistaPrevia = ({ event }) => {
         setContent(contenido
           .replace("{{params.tipoEvento}}", event.tipo== "otro"? "evento especial": event.tipo)
           .replace("{{params.invitadoNombre}}", event?.invitados_array[0]?.nombre)
+          
           .replace(refImg, img));
+
         return res.data.data.obtenerTemplate;
       }
     } catch (error) {

@@ -23,8 +23,8 @@ const Grafico = ({ categorias }) => {
 
   return (
     <>
-      <div className="w-full h-full md:h-max bg-white rounded-xl shadow-md grid  place-items-center py-6 ">
-        <div className="w-3/5  ">
+      <div className="w-full h-full md:mb-5 md:h-max bg-white rounded-xl shadow-md flex justify-center  md:py-6 pt-6  ">
+        <div className="md:w-3/5 h-full  ">
           <Doughnut
             type="Doughnut"
             className="chart"
@@ -33,6 +33,7 @@ const Grafico = ({ categorias }) => {
                 legend: {
                   position: "bottom",
                   align: "start",
+                  
                   labels: {
                     font: {
                       size: 12,
@@ -45,6 +46,7 @@ const Grafico = ({ categorias }) => {
             }}
 
             data={{
+              className:"data",
               labels: labels,
               datasets: [
                 {
@@ -61,8 +63,11 @@ const Grafico = ({ categorias }) => {
       <style jsx>
         {`
           .chart {
-            display: flex !important;
-            cursor: pointer;
+            
+          },
+          .data{
+            display: 
+
           }
         `}
       </style>
