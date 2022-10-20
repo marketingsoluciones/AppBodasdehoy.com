@@ -215,7 +215,7 @@ const DataTable = ({ columns, data }) => {
   };
   return (
     <div className="w-full  ">
-      <table {...getTableProps()} className="table w-full rounded-lg relative  overflow-x-auto  ">
+      <table {...getTableProps()} className="table w-full rounded-lg relative    ">
         <thead className="w-full   ">
           {headerGroups.map((headerGroup, id) => (
             <tr

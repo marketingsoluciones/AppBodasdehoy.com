@@ -50,9 +50,12 @@ const ListaRegalos = () => {
 
             <Breadcumb />
 
-
+           
             <BlockTitle title={"Lista de regalos"} />
+
+            
             <div className="w-full flex flex-col md:flex-row justify-center items-center gap-6 ">
+
               <div className="w-full md:w-1/2 bg-white shadow-lg flex gap-8 items-center justify-center p-6 rounded-xl">
                 <DineroIcon className="w-12 h-12 text-gray-500" />
                 <div className="font-display flex flex-col items-center">
@@ -89,7 +92,8 @@ const ListaRegalos = () => {
                     con millones de opciones para elegir.
                   </span>
                 </h3>
-                <div className=" flex gap-4">
+
+                <div className=" flex flex-col md:flex-row gap-4">
                   <a
                     href="https://www.amazon.com/-/es/registries/create-registry?ref_=gr_universal_landing"
                     className="button-secondary uppercase mt-2 text-sm"
@@ -98,11 +102,7 @@ const ListaRegalos = () => {
                   >
                     Crea tu lista de regalos en amazon
                   </a >
-                  {/* {
-                    (()=>{
-                      if(event.listaRegalos)
-                    })()
-                  } */}
+                
                   <div className={`${event.listaRegalos ? "block mt-2.5" : "hidden"}`}>
                     <a
                       href={event.listaRegalos}
@@ -113,9 +113,7 @@ const ListaRegalos = () => {
                       Tu lista de regalos
                     </a >
                   </div>
-
                 </div>
-
               </div>
             </div>
 
@@ -123,7 +121,7 @@ const ListaRegalos = () => {
               ¿Como funciona la lista?
             </h3>
 
-            <div className="w-full grid-cols-2 md:grid-cols-3 grid gap-6">
+            <div className="w-full grid-cols-1 md:grid-cols-3 grid gap-6">
 
               {/* First Card */}
               <a
