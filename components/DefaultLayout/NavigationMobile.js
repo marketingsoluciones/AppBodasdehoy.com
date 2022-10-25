@@ -49,18 +49,31 @@ const NavigationMobile = () => {
         ))}
 
         <div className="w-10 h-10 truncate">
-          <li onClick={() => {
-            setShow(!show)
-          }} className="text-blue-primary hover:text-blue-secondary cursor-pointer transition" >
-            <img src={user?.photoURL ?? "/placeholder/user.png"} className="w-10 h-10 rounded-full" />
-          </li>
-          {show &&
-            <div ref={wrapperRef} >
-              {/* <ProfileMenu /> */}
-            </div>
-          }
+          {(() => {
+            if (user) {
+              return (
+                <>
+                  <li onClick={() => {
+                    setShow(!show)
+                  }} className="text-blue-primary hover:text-blue-secondary cursor-pointer transition" >
+                    <img src={user?.photoURL ?? "/placeholder/user.png"} className="w-10 h-10 rounded-full" />
+                  </li>
+                  {
+                    show &&
+                    <div ref={wrapperRef} >
+                      <ProfileMenu />
+                    </div>} 
+                </>
+              );
+            } else {
+              return (
+                <Link href={`${process.env.NEXT_PUBLIC_DIRECTORY}/login?d=app`} passHref className="text-blue-primary hover:text-blue-secondary cursor-pointer transition" >
+                  <img src={"/placeholder/user.png"} className="w-10 h-10 rounded-full" />
+                </Link>
+              )
+            }
+          })()}
         </div>
-
       </ul>
     </>
   );
@@ -96,3 +109,15 @@ const ProfileMenu = () => {
 };
 
 export default NavigationMobile;
+
+{/* <li onClick={() => {
+                setShow(!show)
+              }} className="text-blue-primary hover:text-blue-secondary cursor-pointer transition" >
+                <img src={user?.photoURL ?? "/placeholder/user.png"} className="w-10 h-10 rounded-full" />
+              </li>
+              {
+                show &&
+                <div ref={wrapperRef} className="absolute w-40 h-56">
+                  <ProfileMenu />
+                </div>
+              } */}
