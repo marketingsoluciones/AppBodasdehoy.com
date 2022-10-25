@@ -6,12 +6,14 @@ import { Chair } from "./Chair";
 import { SentadoItem } from "./SentadoItem";
 import { MesaImperial } from "./MesaImperial";
 import Invitados from "../../pages/invitados";
+import { EditMesa } from "./EditMesa";
 
 interface propsMesaComponent {
   posicion: number;
   mesa: table;
   invitados: guests[];
   setDisableWrapper: any
+  setShowFormEditar: any
 }
 
 enum types {
@@ -29,7 +31,7 @@ type schemaType = {
   podio: tableType;
 };
 
-const MesaComponent: FC<propsMesaComponent> = ({ posicion, mesa, invitados, setDisableWrapper }) => {
+const MesaComponent: FC<propsMesaComponent> = ({ posicion, mesa, invitados, setDisableWrapper, setShowFormEditar }) => {
   const { cantidad_sillas } = mesa;
   const [nSillas, setNSillas] = useState([]);
 
@@ -52,17 +54,17 @@ const MesaComponent: FC<propsMesaComponent> = ({ posicion, mesa, invitados, setD
   const schemaGeneral: schemaType = {
     redonda: {
       position: posicion,
-      component: <MesaRedonda nombreMesa={mesa.nombre_mesa} />,
+      component: <MesaRedonda mesa={mesa} setShowFormEditar={setShowFormEditar} />,
       type: "radio",
     },
     cuadrada: {
       position: [0, 90, 180, 270],
-      component: <MesaCuadrada nombreMesa={mesa.nombre_mesa} />,
+      component: <MesaCuadrada mesa={mesa} setShowFormEditar={setShowFormEditar} />,
       type: "radio",
     },
     podio: {
       position: ArraySillas(),
-      component: <MesaPodio nombreMesa={mesa.nombre_mesa} />,
+      component: <MesaPodio mesa={mesa} setShowFormEditar={setShowFormEditar} />,
       type: "relative",
     },
   };
@@ -75,7 +77,7 @@ const MesaComponent: FC<propsMesaComponent> = ({ posicion, mesa, invitados, setD
   if (["imperial"].includes(mesa.tipo)) {
     return (
       <>
-        <MesaImperial mesa={mesa} invitados={invitados} setDisableWrapper={setDisableWrapper} />
+        <MesaImperial mesa={mesa} invitados={invitados} setDisableWrapper={setDisableWrapper} setShowFormEditar={setShowFormEditar} />
       </>
     )
   } else {
@@ -117,41 +119,51 @@ export default MesaComponent;
 interface propsTableType {
   cantidad_sillas?: number
   children?: ReactNode
-  nombreMesa: string
+  mesa: table
+  setShowFormEditar: any
 }
 
-const MesaRedonda: FC<propsTableType> = ({ cantidad_sillas, children, nombreMesa }) => {
+const MesaRedonda: FC<propsTableType> = ({ cantidad_sillas, children, mesa, setShowFormEditar }) => {
   return (
-    <div
-      className="rounded-full transform bg-white w-20 h-20 shadow border border-gray-500 relative flex items-center justify-center"
-    >
-      <p className="font-display text-xs text-center mx-2 leading-[12px] tracking-tight text-gray-500">{nombreMesa}</p>
-      {children}
-    </div>
-  );
-};
-
-const MesaCuadrada: FC<propsTableType> = ({ cantidad_sillas, children, nombreMesa }) => {
-  return (
-    <div
-      className="w-20 h-20 shadow border border-gray-500 relative bg-white flex items-center justify-center"
-    >
-      <p className="font-display text-xs text-center mx-2 leading-[12px] tracking-tight text-gray-500">{nombreMesa}</p>
-      {children}
-    </div>
-  );
-};
-
-const MesaPodio: FC<propsTableType> = ({ cantidad_sillas, children, nombreMesa }) => {
-  return (
-    <div
-      className="w-max h-20 shadow border border-gray-500 relative bg-white text-center font-display text-xs tracking-tight text-gray-500"
-    >
-      <div className="flex gap-4 w-full px-6 transform -translate-y-1/2">
+    <>
+      <EditMesa mesa={mesa} setShowFormEditar={setShowFormEditar} />
+      <div
+        className="rounded-full transform bg-white w-20 h-20 shadow border border-gray-500 relative flex items-center justify-center"
+      >
+        <p className="font-display text-xs text-center mx-2 leading-[12px] tracking-tight text-gray-500">{mesa?.nombre_mesa}</p>
         {children}
       </div>
-      {nombreMesa}
-    </div>
+    </>
+  );
+};
+
+const MesaCuadrada: FC<propsTableType> = ({ cantidad_sillas, children, mesa, setShowFormEditar }) => {
+  return (
+    <>
+      <EditMesa mesa={mesa} setShowFormEditar={setShowFormEditar} />
+      <div
+        className="w-20 h-20 shadow border border-gray-500 relative bg-white flex items-center justify-center"
+      >
+        <p className="font-display text-xs text-center mx-2 leading-[12px] tracking-tight text-gray-500">{mesa?.nombre_mesa}</p>
+        {children}
+      </div>
+    </>
+  );
+};
+
+const MesaPodio: FC<propsTableType> = ({ cantidad_sillas, children, mesa, setShowFormEditar }) => {
+  return (
+    <>
+      <EditMesa mesa={mesa} setShowFormEditar={setShowFormEditar} />
+      <div
+        className="w-max h-20 shadow border border-gray-500 relative bg-white text-center font-display text-xs tracking-tight text-gray-500"
+      >
+        <div className="flex gap-4 w-full px-6 transform -translate-y-1/2">
+          {children}
+        </div>
+        {mesa?.nombre_mesa}
+      </div>
+    </>
   );
 };
 

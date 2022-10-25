@@ -26,9 +26,10 @@ interface propsDragable {
   lienzo?: { ancho: number, alto: number }
   setDisableWrapper?: any
   disableDrag: boolean
+  setShowFormEditar: any
 }
 
-export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, disableDrag }) => {
+export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, disableDrag, setShowFormEditar }) => {
   const { event, setEvent } = EventContextProvider();
   const [disableLayout, setDisableLayout] = useState<boolean>(false);
   const [dragPositions, setDragPositions] = useState<any>();
@@ -199,6 +200,7 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
             DefinePosition={DefinePosition}
             setDisableWrapper={setDisableWrapper}
             disableDrag={disableDrag}
+            setShowFormEditar={setShowFormEditar}
           />
         );
       })}

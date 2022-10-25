@@ -8,9 +8,10 @@ import { ButtonConstrolsLienzo } from "./ControlsLienzo";
 type propsPrueba = {
   setShowTables: any
   showTables: boolean
+  setShowFormEditar: any
 }
 
-const Prueba: FC<propsPrueba> = ({ setShowTables, showTables }) => {
+const Prueba: FC<propsPrueba> = ({ setShowTables, showTables, setShowFormEditar }) => {
   let { width, height } = useScreenSize()
   const [scrX, setScrX] = useState(0)
   const [scrY, setScrY] = useState(0)
@@ -117,7 +118,7 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables }) => {
                 </div>
                 <TransformComponent wrapperClass="contenedor">
                   <div className="bg-gray-300 paper border-4 lienzo border-indigo-600 *flex *justify-center *items-center ">
-                    <Dragable scale={Math.round(scale * 100) / 100} lienzo={lienzo} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} />
+                    <Dragable scale={Math.round(scale * 100) / 100} lienzo={lienzo} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} setShowFormEditar={setShowFormEditar} />
                   </div>
                 </TransformComponent>
 

@@ -1,6 +1,6 @@
 import ClickAwayListener from "react-click-away-listener"
 
-const ModalCrearMesa = ({ set, state, children }) => {
+const ModalMesa = ({ set, state, children, title }) => {
 
     return (
         <>
@@ -11,7 +11,7 @@ const ModalCrearMesa = ({ set, state, children }) => {
                 <div className="bg-white w-full md:w-max h-72 shadow-lg fixed m-auto inset-x-0 md:inset-y-0 z-30 rounded-xl ">
                     {/* Cabecera */}
                     <div className="w-full border-b-2 border-primary ">
-                        <h2 className="font-display text-center text-xl text-gray-500 py-3">Añadir mesa</h2>
+                        <h2 className="font-display text-center text-xl text-gray-500 py-3">{title}</h2>
 
                     </div>
                     {/* Cuerpo */}
@@ -24,4 +24,4 @@ const ModalCrearMesa = ({ set, state, children }) => {
     )
 }
 
-export default ModalCrearMesa
+export default ModalMesa

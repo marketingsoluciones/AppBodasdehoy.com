@@ -8,9 +8,10 @@ interface propsTable {
   DefinePosition: CallableFunction
   setDisableWrapper?: any
   disableDrag: any
+  setShowFormEditar: any
 }
 
-export const MesaContent: FC<propsTable> = ({ mesa, DefinePosition, setDisableWrapper, disableDrag }) => {
+export const MesaContent: FC<propsTable> = ({ mesa, DefinePosition, setDisableWrapper, disableDrag, setShowFormEditar }) => {
 
   const { event } = EventContextProvider();
   const [invitados, setInvitados] = useState([]);
@@ -45,6 +46,7 @@ export const MesaContent: FC<propsTable> = ({ mesa, DefinePosition, setDisableWr
           mesa={mesa}
           invitados={invitados}
           setDisableWrapper={setDisableWrapper}
+          setShowFormEditar={setShowFormEditar}
         />
       </div>
     </>

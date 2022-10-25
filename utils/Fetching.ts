@@ -319,7 +319,7 @@ export const queries = {
      }
     }
   }`,
-  getListaRegalos:`query($_id: String){
+  getListaRegalos: `query($_id: String){
     queryenEvento_id(
       var_1:$_id
     ){
@@ -430,6 +430,32 @@ export const queries = {
         y
       }
       cantidad_sillas
+    }
+  }`,
+  editNameTable: `mutation ($eventID:String, $tableID: String, $variable: String, $valor_reemplazar: String) {
+    editMesa(evento_id:$eventID,mesa_id:$tableID, variable_reemplazar:$variable, valor_reemplazar:$valor_reemplazar) {
+      _id
+      nombre_mesa
+      posicion {
+        x
+        y
+      }
+      cantidad_sillas
+      tipo
+    }
+  }`,
+  deleteTable: `mutation ($eventID:String, $tableID: String) {
+    borraMesa(evento_id:$eventID,mesa_id:$tableID) {
+      mesas_array{
+           _id
+           nombre_mesa
+           tipo
+           cantidad_sillas
+           posicion {
+             x
+             y
+           }
+      }
     }
   }`,
   signOut: `mutation ($sessionCookie :String){

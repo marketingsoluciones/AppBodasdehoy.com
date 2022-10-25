@@ -5,7 +5,7 @@ import FormCrearMesa from "../components/Forms/FormCrearMesa";
 import BlockPanelMesas from "../components/Mesas/BlockPanelMesas";
 import BlockResumen from "../components/Mesas/BlockResumen";
 import BlockInvitados from "../components/Mesas/BlockInvitados";
-import ModalCrearMesa from "../components/Mesas/ModalCrearMesa";
+import ModalMesa from "../components/Mesas/ModalMesa";
 import { useDelayUnmount } from "../utils/Funciones";
 import ModalLeft from "../components/Utils/ModalLeft";
 import FormInvitado from "../components/Forms/FormInvitado";
@@ -14,6 +14,7 @@ import { guests } from "../utils/Interfaces";
 import VistaSinCookie from "./vista-sin-cookie";
 import SwiperCore, { Pagination, Navigation } from 'swiper';
 import Prueba from "../components/Mesas/prueba";
+import FormEditarMesa from "../components/Forms/FormEditarMesa";
 
 SwiperCore.use([Pagination]);
 
@@ -21,10 +22,14 @@ const Mesas: FC = () => {
   const { event } = EventContextProvider();
   const [modelo, setModelo] = useState<string | null>(null);
   const [showForm, setShowForm] = useState<boolean>(false);
+  const [showFormEditar, setShowFormEditar] = useState<any>({ mesa: {}, visible: false });
   const [isMounted, setIsMounted] = useState<boolean>(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const [filterGuests, setFilterGuests] = useState<{ sentados: guests[], noSentados: guests[] }>({ sentados: [], noSentados: [] })
   const [showTables, setShowTables] = useState<boolean>(true)
+
+  useEffect(() => {
+  }, [showFormEditar])
 
   useEffect(() => {
     setFilterGuests(event?.invitados_array?.reduce((acc, guest) => {
@@ -48,13 +53,23 @@ const Mesas: FC = () => {
       <>
         {/* formulario emergente para crear mesas */}
         {showForm ? (
-          <ModalCrearMesa set={setShowForm} state={showForm}>
+          <ModalMesa set={setShowForm} state={showForm} title="Añadir mesa">
             <FormCrearMesa
               modelo={modelo}
               set={setShowForm}
               state={showForm}
             />
-          </ModalCrearMesa>
+          </ModalMesa>
+        ) : null}
+        {/* formulario emergente para editar mesas */}
+        {showFormEditar.visible ? (
+          <ModalMesa set={setShowFormEditar} state={showFormEditar} title={`Mesa: "${showFormEditar.mesa.nombre_mesa}"`}>
+            <FormEditarMesa
+              modelo={modelo}
+              set={setShowFormEditar}
+              state={showFormEditar}
+            />
+          </ModalMesa>
         ) : null}
         {/* formulario emergente para agregar un invitado */}
         {shouldRenderChild && (
@@ -111,7 +126,7 @@ const Mesas: FC = () => {
                 </div>
               </div>
               <div className="pt-2 md:pt-0 md:block flex justify-center items-center ">
-                <Prueba setShowTables={setShowTables} showTables={showTables} />
+                <Prueba setShowTables={setShowTables} showTables={showTables} setShowFormEditar={setShowFormEditar} />
               </div>
             </section>
             <div className="md:hidden w-full h-[80px]" />
