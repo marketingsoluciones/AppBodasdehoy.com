@@ -42,7 +42,8 @@ export const MesaImperial: FC<propsMesaImperial> = ({ mesa, invitados, setDisabl
 
 
   return (
-    <div className="w-40 left-0 h-20 bg-white shadow border border-gray-500 relative">
+    <div className="w-40 left-0 h-20 bg-white shadow border border-gray-500 flex items-center justify-center relative">
+      <span className="font-display text-xs tracking-tight">{mesa.nombre_mesa}</span>
       <Chair
         tipoMesa={mesa.tipo}
         nombre_mesa={mesa.nombre_mesa}

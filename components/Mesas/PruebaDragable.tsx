@@ -28,7 +28,6 @@ interface propsDragable {
   disableDrag: boolean
 }
 
-
 export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, disableDrag }) => {
   const { event, setEvent } = EventContextProvider();
   const [disableLayout, setDisableLayout] = useState<boolean>(false);
@@ -36,15 +35,10 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
   const [dragables, setDragables] = useState<any>([]);
 
   useEffect(() => {
-    // setup drop areas.
-    // dropzone #1 accepts draggable #1
-    // // // setupDropzone('#drop1', `#drag1, #pdrag1 `)
-    // dropzone #2 accepts draggable #1 and #2
-    // // // setupDropzone('#drop2', '#drag0, #drag1, #pdrag1')
-    // every dropzone accepts draggable #3
-    setupDropzone('.js-drop', `${dragables}, #pdragInvitado1, #invitadoPrueba`, setEvent, event._id)
-
-  }, [dragables])
+    if (dragables?.length > 0) {
+      setupDropzone('.js-drop', `${dragables}`, setEvent, event?._id)
+    }
+  }, [dragables, event, setEvent])
   let transformProp: any
   useEffect(() => {
     const filterGuestsDraggable = (event?.invitados_array?.reduce((acc, guest) => {
@@ -57,21 +51,18 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
       }
       return acc
     }, { sentados: {}, noSentados: [], dragables: [] }))
-    //console.log(filterGuestsDraggable)
-    const mesasDrag = event.mesas_array.reduce((acc, n) => {
+    const mesasDrag = event?.mesas_array.reduce((acc, n) => {
       acc[n._id] = { x: n.posicion[0].x, y: n.posicion[0].y }
       return acc
     }, {})
-    //console.log(mesasDrag)
-    setDragables(filterGuestsDraggable.dragables)
+    setDragables(filterGuestsDraggable?.dragables)
     setDragPositions({
       ...mesasDrag,
-      ...filterGuestsDraggable.sentados,
-      ...filterGuestsDraggable.noSentados,
+      ...filterGuestsDraggable?.sentados,
+      ...filterGuestsDraggable?.noSentados,
       pdrag1: { x: 0, y: 0 },
-      pdragInvitado1: { x: 0, y: 0 },
     })
-  }, [event.mesas_array, event])
+  }, [event?.mesas_array, event])
 
   let sizeElement = { w: 0, h: 0 }
   let lienzoLimit = { x: 0, y: 0 }
@@ -82,8 +73,6 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
     manualStart: false,
     listeners: {
       start(e) {
-        console.log("js-dragInvitadoN")
-        console.log("start", e.target.id)
         const element = document.getElementById(e.target.id.replace(/dragN/, "dragM"))
         if (element) {
           position.x = parseInt(element.getAttribute("data-x"), 10) || 0
@@ -102,7 +91,6 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
         }
       },
       end(e) {
-        console.log("end js-dragInvitadoN")
         const element = document.getElementById(e.target.id.replace(/dragN/, "dragM"))
         if (element) {
           const rootElement = document.getElementById('areaDrag');
@@ -116,8 +104,6 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
     manualStart: false,
     listeners: {
       start(e) {
-        console.log("js-dragInvitadoN")
-        console.log("start", e.target.id)
         const element = document.getElementById(e.target.id.replace(/dragS/, "dragM"))
         if (element) {
           position.x = parseInt(element.getAttribute("data-x"), 10) || 0
@@ -136,7 +122,6 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
         }
       },
       end(e) {
-        console.log("end js-dragInvitadoS")
         setDisableWrapper(false)
         const element = document.getElementById(e.target.id.replace(/dragS/, "dragM"))
         if (element) {
@@ -153,7 +138,6 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
     manualStart: false,
     listeners: {
       start(e) {
-        console.log("js-drag")
         let position = { x: 0, y: 0 }
         position = dragPositions[e.target.id]
         sizeElement = { w: e.rect.width, h: e.rect.height }
@@ -169,7 +153,6 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
         if (position.x >= lienzoLimit.x) { position.x = lienzoLimit.x }
         if (position.y >= lienzoLimit.y) { position.y = lienzoLimit.y }
         if (transformProp) {
-          console.log("moveN", 0)
           e.target.style[transformProp] = 'translate(' + position.x + 'px, ' + position.y + 'px)'
         } else {
           e.target.style.left = position.x + 'px'
@@ -179,7 +162,6 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
       },
       end(e) {
         const position = dragPositions[e.target.id]
-        console.log("end js-drag")
         ActualizarPosicion({ x: position.x, y: position.y, event: event, mesaID: e.target.getAttribute('id'), setEvent: setEvent })
         e.target.style[transformProp] = 'translate(' + position.x + 'px, ' + position.y + 'px)'
         e.target.style.left = position.x + 'px'
@@ -220,26 +202,6 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
           />
         );
       })}
-      {/* <div id="cuadro" className='bg-red w-4 h-4'></div>
-      <div id="pdrag1"
-        onTouchStart={() => { setDisableWrapper(true) }}
-        onTouchEnd={() => { setDisableWrapper(false) }}
-        onMouseDown={() => { setDisableWrapper(true) }}
-        onMouseUp={() => { setDisableWrapper(false) }}
-        className="truncate absolute draggable draggable-touch js-drag">
-        <div className='ign bg-red w-[30px] h-[30px]'>
-          <div id="pdragInvitado1" className='js-dragInvitadoS absolute bg-white w-[10px] h-[10px]'>
-            x
-          </div>
-        </div>
-        algo
-      </div> */}
-      {/* <div className="dropzone-wrapper w-[5px]">
-        <div id="drop1" className="dropzone h-[5px] "></div>
-        <div id="drop2" className="dropzone h-[5px] js-drop"></div>
-        <div id="drop3" className="dropzone h-[5px] js-drop"></div>
-      </div> */}
-
       <style>
         {`
           .dropzone-wrapper {
@@ -248,7 +210,6 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
               left: 0;
               right: 0;
           }
-
           .dropzone {
               overflow: hidden;
               margin: .5em;
@@ -260,14 +221,11 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
               border: 4px dashed transparent;
               transition: background .15s linear, border-color .15s linear;
           }
-
           .dropzone.-drop-possible { border-color: #666; }
-
           .dropzone.-drop-over {
               background: #666;
               color: #fff;
           }
-
           .draggable {
               height: 60px;
               z-index: 10;
@@ -280,12 +238,10 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
               left: 0px;
               top: 0px;
           }
-
           .draggable-touch {
               -ms-touch-action: none;
                   touch-action: none;
           }
-
           .draggable.-drop-possible { background-color: #42bd41; }
           .js-dropListInvitados.-drop-possibleHover:hover {
             background-color: orange;
