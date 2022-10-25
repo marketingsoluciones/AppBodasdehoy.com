@@ -25,7 +25,6 @@ type tableType = {
 };
 type schemaType = {
   redonda: tableType;
-  imperial: tableType;
   cuadrada: tableType;
   podio: tableType;
 };
@@ -53,23 +52,17 @@ const MesaComponent: FC<propsMesaComponent> = ({ posicion, mesa, invitados, setD
   const schemaGeneral: schemaType = {
     redonda: {
       position: posicion,
-      component: <MesaRedonda />,
+      component: <MesaRedonda nombreMesa={mesa.nombre_mesa} />,
       type: "radio",
-    },
-    imperial: {
-      position: ArraySillas(),
-      component: <MesaImperial mesa={mesa} invitados={invitados} setDisableWrapper={setDisableWrapper} />,
-      type: "relative",
-
     },
     cuadrada: {
       position: [0, 90, 180, 270],
-      component: <MesaCuadrada />,
+      component: <MesaCuadrada nombreMesa={mesa.nombre_mesa} />,
       type: "radio",
     },
     podio: {
       position: ArraySillas(),
-      component: <MesaPodio />,
+      component: <MesaPodio nombreMesa={mesa.nombre_mesa} />,
       type: "relative",
     },
   };
@@ -124,36 +117,40 @@ export default MesaComponent;
 interface propsTableType {
   cantidad_sillas?: number
   children?: ReactNode
+  nombreMesa: string
 }
 
-const MesaRedonda: FC<propsTableType> = ({ cantidad_sillas, children }) => {
+const MesaRedonda: FC<propsTableType> = ({ cantidad_sillas, children, nombreMesa }) => {
   return (
     <div
-      className="rounded-full transform bg-white w-20 h-20 shadow border border-gray-500 relative "
+      className="rounded-full transform bg-white w-20 h-20 shadow border border-gray-500 relative flex items-center justify-center"
     >
+      <p className="font-display text-xs text-center mx-2 leading-[12px] tracking-tight text-gray-500">{nombreMesa}</p>
       {children}
     </div>
   );
 };
 
-const MesaCuadrada: FC<propsTableType> = ({ cantidad_sillas, children }) => {
+const MesaCuadrada: FC<propsTableType> = ({ cantidad_sillas, children, nombreMesa }) => {
   return (
     <div
-      className="w-20 h-20 shadow border border-gray-500 relative bg-white"
+      className="w-20 h-20 shadow border border-gray-500 relative bg-white flex items-center justify-center"
     >
+      <p className="font-display text-xs text-center mx-2 leading-[12px] tracking-tight text-gray-500">{nombreMesa}</p>
       {children}
     </div>
   );
 };
 
-const MesaPodio: FC<propsTableType> = ({ cantidad_sillas, children }) => {
+const MesaPodio: FC<propsTableType> = ({ cantidad_sillas, children, nombreMesa }) => {
   return (
     <div
-      className="w-max h-20 shadow border border-gray-500 relative bg-white"
+      className="w-max h-20 shadow border border-gray-500 relative bg-white text-center font-display text-xs tracking-tight text-gray-500"
     >
       <div className="flex gap-4 w-full px-6 transform -translate-y-1/2">
         {children}
       </div>
+      {nombreMesa}
     </div>
   );
 };
