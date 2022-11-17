@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { AuthContextProvider } from "../../context";
+import { AuthContextProvider,EventContextProvider } from "../../context";
 import Link from "next/link";
 import { InvitacionesIcon, InvitadosIcon, MesasIcon, MisEventosIcon } from "../icons";
 import router from "next/router";
+import { useToast } from "../../hooks/useToast";
 
 const useOutsideSetShow = (ref, setShow) => {
   const handleClickOutside = (event) => {
@@ -23,6 +24,8 @@ const useOutsideSetShow = (ref, setShow) => {
 
 const NavigationMobile = () => {
   const wrapperRef = useRef(null);
+  const toast = useToast();
+  const { event } = EventContextProvider();
   const { user } = AuthContextProvider();
   const [show, setShow] = useState(false)
   useEffect(() => {
@@ -30,10 +33,30 @@ const NavigationMobile = () => {
   }, [show])
 
   const Navbar = [
-    { title: "Mis eventos", icon: <MisEventosIcon className="text-primary w-7 h-7" />, route: "/" },
-    { title: "Invitados", icon: <InvitadosIcon className="text-primary w-7 h-7" />, route: "/invitados" },
-    { title: "Invitaciones", icon: <InvitacionesIcon className="text-primary w-7 h-7" />, route: "/invitaciones" },
-    { title: "Mesas", icon: <MesasIcon className="text-primary w-7 h-7" />, route: "/mesas" },
+    { 
+      title: "Mis eventos", 
+      icon: <MisEventosIcon className="text-primary w-7 h-7" />,
+      route: "/",
+      condicion: event?._id?"verdadero":"falso" 
+    },
+    { 
+      title: "Invitados", 
+      icon: <InvitadosIcon className="text-primary w-7 h-7" />,
+      route: event?._id ? "/invitados" : "/", 
+      condicion: event?._id?"verdadero":"falso"  
+      },
+    { 
+      title: "Invitaciones", 
+      icon: <InvitacionesIcon className="text-primary w-7 h-7" />,
+      route: event?._id ? "/invitaciones" : "/",
+      condicion: event?._id?"verdadero":"falso" 
+    },
+    { 
+      title: "Mesas", 
+      icon: <MesasIcon className="text-primary w-7 h-7" />, 
+      route: event?._id ? "/mesas" : "/",
+      condicion: event?._id?"verdadero":"falso"
+    },
   ]
   useOutsideSetShow(wrapperRef, setShow);
   return (
@@ -42,7 +65,9 @@ const NavigationMobile = () => {
         {Navbar.map((item, idx) => (
 
           <Link key={idx} href={item.route}>
-            <li className="cursor-pointer transition text-primary">
+            <li 
+            onClick={() =>{item.condicion==="verdadero"?"":toast("error","Debes crear un evento")}}
+            className="cursor-pointer transition text-primary">
               {item.icon}
             </li>
           </Link>

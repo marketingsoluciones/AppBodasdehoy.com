@@ -22,6 +22,7 @@ import Profile from "./Profile";
 import Sidebar from "../Utils/Sidebar";
 import BlockNotification from "./BlockNotification";
 import { useToast } from "../../hooks/useToast";
+import { FastField } from "formik";
 
 const Navigation: any = (
   notificaciones: any,
@@ -43,32 +44,38 @@ const Navigation: any = (
     {
       title: "Mis eventos",
       icon: <MisEventosIcon />,
-      route: "/"
+      route: "/",
+      condicion: event?._id?"verdadero":"falso"
     },
     {
       title: "Invitados",
       icon: <InvitadosIcon />,
       route: event?._id ? "/invitados" : "/",
+      condicion: event?._id?"verdadero":"falso"
     },
     {
       title: "Mesas",
-      icon: <MesasIcon />, route:
-        event?._id ? "/mesas" : "/"
+      icon: <MesasIcon />, 
+      route: event?._id ? "/mesas" : "/",
+      condicion: event?._id?"verdadero":"falso"
     },
     {
       title: "Lista",
       icon: <ListaRegalosIcon />,
       route: event?._id ? "/lista-regalos" : "/",
+      condicion: event?._id?"verdadero":"falso"
     },
     {
       title: "Presupuesto",
       icon: <PresupuestoIcon />,
       route: event?._id ? "/presupuesto" : "/",
+      condicion: event?._id?"verdadero":"falso"
     },
     {
       title: "Invitaciones",
       icon: <InvitacionesIcon />,
       route: event?._id ? "/invitaciones" : "/",
+      condicion: event?._id?"verdadero":"falso"
     },
   ], [event]);
 
@@ -76,9 +83,12 @@ const Navigation: any = (
     router.pathname == "/" ? setPink(true) : setPink(false);
   }, [router]);
 
-  const handleClick = (idx, event) => {
-    if (idx > 0 && !event?._id) {
+  const handleClick = ( event) => {
+    if (!event?._id) {
       toast("warning", "Debes seleccionar un evento")
+    }else if( !event?._id ) {
+      toast("error","Debes crear un evento")
+     alert("debes crear un evento")
     }
     return
   }
@@ -119,22 +129,27 @@ const Navigation: any = (
 
         {/* menu desktop */}
         <div className={`w-full h-20 relative hidden md:block bg-base z-10`}>
-          <ul className="absolute m-auto inset-0 py-4 w-max h-max flex gap-12">
+          <ul className="absolute m-auto inset-0 py-4 w-max h-max flex gap-12">                  
             {Navbar.map((item, idx) => (
-              <Link key={idx} href={item.route} passHref>
+              
+               <Link key={idx} href={item.route} passHref >
+              
                 <li
-                  onClick={() => handleClick(idx, event)}
-                  className={`w-max flex flex-col justify-between items-center hover:opacity-80 cursor-pointer transition ${router.pathname.slice(1) == item.title.toLowerCase()
-                    ? "text-primary transform scale-105"
+                  onClick={() =>{item.condicion==="verdadero"?"":toast("error","Debes crear un evento")                    
+                  }}
+                  className={`w-max flex flex-col justify-between items-center hover:opacity-80  transition  cursor-pointer
+                  ${router.pathname.slice(1) == item.title.toLowerCase() ? "text-primary transform scale-105"
                     : router.pathname == "/"
                       ? "text-white"
                       : "text-gray-400"
-                    }`}
+                    } ${event?._id?"":""}}`}
+                  
                 >
                   {item.icon}
-                  <p className="font-display text-sm h-max">{item.title}</p>
+                  <p className="font-display text-sm h-max"  >{item.title}</p>
+                  
                 </li>
-              </Link>
+              </Link> 
             ))}
           </ul>
           <Banner
