@@ -6,6 +6,7 @@ module.exports = {
     fontFamily: {
       "body": ['Montserrat', ...defaultTheme.fontFamily.sans],
       "display": ['Poppins', ...defaultTheme.fontFamily.sans],
+      "title": ['Italiana', ...defaultTheme.fontFamily.sans],
     },
     extend :{
       colors: {

@@ -22,7 +22,7 @@ import Profile from "./Profile";
 import Sidebar from "../Utils/Sidebar";
 import BlockNotification from "./BlockNotification";
 import { useToast } from "../../hooks/useToast";
-import { FastField } from "formik";
+import Navbar2 from "../Utils/Navbar";
 
 const Navigation: any = (
   notificaciones: any,
@@ -83,7 +83,7 @@ const Navigation: any = (
     router.pathname == "/" ? setPink(true) : setPink(false);
   }, [router]);
 
-  const handleClick = ( event) => {
+  /* const handleClick = ( event) => {
     if (!event?._id) {
       toast("warning", "Debes seleccionar un evento")
     }else if( !event?._id ) {
@@ -91,7 +91,7 @@ const Navigation: any = (
      alert("debes crear un evento")
     }
     return
-  }
+  } */
 
   return (
     <>
@@ -120,6 +120,7 @@ const Navigation: any = (
               <LogoNuevoBodasBlanco className="hover:opacity-80 transition text-primary" />
             </span>
           </Link>
+          <Navbar2/>
           <Profile
             state={isMounted}
             set={(act) => setIsMounted(act)}
