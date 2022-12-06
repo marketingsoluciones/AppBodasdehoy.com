@@ -38,7 +38,7 @@ const Invitados: FC = () => {
         {event && <section className="bg-base w-full h-full ">
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="max-w-screen-lg mx-auto inset-x-0 w-full px-5 md:px-0 gap-4">
 
-            <Breadcumbs />
+            <Breadcumbs /* evento={event} */ />
 
 
             <BlockCabecera />

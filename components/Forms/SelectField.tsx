@@ -16,10 +16,10 @@ const SelectField : FC <propsSelectField> = ({label, children, options, ...props
         <div className="relative w-full h-full flex-col content-between	">
             <label className="font-display text-sm text-primary w-full">{label}</label>
             <div>
-            <select className="font-display text-sm text-gray-500 border border-gray-100 focus:border-primary transition w-full py-2 px-4 rounded-xl focus:outline-none transition" {...field} {...props} >
-            <option disabled value="">
-                Seleccionar
-              </option>
+            <select className="font-display text-sm text-gray-500 border border-gray-100 focus:border-primary transition w-full py-2 pr-7 rounded-xl focus:outline-none transition cursor-pointer" {...field} {...props} >
+                <option disabled value="" >
+                    Seleccionar
+                </option>
             {options?.map((option: string, idx: number) => (
                 <option key={idx} value={option}>{option && capitalize(option)}</option>
             ))}
