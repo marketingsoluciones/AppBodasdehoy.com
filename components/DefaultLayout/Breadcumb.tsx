@@ -7,75 +7,54 @@ import { Form, Formik } from 'formik';
 import { setCookie } from '../../utils/Cookies';
 import { useRouter } from 'next/router';
 
-const Breadcumbs = (/* { evento } */) => {
+const Breadcumbs = () => {
     const { event, setEvent } = EventContextProvider()
     const { eventsGroup } = EventsGroupContextProvider()
     console.log(event)
-   
+
 
     /* arry para mostrar la lista de eventos */
     const EventArry: string[] = eventsGroup.reduce((acc, el) => acc.concat(el.nombre), [])
 
-   /*  const { nombre } = evento
-    const router = useRouter()
+    /*  const { nombre } = evento */
+   /*  const router = useRouter() */
 
-    const handleClick = () => {
+    const handleChange = (nombre) => {
         try {
-            setEvent(evento);
-            setCookie(nombre);
+            console.log("nombre",nombre)
+            setEvent(eventsGroup.find((el: any) => el.nombre === nombre ));
         } catch (error) {
             console.log(error);
         }
-    }; */
+    };
 
 
     /* evalua la informacion del formik */
-    type MyValues = {
+   /*  type MyValues = {
         evento: string
     }
 
     const initialValues: MyValues = {
         evento: "",
-    };
+    }; */
 
 
     return (
         <>
             <div className="flex gap-2 items-center w-max py-2 font-display text-sm text-gray-500 *cursor-pointer *hover:text-gray-400  transform transition">
-                <FlechaIcon />
+                {/* <FlechaIcon />
                 <Link href="/resumen-evento" passHref>
                     <p >Volver a resumen del evento: {event?.nombre}</p>
-                </Link>
+                </Link> */}
 
-                {/* <span>Selecciona tu evento</span>
+                <span>Selecciona tu evento</span>
 
-                <Formik
-                    initialValues={initialValues}
-                    onSubmit={handleClick}
+                <select value={event.nombre} onChange={ e => handleChange(e.target.value) } className="w-28 rounded py-1 truncate ">
+                    {EventArry.map((item, idx)=>(
+                        <option key={idx} value={item} className="text-ellipsis ">{item}</option>
+                    ))}
+                </select>
 
-                >
-                    {({ isSubmitting }) => (
-                        <Form className='cursor-pointer'
-                            onSubmit={handleClick}
-                        >
-
-                            <SelectField
-                                name="evento"
-                                label=""
-                                options={EventArry}
-                            />
-                            <button
-                                    disabled={isSubmitting}
-                                    type="submit"
-                                    className={`font-display rounded-full mt-4 py-2 px-6 text-white font-medium transition w-full hover:opacity-70 ${isSubmitting ? "bg-secondary" : "bg-primary"
-                                        }`}
-                                >
-                                    Guardar
-                                </button>
-
-                        </Form>
-                    )}
-                </Formik> */}
             </div>
         </>
     )
