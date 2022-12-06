@@ -13,7 +13,7 @@ const BandejaDeMensajes = () => {
     <>
       <section className="bg-base w-full h-full">
         <div className="max-w-screen-lg mx-auto inset-x-0 w-full py-2 px-5 md:px-0">
-          <Breadcumbs />
+          {/* <Breadcumbs /> */}
           <BlockTitle title="Bandeja de Entrada" />
           <div className="grid grid-cols-1 w-full md:grid-cols-4 gap-6 py-6">
             <div className="col-span-1 flex items-center md:items-start justify-between md:flex-col bg-white shadow-lg rounded-xl w-full py-4 px-4 h-max">

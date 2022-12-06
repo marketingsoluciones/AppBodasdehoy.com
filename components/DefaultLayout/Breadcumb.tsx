@@ -1,11 +1,8 @@
 import Link from 'next/link'
 import React from 'react'
-import { FlechaIcon } from '../icons'
+
 import { EventContextProvider, EventsGroupContextProvider } from "../../context";
-import SelectField from '../Forms/SelectField';
-import { Form, Formik } from 'formik';
-import { setCookie } from '../../utils/Cookies';
-import { useRouter } from 'next/router';
+
 
 const Breadcumbs = () => {
     const { event, setEvent } = EventContextProvider()
@@ -19,10 +16,10 @@ const Breadcumbs = () => {
     /*  const { nombre } = evento */
    /*  const router = useRouter() */
 
-    const handleChange = (nombre) => {
+    const handleChange = (e:any) => {
         try {
-            console.log("nombre",nombre)
-            setEvent(eventsGroup.find((el: any) => el.nombre === nombre ));
+            console.log("nombre",e)
+            setEvent(eventsGroup.find((el: any) => el.nombre === e));
         } catch (error) {
             console.log(error);
         }
@@ -49,7 +46,7 @@ const Breadcumbs = () => {
 
                 <span>Selecciona tu evento</span>
 
-                <select value={event.nombre} onChange={ e => handleChange(e.target.value) } className="w-28 rounded py-1 truncate ">
+                <select value={event.nombre} onChange={ (e) => handleChange(e.target.value) } className="w-28 rounded py-1 truncate ">
                     {EventArry.map((item, idx)=>(
                         <option key={idx} value={item} className="text-ellipsis ">{item}</option>
                     ))}
