@@ -21,7 +21,7 @@ const useOutsideSetShow = (ref, setShow) => {
     };
   });
 };
-
+/* menu inferior con las opciones de redireccion de la app en vista movil */
 const NavigationMobile = () => {
   const wrapperRef = useRef(null);
   const toast = useToast();

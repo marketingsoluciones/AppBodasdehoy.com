@@ -6,7 +6,7 @@ const VistaSinCookie = () => {
   return (
     <>
       <div className="float-right text-gray-500 font-display section flex items-center justify-center">
-        <Link href={`${process.env.NEXT_PUBLIC_DIRECTORY}/login?d=app` ?? ""} passHref >
+        <Link href={`${process.env.NEXT_PUBLIC_DIRECTORY}/login?d=app` ?? "/"} passHref >
           <div className="flex items-center justify-center h-[calc(100vh-300px)] w-[calc(100vw-10px)] cursor-pointer">
             <div className="md:pb-6 md:w-1/2 mx-auto ">
               <h2 className="w-full text-2xl font-bold font-display text-center pb-3">Te invito a iniciar sesion en </h2>

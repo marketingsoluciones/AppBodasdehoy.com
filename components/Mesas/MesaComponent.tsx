@@ -14,6 +14,7 @@ interface propsMesaComponent {
   invitados: guests[];
   setDisableWrapper: any
   setShowFormEditar: any
+  disableDrag: any
 }
 
 enum types {
@@ -31,7 +32,7 @@ type schemaType = {
   podio: tableType;
 };
 
-const MesaComponent: FC<propsMesaComponent> = ({ posicion, mesa, invitados, setDisableWrapper, setShowFormEditar }) => {
+const MesaComponent: FC<propsMesaComponent> = ({ posicion, mesa, invitados, setDisableWrapper, setShowFormEditar, disableDrag }) => {
   const { cantidad_sillas } = mesa;
   const [nSillas, setNSillas] = useState([]);
 
@@ -54,17 +55,17 @@ const MesaComponent: FC<propsMesaComponent> = ({ posicion, mesa, invitados, setD
   const schemaGeneral: schemaType = {
     redonda: {
       position: posicion,
-      component: <MesaRedonda mesa={mesa} setShowFormEditar={setShowFormEditar} />,
+      component: <MesaRedonda mesa={mesa} setShowFormEditar={setShowFormEditar} disableDrag= {disableDrag} />,
       type: "radio",
     },
     cuadrada: {
       position: [0, 90, 180, 270],
-      component: <MesaCuadrada mesa={mesa} setShowFormEditar={setShowFormEditar} />,
+      component: <MesaCuadrada mesa={mesa} setShowFormEditar={setShowFormEditar} disableDrag= {disableDrag} />,
       type: "radio",
     },
     podio: {
       position: ArraySillas(),
-      component: <MesaPodio mesa={mesa} setShowFormEditar={setShowFormEditar} />,
+      component: <MesaPodio mesa={mesa} setShowFormEditar={setShowFormEditar} disableDrag= {disableDrag} />,
       type: "relative",
     },
   };
@@ -77,7 +78,7 @@ const MesaComponent: FC<propsMesaComponent> = ({ posicion, mesa, invitados, setD
   if (["imperial"].includes(mesa.tipo)) {
     return (
       <>
-        <MesaImperial mesa={mesa} invitados={invitados} setDisableWrapper={setDisableWrapper} setShowFormEditar={setShowFormEditar} />
+        <MesaImperial mesa={mesa} invitados={invitados} setDisableWrapper={setDisableWrapper} setShowFormEditar={setShowFormEditar} disableDrag= {disableDrag} />
       </>
     )
   } else {
@@ -121,12 +122,13 @@ interface propsTableType {
   children?: ReactNode
   mesa: table
   setShowFormEditar: any
+  disableDrag: any
 }
 
-const MesaRedonda: FC<propsTableType> = ({ cantidad_sillas, children, mesa, setShowFormEditar }) => {
+const MesaRedonda: FC<propsTableType> = ({ cantidad_sillas, children, mesa, setShowFormEditar ,disableDrag }) => {
   return (
     <>
-      <EditMesa mesa={mesa} setShowFormEditar={setShowFormEditar} />
+      <EditMesa mesa={mesa} setShowFormEditar={setShowFormEditar}  disableDrag= {disableDrag}/>
       <div
         className="rounded-full transform bg-white w-20 h-20 shadow border border-gray-500 relative flex items-center justify-center"
       >
@@ -137,10 +139,10 @@ const MesaRedonda: FC<propsTableType> = ({ cantidad_sillas, children, mesa, setS
   );
 };
 
-const MesaCuadrada: FC<propsTableType> = ({ cantidad_sillas, children, mesa, setShowFormEditar }) => {
+const MesaCuadrada: FC<propsTableType> = ({ cantidad_sillas, children, mesa, setShowFormEditar,disableDrag }) => {
   return (
     <>
-      <EditMesa mesa={mesa} setShowFormEditar={setShowFormEditar} />
+      <EditMesa mesa={mesa} setShowFormEditar={setShowFormEditar} disableDrag= {disableDrag} />
       <div
         className="w-20 h-20 shadow border border-gray-500 relative bg-white flex items-center justify-center"
       >
@@ -151,10 +153,10 @@ const MesaCuadrada: FC<propsTableType> = ({ cantidad_sillas, children, mesa, set
   );
 };
 
-const MesaPodio: FC<propsTableType> = ({ cantidad_sillas, children, mesa, setShowFormEditar }) => {
+const MesaPodio: FC<propsTableType> = ({ cantidad_sillas, children, mesa, setShowFormEditar, disableDrag }) => {
   return (
     <>
-      <EditMesa mesa={mesa} setShowFormEditar={setShowFormEditar} />
+      <EditMesa mesa={mesa} setShowFormEditar={setShowFormEditar} disableDrag= {disableDrag} />
       <div
         className="w-max h-20 shadow border border-gray-500 relative bg-white text-center font-display text-xs tracking-tight text-gray-500"
       >

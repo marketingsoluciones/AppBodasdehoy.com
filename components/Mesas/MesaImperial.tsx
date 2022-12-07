@@ -10,8 +10,9 @@ interface propsMesaImperial {
   invitados: guests[]
   setDisableWrapper: any
   setShowFormEditar: any
+  disableDrag: any
 }
-export const MesaImperial: FC<propsMesaImperial> = ({ mesa, invitados, setDisableWrapper, setShowFormEditar }) => {
+export const MesaImperial: FC<propsMesaImperial> = ({ mesa, invitados, setDisableWrapper, setShowFormEditar,disableDrag }) => {
   useEffect(() => {
     console.log("mesa", mesa)
   }, [])
@@ -46,7 +47,7 @@ export const MesaImperial: FC<propsMesaImperial> = ({ mesa, invitados, setDisabl
 
   return (
     <>
-      <EditMesa mesa={mesa} setShowFormEditar={setShowFormEditar} />
+      <EditMesa mesa={mesa} setShowFormEditar={setShowFormEditar} disableDrag= {disableDrag} />
       <div className="w-40 left-0 h-20 bg-white shadow border border-gray-500 flex items-center justify-center relative">
         <span className="font-display text-xs tracking-tight">{mesa.nombre_mesa}</span>
         <Chair

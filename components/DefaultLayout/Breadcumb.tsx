@@ -7,34 +7,19 @@ import { EventContextProvider, EventsGroupContextProvider } from "../../context"
 const Breadcumbs = () => {
     const { event, setEvent } = EventContextProvider()
     const { eventsGroup } = EventsGroupContextProvider()
-    console.log(event)
-
 
     /* arry para mostrar la lista de eventos */
     const EventArry: string[] = eventsGroup.reduce((acc, el) => acc.concat(el.nombre), [])
 
-    /*  const { nombre } = evento */
-   /*  const router = useRouter() */
 
+    /* funcion que setea el contexto eventGroups que recibe del select  */
     const handleChange = (e:any) => {
         try {
-            console.log("nombre",e)
             setEvent(eventsGroup.find((el: any) => el.nombre === e));
         } catch (error) {
             console.log(error);
         }
     };
-
-
-    /* evalua la informacion del formik */
-   /*  type MyValues = {
-        evento: string
-    }
-
-    const initialValues: MyValues = {
-        evento: "",
-    }; */
-
 
     return (
         <>

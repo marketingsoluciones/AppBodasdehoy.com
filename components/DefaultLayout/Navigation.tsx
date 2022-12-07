@@ -104,13 +104,13 @@ const Navigation: any = (
       )}
       <Sidebar state={showSidebar} set={(accion) => setShowSidebar(accion)} />
       <header className="f-top relative w-full bg-white">
-        {/* menu mobile */}
+        {/* primer menu superior con logo, redirecion al directiorio y opciones de perfil para la vista desktop  */}
         <div className="max-w-screen-lg h-16 px-5 lg:px-0 w-full flex justify-between items-center mx-auto inset-x-0 ">
           <MenuIcon
             onClick={() => setShowSidebar(!showSidebar)}
             className="md:hidden cursor-pointer"
           />
-          <Link href={process.env.NEXT_PUBLIC_DIRECTORY ?? ""} passHref>
+          <Link href={process.env.NEXT_PUBLIC_DIRECTORY ?? "/"} passHref>
             <span
               onClick={() => {
                 Loading(setLoading);
@@ -128,7 +128,7 @@ const Navigation: any = (
           />
         </div>
 
-        {/* menu desktop */}
+        {/* segundo menu superior con las redirecciones funcionales de la app */}
         <div className={`w-full h-20 relative hidden md:block bg-base z-10`}>
           <ul className="absolute m-auto inset-0 py-4 w-max h-max flex gap-12">                  
             {Navbar.map((item, idx) => (

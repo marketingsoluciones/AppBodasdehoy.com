@@ -24,7 +24,7 @@ const Profile = ({ user, state, set, ...rest }) => {
             onClick={() => set(!state)}
           /> */}
 
-          <a href={process.env.NEXT_PUBLIC_CHAT ?? ""} >
+          <a href={process.env.NEXT_PUBLIC_CHAT ?? "/"} >
             <MensajeIcon className="cursor-pointer hover:opacity-80 transition" />
           </a>
         </span>
@@ -41,7 +41,7 @@ const Profile = ({ user, state, set, ...rest }) => {
                     <button onClick={async () => { router.push(`${process.env.NEXT_PUBLIC_DIRECTORY}/login?d=app` ?? "") }}>Login</button>
                   </li>}
                   {ListaDropdown?.map((item, idx) => (
-                    <Link href={item?.route ?? ""} key={idx} passHref>
+                    <Link href={item?.route ?? "/"} key={idx} passHref>
                       <li
                         className="w-full pl-5 py-1 text-gray-500 transition  hover:bg-primary hover:text-white font-display text-sm"
                         onClick={item?.function}

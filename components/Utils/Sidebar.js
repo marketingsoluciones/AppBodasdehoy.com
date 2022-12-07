@@ -4,9 +4,10 @@ import { AuthContextProvider, EventContextProvider } from "../../context"
 import { InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, MesasIcon, MisEventosIcon, PresupuestoIcon } from "../icons"
 import { useToast } from "../../hooks/useToast"
 
+/* menu desplegable izquierdo en la vista movil con las opciones de redireccion de la app */
 const Sidebar = ({ set, state }) => {
     const { user } = AuthContextProvider()
-    const { event } = EventContextProvider
+    const { event } = EventContextProvider()
     const toast = useToast()
 
     const ListaNavbar = [

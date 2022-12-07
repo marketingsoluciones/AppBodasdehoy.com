@@ -35,6 +35,7 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables, setShowFormEditar 
   useEffect(() => {
     console.log("disableDrag(deshabilita mover mesa)", disableDrag)
   }, [disableDrag])
+
   useEffect(() => {
     console.log("disableWrapper(deshabilita zoom lienzo)", disableWrapper)
   }, [disableWrapper])
