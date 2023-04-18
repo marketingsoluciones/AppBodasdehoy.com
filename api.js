@@ -25,7 +25,7 @@ export const api = {
     const token_final = token || Cookies.get("idToken")
     return await instance.post("/graphql", params, {
       headers: {
-        'Authorization': `Bearer ${token_final}`
+        Authorization: `Bearer ${token_final}`,
       }
     });
   },
@@ -34,8 +34,9 @@ export const api = {
     const token_final = token || Cookies.get("idToken")
     return await instance.post("/graphql", data, {
       headers: {
-        'Authorization': `Bearer ${token_final}`,
-        "Content-Type": "multipart/form-data"
+        Authorization: `Bearer ${token_final}`,
+        "Content-Type": "multipart/form-data",
+        Development: "bodasdehoy"
       }
     });
   },
@@ -84,7 +85,11 @@ export const api = {
   },
 
   ApiBodasExpress: async (data, token) => {
-    return axios.post('https://api.bodasdehoy.com/graphql', data)
+    return axios.post('https://api.bodasdehoy.com/graphql', data, {
+      headers: {
+        Development: `bodasdehoy`,
+      }
+    })
   }
 };
 
