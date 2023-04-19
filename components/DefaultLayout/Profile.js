@@ -5,8 +5,13 @@ import { capitalize } from "../../utils/Capitalize";
 import { CorazonIcono, MensajeIcon } from "../icons";
 import { useAuthentication } from "../../utils/Authentication";
 import router from "next/router";
+import { auth } from "../../firebase";
+import { signOut } from "firebase/auth";
+import { AuthContextProvider } from "../../context";
+import Cookies from "js-cookie";
 
 const Profile = ({ user, state, set, ...rest }) => {
+  const { setUser } = AuthContextProvider()
   const [dropdown, setDropwdon] = useState(false);
   const ListaDropdown = [
     { title: "Ir al directorio", route: process.env.NEXT_PUBLIC_DIRECTORY },
@@ -52,7 +57,12 @@ const Profile = ({ user, state, set, ...rest }) => {
                     </Link>
                   ))}
                   {user && <li className="w-full pl-5 py-1 text-gray-500 transition  hover:bg-primary hover:text-white font-display text-sm">
-                    <button onClick={async () => { router.push(`${process.env.NEXT_PUBLIC_DIRECTORY}/signout?end=true` ?? "") }}>Cerrar Sesión</button>
+                    <button onClick={async () => {
+                      Cookies.remove("sessionBodas", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "" });
+                      Cookies.remove("idToken", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "" });
+                      await signOut(auth);
+                      router.push(`${process.env.NEXT_PUBLIC_DIRECTORY}/signout?end=true` ?? "")
+                    }}>Cerrar Sesión</button>
                   </li>}
                 </ul>
               </div>

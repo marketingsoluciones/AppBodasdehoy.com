@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { AuthContextProvider,EventContextProvider } from "../../context";
+import { AuthContextProvider, EventContextProvider } from "../../context";
 import Link from "next/link";
 import { InvitacionesIcon, InvitadosIcon, MesasIcon, MisEventosIcon } from "../icons";
 import router from "next/router";
 import { useToast } from "../../hooks/useToast";
+import Cookies from "js-cookie";
+import { signOut } from "firebase/auth";
+import { auth } from "../../firebase";
 
 const useOutsideSetShow = (ref, setShow) => {
   const handleClickOutside = (event) => {
@@ -33,29 +36,29 @@ const NavigationMobile = () => {
   }, [show])
 
   const Navbar = [
-    { 
-      title: "Mis eventos", 
+    {
+      title: "Mis eventos",
       icon: <MisEventosIcon className="text-primary w-7 h-7" />,
       route: "/",
-      condicion: event?._id?"verdadero":"falso" 
+      condicion: event?._id ? "verdadero" : "falso"
     },
-    { 
-      title: "Invitados", 
+    {
+      title: "Invitados",
       icon: <InvitadosIcon className="text-primary w-7 h-7" />,
-      route: event?._id ? "/invitados" : "/", 
-      condicion: event?._id?"verdadero":"falso"  
-      },
-    { 
-      title: "Invitaciones", 
+      route: event?._id ? "/invitados" : "/",
+      condicion: event?._id ? "verdadero" : "falso"
+    },
+    {
+      title: "Invitaciones",
       icon: <InvitacionesIcon className="text-primary w-7 h-7" />,
       route: event?._id ? "/invitaciones" : "/",
-      condicion: event?._id?"verdadero":"falso" 
+      condicion: event?._id ? "verdadero" : "falso"
     },
-    { 
-      title: "Mesas", 
-      icon: <MesasIcon className="text-primary w-7 h-7" />, 
+    {
+      title: "Mesas",
+      icon: <MesasIcon className="text-primary w-7 h-7" />,
       route: event?._id ? "/mesas" : "/",
-      condicion: event?._id?"verdadero":"falso"
+      condicion: event?._id ? "verdadero" : "falso"
     },
   ]
   useOutsideSetShow(wrapperRef, setShow);
@@ -65,9 +68,9 @@ const NavigationMobile = () => {
         {Navbar.map((item, idx) => (
 
           <Link key={idx} href={item.route}>
-            <li 
-            onClick={() =>{item.condicion==="verdadero"?"":toast("error","Debes crear un evento")}}
-            className="cursor-pointer transition text-primary">
+            <li
+              onClick={() => { item.condicion === "verdadero" ? "" : toast("error", "Debes crear un evento") }}
+              className="cursor-pointer transition text-primary">
               {item.icon}
             </li>
           </Link>
@@ -87,7 +90,7 @@ const NavigationMobile = () => {
                     show &&
                     <div ref={wrapperRef} >
                       <ProfileMenu />
-                    </div>} 
+                    </div>}
                 </>
               );
             } else {
@@ -124,7 +127,12 @@ const ProfileMenu = () => {
           </Link>
 
           {user && <li className="w-full pl-5 py-1 text-gray-500 transition  hover:bg-primary hover:text-white font-display text-sm">
-            <button onClick={async () => { router.push(`${process.env.NEXT_PUBLIC_DIRECTORY}/signout?end=true` ?? "") }}>Cerrar Sesión</button>
+            <button onClick={async () => {
+              Cookies.remove("sessionBodas", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "" });
+              Cookies.remove("idToken", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "" });
+              await signOut(auth);
+              router.push(`${process.env.NEXT_PUBLIC_DIRECTORY}/signout?end=true` ?? "")
+            }}>Cerrar Sesión</button>
           </li>}
 
         </ul>

@@ -24,6 +24,7 @@ const AuthProvider = ({ children }) => {
     auth.onAuthStateChanged(async (user) => {
       const sessionCookie = Cookies.get("sessionBodas");
       console.info("Verificando cookie", sessionCookie);
+      setUser(user)
       if (sessionCookie) {
         console.info("Tengo cookie de sesion");
         if (user) {

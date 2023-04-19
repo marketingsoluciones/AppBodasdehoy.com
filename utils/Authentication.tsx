@@ -14,27 +14,27 @@ export const useAuthentication = () => {
   const toast = useToast();
   const router = useRouter();
 
- /*  const getSessionCookie = useCallback(async (tokenID): Promise<string | undefined> => {
-    if (tokenID) {
-      const authResult = await fetchApi({
-        query: queries.auth,
-        variables: { idToken: tokenID },
-      });
-      if (authResult?.sessionCookie) {
-        const { sessionCookie } = authResult;
-        // Setear en localStorage token JWT
-        Cookies.set("sessionBodas", sessionCookie, { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "" });
-        return sessionCookie
-      } else {
-        console.warn("No se pudo cargar la cookie de sesión por que hubo un problema")
-        throw new Error("No se pudo cargar la cookie de sesión por que hubo un problema")
-      }
-    } else {
-      console.warn("No hay tokenID para pedir la cookie de sesion")
-      throw new Error("No hay tokenID para pedir la cookie de sesion")
-    }
-
-  }, []) */
+  /*  const getSessionCookie = useCallback(async (tokenID): Promise<string | undefined> => {
+     if (tokenID) {
+       const authResult = await fetchApi({
+         query: queries.auth,
+         variables: { idToken: tokenID },
+       });
+       if (authResult?.sessionCookie) {
+         const { sessionCookie } = authResult;
+         // Setear en localStorage token JWT
+         Cookies.set("sessionBodas", sessionCookie, { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "" });
+         return sessionCookie
+       } else {
+         console.warn("No se pudo cargar la cookie de sesión por que hubo un problema")
+         throw new Error("No se pudo cargar la cookie de sesión por que hubo un problema")
+       }
+     } else {
+       console.warn("No hay tokenID para pedir la cookie de sesion")
+       throw new Error("No hay tokenID para pedir la cookie de sesion")
+     }
+ 
+   }, []) */
 
   /* const signIn = useCallback(
     async (type: keyof typeof types, payload) => {
@@ -115,18 +115,15 @@ export const useAuthentication = () => {
   ); */
 
   const _signOut = useCallback(async () => {
-    /* await fetchApi({ query: queries.signOut, variables: { sessionCookie: Cookies.get("sessionBodas") } }) */
     Cookies.remove("sessionBodas", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "" });
     Cookies.remove("idToken", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "" });
-   /*  setUser(null); */
     await signOut(auth);
-    await router.push("/");
-    toast("success", "Gracias por visitarnos, te esperamos luego 😀");
-  }, [router, setUser, toast])
+    router.push(`${process.env.NEXT_PUBLIC_DIRECTORY}/signout?end=true` ?? "")
+  }, [router])
 
 
 
-  return {  _signOut };
+  return { _signOut };
 
 };
 
