@@ -110,7 +110,7 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables, setShowFormEditar 
                       <span className="text-sm pb-1">- </span>
                     </ButtonConstrolsLienzo>
                     <ButtonConstrolsLienzo onClick={handleSetDisableDrag} pulseButton={disableDrag}>
-                      <span className="text-[10px] w-[90px]">{disableDrag ? 'Desloquear Mesas' : 'Bloquear Mesas'}</span>
+                      <span className="text-[10px] w-[90px]">{disableDrag ? 'Desloquear plano' : 'Bloquear plano'}</span>
                     </ButtonConstrolsLienzo>
                     <ButtonConstrolsLienzo onClick={handleSetShowTables} className="md:hidden">
                       <span className="text-[10px] w-[60px]">{showTables ? 'Ver Invitados' : 'Crear Mesas'}</span>
