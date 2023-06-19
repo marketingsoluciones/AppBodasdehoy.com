@@ -248,12 +248,12 @@ const GridCards: FC<propsGridCards> = ({ state, set }) => {
   const Lista = [
     { nombre: "Pendientes", value: "pendiente", color: "tertiary" },
     { nombre: "Realizados", value: "realizado", color: "secondary" },
-    /* { nombre: "Eliminados", value: "borrado", color: "gray-100" }, */
+    { nombre: "Todos", value: "borrado", color: "gray-300" },
   ];
 
   return (
     <>
-      <div className="bg-white w-full grid-cards flex flex-col pt-8 gap-6 justify-center items-center max-w-screen-lg xl:max-w-screen-xl inset-x-0 mx-auto  ">
+      <div className="bg-white w-full grid-cards flex flex-col pt-8  justify-center items-center max-w-screen-lg xl:max-w-screen-xl inset-x-0 mx-auto  ">
         <div className="flex gap-4">
           {Lista.map((item, idx) => (
             <button
@@ -269,43 +269,45 @@ const GridCards: FC<propsGridCards> = ({ state, set }) => {
             </button>
           ))}
         </div>
-        <div className="w-full ">
+        <div className="w-full h-max ">
           {tabsGroup.map((group, idx) => (
             <div key={idx}>
               {isActive == idx ? (
-                <Swiper
-                  key={idx}
-                  spaceBetween={50}
-                  breakpoints={{
-                    0: {
-                      slidesPerView: 1,
-                      spaceBetween: 25,
-                    },
-                    768: {
-                      slidesPerView: 3,
-                      spaceBetween: 25,
-                    },
-                  }}
-                  id={group?.status}
-                  className={` h-40 ${isActive == idx ? "" : "hidden"}`}
-                >
-                  {group?.data?.map((evento, idx) => (
-                    <SwiperSlide
-                      key={idx}
+                <>
+                  <Swiper
+                    key={idx}
+                    spaceBetween={50}
+                    pagination={{ clickable: true }}
+                    breakpoints={{
+                      0: {
+                        slidesPerView: 1,
+                        spaceBetween: 25,
+                      },
+                      768: {
+                        slidesPerView: 3,
+                        spaceBetween: 25,
+                      },
+                    }}
+                    id={group?.status}
+                    className={` h-52 ${isActive == idx ? "" : "hidden"}`}
+                  >
+                    {group?.data?.map((evento, idx) => (
+                      <>
+                        <SwiperSlide
+                          key={idx}
                       className="flex items-center justify-center"
-                    >
-                      <Card key={evento._id} evento={evento} />
-                    </SwiperSlide>
-                  ))}
-                  {group?.vacio?.map((e, idx) => (
+                        >
+                          <Card key={evento._id} evento={evento} />
+                        </SwiperSlide>
+                      </>
+                    ))}
                     <SwiperSlide
-                      key={idx}
                       className={`flex items-center justify-center`}
                     >
                       <CardEmpty state={state} set={(accion) => set(accion)} />
                     </SwiperSlide>
-                  ))}
-                </Swiper>
+                  </Swiper>
+                </>
               ) : null}
             </div>
           ))}

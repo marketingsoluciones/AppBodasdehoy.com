@@ -30,7 +30,7 @@ const Toast: FC<Toast> = ({ message, id, type }) => {
   const { dispatch } = ToastContextProvider()
 
   const colors = {
-    success: "bg-green-400",
+    success: "bg-green",
     error: "bg-red",
     warning: "bg-yellow-700",
 
