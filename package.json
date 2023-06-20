@@ -44,6 +44,7 @@
     "react-dnd-touch-backend": "^14.0.0",
     "react-dom": "^18.1.0",
     "react-draggable": "^4.4.3",
+    "react-select": "^5.7.3",
     "react-table": "^7.6.3",
     "react-transition-group": "^4.4.5",
     "react-zoom-pan-pinch": "^2.1.3",

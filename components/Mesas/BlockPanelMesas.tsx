@@ -21,8 +21,8 @@ const BlockPanelMesas: FC<propsBlockPanelMesas> = ({ set, state, setModelo }) =>
   }
 
   return (
-    <div className="shadow-lg ">
-      <div className="bg-secondary rounded-xl pb-6 md:pb-3 relative">
+    
+      <div className="bg-secondary rounded-xl pb-6 md:pb-3 relative shadow-lg">
         <div className="relative">
           <h1 className="font-display font-semibold text-2xl text-white px-6 py-4 md:py-1 relative">
             Mesas
@@ -38,7 +38,7 @@ const BlockPanelMesas: FC<propsBlockPanelMesas> = ({ set, state, setModelo }) =>
           ))}
         </div>
       </div>
-    </div>
+    
   );
 };
 

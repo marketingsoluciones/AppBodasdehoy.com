@@ -22,7 +22,7 @@ const BlockInvitados: FC<propsBlockInvitados> = ({ InvitadoNoSentado, set }) => 
                         <p>Añadir invitado</p>
                     </button>
                 </div>
-                <div id={"listInvitados"} className='md:h-[calc(100vh-144px-260px-36px)] js-drop pg-3 h-[206px] overflow-auto'>
+                <div id={"listInvitados"} className='md:h-[calc(97vh-144px-260px-36px)] js-drop pg-3 h-[206px] overflow-auto'>
                     <ListInvitados InvitadoNoSentado={InvitadoNoSentado} />
                 </div>
             </div>

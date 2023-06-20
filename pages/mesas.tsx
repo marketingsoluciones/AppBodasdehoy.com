@@ -108,7 +108,7 @@ const Mesas: FC = () => {
               </div>
               {/* web */}
               <div className={`hidden md:flex h-[calc(100vh-144px)] col-span-3 box-border px-2 flex-col transform transition duration-700 overflow-y-auto`}>
-                <div className="h-[260px]">
+                <div className="h-[260px] mb-4">
                   <Breadcumb />
                   <BlockPanelMesas
                     setModelo={setModelo}
