@@ -42,9 +42,9 @@ const Navigation: any = (
 
   const Navbar = useMemo(() => [
     {
-      title: "Mis eventos",
+      title: "Mi evento",
       icon: <MisEventosIcon />,
-      route: "/",
+      route: event?._id ? "/resumen-evento" : "/",
       condicion: event?._id?"verdadero":"falso"
     },
     {
