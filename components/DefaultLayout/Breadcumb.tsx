@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import React, { useMemo, useState } from 'react'
-import Select, { InputActionMeta } from 'react-select'
+import Select, { StylesConfig } from 'react-select'
 
 
 
@@ -53,21 +53,47 @@ const Breadcumbs = () => {
         }
     };
 
-    return (
-        <>
-            <Select
-                className='mb-3 font-body z-30'
-                onChange={(e) => { handleChange(e?.value)}}
-                placeholder={event?.nombre}
-                options={options}
-                isDisabled={isDisabled}
-                isLoading={isLoading}
-                isClearable={isClearable}
-                isSearchable={isSearchable}
+    const dot = (color = 'red') => ({
+        alignItems: 'start',
+        display: 'flex',
 
-            />
-        </>
-    )
+        ':before': {
+            backgroundColor: color,
+            borderRadius: 10,
+            content: '" "',
+            display: 'block',
+            marginRight: 8,
+            height: 10,
+            width: 10,
+        },
+    });
+
+    const selectStyle = {
+        control: (styles) => ({ ...styles, backgroundColor: 'transparent', border:"none" ,cursor:"pointer"  }),
+    }
+
+
+return (
+    <div className='flex items-center gap-2 py-4'>
+        <span className='font-body cursor-default'>
+            Evento
+        </span>
+
+
+        <Select
+            className=' font-body z-30 w-full '
+            onChange={(e) => { handleChange(e?.value) }}
+            placeholder={event?.nombre}
+            options={options}
+            isDisabled={isDisabled}
+            isLoading={isLoading}
+            isClearable={isClearable}
+            isSearchable={isSearchable}
+            styles={selectStyle}
+        />
+
+    </div >
+)
 }
 
 export default React.memo(Breadcumbs)
