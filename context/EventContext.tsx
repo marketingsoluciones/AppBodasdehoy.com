@@ -1,30 +1,35 @@
-import { createContext, useState, useContext, useEffect, Dispatch, SetStateAction} from "react";
+import { createContext, useState, useContext, useEffect, Dispatch, SetStateAction } from "react";
 import { Event } from "../utils/Interfaces";
 import { EventsGroupContextProvider } from "./EventsGroupContext";
 
 type Context = {
-  event : Event,
+  event: Event
   setEvent: Dispatch<SetStateAction<Event>>
+  invitadoCero: string | null
+  setInvitadoCero: Dispatch<SetStateAction<string>>
 }
 
 const EventContext = createContext<Context>({
   event: null,
-  setEvent: (event: Event) : void => null,
+  setEvent: (event: Event): void => null,
+  invitadoCero: null,
+  setInvitadoCero: () => { },
 });
 
 const EventProvider = ({ children }) => {
   const [event, setEvent] = useState<Event | null>(null);
+  const [invitadoCero, setInvitadoCero] = useState<string | null>(null);
   const { eventsGroup } = EventsGroupContextProvider()
 
   // Capturar eventos del cumulo y seleccionar uno
-    useEffect(() => {
-      if (eventsGroup && eventsGroup.length > 0) {
-        setEvent(eventsGroup[0]);
-      }
-    }, [eventsGroup]);
-    
+  useEffect(() => {
+    if (eventsGroup && eventsGroup.length > 0) {
+      setEvent(eventsGroup[0]);
+    }
+  }, [eventsGroup]);
+
   return (
-    <EventContext.Provider value={{ event, setEvent }}>
+    <EventContext.Provider value={{ event, setEvent, invitadoCero, setInvitadoCero }}>
       {children}
     </EventContext.Provider>
   );
