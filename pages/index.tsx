@@ -215,7 +215,7 @@ const GridCards: FC<propsGridCards> = ({ state, set }) => {
   const [tabsGroup, setTabsGroup] = useState<dataTab[]>([]);
   const [isActive, setIsActive] = useState<number>(0);
 
-  console.log(eventsGroup)
+
   useEffect(() => {
     if (eventsGroup) {
       const arrNuevo = eventsGroup?.reduce(
@@ -253,7 +253,7 @@ const GridCards: FC<propsGridCards> = ({ state, set }) => {
 
   return (
     <>
-      <div className="bg-white w-full grid-cards flex flex-col pt-8  justify-center items-center max-w-screen-lg xl:max-w-screen-xl inset-x-0 mx-auto  ">
+      <div className="bg-white w-full grid-cards flex flex-col   justify-center items-center max-w-screen-lg xl:max-w-screen-xl inset-x-0 mx-auto  ">
         <div className="flex gap-4">
           {Lista.map((item, idx) => (
             <button
@@ -289,7 +289,7 @@ const GridCards: FC<propsGridCards> = ({ state, set }) => {
                       },
                     }}
                     id={group?.status}
-                    className={` h-52 ${isActive == idx ? "" : "hidden"}`}
+                    className={` h-48 ${isActive == idx ? "" : "hidden"}`}
                   >
                     {group?.data?.map((evento, idx) => (
                       <>
@@ -316,7 +316,7 @@ const GridCards: FC<propsGridCards> = ({ state, set }) => {
       <style jsx>
         {`
           .grid-cards {
-            height: 30vh;
+            height: 35vh;
           }
         `}
       </style>

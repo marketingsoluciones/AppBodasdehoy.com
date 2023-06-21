@@ -24,18 +24,27 @@ const Breadcumbs = () => {
     const EventArry: string[] = eventsGroup.reduce((acc, el) => acc.concat(el.nombre), [])
 
     const options = useMemo(() => {
+        const imagen = {
+            boda: "/cards/boda.webp",
+            comunión: "/cards/comunion.webp",
+            cumpleaños: "/cards/cumpleanos.webp",
+            bautizo: "/cards/bautizo.webp",
+            babyshower: "/cards/baby.webp",
+            "desdepida de soltero": "/cards/despedida.webp",
+            graduación: "/cards/graduacion.webp",
+            otro:"/cards/pexels-pixabay-50675.jpg"
+          };
+        console.log(eventsGroup)
         return eventsGroup.reduce((acc, item) => {
             acc.push({
                 value: item.nombre,
                 label:
-                    <div >
-                        {/* {item?.imgAvatar?.i320 ?
-                            <Flex w={"24px"} h={"24px"} border={"1px"} borderColor={"gray.400"} rounded={"full"} isTruncated>
-                                <Image width={"24px"} height={"24px"} layout="intrinsic" src={`${process.env.NEXT_PUBLIC_BASE_URL}${item.imgAvatar.i320}`} objectFit="contain" objectPosition={"center"} />
-                            </Flex>
-                            : <Avatar h={"24px"} w={"24px"} />
-                        } */}
-                        <span >{item.nombre}</span>
+                    <div className='flex items-center space-x-3  w-full'>
+                        <span className='text-black truncate' >{item.nombre}</span>
+                        {item?.tipo ?
+                                <img  className='rounded-full w-[40px] h-[40px]' src={imagen[item.tipo]}  />
+                            :null
+                        }
                     </div>
             })
             return acc
@@ -53,23 +62,9 @@ const Breadcumbs = () => {
         }
     };
 
-    const dot = (color = 'red') => ({
-        alignItems: 'start',
-        display: 'flex',
-
-        ':before': {
-            backgroundColor: color,
-            borderRadius: 10,
-            content: '" "',
-            display: 'block',
-            marginRight: 8,
-            height: 10,
-            width: 10,
-        },
-    });
 
     const selectStyle = {
-        control: (styles) => ({ ...styles, backgroundColor: 'transparent', border:"none" ,cursor:"pointer"  }),
+        control: (styles) => ({ ...styles, backgroundColor: 'transparent', border:"none" ,cursor:"pointer", selected:"none", isSelected:"red" }),
     }
 
 
@@ -81,7 +76,7 @@ return (
 
 
         <Select
-            className=' font-body z-30 w-full '
+            className=' font-body z-30 w-full capitalize '
             onChange={(e) => { handleChange(e?.value) }}
             placeholder={event?.nombre}
             options={options}
