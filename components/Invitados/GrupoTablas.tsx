@@ -22,7 +22,7 @@ interface propsDatatableGroup {
 }
 
 
-const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIsMounted }) => {
+const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIsMounted,menu }) => {
   const { event, setEvent, invitadoCero, setInvitadoCero } = EventContextProvider();
   const [datas, setDatas] = useState<{ titulo: string; data: guests[] }[]>([]);
 
