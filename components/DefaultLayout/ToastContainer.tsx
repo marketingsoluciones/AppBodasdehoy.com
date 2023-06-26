@@ -11,17 +11,17 @@ const ToastContainer: FC = () => {
 
   return (
     <>
-      {
+     {/*  {
         
-        <TransitionGroup initial={false} >
+        <TransitionGroup initial={false} > */}
         <ul className="fixed bottom-3 md:bottom-3 right-5 mx-auto w-max md:w-2/6 h-max z-[1000] grid grid-flow-row gap-6">
           {toasts.map((toast) => (
             <Toast key={toast.id} {...toast}/>
           ))}
         </ul>
-        </TransitionGroup>
+   {/*      </TransitionGroup>
        
-      }
+      } */}
     </>
   );
 };
@@ -30,7 +30,7 @@ const Toast: FC<Toast> = ({ message, id, type }) => {
   const { dispatch } = ToastContextProvider()
 
   const colors = {
-    success: "bg-green-400",
+    success: "bg-green",
     error: "bg-red",
     warning: "bg-yellow-700",
 

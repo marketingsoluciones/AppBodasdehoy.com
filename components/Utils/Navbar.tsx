@@ -11,7 +11,7 @@ const Navbar2: FC = () => {
 
     const List: Item[] = [
         {
-            title: "Mi evento",
+            title: "Mis eventos",
             route: "/",
             titleInside: "Mi organizador de bodas",
             //component: <OrganizadorBoda />,

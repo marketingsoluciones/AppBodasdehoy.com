@@ -11,9 +11,11 @@ import SentarBlock from "./SentarBlock";
 interface propsBlockListaInvitados {
   state: boolean;
   set: CallableFunction;
+  menu?:any
+  setGetMenu?:any
 }
 
-const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set }) => {
+const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu , setGetMenu }) => {
   const { event } = EventContextProvider();
   const [isMounted, setIsMounted] = useState(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
@@ -40,6 +42,13 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set }) => {
         >
           <PlusIcon />
           Grupo
+        </button>
+        <button
+          onClick={(e) => handleClick(e, "menu")}
+          className="focus:outline-none bg-white px-6 py-1 flex gap-2 items-center justify-between text-primary font-display font-semibold text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
+        >
+          <PlusIcon />
+          Menu
         </button>
       </div>
       {shouldRenderChild && (
@@ -86,6 +95,8 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set }) => {
           setSelected={setSelected}
           isMounted={isMounted}
           setIsMounted={setIsMounted}
+          menu={menu}
+          setGetMenu={setGetMenu}
         />
       </div>
       <SentarBlock />

@@ -1,5 +1,8 @@
 import Link from 'next/link'
-import React from 'react'
+import React, { useMemo, useState } from 'react'
+import Select, { StylesConfig } from 'react-select'
+
+
 
 import { EventContextProvider, EventsGroupContextProvider } from "../../context";
 
@@ -7,13 +10,51 @@ import { EventContextProvider, EventsGroupContextProvider } from "../../context"
 const Breadcumbs = () => {
     const { event, setEvent } = EventContextProvider()
     const { eventsGroup } = EventsGroupContextProvider()
+    const [isClearable, setIsClearable] = useState(false);
+    const [isSearchable, setIsSearchable] = useState(false);
+    const [isDisabled, setIsDisabled] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isRtl, setIsRtl] = useState(false);
+    const [idxOptions, setIdxOptions] = useState()
+    const [value, setValue] = useState()
+
+
 
     /* arry para mostrar la lista de eventos */
     const EventArry: string[] = eventsGroup.reduce((acc, el) => acc.concat(el.nombre), [])
 
+    const options = useMemo(() => {
+        const imagen = {
+            boda: "/cards/boda.webp",
+            comunión: "/cards/comunion.webp",
+            cumpleaños: "/cards/cumpleanos.webp",
+            bautizo: "/cards/bautizo.webp",
+            babyshower: "/cards/baby.webp",
+            "desdepida de soltero": "/cards/despedida.webp",
+            graduación: "/cards/graduacion.webp",
+            otro:"/cards/pexels-pixabay-50675.jpg"
+          };
+        console.log(eventsGroup)
+        return eventsGroup.reduce((acc, item) => {
+            acc.push({
+                value: item.nombre,
+                label:
+                    <div className='flex items-center space-x-3  w-full'>
+                        <span className='text-black truncate' >{item.nombre}</span>
+                        {item?.tipo ?
+                                <img  className='rounded-full w-[40px] h-[40px]' src={imagen[item.tipo]}  />
+                            :null
+                        }
+                    </div>
+            })
+            return acc
+        }, [])
+    }, [eventsGroup])
+
+
 
     /* funcion que setea el contexto eventGroups que recibe del select  */
-    const handleChange = (e:any) => {
+    const handleChange = (e: any) => {
         try {
             setEvent(eventsGroup.find((el: any) => el.nombre === e));
         } catch (error) {
@@ -21,25 +62,33 @@ const Breadcumbs = () => {
         }
     };
 
-    return (
-        <>
-            <div className="flex gap-2 items-center w-max py-2 font-display text-sm text-gray-500 *cursor-pointer *hover:text-gray-400  transform transition">
-                {/* <FlechaIcon />
-                <Link href="/resumen-evento" passHref>
-                    <p >Volver a resumen del evento: {event?.nombre}</p>
-                </Link> */}
 
-                <span>Selecciona tu evento</span>
+    const selectStyle = {
+        control: (styles) => ({ ...styles, backgroundColor: 'transparent', border:"none" ,cursor:"pointer", selected:"none", isSelected:"red" }),
+    }
 
-                <select value={event.nombre} onChange={ (e) => handleChange(e.target.value) } className="w-28 rounded py-1 truncate ">
-                    {EventArry.map((item, idx)=>(
-                        <option key={idx} value={item} className="text-ellipsis ">{item}</option>
-                    ))}
-                </select>
 
-            </div>
-        </>
-    )
+return (
+    <div className='flex items-center gap-2 py-4'>
+        <span className='font-body cursor-default'>
+            Evento
+        </span>
+
+
+        <Select
+            className=' font-body z-30 w-full capitalize '
+            onChange={(e) => { handleChange(e?.value) }}
+            placeholder={event?.nombre}
+            options={options}
+            isDisabled={isDisabled}
+            isLoading={isLoading}
+            isClearable={isClearable}
+            isSearchable={isSearchable}
+            styles={selectStyle}
+        />
+
+    </div >
+)
 }
 
 export default React.memo(Breadcumbs)

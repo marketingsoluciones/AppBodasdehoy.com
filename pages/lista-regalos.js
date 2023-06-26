@@ -21,7 +21,7 @@ const ListaRegalos = () => {
   const { user, verificationDone } = AuthContextProvider()
   const [showForm, setShowForm] = useState(false)
 
-  console.log(event,"event")
+  
 
   if (verificationDone) {
     if (!user) {
@@ -47,13 +47,14 @@ const ListaRegalos = () => {
           <motion.div initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }} className="max-w-screen-lg mx-auto inset-x-0 flex-col gap-6 flex pb-28 md:pb-10 px-5">
+            <div className="w-[35%]">
+              <Breadcumb />
+            </div>
 
-            <Breadcumb />
 
-           
             <BlockTitle title={"Lista de regalos"} />
 
-            
+
             <div className="w-full flex flex-col md:flex-row justify-center items-center gap-6 ">
 
               <div className="w-full md:w-1/2 bg-white shadow-lg flex gap-8 items-center justify-center p-6 rounded-xl">
@@ -102,7 +103,7 @@ const ListaRegalos = () => {
                   >
                     Crea tu lista de regalos en amazon
                   </a >
-                
+
                   <div className={`${event.listaRegalos ? "block mt-2.5" : "hidden"}`}>
                     <a
                       href={event.listaRegalos}

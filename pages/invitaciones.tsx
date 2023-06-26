@@ -60,7 +60,9 @@ const Invitaciones = () => {
             className="max-w-screen-lg mx-auto inset-x-0 w-full px-5 md:px-0 gap-4"
           >
 
-            <Breadcumbs />{/*volver a resumen */}
+            <div className="w-[35%]">
+              <Breadcumbs />{/*volver a resumen */}
+            </div>
 
             <BlockTitle title="Invitaciones" />
 

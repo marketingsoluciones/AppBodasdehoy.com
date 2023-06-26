@@ -50,7 +50,7 @@ const Presupuesto = () => {
             exit={{ opacity: 0 }}
             className="max-w-screen-lg mx-auto inset-x-0 w-full"
           >
-            <div className="pl-5">
+            <div className="pl-5 w-[35%]">
               <Breadcumbs />
             </div>
 

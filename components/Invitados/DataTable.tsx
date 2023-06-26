@@ -201,7 +201,7 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
               <tr
                 {...headerGroup.getHeaderGroupProps()}
                 key={i}
-                className="grid grid-cols-12"
+                className="grid grid-cols-9"
               >
                 {
                   // Loop over the headers in each row
@@ -211,7 +211,7 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
                       <th
                         {...column.getHeaderProps()}
                         key={i}
-                        className={`px-6 py-3 text-center text-sm font-light font-display col-span-${ColSpan(column.id, headerGroup.headers, 12)}`}
+                        className={`px-6 py-3 text-center text-sm font-light font-display col-span-${ColSpan(column.id, headerGroup.headers,7)}`}
                       >
                         {
                           // Render the header
@@ -246,7 +246,7 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
                 <tr
                   {...row.getRowProps()}
                   key={i}
-                  className="w-full bg-white border-b font-display text-sm grid grid-cols-12"
+                  className="w-full bg-white border-b font-display text-sm grid grid-cols-9"
                 >
                   {
                     // Loop over the rows cells
@@ -255,7 +255,7 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
                         <td
                           key={i}
                           {...cell.getCellProps()}
-                          className={`px-6 py-2 flex items-center col-span-${ColSpan(cell.column.id, row.cells.map(item => item.column), 12)}`}
+                          className={`px-6 py-2 flex items-center col-span-${ColSpan(cell.column.id, row.cells.map(item => item.column), 7)}`}
 
                         >
                           {

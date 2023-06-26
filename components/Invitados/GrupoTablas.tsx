@@ -5,9 +5,10 @@ import { EventContextProvider } from "../../context";
 import { api } from "../../api";
 import DataTableFinal from "./DataTable";
 import { BorrarInvitado, EditarInvitado } from "../../hooks/EditarInvitado";
-import { CanceladoIcon, ConfirmadosIcon, DotsOpcionesIcon, PendienteIcon } from "../icons";
+
+import { CanceladoIcon, CheckIcon, ConfirmadosIcon, DotsOpcionesIcon, PendienteIcon, } from "../icons";
 import { guests } from "../../utils/Interfaces";
-import { DataTableGroupContextProvider, DataTableGroupProvider } from "../../context/DataTableGroupContext";
+import { DataTableGroupContextProvider, DataTableGroupProvider, } from "../../context/DataTableGroupContext";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
 
@@ -16,9 +17,12 @@ interface propsDatatableGroup {
   setSelected: Dispatch<SetStateAction<string>>;
   isMounted: boolean;
   setIsMounted: Dispatch<SetStateAction<boolean>>;
+  menu?: any
+  setGetMenu?:any
 }
 
-const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIsMounted }) => {
+
+const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIsMounted,menu }) => {
   const { event, setEvent, invitadoCero, setInvitadoCero } = EventContextProvider();
   const [datas, setDatas] = useState<{ titulo: string; data: guests[] }[]>([]);
 
@@ -27,6 +31,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
   }, [event?.invitados_array, event?.grupos_array])
 
   useEffect(() => {
+
     const Datas = event?.grupos_array.reduce((acc, group) => {
       acc[group] = { titulo: group, data: [] };
       event.invitados_array.forEach(guest => {
@@ -79,7 +84,6 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
 
     Datas && setDatas(Object.values(Datas));
   }, [event]);
-
 
   // Funcion para Editar Invitado dropdown
   const updateMyData = ({
@@ -236,6 +240,60 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                       >
                         {cloneElement(item.icon, { className: "w-5 h-5" })}
                         {item.title}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            </ClickAwayListener>
+          );
+        },
+      },
+      {
+        Header: "Menu",
+        accessor: "",
+        Cell: ({ value: initialValue, row, column: { id } }) => {
+          const [value, setValue] = useState(window.localStorage.getItem("menu") ?? "No asignado");
+          const [show, setShow] = useState(false);
+          const [loading, setLoading] = useState(false);
+
+          const setLocalStorage =( value) => {
+            try {
+              setValue(value)
+              window.localStorage.setItem("menu", value)
+            } catch (error) {
+              console.log(error)
+            }
+          }
+
+
+         
+
+          return (
+            <ClickAwayListener onClickAway={() => setShow(false)}>
+              <div className="relative w-full items-center justify-center flex">
+                <button
+                  className="font-display text-gray-500 hover:text-gray-400 transition text-sm capitalize flex gap-2 items-center justify-center focus:outline-none"
+                  onClick={() => setShow(!show)}
+                >
+                  {value}
+                </button>
+
+                <ul
+                  className={`${show ? "block opacity-100" : "hidden opacity-0"
+                    } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 -top-2 z-40 w-max`}
+                >
+                  {menu?.map((item, index) => {
+                    return (
+                      <li
+                        key={index}
+                        className="cursor-pointer  flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
+                        onClick={(e) => {
+                          setLocalStorage(item);
+                          setShow(!show);
+                        }}
+                      >
+                        {item}
                       </li>
                     );
                   })}
