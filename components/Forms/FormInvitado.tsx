@@ -18,20 +18,18 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
   const { event, setEvent } = EventContextProvider();
   const toast = useToast()
 
-  
-const validationSchema = yup.object().shape({
-  nombre: yup.string().required("Nombre requerido").test("Unico", "El nombre debe ser unico", values => {
-    return !event.invitados_array.map(item => item.nombre).includes(values)
-}),
-  sexo: yup.string().required("Sexo requerido"),
-  grupo_edad: yup.string().required("Edad requerido"),
-  telefono: yup.string().required("Telefono requerido"),
-  rol: yup.string().required("Rol requerido"),
-  correo: yup.string().email().test("Unico", "El correo debe ser unico", (value) => {
-    return !event.invitados_array.map(item => item.correo).includes(value)
-  })
-});
-
+  const validationSchema = yup.object().shape({
+    nombre: yup.string().required("Nombre requerido").test("Unico", "El nombre debe ser unico", values => {
+      return !event.invitados_array.map(item => item.nombre).includes(values)
+    }),
+    sexo: yup.string().required("Sexo requerido"),
+    grupo_edad: yup.string().required("Edad requerido"),
+    telefono: yup.string().required("Telefono requerido"),
+    rol: yup.string().required("Rol requerido"),
+    correo: yup.string().email().test("Unico", "El correo debe ser unico", (value) => {
+      return !event.invitados_array.map(item => item.correo).includes(value)
+    })
+  });
 
   const initialValues = {
     nombre: "",
@@ -138,9 +136,8 @@ const validationSchema = yup.object().shape({
             </div>
 
             <button
-              className={`font-display rounded-full py-2 px-6 text-white font-medium transition w-full hover:opacity-70  ${
-                isSubmitting ? "bg-secondary" : "bg-primary"
-              }`}
+              className={`font-display rounded-full py-2 px-6 text-white font-medium transition w-full hover:opacity-70  ${isSubmitting ? "bg-secondary" : "bg-primary"
+                }`}
               disabled={isSubmitting}
               type="submit"
             >
@@ -176,9 +173,8 @@ export const BooleanSwitch: FC<propsBooleanSwitch> = ({ lista, label, ...props }
           type="button"
           {...props}
           {...field}
-          className={`font-display w-1/2 h-8 border text-gray-500 border-gray-100 py-1 text-sm rounded-l-lg focus:outline-none hover:bg-secondary hover:text-gray-700 capitalize  transition ${
-            meta.value == lista[0] ? "bg-secondary text-gray-500" : "bg-white"
-          }`}
+          className={`font-display w-1/2 h-8 border text-gray-500 border-gray-100 py-1 text-sm rounded-l-lg focus:outline-none hover:bg-secondary hover:text-gray-700 capitalize  transition ${meta.value == lista[0] ? "bg-secondary text-gray-500" : "bg-white"
+            }`}
         >
           {lista[0]}
         </button>
@@ -188,9 +184,8 @@ export const BooleanSwitch: FC<propsBooleanSwitch> = ({ lista, label, ...props }
           type="button"
           {...props}
           {...field}
-          className={`w-1/2 h-8 font-display text-gray-500 border border-gray-100 py-1 text-sm rounded-r-lg focus:outline-none hover:bg-primary hover:text-white capitalize transition ${
-            meta.value == lista[1] ? "bg-primary text-white" : "bg-white"
-          }`}
+          className={`w-1/2 h-8 font-display text-gray-500 border border-gray-100 py-1 text-sm rounded-r-lg focus:outline-none hover:bg-primary hover:text-white capitalize transition ${meta.value == lista[1] ? "bg-primary text-white" : "bg-white"
+            }`}
         >
           {lista[1]}
         </button>

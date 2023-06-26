@@ -1,10 +1,11 @@
-import { useContext, useEffect, useMemo, useRef, useState, FC, Dispatch, SetStateAction, cloneElement, forwardRef, useCallback, } from "react";
+import { useEffect, useRef, useState, FC, Dispatch, SetStateAction, cloneElement } from "react";
 import ClickAwayListener from "react-click-away-listener";
 import { useRouter } from "next/router";
 import { EventContextProvider } from "../../context";
 import { api } from "../../api";
 import DataTableFinal from "./DataTable";
 import { BorrarInvitado, EditarInvitado } from "../../hooks/EditarInvitado";
+
 import { CanceladoIcon, CheckIcon, ConfirmadosIcon, DotsOpcionesIcon, PendienteIcon, } from "../icons";
 import { guests } from "../../utils/Interfaces";
 import { DataTableGroupContextProvider, DataTableGroupProvider, } from "../../context/DataTableGroupContext";
@@ -20,18 +21,17 @@ interface propsDatatableGroup {
   setGetMenu?:any
 }
 
-const DatatableGroup: FC<propsDatatableGroup> = ({
-  GruposArray,
-  setSelected,
-  isMounted,
-  setIsMounted,
-  menu,
-  setGetMenu
-}) => {
-  const { event, setEvent } = EventContextProvider();
+
+const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIsMounted }) => {
+  const { event, setEvent, invitadoCero, setInvitadoCero } = EventContextProvider();
   const [datas, setDatas] = useState<{ titulo: string; data: guests[] }[]>([]);
 
   useEffect(() => {
+    setInvitadoCero(event?.invitados_array?.filter(elem => elem.rol === event?.grupos_array[0])[0]?.nombre)
+  }, [event?.invitados_array, event?.grupos_array])
+
+  useEffect(() => {
+
     const Datas = event?.grupos_array.reduce((acc, group) => {
       acc[group] = { titulo: group, data: [] };
       event.invitados_array.forEach(guest => {
@@ -53,7 +53,6 @@ const DatatableGroup: FC<propsDatatableGroup> = ({
           };
         }
       })
-
       return acc
     }, {})
 
@@ -62,9 +61,6 @@ const DatatableGroup: FC<propsDatatableGroup> = ({
         acc[group] = { titulo: group, data: [] };
         if (event.grupos_array.includes(invitado.rol)) {
           if (invitado.rol === group) {
-            console.log(invitado, group)
-            console.log(invitado)
-            console.count()
             acc[group] = {
               titulo: group,
               data: acc[group]?.data
@@ -85,8 +81,6 @@ const DatatableGroup: FC<propsDatatableGroup> = ({
       }
       return acc;
     }, {});
-
-    console.log(Datas)
 
     Datas && setDatas(Object.values(Datas));
   }, [event]);
@@ -515,13 +509,15 @@ const DatatableGroup: FC<propsDatatableGroup> = ({
       <div className="w-[200%] md:w-[100%]">
         <CheckBoxAll />
 
-        {datas?.map((item, idx: number) => (
-          <DataTableFinal
-            key={idx}
-            data={item.data}
-            columns={CrearColumna(item.titulo)}
-          />
-        ))}
+        {datas?.map((item, idx: number) => {
+          return (
+            <DataTableFinal
+              key={idx}
+              data={item.data}
+              columns={CrearColumna(!item.titulo.match("(nombre)") ? item.titulo : item.titulo.replace("(nombre)", invitadoCero ? invitadoCero : event?.grupos_array[0]))}
+            />
+          )
+        })}
       </div>
     </DataTableGroupProvider>
   );
