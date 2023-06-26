@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import Breadcumbs from "../components/DefaultLayout/Breadcumb";
 import FormInvitado from "../components/Forms/FormInvitado";
 import FormCrearGrupo from "../components/Forms/FormCrearGrupo";
@@ -18,6 +18,11 @@ const Invitados: FC = () => {
   const { event } = EventContextProvider();
   const [guardarMenu,setGuardarMenu]= useState()
   const menu = [ "Invitados","Alergicos","Infantil","hipocondriacoaaaaa"]
+  const [getMenu, setGetMenu] = useState ([])
+
+  useEffect(() => {
+    setGetMenu(JSON.parse(localStorage.getItem("dataMenu")))
+  }, [event])
   
   
   const reciboClick = (accion) => {
@@ -46,7 +51,7 @@ const Invitados: FC = () => {
                 )
               }else if (formShow== "menu"){
                 return(
-                  <FormCrearMenu state={isMounted} set={setIsMounted} guardarMenu={guardarMenu} setGuardarMenu={setGuardarMenu} menu={menu} />
+                  <FormCrearMenu state={isMounted} set={setIsMounted} guardarMenu={guardarMenu} setGuardarMenu={setGuardarMenu} getMenu={getMenu} setGetMenu={setGetMenu}  />
                 )
               }
             })()}
@@ -61,7 +66,7 @@ const Invitados: FC = () => {
               <Breadcumbs />
             </div>
             <BlockCabecera />
-            <BlockListaInvitados state={isMounted} set={reciboClick} menu={menu} />
+            <BlockListaInvitados state={isMounted} set={reciboClick} menu={getMenu} setGetMenu={setGetMenu}  />
           </motion.div>
         </section>}
         <style jsx>

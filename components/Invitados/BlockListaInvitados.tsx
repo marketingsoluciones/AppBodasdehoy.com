@@ -12,9 +12,10 @@ interface propsBlockListaInvitados {
   state: boolean;
   set: CallableFunction;
   menu?:any
+  setGetMenu?:any
 }
 
-const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu }) => {
+const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu , setGetMenu }) => {
   const { event } = EventContextProvider();
   const [isMounted, setIsMounted] = useState(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
@@ -95,6 +96,7 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu })
           isMounted={isMounted}
           setIsMounted={setIsMounted}
           menu={menu}
+          setGetMenu={setGetMenu}
         />
       </div>
       <SentarBlock />

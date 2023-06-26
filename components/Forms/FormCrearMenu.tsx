@@ -4,7 +4,8 @@ import InputField from "./InputField";
 import * as yup from "yup";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { BorrarIcon } from "../icons";
 
 const validationSchema = yup.object().shape({
   nombre: yup.string().required(),
@@ -15,9 +16,11 @@ const initialValues = {
 };
 
 
-const FormCrearMenu = ({ set, state,guardarMenu,setGuardarMenu ,menu  }) => {
+const FormCrearMenu = ({ set, state, guardarMenu, setGuardarMenu, getMenu, setGetMenu }) => {
   const { event, setEvent } = EventContextProvider();
   const toast = useToast();
+console.log(guardarMenu)
+
 
   const handleSubmit = async (values, actions) => {
     try {
@@ -45,7 +48,32 @@ const FormCrearMenu = ({ set, state,guardarMenu,setGuardarMenu ,menu  }) => {
   const selectMenu = (e) => {
     setGuardarMenu(e.target.value)
   }
-  
+
+  const saveMenu = () => {
+    if(guardarMenu=== undefined){
+      toast("error", "Ha ocurrido un error al crear el Menu");
+    }else{
+
+      try {
+        const myArryMeny = JSON.parse(localStorage.getItem("dataMenu")) || []
+        myArryMeny.push(guardarMenu)
+        const myArryMenyJSON = JSON.stringify(myArryMeny)
+        localStorage.setItem("dataMenu", myArryMenyJSON)
+        toast("success", "Menu creado con exito");
+       
+      } catch (error) {
+        toast("error", "Ha ocurrido un error al crear el Menu");
+        console.log(error)
+      }
+    }
+  }
+
+  useEffect(() => {
+    setGetMenu(JSON.parse(localStorage.getItem("dataMenu")))
+  }, [saveMenu])
+
+
+
   return (
     <>
       <div className="border-l-2 border-gray-100 pl-3 w-full ">
@@ -82,11 +110,27 @@ const FormCrearMenu = ({ set, state,guardarMenu,setGuardarMenu ,menu  }) => {
         </div>
         <button
 
-          onClick={(e) => menu.push(guardarMenu)}
+          onClick={() => saveMenu()}
           className={` bg-primary font-display rounded-full mt-4 py-2 px-6 text-white font-medium transition w-full hover:opacity-70 `}
         >
           Guardar menu
         </button>
+
+        <div >
+          {getMenu?.map((item: any, idx: any) => {
+            return (
+              <div key={idx} className="flex flex-cols items-center font-display justify-between w-[50%] capitalize">
+                <div>
+                  {item}
+                </div>
+                <div className="cursor-pointer">
+                  <BorrarIcon className="text-gray-600 w-4 h-4" />
+                </div>
+              </div>
+            )
+          })}
+
+        </div>
       </div>
       <div>
         {/*  <Formik

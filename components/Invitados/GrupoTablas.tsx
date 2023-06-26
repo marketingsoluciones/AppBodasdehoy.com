@@ -1,13 +1,13 @@
-import {useContext,useEffect,useMemo,useRef,useState,FC,Dispatch,SetStateAction,cloneElement,forwardRef,useCallback,} from "react";
+import { useContext, useEffect, useMemo, useRef, useState, FC, Dispatch, SetStateAction, cloneElement, forwardRef, useCallback, } from "react";
 import ClickAwayListener from "react-click-away-listener";
 import { useRouter } from "next/router";
 import { EventContextProvider } from "../../context";
 import { api } from "../../api";
 import DataTableFinal from "./DataTable";
 import { BorrarInvitado, EditarInvitado } from "../../hooks/EditarInvitado";
-import {CanceladoIcon,CheckIcon,ConfirmadosIcon,DotsOpcionesIcon,PendienteIcon,} from "../icons";
+import { CanceladoIcon, CheckIcon, ConfirmadosIcon, DotsOpcionesIcon, PendienteIcon, } from "../icons";
 import { guests } from "../../utils/Interfaces";
-import {DataTableGroupContextProvider,DataTableGroupProvider,} from "../../context/DataTableGroupContext";
+import { DataTableGroupContextProvider, DataTableGroupProvider, } from "../../context/DataTableGroupContext";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
 
@@ -16,7 +16,8 @@ interface propsDatatableGroup {
   setSelected: Dispatch<SetStateAction<string>>;
   isMounted: boolean;
   setIsMounted: Dispatch<SetStateAction<boolean>>;
-  menu?:any
+  menu?: any
+  setGetMenu?:any
 }
 
 const DatatableGroup: FC<propsDatatableGroup> = ({
@@ -24,11 +25,11 @@ const DatatableGroup: FC<propsDatatableGroup> = ({
   setSelected,
   isMounted,
   setIsMounted,
-  menu
+  menu,
+  setGetMenu
 }) => {
   const { event, setEvent } = EventContextProvider();
   const [datas, setDatas] = useState<{ titulo: string; data: guests[] }[]>([]);
-  console.log(menu)
 
   useEffect(() => {
     const Datas = event?.grupos_array.reduce((acc, group) => {
@@ -258,9 +259,21 @@ const DatatableGroup: FC<propsDatatableGroup> = ({
         Header: "Menu",
         accessor: "",
         Cell: ({ value: initialValue, row, column: { id } }) => {
-          const [value, setValue] = useState(initialValue ?? "No asignado");
+          const [value, setValue] = useState(window.localStorage.getItem("menu") ?? "No asignado");
           const [show, setShow] = useState(false);
           const [loading, setLoading] = useState(false);
+
+          const setLocalStorage =( value) => {
+            try {
+              setValue(value)
+              window.localStorage.setItem("menu", value)
+            } catch (error) {
+              console.log(error)
+            }
+          }
+
+
+         
 
           return (
             <ClickAwayListener onClickAway={() => setShow(false)}>
@@ -274,15 +287,15 @@ const DatatableGroup: FC<propsDatatableGroup> = ({
 
                 <ul
                   className={`${show ? "block opacity-100" : "hidden opacity-0"
-                    } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 -top-2 z-40`}
+                    } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 -top-2 z-40 w-max`}
                 >
-                  {menu.map((item, index) => {
+                  {menu?.map((item, index) => {
                     return (
                       <li
                         key={index}
-                        className="cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
-                        onClick={() => {
-                          setValue(item);
+                        className="cursor-pointer  flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
+                        onClick={(e) => {
+                          setLocalStorage(item);
                           setShow(!show);
                         }}
                       >
