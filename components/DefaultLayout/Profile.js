@@ -5,8 +5,7 @@ import { capitalize } from "../../utils/Capitalize";
 import { CorazonIcono, MensajeIcon } from "../icons";
 import { useAuthentication } from "../../utils/Authentication";
 import router from "next/router";
-import { auth } from "../../firebase";
-import { signOut } from "firebase/auth";
+import { getAuth, signOut } from "firebase/auth";
 import { AuthContextProvider } from "../../context";
 import Cookies from "js-cookie";
 
@@ -42,9 +41,16 @@ const Profile = ({ user, state, set, ...rest }) => {
             {dropdown && (
               <div className="bg-white rounded-lg w-48 h-max shadow-lg absolute bottom-0 transform translate-y-full overflow-hidden z-40 ">
                 <ul className="w-full">
-                  {!user && <li className="w-full pl-5 py-1 text-gray-500 transition  hover:bg-primary hover:text-white font-display text-sm">
-                    <button onClick={async () => { router.push(`${process.env.NEXT_PUBLIC_DIRECTORY}/login?d=app` ?? "") }}>Login</button>
-                  </li>}
+                  {user.displayName == "guest" &&
+                    <>
+                      <li className="w-full pl-5 py-1 text-gray-500 transition  hover:bg-primary hover:text-white font-display text-sm">
+                        <button onClick={async () => { router.push(`${process.env.NEXT_PUBLIC_DIRECTORY}/login?d=app` ?? "") }}>Inicio de sesión</button>
+                      </li>
+                      <li className="w-full pl-5 py-1 text-gray-500 transition  hover:bg-primary hover:text-white font-display text-sm">
+                        <button onClick={async () => { router.push(`${process.env.NEXT_PUBLIC_DIRECTORY}/login?d=app&a=registro` ?? "") }}>Registro</button>
+                      </li>
+                    </>
+                  }
                   {ListaDropdown?.map((item, idx) => (
                     <Link href={item?.route ?? "/"} key={idx} passHref>
                       <li
@@ -56,11 +62,11 @@ const Profile = ({ user, state, set, ...rest }) => {
 
                     </Link>
                   ))}
-                  {user && <li className="w-full pl-5 py-1 text-gray-500 transition  hover:bg-primary hover:text-white font-display text-sm">
+                  {!user.displayName == "guest" && <li className="w-full pl-5 py-1 text-gray-500 transition  hover:bg-primary hover:text-white font-display text-sm">
                     <button onClick={async () => {
                       Cookies.remove("sessionBodas", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "" });
                       Cookies.remove("idToken", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "" });
-                      await signOut(auth);
+                      await signOut(getAuth());
                       router.push(`${process.env.NEXT_PUBLIC_DIRECTORY}/signout?end=true` ?? "")
                     }}>Cerrar Sesión</button>
                   </li>}

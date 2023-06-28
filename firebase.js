@@ -1,19 +1,34 @@
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-
-const firebaseConfig = {
+const firebaseConfigBodas = {
   apiKey: "AIzaSyDVMoVLWWvolofYOcTYA0JZ0QHyng72LAM",
   authDomain: "bodasdehoy-1063.firebaseapp.com",
-  databaseURL: "https://bodasdehoy-1063-default-rtdb.firebaseio.com",
   projectId: "bodasdehoy-1063",
-  storageBucket: "bodasdehoy-1063.appspot.com",
   messagingSenderId: "593952495916",
   appId: "1:593952495916:web:c63cf15fd16a6796f6f489",
   measurementId: "G-GWQ17NF2YR",
 };
 
+const firebaseConfigEventos = {
+  apiKey: "AIzaSyA_BIthVz_uwQR7gObnKPjI2KincIvP5lo",
+  authDomain: "eventosplanificador-74e59.firebaseapp.com",
+  projectId: "eventosplanificador-74e59",
+  messagingSenderId: "1087923505585",
+  appId: "1:1087923505585:web:7573effc0a8663d5429590",
+  measurementId: "G-BJK5EBV8H0"
+};
 
-const firebaseClient = initializeApp(firebaseConfig);
-const auth = getAuth(firebaseClient)
+export const developments = [
+  {
+    name: "bodasdehoy",
+    fileConfig: firebaseConfigBodas,
+    cookie: "sessionBodas",
+    domain: "https://bodasdehoy.com",
+    pathLogin: ""
+  },
+  {
+    name: "eventosplanificador",
+    fileConfig: firebaseConfigEventos,
+    cookie: "sessionEventos",
+    domain: "https://eventosplanificador.com"
+  },
+]
 
-export { firebaseClient, auth };
