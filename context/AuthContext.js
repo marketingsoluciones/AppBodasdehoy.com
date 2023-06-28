@@ -41,10 +41,19 @@ const AuthProvider = ({ children }) => {
     const path = window.location.hostname //"https://www.bodasdehoy.com/"
     const c = path?.split("//")[1]?.split(".")
     const idx = c?.findIndex(el => el.slice(0, 3) === "com")
+    /*--------------------------------------------------------------------*/
     const devDomain = ["bodasdehoy", "eventosplanificador"]
-    const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[0]
-    if (!idx) setIsProduction(false)
+    const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[1] /*<<<<<<<<<*/
+    /*--------------------------------------------------------------------*/
     const resp = developments.filter(elem => elem.name === domainDevelop)[0]
+    if (!idx) {
+      resp = {
+        ...resp,
+        domain: `${process.env.NEXT_PUBLIC_PATH_DEVELOPMENT}:3001`,
+        pathDirectory: resp?.pathDirectory ? `${process.env.NEXT_PUBLIC_PATH_DEVELOPMENT}:3000` : undefined
+      }
+      setIsProduction(false)
+    }
     setDevelopment(resp?.name)
     setDomain(resp?.name)
     try {
@@ -65,10 +74,10 @@ const AuthProvider = ({ children }) => {
           console.info("Verificando cookie", sessionCookie);
           //setUser(user)
           if (!sessionCookie) {
-            let guestUid = Cookies.get("guest")
+            let guestUid = Cookies.get(config?.cookieGuest)
             if (!guestUid) {
               guestUid = nanoid(28)
-              Cookies.set("guest", guestUid)
+              Cookies.set(config?.cookieGuest, guestUid)
             }
             setUser({ uid: guestUid, displayName: "guest" })
           }

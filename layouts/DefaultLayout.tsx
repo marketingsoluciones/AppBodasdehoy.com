@@ -14,11 +14,11 @@ import { ToastProvider } from "../context/ToastContext";
 const DefaultLayout = ({ children }) => {
   return (
     <>
-      <Head>
+      {/* <Head>
         <title>Bodas de hoy - Organizador de Bodas</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="description" content="¡Bodas de Hoy Organizador! Organiza tu boda en un sólo click., user-scalable=no, width=device-width, initial-scale=1" />
-      </Head>
+      </Head> */}
 
       <AuthProvider>
         <EventsGroupProvider>

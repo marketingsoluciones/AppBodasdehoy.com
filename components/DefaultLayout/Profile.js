@@ -10,12 +10,13 @@ import { AuthContextProvider } from "../../context";
 import Cookies from "js-cookie";
 
 const Profile = ({ user, state, set, ...rest }) => {
-  const { setUser } = AuthContextProvider()
+  const { setUser, config } = AuthContextProvider()
   const [dropdown, setDropwdon] = useState(false);
-  const ListaDropdown = [
-    { title: "Ir al directorio", route: process.env.NEXT_PUBLIC_DIRECTORY },
-  ];
-
+  const ListaDropdown = []
+  if (config?.pathDirectory) {
+    ListaDropdown.push({ title: "Ir al directorio", route: process.env.NEXT_PUBLIC_DIRECTORY })
+  }
+  console.log(ListaDropdown)
   return (
     <>
       <div

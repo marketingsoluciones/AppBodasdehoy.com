@@ -22,13 +22,19 @@ export const developments = [
     fileConfig: firebaseConfigBodas,
     cookie: "sessionBodas",
     domain: "https://bodasdehoy.com",
-    pathLogin: ""
+    cookieGuest: "guestbodas",
+    pathLogin: "",
+    pathDirectory: "https://bodasdehoy.com",
+    headTitle: "Bodas de hoy - Organizador de Bodas"
   },
   {
     name: "eventosplanificador",
     fileConfig: firebaseConfigEventos,
     cookie: "sessionEventos",
-    domain: "https://eventosplanificador.com"
+    domain: "https://eventosplanificador.com",
+    cookieGuest: "guesteventos",
+    pathLogin: "",
+    headTitle: "Planificador de Eventos"
   },
 ]
 
