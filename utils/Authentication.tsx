@@ -1,9 +1,8 @@
 import { useCallback } from "react";
-import { signInWithPopup, UserCredential, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'firebase/auth';
+import { signInWithPopup, UserCredential, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, getAuth } from 'firebase/auth';
 import { useRouter } from "next/router";
 import Cookies from 'js-cookie';
 import { LoadingContextProvider, AuthContextProvider } from "../context";
-import { auth } from "../firebase";
 import { fetchApi, queries } from "./Fetching";
 import { useToast } from "../hooks/useToast";
 
@@ -117,7 +116,7 @@ export const useAuthentication = () => {
   const _signOut = useCallback(async () => {
     Cookies.remove("sessionBodas", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "" });
     Cookies.remove("idToken", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "" });
-    await signOut(auth);
+    await signOut(getAuth());
     router.push(`${process.env.NEXT_PUBLIC_DIRECTORY}/signout?end=true` ?? "")
   }, [router])
 
