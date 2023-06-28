@@ -2,7 +2,7 @@ import Link from "next/link";
 import { FC, useMemo, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { AuthContextProvider, EventContextProvider, LoadingContextProvider } from "../../context";
-import { Banner, InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, LogoNuevoBodasBlanco, MenuIcon, MesasIcon, MisEventosIcon, PresupuestoIcon } from "../icons";
+import { Banner, InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, LogoNuevoBodasBlanco, MenuIcon, MesasIcon, MisEventosIcon, PresupuestoIcon, ResumenIcon } from "../icons";
 import { Loading, useDelayUnmount } from "../../utils/Funciones";
 import Profile from "./Profile";
 import Sidebar from "../Utils/Sidebar";
@@ -29,8 +29,14 @@ const Navigation: any = (
 
   const Navbar = useMemo(() => [
     {
-      title: "Mi evento",
+      title: "Mis eventos",
       icon: <MisEventosIcon />,
+      route: "/",
+      condicion: event?._id ? "verdadero" : "falso"
+    },
+    {
+      title: "Resumen",
+      icon: <ResumenIcon />,
       route: event?._id ? "/resumen-evento" : "/",
       condicion: event?._id ? "verdadero" : "falso"
     },
@@ -83,6 +89,7 @@ const Navigation: any = (
   return (
     <>
       <Head>
+        <link id="favicon" rel="icon" href="https://res.cloudinary.com/crunchbase-production/image/upload/c_lpad,h_256,w_256,f_auto,q_auto:eco,dpr_1/v1486383751/crmgiiartcuts208eqly.png" />
         <title>{config?.headTitle}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="description" content="¡Bodas de Hoy Organizador! Organiza tu boda en un sólo click., user-scalable=no, width=device-width, initial-scale=1" />

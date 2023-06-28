@@ -1,7 +1,7 @@
 import Link from "next/link"
 import ClickAwayListener from "react-click-away-listener"
 import { AuthContextProvider, EventContextProvider } from "../../context"
-import { InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, MesasIcon, MisEventosIcon, PresupuestoIcon } from "../icons"
+import { InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, MesasIcon, MisEventosIcon, PresupuestoIcon, ResumenIcon } from "../icons"
 import { useToast } from "../../hooks/useToast"
 
 /* menu desplegable izquierdo en la vista movil con las opciones de redireccion de la app */
@@ -15,6 +15,12 @@ const Sidebar = ({ set, state }) => {
             title: "Mis eventos",
             icon: <MisEventosIcon className="w-6 h-6" />,
             route: "/",
+            condicion: event?._id ? "verdadero" : "falso"
+        },
+        {
+            title: "Resumen",
+            icon: <ResumenIcon className="w-6 h-6" />,
+            route: event?._id ? "/resumen-evento" : "/",
             condicion: event?._id ? "verdadero" : "falso"
         },
         {
@@ -59,8 +65,9 @@ const Sidebar = ({ set, state }) => {
                     {ListaNavbar.map((item, idx) => (
                         // eslint-disable-next-line @next/next/link-passhref
                         <Link key={idx} href={item.route}>
-                            <li onClick={() => {item.condicion==="verdadero"?set(!state):toast("error","Debes crear un evento")                    
-                  }} className="flex text-primary gap-3 py-3 font-display text-md items-center justify-start w-full cursor-pointer hover:text-gray-300 transition ">{item.icon}  {item.title}</li>
+                            <li onClick={() => {
+                                item.condicion === "verdadero" ? set(!state) : toast("error", "Debes crear un evento")
+                            }} className="flex text-primary gap-3 py-3 font-display text-md items-center justify-start w-full cursor-pointer hover:text-gray-300 transition ">{item.icon}  {item.title}</li>
                         </Link>
                     ))}
                 </ul>
