@@ -1,8 +1,8 @@
 import { SetStateAction, useEffect, useState, Dispatch, FC } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { motion } from "framer-motion";
-import { CircleBanner, CrearEventoIcon, LineaHome } from "../components/icons";
-import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, } from "../context";
+import { CircleBanner, LineaHome } from "../components/icons";
+import { AuthContextProvider, EventsGroupContextProvider, } from "../context";
 import Card from "../components/Home/Card";
 import CardEmpty from "../components/Home/CardEmpty";
 import FormCrearEvento from "../components/Forms/FormCrearEvento";
@@ -56,87 +56,11 @@ const Home: NextPage = () => {
       </>
     );
   }
-
-
-  /* return (
-    <>
-      {shouldRenderChild && (
-        <ModalLeft state={isMounted} set={setIsMounted}>
-          <FormCrearEvento state={isMounted} set={setIsMounted} />
-        </ModalLeft>
-      )}
-
-      <section className="section relative w-full ">
-        <Banner state={isMounted} set={setIsMounted} />
-        <GridCards state={isMounted} set={setIsMounted} />
-      </section>
-      <style jsx>
-        {`
-          .section {
-            height: calc(100vh - 190px);
-          }
-        `}
-      </style>
-    </>
-  ); */
 };
 export default Home;
 
 export async function getServerSideProps({ req, res }) {
-  // try {
-  //   const sessionCookie = req?.cookies?.___sessionBodas;
-  //   console.log(sessionCookie);
-  //   if (sessionCookie) {
-  //     const query = {
-  //       query: `mutation ($sessionCookie : String){
-  //         status(sessionCookie: $sessionCookie){
-  //           customToken
-  //         }
-  //       }`,
-  //       variables: {
-  //         sessionCookie,
-  //       },
-  //     };
-
-  //     const {
-  //       data: {
-  //         data: { status },
-  //       },
-  //     } = await api.ApiBodasExpress(query);
-  //     if (status) {
-  //       return { props: status };
-  //     } else {
-  //       throw new Error("No hay customToken");
-  //     }
-  //     console.log("SI TENGO");
-  //   } else {
-  //     throw new Error("No hay sessionToken");
-  //   }
-  // } catch (error) {
-  //   console.log("NO TENGO");
-  //   res.statusCode = 302;
-  //   res.setHeader("Location", `https://bodasdehoy.com/login`);
-  //   console.log(JSON.stringify(error, null, 2));
-  //   return { props: {} };
-  // }
-
   return { props: {} };
-  // if (token) {
-  //   try {
-  //     const {data:usuario} = await api.MiUsuario(token);
-  //     return { props: { usuario } };
-  //   } catch (error) {
-  //     res.statusCode = 302
-  //     res.setHeader('Location', `https://bodasdehoy.com`)
-  //     console.log("Hola mundo");
-  //     return { props: {} };
-  //   }
-
-  // } else {
-  //   res.statusCode = 302
-  //   res.setHeader('Location', `https://bodasdehoy.com`)
-  //   return { props: {} };
-  // }
 }
 
 interface propsBanner {
@@ -154,23 +78,22 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
           <h1 className="font-display font-base text-xl md:text-2xl tracking-tight text-primary">
             empecemos a organizar tu evento
           </h1>
-          <span className="flex gap-2 items-end">
+          <span className="flex gap-2 justify-center items-end">
             <button
               onClick={() => set(!state)}
-              className="mt-4 bg-primary font-display font-medium text-white px-10 py-1 rounded-lg  box-border hover:bg-gray-200 transition focus:outline-none z-20"
+              className="mt-4 bg-primary font-display font-medium text-white px-24 py-3 rounded-lg  box-border hover:bg-gray-200 transition focus:outline-none z-20"
             >
-              Crear evento
+              Crear un evento
             </button>
-            <CrearEventoIcon className="text-primary" />
           </span>
-          <LineaHome className="hidden md:flex md:-bottom-10 xl:-bottom-5 absolute w-full z-10 left-0 w-max" />
+          <LineaHome className="hidden md:flex md:-bottom-10 xl:-bottom-5 absolute z-10 left-0 w-max" />
         </div>
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="hidden md:block relative overflow-hidden"
         >
-          <CircleBanner className="w-full h-auto top-10 transform translate-y-1/6 absolute bottom-0 z-0 right-0 z-0" />
+          <CircleBanner className="w-full h-auto top-10 transform translate-y-1/6 absolute bottom-0 right-0 z-0" />
           <img
             className="z-20 image mx-auto inset-x-0 relative"
             src="/MujerPrincipal.webp"
@@ -295,7 +218,7 @@ const GridCards: FC<propsGridCards> = ({ state, set }) => {
                       <>
                         <SwiperSlide
                           key={idx}
-                      className="flex items-center justify-center"
+                          className="flex items-center justify-center"
                         >
                           <Card key={evento._id} evento={evento} />
                         </SwiperSlide>
