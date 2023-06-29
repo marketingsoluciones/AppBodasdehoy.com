@@ -1,5 +1,6 @@
 import { SetStateAction, useEffect, useState, Dispatch, FC } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
+import SwiperCore, { Pagination } from "swiper/core";
 import { motion } from "framer-motion";
 import { CircleBanner, LineaHome } from "../components/icons";
 import { AuthContextProvider, EventsGroupContextProvider, } from "../context";
@@ -12,6 +13,8 @@ import { NextPage } from "next";
 import { Event } from "../utils/Interfaces";
 import { fetchApiEventos, queries } from "../utils/Fetching";
 import VistaSinCookie from "../pages/vista-sin-cookie"
+
+SwiperCore.use([Pagination]);
 
 const Home: NextPage = () => {
   const [isMounted, setIsMounted] = useState<boolean>(false);
@@ -233,6 +236,15 @@ const GridCards: FC<propsGridCards> = ({ state, set }) => {
                           <Card key={evento._id} evento={evento} grupoStatus={group.status} />
                         </SwiperSlide>
                       ))}
+                      {group.data?.length === 0 &&
+                        <SwiperSlide
+                          className={`flex items-center justify-center`}
+                        >
+                          <div className={`w-72 h-36 rounded-xl flex flex-col items-center justify-center shadow-lg bg-base border border-gray-100 transition `}>
+                            <p className="font-display font-base text-md">{`Ningun evento ${group.status}`}</p>
+                          </div>
+                        </SwiperSlide>
+                      }
                       {group.status === "pendiente" &&
                         <SwiperSlide
                           className={`flex items-center justify-center`}
