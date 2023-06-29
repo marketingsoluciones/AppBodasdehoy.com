@@ -125,9 +125,9 @@ const Card = ({ evento, grupoStatus }) => {
             <span className="mt-[-4px] uppercase text-xs font-display text-white">
               {`${new Date(parseInt(evento?.fecha)).toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric" })}`}
             </span>
-            <span className="mt-[-4px] uppercase text-xs font-display text-white">
+            {/* <span className="mt-[-4px] uppercase text-xs font-display text-white">
               {evento?.estatus}
-            </span>
+            </span> */}
           </div>
         </div>
       </div>
