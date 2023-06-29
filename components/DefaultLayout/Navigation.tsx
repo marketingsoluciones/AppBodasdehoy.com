@@ -2,7 +2,7 @@ import Link from "next/link";
 import { FC, useMemo, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { AuthContextProvider, EventContextProvider, LoadingContextProvider } from "../../context";
-import { Banner, InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, LogoNuevoBodasBlanco, MenuIcon, MesasIcon, MisEventosIcon, PresupuestoIcon, ResumenIcon } from "../icons";
+import { Banner, IconLightBulb16, InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, LogoNuevoBodasBlanco, MenuIcon, MesasIcon, MisEventosIcon, PresupuestoIcon, ResumenIcon } from "../icons";
 import { Loading, useDelayUnmount } from "../../utils/Funciones";
 import Profile from "./Profile";
 import Sidebar from "../Utils/Sidebar";
@@ -10,6 +10,7 @@ import BlockNotification from "./BlockNotification";
 import { useToast } from "../../hooks/useToast";
 import Navbar2 from "../Utils/Navbar";
 import Head from "next/head";
+import { Tooltip } from "../Utils/Tooltip";
 
 const Navigation: any = (
   notificaciones: any,
@@ -32,43 +33,43 @@ const Navigation: any = (
       title: "Mis eventos",
       icon: <MisEventosIcon />,
       route: "/",
-      condicion: event?._id ? "verdadero" : "falso"
+      condicion: event?._id ? true : false
     },
     {
       title: "Resumen",
       icon: <ResumenIcon />,
       route: event?._id ? "/resumen-evento" : "/",
-      condicion: event?._id ? "verdadero" : "falso"
+      condicion: event?._id ? true : false
     },
     {
       title: "Invitados",
       icon: <InvitadosIcon />,
       route: event?._id ? "/invitados" : "/",
-      condicion: event?._id ? "verdadero" : "falso"
+      condicion: event?._id ? true : false
     },
     {
       title: "Mesas",
       icon: <MesasIcon />,
       route: event?._id ? "/mesas" : "/",
-      condicion: event?._id ? "verdadero" : "falso"
+      condicion: event?._id ? true : false
     },
     {
       title: "Lista",
       icon: <ListaRegalosIcon />,
       route: event?._id ? "/lista-regalos" : "/",
-      condicion: event?._id ? "verdadero" : "falso"
+      condicion: event?._id ? true : false
     },
     {
       title: "Presupuesto",
       icon: <PresupuestoIcon />,
       route: event?._id ? "/presupuesto" : "/",
-      condicion: event?._id ? "verdadero" : "falso"
+      condicion: event?._id ? true : false
     },
     {
       title: "Invitaciones",
       icon: <InvitacionesIcon />,
       route: event?._id ? "/invitaciones" : "/",
-      condicion: event?._id ? "verdadero" : "falso"
+      condicion: event?._id ? true : false
     },
   ], [event]);
 
@@ -130,30 +131,25 @@ const Navigation: any = (
 
         {/* segundo menu superior con las redirecciones funcionales de la app */}
         <div className={`w-full h-20 relative hidden md:block bg-base z-10`}>
-          <ul className="absolute m-auto inset-0 py-4 w-max h-max flex gap-12">
-            {Navbar.map((item, idx) => (
-
-              <Link key={idx} href={item.route} passHref >
-
-                <li
-                  onClick={() => {
-                    item.condicion === "verdadero" ? "" : toast("error", "Debes crear un evento")
-                  }}
-                  className={`w-max flex flex-col justify-between items-center hover:opacity-80  transition  cursor-pointer
+          <Tooltip label="Primero debes crear un evento" icon={<IconLightBulb16 className="w-6 h-6" />} disabled={!!event?._id}>
+            <ul className="absolute m-auto left-1/2 -translate-x-1/2 py-4 w-max h-max flex gap-12">
+              {Navbar.map((item, idx) => (
+                <Link key={idx} href={item.condicion ? item.route : ""} passHref >
+                  <li
+                    className={`w-max flex flex-col justify-between items-center hover:opacity-80  transition  cursor-pointer
                   ${router.pathname.slice(1) == item.title.toLowerCase() ? "text-primary transform scale-105"
-                      : router.pathname == "/"
-                        ? "text-white"
-                        : "text-gray-400"
-                    } ${event?._id ? "" : ""}}`}
-
-                >
-                  {item.icon}
-                  <p className="font-display text-sm h-max"  >{item.title}</p>
-
-                </li>
-              </Link>
-            ))}
-          </ul>
+                        : router.pathname == "/"
+                          ? "text-white"
+                          : "text-gray-400"
+                      } ${event?._id ? "" : ""}}`}
+                  >
+                    {item.icon}
+                    <p className="font-display text-sm h-max"  >{item.title}</p>
+                  </li>
+                </Link>
+              ))}
+            </ul>
+          </Tooltip>
           <Banner
             className={`${pink ? "text-primary" : "text-white"
               } w-full transition`}

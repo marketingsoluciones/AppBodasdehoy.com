@@ -1,4 +1,4 @@
-const Tooltip = ({ text }) => {
+const TooltipOld = ({ text }) => {
     console.log("***************** TOOLTIP *****************")
     return (
         <div className="bg-white shadow-md px-3 py-1 absolute top-10 w-max transform transform-x-full z-20 rounded-lg border-2 border-base ">
@@ -7,4 +7,4 @@ const Tooltip = ({ text }) => {
     )
 }
 
-export default Tooltip
+export default TooltipOld

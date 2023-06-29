@@ -1,7 +1,7 @@
 import { FC, TouchEvent, useEffect } from "react";
 import useHover from "../../hooks/useHover";
 import { guests } from "../../utils/Interfaces";
-import Tooltip from "../Utils/Tooltip";
+import TooltipOld from "../Utils/TooltipOld";
 
 interface propsSentadoItem {
   invitado: guests,
@@ -77,7 +77,7 @@ export const SentadoItem: FC<propsSentadoItem> = ({ invitado, posicion, setDisab
               <p className="font-display font-light text-white text-center">
                 {invitado.nombre/*.slice(0, 1)*/}
               </p>
-              {isHovered && <Tooltip text={invitado?.nombre} />}
+              {isHovered && <TooltipOld text={invitado?.nombre} />}
             </div>
           </span>
         </div>
