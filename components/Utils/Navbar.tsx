@@ -11,12 +11,6 @@ const Navbar2: FC = () => {
 
     const List: Item[] = [
         {
-            title: "Mis eventos",
-            route: "/",
-            titleInside: "Mi organizador de bodas",
-            //component: <OrganizadorBoda />,
-        },
-        {
             title: "Novia",
             route: process.env.NEXT_PUBLIC_DIRECTORY_NOVIAS,
 

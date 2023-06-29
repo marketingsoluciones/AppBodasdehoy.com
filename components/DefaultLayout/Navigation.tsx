@@ -23,10 +23,14 @@ const Navigation: any = (
   const { setLoading } = LoadingContextProvider();
   const { user, isProduction, development, config } = AuthContextProvider();
   const router = useRouter();
-  const [pink, setPink] = useState(true);
   const [showSidebar, setShowSidebar] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [route, setRoute] = useState<string>("");
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
+  useEffect(() => {
+    setRoute(router.pathname)
+  }, [router])
+
 
   const Navbar = useMemo(() => [
     {
@@ -38,44 +42,40 @@ const Navigation: any = (
     {
       title: "Resumen",
       icon: <ResumenIcon />,
-      route: event?._id ? "/resumen-evento" : "/",
+      route: "/resumen-evento",
       condicion: event?._id ? true : false
     },
     {
       title: "Invitados",
       icon: <InvitadosIcon />,
-      route: event?._id ? "/invitados" : "/",
+      route: "/invitados",
       condicion: event?._id ? true : false
     },
     {
       title: "Mesas",
       icon: <MesasIcon />,
-      route: event?._id ? "/mesas" : "/",
+      route: "/mesas",
       condicion: event?._id ? true : false
     },
     {
-      title: "Lista",
+      title: "Lista de regalos",
       icon: <ListaRegalosIcon />,
-      route: event?._id ? "/lista-regalos" : "/",
+      route: "/lista-regalos",
       condicion: event?._id ? true : false
     },
     {
       title: "Presupuesto",
       icon: <PresupuestoIcon />,
-      route: event?._id ? "/presupuesto" : "/",
+      route: "/presupuesto",
       condicion: event?._id ? true : false
     },
     {
       title: "Invitaciones",
       icon: <InvitacionesIcon />,
-      route: event?._id ? "/invitaciones" : "/",
+      route: "/invitaciones",
       condicion: event?._id ? true : false
     },
   ], [event]);
-
-  useEffect(() => {
-    router.pathname == "/" ? setPink(true) : setPink(false);
-  }, [router]);
 
   /* const handleClick = ( event) => {
     if (!event?._id) {
@@ -134,28 +134,36 @@ const Navigation: any = (
           <Tooltip label="Primero debes crear un evento" icon={<IconLightBulb16 className="w-6 h-6" />} disabled={!!event?._id}>
             <ul className="absolute m-auto left-1/2 -translate-x-1/2 py-4 w-max h-max flex gap-12">
               {Navbar.map((item, idx) => (
-                <Link key={idx} href={item.condicion ? item.route : ""} passHref >
-                  <li
-                    className={`w-max flex flex-col justify-between items-center hover:opacity-80  transition  cursor-pointer
-                  ${router.pathname.slice(1) == item.title.toLowerCase() ? "text-primary transform scale-105"
-                        : router.pathname == "/"
-                          ? "text-white"
-                          : "text-gray-400"
-                      } ${event?._id ? "" : ""}}`}
-                  >
-                    {item.icon}
-                    <p className="font-display text-sm h-max"  >{item.title}</p>
-                  </li>
-                </Link>
+                // <Link key={idx} href={item.condicion ? item.route : ""} passHref >
+                <li
+                  key={idx}
+                  onClick={() => {
+                    router.push(item.route)
+                    setRoute(item.route)
+                  }}
+                  className={`w-max flex flex-col justify-between items-center hover:opacity-80  transition  cursor-pointer
+                  ${route == item.route ?
+                      route == "/"
+                        ? "text-white transform scale-110"
+                        : "text-primary transform scale-110"
+                      : route == "/"
+                        ? "text-gray-200"
+                        : "text-gray-400"
+                    } ${event?._id ? "" : ""}}`}
+                >
+                  {item.icon}
+                  <p className="font-display text-sm h-max"  >{item.title}</p>
+                </li>
+                // </Link>
               ))}
             </ul>
           </Tooltip>
           <Banner
-            className={`${pink ? "text-primary" : "text-white"
+            className={`${route == "/" ? "text-primary" : "text-white"
               } w-full transition`}
           />
-        </div>
-      </header>
+        </div >
+      </header >
     </>
   );
 };
