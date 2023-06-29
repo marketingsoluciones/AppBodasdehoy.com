@@ -23,8 +23,12 @@ const EventProvider = ({ children }) => {
 
   // Capturar eventos del cumulo y seleccionar uno
   useEffect(() => {
+    console.log(eventsGroup)
+    if (eventsGroup && eventsGroup.length === 0) {
+      setEvent(null);
+    }
     if (eventsGroup && eventsGroup.length > 0) {
-      setEvent(eventsGroup[0]);
+      setEvent(eventsGroup?.sort((a: any, b: any) => { return b.fecha_creacion - a.fecha_creacion })[0]);
     }
   }, [eventsGroup]);
 

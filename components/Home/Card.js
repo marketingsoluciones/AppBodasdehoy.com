@@ -1,15 +1,11 @@
 import { memo } from "react";
-import {
-  EventContextProvider,
-  EventsGroupContextProvider,
-} from "../../context/";
-import { EliminarEvento } from "../../hooks/QueryEventos";
+import { EventContextProvider, EventsGroupContextProvider } from "../../context/";
 import useHover from "../../hooks/useHover";
 import { BorrarIcon, EditarIcon, VistaPreviaIcon } from "../icons";
 import { useRouter } from "next/router";
 import { setCookie } from "../../utils/Cookies";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
-import {useToast} from '../../hooks/useToast'
+import { useToast } from '../../hooks/useToast'
 
 const Card = ({ evento }) => {
   const [hoverRef, isHovered] = useHover();
@@ -43,17 +39,17 @@ const Card = ({ evento }) => {
     babyshower: "/cards/baby.webp",
     "desdepida de soltero": "/cards/despedida.webp",
     graduación: "/cards/graduacion.webp",
-    otro:"/cards/pexels-pixabay-50675.jpg"
+    otro: "/cards/pexels-pixabay-50675.jpg"
   };
 
   const toast = useToast()
   const handleRemoveEvent = () => {
     try {
-      const result = fetchApiEventos({query: queries.eventDelete, variables: {eventoID: _id}})
-      if(!result || result.errors){
+      const result = fetchApiEventos({ query: queries.eventDelete, variables: { eventoID: _id } })
+      if (!result || result.errors) {
         throw new Error("Ha ocurrido un error")
       }
-      setEventsGroup({type: "DELETE_EVENT", payload: _id})
+      setEventsGroup({ type: "DELETE_EVENT", payload: _id })
       toast("success", "Evento eliminado con exito")
     } catch (error) {
       toast("error", "Ha ocurrido un error al eliminar el evento")
@@ -64,14 +60,12 @@ const Card = ({ evento }) => {
   return (
     <div
       ref={hoverRef}
-      className={`w-max h-full relative grid place-items-center bg-white transition ${
-        isHovered ? "transform scale-105 duration-700" : ""
-      }`}
+      className={`w-max h-full relative grid place-items-center bg-white transition ${isHovered ? "transform scale-105 duration-700" : ""
+        }`}
     >
       <div
-        className={`${
-          isHovered ? "transform translate-x-1/2 duration-700" : ""
-        } transition h-32 w-16 bg-secondary absolute right-0  rounded-xl flex flex-col items-end justify-center px-2 gap-5 `}
+        className={`${isHovered ? "transform translate-x-1/2 duration-700" : ""
+          } transition h-32 w-16 bg-secondary absolute right-0  rounded-xl flex flex-col items-end justify-center px-2 gap-5 `}
       >
         {/* <span 
         ref={refVista}>
@@ -114,7 +108,7 @@ const Card = ({ evento }) => {
           className="object-cover w-full h-full absolute top-0 left-0 z-0 object-top "
         />
         <p className="text-xs font-display text-white capitalize z-10 relative">
-          {tipo == "otro" ? "mi evento especial": tipo}
+          {tipo == "otro" ? "mi evento especial" : tipo}
         </p>
         <h2 className="capitalize text-lg font-display text-white z-10 relative">
           {nombre}

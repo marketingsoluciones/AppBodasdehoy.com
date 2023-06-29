@@ -16,7 +16,6 @@ const Profile = ({ user, state, set, ...rest }) => {
   if (config?.pathDirectory) {
     ListaDropdown.push({ title: "Ir al directorio", route: process.env.NEXT_PUBLIC_DIRECTORY })
   }
-  console.log(ListaDropdown)
   return (
     <>
       <div

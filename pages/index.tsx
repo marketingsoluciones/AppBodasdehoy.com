@@ -214,15 +214,13 @@ const GridCards: FC<propsGridCards> = ({ state, set }) => {
                     id={group?.status}
                     className={` h-48 ${isActive == idx ? "" : "hidden"}`}
                   >
-                    {group?.data?.map((evento, idx) => (
-                      <>
-                        <SwiperSlide
-                          key={idx}
-                          className="flex items-center justify-center"
-                        >
-                          <Card key={evento._id} evento={evento} />
-                        </SwiperSlide>
-                      </>
+                    {group?.data?.sort((a: any, b: any) => { return b.fecha_creacion - a.fecha_creacion })?.map((evento, idx) => (
+                      <SwiperSlide
+                        key={idx}
+                        className="flex items-center justify-center"
+                      >
+                        <Card key={evento._id} evento={evento} />
+                      </SwiperSlide>
                     ))}
                     <SwiperSlide
                       className={`flex items-center justify-center`}
