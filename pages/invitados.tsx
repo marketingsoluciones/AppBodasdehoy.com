@@ -36,6 +36,7 @@ const Invitados: FC = () => {
         <VistaSinCookie />
       )
     }
+    if (!event) return <></>
     return (
       <>
         {shouldRenderChild && (

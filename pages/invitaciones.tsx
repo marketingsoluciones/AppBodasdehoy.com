@@ -49,6 +49,7 @@ const Invitaciones = () => {
         <VistaSinCookie />
       )
     }
+    if (!event) return <></>
     return (
       <DataTableGroupProvider>
 

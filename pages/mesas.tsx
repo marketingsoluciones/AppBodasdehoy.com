@@ -49,6 +49,7 @@ const Mesas: FC = () => {
         <VistaSinCookie />
       )
     }
+    if (!event) return <></>
     return (
       <>
         {/* formulario emergente para crear mesas */}

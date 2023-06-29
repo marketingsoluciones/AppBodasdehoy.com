@@ -13,6 +13,7 @@ import { EventContextProvider } from "../context";
 const Resumen = () => {
   const { event } = EventContextProvider();
 
+  if (!event) return <></>
   return (
     <>
       <section className="bg-base w-full py-10 px-5 md:px-0">
@@ -37,6 +38,7 @@ const Resumen = () => {
       </section>
     </>
   );
+  return <></>
 };
 
 export default Resumen;

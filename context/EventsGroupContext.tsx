@@ -2,14 +2,15 @@ import { createContext, useState, useContext, useEffect, SetStateAction, Dispatc
 import { AuthContextProvider } from "../context";
 import { fetchApiEventos, queries } from "../utils/Fetching";
 import { Event } from '../utils/Interfaces';
+import { useRouter } from 'next/router';
 
 type Context = {
-  eventsGroup : Event[],
+  eventsGroup: Event[],
   setEventsGroup: Dispatch<SetStateAction<action>>
 }
 const EventsGroupContext = createContext<Context>({
   eventsGroup: null,
-  setEventsGroup: (action : action) => null,
+  setEventsGroup: (action: action) => null,
 });
 
 enum actions {
@@ -31,7 +32,7 @@ const reducer = (state: Event[], action: action) => {
     case "EDIT_EVENT":
       return state
       break;
-    
+
     case "INITIAL_STATE":
       return action.payload
       break
@@ -40,11 +41,11 @@ const reducer = (state: Event[], action: action) => {
       return [...state, action.payload]
       break
 
-      
+
     case "DELETE_EVENT":
       return state.filter(event => event._id !== action.payload)
       break
-  
+
     default:
       return state
       break;
@@ -52,6 +53,7 @@ const reducer = (state: Event[], action: action) => {
 }
 
 const EventsGroupProvider = ({ children }) => {
+  const router = useRouter();
   const [eventsGroup, setEventsGroup] = useReducer<Reducer<Event[], action>>(reducer, []);
   const { user } = AuthContextProvider();
 
@@ -61,7 +63,11 @@ const EventsGroupProvider = ({ children }) => {
         query: queries.getEventsByID,
         variables: { userID: user?.uid },
       })
-        .then((events: Event[]) => setEventsGroup({type: "INITIAL_STATE", payload: events}))
+        .then((events: Event[]) => {
+          if (events.length == 0) router.push("/")
+          setEventsGroup({ type: "INITIAL_STATE", payload: events })
+
+        })
         .catch((error) => console.log(error));
     }
   }, [user]);

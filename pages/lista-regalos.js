@@ -29,6 +29,7 @@ const ListaRegalos = () => {
         <VistaSinCookie />
       )
     }
+    if (!event) return <></>
     return (
       <>
         {showForm ? (

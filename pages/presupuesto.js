@@ -41,6 +41,7 @@ const Presupuesto = () => {
         <VistaSinCookie />
       )
     }
+    if (!event) return <></>
     return (
       <>
         {event && <section className="bg-base w-full h-full pb-20 ">

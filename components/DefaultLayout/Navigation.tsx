@@ -138,8 +138,10 @@ const Navigation: any = (
                 <li
                   key={idx}
                   onClick={() => {
-                    router.push(item.route)
-                    setRoute(item.route)
+                    if (item.condicion) {
+                      router.push(item.route)
+                      setRoute(item.route)
+                    }
                   }}
                   className={`w-max flex flex-col justify-between items-center hover:opacity-80  transition  cursor-pointer
                   ${route == item.route ?
