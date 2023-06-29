@@ -23,7 +23,6 @@ const EventProvider = ({ children }) => {
 
   // Capturar eventos del cumulo y seleccionar uno
   useEffect(() => {
-    console.log(eventsGroup)
     if (eventsGroup && eventsGroup.length === 0) {
       setEvent(null);
     }

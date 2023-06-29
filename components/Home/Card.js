@@ -1,35 +1,31 @@
 import { memo } from "react";
 import { EventContextProvider, EventsGroupContextProvider } from "../../context/";
 import useHover from "../../hooks/useHover";
-import { BorrarIcon, EditarIcon, VistaPreviaIcon } from "../icons";
+import { BorrarIcon, IconFolderOpen } from "../icons";
 import { useRouter } from "next/router";
 import { setCookie } from "../../utils/Cookies";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from '../../hooks/useToast'
 
-const Card = ({ evento }) => {
+const Card = ({ evento, grupoStatus }) => {
   const [hoverRef, isHovered] = useHover();
-  const [refVista, isVista] = useHover();
-  const [refEditar, isEditar] = useHover();
+  const [refArchivar, isArchivar] = useHover();
   const [refBorrar, isBorrar] = useHover();
-
   const { setEventsGroup } = EventsGroupContextProvider();
   const { setEvent } = EventContextProvider();
-
   const router = useRouter();
-
-  const { tipo, nombre, _id } = evento;
 
   const handleClick = () => {
     try {
       setEvent(evento);
-      setCookie("evento_id", _id, 1);
+      setCookie("evento_id", evento?._id, 1);
     } catch (error) {
       console.log(error);
     } finally {
       router.push("/resumen-evento");
     }
   };
+
 
   const imagen = {
     boda: "/cards/boda.webp",
@@ -43,76 +39,97 @@ const Card = ({ evento }) => {
   };
 
   const toast = useToast()
-  const handleRemoveEvent = () => {
+  const handleArchivarEvent = (grupoStatus) => {
     try {
-      const result = fetchApiEventos({ query: queries.eventDelete, variables: { eventoID: _id } })
+      const value = grupoStatus === "pendiente" ? "archivado" : "pendiente"
+      const result = fetchApiEventos({
+        query: queries.eventUpdate,
+        variables: { idEvento: evento?._id, variable: "estatus", value },
+        token: null
+      })
       if (!result || result.errors) {
         throw new Error("Ha ocurrido un error")
       }
-      setEventsGroup({ type: "DELETE_EVENT", payload: _id })
-      toast("success", "Evento eliminado con exito")
+      grupoStatus === "archivado" && handleClick()
+      setEventsGroup({
+        type: "EDIT_EVENT",
+        payload: {
+          _id: evento?._id,
+          estatus: value
+        }
+      })
+      toast("success", "Evento archivado ")
+    } catch (error) {
+      toast("error", "Ha ocurrido un error al archivar el evento")
+      console.log(error)
+    }
+  }
+  const handleRemoveEvent = (grupoStatus) => {
+    try {
+      const result = fetchApiEventos({
+        query: queries.eventDelete,
+        variables: { eventoID: evento?._id }
+      })
+      if (!result || result.errors) {
+        throw new Error("Ha ocurrido un error")
+      }
+      setEventsGroup({ type: "DELETE_EVENT", payload: evento?._id })
+      toast("success", "Evento eliminado ")
     } catch (error) {
       toast("error", "Ha ocurrido un error al eliminar el evento")
       console.log(error)
     }
   }
-
+  const className = "bg-secondary absolute transition rounded-r-xl px-3 py-1 font-display text-xs text-gray-700 right-0 top-1/2 -translate-y-1/2 transform translate-x-[107%]"
   return (
-    <div
-      ref={hoverRef}
-      className={`w-max h-full relative grid place-items-center bg-white transition ${isHovered ? "transform scale-105 duration-700" : ""
-        }`}
-    >
-      <div
-        className={`${isHovered ? "transform translate-x-1/2 duration-700" : ""
-          } transition h-32 w-16 bg-secondary absolute right-0  rounded-xl flex flex-col items-end justify-center px-2 gap-5 `}
-      >
-        {/* <span 
-        ref={refVista}>
-          <VistaPreviaIcon className="cursor-pointer text-white hover:text-gray-500" />
-          {isVista ? (
-            <span className="bg-white absolute transition w-max h-max rounded-xl px-3 py-1 shadow font-display text-sm text-gray-500 top-2 right-0 transform translate-x-full">
-              Ver
-            </span>
-          ) : null}
-        </span> */}
-
-        {/* <span className="w-max h-max" ref={refEditar}>
-          <EditarIcon className="cursor-pointer text-white hover:text-gray-500" />
-          {isEditar ? (
-            <span className="bg-white absolute transition w-max h-max rounded-xl px-3 py-1 shadow font-display text-sm text-gray-500 top-12 right-0 transform translate-x-full">
-              Editar
-            </span>
-          ) : null}
-        </span> */}
-
-        <span
-          onClick={handleRemoveEvent}
-          className="w-max h-max"
-          ref={refBorrar}
-        >
-          <BorrarIcon className="cursor-pointer text-white hover:text-gray-500" />
-          {isBorrar ? (
-            <span className="bg-white absolute transition w-max h-max rounded-xl px-3  shadow font-display text-sm text-gray-500 top-14  right-0 transform translate-x-full">
-              Borrar
-            </span>
-          ) : null}
-        </span>
+    <div ref={hoverRef} className={`w-max h-full relative grid place-items-center bg-white transition ${isHovered ? "transform scale-105 duration-700" : ""}`}>
+      <div className={
+        `${isHovered ?
+          grupoStatus !== "realizado" ? "transform translate-x-1/2 duration-400" : ""
+          : ""
+        } transition h-32 w-16 bg-secondary absolute right-0  rounded-xl flex flex-col items-end justify-center px-2 gap-5`
+      }>
+        <div >
+          <span ref={refArchivar} onClick={() => { handleArchivarEvent(grupoStatus) }} className="w-max h-max relative">
+            <IconFolderOpen className="w-5 h-6 cursor-pointer text-white hover:text-gray-500" />
+            {isArchivar ? (
+              <span className={className}>{grupoStatus === "pendiente" ? "Archivar" : "Desarchivar"}
+              </span>
+            ) : null}
+          </span>
+        </div>
+        <div >
+          <span ref={refBorrar} onClick={handleRemoveEvent} className="w-max h-max relative"  >
+            <BorrarIcon className="cursor-pointer text-white hover:text-gray-500" />
+            {isBorrar ? (
+              <span className={className}>
+                Borrar
+              </span>
+            ) : null}
+          </span>
+        </div>
       </div>
-      <div
-        onClick={handleClick}
-        className="w-72 h-36 rounded-xl cardEvento p-6 flex flex-col justify-between cursor-pointer shadow-lg relative overflow-hidden"
-      >
+      <div onClick={handleClick} className="w-72 h-36 rounded-xl cardEvento cursor-pointer shadow-lg relative overflow-hidden">
         <img
-          src={imagen[tipo]}
+          src={imagen[evento?.tipo]}
           className="object-cover w-full h-full absolute top-0 left-0 z-0 object-top "
         />
-        <p className="text-xs font-display text-white capitalize z-10 relative">
-          {tipo == "otro" ? "mi evento especial" : tipo}
-        </p>
-        <h2 className="capitalize text-lg font-display text-white z-10 relative">
-          {nombre}
-        </h2>
+        <div className="relative w-full h-full z-10 p-4 pb-2 flex flex-col justify-between">
+          <span className="text-xs font-display text-white capitalize">
+            {evento?.tipo == "otro" ? "mi evento especial" : evento?.tipo}
+          </span>
+          <div className="flex flex-col ">
+            <span className="capitalize text-lg font-display text-white">
+              {evento?.nombre}
+            </span>
+            <span className="mt-[-4px] uppercase text-xs font-display text-white">
+              {`${new Date(parseInt(evento?.fecha)).toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric" })}`}
+            </span>
+            <span className="mt-[-4px] uppercase text-xs font-display text-white">
+              {evento?.estatus}
+            </span>
+          </div>
+        </div>
       </div>
       <style jsx>
         {`

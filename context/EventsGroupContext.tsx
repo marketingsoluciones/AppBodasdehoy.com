@@ -30,22 +30,23 @@ type action = {
 const reducer = (state: Event[], action: action) => {
   switch (action.type) {
     case "EDIT_EVENT":
-      return state
+      return state.reduce((acc: Event[], item: Event) => {
+        if (item._id === action.payload._id) {
+          item = { ...item, ...action.payload }
+        }
+        acc.push(item)
+        return acc
+      }, [])
       break;
-
     case "INITIAL_STATE":
       return action.payload
       break
-
     case "ADD_EVENT":
       return [...state, action.payload]
       break
-
-
     case "DELETE_EVENT":
       return state.filter(event => event._id !== action.payload)
       break
-
     default:
       return state
       break;

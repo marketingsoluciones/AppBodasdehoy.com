@@ -138,15 +138,25 @@ const GridCards: FC<propsGridCards> = ({ state, set }) => {
   const [tabsGroup, setTabsGroup] = useState<dataTab[]>([]);
   const [isActive, setIsActive] = useState<number>(0);
 
-
   useEffect(() => {
     if (eventsGroup) {
-      const arrNuevo = eventsGroup?.reduce(
-        (acc, event) => {
-          acc[event?.estatus?.toLowerCase()].push(event);
-          return acc;
-        },
-        { pendiente: [], realizado: [], borrado: [] }
+      const arrNuevo = eventsGroup?.reduce((acc, event) => {
+        if (event?.estatus?.toLowerCase() === "pendiente") {
+          if (parseInt(event?.fecha) >= Math.trunc(new Date().getTime() / 100000) * 100000) {
+            acc.pendiente.push(event)
+          } else {
+            acc.archivado.push(event)
+          }
+        }
+        if (event?.estatus?.toLowerCase() === "realizado") {
+          acc.realizado.push(event)
+        }
+        if (event?.estatus?.toLowerCase() === "archivado") {
+          acc.archivado.push(event)
+        }
+        return acc;
+      },
+        { pendiente: [], archivado: [], realizado: [] }
       );
 
       const countEmptys = (arr) => {
@@ -170,8 +180,8 @@ const GridCards: FC<propsGridCards> = ({ state, set }) => {
 
   const Lista = [
     { nombre: "Pendientes", value: "pendiente", color: "tertiary" },
+    { nombre: "Archivados", value: "archivado", color: "gray-300" },
     { nombre: "Realizados", value: "realizado", color: "secondary" },
-    { nombre: "Todos", value: "borrado", color: "gray-300" },
   ];
 
   return (
@@ -193,45 +203,49 @@ const GridCards: FC<propsGridCards> = ({ state, set }) => {
           ))}
         </div>
         <div className="w-full h-max ">
-          {tabsGroup.map((group, idx) => (
-            <div key={idx}>
-              {isActive == idx ? (
-                <>
-                  <Swiper
-                    key={idx}
-                    spaceBetween={50}
-                    pagination={{ clickable: true }}
-                    breakpoints={{
-                      0: {
-                        slidesPerView: 1,
-                        spaceBetween: 25,
-                      },
-                      768: {
-                        slidesPerView: 3,
-                        spaceBetween: 25,
-                      },
-                    }}
-                    id={group?.status}
-                    className={` h-48 ${isActive == idx ? "" : "hidden"}`}
-                  >
-                    {group?.data?.sort((a: any, b: any) => { return b.fecha_creacion - a.fecha_creacion })?.map((evento, idx) => (
-                      <SwiperSlide
-                        key={idx}
-                        className="flex items-center justify-center"
-                      >
-                        <Card key={evento._id} evento={evento} />
-                      </SwiperSlide>
-                    ))}
-                    <SwiperSlide
-                      className={`flex items-center justify-center`}
+          {tabsGroup.map((group, idx) => {
+            return (
+              <div key={idx}>
+                {isActive == idx ? (
+                  <>
+                    <Swiper
+                      key={idx}
+                      spaceBetween={50}
+                      pagination={{ clickable: true }}
+                      breakpoints={{
+                        0: {
+                          slidesPerView: 1,
+                          spaceBetween: 25,
+                        },
+                        768: {
+                          slidesPerView: 3,
+                          spaceBetween: 25,
+                        },
+                      }}
+                      id={group?.status}
+                      className={` h-48 ${isActive == idx ? "" : "hidden"}`}
                     >
-                      <CardEmpty state={state} set={(accion) => set(accion)} />
-                    </SwiperSlide>
-                  </Swiper>
-                </>
-              ) : null}
-            </div>
-          ))}
+                      {group?.data?.sort((a: any, b: any) => { return b.fecha_creacion - a.fecha_creacion })?.map((evento, idx) => (
+                        <SwiperSlide
+                          key={idx}
+                          className="flex items-center justify-center"
+                        >
+                          <Card key={evento._id} evento={evento} grupoStatus={group.status} />
+                        </SwiperSlide>
+                      ))}
+                      {group.status === "pendiente" &&
+                        <SwiperSlide
+                          className={`flex items-center justify-center`}
+                        >
+                          <CardEmpty state={state} set={(accion) => set(accion)} />
+                        </SwiperSlide>
+                      }
+                    </Swiper>
+                  </>
+                ) : null}
+              </div>
+            )
+          })}
         </div>
       </div>
       <style jsx>
