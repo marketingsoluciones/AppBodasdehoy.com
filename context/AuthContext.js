@@ -38,9 +38,9 @@ const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (isMounted) {
-      const path = window.location.hostname //"https://www.bodasdehoy.com/"
-      const c = path?.split("//")[1]?.split(".")
-      const idx = c?.findIndex(el => el.slice(0, 3) === "com")
+      const path = test.eventosplanificador.com //"https://www.bodasdehoy.com/"
+      const c = path?.split(".")
+      const idx = c?.findIndex(el => el === "com")
       /*--------------------------------------------------------------------*/
       const devDomain = ["bodasdehoy", "eventosplanificador"]
       const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[1] /*<<<<<<<<<*/
