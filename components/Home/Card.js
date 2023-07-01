@@ -62,7 +62,7 @@ const Card = ({ evento, grupoStatus }) => {
       if (grupoStatus === "archivado") {
         setEvent(evento);
       }
-      toast("success", `${value == "archivado" ? "El evento se ha archivado" : "El evento se ha desarchivado"}`)
+      toast("success", `${value == "archivado" ? `El evento ${evento.tipo} de "${evento.nombre.toUpperCase()}" se ha archivado` : `El evento ${evento.tipo} de "${evento.nombre.toUpperCase()}" se ha desarchivado`}`)
     } catch (error) {
       toast("error", "Ha ocurrido un error al archivar el evento")
       console.log(error)

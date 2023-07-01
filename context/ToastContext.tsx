@@ -9,7 +9,7 @@ export interface Toast {
 }
 
 type Context = {
-  toasts : Toast[],
+  toasts: Toast[],
   dispatch: Dispatch<SetStateAction<action>>
 }
 
@@ -32,12 +32,12 @@ type action = {
 };
 
 
-const toastReducer = (state: Toast[], action : action) => {
-  switch(action.type){
+const toastReducer = (state: Toast[], action: action) => {
+  switch (action.type) {
     case "ADD_TOAST": {
-        return [...state, action.payload]
+      return [...state, action.payload]
     }
-    case "DELETE_TOAST" : {
+    case "DELETE_TOAST": {
       const updateToast = state.filter(toast => toast.id !== action.payload)
       return updateToast
     }
@@ -51,7 +51,7 @@ const toastReducer = (state: Toast[], action : action) => {
 
 const ToastProvider = ({ children }) => {
   const [toasts, dispatch] = useReducer<Reducer<Toast[], action>>(toastReducer, []);
-  
+
   return (
     <ToastContext.Provider value={{ toasts, dispatch }}>
       {toasts.length > 0 && <ToastContainer />}
