@@ -23,14 +23,11 @@ const validationSchema = yup.object().shape({
 interface propsFromCrearEvento {
   state: boolean
   set: Dispatch<SetStateAction<boolean>>
-  initialValues?: any | undefined | null
+  EditEvent?: boolean
 }
 
-const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, initialValues: initialValuesInherited }) => {
-  if (initialValuesInherited) {
-    const f = new Date(parseInt(initialValuesInherited.fecha))
-    initialValuesInherited.fecha = getDate(f)
-  }
+const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) => {
+  const { event, setEvent } = EventContextProvider()
   const { user } = AuthContextProvider();
   const { setEventsGroup, eventsGroup } = EventsGroupContextProvider();
   const toast = useToast();
@@ -45,17 +42,22 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, initialValues: 
     usuario_nombre: string
   }
 
-  const initialValues: MyValues = {
-    nombre: "",
-    tipo: "",
-    fecha: getDate(new Date()),
-    pais: "",
-    poblacion: "",
-    usuario_id: user?.uid,
-    usuario_nombre: user?.displayName,
-  };
+  const initialValues: MyValues = EditEvent ?
+    {
+      ...event,
+      fecha: new Date(parseInt(event.fecha)).toJSON().slice(0, -14)
+    }
+    : {
+      nombre: "",
+      tipo: "",
+      fecha: new Date().toJSON(),
+      pais: "",
+      poblacion: "",
+      usuario_id: user?.uid,
+      usuario_nombre: user?.displayName,
+    }
 
-  const createEvent = async (values) => {
+  const createEvent = async (values: Partial<Event>) => {
     try {
       const crearEvento = await fetchApiEventos({
         query: queries.eventCreate,
@@ -73,7 +75,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, initialValues: 
     }
   }
 
-  const { event, setEvent } = EventContextProvider()
+
   const updateEvent = async (values) => {
     try {
       console.log("values.fecha.salida", new Date(values.fecha).getTime())
@@ -93,6 +95,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, initialValues: 
       })
       /* console.log(result) */
       setEvent({ ...event, ...values })
+      toast("success", "Evento actualizado con exito")
     } catch (error) {
       toast("error", "Ha ocurrido un error al modificar el evento");
       console.log(error)
@@ -102,7 +105,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, initialValues: 
   }
 
   const handleSubmit = async (values: FormikValues) => {
-    if (initialValuesInherited?._id) {
+    if (EditEvent) {
       updateEvent({ ...values })
     } else {
       createEvent(values)
@@ -123,16 +126,17 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, initialValues: 
 
   return (
     <Formik
-      initialValues={initialValuesInherited ?? initialValues}
+      initialValues={initialValues}
       onSubmit={handleSubmit}
       validationSchema={validationSchema}
     >
       {({ isSubmitting }) => (
 
         <Form className="w-full">
+          algo
           <div className="border-l-2 border-gray-100 pl-3 w-full ">
             <h2 className="font-display text-3xl capitalize text-primary font-light">
-              {initialValuesInherited ? "Editar" : "Crear"}
+              {EditEvent ? "Editar" : "Crear"}
             </h2>
             <h2 className="font-display text-5xl capitalize text-gray-500 font-medium">
               Evento

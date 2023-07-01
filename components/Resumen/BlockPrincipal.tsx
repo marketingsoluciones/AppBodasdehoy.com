@@ -24,7 +24,7 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
     babyshower: "/cards/baby.webp",
     "desdepida de soltero": "/cards/despedida.webp",
     graduación: "/cards/graduacion.webp",
-    otro:"/cards/pexels-pixabay-50675.jpg"
+    otro: "/cards/pexels-pixabay-50675.jpg"
 
   };
 
@@ -34,7 +34,7 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
 
   const newDate: Date = new Date(parseInt(event?.fecha));
 
-  const options: object = { year: "numeric", month: "long", day: "numeric" };
+  const options: object = { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" };
   let count: any
 
   if (event?.presupuesto_objeto?.coste_estimado) {
@@ -80,7 +80,7 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
                 {/* @ts-ignore */}
                 {newDate.toLocaleDateString("es-VE", options)}
               </p>
-              -<p className="text-primary">{event?.tipo == "otro"? "Mi Evento Especial":event?.tipo && capitalize(event?.tipo)}</p>
+              -<p className="text-primary">{event?.tipo == "otro" ? "Mi Evento Especial" : event?.tipo && capitalize(event?.tipo)}</p>
             </span>
           </div>
 
@@ -144,7 +144,7 @@ const BlockPrincipal: FC = () => {
     <>
       {shouldRenderChild && (
         <ModalLeft set={setIsMounted} state={isMounted}>
-          <FormCrearEvento set={setIsMounted} state={isMounted} initialValues={{ ...event }} />
+          <FormCrearEvento set={setIsMounted} state={isMounted} EditEvent={true} />
         </ModalLeft>
       )}
       <BlockVista >

@@ -19,7 +19,9 @@ const EventContext = createContext<Context>({
 const EventProvider = ({ children }) => {
   const [event, setEvent] = useState<Event | null>(null);
   const [invitadoCero, setInvitadoCero] = useState<string | null>(null);
+  const [valir, setValir] = useState<boolean | null>(false);
   const { eventsGroup } = EventsGroupContextProvider()
+
 
   // Capturar eventos del cumulo y seleccionar uno
   useEffect(() => {
@@ -27,9 +29,14 @@ const EventProvider = ({ children }) => {
       setEvent(null);
     }
     if (eventsGroup && eventsGroup.length > 0) {
-      setEvent(eventsGroup?.sort((a: any, b: any) => { return b.fecha_creacion - a.fecha_creacion })[0]);
+      if (!valir) {
+        const eventsPendientes = eventsGroup.filter(item => item.estatus === "pendiente" && parseInt(item.fecha) >= Math.trunc(new Date().getTime() / 100000) * 100000)
+        const eventsGroupSort = eventsPendientes?.sort((a: any, b: any) => { return b.fecha_creacion - a.fecha_creacion })
+        setEvent(eventsGroupSort[0]);
+        setValir(true)
+      }
     }
-  }, [eventsGroup]);
+  }, [eventsGroup, valir]);
 
   return (
     <EventContext.Provider value={{ event, setEvent, invitadoCero, setInvitadoCero }}>

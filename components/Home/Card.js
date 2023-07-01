@@ -7,7 +7,9 @@ import { setCookie } from "../../utils/Cookies";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from '../../hooks/useToast'
 
-const Card = ({ evento, grupoStatus }) => {
+
+
+const Card = ({ evento, grupoStatus, showEditEvent, setShowEditEvent }) => {
   const [hoverRef, isHovered] = useHover();
   const [refArchivar, isArchivar] = useHover();
   const [refBorrar, isBorrar] = useHover();
@@ -18,7 +20,7 @@ const Card = ({ evento, grupoStatus }) => {
   const handleClick = () => {
     try {
       setEvent(evento);
-      setCookie("evento_id", evento?._id, 1);
+      //setCookie("evento_id", evento?._id, 1);
     } catch (error) {
       console.log(error);
     } finally {
@@ -50,7 +52,6 @@ const Card = ({ evento, grupoStatus }) => {
       if (!result || result.errors) {
         throw new Error("Ha ocurrido un error")
       }
-      grupoStatus === "archivado" && handleClick()
       setEventsGroup({
         type: "EDIT_EVENT",
         payload: {
@@ -58,7 +59,11 @@ const Card = ({ evento, grupoStatus }) => {
           estatus: value
         }
       })
-      toast("success", "Evento archivado ")
+      if (grupoStatus === "archivado") {
+        setEvent(evento);
+        setShowEditEvent(true)
+      }
+      toast("success", `${value == "archivado" ? "El evento se ha archivado" : "El evento se ha desarchivado"}`)
     } catch (error) {
       toast("error", "Ha ocurrido un error al archivar el evento")
       console.log(error)
@@ -123,7 +128,7 @@ const Card = ({ evento, grupoStatus }) => {
               {evento?.nombre}
             </span>
             <span className="mt-[-4px] uppercase text-xs font-display text-white">
-              {`${new Date(parseInt(evento?.fecha)).toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric" })}`}
+              {`${new Date(parseInt(evento?.fecha)).toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}`}
             </span>
             {/* <span className="mt-[-4px] uppercase text-xs font-display text-white">
               {evento?.estatus}

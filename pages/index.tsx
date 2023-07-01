@@ -3,7 +3,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import SwiperCore, { Pagination } from "swiper/core";
 import { motion } from "framer-motion";
 import { CircleBanner, LineaHome } from "../components/icons";
-import { AuthContextProvider, EventsGroupContextProvider, } from "../context";
+import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, } from "../context";
 import Card from "../components/Home/Card";
 import CardEmpty from "../components/Home/CardEmpty";
 import FormCrearEvento from "../components/Forms/FormCrearEvento";
@@ -20,6 +20,9 @@ const Home: NextPage = () => {
   const [isMounted, setIsMounted] = useState<boolean>(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const { setEventsGroup } = EventsGroupContextProvider()
+  const { event } = EventContextProvider()
+  const [showEditEvent, setShowEditEvent] = useState<boolean>(false);
+  const [valir, setValir] = useState<boolean>(false);
 
   useEffect(() => {
     fetchApiEventos({
@@ -29,6 +32,18 @@ const Home: NextPage = () => {
       .then((events: Event[]) => setEventsGroup({ type: "INITIAL_STATE", payload: events }))
       .catch((error) => console.log(error));
   }, []);
+
+  useEffect(() => {
+    if (showEditEvent && !isMounted && !valir) {
+      setIsMounted(true)
+      setValir(true)
+    }
+    if (showEditEvent && !isMounted && valir) {
+      setShowEditEvent(false)
+      setValir(false)
+    }
+  }, [showEditEvent, isMounted, valir])
+
 
   const { user, verificationDone } = AuthContextProvider()
   if (verificationDone) {
@@ -41,13 +56,16 @@ const Home: NextPage = () => {
       <>
         {shouldRenderChild && (
           <ModalLeft state={isMounted} set={setIsMounted}>
-            <FormCrearEvento state={isMounted} set={setIsMounted} />
+            {showEditEvent ?
+              <FormCrearEvento state={isMounted} set={setIsMounted} EditEvent={showEditEvent} />
+              : <FormCrearEvento state={isMounted} set={setIsMounted} />
+            }
           </ModalLeft>
         )}
 
         <section className="section relative w-full ">
           <Banner state={isMounted} set={setIsMounted} />
-          <GridCards state={isMounted} set={setIsMounted} />
+          <GridCards state={isMounted} set={setIsMounted} showEditEvent={showEditEvent} setShowEditEvent={setShowEditEvent} />
         </section>
         <style jsx>
           {`
@@ -126,8 +144,10 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
 };
 
 interface propsGridCards {
-  state: boolean;
-  set: Dispatch<SetStateAction<boolean>>;
+  state: boolean
+  set: Dispatch<SetStateAction<boolean>>
+  showEditEvent: boolean
+  setShowEditEvent: Dispatch<SetStateAction<boolean>>
 }
 
 type dataTab = {
@@ -136,7 +156,7 @@ type dataTab = {
   vacio: number[]
 }
 
-const GridCards: FC<propsGridCards> = ({ state, set }) => {
+const GridCards: FC<propsGridCards> = ({ state, set, showEditEvent, setShowEditEvent }) => {
   const { eventsGroup } = EventsGroupContextProvider();
   const [tabsGroup, setTabsGroup] = useState<dataTab[]>([]);
   const [isActive, setIsActive] = useState<number>(0);
@@ -233,7 +253,7 @@ const GridCards: FC<propsGridCards> = ({ state, set }) => {
                           key={idx}
                           className="flex items-center justify-center"
                         >
-                          <Card key={evento._id} evento={evento} grupoStatus={group.status} />
+                          <Card key={evento._id} evento={evento} grupoStatus={group.status} showEditEvent={showEditEvent} setShowEditEvent={setShowEditEvent} />
                         </SwiperSlide>
                       ))}
                       {group.data?.length === 0 &&
@@ -249,7 +269,7 @@ const GridCards: FC<propsGridCards> = ({ state, set }) => {
                         <SwiperSlide
                           className={`flex items-center justify-center`}
                         >
-                          <CardEmpty state={state} set={(accion) => set(accion)} />
+                          <CardEmpty state={state} set={set} />
                         </SwiperSlide>
                       }
                     </Swiper>
