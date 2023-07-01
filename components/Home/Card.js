@@ -9,7 +9,7 @@ import { useToast } from '../../hooks/useToast'
 
 
 
-const Card = ({ evento, grupoStatus, showEditEvent, setShowEditEvent }) => {
+const Card = ({ evento, grupoStatus }) => {
   const [hoverRef, isHovered] = useHover();
   const [refArchivar, isArchivar] = useHover();
   const [refBorrar, isBorrar] = useHover();
@@ -61,7 +61,6 @@ const Card = ({ evento, grupoStatus, showEditEvent, setShowEditEvent }) => {
       })
       if (grupoStatus === "archivado") {
         setEvent(evento);
-        setShowEditEvent(true)
       }
       toast("success", `${value == "archivado" ? "El evento se ha archivado" : "El evento se ha desarchivado"}`)
     } catch (error) {
@@ -88,6 +87,7 @@ const Card = ({ evento, grupoStatus, showEditEvent, setShowEditEvent }) => {
   const className = "bg-secondary absolute transition rounded-r-xl px-3 py-1 font-display text-xs text-gray-700 right-0 top-1/2 -translate-y-1/2 transform translate-x-[107%]"
   return (
     <div ref={hoverRef} className={`w-max h-full relative grid place-items-center bg-white transition ${isHovered ? "transform scale-105 duration-700" : ""}`}>
+      <div className="absolute right-[-40px] w-10 h-full" />
       <div className={
         `${isHovered ?
           grupoStatus !== "realizado" ? "transform translate-x-1/2 duration-400" : ""

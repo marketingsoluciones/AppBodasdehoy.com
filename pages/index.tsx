@@ -164,19 +164,7 @@ const GridCards: FC<propsGridCards> = ({ state, set, showEditEvent, setShowEditE
   useEffect(() => {
     if (eventsGroup) {
       const arrNuevo = eventsGroup?.reduce((acc, event) => {
-        if (event?.estatus?.toLowerCase() === "pendiente") {
-          if (parseInt(event?.fecha) >= Math.trunc(new Date().getTime() / 100000) * 100000) {
-            acc.pendiente.push(event)
-          } else {
-            acc.archivado.push(event)
-          }
-        }
-        if (event?.estatus?.toLowerCase() === "realizado") {
-          acc.realizado.push(event)
-        }
-        if (event?.estatus?.toLowerCase() === "archivado") {
-          acc.archivado.push(event)
-        }
+        acc[event.estatus.toLowerCase()].push(event)
         return acc;
       },
         { pendiente: [], archivado: [], realizado: [] }
@@ -253,7 +241,7 @@ const GridCards: FC<propsGridCards> = ({ state, set, showEditEvent, setShowEditE
                           key={idx}
                           className="flex items-center justify-center"
                         >
-                          <Card key={evento._id} evento={evento} grupoStatus={group.status} showEditEvent={showEditEvent} setShowEditEvent={setShowEditEvent} />
+                          <Card key={evento._id} evento={evento} grupoStatus={group.status} />
                         </SwiperSlide>
                       ))}
                       {group.data?.length === 0 &&
