@@ -38,7 +38,7 @@ const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (isMounted) {
-      const path = test.eventosplanificador.com //"https://www.bodasdehoy.com/"
+      const path = window.location.hostname //"https://www.bodasdehoy.com/"
       const c = path?.split(".")
       const idx = c?.findIndex(el => el === "com")
       /*--------------------------------------------------------------------*/
