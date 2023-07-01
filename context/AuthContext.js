@@ -37,35 +37,35 @@ const AuthProvider = ({ children }) => {
 
 
   useEffect(() => {
-    //if (isMounted) {
-    const path = window.location.hostname //"https://www.bodasdehoy.com/"
-    const c = path?.split("//")[1]?.split(".")
-    const idx = c?.findIndex(el => el.slice(0, 3) === "com")
-    /*--------------------------------------------------------------------*/
-    const devDomain = ["bodasdehoy", "eventosplanificador"]
-    const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[1] /*<<<<<<<<<*/
-    /*--------------------------------------------------------------------*/
-    console.log({ path, c, idx, domainDevelop })
-    const resp = developments.filter(elem => elem.name === domainDevelop)[0]
-    if (!idx) {
-      resp = {
-        ...resp,
-        domain: `${process.env.NEXT_PUBLIC_PATH_DEVELOPMENT}:3001`,
-        pathDirectory: resp?.pathDirectory ? `${process.env.NEXT_PUBLIC_PATH_DEVELOPMENT}:3000` : undefined
+    if (isMounted) {
+      const path = window.location.hostname //"https://www.bodasdehoy.com/"
+      const c = path?.split("//")[1]?.split(".")
+      const idx = c?.findIndex(el => el.slice(0, 3) === "com")
+      /*--------------------------------------------------------------------*/
+      const devDomain = ["bodasdehoy", "eventosplanificador"]
+      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[1] /*<<<<<<<<<*/
+      /*--------------------------------------------------------------------*/
+      console.log({ path, c, idx, domainDevelop })
+      const resp = developments.filter(elem => elem.name === domainDevelop)[0]
+      if (!idx) {
+        resp = {
+          ...resp,
+          domain: `${process.env.NEXT_PUBLIC_PATH_DEVELOPMENT}:3001`,
+          pathDirectory: resp?.pathDirectory ? `${process.env.NEXT_PUBLIC_PATH_DEVELOPMENT}:3000` : undefined
+        }
+        setIsProduction(false)
       }
-      setIsProduction(false)
+      setDevelopment(resp?.name)
+      setDomain(resp?.name)
+      try {
+        const firebaseClient = initializeApp(resp?.fileConfig);
+        firebaseClient
+      } catch (error) {
+        console.log(90001, error)
+      }
+      setConfig(resp)
     }
-    setDevelopment(resp?.name)
-    setDomain(resp?.name)
-    try {
-      const firebaseClient = initializeApp(resp?.fileConfig);
-      firebaseClient
-    } catch (error) {
-      console.log(90001, error)
-    }
-    setConfig(resp)
-    //}
-  }, [])
+  }, [isMounted])
 
   useEffect(() => {
     try {
