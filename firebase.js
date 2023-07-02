@@ -28,6 +28,22 @@ export const developments = [
     pathLogin: "",
     pathDirectory: "https://bodasdehoy.com",
     logoDirectory: <LogoNuevoBodasBlanco className="hover:opacity-80 transition text-primary" />,
+    navbarDirectory: [{
+      title: "Novia",
+      path: "categoria/novias"
+    },
+    {
+      title: "Novio",
+      path: "categoria/novios"
+    },
+    {
+      title: "Proveedores",
+      path: "categoria/proveedores"
+    },
+    {
+      title: "Lugares para bodas",
+      path: "categoria/lugares-para-bodas"
+    }],
     headTitle: "Bodas de hoy - Organizador de Bodas",
     theme: {
       primaryColor: "#F7628C",

@@ -8,7 +8,7 @@ import Profile from "./Profile";
 import Sidebar from "../Utils/Sidebar";
 import BlockNotification from "./BlockNotification";
 import { useToast } from "../../hooks/useToast";
-import Navbar2 from "../Utils/Navbar";
+import NavbarDirectory from "../Utils/NavbarDirectory";
 import Head from "next/head";
 import { Tooltip } from "../Utils/Tooltip";
 
@@ -121,7 +121,6 @@ const Navigation: any = (
             onClick={() => setShowSidebar(!showSidebar)}
             className="md:hidden cursor-pointer"
           />
-          {/* <Link href={process.env.NEXT_PUBLIC_DIRECTORY ?? "/"} passHref> */}
           <span
             onClick={() => {
               //Loading(setLoading);
@@ -132,8 +131,7 @@ const Navigation: any = (
           >
             {config?.logoDirectory}
           </span>
-          {/* </Link> */}
-          {/* <Navbar2 /> */}
+          <NavbarDirectory />
           <div className="bg-red*">
             <Profile
               state={isMounted}
