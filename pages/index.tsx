@@ -157,9 +157,10 @@ type dataTab = {
 }
 
 const GridCards: FC<propsGridCards> = ({ state, set, showEditEvent, setShowEditEvent }) => {
+  const { isActiveStateSwiper, setIsActiveStateSwiper } = AuthContextProvider()
   const { eventsGroup } = EventsGroupContextProvider();
   const [tabsGroup, setTabsGroup] = useState<dataTab[]>([]);
-  const [isActive, setIsActive] = useState<number>(0);
+
 
   useEffect(() => {
     if (eventsGroup) {
@@ -201,9 +202,9 @@ const GridCards: FC<propsGridCards> = ({ state, set, showEditEvent, setShowEditE
         <div className="flex gap-4">
           {Lista.map((item, idx) => (
             <button
-              onClick={(e) => setIsActive(idx)}
+              onClick={(e) => setIsActiveStateSwiper(idx)}
               key={idx}
-              className={`${isActive == idx
+              className={`${isActiveStateSwiper == idx
                 ? `bg-${item.color} text-gray-500`
                 : "bg-white text-gray-500"
                 } w-max px-4 py-0.5 rounded-xl flex items-center justify-center cursor-pointer hover:bg-${item.color
@@ -217,7 +218,7 @@ const GridCards: FC<propsGridCards> = ({ state, set, showEditEvent, setShowEditE
           {tabsGroup.map((group, idx) => {
             return (
               <div key={idx}>
-                {isActive == idx ? (
+                {isActiveStateSwiper == idx ? (
                   <>
                     <Swiper
                       key={idx}
@@ -234,7 +235,7 @@ const GridCards: FC<propsGridCards> = ({ state, set, showEditEvent, setShowEditE
                         },
                       }}
                       id={group?.status}
-                      className={` h-48 ${isActive == idx ? "" : "hidden"}`}
+                      className={` h-48 ${isActiveStateSwiper == idx ? "" : "hidden"}`}
                     >
                       {group?.data?.sort((a: any, b: any) => { return b.fecha_creacion - a.fecha_creacion })?.map((evento, idx) => (
                         <SwiperSlide

@@ -1,3 +1,5 @@
+import { LogoEventosPlanificador, LogoNuevoBodasBlanco } from "./components/icons";
+
 const firebaseConfigBodas = {
   apiKey: "AIzaSyDVMoVLWWvolofYOcTYA0JZ0QHyng72LAM",
   authDomain: "bodasdehoy-1063.firebaseapp.com",
@@ -25,7 +27,15 @@ export const developments = [
     cookieGuest: "guestbodas",
     pathLogin: "",
     pathDirectory: "https://bodasdehoy.com",
-    headTitle: "Bodas de hoy - Organizador de Bodas"
+    logoDirectory: <LogoNuevoBodasBlanco className="hover:opacity-80 transition text-primary" />,
+    headTitle: "Bodas de hoy - Organizador de Bodas",
+    theme: {
+      primaryColor: "#F7628C",
+      secondaryColor: "#87F3B5",
+      tertiaryColor: "#FBFF4E",
+      baseColor: "#F2F2F2",
+      colorScroll: "#ffc0cb"
+    }
   },
   {
     name: "eventosplanificador",
@@ -34,7 +44,15 @@ export const developments = [
     domain: "https://eventosplanificador.com",
     cookieGuest: "guesteventos",
     pathLogin: "",
-    headTitle: "Planificador de Eventos"
+    logoDirectory: <LogoEventosPlanificador className="hover:opacity-80 transition text-primary" />,
+    headTitle: "Planificador de Eventos",
+    theme: {
+      primaryColor: "#6771ae",
+      secondaryColor: "#c589a9",
+      tertiaryColor: "#b3dbb4",
+      baseColor: "#F2F2F2",
+      colorScroll: "#adb6ed"
+    }
   },
 ]
 

@@ -21,7 +21,7 @@ const Navigation: any = (
   const toast = useToast();
   const { event } = EventContextProvider();
   const { setLoading } = LoadingContextProvider();
-  const { user, isProduction, development, config } = AuthContextProvider();
+  const { user, isProduction, domain, config, setIsActiveStateSwiper } = AuthContextProvider();
   const router = useRouter();
   const [showSidebar, setShowSidebar] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -95,7 +95,17 @@ const Navigation: any = (
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="description" content="¡Bodas de Hoy Organizador! Organiza tu boda en un sólo click., user-scalable=no, width=device-width, initial-scale=1" />
       </Head>
-      {!isProduction && <span className='absolute z-50'>{development}</span>}
+      {!isProduction &&
+        <div>
+          <div>
+            <ul className='absolute z-50 text-sm font-display ml-4'>
+              <li>url: {window.location.hostname}</li>
+              <li>domain: {domain}</li>
+              <li>event?.nombre: {event?.nombre}</li>
+            </ul>
+          </div>
+        </div>
+      }
       {shouldRenderChild && (
         <BlockNotification
           evento={event}
@@ -111,22 +121,26 @@ const Navigation: any = (
             onClick={() => setShowSidebar(!showSidebar)}
             className="md:hidden cursor-pointer"
           />
-          <Link href={process.env.NEXT_PUBLIC_DIRECTORY ?? "/"} passHref>
-            <span
-              onClick={() => {
-                Loading(setLoading);
-              }}
-              className="cursor-pointer w-40 items-center flex justify-center"
-            >
-              <LogoNuevoBodasBlanco className="hover:opacity-80 transition text-primary" />
-            </span>
-          </Link>
-          <Navbar2 />
-          <Profile
-            state={isMounted}
-            set={(act) => setIsMounted(act)}
-            user={user}
-          />
+          {/* <Link href={process.env.NEXT_PUBLIC_DIRECTORY ?? "/"} passHref> */}
+          <span
+            onClick={() => {
+              //Loading(setLoading);
+              router.push("/")
+              setIsActiveStateSwiper(0)
+            }}
+            className="bg-red* cursor-pointer w-40 items-center flex justify-center"
+          >
+            {config?.logoDirectory}
+          </span>
+          {/* </Link> */}
+          {/* <Navbar2 /> */}
+          <div className="bg-red*">
+            <Profile
+              state={isMounted}
+              set={(act) => setIsMounted(act)}
+              user={user}
+            />
+          </div>
         </div>
 
         {/* segundo menu superior con las redirecciones funcionales de la app */}

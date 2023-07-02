@@ -1,8 +1,10 @@
 import FormLogin from "../components/Forms/FormLogin";
 import { LogoNuevoBodasBlanco } from "../components/icons";
 import Link from "next/link";
+import { AuthContextProvider } from "../context";
 
 const VistaSinCookie = () => {
+  const { config } = AuthContextProvider()
   return (
     <>
       <div className="float-right text-gray-500 font-display section flex items-center justify-center">
@@ -13,7 +15,7 @@ const VistaSinCookie = () => {
 
               <samp className="flex justify-center">
 
-                <LogoNuevoBodasBlanco className="text-primary" />
+                {config?.logoDirectory}
 
               </samp>
 

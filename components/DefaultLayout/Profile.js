@@ -2,15 +2,14 @@ import Link from "next/link";
 import { useState } from "react";
 import ClickAwayListener from "react-click-away-listener";
 import { capitalize } from "../../utils/Capitalize";
-import { CorazonIcono, MensajeIcon } from "../icons";
-import { useAuthentication } from "../../utils/Authentication";
+import { MensajeIcon } from "../icons";
 import router from "next/router";
 import { getAuth, signOut } from "firebase/auth";
 import { AuthContextProvider } from "../../context";
 import Cookies from "js-cookie";
 
 const Profile = ({ user, state, set, ...rest }) => {
-  const { setUser, config } = AuthContextProvider()
+  const { config } = AuthContextProvider()
   const [dropdown, setDropwdon] = useState(false);
   const ListaDropdown = []
   if (config?.pathDirectory) {

@@ -8,15 +8,15 @@ module.exports = {
       "display": ['Poppins', ...defaultTheme.fontFamily.sans],
       "title": ['Italiana', ...defaultTheme.fontFamily.sans],
     },
-    extend :{
+    extend: {
       colors: {
-        primary: "#F7628C",  
-        secondary: "#87F3B5",
-        tertiary: "#FBFF4E", 
+        primary: `var(--color-primary)`,
+        secondary: `var(--color-secondary)`,
+        tertiary: `var(--color-tertiary)`,
+        "color-base": `var(--color-base)`,
         base: "#F2F2F2",
         green: "#13ce66",
         red: "#fa0202"
-  
       },
     }
   },

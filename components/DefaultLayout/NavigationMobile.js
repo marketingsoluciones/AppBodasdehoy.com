@@ -31,9 +31,6 @@ const NavigationMobile = () => {
   const { event } = EventContextProvider();
   const { user } = AuthContextProvider();
   const [show, setShow] = useState(false)
-  useEffect(() => {
-    console.log(show)
-  }, [show])
 
   const Navbar = [
     {
