@@ -96,7 +96,7 @@ const Navigation: any = (
         <meta name="description" content="¡Bodas de Hoy Organizador! Organiza tu boda en un sólo click., user-scalable=no, width=device-width, initial-scale=1" />
       </Head>
       {!isProduction &&
-        <div>
+        <div className="hidden md:flex">
           <div>
             <ul className='absolute z-50 text-sm font-display ml-4'>
               <li>url: {window.location.hostname}</li>
@@ -163,7 +163,9 @@ const Navigation: any = (
                       : route == "/"
                         ? "text-gray-200"
                         : "text-gray-400"
-                    } ${event?._id ? "" : ""}}`}
+                    } 
+                    ${event?._id ? "" : ""}
+                  }`}
                 >
                   {item.icon}
                   <p className="font-display text-sm h-max"  >{item.title}</p>

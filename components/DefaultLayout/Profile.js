@@ -43,10 +43,10 @@ const Profile = ({ user, state, set, ...rest }) => {
                   {user.displayName == "guest" &&
                     <>
                       <li className="w-full pl-5 py-1 text-gray-500 transition  hover:bg-primary hover:text-white font-display text-sm">
-                        <button onClick={async () => { router.push(`${process.env.NEXT_PUBLIC_DIRECTORY}/login?d=app` ?? "") }}>Inicio de sesión</button>
+                        <button onClick={async () => { router.push(`${config?.pathDirectory ? config.pathDirectory : ""}/login?d=app` ?? "") }}>Inicio de sesión</button>
                       </li>
                       <li className="w-full pl-5 py-1 text-gray-500 transition  hover:bg-primary hover:text-white font-display text-sm">
-                        <button onClick={async () => { router.push(`${process.env.NEXT_PUBLIC_DIRECTORY}/login?d=app&a=registro` ?? "") }}>Registro</button>
+                        <button onClick={async () => { router.push(`${config?.pathDirectory ? config.pathDirectory : ""}/login?d=app&a=registro` ?? "") }}>Registro</button>
                       </li>
                     </>
                   }

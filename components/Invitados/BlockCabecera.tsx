@@ -1,10 +1,5 @@
-import {
-  CanceladoIcon,
-  ConfirmadosIcon,
-  MesaIcon,
-  PendienteIcon,
-} from "../icons";
-import {EventContextProvider} from "../../context";
+import { CanceladoIcon, ConfirmadosIcon, MesaIcon, PendienteIcon } from "../icons";
+import { EventContextProvider } from "../../context";
 import { useRouter } from "next/router";
 import { Swiper, SwiperSlide } from "swiper/react";
 import BlockTitle from "../Utils/BlockTitle";
@@ -23,38 +18,35 @@ const BlockCabecera = () => {
 
   const TotalList = [
     {
-      title: `${totalSegun("asistencia", "pendiente")?.length} de ${
-        ObjInvitado?.total
-      }`,
+      title: `${totalSegun("asistencia", "pendiente")?.length} de ${ObjInvitado?.total
+        }`,
       subtitle: "por confirmar",
       icon: <PendienteIcon />,
     },
     {
-      title: `${totalSegun("asistencia", "confirmado")?.length} de ${
-        ObjInvitado?.total
-      }`,
+      title: `${totalSegun("asistencia", "confirmado")?.length} de ${ObjInvitado?.total
+        }`,
       subtitle: "confirmados",
       icon: <ConfirmadosIcon />,
     },
     {
-      title: `${totalSegun("asistencia", "cancelado")?.length} de ${
-        ObjInvitado?.total
-      }`,
+      title: `${totalSegun("asistencia", "cancelado")?.length} de ${ObjInvitado?.total
+        }`,
       subtitle: "cancelados",
       icon: <CanceladoIcon />,
     },
   ];
   return (
     <>
-      <BlockTitle title="Mis invitados"/>
+      <BlockTitle title="Mis invitados" />
       <div className="w-full flex flex-col gap-4 md:grid md:grid-cols-6 my-2 py-2 md:border-b-4 md:border-primary relative">
-        
+
         <div className="flex gap-10 items-center justify-center h-full w-full md:col-span-2 py-4">
           <div className="flex gap-1 items-center justify-end ">
-          <p className="font-display font-semibold text-4xl text-primary">
-            {ObjInvitado?.total}
-          </p>
-          <p className="font-display text-primary">invitados</p>
+            <p className="font-display font-semibold text-4xl text-primary">
+              {ObjInvitado?.total}
+            </p>
+            <p className="font-display text-primary">invitados</p>
           </div>
           <div className="flex flex-col gap-1 items-start justify-center h-full col-span-1">
             <p className="font-display font-semibold text-sm text-gray-500 flex gap-1">
@@ -69,21 +61,21 @@ const BlockCabecera = () => {
         </div>
 
         <Swiper
-            breakpoints={{
-              0: {
-                "slidesPerView": 2,
-                "spaceBetween": 25,
-              },
-              768: {
-                "slidesPerView": 3,
-                "allowTouchMove":false,
-                "spaceBetween": 25,
-                
-                
-              },
+          breakpoints={{
+            0: {
+              "slidesPerView": 2,
+              "spaceBetween": 25,
+            },
+            768: {
+              "slidesPerView": 3,
+              "allowTouchMove": false,
+              "spaceBetween": 25,
 
-            }}
-            className="bg-white rounded-xl col-span-3 shadow-lg flex items-center w-full justify-center h-24 md:h-auto relative">
+
+            },
+
+          }}
+          className="bg-white rounded-xl col-span-3 shadow-lg flex items-center w-full justify-center h-24 md:h-auto relative">
 
           {TotalList.map((item, idx) => (
             <SwiperSlide key={idx} className="flex gap-2 items-center justify-center">

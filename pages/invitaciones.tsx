@@ -52,7 +52,6 @@ const Invitaciones = () => {
     if (!event) return <></>
     return (
       <DataTableGroupProvider>
-
         <section className="bg-base w-full pb-6">
           <motion.div
             initial={{ opacity: 0 }}
@@ -60,13 +59,7 @@ const Invitaciones = () => {
             exit={{ opacity: 0 }}
             className="max-w-screen-lg mx-auto inset-x-0 w-full px-5 md:px-0 gap-4"
           >
-
-            <div className="w-[35%]">
-              <Breadcumbs />{/*volver a resumen */}
-            </div>
-
             <BlockTitle title="Invitaciones" />
-
             <div className="w-full flex-col flex md:flex-row my-6 gap-6 relative">
               { /*error de http://96.126.110.203:3001/false*/}
               <div ref={hoverRef} className="relative w-full h-96 md:w-1/3 ">
@@ -78,14 +71,11 @@ const Invitaciones = () => {
               </div> */}
                 <ModuloSubida event={event} use={"imgInvitacion"} />
               </div>
-
               <div className="w-full md:w-2/3 gap-6 h-full relative flex-col flex justify-end">
                 <CounterInvitations />
                 <Test />
               </div>
-
             </div>
-
             {event?.invitados_array?.length > 0 && (
               <div>
                 <div className="bg-white w-full rounded-xl shadow-md relative mt-4 mb-8">
@@ -98,10 +88,8 @@ const Invitaciones = () => {
                 </div>
               </div>
             )}
-
             { /*error de http://96.126.110.203:3001/%7B%7Bparams.imgUrl%7D%7D */}
             <VistaPrevia event={event} />
-
             <h2 className="font-display font-semibold text-2xl text-gray-500 p-4">
               Diseña tu invitación
             </h2>

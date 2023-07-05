@@ -77,6 +77,7 @@ const Container = (props) => {
 
   return (
     <>
+      {/* <div className="bg-red max-w-full max-h-full w-[90%] h-[90%] flex flex-col relative"> */}
       <NavigationMobile />
       <Navigation
         notificaciones={notificaciones}
@@ -86,7 +87,12 @@ const Container = (props) => {
       />
 
       {loading && <BarraLoading />}
-      <main>{children}</main>
+      <div className="*max-w-[70%] *max-h-[10%] w-[100%] h-[calc(100vh-144px)] overflow-auto ">
+        <main>
+          {children}
+        </main>
+      </div>
+      {/* </div> */}
     </>
   );
 };

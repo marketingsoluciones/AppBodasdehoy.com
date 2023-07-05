@@ -23,7 +23,7 @@ const Grafico = ({ categorias }) => {
 
   return (
     <>
-      <div className="w-full h-full md:mb-5 md:h-max bg-white rounded-xl shadow-md flex justify-center  md:py-6 pt-6  ">
+      <div className="w-full h-full md:mb-2 md:h-max bg-white rounded-xl shadow-md flex justify-center  md:py-6 pt-6  ">
         <div className="md:w-3/5 h-full  ">
           <Doughnut
             type="Doughnut"
@@ -33,7 +33,7 @@ const Grafico = ({ categorias }) => {
                 legend: {
                   position: "bottom",
                   align: "start",
-                  
+
                   labels: {
                     font: {
                       size: 12,
@@ -46,13 +46,13 @@ const Grafico = ({ categorias }) => {
             }}
 
             data={{
-              className:"data",
+              className: "data",
               labels: labels,
               datasets: [
                 {
                   label: "Categorias",
                   data: data,
-                  backgroundColor: ["#F7628C", "#87F3B5", "#FBFF4E", "#F2F2F2","#DC7633","#BFC9CA","#2C3E50","C0392B","#AF7AC5","#0E6251","#FF00FF","#641E16","#CCFF00","#00E3FF"],
+                  backgroundColor: ["#F7628C", "#87F3B5", "#FBFF4E", "#F2F2F2", "#DC7633", "#BFC9CA", "#2C3E50", "C0392B", "#AF7AC5", "#0E6251", "#FF00FF", "#641E16", "#CCFF00", "#00E3FF"],
                   borderWidth: 0,
                 },
               ],

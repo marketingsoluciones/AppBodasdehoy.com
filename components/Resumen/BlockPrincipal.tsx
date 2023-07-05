@@ -6,6 +6,7 @@ import { EventContextProvider } from "../../context";
 import ModalLeft from "../Utils/ModalLeft";
 import { useDelayUnmount } from "../../utils/Funciones";
 import FormCrearEvento from "../Forms/FormCrearEvento";
+import { defaultImagenes } from "../Home/Card";
 
 interface propsBlockVista {
   children?: React.ReactNode;
@@ -15,18 +16,6 @@ interface propsBlockVista {
 const BlockVista: FC<propsBlockVista> = ({ children }) => {
   const [state, setState] = useState(0)
   const { event } = EventContextProvider();
-
-  const images: object = {
-    boda: "/cards/boda.webp",
-    comunión: "/cards/comunion.webp",
-    cumpleaños: "/cards/cumpleanos.webp",
-    bautizo: "/cards/bautizo.webp",
-    babyshower: "/cards/baby.webp",
-    "desdepida de soltero": "/cards/despedida.webp",
-    graduación: "/cards/graduacion.webp",
-    otro: "/cards/pexels-pixabay-50675.jpg"
-
-  };
 
   const seatedGuests: number = event?.invitados_array?.filter(
     (item) => item?.nombre_mesa?.toLowerCase() !== "no asignado"
@@ -62,7 +51,7 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
       <div className="w-full bg-white shadow rounded-xl overflow-hidden relative flex flex-col-reverse md:flex-row md:h-72 gap-12  md:gap-0 pt-6 md:pt-0">
         {event?.tipo && (
           <img
-            src={images[event?.tipo]}
+            src={defaultImagenes[event?.tipo]}
             className="md:w-1/2 md:h-full h-60 object-cover object-top rounded-xl"
             alt={event?.nombre}
           />

@@ -18,11 +18,11 @@ interface propsDatatableGroup {
   isMounted: boolean;
   setIsMounted: Dispatch<SetStateAction<boolean>>;
   menu?: any
-  setGetMenu?:any
+  setGetMenu?: any
 }
 
 
-const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIsMounted,menu }) => {
+const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIsMounted, menu }) => {
   const { event, setEvent, invitadoCero, setInvitadoCero } = EventContextProvider();
   const [datas, setDatas] = useState<{ titulo: string; data: guests[] }[]>([]);
 
@@ -257,7 +257,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
           const [show, setShow] = useState(false);
           const [loading, setLoading] = useState(false);
 
-          const setLocalStorage =( value) => {
+          const setLocalStorage = (value) => {
             try {
               setValue(value)
               window.localStorage.setItem("menu", value)
@@ -267,7 +267,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
           }
 
 
-         
+
 
           return (
             <ClickAwayListener onClickAway={() => setShow(false)}>
@@ -397,14 +397,14 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
           };
 
           return (
-            <div className="w-full flex justify-end items-center relative">
-              <span
-                onClick={(e) => setShow(!show)}
-                className={`cursor-pointer relative w-max rounded-lg text-sm text-gray-700 ${title === "no asignado" ? "hidden" : ""}`}
-              >
-                <DotsOpcionesIcon className="text-gray-500 w-4 h-4" />
-              </span>
-              <ClickAwayListener onClickAway={() => show && setShow(false)}>
+            <ClickAwayListener onClickAway={() => show && setShow(false)}>
+              <div className="w-full flex justify-end items-center relative">
+                <span
+                  onClick={() => setShow(!show)}
+                  className={`cursor-pointer relative w-max rounded-lg text-sm text-gray-700 ${title === "no asignado" ? "hidden" : ""}`}
+                >
+                  <DotsOpcionesIcon className="text-gray-500 w-4 h-4" />
+                </span>
                 <ul
                   className={`${show ? "block" : "hidden"
                     } top-0 right-0 absolute w-max border border-base bg-white capitalize rounded-md overflow-hidden shadow-lg z-10`}
@@ -419,8 +419,8 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                     </li>
                   ))}
                 </ul>
-              </ClickAwayListener>
-            </div>
+              </div>
+            </ClickAwayListener>
           );
         },
         id: "delete",
@@ -467,21 +467,17 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
               function: () => HandleEdit(row.row.original._id),
             },
           ];
-          const handleClick = (e) => {
-            e.preventDefault();
-            setShow(!show);
-            // HandleRemove(row.row.original._id)
-          };
+
 
           return (
-            <div className="w-full flex justify-end items-center relative">
-              <span
-                onClick={(e) => handleClick(e)}
-                className="cursor-pointer relative w-max rounded-lg text-sm text-gray-700"
-              >
-                <DotsOpcionesIcon className="text-gray-500 w-4 h-4" />
-              </span>
-              <ClickAwayListener onClickAway={() => show && setShow(false)}>
+            <ClickAwayListener onClickAway={() => show && setShow(false)}>
+              <div className="w-full flex justify-end items-center relative">
+                <span
+                  onClick={() => setShow(!show)}
+                  className="cursor-pointer relative w-max rounded-lg text-sm text-gray-700"
+                >
+                  <DotsOpcionesIcon className="text-gray-500 w-4 h-4" />
+                </span>
                 <ul
                   className={`${show ? "block" : "hidden"
                     } top-0 left-0 absolute w-20 border border-base bg-white capitalize rounded-md overflow-hidden shadow-lg z-10`}
@@ -490,14 +486,14 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                     <li
                       key={idx}
                       onClick={item.function}
-                      className="font-display text-sm cursor-pointer border-base border block px-2 py-1 text-sm text-gray-500 hover:text-gray-300 hover:bg-base"
+                      className="font-display cursor-pointer border-base border block px-2 py-1 text-sm text-gray-500 hover:text-gray-300 hover:bg-base"
                     >
                       {item.title}
                     </li>
                   ))}
                 </ul>
-              </ClickAwayListener>
-            </div>
+              </div>
+            </ClickAwayListener>
           );
         },
       },

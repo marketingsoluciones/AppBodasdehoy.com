@@ -21,7 +21,7 @@ const ListaRegalos = () => {
   const { user, verificationDone } = AuthContextProvider()
   const [showForm, setShowForm] = useState(false)
 
-  
+
 
   if (verificationDone) {
     if (!user) {
@@ -47,17 +47,9 @@ const ListaRegalos = () => {
         <section className="w-full bg-base">
           <motion.div initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }} className="max-w-screen-lg mx-auto inset-x-0 flex-col gap-6 flex pb-28 md:pb-10 px-5">
-            <div className="w-[35%]">
-              <Breadcumb />
-            </div>
-
-
+            exit={{ opacity: 0 }} className="max-w-screen-lg mx-auto inset-x-0 flex-col gap-6 flex pb-28 md:pb-10">
             <BlockTitle title={"Lista de regalos"} />
-
-
             <div className="w-full flex flex-col md:flex-row justify-center items-center gap-6 ">
-
               <div className="w-full md:w-1/2 bg-white shadow-lg flex gap-8 items-center justify-center p-6 rounded-xl">
                 <DineroIcon className="w-12 h-12 text-gray-500" />
                 <div className="font-display flex flex-col items-center">
@@ -72,7 +64,6 @@ const ListaRegalos = () => {
                   <p>Pendiente: 0.00 Є</p>
                 </div>
               </div>
-
               <div className="w-full md:w-1/2 bg-white shadow-lg flex gap-4 items-center justify-center p-6 rounded-xl">
                 <CochinoIcon className="w-12 h-12 text-gray-500" />
                 <div className="font-display flex flex-col items-start">
@@ -83,7 +74,6 @@ const ListaRegalos = () => {
                 </div>
               </div>
             </div>
-
             <div className="w-full bg-white shadow-lg flex gap-4 items-center justify-center p-6 rounded-xl">
               <AmazonIcon className="w-28 h-28 text-primary" />
               <div className="font-display flex flex-col items-start">
@@ -94,7 +84,6 @@ const ListaRegalos = () => {
                     con millones de opciones para elegir.
                   </span>
                 </h3>
-
                 <div className=" flex flex-col md:flex-row gap-4">
                   <a
                     href="https://www.amazon.com/-/es/registries/create-registry?ref_=gr_universal_landing"
@@ -104,7 +93,6 @@ const ListaRegalos = () => {
                   >
                     Crea tu lista de regalos en amazon
                   </a >
-
                   <div className={`${event.listaRegalos ? "block mt-2.5" : "hidden"}`}>
                     <a
                       href={event.listaRegalos}
@@ -118,13 +106,10 @@ const ListaRegalos = () => {
                 </div>
               </div>
             </div>
-
             <h3 className="font-display text-xl text-gray-500 w-max inset-x-0 mx-auto pt-2 pb-2">
               ¿Como funciona la lista?
             </h3>
-
             <div className="w-full grid-cols-1 md:grid-cols-3 grid gap-6">
-
               {/* First Card */}
               <a
                 className="bg-secondary rounded-xl shadow-lg col-span-1 flex justify-center flex-col items-center font-display h-max p-6 gap-4 hover:scale-105 transition duration-200 transform "
@@ -141,7 +126,6 @@ const ListaRegalos = () => {
                   </span>
                 </h3>
               </a>
-
               {/* Second Card */}
               <buttom
                 className="bg-primary rounded-xl shadow-lg col-span-1 flex justify-center flex-col items-center font-display h-max p-6 gap-4 hover:scale-105 transition duration-200 transform "
@@ -158,7 +142,6 @@ const ListaRegalos = () => {
                   </span>
                 </h3>
               </buttom>
-
               {/* Tertiary Card */}
               <div className="bg-tertiary rounded-xl shadow-lg col-span-1 flex justify-center flex-col items-center font-display h-max p-6 gap-4 hover:scale-105 transition duration-200 transform ">
                 <ListaTwo />
@@ -170,7 +153,6 @@ const ListaRegalos = () => {
                   </span>
                 </h3>
               </div>
-
             </div>
           </motion.div>
         </section>

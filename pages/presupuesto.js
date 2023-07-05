@@ -13,6 +13,7 @@ import ModalLeft from "../components/Utils/ModalLeft";
 import { AuthContextProvider, EventContextProvider } from "../context";
 import { getCurrency, useDelayUnmount } from "../utils/Funciones";
 import VistaSinCookie from "./vista-sin-cookie";
+import BlockTitle from "../components/Utils/BlockTitle";
 
 const Presupuesto = () => {
 
@@ -44,112 +45,102 @@ const Presupuesto = () => {
     if (!event) return <></>
     return (
       <>
-        {event && <section className="bg-base w-full h-full pb-20 ">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="max-w-screen-lg mx-auto inset-x-0 w-full"
-          >
-            <div className="pl-5 w-[35%]">
-              <Breadcumbs />
-            </div>
-
-            <div className="w-80 mx-auto inset-x-0 h-max flex my-2 rounded-2xl overflow-hidden">
-              <div
-                onClick={() => setActive(true)}
-                className={`w-1/2 py-1 ${active ? "bg-primary text-white" : "bg-white text-primary"
-                  } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
-              >
-                <p>Presupuesto</p>
+        {event &&
+          <section className="bg-base w-full h-full">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="max-w-screen-lg mx-auto inset-x-0 w-full">
+              <BlockTitle title={"Presupuesto"} />
+              <div className="pt-2">
+                <div className="w-80 mx-auto inset-x-0 *h-max flex my-2 mt-2 rounded-2xl overflow-hidden">
+                  <div
+                    onClick={() => setActive(true)}
+                    className={`w-1/2 py-1 ${active ? "bg-primary text-white" : "bg-white text-primary"
+                      } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
+                  >
+                    <p>Presupuesto</p>
+                  </div>
+                  <div
+                    onClick={() => setActive(false)}
+                    className={`w-1/2 py-1 ${active ? "bg-white text-primary" : "bg-primary text-white"
+                      } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
+                  >
+                    <p>Pagos</p>
+                  </div>
+                </div>
               </div>
-              <div
-                onClick={() => setActive(false)}
-                className={`w-1/2 py-1 ${active ? "bg-white text-primary" : "bg-primary text-white"
-                  } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
-              >
-                <p>Pagos</p>
-              </div>
-            </div>
+              {active ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="grid md:grid-cols-3 w-full gap-6 pt-2 pl-3 pr-3 md:pr-0 pb-4"
+                >
+                  <>
+                    <BlockListaCategorias
+                      set={(act) => setShowCategoria(act)}
+                      categorias_array={categorias}
+                    />
 
-            {active ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="grid md:grid-cols-3 w-full gap-6 pb-4 pt-8 pl-3 pr-3 md:pr-0"
-              >
-                <>
-                  <BlockListaCategorias
-                    set={(act) => setShowCategoria(act)}
-                    categorias_array={categorias}
-                  />
+                    <div className="md:col-span-2 w-full flex flex-col relative pr-3">
+                      {showCategoria?.isVisible ? (
+                        <BlockCategoria
+                          set={(act) => setShowCategoria(act)}
+                          cate={showCategoria?.id}
+                        />
+                      ) : (
+                        <>
+                          <div className=" grid grid-cols-1 gap-6 md:grid-cols-2">
+                            <div className=" bg-white shadow-md rounded-xl grid place-items-center p-4">
+                              <MontoPresupuesto
+                                estimado={
+                                  event?.presupuesto_objeto?.coste_estimado
+                                }
+                              />
+                            </div>
+                            <div className=" bg-white shadow-md rounded-xl grid place-items-center p-4">
+                              <DineroIcon className="w-12 h-12 text-primary " />
+                              <p className="font-display text-gray-500 font-light text-md grid place-items-center">
+                                Coste Final <br />
+                                <span className="font-semibold text-lg text-center">
+                                  {getCurrency(
+                                    event?.presupuesto_objeto?.coste_final
+                                  )}
+                                </span>
+                              </p>
+                              <div className=" w-full rounded-xl overflow-hidden flex my-2">
+                                <div className="w-1/2 bg-primary py-1 px-3">
+                                  <p className="text-xs font-display text-white">
+                                    Pagado {event?.presupuesto_objeto?.pagado} €
+                                  </p>
+                                </div>
 
-                  <div className="md:col-span-2 w-full flex flex-col  gap-6 relative pr-3 ">
-                    {showCategoria?.isVisible ? (
-                      <BlockCategoria
-                        set={(act) => setShowCategoria(act)}
-                        cate={showCategoria?.id}
-                      />
-                    ) : (
-                      <>
-                        <div className="w-full bg-white rounded-xl shadow-md " >
-                          <h1 className="font-display text-2xl text-center font-semibold text-gray-500 p-4">
-                            Presupuesto
-                          </h1>
-                        </div>
-                        <div className=" grid grid-cols-1 gap-6 md:grid-cols-2">
-                          <div className=" bg-white shadow-md rounded-xl grid place-items-center p-4">
-                            <MontoPresupuesto
-                              estimado={
-                                event?.presupuesto_objeto?.coste_estimado
-                              }
-                            />
-                          </div>                      
-                          <div className=" bg-white shadow-md rounded-xl grid place-items-center p-4">
-                            <DineroIcon className="w-12 h-12 text-primary " />
-                            <p className="font-display text-gray-500 font-light text-md grid place-items-center">
-                              Coste Final <br />
-                              <span className="font-semibold text-lg text-center">
-                                {getCurrency(
-                                  event?.presupuesto_objeto?.coste_final
-                                )}
-                              </span>
-                            </p>
-                            <div className=" w-full rounded-xl overflow-hidden flex my-2">
-                              <div className="w-1/2 bg-primary py-1 px-3">
-                                <p className="text-xs font-display text-white">
-                                  Pagado {event?.presupuesto_objeto?.pagado} €
-                                </p>
-                              </div>
-
-                              <div className="w-1/2 bg-tertiary py-1 px-3">
-                                <p className="text-xs font-display text-primary">
-                                  Por pagar {event?.presupuesto_objeto?.coste_final - event?.presupuesto_objeto?.pagado} €
-                                </p>
+                                <div className="w-1/2 bg-tertiary py-1 px-3">
+                                  <p className="text-xs font-display text-primary">
+                                    Por pagar {event?.presupuesto_objeto?.coste_final - event?.presupuesto_objeto?.pagado} €
+                                  </p>
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                        <div className="w-full mb-10  ">
-                          <h2 className="font-display text-xl text-gray-500 font-semibold text-center w-full py-2">
-                            ¿Cuanto cuesta mi evento?
-                          </h2>
-                         
-                          <Grafico categorias={categorias} />
-                          
-                          
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </>
-              </motion.div>
-            ) : (
-              <BlockPagos />
-            )}
-          </motion.div>
-        </section>}
+                          <div className="w-full pt-2">
+                            <h2 className="font-display pb-2 text-xl text-gray-500 font-semibold text-center w-full">
+                              ¿Cuanto cuesta mi evento?
+                            </h2>
+                            <Grafico categorias={categorias} />
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </>
+                </motion.div>
+              ) : (
+                <BlockPagos />
+              )}
+            </motion.div>
+          </section>}
         <style jsx>
           {`
           section {

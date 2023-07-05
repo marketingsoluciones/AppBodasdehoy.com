@@ -7,7 +7,16 @@ import { setCookie } from "../../utils/Cookies";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from '../../hooks/useToast'
 
-
+export const defaultImagenes = {
+    boda: "/cards/boda.webp",
+    comunión: "/cards/comunion.webp",
+    cumpleaños: "/cards/cumpleanos.webp",
+    bautizo: "/cards/bautizo.webp",
+    babyshower: "/cards/baby.webp",
+    "desdepida de soltero": "/cards/despedida.webp",
+    graduación: "/cards/graduacion.webp",
+    otro: "/cards/pexels-pixabay-50675.jpg"
+  };
 
 const Card = ({ evento, grupoStatus }) => {
   const [hoverRef, isHovered] = useHover();
@@ -26,18 +35,6 @@ const Card = ({ evento, grupoStatus }) => {
     } finally {
       router.push("/resumen-evento");
     }
-  };
-
-
-  const imagen = {
-    boda: "/cards/boda.webp",
-    comunión: "/cards/comunion.webp",
-    cumpleaños: "/cards/cumpleanos.webp",
-    bautizo: "/cards/bautizo.webp",
-    babyshower: "/cards/baby.webp",
-    "desdepida de soltero": "/cards/despedida.webp",
-    graduación: "/cards/graduacion.webp",
-    otro: "/cards/pexels-pixabay-50675.jpg"
   };
 
   const toast = useToast()
@@ -116,7 +113,7 @@ const Card = ({ evento, grupoStatus }) => {
       </div>
       <div onClick={handleClick} className="w-72 h-36 rounded-xl cardEvento cursor-pointer shadow-lg relative overflow-hidden">
         <img
-          src={imagen[evento?.tipo]}
+          src={defaultImagenes[evento?.tipo]}
           className="object-cover w-full h-full absolute top-0 left-0 z-0 object-top "
         />
         <div className="relative w-full h-full z-10 p-4 pb-2 flex flex-col justify-between">

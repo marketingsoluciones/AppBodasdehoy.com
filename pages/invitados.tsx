@@ -16,15 +16,14 @@ const Invitados: FC = () => {
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const [formShow, setFormShow] = useState<string | null>(null)
   const { event } = EventContextProvider();
-  const [guardarMenu,setGuardarMenu]= useState()
-  const menu = [ "Invitados","Alergicos","Infantil","hipocondriacoaaaaa"]
-  const [getMenu, setGetMenu] = useState ([])
+  const [guardarMenu, setGuardarMenu] = useState()
+  const menu = ["Invitados", "Alergicos", "Infantil", "hipocondriacoaaaaa"]
+  const [getMenu, setGetMenu] = useState([])
 
   useEffect(() => {
     setGetMenu(JSON.parse(localStorage.getItem("dataMenu")))
   }, [event])
-  
-  
+
   const reciboClick = (accion) => {
     setIsMounted(accion.state)
     setFormShow(accion.click)
@@ -50,9 +49,9 @@ const Invitados: FC = () => {
                 return (
                   <FormCrearGrupo state={isMounted} set={setIsMounted} />
                 )
-              }else if (formShow== "menu"){
-                return(
-                  <FormCrearMenu state={isMounted} set={setIsMounted} guardarMenu={guardarMenu} setGuardarMenu={setGuardarMenu} getMenu={getMenu} setGetMenu={setGetMenu}  />
+              } else if (formShow == "menu") {
+                return (
+                  <FormCrearMenu state={isMounted} set={setIsMounted} guardarMenu={guardarMenu} setGuardarMenu={setGuardarMenu} getMenu={getMenu} setGetMenu={setGetMenu} />
                 )
               }
             })()}
@@ -61,15 +60,16 @@ const Invitados: FC = () => {
               : <FormCrearGrupo state={isMounted} set={setIsMounted} />} */}
           </ModalLeft>
         )}
-        {event && <section className="bg-base w-full h-full ">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="max-w-screen-lg mx-auto inset-x-0 w-full px-5 md:px-0 gap-4">
-            <div className="w-[35%]">
+        {event &&
+          <section className="bg-base w-full h-full">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="max-w-screen-lg mx-auto inset-x-0 w-full px-5 md:px-0 gap-4">
+              {/* <div className="w-[35%]">
               <Breadcumbs />
-            </div>
-            <BlockCabecera />
-            <BlockListaInvitados state={isMounted} set={reciboClick} menu={getMenu} setGetMenu={setGetMenu}  />
-          </motion.div>
-        </section>}
+            </div> */}
+              <BlockCabecera />
+              <BlockListaInvitados state={isMounted} set={reciboClick} menu={getMenu} setGetMenu={setGetMenu} />
+            </motion.div>
+          </section>}
         <style jsx>
           {`
           section {
