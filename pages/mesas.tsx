@@ -15,6 +15,7 @@ import VistaSinCookie from "./vista-sin-cookie";
 import SwiperCore, { Pagination, Navigation } from 'swiper';
 import Prueba from "../components/Mesas/prueba";
 import FormEditarMesa from "../components/Forms/FormEditarMesa";
+import BlockTitle from "../components/Utils/BlockTitle";
 
 SwiperCore.use([Pagination]);
 
@@ -110,7 +111,7 @@ const Mesas: FC = () => {
               {/* web */}
               <div className={`hidden md:flex h-[calc(100vh-144px)] col-span-3 box-border px-2 flex-col transform transition duration-700 overflow-y-auto`}>
                 <div className="h-[300px] ">
-                  <Breadcumb />
+                  <BlockTitle title={"Mesas"} />
                   <BlockPanelMesas
                     setModelo={setModelo}
                     state={showForm}

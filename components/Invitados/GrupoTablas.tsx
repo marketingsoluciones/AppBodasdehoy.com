@@ -5,7 +5,6 @@ import { EventContextProvider } from "../../context";
 import { api } from "../../api";
 import DataTableFinal from "./DataTable";
 import { BorrarInvitado, EditarInvitado } from "../../hooks/EditarInvitado";
-
 import { CanceladoIcon, CheckIcon, ConfirmadosIcon, DotsOpcionesIcon, PendienteIcon, } from "../icons";
 import { guests } from "../../utils/Interfaces";
 import { DataTableGroupContextProvider, DataTableGroupProvider, } from "../../context/DataTableGroupContext";
@@ -17,12 +16,12 @@ interface propsDatatableGroup {
   setSelected: Dispatch<SetStateAction<string>>;
   isMounted: boolean;
   setIsMounted: Dispatch<SetStateAction<boolean>>;
-  menu?: any
+  menu?: any[]
   setGetMenu?: any
 }
 
 
-const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIsMounted, menu }) => {
+const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIsMounted, menu = [] }) => {
   const { event, setEvent, invitadoCero, setInvitadoCero } = EventContextProvider();
   const [datas, setDatas] = useState<{ titulo: string; data: guests[] }[]>([]);
 
@@ -283,11 +282,11 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                   className={`${show ? "block opacity-100" : "hidden opacity-0"
                     } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 -top-2 z-40 w-max`}
                 >
-                  {menu?.map((item, index) => {
+                  {menu.length > 0 && menu?.map((item, index) => {
                     return (
                       <li
                         key={index}
-                        className="cursor-pointer  flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
+                        className="cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
                         onClick={(e) => {
                           setLocalStorage(item);
                           setShow(!show);
@@ -345,14 +344,14 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                 )}
 
                 <ul
-                  className={`${show ? "block" : "hidden"
-                    } top-0 absolute mt-2 w-48 bg-white capitalize rounded-md  shadow-xl z-10 overflow-auto h-max max-h-40`}
+                  className={`${show ? "block opacity-100" : "hidden opacity-0"
+                    } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 -top-2 z-40 w-max`}
                 >
                   {event?.mesas_array?.map((mesa, index) => {
                     return (
                       <li
                         key={index}
-                        className="cursor-pointer block px-4 py-2 text-sm text-gray-700 hover:bg-purple-600 hover:text-white"
+                        className="cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
                         onClick={() => {
                           setValue(mesa.nombre_mesa);
                           setShow(!show);
@@ -407,13 +406,13 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                 </span>
                 <ul
                   className={`${show ? "block" : "hidden"
-                    } top-0 right-0 absolute w-max border border-base bg-white capitalize rounded-md overflow-hidden shadow-lg z-10`}
+                    } top-0 right-0 absolute w-max border border-base bg-white capitalize rounded-md overflow-hidden shadow-lg z-10 translate-x-[-12px]`}
                 >
                   {Lista.map((item, idx) => (
                     <li
                       key={idx}
                       onClick={() => DeleteGroup()}
-                      className="font-display text-sm cursor-pointer border-base border block px-4 py-2 text-xs text-gray-500 hover:text-gray-500 hover:bg-base"
+                      className="font-display cursor-pointer border-base border block px-4 py-2 text-sm text-gray-500 hover:text-gray-500 hover:bg-base"
                     >
                       {item}
                     </li>
@@ -480,13 +479,13 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                 </span>
                 <ul
                   className={`${show ? "block" : "hidden"
-                    } top-0 left-0 absolute w-20 border border-base bg-white capitalize rounded-md overflow-hidden shadow-lg z-10`}
+                    } top-0 right-0 absolute w-max border border-base bg-white capitalize rounded-md overflow-hidden shadow-lg z-10 translate-x-[-12px]`}
                 >
                   {Lista.map((item, idx) => (
                     <li
                       key={idx}
                       onClick={item.function}
-                      className="font-display cursor-pointer border-base border block px-2 py-1 text-sm text-gray-500 hover:text-gray-300 hover:bg-base"
+                      className="font-display cursor-pointer border-base border block px-4 py-2 text-sm text-gray-500 hover:text-gray-500 hover:bg-base"
                     >
                       {item.title}
                     </li>

@@ -8,6 +8,7 @@ import * as yup from "yup";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
 import { ImageProfile } from "../../utils/Funciones";
+import useHover from "../../hooks/useHover";
 
 interface propsFormInvitado {
   state: any;
@@ -156,42 +157,50 @@ interface propsBooleanSwitch extends HtmlHTMLAttributes<HTMLInputElement> {
   lista: string[];
   label: string;
   name: string;
+  disabled?: boolean;
 }
 
-export const BooleanSwitch: FC<propsBooleanSwitch> = ({ lista, label, ...props }) => {
+export const BooleanSwitch: FC<propsBooleanSwitch> = ({ lista, label, disabled, ...props }) => {
   const [field, meta, { setValue }] = useField({ name: props.name });
+  const [hoverRef, isHovered] = useHover();
 
   return (
     <div className=" relative w-full">
       <label className="font-display text-sm text-primary w-full capitalize">
         {label}
       </label>
-      <span className="flex flex h-6 items-center justify-center">
+      <div className="flex h-8 items-center justify-center relative">
         <button
-          value={lista[0]}
-          onClick={() => setValue(lista[0])}
           type="button"
+          value={lista[0]}
+          onClick={() => !disabled && setValue(lista[0])}
           {...props}
           {...field}
-          className={`font-display w-1/2 h-8 border text-gray-500 border-gray-100 py-1 text-sm rounded-l-lg focus:outline-none hover:bg-secondary hover:text-gray-700 capitalize  transition ${meta.value == lista[0] ? "bg-secondary text-gray-500" : "bg-white"
+          className={`font-display text-center w-1/2 h-8 border text-gray-500 border-gray-100 py-1 text-sm rounded-l-lg focus:outline-none ${!disabled && "hover:bg-secondary hover:text-gray-700"} capitalize  transition ${meta.value == lista[0] ? "bg-secondary text-gray-500" : "bg-white"
             }`}
         >
           {lista[0]}
         </button>
         <button
-          value={lista[1]}
-          onClick={() => setValue(lista[1])}
           type="button"
+          value={lista[1]}
+          onClick={() => !disabled && setValue(lista[1])}
           {...props}
           {...field}
-          className={`w-1/2 h-8 font-display text-gray-500 border border-gray-100 py-1 text-sm rounded-r-lg focus:outline-none hover:bg-primary hover:text-white capitalize transition ${meta.value == lista[1] ? "bg-primary text-white" : "bg-white"
+          className={`w-1/2 h-8 font-display text-center text-gray-500 border border-gray-100 py-1 text-sm rounded-r-lg focus:outline-none ${!disabled && "hover:bg-primary hover:text-white"} capitalize transition ${meta.value == lista[1] ? "bg-primary text-white" : "bg-white"
             }`}
         >
           {lista[1]}
         </button>
-      </span>
+        {disabled && <div ref={hoverRef} className="w-full h-full z-10 absolute"></div>}
+      </div>
+      {isHovered && (
+        <div className="transform translate-y-1 bg-gray-700 absolute z-10 top-14 rounded-lg text-white px-3 py-1 text-xs">
+          Campo bloqueado, elmine el invitado y créelo nuevamente.
+        </div>
+      )}
       {meta.touched && meta.error && (
-        <p className="font-display absolute rounded-xl text-white text-xs left-0 bottom-0 transform translate-y-full text-red flex gap-1">
+        <p className="font-display absolute rounded-xl text-xs left-0 bottom-0 transform translate-y-full text-red flex gap-1">
           <WarningIcon className="w-4 h-4" />
           {meta.error}
         </p>

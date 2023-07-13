@@ -11,11 +11,11 @@ import SentarBlock from "./SentarBlock";
 interface propsBlockListaInvitados {
   state: boolean;
   set: CallableFunction;
-  menu?:any
-  setGetMenu?:any
+  menu?: any
+  setGetMenu?: any
 }
 
-const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu , setGetMenu }) => {
+const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu, setGetMenu }) => {
   const { event } = EventContextProvider();
   const [isMounted, setIsMounted] = useState(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
@@ -53,12 +53,12 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu , 
       </div>
       {shouldRenderChild && (
         <ModalBottom state={isMounted} set={setIsMounted}>
-          <div className="flex w-full gap-6">
-            <div className="hidden md:block w-1/3">
+          <div className="flex justify-center w-full gap-6">
+            {/* <div className="hidden md:block w-1/3">
               <TabladeInvitados evento={event} idInvitado={setSelected} />
-            </div>
+            </div> */}
 
-            <div className="w-full md:w-2/3">
+            <div className="w-full md:w-3/4">
               <div className="border-l-2 border-gray-100 pl-3 my-6 w-full ">
                 <h2 className="font-display text-2xl capitalize text-primary font-light">
                   Editar <br />
@@ -69,7 +69,7 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu , 
               </div>
               {invitadoSelected !== "" ? (
                 <FormEditarInvitado
-                  ListaGrupos={event?.grupos_array}
+                  //ListaGrupos={event?.grupos_array}
                   invitado={event.invitados_array.find(
                     (guest) => guest._id === invitadoSelected
                   )}
@@ -113,7 +113,7 @@ const TabladeInvitados = ({ evento, idInvitado }) => {
         Header: () => {
           return (
             <h3 className="font-display truncate md:text-xl uppercase text-gray-500 text-center capitalize font-semibold">
-              Mis Invitados
+              Mis Invitados1
             </h3>
           );
         },
@@ -162,15 +162,17 @@ const TabladeInvitados = ({ evento, idInvitado }) => {
 
   useEffect(() => { }, []);
   return (
-    <div>
-      <DataTable data={Data} columns={Columna} />
+    <div className="bg-blue-500 w-full h-20">
+      {/* <DataTable data={Data} columns={Columna} /> */}
     </div>
   );
 };
 
 export const DataTable = ({ data, columns }) => {
-  const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows } =
-    useTable({ columns, data });
+  let { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows } = useTable({ columns, data });
+  if (rows) {
+    rows = [...rows, ...rows, ...rows]
+  }
 
   return (
     <table
@@ -206,7 +208,7 @@ export const DataTable = ({ data, columns }) => {
                   <td
                     key={cell.row.id}
                     {...cell.getCellProps()}
-                    className="w-full text-center text-left whitespace-nowrap px-3 "
+                    className="w-full text-left whitespace-nowrap px-3 "
                   >
                     {cell.render("Cell")}
                   </td>

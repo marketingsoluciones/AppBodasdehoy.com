@@ -19,7 +19,7 @@ const BlockTitle = ({ title }) => {
         />
         <div className='hidden md:flex flex-col font-display font-semibold text-md text-gray-500 px-2'>
           <span className='text-sm translate-y-2'>Evento</span>
-          <span className='uppercase w-64 truncate '>{event?.nombre}sdfsd sdf d</span>
+          <span className='uppercase w-64 truncate '>{event?.nombre}</span>
         </div>
 
       </div>

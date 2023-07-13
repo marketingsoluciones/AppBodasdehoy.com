@@ -19,7 +19,7 @@ const initialValues = {
 const FormCrearMenu = ({ set, state, guardarMenu, setGuardarMenu, getMenu, setGetMenu }) => {
   const { event, setEvent } = EventContextProvider();
   const toast = useToast();
-console.log(guardarMenu)
+  console.log(guardarMenu)
 
 
   const handleSubmit = async (values, actions) => {
@@ -50,9 +50,9 @@ console.log(guardarMenu)
   }
 
   const saveMenu = () => {
-    if(guardarMenu=== undefined){
+    if (guardarMenu === undefined) {
       toast("error", "Ha ocurrido un error al crear el Menu");
-    }else{
+    } else {
 
       try {
         const myArryMeny = JSON.parse(localStorage.getItem("dataMenu")) || []
@@ -60,7 +60,7 @@ console.log(guardarMenu)
         const myArryMenyJSON = JSON.stringify(myArryMeny)
         localStorage.setItem("dataMenu", myArryMenyJSON)
         toast("success", "Menu creado con exito");
-       
+
       } catch (error) {
         toast("error", "Ha ocurrido un error al crear el Menu");
         console.log(error)
@@ -117,7 +117,7 @@ console.log(guardarMenu)
         </button>
 
         <div >
-          {getMenu?.map((item: any, idx: any) => {
+          {getMenu.length > 0 && getMenu?.map((item: any, idx: any) => {
             return (
               <div key={idx} className="flex flex-cols items-center font-display justify-between w-[50%] capitalize">
                 <div>
