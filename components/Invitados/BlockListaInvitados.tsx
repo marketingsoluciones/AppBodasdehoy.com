@@ -31,21 +31,21 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu, s
       <div className="flex gap-4 items-center pb-10">
         <button
           onClick={(e) => handleClick(e, "invitado")}
-          className="focus:outline-none bg-primary px-6 py-1 text-white font-display font-semibold text-sm rounded-lg hover:bg-white hover:text-primary transition border border-primary flex justify-between items-center gap-2"
+          className="focus:outline-none bg-primary px-2 md:px-6 py-1 text-white font-display font-semibold text-sm rounded-lg hover:bg-white hover:text-primary transition border border-primary flex justify-between items-center gap-2"
         >
           <PlusIcon />
           Invitado
         </button>
         <button
           onClick={(e) => handleClick(e, "grupo")}
-          className="focus:outline-none bg-white px-6 py-1 flex gap-2 items-center justify-between text-primary font-display font-semibold text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
+          className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-2 items-center justify-between text-primary font-display font-semibold text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
         >
           <PlusIcon />
           Grupo
         </button>
         <button
           onClick={(e) => handleClick(e, "menu")}
-          className="focus:outline-none bg-white px-6 py-1 flex gap-2 items-center justify-between text-primary font-display font-semibold text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
+          className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-2 items-center justify-between text-primary font-display font-semibold text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
         >
           <PlusIcon />
           Menu
@@ -58,7 +58,7 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu, s
               <TabladeInvitados evento={event} idInvitado={setSelected} />
             </div> */}
 
-            <div className="w-full md:w-3/4">
+            <div className="w-full md:w-5/6">
               <div className="border-l-2 border-gray-100 pl-3 my-6 w-full ">
                 <h2 className="font-display text-2xl capitalize text-primary font-light">
                   Editar <br />

@@ -4,8 +4,8 @@ import { useRouter } from "next/router";
 import { EventContextProvider } from "../../context";
 import { api } from "../../api";
 import DataTableFinal from "./DataTable";
-import { BorrarInvitado, EditarInvitado } from "../../hooks/EditarInvitado";
-import { CanceladoIcon, CheckIcon, ConfirmadosIcon, DotsOpcionesIcon, PendienteIcon, } from "../icons";
+import { BorrarInvitado } from "../../hooks/EditarInvitado";
+import { CanceladoIcon, ConfirmadosIcon, DotsOpcionesIcon, PendienteIcon, } from "../icons";
 import { guests } from "../../utils/Interfaces";
 import { DataTableGroupContextProvider, DataTableGroupProvider, } from "../../context/DataTableGroupContext";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
@@ -104,7 +104,15 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
           const resultado = arr.map((invitado) => {
             if (invitado._id === rowID) {
               //Para escribir en base de datos
-              EditarInvitado(eventoID, invitado._id, reemplazar, value);
+              fetchApiEventos({
+                query: queries.editGuests,
+                variables: {
+                  eventID: event._id,
+                  guestID: invitado._id,
+                  variable: reemplazar,
+                  value: value
+                },
+              });
               return {
                 ...arr[rowIndex],
                 [columnID]: value,
@@ -112,7 +120,6 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
             }
             return invitado;
           });
-
           return {
             ...viejo,
             invitados_array: resultado,
@@ -222,7 +229,6 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                   {cloneElement(dicc[value].icon, { className: "w-5 h-5" })}
                   {value}
                 </button>
-
                 <ul
                   className={`${show ? "block opacity-100" : "hidden opacity-0"
                     } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 -top-2 z-40`}
@@ -250,23 +256,23 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
       },
       {
         Header: "Menu",
-        accessor: "",
+        accessor: "nombre_menu",
         Cell: ({ value: initialValue, row, column: { id } }) => {
-          const [value, setValue] = useState(window.localStorage.getItem("menu") ?? "No asignado");
+          const [value, setValue] = useState(row?.original?.nombre_menu ? row?.original?.nombre_menu : "sin menú");
           const [show, setShow] = useState(false);
           const [loading, setLoading] = useState(false);
-
-          const setLocalStorage = (value) => {
-            try {
-              setValue(value)
-              window.localStorage.setItem("menu", value)
-            } catch (error) {
-              console.log(error)
-            }
-          }
-
-
-
+          useEffect(() => {
+            setLoading(false);
+            updateMyData({
+              rowID: row.original._id,
+              columnID: id,
+              reemplazar: "nombre_menu",
+              value: value,
+              loading: loading,
+              eventoID: event._id,
+            });
+            setLoading(true);
+          }, [value]);
 
           return (
             <ClickAwayListener onClickAway={() => setShow(false)}>
@@ -277,25 +283,33 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                 >
                   {value}
                 </button>
-
                 <ul
                   className={`${show ? "block opacity-100" : "hidden opacity-0"
                     } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 -top-2 z-40 w-max`}
                 >
-                  {menu.length > 0 && menu?.map((item, index) => {
+                  {event.menus_array?.length > 0 && event?.menus_array?.map((item, index) => {
                     return (
                       <li
                         key={index}
                         className="cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
                         onClick={(e) => {
-                          setLocalStorage(item);
+                          setValue(item.nombre_menu);
                           setShow(!show);
                         }}
                       >
-                        {item}
+                        {item?.nombre_menu}
                       </li>
                     );
                   })}
+                  <li
+                    className="cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
+                    onClick={(e) => {
+                      setValue(null);
+                      setShow(!show);
+                    }}
+                  >
+                    {"sin menú"}
+                  </li>
                 </ul>
               </div>
             </ClickAwayListener>
@@ -327,7 +341,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
           return (
             <ClickAwayListener onClickAway={() => setShow(false)}>
               <div className="relative w-full flex justify-center items-center">
-                {value.toLowerCase() == "no asignado" ? (
+                {/*value.toLowerCase() == "no asignado"*/ false ? (
                   <button
                     onClick={() => router.push("/mesas")}
                     className="bg-tertiary font-display text-sm font-medium px-2rounded hover:text-gray-500 px-3 rounded-lg focus:outline-none"
@@ -336,7 +350,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                   </button>
                 ) : (
                   <button
-                    className="focus:outline-none font-display text-sm"
+                    className="focus:outline-none font-display text-sm capitalize"
                     onClick={() => setShow(!show)}
                   >
                     {value}
@@ -361,6 +375,12 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                       </li>
                     );
                   })}
+                  <li
+                    className="bg-tertiary cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
+                    onClick={() => router.push("/mesas")}
+                  >
+                    Añadir mesa
+                  </li>
                 </ul>
               </div>
             </ClickAwayListener>
@@ -575,7 +595,7 @@ const CheckBoxAll: FC<any> = ({ check, ...rest }) => {
 
   return (
     <div className="h-8 w-full grid grid-cols-12 items-center">
-      <label className="relative w-full grid place-items-center">
+      <label className="relative w-full grid place-items-center col-span-1">
         <input
           type="checkbox"
           className="rounded-full text-primary focus:ring-primary border-gray-400 cursor-pointer "
@@ -587,7 +607,7 @@ const CheckBoxAll: FC<any> = ({ check, ...rest }) => {
       </label>
       {arrIDs.length === 0 ? (
         <div className="col-span-11">
-          <p className="font-display text-sm md:text-sm text-gray-500">
+          <p className="font-display text-sm md:text-sm text-gray-500 translate-x-[-8px] md:translate-x-[-16px]">
             Seleccionar todos
           </p>
         </div>
@@ -596,7 +616,7 @@ const CheckBoxAll: FC<any> = ({ check, ...rest }) => {
           {OptionList.map((item, idx) => (
             <li
               key={idx}
-              className="cursor-pointer flex items-center gap-2 rounded-2xl border border-gray-300 px-4 hover:bg-gray-200 hover:text-white transition text-sm text-gray-500 font-display py-1"
+              className="cursor-pointer flex items-center gap-2 rounded-2xl border border-gray-300 px-4 hover:bg-gray-200 hover:text-white transition text-sm text-gray-500 font-display py-1 translate-x-[-8px] md:translate-x-[-16px]"
               onClick={item.funcion}
             >
               {item.icono}

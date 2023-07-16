@@ -185,6 +185,10 @@ export const queries = {
         pais
         direccion
       }
+      menus_array{
+        nombre_menu
+        tipo
+      }
       presupuesto_objeto{
         coste_final
         pagado
@@ -289,6 +293,10 @@ export const queries = {
         direccion
         invitacion
       }
+      menus_array{
+        nombre_menu
+        tipo
+      }
       presupuesto_objeto{
        coste_final
        pagado
@@ -354,6 +362,7 @@ export const queries = {
        correo
        telefono
        nombre_mesa
+       nombre_menu
        puesto
        asistencia
        rol
@@ -407,6 +416,22 @@ export const queries = {
   createGroup: `mutation ($eventID: String, $name: String) {
     creaGrupo(evento_id:$eventID, nombre_grupo: $name){
       grupos_array
+    }
+  }`,
+  createMenu: `mutation ($eventID: String, $name: String) {
+    creaMenu(evento_id:$eventID, nombre_menu: $name){
+      menus_array{
+        nombre_menu
+        tipo
+      }
+    }
+  }`,
+  deleteMenu: `mutation ($eventID: String, $name: String) {
+    borraMenu(evento_id:$eventID, nombre_menu: $name){
+      menus_array{
+        nombre_menu
+        tipo
+      }
     }
   }`,
   createTable: `mutation ($eventID:String, $tableName: String, $tableType:String, $numberChairs:  Int, $position: [posicionAinput]) {

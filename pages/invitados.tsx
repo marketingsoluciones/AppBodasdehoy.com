@@ -1,5 +1,4 @@
-import { FC, useEffect, useState } from "react";
-import Breadcumbs from "../components/DefaultLayout/Breadcumb";
+import { FC, useState } from "react";
 import FormInvitado from "../components/Forms/FormInvitado";
 import FormCrearGrupo from "../components/Forms/FormCrearGrupo";
 import BlockCabecera from "../components/Invitados/BlockCabecera"
@@ -16,13 +15,6 @@ const Invitados: FC = () => {
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const [formShow, setFormShow] = useState<string | null>(null)
   const { event } = EventContextProvider();
-  const [guardarMenu, setGuardarMenu] = useState()
-  const menu = ["Invitados", "Alergicos", "Infantil", "hipocondriacoaaaaa"]
-  const [getMenu, setGetMenu] = useState([])
-
-  useEffect(() => {
-    setGetMenu(JSON.parse(localStorage.getItem("dataMenu")))
-  }, [event])
 
   const reciboClick = (accion) => {
     setIsMounted(accion.state)
@@ -51,7 +43,7 @@ const Invitados: FC = () => {
                 )
               } else if (formShow == "menu") {
                 return (
-                  <FormCrearMenu state={isMounted} set={setIsMounted} guardarMenu={guardarMenu} setGuardarMenu={setGuardarMenu} getMenu={getMenu} setGetMenu={setGetMenu} />
+                  <FormCrearMenu state={isMounted} set={setIsMounted} />
                 )
               }
             })()}
@@ -63,11 +55,8 @@ const Invitados: FC = () => {
         {event &&
           <section className="bg-base w-full h-full">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="max-w-screen-lg mx-auto inset-x-0 w-full px-5 md:px-0 gap-4">
-              {/* <div className="w-[35%]">
-              <Breadcumbs />
-            </div> */}
               <BlockCabecera />
-              <BlockListaInvitados state={isMounted} set={reciboClick} menu={getMenu} setGetMenu={setGetMenu} />
+              <BlockListaInvitados state={isMounted} set={reciboClick} />
             </motion.div>
           </section>}
         <style jsx>

@@ -1,18 +1,7 @@
 import { ForwardRefComponent } from "framer-motion";
-import {
-  useEffect,
-  forwardRef,
-  useRef,
-  useState,
-  useContext,
-  FC,
-  ReactNode
-} from "react";
+import { useEffect, forwardRef, useRef, useState, FC, ReactNode } from "react";
 import { useRowSelect, useTable } from "react-table";
-import { api } from "../../api";
 import { EventContextProvider } from "../../context";
-import Invitados from "../../pages/invitados";
-import { CheckIcon } from "../icons";
 import { guests } from "../../utils/Interfaces";
 import { DataTableGroupContextProvider } from "../../context/DataTableGroupContext";
 
@@ -134,12 +123,12 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
   const ColSpan = (id: string, headers: { id: string }[], columns: number = 12) => {
 
     const values = {
-      selection: 10,
+      selection: 5,
       nombre: 30,
       asistencia: 20,
-      nombre_menu: 20,
-      nombre_mesa: 20,
-      delete: 10
+      nombre_menu: 30,
+      nombre_mesa: 15,
+      delete: 5
     }
 
     type conteo = {
@@ -162,46 +151,25 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
       const span = Math.round((values[id] + sumar) * columns / 100)
       return span
     }
-
-  };
-
-  const handleRemoveGroup = async (e, nombre_grupo) => {
-    e.preventDefault();
-    let grupos = [];
-    try {
-      const params = {
-        query: `mutation {
-             borraGrupo(evento_id:"${event._id}",nombre_grupo:"${nombre_grupo}"){
-             grupos_array
-           }
-         }`,
-        variables: {},
-      };
-      const { data } = await api.ApiBodas(params);
-      grupos = data.data.borraGrupo.grupos_array;
-    } catch (error) {
-      console.log(error);
-    }
   };
 
   return (
     // apply the table props
-    <div className={`bg-transparent pb-4 mt-5 rounded-md w-full grid col-span-4 `}>
+    <div className={`bg-transparent pb-4 mt-5 rounded-md w-full grid col-span-12`}>
       {children}
       <table
         {...getTableProps()}
         className="w-full text-sm text-left text-gray-500"
       >
-        <thead className="relative text-xs text-gray-700 uppercase bg-gray-50 w-full">
+        <thead className="relative text-xs text-gray-700 uppercase bg-gray-100 w-full">
           {
             // Loop over the header rows
             headerGroups.map((headerGroup, i) => (
               // Apply the header row props
-
               <tr
                 {...headerGroup.getHeaderGroupProps()}
                 key={i}
-                className="grid grid-cols-9"
+                className="grid grid-cols-12"
               >
                 {
                   // Loop over the headers in each row
@@ -211,7 +179,7 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
                       <th
                         {...column.getHeaderProps()}
                         key={i}
-                        className={`px-6 py-3 text-center text-sm font-light font-display col-span-${ColSpan(column.id, headerGroup.headers,7)}`}
+                        className={`px-6 py-3 text-center text-sm font-light font-display col-span-${ColSpan(column.id, headerGroup.headers, 11)}`}
                       >
                         {
                           // Render the header
@@ -246,7 +214,7 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
                 <tr
                   {...row.getRowProps()}
                   key={i}
-                  className="w-full bg-white border-b font-display text-sm grid grid-cols-9"
+                  className="w-full bg-white border-b font-display text-sm grid grid-cols-12"
                 >
                   {
                     // Loop over the rows cells
@@ -255,8 +223,7 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
                         <td
                           key={i}
                           {...cell.getCellProps()}
-                          className={`px-6 py-2 flex items-center col-span-${ColSpan(cell.column.id, row.cells.map(item => item.column), 7)}`}
-
+                          className={`px-6 py-2 flex items-center col-span-${ColSpan(cell.column.id, row.cells.map(item => item.column), 11)}`}
                         >
                           {
                             // Render the cell contents
@@ -272,8 +239,6 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
           }
         </tbody>
       </table>
-
-
     </div>
   );
 };

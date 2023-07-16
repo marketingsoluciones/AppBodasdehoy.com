@@ -1,14 +1,7 @@
 import { useRouter } from "next/router";
-import { useState, useContext, useEffect } from "react";
-import {
-  ChatContextProvider,
-  EventContextProvider,
-  AuthContextProvider,
-  EventsGroupContextProvider,
-  LoadingContextProvider,
-} from "../../context";
+import { useState, useEffect } from "react";
+import { ChatContextProvider, EventContextProvider, AuthContextProvider, EventsGroupContextProvider, LoadingContextProvider } from "../../context";
 import BarraLoading from "./BarraLoading";
-import { api } from "../../api";
 import NavigationMobile from "./NavigationMobile";
 import Navigation from "./Navigation";
 

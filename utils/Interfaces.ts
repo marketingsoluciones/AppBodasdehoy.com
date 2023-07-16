@@ -14,12 +14,18 @@ export interface Event {
     pais: string
     cant_invitados: number
     invitados_array: guests[]
+    menus_array: menu[]
     mesas_array: table[]
     grupos_array: string[]
     notificaciones_array: notification[]
     imgInvitacion: image
     presupuesto_objeto: estimate
     listaRegalos: string
+}
+
+interface menu {
+    nombre_menu: string
+    tipo: string
 }
 
 interface estimate {

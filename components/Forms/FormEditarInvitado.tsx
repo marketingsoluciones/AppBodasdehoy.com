@@ -39,6 +39,7 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
     correo: string
     telefono: string
     rol: string
+    menu: string
   }
 
   const initialValues: MyValues = {
@@ -48,6 +49,7 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
     correo: "",
     telefono: "",
     rol: "",
+    menu: ""
   }
 
   const handleSubmit = async (values: FormikValues, actions: any) => {
@@ -82,7 +84,6 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
             value
           }
         })
-        console.log(result)
         setEvent((old: any) => {
           const newGuests = old.invitados_array.map(guest => {
             if (guest._id === invitado._id) {
@@ -116,9 +117,9 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
             <Form
               className="text-gray-500 font-body lg:overflow-auto flex flex-col gap-8 w-full my-4 px-2"
             >
-              <div className="grid md:grid-cols-2 w-full gap-6">
+              <div className="grid md:grid-cols-6 w-full gap-6">
                 {/* INPUT NOMBRE */}
-                <div className="w-full flex items-center justify-center">
+                <div className="w-full flex items-center md:col-span-4 justify-center">
                   <img
                     src={ImageProfile[invitado?.sexo]?.image}
                     alt="imagen-invitados"
@@ -133,17 +134,20 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                   />
                 </div>
                 {/* INPUT ASISTENCIA */}
-                <SelectField
-                  options={["pendiente", "confirmado", "cancelado"]}
-                  name="asistencia"
-                  label="Asistencia"
-                  onChangeCapture={(e: any) => handleBlurData("asistencia", e?.target?.value)}
-                />
+                <div className='col-span-2'>
+                  <SelectField
+                    options={["pendiente", "confirmado", "cancelado"]}
+                    name="asistencia"
+                    label="Asistencia"
+                    onChangeCapture={(e: any) => handleBlurData("asistencia", e?.target?.value)}
+                  />
+                </div>
               </div>
 
               <div className="w-full h-full gap-2 flex-col flex">
-                <div className="grid md:grid-cols-3 w-full gap-6 relative border-b  border-base ">
+                <div className="grid md:grid-cols-6 w-full gap-6 relative border-b  border-base ">
                   <SelectField
+                    colSpan={3}
                     options={event?.grupos_array}
                     name="rol"
                     label="Grupo"
@@ -151,13 +155,14 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                   />
 
                   <SelectField
+                    colSpan={2}
                     options={event?.mesas_array?.map((item) => item?.nombre_mesa)}
                     name="nombre_mesa"
                     label="Mesa"
                     onChangeCapture={(e: any) => handleBlurData("nombre_mesa", e.target.value)}
                   />
                   <SelectField
-                    options={[]}
+                    options={[...event?.menus_array?.map((item) => item?.nombre_menu), "sin menú"]}
                     name="nombre_menu"
                     label="Menú"
                     onChangeCapture={(e: any) => handleBlurData("nombre_menu", e.target.value)}
@@ -348,7 +353,7 @@ export default FormEditarInvitado;
 //         </button>
 //       </span>
 //       {meta.touched && meta.error && (
-//         <p className="font-display absolute rounded-xl text-white text-xs bg-red px-4 py-1 right-0 top-1/2 transform translate-x-full">
+//         <p className="font-display absolute rounded-xl text-white text-xs  px-4 py-1 right-0 top-1/2 transform translate-x-full">
 //           {meta.error}
 //         </p>
 //       )}

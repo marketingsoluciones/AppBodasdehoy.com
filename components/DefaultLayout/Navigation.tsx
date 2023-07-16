@@ -1,13 +1,11 @@
-import Link from "next/link";
-import { FC, useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect, useState, FC } from "react";
 import { useRouter } from "next/router";
-import { AuthContextProvider, EventContextProvider, LoadingContextProvider } from "../../context";
-import { Banner, IconLightBulb16, InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, LogoNuevoBodasBlanco, MenuIcon, MesasIcon, MisEventosIcon, PresupuestoIcon, ResumenIcon } from "../icons";
-import { Loading, useDelayUnmount } from "../../utils/Funciones";
+import { AuthContextProvider, EventContextProvider } from "../../context";
+import { Banner, IconLightBulb16, InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, MenuIcon, MesasIcon, MisEventosIcon, PresupuestoIcon, ResumenIcon } from "../icons";
+import { useDelayUnmount } from "../../utils/Funciones";
 import Profile from "./Profile";
 import Sidebar from "../Utils/Sidebar";
 import BlockNotification from "./BlockNotification";
-import { useToast } from "../../hooks/useToast";
 import NavbarDirectory from "../Utils/NavbarDirectory";
 import Head from "next/head";
 import { Tooltip } from "../Utils/Tooltip";
@@ -18,9 +16,7 @@ const Navigation: any = (
   state: any,
   active: any,
 ): any => {
-  const toast = useToast();
   const { event } = EventContextProvider();
-  const { setLoading } = LoadingContextProvider();
   const { user, isProduction, domain, config, setIsActiveStateSwiper } = AuthContextProvider();
   const router = useRouter();
   const [showSidebar, setShowSidebar] = useState(false);
@@ -76,16 +72,6 @@ const Navigation: any = (
       condicion: event?._id ? true : false
     },
   ], [event]);
-
-  /* const handleClick = ( event) => {
-    if (!event?._id) {
-      toast("warning", "Debes seleccionar un evento")
-    }else if( !event?._id ) {
-      toast("error","Debes crear un evento")
-     alert("debes crear un evento")
-    }
-    return
-  } */
 
   return (
     <>
@@ -146,7 +132,6 @@ const Navigation: any = (
           <Tooltip label="Primero debes crear un evento" icon={<IconLightBulb16 className="w-6 h-6" />} disabled={!!event?._id}>
             <ul className="absolute m-auto left-1/2 -translate-x-1/2 py-4 w-max h-max flex gap-12">
               {Navbar.map((item, idx) => (
-                // <Link key={idx} href={item.condicion ? item.route : ""} passHref >
                 <li
                   key={idx}
                   onClick={() => {
@@ -170,7 +155,6 @@ const Navigation: any = (
                   {item.icon}
                   <p className="font-display text-sm h-max"  >{item.title}</p>
                 </li>
-                // </Link>
               ))}
             </ul>
           </Tooltip>

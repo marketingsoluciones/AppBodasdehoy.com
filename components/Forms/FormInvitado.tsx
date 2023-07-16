@@ -39,10 +39,12 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
     correo: "",
     telefono: "",
     rol: "",
+    nombre_menu: "adultos"
   };
 
   const handleSubmit = async (values: FormikValues, actions: any) => {
     try {
+      if (values.nombre_menu === "sin menú") values.nombre_menu = undefined
       const result: any = await fetchApiEventos({
         query: queries.createGuests,
         variables: {
@@ -109,16 +111,15 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
                 />
               </div>
             </div>
+            <div className="w-full flex items-center justify-center">
+              <InputField
+                placeholder="Ej. jhon@doe.com"
+                name="correo"
+                label="Correo"
+                type="email"
+              />
+            </div>
             <div className="w-full h-full flex gap-6">
-              <div className="w-1/2 flex items-center justify-center">
-                <InputField
-                  placeholder="Ej. jhon@doe.com"
-                  name="correo"
-                  label="Correo"
-                  type="email"
-                />
-              </div>
-
               <div className="w-1/2 flex items-center justify-center">
                 <InputField
                   placeholder="960 66 66 66"
@@ -127,8 +128,16 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
                   type="tel"
                 />
               </div>
+              <div className="w-1/2 h-8 flex flex-col relative text-sm">
+                <SelectField
+                  name={"nombre_menu"}
+                  label={"Menu"}
+                  options={[...event?.menus_array?.map(elem => elem.nombre_menu), "sin menú"]}
+                />
+              </div>
+
             </div>
-            <div className="w-full h-full h-8 flex flex-col relative text-sm">
+            <div className="w-full h-8 flex flex-col relative text-sm">
               <SelectField
                 name={"rol"}
                 label={"Rol"}
