@@ -1,6 +1,5 @@
 import { SetStateAction, useEffect, useState, Dispatch, FC } from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
-import SwiperCore, { Pagination } from "swiper/core";
+import { Swiper, SwiperSlide, useSwiper } from "swiper/react";
 import { motion } from "framer-motion";
 import { CircleBanner, LineaHome } from "../components/icons";
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, } from "../context";
@@ -13,8 +12,6 @@ import { NextPage } from "next";
 import { Event } from "../utils/Interfaces";
 import { fetchApiEventos, queries } from "../utils/Fetching";
 import VistaSinCookie from "../pages/vista-sin-cookie"
-
-SwiperCore.use([Pagination]);
 
 const Home: NextPage = () => {
   const [isMounted, setIsMounted] = useState<boolean>(false);
@@ -156,10 +153,19 @@ type dataTab = {
   vacio: number[]
 }
 
-const GridCards: FC<propsGridCards> = ({ state, set, showEditEvent, setShowEditEvent }) => {
+const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent, showEditEvent, setShowEditEvent }) => {
   const { isActiveStateSwiper, setIsActiveStateSwiper } = AuthContextProvider()
   const { eventsGroup } = EventsGroupContextProvider();
+  const { event } = EventContextProvider()
   const [tabsGroup, setTabsGroup] = useState<dataTab[]>([]);
+  // const [page, setPage] = useState(0)
+  // const swiper = useSwiper();
+
+  // useEffect(() => {
+  //   swiper?.slideTo(page)
+  //   console.log(page)
+  // }, [page, swiper])
+
 
 
   useEffect(() => {
@@ -216,12 +222,19 @@ const GridCards: FC<propsGridCards> = ({ state, set, showEditEvent, setShowEditE
         </div>
         <div className="w-full h-max ">
           {tabsGroup.map((group, idx) => {
+            let toSlide = 0
+            if (group?.status == "pendiente") {
+              toSlide = group?.data?.findIndex(elem => elem._id === event?._id)
+            }
+            group?.status == "pendiente" && console.log(1000, toSlide)
             return (
               <div key={idx}>
                 {isActiveStateSwiper == idx ? (
                   <>
                     <Swiper
-                      key={idx}
+
+                      // slideToClickedSlide={true}
+                      initialSlide={toSlide > 0 ? toSlide : 0}
                       spaceBetween={50}
                       pagination={{ clickable: true }}
                       breakpoints={{
@@ -235,7 +248,7 @@ const GridCards: FC<propsGridCards> = ({ state, set, showEditEvent, setShowEditE
                         },
                       }}
                       id={group?.status}
-                      className={` h-48 ${isActiveStateSwiper == idx ? "" : "hidden"}`}
+                      className={` h-60 ${isActiveStateSwiper == idx ? "" : "hidden"}`}
                     >
                       {group?.data?.sort((a: any, b: any) => { return b.fecha_creacion - a.fecha_creacion })?.map((evento, idx) => (
                         <SwiperSlide
@@ -256,7 +269,9 @@ const GridCards: FC<propsGridCards> = ({ state, set, showEditEvent, setShowEditE
                         <SwiperSlide
                           className={`flex items-center justify-center`}
                         >
-                          <CardEmpty state={state} set={set} />
+                          <CardEmpty state={state} set={setNewEvent} />
+
+                          <div className="absolute z-50 bg-red w-20 h-20">algo</div>
                         </SwiperSlide>
                       }
                     </Swiper>
@@ -266,7 +281,7 @@ const GridCards: FC<propsGridCards> = ({ state, set, showEditEvent, setShowEditE
             )
           })}
         </div>
-      </div>
+      </div >
       <style jsx>
         {`
           .grid-cards {
@@ -277,3 +292,23 @@ const GridCards: FC<propsGridCards> = ({ state, set, showEditEvent, setShowEditE
     </>
   );
 };
+
+
+// interface propsSlideto {
+//   page: number
+//   setResultsContact: any
+//   contacts: any
+// }
+// const SlideTo: FC<propsSlideto> = ({ page, setResultsContact, contacts }) => {
+//   const swiper = useSwiper();
+//   swiper.on('slideChange', function (idx) {
+//     if (idx.activeIndex != 1) {
+//       setResultsContact(contacts?.results)
+//     }
+//   });
+//   useEffect(() => {
+//     swiper.slideTo(page)
+//   }, [page, swiper])
+//   return <>
+//   </>
+// }

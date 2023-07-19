@@ -5,7 +5,7 @@ import InputField from "./InputField";
 import SelectField from "./SelectField";
 import { useToast } from "../../hooks/useToast";
 import * as yup from "yup";
-import { Dispatch, FC, SetStateAction } from "react";
+import { Dispatch, FC, SetStateAction, useEffect, useState } from "react";
 
 // formatear fecha
 const getDate = (f: Date): string => {
@@ -31,6 +31,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
   const { user } = AuthContextProvider();
   const { setEventsGroup, eventsGroup } = EventsGroupContextProvider();
   const toast = useToast();
+  const [valir, setValir] = useState(false)
 
   type MyValues = {
     nombre: string
@@ -59,12 +60,13 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
 
   const createEvent = async (values: Partial<Event>) => {
     try {
-      const crearEvento = await fetchApiEventos({
+      const crearEvento: Partial<Event> = await fetchApiEventos({
         query: queries.eventCreate,
         variables: values,
       });
       if (crearEvento) {
         setEventsGroup({ type: "ADD_EVENT", payload: crearEvento });
+
       }
       toast("success", "Evento creado con exito");
     } catch (error) {
@@ -72,8 +74,16 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
       console.log(error);
     } finally {
       set(!state);
+      setValir(true)
     }
   }
+
+  useEffect(() => {
+    if (valir) {
+      setEvent(eventsGroup[eventsGroup?.length - 1])
+      setValir(false)
+    }
+  }, [valir])
 
 
   const updateEvent = async (values) => {

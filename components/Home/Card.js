@@ -23,8 +23,9 @@ const Card = ({ evento, grupoStatus }) => {
   const [refArchivar, isArchivar] = useHover();
   const [refBorrar, isBorrar] = useHover();
   const { setEventsGroup } = EventsGroupContextProvider();
-  const { setEvent } = EventContextProvider();
+  const { event, setEvent } = EventContextProvider();
   const router = useRouter();
+
 
   const handleClick = () => {
     try {
@@ -94,12 +95,10 @@ const Card = ({ evento, grupoStatus }) => {
         </span>
       ) : null}
       <div className="absolute right-[-40px] w-10 h-full" />
-      <div className={
-        `${isHovered ?
-          grupoStatus !== "realizado" ? "transform translate-x-1/2 duration-400" : ""
-          : ""
-        } transition h-32 w-16 bg-secondary absolute right-0  rounded-xl flex flex-col items-end justify-center px-2 gap-5`
-      }>
+      <div className={`${isHovered ?
+        grupoStatus !== "realizado" ? "transform translate-x-1/2 duration-400" : ""
+        : ""
+        } transition h-32 w-16 bg-secondary absolute z-[4] right-0  rounded-xl flex flex-col items-end justify-center px-2 gap-5`}>
         <div >
           <span ref={refArchivar} onClick={() => { handleArchivarEvent(grupoStatus) }} className="w-max h-max relative">
             <IconFolderOpen className="w-5 h-6 cursor-pointer text-white hover:text-gray-500" />
@@ -113,10 +112,12 @@ const Card = ({ evento, grupoStatus }) => {
           </span>
         </div>
       </div>
-      <div onClick={handleClick} className="w-72 h-36 rounded-xl cardEvento cursor-pointer shadow-lg relative overflow-hidden">
+
+      {event?._id == evento?._id && <div className="w-[304px] h-40 bg-gray-300 absolute rounded-xl" />}
+      <div onClick={handleClick} className={`w-72 h-36 rounded-xl cardEvento z-[8] cursor-pointer shadow-lg relative overflow-hidden `}>
         <img
           src={defaultImagenes[evento?.tipo]}
-          className="object-cover w-full h-full absolute top-0 left-0 z-0 object-top "
+          className="object-cover w-full h-full absolute top-0 left-0 object-top "
         />
         <div className="relative w-full h-full z-10 p-4 pb-2 flex flex-col justify-between">
           <span className="text-xs font-display text-white capitalize">
@@ -129,9 +130,9 @@ const Card = ({ evento, grupoStatus }) => {
             <span className="mt-[-4px] uppercase text-xs font-display text-white">
               {`${new Date(parseInt(evento?.fecha)).toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}`}
             </span>
-            {/* <span className="mt-[-4px] uppercase text-xs font-display text-white">
+            <span className="mt-[-4px] uppercase text-xs font-display text-white">
               {evento?.estatus}
-            </span> */}
+            </span>
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
-import {FallIcon,IconColors,InterrogacionIcon,ParkIcon,SnowIcon,SpringIcon,SummerIcon,LivingRoomIcon,PoolIcon,HouseIcon,} from "../icons";
+import { FallIcon, IconColors, InterrogacionIcon, ParkIcon, SnowIcon, SpringIcon, SummerIcon, LivingRoomIcon, PoolIcon, HouseIcon, } from "../icons";
 import { Swiper, SwiperSlide, } from "swiper/react";
-import {cloneElement,Dispatch,FC,MouseEventHandler,SetStateAction,useEffect,useState,} from "react";
+import { cloneElement, Dispatch, FC, MouseEventHandler, SetStateAction, useEffect, useState, } from "react";
 import { capitalize } from "../../utils/Capitalize";
 import { Form, Formik } from "formik";
 import InputField from "../Forms/InputField";
@@ -10,8 +10,7 @@ import { fetchApiEventos, queries } from '../../utils/Fetching';
 import { EventContextProvider, EventsGroupContextProvider } from "../../context";
 import { useToast } from "../../hooks/useToast";
 
-import "swiper/components/pagination/pagination.min.css"
-import "swiper/swiper.min.css";
+
 
 
 interface propsInsideBlock extends schemaItem {
@@ -172,7 +171,7 @@ interface typeEvent {
 
 const BlockSobreMiEvento: FC = () => {
   const { event } = EventContextProvider()
-  
+
   const initialValues2: values | {} = schema.reduce((acc, item) => {
     if (event) {
       acc[item.title] = {
@@ -197,10 +196,9 @@ const BlockSobreMiEvento: FC = () => {
   };
 
   const settings = {
-    
     spaceBetween: 50,
     loop: true,
-    navigation: true,
+    //navigation: true,
     autoplay: {
       delay: 2500,
       disableOnInteraction: false,
@@ -213,7 +211,6 @@ const BlockSobreMiEvento: FC = () => {
         slidesPerView: 4
       }
     }
-
   };
 
   useEffect(() => {
@@ -245,9 +242,9 @@ const BlockSobreMiEvento: FC = () => {
         Sobre mi evento
       </h2>
       <Swiper
-        pagination={{clickable: true}}
+        pagination={{ clickable: true }}
         {...settings}
-        
+
       >
         {schema.map((item, idx) => (
           <SwiperSlide key={idx} className="py-2 pb-8 relative">
@@ -277,7 +274,7 @@ interface propsElement extends schemaItem {
 
 const AboutItem: FC<propsElement> = ({ title, value, toggleClick }) => {
 
-  
+
 
   return (
     <>
@@ -297,7 +294,7 @@ const AboutItem: FC<propsElement> = ({ title, value, toggleClick }) => {
             {title && capitalize(title)}
           </p>
           <p className={'font-display font-base text-xs md:text-sm text-gray-700 font-semibold'}>
-            {value?.title && value.title.length > 10 ? value?.title && value.title.substring(0,10)+"...": value?.title && value.title}
+            {value?.title && value.title.length > 10 ? value?.title && value.title.substring(0, 10) + "..." : value?.title && value.title}
           </p>
         </span>
       </button>

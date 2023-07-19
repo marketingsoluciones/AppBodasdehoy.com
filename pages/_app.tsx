@@ -1,10 +1,7 @@
 import '../styles/globals.css'
 import DefaultLayout from '../layouts/DefaultLayout'
-import "swiper/components/pagination/pagination.min.css"
-import "swiper/swiper.min.css";
-
-
-
+import 'swiper/css';
+import "swiper/css/bundle"
 
 import { AnimatePresence } from 'framer-motion';
 import { AuthContextProvider } from '../context';
