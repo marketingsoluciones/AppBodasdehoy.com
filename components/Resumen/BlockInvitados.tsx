@@ -1,5 +1,4 @@
 import { Swiper, SwiperSlide } from "swiper/react";
-import SwiperCore, { Pagination } from "swiper/core";
 import router from "next/router";
 import { FC } from "react";
 import { EventContextProvider } from "../../context";
@@ -8,9 +7,6 @@ import {
   InvitadosConfirmados,
   InvitadosPendientes,
 } from "../icons";
-
-
-SwiperCore.use([Pagination]);
 
 const BlockInvitados: FC = () => {
   const {
@@ -58,6 +54,7 @@ const BlockInvitados: FC = () => {
       <div className="w-full bg-white shadow rounded-xl py-4 flex flex-col gap-4 h-48 items-center justify-center">
         <Swiper
           spaceBetween={50}
+          pagination={{ clickable: true }}
           breakpoints={{
             0: {
               slidesPerView: 1,
