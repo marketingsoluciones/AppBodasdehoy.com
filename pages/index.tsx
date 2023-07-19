@@ -245,16 +245,14 @@ const GridCards: FC<propsGridCards> = ({ state, set, showEditEvent, setShowEditE
                           <Card key={evento._id} evento={evento} grupoStatus={group.status} />
                         </SwiperSlide>
                       ))}
-                      {group.data?.length === 0 &&
+                      {group.status !== "pendiente" ? group.data?.length === 0 &&
                         <SwiperSlide
                           className={`flex items-center justify-center`}
                         >
                           <div className={`w-72 h-36 rounded-xl flex flex-col items-center justify-center shadow-lg bg-base border border-gray-100 transition `}>
-                            <p className="font-display font-base text-md">{`Ningun evento ${group.status}`}</p>
+                            <p className="font-display font-base text-md">{`Ningún evento ${group.status}`}</p>
                           </div>
-                        </SwiperSlide>
-                      }
-                      {group.status === "pendiente" &&
+                        </SwiperSlide> :
                         <SwiperSlide
                           className={`flex items-center justify-center`}
                         >

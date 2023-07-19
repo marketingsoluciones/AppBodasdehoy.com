@@ -8,15 +8,15 @@ import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from '../../hooks/useToast'
 
 export const defaultImagenes = {
-    boda: "/cards/boda.webp",
-    comunión: "/cards/comunion.webp",
-    cumpleaños: "/cards/cumpleanos.webp",
-    bautizo: "/cards/bautizo.webp",
-    babyshower: "/cards/baby.webp",
-    "desdepida de soltero": "/cards/despedida.webp",
-    graduación: "/cards/graduacion.webp",
-    otro: "/cards/pexels-pixabay-50675.jpg"
-  };
+  boda: "/cards/boda.webp",
+  comunión: "/cards/comunion.webp",
+  cumpleaños: "/cards/cumpleanos.webp",
+  bautizo: "/cards/bautizo.webp",
+  babyshower: "/cards/baby.webp",
+  "desdepida de soltero": "/cards/despedida.webp",
+  graduación: "/cards/graduacion.webp",
+  otro: "/cards/pexels-pixabay-50675.jpg"
+};
 
 const Card = ({ evento, grupoStatus }) => {
   const [hoverRef, isHovered] = useHover();
@@ -81,9 +81,18 @@ const Card = ({ evento, grupoStatus }) => {
       console.log(error)
     }
   }
-  const className = "bg-secondary absolute transition rounded-r-xl px-3 py-1 font-display text-xs text-gray-700 right-0 top-1/2 -translate-y-1/2 transform translate-x-[107%]"
+  const className = "bg-secondary absolute transition rounded-r-xl px-3 py-1 font-display text-xs text-gray-700 right-0 top-1/2 *-translate-y-1/2 transform translate-x-[-6%] z-50"
   return (
     <div ref={hoverRef} className={`w-max h-full relative grid place-items-center bg-white transition ${isHovered ? "transform scale-105 duration-700" : ""}`}>
+      {isArchivar ? (
+        <span className={`${className} -translate-y-[32px]`}>{grupoStatus === "pendiente" ? "Archivar" : "Desarchivar"}
+        </span>
+      ) : null}
+      {isBorrar ? (
+        <span className={`${className} -translate-y-[-12px]`}>
+          Borrar
+        </span>
+      ) : null}
       <div className="absolute right-[-40px] w-10 h-full" />
       <div className={
         `${isHovered ?
@@ -94,20 +103,13 @@ const Card = ({ evento, grupoStatus }) => {
         <div >
           <span ref={refArchivar} onClick={() => { handleArchivarEvent(grupoStatus) }} className="w-max h-max relative">
             <IconFolderOpen className="w-5 h-6 cursor-pointer text-white hover:text-gray-500" />
-            {isArchivar ? (
-              <span className={className}>{grupoStatus === "pendiente" ? "Archivar" : "Desarchivar"}
-              </span>
-            ) : null}
+
           </span>
         </div>
         <div >
           <span ref={refBorrar} onClick={handleRemoveEvent} className="w-max h-max relative"  >
             <BorrarIcon className="cursor-pointer text-white hover:text-gray-500" />
-            {isBorrar ? (
-              <span className={className}>
-                Borrar
-              </span>
-            ) : null}
+
           </span>
         </div>
       </div>
