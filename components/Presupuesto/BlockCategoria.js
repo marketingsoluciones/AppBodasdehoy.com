@@ -321,14 +321,14 @@ export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate
               <tr
                 key={i}
                 {...row.getRowProps()}
-                className="w-full transition border-b border-base hover:bg-base  w-full grid grid-cols-10"
+                className="w-full transition border-b border-base hover:bg-base grid grid-cols-10"
               >
                 {row.cells.map((cell, i) => {
                   return (
                     <td
                       key={i}
                       {...cell.getCellProps()}
-                      className={`font-display text-sm w-full text-center text-left py-2 col-span-${colSpan[cell.column.id]
+                      className={`font-display text-sm w-full text-left py-2 col-span-${colSpan[cell.column.id]
                         }`}
                     >
                       {cell.render("Cell")}
@@ -346,10 +346,10 @@ export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate
             </>
           );
         })}
-        <tr className="w-full transition border-b border-base  cursor-pointer w-full grid grid-cols-4">
+        <tr className="w-full transition border-b border-base  cursor-pointer  grid grid-cols-4">
           <td
             onClick={() => AddGasto()}
-            className="font-display text-sm text-primary w-full text-center text-left py-3 flex gap-2 items-center justify-center hover:opacity-90 hover:translate-x-2 transition transform"
+            className="font-display text-sm text-primary w-full text-left py-3 flex gap-2 items-center justify-center hover:opacity-90 hover:translate-x-2 transition transform"
           >
             <PlusIcon /> Añadir servicio
           </td>

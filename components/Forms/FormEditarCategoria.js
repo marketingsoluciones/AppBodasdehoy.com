@@ -98,7 +98,7 @@ export const BasicForm = ({
           disabled={isSubmitting}
           type="submit"
         >
-          Editar grupo
+          Editar categoría
         </button>
       </form>
     </>

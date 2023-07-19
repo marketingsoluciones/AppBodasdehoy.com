@@ -1,8 +1,7 @@
 import { motion } from "framer-motion";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import ClickAwayListener from "react-click-away-listener";
 import { api } from "../api";
-import Breadcumbs from "../components/DefaultLayout/Breadcumb";
 import FormCrearCategoria from "../components/Forms/FormCrearCategoria";
 import FormEditarCategoria from "../components/Forms/FormEditarCategoria";
 import { CochinoIcon, DineroIcon, DotsOpcionesIcon, PlusIcon } from "../components/icons";
@@ -54,7 +53,7 @@ const Presupuesto = () => {
               className="max-w-screen-lg mx-auto inset-x-0 w-full">
               <BlockTitle title={"Presupuesto"} />
               <div className="pt-2">
-                <div className="w-80 mx-auto inset-x-0 *h-max flex my-2 mt-2 rounded-2xl overflow-hidden">
+                <div className="w-80 mx-auto inset-x-0 flex my-2 mt-2 rounded-2xl overflow-hidden">
                   <div
                     onClick={() => setActive(true)}
                     className={`w-1/2 py-1 ${active ? "bg-primary text-white" : "bg-white text-primary"
@@ -84,7 +83,7 @@ const Presupuesto = () => {
                       categorias_array={categorias}
                     />
 
-                    <div className="md:col-span-2 w-full flex flex-col relative pr-3">
+                    <div className="md:col-span-2 w-full flex flex-col relative">
                       {showCategoria?.isVisible ? (
                         <BlockCategoria
                           set={(act) => setShowCategoria(act)}
@@ -92,7 +91,7 @@ const Presupuesto = () => {
                         />
                       ) : (
                         <>
-                          <div className=" grid grid-cols-1 gap-6 md:grid-cols-2">
+                          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <div className=" bg-white shadow-md rounded-xl grid place-items-center p-4">
                               <MontoPresupuesto
                                 estimado={
@@ -157,17 +156,18 @@ export default Presupuesto;
 
 const MontoPresupuesto = ({ estimado }) => {
   const [modificar, setModificar] = useState(false);
-  const [value, setValue] = useState(estimado);
+  const [value, setValue] = useState(estimado.toFixed(2));
   const [mask, setMask] = useState();
   const { event, setEvent } = EventContextProvider()
 
   useEffect(() => {
-    setMask(getCurrency(value, "EUR"));
+    setMask(getCurrency(!!value ? value : 0, "EUR"));
   }, [value]);
 
   const handleChange = (e) => {
     e.preventDefault();
-    setValue(parseFloat(e.target.value));
+    const r = e.target.value?.split(".")
+    setValue(parseFloat(!!r[1] ? `${r[0]}.${r[1]?.slice(0, 2)}` : e.target.value));
   };
 
   const keyDown = (e) => {
@@ -178,7 +178,7 @@ const MontoPresupuesto = ({ estimado }) => {
   const handleBlur = async () => {
     const params = {
       query: `mutation {
-        editPresupuesto(evento_id:"${event._id}", coste_estimado:${value}  ){
+        editPresupuesto(evento_id:"${event._id}", coste_estimado:${!!value ? value : 0}  ){
           coste_final
           coste_estimado
           pagado
@@ -232,8 +232,8 @@ const MontoPresupuesto = ({ estimado }) => {
       {modificar ? (
         <input
           type="number"
-          min="0"
-          value={value}
+          min={0}
+          value={!!value ? value : ""}
           onBlur={handleBlur}
           onChange={(e) => handleChange(e)}
           onKeyDown={(e) => keyDown(e)}
