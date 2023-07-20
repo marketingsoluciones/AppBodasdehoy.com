@@ -255,10 +255,10 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent, showEditEvent,
                           className="flex items-center justify-center"
                           onClick={() => { setIdxGroupEvent({ idx, isActiveStateSwiper, event_id: evento._id }) }}
                         >
-                          <div className="absolute z-50 bg-white font-display  text-center flex flex-col">
+                          {/* <div className="absolute z-50 bg-white font-display  text-center flex flex-col">
                             <span className="text-3xl">{idx}</span>
                             <span>{group?.data[idx]?._id}</span>
-                          </div>
+                          </div> */}
                           <Card data={group.data} grupoStatus={group.status} idx={idx} />
                         </SwiperSlide>
                       ))}
