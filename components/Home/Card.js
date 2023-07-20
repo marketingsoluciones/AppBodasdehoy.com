@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useEffect } from "react";
 import { EventContextProvider, EventsGroupContextProvider } from "../../context/";
 import useHover from "../../hooks/useHover";
 import { BorrarIcon, IconFolderOpen } from "../icons";
@@ -6,6 +6,7 @@ import { useRouter } from "next/router";
 import { setCookie } from "../../utils/Cookies";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from '../../hooks/useToast'
+import { Lista } from "../../pages";
 
 export const defaultImagenes = {
   boda: "/cards/boda.webp",
@@ -18,19 +19,17 @@ export const defaultImagenes = {
   otro: "/cards/pexels-pixabay-50675.jpg"
 };
 
-const Card = ({ evento, grupoStatus }) => {
+const Card = ({ data, grupoStatus, idx }) => {
   const [hoverRef, isHovered] = useHover();
   const [refArchivar, isArchivar] = useHover();
   const [refBorrar, isBorrar] = useHover();
-  const { setEventsGroup } = EventsGroupContextProvider();
-  const { event, setEvent } = EventContextProvider();
+  const { eventsGroup, setEventsGroup } = EventsGroupContextProvider();
+  const { event, setEvent, idxGroupEvent, setIdxGroupEvent } = EventContextProvider();
   const router = useRouter();
-
 
   const handleClick = () => {
     try {
-      setEvent(evento);
-      //setCookie("evento_id", evento?._id, 1);
+      setEvent(data[idx]);
     } catch (error) {
       console.log(error);
     } finally {
@@ -39,12 +38,12 @@ const Card = ({ evento, grupoStatus }) => {
   };
 
   const toast = useToast()
-  const handleArchivarEvent = (grupoStatus) => {
+  const handleArchivarEvent = () => {
     try {
       const value = grupoStatus === "pendiente" ? "archivado" : "pendiente"
       const result = fetchApiEventos({
         query: queries.eventUpdate,
-        variables: { idEvento: evento?._id, variable: "estatus", value },
+        variables: { idEvento: data[idx]?._id, variable: "estatus", value },
         token: null
       })
       if (!result || result.errors) {
@@ -53,14 +52,30 @@ const Card = ({ evento, grupoStatus }) => {
       setEventsGroup({
         type: "EDIT_EVENT",
         payload: {
-          _id: evento?._id,
+          _id: data[idx]?._id,
           estatus: value
         }
       })
+
       if (grupoStatus === "archivado") {
-        setEvent(evento);
+        setEvent(data[idx])
+        setTimeout(() => {
+          setIdxGroupEvent({ idx: 0, isActiveStateSwiper: 0, event_id: data[idx]?._id })
+        }, 50);
+        router.push("/resumen-evento");
       }
-      toast("success", `${value == "archivado" ? `El evento ${evento.tipo} de "${evento.nombre.toUpperCase()}" se ha archivado` : `El evento ${evento.tipo} de "${evento.nombre.toUpperCase()}" se ha desarchivado`}`)
+
+      if (idxGroupEvent?.idx == idx && value == "archivado") {
+        const valir = (data?.length - idx) > 1
+        setTimeout(() => {
+          setEvent(data[valir ? idx + 1 : idx - 1]);
+          setIdxGroupEvent({ ...idxGroupEvent, idx: valir ? idx : idx - 1, event_id: data[idx]?._id })
+        }, 50);
+      }
+
+
+
+      toast("success", `${value == "archivado" ? `El evento ${data[idx].tipo} de "${data[idx].nombre.toUpperCase()}" se ha archivado` : `El evento ${data[idx].tipo} de "${data[idx].nombre.toUpperCase()}" se ha desarchivado`}`)
     } catch (error) {
       toast("error", "Ha ocurrido un error al archivar el evento")
       console.log(error)
@@ -70,18 +85,25 @@ const Card = ({ evento, grupoStatus }) => {
     try {
       const result = fetchApiEventos({
         query: queries.eventDelete,
-        variables: { eventoID: evento?._id }
+        variables: { eventoID: data[idx]?._id }
       })
       if (!result || result.errors) {
         throw new Error("Ha ocurrido un error")
       }
-      setEventsGroup({ type: "DELETE_EVENT", payload: evento?._id })
+      setEventsGroup({ type: "DELETE_EVENT", payload: data[idx]?._id })
+
+      const valir = (data?.length - idx) > 1
+      setTimeout(() => {
+        setEvent(data[valir ? idx + 1 : idx - 1]);
+        setIdxGroupEvent({ ...idxGroupEvent, idx: valir ? idx : idx - 1, event_id: data[idx]?._id })
+      }, 50);
       toast("success", "Evento eliminado ")
     } catch (error) {
       toast("error", "Ha ocurrido un error al eliminar el evento")
       console.log(error)
     }
   }
+
   const className = "bg-secondary absolute transition rounded-r-xl px-3 py-1 font-display text-xs text-gray-700 right-0 top-1/2 *-translate-y-1/2 transform translate-x-[-6%] z-50"
   return (
     <div ref={hoverRef} className={`w-max h-full relative grid place-items-center bg-white transition ${isHovered ? "transform scale-105 duration-700" : ""}`}>
@@ -100,7 +122,7 @@ const Card = ({ evento, grupoStatus }) => {
         : ""
         } transition h-32 w-16 bg-secondary absolute z-[4] right-0  rounded-xl flex flex-col items-end justify-center px-2 gap-5`}>
         <div >
-          <span ref={refArchivar} onClick={() => { handleArchivarEvent(grupoStatus) }} className="w-max h-max relative">
+          <span ref={refArchivar} onClick={handleArchivarEvent} className="w-max h-max relative">
             <IconFolderOpen className="w-5 h-6 cursor-pointer text-white hover:text-gray-500" />
 
           </span>
@@ -113,25 +135,25 @@ const Card = ({ evento, grupoStatus }) => {
         </div>
       </div>
 
-      {event?._id == evento?._id && <div className="w-[304px] h-40 bg-gray-300 absolute rounded-xl" />}
+      {idx == idxGroupEvent?.idx && idxGroupEvent?.isActiveStateSwiper == Lista.findIndex(elem => elem.value == grupoStatus) ? <div className="w-[304px] h-40 bg-gray-300 absolute rounded-xl" /> : <></>}
       <div onClick={handleClick} className={`w-72 h-36 rounded-xl cardEvento z-[8] cursor-pointer shadow-lg relative overflow-hidden `}>
         <img
-          src={defaultImagenes[evento?.tipo]}
+          src={defaultImagenes[data[idx]?.tipo]}
           className="object-cover w-full h-full absolute top-0 left-0 object-top "
         />
         <div className="relative w-full h-full z-10 p-4 pb-2 flex flex-col justify-between">
           <span className="text-xs font-display text-white capitalize">
-            {evento?.tipo == "otro" ? "mi evento especial" : evento?.tipo}
+            {data[idx]?.tipo == "otro" ? "mi evento especial" : data[idx]?.tipo}
           </span>
           <div className="flex flex-col ">
             <span className="capitalize text-lg font-display text-white">
-              {evento?.nombre}
+              {data[idx]?.nombre}
             </span>
             <span className="mt-[-4px] uppercase text-xs font-display text-white">
-              {`${new Date(parseInt(evento?.fecha)).toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}`}
+              {`${new Date(parseInt(data[idx]?.fecha)).toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}`}
             </span>
             <span className="mt-[-4px] uppercase text-xs font-display text-white">
-              {evento?.estatus}
+              {data[idx]?.estatus}
             </span>
           </div>
         </div>

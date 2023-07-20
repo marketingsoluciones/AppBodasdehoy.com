@@ -9,9 +9,7 @@ import {
 } from "../icons";
 
 const BlockInvitados: FC = () => {
-  const {
-    event,
-  } = EventContextProvider();
+  const { event } = EventContextProvider();
 
   const totalAccordingTo = (prop: string, param: string) => {
     return event?.invitados_array?.filter((item) => item[prop] == param)?.length;

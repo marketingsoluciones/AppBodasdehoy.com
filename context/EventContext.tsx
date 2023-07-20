@@ -2,11 +2,19 @@ import { createContext, useState, useContext, useEffect, Dispatch, SetStateActio
 import { Event } from "../utils/Interfaces";
 import { EventsGroupContextProvider } from "./EventsGroupContext";
 
+interface idxGroupEvent {
+  idx: number
+  isActiveStateSwiper: number
+  event_id: string | null
+}
+
 type Context = {
   event: Event
   setEvent: Dispatch<SetStateAction<Event>>
   invitadoCero: string | null
   setInvitadoCero: Dispatch<SetStateAction<string>>
+  idxGroupEvent: idxGroupEvent
+  setIdxGroupEvent: Dispatch<SetStateAction<idxGroupEvent | null>>
 }
 
 const EventContext = createContext<Context>({
@@ -14,12 +22,15 @@ const EventContext = createContext<Context>({
   setEvent: (event: Event): void => null,
   invitadoCero: null,
   setInvitadoCero: () => { },
+  idxGroupEvent: null,
+  setIdxGroupEvent: () => { },
 });
 
 const EventProvider = ({ children }) => {
   const [event, setEvent] = useState<Event | null>(null);
   const [invitadoCero, setInvitadoCero] = useState<string | null>(null);
   const [valir, setValir] = useState<boolean | null>(false);
+  const [idxGroupEvent, setIdxGroupEvent] = useState<idxGroupEvent | null>({ idx: 0, isActiveStateSwiper: 0, event_id: null });
   const { eventsGroup } = EventsGroupContextProvider()
 
 
@@ -39,7 +50,7 @@ const EventProvider = ({ children }) => {
   }, [eventsGroup, valir]);
 
   return (
-    <EventContext.Provider value={{ event, setEvent, invitadoCero, setInvitadoCero }}>
+    <EventContext.Provider value={{ event, setEvent, invitadoCero, setInvitadoCero, idxGroupEvent, setIdxGroupEvent }}>
       {children}
     </EventContext.Provider>
   );

@@ -1,5 +1,5 @@
 import { SetStateAction, useEffect, useState, Dispatch, FC } from "react";
-import { Swiper, SwiperSlide, useSwiper } from "swiper/react";
+import { Swiper, SwiperSlide } from "swiper/react";
 import { motion } from "framer-motion";
 import { CircleBanner, LineaHome } from "../components/icons";
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, } from "../context";
@@ -153,20 +153,17 @@ type dataTab = {
   vacio: number[]
 }
 
+export const Lista = [
+  { nombre: "Pendientes", value: "pendiente", color: "tertiary" },
+  { nombre: "Archivados", value: "archivado", color: "gray-300" },
+  { nombre: "Realizados", value: "realizado", color: "secondary" },
+];
+
 const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent, showEditEvent, setShowEditEvent }) => {
-  const { isActiveStateSwiper, setIsActiveStateSwiper } = AuthContextProvider()
   const { eventsGroup } = EventsGroupContextProvider();
-  const { event } = EventContextProvider()
+  const { idxGroupEvent, setIdxGroupEvent } = EventContextProvider()
+  const [isActiveStateSwiper, setIsActiveStateSwiper] = useState<number>(idxGroupEvent?.isActiveStateSwiper)
   const [tabsGroup, setTabsGroup] = useState<dataTab[]>([]);
-  // const [page, setPage] = useState(0)
-  // const swiper = useSwiper();
-
-  // useEffect(() => {
-  //   swiper?.slideTo(page)
-  //   console.log(page)
-  // }, [page, swiper])
-
-
 
   useEffect(() => {
     if (eventsGroup) {
@@ -186,21 +183,28 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent, showEditEvent,
         return [];
       };
 
-      const result: dataTab[] = Object.entries(arrNuevo).map((evento: any[]) => ({
-        status: evento[0],
-        data: evento[1],
-        vacio: countEmptys(evento[1]),
-      }));
+      const result: dataTab[] = Object.entries(arrNuevo).map((eventos: any[]) => {
+        return ({
+          status: eventos[0],
+          data: eventos[1]?.sort((a: any, b: any) => { return b.fecha_creacion - a.fecha_creacion }),
+          vacio: countEmptys(eventos[1]),
+        })
+      });
 
       setTabsGroup(result);
     }
-  }, [eventsGroup]);
+  }, [eventsGroup, idxGroupEvent]);
 
-  const Lista = [
-    { nombre: "Pendientes", value: "pendiente", color: "tertiary" },
-    { nombre: "Archivados", value: "archivado", color: "gray-300" },
-    { nombre: "Realizados", value: "realizado", color: "secondary" },
-  ];
+  const idxNew = tabsGroup[isActiveStateSwiper]?.data.findIndex(elem => elem._id == idxGroupEvent.event_id)
+  useEffect(() => {
+    if (idxNew > -1) {
+      setTimeout(() => {
+        setIdxGroupEvent((old: any) => {
+          return { ...old, idx: idxNew }
+        })
+      }, 10);
+    }
+  }, [idxNew])
 
   return (
     <>
@@ -222,19 +226,14 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent, showEditEvent,
         </div>
         <div className="w-full h-max ">
           {tabsGroup.map((group, idx) => {
-            let toSlide = 0
-            if (group?.status == "pendiente") {
-              toSlide = group?.data?.findIndex(elem => elem._id === event?._id)
-            }
-            group?.status == "pendiente" && console.log(1000, toSlide)
+
             return (
               <div key={idx}>
                 {isActiveStateSwiper == idx ? (
                   <>
                     <Swiper
-
-                      // slideToClickedSlide={true}
-                      initialSlide={toSlide > 0 ? toSlide : 0}
+                      //slideToClickedSlide={true}
+                      initialSlide={idxNew < 0 ? idxGroupEvent?.idx - 2 : idxNew - 2}
                       spaceBetween={50}
                       pagination={{ clickable: true }}
                       breakpoints={{
@@ -250,12 +249,17 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent, showEditEvent,
                       id={group?.status}
                       className={` h-60 ${isActiveStateSwiper == idx ? "" : "hidden"}`}
                     >
-                      {group?.data?.sort((a: any, b: any) => { return b.fecha_creacion - a.fecha_creacion })?.map((evento, idx) => (
+                      {group?.data?.map((evento, idx) => (
                         <SwiperSlide
                           key={idx}
                           className="flex items-center justify-center"
+                          onClick={() => { setIdxGroupEvent({ idx, isActiveStateSwiper, event_id: evento._id }) }}
                         >
-                          <Card key={evento._id} evento={evento} grupoStatus={group.status} />
+                          <div className="absolute z-50 bg-white font-display  text-center flex flex-col">
+                            <span className="text-3xl">{idx}</span>
+                            <span>{group?.data[idx]?._id}</span>
+                          </div>
+                          <Card data={group.data} grupoStatus={group.status} idx={idx} />
                         </SwiperSlide>
                       ))}
                       {group.status !== "pendiente" ? group.data?.length === 0 &&
@@ -270,8 +274,6 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent, showEditEvent,
                           className={`flex items-center justify-center`}
                         >
                           <CardEmpty state={state} set={setNewEvent} />
-
-                          <div className="absolute z-50 bg-red w-20 h-20">algo</div>
                         </SwiperSlide>
                       }
                     </Swiper>
