@@ -11,10 +11,41 @@ import Cookies from "js-cookie";
 const Profile = ({ user, state, set, ...rest }) => {
   const { config } = AuthContextProvider()
   const [dropdown, setDropwdon] = useState(false);
-  const ListaDropdown = []
-  if (config?.pathDirectory) {
-    ListaDropdown.push({ title: "Ir al directorio", route: process.env.NEXT_PUBLIC_DIRECTORY })
-  }
+  const ListaDropdown = [
+    {
+      title: "Inicio de sesión",
+      onClick: async () => { router.push(`${config?.pathDirectory}/login?d=app`) },
+      user: "guest"
+    },
+    {
+      title: "Registro",
+      onClick: async () => { router.push(`${config?.pathDirectory}/login?d=app&q=register`) },
+      user: "guest"
+    },
+    {
+      title: "Ir al directorio",
+      onClick: async () => { router.push(process.env.NEXT_PUBLIC_DIRECTORY) },
+      user: "all"
+    },
+    {
+      title: "Perfil",
+      onClick: async () => { router.push(process.env.NEXT_PUBLIC_DIRECTORY) },
+      user: "loged"
+    },
+    {
+      title: "Cerrar sesión",
+      onClick: async () => {
+        Cookies.remove("sessionBodas", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "" });
+        Cookies.remove("idToken", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "" });
+        await signOut(getAuth());
+        router.push(`${process.env.NEXT_PUBLIC_DIRECTORY}/signout?end=true` ?? "")
+      },
+      user: "loged"
+    }
+  ]
+  const valirUser = user?.displayName == "guest" ? "guest" : "loged"
+  const ListaDropdownFilter = ListaDropdown.filter(elem => elem?.user === valirUser || elem?.user === "all")
+
   return (
     <>
       <div
@@ -34,41 +65,17 @@ const Profile = ({ user, state, set, ...rest }) => {
 
         <ClickAwayListener onClickAway={() => dropdown && setDropwdon(false)}>
           <div
-            className="items-center gap-2 profile hidden md:flex"
+            className="items-center gap-2 profile hidden md:flex relative"
             onClick={() => setDropwdon(!dropdown)}
           >
             {dropdown && (
-              <div className="bg-white rounded-lg w-48 h-max shadow-lg absolute bottom-0 transform translate-y-full overflow-hidden z-40 ">
+              <div className="bg-white rounded-lg w-48 h-max shadow-lg absolute bottom-0 transform translate-y-[110%] overflow-hidden z-40 ">
                 <ul className="w-full">
-                  {user.displayName == "guest" &&
-                    <>
-                      <li className="w-full pl-5 py-1 text-gray-500 transition  hover:bg-primary hover:text-white font-display text-sm">
-                        <button onClick={async () => { router.push(`${config?.pathDirectory ? config.pathDirectory : ""}/login?d=app` ?? "") }}>Inicio de sesión</button>
-                      </li>
-                      <li className="w-full pl-5 py-1 text-gray-500 transition  hover:bg-primary hover:text-white font-display text-sm">
-                        <button onClick={async () => { router.push(`${config?.pathDirectory ? config.pathDirectory : ""}/login?d=app&a=registro` ?? "") }}>Registro</button>
-                      </li>
-                    </>
-                  }
-                  {ListaDropdown?.map((item, idx) => (
-                    <Link href={item?.route ?? "/"} key={idx} passHref>
-                      <li
-                        className="w-full pl-5 py-1 text-gray-500 transition  hover:bg-primary hover:text-white font-display text-sm"
-                        onClick={item?.function}
-                      >
-                        {item.title && capitalize(item.title)}
-                      </li>
-
-                    </Link>
+                  {ListaDropdownFilter?.map((item, idx) => (
+                    <li key={idx} className="w-full pl-5 py-1 text-gray-500 transition  hover:bg-primary hover:text-white font-display text-sm">
+                      <button onClick={item?.onClick}>{item.title && capitalize(item.title)}</button>
+                    </li>
                   ))}
-                  {!user.displayName == "guest" && <li className="w-full pl-5 py-1 text-gray-500 transition  hover:bg-primary hover:text-white font-display text-sm">
-                    <button onClick={async () => {
-                      Cookies.remove("sessionBodas", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "" });
-                      Cookies.remove("idToken", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "" });
-                      await signOut(getAuth());
-                      router.push(`${process.env.NEXT_PUBLIC_DIRECTORY}/signout?end=true` ?? "")
-                    }}>Cerrar Sesión</button>
-                  </li>}
                 </ul>
               </div>
             )}
@@ -79,7 +86,7 @@ const Profile = ({ user, state, set, ...rest }) => {
               alt={user?.displayName}
             />
             <p className="font-display text-sm text-gray-500 capitalize">
-              {user?.displayName?.toLowerCase()}
+              {user?.displayName !== "guest" && user?.displayName?.toLowerCase()}
             </p>
           </div>
         </ClickAwayListener>
