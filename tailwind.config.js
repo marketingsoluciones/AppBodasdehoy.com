@@ -16,7 +16,13 @@ module.exports = {
         "color-base": `var(--color-base)`,
         base: "#F2F2F2",
         green: "#13ce66",
-        red: "#fa0202"
+        red: "#fa0202",
+        basePage: "#F6F6F6",
+        primaryOrg: "#6096B9",
+        secondaryOrg: "#284C77",
+        acento: "#F4C02F",
+        titelCard:"#B5B5B5",
+        textGrisClaro:"#727272"
       },
     }
   },
