@@ -1,5 +1,7 @@
 import { Swiper, SwiperSlide } from "swiper/react"
 import { Autoplay, Pagination } from "swiper";
+import router from "next/router";
+
 
 export const InfoGrid = ({ DataGrid }) => {
     return (
@@ -11,7 +13,7 @@ export const InfoGrid = ({ DataGrid }) => {
                             <div key={idx} className="w-[70%] space-y-5">
                                 <p className="text-xl font-semibold text-secondaryOrg">{item.title}</p>
                                 <p className="text-secondaryOrg">{item.texto}</p>
-                                <button className="bg-acento text-white px-5 py-1.5">{item.button}</button>
+                                <button onClick={()=> {router.push(item.router)}} className="bg-acento text-white px-5 py-1.5">{item.button}</button>
                             </div>
                         ))
                     }
@@ -42,7 +44,7 @@ export const InfoGrid = ({ DataGrid }) => {
                             <div  className="sspace-y-5 mb-10">
                                 <p className="text-xl font-semibold text-secondaryOrg">{item.title}</p>
                                 <p className="text-secondaryOrg">{item.texto}</p>
-                                <button className="bg-acento text-white px-5 py-1.5">{item.button}</button>
+                                <button onClick={()=> {router.push(item.router)}} className="bg-acento text-white px-5 py-1.5">{item.button}</button>
                             </div>
                             </SwiperSlide>
                         ))

@@ -29,13 +29,13 @@ export const MasInfo = () => {
             title: "Gestiona tu presupuesto",
             texto: "Registra cada movimiento. Precios, cotizaciones, facturas, presupuesto global del evento.",
             button: "ver más",
-            router: "/",
+            router: "/presupuesto",
         },
         {
             title: "Invitados e Invitaciones",
             texto: "Diseña y envía las invitaciones. Confirma asistencia y accesos directos a la lista de regalos.",
             button: "ver más",
-            router: "/",
+            router: "/invitaciones",
         },
 
     ]

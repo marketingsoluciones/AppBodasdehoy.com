@@ -1,6 +1,7 @@
 import { CrearEventoIcon } from "../../icons"
 import { Swiper, SwiperSlide } from "swiper/react"
 import { Autoplay, Pagination } from "swiper";
+import router from "next/router";
 
 export const Card = ({ DataCards }) => {
     return (
@@ -20,7 +21,7 @@ export const Card = ({ DataCards }) => {
                                         {item.texto}
                                     </p>
                                     <div className="p-5 flex items-center justify-center space-x-3">
-                                        <button className="bg-primaryOrg px-5 py-2 text-white">{item.button}</button>
+                                        <button onClick={()=> {router.push(item.router)}} className="bg-primaryOrg px-5 py-2 text-white">{item.button}</button>
                                         <CrearEventoIcon className="w-9 h-9 text-acento" />
                                     </div>
                                 </div>
@@ -62,7 +63,7 @@ export const Card = ({ DataCards }) => {
                                                 {item.texto}
                                             </p>
                                             <div className="p-5 flex items-center justify-center space-x-3">
-                                                <button className="bg-primaryOrg px-5 py-2 text-white">{item.button}</button>
+                                                <button onClick={()=> {router.push(item.router)}} className="bg-primaryOrg px-5 py-2 text-white">{item.button}</button>
                                                 <CrearEventoIcon className="w-9 h-9 text-acento" />
                                             </div>
                                         </div>

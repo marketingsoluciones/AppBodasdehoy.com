@@ -1,4 +1,8 @@
+import { useRouter } from "next/router"
+import router from "next/router";
+
 export const CreaPlanifica = () => {
+    const router = useRouter()
     return (
         <>
             
@@ -24,7 +28,7 @@ export const CuadroInfo = () => {
                         Plataforma única de planificación y organización, capaz de integrar cada detalle de tu evento.<br /><br />
                         No importa el tamaño o tipo de tu celebración que deseas realizar. Ahora puedes llevar <br /> las riendas de tu evento desde una sola herramienta.
                     </p>
-                    <button className="bg-acento text-white py-2 px-3">CREA GRATIS TU EVENTO</button>
+                    <button onClick={()=> {router.push("/")}} className="bg-acento text-white py-2 px-3">CREA GRATIS TU EVENTO</button>
                 </div>
             </div>
         </>
