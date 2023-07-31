@@ -18,6 +18,8 @@ const Container = (props) => {
   const [active, setActive] = useState<string | null>(null);
   const [notificaciones, setNotificaciones] = useState([]);
   const router = useRouter();
+  const url = router.pathname
+  console.log(url)
 
   useEffect(() => {
     setActive(router.pathname);
@@ -80,7 +82,7 @@ const Container = (props) => {
       />
 
       {loading && <BarraLoading />}
-      <div className="*max-w-[70%] *max-h-[10%] w-[100%] h-[calc(100vh-144px)] overflow-auto ">
+      <div className={`*max-w-[70%] *max-h-[10%] w-[100%]  overflow-auto ${url=="/info-app"?"":"h-[calc(100vh-144px)]"}`}>
         <main>
           {children}
         </main>

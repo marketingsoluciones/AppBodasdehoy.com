@@ -23,6 +23,9 @@ const Navigation: any = (
   const [isMounted, setIsMounted] = useState(false);
   const [route, setRoute] = useState<string>("");
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
+  const url = router.pathname
+  console.log(url)
+
   useEffect(() => {
     setRoute(router.pathname)
   }, [router])
@@ -128,41 +131,43 @@ const Navigation: any = (
         </div>
 
         {/* segundo menu superior con las redirecciones funcionales de la app */}
-        <div className={`w-full h-20 relative hidden md:block bg-base z-10`}>
-          <Tooltip label="Primero debes crear un evento" icon={<IconLightBulb16 className="w-6 h-6" />} disabled={!!event?._id}>
-            <ul className="absolute m-auto left-1/2 -translate-x-1/2 py-4 w-max h-max flex gap-12">
-              {Navbar.map((item, idx) => (
-                <li
-                  key={idx}
-                  onClick={() => {
-                    if (item.condicion) {
-                      router.push(item.route)
-                      setRoute(item.route)
-                    }
-                  }}
-                  className={`w-max flex flex-col justify-between items-center hover:opacity-80  transition  cursor-pointer
+        <div className={`${url == "/info-app" ? "hidden" : "block"}`}>
+          <div className={`w-full h-20 relative hidden md:block bg-base z-10 `}>
+            <Tooltip label="Primero debes crear un evento" icon={<IconLightBulb16 className="w-6 h-6" />} disabled={!!event?._id}>
+              <ul className="absolute m-auto left-1/2 -translate-x-1/2 py-4 w-max h-max flex gap-12">
+                {Navbar.map((item, idx) => (
+                  <li
+                    key={idx}
+                    onClick={() => {
+                      if (item.condicion) {
+                        router.push(item.route)
+                        setRoute(item.route)
+                      }
+                    }}
+                    className={`w-max flex flex-col justify-between items-center hover:opacity-80  transition  cursor-pointer
                   ${route == item.route ?
-                      route == "/"
-                        ? "text-white transform scale-110"
-                        : "text-primary transform scale-110"
-                      : route == "/"
-                        ? "text-gray-200"
-                        : "text-gray-400"
-                    } 
+                        route == "/"
+                          ? "text-white transform scale-110"
+                          : "text-primary transform scale-110"
+                        : route == "/"
+                          ? "text-gray-200"
+                          : "text-gray-400"
+                      } 
                     ${event?._id ? "" : ""}
                   }`}
-                >
-                  {item.icon}
-                  <p className="font-display text-sm h-max"  >{item.title}</p>
-                </li>
-              ))}
-            </ul>
-          </Tooltip>
-          <Banner
-            className={`${route == "/" ? "text-primary" : "text-white"
-              } w-full transition`}
-          />
-        </div >
+                  >
+                    {item.icon}
+                    <p className="font-display text-sm h-max"  >{item.title}</p>
+                  </li>
+                ))}
+              </ul>
+            </Tooltip>
+            <Banner
+              className={`${route == "/" ? "text-primary" : "text-white"
+                } w-full transition`}
+            />
+          </div >
+        </div>
       </header >
     </>
   );

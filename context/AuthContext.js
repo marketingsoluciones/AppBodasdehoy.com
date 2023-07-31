@@ -50,7 +50,7 @@ const AuthProvider = ({ children }) => {
       const idx = c?.findIndex(el => el === "com")
       /*--------------------------------------------------------------------*/
       const devDomain = ["bodasdehoy", "eventosplanificador"]
-      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[0] /*<<<<<<<<<*/
+      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[1] /*<<<<<<<<<*/
       /*--------------------------------------------------------------------*/
       const resp = developments.filter(elem => elem.name === domainDevelop)[0]
       if (idx === -1) {
