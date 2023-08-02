@@ -215,7 +215,7 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent, showEditEvent,
               onClick={(e) => setIsActiveStateSwiper(idx)}
               key={idx}
               className={`${isActiveStateSwiper == idx
-                ? `bg-${item.color} text-gray-500`
+                ? `bg-${item.color} text-white`
                 : "bg-white text-gray-500"
                 } w-max px-4 py-0.5 rounded-xl flex items-center justify-center cursor-pointer hover:bg-${item.color
                 } hover:text-gray-500 transition focus:outline-none text-sm font-display`}

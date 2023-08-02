@@ -1,4 +1,4 @@
-import { LogoEventosPlanificador, LogoNuevoBodasBlanco } from "./components/icons";
+import { LogoEventosOrganizador, LogoEventosPlanificador, LogoNuevoBodasBlanco } from "./components/icons";
 
 const firebaseConfigBodas = {
   apiKey: "AIzaSyDVMoVLWWvolofYOcTYA0JZ0QHyng72LAM",
@@ -60,12 +60,12 @@ export const developments = [
     domain: "https://eventosplanificador.com",
     cookieGuest: "guesteventos",
     pathLogin: "",
-    logoDirectory: <LogoEventosPlanificador className="hover:opacity-80 transition text-primary" />,
+    logoDirectory: <LogoEventosOrganizador className="hover:opacity-80 transition text-primary" />,
     headTitle: "Planificador de Eventos",
     theme: {
-      primaryColor: "#6771ae",
-      secondaryColor: "#c589a9",
-      tertiaryColor: "#b3dbb4",
+      primaryColor: "#6096B9"/* "#6771ae" */,
+      secondaryColor:"#284C77" /* "#c589a9" */,
+      tertiaryColor: "#F4C02F" /* "#b3dbb4" */,
       baseColor: "#F2F2F2",
       colorScroll: "#adb6ed"
     }

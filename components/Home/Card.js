@@ -104,15 +104,15 @@ const Card = ({ data, grupoStatus, idx }) => {
     }
   }
 
-  const className = "bg-secondary absolute transition rounded-r-xl px-3 py-1 font-display text-xs text-gray-700 right-0 top-1/2 *-translate-y-1/2 transform translate-x-[-6%] z-50"
+  const className = "bg-secondary absolute transition rounded-r-xl px-3 py-1 font-display text-xs text-gray-700* text-white right-0 top-1/2 *-translate-y-1/2 transform translate-x-[-6%] z-50"
   return (
     <div ref={hoverRef} className={`w-max h-full relative grid place-items-center bg-white transition ${isHovered ? "transform scale-105 duration-700" : ""}`}>
       {isArchivar ? (
-        <span className={`${className} -translate-y-[32px]`}>{grupoStatus === "pendiente" ? "Archivar" : "Desarchivar"}
+        <span className={`${className} -translate-y-[32px] `}>{grupoStatus === "pendiente" ? "Archivar" : "Desarchivar"}
         </span>
       ) : null}
       {isBorrar ? (
-        <span className={`${className} -translate-y-[-12px]`}>
+        <span className={`${className} -translate-y-[-12px] `}>
           Borrar
         </span>
       ) : null}
