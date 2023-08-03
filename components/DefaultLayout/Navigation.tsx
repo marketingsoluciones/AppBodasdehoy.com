@@ -9,6 +9,7 @@ import BlockNotification from "./BlockNotification";
 import NavbarDirectory from "../Utils/NavbarDirectory";
 import Head from "next/head";
 import { Tooltip } from "../Utils/Tooltip";
+import ClickAwayListener from "react-click-away-listener";
 
 const Navigation: any = (
   notificaciones: any,
@@ -24,7 +25,6 @@ const Navigation: any = (
   const [route, setRoute] = useState<string>("");
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const url = router.pathname
-  console.log(url)
 
   useEffect(() => {
     setRoute(router.pathname)
@@ -102,14 +102,22 @@ const Navigation: any = (
           set={(accion) => setIsMounted(accion)}
         />
       )}
-      <Sidebar state={showSidebar} set={(accion) => setShowSidebar(accion)} />
       <header className="f-top relative w-full bg-white">
         {/* primer menu superior con logo, redirecion al directiorio y opciones de perfil para la vista desktop  */}
         <div className="max-w-screen-lg h-16 px-5 lg:px-0 w-full flex justify-between items-center mx-auto inset-x-0 ">
-          <MenuIcon
-            onClick={() => setShowSidebar(!showSidebar)}
-            className="md:hidden cursor-pointer"
-          />
+          <ClickAwayListener onClickAway={() => {
+            setTimeout(() => {
+              setShowSidebar(false)
+            }, 50);
+          }}>
+            <div >
+              <MenuIcon
+                onClick={() => setShowSidebar(!showSidebar)}
+                className="text-primary w-8 h-8 md:hidden cursor-pointer"
+              />
+              <Sidebar showSidebar={showSidebar} setShowSidebar={setShowSidebar} />
+            </div>
+          </ClickAwayListener>
           <span
             onClick={() => {
               //Loading(setLoading);

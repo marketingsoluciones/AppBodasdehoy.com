@@ -13,7 +13,7 @@ const Profile = ({ user, state, set, ...rest }) => {
   const [dropdown, setDropwdon] = useState(false);
   const ListaDropdown = [
     {
-      title: "Inicio de sesión",
+      title: "Iniciar sesión",
       onClick: async () => { router.push(`${config?.pathDirectory}/login?d=app`) },
       user: "guest"
     },
