@@ -64,7 +64,24 @@ export const developments = [
     headTitle: "Planificador de Eventos",
     theme: {
       primaryColor: "#6096B9"/* "#6771ae" */,
-      secondaryColor:"#284C77" /* "#c589a9" */,
+      secondaryColor: "#284C77" /* "#c589a9" */,
+      tertiaryColor: "#F4C02F" /* "#b3dbb4" */,
+      baseColor: "#F2F2F2",
+      colorScroll: "#adb6ed"
+    }
+  },
+  {
+    name: "eventosorganizador",
+    fileConfig: firebaseConfigEventos,
+    cookie: "sessionEventos",
+    domain: "https://eventosorganizador.com",
+    cookieGuest: "guesteventos",
+    pathLogin: "",
+    logoDirectory: <LogoEventosOrganizador className="hover:opacity-80 transition text-primary" />,
+    headTitle: "Organizador de Eventos",
+    theme: {
+      primaryColor: "#6096B9"/* "#6771ae" */,
+      secondaryColor: "#284C77" /* "#c589a9" */,
       tertiaryColor: "#F4C02F" /* "#b3dbb4" */,
       baseColor: "#F2F2F2",
       colorScroll: "#adb6ed"
