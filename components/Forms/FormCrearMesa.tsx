@@ -30,10 +30,10 @@ const FormCrearMesa: FC <propsFormCrearMesa> = ({modelo, set, state }) => {
   const toast = useToast()
   
   const validationSchema = yup.object().shape({
-    nombre_mesa: yup.string().required().test("Unico", "El nombre debe ser unico", values => {
+    nombre_mesa: yup.string().required().test("Unico", "El nombre ya esta en uso", values => {
       return !event.mesas_array.map(item => item.nombre_mesa).includes(values)
-  }),
-    cantidad_sillas: yup.number().required(),
+  }).required("El nombre es requerido"),
+    cantidad_sillas: yup.number().required("El Nº de sillas es requerido"),
   });
 
   
@@ -106,7 +106,7 @@ const FormCrearMesa: FC <propsFormCrearMesa> = ({modelo, set, state }) => {
         <Form className="text-gray-900 grid gap-4 pt-2">
         <div className="grid-cols-3 grid gap-2 w-full">
           <span className="w-max col-span-1 m-auto inset-0">{dicc[modelo].icon}</span>
-          <div className="col-span-2 flex flex-col gap-4">
+          <div className="col-span-2 flex flex-col gap-4 ">
             <InputField
               name="nombre_mesa"
               label="Nombre de mesa"
