@@ -128,7 +128,7 @@ export const BasicFormLogin = ({
   }, [ischecked])
   return (
     <>
-      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6 py-6 w-full place-items-center" >
+      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6 py-6 w-full place-items-center *justify-items-center" >
         <div className="col-span-2 border-l-2 border-gray-100 pl-3 w-full ">
           <h2 className="font-display text-3xl capitalize text-primary font-light">Añadir</h2>
           <h2 className="font-display text-5xl capitalize text-gray-500 font-medium">Pago</h2>
@@ -136,6 +136,7 @@ export const BasicFormLogin = ({
         <InputField
           name="importe"
           label="Importe"
+          placeholder="4.80 €"
           onChange={handleChange}
           value={values.importe}
           type="number"
@@ -167,25 +168,24 @@ export const BasicFormLogin = ({
           type="date"
           autoComplete="off" />
 
-        <div className={``}>
+       
           <InputField
             name="pagado_por"
             label="Pagado por"
+            placeholder="Carlos diaz"
             onChange={handleChange}
             value={values.pagado_por}
             type="text"
             autoComplete="off" />
-        </div>
 
-        <div className={``}>
           <InputField
             name="medio_pago"
             label="Modo de pago"
+            placeholder="Efectivo"
             onChange={handleChange}
             value={values.medio_pago}
             type="text"
             autoComplete="off" />
-        </div>
 
         <button disabled={isSubmitting} type="submit" className={`col-span-2 font-display rounded-full mt-4 py-2 px-6 text-white font-medium transition w-full hover:opacity-70 ${isSubmitting ? "bg-secondary" : "bg-primary"
           }`} >Añadir pago</button>
