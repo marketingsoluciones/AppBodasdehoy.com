@@ -60,7 +60,7 @@ const FormCrearMesa: FC <propsFormCrearMesa> = ({modelo, set, state }) => {
     podio: {
       icon: <MesaPodio />,
       min: 4,
-      max: 12
+      max: 40
     },
     redonda: {
       icon: <MesaRedonda />,
