@@ -265,7 +265,7 @@ const DataTable = ({ columns, data }) => {
               </tr>
             );
           }) : <tr className="w-full transition border-b border-base hover:bg-base cursor-pointer w-full grid place-items-center">
-            <td className="py-5 font-display text-lg text-gray-100 uppercase ">No hay pagos asociados</td></tr>}
+            <td className="py-5 font-display text-lg text-gray-500 uppercase ">No hay pagos asociados</td></tr>}
         </tbody>
       </table>
     </div>
