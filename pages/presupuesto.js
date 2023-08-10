@@ -13,6 +13,7 @@ import { AuthContextProvider, EventContextProvider } from "../context";
 import { getCurrency, useDelayUnmount } from "../utils/Funciones";
 import VistaSinCookie from "./vista-sin-cookie";
 import BlockTitle from "../components/Utils/BlockTitle";
+import { useToast } from "../hooks/useToast";
 
 const Presupuesto = () => {
 
@@ -333,6 +334,7 @@ const BlockListaCategorias = ({ categorias_array, set }) => {
 const ItemCategoria = ({ item, setVisible, set }) => {
   const { event, setEvent } = EventContextProvider()
   const [show, setShow] = useState(false);
+  const toast = useToast()
   const Presu = event?.presupuesto_objeto?.coste_estimado 
 
 
@@ -379,7 +381,7 @@ const ItemCategoria = ({ item, setVisible, set }) => {
   ];
 
   return (
-    <li onClick={() => Presu!=0 ? setVisible({ isVisible: true, id: item._id }):null} className={`w-full justify-between items-center flex   px-5  transition ${Presu==0?"":"hover:bg-base"}`}>
+    <li onClick={() => Presu!=0 ? setVisible({ isVisible: true, id: item._id }):toast("error", "Agrega un monto a tu Presupuesto Estimado ")} className={`w-full justify-between items-center flex   px-5  transition ${Presu==0?"":"hover:bg-base"}`}>
       <span
         className="gap-2 py-3 flex items-center capitalize"
       >
