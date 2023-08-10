@@ -46,7 +46,7 @@ const Presupuesto = () => {
     return (
       <>
         {event &&
-          <section className="bg-base w-full h-full">
+          <section className="bg-base w-full h-full pb-16 pt-4 md:py-0">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
