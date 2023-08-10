@@ -38,7 +38,7 @@ const validacion = (values) => {
 const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state }) => {
   const { event, setEvent } = EventContextProvider()
   const [pago, setPago] = useState(ListaPagos?.find(item => item._id == IDPagoAModificar))
-  console.log(123, pago)
+
 
   useEffect(() => {
     setPago(ListaPagos?.find(item => item._id == IDPagoAModificar))
@@ -51,12 +51,14 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state }) => {
   }, [IDs])
 
 
+
+
+
   const checkbox = {
     true: "pagado",
     false: "pendiente",
     pagado: true,
     pendiente: false
-
   }
 
   return (
@@ -88,6 +90,7 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state }) => {
                     pagado
                     pagos_array{
                       importe
+                      estado
                     }
                   }
                 }
@@ -108,29 +111,26 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state }) => {
             const idxCategoria = old?.presupuesto_objeto?.categorias_array?.findIndex(item => item._id == pago?.idCategoria)
             const idxGasto = old?.presupuesto_objeto?.categorias_array[idxCategoria]?.gastos_array?.findIndex(item => item._id == pago?.idGasto)
             const idxPago = old?.presupuesto_objeto?.categorias_array[idxCategoria]?.gastos_array[idxGasto].pagos_array?.findIndex(item => item._id == IDPagoAModificar)
-
             old.presupuesto_objeto.categorias_array[idxCategoria].gastos_array[idxGasto].pagos_array[idxPago] = {
               ...old.presupuesto_objeto.categorias_array[idxCategoria].gastos_array[idxGasto].pagos_array[idxPago],
               ...values
             }
-
             if (values.importe !== pago.importe) {
-
               //Actualizar pagado en categoria
               old.presupuesto_objeto.categorias_array[idxCategoria].pagado = res?.categorias_array[0]?.pagado
-
               //Actualizar pagado en gasto
               old.presupuesto_objeto.categorias_array[idxCategoria].gastos_array[idxGasto].pagado = res?.categorias_array[0]?.gastos_array[0].pagado
-
             }
-
+            if(values.pagado !== checkbox[pago?.estado]){
+              //Actualizar estado en gasto
+              old.presupuesto_objeto.categorias_array[idxCategoria].gastos_array[idxGasto].pagos_array[idxPago].estado = res?.categorias_array[0]?.gastos_array[0].pagos_array[0].estado
+            }
             return { ...old }
           })
           set(!state)
           actions.setSubmitting(false)
         }
       }}
-
       validate={validacion}
     >
       {(props) => <BasicFormLogin {...props} />}
@@ -151,8 +151,10 @@ export const BasicFormLogin = ({
   const [ischecked, setCheck] = useState(values.pagado)
 
   useEffect(() => {
-    values.pagado = ischecked
+    values.pagado=ischecked
   }, [ischecked])
+
+
   return (
     <>
       <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6 pt-6 w-full place-items-center" >

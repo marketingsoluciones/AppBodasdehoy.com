@@ -55,8 +55,6 @@ const TablaDatosPagos = () => {
   const [PagosOrFormAdd, setShowPagos] = useState(true)
   const [PagoID, setPagoID] = useState("")
 
-
-
   const Columna = useMemo(
     () => [
       {
@@ -65,6 +63,9 @@ const TablaDatosPagos = () => {
         id: "estado",
         Cell: (props) => {
           const [value, setValue] = useState(props?.value);
+          useEffect(() => {
+            setValue(props?.value)
+          }, [props?.value])
           return (
             <div className="grid place-items-center h-full w-full">
               <p
@@ -133,7 +134,6 @@ const TablaDatosPagos = () => {
         accessor: "editar",
         id: "editar",
         Cell: (props) => {
-
           const handleEdit = () => {
             try {
               setShowPagos(!PagosOrFormAdd)
@@ -187,6 +187,10 @@ const TablaDatosPagos = () => {
     return acc;
   }, []);
 
+  
+
+
+
   return (
     <>
       {PagosOrFormAdd
@@ -204,6 +208,7 @@ const TablaDatosPagos = () => {
 };
 
 const DataTable = ({ columns, data }) => {
+
   const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows } =
     useTable({ columns, data });
   const colSpan = {

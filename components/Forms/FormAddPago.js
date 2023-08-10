@@ -84,11 +84,9 @@ const FormAddPago = ({ GastoID, cate }) => {
               }`,
           variables: {},
         }
-        console.log(params)
         try {
           const { data: resp } = await api.ApiBodas(params)
           res = resp.data.nuevoPago
-          console.log(res)
         } catch (error) {
           console.log(error)
         } finally {
@@ -98,7 +96,7 @@ const FormAddPago = ({ GastoID, cate }) => {
             old.presupuesto_objeto.pagado = res?.pagado
             old.presupuesto_objeto.categorias_array[idxCate].pagado = res?.categorias_array[0]?.pagado
             old.presupuesto_objeto.categorias_array[idxCate].gastos_array[idxGasto].pagado = res?.categorias_array[0]?.gastos_array[0]?.pagado
-            old.presupuesto_objeto.categorias_array[idxCate].gastos_array[idxGasto].pagos_array.push(res?.categorias_array[0]?.gastos_array[0]?.pagos_array[0])
+            old.presupuesto_objeto.categorias_array[idxCate].gastos_array[idxGasto].pagos_array?.push(res?.categorias_array[0]?.gastos_array[0]?.pagos_array[0])
             return { ...old }
           })
         }
