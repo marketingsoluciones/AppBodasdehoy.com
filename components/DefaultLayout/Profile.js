@@ -21,7 +21,7 @@ const Profile = ({ user, state, set, ...rest }) => {
     },
     {
       title: "Registro",
-      onClick: async () => { router.push(config?.pathLogin ? `${config?.pathLogin}?d=app&q=register` : `/register?d=${route}`) },
+      onClick: async () => { router.push(config?.pathLogin ? `${config?.pathLogin}?d=app&q=register` : `/login?q=register&d=${route}`) },
       user: "guest"
     },
     {
@@ -47,7 +47,6 @@ const Profile = ({ user, state, set, ...rest }) => {
   ]
   const valirUser = user?.displayName == "guest" ? "guest" : "loged"
   const ListaDropdownFilter = ListaDropdown.filter(elem => elem?.user === valirUser || elem?.user === "all")
-  console.log(2005, ListaDropdownFilter)
   return (
     <>
       <div

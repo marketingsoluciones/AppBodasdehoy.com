@@ -45,13 +45,13 @@ const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (isMounted) {
-      const path = window.location.hostname //"https://www.bodasdehoy.com/"
+      const path = "https://www.bodasdehoy.com/"
       const c = path?.split(".")
       const idx = c?.findIndex(el => el === "com")
       console.log(idx)
       /*--------------------------------------------------------------------*/
       const devDomain = ["bodasdehoy", "eventosplanificador", "eventosorganizador"]
-      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[1] /*<<<<<<<<<*/
+      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[0] /*<<<<<<<<<*/
       /*--------------------------------------------------------------------*/
       const resp = developments.filter(elem => elem.name === domainDevelop)[0]
       if (idx === -1) {

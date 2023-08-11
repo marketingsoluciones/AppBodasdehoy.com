@@ -92,7 +92,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
         {
             title: "Registro",
             icon: <IconRegistered className="w-6 h-6" />,
-            onClick: async () => { router.push(config?.pathLogin ? `${config?.pathLogin}?d=app&q=register` : `/register?d=${route}`) },
+            onClick: async () => { router.push(config?.pathLogin ? `${config?.pathLogin}?d=app&q=register` : `/login?q=register&d=${route}`) },
             user: "guest"
         },
         {

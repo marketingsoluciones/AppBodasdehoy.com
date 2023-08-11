@@ -12,25 +12,19 @@ interface propsLogin {
 }
 
 export const Login: FC<propsLogin> = ({ setStage }) => {
-  const { config } = AuthContextProvider()
 
   return (
     <>
-      <div className=" h-full">
-        <div className="flex flex-col items-center justify-center transform scale-[175%]">
-          {config?.logoDirectory}
-        </div>
-        <h2 className={`font-light text-tertiary flex items-center text-md mt-20`}>
-          Accede a tu cuenta
-        </h2>
-        <Providers setStage={setStage} />
-        <h2 className={`font-light text-tertiary flex gap-2 items-center text-md `}>
-          O accede con tu email
-        </h2>
-        <FormLogin setStage={setStage} />
-        <RegisterQuestion onClick={() => setStage("register")} />
-        {/* <BusinessAccess /> */} {/* componente que no esta terminado */}
-      </div>
+      <h2 className={`font-light text-tertiary justify-center flex text-md mt-12`}>
+        Accede a tu cuenta
+      </h2>
+      <Providers setStage={setStage} />
+      <h2 className={`font-light text-tertiary justify-center flex gap-2 text-md `}>
+        O accede con tu email
+      </h2>
+      <FormLogin setStage={setStage} />
+      <RegisterQuestion onClick={() => setStage("register")} />
+      {/* <BusinessAccess /> */} {/* componente que no esta terminado */}
     </>
   );
 };
@@ -46,7 +40,7 @@ export const Register: FC<propsLogin> = ({ setStage, fStageRegister }) => {
             return <FirstStep setStageRegister={setStageRegister} value={setWhoYouAre} />
             break;
           case 1:
-            return <SecondStep setStageRegister={setStageRegister} stageRegister={stageRegister} whoYouAre={whoYouAre} setStage={setStage} />
+            return <SecondStep setStageRegister={setStageRegister} stageRegister={stageRegister} whoYouAre={""} setStage={setStage} />
             break;
           default:
             return <PageLogin />
@@ -54,9 +48,7 @@ export const Register: FC<propsLogin> = ({ setStage, fStageRegister }) => {
         }
       })()}
 
-      <h2
-        className={`font-light text-tertiary flex gap-2 items-center text-sm `}
-      >
+      <h2 className={`font-light text-tertiary flex gap-2 text-sm`}>
         ¿Dispones de una cuenta?
         <span
           className="text-sm text-primary font-semibold cursor-pointer hover:text-tertiary transition"
@@ -70,15 +62,14 @@ export const Register: FC<propsLogin> = ({ setStage, fStageRegister }) => {
 };
 
 export const ResetPass: FC<propsLogin> = ({ setStage }) => {
-  const { config } = AuthContextProvider()
   return (
     <>
-      <div className="flex flex-col gap-2 items-center justify-center w-full">
-        {config?.logoDirectory}
-      </div>
+      <h2 className={`font-light text-tertiary flex justify-center text-md mt-12`}>
+        Recupera tu cuenta
+      </h2>
       <FormResetPassword setStage={setStage} />
       <h2
-        className={`font-light text-tertiary flex gap-2 items-center text-sm `}
+        className={`font-light text-tertiary flex gap-2 text-sm `}
       >
         ¿Dispones de una cuenta?
         <span

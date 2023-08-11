@@ -1,6 +1,6 @@
 import { Dispatch, FC, MouseEventHandler, SetStateAction, useState } from 'react';
 import { Providers } from '../../Components';
-import FormRegister from './FormRegister';
+import FormRegister from '../FormRegister';
 import { AuthContextProvider } from '../../../../../context';
 
 /*
@@ -127,16 +127,13 @@ interface propsSecondStep {
   setStage: CallableFunction
 }
 export const SecondStep: FC<propsSecondStep> = (props) => {
-  const { config } = AuthContextProvider()
   return (
-    <div className="gap-4 flex flex-col justify-center items-center w-full">
-      {config?.logoDirectory}
-      {props?.whoYouAre == "empresa" &&
-        <h2 className={`font-light text-tertiary flex items-center text-md `}>
-          Crea tu cuenta de Empresa en Bodasdehoy.com
-        </h2>}
-      {/* <FormRegister {...props} /> */}
-      <h2 className={`font-light text-tertiary flex gap-2 items-center text-md mt-2`}>
+    <div className="flex flex-col justify-center items-center w-full mt-8">
+      <h2 className={`font-light text-tertiary flex items-center text-md `}>
+        Crea tu cuenta
+      </h2>
+      <FormRegister />
+      <h2 className={`font-light text-tertiary flex items-center text-md`}>
         Ó
       </h2>
       <Providers setStage={props.setStage} />
