@@ -1,27 +1,19 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
-import Breadcumb from "../components/DefaultLayout/Breadcumb";
-import {
-  AmazonIcon,
-  CochinoIcon,
-  CompartirIcon,
-  DineroIcon,
-  ListaOne,
-  ListaTwo,
-} from "../components/icons";
+import { AmazonIcon, CochinoIcon, CompartirIcon, DineroIcon, ListaOne, ListaTwo } from "../components/icons";
 import ModalGuardarRegalo from "../components/ListaDeRegalos/ModalGuardarRegalo";
 import BlockTitle from "../components/Utils/BlockTitle";
 import { AuthContextProvider, EventContextProvider } from "../context";
 import VistaSinCookie from "./vista-sin-cookie";
 import FormGuardarRegalos from "../components/Forms/FormGuardarRegalos"
+import { useMounted } from "../hooks/useMounted"
 
 
 const ListaRegalos = () => {
   const { event } = EventContextProvider()
   const { user, verificationDone } = AuthContextProvider()
   const [showForm, setShowForm] = useState(false)
-
-
+  useMounted()
 
   if (verificationDone) {
     if (!user) {

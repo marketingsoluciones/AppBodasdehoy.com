@@ -1,86 +1,98 @@
 import Link from "next/link"
 import ClickAwayListener from "react-click-away-listener"
-import { AuthContextProvider, EventContextProvider } from "../../context"
+import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, LoadingContextProvider } from "../../context"
 import { ArrowLeft, Icon036Profile, IconExit, IconLightBulb16, IconLogin, IconRegistered, IconShop, InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, MesasIcon, MisEventosIcon, PresupuestoIcon, ResumenIcon } from "../icons"
 import { useToast } from "../../hooks/useToast"
 import { capitalize } from "../../utils/Capitalize"
 import { Tooltip } from "./Tooltip"
 import { useEffect } from "react"
-import { useRouter } from "next/router"
+import router, { useRouter } from "next/router";
 
 /* menu desplegable izquierdo en la vista movil con las opciones de redireccion de la app */
 const Sidebar = ({ setShowSidebar, showSidebar }) => {
+    const { setLoading } = LoadingContextProvider()
     const { user } = AuthContextProvider()
     const { event, config } = EventContextProvider()
-    const router = useRouter();
+    const { eventsGroup } = EventsGroupContextProvider()
+
+    const { route } = useRouter()
     const toast = useToast()
+
+    useEffect(() => {
+        console.log(10002, eventsGroup)
+    }, [eventsGroup])
 
 
     const ListaNavbar = [
         {
             title: "Ir al directorio",
             icon: <IconShop className="w-6 h-6" />,
-            onClick: async () => { router.push(`${config?.pathDirectory}/login?d=app&q=register`) },
-            user: "all"
+            onClick: async () => { router.push(config?.pathDirectory) },
+            user: config?.pathDirectory ? "all" : null
         },
         {
             title: "Mis eventos",
             icon: <MisEventosIcon className="w-6 h-6" />,
             onClick: async () => { router.push(`/`) },
-            user: "loged"
+            user: eventsGroup?.length > 0 ? "all" : null
         },
         {
             title: "Resumen",
             icon: <ResumenIcon className="w-6 h-6" />,
             onClick: async () => { router.push(`/resumen-evento`) },
-            user: "loged"
+            user: eventsGroup?.length > 0 ? "all" : null
         },
         {
             title: "Invitados",
             icon: <InvitadosIcon className="w-6 h-6" />,
             onClick: async () => { router.push(`/invitados`) },
-            user: "loged"
+            user: eventsGroup?.length > 0 ? "all" : null
         },
         {
             title: "Mesas",
             icon: <MesasIcon className="w-6 h-6" />,
             onClick: async () => { router.push(`mesas`) },
-            user: "loged"
+            user: eventsGroup?.length > 0 ? "all" : null
         },
         {
             title: "Lista de regalos",
             icon: <ListaRegalosIcon className="w-6 h-6" />,
-            ronClick: async () => { router.push(`lista-regalos`) },
-            user: "loged"
+            onClick: async () => { router.push(`lista-regalos`) },
+            user: eventsGroup?.length > 0 ? "all" : null
         },
         {
             title: "Presupuesto",
             icon: <PresupuestoIcon className="w-6 h-6" />,
             onClick: async () => { router.push(`presupuesto`) },
-            user: "loged"
+            user: eventsGroup?.length > 0 ? "all" : null
         },
         {
             title: "Invitaciones",
             icon: <InvitacionesIcon className="w-6 h-6" />,
-            onClick: async () => { router.push(`$invitaciones`) },
-            user: "loged"
+            onClick: async () => { router.push(`invitaciones`) },
+            user: eventsGroup?.length > 0 ? "all" : null
+        },
+        {
+            title: "",
+            icon: <div className="bg-primary h-1 w-[240px] flex" />,
+            user: eventsGroup?.length > 0 ? "all" : null
         },
         {
             title: "Perfil",
             icon: <Icon036Profile className="w-7 h-7" />,
-            onClick: async () => { router.push(process.env.NEXT_PUBLIC_DIRECTORY) },
+            onClick: async () => { router.push(config?.pathDirectory) },
             user: "loged"
         },
         {
             title: "Iniciar sesión",
             icon: <IconLogin className="w-6 h-6" />,
-            onClick: async () => { router.push(`${config?.pathDirectory}/login?d=app`) },
+            onClick: async () => { router.push(config?.pathLogin ? `${config?.pathLogin}?d=app` : `/login?d=${route}`) },
             user: "guest"
         },
         {
             title: "Registro",
             icon: <IconRegistered className="w-6 h-6" />,
-            onClick: async () => { router.push(`${config?.pathDirectory}/login?d=app&q=register`) },
+            onClick: async () => { router.push(config?.pathLogin ? `${config?.pathLogin}?d=app&q=register` : `/register?d=${route}`) },
             user: "guest"
         },
         {
@@ -120,7 +132,12 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
                         // eslint-disable-next-line @next/next/link-passhref
                         <li
                             key={idx}
-                            //onClick={() => { event ? set(!showSidebar) : toast("error", "Debes crear un evento") }}
+                            onClick={() => {
+                                if (item?.onClick) {
+                                    setShowSidebar(!showSidebar)
+                                    setLoading(true)
+                                }
+                            }}
                             className="flex text-primary  py-2 font-display text-md items-center justify-start w-full cursor-pointer hover:text-gray-300 transition ">
                             <button className="flex gap-3" onClick={item?.onClick}>{item.icon} {item.title && capitalize(item.title)}</button>
                         </li>

@@ -17,10 +17,10 @@ export const Login: FC<propsLogin> = ({ setStage }) => {
   return (
     <>
       <div className=" h-full">
-        <div className="flex flex-col items-center justify-center w-full">
+        <div className="flex flex-col items-center justify-center transform scale-[175%]">
           {config?.logoDirectory}
         </div>
-        <h2 className={`font-light text-tertiary flex items-center text-md `}>
+        <h2 className={`font-light text-tertiary flex items-center text-md mt-20`}>
           Accede a tu cuenta
         </h2>
         <Providers setStage={setStage} />

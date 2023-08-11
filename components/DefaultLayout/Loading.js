@@ -7,9 +7,9 @@ const Loading = () => {
       <h2 className="text-center text-gray-300 text-xl font-semibold">
         Un momento, por favor
       </h2>
-      <p className="font-display text-center text-gray-500">
+      {/* <p className="font-display text-center text-gray-500">
       Esto puede tardar unos segundos, no cierre esta página.
-      </p>
+      </p> */}
       <style jsx>
         {`
           .loader {

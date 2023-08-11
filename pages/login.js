@@ -2,6 +2,7 @@ import { router, useRouter } from "next/router";
 import { ButtonClose } from "../components/Forms/ButtonClose";
 import { Login, Register, ResetPass } from "../components/Forms/Login/Forms";
 import { useState } from "react";
+import { useMounted } from "../hooks/useMounted";
 
 
 
@@ -10,6 +11,7 @@ const PageLogin = () => {
   console.log(10001, query)
   const [stage, setStage] = useState("login");
   const [fStageRegister, setFStageRegister] = useState(0)
+  useMounted()
 
 
   const Stages = {
@@ -21,14 +23,14 @@ const PageLogin = () => {
 
   return (
     <>
-      <div className="w-screen fixed h-full top-0 left-0 md:grid z-30 grid-cols-5 ">
+      <div className="w-screen fixed h-full top-0 left-0 md:grid z-30 grid-cols-5 font-display">
         <div className="bg-white w-full h-full col-span-3 relative flex items-center justify-center  ">
           <ButtonClose onClick={() => {
             setTimeout(() => {
               router.push(!query?.d ? "/" : query?.d)
             }, 100);
           }} />
-          <div className="flex flex-col items-center gap-4 w-full px-10 md:px-0 sm:w-3/4 md:w-2/3  ">
+          <div className="flex flex-col items-center gap-4 w-full px-10 md:px-0 sm:w-3/4 md:w-2/3">
             {Stages[stage]}
           </div>
         </div>
