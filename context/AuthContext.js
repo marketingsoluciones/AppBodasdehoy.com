@@ -48,8 +48,9 @@ const AuthProvider = ({ children }) => {
       const path = window.location.hostname //"https://www.bodasdehoy.com/"
       const c = path?.split(".")
       const idx = c?.findIndex(el => el === "com")
+      console.log(idx)
       /*--------------------------------------------------------------------*/
-      const devDomain = ["bodasdehoy", "eventosplanificador"]
+      const devDomain = ["bodasdehoy", "eventosplanificador", "eventosorganizador"]
       const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[1] /*<<<<<<<<<*/
       /*--------------------------------------------------------------------*/
       const resp = developments.filter(elem => elem.name === domainDevelop)[0]
@@ -57,7 +58,10 @@ const AuthProvider = ({ children }) => {
         resp = {
           ...resp,
           domain: `${process.env.NEXT_PUBLIC_EVENTSAPP}`,
-          pathDirectory: resp?.pathDirectory ? `${process.env.NEXT_PUBLIC_DIRECTORY}` : undefined
+          pathDirectory: resp?.pathDirectory ? `${process.env.NEXT_PUBLIC_DIRECTORY}` : undefined,
+          pathLogin: resp?.pathLogin ? `${process.env.NEXT_PUBLIC_DIRECTORY}/login` : undefined,
+          pathSignout: resp?.pathSignout ? `${process.env.NEXT_PUBLIC_DIRECTORY}/signout` : undefined,
+          pathPerfil: resp?.pathPerfil ? `${process.env.NEXT_PUBLIC_DIRECTORY}/configuracion` : undefined
         }
         setIsProduction(false)
       }

@@ -25,7 +25,9 @@ export const developments = [
     cookie: "sessionBodas",
     domain: "https://bodasdehoy.com",
     cookieGuest: "guestbodas",
-    pathLogin: "",
+    pathLogin: "https://bodasdehoy.com/login",
+    pathSignout: "https://bodasdehoy.com/signout",
+    pathPerfil: "https://bodasdehoy.com/configuracion",
     pathDirectory: "https://bodasdehoy.com",
     logoDirectory: <LogoNuevoBodasBlanco className="hover:opacity-80 transition text-primary" />,
     navbarDirectory: [{
