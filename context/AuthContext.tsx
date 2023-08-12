@@ -9,22 +9,45 @@ import { boolean } from "yup";
 import { initializeApp } from "firebase/app";
 
 const initialContext = {
-  user: null,
-  setUser: () => null,
-  verificationDone: boolean,
-  setVerificationDone: () => false
+  user: {},
+  setUser: undefined,
+  verificationDone: false,
+  setVerificationDone: undefined,
+  config: {},
+  setConfig: undefined,
+  isProduction: true,
+  setIsProduction: undefined,
+  theme: {},
+  setTheme: undefined,
+  isActiveStateSwiper: 0,
+  setIsActiveStateSwiper: undefined
 }
 
-const AuthContext = createContext(initialContext);
+type Context = {
+  user: any
+  setUser: any
+  verificationDone: any
+  setVerificationDone: any
+  config: any
+  setConfig: any
+  isProduction: any
+  setIsProduction: any
+  theme: any
+  setTheme: any
+  isActiveStateSwiper: any
+  setIsActiveStateSwiper: any
+}
+
+const AuthContext = createContext<Context>(initialContext);
 
 const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(initialContext.user);
-  const [verificationDone, setVerificationDone] = useState(false);
-  const [config, setConfig] = useState();
-  const [isProduction, setIsProduction] = useState(true)
-  const [isMounted, setIsMounted] = useState(false)
-  const [isActiveStateSwiper, setIsActiveStateSwiper] = useState(0);
-  const [theme, setTheme] = useState({
+  const [user, setUser] = useState<any>(initialContext.user);
+  const [verificationDone, setVerificationDone] = useState<any>(false);
+  const [config, setConfig] = useState<any>();
+  const [isProduction, setIsProduction] = useState<any>(true)
+  const [isMounted, setIsMounted] = useState<any>(false)
+  const [isActiveStateSwiper, setIsActiveStateSwiper] = useState<any>(0);
+  const [theme, setTheme] = useState<any>({
     primaryColor: undefined,
     secondaryColor: undefined,
     tertiaryColor: undefined,
@@ -40,7 +63,7 @@ const AuthProvider = ({ children }) => {
       setIsMounted(false)
     }
   }, [])
-
+  let resp: any = undefined
 
   useEffect(() => {
     if (isMounted) {
@@ -54,7 +77,7 @@ const AuthProvider = ({ children }) => {
       const devDomain = ["bodasdehoy", "eventosplanificador", "eventosorganizador"]
       const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[1] /*<<<<<<<<<*/
       /*--------------------------------------------------------------------*/
-      const resp = developments.filter(elem => elem.name === domainDevelop)[0]
+      resp = developments.filter(elem => elem.name === domainDevelop)[0]
       if (idx === -1) {
         resp = {
           ...resp,
@@ -141,7 +164,7 @@ const AuthProvider = ({ children }) => {
 
 
   return (
-    <AuthContext.Provider value={{ user, setUser, verificationDone, setVerificationDone, config, setConfig, isProduction, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper }}>
+    <AuthContext.Provider value={{ user, setUser, verificationDone, setVerificationDone, config, setConfig, isProduction, setIsProduction, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper }}>
       {children}
     </AuthContext.Provider>
   );

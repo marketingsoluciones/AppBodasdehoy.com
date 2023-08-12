@@ -50,7 +50,7 @@ const FormRegister: FC<any> = ({ setStage }) => {
   const handleSubmit = async (values: MyFormValues, actions: any) => {
     try {
       setLoading(true)
-      let UserFirebase = {};
+
 
       // Si es registro completo
       // Autenticacion con firebase
@@ -59,7 +59,7 @@ const FormRegister: FC<any> = ({ setStage }) => {
         values.email,
         values.password
       );
-      UserFirebase = res.user;
+      let UserFirebase = res.user;
       values.uid = res.user.uid;
       // Actualizar displayName
       getAuth().onAuthStateChanged(async (usuario: any) => {
