@@ -9,15 +9,15 @@ import { boolean } from "yup";
 import { initializeApp } from "firebase/app";
 
 const initialContext = {
-  user: {},
+  user: undefined,
   setUser: undefined,
   verificationDone: false,
   setVerificationDone: undefined,
-  config: {},
+  config: undefined,
   setConfig: undefined,
   isProduction: true,
   setIsProduction: undefined,
-  theme: {},
+  theme: undefined,
   setTheme: undefined,
   isActiveStateSwiper: 0,
   setIsActiveStateSwiper: undefined
