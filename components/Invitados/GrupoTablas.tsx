@@ -404,7 +404,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                 variables: {},
               };
 
-              await api.ApiBodas(params);
+              await api.ApiApp(params);
             } catch (error) {
               console.log(error);
             } finally {

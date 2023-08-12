@@ -18,17 +18,17 @@ const VistaPrevia = ({ event }) => {
     };
 
     try {
-      const res = await api.ApiBodas(params);
-      console.log(res.data.data.obtenerTemplate,"data de la invitacion")
+      const res = await api.ApiApp(params);
+      console.log(res.data.data.obtenerTemplate, "data de la invitacion")
       if (res.data) {
         let contenido = res.data.data.obtenerTemplate
         const refImg = `<img width="20" height="38" style="display:block; max-height:38px; max-width:20px;" alt="" src="https://img.mailinblue.com/new_images/rnb/rnb_space.gif">`;
         const pathImage = `${process.env.NEXT_PUBLIC_BASE_URL}${event?.imgInvitacion?.i640}`;
         const img = `<img style="display:block; object-fit: contain; width:300px; right:0; left:0; margin:auto;  alt="" src=${pathImage} />`;
         setContent(contenido
-          .replace("{{params.tipoEvento}}", event.tipo== "otro"? "evento especial": event.tipo)
+          .replace("{{params.tipoEvento}}", event.tipo == "otro" ? "evento especial" : event.tipo)
           .replace("{{params.invitadoNombre}}", event?.invitados_array[0]?.nombre)
-          
+
           .replace(refImg, img));
 
         return res.data.data.obtenerTemplate;

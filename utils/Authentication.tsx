@@ -3,37 +3,39 @@ import { signInWithPopup, UserCredential, signInWithEmailAndPassword, signOut, s
 import { useRouter } from "next/router";
 import Cookies from 'js-cookie';
 import { LoadingContextProvider, AuthContextProvider } from "../context";
-import { fetchApi, queries } from "./Fetching";
+import { fetchApiBodas, queries } from "./Fetching";
 import { useToast } from "../hooks/useToast";
 
 export const useAuthentication = () => {
   //console.log("entro")
   const { setLoading } = LoadingContextProvider();
-  const { setUser } = AuthContextProvider();
+  const { config } = AuthContextProvider();
   const toast = useToast();
   const router = useRouter();
 
-  /*  const getSessionCookie = useCallback(async (tokenID): Promise<string | undefined> => {
-     if (tokenID) {
-       const authResult = await fetchApi({
-         query: queries.auth,
-         variables: { idToken: tokenID },
-       });
-       if (authResult?.sessionCookie) {
-         const { sessionCookie } = authResult;
-         // Setear en localStorage token JWT
-         Cookies.set("sessionBodas", sessionCookie, { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "" });
-         return sessionCookie
-       } else {
-         console.warn("No se pudo cargar la cookie de sesión por que hubo un problema")
-         throw new Error("No se pudo cargar la cookie de sesión por que hubo un problema")
-       }
-     } else {
-       console.warn("No hay tokenID para pedir la cookie de sesion")
-       throw new Error("No hay tokenID para pedir la cookie de sesion")
-     }
- 
-   }, []) */
+  const getSessionCookie = useCallback(async (tokenID: any): Promise<string | undefined> => {
+    if (tokenID) {
+      const authResult: any = await fetchApiBodas({
+        query: queries.auth,
+        variables: { idToken: tokenID },
+        development: config?.development
+
+      });
+      if (authResult?.sessionCookie) {
+        const { sessionCookie } = authResult;
+        // Setear en localStorage token JWT
+        Cookies.set(config?.cookie, sessionCookie, { domain: config?.domain ?? "" });
+        return sessionCookie
+      } else {
+        console.warn("No se pudo cargar la cookie de sesión por que hubo un problema")
+        throw new Error("No se pudo cargar la cookie de sesión por que hubo un problema")
+      }
+    } else {
+      console.warn("No hay tokenID para pedir la cookie de sesion")
+      throw new Error("No hay tokenID para pedir la cookie de sesion")
+    }
+
+  }, [])
 
   /* const signIn = useCallback(
     async (type: keyof typeof types, payload) => {
@@ -57,7 +59,7 @@ export const useAuthentication = () => {
         const res: UserCredential = await types[type]();
         if (res) {
           const token = (await res?.user?.getIdTokenResult())?.token;
-          const exist = await fetchApi({
+          const exist = await fetchApiBodas({
             query: queries.getExistUser,
             variables: { uid: res?.user?.uid },
             token: token,
@@ -71,7 +73,7 @@ export const useAuthentication = () => {
           if (sessionCookie) {
 
             // Solicitar datos adicionales del usuario
-            const moreInfo = await fetchApi({
+            const moreInfo = await fetchApiBodas({
               query: queries.getUser,
               variables: { uid: res.user.uid },
             });
@@ -114,15 +116,15 @@ export const useAuthentication = () => {
   ); */
 
   const _signOut = useCallback(async () => {
-    Cookies.remove("sessionBodas", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "" });
-    Cookies.remove("idToken", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "" });
+    Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
+    Cookies.remove("idToken", { domain: config?.domain ?? "" });
     await signOut(getAuth());
-    router.push(`${process.env.NEXT_PUBLIC_DIRECTORY}/signout?end=true` ?? "")
+    router.push(config?.pathDirectory ? `${config?.pathDirectory}/signout?end=true` : "/")
   }, [router])
 
 
 
-  return { _signOut };
+  return { _signOut, getSessionCookie };
 
 };
 

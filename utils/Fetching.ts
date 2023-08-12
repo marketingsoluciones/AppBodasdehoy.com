@@ -1,16 +1,19 @@
 import { api } from "../api";
 
-export const fetchApi = async ({
-  query = ``,
-  variables = {},
-  type = "json",
-  token,
-}) => {
+interface propsFetchApiBodas {
+  query: string
+  variables: any
+  type?: string
+  development: string
+  token?: string
+}
+
+export const fetchApiBodas = async ({ query = ``, variables = {}, type = "json", token, development }: propsFetchApiBodas): Promise<any> => {
   try {
     if (type === "json") {
       const {
         data: { data },
-      } = await api.ApiBodasExpress({ query, variables }, token);
+      } = await api.ApiBodasExpress({ data: { query, variables }, development, token });
       return Object.values(data)[0];
     } else if (type === "formData") {
       const formData = new FormData();
@@ -90,18 +93,28 @@ interface argsFetchApi {
   variables: object;
   token?: string;
 }
-export const fetchApiEventos = async ({
-  query,
-  variables,
-  token,
-}: argsFetchApi) => {
+export const fetchApiEventos = async ({ query, variables, token }: argsFetchApi) => {
   const {
     data: { data },
-  } = await api.ApiBodas({ query, variables }, token);
+  } = await api.ApiApp({ query, variables }, token);
   return Object.values(data)[0];
 };
 
 export const queries = {
+  auth: `mutation ($idToken : String){
+    auth(idToken: $idToken){
+      sessionCookie
+    }
+  }`,
+  createUser: `mutation  ($uid : ID, $city: String, $country : String, $weddingDate : String, $phoneNumber : String, $role : [String]) {
+    createUser(uid: $uid, city : $city, country : $country, weddingDate : $weddingDate, phoneNumber : $phoneNumber, role: $role){
+          city
+          country
+          weddingDate
+          phoneNumber
+          role
+        }
+      }`,
   getUser: `query ($uid: ID) {
         getUser(uid:$uid){
           phoneNumber

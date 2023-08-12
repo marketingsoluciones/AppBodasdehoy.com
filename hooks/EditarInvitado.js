@@ -28,8 +28,8 @@ export const EditarInvitado = async (eventoID, invitadoID, variable_reemplazar, 
             }`,
     variables: {},
   };
-  
-  const {data: {data: editInvitado}} = await api.ApiBodas(params);
+
+  const { data: { data: editInvitado } } = await api.ApiApp(params);
   return {
     editInvitado,
   };
@@ -45,9 +45,9 @@ export const BorrarInvitado = async (eventoID, invitadoID) => {
     }`,
     variables: {},
   };
-  
-  const resp = await api.ApiBodas(params);
-  
+
+  const resp = await api.ApiApp(params);
+
   return resp
 };
 

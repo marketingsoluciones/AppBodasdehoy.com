@@ -213,7 +213,7 @@ const MontoPresupuesto = ({ estimado }) => {
     }
     let datos;
     try {
-      const { data } = await api.ApiBodas(params)
+      const { data } = await api.ApiApp(params)
       datos = data.data.editPresupuesto
     } catch (error) {
       console.log(error)
@@ -346,7 +346,7 @@ const ItemCategoria = ({ item, setVisible, set }) => {
       variables: {},
     };
     try {
-      await api.ApiBodas(params)
+      await api.ApiApp(params)
     } catch (error) {
       console.log(error)
     } finally {

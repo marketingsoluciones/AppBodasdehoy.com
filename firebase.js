@@ -21,9 +21,10 @@ const firebaseConfigEventos = {
 export const developments = [
   {
     name: "bodasdehoy",
+    development: "bodasdehoy",
     fileConfig: firebaseConfigBodas,
     cookie: "sessionBodas",
-    domain: "https://bodasdehoy.com",
+    domain: ".bodasdehoy.com",
     cookieGuest: "guestbodas",
     pathLogin: "https://bodasdehoy.com/login",
     pathSignout: "https://bodasdehoy.com/signout",
@@ -57,9 +58,10 @@ export const developments = [
   },
   {
     name: "eventosplanificador",
+    development: "eventosplanificador",
     fileConfig: firebaseConfigEventos,
     cookie: "sessionEventos",
-    domain: "https://eventosplanificador.com",
+    domain: ".eventosplanificador.com",
     cookieGuest: "guesteventos",
     pathLogin: "",
     logoDirectory: <LogoEventosOrganizador className="hover:opacity-80 transition text-primary" />,
@@ -74,9 +76,10 @@ export const developments = [
   },
   {
     name: "eventosorganizador",
+    development: "eventosorganizador",
     fileConfig: firebaseConfigEventos,
     cookie: "sessionEventos",
-    domain: "https://eventosorganizador.com",
+    domain: ".eventosorganizador.com",
     cookieGuest: "guesteventos",
     pathLogin: "",
     logoDirectory: <LogoEventosOrganizador className="hover:opacity-80 transition text-primary" />,

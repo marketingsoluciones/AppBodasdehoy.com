@@ -7,12 +7,14 @@ import { capitalize } from "../../utils/Capitalize"
 import { Tooltip } from "./Tooltip"
 import { useEffect } from "react"
 import router, { useRouter } from "next/router";
+import Cookies from "js-cookie"
+import { getAuth, signOut } from "firebase/auth"
 
 /* menu desplegable izquierdo en la vista movil con las opciones de redireccion de la app */
 const Sidebar = ({ setShowSidebar, showSidebar }) => {
     const { setLoading } = LoadingContextProvider()
-    const { user } = AuthContextProvider()
-    const { event, config } = EventContextProvider()
+    const { user, config } = AuthContextProvider()
+    const { event } = EventContextProvider()
     const { eventsGroup } = EventsGroupContextProvider()
 
     const { route } = useRouter()
@@ -20,7 +22,12 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
 
     useEffect(() => {
         console.log(10002, eventsGroup)
+        console.log(6000251, config, user)
     }, [eventsGroup])
+
+    useEffect(() => {
+
+    }, [config])
 
 
     const ListaNavbar = [
@@ -32,42 +39,49 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
         },
         {
             title: "Mis eventos",
+            route: "/",
             icon: <MisEventosIcon className="w-6 h-6" />,
             onClick: async () => { router.push(`/`) },
             user: eventsGroup?.length > 0 ? "all" : null
         },
         {
             title: "Resumen",
+            route: "/resumen-evento",
             icon: <ResumenIcon className="w-6 h-6" />,
             onClick: async () => { router.push(`/resumen-evento`) },
             user: eventsGroup?.length > 0 ? "all" : null
         },
         {
             title: "Invitados",
+            route: "/invitados",
             icon: <InvitadosIcon className="w-6 h-6" />,
             onClick: async () => { router.push(`/invitados`) },
             user: eventsGroup?.length > 0 ? "all" : null
         },
         {
             title: "Mesas",
+            route: "",
             icon: <MesasIcon className="w-6 h-6" />,
-            onClick: async () => { router.push(`mesas`) },
+            onClick: async () => { router.push(`/mesas`) },
             user: eventsGroup?.length > 0 ? "all" : null
         },
         {
             title: "Lista de regalos",
+            route: "/lista-regalos",
             icon: <ListaRegalosIcon className="w-6 h-6" />,
-            onClick: async () => { router.push(`lista-regalos`) },
+            onClick: async () => { router.push(`/lista-regalos`) },
             user: eventsGroup?.length > 0 ? "all" : null
         },
         {
             title: "Presupuesto",
+            route: "/presupuesto",
             icon: <PresupuestoIcon className="w-6 h-6" />,
             onClick: async () => { router.push(`presupuesto`) },
             user: eventsGroup?.length > 0 ? "all" : null
         },
         {
             title: "Invitaciones",
+            route: "/invitaciones",
             icon: <InvitacionesIcon className="w-6 h-6" />,
             onClick: async () => { router.push(`invitaciones`) },
             user: eventsGroup?.length > 0 ? "all" : null
@@ -99,10 +113,12 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             title: "Cerrar sesión",
             icon: <IconExit className="w-6 h-6" />,
             onClick: async () => {
-                Cookies.remove("sessionBodas", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "" });
-                Cookies.remove("idToken", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "" });
+                console.log(600021, config, config?.domain)
+                Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
+                Cookies.remove("idToken", { domain: config?.domain ?? "" });
                 await signOut(getAuth());
-                router.push(`${process.env.NEXT_PUBLIC_DIRECTORY}/signout?end=true` ?? "")
+                router.push(config?.pathDirectory ? `${config?.pathDirectory}/signout?end=true` : "/")
+                setLoading(false)
             },
             user: "loged"
         }
@@ -135,7 +151,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
                             onClick={() => {
                                 if (item?.onClick) {
                                     setShowSidebar(!showSidebar)
-                                    setLoading(true)
+                                    item?.route != route && setLoading(true)
                                 }
                             }}
                             className="flex text-primary  py-2 font-display text-md items-center justify-start w-full cursor-pointer hover:text-gray-300 transition ">

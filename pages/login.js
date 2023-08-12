@@ -10,7 +10,6 @@ import { AuthContextProvider } from "../context";
 const PageLogin = () => {
   const { config } = AuthContextProvider()
   const { query } = useRouter()
-  console.log(10001, query)
   const [stage, setStage] = useState(query?.q || "login");
   const [fStageRegister, setFStageRegister] = useState(1)
   useMounted()

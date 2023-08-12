@@ -18,7 +18,7 @@ const Navigation: any = (
   active: any,
 ): any => {
   const { event } = EventContextProvider();
-  const { user, isProduction, domain, config, setIsActiveStateSwiper } = AuthContextProvider();
+  const { user, isProduction, config, setIsActiveStateSwiper } = AuthContextProvider();
   const router = useRouter();
   const [showSidebar, setShowSidebar] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -89,7 +89,7 @@ const Navigation: any = (
           <div>
             <ul className='absolute z-50 text-sm font-display ml-4'>
               <li>url: {window.location.hostname}</li>
-              <li>domain: {domain}</li>
+              <li>domain: {config.domain}</li>
               <li>event?.nombre: {event?.nombre}</li>
             </ul>
           </div>

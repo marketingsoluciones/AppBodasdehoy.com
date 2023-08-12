@@ -86,7 +86,7 @@ const FormAddPago = ({ GastoID, cate }) => {
         }
         console.log(params)
         try {
-          const { data: resp } = await api.ApiBodas(params)
+          const { data: resp } = await api.ApiApp(params)
           res = resp.data.nuevoPago
           console.log(res)
         } catch (error) {

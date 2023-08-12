@@ -71,7 +71,7 @@ const CellEdit = (props) => {
             `,
           variables: {},
         };
-        const { data } = await api.ApiBodas(params);
+        const { data } = await api.ApiApp(params);
         res = data?.data?.editGasto
         console.log(res)
         console.log(props?.cell?.column?.id)

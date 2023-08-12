@@ -141,7 +141,7 @@ const Registrolog = () => {
                 `,
           variables: {},
         }
-        const { data } = await api.ApiBodas(props)
+        const { data } = await api.ApiApp(props)
         const { logs_array } = data.data.queryLog[0]
         setData(logs_array)
       } catch (error) {

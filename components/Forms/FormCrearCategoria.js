@@ -1,7 +1,7 @@
 import { Formik } from "formik";
 import { useContext, useState } from "react";
 import { api } from "../../api";
-import {EventContextProvider} from "../../context";
+import { EventContextProvider } from "../../context";
 import InputField from "./InputField";
 
 const validacion = (values) => {
@@ -54,7 +54,7 @@ const FormCrearCategoria = ({ set, state }) => {
 
         try {
           actions.setSubmitting(true);
-          const { data } = await api.ApiBodas(params);
+          const { data } = await api.ApiApp(params);
           nuevoCategoria = data.data.nuevoCategoria;
         } catch (error) {
           console.log(error);
@@ -112,9 +112,8 @@ export const BasicForm = ({
           </div>
         </div>
         <button
-          className={`font-display rounded-full mt-4 py-2 px-6 text-white font-medium transition w-full hover:opacity-70 ${
-            isSubmitting ? "bg-secondary" : "bg-primary"
-          }`}
+          className={`font-display rounded-full mt-4 py-2 px-6 text-white font-medium transition w-full hover:opacity-70 ${isSubmitting ? "bg-secondary" : "bg-primary"
+            }`}
           disabled={isSubmitting}
           type="submit"
         >

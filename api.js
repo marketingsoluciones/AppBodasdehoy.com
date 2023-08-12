@@ -9,6 +9,7 @@ const wp = axios.create({
 
 const WebSocket = process.env.NEXT_PUBLIC_URL_API_SOCKET
 
+//api app
 const instance = axios.create({ baseURL: process.env.NEXT_PUBLIC_BASE_URL })
 
 export const api = {
@@ -21,7 +22,7 @@ export const api = {
     return await wp.get("/wp/v2/users")
   },*/
 
-  ApiBodas: async (params, token) => {
+  ApiApp: async (params, token) => {
     const token_final = token || Cookies.get("idToken")
     return await instance.post("/graphql", params, {
       headers: {
@@ -84,10 +85,12 @@ export const api = {
 
   },
 
-  ApiBodasExpress: async (data, token) => {
+  ApiBodasExpress: async ({ data, development, token }) => {
+    const tokenFinal = Cookies.get("idToken")
     return axios.post('https://api.bodasdehoy.com/graphql', data, {
       headers: {
-        Development: `bodasdehoy`,
+        Authorization: `Bearer ${tokenFinal}`,
+        Development: development
       }
     })
   }

@@ -34,7 +34,7 @@ const FormEditarCategoria = ({ set, state, categoria }) => {
 
         try {
           actions.setSubmitting(true);
-          await api.ApiBodas(params);
+          await api.ApiApp(params);
         } catch (error) {
           console.log(error);
         } finally {
