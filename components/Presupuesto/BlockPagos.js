@@ -55,8 +55,6 @@ const TablaDatosPagos = () => {
   const [PagosOrFormAdd, setShowPagos] = useState(true)
   const [PagoID, setPagoID] = useState("")
 
-
-
   const Columna = useMemo(
     () => [
       {
@@ -65,6 +63,9 @@ const TablaDatosPagos = () => {
         id: "estado",
         Cell: (props) => {
           const [value, setValue] = useState(props?.value);
+          useEffect(() => {
+            setValue(props?.value)
+          }, [props?.value])
           return (
             <div className="grid place-items-center h-full w-full">
               <p
@@ -87,8 +88,8 @@ const TablaDatosPagos = () => {
             setValue(props?.value)
           }, [props?.value])
           return (
-            <div className="w-full md:pl-40 pl-10">
-              <p className="font-display font-semibold text-gray-500 text-lg text-left leading-5 ">
+            <div className="w-full ">
+              <p className="font-display font-semibold text-gray-500 text-lg *md:text-left leading-5 ">
                 {capitalize(value)} <br />
                 <span className="text-xs font-light">{capitalize(props?.row?.original?.nombreCategoria)}</span>
               </p>
@@ -133,7 +134,6 @@ const TablaDatosPagos = () => {
         accessor: "editar",
         id: "editar",
         Cell: (props) => {
-
           const handleEdit = () => {
             try {
               setShowPagos(!PagosOrFormAdd)
@@ -145,8 +145,8 @@ const TablaDatosPagos = () => {
           }
 
           return (
-            <div onClick={handleEdit} className="w-10 h-10 hover:shadow-md items-center justify-center flex right-0 mx-auto">
-              <EditarIcon className="" />
+            <div onClick={handleEdit} className=" w-10 rounded-md hover:shadow-md hover:bg-gray-300 grid place-items-center h-full right-0 mx-auto">
+              <EditarIcon className="w-5 h-5" />
             </div>
           );
         },
@@ -187,6 +187,10 @@ const TablaDatosPagos = () => {
     return acc;
   }, []);
 
+  
+
+
+
   return (
     <>
       {PagosOrFormAdd
@@ -204,29 +208,37 @@ const TablaDatosPagos = () => {
 };
 
 const DataTable = ({ columns, data }) => {
+
   const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows } =
     useTable({ columns, data });
   const colSpan = {
     0: 1,
-    1: 4,
-    2: 3,
+    1: 2,
+    2: 2,
+    3: 2,
+    4: 1,
+  };
+  const colSpanMovil = {
+    0: 1,
+    1: 1,
+    2: 1,
     3: 1,
     4: 1,
   };
   return (
     <div className="w-full  ">
-      <table {...getTableProps()} className="table w-full rounded-lg relative    ">
-        <thead className="w-full   ">
+      <table {...getTableProps()} className="table w-full rounded-lg relative overflow-x-auto    ">
+        <thead className="w-full  ">
           {headerGroups.map((headerGroup, id) => (
             <tr
               {...headerGroup.getHeaderGroupProps()}
-              className="w-full grid grid-cols-10 py-2 bg-base uppercase"
+              className="w-full grid grid-cols-4 md:grid-cols-8 py-2 bg-base uppercase"
               key={id}
             >
               {headerGroup.headers.map((column, idx, id) => (
                 <th
                   {...column.getHeaderProps()}
-                  className={`font-display  font-light text-gray-500 text-sm col-span-${colSpan[idx]} `}
+                  className={`font-display  font-light text-gray-500 text-sm col-span-${colSpanMovil[idx]} md:col-span-${colSpan[idx]} `}
                   key={id}
                 >
                   {column.render("Header")}
@@ -235,13 +247,13 @@ const DataTable = ({ columns, data }) => {
             </tr>
           ))}
         </thead>
-        <tbody {...getTableBodyProps()} className="text-gray-500 text-sm  ">
+        <tbody {...getTableBodyProps()} className="text-gray-500 text-sm  overflow-x-auto   ">
           {rows.length >= 1 ? rows.map((row, id) => {
             prepareRow(row);
             return (
               <tr
                 {...row.getRowProps()}
-                className="w-full transition border-b border-base hover:bg-base cursor-pointer w-full grid grid-cols-10 "
+                className="w-full transition border-b border-base hover:bg-base cursor-pointer w-full grid grid-cols-5* md:grid-cols-8 "
                 key={id}
               >
                 {row.cells.map((cell, idx) => {
@@ -249,7 +261,7 @@ const DataTable = ({ columns, data }) => {
                     <td
                       {...cell.getCellProps()}
                       key={idx}
-                      className={`font-display text-sm w-full text-center text-left py-2   col-span-${colSpan[idx]}`}
+                      className={`font-display text-sm text-center  py-2 col-span-${colSpanMovil[idx]}  md:col-span-${colSpan[idx]}`}
                     >
                       {cell.render("Cell")}
                     </td>
@@ -258,7 +270,7 @@ const DataTable = ({ columns, data }) => {
               </tr>
             );
           }) : <tr className="w-full transition border-b border-base hover:bg-base cursor-pointer w-full grid place-items-center">
-            <td className="py-5 font-display text-lg text-gray-100 uppercase ">No hay pagos asociados</td></tr>}
+            <td className="py-5 font-display text-lg text-gray-500 uppercase ">No hay pagos asociados</td></tr>}
         </tbody>
       </table>
     </div>

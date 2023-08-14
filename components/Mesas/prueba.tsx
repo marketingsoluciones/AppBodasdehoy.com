@@ -2,8 +2,9 @@ import { Dispatch, FC, SetStateAction, useEffect, useRef, useState } from "react
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { Dragable } from "./PruebaDragable";
 import { ActualizarPosicion, handleScale, useScreenSize } from "./FuntionsDragable";
-import { SearchIcon } from "../icons";
+import { SearchIcon,Lock } from "../icons";
 import { ButtonConstrolsLienzo } from "./ControlsLienzo";
+import { useToast } from "../../hooks/useToast";
 
 type propsPrueba = {
   setShowTables: any
@@ -21,6 +22,7 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables, setShowFormEditar 
   const [oculto, setOculto] = useState(true)
   const [disableWrapper, setDisableWrapper] = useState(false)
   const [disableDrag, setDisableDrag] = useState(true)
+  const toast = useToast()
   const lienzo = {
     ancho: 2048,
     alto: 800
@@ -112,6 +114,9 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables, setShowFormEditar 
                     <ButtonConstrolsLienzo onClick={handleSetDisableDrag} pulseButton={disableDrag}>
                       <span className="text-[10px] w-[90px]">{disableDrag ? 'Desloquear plano' : 'Bloquear plano'}</span>
                     </ButtonConstrolsLienzo>
+                      <button className={`${disableDrag ? "block" : "hidden"}  `} onClick={() => { toast("error", "Desbloquea el plano para poder mover las mesas ") }}>
+                        <Lock className="hidden* md:block h-7 w-7"/>
+                      </button>
                     <ButtonConstrolsLienzo onClick={handleSetShowTables} className="md:hidden">
                       <span className="text-[10px] w-[60px]">{showTables ? 'Ver Invitados' : 'Crear Mesas'}</span>
                     </ButtonConstrolsLienzo>

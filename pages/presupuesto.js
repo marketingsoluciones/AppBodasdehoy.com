@@ -13,6 +13,7 @@ import { AuthContextProvider, EventContextProvider } from "../context";
 import { getCurrency, useDelayUnmount } from "../utils/Funciones";
 import VistaSinCookie from "./vista-sin-cookie";
 import BlockTitle from "../components/Utils/BlockTitle";
+import { useToast } from "../hooks/useToast";
 
 const Presupuesto = () => {
 
@@ -45,7 +46,7 @@ const Presupuesto = () => {
     return (
       <>
         {event &&
-          <section className="bg-base w-full h-full">
+          <section className="bg-base w-full h-full pb-16 pt-4 md:py-0">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -270,6 +271,7 @@ const BlockListaCategorias = ({ categorias_array, set }) => {
   const [categorias, setCategorias] = useState([]);
   const { event, setEvent } = EventContextProvider()
   const [colorText, setColorText] = useState(event?.presupuesto_objeto?.coste_estimado == 0 ? "text-gray-300" : "text-gray-500");
+  const Presu = event?.presupuesto_objeto?.coste_estimado 
 
   useEffect(() => {
     setCategorias(categorias_array)
@@ -309,7 +311,7 @@ const BlockListaCategorias = ({ categorias_array, set }) => {
           <PlusIcon className="text-white w-4 h-4" />
           Nueva Categoria
         </button>
-        <ul className={`w-full flex flex-col font-display text-sm h-44 overflow-y-auto md:h-max divide-y ${colorText}`}>
+        <ul className={`w-full flex flex-col font-display text-sm h-44 overflow-y-auto md:h-max divide-y ${colorText} ${Presu == 0 ?"cursor-not-allowed*":"cursor-pointer"}`}>
           {categorias?.map((item, idx) => (
             <ItemCategoria key={idx} item={item} setVisible={act => set(act)}
               set={(accion) => setIsMounted(accion)} />
@@ -332,6 +334,9 @@ const BlockListaCategorias = ({ categorias_array, set }) => {
 const ItemCategoria = ({ item, setVisible, set }) => {
   const { event, setEvent } = EventContextProvider()
   const [show, setShow] = useState(false);
+  const toast = useToast()
+  const Presu = event?.presupuesto_objeto?.coste_estimado 
+
 
   const BorrarCategoria = async () => {
     setShow(!show)
@@ -376,7 +381,7 @@ const ItemCategoria = ({ item, setVisible, set }) => {
   ];
 
   return (
-    <li onClick={() => setVisible({ isVisible: true, id: item._id })} className="w-full justify-between items-center flex   px-5 cursor-pointer transition hover:bg-base">
+    <li onClick={() => Presu!=0 ? setVisible({ isVisible: true, id: item._id }):toast("error", "Agrega un monto a tu Presupuesto Estimado ")} className={`w-full justify-between items-center flex   px-5  transition ${Presu==0?"":"hover:bg-base"}`}>
       <span
         className="gap-2 py-3 flex items-center capitalize"
       >
@@ -389,8 +394,8 @@ const ItemCategoria = ({ item, setVisible, set }) => {
         </div>
         <div className="relative ">
           <DotsOpcionesIcon
-            onClick={() => setShow(!show)}
-            className="w-3 h-3 cursor-pointer"
+            onClick={() => Presu!=0 ? setShow(!show):null}
+            className={`w-3 h-3 ${Presu !=0?"cursor-pointer":""} `}
           />
           {show && (
             <ClickAwayListener onClickAway={() => show && setShow(false)}>
