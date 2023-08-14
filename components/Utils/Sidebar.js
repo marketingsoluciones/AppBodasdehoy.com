@@ -48,42 +48,60 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             title: "Resumen",
             route: "/resumen-evento",
             icon: <ResumenIcon className="w-6 h-6" />,
-            onClick: async () => { router.push(`/resumen-evento`) },
+            onClick: () => {
+                console.log("+++++++++++++++")
+                router.push(`/resumen-evento`)
+            },
             user: eventsGroup?.length > 0 ? "all" : null
         },
         {
             title: "Invitados",
             route: "/invitados",
             icon: <InvitadosIcon className="w-6 h-6" />,
-            onClick: async () => { router.push(`/invitados`) },
+            onClick: () => {
+                console.log("+++++++++++++++")
+                router.push(`/invitados`)
+            },
             user: eventsGroup?.length > 0 ? "all" : null
         },
         {
             title: "Mesas",
             route: "",
             icon: <MesasIcon className="w-6 h-6" />,
-            onClick: async () => { router.push(`/mesas`) },
+            onClick: () => {
+                console.log("+++++++++++++++")
+                router.push(`/mesas`)
+            },
             user: eventsGroup?.length > 0 ? "all" : null
         },
         {
             title: "Lista de regalos",
             route: "/lista-regalos",
             icon: <ListaRegalosIcon className="w-6 h-6" />,
-            onClick: async () => { router.push(`/lista-regalos`) },
+            onClick: () => {
+                console.log("+++++++++++++++")
+                router.push(`/lista-regalos`)
+            },
             user: eventsGroup?.length > 0 ? "all" : null
         },
         {
             title: "Presupuesto",
             route: "/presupuesto",
             icon: <PresupuestoIcon className="w-6 h-6" />,
-            onClick: async () => { router.push(`presupuesto`) },
+            onClick: () => {
+                console.log("+++++++++++++++")
+                router.push(`presupuesto`)
+            },
             user: eventsGroup?.length > 0 ? "all" : null
         },
         {
             title: "Invitaciones",
             route: "/invitaciones",
             icon: <InvitacionesIcon className="w-6 h-6" />,
-            onClick: async () => { router.push(`invitaciones`) },
+            onClick: () => {
+                console.log("+++++++++++++++")
+                router.push(`invitaciones`)
+            },
             user: eventsGroup?.length > 0 ? "all" : null
         },
         {
@@ -94,29 +112,38 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
         {
             title: "Perfil",
             icon: <Icon036Profile className="w-7 h-7" />,
-            onClick: async () => { router.push(config?.pathDirectory) },
+            onClick: () => {
+                console.log("+++++++++++++++")
+                router.push(config?.pathDirectory)
+            },
             user: "loged"
         },
         {
             title: "Iniciar sesión",
             icon: <IconLogin className="w-6 h-6" />,
-            onClick: async () => { router.push(config?.pathLogin ? `${config?.pathLogin}?d=app` : `/login?d=${route}`) },
+            onClick: () => {
+                console.log("+++++++++++++++")
+                router.push(config?.pathLogin ? `${config?.pathLogin}?d=app` : `/login?d=${route}`)
+            },
             user: "guest"
         },
         {
             title: "Registro",
             icon: <IconRegistered className="w-6 h-6" />,
-            onClick: async () => { router.push(config?.pathLogin ? `${config?.pathLogin}?d=app&q=register` : `/login?q=register&d=${route}`) },
+            onClick: () => {
+                console.log("+++++++++++++++")
+                router.push(config?.pathLogin ? `${config?.pathLogin}?d=app&q=register` : `/login?q=register&d=${route}`)
+            },
             user: "guest"
         },
         {
             title: "Cerrar sesión",
             icon: <IconExit className="w-6 h-6" />,
-            onClick: async () => {
+            onClick: () => {
                 console.log(600021, config, config?.domain)
                 Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
                 Cookies.remove("idToken", { domain: config?.domain ?? "" });
-                await signOut(getAuth());
+                signOut(getAuth());
                 router.push(config?.pathDirectory ? `${config?.pathDirectory}/signout?end=true` : "/")
                 setLoading(false)
             },
@@ -125,6 +152,16 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
     ]
     const valirUser = user?.displayName == "guest" ? "guest" : "loged"
     const ListaNavbarFilter = ListaNavbar.filter(elem => elem?.user === valirUser || elem?.user === "all")
+
+    const handleOnClip = async (e, item) => {
+        e.preventDefault();
+        console.log(10004, item)
+        if (item?.onClick) {
+            await item?.onClick()
+            await setShowSidebar(!showSidebar)
+            await item?.route != route && setLoading(true)
+        }
+    }
 
 
 
@@ -148,14 +185,8 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
                         // eslint-disable-next-line @next/next/link-passhref
                         <li
                             key={idx}
-                            onClick={() => {
-                                if (item?.onClick) {
-                                    setShowSidebar(!showSidebar)
-                                    item?.route != route && setLoading(true)
-                                }
-                            }}
                             className="flex text-primary  py-2 font-display text-md items-center justify-start w-full cursor-pointer hover:text-gray-300 transition ">
-                            <button className="flex gap-3" onClick={item?.onClick}>{item.icon} {item.title && capitalize(item.title)}</button>
+                            <button className="flex gap-3" onClick={(e) => { handleOnClip(e, item) }}>{item.icon} {item.title && capitalize(item.title)}</button>
                         </li>
                     ))}
                 </ul>
