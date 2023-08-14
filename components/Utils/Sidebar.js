@@ -157,8 +157,8 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
         e.preventDefault();
         console.log(10004, item)
         if (item?.onClick) {
+            setShowSidebar(!showSidebar)
             await item?.onClick()
-            await setShowSidebar(!showSidebar)
             await item?.route != route && setLoading(true)
         }
     }
@@ -185,8 +185,9 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
                         // eslint-disable-next-line @next/next/link-passhref
                         <li
                             key={idx}
+                            onClick={(e) => { handleOnClip(e, item) }}
                             className="flex text-primary  py-2 font-display text-md items-center justify-start w-full cursor-pointer hover:text-gray-300 transition ">
-                            <button className="flex gap-3" onClick={(e) => { handleOnClip(e, item) }}>{item.icon} {item.title && capitalize(item.title)}</button>
+                            <button className="flex gap-3" >{item.icon} {item.title && capitalize(item.title)}</button>
                         </li>
                     ))}
                 </ul>
