@@ -49,7 +49,6 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             route: "/resumen-evento",
             icon: <ResumenIcon className="w-6 h-6" />,
             onClick: () => {
-                console.log("+++++++++++++++")
                 router.push(`/resumen-evento`)
             },
             user: eventsGroup?.length > 0 ? "all" : null
@@ -59,7 +58,6 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             route: "/invitados",
             icon: <InvitadosIcon className="w-6 h-6" />,
             onClick: () => {
-                console.log("+++++++++++++++")
                 router.push(`/invitados`)
             },
             user: eventsGroup?.length > 0 ? "all" : null
@@ -69,7 +67,6 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             route: "",
             icon: <MesasIcon className="w-6 h-6" />,
             onClick: () => {
-                console.log("+++++++++++++++")
                 router.push(`/mesas`)
             },
             user: eventsGroup?.length > 0 ? "all" : null
@@ -79,7 +76,6 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             route: "/lista-regalos",
             icon: <ListaRegalosIcon className="w-6 h-6" />,
             onClick: () => {
-                console.log("+++++++++++++++")
                 router.push(`/lista-regalos`)
             },
             user: eventsGroup?.length > 0 ? "all" : null
@@ -89,7 +85,6 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             route: "/presupuesto",
             icon: <PresupuestoIcon className="w-6 h-6" />,
             onClick: () => {
-                console.log("+++++++++++++++")
                 router.push(`presupuesto`)
             },
             user: eventsGroup?.length > 0 ? "all" : null
@@ -99,7 +94,6 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             route: "/invitaciones",
             icon: <InvitacionesIcon className="w-6 h-6" />,
             onClick: () => {
-                console.log("+++++++++++++++")
                 router.push(`invitaciones`)
             },
             user: eventsGroup?.length > 0 ? "all" : null
@@ -113,7 +107,6 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             title: "Perfil",
             icon: <Icon036Profile className="w-7 h-7" />,
             onClick: () => {
-                console.log("+++++++++++++++")
                 router.push(config?.pathDirectory)
             },
             user: "loged"
@@ -122,7 +115,6 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             title: "Iniciar sesión",
             icon: <IconLogin className="w-6 h-6" />,
             onClick: () => {
-                console.log("+++++++++++++++")
                 router.push(config?.pathLogin ? `${config?.pathLogin}?d=app` : `/login?d=${route}`)
             },
             user: "guest"
@@ -131,7 +123,6 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             title: "Registro",
             icon: <IconRegistered className="w-6 h-6" />,
             onClick: () => {
-                console.log("+++++++++++++++")
                 router.push(config?.pathLogin ? `${config?.pathLogin}?d=app&q=register` : `/login?q=register&d=${route}`)
             },
             user: "guest"
@@ -145,7 +136,9 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
                 Cookies.remove("idToken", { domain: config?.domain ?? "" });
                 signOut(getAuth());
                 router.push(config?.pathDirectory ? `${config?.pathDirectory}/signout?end=true` : "/")
-                setLoading(false)
+                setTimeout(() => {
+                    setLoading(false)
+                }, 600);
             },
             user: "loged"
         }
@@ -155,7 +148,6 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
 
     const handleOnClip = async (e, item) => {
         e.preventDefault();
-        console.log(10004, item)
         if (item?.onClick) {
             setShowSidebar(!showSidebar)
             await item?.onClick()

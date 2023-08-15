@@ -13,6 +13,7 @@ type MyFormValues = {
 };
 
 const FormLogin: FC<any> = ({ setStage }) => {
+  const { signIn } = useAuthentication();
   const [passwordView, setPasswordView] = useState(false)
   //const { signIn } = useAuthentication();
   const toast = useToast()
@@ -30,7 +31,7 @@ const FormLogin: FC<any> = ({ setStage }) => {
 
   const handleSubmit = async (values: MyFormValues, actions: any) => {
     try {
-      //signIn("credentials", values)
+      signIn("credentials", values)
     } catch (error: any) {
       console.error(JSON.stringify(error));
       toast("error", JSON.stringify(errorsCode[error.code]))

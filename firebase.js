@@ -1,3 +1,4 @@
+import { GoogleAuthProvider, FacebookAuthProvider, getAuth, OAuthProvider } from "firebase/auth";
 import { LogoEventosOrganizador, LogoEventosPlanificador, LogoNuevoBodasBlanco } from "./components/icons";
 
 const firebaseConfigBodas = {
@@ -8,8 +9,23 @@ const firebaseConfigBodas = {
   appId: "1:593952495916:web:c63cf15fd16a6796f6f489",
   measurementId: "G-GWQ17NF2YR",
 };
-
-const firebaseConfigEventos = {
+const firebaseConfigPlanificador = {
+  apiKey: "AIzaSyA_BIthVz_uwQR7gObnKPjI2KincIvP5lo",
+  authDomain: "eventosplanificador-74e59.firebaseapp.com",
+  projectId: "eventosplanificador-74e59",
+  messagingSenderId: "1087923505585",
+  appId: "1:1087923505585:web:7573effc0a8663d5429590",
+  measurementId: "G-BJK5EBV8H0"
+};
+const firebaseConfigOrganizador = {
+  apiKey: "AIzaSyD3O0Nb4du1DPZod-6ZGpzw4jLGjXXKKUI",
+  authDomain: "eventosorganizador-2ed10.firebaseapp.com",
+  projectId: "eventosorganizador-2ed10",
+  messagingSenderId: "492151341830",
+  appId: "1:492151341830:web:35178ccf72d2dbcf6d1487",
+  measurementId: "G-FC99T7WZS8"
+};
+const firebaseConfigVivetuboda = {
   apiKey: "AIzaSyA_BIthVz_uwQR7gObnKPjI2KincIvP5lo",
   authDomain: "eventosplanificador-74e59.firebaseapp.com",
   projectId: "eventosplanificador-74e59",
@@ -59,17 +75,17 @@ export const developments = [
   {
     name: "eventosplanificador",
     development: "eventosplanificador",
-    fileConfig: firebaseConfigEventos,
-    cookie: "sessionEventos",
+    fileConfig: firebaseConfigPlanificador,
+    cookie: "sessionPlanificador",
     domain: ".eventosplanificador.com",
-    cookieGuest: "guesteventos",
+    cookieGuest: "guestplanicador",
     pathLogin: "",
     logoDirectory: <LogoEventosOrganizador className="hover:opacity-80 transition text-primary" />,
     headTitle: "Planificador de Eventos",
     theme: {
-      primaryColor: "#6096B9"/* "#6771ae" */,
-      secondaryColor: "#284C77" /* "#c589a9" */,
-      tertiaryColor: "#F4C02F" /* "#b3dbb4" */,
+      primaryColor: "#6771ae",
+      secondaryColor: "#c589a9",
+      tertiaryColor: "#b3dbb4",
       baseColor: "#F2F2F2",
       colorScroll: "#adb6ed"
     }
@@ -77,10 +93,10 @@ export const developments = [
   {
     name: "eventosorganizador",
     development: "eventosorganizador",
-    fileConfig: firebaseConfigEventos,
-    cookie: "sessionEventos",
+    fileConfig: firebaseConfigOrganizador,
+    cookie: "sessionOrganizador",
     domain: ".eventosorganizador.com",
-    cookieGuest: "guesteventos",
+    cookieGuest: "guestorganizador",
     pathLogin: "",
     logoDirectory: <LogoEventosOrganizador className="hover:opacity-80 transition text-primary" />,
     headTitle: "Organizador de Eventos",
@@ -90,7 +106,42 @@ export const developments = [
       tertiaryColor: "#F4C02F" /* "#b3dbb4" */,
       baseColor: "#F2F2F2",
       colorScroll: "#adb6ed"
-    }
+    },
+  },
+  {
+    name: "vivetuboda",
+    development: "vivetuboda",
+    fileConfig: firebaseConfigVivetuboda,
+    cookie: "sessionVivetuboda",
+    domain: ".vivetuboda.com",
+    cookieGuest: "guestvivetuboda",
+    pathLogin: "",
+    logoDirectory: <LogoEventosOrganizador className="hover:opacity-80 transition text-primary" />,
+    headTitle: "Organizador de Eventos",
+    theme: {
+      primaryColor: "#6096B9"/* "#6771ae" */,
+      secondaryColor: "#284C77" /* "#c589a9" */,
+      tertiaryColor: "#F4C02F" /* "#b3dbb4" */,
+      baseColor: "#F2F2F2",
+      colorScroll: "#adb6ed"
+    },
   },
 ]
 
+const GoogleProvider = () => {
+  const provider = new GoogleAuthProvider();
+  return provider;
+};
+
+const FacebookProvider = new FacebookAuthProvider();
+
+const AppleProvidor = () => {
+  try {
+    const provider = new OAuthProvider('apple.com');
+    return provider
+  } catch (error) {
+    console.log("error 1504", "AppleProvidor en firebase.ts", error)
+  }
+}
+
+export { GoogleProvider, FacebookProvider, AppleProvidor };

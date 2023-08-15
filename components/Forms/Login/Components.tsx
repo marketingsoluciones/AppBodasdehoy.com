@@ -1,10 +1,9 @@
 import { FC, MouseEventHandler, useContext } from "react";
-//import { GoogleProvider, FacebookProvider, auth, AppleProvidor } from "../../../firebase";
+import { GoogleProvider, FacebookProvider, AppleProvidor } from "../../../firebase";
 import { ButtonProvider } from "./Forms/ButtonProvider";
 import { useToast } from "../../../hooks/useToast";
 import { useAuthentication } from "../../../utils/Authentication";
 import { FacebookIcon2, GoogleIcon } from "../../icons";
-
 
 interface propsRegisterQuestion {
   onClick: MouseEventHandler;
@@ -13,7 +12,6 @@ interface propsRegisterQuestion {
 interface propsResetPassword {
   onClick: MouseEventHandler;
 }
-
 
 export const RegisterQuestion: FC<propsRegisterQuestion> = ({ onClick }) => {
   return (
@@ -42,9 +40,7 @@ export const ResetPassword: FC<propsResetPassword> = ({ onClick }) => {
   );
 };
 
-
 export const Providers: FC<any> = ({ setStage }) => {
-
 
   //const { signIn } = useAuthentication();
   const toast = useToast();
@@ -58,21 +54,6 @@ export const Providers: FC<any> = ({ setStage }) => {
     }
   };
 
-  /* const ListProviders = [
-    {
-      icon: <FacebookIcon className="w-5 h-5" />,
-      function: () => handleClick(FacebookProvider),
-    },
-    {
-      icon: <GoogleIcon className="w-5 h-5" />,
-      function: () => handleClick(GoogleProvider()),
-    },
-    {
-      icon: <AppleIcon className="w-5 h-5" />,
-      function: () => alert("Aun por configurar"),
-    },
-  ];
- */
   return (
     <>
       <div className={`text-center flex flex-col gap-2 w-full items-center `}>
@@ -82,8 +63,8 @@ export const Providers: FC<any> = ({ setStage }) => {
         ))}
       </div> */}
         <div className="">
-          <ButtonProvider provider="Google" handle={() => { }} icon={<GoogleIcon className="ml-[15px] w-[20px] h-[20px] text-gray-500" />} />
-          <ButtonProvider provider="Facebook" handle={() => { }} icon={<FacebookIcon2 className="ml-[15px] w-[20px] h-[20px] text-gray-500" />} />
+          <ButtonProvider provider="Google" handle={GoogleProvider()} icon={<GoogleIcon className="ml-[15px] w-[20px] h-[20px] text-gray-500" />} />
+          <ButtonProvider provider="Facebook" handle={() => { FacebookProvider }} icon={<FacebookIcon2 className="ml-[15px] w-[20px] h-[20px] text-gray-500" />} />
           {/* <ButtonProvider provider="Apple" handle={AppleProvidor()} icon={<AppleIcon className="ml-[15px] w-[20px] h-[20px] text-gray-500" />} /> */}
         </div>
       </div>

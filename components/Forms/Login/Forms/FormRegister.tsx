@@ -8,6 +8,7 @@ import { AuthContextProvider, LoadingContextProvider } from "../../../../context
 import { UserCredential, createUserWithEmailAndPassword, getAuth, updateProfile } from "firebase/auth";
 import { useAuthentication } from "../../../../utils/Authentication";
 import { fetchApiBodas, queries } from "../../../../utils/Fetching";
+import { useRouter } from "next/router";
 
 type MyFormValues = {
   fullName: string
@@ -23,6 +24,7 @@ type MyFormValues = {
 };
 
 const FormRegister: FC<any> = ({ setStage }) => {
+  const router = useRouter()
   const { setUser, config } = AuthContextProvider();
   const { setLoading } = LoadingContextProvider()
   const [passwordView, setPasswordView] = useState(false)
@@ -50,8 +52,6 @@ const FormRegister: FC<any> = ({ setStage }) => {
   const handleSubmit = async (values: MyFormValues, actions: any) => {
     try {
       setLoading(true)
-
-
       // Si es registro completo
       // Autenticacion con firebase
       const res: UserCredential = await createUserWithEmailAndPassword(
@@ -78,35 +78,14 @@ const FormRegister: FC<any> = ({ setStage }) => {
         },
         development: config?.development
       });
-      console.log(70001, moreInfo)
       // Almacenar en contexto USER con toda la info
       if (moreInfo?.status) {
         setUser({ ...UserFirebase, ...moreInfo });
       }
 
       /////// REDIRECIONES ///////
-      // if (userTemp) {
-      //   setUser(userTemp)
-      //   setUserTemp(null)
-      // }
-      // if (redirect?.split("/")[3] == "info-empresa" && moreInfo.role.includes("empresa")) {
-      //   await router.push(`${process.env.NEXT_PUBLIC_DIRECTORY}/empresa` ?? "")
-      //   toast("success", `Registro de Empresa realizado con exito `)
-      //   setLoading(false);
-      // }
-      // if (redirect?.split("/")[3] !== "info-empresa" && moreInfo.role.includes("empresa")) {
-      //   await router.push(redirect ? redirect : `${process.env.NEXT_PUBLIC_DIRECTORY}/empresa` ?? "")
-      //   toast("success", `Inicio sesión con exito`)
-      // }
-
-      // if (redirect?.split("/")[3] == "info-empresa" && !moreInfo.role.includes("empresa")) {
-      //   await router.push(redirect)
-      //   toast("warning", `Inicio sesión con una cuenta que no es de empresa`)
-      // }
-      // if (redirect?.split("/")[3] !== "info-empresa" && !moreInfo.role.includes("empresa")) {
-      //   await router.push(redirect ? redirect : process.env.NEXT_PUBLIC_EVENTSAPP ?? "")
-      //   toast("success", `Inicio sesión con exito`)
-      // }
+      setLoading(true)
+      router.push(`${router.query?.d}`)
       ///////////////////////////
 
       //toast("success", "Registro realizado con exito")

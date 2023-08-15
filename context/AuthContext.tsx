@@ -64,7 +64,7 @@ const AuthProvider = ({ children }) => {
     }
   }, [])
   let resp: any = undefined
-
+  let firebaseClient: any
   useEffect(() => {
     if (isMounted) {
       const path = window.location.hostname
@@ -75,7 +75,7 @@ const AuthProvider = ({ children }) => {
       console.log(idx)
       /*--------------------------------------------------------------------*/
       const devDomain = ["bodasdehoy", "eventosplanificador", "eventosorganizador"]
-      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[1] /*<<<<<<<<<*/
+      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[2] /*<<<<<<<<<*/
       /*--------------------------------------------------------------------*/
       resp = developments.filter(elem => elem.name === domainDevelop)[0]
       if (idx === -1) {
@@ -90,8 +90,9 @@ const AuthProvider = ({ children }) => {
         setIsProduction(false)
       }
       try {
-        const firebaseClient = initializeApp(resp?.fileConfig);
-        firebaseClient
+        firebaseClient = initializeApp(resp?.fileConfig);
+        // firebaseClient
+        console.log(8000041, getAuth())
       } catch (error) {
         console.log(90001, error)
       }
