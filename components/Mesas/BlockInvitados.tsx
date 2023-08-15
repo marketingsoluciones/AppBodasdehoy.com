@@ -6,9 +6,12 @@ import ListInvitados from "./ListInvitados"
 interface propsBlockInvitados {
     InvitadoNoSentado: guests[]
     set: Dispatch<SetStateAction<boolean>>
+    setEditInv:any
+    editInv:any
+    setSelected:any
 }
 
-const BlockInvitados: FC<propsBlockInvitados> = ({ InvitadoNoSentado, set }) => {
+const BlockInvitados: FC<propsBlockInvitados> = ({ InvitadoNoSentado, set,setEditInv,editInv,setSelected }) => {
     return (
         <>
             <div className="w-full shadow-lg relative">
@@ -23,7 +26,7 @@ const BlockInvitados: FC<propsBlockInvitados> = ({ InvitadoNoSentado, set }) => 
                     </button>
                 </div>
                 <div id={"listInvitados"} className='md:h-[calc(95vh-144px-260px-36px)] js-drop pg-3 h-[190px] overflow-auto'>
-                    <ListInvitados InvitadoNoSentado={InvitadoNoSentado} />
+                    <ListInvitados InvitadoNoSentado={InvitadoNoSentado}  setEditInv={setEditInv} editInv={editInv} setSelected={setSelected} />
                 </div>
             </div>
             <style>{`
