@@ -107,7 +107,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             title: "Perfil",
             icon: <Icon036Profile className="w-7 h-7" />,
             onClick: () => {
-                router.push(config?.pathDirectory)
+                router.push(config?.pathPerfil)
             },
             user: "loged"
         },
@@ -171,19 +171,19 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
                     {user?.displayName !== "guest" && user?.displayName?.toLowerCase()}
                 </p>
             </div>
-            <Tooltip label="Primero debes crear un evento" icon={<IconLightBulb16 className="w-6 h-6" />} disabled={!!event?._id}>
-                <ul className="flex flex-col pl-6 pt-2">
-                    {ListaNavbarFilter.map((item, idx) => (
-                        // eslint-disable-next-line @next/next/link-passhref
-                        <li
-                            key={idx}
-                            onClick={(e) => { handleOnClip(e, item) }}
-                            className="flex text-primary  py-2 font-display text-md items-center justify-start w-full cursor-pointer hover:text-gray-300 transition ">
-                            <button className="flex gap-3" >{item.icon} {item.title && capitalize(item.title)}</button>
-                        </li>
-                    ))}
-                </ul>
-            </Tooltip>
+            {/* <Tooltip label="Primero debes crear un evento" icon={<IconLightBulb16 className="w-6 h-6" />} disabled={!!event?._id}> */}
+            <ul className="flex flex-col pl-6 pt-2">
+                {ListaNavbarFilter.map((item, idx) => (
+                    // eslint-disable-next-line @next/next/link-passhref
+                    <li
+                        key={idx}
+                        onClick={(e) => { handleOnClip(e, item) }}
+                        className="flex text-primary  py-2 font-display text-md items-center justify-start w-full cursor-pointer hover:text-gray-300 transition ">
+                        <button className="flex gap-3" >{item.icon} {item.title && capitalize(item.title)}</button>
+                    </li>
+                ))}
+            </ul>
+            {/* </Tooltip> */}
             <p className="text-xs text-primary font-bold absolute h-max bottom-20 mx-auto w-max inset-x-0">Bodasdehoy.com</p>
         </div>
     )

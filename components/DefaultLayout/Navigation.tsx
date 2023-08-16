@@ -121,15 +121,14 @@ const Navigation: any = (
           <span
             onClick={() => {
               //Loading(setLoading);
-              router.push("/")
+              router.push(config?.pathDirectory ? `${config?.pathDirectory}` : ``)
               setIsActiveStateSwiper(0)
             }}
-            className="bg-red* cursor-pointer w-40 items-center flex justify-center"
-          >
+            className="cursor-pointer w-40 items-center flex justify-center translate-x-[-14px] md:translate-x-[-160px]">
             {config?.logoDirectory}
           </span>
           <NavbarDirectory />
-          <div className="bg-red*">
+          <div className="*">
             <Profile
               state={isMounted}
               set={(act) => setIsMounted(act)}

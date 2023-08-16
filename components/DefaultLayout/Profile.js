@@ -31,7 +31,7 @@ const Profile = ({ user, state, set, ...rest }) => {
     },
     {
       title: "Perfil",
-      onClick: async () => { router.push(config?.pathDirectory) },
+      onClick: async () => { router.push(config?.pathPerfil) },
       user: "loged"
     },
     {

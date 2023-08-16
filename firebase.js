@@ -1,5 +1,5 @@
 import { GoogleAuthProvider, FacebookAuthProvider, getAuth, OAuthProvider } from "firebase/auth";
-import { LogoEventosOrganizador, LogoEventosPlanificador, LogoNuevoBodasBlanco } from "./components/icons";
+import { LogoEventosOrganizador, LogoEventosPlanificador, LogoNuevoBodasBlanco, LogoVivetuboda } from "./components/icons";
 
 const firebaseConfigBodas = {
   apiKey: "AIzaSyDVMoVLWWvolofYOcTYA0JZ0QHyng72LAM",
@@ -26,12 +26,12 @@ const firebaseConfigOrganizador = {
   measurementId: "G-FC99T7WZS8"
 };
 const firebaseConfigVivetuboda = {
-  apiKey: "AIzaSyA_BIthVz_uwQR7gObnKPjI2KincIvP5lo",
-  authDomain: "eventosplanificador-74e59.firebaseapp.com",
-  projectId: "eventosplanificador-74e59",
-  messagingSenderId: "1087923505585",
-  appId: "1:1087923505585:web:7573effc0a8663d5429590",
-  measurementId: "G-BJK5EBV8H0"
+  apiKey: "AIzaSyCkj2D1mO-jdMUDwAQVL7tXCGuNusT5ubc",
+  authDomain: "vivetuboda-l.firebaseapp.com",
+  projectId: "vivetuboda-l",
+  messagingSenderId: "209046290590",
+  appId: "1:209046290590:web:db0fbe47c3963ddd143b8f",
+  measurementId: "G-PTQM1HELZC"
 };
 
 export const developments = [
@@ -116,7 +116,8 @@ export const developments = [
     domain: ".vivetuboda.com",
     cookieGuest: "guestvivetuboda",
     pathLogin: "",
-    logoDirectory: <LogoEventosOrganizador className="hover:opacity-80 transition text-primary" />,
+    pathDirectory: "https://vivetuboda.com",
+    logoDirectory: <LogoVivetuboda className="hover:opacity-80 transition text-primary " />,
     headTitle: "Organizador de Eventos",
     theme: {
       primaryColor: "#6096B9"/* "#6771ae" */,

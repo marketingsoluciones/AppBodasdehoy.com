@@ -33,7 +33,7 @@ const PageLogin = () => {
           }} />
           <div className="flex flex-col items-center gap-4 w-full h-[85%]  md:h-[60,l%] px-10 md:px-0 sm:w-3/4 md:w-2/3">
             <div className="w-full md:w-2/3 h-full">
-              <div className="flex flex-col items-center justify-center transform scale-[150%]">
+              <div className={`flex flex-col items-center justify-center transform ${config?.name == "vivetuboda" ? "scale-[110%]" : "scale-[150%]"}`}>
                 {config?.logoDirectory}
               </div>
               {Stages[stage]}
