@@ -9,12 +9,14 @@ import ModalLeft from "../components/Utils/ModalLeft";
 import { AuthContextProvider, EventContextProvider } from "../context";
 import VistaSinCookie from "./vista-sin-cookie";
 import FormCrearMenu from "../components/Forms/FormCrearMenu";
+import { useMounted } from "../hooks/useMounted";
 
 const Invitados: FC = () => {
   const [isMounted, setIsMounted] = useState<boolean>(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const [formShow, setFormShow] = useState<string | null>(null)
   const { event } = EventContextProvider();
+  useMounted()
 
   const reciboClick = (accion) => {
     setIsMounted(accion.state)

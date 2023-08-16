@@ -4,28 +4,50 @@ import Cookies from 'js-cookie'
 import { nanoid } from 'nanoid'
 
 import { developments } from "../firebase";
-import { fetchApi, queries } from "../utils/Fetching";
+import { fetchApiBodas, queries } from "../utils/Fetching";
 import { boolean } from "yup";
 import { initializeApp } from "firebase/app";
 
 const initialContext = {
-  user: null,
-  setUser: () => null,
-  verificationDone: boolean,
-  setVerificationDone: () => false
+  user: undefined,
+  setUser: undefined,
+  verificationDone: false,
+  setVerificationDone: undefined,
+  config: undefined,
+  setConfig: undefined,
+  isProduction: true,
+  setIsProduction: undefined,
+  theme: undefined,
+  setTheme: undefined,
+  isActiveStateSwiper: 0,
+  setIsActiveStateSwiper: undefined
 }
 
-const AuthContext = createContext(initialContext);
+type Context = {
+  user: any
+  setUser: any
+  verificationDone: any
+  setVerificationDone: any
+  config: any
+  setConfig: any
+  isProduction: any
+  setIsProduction: any
+  theme: any
+  setTheme: any
+  isActiveStateSwiper: any
+  setIsActiveStateSwiper: any
+}
+
+const AuthContext = createContext<Context>(initialContext);
 
 const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(initialContext.user);
-  const [verificationDone, setVerificationDone] = useState(false);
-  const [domain, setDomain] = useState();
-  const [config, setConfig] = useState();
-  const [isProduction, setIsProduction] = useState(true)
-  const [isMounted, setIsMounted] = useState(false)
-  const [isActiveStateSwiper, setIsActiveStateSwiper] = useState(0);
-  const [theme, setTheme] = useState({
+  const [user, setUser] = useState<any>(initialContext.user);
+  const [verificationDone, setVerificationDone] = useState<any>(false);
+  const [config, setConfig] = useState<any>();
+  const [isProduction, setIsProduction] = useState<any>(true)
+  const [isMounted, setIsMounted] = useState<any>(false)
+  const [isActiveStateSwiper, setIsActiveStateSwiper] = useState<any>(0);
+  const [theme, setTheme] = useState<any>({
     primaryColor: undefined,
     secondaryColor: undefined,
     tertiaryColor: undefined,
@@ -41,30 +63,36 @@ const AuthProvider = ({ children }) => {
       setIsMounted(false)
     }
   }, [])
-
-
+  let resp: any = undefined
+  let firebaseClient: any
   useEffect(() => {
     if (isMounted) {
-      const path = window.location.hostname //"https://www.bodasdehoy.com/"
+      const path = window.location.hostname
+      //  const path = "https://www.eventosplanificador.com"
+      console.log("hostname:", path)
       const c = path?.split(".")
       const idx = c?.findIndex(el => el === "com")
+      console.log(idx)
       /*--------------------------------------------------------------------*/
-      const devDomain = ["bodasdehoy", "eventosplanificador"]
-      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[1] /*<<<<<<<<<*/
+      const devDomain = ["bodasdehoy", "eventosplanificador", "eventosorganizador", "vivetuboda"]
+      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[3] /*<<<<<<<<<*/
       /*--------------------------------------------------------------------*/
-      const resp = developments.filter(elem => elem.name === domainDevelop)[0]
+      resp = developments.filter(elem => elem.name === domainDevelop)[0]
       if (idx === -1) {
         resp = {
           ...resp,
-          domain: `${process.env.NEXT_PUBLIC_EVENTSAPP}`,
-          pathDirectory: resp?.pathDirectory ? `${process.env.NEXT_PUBLIC_DIRECTORY}` : undefined
+          domain: `${process.env.NEXT_PUBLIC_DOMINIO}`,
+          pathDirectory: resp?.pathDirectory ? `${process.env.NEXT_PUBLIC_DIRECTORY}` : undefined,
+          pathLogin: resp?.pathLogin ? `${process.env.NEXT_PUBLIC_DIRECTORY}/login` : undefined,
+          pathSignout: resp?.pathSignout ? `${process.env.NEXT_PUBLIC_DIRECTORY}/signout` : undefined,
+          pathPerfil: resp?.pathPerfil ? `${process.env.NEXT_PUBLIC_DIRECTORY}/configuracion` : undefined
         }
         setIsProduction(false)
       }
-      setDomain(resp?.name)
       try {
-        const firebaseClient = initializeApp(resp?.fileConfig);
-        firebaseClient
+        firebaseClient = initializeApp(resp?.fileConfig);
+        // firebaseClient
+        console.log(8000041, getAuth())
       } catch (error) {
         console.log(90001, error)
       }
@@ -91,18 +119,20 @@ const AuthProvider = ({ children }) => {
             console.info("Tengo cookie de sesion");
             if (user) {
               console.info("Tengo user de contexto firebase");
-              const moreInfo = await fetchApi({
+              const moreInfo = await fetchApiBodas({
                 query: queries.getUser,
                 variables: { uid: user?.uid },
+                development: config?.development
               });
               moreInfo && console.info("Tengo datos de la base de datos");
               setUser({ ...user, ...moreInfo });
               console.info("Guardo datos en contexto react");
             } else {
               console.info("NO tengo user de contexto de firebase");
-              const { customToken } = await fetchApi({
+              const { customToken } = await fetchApiBodas({
                 query: queries.authStatus,
                 variables: { sessionCookie },
+                development: config?.development
               });
               console.info("Llamo con mi sessionCookie para traerme customToken");
               console.info("Custom token", customToken)
@@ -127,7 +157,7 @@ const AuthProvider = ({ children }) => {
         const sessionCookie = Cookies.get(config?.cookie);
         if (user && sessionCookie) {
           console.log(1111111, "Cookies.set: idToken en ", process.env.NEXT_PUBLIC_DOMINIO ?? "")
-          Cookies.set("idToken", await user.getIdToken(), { domain: `.${domain}.com` })
+          Cookies.set("idToken", await user.getIdToken(), { domain: `.${resp?.domain}.com` })
         }
       })
     }
@@ -135,7 +165,7 @@ const AuthProvider = ({ children }) => {
 
 
   return (
-    <AuthContext.Provider value={{ user, setUser, verificationDone, setVerificationDone, domain, setDomain, config, setConfig, isProduction, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper }}>
+    <AuthContext.Provider value={{ user, setUser, verificationDone, setVerificationDone, config, setConfig, isProduction, setIsProduction, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper }}>
       {children}
     </AuthContext.Provider>
   );

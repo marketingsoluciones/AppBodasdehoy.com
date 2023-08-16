@@ -87,7 +87,7 @@ const BlockCategoria = ({ cate, set }) => {
                 }`,
                 variables: {},
               }
-              const { data: res } = await api.ApiBodas(params);
+              const { data: res } = await api.ApiApp(params);
               data = res?.data?.borraGasto
               console.log(data)
             } catch (error) {
@@ -159,7 +159,7 @@ const BlockCategoria = ({ cate, set }) => {
         variables: {},
       };
 
-      const { data } = await api.ApiBodas(params);
+      const { data } = await api.ApiApp(params);
       res = data.data.nuevoGasto;
       console.log(res);
     } catch (error) {
@@ -192,15 +192,15 @@ const BlockCategoria = ({ cate, set }) => {
   return (
     <>
       {GastoID.crear && (
-        <div className="absolute bg-white w-full h-full grid place-items-center z-20 rounded-xl white shadow-lg top-0 left-0 p-8">
+        <div className="absolute* bg-white w-full  h-max grid place-items-center z-20 rounded-xl white shadow-lg top-0 left-0 p-8 ">
           <div className="font-display text-gray-500 hover:text-gray-300 transition text-lg absolute top-5 right-5 cursor-pointer hover:scale-125" onClick={() => setGastoID("")}>X</div>
           <FormAddPago GastoID={GastoID?.id} cate={categoria?._id} />
         </div>
       )}
-      <div className="bg-white block-categoria h-max py-10 w-full rounded-xl shadow-lg overflow-hidden flex flex-col items-center relative ">
+      <div className={`bg-white block-categoria h-max py-10 w-full rounded-xl shadow-lg overflow-hidden flex flex-col items-center relative ${GastoID.crear?"hidden":"block"}`}>
         <div
           onClick={() => set({ isVisible: false, id: "" })}
-          className="cursor-pointer w-max absolute top-5 right-5 font-display hover:scale-125 transition transform text-gray-300 hover:text-gray-500 font-semibold text-lg"
+          className="cursor-pointer absolute top-5 right-5 font-display hover:scale-125 transition transform text-gray-500 hover:text-gray-500 font-semibold text-lg "
         >
           X
         </div>

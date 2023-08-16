@@ -165,7 +165,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
 
           return (
             <div
-              className="flex justify-start items-center truncate py-2 pr-3"
+              className="flex justify-start items-center truncate py-2 pr-3 cursor-pointer"
               onClick={handleClick}
             >
               <img
@@ -404,7 +404,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                 variables: {},
               };
 
-              await api.ApiBodas(params);
+              await api.ApiApp(params);
             } catch (error) {
               console.log(error);
             } finally {

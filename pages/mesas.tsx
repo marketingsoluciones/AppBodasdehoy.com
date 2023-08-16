@@ -16,6 +16,7 @@ import SwiperCore, { Pagination, Navigation } from 'swiper';
 import Prueba from "../components/Mesas/prueba";
 import FormEditarMesa from "../components/Forms/FormEditarMesa";
 import BlockTitle from "../components/Utils/BlockTitle";
+import { useMounted } from "../hooks/useMounted"
 
 SwiperCore.use([Pagination]);
 
@@ -29,6 +30,7 @@ const Mesas: FC = () => {
   const [filterGuests, setFilterGuests] = useState<{ sentados: guests[], noSentados: guests[] }>({ sentados: [], noSentados: [] })
   const [showTables, setShowTables] = useState<boolean>(true)
 
+  useMounted()
   useEffect(() => {
   }, [showFormEditar])
 

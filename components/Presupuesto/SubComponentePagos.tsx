@@ -62,7 +62,7 @@ const ListadoComponent = ({ pagos_array, cate, gasto, wantCreate, idModificar, r
     };
 
     try {
-      const { data: res } = await api.ApiBodas(params);
+      const { data: res } = await api.ApiApp(params);
       data = res.data.borraPago;
     } catch (error) {
       console.log(error);
