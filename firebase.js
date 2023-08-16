@@ -116,7 +116,7 @@ export const developments = [
     domain: ".vivetuboda.com",
     cookieGuest: "guestvivetuboda",
     pathLogin: "",
-    pathDirectory: "https://vivetuboda.com",
+    pathDirectory: "http://vivetuboda.com",
     logoDirectory: <LogoVivetuboda className="hover:opacity-80 transition text-primary " />,
     headTitle: "Organizador de Eventos",
     theme: {
