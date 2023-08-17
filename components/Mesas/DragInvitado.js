@@ -1,18 +1,26 @@
-import { TouchEvent } from "react";
-import { ImageProfile } from "../../utils/Funciones";
-import { MesaIcon, PendienteIcon } from "../icons";
+import { TouchEvent, useEffect, useState } from "react";
+import { ImageProfile, useDelayUnmount } from "../../utils/Funciones";
+import { EditarIcon, MesaIcon, PendienteIcon } from "../icons";
+import ModalBottom from "../Utils/ModalBottom";
+import ModalBottomSinAway from "../Utils/ModalBottomSinAway";
+import FormEditarInvitado from "../Forms/FormEditarInvitado";
+
 
 const DragInvitado = (props) => {
-  const { tipo, invitado, index } = props;
+  const { tipo, invitado, index, setEditInv, editInv,setSelected } = props;
+  /* const shouldRenderChild = useDelayUnmount(isMounted, 500); */
+
+  
+
   return (
     <>
       <div
-        className="flex justify-between px-5 py-1 hover:bg-base transition"
+        className="flex justify-between items-center px-5 py-1 hover:bg-base transition"
       >
         <span className="flex gap-3 items-center">
           <span
             id={`dragN${invitado._id}`}
-            className="w-full h-full text-gray-500 text-left flex js-dragInvitadoN rounded-lg px-2 md:px-0"
+            className="w-full h-full text-gray-500 text-left flex items-center js-dragInvitadoN rounded-lg px-2 md:px-0"
             onMouseDown={(e) => {
               //e.preventDefault()
               const rootElement = document.getElementById('areaDrag');
@@ -65,6 +73,12 @@ const DragInvitado = (props) => {
             <p className="font-display text-sm">{invitado?.nombre}</p>
           </span>
         </span>
+        <EditarIcon
+          onClick={() => {
+            setEditInv(!editInv);
+            setSelected(invitado._id)
+          }}
+          className="h-5 w-5 cursor-pointer" />
       </div>
     </>
   );

@@ -17,6 +17,8 @@ import Prueba from "../components/Mesas/prueba";
 import FormEditarMesa from "../components/Forms/FormEditarMesa";
 import BlockTitle from "../components/Utils/BlockTitle";
 import { useMounted } from "../hooks/useMounted"
+import ModalBottomSinAway from "../components/Utils/ModalBottomSinAway";
+import FormEditarInvitado from "../components/Forms/FormEditarInvitado";
 
 SwiperCore.use([Pagination]);
 
@@ -29,6 +31,8 @@ const Mesas: FC = () => {
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const [filterGuests, setFilterGuests] = useState<{ sentados: guests[], noSentados: guests[] }>({ sentados: [], noSentados: [] })
   const [showTables, setShowTables] = useState<boolean>(true)
+  const [editInv, setEditInv] = useState(false)
+  const [invitadoSelected, setSelected] = useState<string | null>(null);
 
   useMounted()
   useEffect(() => {
@@ -105,6 +109,9 @@ const Mesas: FC = () => {
                       <BlockInvitados
                         set={setIsMounted}
                         InvitadoNoSentado={filterGuests?.noSentados}
+                        setEditInv={setEditInv}
+                        editInv={editInv}
+                        setSelected={setSelected}
                       />
                     </div>
                   </div>
@@ -122,10 +129,12 @@ const Mesas: FC = () => {
                   <BlockResumen InvitadoSentados={filterGuests?.sentados} />
                 </div>
                 <div className="bg-white h-[calc(100vh-144px-260px)]">
-
                   <BlockInvitados
                     set={setIsMounted}
                     InvitadoNoSentado={filterGuests?.noSentados}
+                    setEditInv={setEditInv}
+                    editInv={editInv}
+                    setSelected={setSelected}
                   />
                 </div>
               </div>
@@ -143,6 +152,38 @@ const Mesas: FC = () => {
           `}
           </style>
         </div>
+        <ModalBottomSinAway state={editInv} set={setEditInv}>
+          <div className="flex justify-center w-full gap-6">
+            <div className="w-full md:w-5/6">
+              <div className="border-l-2 border-gray-100 pl-3 my-6 w-full ">
+                <h2 className="font-display text-2xl capitalize text-primary font-light">
+                  Editar <br />
+                  <span className="font-display text-4xl capitalize text-gray-500 font-medium">
+                    Invitado
+                  </span>
+                </h2>
+              </div>
+              {invitadoSelected !== null ? (
+                <FormEditarInvitado
+                  //ListaGrupos={event?.grupos_array}
+                  invitado={event.invitados_array.find(
+                    (guest) => guest._id === invitadoSelected
+                  )}
+                  setInvitadoSelected={setSelected}
+                  state={editInv}
+                  set={setEditInv}
+                />
+              ) : (
+                <div className="w-full h-full grid place-items-center h-96">
+                  {" "}
+                  <p className="font-display text-lg ">
+                    No hay invitado seleccionado
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </ModalBottomSinAway>
       </>
     );
   }

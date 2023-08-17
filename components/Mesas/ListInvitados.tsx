@@ -5,11 +5,13 @@ import DragInvitado from "./DragInvitado";
 
 interface propsListInvitados {
   InvitadoNoSentado: guests[]
+  setEditInv:any
+  editInv:any
+  setSelected:any
 }
 
-const ListInvitados: FC<propsListInvitados> = ({ InvitadoNoSentado }) => {
+const ListInvitados: FC<propsListInvitados> = ({ InvitadoNoSentado, editInv, setEditInv,setSelected }) => {
   const { setEvent } = EventContextProvider()
-
   return (
     <>
       <div className="w-full py-5 md:py-4" >
@@ -19,6 +21,9 @@ const ListInvitados: FC<propsListInvitados> = ({ InvitadoNoSentado }) => {
             tipo={"invitado"}
             index={index}
             invitado={invitado}
+            editInv={editInv}
+            setEditInv={setEditInv}
+            setSelected={setSelected}
           />
         ))}
       </div>
