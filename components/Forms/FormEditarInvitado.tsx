@@ -30,7 +30,7 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
   const toast = useToast()
   const [hoverRef, isHovered] = useHover();
 
-
+  
 
   type MyValues = {
     nombre: string
@@ -43,14 +43,15 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
   }
 
   const initialValues: MyValues = {
-    nombre: "",
-    sexo: "",
-    grupo_edad: "",
-    correo: "",
-    telefono: "",
-    rol: "",
-    menu: ""
+    nombre: invitado?.nombre,
+    sexo: invitado?.sexo,
+    grupo_edad: invitado?.grupo_edad,
+    correo: invitado?.correo,
+    telefono: invitado?.telefono,
+    rol: invitado?.rol,
+    menu: invitado?.nombre_menu
   }
+
 
   const handleSubmit = async (values: FormikValues, actions: any) => {
     set(!state)
@@ -107,7 +108,8 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
   };
   return (
     <Formik
-      initialValues={invitado ?? initialValues}
+      initialValues={initialValues}
+      enableReinitialize
       onSubmit={handleSubmit}
       validationSchema={validationSchema}
     >
@@ -143,7 +145,6 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                   />
                 </div>
               </div>
-
               <div className="w-full h-full gap-2 flex-col flex">
                 <div className="grid md:grid-cols-6 w-full gap-6 relative border-b  border-base ">
                   <SelectField
@@ -153,7 +154,6 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                     label="Grupo"
                     onChangeCapture={(e: any) => handleBlurData("rol", e?.target?.value)}
                   />
-
                   <SelectField
                     colSpan={2}
                     options={event?.mesas_array?.map((item) => item?.nombre_mesa)}
@@ -176,7 +176,6 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                   lista={["hombre", "mujer"]}
                   name="sexo"
                   onChangeCapture={(e: any) => handleBlurData("sexo", e.target.value)}
-
                 />
                 <BooleanSwitch
                   disabled={true}
@@ -251,7 +250,6 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                   }`}
                 disabled={isSubmitting}
                 onClick={() => set(!state)}
-              //type="submit"
               >
                 Guardar
               </button>

@@ -54,10 +54,6 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu, s
       {shouldRenderChild && (
         <ModalBottom state={isMounted} set={setIsMounted}>
           <div className="flex justify-center w-full gap-6">
-            {/* <div className="hidden md:block w-1/3">
-              <TabladeInvitados evento={event} idInvitado={setSelected} />
-            </div> */}
-
             <div className="w-full md:w-5/6">
               <div className="border-l-2 border-gray-100 pl-3 my-6 w-full ">
                 <h2 className="font-display text-2xl capitalize text-primary font-light">
