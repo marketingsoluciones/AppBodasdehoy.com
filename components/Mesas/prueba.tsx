@@ -113,9 +113,9 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables, setShowFormEditar 
                     <button className={`${disableDrag ? "block" : "hidden"}  `} onClick={() => { toast("error", "Desbloquea el plano para poder mover las mesas ") }}>
                       <Lock className="hidden* md:block h-7 w-7" />
                     </button>
-                    <ButtonConstrolsLienzo onClick={handleSetShowTables} className="md:hidden">
+                    {/* <ButtonConstrolsLienzo onClick={handleSetShowTables} className="md:hidden">
                       <span className="text-[10px] w-[60px]">{showTables ? 'Ver Invitados' : 'Crear Mesas'}</span>
-                    </ButtonConstrolsLienzo>
+                    </ButtonConstrolsLienzo> */}
                   </div>
                 </div>
                 <TransformComponent wrapperClass="contenedor">

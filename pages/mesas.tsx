@@ -20,6 +20,7 @@ import { useMounted } from "../hooks/useMounted"
 import ModalBottomSinAway from "../components/Utils/ModalBottomSinAway";
 import FormEditarInvitado from "../components/Forms/FormEditarInvitado";
 import { motion } from "framer-motion";
+import { SubMenu } from "../components/Utils/SubMenu";
 
 
 SwiperCore.use([Pagination]);
@@ -36,6 +37,7 @@ const Mesas: FC = () => {
   const [editInv, setEditInv] = useState(false)
   const [invitadoSelected, setSelected] = useState<string | null>(null);
   const [sect, setSect] = useState([false, false, false, false])
+  const [itemSelect, setItemSelect] = useState("mesas")
 
   useMounted()
   useEffect(() => {
@@ -97,7 +99,7 @@ const Mesas: FC = () => {
             />
           </ModalLeft>
         )}
-        <div>
+        <div className="font-display">
           <section id="areaDrag" className={`bg-base w-full h-full pt-2 md:py-0`}>
             <motion.div
               initial={{ opacity: 0 }}
@@ -107,14 +109,19 @@ const Mesas: FC = () => {
               <BlockTitle title={"Mesas y asientos"} />
             </motion.div>
             <div className="bg-base flex flex-col md:flex-row w-full fixed h-[calc(100%-208px)] md:h-[calc(100%-202px)] md:pt-4">
-              <div className="bg-violet-600 w-full md:w-[25%] h-[calc(100%-0px)]">
-                <div className="*md:hidden bg-green w-full h-10">
-                  botones
+              <div className="w-full *bg-red md:w-[25%] h-[calc(40%-0px)] md:h-[100%]">
+                <div className="bg-primary *md:hidden w-full h-10">
+                  <SubMenu itemSelect={itemSelect} setItemSelect={setItemSelect} />
                 </div>
-                <div className="flex w-[100%] md:h-[100%] absolute z-10 md:static ">
-                  {true && <div className="flex flex-col h-[calc(250px)] md:h-[calc(100%)] w-full *md:w-1/4 p-2 md:p-0 px-4 md:px-2 justify-start truncate transform transition duration-700">
-                    {/* <div className="hidden md:flex bg-red w-full truncate"> */}
-                    <div className={`${!showTables && 'hidden'} flex md:flex flex-col justify-start items-center transform transition duration-700`}>
+                <div className="*bg-red flex w-[100%] h-[calc(100%-40px)] md:h-[100%] ">
+                  <div className="bg-blue-500 flex flex-col h-[calc(100%)] w-full *md:w-1/4 *p-2 md:p-0 px-4 md:px-2 justify-start truncate transform transition duration-700">
+                    <div className="bg-base w-[100%] h-[100%] md:h-[calc(48%-40px)]">
+                      {itemSelect}
+                    </div>
+                    <div className="bg-yellow-500 w-[100%] h-[100%] md:h-[52%] hidden md:block">
+                      invitados
+                    </div>
+                    {/* <div className={`${!showTables && 'hidden'} flex md:flex flex-col justify-start items-center transform transition duration-700`}>
                       {sect[0] && <BlockPanelMesas
                         setModelo={setModelo}
                         state={showForm}
@@ -122,21 +129,20 @@ const Mesas: FC = () => {
                       />}
                       {sect[1] && <BlockResumen InvitadoSentados={filterGuests?.sentados} />}
                     </div>
-                    {/* <div className={`${showTables && 'hidden'} flex flex-col justify-start items-center transform transition duration-700`}> */}
                     <div className="bg-yellow-200 w-full h-[calc(100%-258px)]">
-                      {sect[2] && <BlockInvitados
+                      {true && <BlockInvitados
                         set={setIsMounted}
                         InvitadoNoSentado={filterGuests?.noSentados}
                         setEditInv={setEditInv}
                         editInv={editInv}
                         setSelected={setSelected}
                       />}
-                    </div>
+                    </div> */}
 
-                  </div>}
+                  </div>
                 </div>
               </div>
-              <div className="bg-red pt-2 md:pt-0 md:block flex justify-center items-center md:w-3/4 h-[calc(100%-42px)] md:h-full ">
+              <div className="*bg-violet-700 pt-2 md:pt-0 md:block flex justify-center items-center md:w-3/4 h-[calc(60%-0px)] md:h-full ">
                 <Prueba setShowTables={setShowTables} showTables={showTables} setShowFormEditar={setShowFormEditar} />
               </div>
 
