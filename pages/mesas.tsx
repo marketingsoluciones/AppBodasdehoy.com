@@ -35,7 +35,6 @@ const Mesas: FC = () => {
   const [invitadoSelected, setSelected] = useState<string | null>(null);
 
 
-  console.log("de la mesa", invitadoSelected)
   useEffect(() => {
   }, [showFormEditar])
 
@@ -77,6 +76,8 @@ const Mesas: FC = () => {
               modelo={modelo}
               set={setShowFormEditar}
               state={showFormEditar}
+              InvitadoNoSentado={filterGuests?.noSentados}
+
             />
           </ModalMesa>
         ) : null}
