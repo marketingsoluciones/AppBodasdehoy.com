@@ -19,6 +19,8 @@ import BlockTitle from "../components/Utils/BlockTitle";
 import { useMounted } from "../hooks/useMounted"
 import ModalBottomSinAway from "../components/Utils/ModalBottomSinAway";
 import FormEditarInvitado from "../components/Forms/FormEditarInvitado";
+import { motion } from "framer-motion";
+
 
 SwiperCore.use([Pagination]);
 
@@ -33,10 +35,17 @@ const Mesas: FC = () => {
   const [showTables, setShowTables] = useState<boolean>(true)
   const [editInv, setEditInv] = useState(false)
   const [invitadoSelected, setSelected] = useState<string | null>(null);
+  const [sect, setSect] = useState([false, false, false, false])
 
   useMounted()
   useEffect(() => {
   }, [showFormEditar])
+
+  useEffect(() => {
+    if (window?.innerWidth > 768)
+      setSect([true, true, true, true])
+  }, [])
+
 
   useEffect(() => {
     setFilterGuests(event?.invitados_array?.reduce((acc, guest) => {
@@ -89,69 +98,60 @@ const Mesas: FC = () => {
           </ModalLeft>
         )}
         <div>
-          <div className="">
-            <section id="areaDrag" className={`w-full grid md:grid-cols-12 bg-base overflow-hidden`}>
-              {/* movil */}
-              <div className="flex md:hidden h-[calc(250px)] flex-col ">
-                <div className="p-2 px-4">
-                  <div className="w-[calc(100vw-30px)] h-[calc(250px)] justify-start items-center truncate">
-                    <div className={`${!showTables && 'hidden'} flex flex-col justify-start items-center transform transition duration-700`}>
-                      <div className=" w-[calc(100vw-30px)] ">
-                        <BlockPanelMesas
-                          setModelo={setModelo}
-                          state={showForm}
-                          set={setShowForm}
-                        />
-                      </div>
-                      <BlockResumen InvitadoSentados={filterGuests?.sentados} />
+          <section id="areaDrag" className={`bg-base w-full h-full pt-2 md:py-0`}>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="max-w-screen-lg mx-auto inset-x-0 w-full px-5 md:px-0 ">
+              <BlockTitle title={"Mesas y asientos"} />
+            </motion.div>
+            <div className="bg-base flex flex-col md:flex-row w-full fixed h-[calc(100%-208px)] md:h-[calc(100%-202px)] md:pt-4">
+              <div className="bg-violet-600 w-full md:w-[25%] h-[calc(100%-0px)]">
+                <div className="*md:hidden bg-green w-full h-10">
+                  botones
+                </div>
+                <div className="flex w-[100%] md:h-[100%] absolute z-10 md:static ">
+                  {true && <div className="flex flex-col h-[calc(250px)] md:h-[calc(100%)] w-full *md:w-1/4 p-2 md:p-0 px-4 md:px-2 justify-start truncate transform transition duration-700">
+                    {/* <div className="hidden md:flex bg-red w-full truncate"> */}
+                    <div className={`${!showTables && 'hidden'} flex md:flex flex-col justify-start items-center transform transition duration-700`}>
+                      {sect[0] && <BlockPanelMesas
+                        setModelo={setModelo}
+                        state={showForm}
+                        set={setShowForm}
+                      />}
+                      {sect[1] && <BlockResumen InvitadoSentados={filterGuests?.sentados} />}
                     </div>
-                    <div className={`${showTables && 'hidden'} flex flex-col justify-start items-center transform transition duration-700`}>
-                      <BlockInvitados
+                    {/* <div className={`${showTables && 'hidden'} flex flex-col justify-start items-center transform transition duration-700`}> */}
+                    <div className="bg-yellow-200 w-full h-[calc(100%-258px)]">
+                      {sect[2] && <BlockInvitados
                         set={setIsMounted}
                         InvitadoNoSentado={filterGuests?.noSentados}
                         setEditInv={setEditInv}
                         editInv={editInv}
                         setSelected={setSelected}
-                      />
+                      />}
                     </div>
-                  </div>
+
+                  </div>}
                 </div>
               </div>
-              {/* web */}
-              <div className={`hidden md:flex h-[calc(100vh-144px)] col-span-3 box-border px-2 flex-col transform transition duration-700 overflow-y-auto`}>
-                <div className="h-[300px] ">
-                  <BlockTitle title={"Mesas"} />
-                  <BlockPanelMesas
-                    setModelo={setModelo}
-                    state={showForm}
-                    set={setShowForm}
-                  />
-                  <BlockResumen InvitadoSentados={filterGuests?.sentados} />
-                </div>
-                <div className="bg-white h-[calc(100vh-144px-260px)]">
-                  <BlockInvitados
-                    set={setIsMounted}
-                    InvitadoNoSentado={filterGuests?.noSentados}
-                    setEditInv={setEditInv}
-                    editInv={editInv}
-                    setSelected={setSelected}
-                  />
-                </div>
-              </div>
-              <div className="pt-2 md:pt-0 md:block flex justify-center items-center ">
+              <div className="bg-red pt-2 md:pt-0 md:block flex justify-center items-center md:w-3/4 h-[calc(100%-42px)] md:h-full ">
                 <Prueba setShowTables={setShowTables} showTables={showTables} setShowFormEditar={setShowFormEditar} />
               </div>
-            </section>
-            <div className="md:hidden w-full h-[80px]" />
-          </div>
+
+            </div >
+          </section >
+          {/* <div className="md:hidden w-full h-[80px]" /> */}
           <style>
-            {`
+            {
+              `
             section {
               height: calc(100vh - 9rem);
             }
           `}
-          </style>
-        </div>
+          </style >
+        </div >
         <ModalBottomSinAway state={editInv} set={setEditInv}>
           <div className="flex justify-center w-full gap-6">
             <div className="w-full md:w-5/6">

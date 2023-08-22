@@ -2,7 +2,7 @@ import { Dispatch, FC, SetStateAction, useEffect, useRef, useState } from "react
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { Dragable } from "./PruebaDragable";
 import { ActualizarPosicion, handleScale, useScreenSize } from "./FuntionsDragable";
-import { SearchIcon,Lock } from "../icons";
+import { SearchIcon, Lock } from "../icons";
 import { ButtonConstrolsLienzo } from "./ControlsLienzo";
 import { useToast } from "../../hooks/useToast";
 
@@ -68,11 +68,8 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables, setShowFormEditar 
 
   return (
     <>
-      <div>
-        <div className="bg-white h-8 widthCalc">
-          {/* <button className="bg-red" onClick={() => { controlsZoom.in }}>reset</button> */}
-        </div>
-        <div className="*bg-orange-500 flex divOrange justify-start relative" >
+      <div className="flex *bg-orange-500 divOrange justify-start relative *p-2 pt-8" >
+        <div className="flex w-full h-full">
           <TransformWrapper
             disabled={disableWrapper}
             limitToBounds={true}
@@ -92,12 +89,11 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables, setShowFormEditar 
             //maxPositionY={0}
             ref={(ref) => {
               ref && setScale(ref.state.scale)
-            }}
-          >
+            }}>
             {({ zoomIn, zoomOut, resetTransform, ...rest }) => (
               <>
                 {!reset ? handleReset(resetTransform) : () => { }}
-                <div className="flex items-start absolute z-10 transform translate-y-[-29px]">
+                <div className="flex items-start absolute z-10 transform translate-y-[-32px]">
                   <div className="flex widthCalc">
                     <ButtonConstrolsLienzo onClick={() => zoomIn()}>
                       <SearchIcon className="w-[13px]" />
@@ -114,9 +110,9 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables, setShowFormEditar 
                     <ButtonConstrolsLienzo onClick={handleSetDisableDrag} pulseButton={disableDrag}>
                       <span className="text-[10px] w-[90px]">{disableDrag ? 'Desloquear plano' : 'Bloquear plano'}</span>
                     </ButtonConstrolsLienzo>
-                      <button className={`${disableDrag ? "block" : "hidden"}  `} onClick={() => { toast("error", "Desbloquea el plano para poder mover las mesas ") }}>
-                        <Lock className="hidden* md:block h-7 w-7"/>
-                      </button>
+                    <button className={`${disableDrag ? "block" : "hidden"}  `} onClick={() => { toast("error", "Desbloquea el plano para poder mover las mesas ") }}>
+                      <Lock className="hidden* md:block h-7 w-7" />
+                    </button>
                     <ButtonConstrolsLienzo onClick={handleSetShowTables} className="md:hidden">
                       <span className="text-[10px] w-[60px]">{showTables ? 'Ver Invitados' : 'Crear Mesas'}</span>
                     </ButtonConstrolsLienzo>
@@ -133,8 +129,7 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables, setShowFormEditar 
             }
           </TransformWrapper>
         </div>
-      </div >
-
+      </div>
       <style >
         {`
           .widthCalc {
@@ -147,7 +142,7 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables, setShowFormEditar 
           .contenedor {
             *background-color: cyan;
             calc(${width == 0 ? scrX / 12 * 9 : width / 12 * 9}px);
-            height: calc(100vh - 144px - 32px);
+            height: calc(100vh - 144px - 32px - 70px);
           }
           .div3 {
             background-color: white;
@@ -163,12 +158,12 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables, setShowFormEditar 
             }
             .divOrange {
               width: calc(${scrX}px - 30px);
-              height: calc(100vh - 64px - 250px - 32px - 90px);
+              height: calc(100%);
             }
             .contenedor {
               *background-color: cyan;
               width: calc(${scrX}px - 30px);
-              height: calc(100vh - 64px - 250px - 32px - 90px);
+              height: calc(100% - 16px);
             }
             .div3 {
               background-color: yellow;

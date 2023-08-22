@@ -54,7 +54,7 @@ const Invitaciones = () => {
     if (!event) return <></>
     return (
       <DataTableGroupProvider>
-        <section className="bg-base w-full pb-6">
+        <section className="bg-base w-full pb-6 pt-2 md:py-0">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
