@@ -1,6 +1,6 @@
 import { forwardRef, useContext, useEffect, useMemo, useRef, useState, } from "react";
 import Breadcumbs from "../components/DefaultLayout/Breadcumb";
-import { CompartirIcon, InvitacionesIcon, SubirImagenIcon2, } from "../components/icons";
+import { CompartirIcon, DiseñoIcon, EmailIcon, InvitacionesIcon, SmsIcon, SubirImagenIcon2, WhatsappIcon, } from "../components/icons";
 import BlockTitle from "../components/Utils/BlockTitle";
 import useHover from "../hooks/useHover";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -21,11 +21,45 @@ import { DataTableGroupProvider } from "../context/DataTableGroupContext";
 import VistaSinCookie from "./vista-sin-cookie";
 
 
+
+
 const Invitaciones = () => {
   const [hoverRef, isHovered] = useHover();
   const { event } = EventContextProvider();
   const [dataInvitationSent, setDataInvitationSent] = useState([]);
   const [dataInvitationNotSent, setDataInvitationNotSent] = useState([]);
+  const arryOptions=[
+    {
+      onclick:"",
+      icon:<SmsIcon/>,
+      text:"SMS",
+      rout:""
+    },
+    {
+      onclick:"",
+      icon:<EmailIcon/>,
+      text:"Email",
+      rout:""
+    },
+    {
+      onclick:"",
+      icon:<WhatsappIcon/>,
+      text:"Whatsapp",
+      rout:""
+    },
+    {
+      onclick:"",
+      icon:<Invitaciones/>,
+      text:"Enviados",
+      rout:""
+    },
+    {
+      onclick:"",
+      icon:<DiseñoIcon/>,
+      text:"Diseño",
+      rout:""
+    }
+  ]
 
   useEffect(() => {
     const reduce = event?.invitados_array?.reduce((acc: any, item: any) => {
@@ -60,8 +94,9 @@ const Invitaciones = () => {
             className="max-w-screen-lg mx-auto inset-x-0 w-full px-5 md:px-0 gap-4"
           >
             <BlockTitle title="Invitaciones" />
-            <div className="w-full flex-col flex md:flex-row my-6 gap-6 relative">
-              { /*error de http://96.126.110.203:3001/false*/}
+
+            <div className="w-full flex flex-col md:flex-row my-6 gap-6 relative">
+
               <div ref={hoverRef} className="relative w-full h-96 md:w-1/3 ">
                 {/* <div className={`hidden md:block h-40 bg-secondary w-20 rounded-xl  absolute z-0 left-0 top-0 bottom-0 m-auto transform transition duration-400 ${isHovered && "-translate-x-1/2"} `}>
                 <div className="w-1/2 text-white flex flex-col items-center justify-center h-full gap-4">
@@ -71,11 +106,18 @@ const Invitaciones = () => {
               </div> */}
                 <ModuloSubida event={event} use={"imgInvitacion"} />
               </div>
-              <div className="w-full md:w-2/3 gap-6 h-full relative flex-col flex justify-end">
+
+              <div className="w-full md:w-2/3 h-full* flex flex-col gap-6 relative justify-center">
                 <CounterInvitations />
-                <Test />
+               {/*  <Test /> */}
               </div>
             </div>
+
+            <div className="bg-primary h-16 rounded-xl">
+              
+
+            </div>
+
             {event?.invitados_array?.length > 0 && (
               <div>
                 <div className="bg-white w-full rounded-xl shadow-md relative mt-4 mb-8">
@@ -84,10 +126,12 @@ const Invitaciones = () => {
                 </div>
                 <div className="bg-white w-full rounded-xl shadow-md relative mt-4 mb-8">
                   <Separator title="Invitaciones enviadas" />
-                  {/*dataInvitationSent &&*/ <GuestTable data={dataInvitationSent} multiSeled={false} />}
+                  {/*dataInvitationSent &&*/ <GuestTable data={dataInvitationSent} multiSeled={true} />}
                 </div>
               </div>
             )}
+
+
             { /*error de http://96.126.110.203:3001/%7B%7Bparams.imgUrl%7D%7D */}
             <VistaPrevia event={event} />
             <h2 className="font-display font-semibold text-2xl text-gray-500 p-4">

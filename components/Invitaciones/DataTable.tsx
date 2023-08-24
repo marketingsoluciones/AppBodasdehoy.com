@@ -13,9 +13,19 @@ export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, set
       hooks.visibleColumns.push((columns) => [
         {
           id: "selection",
-          Header: ({ getToggleAllRowsSelectedProps }) => {
+          Header: ({ getToggleAllRowsSelectedProps, row }) => {
             const { dataTableGroup: { arrIDs } } = DataTableGroupContextProvider()
             const [valir, setValir] = useState(false)
+            const [enviadosA, setEnviadosA] = useState([])
+            
+            console.log("usuarios ", enviadosA)
+            const dataa=(data.find((cierto) => cierto.invitacion === true))
+            useEffect(()=>{
+              setEnviadosA(dataa)
+            },[data])
+            console.log("usuarios enviados", dataa)
+
+            
             useEffect(() => {
               if (arrIDs.length > 0) {
                 setValir(true)
@@ -23,18 +33,18 @@ export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, set
                 setValir(false)
               }
             }, [arrIDs, valir]);
+
             return (
               multiSeled &&
               <div className="">
                 {
                   valir ? (
                     <button onClick={() => { setArrEnviatInvitaciones(arrIDs) }} className="focus:outline-none hover:bg-secondary hover:text-gray-300 transition bg-primary text-white py-1 rounded-xl text-center text-[10px] md:text-sm  w-full">
-
-                      Enviar
+                      {data.invitacion ? "Reenviar" : "Enviar"}
                     </button>
                   ) : (
                     <button className="focus:outline-none bg-primary text-white py-1 rounded-xl text-center text-[10px] md:text-sm  w-full">
-                      Enviar
+                      {data.invitacion ? "Reenviar" : "Enviar"}
                     </button>
                   )
                 }
@@ -71,7 +81,7 @@ export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, set
     selection: 1,
     nombre: 3,
     invitacion: 2,
-    correo: 3,
+    correo: 2,
   };
   return (
     <>
@@ -110,15 +120,14 @@ export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, set
                 <tr
                   key={i}
                   {...row.getRowProps()}
-                  className="w-full transition border-b border-base hover:bg-base w-full grid grid-cols-9 md:px-3 pl-3 "
+                  className={`"w-full transition border-b border-base hover:bg-base w-full grid grid-cols-9 md:px-3 pl-3  `}
                 >
                   {row.cells.map((cell, i) => {
                     return (
                       <td
                         key={i}
                         {...cell.getCellProps()}
-                        className={` mr-5 truncate font-display grid place-items-center text-sm w-full text-black h-full text-center text-left py-2 pr-2 col-span-${colSpan[cell.column.id]
-                          }`}
+                        className={` mr-5* truncate font-display grid place-items-center text-sm w-full text-black h-full text-center py-2 pr-2 col-span-${colSpan[cell.column.id]}`}
                       >
                         {cell.render("Cell")}
                       </td>

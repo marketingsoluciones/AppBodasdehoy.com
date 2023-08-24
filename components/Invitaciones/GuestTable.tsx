@@ -82,12 +82,28 @@ export const GuestTable: FC<any> = ({ data, multiSeled }) => {
                 onClick={handleClick}
               >
                 <InvitacionesIcon className="w-5 h-5 " />
-                <p className="font-display text-md text-black truncate">{mensaje[value]}</p>
-                {value && isHovered && (
-                  <div className="transform bg-white w-2/3 shadow absolute right-0 mx-auto inset-x-0 translate-x-full rounded-lg text-gray-500 text-sm">
-                    Enviado el <br /> 27 Junio 2021
-                  </div>
-                )}
+                <p className="font-display text-md text-black truncate hidden md:block ">{mensaje[value]}</p>
+              </div>
+            </>
+          );
+        },
+      },
+      {
+        Header: "ENVIADO",
+        accessor: "date",
+        id: "date",
+        Cell: (props) => {
+          const [value, setValue] = useState(props.value);
+          useEffect(() => {
+            setValue(props.value);
+          }, [props.value]);
+
+          return (
+            <>
+              <div
+                className={`truncate relative w-full h-full flex items-center justify-center pl-3 gap-1 `}
+              >
+                <p className="font-display text-md text-black truncate hidden md:block ">Sin enviar</p>
               </div>
             </>
           );
