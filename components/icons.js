@@ -12,6 +12,20 @@ export const LogoEventosPlanificador = (props) => {
   );
 }
 
+export const ArrowDown = (props) => {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      height="13px"
+      width="13px"
+      {...props}
+    >
+      <path d="M11.178 19.569a.998.998 0 001.644 0l9-13A.999.999 0 0021 5H3a1.002 1.002 0 00-.822 1.569l9 13z" />
+    </svg>
+  );
+}
+
 export const ArrowLeft = (props) => {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" {...props}>
@@ -561,6 +575,24 @@ export const EditarIcon = (props) => {
       <path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" stroke="currentColor" />
     </svg>
 
+  )
+}
+
+export const XpersonIcon = (props) => {
+  return (
+    <svg
+      fill="currentColor"
+      viewBox="0 0 16 16"
+      height="4em"
+      width="4em"
+      {...props}
+    >
+      <path d="M6 8a3 3 0 100-6 3 3 0 000 6zm2-3a2 2 0 11-4 0 2 2 0 014 0zm4 8c0 1-1 1-1 1H1s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C9.516 10.68 8.289 10 6 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z" />
+      <path
+        fillRule="evenodd"
+        d="M12.146 5.146a.5.5 0 01.708 0L14 6.293l1.146-1.147a.5.5 0 01.708.708L14.707 7l1.147 1.146a.5.5 0 01-.708.708L14 7.707l-1.146 1.147a.5.5 0 01-.708-.708L13.293 7l-1.147-1.146a.5.5 0 010-.708z"
+      />
+    </svg>
   )
 }
 
