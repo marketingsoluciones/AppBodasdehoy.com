@@ -1,10 +1,13 @@
 import { createContext, useState, useContext } from "react";
 import Loading from "../components/DefaultLayout/Loading";
 
-const LoadingContext = createContext({
-  loading: null,
-  setLoading: () => null,
-});
+
+const initialContext = {
+  loading: false,
+  setLoading: undefined,
+}
+
+const LoadingContext = createContext(initialContext);
 
 const LoadingProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);

@@ -12,6 +12,7 @@ import { NextPage } from "next";
 import { Event } from "../utils/Interfaces";
 import { fetchApiEventos, queries } from "../utils/Fetching";
 import VistaSinCookie from "../pages/vista-sin-cookie"
+import { useMounted } from "../hooks/useMounted"
 
 const Home: NextPage = () => {
   const [isMounted, setIsMounted] = useState<boolean>(false);
@@ -20,6 +21,7 @@ const Home: NextPage = () => {
   const { event } = EventContextProvider()
   const [showEditEvent, setShowEditEvent] = useState<boolean>(false);
   const [valir, setValir] = useState<boolean>(false);
+  useMounted()
 
   useEffect(() => {
     fetchApiEventos({

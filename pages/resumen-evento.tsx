@@ -9,9 +9,12 @@ import BlockPresupuesto from "../components/Resumen/BlockPresupuesto";
 import BlockPrincipal from "../components/Resumen/BlockPrincipal";
 import BlockSobreMiEvento from "../components/Resumen/BlockSobreMiEvento";
 import { EventContextProvider } from "../context";
+import { useMounted } from "../hooks/useMounted"
 
 const Resumen = () => {
-  const { event } = EventContextProvider();
+  const { event } = EventContextProvider()
+
+  useMounted()
 
   if (!event) return <></>
   return (

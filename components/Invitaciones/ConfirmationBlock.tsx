@@ -45,7 +45,7 @@ export const ConfirmationBlock: FC<any> = ({ arrEnviarInvitaciones, set }) => {
     };
 
     try {
-      await api.ApiBodas(params);
+      await api.ApiApp(params);
     } catch (error) {
       console.log(error);
     } finally {

@@ -9,12 +9,14 @@ import ModalLeft from "../components/Utils/ModalLeft";
 import { AuthContextProvider, EventContextProvider } from "../context";
 import VistaSinCookie from "./vista-sin-cookie";
 import FormCrearMenu from "../components/Forms/FormCrearMenu";
+import { useMounted } from "../hooks/useMounted";
 
 const Invitados: FC = () => {
   const [isMounted, setIsMounted] = useState<boolean>(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const [formShow, setFormShow] = useState<string | null>(null)
   const { event } = EventContextProvider();
+  useMounted()
 
   const reciboClick = (accion) => {
     setIsMounted(accion.state)
@@ -53,8 +55,12 @@ const Invitados: FC = () => {
           </ModalLeft>
         )}
         {event &&
-          <section className="bg-base w-full h-full">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="max-w-screen-lg mx-auto inset-x-0 w-full px-5 md:px-0 gap-4">
+          <section className="bg-base w-full h-full pt-2 md:py-0">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="max-w-screen-lg mx-auto inset-x-0 w-full px-5 md:px-0 gap-4">
               <BlockCabecera />
               <BlockListaInvitados state={isMounted} set={reciboClick} />
             </motion.div>
