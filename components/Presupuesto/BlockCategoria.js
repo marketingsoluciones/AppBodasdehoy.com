@@ -87,7 +87,7 @@ const BlockCategoria = ({ cate, set }) => {
                 }`,
                 variables: {},
               }
-              const { data: res } = await api.ApiBodas(params);
+              const { data: res } = await api.ApiApp(params);
               data = res?.data?.borraGasto
               console.log(data)
             } catch (error) {
@@ -159,7 +159,7 @@ const BlockCategoria = ({ cate, set }) => {
         variables: {},
       };
 
-      const { data } = await api.ApiBodas(params);
+      const { data } = await api.ApiApp(params);
       res = data.data.nuevoGasto;
       console.log(res);
     } catch (error) {

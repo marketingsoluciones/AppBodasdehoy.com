@@ -102,7 +102,7 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state }) => {
         let res
         try {
           actions.setSubmitting(true)
-          const { data } = await api.ApiBodas(params)
+          const { data } = await api.ApiApp(params)
           res = data?.data?.editPago
         } catch (error) {
           console.log(error)

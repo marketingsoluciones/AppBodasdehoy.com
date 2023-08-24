@@ -1,27 +1,19 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
-import Breadcumb from "../components/DefaultLayout/Breadcumb";
-import {
-  AmazonIcon,
-  CochinoIcon,
-  CompartirIcon,
-  DineroIcon,
-  ListaOne,
-  ListaTwo,
-} from "../components/icons";
+import { AmazonIcon, CochinoIcon, CompartirIcon, DineroIcon, ListaOne, ListaTwo } from "../components/icons";
 import ModalGuardarRegalo from "../components/ListaDeRegalos/ModalGuardarRegalo";
 import BlockTitle from "../components/Utils/BlockTitle";
 import { AuthContextProvider, EventContextProvider } from "../context";
 import VistaSinCookie from "./vista-sin-cookie";
 import FormGuardarRegalos from "../components/Forms/FormGuardarRegalos"
+import { useMounted } from "../hooks/useMounted"
 
 
 const ListaRegalos = () => {
   const { event } = EventContextProvider()
   const { user, verificationDone } = AuthContextProvider()
   const [showForm, setShowForm] = useState(false)
-
-
+  useMounted()
 
   if (verificationDone) {
     if (!user) {
@@ -44,10 +36,12 @@ const ListaRegalos = () => {
         ) : null}
 
 
-        <section className="w-full bg-base">
-          <motion.div initial={{ opacity: 0 }}
+        <section className="w-full bg-base pt-2 md:py-0">
+          <motion.div
+            initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }} className="max-w-screen-lg mx-auto inset-x-0 flex-col gap-6 flex pb-28 md:pb-10">
+            exit={{ opacity: 0 }}
+            className="max-w-screen-lg mx-auto inset-x-0 flex-col gap-6 flex pb-28 md:pb-10">
             <BlockTitle title={"Lista de regalos"} />
             <div className="w-full flex flex-col md:flex-row justify-center items-center gap-6 ">
               <div className="w-full md:w-1/2 bg-white shadow-lg flex gap-8 items-center justify-center p-6 rounded-xl">

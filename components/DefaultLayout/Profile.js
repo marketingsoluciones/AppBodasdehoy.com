@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ClickAwayListener from "react-click-away-listener";
 import { capitalize } from "../../utils/Capitalize";
 import { MensajeIcon } from "../icons";
-import router from "next/router";
+import router, { useRouter } from "next/router";
 import { getAuth, signOut } from "firebase/auth";
 import { AuthContextProvider } from "../../context";
 import Cookies from "js-cookie";
@@ -11,41 +11,42 @@ import Cookies from "js-cookie";
 const Profile = ({ user, state, set, ...rest }) => {
   const { config } = AuthContextProvider()
   const [dropdown, setDropwdon] = useState(false);
+  const { route } = useRouter()
+
   const ListaDropdown = [
     {
       title: "Iniciar sesión",
-      onClick: async () => { router.push(`${config?.pathDirectory}/login?d=app`) },
+      onClick: async () => { router.push(config?.pathLogin ? `${config?.pathLogin}?d=app` : `/login?d=${route}`) },
       user: "guest"
     },
     {
       title: "Registro",
-      onClick: async () => { router.push(`${config?.pathDirectory}/login?d=app&q=register`) },
+      onClick: async () => { router.push(config?.pathLogin ? `${config?.pathLogin}?d=app&q=register` : `/login?q=register&d=${route}`) },
       user: "guest"
     },
     {
       title: "Ir al directorio",
-      onClick: async () => { router.push(process.env.NEXT_PUBLIC_DIRECTORY) },
-      user: "all"
+      onClick: async () => { router.push(config?.pathDirectory) },
+      user: config?.pathDirectory ? "all" : null
     },
     {
       title: "Perfil",
-      onClick: async () => { router.push(process.env.NEXT_PUBLIC_DIRECTORY) },
+      onClick: async () => { router.push(config?.pathPerfil) },
       user: "loged"
     },
     {
       title: "Cerrar sesión",
       onClick: async () => {
-        Cookies.remove("sessionBodas", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "" });
-        Cookies.remove("idToken", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "" });
+        Cookies.remove("sessionBodas", { domain: config?.domain ?? "" });
+        Cookies.remove("idToken", { domain: config?.domain ?? "" });
         await signOut(getAuth());
-        router.push(`${process.env.NEXT_PUBLIC_DIRECTORY}/signout?end=true` ?? "")
+        router.push(`${config.pathSignout}?end=true` ?? "")
       },
       user: "loged"
     }
   ]
   const valirUser = user?.displayName == "guest" ? "guest" : "loged"
   const ListaDropdownFilter = ListaDropdown.filter(elem => elem?.user === valirUser || elem?.user === "all")
-
   return (
     <>
       <div

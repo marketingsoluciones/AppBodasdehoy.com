@@ -43,7 +43,7 @@ export default function Test() {
 
     try {
       actions.setSubmitting(true)
-      const { data } = await api.ApiBodas(params)
+      const { data } = await api.ApiApp(params)
       console.log(data)
     } catch (error) {
       console.log(error)
@@ -93,7 +93,7 @@ const Aceptar = async () => {
 
 
   try {
-    await api.ApiBodas(params);
+    await api.ApiApp(params);
   } catch (error) {
     console.log(error);
   } finally {

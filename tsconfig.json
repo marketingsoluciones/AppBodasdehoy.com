@@ -23,7 +23,8 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    "pages/iteratable.js"
+    "pages/iteratable.js",
+    "pages/login.js"
   ],
   "exclude": [
     "node_modules"

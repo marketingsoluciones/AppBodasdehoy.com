@@ -19,13 +19,15 @@ import { GuestTable } from "../components/Invitaciones/GuestTable";
 import { Separator } from "../components/Separator";
 import { DataTableGroupProvider } from "../context/DataTableGroupContext";
 import VistaSinCookie from "./vista-sin-cookie";
-
+import { useMounted } from "../hooks/useMounted"
 
 const Invitaciones = () => {
   const [hoverRef, isHovered] = useHover();
   const { event } = EventContextProvider();
   const [dataInvitationSent, setDataInvitationSent] = useState([]);
   const [dataInvitationNotSent, setDataInvitationNotSent] = useState([]);
+
+  useMounted()
 
   useEffect(() => {
     const reduce = event?.invitados_array?.reduce((acc: any, item: any) => {
@@ -52,7 +54,7 @@ const Invitaciones = () => {
     if (!event) return <></>
     return (
       <DataTableGroupProvider>
-        <section className="bg-base w-full pb-6">
+        <section className="bg-base w-full pb-6 pt-2 md:py-0">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

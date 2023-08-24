@@ -20,7 +20,7 @@ const BlockResumen: FC<propsBlockResumen> = ({ InvitadoSentados }) => {
         { title: `${InvitadoSentados?.length} de ${event?.invitados_array?.length}`, subtitle: " Invitados sentados" },
     ]
     return (
-        <div className="bg-primary w-full px-3 md:px-6 pb-2 mt-2 rounded-lg">
+        <div className="bg-primary w-full px-3 md:px-6 pb-2 rounded-lg">
             <h2 className="text-tertiary font-display text-medium text-lg py-1">Resumen</h2>
             <div className="flex md:flex-col">
                 {Datos.map((item, idx) => (
