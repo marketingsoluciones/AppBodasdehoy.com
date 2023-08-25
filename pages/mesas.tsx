@@ -109,27 +109,33 @@ const Mesas: FC = () => {
               <BlockTitle title={"Mesas y asientos"} />
             </motion.div>
             <div className="bg-base flex flex-col md:flex-row w-full fixed h-[calc(100%-208px)] md:h-[calc(100%-202px)] md:pt-4">
-              <div className="w-full *bg-red md:w-[25%] h-[calc(40%-0px)] md:h-[100%]">
+              <div className="w-full md:w-[25%] h-[calc(40%-0px)] md:h-[100%]">
                 <div className="bg-primary *md:hidden w-full h-10">
                   <SubMenu itemSelect={itemSelect} setItemSelect={setItemSelect} />
                 </div>
-                <div className="*bg-red flex w-[100%] h-[calc(100%-40px)] md:h-[100%] ">
-                  <div className="bg-blue-500 flex flex-col h-[calc(100%)] w-full *md:w-1/4 *p-2 md:p-0 px-4 md:px-2 justify-start truncate transform transition duration-700">
-                    <div className="bg-base w-[100%] h-[100%] md:h-[calc(48%-40px)]">
-                      {itemSelect}
+                <div className="flex w-[100%] h-[calc(100%-40px)] md:h-[100%] ">
+                  <div className="flex flex-col h-[calc(100%)] w-full *md:w-1/4 *p-2 md:p-0 px-4 md:px-2 justify-start truncate transform transition duration-700">
+                    <div className="w-[100%] h-[100%] md:h-[calc(48%-40px)] border-b-2">
+                      {itemSelect == "invitados" &&
+                        <BlockInvitados set={setIsMounted} InvitadoNoSentado={filterGuests?.noSentados} setEditInv={setEditInv} editInv={editInv} setSelected={setSelected} />
+                      }
+                      {itemSelect == "mesas" &&
+                        <BlockPanelMesas setModelo={setModelo} state={showForm} set={setShowForm} />
+                      }
+                      {itemSelect == "mobiliario" &&
+                        <BlockResumen InvitadoSentados={filterGuests?.sentados} />
+                      }
+                      {itemSelect == "zonas" &&
+                        <BlockResumen InvitadoSentados={filterGuests?.sentados} />
+                      }
+                      {itemSelect == "plantilla" &&
+                        <BlockResumen InvitadoSentados={filterGuests?.sentados} />
+                      }
+                      {itemSelect == "resumen" &&
+                        <BlockResumen InvitadoSentados={filterGuests?.sentados} />
+                      }
                     </div>
-                    <div className="bg-yellow-500 w-[100%] h-[100%] md:h-[52%] hidden md:block">
-                      invitados
-                    </div>
-                    {/* <div className={`${!showTables && 'hidden'} flex md:flex flex-col justify-start items-center transform transition duration-700`}>
-                      {sect[0] && <BlockPanelMesas
-                        setModelo={setModelo}
-                        state={showForm}
-                        set={setShowForm}
-                      />}
-                      {sect[1] && <BlockResumen InvitadoSentados={filterGuests?.sentados} />}
-                    </div>
-                    <div className="bg-yellow-200 w-full h-[calc(100%-258px)]">
+                    <div className="bg-white w-[100%] h-[100%] md:h-[52%] hidden md:block">
                       {true && <BlockInvitados
                         set={setIsMounted}
                         InvitadoNoSentado={filterGuests?.noSentados}
@@ -137,7 +143,9 @@ const Mesas: FC = () => {
                         editInv={editInv}
                         setSelected={setSelected}
                       />}
-                    </div> */}
+                    </div>
+
+
 
                   </div>
                 </div>
