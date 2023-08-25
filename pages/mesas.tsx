@@ -39,9 +39,11 @@ const Mesas: FC = () => {
   const [sect, setSect] = useState([false, false, false, false])
   const [itemSelect, setItemSelect] = useState("mesas")
 
+
   useMounted()
-  useEffect(() => {
-  }, [showFormEditar])
+
+
+
 
   useEffect(() => {
     if (window?.innerWidth > 768)
@@ -87,6 +89,8 @@ const Mesas: FC = () => {
               modelo={modelo}
               set={setShowFormEditar}
               state={showFormEditar}
+              InvitadoNoSentado={filterGuests?.noSentados}
+
             />
           </ModalMesa>
         ) : null}
