@@ -38,6 +38,7 @@ const Mesas: FC = () => {
   const [invitadoSelected, setSelected] = useState<string | null>(null);
   const [sect, setSect] = useState([false, false, false, false])
   const [itemSelect, setItemSelect] = useState("mesas")
+  const [fullScreen, setFullScreen] = useState<boolean>(false)
 
 
   useMounted()
@@ -104,7 +105,7 @@ const Mesas: FC = () => {
           </ModalLeft>
         )}
         <div className="font-display">
-          <section id="areaDrag" className={`bg-base w-full h-full pt-2 md:py-0`}>
+          <section id="areaDrag" className={`bg-base w-full h-full pt-2 md:py-0 static`}>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -112,63 +113,56 @@ const Mesas: FC = () => {
               className="max-w-screen-lg mx-auto inset-x-0 w-full px-5 md:px-0 ">
               <BlockTitle title={"Mesas y asientos"} />
             </motion.div>
-            <div className="bg-base flex flex-col md:flex-row w-full fixed h-[calc(100%-208px)] md:h-[calc(100%-202px)] md:pt-4">
-              <div className="w-full md:w-[25%] h-[calc(40%-0px)] md:h-[100%]">
-                <div className="bg-primary *md:hidden w-full h-10">
-                  <SubMenu itemSelect={itemSelect} setItemSelect={setItemSelect} />
-                </div>
-                <div className="flex w-[100%] h-[calc(100%-40px)] md:h-[100%] ">
-                  <div className="flex flex-col h-[calc(100%)] w-full *md:w-1/4 *p-2 md:p-0 px-4 md:px-2 justify-start truncate transform transition duration-700">
-                    <div className="w-[100%] h-[100%] md:h-[calc(48%-40px)] border-b-2">
-                      {itemSelect == "invitados" &&
-                        <BlockInvitados set={setIsMounted} InvitadoNoSentado={filterGuests?.noSentados} setEditInv={setEditInv} editInv={editInv} setSelected={setSelected} />
-                      }
-                      {itemSelect == "mesas" &&
-                        <BlockPanelMesas setModelo={setModelo} state={showForm} set={setShowForm} />
-                      }
-                      {itemSelect == "mobiliario" &&
-                        <BlockResumen InvitadoSentados={filterGuests?.sentados} />
-                      }
-                      {itemSelect == "zonas" &&
-                        <BlockResumen InvitadoSentados={filterGuests?.sentados} />
-                      }
-                      {itemSelect == "plantilla" &&
-                        <BlockResumen InvitadoSentados={filterGuests?.sentados} />
-                      }
-                      {itemSelect == "resumen" &&
-                        <BlockResumen InvitadoSentados={filterGuests?.sentados} />
-                      }
+            <div className={`${fullScreen ? "absolute z-[1000] w-[100vw] h-[100vh] top-0 left-0" : "w-full h-[calc(100vh-208px)] md:h-[calc(100vh-202px)]"}`}>
+
+
+              <div className={`flex flex-col md:flex-row w-full items-center h-full`}>
+                { /* */}<div className={`w-[calc(100%-40px)] mt-2 md:mt-0 md:w-[25%] ${fullScreen ? "h-[calc(30%-8px)]" : "h-[calc(30%-8px)]"} md:h-[100%] flex flex-col items-center truncate`}>
+                  <div className="bg-primary rounded-t-lg md:rounded-none w-[100%] ] h-10 ">
+                    <SubMenu itemSelect={itemSelect} setItemSelect={setItemSelect} />
+                  </div>
+                  <div className={`bg-base flex w-[100%] h-[calc(100%-40px)]`} >
+                    <div className="flex flex-col h-[100%] w-full md:px-2 justify-start truncate transform transition duration-700">
+                      <div className={`bg-white w-[100%] h-[100%] mb-2 ${fullScreen ? "md:h-[30%] 2xl:h-[25%]" : "md:h-[40%] 2xl:h-[30%] rounded-b-lg shadow-lg"}`}>
+                        {itemSelect == "invitados" &&
+                          <BlockInvitados set={setIsMounted} InvitadoNoSentado={filterGuests?.noSentados} setEditInv={setEditInv} editInv={editInv} setSelected={setSelected} />
+                        }
+                        {itemSelect == "mesas" &&
+                          <BlockPanelMesas setModelo={setModelo} state={showForm} set={setShowForm} />
+                        }
+                        {itemSelect == "mobiliario" &&
+                          <BlockResumen InvitadoSentados={filterGuests?.sentados} />
+                        }
+                        {itemSelect == "zonas" &&
+                          <BlockResumen InvitadoSentados={filterGuests?.sentados} />
+                        }
+                        {itemSelect == "plantilla" &&
+                          <BlockResumen InvitadoSentados={filterGuests?.sentados} />
+                        }
+                        {itemSelect == "resumen" &&
+                          <BlockResumen InvitadoSentados={filterGuests?.sentados} />
+                        }
+                      </div>
+                      <div className={`w-[100%] h-[100%] ${fullScreen ? "md:h-[calc(70%-16px)] 2xl:h-[calc(75%-50px)]" : "md:h-[calc(60%-16px)] 2xl:h-[calc(75%-50px)]"} hidden md:block`}>
+                        {true && <BlockInvitados
+                          set={setIsMounted}
+                          InvitadoNoSentado={filterGuests?.noSentados}
+                          setEditInv={setEditInv}
+                          editInv={editInv}
+                          setSelected={setSelected}
+                        />}
+                      </div>
                     </div>
-                    <div className="bg-white w-[100%] h-[100%] md:h-[52%] hidden md:block">
-                      {true && <BlockInvitados
-                        set={setIsMounted}
-                        InvitadoNoSentado={filterGuests?.noSentados}
-                        setEditInv={setEditInv}
-                        editInv={editInv}
-                        setSelected={setSelected}
-                      />}
-                    </div>
-
-
-
                   </div>
                 </div>
-              </div>
-              <div className="*bg-violet-700 pt-2 md:pt-0 md:block flex justify-center items-center md:w-3/4 h-[calc(60%-0px)] md:h-full ">
-                <Prueba setShowTables={setShowTables} showTables={showTables} setShowFormEditar={setShowFormEditar} />
-              </div>
+                { /* */}<div className="bg-cyan-200 pt-2 md:pt-0 md:block flex justify-center items-center w-full md:w-3/4 h-[calc(70%-0px)] md:h-[100%]">
+                  <Prueba setShowTables={setShowTables} showTables={showTables} setShowFormEditar={setShowFormEditar} fullScreen={fullScreen} setFullScreen={setFullScreen} />
+                </div>
 
-            </div >
+              </div >
+            </div>
           </section >
           {/* <div className="md:hidden w-full h-[80px]" /> */}
-          <style>
-            {
-              `
-            section {
-              height: calc(100vh - 9rem);
-            }
-          `}
-          </style >
         </div >
         <ModalBottomSinAway state={editInv} set={setEditInv}>
           <div className="flex justify-center w-full gap-6">
@@ -192,7 +186,7 @@ const Mesas: FC = () => {
                   set={setEditInv}
                 />
               ) : (
-                <div className="w-full h-full grid place-items-center h-96">
+                <div className="w-full h-96 grid place-items-center">
                   {" "}
                   <p className="font-display text-lg ">
                     No hay invitado seleccionado
