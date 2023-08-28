@@ -6,7 +6,7 @@ import { EventContextProvider } from "../../context";
 import { ConfirmationBlock } from "../../components/Invitaciones/ConfirmationBlock"
 import { DataTable } from "../../components/Invitaciones/DataTable"
 
-export const GuestTable: FC<any> = ({ data, multiSeled }) => {
+export const GuestTable: FC<any> = ({ data, multiSeled, reenviar }) => {
   const [arrEnviarInvitaciones, setArrEnviatInvitaciones] = useState([]);
 
   const Columna = useMemo(
@@ -15,6 +15,7 @@ export const GuestTable: FC<any> = ({ data, multiSeled }) => {
         Header: "NOMBRE",
         accessor: "nombre",
         id: "nombre",
+        isVisible:false,
         Cell: (props) => {
           const [value, setValue] = useState(props.cell.value);
           useEffect(() => {
@@ -32,7 +33,8 @@ export const GuestTable: FC<any> = ({ data, multiSeled }) => {
             },
           };
           return (
-            <div className="flex gap-1 items-center w-full md:pl-28  ">
+            
+            <div className="flex gap-1 items-center w-3/4 justify-center md:justify-start ">
               <img
                 src={image[sexo]?.image}
                 className="rounded-full object-cover md:w-10 md:h-10 w-7 h-7"
@@ -48,6 +50,11 @@ export const GuestTable: FC<any> = ({ data, multiSeled }) => {
         Header: "CORREO",
         accessor: "correo",
         id: "correo",
+      },
+      {
+        Header: "TELEFONO",
+        accessor: "telefono",
+        id: "telefono",
       },
       {
         Header: "INVITACION",
@@ -82,7 +89,7 @@ export const GuestTable: FC<any> = ({ data, multiSeled }) => {
                 onClick={handleClick}
               >
                 <InvitacionesIcon className="w-5 h-5 " />
-                <p className="font-display text-md text-black truncate hidden md:block ">{mensaje[value]}</p>
+                <p className="font-display text-md text-black truncate  ">{mensaje[value]}</p>
               </div>
             </>
           );
@@ -123,7 +130,7 @@ export const GuestTable: FC<any> = ({ data, multiSeled }) => {
           />
         </>
       )}
-      <DataTable columns={Columna} data={data} multiSeled={multiSeled} setArrEnviatInvitaciones={setArrEnviatInvitaciones} />
+      <DataTable columns={Columna} data={data} multiSeled={multiSeled} setArrEnviatInvitaciones={setArrEnviatInvitaciones} reenviar={reenviar} />
     </>
   );
 };

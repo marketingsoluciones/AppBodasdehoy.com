@@ -64,7 +64,7 @@ const VistaPrevia = ({ event }) => {
   };
 
   return (
-    <div className=" w-full h-max">
+    <div className=" w-full h-max mt-3">
       <HeaderEmail />
       <PlantillaCorreo />
     </div>
