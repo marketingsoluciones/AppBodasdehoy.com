@@ -113,17 +113,17 @@ const Mesas: FC = () => {
               className="max-w-screen-lg mx-auto inset-x-0 w-full px-5 md:px-0 ">
               <BlockTitle title={"Mesas y asientos"} />
             </motion.div>
-            <div className={`${fullScreen ? "absolute z-[1000] w-[100vw] h-[100vh] top-0 left-0" : "w-full h-[calc(100vh-208px)] md:h-[calc(100vh-202px)]"}`}>
+            <div className={`${fullScreen ? "absolute z-[1000] w-[100vw] h-[100vh] top-0 left-0" : "w-full h-[calc(100vh-208px)] md:h-[calc(100vh-210px)] md:mt-2"}`}>
 
 
               <div className={`flex flex-col md:flex-row w-full items-center h-full`}>
-                { /* */}<div className={`w-[calc(100%-40px)] mt-2 md:mt-0 md:w-[25%] ${fullScreen ? "h-[calc(30%-8px)]" : "h-[calc(30%-8px)]"} md:h-[100%] flex flex-col items-center truncate`}>
+                { /* */}<div className={`w-[calc(100%-40px)] mt-2 md:mt-0 ${fullScreen ? " md:w-[23%] h-[calc(30%-8px)]" : " md:w-[25%] h-[calc(30%-8px)]"} md:h-[100%] flex flex-col items-center truncate`}>
                   <div className="bg-primary rounded-t-lg md:rounded-none w-[100%] ] h-10 ">
                     <SubMenu itemSelect={itemSelect} setItemSelect={setItemSelect} />
                   </div>
                   <div className={`bg-base flex w-[100%] h-[calc(100%-40px)]`} >
                     <div className="flex flex-col h-[100%] w-full md:px-2 justify-start truncate transform transition duration-700">
-                      <div className={`bg-white w-[100%] h-[100%] mb-2 ${fullScreen ? "md:h-[30%] 2xl:h-[25%]" : "md:h-[40%] 2xl:h-[30%] rounded-b-lg shadow-lg"}`}>
+                      <div className={`bg-white w-[100%] h-[100%] mb-2 ${fullScreen ? "md:h-[30%] 2xl:h-[25%]" : "md:h-[40%] 2xl:h-[25%] rounded-b-lg shadow-lg"}`}>
                         {itemSelect == "invitados" &&
                           <BlockInvitados set={setIsMounted} InvitadoNoSentado={filterGuests?.noSentados} setEditInv={setEditInv} editInv={editInv} setSelected={setSelected} />
                         }
@@ -143,7 +143,7 @@ const Mesas: FC = () => {
                           <BlockResumen InvitadoSentados={filterGuests?.sentados} />
                         }
                       </div>
-                      <div className={`w-[100%] h-[100%] ${fullScreen ? "md:h-[calc(70%-16px)] 2xl:h-[calc(75%-50px)]" : "md:h-[calc(60%-16px)] 2xl:h-[calc(75%-50px)]"} hidden md:block`}>
+                      <div className={`w-[100%] h-[100%] ${fullScreen ? "md:h-[calc(70%-16px)] 2xl:h-[calc(75%-16px)]" : "md:h-[calc(60%-16px)] 2xl:h-[calc(75%-16px)]"} hidden md:block`}>
                         {true && <BlockInvitados
                           set={setIsMounted}
                           InvitadoNoSentado={filterGuests?.noSentados}
@@ -155,7 +155,7 @@ const Mesas: FC = () => {
                     </div>
                   </div>
                 </div>
-                { /* */}<div className="bg-cyan-200 pt-2 md:pt-0 md:block flex justify-center items-center w-full md:w-3/4 h-[calc(70%-0px)] md:h-[100%]">
+                { /* */}<div className={`bg-cyan-200 pt-2 md:pt-0 md:block flex justify-center items-center w-full ${fullScreen ? "md:w-[77%]" : "md:w-[75%]"} h-[calc(70%-0px)] md:h-[100%]`}>
                   <Prueba setShowTables={setShowTables} showTables={showTables} setShowFormEditar={setShowFormEditar} fullScreen={fullScreen} setFullScreen={setFullScreen} />
                 </div>
 

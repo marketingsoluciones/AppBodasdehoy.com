@@ -1057,3 +1057,34 @@ export const GoogleIcon = (props) => {
     </svg>
   )
 }
+
+export const Cuadricula = (props) => {
+  return (
+    <svg width={100} height={100} xmlns="http://www.w3.org/2000/svg" stroke="#0F9D58" strokeLinecap="undefined" strokeLinejoin="undefined" fill="none" {...props}>
+      <g  >
+        <path strokeWidth={0.75} d="M0 0L100 0" />
+        <path strokeWidth={0.1} d="M0 10L100 10" />
+        <path strokeWidth={0.1} d="M0 20L100 20" />
+        <path strokeWidth={0.1} d="M0 30L100 30" />
+        <path strokeWidth={0.1} d="M0 40L100 40" />
+        <path strokeWidth={0.1} d="M0 50L100 50" />
+        <path strokeWidth={0.1} d="M0 60L100 60" />
+        <path strokeWidth={0.1} d="M0 70L100 70" />
+        <path strokeWidth={0.1} d="M0 80L100 80" />
+        <path strokeWidth={0.1} d="M0 90L100 90" />
+        <path strokeWidth={0.75} d="M100 100L0 100" />
+        <path strokeWidth={0.75} d="M0 0L0 100" />
+        <path strokeWidth={0.1} d="M10 0L10 100" />
+        <path strokeWidth={0.1} d="M20 0L20 100" />
+        <path strokeWidth={0.1} d="M30 0L30 100" />
+        <path strokeWidth={0.1} d="M40 0L40 100" />
+        <path strokeWidth={0.1} d="M50 0L50 100" />
+        <path strokeWidth={0.1} d="M60 0L60 100" />
+        <path strokeWidth={0.1} d="M70 0L70 100" />
+        <path strokeWidth={0.1} d="M80 0L80 100" />
+        <path strokeWidth={0.1} d="M90 0L90 100" />
+        <path strokeWidth={0.75} d="M100 0L100 100" />
+      </g>
+    </svg>
+  )
+}
