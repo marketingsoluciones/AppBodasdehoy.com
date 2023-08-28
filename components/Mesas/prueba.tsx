@@ -121,8 +121,6 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables, setShowFormEditar,
             {(va) => {
               const { zoomIn, zoomOut, resetTransform, centerView } = va
               { !reset ? handleReset(resetTransform) : () => { } }
-              const context = useTransformContext();
-              console.log(context)
               return (
                 < >
                   <div className="bg-white flex w-full h-8 items-center justify-between absolute z-10 transform translate-y-[-32px]">
