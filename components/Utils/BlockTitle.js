@@ -4,7 +4,7 @@ import { defaultImagenes } from '../Home/Card'
 
 const BlockTitle = ({ title }) => {
   const { event } = EventContextProvider()
-  console.log(event)
+
   return (
     <div className="w-full h-14 bg-white rounded-xl shadow-lg flex items-center justify-between">
       <h1 className="font-display font-semibold text-2xl text-gray-500 px-6">

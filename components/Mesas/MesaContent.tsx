@@ -16,9 +16,9 @@ export const MesaContent: FC<propsTable> = ({ mesa, DefinePosition, setDisableWr
   const { event } = EventContextProvider();
   const [invitados, setInvitados] = useState([]);
 
-  useEffect(() => {
-    console.log("renderiza MesaContent")
-  }, [])
+  // useEffect(() => {
+  //   console.log("renderiza MesaContent")
+  // }, [])
 
   useEffect(() => {
     const el = document.getElementById(mesa._id)
@@ -28,7 +28,7 @@ export const MesaContent: FC<propsTable> = ({ mesa, DefinePosition, setDisableWr
   }, [mesa.posicion.x, mesa.posicion.y, mesa._id])
 
   useEffect(() => {
-    console.log("setInvitados")
+    // console.log("setInvitados")
     setInvitados(event?.invitados_array?.filter(guest => guest.nombre_mesa === mesa.nombre_mesa));
   }, [event?.invitados_array, mesa?.nombre_mesa]);
 
@@ -42,7 +42,7 @@ export const MesaContent: FC<propsTable> = ({ mesa, DefinePosition, setDisableWr
         onMouseUp={() => { !disableDrag && setDisableWrapper(false) }}
         className={`${!disableDrag && "js-drag"} draggable-touch *bg-gray-100 absolute hover:bg-gray-100 hover:bg-opacity-50 border border-transparent hover:border-gray-200 hover:shadow-md p-4 rounded-2xl`}>
         <MesaComponent
-          disableDrag = {disableDrag}
+          disableDrag={disableDrag}
           posicion={DefinePosition(360 / mesa.cantidad_sillas, mesa)}
           mesa={mesa}
           invitados={invitados}

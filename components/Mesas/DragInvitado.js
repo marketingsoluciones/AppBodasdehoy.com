@@ -7,17 +7,15 @@ import FormEditarInvitado from "../Forms/FormEditarInvitado";
 
 
 const DragInvitado = (props) => {
-  const { tipo, invitado, index, setEditInv, editInv,setSelected } = props;
+  const { tipo, invitado, index, setEditInv, editInv, setSelected } = props;
   /* const shouldRenderChild = useDelayUnmount(isMounted, 500); */
 
-  
+
 
   return (
     <>
-      <div
-        className="flex justify-between items-center px-5 py-1 hover:bg-base transition"
-      >
-        <span className="flex gap-3 items-center">
+      <div className="w-full flex justify-between items-center px-5 py-1 hover:bg-base transition">
+        <span className="w-[90%] flex gap-3 items-center">
           <span
             id={`dragN${invitado._id}`}
             className="w-full h-full text-gray-500 text-left flex items-center js-dragInvitadoN rounded-lg px-2 md:px-0"
@@ -63,14 +61,13 @@ const DragInvitado = (props) => {
               const rootElement = document.getElementById('areaDrag');
               const element = document.getElementById(`dragM${invitado._id}`)
               element && rootElement.removeChild(document.getElementById(`dragM${invitado._id}`))
-            }}
-          >
+            }}>
             <img
               className="w-7 h-7 rounded-full mr-2 text-gray-700 border-gray-300"
               src={ImageProfile[invitado.sexo].image}
               alt={ImageProfile[invitado.sexo].alt}
             />
-            <p className="font-display text-sm">{invitado?.nombre}</p>
+            <p className="w-full font-display text-sm truncate">{invitado?.nombre}</p>
           </span>
         </span>
         <EditarIcon

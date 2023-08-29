@@ -131,13 +131,16 @@ const Mesas: FC = () => {
                           <BlockPanelMesas setModelo={setModelo} state={showForm} set={setShowForm} />
                         }
                         {itemSelect == "mobiliario" &&
-                          <BlockResumen InvitadoSentados={filterGuests?.sentados} />
+                          <span>En desarrollo!</span>
+                          // <BlockResumen InvitadoSentados={filterGuests?.sentados} />
                         }
                         {itemSelect == "zonas" &&
-                          <BlockResumen InvitadoSentados={filterGuests?.sentados} />
+                          <span>En desarrollo!</span>
+                          // <BlockResumen InvitadoSentados={filterGuests?.sentados} />
                         }
                         {itemSelect == "plantilla" &&
-                          <BlockResumen InvitadoSentados={filterGuests?.sentados} />
+                          <span>En desarrollo!</span>
+                          // <BlockResumen InvitadoSentados={filterGuests?.sentados} />
                         }
                         {itemSelect == "resumen" &&
                           <BlockResumen InvitadoSentados={filterGuests?.sentados} />
@@ -155,7 +158,7 @@ const Mesas: FC = () => {
                     </div>
                   </div>
                 </div>
-                { /* */}<div className={`bg-cyan-200 pt-2 md:pt-0 md:block flex justify-center items-center w-full ${fullScreen ? "md:w-[77%]" : "md:w-[75%]"} h-[calc(70%-0px)] md:h-[100%]`}>
+                { /* */}<div className={`bg-base  pt-2 md:pt-0 md:block flex justify-center items-center w-full ${fullScreen ? "md:w-[77%]" : "md:w-[75%]"} h-[calc(70%-0px)] md:h-[100%]`}>
                   <Prueba setShowTables={setShowTables} showTables={showTables} setShowFormEditar={setShowFormEditar} fullScreen={fullScreen} setFullScreen={setFullScreen} />
                 </div>
 
