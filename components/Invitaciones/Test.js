@@ -1,10 +1,10 @@
-import { Formik, ErrorMessage } from "formik";
-import { useContext } from 'react'
-import EventoContext from '../../context/EventContext'
+import { Formik, ErrorMessage, Form } from "formik";
 import { EventContextProvider } from "../../context";
 import { api } from '../../api'
-export default function Test() {
+
+export default function Test({TitelComponent}) {
   const { event } = EventContextProvider()
+  
   const initialValue = {
     email: "",
   };
@@ -44,7 +44,6 @@ export default function Test() {
     try {
       actions.setSubmitting(true)
       const { data } = await api.ApiApp(params)
-      console.log(data)
     } catch (error) {
       console.log(error)
     } finally {
@@ -53,34 +52,36 @@ export default function Test() {
   }
 
   return (
-    <div className="bg-white shadow rounded-2xl w-full mx-auto inset-x-0 h-max p-10 font-display flex flex-col gap-2">
-      <h3 className="font-medium">Enviar correo de prueba</h3>
+    <div className="bg-white shadow-md rounded-2xl w-full mx-auto inset-x-0 h-max p-10 font-display flex flex-col gap-2">
       <Formik
         validate={validacion}
         onSubmit={(values, actions) => handleClick(values, actions)}
         initialValues={initialValue}
       >
         {({ handleSubmit, handleChange, values }) => (
-          <>
-            <input
-              name="email"
-              value={values.email}
-              onChange={handleChange}
-              className="w-full px-3 py-1 rounded-xl bg-base focus:outline-none focus:ring text-sm font-normal"
-              placeholder="Ingresar correo electronico"
-              type={"email"}
-            />
-            <span className="text-xs text-red -mt-1">
-              <ErrorMessage name={"email"} />
-            </span>
-            <button
-              onClick={handleSubmit}
-              type="submit"
-              className="focus:outline-none hover:bg-secondary hover:text-gray-300 transition bg-primary text-white py-1 rounded-xl text-sm px-5 py-2 w-full"
-            >
-              Enviar correo de prueba
-            </button>
-          </>
+          <Form className="md:w-1/2 flex flex-col gap-2 mx-auto">
+            <>
+              <h3 className="font-medium text-gray-500">Enviar {TitelComponent} de prueba</h3>
+              <input
+                name="email"
+                value={values.email}
+                onChange={handleChange}
+                className="w-full px-3 py-1 rounded-xl bg-base focus:outline-none  text-sm font-normal"
+                placeholder="Ingresar correo electronico"
+                type={"email"}
+              />
+              <span className="text-xs text-red -mt-1">
+                <ErrorMessage name={"email"} />
+              </span>
+              <button
+                onClick={handleSubmit}
+                type="submit"
+                className="focus:outline-none hover:bg-secondary hover:text-gray-300 transition bg-primary text-white py-1 rounded-xl text-sm px-5 py-2 w-full"
+              >
+                Enviar {TitelComponent} de prueba
+              </button>
+            </>
+          </Form>
         )}
       </Formik>
     </div>

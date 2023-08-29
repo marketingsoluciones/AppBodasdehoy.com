@@ -23,7 +23,7 @@ export const CounterInvitations: FC = () => {
     <>
       <div>
         <h2 className="font-display font-semibold text-gray-500 text-2xl text-center py-4">
-          Estadisticas de invitaciones
+          Resumen de las invitaciones
         </h2>
         <div className="bg-white py-10 w-full shadow-lg rounded-xl ">
           <Swiper
@@ -43,7 +43,7 @@ export const CounterInvitations: FC = () => {
           >
             <SwiperSlide className="flex gap-3 items-center justify-center">
               <InvitacionesIcon className="text-secondary" />
-              <p className="font-display font-bold text-2xl leading-4 text-gray-300 flex gap-1">
+              <p className="font-display font-bold text-2xl leading-4 text-gray-600 flex gap-1">
                 {`${Invitaciones?.enviadas} de ${Invitaciones?.total}`}
                 <span className="capitalize font-display font-medium text-sm">
                   invitaciones enviadas
@@ -53,7 +53,7 @@ export const CounterInvitations: FC = () => {
 
             <SwiperSlide className="flex gap-3 items-center justify-center">
               <InvitacionesIcon className="text-primary" />
-              <p className="font-display font-bold text-2xl leading-4 text-gray-300  flex gap-1">
+              <p className="font-display font-bold text-2xl leading-4 text-gray-600  flex gap-1">
                 {`${Invitaciones?.pendientes} de ${Invitaciones?.total}`}
                 <span className="capitalize font-display font-medium text-sm">
                   invitaciones pendientes

@@ -1,34 +1,74 @@
-import { forwardRef, useContext, useEffect, useMemo, useRef, useState, } from "react";
+import { useEffect, useState, } from "react";
 import Breadcumbs from "../components/DefaultLayout/Breadcumb";
-import { CompartirIcon, InvitacionesIcon, SubirImagenIcon2, } from "../components/icons";
+import { CompartirIcon, Correo, DiseñoIcon, EmailIcon, SmsIcon, SubirImagenIcon2, WhatsappIcon, } from "../components/icons";
 import BlockTitle from "../components/Utils/BlockTitle";
 import useHover from "../hooks/useHover";
-import { Swiper, SwiperSlide } from "swiper/react";
 import ModuloSubida from "../components/Invitaciones/ModuloSubida";
 import { motion } from "framer-motion";
 import { AuthContextProvider, EventContextProvider } from "../context";
-import { useRowSelect, useSortBy, useTable } from "react-table";
-import { api } from "../api";
-import Banner from "../components/Invitaciones/Banner";
-import Test from '../components/Invitaciones/Test'
-import VistaPrevia from "../components/Invitaciones/VistaPrevia";
 import { CounterInvitations } from "../components/Invitaciones/CounterInvitations";
-import { ConfirmationBlock } from "../components/Invitaciones/ConfirmationBlock";
-import { DataTable } from "../components/Invitaciones/DataTable";
-import { GuestTable } from "../components/Invitaciones/GuestTable";
-import { Separator } from "../components/Separator";
 import { DataTableGroupProvider } from "../context/DataTableGroupContext";
 import VistaSinCookie from "./vista-sin-cookie";
 import { useMounted } from "../hooks/useMounted"
+import { OptionsMenu } from "../components/Invitaciones/OptionsMenu";
+import { EmailComponent } from "../components/Invitaciones/EmailComponent";
+import { FooterComponent } from "../components/Invitaciones/FooterComponent";
+import { SmsComponent } from "../components/Invitaciones/SmsComponent";
+import { WhatsappComponent } from "../components/Invitaciones/WhatsappComponent";
+import { EnviadosComponent } from "../components/Invitaciones/EnviadosComponent";
+import { DiseñoComponent } from "../components/Invitaciones/DiseñoComponent";
+
+export type optionArryOptions = {
+  title: string;
+  icon: any;
+  component: any;
+  state: boolean;
+}
 
 const Invitaciones = () => {
-  const [hoverRef, isHovered] = useHover();
+  const { user, verificationDone } = AuthContextProvider()
   const { event } = EventContextProvider();
+  const [hoverRef, isHovered] = useHover();
   const [dataInvitationSent, setDataInvitationSent] = useState([]);
   const [dataInvitationNotSent, setDataInvitationNotSent] = useState([]);
+  const [optionSelect, setOptionSelect] = useState(0)
+  const arryOptions: optionArryOptions[] = [
+    {
+      title: "SMS",
+      icon: <SmsIcon />,
+      component: <SmsComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent} event={event} />,
+      state: false
+    },
+    {
+      title: "Email",
+      icon: <EmailIcon />,
+      component: <EmailComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent} event={event} />,
+      state: false
+    },
+    {
+      title: "Whatsapp",
+      icon: <WhatsappIcon />,
+      component: <WhatsappComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent} event={event} />,
+      state: false
+    },
+    {
+      title: "Enviados",
+      icon: <Correo />,
+      component: <EnviadosComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent} event={event} />,
+      state: false
+    },
+    {
+      title: "Diseño",
+      icon: <DiseñoIcon />,
+      component: <DiseñoComponent />,
+      state: false
+    }
+  ]
 
+  const handleClickOption = (idx: number) => {
+    setOptionSelect(idx);
+  };
   useMounted()
-
   useEffect(() => {
     const reduce = event?.invitados_array?.reduce((acc: any, item: any) => {
       const asd = {
@@ -37,6 +77,7 @@ const Invitaciones = () => {
         correo: item.correo,
         sexo: item.sexo,
         invitacion: item.invitacion,
+        telefono: item.telefono
       }
       item.invitacion ? acc.sent.push(asd) : acc.notSent.push(asd);
       return acc;
@@ -44,7 +85,8 @@ const Invitaciones = () => {
     reduce?.sent?.length != dataInvitationSent?.length && setDataInvitationSent(reduce?.sent);
     reduce?.notSent.length != dataInvitationNotSent?.length && setDataInvitationNotSent(reduce?.notSent);
   }, [event, dataInvitationSent, dataInvitationNotSent]);
-  const { user, verificationDone } = AuthContextProvider()
+
+
   if (verificationDone) {
     if (!user) {
       return (
@@ -62,76 +104,36 @@ const Invitaciones = () => {
             className="max-w-screen-lg mx-auto inset-x-0 w-full px-5 md:px-0 gap-4"
           >
             <BlockTitle title="Invitaciones" />
-            <div className="w-full flex-col flex md:flex-row my-6 gap-6 relative">
-              { /*error de http://96.126.110.203:3001/false*/}
+            <div className="w-full flex flex-col md:flex-row my-6 gap-6 relative">
               <div ref={hoverRef} className="relative w-full h-96 md:w-1/3 ">
-                {/* <div className={`hidden md:block h-40 bg-secondary w-20 rounded-xl  absolute z-0 left-0 top-0 bottom-0 m-auto transform transition duration-400 ${isHovered && "-translate-x-1/2"} `}>
-                <div className="w-1/2 text-white flex flex-col items-center justify-center h-full gap-4">
-                  <CompartirIcon />
-                  <SubirImagenIcon2 />
-                </div>
-              </div> */}
                 <ModuloSubida event={event} use={"imgInvitacion"} />
               </div>
-              <div className="w-full md:w-2/3 gap-6 h-full relative flex-col flex justify-end">
+              <div className="w-full md:w-2/3 h-full* flex flex-col gap-6 relative justify-center">
                 <CounterInvitations />
-                <Test />
               </div>
             </div>
-            {event?.invitados_array?.length > 0 && (
-              <div>
-                <div className="bg-white w-full rounded-xl shadow-md relative mt-4 mb-8">
-                  <Separator title="  Invitaciones pendientes" />
-                  {/*dataInvitationNotSent &&*/ <GuestTable data={dataInvitationNotSent} multiSeled={true} />}
-                </div>
-                <div className="bg-white w-full rounded-xl shadow-md relative mt-4 mb-8">
-                  <Separator title="Invitaciones enviadas" />
-                  {/*dataInvitationSent &&*/ <GuestTable data={dataInvitationSent} multiSeled={false} />}
-                </div>
-              </div>
-            )}
-            { /*error de http://96.126.110.203:3001/%7B%7Bparams.imgUrl%7D%7D */}
-            <VistaPrevia event={event} />
-            <h2 className="font-display font-semibold text-2xl text-gray-500 p-4">
-              Diseña tu invitación
-            </h2>
-            <div className="w-full rounded-xl bg-secondary shadow-lg py-3 mb-10 px-6">
-              <p className=" font-display">
-                Encuentra a un diseñador para tu invitación
-              </p>
+            <OptionsMenu
+              arryOptions={arryOptions}
+              optionSelect={optionSelect}
+              onClick={handleClickOption}
+            />
+            <div className="col-span-3 p-5 md:p-0">
+              {arryOptions[optionSelect].component}
             </div>
-            <Banner />
+            <FooterComponent />
           </motion.div>
           <style jsx>
             {`
-          section {
-            min-height: calc(100vh - 9rem);
-          }
-        `}
+              section {
+                min-height : calc(100vh - 10rem);
+              }
+            `}
           </style>
         </section>
       </DataTableGroupProvider>
     );
   }
 };
-
 export default Invitaciones;
-
-
-/*const IndeterminateCheckbox = forwardRef(({ indeterminate, ...rest }, ref) => {
-  const defaultRef = useRef();
-  const resolvedRef = ref || defaultRef;
-
-  useEffect(() => {
-    resolvedRef.current.indeterminate = indeterminate;
-  }, [resolvedRef, indeterminate]);
-
-  return (
-    <>
-      <input type="checkbox" ref={resolvedRef} {...rest} />
-    </>
-  );
-});
-*/
 
 

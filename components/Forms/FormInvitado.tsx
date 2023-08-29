@@ -72,7 +72,7 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
     >
       {({ isSubmitting, values }) => (
         <Form>
-          <div className="border-l-2 border-gray-100 pl-3 my-6 w-full ">
+          <div className="border-l-2 border-gray-100 pl-3 my-2 w-full ">
             <h2 className="font-display text-3xl capitalize text-primary font-light">
               Crear
             </h2>
@@ -80,7 +80,8 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
               Invitado
             </h2>
           </div>
-          <div className="text-gray-500 font-body flex flex-col gap-8 w-full">
+
+          <div className="text-gray-500 font-body flex flex-col gap-6 *space-y-8 w-full">
             <div className="input-name w-full h-20 flex items-center justify-center">
               <img
                 src={ImageProfile[values.sexo]?.image ?? "/placeholder/user.png"}
@@ -128,7 +129,7 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
                   type="tel"
                 />
               </div>
-              <div className="w-1/2 h-8 flex flex-col relative text-sm">
+              <div className="w-1/2   ">
                 <SelectField
                   name={"nombre_menu"}
                   label={"Menu"}
@@ -137,7 +138,7 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
               </div>
 
             </div>
-            <div className="w-full h-8 flex flex-col relative text-sm">
+            <div className="w-full h-8 flex flex-col relative text-sm mb-7">
               <SelectField
                 name={"rol"}
                 label={"Rol"}
