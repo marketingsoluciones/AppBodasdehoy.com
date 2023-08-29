@@ -20,7 +20,7 @@ export const SmsComponent = ({ dataInvitationSent, dataInvitationNotSent, event 
                     <img src="/Views/movilSms.png" alt="movilsmsview" className="h-auto" />
                 </div>
 
-                {event?.invitados_array?.length > 0 && (
+               {/*  {event?.invitados_array?.length > 0 && ( */}
                     <div>
                         <div className="bg-white w-full rounded-xl shadow-md relative mt-4 mb-8">
                             <Separator title="  Invitaciones pendientes" />
@@ -36,7 +36,7 @@ export const SmsComponent = ({ dataInvitationSent, dataInvitationNotSent, event 
                             null
                         }
                     </div>
-                )}
+               {/*  )} */}
 
             </div>
         </>
