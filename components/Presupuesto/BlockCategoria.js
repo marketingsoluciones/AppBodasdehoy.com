@@ -38,7 +38,6 @@ const BlockCategoria = ({ cate, set }) => {
 
   const saldo = categoria?.coste_estimado - categoria?.coste_final;
 
-  console.log(1,categoria.coste_estimado)
 
   const Columna = useMemo(
     () => [
@@ -91,7 +90,6 @@ const BlockCategoria = ({ cate, set }) => {
               }
               const { data: res } = await api.ApiApp(params);
               data = res?.data?.borraGasto
-              console.log(data)
             } catch (error) {
               console.log(error);
             } finally {
@@ -163,7 +161,6 @@ const BlockCategoria = ({ cate, set }) => {
 
       const { data } = await api.ApiApp(params);
       res = data.data.nuevoGasto;
-      console.log(res);
     } catch (error) {
       console.log(error);
     } finally {
