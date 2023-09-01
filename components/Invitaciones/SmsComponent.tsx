@@ -16,8 +16,8 @@ export const SmsComponent = ({ dataInvitationSent, dataInvitationNotSent, event 
                     </div>
                 </div>
 
-                <div className=" w-full bg-white flex py-5 justify-center rounded-xl shadow-md ">
-                    <img src="/Views/movilSms.png" alt="movilsmsview" className="h-auto" />
+                <div className=" w-full  flex  justify-center rounded-xl  ">
+                    <img src="/Views/sms.png" alt="movilsmsview" className="h-auto" />
                 </div>
 
                {/*  {event?.invitados_array?.length > 0 && ( */}
