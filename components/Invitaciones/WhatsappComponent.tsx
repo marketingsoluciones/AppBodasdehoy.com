@@ -14,11 +14,11 @@ export const WhatsappComponent = ({ dataInvitationSent, dataInvitationNotSent, e
                     </div>
                 </div>
 
-                <div className=" w-full bg-white flex py-5 justify-center rounded-xl shadow-md ">
-                    <img src="/Views/movilWhatsapp.png" alt="movilsmsview" className="h-auto" />
+                <div className=" w-full bg-white flex py-5* justify-center rounded-xl shadow-md ">
+                    <img src="/Views/whatsapp.jpg" alt="movilsmsview" className="h-auto" />
                 </div>
 
-                {event?.invitados_array?.length > 0 && (
+                {/* {event?.invitados_array?.length > 0 && ( */}
                     <div>
                         <div className="bg-white w-full rounded-xl shadow-md relative mt-4 mb-8">
                             <Separator title="  Invitaciones pendientes" />
@@ -34,7 +34,7 @@ export const WhatsappComponent = ({ dataInvitationSent, dataInvitationNotSent, e
                             null
                         }
                     </div>
-                )}
+                {/* )} */}
         </div>
            
         </>

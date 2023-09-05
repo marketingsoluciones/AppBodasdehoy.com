@@ -95,7 +95,7 @@ export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, set
                 {headerGroup.headers.map((column: any, id: any) => (
                   <th
                     {...column.getHeaderProps(column.getSortByToggleProps())}
-                    className={`capitalize text-sm text-gray-500 font-light font-display col-span-${colSpan[column.id]
+                    className={`capitalize text-sm text-gray-500 font-light font-display  col-span-${colSpan[column.id]
                       }`}
                     key={id}
                   >
@@ -110,7 +110,7 @@ export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, set
           </thead>
 
           <tbody {...getTableBodyProps()} className="text-gray-300 text-sm ">
-            {rows.map((row, i) => {
+            {rows.length >= 1 ? rows.map((row, i) => {
               prepareRow(row);
               return (
                 <tr
@@ -131,7 +131,8 @@ export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, set
                   })}
                 </tr>
               );
-            })}
+            }):<tr className="w-full transition border-b border-base hover:bg-base cursor-pointer w-full grid place-items-center">
+            <td className="py-5 font-display text-lg text-gray-500 uppercase ">No hay invitados asociados al evento</td></tr> }
           </tbody>
         </table>
       </div>

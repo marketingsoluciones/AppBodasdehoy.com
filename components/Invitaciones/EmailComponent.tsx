@@ -13,7 +13,7 @@ export const EmailComponent = ({ dataInvitationSent, dataInvitationNotSent, even
                 <VistaPrevia event={event} />
 
 
-                {event?.invitados_array?.length > 0 && (
+                {/* {event?.invitados_array?.length > 0 && ( */}
                     <div>
                         <div className="bg-white w-full rounded-xl shadow-md relative mt-4 mb-8">
                             <Separator title="  Invitaciones pendientes" />
@@ -29,7 +29,7 @@ export const EmailComponent = ({ dataInvitationSent, dataInvitationNotSent, even
                             null
                         }
                     </div>
-                )}
+              {/*   )} */}
             </div>
         </>
     )
