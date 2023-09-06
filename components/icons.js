@@ -1,3 +1,13 @@
+export const ConfirmacionIcon = (props) => {
+  return (
+    <svg width="70" height="70" viewBox="0 0 70 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0 37.0552V32.9528C0.0559254 32.4599 0.114514 31.9671 0.167776 31.477C1.00666 23.946 3.88282 17.2995 8.95606 11.668C14.3462 5.68482 21.0226 1.95266 28.9667 0.543441C30.2823 0.311679 31.6165 0.178483 32.9427 0C34.3089 0 35.6778 0 37.0439 0C37.265 0.0426228 37.486 0.0905735 37.7071 0.122541C39.2357 0.343647 40.7856 0.466187 42.2929 0.79385C50.7483 2.63196 57.6618 6.99014 62.8495 13.895C69.233 22.393 71.3449 31.9511 69.1718 42.3591C67.4221 50.7292 63.0359 57.5355 56.269 62.7408C48.9614 68.3617 40.6418 70.7006 31.486 69.8189C23.9414 69.0916 17.3049 66.1293 11.6671 61.0519C5.68575 55.6627 1.9494 48.979 0.543276 41.0298C0.311585 39.7138 0.178429 38.3792 0 37.0552ZM63.6165 34.972C63.5579 19.1829 50.7403 6.37478 34.996 6.36945C19.241 6.36412 6.31158 19.3108 6.37017 35.0333C6.42876 50.8224 19.2463 63.6306 34.9907 63.6359C50.7457 63.6412 63.6751 50.6945 63.6165 34.972Z" fill="currentColor" />
+      <path d="M30.0958 40.8354C30.3914 40.4544 30.5405 40.22 30.7296 40.0282C36.4446 34.3034 42.1623 28.584 47.8827 22.8672C49.2569 21.4926 51.0066 21.3274 52.3594 22.4223C53.6617 23.4746 53.9227 25.3633 52.94 26.7139C52.7269 27.0069 52.4713 27.2733 52.2156 27.5291C45.7416 34.0077 39.2675 40.4864 32.7908 46.9624C30.9773 48.7765 29.2702 48.7792 27.4673 46.9757C24.165 43.6725 20.8574 40.3745 17.5631 37.0633C16.0505 35.5448 16.0798 33.4696 17.5978 32.1989C18.7562 31.2293 20.3727 31.2 21.5631 32.135C21.8135 32.3321 22.0452 32.5532 22.2689 32.7797C24.703 35.2118 27.137 37.6413 29.5631 40.0815C29.7389 40.2573 29.8561 40.4917 30.0958 40.8354Z" fill="currentColor" />
+    </svg>
+
+  );
+}
+
 export const LogoEventosPlanificador = (props) => {
   return (
     <svg
@@ -9,6 +19,16 @@ export const LogoEventosPlanificador = (props) => {
     >
       <path d="M114.4 224h92.4l-15.2 51.2h-76.4V433c0 8-2.8 9.2 4.4 10l59.6 5.6V483H0v-35.2l29.2-2.8c7.2-.8 9.2-3.2 9.2-10.8V278.4c0-3.2-4-3.2-8-3.2H0V224h38.4v-28.8c0-68 36.4-96 106-96 46.8 0 88.8 11.2 88.8 72.4l-69.6 8.4c.4-25.6-6-31.6-22.4-31.6-25.2 0-26 13.6-26 37.6v32c0 3.2-4.8 6-.8 6zM384 483H243.2v-34.4l28-3.6c7.2-.8 10.4-2.4 10.4-10V287c0-5.6-4-9.2-9.2-10.8l-33.2-8.8 9.2-40.4h110v208c0 8-3.6 8.8 4 10l21.6 3.6V483zm-30-347.2l12.4 45.6-10 10-42.8-22.8-42.8 22.8-10-10 12.4-45.6-30-36.4 4.8-10h38L307.2 51H320l21.2 38.4h38l4.8 13.2-30 33.2z" />
     </svg>
+  );
+}
+
+export const LogoOrganizador = (props) => {
+  return (
+    <svg width="951" height="764" viewBox="0 0 951 1064" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M326.459 668.978C314.631 664.057 301.326 663.51 289.128 667.155C275.083 671.894 263.071 681.554 255.679 694.312C250.505 703.607 248.472 714.361 249.95 724.932C243.852 721.834 238.492 718.553 232.763 716.183C220.382 711.809 206.891 712.174 195.063 717.459C183.051 721.469 172.702 729.671 166.234 740.424C160.505 751.907 158.472 764.665 160.136 777.241C161.799 789.817 167.343 801.664 175.844 811.324C190.074 826.27 207.63 837.57 227.219 844.131C256.233 854.156 286.726 859.623 317.403 860.353C319.251 860.717 321.099 860.353 322.578 859.441C324.241 858.53 325.535 857.254 326.274 855.614C344.57 826.999 357.506 795.103 364.159 761.567C369.703 738.419 366.192 714.179 354.549 693.401C348.266 682.1 338.471 673.352 326.644 668.613L326.459 668.978Z" fill="currentColor" />
+      <path d="M57.2026 710.171C72.3565 784.899 110.796 846.139 171.042 893.162C269.542 970.259 383.011 996.322 506.46 983.746C606.808 973.54 694.221 935.629 765 863.636C829.312 798.204 861.283 717.462 873.665 628.7C892.515 493.28 860.913 370.8 772.947 264.177C687.568 160.834 575.946 98.6829 444.181 75.1711C275.271 44.9157 117.633 75.7179 -21.1541 178.331C-132.036 260.349 -201.338 369.159 -215.013 506.585C-228.873 644.922 -183.042 764.85 -87.129 866.005C-30.9487 925.422 37.2438 967.707 113.568 997.416C116.709 998.692 119.666 999.785 122.808 1000.88C144.984 1009.99 153.67 1025.3 146.648 1042.98C140.364 1059.02 118.557 1069.41 100.262 1061.03C53.3217 1039.52 4.53357 1020.2 -38.5257 992.313C-165.855 909.748 -250.865 795.834 -279.879 646.015C-310.741 487.447 -270.454 345.648 -166.779 222.439C-62.5501 98.3184 74.3893 28.8766 235.908 7.00523C413.874 -17.0533 577.609 20.4926 723.05 125.293C840.955 210.227 919.311 322.683 942.966 466.305C975.122 661.507 909.147 880.586 709.374 988.85C523.832 1089.46 275.271 1068.32 116.155 935.629C8.41446 845.774 -35.5688 728.215 -19.4909 591.337C2.31592 406.523 138.331 261.625 323.505 220.434C382.642 207.311 441.224 210.409 496.481 238.66C555.987 269.098 574.653 320.313 546.932 380.824C519.581 440.606 472.456 484.349 421.635 524.082C314.264 607.922 195.805 670.803 63.1163 706.526C61.2683 707.073 59.7899 708.349 57.0178 709.989L57.2026 710.171ZM49.0713 641.459C52.2129 641.641 53.6913 642.188 54.8002 641.823C202.828 596.258 334.778 523.717 442.148 411.991C459.335 394.129 472.271 371.164 482.805 348.382C494.448 323.412 486.871 308.831 462.477 295.526C424.223 274.748 383.196 272.561 341.985 282.585C228.7 310.107 143.691 375.539 85.8472 474.689C55.909 526.087 51.1041 583.499 49.2561 641.276L49.0713 641.459Z" fill="currentColor" />
+    </svg>
+
   );
 }
 
@@ -93,7 +113,6 @@ export const DiseñoIcon = (props) => {
   );
 }
 
-
 export const WhatsappIcon = (props) => {
   return (
     <svg width="23" height="23" viewBox="0 0 23 21" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -110,7 +129,6 @@ export const WhatsappIcon = (props) => {
 
   );
 }
-
 
 export const ArrowDown = (props) => {
   return (
@@ -147,6 +165,7 @@ export const Icon036Profile = (props) => {
     </svg>
   );
 }
+
 export const IconLogin = (props) => {
   return (
     <svg
@@ -174,6 +193,7 @@ export const IconExit = (props) => {
     </svg>
   );
 }
+
 export const LogoVivetuboda = (props) => {
   return (
     <svg
@@ -298,6 +318,7 @@ export const LogoEventosOrganizador = (props) => {
     </svg>
   );
 }
+
 export const IconRegistered = (props) => {
   return (
     <svg
@@ -419,7 +440,7 @@ export const CorazonIcono = (props) => {
     >
       <path
         d="M17.7179 3.27888C17.4386 2.63724 17.0359 2.0558 16.5323 1.56709C16.0284 1.07693 15.4342 0.6874 14.7821 0.419693C14.106 0.140996 13.3807 -0.0016576 12.6485 1.45314e-05C11.6213 1.45314e-05 10.6191 0.279111 9.7482 0.806293C9.53984 0.932404 9.3419 1.07092 9.15438 1.22184C8.96686 1.07092 8.76892 0.932404 8.56056 0.806293C7.68963 0.279111 6.68742 1.45314e-05 5.66022 1.45314e-05C4.92055 1.45314e-05 4.2038 0.140597 3.52663 0.419693C2.87239 0.688453 2.28274 1.07505 1.77643 1.56709C1.2722 2.05524 0.8694 2.63683 0.590872 3.27888C0.301254 3.94665 0.15332 4.65576 0.15332 5.38554C0.15332 6.07398 0.295004 6.79136 0.576287 7.52115C0.811731 8.13103 1.14927 8.76365 1.58057 9.40247C2.26399 10.4134 3.20368 11.4678 4.37048 12.5366C6.30405 14.3084 8.21885 15.5323 8.30011 15.5819L8.79392 15.8961C9.0127 16.0346 9.29398 16.0346 9.51276 15.8961L10.0066 15.5819C10.0878 15.5302 12.0006 14.3084 13.9362 12.5366C15.103 11.4678 16.0427 10.4134 16.7261 9.40247C17.1574 8.76365 17.497 8.13103 17.7304 7.52115C18.0117 6.79136 18.1534 6.07398 18.1534 5.38554C18.1554 4.65576 18.0075 3.94665 17.7179 3.27888Z"
-        fill="#F7628C"
+        fill="currentColor"
       />
     </svg>
   );
@@ -633,7 +654,6 @@ export const MenuIcon = (props) => {
   );
 }
 
-
 export const CrearEventoIcon = (props) => {
   return (
     <svg width={41} height={41} viewBox="0 0 41 41" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -659,7 +679,6 @@ export const CircleBanner = (props) => {
     </svg>
   )
 }
-
 
 export const VistaPreviaIcon = (props) => {
   return (
@@ -696,7 +715,6 @@ export const XpersonIcon = (props) => {
   )
 }
 
-
 export const BorrarIcon = (props) => {
   return (
     <svg width={16} height={21} viewBox="0 0 16 21" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -729,7 +747,6 @@ export const DineroIcon = (props) => {
   )
 }
 
-
 export const InvitadosPendientes = (props) => {
   return (
     <svg width={54} height={41} viewBox="0 0 54 41" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -739,8 +756,6 @@ export const InvitadosPendientes = (props) => {
   )
 }
 
-
-
 export const InvitadosConfirmados = (props) => {
   return (
     <svg width={54} height={42} viewBox="0 0 54 42" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -749,8 +764,6 @@ export const InvitadosConfirmados = (props) => {
     </svg>
   )
 }
-
-
 
 export const InvitadosCancelados = (props) => {
   return (
@@ -769,7 +782,6 @@ export const MesaIcon = (props) => {
   )
 }
 
-
 export const InterrogacionIcon = (props) => {
   return (
     <svg width={46} height={46} viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -777,7 +789,6 @@ export const InterrogacionIcon = (props) => {
     </svg>
   )
 }
-
 
 export const EditarIconCircle = (props) => {
   return (
@@ -810,7 +821,6 @@ export const CanceladoIcon = (props) => {
     </svg>
   )
 }
-
 
 export const CheckIcon = (props) => {
   return (
@@ -854,7 +864,6 @@ export const SubirImagenIcon = (props) => {
   )
 }
 
-
 export const CompartirIcon = (props) => {
   return (
     <svg width={25} height={27} viewBox="0 0 25 27" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -862,7 +871,6 @@ export const CompartirIcon = (props) => {
     </svg>
   )
 }
-
 
 export const SubirImagenIcon2 = (props) => {
   return (
@@ -873,7 +881,6 @@ export const SubirImagenIcon2 = (props) => {
     </svg>
   )
 }
-
 
 export const MesaCuadrada = (props) => {
   return (
@@ -887,7 +894,6 @@ export const MesaCuadrada = (props) => {
   )
 }
 
-
 export const MesaPodio = (props) => {
   return (
     <svg width={70} height={38} viewBox="0 0 70 38" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -899,7 +905,6 @@ export const MesaPodio = (props) => {
     </svg>
   )
 }
-
 
 export const MesaRedonda = (props) => {
   return (
@@ -914,7 +919,6 @@ export const MesaRedonda = (props) => {
     </svg>
   )
 }
-
 
 export const MesaImperial = (props) => {
   return (
@@ -934,8 +938,6 @@ export const MesaImperial = (props) => {
   )
 }
 
-
-
 export const LineaHome = (props) => {
   return (
     <svg width={841} height={211} viewBox="0 0 841 211" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -943,7 +945,6 @@ export const LineaHome = (props) => {
     </svg>
   )
 }
-
 
 export const PicoIcon = (props) => {
   return (
@@ -953,7 +954,6 @@ export const PicoIcon = (props) => {
   )
 }
 
-
 export const WarningIcon = (props) => {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" {...props}>
@@ -962,7 +962,6 @@ export const WarningIcon = (props) => {
   )
 }
 
-
 export const AmazonIcon = (props) => {
   return (
     <svg width={159} height={159} viewBox="0 0 159 159" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -970,8 +969,6 @@ export const AmazonIcon = (props) => {
     </svg>
   )
 }
-
-
 
 export const ListaOne = (props) => {
   return (
