@@ -2,7 +2,7 @@ import interact from "interactjs"
 import { Dispatch, SetStateAction, useEffect, useState } from "react"
 import { string } from "yup/lib/locale"
 import { fetchApiEventos, queries } from "../../utils/Fetching"
-import { Event, guests } from "../../utils/Interfaces"
+import { Event, guests, planSpace, table } from "../../utils/Interfaces"
 
 const addClass = (element: any, className: any) => {
   if (element.classList) {
@@ -204,28 +204,33 @@ const MoveInvitado = async ({ invitadoID, index, nombre_mesa, eventID, setEvent 
 type PropsActualizarPosicion = {
   x: number;
   y: number;
-  mesaID: string;
+  tableID: string;
   event: Event;
   setEvent: any;
+  planSpaceActive: planSpace
+  setPlanSpaceActive: any
 }
-export const ActualizarPosicion = async ({ x, y, mesaID, event, setEvent }: PropsActualizarPosicion): Promise<void> => {
+export const ActualizarPosicion = async ({ x, y, tableID, event, setEvent, planSpaceActive, setPlanSpaceActive }: PropsActualizarPosicion): Promise<void> => {
   try {
+    console.log(tableID)
     fetchApiEventos({
       query: queries.editTable,
       variables: {
         eventID: event._id,
-        tableID: mesaID,
-        variable: "posicion",
-        coordenadas: [{ x, y }],
+        planSpaceID: planSpaceActive._id,
+        tableID: tableID,
+        variable: "position",
+        valor: JSON.stringify({ x, y })
       },
     });
-    const nuevoArr = [...event?.mesas_array];
-    const index = event?.mesas_array.findIndex((elem) => elem._id === mesaID)
-    nuevoArr[index].posicion[0] = { x, y };
-    setEvent((old) => ({
-      ...old,
-      mesas_array: nuevoArr,
-    }));
+
+    //const nuevoArr = [...planSpaceActive?.tables];
+    const index: number = planSpaceActive?.tables.findIndex((elem) => elem._id === tableID)
+    planSpaceActive.tables[index].position = { x, y }
+    event.planSpace[event.planSpaceSelect] = planSpaceActive
+    setPlanSpaceActive({ ...planSpaceActive })
+    setEvent({ ...event })
+
   } catch (error) {
     console.log(error);
   }

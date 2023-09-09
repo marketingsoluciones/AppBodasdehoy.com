@@ -1,7 +1,9 @@
 import { FC, useEffect, useRef, useState } from "react"
 import { TransformWrapper } from "react-zoom-pan-pinch";
 import { useToast } from "../../hooks/useToast";
-import { Comp } from "./ComponenteTransformWrapper";
+import { ComponenteTransformWrapper } from "./ComponenteTransformWrapper";
+import { EventContextProvider } from "../../context";
+import { size } from "../../utils/Interfaces";
 
 type propsPrueba = {
   setShowTables: any
@@ -11,10 +13,8 @@ type propsPrueba = {
   setFullScreen: any
 }
 
-interface propsLienzo {
-  alto: number
-  ancho: number
-}
+
+
 
 const Prueba: FC<propsPrueba> = ({ setShowTables, showTables, setShowFormEditar, fullScreen, setFullScreen }) => {
   const refDiv = useRef(null)
@@ -22,16 +22,28 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables, setShowFormEditar,
   const [disableWrapper, setDisableWrapper] = useState(false)
   const [disableDrag, setDisableDrag] = useState(true)
   const toast = useToast()
-  const [lienzo, setLienzo] = useState<propsLienzo>({ ancho: 1200, alto: 1200 })
+  const { event, setEvent, planSpaceActive } = EventContextProvider()
+  const [lienzo, setLienzo] = useState<size>(event.planSpace?.find(elem => elem._id === event.planSpaceSelect).size)
+
+  useEffect(() => {
+    setEvent((old) => {
+      return old
+    })
+    console.log(10002, planSpaceActive)
+  }, [lienzo])
+
+  useEffect(() => {
+    setLienzo(event.planSpace?.find(elem => elem._id === event.planSpaceSelect).size)
+  }, [event.planSpaceSelect])
 
 
   const handleSetDisableDrag: any = () => {
     setDisableDrag(!disableDrag)
   }
 
-  const calculoEscala = (lienzo: any, contenedor: any) => {
-    const sX = contenedor.current.offsetWidth * 100 / lienzo.ancho
-    const sY = contenedor.current.offsetHeight * 100 / lienzo.alto
+  const calculoEscala = (lienzo: size, contenedor: any) => {
+    const sX = contenedor.current.offsetWidth * 100 / lienzo.width
+    const sY = contenedor.current.offsetHeight * 100 / lienzo.height
     return Math.min(sX, sY) / 100
   }
   useEffect(() => {
@@ -61,7 +73,7 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables, setShowFormEditar,
           //maxPositionX={0}
           //maxPositionY={0}
           >
-            {(params) => <Comp {...params} fullScreen={fullScreen} setFullScreen={setFullScreen} disableWrapper={disableWrapper} setDisableWrapper={setDisableWrapper} lienzo={lienzo} setLienzo={setLienzo} setShowFormEditar={setShowFormEditar} scaleIni={scaleIni} />}
+            {(params) => <ComponenteTransformWrapper {...params} fullScreen={fullScreen} setFullScreen={setFullScreen} disableWrapper={disableWrapper} setDisableWrapper={setDisableWrapper} lienzo={lienzo} setLienzo={setLienzo} setShowFormEditar={setShowFormEditar} scaleIni={scaleIni} />}
           </TransformWrapper>
         </div>
       </div>

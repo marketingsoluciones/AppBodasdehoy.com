@@ -3,17 +3,25 @@ import { ButtonConstrolsLienzo } from "./ControlsLienzo";
 import { Lock, SearchIcon } from "../icons";
 import * as mdIcons from "react-icons/md";
 import { TransformComponent } from "react-zoom-pan-pinch";
-import { Dragable } from "./PruebaDragable";
+import { MesasDragable } from "./MesasDragable";
 import { useToast } from "../../hooks/useToast";
+import { InputMini } from "./InputMini";
+import { BiDotsVerticalRounded } from "react-icons/bi"
+import { EventContextProvider } from "../../context";
+import ClickAwayListener from "react-click-away-listener";
+import Select from 'react-select'
+import { planSpace } from "../../utils/Interfaces";
 
 
 
-export const Comp: FC<any> = ({ zoomIn, zoomOut, setTransform, resetTransform, centerView, state, setFullScreen, disableWrapper,
+export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransform, resetTransform, centerView, state, setFullScreen, disableWrapper,
   setDisableWrapper, fullScreen, lienzo, setLienzo, scale, setScale, setShowFormEditar, scaleIni, ...rest }) => {
   const [reset, setReset] = useState(false)
   const [disableDrag, setDisableDrag] = useState(true)
   const toast = useToast()
   const [showSetup, setShowSetup] = useState(false)
+  const [showMiniMenu, setShowMiniMenu] = useState(false)
+  const { event, planSpaceActive } = EventContextProvider()
 
   useEffect(() => {
     resetTransform()
@@ -25,17 +33,22 @@ export const Comp: FC<any> = ({ zoomIn, zoomOut, setTransform, resetTransform, c
       setReset(true)
     }, 100);
   }
+
+  useEffect(() => {
+    handleReset(resetTransform)
+  }, [lienzo])
+
+
   const handleSetDisableDrag: any = () => {
     setDisableDrag(!disableDrag)
   }
   useEffect(() => {
     console.log("disableDrag(deshabilita mover mesa)", disableDrag)
   }, [disableDrag])
-
   !reset ? handleReset(resetTransform) : () => { }
   return (
     < >
-      <div className="bg-white flex w-full h-8 items-center justify-between absolute z-10 transform translate-y-[-32px] shadow-md">
+      <div className="bg-white flex w-full h-8 items-center justify-between absolute z-10 transform translate-y-[-32px] shadow-md pl-1 md:pl-2">
         <div className="flex">
           <ButtonConstrolsLienzo onClick={() => zoomIn(0.1)}>
             <SearchIcon className="w-[13px] h-6" />
@@ -53,73 +66,81 @@ export const Comp: FC<any> = ({ zoomIn, zoomOut, setTransform, resetTransform, c
             <span className="text-[10px] w-24 h-6 px-1 pt-[3px]">{disableDrag ? 'Desloquear plano' : 'Bloquear plano'}</span>
           </ButtonConstrolsLienzo>
           <span className={`${disableDrag ? "block" : "hidden"}  `} onClick={() => { toast("error", "Desbloquea el plano para poder mover las mesas ") }}>
-            <Lock className="text-primary md:block h-6 w-6" />
+            <Lock className="text-primary md:block h-6 w-5" />
           </span>
         </div>
-        <div className="flex text-gray-700 items-center pr-2 md:pr-3  gap-2 curso">
-          <mdIcons.MdSettings className="w-6 h-6 cursor-pointer" onClick={() => setShowSetup(!showSetup)} />
+        <div className="flex text-red-700 items-center pr-2 md:pr-3 gap-1 md:gap-2 curso">
+          <ClickAwayListener onClickAway={() => setShowMiniMenu(false)}>
+            <div>
+              <BiDotsVerticalRounded className="h-6 w-6 cursor-pointer text-primary" onClick={() => setShowMiniMenu(!showMiniMenu)} />
+              {showMiniMenu &&
+                <div className="bg-white flex flex-col absolute z-[1020] top-8 right-20 rounded-b-md shadow-md *items-center text-[9px] px-3 pt-1 pb-3 text-gray-800 gap-y-2">
+                  <div className="flex flex-col bg-red">
+                    <span className="w-full text-left">Seleccionar plano:</span>
+                    <select className="capitalize w-40 cursor-pointer text-xs text-gray-500 border border-gray-600 focus:border-primary transition py-0 pr-7 rounded-sm focus:outline-none  " >
+                      {event.planSpace.map((elem: planSpace, idx: number) => {
+                        console.log(idx, elem)
+                        return (
+                          <option key={idx} value={elem.title}>{elem.title}</option>
+                        )
+                      })}
+                    </select>
+                  </div>
+                  <div className="flex flex-col bg-red">
+                    <span className="w-full text-left">Guardar plantilla:</span>
+                    <select className="capitalize w-40 cursor-pointer text-xs text-gray-500 border border-gray-600 focus:border-primary transition py-0 pr-7 rounded-sm focus:outline-none  " >
+                      {event.planSpace.map((elem: planSpace, idx: number) => {
+                        console.log(idx, elem)
+                        return (
+                          <option key={idx} value={elem.title}>{elem.title}</option>
+                        )
+                      })}
+                    </select>
+                  </div>
+                </div>
+              }
+            </div>
+          </ClickAwayListener>
+          <ClickAwayListener onClickAway={() => setShowSetup(false)}>
+            <div>
+              <mdIcons.MdSettings className="w-6 h-6 cursor-pointer text-primary" onClick={() => setShowSetup(!showSetup)} />
+              {showSetup &&
+                <div className="bg-white flex flex-col absolute z-[1020] top-8 right-12 rounded-b-md shadow-md *items-center text-[9px] px-3 pt-1 pb-3 text-gray-800">
+                  <span className="w-full text-left">Tamaño:</span>
+                  <InputMini label="ancho" lienzo={lienzo} setLienzo={setLienzo} centerView={centerView} resetTransform={resetTransform} />
+                  <InputMini label="alto" lienzo={lienzo} setLienzo={setLienzo} centerView={centerView} resetTransform={resetTransform} />
+                </div>
+              }
+            </div>
+          </ClickAwayListener>
           {!fullScreen
-            ? <mdIcons.MdFullscreen className="w-7 h-7 cursor-pointer" onClick={() => setFullScreen(!fullScreen)} />
-            : <mdIcons.MdFullscreenExit className="w-7 h-7 cursor-pointer" onClick={() => setFullScreen(!fullScreen)} />
+            ? <mdIcons.MdFullscreen className="w-7 h-7 cursor-pointer text-primary" onClick={() => setFullScreen(!fullScreen)} />
+            : <mdIcons.MdFullscreenExit className="w-7 h-7 cursor-pointer text-primary" onClick={() => setFullScreen(!fullScreen)} />
           }
         </div>
       </div>
-      <div className="bg-gray-200 w-52 *h-5 grid grid-cols-2 absolute z-[1020] top-0 left-8 rounded-b-md opacity-70 *items-center text-[9px] px-2 text-gray-800">
-        <span>{`Tamaño: ${lienzo.ancho / 100}x${lienzo.alto / 100}mts`}</span>
+
+
+      <div className="bg-gray-200 w-80 *h-5 grid grid-cols-3 absolute z-[1020] top-0 left-2 md:left-8 rounded-b-md opacity-70 *items-center text-[9px] md:text-[10px] px-2 text-gray-800">
+        <span className="font-bold capitalize truncate">{`Plano: ${planSpaceActive?.title}`}</span>
+        <span>{`Tamaño: ${lienzo?.width / 100}x${lienzo?.height / 100}mts`}</span>
         <span>{`Zoom: ${state.scale.toFixed(2)}X`}</span>
       </div>
-      {showSetup && <div className="bg-white w-20 h-20 flex flex-col absolute z-[1020] top-0 right-10 rounded-b-md shadow-md *items-center text-[9px] px-2 text-gray-800">
-        <span className="w-full text-center">Tamaño:</span>
-        <span className="flex flex-col">
-          Ancho:
-          <div>
-            <input type="number" name="scala" className="w-10 h-4 text-[8px]" value={`${lienzo.ancho / 100}`}
-              onChange={(e) => {
-                setLienzo({ ...lienzo, ancho: e?.target.value ? parseFloat(e.target.value) * 100 : 0 })
-              }}
-              onBlur={() => {
-                centerView()
-                resetTransform()
-              }} />
-            {` mts`}
-          </div>
-        </span>
-        <span className="flex flex-col">
-          Alto:
-          <div>
-            <input type="number" name="scala" className="w-10 h-4 text-[8px]" value={`${lienzo.alto / 100}`} onChange={(e) => {
-              setLienzo({ ...lienzo, alto: e?.target.value ? parseFloat(e.target.value) * 100 : 0 })
-            }}
-              onBlur={() => {
-                centerView()
-                resetTransform()
-              }} />
-            {` mts`}
-          </div>
-        </span>
 
-      </div>}
-      <style>{`
-                  input[name=scala] {
-                    padding: 0px 0px 0px 4px;
-                    margin: 0px 0;
-                    box-sizing: border-box;
-                  }
-                  `}</style>
       {/* <Cuadricula className="w-100 h-100 text-black" /> */}
       <TransformComponent
         wrapperStyle={{ width: "100%", height: "100%", background: "gray" }}
-        contentStyle={{ width: `${lienzo.ancho}px`, height: `${lienzo.alto}px`, background: "blue" }}
+        contentStyle={{ width: `${lienzo?.width}px`, height: `${lienzo?.height}px`, background: "blue" }}
       >
         <div className="bg-gray-300 paper border-4 lienzo border-indigo-600 flex justify-center items-center ">
-          <Dragable scale={state.scale} lienzo={lienzo} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} setShowFormEditar={setShowFormEditar} />
+          <MesasDragable scale={state.scale} lienzo={lienzo} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} setShowFormEditar={setShowFormEditar} />
         </div>
       </TransformComponent>
       <style >
         {`
           .lienzo {
-            width: ${lienzo.ancho}px;
-            height: ${lienzo.alto}px;
+            width: ${lienzo?.width}px;
+            height: ${lienzo?.height}px;
           }
         `}
       </style>

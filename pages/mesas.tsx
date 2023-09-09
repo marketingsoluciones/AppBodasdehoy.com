@@ -21,6 +21,8 @@ import ModalBottomSinAway from "../components/Utils/ModalBottomSinAway";
 import FormEditarInvitado from "../components/Forms/FormEditarInvitado";
 import { motion } from "framer-motion";
 import { SubMenu } from "../components/Utils/SubMenu";
+import BlockDefault from "../components/Mesas/BlockDefault";
+import BlockPlanos from "../components/Mesas/BlockPlanos";
 
 
 SwiperCore.use([Pagination]);
@@ -137,6 +139,9 @@ const Mesas: FC = () => {
                         {itemSelect == "zonas" &&
                           <span>En desarrollo!</span>
                           // <BlockResumen InvitadoSentados={filterGuests?.sentados} />
+                        }
+                        {itemSelect == "planos" &&
+                          <BlockPlanos />
                         }
                         {itemSelect == "plantilla" &&
                           <span>En desarrollo!</span>

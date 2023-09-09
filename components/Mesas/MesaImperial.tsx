@@ -1,41 +1,40 @@
 import { FC, useEffect, useState } from "react";
 import { guests, table } from "../../utils/Interfaces";
-import { BorrarIcon, EditarIcon } from "../icons";
 import { Chair } from "./Chair";
 import { EditMesa } from "./EditMesa";
 import { SentadoItem } from "./SentadoItem";
 
 interface propsMesaImperial {
-  mesa: table,
+  table: table,
   invitados: guests[]
   setDisableWrapper: any
   setShowFormEditar: any
   disableDrag: any
 }
-export const MesaImperial: FC<propsMesaImperial> = ({ mesa, invitados, setDisableWrapper, setShowFormEditar,disableDrag }) => {
+export const MesaImperial: FC<propsMesaImperial> = ({ table, invitados, setDisableWrapper, setShowFormEditar, disableDrag }) => {
   useEffect(() => {
-    console.log("mesa", mesa)
+    console.log("mesa", table)
   }, [])
 
   const [arrTotal, setArrTotal] = useState(() => {
     let arr = [];
-    for (let i = 0; i < mesa?.cantidad_sillas; i++) {
+    for (let i = 0; i < table?.numberChair; i++) {
       arr.push(i);
     }
     return arr;
   });
   const [Sillas, setSillas] = useState({
-    total: mesa?.cantidad_sillas - 2,
+    total: table?.numberChair - 2,
     rowOne: () => {
       let arr = [];
-      if (mesa?.cantidad_sillas - 2 !== 0) {
-        arr = arrTotal.slice(2, Math.ceil((mesa?.cantidad_sillas - 2) / 2) + 2);
+      if (table?.numberChair - 2 !== 0) {
+        arr = arrTotal.slice(2, Math.ceil((table?.numberChair - 2) / 2) + 2);
       }
       return arr;
     },
     rowTwo: () => {
       let arr = [];
-      if (mesa?.cantidad_sillas - 2 !== 0) {
+      if (table?.numberChair - 2 !== 0) {
         arr = arrTotal.slice(Sillas.rowOne()?.length + 2);
       }
       return arr;
@@ -47,12 +46,12 @@ export const MesaImperial: FC<propsMesaImperial> = ({ mesa, invitados, setDisabl
 
   return (
     <>
-      <EditMesa mesa={mesa} setShowFormEditar={setShowFormEditar} disableDrag= {disableDrag} />
+      <EditMesa mesa={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} />
       <div className="w-40 left-0 h-20 bg-white shadow border border-gray-500 flex items-center justify-center relative">
-        <span className="font-display text-xs tracking-tight">{mesa.nombre_mesa}</span>
+        <span className="font-display text-xs tracking-tight">{table.title}</span>
         <Chair
-          tipoMesa={mesa.tipo}
-          nombre_mesa={mesa.nombre_mesa}
+          tipoMesa={table.tipo}
+          title={table.title}
           className="absolute flex my-auto inset-y-0 left-1 transform -translate-x-full"
           index={0}
         >
@@ -64,8 +63,8 @@ export const MesaImperial: FC<propsMesaImperial> = ({ mesa, invitados, setDisabl
         </Chair>
 
         <Chair
-          tipoMesa={mesa.tipo}
-          nombre_mesa={mesa.nombre_mesa}
+          tipoMesa={table.tipo}
+          title={table.title}
           className="absolute my-auto inset-y-0 right-1 transform translate-x-full"
           index={1}
         >
@@ -79,8 +78,8 @@ export const MesaImperial: FC<propsMesaImperial> = ({ mesa, invitados, setDisabl
         <div className="w-full mx-auto inset-x-0 flex px-3 justify-between absolute top-1 transform -translate-y-full">
           {Sillas.rowOne().map((item, idx) => (
             <Chair
-              tipoMesa={mesa.tipo}
-              nombre_mesa={mesa.nombre_mesa}
+              tipoMesa={table.tipo}
+              title={table.title}
               className="relative"
               key={idx}
               index={item}
@@ -97,8 +96,8 @@ export const MesaImperial: FC<propsMesaImperial> = ({ mesa, invitados, setDisabl
         <div className="w-full mx-auto inset-x-0 flex px-3 justify-between absolute bottom-1 transform translate-y-full">
           {Sillas.rowTwo().map((item, idx) => (
             <Chair
-              tipoMesa={mesa.tipo}
-              nombre_mesa={mesa.nombre_mesa}
+              tipoMesa={table.tipo}
+              title={table.title}
               className="relative"
               key={idx}
               index={item}

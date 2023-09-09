@@ -3,6 +3,7 @@ import { FC, useEffect, useState } from 'react'
 import { MesaContent } from './MesaContent';
 import { EventContextProvider } from '../../context'
 import { ActualizarPosicion, setupDropzone } from './FuntionsDragable'
+import { size, table } from '../../utils/Interfaces';
 
 // Calculadora de posicion de sillas (Grados °) en mesa redonda
 const DefinePosition: CallableFunction = (valor: number, mesa: { tipo: string | number }): number[] | number => {
@@ -21,16 +22,16 @@ const DefinePosition: CallableFunction = (valor: number, mesa: { tipo: string | 
   }
 };
 
-interface propsDragable {
+interface propsMesasDragable {
   scale?: number
-  lienzo?: { ancho: number, alto: number }
-  setDisableWrapper?: any
+  lienzo?: size
+  setDisableWrapper: any
   disableDrag: boolean
-  setShowFormEditar: any
+  setShowFormEditar: boolean
 }
 
-export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, disableDrag, setShowFormEditar }) => {
-  const { event, setEvent } = EventContextProvider();
+export const MesasDragable: FC<propsMesasDragable> = ({ scale, lienzo, setDisableWrapper, disableDrag, setShowFormEditar }) => {
+  const { event, setEvent, planSpaceActive, setPlanSpaceActive } = EventContextProvider();
   const [disableLayout, setDisableLayout] = useState<boolean>(false);
   const [dragPositions, setDragPositions] = useState<any>();
   const [dragables, setDragables] = useState<any>([]);
@@ -43,7 +44,7 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
   let transformProp: any
   useEffect(() => {
     const filterGuestsDraggable = (event?.invitados_array?.reduce((acc, guest) => {
-      if (event?.mesas_array?.map(table => table.nombre_mesa).includes(guest.nombre_mesa)) {
+      if (planSpaceActive?.tables?.map(table => table.title).includes(guest.nombre_mesa)) {
         acc.dragables.push(`#dragS${guest._id}`)
         acc.sentados[`dragS${guest._id}`] = { x: 0, y: 0 }
       } else {
@@ -52,10 +53,14 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
       }
       return acc
     }, { sentados: {}, noSentados: [], dragables: [] }))
-    const mesasDrag = event?.mesas_array.reduce((acc, n) => {
-      acc[n._id] = { x: n.posicion[0].x, y: n.posicion[0].y }
+
+
+    const mesasDrag = planSpaceActive?.tables?.reduce((acc, n) => {
+      acc[n._id] = { x: n.position.x, y: n.position.y }
       return acc
     }, {})
+
+
     setDragables(filterGuestsDraggable?.dragables)
     setDragPositions({
       ...mesasDrag,
@@ -63,7 +68,7 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
       ...filterGuestsDraggable?.noSentados,
       pdrag1: { x: 0, y: 0 },
     })
-  }, [event?.mesas_array, event])
+  }, [planSpaceActive?.tables, planSpaceActive])
 
   let sizeElement = { w: 0, h: 0 }
   let lienzoLimit = { x: 0, y: 0 }
@@ -132,6 +137,10 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
       },
     },
   })
+  interface position {
+    x: number
+    y: number
+  }
 
   // setup draggable elements.
   interact('.js-drag').draggable({
@@ -139,15 +148,16 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
     manualStart: false,
     listeners: {
       start(e) {
-        let position = { x: 0, y: 0 }
+        let position: position = { x: 0, y: 0 }
         position = dragPositions[e.target.id]
         sizeElement = { w: e.rect.width, h: e.rect.height }
-        lienzoLimit = { x: Math.round(lienzo.ancho - sizeElement.w * 2), y: Math.round(lienzo.alto - sizeElement.h * 2) }
+        lienzoLimit = { x: Math.round(lienzo.width - sizeElement.w * 2), y: Math.round(lienzo.height - sizeElement.h * 2) }
         position.x = parseInt(e.target.getAttribute('data-x'), 10) || 0
         position.y = parseInt(e.target.getAttribute('data-y'), 10) || 0
+
       },
       move(e) {
-        let position = { x: 0, y: 0 }
+        let position: position = { x: 0, y: 0 }
         position = dragPositions[e.target.id]
         position.x >= 0 ? position.x += parseInt(e.dx != 0 ? e.dx / scale : e.dx, 10) || 0 : position.x = 0
         position.y >= 0 ? position.y += parseInt(e.dy != 0 ? e.dy / scale : e.dy, 10) || 0 : position.y = 0
@@ -159,11 +169,10 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
           e.target.style.left = position.x + 'px'
           e.target.style.top = position.y + 'px'
         }
-
       },
       end(e) {
         const position = dragPositions[e.target.id]
-        ActualizarPosicion({ x: position.x, y: position.y, event: event, mesaID: e.target.getAttribute('id'), setEvent: setEvent })
+        ActualizarPosicion({ x: position.x, y: position.y, event: event, tableID: e.target.getAttribute('id'), setEvent: setEvent, planSpaceActive, setPlanSpaceActive })
         e.target.style[transformProp] = 'translate(' + position.x + 'px, ' + position.y + 'px)'
         e.target.style.left = position.x + 'px'
         e.target.style.top = position.y + 'px'
@@ -192,11 +201,11 @@ export const Dragable: FC<propsDragable> = ({ scale, lienzo, setDisableWrapper, 
 
   return (
     <>
-      {event?.mesas_array?.map((mesa, index) => {
+      {planSpaceActive?.tables?.map((item: table, idx) => {
         return (
           <MesaContent
-            key={mesa._id}
-            mesa={{ ...mesa, posicion: mesa.posicion[0] }}
+            key={item._id}
+            table={item}
             DefinePosition={DefinePosition}
             setDisableWrapper={setDisableWrapper}
             disableDrag={disableDrag}

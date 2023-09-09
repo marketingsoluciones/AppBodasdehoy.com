@@ -2,7 +2,7 @@ import { InvitadosIcon, MesaIcon } from "../icons"
 import { GiGrandPiano } from 'react-icons/gi';
 import { BsIntersect } from 'react-icons/bs';
 import { ImInsertTemplate } from 'react-icons/im';
-import { HiDocumentReport } from 'react-icons/hi';
+import { HiDocumentReport, HiTemplate } from 'react-icons/hi';
 
 const sutMenus = [
   {
@@ -20,6 +20,10 @@ const sutMenus = [
   {
     title: "zonas",
     icon: <BsIntersect className="w-6 h-6" />,
+  },
+  {
+    title: "planos",
+    icon: <HiTemplate className="w-6 h-6" />,
   },
   {
     title: "plantilla",

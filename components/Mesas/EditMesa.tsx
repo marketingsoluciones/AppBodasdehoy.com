@@ -1,7 +1,7 @@
 import { FC } from "react"
 import { EventContextProvider } from "../../context"
 import { fetchApiEventos, queries } from "../../utils/Fetching"
-import { table } from "../../utils/Interfaces"
+import { table, tableOld } from "../../utils/Interfaces"
 import { BorrarIcon, EditarIcon, Lock } from "../icons"
 import { useToast } from '../../hooks/useToast';
 

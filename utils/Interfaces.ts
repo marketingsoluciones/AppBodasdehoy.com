@@ -15,7 +15,9 @@ export interface Event {
     cant_invitados: number
     invitados_array: guests[]
     menus_array: menu[]
-    mesas_array: table[]
+    planSpaceSelect: string
+    planSpace: planSpace[]
+    mesas_array: tableOld[]
     grupos_array: string[]
     notificaciones_array: notification[]
     imgInvitacion: image
@@ -77,7 +79,43 @@ interface notification {
     mensaje: string
 }
 
-export interface table {
+interface position {
+    x: number
+    y: number
+}
+export interface size {
+    width: number
+    height: number
+}
+interface propsBase {
+    _id: string
+    title: string
+    position: position
+    size: size
+}
+interface element extends propsBase {
+    tipo: string
+}
+export interface table extends element {
+    tipo: string
+    numberChair: number
+}
+interface section extends propsBase {
+    color: string
+    elements: element[]
+    tables: table[]
+}
+export interface planSpace {
+    _id: string
+    title: string
+    size: size
+    template: boolean,
+    sections: section[]
+    elements: element[]
+    tables: table[]
+}
+
+export interface tableOld {
     _id: string
     nombre_mesa: string
     tipo: string

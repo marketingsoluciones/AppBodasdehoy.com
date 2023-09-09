@@ -277,6 +277,82 @@ export const queries = {
         fecha_lectura
         mensaje
       }
+      planSpaceSelect
+      planSpace{
+      _id
+      title
+      size{
+        width
+        height
+      }
+      template
+      sections{
+        _id
+        title
+        position{
+          x
+          y
+        }
+        size{
+          width
+          height
+        }
+        color
+        elements{
+          _id
+          title
+          position{
+            x
+            y
+          }
+          size{
+            width
+            height
+          }
+        }
+        tables{
+          _id
+          title
+          position{
+            x
+            y
+          }
+          size{
+            width
+            height
+          }
+          tipo
+          numberChair
+        }
+      }
+      elements{
+        _id
+        title
+        position{
+          x
+          y
+        }
+        size{
+          width
+          height
+        }
+        tipo
+      }
+      tables{
+        _id
+        title
+        position{
+          x
+          y
+        }
+        size{
+          width
+          height
+        }
+        tipo
+        numberChair
+      }
+    }
       mesas_array{
            _id
            nombre_mesa
@@ -461,7 +537,12 @@ export const queries = {
       }
     }
   }`,
-  editTable: `mutation ($eventID:String, $tableID: String, $variable: String, $coordenadas: [posicionAinput]) {
+
+  editTable: `mutation ($eventID:ID, $planSpaceID: ID, $sectionID: ID, $tableID: ID, $variable: String, $valor: String) {
+    editTable(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, tableID:$tableID, variable:$variable, valor:$valor) 
+  }`,
+
+  editTableOld: `mutation ($eventID:String, $tableID: String, $variable: String, $coordenadas: [posicionAinput]) {
     editMesa(evento_id:$eventID,mesa_id:$tableID, variable_reemplazar:$variable, coordenadas:$coordenadas) {
       _id
       nombre_mesa

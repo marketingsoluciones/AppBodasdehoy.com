@@ -1,16 +1,13 @@
-import { cloneElement, FC, ReactNode, TouchEvent, useEffect, useState } from "react";
-import useHover from "../../hooks/useHover";
-import TooltipOld from "../Utils/TooltipOld";
-import { guests, signalItem, table } from '../../utils/Interfaces';
+import { cloneElement, FC, ReactNode, useEffect, useState } from "react";
+import { guests, table } from '../../utils/Interfaces';
 import { Chair } from "./Chair";
 import { SentadoItem } from "./SentadoItem";
 import { MesaImperial } from "./MesaImperial";
-import Invitados from "../../pages/invitados";
 import { EditMesa } from "./EditMesa";
 
 interface propsMesaComponent {
   posicion: number;
-  mesa: table;
+  table: table;
   invitados: guests[];
   setDisableWrapper: any
   setShowFormEditar: any
@@ -32,14 +29,14 @@ type schemaType = {
   podio: tableType;
 };
 
-const MesaComponent: FC<propsMesaComponent> = ({ posicion, mesa, invitados, setDisableWrapper, setShowFormEditar, disableDrag }) => {
-  const { cantidad_sillas } = mesa;
+const MesaComponent: FC<propsMesaComponent> = ({ posicion, table, invitados, setDisableWrapper, setShowFormEditar, disableDrag }) => {
+  const { numberChair } = table;
   const [nSillas, setNSillas] = useState([]);
 
   // Crear array a partir de un numero para poder renderizar sillas
   const ArraySillas: CallableFunction = (): number[] => {
     let arr = [];
-    for (let i = 0; i < mesa?.cantidad_sillas; i++) {
+    for (let i = 0; i < table?.numberChair; i++) {
       arr.push(i);
     }
     return arr;
@@ -55,35 +52,35 @@ const MesaComponent: FC<propsMesaComponent> = ({ posicion, mesa, invitados, setD
   const schemaGeneral: schemaType = {
     redonda: {
       position: posicion,
-      component: <MesaRedonda mesa={mesa} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} />,
+      component: <MesaRedonda mesa={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} />,
       type: "radio",
     },
     cuadrada: {
       position: [0, 90, 180, 270],
-      component: <MesaCuadrada mesa={mesa} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} />,
+      component: <MesaCuadrada mesa={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} />,
       type: "radio",
     },
     podio: {
       position: ArraySillas(),
-      component: <MesaPodio mesa={mesa} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} />,
+      component: <MesaPodio mesa={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} />,
       type: "relative",
     },
   };
 
   // Setear estado con el array correspondiente
   useEffect(() => {
-    setNSillas(posiciones[mesa?.tipo]);
+    setNSillas(posiciones[table?.tipo]);
   }, []);
 
-  if (["imperial"].includes(mesa.tipo)) {
+  if (["imperial"].includes(table.tipo)) {
     return (
       <>
-        <MesaImperial mesa={mesa} invitados={invitados} setDisableWrapper={setDisableWrapper} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} />
+        <MesaImperial table={table} invitados={invitados} setDisableWrapper={setDisableWrapper} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} />
       </>
     )
   } else {
-    return cloneElement(schemaGeneral[mesa.tipo].component, {
-      cantidad_sillas,
+    return cloneElement(schemaGeneral[table.tipo].component, {
+      cantidad_sillas: numberChair,
       children: nSillas?.map((valor, idx) => {
         const invitado = invitados.filter(element => element.puesto == idx.toString())[0]
         return (
@@ -91,10 +88,10 @@ const MesaComponent: FC<propsMesaComponent> = ({ posicion, mesa, invitados, setD
             <Chair
               key={idx}
               index={idx}
-              tipoMesa={mesa?.tipo}
-              posicion={valor}
-              nombre_mesa={mesa?.nombre_mesa}
-              className={schemaGeneral[mesa.tipo].type}
+              tipoMesa={table?.tipo}
+              position={valor}
+              title={table?.title}
+              className={schemaGeneral[table.tipo].type}
             >
               {/* <span>otro</span> */}
               {invitado && <SentadoItem
@@ -125,35 +122,35 @@ interface propsTableType {
   disableDrag: any
 }
 
-const MesaRedonda: FC<propsTableType> = ({ cantidad_sillas, children, mesa, setShowFormEditar, disableDrag }) => {
+const MesaRedonda: FC<propsTableType> = ({ children, mesa, setShowFormEditar, disableDrag }) => {
   return (
     <>
       <EditMesa mesa={mesa} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} />
       <div
         className="rounded-full transform bg-white w-20 h-20 shadow border border-gray-500 relative flex items-center justify-center"
       >
-        <p className="font-display text-xs text-center mx-2 leading-[12px] tracking-tight text-gray-500">{mesa?.nombre_mesa}</p>
+        <p className="font-display text-xs text-center mx-2 leading-[12px] tracking-tight text-gray-500">{mesa?.title}</p>
         {children}
       </div>
     </>
   );
 };
 
-const MesaCuadrada: FC<propsTableType> = ({ cantidad_sillas, children, mesa, setShowFormEditar, disableDrag }) => {
+const MesaCuadrada: FC<propsTableType> = ({ children, mesa, setShowFormEditar, disableDrag }) => {
   return (
     <>
       <EditMesa mesa={mesa} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} />
       <div
         className="w-20 h-20 shadow border border-gray-500 relative bg-white flex items-center justify-center"
       >
-        <p className="font-display text-xs text-center mx-2 leading-[12px] tracking-tight text-gray-500">{mesa?.nombre_mesa}</p>
+        <p className="font-display text-xs text-center mx-2 leading-[12px] tracking-tight text-gray-500">{mesa?.title}</p>
         {children}
       </div>
     </>
   );
 };
 
-const MesaPodio: FC<propsTableType> = ({ cantidad_sillas, children, mesa, setShowFormEditar, disableDrag }) => {
+const MesaPodio: FC<propsTableType> = ({ children, mesa, setShowFormEditar, disableDrag }) => {
   return (
     <>
       <EditMesa mesa={mesa} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} />
@@ -163,7 +160,7 @@ const MesaPodio: FC<propsTableType> = ({ cantidad_sillas, children, mesa, setSho
         <div className="flex gap-4 w-full px-6 transform -translate-y-1/2">
           {children}
         </div>
-        {mesa?.nombre_mesa}
+        {mesa?.title}
       </div>
     </>
   );
