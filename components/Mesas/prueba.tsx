@@ -23,17 +23,10 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables, setShowFormEditar,
   const [disableDrag, setDisableDrag] = useState(true)
   const toast = useToast()
   const { event, setEvent, planSpaceActive } = EventContextProvider()
-  const [lienzo, setLienzo] = useState<size>(event.planSpace?.find(elem => elem._id === event.planSpaceSelect).size)
+  const [lienzo, setLienzo] = useState<size>(event?.planSpace?.find(elem => elem?._id === event?.planSpaceSelect)?.size)
 
   useEffect(() => {
-    setEvent((old) => {
-      return old
-    })
-    console.log(10002, planSpaceActive)
-  }, [lienzo])
-
-  useEffect(() => {
-    setLienzo(event.planSpace?.find(elem => elem._id === event.planSpaceSelect).size)
+    setLienzo(event?.planSpace?.find(elem => elem?._id === event?.planSpaceSelect)?.size)
   }, [event.planSpaceSelect])
 
 
@@ -42,8 +35,8 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables, setShowFormEditar,
   }
 
   const calculoEscala = (lienzo: size, contenedor: any) => {
-    const sX = contenedor.current.offsetWidth * 100 / lienzo.width
-    const sY = contenedor.current.offsetHeight * 100 / lienzo.height
+    const sX = contenedor.current.offsetWidth * 100 / lienzo?.width
+    const sY = contenedor.current.offsetHeight * 100 / lienzo?.height
     return Math.min(sX, sY) / 100
   }
   useEffect(() => {

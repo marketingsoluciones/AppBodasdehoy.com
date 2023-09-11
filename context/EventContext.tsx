@@ -58,7 +58,7 @@ const EventProvider = ({ children }) => {
   useEffect(() => {
     if (event?.planSpaceSelect) {
       //console.log("seteando planSpaceSelect")
-      setPlanSpaceActive(event.planSpace.find(elem => elem._id === event.planSpaceSelect))
+      setPlanSpaceActive(event?.planSpace?.find(elem => elem?._id === event?.planSpaceSelect))
     }
   }, [event?.planSpaceSelect])
 

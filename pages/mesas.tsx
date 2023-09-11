@@ -2,7 +2,7 @@
 import React, { FC, useEffect, useRef, useState } from "react";
 import { AuthContextProvider, EventContextProvider } from "../context";
 import FormCrearMesa from "../components/Forms/FormCrearMesa";
-import BlockPanelMesas from "../components/Mesas/BlockPanelMesas";
+import BlockPanelMesas, { ListaMesas } from "../components/Mesas/BlockPanelMesas";
 import BlockResumen from "../components/Mesas/BlockResumen";
 import BlockInvitados from "../components/Mesas/BlockInvitados";
 import ModalMesa from "../components/Mesas/ModalMesa";
@@ -23,13 +23,15 @@ import { motion } from "framer-motion";
 import { SubMenu } from "../components/Utils/SubMenu";
 import BlockDefault from "../components/Mesas/BlockDefault";
 import BlockPlanos from "../components/Mesas/BlockPlanos";
+import { setupDropzone } from "../components/Mesas/FuntionsDragable";
 
 
 SwiperCore.use([Pagination]);
 
 const Mesas: FC = () => {
-  const { event } = EventContextProvider();
+  const { event, setEvent, planSpaceActive } = EventContextProvider();
   const [modelo, setModelo] = useState<string | null>(null);
+  const [values, setValues] = useState<any>({});
   const [showForm, setShowForm] = useState<boolean>(false);
   const [showFormEditar, setShowFormEditar] = useState<any>({ mesa: {}, visible: false });
   const [isMounted, setIsMounted] = useState<boolean>(false);
@@ -42,10 +44,17 @@ const Mesas: FC = () => {
   const [itemSelect, setItemSelect] = useState("mesas")
   const [fullScreen, setFullScreen] = useState<boolean>(false)
 
+  const handleOnDrop = (values: any) => {
+    setValues(values)
+    setShowForm(true)
+  }
 
   useMounted()
 
-
+  useEffect(() => {
+    const defaultMesasDraggable = ListaMesas.map(elem => `#dragN${elem.title}`)
+    setupDropzone({ target: '.js-drop-mesas', accept: `${defaultMesasDraggable}`, handleOnDrop, setEvent, eventID: event?._id })
+  }, [])
 
 
   useEffect(() => {
@@ -55,15 +64,45 @@ const Mesas: FC = () => {
 
 
   useEffect(() => {
-    setFilterGuests(event?.invitados_array?.reduce((acc, guest) => {
-      if (event?.mesas_array?.map(table => table.nombre_mesa).includes(guest.nombre_mesa)) {
+    const filterGuest = event?.invitados_array?.reduce((acc, guest) => {
+      if (guest?.chairs?.find(elem => elem?.planSpaceID === event.planSpaceSelect)) {
         acc.sentados.push(guest)
       } else {
         acc.noSentados.push(guest)
       }
       return acc
-    }, { sentados: [], noSentados: [] }))
-  }, [event?.invitados_array, event?.mesas_array])
+    }, { sentados: [], noSentados: [] })
+
+    setFilterGuests(filterGuest)
+    // const guestsSections = planSpaceActive.sections.reduce((sections, section) => {
+    //   const guestsSection = section.tables.reduce((tables, table) => {
+    //     tables.push(...table.guests)
+    //     return tables
+    //   }, [])
+    //   sections.push(...guestsSection)
+    //   return sections
+    // }, [])
+    // const guestsTables = planSpaceActive.tables.reduce((tables, table) => {
+    //   tables.push(...table.guests)
+    //   return tables
+    // }, [])
+    // const guestsSentados = [...guestsSections, ...guestsTables]
+    // console.log(guestsSentados)
+    // console.log(event.invitados_array)
+    // const asd = event.invitados_array.reduce((acc, guest) => {
+
+    //   return acc
+    // })
+
+    // setFilterGuests(event?.invitados_array?.reduce((acc, guest) => {
+    //   if (event?.mesas_array?.map(table => table.nombre_mesa).includes(guest.nombre_mesa)) {
+    //     acc.sentados.push(guest)
+    //   } else {
+    //     acc.noSentados.push(guest)
+    //   }
+    //   return acc
+    // }, { sentados: [], noSentados: [] }))
+  }, [event?.invitados_array, event?.mesas_array, event?.planSpaceSelect])
 
   const { user, verificationDone } = AuthContextProvider()
   if (verificationDone) {
@@ -79,7 +118,7 @@ const Mesas: FC = () => {
         {showForm ? (
           <ModalMesa set={setShowForm} state={showForm} title="Añadir mesa">
             <FormCrearMesa
-              modelo={modelo}
+              values={values}
               set={setShowForm}
               state={showForm}
             />
@@ -107,7 +146,7 @@ const Mesas: FC = () => {
           </ModalLeft>
         )}
         <div className="font-display">
-          <section id="areaDrag" className={`bg-base w-full h-full pt-2 md:py-0 static`}>
+          <section id="areaDrag" className={`w-full h-full pt-2 md:py-0 static`}>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -115,7 +154,7 @@ const Mesas: FC = () => {
               className="max-w-screen-lg mx-auto inset-x-0 w-full px-5 md:px-0 ">
               <BlockTitle title={"Mesas y asientos"} />
             </motion.div>
-            <div className={`${fullScreen ? "absolute z-[1000] w-[100vw] h-[100vh] top-0 left-0" : "w-full h-[calc(100vh-208px)] md:h-[calc(100vh-210px)] md:mt-2"}`}>
+            <div className={`${fullScreen ? "absolute z-[50] w-[100vw] h-[100vh] top-0 left-0" : "w-full h-[calc(100vh-208px)] md:h-[calc(100vh-210px)] md:mt-2"}`}>
 
 
               <div className={`flex flex-col md:flex-row w-full items-center h-full`}>

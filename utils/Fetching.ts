@@ -323,6 +323,7 @@ export const queries = {
           }
           tipo
           numberChair
+          guests
         }
       }
       elements{
@@ -351,6 +352,7 @@ export const queries = {
         }
         tipo
         numberChair
+        guests
       }
     }
       mesas_array{
@@ -369,6 +371,13 @@ export const queries = {
         grupo_edad
         correo
         telefono
+        chairs{
+          planSpaceID
+          sectionID
+          tableID
+          position
+          order
+        }
         nombre_mesa
         puesto
         asistencia
@@ -523,21 +532,37 @@ export const queries = {
       }
     }
   }`,
-  createTable: `mutation ($eventID:String, $tableName: String, $tableType:String, $numberChairs:  Int, $position: [posicionAinput]) {
-    creaMesa(evento_id:$eventID,mesas_array:{nombre_mesa:$tableName, tipo:$tableType, cantidad_sillas:$numberChairs, posicion:$position}){
-      mesas_array{
-        _id
-        nombre_mesa
-        tipo
-        cantidad_sillas
-        posicion {
-          x
-          y
-        }
+  // createTable: `mutation ($eventID:String, $tableName: String, $tableType:String, $numberChairs:  Int, $position: [posicionAinput]) {
+  //   creaMesa(evento_id:$eventID,mesas_array:{nombre_mesa:$tableName, tipo:$tableType, cantidad_sillas:$numberChairs, posicion:$position}){
+  //     mesas_array{
+  //       _id
+  //       nombre_mesa
+  //       tipo
+  //       cantidad_sillas
+  //       posicion {
+  //         x
+  //         y
+  //       }
+  //     }
+  //   }
+  // }`,
+  createTable: `mutation ($eventID:ID, $planSpaceID: ID, $sectionID: ID, $values: String) {
+    createTable(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, values:$values) {
+      _id
+      title
+      position{
+        x
+        y
       }
+      size{
+        width
+        height
+      }
+      tipo
+      numberChair
+      guests
     }
   }`,
-
   editTable: `mutation ($eventID:ID, $planSpaceID: ID, $sectionID: ID, $tableID: ID, $variable: String, $valor: String) {
     editTable(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, tableID:$tableID, variable:$variable, valor:$valor) 
   }`,

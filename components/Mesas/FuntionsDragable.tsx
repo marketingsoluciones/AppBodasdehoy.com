@@ -19,134 +19,202 @@ const removeClass = (element: any, className: any) => {
     element.className = element.className.replace(new RegExp(className + ' *', 'g'), '')
   }
 }
+interface propsDropzone {
+  target: string
+  accept: string
+  setEvent: Dispatch<SetStateAction<Event>>
+  eventID: string
+  handleOnDrop?: any
+}
+export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, eventID }: propsDropzone) => {
+  if (target == ".js-drop-mesas") {
+    let values = {}
+    interact(target)
+      .dropzone({
+        accept: accept,
+        ondropactivate: function (event) {
+          //console.log("ondropactivate", event.dropzone.target)
+        },
+        ondropdeactivate: function (event) {
+          //console.log("ondropdeactivate", event.currentTarget)
+        },
+        checker: function (
+          dragEvent,         // related dragmove or dragend
+          event,             // Touch, Pointer or Mouse Event
+          dropped,           // bool default checker result
+          dropzone,          // dropzone Interactable
+          dropzoneElement,   // dropzone element
+          draggable,         // draggable Interactable
+          draggableElement,   // draggable element
+        ) {
+          // only allow drops into empty dropzone elements
+          if (event.type == "pointerup") {
+            if (dropped) {
+              const { layerX, layerY, offsetX, offsetY, pageX, pageY } = event
+              values = { layerX, layerY, offsetX, offsetY, pageX, pageY }
+              //console.log("AL SOLTAR_0", { layerX, layerY, offsetX, offsetY, pageX, pageY })
+            }
+          }
+          return dropped && dropzoneElement.hasChildNodes();
+        },
+      })
+      //cuando se ACTIVA la zona drogleable
+      .on('dropactivate', (event) => {
+        // // // console.log("cuando se ACTIVA la zona drogleable", event.target.id)
+      })
+      //cuando se DESACTIVA la zona drogleable
+      .on('dropdeactivate', (event) => {
+        // // // console.log("cuando se DESactiva la zona drogleable", event.target.id)
+      })
+      //cuando ENTRA a una zona drogleable
+      .on('dragenter', (event) => {
+        // // // console.log("cuando ENTRA a la zona drogleable", event.target.id)
 
-export const setupDropzone = (target: any, accept: any, setEvent: any, eventID: any) => {
-  interact(target)
-    .dropzone({
-      accept: accept,
-      ondropactivate: function (event) {
-        //console.log(1001)
-        //addClass(event.relatedTarget, '-drop-possible')
+      })
+      //cuando SALE de una zona drogleable sin haber soltado
+      .on('dragleave', (event) => {
+        // // // console.log("cuando SALE de la zona drogleable", event.target.id)
 
-        //agrega texto al div
-        //event.target.textContent = '1'
-      },
-      ondropdeactivate: function (event) {
-        //console.log(1002)
+      })
+      //cuando SUELTA sobre una zona drogleable
+      .on('drop', (event) => {
+        // // // console.log("SOLTADO2", event.currentTarget.id)
+        if (event.currentTarget.id === "lienzo-drop") {
+          values = { ...values, modelo: event.relatedTarget.id.replace(/dragN/, "") }
+          handleOnDrop(values)
+        }
 
-        //removeClass(event.relatedTarget, '-drop-possible')
-      },
-      checker: function (
-        dragEvent,         // related dragmove or dragend
-        event,             // Touch, Pointer or Mouse Event
-        dropped,           // bool default checker result
-        dropzone,          // dropzone Interactable
-        dropzoneElement,   // dropzone element
-        draggable,         // draggable Interactable
-        draggableElement   // draggable element
-      ) {
+      })
+  }
 
-        // only allow drops into empty dropzone elements
-        //console.log("dragEvent:", dragEvent)
-        //console.log("event:", event.button, event.buttons, event.type)
-        if (event.type == "pointerup") {
-          if (dropped) {
-            const invitadoID = draggableElement.id.slice(5, draggableElement.id.length)
-            const nMesaPrev = dropzoneElement.id.split('-@-')[0]
-            const nombre_mesa = nMesaPrev != "listInvitados" ? nMesaPrev : "no asignado"
-            const indexPrev = dropzoneElement.id.split('-@-')[1]
-            const index: string | number = nMesaPrev != "listInvitados" ? indexPrev : "no asignado"
-            MoveInvitado({ eventID: eventID, index: index, invitadoID: invitadoID, nombre_mesa: nombre_mesa, setEvent: setEvent })
-            // console.log("--------------------------------------")
-            // console.log("draggableElement:", draggableElement.id, invitadoID)
-            // console.log("dropped:", dropped)
-            // console.log("dropzone:", dropzone.target)
-            // console.log("dropzoneElement:", dropzoneElement.id, "mesa:", nombre_mesa, "index:", index)
-            // console.log("--------------------------------------")
+
+  if (target == ".js-drop") {
+    interact(target)
+      .dropzone({
+        accept: accept,
+        ondropactivate: function (event) {
+          //console.log(1001)
+          //addClass(event.relatedTarget, '-drop-possible')
+
+          //agrega texto al div
+          //event.target.textContent = '1'
+        },
+        ondropdeactivate: function (event) {
+          //console.log(1002)
+
+          //removeClass(event.relatedTarget, '-drop-possible')
+        },
+        checker: function (
+          dragEvent,         // related dragmove or dragend
+          event,             // Touch, Pointer or Mouse Event
+          dropped,           // bool default checker result
+          dropzone,          // dropzone Interactable
+          dropzoneElement,   // dropzone element
+          draggable,         // draggable Interactable
+          draggableElement   // draggable element
+        ) {
+
+          // only allow drops into empty dropzone elements
+          //console.log("dragEvent:", dragEvent)
+          //console.log("event:", event.button, event.buttons, event.type)
+          if (event.type == "pointerup") {
+            if (dropped) {
+              const invitadoID = draggableElement.id.slice(5, draggableElement.id.length)
+              const nMesaPrev = dropzoneElement.id.split('-@-')[0]
+              const nombre_mesa = nMesaPrev != "listInvitados" ? nMesaPrev : "no asignado"
+              const indexPrev = dropzoneElement.id.split('-@-')[1]
+              const index: string | number = nMesaPrev != "listInvitados" ? indexPrev : "no asignado"
+              MoveInvitado({ eventID: eventID, index: index, invitadoID: invitadoID, nombre_mesa: nombre_mesa, setEvent: setEvent })
+              // console.log("--------------------------------------")
+              // console.log("draggableElement:", draggableElement.id, invitadoID)
+              // console.log("dropped:", dropped)
+              // console.log("dropzone:", dropzone.target)
+              // console.log("dropzoneElement:", dropzoneElement.id, "mesa:", nombre_mesa, "index:", index)
+              // console.log("--------------------------------------")
+            }
+          }
+          //console.log("dropzoneElement:", dropzoneElement)
+          //console.log("draggable:", draggable)
+          //console.log("draggableElement:", draggableElement)
+          //console.log("--------------------------------------")
+          return dropped && dropzoneElement.hasChildNodes();
+        },
+      })
+      //cuando se ACTIVA la zona drogleable
+      .on('dropactivate', (event) => {
+        //console.log("dropactivate")
+        const active = event.target.getAttribute('active') | 0
+
+        // change style if it was previously not active
+        if (active === 0) {
+          addClass(event.target, '-drop-possible')
+          //addClass(event.target, '-drop-possibleHover')
+          //event.target.textContent = 'Drop me here!'
+        }
+
+        event.target.setAttribute('active', active + 1)
+      })
+      //cuando se DESACTIVA la zona drogleable
+      .on('dropdeactivate', (event) => {
+        const active = event.target.getAttribute('active') | 0
+        // change style if it was previously active
+        // but will no longer be active
+        if (active === 1) {
+          //remueve texto del div
+          //event.target.removeChild(event.target.childNodes[0])
+
+          removeClass(event.target, '-drop-possible')
+          //removeClass(event.target, '-drop-possibleHover')
+          //event.target.textContent = 'Dropzone'
+          //event.target.appendChild(document.getElementById("cuadro"))
+        }
+
+        event.target.setAttribute('active', active - 1)
+      })
+      //cuando esta SOBRE una zona drogleable
+      .on('dragenter', (event) => {
+        // console.log("sobre", event.target.id, " elemen: ", event.relatedTarget.id.slice(0, 5), event.target)
+
+        if (event.target.id != "listInvitados") {
+          addClass(event.target, 'bg-secondary')
+        }
+        if (event.target.id == "listInvitados" && event.relatedTarget.id.slice(0, 5) == "dragN") {
+        } else {
+          let element = document.getElementById(event.relatedTarget.id.replace(/dragN/, "dragM"))
+          if (element.id.slice(0, 5) == "dragS") { element = document.getElementById(event.relatedTarget.id.replace(/dragS/, "dragM")) }
+          if (element) {
+            removeClass(element, 'border-gray-600')
+            removeClass(element, 'border-2')
+            addClass(element, 'border-green')
+            addClass(element, 'border-4')
           }
         }
-        //console.log("dropzoneElement:", dropzoneElement)
-        //console.log("draggable:", draggable)
-        //console.log("draggableElement:", draggableElement)
-        //console.log("--------------------------------------")
-        return dropped && dropzoneElement.hasChildNodes();
-      },
-    })
-    //cuando se ACTIVA la zona drogleable
-    .on('dropactivate', (event) => {
-      //console.log("dropactivate")
-      const active = event.target.getAttribute('active') | 0
-
-      // change style if it was previously not active
-      if (active === 0) {
-        addClass(event.target, '-drop-possible')
-        //addClass(event.target, '-drop-possibleHover')
-        //event.target.textContent = 'Drop me here!'
-      }
-
-      event.target.setAttribute('active', active + 1)
-    })
-    //cuando se DESACTIVA la zona drogleable
-    .on('dropdeactivate', (event) => {
-      const active = event.target.getAttribute('active') | 0
-      // change style if it was previously active
-      // but will no longer be active
-      if (active === 1) {
-        //remueve texto del div
-        //event.target.removeChild(event.target.childNodes[0])
-
-        removeClass(event.target, '-drop-possible')
-        //removeClass(event.target, '-drop-possibleHover')
-        //event.target.textContent = 'Dropzone'
-        //event.target.appendChild(document.getElementById("cuadro"))
-      }
-
-      event.target.setAttribute('active', active - 1)
-    })
-    //cuando esta SOBRE una zona drogleable
-    .on('dragenter', (event) => {
-      console.log("sobre", event.target.id, " elemen: ", event.relatedTarget.id.slice(0, 5))
-
-      if (event.target.id != "listInvitados") {
-        addClass(event.target, 'bg-secondary')
-      }
-      if (event.target.id == "listInvitados" && event.relatedTarget.id.slice(0, 5) == "dragN") {
-      } else {
-        let element = document.getElementById(event.relatedTarget.id.replace(/dragN/, "dragM"))
-        if (element.id.slice(0, 5) == "dragS") { element = document.getElementById(event.relatedTarget.id.replace(/dragS/, "dragM")) }
-        if (element) {
-          removeClass(element, 'border-gray-600')
-          removeClass(element, 'border-2')
-          addClass(element, 'border-green')
-          addClass(element, 'border-4')
+        //event.relatedTarget.textContent = "I'm in"
+      })
+      //cuando SALE de una zona drogleable sin haber soltado
+      .on('dragleave', (event) => {
+        if (event.target.id != "listInvitados") {
+          removeClass(event.target, 'bg-secondary')
         }
-      }
-      //event.relatedTarget.textContent = "I'm in"
-    })
-    //cuando SALE de una zona drogleable sin haber soltado
-    .on('dragleave', (event) => {
-      //console.log("sale")
-      if (event.target.id != "listInvitados") {
+        if (event.target.id == "listInvitados" && event.relatedTarget.id.slice(0, 5) == "dragN") {
+        } else {
+          let element = document.getElementById(event.relatedTarget.id.replace(/dragN/, "dragM"))
+          if (element.id.slice(0, 5) == "dragS") { element = document.getElementById(event.relatedTarget.id.replace(/dragS/, "dragM")) }
+          if (element) {
+            removeClass(element, 'border-green')
+            removeClass(element, 'border-4')
+            addClass(element, 'border-gray-600')
+            addClass(element, 'border-2')
+          }
+        }
+        //event.relatedTarget.textContent = 'Drag me…'
+      })
+      //cuando SUELTA sobre una zona drogleable
+      .on('drop', (event) => {
         removeClass(event.target, 'bg-secondary')
-      }
-      if (event.target.id == "listInvitados" && event.relatedTarget.id.slice(0, 5) == "dragN") {
-      } else {
-        let element = document.getElementById(event.relatedTarget.id.replace(/dragN/, "dragM"))
-        if (element.id.slice(0, 5) == "dragS") { element = document.getElementById(event.relatedTarget.id.replace(/dragS/, "dragM")) }
-        if (element) {
-          removeClass(element, 'border-green')
-          removeClass(element, 'border-4')
-          addClass(element, 'border-gray-600')
-          addClass(element, 'border-2')
-        }
-      }
-      //event.relatedTarget.textContent = 'Drag me…'
-    })
-    //cuando SUELTA sobre una zona drogleable
-    .on('drop', (event) => {
-      removeClass(event.target, 'bg-secondary')
-      //event.relatedTarget.textContent = 'Dropped'
-    })
+        //event.relatedTarget.textContent = 'Dropped'
+      })
+  }
 }
 
 // Añadir invitado | Carga en BD y estado
@@ -160,6 +228,7 @@ type propsMoveInvitado = {
 const MoveInvitado = async ({ invitadoID, index, nombre_mesa, eventID, setEvent }: propsMoveInvitado): Promise<void> => {
   try {
     if (index) {
+      console.log(invitadoID, nombre_mesa)
       fetchApiEventos({
         query: queries.editGuests,
         variables: {

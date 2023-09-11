@@ -158,7 +158,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
 
 
     return (
-        <div className={`bg-white w-5/6 opacity-95 z-50 font-display shadow-lg fixed top-0 left-0 h-screen md:hidden transform transition duration-300 ${showSidebar ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className={`bg-white w-5/6 opacity-95 z-[60] font-display shadow-lg fixed top-0 left-0 h-screen md:hidden transform transition duration-300 ${showSidebar ? "translate-x-0" : "-translate-x-full"}`}>
             <ArrowLeft className="absolute w-6 h-6 text-white cursor-pointer translate-x-5 translate-y-5" onClick={() => setShowSidebar(!showSidebar)} />
             <div className="bg-primary h-[160px] flex flex-col  items-center justify-center text-sm text-gray-500">
                 <img

@@ -42,9 +42,7 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
   const handleSetDisableDrag: any = () => {
     setDisableDrag(!disableDrag)
   }
-  useEffect(() => {
-    console.log("disableDrag(deshabilita mover mesa)", disableDrag)
-  }, [disableDrag])
+
   !reset ? handleReset(resetTransform) : () => { }
   return (
     < >
@@ -74,7 +72,7 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
             <div>
               <BiDotsVerticalRounded className="h-6 w-6 cursor-pointer text-primary" onClick={() => setShowMiniMenu(!showMiniMenu)} />
               {showMiniMenu &&
-                <div className="bg-white flex flex-col absolute z-[1020] top-8 right-20 rounded-b-md shadow-md *items-center text-[9px] px-3 pt-1 pb-3 text-gray-800 gap-y-2">
+                <div className="bg-white flex flex-col absolute z-[50] top-8 right-20 rounded-b-md shadow-md *items-center text-[9px] px-3 pt-1 pb-3 text-gray-800 gap-y-2">
                   <div className="flex flex-col bg-red">
                     <span className="w-full text-left">Seleccionar plano:</span>
                     <select className="capitalize w-40 cursor-pointer text-xs text-gray-500 border border-gray-600 focus:border-primary transition py-0 pr-7 rounded-sm focus:outline-none  " >
@@ -105,7 +103,7 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
             <div>
               <mdIcons.MdSettings className="w-6 h-6 cursor-pointer text-primary" onClick={() => setShowSetup(!showSetup)} />
               {showSetup &&
-                <div className="bg-white flex flex-col absolute z-[1020] top-8 right-12 rounded-b-md shadow-md *items-center text-[9px] px-3 pt-1 pb-3 text-gray-800">
+                <div className="bg-white flex flex-col absolute z-[50] top-8 right-12 rounded-b-md shadow-md *items-center text-[9px] px-3 pt-1 pb-3 text-gray-800">
                   <span className="w-full text-left">Tamaño:</span>
                   <InputMini label="ancho" lienzo={lienzo} setLienzo={setLienzo} centerView={centerView} resetTransform={resetTransform} />
                   <InputMini label="alto" lienzo={lienzo} setLienzo={setLienzo} centerView={centerView} resetTransform={resetTransform} />
@@ -121,7 +119,7 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
       </div>
 
 
-      <div className="bg-gray-200 w-80 *h-5 grid grid-cols-3 absolute z-[1020] top-0 left-2 md:left-8 rounded-b-md opacity-70 *items-center text-[9px] md:text-[10px] px-2 text-gray-800">
+      <div className="bg-gray-200 w-80 *h-5 grid grid-cols-3 absolute z-[50] top-0 left-2 md:left-8 rounded-b-md opacity-70 *items-center text-[9px] md:text-[10px] px-2 text-gray-800">
         <span className="font-bold capitalize truncate">{`Plano: ${planSpaceActive?.title}`}</span>
         <span>{`Tamaño: ${lienzo?.width / 100}x${lienzo?.height / 100}mts`}</span>
         <span>{`Zoom: ${state.scale.toFixed(2)}X`}</span>
@@ -132,7 +130,8 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
         wrapperStyle={{ width: "100%", height: "100%", background: "gray" }}
         contentStyle={{ width: `${lienzo?.width}px`, height: `${lienzo?.height}px`, background: "blue" }}
       >
-        <div className="bg-gray-300 paper border-4 lienzo border-indigo-600 flex justify-center items-center ">
+        <div id={"lienzo-drop"} className="js-drop-mesas bg-gray-300 paper lienzo flex justify-center items-center">
+          <div className="lienzo border-4 border-indigo-600"></div>
           <MesasDragable scale={state.scale} lienzo={lienzo} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} setShowFormEditar={setShowFormEditar} />
         </div>
       </TransformComponent>

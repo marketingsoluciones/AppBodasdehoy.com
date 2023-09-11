@@ -16,7 +16,7 @@ const BlockPlanos: FC<propsBlockPlanos> = () => {
       console.log(item._id)
       fetchApiEventos({
         query: queries.eventUpdate,
-        variables: { idEvento: event._id, variable: "planSpaceSelect", value: item._id }, token: null
+        variables: { idEvento: event._id, variable: "planSpaceSelect", value: item?._id }, token: null
       })
       console.log(5551, item._id)
       //setPlanSpaceActive(event.planSpace.find(elem => elem._id === item._id))

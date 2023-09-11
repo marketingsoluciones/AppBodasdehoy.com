@@ -15,6 +15,7 @@ export const MesaContent: FC<propsTable> = ({ table, DefinePosition, setDisableW
   const { event } = EventContextProvider();
   const [invitados, setInvitados] = useState([]);
 
+  //Setear posicion
   useEffect(() => {
     const el = document.getElementById(table._id)
     el.setAttribute('style', `left: ${table.position.x}px; top: ${table.position.y}px`)

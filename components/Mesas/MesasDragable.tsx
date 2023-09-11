@@ -4,6 +4,7 @@ import { MesaContent } from './MesaContent';
 import { EventContextProvider } from '../../context'
 import { ActualizarPosicion, setupDropzone } from './FuntionsDragable'
 import { size, table } from '../../utils/Interfaces';
+import { ListaMesas } from './BlockPanelMesas';
 
 // Calculadora de posicion de sillas (Grados °) en mesa redonda
 const DefinePosition: CallableFunction = (valor: number, mesa: { tipo: string | number }): number[] | number => {
@@ -38,10 +39,12 @@ export const MesasDragable: FC<propsMesasDragable> = ({ scale, lienzo, setDisabl
 
   useEffect(() => {
     if (dragables?.length > 0) {
-      setupDropzone('.js-drop', `${dragables}`, setEvent, event?._id)
+      setupDropzone({ target: '.js-drop', accept: `${dragables}`, setEvent, eventID: event?._id })
     }
   }, [dragables, event, setEvent])
+
   let transformProp: any
+
   useEffect(() => {
     const filterGuestsDraggable = (event?.invitados_array?.reduce((acc, guest) => {
       if (planSpaceActive?.tables?.map(table => table.title).includes(guest.nombre_mesa)) {
@@ -54,14 +57,12 @@ export const MesasDragable: FC<propsMesasDragable> = ({ scale, lienzo, setDisabl
       return acc
     }, { sentados: {}, noSentados: [], dragables: [] }))
 
-
-    const mesasDrag = planSpaceActive?.tables?.reduce((acc, n) => {
-      acc[n._id] = { x: n.position.x, y: n.position.y }
+    const mesasDrag = planSpaceActive?.tables?.reduce((acc, item) => {
+      acc[item._id] = { x: item.position.x, y: item.position.y }
       return acc
     }, {})
 
-
-    setDragables(filterGuestsDraggable?.dragables)
+    setDragables([...filterGuestsDraggable?.dragables])
     setDragPositions({
       ...mesasDrag,
       ...filterGuestsDraggable?.sentados,
@@ -75,10 +76,43 @@ export const MesasDragable: FC<propsMesasDragable> = ({ scale, lienzo, setDisabl
   interact.maxInteractions(Infinity)
   let position = { x: 0, y: 0 }
 
+  interact('.js-dragTable').draggable({
+    manualStart: false,
+    listeners: {
+      start(e) {
+        const element = document.getElementById(e.target.id.replace(/dragN/, "dragM"))
+        if (element) {
+          position.x = parseInt(element.getAttribute("data-x"), 10) || 0
+          position.y = parseInt(element.getAttribute("data-y"), 10) || 0
+        }
+      },
+      move(e) {
+        position.x = position.x + e.dx
+        position.y = position.y + e.dy
+        const element = document.getElementById(e.target.id.replace(/dragN/, "dragM"))
+        if (element) {
+          element.style.left = position.x + 'px'
+          element.style.top = position.y + 'px'
+          element.setAttribute('data-x', `${position.x}`)
+          element.setAttribute('data-y', `${position.y}`)
+        }
+      },
+      end(e) {
+        console.log("solto")
+        const element = document.getElementById(e.target.id.replace(/dragN/, "dragM"))
+        if (element) {
+          const rootElement = document.getElementById('areaDrag');
+          rootElement?.removeChild(document.getElementById(e.target.id.replace(/dragN/, "dragM")))
+        }
+      },
+    },
+  })
+
   interact('.js-dragInvitadoN').draggable({
     manualStart: false,
     listeners: {
       start(e) {
+        //  console.log(e)
         const element = document.getElementById(e.target.id.replace(/dragN/, "dragM"))
         if (element) {
           position.x = parseInt(element.getAttribute("data-x"), 10) || 0
@@ -110,6 +144,7 @@ export const MesasDragable: FC<propsMesasDragable> = ({ scale, lienzo, setDisabl
     manualStart: false,
     listeners: {
       start(e) {
+        console.log(e)
         const element = document.getElementById(e.target.id.replace(/dragS/, "dragM"))
         if (element) {
           position.x = parseInt(element.getAttribute("data-x"), 10) || 0
@@ -258,6 +293,10 @@ export const MesasDragable: FC<propsMesasDragable> = ({ scale, lienzo, setDisabl
             background-color: orange;
           }
           .js-dragInvitadoN {
+            touch-action: none;
+            user-select: none;
+          }
+          .js-dragTable {
             touch-action: none;
             user-select: none;
           }

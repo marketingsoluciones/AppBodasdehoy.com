@@ -79,6 +79,14 @@ interface notification {
     mensaje: string
 }
 
+interface chair {
+    planSpaceID: string,
+    sectionID: string,
+    tableID: string,
+    position: number,
+    order: string
+}
+
 interface position {
     x: number
     y: number
@@ -88,7 +96,7 @@ export interface size {
     height: number
 }
 interface propsBase {
-    _id: string
+    _id?: string
     title: string
     position: position
     size: size
@@ -99,6 +107,7 @@ interface element extends propsBase {
 export interface table extends element {
     tipo: string
     numberChair: number
+    guests: string[]
 }
 interface section extends propsBase {
     color: string
@@ -137,6 +146,7 @@ export interface guests {
     grupo_edad: string
     correo: string
     telefono: string
+    chairs: chair[]
     nombre_mesa: string
     puesto: string | number
     orden_puesto: string
