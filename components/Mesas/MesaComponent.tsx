@@ -84,9 +84,8 @@ const MesaComponent: FC<propsMesaComponent> = ({ posicion, table, invitados, set
       children: nSillas?.map((valor, idx) => {
         const invitado = invitados.filter(element => element.puesto == idx.toString())[0]
         return (
-          <>
+          <div key={idx}>
             <Chair
-              key={idx}
               index={idx}
               tipoMesa={table?.tipo}
               position={valor}
@@ -95,14 +94,13 @@ const MesaComponent: FC<propsMesaComponent> = ({ posicion, table, invitados, set
             >
               {/* <span>otro</span> */}
               {invitado && <SentadoItem
-                key={idx}
                 posicion={valor}
                 invitado={invitado}
                 setDisableWrapper={setDisableWrapper}
               />}
               <span />
             </Chair>
-          </>
+          </div>
         );
       }),
     });

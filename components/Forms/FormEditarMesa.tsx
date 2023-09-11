@@ -161,7 +161,6 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ modelo, set, state, InvitadoN
                       <div className={`${selectInvitado ? "block " : "hidden"} overflow-auto space-y-1 bg-white w-[70%] h-36 py-1 absolute -bottom-16  rounded-lg drop-shadow-md`}>
                         {InvitadoNoSentado.map((item, idx) => {
                           return (
-                            <>
                               <div key={idx} className='flex items-center hover:bg-gray-200 p-2 cursor-pointer rounded-md  '>
                                 <img
                                   className="w-7 h-7 rounded-full mr-2 text-gray-700 border-gray-300  "
@@ -172,7 +171,6 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ modelo, set, state, InvitadoN
                                   {item.nombre}
                                 </div>
                               </div>
-                            </>
                           )
                         })}
                       </div>

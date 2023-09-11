@@ -10,16 +10,13 @@ interface propsBlockPlanos {
 }
 
 const BlockPlanos: FC<propsBlockPlanos> = () => {
-  const { event, setPlanSpaceActive, setEvent } = EventContextProvider()
+  const { event, setEvent } = EventContextProvider()
   const handleClick = (item: planSpace) => {
     try {
-      console.log(item._id)
       fetchApiEventos({
         query: queries.eventUpdate,
-        variables: { idEvento: event._id, variable: "planSpaceSelect", value: item?._id }, token: null
+        variables: { idEvento: event?._id, variable: "planSpaceSelect", value: item?._id }, token: null
       })
-      console.log(5551, item._id)
-      //setPlanSpaceActive(event.planSpace.find(elem => elem._id === item._id))
       setEvent({ ...event, planSpaceSelect: item._id })
     } catch (error) {
       console.log(error)
@@ -28,13 +25,13 @@ const BlockPlanos: FC<propsBlockPlanos> = () => {
 
   return (
     <BlockDefault>
-      {event.planSpace.map((item, idx) => {
+      {event?.planSpace?.map((item, idx) => {
         return (
           <div onClick={() => handleClick(item)} key={idx} className="w-full h-full p-2 flex-col justify-center items-center cursor-pointer">
-            <div key={idx} className={`${event.planSpaceSelect === item._id ? "bg-gray-200" : "bg-none"} rounded-lg flex flex-col w-full h-full transform hover:scale-105 transition justify-center items-center`}>
+            <div key={idx} className={`${event?.planSpaceSelect === item?._id ? "bg-gray-200" : "bg-none"} rounded-lg flex flex-col w-full h-full transform hover:scale-105 transition justify-center items-center`}>
 
               <VscLayoutMenubar className={`text-primary w-8 h-8 2xl:w-12 2xl:h-12 `} />
-              <span className='text-gray-700'> {item.title}</span>
+              <span className='text-gray-700'> {item?.title}</span>
 
             </div>
           </div>)
