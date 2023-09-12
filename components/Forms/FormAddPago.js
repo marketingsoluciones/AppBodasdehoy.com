@@ -134,7 +134,7 @@ export const BasicFormLogin = ({
         <InputField
           name="importe"
           label="Importe"
-          placeholder="4.80 €"
+          placeholder="Monto de tu importe"
           onChange={handleChange}
           value={values.importe}
           type="number"
@@ -170,7 +170,7 @@ export const BasicFormLogin = ({
           <InputField
             name="pagado_por"
             label="Pagado por"
-            placeholder="Carlos diaz"
+            placeholder="Nombre"
             onChange={handleChange}
             value={values.pagado_por}
             type="text"
@@ -179,7 +179,7 @@ export const BasicFormLogin = ({
           <InputField
             name="medio_pago"
             label="Modo de pago"
-            placeholder="Efectivo"
+            placeholder="Tipo de pago"
             onChange={handleChange}
             value={values.medio_pago}
             type="text"

@@ -7,7 +7,6 @@ export const Loading = (set) => {
   }, 1000)
 }
 
-
 export function useDelayUnmount(isMounted, delayTime) {
   const [shouldRender, setShouldRender] = useState(false);
 
@@ -28,11 +27,11 @@ export function useDelayUnmount(isMounted, delayTime) {
   return shouldRender;
 }
 
-export const getCurrency = (value, currency = "EUR") => {
+export const getCurrency = (value, currency ) => {
   const v = parseFloat(!!value ? value : 0)
-  return v.toLocaleString(navigator.language, {
+  return v.toLocaleString("de-DE", {
     style: "currency",
-    currency: currency,
+    currency: currency?currency:"EUR",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })

@@ -15,6 +15,8 @@ type Context = {
   setInvitadoCero: Dispatch<SetStateAction<string>>
   idxGroupEvent: idxGroupEvent
   setIdxGroupEvent: Dispatch<SetStateAction<idxGroupEvent | null>>
+  currencyState:any
+  setCurrencyState:any
 }
 
 const EventContext = createContext<Context>({
@@ -24,6 +26,8 @@ const EventContext = createContext<Context>({
   setInvitadoCero: () => { },
   idxGroupEvent: null,
   setIdxGroupEvent: () => { },
+  currencyState:null,
+  setCurrencyState: () =>{},
 });
 
 const EventProvider = ({ children }) => {
@@ -32,6 +36,7 @@ const EventProvider = ({ children }) => {
   const [valir, setValir] = useState<boolean | null>(false);
   const [idxGroupEvent, setIdxGroupEvent] = useState<idxGroupEvent | null>({ idx: 0, isActiveStateSwiper: 0, event_id: null });
   const { eventsGroup } = EventsGroupContextProvider()
+  const [currencyState, setCurrencyState] = useState("")
 
 
   // Capturar eventos del cumulo y seleccionar uno
@@ -51,7 +56,7 @@ const EventProvider = ({ children }) => {
   }, [eventsGroup, valir]);
 
   return (
-    <EventContext.Provider value={{ event, setEvent, invitadoCero, setInvitadoCero, idxGroupEvent, setIdxGroupEvent }}>
+    <EventContext.Provider value={{ event, setEvent, invitadoCero, setInvitadoCero, idxGroupEvent, setIdxGroupEvent, currencyState,setCurrencyState }}>
       {children}
     </EventContext.Provider>
   );

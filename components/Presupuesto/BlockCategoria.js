@@ -15,7 +15,7 @@ import CellPagado from "./CellPagado";
 import SubComponentePagos from "./SubComponentePagos";
 
 const BlockCategoria = ({ cate, set }) => {
-  const { event, setEvent } = EventContextProvider()
+  const { event, setEvent, currencyState } = EventContextProvider()
   const [categoria, setCategoria] = useState({});
   const [data, setData] = useState([]);
   const [GastoID, setGastoID] = useState({ id: "", crear: false })
@@ -34,10 +34,7 @@ const BlockCategoria = ({ cate, set }) => {
     setGastoID(old => ({ ...old, crear: false }))
   }, [cate, event]);
 
-
-
   const saldo = categoria?.coste_estimado - categoria?.coste_final;
-
 
   const Columna = useMemo(
     () => [
@@ -48,19 +45,19 @@ const BlockCategoria = ({ cate, set }) => {
         Cell: (props) => <CellEdit categoriaID={categoria?._id} type={"text"} autofocus {...props} />
       },
       {
-        Header: <p> Estimado <br/> {getCurrency(categoria?.coste_estimado)}</p> ,
+        Header: <p> Estimado <br /> {getCurrency(categoria?.coste_estimado, currencyState)}</p>,
         accessor: "coste_estimado",
         id: "coste_estimado",
         Cell: (props) => <CellEdit categoriaID={categoria?._id} type={"number"} {...props} />
       },
       {
-        Header: <p>Coste final <br/> {getCurrency(categoria?.coste_final)}</p>,
+        Header: <p>Coste final <br /> {getCurrency(categoria?.coste_final, currencyState)}</p>,
         accessor: "coste_final",
         id: "coste_final",
         Cell: (props) => <CellEdit categoriaID={categoria?._id} type={"number"} {...props} />
       },
       {
-        Header:<p >Pagado <br/> {getCurrency(categoria?.pagado)} </p> ,
+        Header: <p >Pagado <br /> {getCurrency(categoria?.pagado, currencyState)} </p>,
         accessor: "pagado",
         id: "pagado",
         Cell: (props) => <CellPagado {...props} set={act => setGastoID(act)} />,
@@ -138,7 +135,7 @@ const BlockCategoria = ({ cate, set }) => {
         },
       },
     ],
-    [categoria]
+    [categoria, currencyState]
   );
 
   const AddGasto = async () => {
@@ -196,7 +193,7 @@ const BlockCategoria = ({ cate, set }) => {
           <FormAddPago GastoID={GastoID?.id} cate={categoria?._id} />
         </div>
       )}
-      <div className={`bg-white block-categoria h-max py-10 w-full rounded-xl shadow-lg overflow-hidden flex flex-col items-center relative ${GastoID.crear?"hidden":"block"}`}>
+      <div className={`bg-white block-categoria h-max py-10 w-full rounded-xl shadow-lg overflow-hidden flex flex-col items-center relative ${GastoID.crear ? "hidden" : "block"}`}>
         <div
           onClick={() => set({ isVisible: false, id: "" })}
           className="cursor-pointer absolute top-5 right-5 font-display hover:scale-125 transition transform text-gray-500 hover:text-gray-500 font-semibold text-lg "
@@ -217,7 +214,7 @@ const BlockCategoria = ({ cate, set }) => {
             <h3 className="text-sm font-medium ">
               Coste estimado:
               <span className="text-sm text-gray-500 pl-1">
-                {getCurrency(categoria?.coste_estimado)}
+                {getCurrency(categoria?.coste_estimado, currencyState)}
               </span>
             </h3>
           </div>
@@ -228,7 +225,7 @@ const BlockCategoria = ({ cate, set }) => {
                 className={`text-sm pl-1 text-${Math.abs(saldo) == saldo ? "green" : "red"
                   }`}
               >
-                {getCurrency(categoria?.coste_final)}
+                {getCurrency(categoria?.coste_final, currencyState)}
               </span>
             </h3>
           </div>
@@ -237,7 +234,7 @@ const BlockCategoria = ({ cate, set }) => {
         <div className=" w-4/6 mx-auto flex gap-1 items-center py-2 inset-x-0">
           <div className="bg-gray-300 rounded-xl flex items-center overflow-hidden md:h-5 w-full relative">
             <p className="font-display text-xs text-white pl-2 z-10 relative p-3">
-              Diferencia en su saldo final {getCurrency(saldo)}
+              Diferencia en su saldo final {getCurrency(saldo, currencyState)}
             </p>
             <svg
               className={`bg-${Math.abs(saldo) == saldo ? "green" : "red"
@@ -253,13 +250,13 @@ const BlockCategoria = ({ cate, set }) => {
             <p>Total</p>
           </div>
           <div className="flex items-center justify-center col-span-2">
-            <p>{getCurrency(categoria?.coste_estimado)}</p>
+            <p>{getCurrency(categoria?.coste_estimado, currencyState)}</p>
           </div>
           <div className="flex items-center justify-center col-span-2">
-            <p>{getCurrency(categoria?.coste_final)}</p>
+            <p>{getCurrency(categoria?.coste_final, currencyState)}</p>
           </div>
           <div className="flex items-center justify-center col-span-2">
-            <p>{getCurrency(categoria?.pagado)}</p>
+            <p>{getCurrency(categoria?.pagado, currencyState)}</p>
           </div>
         </div>
       </div>

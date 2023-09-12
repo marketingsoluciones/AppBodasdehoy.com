@@ -15,6 +15,7 @@ import VistaSinCookie from "./vista-sin-cookie";
 import BlockTitle from "../components/Utils/BlockTitle";
 import { useToast } from "../hooks/useToast";
 import { useMounted } from "../hooks/useMounted"
+import {SelectMoneda} from "../components/Presupuesto/SelectMoneda"
 
 const Presupuesto = () => {
 
@@ -25,7 +26,7 @@ const Presupuesto = () => {
   });
 
   const [active, setActive] = useState(true);
-  const { event } = EventContextProvider();
+  const { event, currencyState, setCurrencyState } = EventContextProvider();
   const [categorias, setCategorias] = useState([]);
 
   useEffect(() => {
@@ -55,22 +56,26 @@ const Presupuesto = () => {
               exit={{ opacity: 0 }}
               className="max-w-screen-lg mx-auto inset-x-0 w-full">
               <BlockTitle title={"Presupuesto"} />
-              <div className="pt-2">
-                <div className="w-80 mx-auto inset-x-0 flex my-2 mt-2 rounded-2xl overflow-hidden">
+
+              <div className="pt-2 flex justify-between justify-center items-center  w-[98%]">
+                <div className="md:w-[31%] w-full flex md:ml-3 mx-3 md:mx-0 ">
                   <div
                     onClick={() => setActive(true)}
-                    className={`w-1/2 py-1 ${active ? "bg-primary text-white" : "bg-white text-primary"
-                      } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
+                    className={`w-full py-2 md:py-1 ${active ? "bg-primary text-white" : "bg-white text-primary"
+                      } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90 rounded-l-xl `}
                   >
                     <p>Presupuesto</p>
                   </div>
                   <div
                     onClick={() => setActive(false)}
-                    className={`w-1/2 py-1 ${active ? "bg-white text-primary" : "bg-primary text-white"
-                      } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
+                    className={`w-full py-2  md:py-1 ${active ? "bg-white text-primary" : "bg-primary text-white"
+                      } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90 rounded-r-xl`}
                   >
                     <p>Pagos</p>
                   </div>
+                </div>
+                <div >
+                  <SelectMoneda/>
                 </div>
               </div>
               {active ? (
@@ -108,20 +113,26 @@ const Presupuesto = () => {
                                 Coste Final <br />
                                 <span className="font-semibold text-lg text-center">
                                   {getCurrency(
-                                    event?.presupuesto_objeto?.coste_final
+                                    event?.presupuesto_objeto?.coste_final, currencyState
                                   )}
                                 </span>
                               </p>
                               <div className=" w-full rounded-xl overflow-hidden flex my-2">
                                 <div className="w-1/2 bg-primary py-1 px-3">
                                   <p className="text-xs font-display text-white">
-                                    Pagado {event?.presupuesto_objeto?.pagado} €
+
+                                    <span> Pagado </span>{getCurrency(
+                                      event?.presupuesto_objeto?.pagado,currencyState
+                                    )}
                                   </p>
                                 </div>
 
                                 <div className="w-1/2 bg-tertiary py-1 px-3">
                                   <p className="text-xs font-display text-primary">
-                                    Por pagar {event?.presupuesto_objeto?.coste_final - event?.presupuesto_objeto?.pagado} €
+                                    <span>  Por pagar </span>
+                                    {getCurrency(
+                                      event?.presupuesto_objeto?.coste_final - event?.presupuesto_objeto?.pagado, currencyState
+                                    )}
                                   </p>
                                 </div>
                               </div>
@@ -161,11 +172,11 @@ const MontoPresupuesto = ({ estimado }) => {
   const [modificar, setModificar] = useState(false);
   const [value, setValue] = useState(estimado.toFixed(2));
   const [mask, setMask] = useState();
-  const { event, setEvent } = EventContextProvider()
+  const { event, setEvent, currencyState } = EventContextProvider()
 
   useEffect(() => {
-    setMask(getCurrency(!!value ? value : 0, "EUR"));
-  }, [value]);
+    setMask(getCurrency(!!value ? value : 0, currencyState ));
+  }, [value, currencyState]);
 
   const handleChange = (e) => {
     e.preventDefault();
@@ -334,7 +345,7 @@ const BlockListaCategorias = ({ categorias_array, set }) => {
 
 // Componente hijo para lista de categorias
 const ItemCategoria = ({ item, setVisible, set }) => {
-  const { event, setEvent } = EventContextProvider()
+  const { event, setEvent, currencyState } = EventContextProvider()
   const [show, setShow] = useState(false);
   const toast = useToast()
   const Presu = event?.presupuesto_objeto?.coste_estimado
@@ -392,7 +403,7 @@ const ItemCategoria = ({ item, setVisible, set }) => {
       </span>
       <span className="gap-4 flex items-center py-3 md:py-0" >
         <div >
-          {getCurrency(DefinirCoste(item))}
+          {getCurrency(DefinirCoste(item), currencyState)}
         </div>
         <div className="relative ">
           <DotsOpcionesIcon

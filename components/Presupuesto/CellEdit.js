@@ -6,7 +6,7 @@ import { getCurrency } from "../../utils/Funciones";
 import { capitalize } from '../../utils/Capitalize';
 
 const CellEdit = (props) => {
-  const { event, setEvent } = EventContextProvider()
+  const { event, setEvent,currencyState } = EventContextProvider()
   const [edit, setEdit] = useState(false);
   const [mask, setMask] = useState(0);
   const [value, setValue] = useState();
@@ -20,9 +20,9 @@ const CellEdit = (props) => {
         setMask(value)
       }
       if(props?.type == "number"){
-        setMask( getCurrency(value, "EUR") );
+        setMask( getCurrency(value,currencyState) );
       }
-  }, [ value ]);
+  }, [ value, currencyState ]);
 
   const keyDown = (e) => {
     let tecla = e.key.toLowerCase();

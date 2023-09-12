@@ -7,10 +7,10 @@ import { EventContextProvider } from "../../context";
 
 
 const BlockPresupuesto = () => {
-  const { event } = EventContextProvider();
+  const { event ,currencyState} = EventContextProvider();
   const ListaBlock = [
-    { icon: <CochinoIcon className="text-gray-500" />, amount: getCurrency(event?.presupuesto_objeto?.coste_estimado), subtitle: "estimado" },
-    { icon: <DineroIcon className="text-gray-500" />, amount: getCurrency(event?.presupuesto_objeto?.coste_final), subtitle: "gastado" },
+    { icon: <CochinoIcon className="text-gray-500" />, amount: getCurrency(event?.presupuesto_objeto?.coste_estimado, currencyState), subtitle: "estimado" },
+    { icon: <DineroIcon className="text-gray-500" />, amount: getCurrency(event?.presupuesto_objeto?.coste_final,currencyState), subtitle: "gastado" },
   ];
   return (
     <div className="w-1/2 md:w-1/3 box-border">

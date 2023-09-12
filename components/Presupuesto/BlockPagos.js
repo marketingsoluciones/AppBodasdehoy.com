@@ -24,21 +24,6 @@ const BlockPagos = () => {
       exit={{ opacity: 0 }}
       className="w-full max-w-screen-lg relative mx-auto inset-x-0"
     >
-      {/* <div className="">
-        <div className="flex gap-3 font-display text-gray-500 capitalize items-center pt-6 pb-3">
-          <p>Mostrar:</p>
-          {ListaTabs.map((item, idx) => (
-            <p
-              className={`text-sm text-gray-300 cursor-pointer ${
-                active == idx && "font-semibold"
-              }`}
-              onClick={() => setActive(idx)}
-            >
-              {item.title}
-            </p>
-          ))}
-        </div>
-      </div> */}
 
       <div className="bg-white p-6 h-max shadow-md rounded-xl mt-10 overflow-x-auto ">
         <TablaDatosPagos active={active} />
@@ -50,7 +35,7 @@ const BlockPagos = () => {
 export default BlockPagos;
 
 const TablaDatosPagos = () => {
-  const { event } = EventContextProvider()
+  const { event,currencyState } = EventContextProvider()
   const categorias = event?.presupuesto_objeto?.categorias_array;
   const [PagosOrFormAdd, setShowPagos] = useState(true)
   const [PagoID, setPagoID] = useState("")
@@ -124,7 +109,7 @@ const TablaDatosPagos = () => {
           }, [props?.value])
           return (
             <div className="font-display font-semibold text-gray-500 text-lg grid place-items-center h-full ">
-              <p className="w-4/5">{getCurrency(value)}</p>
+              <p className="w-4/5">{getCurrency(value,currencyState)}</p>
             </div>
           );
         },
@@ -152,7 +137,7 @@ const TablaDatosPagos = () => {
         },
       },
     ],
-    []
+    [currencyState]
   );
 
   //Recorrer cada categoria

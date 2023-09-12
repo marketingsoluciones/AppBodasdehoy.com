@@ -43,7 +43,7 @@ const SubComponentePagos = ({ row, cate, gasto, wantCreate }) => {
 export default SubComponentePagos;
 
 const ListadoComponent = ({ pagos_array, cate, gasto, wantCreate, idModificar, row }) => {
-  const { event, setEvent } = EventContextProvider();
+  const { event, setEvent,currencyState } = EventContextProvider();
   const BorrarPago = async (pagoID) => {
     let data;
     const params = {
@@ -129,7 +129,7 @@ const ListadoComponent = ({ pagos_array, cate, gasto, wantCreate, idModificar, r
 
           <span className="items-center col-span-2 flex flex-col justify-center">
             <p className="font-display text-md font-medium">IMPORTE</p>
-            <p className="font-display text-md">{getCurrency(item.importe)}</p>
+            <p className="font-display text-md">{getCurrency(item.importe, currencyState)}</p>
           </span>
 
           <span className="items-center col-span-2 flex flex-col justify-center">
