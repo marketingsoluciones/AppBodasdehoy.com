@@ -157,33 +157,30 @@ const BlockCategoria = ({ cate, set }) => {
       };
 
       const { data } = await api.ApiApp(params);
-      res = data.data.nuevoGasto;
+            res = data.data.nuevoGasto;
     } catch (error) {
       console.log(error);
     } finally {
       setEvent((old) => {
-        const index = old?.presupuesto_objeto?.categorias_array?.findIndex(
+                const index = old?.presupuesto_objeto?.categorias_array?.findIndex(
           (item) => item._id == categoria._id
         );
-        old.presupuesto_objeto.categorias_array[index].gastos_array = [
-          ...old.presupuesto_objeto.categorias_array[index].gastos_array,
-          res,
-        ];
 
+        old.presupuesto_objeto.categorias_array[index].gastos_array != null ?
+          old.presupuesto_objeto.categorias_array[index].gastos_array = [
+            ...old.presupuesto_objeto.categorias_array[index].gastos_array, res
+          ] :
+          old.presupuesto_objeto.categorias_array[index].gastos_array = [];
         return { ...old };
       });
     }
   };
-
-
 
   const renderRowSubComponent = useCallback(({ row, cate, gasto }) => (
     <SubComponentePagos row={row} cate={cate} gasto={gasto} wantCreate={act => setGastoID(old => ({ ...old, crear: act }))} />
   ),
     []
   )
-
-
 
   return (
     <>
@@ -245,6 +242,7 @@ const BlockCategoria = ({ cate, set }) => {
         </div>
         {/* Tabla de datos */}
         <DataTable AddGasto={AddGasto} columns={Columna} data={data ?? []} renderRowSubComponent={renderRowSubComponent} cate={categoria._id} gasto={GastoID.id} categoria={categoria} />
+        {/* Footer de la tabla */}
         <div className="bg-primary w-full grid grid-cols-10 absolute bottom-0 font-display text-white font-semibold py-1 text-sm">
           <div className="flex items-center justify-center col-span-3">
             <p>Total</p>

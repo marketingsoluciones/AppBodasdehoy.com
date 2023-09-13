@@ -15,7 +15,7 @@ import VistaSinCookie from "./vista-sin-cookie";
 import BlockTitle from "../components/Utils/BlockTitle";
 import { useToast } from "../hooks/useToast";
 import { useMounted } from "../hooks/useMounted"
-import {SelectMoneda} from "../components/Presupuesto/SelectMoneda"
+import { SelectMoneda } from "../components/Presupuesto/SelectMoneda"
 
 const Presupuesto = () => {
 
@@ -75,9 +75,10 @@ const Presupuesto = () => {
                   </div>
                 </div>
                 <div >
-                  <SelectMoneda/>
+                  <SelectMoneda />
                 </div>
               </div>
+
               {active ? (
                 <motion.div
                   initial={{ opacity: 0 }}
@@ -122,7 +123,7 @@ const Presupuesto = () => {
                                   <p className="text-xs font-display text-white">
 
                                     <span> Pagado </span>{getCurrency(
-                                      event?.presupuesto_objeto?.pagado,currencyState
+                                      event?.presupuesto_objeto?.pagado, currencyState
                                     )}
                                   </p>
                                 </div>
@@ -175,7 +176,7 @@ const MontoPresupuesto = ({ estimado }) => {
   const { event, setEvent, currencyState } = EventContextProvider()
 
   useEffect(() => {
-    setMask(getCurrency(!!value ? value : 0, currencyState ));
+    setMask(getCurrency(!!value ? value : 0, currencyState));
   }, [value, currencyState]);
 
   const handleChange = (e) => {
