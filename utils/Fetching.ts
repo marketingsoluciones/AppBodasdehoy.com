@@ -323,7 +323,11 @@ export const queries = {
           }
           tipo
           numberChair
-          guests
+          guests{
+            _id
+            chair
+            order
+          }
         }
       }
       elements{
@@ -352,7 +356,11 @@ export const queries = {
         }
         tipo
         numberChair
-        guests
+        guests{
+          _id
+          chair
+          order
+        }
       }
     }
       mesas_array{
@@ -560,13 +568,37 @@ export const queries = {
       }
       tipo
       numberChair
-      guests
+      guests{
+        _id
+        chair
+        order
+      }
     }
   }`,
   editTable: `mutation ($eventID:ID, $planSpaceID: ID, $sectionID: ID, $tableID: ID, $variable: String, $valor: String) {
-    editTable(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, tableID:$tableID, variable:$variable, valor:$valor) 
+    editTable(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, tableID:$tableID, variable:$variable, valor:$valor) {
+      _id
+      title
+      position{
+        x
+        y
+      }
+      size{
+        width
+        height
+      }
+      tipo
+      numberChair
+      guests{
+        _id
+        chair
+        order
+      }
+    }
   }`,
-
+  deleteTable: `mutation ($eventID:ID, $planSpaceID: ID, $sectionID: ID, $tableID: ID) {
+    deleteTable(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, tableID:$tableID) 
+  }`,
   editTableOld: `mutation ($eventID:String, $tableID: String, $variable: String, $coordenadas: [posicionAinput]) {
     editMesa(evento_id:$eventID,mesa_id:$tableID, variable_reemplazar:$variable, coordenadas:$coordenadas) {
       _id
@@ -590,7 +622,7 @@ export const queries = {
       tipo
     }
   }`,
-  deleteTable: `mutation ($eventID:String, $tableID: String) {
+  deleteTableOld: `mutation ($eventID:String, $tableID: String) {
     borraMesa(evento_id:$eventID,mesa_id:$tableID) {
       mesas_array{
            _id

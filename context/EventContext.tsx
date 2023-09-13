@@ -1,11 +1,16 @@
 import { createContext, useState, useContext, useEffect, Dispatch, SetStateAction } from "react";
-import { Event, planSpace } from "../utils/Interfaces";
+import { Event, filterGuest, planSpace } from "../utils/Interfaces";
 import { EventsGroupContextProvider } from "./EventsGroupContext";
 
 interface idxGroupEvent {
   idx: number
   isActiveStateSwiper: number
   event_id: string | null
+}
+
+interface filterGuests {
+  sentados: filterGuest[]
+  noSentados: filterGuest[]
 }
 
 type Context = {
@@ -17,6 +22,8 @@ type Context = {
   setIdxGroupEvent: Dispatch<SetStateAction<idxGroupEvent | null>>
   planSpaceActive: planSpace | null
   setPlanSpaceActive: Dispatch<SetStateAction<planSpace>>
+  filterGuests: filterGuests
+  setFilterGuests: Dispatch<SetStateAction<filterGuests>>
 }
 
 const EventContext = createContext<Context>({
@@ -27,8 +34,10 @@ const EventContext = createContext<Context>({
   idxGroupEvent: null,
   setIdxGroupEvent: () => { },
   planSpaceActive: null,
-  setPlanSpaceActive: () => { }
-});
+  setPlanSpaceActive: () => { },
+  filterGuests: { sentados: [], noSentados: [] },
+  setFilterGuests: () => { }
+})
 
 const EventProvider = ({ children }) => {
   const [event, setEvent] = useState<Event | null>(null);
@@ -37,6 +46,8 @@ const EventProvider = ({ children }) => {
   const [idxGroupEvent, setIdxGroupEvent] = useState<idxGroupEvent | null>({ idx: 0, isActiveStateSwiper: 0, event_id: null });
   const { eventsGroup } = EventsGroupContextProvider()
   const [planSpaceActive, setPlanSpaceActive] = useState<planSpace | null>(null);
+  const [filterGuests, setFilterGuests] = useState<filterGuests>({ sentados: [], noSentados: [] })
+
 
 
   // Capturar eventos del cumulo y seleccionar uno
@@ -63,23 +74,31 @@ const EventProvider = ({ children }) => {
   }, [event?.planSpaceSelect])
 
   useEffect(() => {
-    console.log("seteado PlanSpaceActive")
+    //console.log("seteado PlanSpaceActive________________")
+    console.log("seteado PlanSpaceActive", planSpaceActive)
+    //console.log("---------------------------------------")
   }, [planSpaceActive])
 
   useEffect(() => {
-    console.log("seteado event")
+    //console.log("seteado event _________________________")
+    console.log("seteado event", event)
+    //console.log("---------------------------------------")
   }, [event])
 
   useEffect(() => {
-    console.log("seteado event.planSpaceSelect")
+    //console.log("seteado event.planSpaceSelect__________")
+    console.log("seteado event.planSpaceSelect", event?.planSpaceSelect)
+    //console.log("---------------------------------------")
   }, [event?.planSpaceSelect])
 
   useEffect(() => {
-    console.log("seteado eventsGroup")
+    //console.log("seteado eventsGroup____________________")
+    console.log("seteado eventsGroup", eventsGroup)
+    //console.log("---------------------------------------")
   }, [eventsGroup])
 
   return (
-    <EventContext.Provider value={{ event, setEvent, invitadoCero, setInvitadoCero, idxGroupEvent, setIdxGroupEvent, planSpaceActive, setPlanSpaceActive }}>
+    <EventContext.Provider value={{ event, setEvent, invitadoCero, setInvitadoCero, idxGroupEvent, setIdxGroupEvent, planSpaceActive, setPlanSpaceActive, filterGuests, setFilterGuests }}>
       {children}
     </EventContext.Provider>
   );

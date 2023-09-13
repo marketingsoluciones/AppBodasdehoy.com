@@ -43,7 +43,6 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables, setShowFormEditar,
     setScaleIni(calculoEscala(lienzo, refDiv))
   }, [lienzo, fullScreen, refDiv?.current?.offsetWidth, refDiv?.current?.offsetHeight])
 
-
   return (
     <>
       <div className="flex *bg-orange-400 divOrange w-[100%] h-[100%] justify-start relative pt-8" >

@@ -1,25 +1,25 @@
 import { FC, ReactNode } from "react";
+import { table } from "../../utils/Interfaces";
 
 
 interface propsChair {
+  table: table
   position?: number;
-  title: string;
   index: number;
   className: string;
-  tipoMesa: string;
   children?: ReactNode;
 }
 
-export const Chair: FC<propsChair> = ({ position, children, title, index, className, }) => {
+export const Chair: FC<propsChair> = ({ position, children, table, index, className, }) => {
   const canDrop = true
   const isOver = false
 
   return (
     <>
       <div
-        id={`${title}-@-${index}`}
+        id={`${table._id}-@-${index}`}
         // role={"Droppeable"}
-        className={`js-drop silla w-5 h-5 rounded-full absolute border-2 shadow border-gray-500 overflow-hidden  ${isOver ? "bg-opacity-50" : null
+        className={`js-dropGuests silla w-5 h-5 rounded-full absolute border-2 shadow border-gray-500 overflow-hidden  ${isOver ? "bg-opacity-50" : null
           }  bg-white //${!children[0] && "js-dropListInvitados"} //${isOver || canDrop ? "bg-secondary" : "bg-white"
           } flex items-center justify-center ${className}`}
       >

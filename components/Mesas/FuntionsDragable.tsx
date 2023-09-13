@@ -24,10 +24,13 @@ interface propsDropzone {
   accept: string
   setEvent: Dispatch<SetStateAction<Event>>
   eventID: string
+  planSpaceActive: planSpace
+  setPlanSpaceActive?: Dispatch<SetStateAction<planSpace>>
   handleOnDrop?: any
+  filterGuests?: any
 }
-export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, eventID }: propsDropzone) => {
-  if (target == ".js-drop-mesas") {
+export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, eventID, planSpaceActive, setPlanSpaceActive, filterGuests }: propsDropzone) => {
+  if (target == ".js-dropTables") {
     let values = {}
     interact(target)
       .dropzone({
@@ -88,7 +91,9 @@ export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, eventID 
   }
 
 
-  if (target == ".js-drop") {
+
+  if (target == ".js-dropGuests") {
+
     interact(target)
       .dropzone({
         accept: accept,
@@ -120,11 +125,10 @@ export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, eventID 
           if (event.type == "pointerup") {
             if (dropped) {
               const invitadoID = draggableElement.id.slice(5, draggableElement.id.length)
-              const nMesaPrev = dropzoneElement.id.split('-@-')[0]
-              const nombre_mesa = nMesaPrev != "listInvitados" ? nMesaPrev : "no asignado"
-              const indexPrev = dropzoneElement.id.split('-@-')[1]
-              const index: string | number = nMesaPrev != "listInvitados" ? indexPrev : "no asignado"
-              MoveInvitado({ eventID: eventID, index: index, invitadoID: invitadoID, nombre_mesa: nombre_mesa, setEvent: setEvent })
+              const prefijo = draggableElement.id.slice(0, 5)
+              const tableID = dropzoneElement.id.split('-@-')[0]
+              const chair = parseInt(dropzoneElement.id.split('-@-')[1])
+              moveGuest({ eventID, chair, invitadoID, tableID, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo })
               // console.log("--------------------------------------")
               // console.log("draggableElement:", draggableElement.id, invitadoID)
               // console.log("dropped:", dropped)
@@ -220,50 +224,71 @@ export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, eventID 
 // Añadir invitado | Carga en BD y estado
 type propsMoveInvitado = {
   invitadoID: string,
-  index: string | number,
-  nombre_mesa: string,
+  chair: number,
+  tableID: string,
   eventID: string,
   setEvent: Dispatch<SetStateAction<Event>>
+  planSpaceActive: planSpace
+  setPlanSpaceActive: Dispatch<SetStateAction<planSpace>>
+  filterGuests: any
+  prefijo: string
 }
-const MoveInvitado = async ({ invitadoID, index, nombre_mesa, eventID, setEvent }: propsMoveInvitado): Promise<void> => {
+const moveGuest = async ({ invitadoID, chair, tableID, eventID, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo }: propsMoveInvitado): Promise<void> => {
   try {
-    if (index) {
-      console.log(invitadoID, nombre_mesa)
-      fetchApiEventos({
-        query: queries.editGuests,
+    console.log({ chair })
+    if (chair >= 0) {
+      console.log("entro")
+      let table: table = planSpaceActive?.tables?.find(elem => elem._id === tableID)
+      table.guests.push({ _id: invitadoID, chair, order: new Date() })
+      const f1 = planSpaceActive.tables.findIndex(elem => elem._id === tableID)
+      planSpaceActive.tables.splice(f1, 1, table)
+      setPlanSpaceActive({ ...planSpaceActive })
+      setEvent((old) => {
+        const f1 = old.planSpace.findIndex(elem => elem._id === old.planSpaceSelect)
+        old.planSpace[f1] = planSpaceActive
+        return { ...old }
+      })
+      await fetchApiEventos({
+        query: queries.editTable,
         variables: {
-          eventID: eventID,
-          guestID: invitadoID,
-          variable: "puesto",
-          value: index?.toString()
-        }
+          eventID,
+          planSpaceID: planSpaceActive?._id,
+          tableID: table?._id,
+          variable: "guests",
+          valor: JSON.stringify([
+            ...table?.guests,
+            {
+              _id: invitadoID,
+              chair,
+            },
+          ])
+        },
+      });
+    }
+    //console.log(4511, prefijo, !chair)
+    if (prefijo === "dragS") {
+
+      const gestPrevMove = filterGuests.sentados.find(elem => elem._id === invitadoID)
+      const f1 = planSpaceActive.tables.findIndex(elem => elem._id === gestPrevMove.tableID)
+      const f2 = planSpaceActive.tables[f1].guests.findIndex(elem => elem._id === invitadoID)
+      planSpaceActive.tables[f1].guests.splice(f2, 1)
+      await fetchApiEventos({
+        query: queries.editTable,
+        variables: {
+          eventID,
+          planSpaceID: planSpaceActive?._id,
+          tableID: planSpaceActive.tables[f1]._id,
+          variable: "guests",
+          valor: JSON.stringify(planSpaceActive.tables[f1].guests)
+        },
+      });
+      setPlanSpaceActive({ ...planSpaceActive })
+      setEvent((old) => {
+        const f1 = old.planSpace.findIndex(elem => elem._id === old.planSpaceSelect)
+        old.planSpace[f1] = planSpaceActive
+        return { ...old }
       })
     }
-
-    if (nombre_mesa) {
-      fetchApiEventos({
-        query: queries.editGuests,
-        variables: {
-          eventID: eventID,
-          guestID: invitadoID,
-          variable: "nombre_mesa",
-          value: nombre_mesa
-        }
-      })
-    }
-
-    //console.log(123, invitadoID, index)
-    //Añadir al array de la mesa
-    setEvent(old => {
-      const modifiedGuests: guests[] = old.invitados_array.map(item => {
-        if (item._id === invitadoID) {
-          return { ...item, puesto: index, nombre_mesa: nombre_mesa }
-        }
-        return item
-      })
-      const resp = { ...old, invitados_array: modifiedGuests }
-      return resp
-    })
   } catch (error) {
     console.log(error);
   }

@@ -32,44 +32,44 @@ interface propsMesasDragable {
 }
 
 export const MesasDragable: FC<propsMesasDragable> = ({ scale, lienzo, setDisableWrapper, disableDrag, setShowFormEditar }) => {
-  const { event, setEvent, planSpaceActive, setPlanSpaceActive } = EventContextProvider();
+  const { event, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests } = EventContextProvider();
   const [disableLayout, setDisableLayout] = useState<boolean>(false);
   const [dragPositions, setDragPositions] = useState<any>();
   const [dragables, setDragables] = useState<any>([]);
 
   useEffect(() => {
     if (dragables?.length > 0) {
-      setupDropzone({ target: '.js-drop', accept: `${dragables}`, setEvent, eventID: event?._id })
+      setupDropzone({ target: '.js-dropGuests', accept: `${dragables}`, setEvent, eventID: event?._id, planSpaceActive, setPlanSpaceActive, filterGuests })
     }
-  }, [dragables, event, setEvent])
+  }, [dragables, filterGuests])
 
   let transformProp: any
-
   useEffect(() => {
-    const filterGuestsDraggable = (event?.invitados_array?.reduce((acc, guest) => {
-      if (planSpaceActive?.tables?.map(table => table.title).includes(guest.nombre_mesa)) {
-        acc.dragables.push(`#dragS${guest._id}`)
-        acc.sentados[`dragS${guest._id}`] = { x: 0, y: 0 }
-      } else {
-        acc.dragables.push(`#dragN${guest._id}`)
-        acc.noSentados[`dragN${guest._id}`] = { x: 0, y: 0 }
-      }
-      return acc
-    }, { sentados: {}, noSentados: [], dragables: [] }))
-
+    console.log(50002, filterGuests)
+  }, [filterGuests])
+  useEffect(() => {
     const mesasDrag = planSpaceActive?.tables?.reduce((acc, item) => {
       acc[item._id] = { x: item.position.x, y: item.position.y }
       return acc
     }, {})
 
-    setDragables([...filterGuestsDraggable?.dragables])
+    const dragablesNoSentados = filterGuests.noSentados.map(elem => `#dragN${elem?._id}`)
+    const positionsNoSentados = filterGuests.noSentados.reduce((acc, elem) => {
+      return { ...acc, [`dragN${elem?._id}`]: { x: 0, y: 0 } }
+    }, {})
+    const dragablesSentados = filterGuests.sentados.map(elem => `#dragS${elem?._id}`)
+    const positionsSentados = filterGuests.sentados.reduce((acc, elem) => {
+      return { ...acc, [`dragS${elem?._id}`]: { x: 0, y: 0 } }
+    }, {})
+
+    setDragables([...dragablesNoSentados, ...dragablesSentados])
     setDragPositions({
       ...mesasDrag,
-      ...filterGuestsDraggable?.sentados,
-      ...filterGuestsDraggable?.noSentados,
+      ...positionsSentados,
+      ...positionsNoSentados,
       pdrag1: { x: 0, y: 0 },
     })
-  }, [planSpaceActive?.tables, planSpaceActive])
+  }, [filterGuests])
 
   let sizeElement = { w: 0, h: 0 }
   let lienzoLimit = { x: 0, y: 0 }
@@ -183,6 +183,7 @@ export const MesasDragable: FC<propsMesasDragable> = ({ scale, lienzo, setDisabl
     manualStart: false,
     listeners: {
       start(e) {
+        console.log(8884, dragPositions[e.target.id])
         let position: position = { x: 0, y: 0 }
         position = dragPositions[e.target.id]
         sizeElement = { w: e.rect.width, h: e.rect.height }

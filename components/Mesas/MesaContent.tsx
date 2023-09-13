@@ -12,7 +12,7 @@ interface propsTable {
 }
 
 export const MesaContent: FC<propsTable> = ({ table, DefinePosition, setDisableWrapper, disableDrag, setShowFormEditar }) => {
-  const { event } = EventContextProvider();
+  const { event, filterGuests } = EventContextProvider();
   const [invitados, setInvitados] = useState([]);
 
   //Setear posicion
@@ -24,8 +24,11 @@ export const MesaContent: FC<propsTable> = ({ table, DefinePosition, setDisableW
   }, [table.position.x, table.position.y, table._id])
 
   useEffect(() => {
-    setInvitados(event?.invitados_array?.filter(guest => guest.nombre_mesa === table.title));
-  }, [event?.invitados_array, table?.title]);
+    setInvitados(filterGuests?.sentados?.filter(guest => {
+      return guest.tableID === table._id
+    }));
+  }, [table?.title, filterGuests]);
+
 
   return (
     <>

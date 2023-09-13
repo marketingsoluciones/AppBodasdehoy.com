@@ -1,20 +1,20 @@
 import React, { FC } from "react";
 import { guests } from "../../utils/Interfaces";
 import DragInvitado from "./DragInvitado";
+import { EventContextProvider } from "../../context";
 
 interface propsListInvitados {
-  InvitadoNoSentado: guests[]
   setEditInv: any
   editInv: any
   setSelected: any
 }
 
-const ListInvitados: FC<propsListInvitados> = ({ InvitadoNoSentado, editInv, setEditInv, setSelected }) => {
-
+const ListInvitados: FC<propsListInvitados> = ({ editInv, setEditInv, setSelected }) => {
+  const { filterGuests } = EventContextProvider()
   return (
     <>
       <div className="w-full" >
-        {InvitadoNoSentado?.map((invitado, index) => (
+        {filterGuests.noSentados?.map((invitado, index) => (
           <DragInvitado
             key={invitado._id}
             tipo={"invitado"}

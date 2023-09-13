@@ -104,11 +104,19 @@ interface propsBase {
 interface element extends propsBase {
     tipo: string
 }
+
+export interface guest {
+    _id: string,
+    chair: number,
+    order: Date
+}
+
 export interface table extends element {
     tipo: string
     numberChair: number
-    guests: string[]
+    guests: guest[]
 }
+
 interface section extends propsBase {
     color: string
     elements: element[]
@@ -159,6 +167,13 @@ export interface guests {
     direccion: string
     poblacion: string
     pais: string
+}
+
+export interface filterGuest extends guests {
+    planSpaceID: string,
+    sectionID: string,
+    tableID: string,
+    guestID: string
 }
 
 interface chat {

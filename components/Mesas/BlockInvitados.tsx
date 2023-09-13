@@ -4,14 +4,13 @@ import { PlusIcon } from "../icons"
 import ListInvitados from "./ListInvitados"
 
 interface propsBlockInvitados {
-    InvitadoNoSentado: guests[]
     set: Dispatch<SetStateAction<boolean>>
     setEditInv: any
     editInv: any
     setSelected: any
 }
 
-const BlockInvitados: FC<propsBlockInvitados> = ({ InvitadoNoSentado, set, setEditInv, editInv, setSelected }) => {
+const BlockInvitados: FC<propsBlockInvitados> = ({ set, setEditInv, editInv, setSelected }) => {
     return (
         <>
             <div className="w-full h-[100%] shadow-lg relative">
@@ -25,8 +24,8 @@ const BlockInvitados: FC<propsBlockInvitados> = ({ InvitadoNoSentado, set, setEd
                         <p>Añadir invitado</p>
                     </button>
                 </div>
-                <div id={"listInvitados"} className='bg-white md:translate-y-3 w-full h-full md:h-[calc(100%-48px)] js-drop  overflow-auto'>
-                    <ListInvitados InvitadoNoSentado={InvitadoNoSentado} setEditInv={setEditInv} editInv={editInv} setSelected={setSelected} />
+                <div id={"listInvitados"} className='bg-white md:translate-y-3 w-full h-full md:h-[calc(100%-48px)] js-dropGuests  overflow-auto'>
+                    <ListInvitados setEditInv={setEditInv} editInv={editInv} setSelected={setSelected} />
                 </div>
             </div>
             <style>{`

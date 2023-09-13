@@ -30,6 +30,7 @@ type initialValues = {
 }
 
 const FormEditarMesa: FC<propsFormEditarMesa> = ({ modelo, set, state, InvitadoNoSentado }) => {
+  console.log(100000111111, "modelo", modelo, state)
   const { event, setEvent } = EventContextProvider();
   const [selectInvitado, setSelectedInvitado] = useState(false);
   const toast = useToast()
@@ -39,7 +40,7 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ modelo, set, state, InvitadoN
 
   const validationSchema = yup.object().shape({
     nombre_mesa: yup.string().required().test("Unico", "El nombre debe ser unico", values => {
-      if (values == state.mesa.nombre_mesa) {
+      if (values == state.table.title) {
         return true
       }
       return !event.mesas_array.map(item => item.nombre_mesa).includes(values)
@@ -47,8 +48,8 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ modelo, set, state, InvitadoN
   });
 
   const initialValues: initialValues = {
-    nombre_mesa: state.mesa.nombre_mesa,
-    cantidad_sillas: state.mesa.cantidad_sillas
+    nombre_mesa: state.table.title,
+    cantidad_sillas: state.table.numberChair
   }
 
   const dicc = {
@@ -112,10 +113,8 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ modelo, set, state, InvitadoN
     }
   }
 
-  const InvitadosSentados = arryInvitados.filter(
-    mesa => mesa.nombre_mesa == state.mesa.nombre_mesa
-  )
-
+  const InvitadosSentados = arryInvitados.filter(table => table.nombre_mesa == state.table.title)
+  console.log()
 
   return (
     <>
@@ -130,7 +129,7 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ modelo, set, state, InvitadoN
             <>
               <Form className="text-gray-900 grid gap-4  ">
                 <div className="grid-cols-3 grid gap-2 w-full">
-                  <span className="w-max col-span-1 m-auto inset-0">{dicc[state.mesa.tipo]?.icon}</span>
+                  <span className="w-max col-span-1 m-auto inset-0">{dicc[state.table.tipo]?.icon}</span>
                   <div className="font-display text-gray-500 hover:text-gray-300 transition text-lg absolute top-3 right-5 cursor-pointer hover:scale-125" onClick={() => set(!state)}>X</div>
                   <div className="col-span-2 flex flex-col gap-4">
                     <InputField
@@ -161,22 +160,22 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ modelo, set, state, InvitadoN
                       <div className={`${selectInvitado ? "block " : "hidden"} overflow-auto space-y-1 bg-white w-[70%] h-36 py-1 absolute -bottom-16  rounded-lg drop-shadow-md`}>
                         {InvitadoNoSentado.map((item, idx) => {
                           return (
-                              <div key={idx} className='flex items-center hover:bg-gray-200 p-2 cursor-pointer rounded-md  '>
-                                <img
-                                  className="w-7 h-7 rounded-full mr-2 text-gray-700 border-gray-300  "
-                                  src={ImageProfile[item.sexo].image}
-                                  alt={ImageProfile[item.sexo].alt}
-                                />
-                                <div className='font-body text-sm'>
-                                  {item.nombre}
-                                </div>
+                            <div key={idx} className='flex items-center hover:bg-gray-200 p-2 cursor-pointer rounded-md  '>
+                              <img
+                                className="w-7 h-7 rounded-full mr-2 text-gray-700 border-gray-300  "
+                                src={ImageProfile[item.sexo].image}
+                                alt={ImageProfile[item.sexo].alt}
+                              />
+                              <div className='font-body text-sm'>
+                                {item.nombre}
                               </div>
+                            </div>
                           )
                         })}
                       </div>
                     </ClickAwayListener>
                   ) : null}
-                  <div className={`${InvitadosSentados?.length > 2? " h-32": ""}  w-[100%] flex flex-col overflow-auto divide-y  `}>
+                  <div className={`${InvitadosSentados?.length > 2 ? " h-32" : ""}  w-[100%] flex flex-col overflow-auto divide-y  `}>
                     {(() => {
                       if (InvitadosSentados.length != 0) {
                         return (
@@ -184,7 +183,7 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ modelo, set, state, InvitadoN
                             {
                               InvitadosSentados.map((item, idx) => {
                                 return (
-                                  <div  key={idx} className='flex items-center justify-between  '>
+                                  <div key={idx} className='flex items-center justify-between  '>
                                     <div className='flex  items-center p-2 cursor-default '>
                                       <img
                                         className="w-7 h-7 rounded-full mr-2 text-gray-700 border-gray-300  "

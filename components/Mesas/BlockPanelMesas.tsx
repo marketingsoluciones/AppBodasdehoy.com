@@ -23,7 +23,7 @@ const BlockPanelMesas: FC<propsBlockPanelMesas> = ({ set, state, setModelo }) =>
     setModelo(item)
   }
   return (
-    <div id="listTables" className="js-drop-mesas bg-white w-full h-full">
+    <div id="listTables" className="js-dropTables bg-white w-full h-full">
       <BlockDefault>
         {ListaMesas.map((item, idx) => (
           <DragTable key={idx} item={item} set={set} state={state} setModelo={setModelo} />

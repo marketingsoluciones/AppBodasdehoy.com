@@ -29,14 +29,13 @@ import { setupDropzone } from "../components/Mesas/FuntionsDragable";
 SwiperCore.use([Pagination]);
 
 const Mesas: FC = () => {
-  const { event, setEvent, planSpaceActive } = EventContextProvider();
+  const { event, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, setFilterGuests } = EventContextProvider();
   const [modelo, setModelo] = useState<string | null>(null);
   const [values, setValues] = useState<any>({});
   const [showForm, setShowForm] = useState<boolean>(false);
-  const [showFormEditar, setShowFormEditar] = useState<any>({ mesa: {}, visible: false });
+  const [showFormEditar, setShowFormEditar] = useState<any>({ table: {}, visible: false });
   const [isMounted, setIsMounted] = useState<boolean>(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
-  const [filterGuests, setFilterGuests] = useState<{ sentados: guests[], noSentados: guests[] }>({ sentados: [], noSentados: [] })
   const [showTables, setShowTables] = useState<boolean>(true)
   const [editInv, setEditInv] = useState(false)
   const [invitadoSelected, setSelected] = useState<string | null>(null);
@@ -53,8 +52,8 @@ const Mesas: FC = () => {
 
   useEffect(() => {
     const defaultMesasDraggable = ListaMesas.map(elem => `#dragN${elem.title}`)
-    setupDropzone({ target: '.js-drop-mesas', accept: `${defaultMesasDraggable}`, handleOnDrop, setEvent, eventID: event?._id })
-  }, [])
+    setupDropzone({ target: '.js-dropTables', accept: `${defaultMesasDraggable}`, handleOnDrop, setEvent, eventID: event?._id, planSpaceActive, setPlanSpaceActive })
+  }, [planSpaceActive])
 
 
   useEffect(() => {
@@ -64,45 +63,68 @@ const Mesas: FC = () => {
 
 
   useEffect(() => {
-    const filterGuest = event?.invitados_array?.reduce((acc, guest) => {
-      if (guest?.chairs?.find(elem => elem?.planSpaceID === event.planSpaceSelect)) {
-        acc.sentados.push(guest)
-      } else {
-        acc.noSentados.push(guest)
-      }
-      return acc
-    }, { sentados: [], noSentados: [] })
+    if (planSpaceActive) {
+      const guestsSections = planSpaceActive?.sections?.reduce((sections, section) => {
+        const guestsSection = section?.tables?.reduce((tables, table) => {
+          if (table?.guests?.length > 0) {
+            const asd = table.guests.map(elem => {
+              return {
+                guestID: elem._id,
+                planSpaceID: planSpaceActive._id,
+                sectionID: undefined,
+                tableID: table._id,
+                chair: elem.chair,
+                order: elem.order,
+              }
+            })
+            tables = [...tables, asd]
+          }
+          return tables
+        }, [])
+        sections.push(...guestsSection)
+        return sections
+      }, [])
+      const guestsTables = planSpaceActive?.tables?.reduce((tables, table) => {
+        if (table?.guests?.length > 0) {
+          const asd = table.guests.map(elem => {
+            return {
+              guestID: elem._id,
+              planSpaceID: planSpaceActive._id,
+              sectionID: undefined,
+              tableID: table._id,
+              chair: elem.chair,
+              order: elem.order,
+            }
+          })
+          tables = [...tables, ...asd]
+        }
+        return tables
+      }, [])
+      const guestsSentados = [...guestsSections, ...guestsTables]
+      const guestsSentadosIds = guestsSentados.map(elem => elem.guestID)
+      const filterGuest = event?.invitados_array?.reduce((acc, item) => {
+        if (guestsSentadosIds?.includes(item._id)) {
+          const guest = guestsSentados.find(elem => elem.guestID === item._id)
+          acc.sentados.push({
+            ...item,
+            ...guest
+          })
+          return acc
+        }
+        acc.noSentados.push(item)
+        return acc
+      }, { sentados: [], noSentados: [] })
+      setFilterGuests(filterGuest)
+    }
+  }, [planSpaceActive, event])
 
-    setFilterGuests(filterGuest)
-    // const guestsSections = planSpaceActive.sections.reduce((sections, section) => {
-    //   const guestsSection = section.tables.reduce((tables, table) => {
-    //     tables.push(...table.guests)
-    //     return tables
-    //   }, [])
-    //   sections.push(...guestsSection)
-    //   return sections
-    // }, [])
-    // const guestsTables = planSpaceActive.tables.reduce((tables, table) => {
-    //   tables.push(...table.guests)
-    //   return tables
-    // }, [])
-    // const guestsSentados = [...guestsSections, ...guestsTables]
-    // console.log(guestsSentados)
-    // console.log(event.invitados_array)
-    // const asd = event.invitados_array.reduce((acc, guest) => {
+  useEffect(() => {
+    console.log(10004, "filterGuests", filterGuests)
+  }, [filterGuests])
 
-    //   return acc
-    // })
-
-    // setFilterGuests(event?.invitados_array?.reduce((acc, guest) => {
-    //   if (event?.mesas_array?.map(table => table.nombre_mesa).includes(guest.nombre_mesa)) {
-    //     acc.sentados.push(guest)
-    //   } else {
-    //     acc.noSentados.push(guest)
-    //   }
-    //   return acc
-    // }, { sentados: [], noSentados: [] }))
-  }, [event?.invitados_array, event?.mesas_array, event?.planSpaceSelect])
+  useEffect(() => {
+    console.log(10005, showFormEditar)
+  }, [showFormEditar])
 
   const { user, verificationDone } = AuthContextProvider()
   if (verificationDone) {
@@ -111,6 +133,7 @@ const Mesas: FC = () => {
         <VistaSinCookie />
       )
     }
+
     if (!event) return <></>
     return (
       <>
@@ -126,7 +149,7 @@ const Mesas: FC = () => {
         ) : null}
         {/* formulario emergente para editar mesas */}
         {showFormEditar.visible ? (
-          <ModalMesa set={setShowFormEditar} state={showFormEditar} title={`Mesa: "${showFormEditar.mesa.nombre_mesa}"`}>
+          <ModalMesa set={setShowFormEditar} state={showFormEditar} title={`Mesa: "${showFormEditar.table.title}"`}>
             <FormEditarMesa
               modelo={modelo}
               set={setShowFormEditar}
@@ -166,7 +189,7 @@ const Mesas: FC = () => {
                     <div className="flex flex-col h-[100%] w-full md:px-2 justify-start truncate transform transition duration-700">
                       <div className={`bg-white w-[100%] h-[100%] mb-2 ${fullScreen ? "md:h-[30%] 2xl:h-[25%]" : "md:h-[40%] 2xl:h-[25%] rounded-b-lg shadow-lg"}`}>
                         {itemSelect == "invitados" &&
-                          <BlockInvitados set={setIsMounted} InvitadoNoSentado={filterGuests?.noSentados} setEditInv={setEditInv} editInv={editInv} setSelected={setSelected} />
+                          <BlockInvitados set={setIsMounted} setEditInv={setEditInv} editInv={editInv} setSelected={setSelected} />
                         }
                         {itemSelect == "mesas" &&
                           <BlockPanelMesas setModelo={setModelo} state={showForm} set={setShowForm} />
@@ -193,7 +216,6 @@ const Mesas: FC = () => {
                       <div className={`w-[100%] h-[100%] ${fullScreen ? "md:h-[calc(70%-16px)] 2xl:h-[calc(75%-16px)]" : "md:h-[calc(60%-16px)] 2xl:h-[calc(75%-16px)]"} hidden md:block`}>
                         {true && <BlockInvitados
                           set={setIsMounted}
-                          InvitadoNoSentado={filterGuests?.noSentados}
                           setEditInv={setEditInv}
                           editInv={editInv}
                           setSelected={setSelected}

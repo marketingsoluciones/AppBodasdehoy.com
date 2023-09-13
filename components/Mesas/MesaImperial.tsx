@@ -6,15 +6,12 @@ import { SentadoItem } from "./SentadoItem";
 
 interface propsMesaImperial {
   table: table,
-  invitados: guests[]
+  invitados: any[]
   setDisableWrapper: any
   setShowFormEditar: any
   disableDrag: any
 }
 export const MesaImperial: FC<propsMesaImperial> = ({ table, invitados, setDisableWrapper, setShowFormEditar, disableDrag }) => {
-  useEffect(() => {
-    console.log("mesa", table)
-  }, [])
 
   const [arrTotal, setArrTotal] = useState(() => {
     let arr = [];
@@ -43,33 +40,30 @@ export const MesaImperial: FC<propsMesaImperial> = ({ table, invitados, setDisab
   useEffect(() => {
   }, [Sillas])
 
-
   return (
     <>
-      <EditMesa mesa={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} />
+      <EditMesa table={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} />
       <div className="w-40 left-0 h-20 bg-white shadow border border-gray-500 flex items-center justify-center relative">
         <span className="font-display text-xs tracking-tight">{table.title}</span>
         <Chair
-          tipoMesa={table.tipo}
-          title={table.title}
+          table={table}
           className="absolute flex my-auto inset-y-0 left-1 transform -translate-x-full"
           index={0}
         >
-          {invitados.filter(element => element.puesto == "0")[0] && <SentadoItem
-            invitado={invitados.filter(element => element.puesto == "0")[0]}
+          {invitados.filter(element => element.chair == "0")[0] && <SentadoItem
+            invitado={invitados.filter(element => element.chair == "0")[0]}
             setDisableWrapper={setDisableWrapper}
           />}
           <span />
         </Chair>
 
         <Chair
-          tipoMesa={table.tipo}
-          title={table.title}
+          table={table}
           className="absolute my-auto inset-y-0 right-1 transform translate-x-full"
           index={1}
         >
-          {invitados.filter(element => element.puesto == "1")[0] && <SentadoItem
-            invitado={invitados.filter(element => element.puesto == "1")[0]}
+          {invitados.filter(element => element.chair == "1")[0] && <SentadoItem
+            invitado={invitados.filter(element => element.chair == "1")[0]}
             setDisableWrapper={setDisableWrapper}
           />}
           <span />
@@ -78,14 +72,13 @@ export const MesaImperial: FC<propsMesaImperial> = ({ table, invitados, setDisab
         <div className="w-full mx-auto inset-x-0 flex px-3 justify-between absolute top-1 transform -translate-y-full">
           {Sillas.rowOne().map((item, idx) => (
             <Chair
-              tipoMesa={table.tipo}
-              title={table.title}
+              table={table}
               className="relative"
               key={idx}
               index={item}
             >
-              {invitados.filter(element => element.puesto == item.toString())[0] && <SentadoItem
-                invitado={invitados.filter(element => element.puesto == item.toString())[0]}
+              {invitados.filter(element => element.chair == item.toString())[0] && <SentadoItem
+                invitado={invitados.filter(element => element.chair == item.toString())[0]}
                 setDisableWrapper={setDisableWrapper}
               />}
               <span />
@@ -96,14 +89,13 @@ export const MesaImperial: FC<propsMesaImperial> = ({ table, invitados, setDisab
         <div className="w-full mx-auto inset-x-0 flex px-3 justify-between absolute bottom-1 transform translate-y-full">
           {Sillas.rowTwo().map((item, idx) => (
             <Chair
-              tipoMesa={table.tipo}
-              title={table.title}
+              table={table}
               className="relative"
               key={idx}
               index={item}
             >
-              {invitados.filter(element => element.puesto == item.toString())[0] && <SentadoItem
-                invitado={invitados.filter(element => element.puesto == item.toString())[0]}
+              {invitados.filter(element => element.chair == item.toString())[0] && <SentadoItem
+                invitado={invitados.filter(element => element.chair == item.toString())[0]}
                 setDisableWrapper={setDisableWrapper}
               />}
               <span />

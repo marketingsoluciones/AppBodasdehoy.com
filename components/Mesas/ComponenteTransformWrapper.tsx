@@ -130,7 +130,7 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
         wrapperStyle={{ width: "100%", height: "100%", background: "gray" }}
         contentStyle={{ width: `${lienzo?.width}px`, height: `${lienzo?.height}px`, background: "blue" }}
       >
-        <div id={"lienzo-drop"} className="js-drop-mesas bg-gray-300 paper lienzo flex justify-center items-center">
+        <div id={"lienzo-drop"} className="js-dropTables bg-gray-300 paper lienzo flex justify-center items-center">
           <div className="lienzo border-4 border-indigo-600"></div>
           <MesasDragable scale={state.scale} lienzo={lienzo} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} setShowFormEditar={setShowFormEditar} />
         </div>
