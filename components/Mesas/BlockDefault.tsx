@@ -2,11 +2,11 @@ import { MesaCuadrada, MesaImperial, MesaPodio, MesaRedonda, PlusIcon, } from ".
 import { Dispatch, FC, ReactNode, SetStateAction, useEffect, useState } from "react";
 
 interface propsBlockDefault {
-  children?: ReactNode
+  children: ReactNode
   listaLength: number
 }
 
-const BlockDefault: FC<propsBlockDefault> = ({ children, listaLength }) => {
+const BlockDefault: FC<any> = ({ children, listaLength }) => {
   const [classNameGrid, setClassNameGrid] = useState("")
 
   const handleResize = () => {

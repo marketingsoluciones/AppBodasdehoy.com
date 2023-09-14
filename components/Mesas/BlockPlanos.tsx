@@ -24,7 +24,7 @@ const BlockPlanos: FC<propsBlockPlanos> = () => {
   }
 
   return (
-    <BlockDefault>
+    <BlockDefault> 
       {event?.planSpace?.map((item, idx) => {
         return (
           <div onClick={() => handleClick(item)} key={idx} className="w-full h-full p-2 flex-col justify-center items-center cursor-pointer">
