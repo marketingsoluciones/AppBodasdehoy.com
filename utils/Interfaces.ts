@@ -101,7 +101,7 @@ interface propsBase {
     position: position
     size: size
 }
-interface element extends propsBase {
+export interface element extends propsBase {
     tipo: string
 }
 
@@ -112,7 +112,6 @@ export interface guest {
 }
 
 export interface table extends element {
-    tipo: string
     numberChair: number
     guests: guest[]
 }

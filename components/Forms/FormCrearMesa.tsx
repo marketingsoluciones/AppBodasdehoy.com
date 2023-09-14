@@ -27,7 +27,6 @@ type initialValues = {
 }
 
 const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
-  console.log(values)
   const { modelo, offsetX, offsetY } = values
   const { event, setEvent, planSpaceActive, setPlanSpaceActive } = EventContextProvider();
   const toast = useToast()
@@ -38,8 +37,6 @@ const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
     }).required("El nombre es requerido"),
     cantidad_sillas: yup.number().required("El Nº de sillas es requerido"),
   });
-
-  console.log(planSpaceActive)
 
   const dicChair = {
     cuadrada: 4,

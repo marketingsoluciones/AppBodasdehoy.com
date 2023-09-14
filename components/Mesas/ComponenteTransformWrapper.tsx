@@ -3,7 +3,7 @@ import { ButtonConstrolsLienzo } from "./ControlsLienzo";
 import { Lock, SearchIcon } from "../icons";
 import * as mdIcons from "react-icons/md";
 import { TransformComponent } from "react-zoom-pan-pinch";
-import { MesasDragable } from "./MesasDragable";
+import { LiezoDragable } from "./LienzoDragable";
 import { useToast } from "../../hooks/useToast";
 import { InputMini } from "./InputMini";
 import { BiDotsVerticalRounded } from "react-icons/bi"
@@ -132,7 +132,7 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
       >
         <div id={"lienzo-drop"} className="js-dropTables bg-gray-300 paper lienzo flex justify-center items-center">
           <div className="lienzo border-4 border-indigo-600"></div>
-          <MesasDragable scale={state.scale} lienzo={lienzo} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} setShowFormEditar={setShowFormEditar} />
+          <LiezoDragable scale={state.scale} lienzo={lienzo} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} setShowFormEditar={setShowFormEditar} />
         </div>
       </TransformComponent>
       <style >

@@ -83,7 +83,8 @@ export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, eventID,
       .on('drop', (event) => {
         // // // console.log("SOLTADO2", event.currentTarget.id)
         if (event.currentTarget.id === "lienzo-drop") {
-          values = { ...values, modelo: event.relatedTarget.id.replace(/dragN/, "") }
+          const asd = event.relatedTarget.id.replace(/dragN/, "").split("_")
+          values = { ...values, modelo: asd[0], tipo: asd[1] }
           handleOnDrop(values)
         }
 
@@ -298,33 +299,52 @@ const moveGuest = async ({ invitadoID, chair, tableID, eventID, setEvent, planSp
 type PropsActualizarPosicion = {
   x: number;
   y: number;
-  tableID: string;
+  targetID: string;
   event: Event;
   setEvent: any;
   planSpaceActive: planSpace
   setPlanSpaceActive: any
 }
-export const ActualizarPosicion = async ({ x, y, tableID, event, setEvent, planSpaceActive, setPlanSpaceActive }: PropsActualizarPosicion): Promise<void> => {
+export const ActualizarPosicion = async ({ x, y, targetID, event, setEvent, planSpaceActive, setPlanSpaceActive }: PropsActualizarPosicion): Promise<void> => {
   try {
-    console.log(tableID)
-    fetchApiEventos({
-      query: queries.editTable,
-      variables: {
-        eventID: event._id,
-        planSpaceID: planSpaceActive._id,
-        tableID: tableID,
-        variable: "position",
-        valor: JSON.stringify({ x, y })
-      },
-    });
-
-    //const nuevoArr = [...planSpaceActive?.tables];
-    const index: number = planSpaceActive?.tables.findIndex((elem) => elem._id === tableID)
-    planSpaceActive.tables[index].position = { x, y }
-    event.planSpace[event.planSpaceSelect] = planSpaceActive
-    setPlanSpaceActive({ ...planSpaceActive })
-    setEvent({ ...event })
-
+    console.log(targetID)
+    const asd = targetID.split("_")
+    const target = asd[0]
+    const ID = asd[1]
+    if (target === "table") {
+      fetchApiEventos({
+        query: queries.editTable,
+        variables: {
+          eventID: event._id,
+          planSpaceID: planSpaceActive._id,
+          tableID: ID,
+          variable: "position",
+          valor: JSON.stringify({ x, y })
+        },
+      });
+      const index: number = planSpaceActive?.tables.findIndex((elem) => elem._id === ID)
+      planSpaceActive.tables[index].position = { x, y }
+      event.planSpace[event.planSpaceSelect] = planSpaceActive
+      setPlanSpaceActive({ ...planSpaceActive })
+      setEvent({ ...event })
+    }
+    if (target === "element") {
+      fetchApiEventos({
+        query: queries.editElement,
+        variables: {
+          eventID: event._id,
+          planSpaceID: planSpaceActive._id,
+          elementID: ID,
+          variable: "position",
+          valor: JSON.stringify({ x, y })
+        },
+      });
+      const index: number = planSpaceActive?.elements.findIndex((elem) => elem._id === ID)
+      planSpaceActive.elements[index].position = { x, y }
+      event.planSpace[event.planSpaceSelect] = planSpaceActive
+      setPlanSpaceActive({ ...planSpaceActive })
+      setEvent({ ...event })
+    }
   } catch (error) {
     console.log(error);
   }

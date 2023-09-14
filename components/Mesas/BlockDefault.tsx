@@ -2,25 +2,17 @@ import { MesaCuadrada, MesaImperial, MesaPodio, MesaRedonda, PlusIcon, } from ".
 import { Dispatch, FC, ReactNode, SetStateAction, useEffect, useState } from "react";
 
 interface propsBlockDefault {
-  children?: ReactNode;
-
+  children?: ReactNode
+  listaLength: number
 }
 
-const BlockDefault: FC<propsBlockDefault> = ({ children }) => {
+const BlockDefault: FC<propsBlockDefault> = ({ children, listaLength }) => {
   const [classNameGrid, setClassNameGrid] = useState("")
-  const ListaMesas = [
-    { icon: <MesaCuadrada className="relative w-max" />, title: "cuadrada" },
-    { icon: <MesaPodio className="relative w-max" />, title: "podio" },
-    { icon: <MesaRedonda className="relative w-max" />, title: "redonda" },
-    { icon: <MesaImperial className="relative w-max" />, title: "imperial" },
-  ];
-
-
 
   const handleResize = () => {
     let a = 0
     if (window.innerWidth < 1536) {
-      const r = Math.trunc(ListaMesas.length / 3 + 1)
+      const r = Math.trunc(listaLength / 3 + 1)
       if (r == 1) setClassNameGrid("h-[50%] grid-rows-1 grid-cols-3")
       if (r == 2) setClassNameGrid("h-[100%] grid-rows-2 grid-cols-3")
       if (r == 3) setClassNameGrid("h-[150%] grid-rows-3 grid-cols-3")
@@ -28,7 +20,7 @@ const BlockDefault: FC<propsBlockDefault> = ({ children }) => {
       if (r == 5) setClassNameGrid("h-[250%] grid-rows-5 grid-cols-3")
     }
     // if (window.innerWidth > 768 && window.innerWidth < 1536) {
-    //   const r = Math.trunc(ListaMesas.length / 3 + 1)
+    //   const r = Math.trunc(listaMesasLength / 3 + 1)
     //   if (r == 1) setClassNameGrid("h-[33.67%] grid-rows-1 grid-cols-3")
     //   if (r == 2) setClassNameGrid("h-[66.67%] grid-rows-2 grid-cols-3")
     //   if (r == 3) setClassNameGrid("h-[100%] grid-rows-3 grid-cols-3")
@@ -36,7 +28,7 @@ const BlockDefault: FC<propsBlockDefault> = ({ children }) => {
     //   if (r == 5) setClassNameGrid("h-[166.67%] grid-rows-5 grid-cols-3")
     // }
     if (window.innerWidth > 1536) {
-      const r = Math.trunc(ListaMesas.length / 4 + 1)
+      const r = Math.trunc(listaLength / 4 + 1)
       if (r == 1) setClassNameGrid("h-[25%] grid-rows-1 grid-cols-4")
       if (r == 2) setClassNameGrid("h-[50%] grid-rows-2 grid-cols-4")
       if (r == 3) setClassNameGrid("h-[100%] grid-rows-3 grid-cols-4")
@@ -56,21 +48,11 @@ const BlockDefault: FC<propsBlockDefault> = ({ children }) => {
 
 
   return (
-
-    // <div className="bg-secondary w-full rounded-lg pb-6 md:pb-3 shadow-lg ">
-    //   <div className="relative">
-    //     <h1 className="font-display font-semibold text-2xl text-white px-6 py-4 md:py-1 relative">
-    //       Mesas
-    //     </h1>
-    //     <span className="bg-tertiary flex gap-2 text-primary font-medium text-sm items-center px-3 rounded-lg absolute bottom-0 right-0 transform translate-y-1/2"> <PlusIcon /> escoge tu mesa con un click </span>
-    //   </div>
-    <div className="w-full h-[100%] overflow-auto text-sm">
+    <div className="w-full h-full overflow-auto text-sm">
       <div className={`grid ${classNameGrid}`} >
         {children}
       </div>
     </div>
-    // </div>
-
   );
 };
 

@@ -71,6 +71,7 @@ const MesaComponent: FC<propsMesaComponent> = ({ posicion, table, invitados, set
   useEffect(() => {
     setNSillas(posiciones[table?.tipo]);
   }, []);
+  //console.log(11111111111, schemaGeneral[table.tipo].component)
 
   if (["imperial"].includes(table.tipo)) {
     return (

@@ -3,8 +3,10 @@ import { FC, useEffect, useState } from 'react'
 import { MesaContent } from './MesaContent';
 import { EventContextProvider } from '../../context'
 import { ActualizarPosicion, setupDropzone } from './FuntionsDragable'
-import { size, table } from '../../utils/Interfaces';
-import { ListaMesas } from './BlockPanelMesas';
+import { size, table, element } from '../../utils/Interfaces';
+import { ListTables } from './BlockPanelMesas';
+import { DragableDefault } from './DragableDefault';
+import { ElementContent } from './ElementContent';
 
 // Calculadora de posicion de sillas (Grados °) en mesa redonda
 const DefinePosition: CallableFunction = (valor: number, mesa: { tipo: string | number }): number[] | number => {
@@ -23,7 +25,7 @@ const DefinePosition: CallableFunction = (valor: number, mesa: { tipo: string | 
   }
 };
 
-interface propsMesasDragable {
+interface propsLienzoDragable {
   scale?: number
   lienzo?: size
   setDisableWrapper: any
@@ -31,7 +33,7 @@ interface propsMesasDragable {
   setShowFormEditar: boolean
 }
 
-export const MesasDragable: FC<propsMesasDragable> = ({ scale, lienzo, setDisableWrapper, disableDrag, setShowFormEditar }) => {
+export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisableWrapper, disableDrag, setShowFormEditar }) => {
   const { event, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests } = EventContextProvider();
   const [disableLayout, setDisableLayout] = useState<boolean>(false);
   const [dragPositions, setDragPositions] = useState<any>();
@@ -48,8 +50,12 @@ export const MesasDragable: FC<propsMesasDragable> = ({ scale, lienzo, setDisabl
     console.log(50002, filterGuests)
   }, [filterGuests])
   useEffect(() => {
-    const mesasDrag = planSpaceActive?.tables?.reduce((acc, item) => {
-      acc[item._id] = { x: item.position.x, y: item.position.y }
+    const tablesDrag = planSpaceActive?.tables?.reduce((acc, item) => {
+      acc[`table_${item._id}`] = { x: item.position.x, y: item.position.y }
+      return acc
+    }, {})
+    const elementsDrag = planSpaceActive?.elements?.reduce((acc, item) => {
+      acc[`element_${item._id}`] = { x: item.position.x, y: item.position.y }
       return acc
     }, {})
 
@@ -64,7 +70,8 @@ export const MesasDragable: FC<propsMesasDragable> = ({ scale, lienzo, setDisabl
 
     setDragables([...dragablesNoSentados, ...dragablesSentados])
     setDragPositions({
-      ...mesasDrag,
+      ...tablesDrag,
+      ...elementsDrag,
       ...positionsSentados,
       ...positionsNoSentados,
       pdrag1: { x: 0, y: 0 },
@@ -76,7 +83,7 @@ export const MesasDragable: FC<propsMesasDragable> = ({ scale, lienzo, setDisabl
   interact.maxInteractions(Infinity)
   let position = { x: 0, y: 0 }
 
-  interact('.js-dragTable').draggable({
+  interact('.js-dragDefault').draggable({
     manualStart: false,
     listeners: {
       start(e) {
@@ -98,7 +105,6 @@ export const MesasDragable: FC<propsMesasDragable> = ({ scale, lienzo, setDisabl
         }
       },
       end(e) {
-        console.log("solto")
         const element = document.getElementById(e.target.id.replace(/dragN/, "dragM"))
         if (element) {
           const rootElement = document.getElementById('areaDrag');
@@ -183,6 +189,8 @@ export const MesasDragable: FC<propsMesasDragable> = ({ scale, lienzo, setDisabl
     manualStart: false,
     listeners: {
       start(e) {
+        console.log(8883, e.target.id)
+
         console.log(8884, dragPositions[e.target.id])
         let position: position = { x: 0, y: 0 }
         position = dragPositions[e.target.id]
@@ -208,7 +216,7 @@ export const MesasDragable: FC<propsMesasDragable> = ({ scale, lienzo, setDisabl
       },
       end(e) {
         const position = dragPositions[e.target.id]
-        ActualizarPosicion({ x: position.x, y: position.y, event: event, tableID: e.target.getAttribute('id'), setEvent: setEvent, planSpaceActive, setPlanSpaceActive })
+        ActualizarPosicion({ x: position.x, y: position.y, event: event, targetID: e.target.getAttribute('id'), setEvent: setEvent, planSpaceActive, setPlanSpaceActive })
         e.target.style[transformProp] = 'translate(' + position.x + 'px, ' + position.y + 'px)'
         e.target.style.left = position.x + 'px'
         e.target.style.top = position.y + 'px'
@@ -239,14 +247,30 @@ export const MesasDragable: FC<propsMesasDragable> = ({ scale, lienzo, setDisabl
     <>
       {planSpaceActive?.tables?.map((item: table, idx) => {
         return (
-          <MesaContent
-            key={item._id}
-            table={item}
-            DefinePosition={DefinePosition}
-            setDisableWrapper={setDisableWrapper}
-            disableDrag={disableDrag}
-            setShowFormEditar={setShowFormEditar}
-          />
+          <DragableDefault key={item._id} item={item} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} prefijo='table' >
+            <MesaContent
+              key={item._id}
+              table={item}
+              DefinePosition={DefinePosition}
+              setDisableWrapper={setDisableWrapper}
+              disableDrag={disableDrag}
+              setShowFormEditar={setShowFormEditar}
+            />
+          </DragableDefault>
+        );
+      })}
+      {planSpaceActive?.elements?.map((item: element, idx) => {
+        return (
+          <DragableDefault key={item._id} item={item} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} prefijo="element">
+            <ElementContent
+              key={item._id}
+              item={item}
+              DefinePosition={DefinePosition}
+              setDisableWrapper={setDisableWrapper}
+              disableDrag={disableDrag}
+              setShowFormEditar={setShowFormEditar}
+            />
+          </DragableDefault>
         );
       })}
       <style>
@@ -297,10 +321,11 @@ export const MesasDragable: FC<propsMesasDragable> = ({ scale, lienzo, setDisabl
             touch-action: none;
             user-select: none;
           }
-          .js-dragTable {
+          .js-dragDefault {
             touch-action: none;
             user-select: none;
           }
+          
         `}
       </style>
     </>

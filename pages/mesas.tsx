@@ -2,7 +2,7 @@
 import React, { FC, useEffect, useRef, useState } from "react";
 import { AuthContextProvider, EventContextProvider } from "../context";
 import FormCrearMesa from "../components/Forms/FormCrearMesa";
-import BlockPanelMesas, { ListaMesas } from "../components/Mesas/BlockPanelMesas";
+import BlockPanelMesas, { ListTables } from "../components/Mesas/BlockPanelMesas";
 import BlockResumen from "../components/Mesas/BlockResumen";
 import BlockInvitados from "../components/Mesas/BlockInvitados";
 import ModalMesa from "../components/Mesas/ModalMesa";
@@ -21,9 +21,9 @@ import ModalBottomSinAway from "../components/Utils/ModalBottomSinAway";
 import FormEditarInvitado from "../components/Forms/FormEditarInvitado";
 import { motion } from "framer-motion";
 import { SubMenu } from "../components/Utils/SubMenu";
-import BlockDefault from "../components/Mesas/BlockDefault";
 import BlockPlanos from "../components/Mesas/BlockPlanos";
 import { setupDropzone } from "../components/Mesas/FuntionsDragable";
+import BlockPanelElements, { ListElements } from "../components/Mesas/BlockPanelElements";
 
 
 SwiperCore.use([Pagination]);
@@ -32,7 +32,7 @@ const Mesas: FC = () => {
   const { event, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, setFilterGuests } = EventContextProvider();
   const [modelo, setModelo] = useState<string | null>(null);
   const [values, setValues] = useState<any>({});
-  const [showForm, setShowForm] = useState<boolean>(false);
+  const [showFormCreateTable, setShowFormCreateTable] = useState<boolean>(false);
   const [showFormEditar, setShowFormEditar] = useState<any>({ table: {}, visible: false });
   const [isMounted, setIsMounted] = useState<boolean>(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
@@ -45,14 +45,19 @@ const Mesas: FC = () => {
 
   const handleOnDrop = (values: any) => {
     setValues(values)
-    setShowForm(true)
-  }
+    if (values.tipo === "table") {
+      setShowFormCreateTable(true)
+    }
+    if (values.tipo === "element") {
 
+    }
+  }
   useMounted()
 
   useEffect(() => {
-    const defaultMesasDraggable = ListaMesas.map(elem => `#dragN${elem.title}`)
-    setupDropzone({ target: '.js-dropTables', accept: `${defaultMesasDraggable}`, handleOnDrop, setEvent, eventID: event?._id, planSpaceActive, setPlanSpaceActive })
+    const defaultTablesDraggable = ListTables.map(elem => `#dragN${elem.title}_${elem.tipo}`)
+    const defaultElementsDraggable = ListElements.map(elem => `#dragN${elem.title}_${elem.tipo}`)
+    setupDropzone({ target: '.js-dropTables', accept: `${[...defaultTablesDraggable, ...defaultElementsDraggable]}`, handleOnDrop, setEvent, eventID: event?._id, planSpaceActive, setPlanSpaceActive })
   }, [planSpaceActive])
 
 
@@ -138,12 +143,12 @@ const Mesas: FC = () => {
     return (
       <>
         {/* formulario emergente para crear mesas */}
-        {showForm ? (
-          <ModalMesa set={setShowForm} state={showForm} title="Añadir mesa">
+        {showFormCreateTable ? (
+          <ModalMesa set={setShowFormCreateTable} state={showFormCreateTable} title="Añadir mesa">
             <FormCrearMesa
               values={values}
-              set={setShowForm}
-              state={showForm}
+              set={setShowFormCreateTable}
+              state={showFormCreateTable}
             />
           </ModalMesa>
         ) : null}
@@ -192,11 +197,10 @@ const Mesas: FC = () => {
                           <BlockInvitados set={setIsMounted} setEditInv={setEditInv} editInv={editInv} setSelected={setSelected} />
                         }
                         {itemSelect == "mesas" &&
-                          <BlockPanelMesas setModelo={setModelo} state={showForm} set={setShowForm} />
+                          <BlockPanelMesas setModelo={setModelo} state={showFormCreateTable} set={setShowFormCreateTable} />
                         }
                         {itemSelect == "mobiliario" &&
-                          <span>En desarrollo!</span>
-                          // <BlockResumen InvitadoSentados={filterGuests?.sentados} />
+                          <BlockPanelElements setModelo={setModelo} state={showFormCreateTable} set={setShowFormCreateTable} />
                         }
                         {itemSelect == "zonas" &&
                           <span>En desarrollo!</span>

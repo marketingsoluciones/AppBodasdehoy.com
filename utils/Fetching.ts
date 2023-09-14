@@ -599,6 +599,42 @@ export const queries = {
   deleteTable: `mutation ($eventID:ID, $planSpaceID: ID, $sectionID: ID, $tableID: ID) {
     deleteTable(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, tableID:$tableID) 
   }`,
+
+
+  createElement: `mutation ($eventID:ID, $planSpaceID: ID, $sectionID: ID, $values: String) {
+    createElement(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, values:$values) {
+      _id
+      title
+      position{
+        x
+        y
+      }
+      size{
+        width
+        height
+      }
+      tipo
+    }
+  }`,
+  editElement: `mutation ($eventID:ID, $planSpaceID: ID, $sectionID: ID, $elementID: ID, $variable: String, $valor: String) {
+    editElement(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, elementID:$elementID, variable:$variable, valor:$valor) {
+      _id
+      title
+      position{
+        x
+        y
+      }
+      size{
+        width
+        height
+      }
+      tipo
+    }
+  }`,
+  deleteElement: `mutation ($eventID:ID, $planSpaceID: ID, $sectionID: ID, $elementID: ID) {
+    deleteElement(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, elementID:$elementID) 
+  }`,
+
   editTableOld: `mutation ($eventID:String, $tableID: String, $variable: String, $coordenadas: [posicionAinput]) {
     editMesa(evento_id:$eventID,mesa_id:$tableID, variable_reemplazar:$variable, coordenadas:$coordenadas) {
       _id
