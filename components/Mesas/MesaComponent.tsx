@@ -3,7 +3,7 @@ import { guests, table } from '../../utils/Interfaces';
 import { Chair } from "./Chair";
 import { SentadoItem } from "./SentadoItem";
 import { MesaImperial } from "./MesaImperial";
-import { EditMesa } from "./EditMesa";
+import { EditDefaul } from "./EditDefault";
 
 interface propsMesaComponent {
   posicion: number;
@@ -123,7 +123,6 @@ interface propsTableType {
 const MesaRedonda: FC<propsTableType> = ({ children, table, setShowFormEditar, disableDrag }) => {
   return (
     <>
-      <EditMesa table={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} />
       <div
         className="rounded-full transform bg-white w-20 h-20 shadow border border-gray-500 relative flex items-center justify-center"
       >
@@ -137,7 +136,6 @@ const MesaRedonda: FC<propsTableType> = ({ children, table, setShowFormEditar, d
 const MesaCuadrada: FC<propsTableType> = ({ children, table, setShowFormEditar, disableDrag }) => {
   return (
     <>
-      <EditMesa table={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} />
       <div
         className="w-20 h-20 shadow border border-gray-500 relative bg-white flex items-center justify-center"
       >
@@ -151,7 +149,6 @@ const MesaCuadrada: FC<propsTableType> = ({ children, table, setShowFormEditar, 
 const MesaPodio: FC<propsTableType> = ({ children, table, setShowFormEditar, disableDrag }) => {
   return (
     <>
-      <EditMesa table={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} />
       <div
         className="w-max h-20 shadow border border-gray-500 relative bg-white text-center font-display text-xs tracking-tight text-gray-500"
       >

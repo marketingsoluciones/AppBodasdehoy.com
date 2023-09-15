@@ -51,13 +51,10 @@ const onUp = (e, item: table) => {
 }
 
 interface propsDragTable {
-  set: Dispatch<SetStateAction<boolean>>
-  state: boolean
-  setModelo: Dispatch<SetStateAction<string>>
   item: any
 }
 
-const DragTable: FC<propsDragTable> = ({ item, set, state, setModelo }) => {
+const DragTable: FC<propsDragTable> = ({ item }) => {
 
   return (
     <div className="w-full h-full static">

@@ -4,9 +4,7 @@ import BlockDefault from "./BlockDefault";
 import DragTable from "./DragTable"
 
 interface propsBlockPanelElements {
-  set: Dispatch<SetStateAction<boolean>>
-  state: boolean
-  setModelo: Dispatch<SetStateAction<string>>
+
 }
 
 export const ListElements = [
@@ -19,18 +17,14 @@ export const ListElements = [
   { icon: <Group83 className="relative w-max" />, title: "group83", tipo: undefined },
 ];
 
-const BlockPanelElements: FC<propsBlockPanelElements> = ({ set, state, setModelo }) => {
+const BlockPanelElements: FC<propsBlockPanelElements> = () => {
 
-  const handleClick = (item: string) => {
-    set(!state)
-    setModelo(item)
-  }
   return (
     <>
       <div id="listTables" className="w-full h-full">
         <BlockDefault listaLength={ListElements.length}>
           {ListElements.map((item, idx) => (
-            <DragTable key={idx} item={item} set={set} state={state} setModelo={setModelo} />
+            <DragTable key={idx} item={item} />
           ))}
         </BlockDefault>
       </div>

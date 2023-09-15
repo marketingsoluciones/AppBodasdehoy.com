@@ -3,6 +3,7 @@ import { EventContextProvider } from "../../context";
 import { table } from "../../utils/Interfaces";
 import MesaComponent from "./MesaComponent";
 import { ListElements } from "./BlockPanelElements";
+import { EditDefaul } from "./EditDefault";
 
 interface propsElement {
   item: any

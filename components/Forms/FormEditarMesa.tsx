@@ -18,7 +18,6 @@ import ClickAwayListener from "react-click-away-listener"
 
 
 interface propsFormEditarMesa {
-  modelo: string | null,
   set: Dispatch<SetStateAction<boolean>>
   state: any
   InvitadoNoSentado: guests[]
@@ -29,8 +28,7 @@ type initialValues = {
   cantidad_sillas: string
 }
 
-const FormEditarMesa: FC<propsFormEditarMesa> = ({ modelo, set, state, InvitadoNoSentado }) => {
-  console.log(100000111111, "modelo", modelo, state)
+const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state, InvitadoNoSentado }) => {
   const { event, setEvent } = EventContextProvider();
   const [selectInvitado, setSelectedInvitado] = useState(false);
   const toast = useToast()
@@ -141,8 +139,8 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ modelo, set, state, InvitadoN
                       name="cantidad_sillas"
                       label="N° de sillas"
                       type="number"
-                      min={dicc[modelo]?.min}
-                      max={dicc[modelo]?.max}
+                      // min={dicc[modelo]?.min}
+                      // max={dicc[modelo]?.max}
                       autoComplete="off"
                       className="bg-tertiary text-white font-semibold"
                       disabled={values.tipo == "cuadrada" ? true : false}

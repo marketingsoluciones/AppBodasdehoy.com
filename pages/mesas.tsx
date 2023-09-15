@@ -156,11 +156,9 @@ const Mesas: FC = () => {
         {showFormEditar.visible ? (
           <ModalMesa set={setShowFormEditar} state={showFormEditar} title={`Mesa: "${showFormEditar.table.title}"`}>
             <FormEditarMesa
-              modelo={modelo}
               set={setShowFormEditar}
               state={showFormEditar}
               InvitadoNoSentado={filterGuests?.noSentados}
-
             />
           </ModalMesa>
         ) : null}
@@ -197,10 +195,10 @@ const Mesas: FC = () => {
                           <BlockInvitados set={setIsMounted} setEditInv={setEditInv} editInv={editInv} setSelected={setSelected} />
                         }
                         {itemSelect == "mesas" &&
-                          <BlockPanelMesas setModelo={setModelo} state={showFormCreateTable} set={setShowFormCreateTable} />
+                          <BlockPanelMesas />
                         }
                         {itemSelect == "mobiliario" &&
-                          <BlockPanelElements setModelo={setModelo} state={showFormCreateTable} set={setShowFormCreateTable} />
+                          <BlockPanelElements />
                         }
                         {itemSelect == "zonas" &&
                           <span>En desarrollo!</span>

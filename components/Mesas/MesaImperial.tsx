@@ -1,7 +1,7 @@
 import { FC, useEffect, useState } from "react";
 import { guests, table } from "../../utils/Interfaces";
 import { Chair } from "./Chair";
-import { EditMesa } from "./EditMesa";
+import { EditDefaul } from "./EditDefault";
 import { SentadoItem } from "./SentadoItem";
 
 interface propsMesaImperial {
@@ -42,7 +42,6 @@ export const MesaImperial: FC<propsMesaImperial> = ({ table, invitados, setDisab
 
   return (
     <>
-      <EditMesa table={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} />
       <div className="w-40 left-0 h-20 bg-white shadow border border-gray-500 flex items-center justify-center relative">
         <span className="font-display text-xs tracking-tight">{table.title}</span>
         <Chair

@@ -4,9 +4,7 @@ import BlockDefault from "./BlockDefault";
 import DragTable from "./DragTable"
 
 interface propsBlockPanelMesas {
-  set: Dispatch<SetStateAction<boolean>>
-  state: boolean
-  setModelo: Dispatch<SetStateAction<string>>
+
 }
 
 export const ListTables = [
@@ -16,14 +14,14 @@ export const ListTables = [
   { icon: <MesaImperial className="relative w-max" />, title: "imperial", tipo: "table" },
 ];
 
-const BlockPanelMesas: FC<propsBlockPanelMesas> = ({ set, state, setModelo }) => {
+const BlockPanelMesas: FC<propsBlockPanelMesas> = () => {
 
   return (
     <>
       <div id="listTables" className="js-dropTables bg-white w-full h-full">
         <BlockDefault listaLength={ListTables.length}>
           {ListTables.map((item, idx) => (
-            <DragTable key={idx} item={item} set={set} state={state} setModelo={setModelo} />
+            <DragTable key={idx} item={item}  />
           ))}
         </BlockDefault>
       </div>

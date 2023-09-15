@@ -247,7 +247,7 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
     <>
       {planSpaceActive?.tables?.map((item: table, idx) => {
         return (
-          <DragableDefault key={item._id} item={item} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} prefijo='table' >
+          <DragableDefault key={item._id} item={item} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} prefijo='table' setShowFormEditar={setShowFormEditar}>
             <MesaContent
               key={item._id}
               table={item}
@@ -261,7 +261,7 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
       })}
       {planSpaceActive?.elements?.map((item: element, idx) => {
         return (
-          <DragableDefault key={item._id} item={item} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} prefijo="element">
+          <DragableDefault key={item._id} item={item} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} prefijo="element" setShowFormEditar={setShowFormEditar}>
             <ElementContent
               key={item._id}
               item={item}
