@@ -170,6 +170,93 @@ export const queries = {
         fecha_lectura
         mensaje
       }
+      planSpaceSelect
+      planSpace{
+      _id
+      title
+      size{
+        width
+        height
+      }
+      spaceChairs
+      template
+      sections{
+        _id
+        title
+        position{
+          x
+          y
+        }
+        size{
+          width
+          height
+        }
+        color
+        elements{
+          _id
+          title
+          position{
+            x
+            y
+          }
+          size{
+            width
+            height
+          }
+        }
+        tables{
+          _id
+          title
+          position{
+            x
+            y
+          }
+          size{
+            width
+            height
+          }
+          tipo
+          numberChair
+          guests{
+            _id
+            chair
+            order
+          }
+        }
+      }
+      elements{
+        _id
+        title
+        position{
+          x
+          y
+        }
+        size{
+          width
+          height
+        }
+        tipo
+      }
+      tables{
+        _id
+        title
+        position{
+          x
+          y
+        }
+        size{
+          width
+          height
+        }
+        tipo
+        numberChair
+        guests{
+          _id
+          chair
+          order
+        }
+      }
+    }
       mesas_array{
             _id
             nombre_mesa
@@ -285,6 +372,7 @@ export const queries = {
         width
         height
       }
+      spaceChairs
       template
       sections{
         _id

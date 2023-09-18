@@ -125,6 +125,7 @@ export interface planSpace {
     _id: string
     title: string
     size: size
+    spaceChairs: number,
     template: boolean,
     sections: section[]
     elements: element[]
