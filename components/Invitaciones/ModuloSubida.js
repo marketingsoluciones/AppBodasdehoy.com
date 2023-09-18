@@ -98,14 +98,14 @@ const ModuloSubida = ({ event, use }) => {
         )}
 
         {true && (
-          <div className="w-full font-body flex text-gray-500 bottom-0 absolute cursor-pointer ">
+          <div className="w-full font-body flex text-gray-500 bottom-0 absolute cursor-pointer  ">
             <BotonConfirmar onClick={subir_archivo} />
 
             <label
               htmlFor="file"
-              className="flex gap-1 items-center justify-center w-full bg-white px-3 py-1 hover:scale-105 transition transform cursor-pointer rounded-br-xl hover:z-10"
+              className="flex gap-1 items-center -6 justify-center w-full bg-white px-3 py-1 hover:scale-105 transition transform cursor-pointer rounded-br-xl hover:z-10"
             >
-              Cambiar <EditarIcon />
+              Cambiar <EditarIcon className="h-7 mb-1 ml-1" />
             </label>
           </div>
         )}
