@@ -26,14 +26,15 @@ const DefinePosition: CallableFunction = (valor: number, mesa: { tipo: string | 
 };
 
 interface propsLienzoDragable {
-  scale?: number
+  scale: number
+  scalePrevious: number
   lienzo?: size
   setDisableWrapper: any
   disableDrag: boolean
   setShowFormEditar: boolean
 }
 
-export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisableWrapper, disableDrag, setShowFormEditar }) => {
+export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, scalePrevious, lienzo, setDisableWrapper, disableDrag, setShowFormEditar }) => {
   const { event, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests } = EventContextProvider();
   const [disableLayout, setDisableLayout] = useState<boolean>(false);
   const [dragPositions, setDragPositions] = useState<any>();
@@ -180,50 +181,59 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
     x: number
     y: number
   }
-  let i: position
+  let i: position = {
+    x: 1,
+    y: 1
+  }
+  scale = scale
+  let valirStart = false
+  let valirMove = false
   // setup draggable elements.
   interact('.js-drag').draggable({
     ignoreFrom: '.ign',
     manualStart: false,
     listeners: {
       start(e) {
-        position = dragPositions[e.target.id]
-        i = { ...position }
-        sizeElement = { w: e.rect.width, h: e.rect.height }
-        lienzoLimit = { x: Math.round(lienzo.width - sizeElement.w * 2), y: Math.round(lienzo.height - sizeElement.h * 2) }
+
+        sizeElement = { w: e.rect.width / scale, h: e.rect.height / scale }
+        sizeElement = { ...sizeElement }
+        lienzoLimit = { x: lienzo.width - sizeElement.w, y: lienzo.height - sizeElement.h }
+        lienzoLimit = { ...lienzoLimit }
         i.x = parseInt(e.target.getAttribute('data-x'), 10) || 0
         i.y = parseInt(e.target.getAttribute('data-y'), 10) || 0
-
+        i = { ...i }
+        valirStart = true
       },
       move(e) {
-        i.x = i.x + e?.dx / (Math.round(scale * 100) / 100)
-        i.y = i.y + e?.dy / (Math.round(scale * 100) / 100)
-        e.target.style.left = i.x + 'px'
-        e.target.style.top = i.y + 'px'
-        // console.log(523, parseInt(e.dy != 0 ? e.dy / (Math.round(scale * 100) / 100) : e.dy, 10))
-        // position.x >= 0 ? position.x += parseInt(e.dx != 0 ? e.dx / (Math.round(scale * 100) / 100) : e.dx, 10) || 0 : position.x = 0
-        // position.y >= 0 ? position.y += parseInt(e.dy != 0 ? e.dy / (Math.round(scale * 100) / 100) : e.dy, 10) || 0 : position.y = 0
-        //        console.log(transformProp)
-        if (i.x <= 0) { i.x = 0 }
-        if (i.y <= 0) { i.y = 0 }
-        if (i.x >= lienzoLimit.x) { i.x = lienzoLimit.x }
-        if (i.y >= lienzoLimit.y) { i.y = lienzoLimit.y }
-        // if (transformProp) {
-        //   e.target.style[transformProp] = 'translate(' + position.x + 'px, ' + position.y + 'px)'
-        // } else {
-        //   e.target.style.left = position.x + 'px'
-        //   e.target.style.top = position.y + 'px'
-        // }
-        // console.log(i)
+        if (!valirMove) {
+          if (!valirStart) {
+            i.x = parseInt(e.target.getAttribute('data-x'), 10) || 0
+            i.y = parseInt(e.target.getAttribute('data-y'), 10) || 0
+            i = { ...i }
+          }
+          valirMove = true
+        }
+        if (!!i?.x && !!i?.y && valirStart) {
+          i.x = i.x + (e?.dx / scale)
+          i.y = i.y + (e?.dy / scale)
+          i = { ...i }
+          if (i.x < 4) { i.x = 4 }
+          if (i.y < 4) { i.y = 4 }
+          if (i.x >= lienzoLimit.x - 4) { i.x = lienzoLimit.x - 4 }
+          if (i.y >= lienzoLimit.y - 4) { i.y = lienzoLimit.y - 4 }
+          e.target.style.left = i.x + 'px'
+          e.target.style.top = i.y + 'px'
+        }
       },
       end(e) {
-        // const position = dragPositions[e.target.id]
-        ActualizarPosicion({ x: i.x, y: i.y, event: event, targetID: e.target.getAttribute('id'), setEvent: setEvent, planSpaceActive, setPlanSpaceActive })
-        //e.target.style[transformProp] = 'translate(' + i.x + 'px, ' + i.y + 'px)'
-        e.target.style.left = i.x + 'px'
-        e.target.style.top = i.y + 'px'
-        e.target.setAttribute('data-x', i.x)
-        e.target.setAttribute('data-y', i.y)
+        if (!!i?.x && !!i?.y && valirStart && valirMove) {
+          e.target.setAttribute('data-x', i.x)
+          e.target.setAttribute('data-y', i.y)
+          ActualizarPosicion({ x: i.x, y: i.y, event: event, targetID: e.target.getAttribute('id'), setEvent: setEvent, planSpaceActive, setPlanSpaceActive })
+        } else {
+          console.log("////////////////////////////////////////////////////////////////////////fallo")
+
+        }
       },
     },
   })

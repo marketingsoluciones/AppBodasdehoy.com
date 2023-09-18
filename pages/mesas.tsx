@@ -124,10 +124,6 @@ const Mesas: FC = () => {
   }, [planSpaceActive, event])
 
   useEffect(() => {
-    console.log(10004, "filterGuests", filterGuests)
-  }, [filterGuests])
-
-  useEffect(() => {
     console.log(10005, showFormEditar)
   }, [showFormEditar])
 

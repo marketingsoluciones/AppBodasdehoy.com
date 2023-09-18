@@ -134,7 +134,7 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
       >
         <div id={"lienzo-drop"} className="js-dropTables bg-gray-300 paper lienzo flex justify-center items-center">
           <div className="lienzo border-4 border-indigo-600"></div>
-          <LiezoDragable scale={state.previousScale} lienzo={lienzo} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} setShowFormEditar={setShowFormEditar} />
+          <LiezoDragable scalePrevious={state.previousScale} scale={state.scale} lienzo={lienzo} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} setShowFormEditar={setShowFormEditar} />
         </div>
       </TransformComponent>
       <style >
