@@ -1,7 +1,6 @@
 import { FC, useEffect, useState } from "react";
 import { guests, table } from "../../utils/Interfaces";
 import { Chair } from "./Chair";
-import { EditDefaul } from "./EditDefault";
 import { SentadoItem } from "./SentadoItem";
 
 interface propsMesaImperial {

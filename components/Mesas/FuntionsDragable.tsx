@@ -307,7 +307,7 @@ type PropsActualizarPosicion = {
 }
 export const ActualizarPosicion = async ({ x, y, targetID, event, setEvent, planSpaceActive, setPlanSpaceActive }: PropsActualizarPosicion): Promise<void> => {
   try {
-    console.log(targetID)
+    console.log(targetID, x, y)
     const asd = targetID.split("_")
     const target = asd[0]
     const ID = asd[1]
@@ -324,7 +324,7 @@ export const ActualizarPosicion = async ({ x, y, targetID, event, setEvent, plan
       });
       const index: number = planSpaceActive?.tables.findIndex((elem) => elem._id === ID)
       planSpaceActive.tables[index].position = { x, y }
-      event.planSpace[event.planSpaceSelect] = planSpaceActive
+      // event.planSpace[event.planSpaceSelect] = planSpaceActive
       setPlanSpaceActive({ ...planSpaceActive })
       setEvent({ ...event })
     }
@@ -341,7 +341,7 @@ export const ActualizarPosicion = async ({ x, y, targetID, event, setEvent, plan
       });
       const index: number = planSpaceActive?.elements.findIndex((elem) => elem._id === ID)
       planSpaceActive.elements[index].position = { x, y }
-      event.planSpace[event.planSpaceSelect] = planSpaceActive
+      // event.planSpace[event.planSpaceSelect] = planSpaceActive
       setPlanSpaceActive({ ...planSpaceActive })
       setEvent({ ...event })
     }

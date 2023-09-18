@@ -2,7 +2,6 @@ import { FC, useEffect, useState } from "react";
 import { EventContextProvider } from "../../context";
 import { table } from "../../utils/Interfaces";
 import MesaComponent from "./MesaComponent";
-import { EditDefaul } from "./EditDefault";
 
 interface propsTable {
   table: table

@@ -124,7 +124,7 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
       <div className="bg-gray-200 w-80 *h-5 grid grid-cols-3 absolute z-[10] top-0 left-2 md:left-8 rounded-b-md opacity-70 *items-center text-[9px] md:text-[10px] px-2 text-gray-800">
         <span className="font-bold capitalize truncate">{`Plano: ${planSpaceActive?.title}`}</span>
         <span>{`Tamaño: ${lienzo?.width / 100}x${lienzo?.height / 100}mts`}</span>
-        <span>{`Zoom: ${state.scale.toFixed(2)}X`}</span>
+        <span>{`Zoom: ${state.previousScale.toFixed(2)}X`}</span>
       </div>
 
       {/* <Cuadricula className="w-100 h-100 text-black" /> */}
@@ -134,7 +134,7 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
       >
         <div id={"lienzo-drop"} className="js-dropTables bg-gray-300 paper lienzo flex justify-center items-center">
           <div className="lienzo border-4 border-indigo-600"></div>
-          <LiezoDragable scale={state.scale} lienzo={lienzo} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} setShowFormEditar={setShowFormEditar} />
+          <LiezoDragable scale={state.previousScale} lienzo={lienzo} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} setShowFormEditar={setShowFormEditar} />
         </div>
       </TransformComponent>
       <style >

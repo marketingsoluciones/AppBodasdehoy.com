@@ -37,7 +37,8 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables, setShowFormEditar,
   const calculoEscala = (lienzo: size, contenedor: any) => {
     const sX = contenedor.current.offsetWidth * 100 / lienzo?.width
     const sY = contenedor.current.offsetHeight * 100 / lienzo?.height
-    return Math.min(sX, sY) / 100
+    const asd = Math.trunc(Math.min(sX, sY) / 10) / 10
+    return asd
   }
   useEffect(() => {
     setScaleIni(calculoEscala(lienzo, refDiv))
@@ -65,7 +66,9 @@ const Prueba: FC<propsPrueba> = ({ setShowTables, showTables, setShowFormEditar,
           //maxPositionX={0}
           //maxPositionY={0}
           >
-            {(params) => <ComponenteTransformWrapper {...params} fullScreen={fullScreen} setFullScreen={setFullScreen} disableWrapper={disableWrapper} setDisableWrapper={setDisableWrapper} lienzo={lienzo} setLienzo={setLienzo} setShowFormEditar={setShowFormEditar} scaleIni={scaleIni} />}
+            {(params) => {
+              return <ComponenteTransformWrapper {...params} fullScreen={fullScreen} setFullScreen={setFullScreen} disableWrapper={disableWrapper} setDisableWrapper={setDisableWrapper} lienzo={lienzo} setLienzo={setLienzo} setShowFormEditar={setShowFormEditar} scaleIni={scaleIni} />
+            }}
           </TransformWrapper>
         </div>
       </div>

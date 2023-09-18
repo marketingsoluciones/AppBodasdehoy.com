@@ -3,7 +3,7 @@ import { guests, table } from '../../utils/Interfaces';
 import { Chair } from "./Chair";
 import { SentadoItem } from "./SentadoItem";
 import { MesaImperial } from "./MesaImperial";
-import { EditDefaul } from "./EditDefault";
+import { EventContextProvider } from "../../context";
 
 interface propsMesaComponent {
   posicion: number;
@@ -82,27 +82,26 @@ const MesaComponent: FC<propsMesaComponent> = ({ posicion, table, invitados, set
   } else {
     return cloneElement(schemaGeneral[table.tipo].component, {
       cantidad_sillas: numberChair,
-      children: nSillas?.map((valor, idx) => {
-        const invitado = invitados.filter(element => element.chair == idx.toString())[0]
-        return (
-          <div key={idx}>
-            <Chair
-              table={table}
-              index={idx}
-              position={valor}
-              className={schemaGeneral[table.tipo].type}
-            >
-              {/* <span>otro</span> */}
-              {invitado && <SentadoItem
-                posicion={valor}
-                invitado={invitado}
-                setDisableWrapper={setDisableWrapper}
-              />}
-              <span />
-            </Chair>
-          </div>
-        );
-      }),
+      // children: nSillas?.map((valor, idx) => {
+      //   const invitado = invitados.filter(element => element.chair == idx.toString())[0]
+      //   return (
+      //     <div key={idx}>
+      //       <Chair
+      //         table={table}
+      //         index={idx}
+      //         position={valor}
+      //         className={schemaGeneral[table.tipo].type}
+      //       >
+      //         {invitado && <SentadoItem
+      //           posicion={valor}
+      //           invitado={invitado}
+      //           setDisableWrapper={setDisableWrapper}
+      //         />}
+      //         <span />
+      //       </Chair>
+      //     </div>
+      //   );
+      // }),
     });
   }
 };
@@ -134,10 +133,12 @@ const MesaRedonda: FC<propsTableType> = ({ children, table, setShowFormEditar, d
 };
 
 const MesaCuadrada: FC<propsTableType> = ({ children, table, setShowFormEditar, disableDrag }) => {
+  const { planSpaceActive } = EventContextProvider()
   return (
     <>
       <div
-        className="w-20 h-20 shadow border border-gray-500 relative bg-white flex items-center justify-center"
+        style={{ width: planSpaceActive.spaceChairs, height: planSpaceActive.spaceChairs }}
+        className="resizable shadow border border-gray-500 relative bg-white flex items-center justify-center"
       >
         <p className="font-display text-xs text-center mx-2 leading-[12px] tracking-tight text-gray-500">{table?.title}</p>
         {children}

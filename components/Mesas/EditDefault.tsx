@@ -16,13 +16,14 @@ interface propsEditDefault {
   setDisableClickAwayListener: any
 }
 
-export const EditDefaul: FC<propsEditDefault> = ({ item, setShowFormEditar, disableDrag, setDisableClickAwayListener }) => {
+export const EditDefaul: FC<propsEditDefault> = ({ item, setShowFormEditar, disableDrag, setDisableClickAwayListener, itemTipo }) => {
   const toast = useToast()
   const { event, setEvent, planSpaceActive, setPlanSpaceActive } = EventContextProvider()
 
   const handleDeleteItem = async () => {
+    console.log("aqui", itemTipo)
     try {
-      if (item.tipo == "table") {
+      if (itemTipo == "table") {
         const resp: any = await fetchApiEventos({
           query: queries.deleteTable,
           variables: {
