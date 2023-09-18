@@ -68,7 +68,9 @@ const Invitaciones = () => {
   const handleClickOption = (idx: number) => {
     setOptionSelect(idx);
   };
+  
   useMounted()
+
   useEffect(() => {
     const reduce = event?.invitados_array?.reduce((acc: any, item: any) => {
       const asd = {
@@ -120,7 +122,7 @@ const Invitaciones = () => {
             <div className="col-span-3 p-5 md:p-0">
               {arryOptions[optionSelect].component}
             </div>
-            <FooterComponent />
+            
           </motion.div>
           <style jsx>
             {`
