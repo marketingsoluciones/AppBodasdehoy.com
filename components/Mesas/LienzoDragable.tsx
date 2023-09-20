@@ -4,7 +4,6 @@ import { MesaContent } from './MesaContent';
 import { EventContextProvider } from '../../context'
 import { ActualizarPosicion, setupDropzone } from './FuntionsDragable'
 import { size, table, element } from '../../utils/Interfaces';
-import { ListTables } from './BlockPanelMesas';
 import { DragableDefault } from './DragableDefault';
 import { ElementContent } from './ElementContent';
 
@@ -27,14 +26,13 @@ const DefinePosition: CallableFunction = (valor: number, mesa: { tipo: string | 
 
 interface propsLienzoDragable {
   scale: number
-  scalePrevious: number
   lienzo?: size
   setDisableWrapper: any
   disableDrag: boolean
   setShowFormEditar: boolean
 }
 
-export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, scalePrevious, lienzo, setDisableWrapper, disableDrag, setShowFormEditar }) => {
+export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisableWrapper, disableDrag, setShowFormEditar }) => {
   const { event, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests } = EventContextProvider();
   const [disableLayout, setDisableLayout] = useState<boolean>(false);
   const [dragPositions, setDragPositions] = useState<any>();
@@ -229,7 +227,7 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, scalePrevious, l
         if (!!i?.x && !!i?.y && valirStart && valirMove) {
           e.target.setAttribute('data-x', i.x)
           e.target.setAttribute('data-y', i.y)
-          ActualizarPosicion({ x: i.x, y: i.y, event: event, targetID: e.target.getAttribute('id'), setEvent: setEvent, planSpaceActive, setPlanSpaceActive })
+          ActualizarPosicion({ x: Math.trunc(i.x), y: Math.trunc(i.y), event: event, targetID: e.target.getAttribute('id'), setEvent: setEvent, planSpaceActive, setPlanSpaceActive })
         } else {
           console.log("////////////////////////////////////////////////////////////////////////fallo")
 
@@ -298,14 +296,7 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, scalePrevious, l
       {planSpaceActive?.elements?.map((item: element, idx) => {
         return (
           <DragableDefault key={item._id} item={item} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} prefijo="element" setShowFormEditar={setShowFormEditar}>
-            <ElementContent
-              key={item._id}
-              item={item}
-              DefinePosition={DefinePosition}
-              setDisableWrapper={setDisableWrapper}
-              disableDrag={disableDrag}
-              setShowFormEditar={setShowFormEditar}
-            />
+            <ElementContent key={item._id} item={item} />
           </DragableDefault>
         );
       })}

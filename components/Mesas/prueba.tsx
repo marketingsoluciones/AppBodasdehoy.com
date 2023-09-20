@@ -6,8 +6,6 @@ import { EventContextProvider } from "../../context";
 import { size } from "../../utils/Interfaces";
 
 type propsPrueba = {
-  setShowTables: any
-  showTables: boolean
   setShowFormEditar: any
   fullScreen: boolean
   setFullScreen: any
@@ -16,7 +14,7 @@ type propsPrueba = {
 
 
 
-const Prueba: FC<propsPrueba> = ({ setShowTables, showTables, setShowFormEditar, fullScreen, setFullScreen }) => {
+const Prueba: FC<propsPrueba> = ({ setShowFormEditar, fullScreen, setFullScreen }) => {
   const refDiv = useRef(null)
   const [scaleIni, setScaleIni] = useState(0)
   const [disableWrapper, setDisableWrapper] = useState(false)

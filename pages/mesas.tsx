@@ -9,8 +9,6 @@ import ModalMesa from "../components/Mesas/ModalMesa";
 import { useDelayUnmount } from "../utils/Funciones";
 import ModalLeft from "../components/Utils/ModalLeft";
 import FormInvitado from "../components/Forms/FormInvitado";
-import Breadcumb from "../components/DefaultLayout/Breadcumb";
-import { guests } from "../utils/Interfaces";
 import VistaSinCookie from "./vista-sin-cookie";
 import SwiperCore, { Pagination, Navigation } from 'swiper';
 import Prueba from "../components/Mesas/prueba";
@@ -30,16 +28,13 @@ SwiperCore.use([Pagination]);
 
 const Mesas: FC = () => {
   const { event, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, setFilterGuests } = EventContextProvider();
-  const [modelo, setModelo] = useState<string | null>(null);
   const [values, setValues] = useState<any>({});
   const [showFormCreateTable, setShowFormCreateTable] = useState<boolean>(false);
   const [showFormEditar, setShowFormEditar] = useState<any>({ table: {}, visible: false });
   const [isMounted, setIsMounted] = useState<boolean>(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
-  const [showTables, setShowTables] = useState<boolean>(true)
   const [editInv, setEditInv] = useState(false)
   const [invitadoSelected, setSelected] = useState<string | null>(null);
-  const [sect, setSect] = useState([false, false, false, false])
   const [itemSelect, setItemSelect] = useState("mesas")
   const [fullScreen, setFullScreen] = useState<boolean>(false)
 
@@ -61,10 +56,6 @@ const Mesas: FC = () => {
   }, [planSpaceActive])
 
 
-  useEffect(() => {
-    if (window?.innerWidth > 768)
-      setSect([true, true, true, true])
-  }, [])
 
 
   useEffect(() => {
@@ -223,7 +214,7 @@ const Mesas: FC = () => {
                   </div>
                 </div>
                 { /* */}<div className={`bg-base  pt-2 md:pt-0 md:block flex justify-center items-center w-full ${fullScreen ? "md:w-[77%]" : "md:w-[75%]"} h-[calc(70%-0px)] md:h-[100%]`}>
-                  <Prueba setShowTables={setShowTables} showTables={showTables} setShowFormEditar={setShowFormEditar} fullScreen={fullScreen} setFullScreen={setFullScreen} />
+                  <Prueba setShowFormEditar={setShowFormEditar} fullScreen={fullScreen} setFullScreen={setFullScreen} />
                 </div>
 
               </div >

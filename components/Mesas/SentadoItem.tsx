@@ -20,10 +20,10 @@ export const SentadoItem: FC<propsSentadoItem> = ({ invitado, posicion, setDisab
   return (
     <>
       {invitado ? (
-        <div id={`dragS${invitado._id}`} className="ign ">
+        <div id={`dragS${invitado._id}`} className="ign w-full h-full ">
           <span
             id={`dragS${invitado._id}`}
-            className="w-full flex js-dragInvitadoS "
+            className="w-full h-full flex js-dragInvitadoS "
             onMouseDown={(e) => {
               //e.preventDefault()
               setDisableWrapper(true)
@@ -69,14 +69,13 @@ export const SentadoItem: FC<propsSentadoItem> = ({ invitado, posicion, setDisab
           >
             <div
               id={`dragS${invitado._id}B`}
-              className={`w-5 h-5 bg-primary rounded-full text-[4px] relative grid place-items-center correccion *-rotate-90`}
+              className={`w-full h-full bg-primary rounded-full relative flex flex-col items-center justify-center correccion *-rotate-90`}
             >
-              <div
-                className="absolute w-full h-full rounded-full"
-              />
-              <p className="font-display font-light text-white text-center">
-                {invitado.nombre/*.slice(0, 1)*/}
+              <span className="text-tertiary text-center text-[8px]">{posicion}</span>
+              <p className="h-[18px] w-[93%] text-[6px] font-display font-light text-white text-center twoline">
+                {invitado.nombre}
               </p>
+              <div className="absolute w-full h-full rounded-full" />
               {isHovered && <TooltipOld text={invitado?.nombre} />}
             </div>
           </span>
@@ -86,6 +85,12 @@ export const SentadoItem: FC<propsSentadoItem> = ({ invitado, posicion, setDisab
         {`
           .correccion {
             transform: rotate(-${posicion}deg);
+          }
+          .twoline {
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
           }
         `}
       </style>

@@ -87,7 +87,7 @@ interface chair {
     order: string
 }
 
-interface position {
+export interface position {
     x: number
     y: number
 }

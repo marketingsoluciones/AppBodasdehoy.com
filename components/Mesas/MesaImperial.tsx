@@ -2,15 +2,13 @@ import { FC, useEffect, useState } from "react";
 import { guests, table } from "../../utils/Interfaces";
 import { Chair } from "./Chair";
 import { SentadoItem } from "./SentadoItem";
+import { propsTableType } from "./MesaComponent";
 
-interface propsMesaImperial {
-  table: table,
+interface propsMesaImperial extends propsTableType {
   invitados: any[]
   setDisableWrapper: any
-  setShowFormEditar: any
-  disableDrag: any
 }
-export const MesaImperial: FC<propsMesaImperial> = ({ table, invitados, setDisableWrapper, setShowFormEditar, disableDrag }) => {
+export const MesaImperial: FC<propsMesaImperial> = ({ table, invitados, setDisableWrapper, setShowFormEditar, disableDrag, spaceChairs }) => {
 
   const [arrTotal, setArrTotal] = useState(() => {
     let arr = [];
@@ -41,7 +39,7 @@ export const MesaImperial: FC<propsMesaImperial> = ({ table, invitados, setDisab
 
   return (
     <>
-      <div className="w-40 left-0 h-20 bg-white shadow border border-gray-500 flex items-center justify-center relative">
+      <div style={{ width: (table.numberChair - 2) / 2 * spaceChairs, height: spaceChairs }} className="bg-white shadow border border-gray-500 flex items-center justify-center relative">
         <span className="font-display text-xs tracking-tight">{table.title}</span>
         <Chair
           table={table}

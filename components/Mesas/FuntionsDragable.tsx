@@ -249,7 +249,7 @@ const moveGuest = async ({ invitadoID, chair, tableID, eventID, setEvent, planSp
         old.planSpace[f1] = planSpaceActive
         return { ...old }
       })
-      await fetchApiEventos({
+      fetchApiEventos({
         query: queries.editTable,
         variables: {
           eventID,
@@ -273,7 +273,7 @@ const moveGuest = async ({ invitadoID, chair, tableID, eventID, setEvent, planSp
       const f1 = planSpaceActive.tables.findIndex(elem => elem._id === gestPrevMove.tableID)
       const f2 = planSpaceActive.tables[f1].guests.findIndex(elem => elem._id === invitadoID)
       planSpaceActive.tables[f1].guests.splice(f2, 1)
-      await fetchApiEventos({
+      fetchApiEventos({
         query: queries.editTable,
         variables: {
           eventID,
@@ -296,7 +296,7 @@ const moveGuest = async ({ invitadoID, chair, tableID, eventID, setEvent, planSp
 }
 
 // Guardar en BD y estado nueva posicion de la mesa
-type PropsActualizarPosicion = {
+interface PropsActualizarPosicion {
   x: number;
   y: number;
   targetID: string;
@@ -305,7 +305,7 @@ type PropsActualizarPosicion = {
   planSpaceActive: planSpace
   setPlanSpaceActive: any
 }
-export const ActualizarPosicion = async ({ x, y, targetID, event, setEvent, planSpaceActive, setPlanSpaceActive }: PropsActualizarPosicion): Promise<void> => {
+export const ActualizarPosicion = async ({ x, y, targetID, event, setEvent, planSpaceActive, setPlanSpaceActive }): Promise<void> => {
   try {
     console.log(targetID, x, y)
     const asd = targetID.split("_")

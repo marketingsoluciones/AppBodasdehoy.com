@@ -24,12 +24,16 @@ type tableType = {
   type: keyof typeof types;
 };
 type schemaType = {
-  redonda: tableType;
-  cuadrada: tableType;
-  podio: tableType;
+  redonda: tableType
+  cuadrada: tableType
+  podio: tableType
+  bancos: tableType
+  banco: tableType
+  militar: tableType
 };
 
 const MesaComponent: FC<propsMesaComponent> = ({ posicion, table, invitados, setDisableWrapper, setShowFormEditar, disableDrag }) => {
+  const { planSpaceActive } = EventContextProvider()
   const { numberChair } = table;
   const [nSillas, setNSillas] = useState([]);
 
@@ -52,17 +56,32 @@ const MesaComponent: FC<propsMesaComponent> = ({ posicion, table, invitados, set
   const schemaGeneral: schemaType = {
     redonda: {
       position: posicion,
-      component: <MesaRedonda table={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} />,
+      component: <MesaRedonda table={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={planSpaceActive.spaceChairs} />,
       type: "radio",
     },
     cuadrada: {
       position: [0, 90, 180, 270],
-      component: <MesaCuadrada table={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} />,
+      component: <MesaCuadrada table={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={planSpaceActive.spaceChairs} />,
       type: "radio",
     },
     podio: {
       position: ArraySillas(),
-      component: <MesaPodio table={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} />,
+      component: <MesaPodio table={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={planSpaceActive.spaceChairs} />,
+      type: "relative",
+    },
+    bancos: {
+      position: ArraySillas(),
+      component: <MesaBancos table={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={planSpaceActive.spaceChairs} />,
+      type: "relative",
+    },
+    banco: {
+      position: ArraySillas(),
+      component: <Banco table={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={planSpaceActive.spaceChairs} />,
+      type: "relative",
+    },
+    militar: {
+      position: ArraySillas(),
+      component: <Banco table={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={planSpaceActive.spaceChairs} />,
       type: "relative",
     },
   };
@@ -73,35 +92,34 @@ const MesaComponent: FC<propsMesaComponent> = ({ posicion, table, invitados, set
   }, []);
   //console.log(11111111111, schemaGeneral[table.tipo].component)
 
-  if (["imperial"].includes(table.tipo)) {
+  if (["imperial", "militar"].includes(table.tipo)) {
     return (
       <>
-        <MesaImperial table={table} invitados={invitados} setDisableWrapper={setDisableWrapper} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} />
+        <MesaImperial table={table} invitados={invitados} setDisableWrapper={setDisableWrapper} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={planSpaceActive.spaceChairs} />
       </>
     )
   } else {
     return cloneElement(schemaGeneral[table.tipo].component, {
       cantidad_sillas: numberChair,
-      // children: nSillas?.map((valor, idx) => {
-      //   const invitado = invitados.filter(element => element.chair == idx.toString())[0]
-      //   return (
-      //     <div key={idx}>
-      //       <Chair
-      //         table={table}
-      //         index={idx}
-      //         position={valor}
-      //         className={schemaGeneral[table.tipo].type}
-      //       >
-      //         {invitado && <SentadoItem
-      //           posicion={valor}
-      //           invitado={invitado}
-      //           setDisableWrapper={setDisableWrapper}
-      //         />}
-      //         <span />
-      //       </Chair>
-      //     </div>
-      //   );
-      // }),
+      children: nSillas?.map((valor, idx) => {
+        const invitado = invitados.filter(element => element.chair == idx.toString())[0]
+        return (
+          <div key={idx}>
+            <Chair
+              table={table}
+              index={idx}
+              position={valor}
+              className={schemaGeneral[table.tipo].type}>
+              {invitado && <SentadoItem
+                posicion={valor}
+                invitado={invitado}
+                setDisableWrapper={setDisableWrapper}
+              />}
+              <span />
+            </Chair>
+          </div>
+        );
+      }),
     });
   }
 };
@@ -111,20 +129,24 @@ export default MesaComponent;
 
 
 
-interface propsTableType {
-  cantidad_sillas?: number
+export interface propsTableType {
+  spaceChairs: number
   children?: ReactNode
   table: table
   setShowFormEditar: any
   disableDrag: any
 }
 
-const MesaRedonda: FC<propsTableType> = ({ children, table, setShowFormEditar, disableDrag }) => {
+const MesaRedonda: FC<propsTableType> = ({ children, table, setShowFormEditar, disableDrag, spaceChairs }) => {
+  function getTanDeg(deg: number) {
+    var rad = (deg * Math.PI) / 180;
+    return Math.tan(rad);
+  }
+  const anguloOpuesto = 360 / table.numberChair / 2
+  const adyacente = (spaceChairs / 2) / getTanDeg(anguloOpuesto)
   return (
     <>
-      <div
-        className="rounded-full transform bg-white w-20 h-20 shadow border border-gray-500 relative flex items-center justify-center"
-      >
+      <div style={{ width: adyacente * 2, height: adyacente * 2 }} className="rounded-full transform bg-white shadow border border-gray-500 relative flex items-center justify-center">
         <p className="font-display text-xs text-center mx-2 leading-[12px] tracking-tight text-gray-500">{table?.title}</p>
         {children}
       </div>
@@ -132,14 +154,11 @@ const MesaRedonda: FC<propsTableType> = ({ children, table, setShowFormEditar, d
   );
 };
 
-const MesaCuadrada: FC<propsTableType> = ({ children, table, setShowFormEditar, disableDrag }) => {
-  const { planSpaceActive } = EventContextProvider()
+const MesaCuadrada: FC<propsTableType> = ({ children, table, setShowFormEditar, disableDrag, spaceChairs }) => {
+  const size = Math.ceil(table.numberChair / 4) * spaceChairs
   return (
     <>
-      <div
-        style={{ width: planSpaceActive.spaceChairs, height: planSpaceActive.spaceChairs }}
-        className="resizable shadow border border-gray-500 relative bg-white flex items-center justify-center"
-      >
+      <div style={{ width: size, height: size }} className="shadow border border-gray-500 relative bg-white flex items-center justify-center" >
         <p className="font-display text-xs text-center mx-2 leading-[12px] tracking-tight text-gray-500">{table?.title}</p>
         {children}
       </div>
@@ -147,12 +166,10 @@ const MesaCuadrada: FC<propsTableType> = ({ children, table, setShowFormEditar, 
   );
 };
 
-const MesaPodio: FC<propsTableType> = ({ children, table, setShowFormEditar, disableDrag }) => {
+const MesaPodio: FC<propsTableType> = ({ children, table, setShowFormEditar, disableDrag, spaceChairs }) => {
   return (
     <>
-      <div
-        className="w-max h-20 shadow border border-gray-500 relative bg-white text-center font-display text-xs tracking-tight text-gray-500"
-      >
+      <div style={{ width: spaceChairs * table.numberChair, height: spaceChairs }} className="shadow border border-gray-500 relative bg-white text-center font-display text-xs tracking-tight text-gray-500" >
         <div className="flex gap-4 w-full px-6 transform -translate-y-1/2">
           {children}
         </div>
@@ -162,6 +179,27 @@ const MesaPodio: FC<propsTableType> = ({ children, table, setShowFormEditar, dis
   );
 };
 
+const MesaBancos: FC<propsTableType> = ({ children, table, setShowFormEditar, disableDrag, spaceChairs }) => {
+  return (
+    <>
+      <div style={{ width: (spaceChairs) * table.numberChair, height: spaceChairs }} className="shadow border border-gray-500 relative bg-white flex items-center justify-center" >
+        <p className="font-display text-xs text-center mx-2 leading-[12px] tracking-tight text-gray-500">{table?.title}</p>
+        {children}
+      </div>
+    </>
+  );
+};
+
+const Banco: FC<propsTableType> = ({ children, table, setShowFormEditar, disableDrag, spaceChairs }) => {
+  return (
+    <>
+      <div style={{ width: (spaceChairs) * table.numberChair, height: spaceChairs }} className="shadow border border-gray-500 relative bg-white flex items-center justify-center" >
+        <p className="font-display text-xs text-center mx-2 leading-[12px] tracking-tight text-gray-500">{table?.title}</p>
+        {children}
+      </div>
+    </>
+  );
+};
 
 
 

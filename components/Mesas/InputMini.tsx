@@ -21,6 +21,7 @@ export const InputMini: FC<propsInputMini> = ({ label, lienzo, setLienzo, center
   )
 
   const handleOnChange = (e) => {
+    console.log("aqui", e.target.value)
     try {
       setValue(e.target.value)
       if (e.target.value !== "") {

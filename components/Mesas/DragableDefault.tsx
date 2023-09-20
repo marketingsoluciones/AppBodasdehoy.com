@@ -1,7 +1,4 @@
 import { FC, ReactNode, useEffect, useState } from "react";
-import { EventContextProvider } from "../../context";
-import { table } from "../../utils/Interfaces";
-import MesaComponent from "./MesaComponent";
 import ClickAwayListener from "react-click-away-listener";
 import { EditDefaul } from "./EditDefault";
 
@@ -42,7 +39,7 @@ export const DragableDefault: FC<propsTable> = ({ children, item, setDisableWrap
         // onClick={() => { setClicked(true) }}
         className={`${!disableDrag && "js-drag"} ${clicked && "bg-gray-100 bg-opacity-50 border-gray-200 shadow-md"} draggable-touch absolute hover:bg-gray-100 hover:bg-opacity-50 border border-transparent hover:border-gray-200 hover:shadow-md p-5 rounded-2xl`}>
         <div className="relative">
-          {clicked && <EditDefaul item={item} itemTipo={prefijo} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} setDisableClickAwayListener={setDisableClickAwayListener} />}
+          {clicked && <EditDefaul item={item} itemTipo={prefijo} setShowFormEditar={setShowFormEditar} setDisableClickAwayListener={setDisableClickAwayListener} />}
           {children}
         </div>
       </div>

@@ -1,7 +1,7 @@
 import { FC } from "react"
 import { EventContextProvider } from "../../context"
 import { fetchApiEventos, queries } from "../../utils/Fetching"
-import { table, tableOld } from "../../utils/Interfaces"
+import { table } from "../../utils/Interfaces"
 import { BorrarIcon, EditarIcon, Lock } from "../icons"
 import { useToast } from '../../hooks/useToast';
 import { MdRotateRight } from 'react-icons/md'
@@ -12,11 +12,10 @@ interface propsEditDefault {
   item: table
   itemTipo: string
   setShowFormEditar: any
-  disableDrag: any
   setDisableClickAwayListener: any
 }
 
-export const EditDefaul: FC<propsEditDefault> = ({ item, setShowFormEditar, disableDrag, setDisableClickAwayListener, itemTipo }) => {
+export const EditDefaul: FC<propsEditDefault> = ({ item, setShowFormEditar, setDisableClickAwayListener, itemTipo }) => {
   const toast = useToast()
   const { event, setEvent, planSpaceActive, setPlanSpaceActive } = EventContextProvider()
 

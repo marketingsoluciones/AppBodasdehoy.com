@@ -1,7 +1,7 @@
 import { Form, Formik, FormikValues } from "formik";
 import { api } from "../../api";
 import { EventContextProvider } from "../../context";
-import { MesaCuadrada, MesaImperial, MesaPodio, MesaRedonda } from "../icons";
+import { MesaCuadrada, MesaImperial, MesaPodio, MesaRedonda, LineaBancos, Banco, MesaMilitar } from "../icons";
 import InputField from "./InputField";
 import * as yup from 'yup'
 import { fetchApiEventos, queries } from "../../utils/Fetching";
@@ -73,6 +73,21 @@ const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
       min: 10,
       max: 16
     },
+    militar: {
+      icon: <MesaMilitar />,
+      min: 10,
+      max: 16
+    },
+    bancos: {
+      icon: <LineaBancos />,
+      min: 4,
+      max: 12
+    },
+    banco: {
+      icon: <Banco />,
+      min: 1,
+      max: 1
+    },
   };
 
   const handleSubmit = async (values: FormikValues, actions: any) => {
@@ -110,48 +125,51 @@ const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
       validationSchema={validationSchema}
       onSubmit={handleSubmit}
     >
-      {({ values, isSubmitting }) => (
-        <Form className="text-gray-900 grid gap-4 pt-2">
-          <div className="grid-cols-3 grid gap-2 w-full">
-            <span className="w-max col-span-1 m-auto inset-0">{dicc[modelo].icon}</span>
-            <div className="col-span-2 flex flex-col gap-4 ">
-              <InputField
-                name="nombre_mesa"
-                label="Nombre de mesa"
-                type="text"
-              />
-              <InputField
-                name="cantidad_sillas"
-                label="N° de sillas"
-                type="number"
-                min={dicc[modelo].min}
-                max={dicc[modelo].max}
-                autoComplete="off"
-                className="bg-tertiary text-primary font-semibold"
-                disabled={values.tipo == "cuadrada" ? true : false}
-              />
+      {({ values, isSubmitting }) => {
+        console.log(modelo)
+        return (
+          <Form className="text-gray-900 grid gap-4 pt-2">
+            <div className="grid-cols-3 grid gap-2 w-full">
+              <span className="w-max col-span-1 m-auto inset-0">{dicc[modelo].icon}</span>
+              <div className="col-span-2 flex flex-col gap-4 ">
+                <InputField
+                  name="nombre_mesa"
+                  label="Nombre de mesa"
+                  type="text"
+                />
+                <InputField
+                  name="cantidad_sillas"
+                  label="N° de sillas"
+                  type="number"
+                  min={dicc[modelo].min}
+                  max={dicc[modelo].max}
+                  autoComplete="off"
+                  className="bg-tertiary text-primary font-semibold"
+                  disabled={values.tipo == "cuadrada" ? true : false}
+                />
+              </div>
             </div>
-          </div>
 
 
-          <div className="w-full grid grid-cols-2 gap-4 px-4 pt-4">
-            <button
-              disabled={isSubmitting}
-              type="submit"
-              className=" bg-primary w-full text-white font-semibold mx-auto inset-x-0 rounded-xl py-1  focus:outline-none"
-            >
-              Crear mesa
-            </button>
+            <div className="w-full grid grid-cols-2 gap-4 px-4 pt-4">
+              <button
+                disabled={isSubmitting}
+                type="submit"
+                className=" bg-primary w-full text-white font-semibold mx-auto inset-x-0 rounded-xl py-1  focus:outline-none"
+              >
+                Crear mesa
+              </button>
 
-            <button
-              className=" bg-gray-200 transition w-full text-white font-semibold mx-auto inset-x-0 rounded-xl py-1 focus:outline-none hover:opacity-80 "
-              onClick={() => set(false)}
-            >
-              Cancelar
-            </button>
-          </div>
-        </Form>
-      )}
+              <button
+                className=" bg-gray-200 transition w-full text-white font-semibold mx-auto inset-x-0 rounded-xl py-1 focus:outline-none hover:opacity-80 "
+                onClick={() => set(false)}
+              >
+                Cancelar
+              </button>
+            </div>
+          </Form>
+        )
+      }}
     </Formik>
   );
 };
