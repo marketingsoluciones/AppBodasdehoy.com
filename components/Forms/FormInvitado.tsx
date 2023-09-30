@@ -55,7 +55,9 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
     }),
     sexo: yup.string().required("Sexo requerido"),
     grupo_edad: yup.string().required("Edad requerido"),
-    telefono: yup.string().required("Telefono requerido"),
+    telefono: yup.string().required("*******").test("Unico", "Telefono requerido", (value) => {
+      return !!value?.split(" ")[1]
+    }),
     rol: yup.string().required("Rol requerido"),
     correo: yup.string().email().test("Unico", "El correo debe ser unico", (value) => {
       return !event.invitados_array.map(item => item.correo).includes(value)

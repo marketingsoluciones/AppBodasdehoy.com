@@ -101,6 +101,15 @@ export const fetchApiEventos = async ({ query, variables, token }: argsFetchApi)
 };
 
 export const queries = {
+  getGeoInfo: `query  {
+    getGeoInfo {
+      referer
+      acceptLanguage
+      loop
+      connectingIp
+      ipcountry
+    }
+  }`,
   auth: `mutation ($idToken : String){
     auth(idToken: $idToken){
       sessionCookie

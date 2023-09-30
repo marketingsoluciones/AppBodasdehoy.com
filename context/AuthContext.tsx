@@ -4,7 +4,7 @@ import Cookies from 'js-cookie'
 import { nanoid } from 'nanoid'
 
 import { developments } from "../firebase";
-import { fetchApiBodas, queries } from "../utils/Fetching";
+import { fetchApiBodas, fetchApiEventos, queries } from "../utils/Fetching";
 import { boolean } from "yup";
 import { initializeApp } from "firebase/app";
 
@@ -20,7 +20,9 @@ const initialContext = {
   theme: undefined,
   setTheme: undefined,
   isActiveStateSwiper: 0,
-  setIsActiveStateSwiper: undefined
+  setIsActiveStateSwiper: undefined,
+  geoInfo: undefined,
+  setGeoInfo: undefined,
 }
 
 type Context = {
@@ -36,6 +38,8 @@ type Context = {
   setTheme: any
   isActiveStateSwiper: any
   setIsActiveStateSwiper: any
+  geoInfo: any,
+  setGeoInfo: any,
 }
 
 const AuthContext = createContext<Context>(initialContext);
@@ -54,6 +58,7 @@ const AuthProvider = ({ children }) => {
     baseColor: undefined,
     colorScroll: undefined
   })
+  const [geoInfo, setGeoInfo] = useState<any>();
 
   useEffect(() => {
     if (!isMounted) {
@@ -163,9 +168,17 @@ const AuthProvider = ({ children }) => {
     }
   }, [])
 
+  useEffect(() => {
+    fetchApiEventos({
+      query: queries.getGeoInfo,
+      variables: {},
+    }).then(geoInfo => setGeoInfo(geoInfo)).catch(err => console.log(err))
+  }, [])
+
+
 
   return (
-    <AuthContext.Provider value={{ user, setUser, verificationDone, setVerificationDone, config, setConfig, isProduction, setIsProduction, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper }}>
+    <AuthContext.Provider value={{ user, setUser, verificationDone, setVerificationDone, config, setConfig, isProduction, setIsProduction, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo }}>
       {children}
     </AuthContext.Provider>
   );
