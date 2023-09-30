@@ -14,11 +14,13 @@ const InputField: FC<Partial<propsInputField>> = ({ label, className, ...props }
   const [field, meta, helpers] = useField({ name: props.name })
 
   useEffect(() => {
-    if (props?.type !== "tel") {
-      (document.getElementsByClassName("react-international-phone-input")[0] as HTMLElement).focus()
+    if (props?.type == "tel") {
+      (document.getElementsByClassName("react-international-phone-input")[0] as HTMLElement)
+        .focus()
+      const input = document.getElementsByClassName("react-international-phone-input")[0]
+      input.setAttribute("class", `ml-2 font-display text-sm text-gray-500 border border-gray-100 focus:border-primary w-full py-2 px-4 rounded-xl focus:outline-none transition ${className}`)
     }
   }, [])
-
 
   return (
     <div className="w-full h-max relative">
@@ -29,7 +31,7 @@ const InputField: FC<Partial<propsInputField>> = ({ label, className, ...props }
           : <div onBlur={() => helpers.setTouched(true)} >
             <PhoneInput
               defaultCountry={geoInfo?.ipcountry.toLowerCase()}
-              value=""
+              value={field?.value}
               onChange={(value) => { helpers.setValue(value) }}
             />
           </div>
