@@ -118,7 +118,7 @@ export const ForApiPeople = ({ setContact, showForApiGoogle, setShowForApiGoogle
             </div>}
           </div>
         </div>
-        <div className="w-full h-[calc(100%-100px)] overflow-auto flex flex-col mt-2">
+        <div className="w-full h-[calc(100%-75px)] overflow-auto flex flex-col mt-2">
           <div className="flex flex-col ml-4 text-sm">
             <p>{contactsShow ? "Los contactos que selecciones se compartiran con" : "No tiene contactos en su cuenta de correo"}</p>
             <p className="font-semibold translate-y-[-4px]">{contactsShow ? window.location.hostname : userInfo?.email}</p>

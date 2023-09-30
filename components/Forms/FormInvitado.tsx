@@ -216,11 +216,13 @@ export default FormInvitado;
 const ResetForm = ({ setFieldValue, resetForm, contact }) => {
   useEffect(() => {
     resetForm()
+    //aquí formatear todos los numeros de télefonos iguales
     const contacto = {
-      telefo: "telefono",
-      nombre: "nombre",
-      correo: "correo"
+      telefono: contact?.phones[0],
+      nombre: contact?.name,
+      correo: contact?.email
     }
+
     for (let clave in contacto) {
       console.log(clave, contacto[clave])
       setFieldValue(clave, contacto[clave])
@@ -228,7 +230,8 @@ const ResetForm = ({ setFieldValue, resetForm, contact }) => {
   }, [contact])
   return (
     <>
-      {contact && <div className="bg-blue-200 absolute">{JSON.stringify(contact, null, 2)}</div>}
+      {/* aquí pendiente para seleccionar cuando el contacto tiene más de un numero de telefono */}
+      {/* {contact && <div className="bg-blue-200 absolute">{JSON.stringify(contact, null, 2)}</div>} */}
     </>
   )
 }
