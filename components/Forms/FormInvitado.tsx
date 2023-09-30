@@ -1,5 +1,5 @@
 import { Form, Formik, FormikValues, useField } from "formik";
-import { FC, HtmlHTMLAttributes } from "react";
+import { Dispatch, FC, HtmlHTMLAttributes, SetStateAction, useEffect, useState } from "react";
 import { EventContextProvider } from "../../context";
 import { WarningIcon } from "../icons";
 import InputField from "./InputField";
@@ -9,15 +9,45 @@ import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
 import { ImageProfile } from "../../utils/Funciones";
 import useHover from "../../hooks/useHover";
+import { IoMdContacts } from "react-icons/io"
+import { ImportGuest } from "./ImportGuest";
+import { useImportGuest } from "../../hooks/useImportGuest";
+import { ForApiPeople } from "./ForApiGoogle";
 
 interface propsFormInvitado {
   state: any;
   set: any;
 }
-
+interface contact {
+  name: string[]
+  address: string[]
+  email: string[]
+  icon: string[]
+  tel: string[]
+}
 const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
   const { event, setEvent } = EventContextProvider();
+  const [contact, setContact] = useState(null)
+  const [showMedioSelectImport, setShowMedioSelectImport] = useState(false)
+  const [showForApiGoogle, setShowForApiGoogle] = useState({ state: false, payload: {} })
   const toast = useToast()
+  const [contactsForApiGoogle] = useImportGuest()
+
+  useEffect(() => {
+    const scriptGsi = document.createElement('script');
+    scriptGsi.src = "https://accounts.google.com/gsi/client";
+    scriptGsi.async = true;
+    scriptGsi.onload = () => {
+    }
+    document.body.appendChild(scriptGsi);
+
+    const scriptGapi = document.createElement('script');
+    scriptGapi.src = "https://apis.google.com/js/api.js";
+    scriptGapi.async = true;
+    scriptGapi.onload = () => {
+    }
+    document.body.appendChild(scriptGapi);
+  }, [])
 
   const validationSchema = yup.object().shape({
     nombre: yup.string().required("Nombre requerido").test("Unico", "El nombre debe ser unico", values => {
@@ -34,8 +64,8 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
 
   const initialValues = {
     nombre: "",
-    sexo: "",
-    grupo_edad: "",
+    sexo: "hombre",
+    grupo_edad: "adulto",
     correo: "",
     telefono: "",
     rol: "",
@@ -70,98 +100,138 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
       onSubmit={handleSubmit}
       validationSchema={validationSchema}
     >
-      {({ isSubmitting, values }) => (
-        <Form>
-          <div className="border-l-2 border-gray-100 pl-3 my-2 w-full ">
-            <h2 className="font-display text-3xl capitalize text-primary font-light">
-              Crear
-            </h2>
-            <h2 className="font-display text-5xl capitalize text-gray-500 font-medium">
-              Invitado
-            </h2>
-          </div>
+      {({ isSubmitting, values, setFieldValue, resetForm }) => {
 
-          <div className="text-gray-500 font-body flex flex-col gap-6 *space-y-8 w-full">
-            <div className="input-name w-full h-20 flex items-center justify-center">
-              <img
-                src={ImageProfile[values.sexo]?.image ?? "/placeholder/user.png"}
-                alt={ImageProfile[values.sexo]?.alt}
-                className="w-12 h-12 rounded-full mr-6 "
-              />
-              <InputField
-                placeholder="Ej. Francisco Montilla"
-                name="nombre"
-                label="Nombre"
-                type="text"
-              />
+        return (
+          <Form>
+            <ResetForm setFieldValue={setFieldValue} resetForm={resetForm} contact={contact} />
+            {showForApiGoogle.state && <ForApiPeople setContact={setContact} showForApiGoogle={showForApiGoogle} setShowForApiGoogle={setShowForApiGoogle} />}
+            {showMedioSelectImport && <ImportGuest setShowMedioSelectImport={setShowMedioSelectImport} setContact={setContact} setShowForApiGoogle={setShowForApiGoogle} />}
+            <div className="border-l-2 border-gray-100 pl-3 my-2 w-full ">
+              <h2 className="font-display text-3xl capitalize text-primary font-light">
+                Crear
+              </h2>
+              <h2 className="font-display text-5xl capitalize text-gray-500 font-medium">
+                Invitado
+              </h2>
             </div>
 
-            <div className="w-full h-full flex gap-6">
-              <div className="w-1/2 flex-col flex gap-2 relative">
-                <BooleanSwitch
-                  label="Sexo"
-                  lista={["hombre", "mujer"]}
-                  name="sexo"
+            <div className="text-gray-500 font-body flex flex-col gap-4 w-full">
+              <div className="input-name w-full flex items-center justify-center relative pt-4">
+                <div className="flex absolute z-[5] right-0 top-0 text-secondary cursor-pointer"
+                  onClick={() => {
+                    window["ReactNativeWebView"] || navigator["contacts"]
+                      ? setShowMedioSelectImport(true)
+                      : contactsForApiGoogle().then(result => {
+                        setShowForApiGoogle(result)
+                      })
+                  }}
+                >
+                  <p className="w-14 text-xs leading-3 capitalize">importar contactos</p>
+                  <IoMdContacts className="w-7 h-7" />
+                </div>
+                <img
+                  src={ImageProfile[values.sexo]?.image ?? "/placeholder/user.png"}
+                  alt={ImageProfile[values.sexo]?.alt}
+                  className="w-14 h-14 rounded-full mr-6 "
                 />
-              </div>
-              <div className="w-1/2 flex-col flex gap-2 relative">
-                <BooleanSwitch
-                  label="Edad"
-                  lista={["adulto", "niño"]}
-                  name="grupo_edad"
-                />
-              </div>
-            </div>
-            <div className="w-full flex items-center justify-center">
-              <InputField
-                placeholder="Ej. jhon@doe.com"
-                name="correo"
-                label="Correo"
-                type="email"
-              />
-            </div>
-            <div className="w-full h-full flex gap-6">
-              <div className="w-1/2 flex items-center justify-center">
+                {/* <div className="w-1/2 flex items-center justify-center"> */}
                 <InputField
-                  placeholder="960 66 66 66"
+                  //placeholder="960 66 66 66"
                   name="telefono"
                   label="Telefono"
                   type="tel"
                 />
+                {/* </div> */}
               </div>
-              <div className="w-1/2   ">
+              <div className="w-full flex items-center justify-center">
+                <InputField
+                  //placeholder="Ej. Francisco Montilla"
+                  name="nombre"
+                  label="Nombre"
+                  type="text"
+                />
+              </div>
+              <div className=" w-full h-full flex gap-6">
+                <div className="w-1/2 flex-col flex gap-2 relative">
+                  <BooleanSwitch
+                    label="Sexo"
+                    lista={["hombre", "mujer"]}
+                    name="sexo"
+                  />
+                </div>
+                <div className="w-1/2 flex-col flex gap-2 relative">
+                  <BooleanSwitch
+                    label="Edad"
+                    lista={["adulto", "niño"]}
+                    name="grupo_edad"
+                  />
+                </div>
+              </div>
+              <div className="w-full flex items-center justify-center">
+                <InputField
+                  //placeholder="Ej. jhon@doe.com"
+                  name="correo"
+                  label="Correo"
+                  type="email"
+                />
+              </div>
+              <div className="w-full h-full flex gap-6">
+
+                <div className="w-1/2   ">
+                  <SelectField
+                    name={"nombre_menu"}
+                    label={"Menu"}
+                    options={[...event?.menus_array?.map(elem => elem.nombre_menu), "sin menú"]}
+                  />
+                </div>
+
+              </div>
+              <div className="w-full h-8 flex flex-col relative text-sm mb-7">
                 <SelectField
-                  name={"nombre_menu"}
-                  label={"Menu"}
-                  options={[...event?.menus_array?.map(elem => elem.nombre_menu), "sin menú"]}
+                  name={"rol"}
+                  label={"Rol"}
+                  options={event.grupos_array}
                 />
               </div>
 
+              <button
+                className={`font-display rounded-full py-2 px-6 text-white font-medium transition w-full hover:opacity-70  ${isSubmitting ? "bg-secondary" : "bg-primary"
+                  }`}
+                disabled={isSubmitting}
+                type="submit"
+              >
+                Crear invitado
+              </button>
             </div>
-            <div className="w-full h-8 flex flex-col relative text-sm mb-7">
-              <SelectField
-                name={"rol"}
-                label={"Rol"}
-                options={event.grupos_array}
-              />
-            </div>
-
-            <button
-              className={`font-display rounded-full py-2 px-6 text-white font-medium transition w-full hover:opacity-70  ${isSubmitting ? "bg-secondary" : "bg-primary"
-                }`}
-              disabled={isSubmitting}
-              type="submit"
-            >
-              Crear invitado
-            </button>
-          </div>
-        </Form>
-      )}
+          </Form>
+        )
+      }}
     </Formik>
   );
 };
 
 export default FormInvitado;
+
+const ResetForm = ({ setFieldValue, resetForm, contact }) => {
+  useEffect(() => {
+    resetForm()
+    const contacto = {
+      telefo: "telefono",
+      nombre: "nombre",
+      correo: "correo"
+    }
+    for (let clave in contacto) {
+      console.log(clave, contacto[clave])
+      setFieldValue(clave, contacto[clave])
+    }
+  }, [contact])
+  return (
+    <>
+      {contact && <div className="bg-blue-200 absolute">{JSON.stringify(contact, null, 2)}</div>}
+    </>
+  )
+}
 
 interface propsBooleanSwitch extends HtmlHTMLAttributes<HTMLInputElement> {
   lista: string[];
@@ -180,28 +250,26 @@ export const BooleanSwitch: FC<propsBooleanSwitch> = ({ lista, label, disabled, 
         {label}
       </label>
       <div className="flex h-8 items-center justify-center relative">
-        <button
-          type="button"
+        <div
           value={lista[0]}
           onClick={() => !disabled && setValue(lista[0])}
           {...props}
           {...field}
-          className={`font-display text-center w-1/2 h-8 border text-gray-500 border-gray-100 py-1 text-sm rounded-l-lg focus:outline-none ${!disabled && "hover:bg-secondary hover:text-gray-700"} capitalize  transition ${meta.value == lista[0] ? "bg-secondary text-gray-500" : "bg-white"
+          className={`font-display text-center w-1/2 h-8 border text-gray-500 border-gray-100 py-1 text-sm rounded-l-lg focus:outline-none ${!disabled && "hover:bg-secondary hover:text-white"} capitalize cursor-pointer transition ${meta.value == lista[0] ? "bg-secondary text-white" : "bg-white"
             }`}
         >
           {lista[0]}
-        </button>
-        <button
-          type="button"
+        </div>
+        <div
           value={lista[1]}
           onClick={() => !disabled && setValue(lista[1])}
           {...props}
           {...field}
-          className={`w-1/2 h-8 font-display text-center text-gray-500 border border-gray-100 py-1 text-sm rounded-r-lg focus:outline-none ${!disabled && "hover:bg-primary hover:text-white"} capitalize transition ${meta.value == lista[1] ? "bg-primary text-white" : "bg-white"
+          className={`w-1/2 h-8 font-display text-center text-gray-500 border border-gray-100 py-1 text-sm rounded-r-lg focus:outline-none ${!disabled && "hover:bg-primary hover:text-white"} capitalize cursor-pointer transition ${meta.value == lista[1] ? "bg-primary text-white" : "bg-white"
             }`}
         >
           {lista[1]}
-        </button>
+        </div>
         {disabled && <div ref={hoverRef} className="w-full h-full z-10 absolute"></div>}
       </div>
       {isHovered && (
@@ -216,5 +284,6 @@ export const BooleanSwitch: FC<propsBooleanSwitch> = ({ lista, label, disabled, 
         </p>
       )}
     </div>
+
   );
 };
