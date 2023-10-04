@@ -19,6 +19,8 @@ const InputField: FC<Partial<propsInputField>> = ({ label, className, ...props }
         .focus()
       const input = document.getElementsByClassName("react-international-phone-input")[0]
       input.setAttribute("class", `ml-2 font-display text-sm text-gray-500 border border-gray-100 focus:border-primary w-full py-2 px-4 rounded-xl focus:outline-none transition ${className}`)
+      // const select = document.getElementsByClassName("react-international-phone-country-selector-button")[0]
+      // select.setAttribute("class", `ml-2 font-display text-sm text-gray-500 border border-gray-100 focus:border-primary w-full py-2 px-4 rounded-xl focus:outline-none transition ${className}`)
     }
   }, [])
 

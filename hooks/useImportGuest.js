@@ -7,8 +7,8 @@ export const useImportGuest = () => {
     const CLIENT_ID = '1087923505585-1plf4sd0elbvt1t1rmrdug7e5u163s72.apps.googleusercontent.com';
     const SCOPES = 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/contacts.readonly';
 
-    window.gapi.load('client', async () => {
-      await window.gapi.client.init({
+    window?.gapi?.load('client', async () => {
+      await window?.gapi?.client?.init({
         apiKey: API_KEY,
         discoveryDocs: [DISCOVERY_DOC],
       })
@@ -16,7 +16,7 @@ export const useImportGuest = () => {
     const resp = window?.gapi?.client?.getToken()
     let access_token = resp?.access_token
 
-    const clientAccount = await window.google.accounts.oauth2.initTokenClient({
+    const clientAccount = await window?.google?.accounts?.oauth2?.initTokenClient({
       client_id: CLIENT_ID,
       scope: SCOPES,
       callback: '', // defined later
@@ -47,8 +47,6 @@ export const useImportGuest = () => {
       }
     }
 
-    let contacts = []
-    let totalItems = 0
     let result
     if (access_token) {
       try {
@@ -83,6 +81,5 @@ export const useImportGuest = () => {
     return asd;
   }
   return [contactsForApiGoogle]
-
 }
 
