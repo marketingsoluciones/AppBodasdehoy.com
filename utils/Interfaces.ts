@@ -190,3 +190,10 @@ export interface signalItem {
     tipo: string;
     invitado: guests;
 }
+
+export interface EditDefault {
+    item?: table
+    itemTipo?: string
+    setShowFormEditar?: any
+    setDisableClickAwayListener?: any
+}

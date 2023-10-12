@@ -1,11 +1,12 @@
 import interact from 'interactjs'
-import { FC, useEffect, useState } from 'react'
+import { FC, RefObject, useEffect, useRef, useState } from 'react'
 import { MesaContent } from './MesaContent';
 import { EventContextProvider } from '../../context'
 import { ActualizarPosicion, setupDropzone } from './FuntionsDragable'
 import { size, table, element } from '../../utils/Interfaces';
 import { DragableDefault } from './DragableDefault';
 import { ElementContent } from './ElementContent';
+import ClickAwayListener from 'react-click-away-listener';
 
 // Calculadora de posicion de sillas (Grados °) en mesa redonda
 const DefinePosition: CallableFunction = (valor: number, mesa: { tipo: string | number }): number[] | number => {
@@ -33,7 +34,7 @@ interface propsLienzoDragable {
 }
 
 export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisableWrapper, disableDrag, setShowFormEditar }) => {
-  const { event, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests } = EventContextProvider();
+  const { event, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, editDefault, setEditDefault } = EventContextProvider();
   const [disableLayout, setDisableLayout] = useState<boolean>(false);
   const [dragPositions, setDragPositions] = useState<any>();
   const [dragables, setDragables] = useState<any>([]);
@@ -274,30 +275,39 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
         }
       }
     })
+  const ref = useRef<RefObject<HTMLDivElement>>(null)
 
   return (
     <>
       {planSpaceActive?.tables?.map((item: table, idx) => {
         return (
-          <DragableDefault key={item._id} item={item} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} prefijo='table' setShowFormEditar={setShowFormEditar}>
-            <div className='rotate-[0deg]'>
-              <MesaContent
-                key={item._id}
-                table={item}
-                DefinePosition={DefinePosition}
-                setDisableWrapper={setDisableWrapper}
-                disableDrag={disableDrag}
-                setShowFormEditar={setShowFormEditar}
-              />
-            </div>
-          </DragableDefault>
+          <ClickAwayListener
+            key={idx}
+            onClickAway={() => {
+              if (item._id === editDefault?.clicked && editDefault.active) {
+                setEditDefault({})
+              }
+            }}
+            mouseEvent="mouseup"
+            touchEvent="touchend">
+            <DragableDefault ref={ref} item={item} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} prefijo='table' setShowFormEditar={setShowFormEditar} DefinePosition={DefinePosition} idx={idx} />
+          </ClickAwayListener>
+
         );
       })}
       {planSpaceActive?.elements?.map((item: element, idx) => {
         return (
-          <DragableDefault key={item._id} item={item} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} prefijo="element" setShowFormEditar={setShowFormEditar}>
-            <ElementContent key={item._id} item={item} />
-          </DragableDefault>
+          <ClickAwayListener
+            key={idx}
+            onClickAway={() => {
+              if (item._id === editDefault?.clicked && editDefault.active) {
+                setEditDefault({})
+              }
+            }}
+            mouseEvent="mouseup"
+            touchEvent="touchend">
+            <DragableDefault ref={ref} key={item._id} item={item} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} prefijo="element" setShowFormEditar={setShowFormEditar} />
+          </ClickAwayListener>
         );
       })}
       <style>

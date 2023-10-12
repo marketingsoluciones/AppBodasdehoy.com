@@ -14,7 +14,7 @@ export const Chair: FC<propsChair> = ({ position, children, table, index, classN
   const canDrop = true
   const isOver = false
   return (
-    <>
+    <div id="contentChair-2">
       <div
         id={`${table._id}-@-${index}`}
         // role={"Droppeable"}
@@ -36,6 +36,6 @@ export const Chair: FC<propsChair> = ({ position, children, table, index, classN
           }
         `}
       </style>
-    </>
+    </div>
   );
 };

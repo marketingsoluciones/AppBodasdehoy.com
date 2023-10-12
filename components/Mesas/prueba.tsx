@@ -4,6 +4,8 @@ import { useToast } from "../../hooks/useToast";
 import { ComponenteTransformWrapper } from "./ComponenteTransformWrapper";
 import { EventContextProvider } from "../../context";
 import { size } from "../../utils/Interfaces";
+import { EditDefaul } from "./EditDefault";
+import ClickAwayListener from "react-click-away-listener";
 
 type propsPrueba = {
   setShowFormEditar: any
@@ -20,7 +22,7 @@ const Prueba: FC<propsPrueba> = ({ setShowFormEditar, fullScreen, setFullScreen 
   const [disableWrapper, setDisableWrapper] = useState(false)
   const [disableDrag, setDisableDrag] = useState(true)
   const toast = useToast()
-  const { event, setEvent, planSpaceActive } = EventContextProvider()
+  const { event, setEvent, planSpaceActive, editDefault, setEditDefault } = EventContextProvider()
   const [lienzo, setLienzo] = useState<size>(event?.planSpace?.find(elem => elem?._id === event?.planSpaceSelect)?.size)
 
   useEffect(() => {
@@ -42,10 +44,31 @@ const Prueba: FC<propsPrueba> = ({ setShowFormEditar, fullScreen, setFullScreen 
     setScaleIni(calculoEscala(lienzo, refDiv))
   }, [lienzo, fullScreen, refDiv?.current?.offsetWidth, refDiv?.current?.offsetHeight])
 
+  useEffect(() => {
+    console.log(100054, editDefault)
+  }, [editDefault])
+
+
   return (
     <>
       <div className="flex *bg-orange-400 divOrange w-[100%] h-[100%] justify-start relative pt-8" >
         <div ref={refDiv} className="bg-blue-200 flex w-[100%] h-[calc(100%-32px)] relative">
+          {editDefault?.clicked &&
+            <ClickAwayListener
+              onClickAway={() => {
+                console.log("aqui2")
+                setEditDefault({ ...editDefault, active: true })
+              }}
+              mouseEvent="mousedown"
+              touchEvent="touchstart">
+              <div
+                onMouseDown={() => setEditDefault({ ...editDefault, active: false })}
+                onTouchStart={() => setEditDefault({ ...editDefault, active: false })}
+                className={`bg-gray-200 opacity-70 w-10 h-48 absolute z-[20] left-0 top-10 rounded-r-lg`}>
+                <EditDefaul {...editDefault} />
+              </div>
+            </ClickAwayListener>
+          }
           <TransformWrapper
             disabled={disableWrapper}
             limitToBounds={true}

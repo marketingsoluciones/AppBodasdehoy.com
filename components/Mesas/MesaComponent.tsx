@@ -104,7 +104,7 @@ const MesaComponent: FC<propsMesaComponent> = ({ posicion, table, invitados, set
       children: nSillas?.map((valor, idx) => {
         const invitado = invitados.filter(element => element.chair == idx.toString())[0]
         return (
-          <div key={idx} className="rotate-45">
+          <div key={idx} id="contentChair" className="">
             <Chair
               table={table}
               index={idx}

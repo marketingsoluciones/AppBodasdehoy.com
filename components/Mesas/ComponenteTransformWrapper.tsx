@@ -7,6 +7,7 @@ import { LiezoDragable } from "./LienzoDragable";
 import { useToast } from "../../hooks/useToast";
 import { InputMini } from "./InputMini";
 import { BiDotsVerticalRounded } from "react-icons/bi"
+import { MdOutlineRotate90DegreesCw } from "react-icons/md"
 import { EventContextProvider } from "../../context";
 import ClickAwayListener from "react-click-away-listener";
 import { planSpace } from "../../utils/Interfaces";
@@ -98,7 +99,10 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
               }
             </div>
           </ClickAwayListener>
-          <ClickAwayListener onClickAway={() => setShowSetup(false)}>
+          <ClickAwayListener onClickAway={() => {
+            console.log("aquie")
+            setShowSetup(false)
+          }}>
             <div>
               <mdIcons.MdSettings className="w-6 h-6 cursor-pointer text-primary" onClick={() => setShowSetup(!showSetup)} />
               {showSetup &&

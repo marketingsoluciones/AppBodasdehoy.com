@@ -1,5 +1,5 @@
 import { createContext, useState, useContext, useEffect, Dispatch, SetStateAction } from "react";
-import { Event, filterGuest, planSpace } from "../utils/Interfaces";
+import { EditDefault, Event, filterGuest, planSpace } from "../utils/Interfaces";
 import { EventsGroupContextProvider } from "./EventsGroupContext";
 
 interface idxGroupEvent {
@@ -13,6 +13,15 @@ interface filterGuests {
   noSentados: filterGuest[]
 }
 
+interface clicked {
+  _id: string
+  state: boolean
+}
+interface EditDefaultTableAndElement extends EditDefault {
+  active?: boolean
+  clicked?: {}
+}
+
 type Context = {
   event: Event
   setEvent: Dispatch<SetStateAction<Event>>
@@ -24,6 +33,8 @@ type Context = {
   setPlanSpaceActive: Dispatch<SetStateAction<planSpace>>
   filterGuests: filterGuests
   setFilterGuests: Dispatch<SetStateAction<filterGuests>>
+  editDefault: EditDefaultTableAndElement | null
+  setEditDefault: Dispatch<SetStateAction<EditDefaultTableAndElement>>
 }
 
 const EventContext = createContext<Context>({
@@ -36,7 +47,9 @@ const EventContext = createContext<Context>({
   planSpaceActive: null,
   setPlanSpaceActive: () => { },
   filterGuests: { sentados: [], noSentados: [] },
-  setFilterGuests: () => { }
+  setFilterGuests: () => { },
+  editDefault: null,
+  setEditDefault: () => { }
 })
 
 const EventProvider = ({ children }) => {
@@ -47,8 +60,7 @@ const EventProvider = ({ children }) => {
   const { eventsGroup } = EventsGroupContextProvider()
   const [planSpaceActive, setPlanSpaceActive] = useState<planSpace | null>(null);
   const [filterGuests, setFilterGuests] = useState<filterGuests>({ sentados: [], noSentados: [] })
-
-
+  const [editDefault, setEditDefault] = useState<EditDefaultTableAndElement>()
 
   // Capturar eventos del cumulo y seleccionar uno
   useEffect(() => {
@@ -98,7 +110,7 @@ const EventProvider = ({ children }) => {
   }, [eventsGroup])
 
   return (
-    <EventContext.Provider value={{ event, setEvent, invitadoCero, setInvitadoCero, idxGroupEvent, setIdxGroupEvent, planSpaceActive, setPlanSpaceActive, filterGuests, setFilterGuests }}>
+    <EventContext.Provider value={{ event, setEvent, invitadoCero, setInvitadoCero, idxGroupEvent, setIdxGroupEvent, planSpaceActive, setPlanSpaceActive, filterGuests, setFilterGuests, editDefault, setEditDefault }}>
       {children}
     </EventContext.Provider>
   );
