@@ -27,7 +27,7 @@ import BlockPanelElements, { ListElements } from "../components/Mesas/BlockPanel
 SwiperCore.use([Pagination]);
 
 const Mesas: FC = () => {
-  const { event, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, setFilterGuests } = EventContextProvider();
+  const { event, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, setFilterGuests, setEditDefault } = EventContextProvider();
   const [values, setValues] = useState<any>({});
   const [showFormCreateTable, setShowFormCreateTable] = useState<boolean>(false);
   const [showFormEditar, setShowFormEditar] = useState<any>({ table: {}, visible: false });
@@ -116,6 +116,11 @@ const Mesas: FC = () => {
 
   useEffect(() => {
     console.log(10005, showFormEditar)
+    // setTimeout(() => {
+    if (!showFormEditar) {
+      setEditDefault(old => { return { ...old, activeButtons: true } })
+    }
+    // }, 1000);
   }, [showFormEditar])
 
   const { user, verificationDone } = AuthContextProvider()

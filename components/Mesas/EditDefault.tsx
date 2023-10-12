@@ -14,7 +14,6 @@ export const EditDefaul: FC<EditDefault> = ({ item, setShowFormEditar, setDisabl
   const { event, setEvent, planSpaceActive, setPlanSpaceActive, editDefault, setEditDefault } = EventContextProvider()
 
   const handleDeleteItem = async () => {
-    console.log("aqui", itemTipo)
     try {
       if (itemTipo == "table") {
         const resp: any = await fetchApiEventos({
@@ -45,6 +44,7 @@ export const EditDefaul: FC<EditDefault> = ({ item, setShowFormEditar, setDisabl
         <BorrarIcon className="text-gray-600 w-4 h-4" />
       </button>
       <button onClick={() => {
+        setEditDefault({ ...editDefault, activeButtons: false })
         setDisableClickAwayListener(true)
         setShowFormEditar({ table: item, visible: true })
       }} className="bg-white border border-primary rounded-md w-7 h-7 flex items-center justify-center">

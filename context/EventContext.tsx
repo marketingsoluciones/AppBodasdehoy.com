@@ -19,6 +19,7 @@ interface clicked {
 }
 interface EditDefaultTableAndElement extends EditDefault {
   active?: boolean
+  activeButtons?: boolean
   clicked?: {}
 }
 

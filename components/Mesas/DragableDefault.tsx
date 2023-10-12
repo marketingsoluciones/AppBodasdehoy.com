@@ -35,41 +35,37 @@ export const DragableDefault: FC<propsTable> = forwardRef(({ item, setDisableWra
       id={`${prefijo}_${item._id}`}
 
       onTouchStart={() => {
-        console.log("onTouchStart", item?.title)
-        // // setClicked(true)
-        setEditDefault({
-          active: true,
-          clicked: item?._id,
-          item,
-          itemTipo: prefijo,
-          setDisableClickAwayListener,
-          setShowFormEditar
-        })
         !disableDrag && setDisableWrapper(true)
       }}
       onTouchEnd={() => {
-        console.log("onTouchEnd", item?.title)
-        !disableDrag && setDisableWrapper(false)
-      }}
-      onMouseDown={() => {
-        console.log("onMouseDown", item?.title)
-        // // setClicked(true)
         setEditDefault({
           active: true,
+          activeButtons: true,
           clicked: item?._id,
           item,
           itemTipo: prefijo,
           setDisableClickAwayListener,
           setShowFormEditar
         })
+        !disableDrag && setDisableWrapper(false)
+      }}
+      onMouseDown={() => {
         !disableDrag && setDisableWrapper(true)
       }}
       onMouseUp={() => {
-        console.log("onMouseUp", item?.title)
+        setEditDefault({
+          active: true,
+          activeButtons: true,
+          clicked: item?._id,
+          item,
+          itemTipo: prefijo,
+          setDisableClickAwayListener,
+          setShowFormEditar
+        })
         !disableDrag && setDisableWrapper(false)
       }}
       // onClick={() => { setClicked(true) }}
-      className={`${!disableDrag && "js-drag"} ${clicked && "bg-gray-100 bg-opacity-50 border-gray-200 shadow-md"} draggable-touch absolute hover:bg-gray-100 hover:bg-opacity-50 border border-transparent hover:border-gray-200 hover:shadow-md p-5 rounded-2xl`}>
+      className={`${!disableDrag && "js-drag"} ${editDefault?.clicked === item?._id && "bg-gray-200 bg-opacity-50 border-gray-300 shadow-md"} draggable-touch absolute hover:bg-gray-300 hover:bg-opacity-50 border border-transparent hover:border-gray-200 hover:shadow-md p-5 rounded-2xl`}>
       <div className="relative">
         {/* {clicked && <EditDefaul item={item} itemTipo={prefijo} setShowFormEditar={setShowFormEditar} setDisableClickAwayListener={setDisableClickAwayListener} />} */}
         <div className='rotate-[0deg]'>

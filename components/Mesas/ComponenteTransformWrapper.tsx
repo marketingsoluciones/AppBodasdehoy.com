@@ -100,7 +100,6 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
             </div>
           </ClickAwayListener>
           <ClickAwayListener onClickAway={() => {
-            console.log("aquie")
             setShowSetup(false)
           }}>
             <div>

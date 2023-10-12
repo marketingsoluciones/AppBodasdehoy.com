@@ -56,8 +56,9 @@ const Prueba: FC<propsPrueba> = ({ setShowFormEditar, fullScreen, setFullScreen 
           {editDefault?.clicked &&
             <ClickAwayListener
               onClickAway={() => {
-                console.log("aqui2")
-                setEditDefault({ ...editDefault, active: true })
+                if (editDefault.activeButtons) {
+                  setEditDefault({ ...editDefault, active: true })
+                }
               }}
               mouseEvent="mousedown"
               touchEvent="touchstart">
