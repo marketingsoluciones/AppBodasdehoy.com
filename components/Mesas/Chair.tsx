@@ -8,9 +8,10 @@ interface propsChair {
   index: number;
   className: string;
   children?: ReactNode;
+  radio?: number
 }
 
-export const Chair: FC<propsChair> = ({ position, children, table, index, className, }) => {
+export const Chair: FC<propsChair> = ({ position = 0, children, table, index, className, radio }) => {
   const canDrop = true
   const isOver = false
   return (
@@ -22,7 +23,7 @@ export const Chair: FC<propsChair> = ({ position, children, table, index, classN
       >
         {children[0]
           ? children
-          : <span style={{ rotate: `-${position}deg` }} className="font-display font-bold text-gray-500">{index + 1}</span>}
+          : <span style={{ rotate: `-${position + 40}deg` }} className="font-display font-bold text-gray-500">{index + 1}</span>}
       </div>
       <style jsx>
         {`
@@ -32,7 +33,7 @@ export const Chair: FC<propsChair> = ({ position, children, table, index, classN
             right: 0;
             bottom: 0;
             margin: auto;
-            transform: rotate(${position}deg) translate(200%);
+            transform: rotate(${position}deg) translate(${radio + 18}px);
           }
         `}
       </style>

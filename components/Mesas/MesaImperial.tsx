@@ -1,5 +1,4 @@
-import { FC, useEffect, useState } from "react";
-import { guests, table } from "../../utils/Interfaces";
+import { FC } from "react";
 import { Chair } from "./Chair";
 import { SentadoItem } from "./SentadoItem";
 import { propsTableType } from "./MesaComponent";
@@ -10,36 +9,18 @@ interface propsMesaImperial extends propsTableType {
 }
 export const MesaImperial: FC<propsMesaImperial> = ({ table, invitados, setDisableWrapper, setShowFormEditar, disableDrag, spaceChairs }) => {
 
-  const [arrTotal, setArrTotal] = useState(() => {
-    let arr = [];
-    for (let i = 0; i < table?.numberChair; i++) {
-      arr.push(i);
+  const idxsRow = { one: [], two: [] }
+  for (let i = 2; i < table?.numberChair; i++) {
+    if (i <= Math.ceil(table?.numberChair / 2)) {
+      idxsRow.one.push(i)
+    } else {
+      idxsRow.two.push(i)
     }
-    return arr;
-  });
-  const [Sillas, setSillas] = useState({
-    total: table?.numberChair - 2,
-    rowOne: () => {
-      let arr = [];
-      if (table?.numberChair - 2 !== 0) {
-        arr = arrTotal.slice(2, Math.ceil((table?.numberChair - 2) / 2) + 2);
-      }
-      return arr;
-    },
-    rowTwo: () => {
-      let arr = [];
-      if (table?.numberChair - 2 !== 0) {
-        arr = arrTotal.slice(Sillas.rowOne()?.length + 2);
-      }
-      return arr;
-    },
-  });
-  useEffect(() => {
-  }, [Sillas])
+  }
 
   return (
     <>
-      <div style={{ width: (table.numberChair - 2) / 2 * spaceChairs, height: spaceChairs }} className="bg-white shadow border border-gray-500 flex items-center justify-center relative">
+      <div style={{ width: Math.ceil((table.numberChair - 2) / 2) * spaceChairs, height: spaceChairs }} className="bg-blue-300 shadow border border-gray-500 flex items-center justify-center relative">
         <span className="font-display text-xs tracking-tight">{table.title}</span>
         <Chair
           table={table}
@@ -52,7 +33,6 @@ export const MesaImperial: FC<propsMesaImperial> = ({ table, invitados, setDisab
           />}
           <span />
         </Chair>
-
         <Chair
           table={table}
           className="absolute my-auto inset-y-0 right-1 transform translate-x-full"
@@ -64,9 +44,8 @@ export const MesaImperial: FC<propsMesaImperial> = ({ table, invitados, setDisab
           />}
           <span />
         </Chair>
-
-        <div className="w-full mx-auto inset-x-0 flex px-3 justify-between absolute top-1 transform -translate-y-full">
-          {Sillas.rowOne().map((item, idx) => (
+        <div style={{ paddingLeft: `${(spaceChairs - 45) / 2}px`, paddingRight: `${(spaceChairs - 45) / 2}px` }} className="w-full mx-auto inset-x-0 flex justify-between absolute top-1 transform -translate-y-full">
+          {idxsRow.one.map((item, idx) => (
             <Chair
               table={table}
               className="relative"
@@ -81,9 +60,8 @@ export const MesaImperial: FC<propsMesaImperial> = ({ table, invitados, setDisab
             </Chair>
           ))}
         </div>
-
-        <div className="w-full mx-auto inset-x-0 flex px-3 justify-between absolute bottom-1 transform translate-y-full">
-          {Sillas.rowTwo().map((item, idx) => (
+        <div style={{ paddingLeft: `${(spaceChairs - 45) / 2}px`, paddingRight: `${(spaceChairs - 45) / 2}px` }} className="w-full mx-auto inset-x-0 flex justify-between absolute bottom-1 transform translate-y-full">
+          {idxsRow.two.map((item, idx) => (
             <Chair
               table={table}
               className="relative"

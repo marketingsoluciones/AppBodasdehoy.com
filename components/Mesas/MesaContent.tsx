@@ -26,7 +26,7 @@ export const MesaContent: FC<propsTable> = ({ table, DefinePosition, setDisableW
     <>
       <MesaComponent
         disableDrag={disableDrag}
-        posicion={DefinePosition(360 / table.numberChair, table)}
+        posicionRedonda={DefinePosition(360 / table.numberChair, table)}
         table={table}
         invitados={invitados}
         setDisableWrapper={setDisableWrapper}

@@ -4,9 +4,14 @@ import { Chair } from "./Chair";
 import { SentadoItem } from "./SentadoItem";
 import { MesaImperial } from "./MesaImperial";
 import { EventContextProvider } from "../../context";
+import { MesaCuadradaNew } from "./MesaCuadrada";
+import { MesaPodioNew } from "./MesaPodio";
+import { MesaMilitar } from "./MesaMilitar";
+import { Bancos } from "./Bancos";
+import { MesaRedondaNew } from "./MesaRedonda";
 
 interface propsMesaComponent {
-  posicion: number;
+  posicionRedonda: number;
   table: table;
   invitados: any[];
   setDisableWrapper: any
@@ -32,7 +37,7 @@ type schemaType = {
   militar: tableType
 };
 
-const MesaComponent: FC<propsMesaComponent> = ({ posicion, table, invitados, setDisableWrapper, setShowFormEditar, disableDrag }) => {
+const MesaComponent: FC<propsMesaComponent> = ({ posicionRedonda, table, invitados, setDisableWrapper, setShowFormEditar, disableDrag }) => {
   const { planSpaceActive } = EventContextProvider()
   const { numberChair } = table;
   const [nSillas, setNSillas] = useState([]);
@@ -47,7 +52,7 @@ const MesaComponent: FC<propsMesaComponent> = ({ posicion, table, invitados, set
   };
 
   const posiciones = {
-    redonda: posicion,
+    redonda: posicionRedonda,
     cuadrada: [0, 90, 180, 270],
     podio: ArraySillas(),
     imperial: ArraySillas(),
@@ -55,7 +60,7 @@ const MesaComponent: FC<propsMesaComponent> = ({ posicion, table, invitados, set
 
   const schemaGeneral: schemaType = {
     redonda: {
-      position: posicion,
+      position: posicionRedonda,
       component: <MesaRedonda table={table} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={planSpaceActive.spaceChairs} />,
       type: "radio",
     },
@@ -90,38 +95,74 @@ const MesaComponent: FC<propsMesaComponent> = ({ posicion, table, invitados, set
   useEffect(() => {
     setNSillas(posiciones[table?.tipo]);
   }, []);
-  //console.log(11111111111, schemaGeneral[table.tipo].component)
+  //console.log(table.tipo)
 
-  if (["imperial", "militar"].includes(table.tipo)) {
+  if (["imperial"].includes(table.tipo)) {
     return (
       <>
         <MesaImperial table={table} invitados={invitados} setDisableWrapper={setDisableWrapper} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={planSpaceActive.spaceChairs} />
       </>
     )
-  } else {
-    return cloneElement(schemaGeneral[table.tipo].component, {
-      cantidad_sillas: numberChair,
-      children: nSillas?.map((valor, idx) => {
-        const invitado = invitados.filter(element => element.chair == idx.toString())[0]
-        return (
-          <div key={idx} id="contentChair" className="">
-            <Chair
-              table={table}
-              index={idx}
-              position={valor}
-              className={schemaGeneral[table.tipo].type}>
-              {invitado && <SentadoItem
-                posicion={valor}
-                invitado={invitado}
-                setDisableWrapper={setDisableWrapper}
-              />}
-              <span />
-            </Chair>
-          </div>
-        );
-      }),
-    });
   }
+  if (["cuadrada"].includes(table.tipo)) {
+    return (
+      <>
+        <MesaCuadradaNew table={table} invitados={invitados} setDisableWrapper={setDisableWrapper} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={planSpaceActive.spaceChairs} />
+      </>
+    )
+  }
+  if (["podio"].includes(table.tipo)) {
+    return (
+      <>
+        <MesaPodioNew table={table} invitados={invitados} setDisableWrapper={setDisableWrapper} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={planSpaceActive.spaceChairs} />
+      </>
+    )
+  }
+  if (["militar"].includes(table.tipo)) {
+    return (
+      <>
+        <MesaMilitar table={table} invitados={invitados} setDisableWrapper={setDisableWrapper} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={planSpaceActive.spaceChairs} />
+      </>
+    )
+  }
+  if (["bancos"].includes(table.tipo)) {
+    return (
+      <>
+        <Bancos table={table} invitados={invitados} setDisableWrapper={setDisableWrapper} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={planSpaceActive.spaceChairs} />
+      </>
+    )
+  }
+  if (["redonda"].includes(table.tipo)) {
+    return (
+      <>
+        <MesaRedondaNew table={table} invitados={invitados} setDisableWrapper={setDisableWrapper} setShowFormEditar={setShowFormEditar} disableDrag={disableDrag} spaceChairs={planSpaceActive.spaceChairs} />
+      </>
+    )
+  }
+  return cloneElement(schemaGeneral[table.tipo].component, {
+    cantidad_sillas: numberChair,
+    children: nSillas?.map((elem, idx) => {
+      const invitado = invitados.filter(element => element.chair == idx.toString())[0]
+      return (
+        <div key={idx} id="contentChair" className="">
+          <Chair
+            table={table}
+            index={idx}
+            position={elem}
+            radio={45}
+            className={schemaGeneral[table.tipo].type}>
+            {invitado && <SentadoItem
+              posicion={elem}
+              invitado={invitado}
+              setDisableWrapper={setDisableWrapper}
+            />}
+            <span />
+          </Chair>
+        </div>
+      );
+    }),
+  });
+
 };
 
 export default MesaComponent;
