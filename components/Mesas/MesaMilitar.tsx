@@ -26,11 +26,6 @@ export const MesaMilitar: FC<propsMesaMilitar> = ({ table, invitados, setDisable
     }
   }
 
-  useEffect(() => {
-    console.log(idxsSide)
-  }, [])
-
-
   return (
     <>
       <div

@@ -66,7 +66,6 @@ export const dicc = {
 
 const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
   const { modelo, offsetX, offsetY } = values
-  console.log(5445, dicc[modelo]?.min)
 
   const { event, setEvent, planSpaceActive, setPlanSpaceActive } = EventContextProvider();
   const toast = useToast()

@@ -115,12 +115,9 @@ const Mesas: FC = () => {
   }, [planSpaceActive, event])
 
   useEffect(() => {
-    console.log(10005, showFormEditar)
-    // setTimeout(() => {
     if (!showFormEditar) {
       setEditDefault(old => { return { ...old, activeButtons: true } })
     }
-    // }, 1000);
   }, [showFormEditar])
 
   const { user, verificationDone } = AuthContextProvider()
