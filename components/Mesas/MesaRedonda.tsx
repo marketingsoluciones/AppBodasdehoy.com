@@ -26,7 +26,7 @@ export const MesaRedondaNew: FC<propsRedonda> = ({ table, invitados, setDisableW
   return (
     <>
       <div style={{ width: (adyacente * 2), height: (adyacente * 2) }} className="rounded-full transform bg-white shadow border border-gray-500 relative flex items-center justify-center">
-        <span style={{ rotate: `-${40}deg` }} className="font-display text-xs text-center tracking-tight">{table.title}</span>
+        <span style={{ rotate: `-${table?.rotation}deg` }} className="font-display text-xs text-center tracking-tight">{table.title}</span>
         {
           idxs?.map((item, idx) => (
             <Chair

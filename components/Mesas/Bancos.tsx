@@ -18,8 +18,8 @@ export const Bancos: FC<propsBancos> = ({ table, invitados, setDisableWrapper, s
     <>
       <div
         style={{ width: spaceChairs * table.numberChair, height: '16px' }}
-        className="bg-blue-300 shadow border border-gray-500 flex items-center justify-center relative">
-        <span className="font-display text-xs tracking-tight">{table.title}</span>
+        className="shadow border border-gray-500 flex items-center justify-center relative">
+        <span style={{ rotate: `-${table?.rotation}deg` }} className="font-display text-xs tracking-tight">{table.title}</span>
 
         <div
           style={{

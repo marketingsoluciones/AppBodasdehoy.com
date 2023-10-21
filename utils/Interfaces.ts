@@ -98,6 +98,7 @@ export interface size {
 interface propsBase {
     _id?: string
     title: string
+    rotation: number
     position: position
     size: size
 }

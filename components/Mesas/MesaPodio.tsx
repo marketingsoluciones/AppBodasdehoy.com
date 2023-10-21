@@ -18,8 +18,8 @@ export const MesaPodioNew: FC<propsMesaPodio> = ({ table, invitados, setDisableW
     <>
       <div
         style={{ width: spaceChairs * table.numberChair, height: spaceChairs }}
-        className="bg-blue-300 shadow border border-gray-500 flex items-center justify-center relative">
-        <span className="font-display text-xs tracking-tight">{table.title}</span>
+        className="bg-white shadow border border-gray-500 flex items-center justify-center relative">
+        <span style={{ rotate: `-${table?.rotation}deg` }} className="font-display text-xs tracking-tight">{table.title}</span>
 
         <div
           style={{

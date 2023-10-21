@@ -150,7 +150,6 @@ const Mesas: FC = () => {
             <FormEditarMesa
               set={setShowFormEditar}
               state={showFormEditar}
-              InvitadoNoSentado={filterGuests?.noSentados}
             />
           </ModalMesa>
         ) : null}

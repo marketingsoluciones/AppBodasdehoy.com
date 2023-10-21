@@ -44,11 +44,6 @@ const Prueba: FC<propsPrueba> = ({ setShowFormEditar, fullScreen, setFullScreen 
     setScaleIni(calculoEscala(lienzo, refDiv))
   }, [lienzo, fullScreen, refDiv?.current?.offsetWidth, refDiv?.current?.offsetHeight])
 
-  useEffect(() => {
-    console.log(100054, editDefault)
-  }, [editDefault])
-
-
   return (
     <>
       <div className="flex *bg-orange-400 divOrange w-[100%] h-[100%] justify-start relative pt-8" >

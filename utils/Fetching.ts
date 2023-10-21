@@ -204,6 +204,7 @@ export const queries = {
         elements{
           _id
           title
+          rotation
           position{
             x
             y
@@ -216,6 +217,7 @@ export const queries = {
         tables{
           _id
           title
+          rotation
           position{
             x
             y
@@ -236,6 +238,7 @@ export const queries = {
       elements{
         _id
         title
+        rotation
         position{
           x
           y
@@ -249,6 +252,7 @@ export const queries = {
       tables{
         _id
         title
+        rotation
         position{
           x
           y
@@ -398,6 +402,7 @@ export const queries = {
         elements{
           _id
           title
+          rotation
           position{
             x
             y
@@ -410,6 +415,7 @@ export const queries = {
         tables{
           _id
           title
+          rotation
           position{
             x
             y
@@ -430,6 +436,7 @@ export const queries = {
       elements{
         _id
         title
+        rotation
         position{
           x
           y
@@ -443,6 +450,7 @@ export const queries = {
       tables{
         _id
         title
+        rotation
         position{
           x
           y
@@ -655,6 +663,7 @@ export const queries = {
     createTable(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, values:$values) {
       _id
       title
+      rotation
       position{
         x
         y
@@ -676,6 +685,7 @@ export const queries = {
     editTable(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, tableID:$tableID, variable:$variable, valor:$valor) {
       _id
       title
+      rotation
       position{
         x
         y
@@ -702,6 +712,7 @@ export const queries = {
     createElement(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, values:$values) {
       _id
       title
+      rotation
       position{
         x
         y
@@ -717,6 +728,7 @@ export const queries = {
     editElement(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, elementID:$elementID, variable:$variable, valor:$valor) {
       _id
       title
+      rotation
       position{
         x
         y

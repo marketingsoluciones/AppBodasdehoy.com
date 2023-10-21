@@ -23,7 +23,7 @@ export const Chair: FC<propsChair> = ({ position = 0, children, table, index, cl
       >
         {children[0]
           ? children
-          : <span style={{ rotate: `-${position + 40}deg` }} className="font-display font-bold text-gray-500">{index + 1}</span>}
+          : <span style={{ rotate: `-${position + table?.rotation}deg` }} className="font-display font-bold text-gray-500">{index + 1}</span>}
       </div>
       <style jsx>
         {`

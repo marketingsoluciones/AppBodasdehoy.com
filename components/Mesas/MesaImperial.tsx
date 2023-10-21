@@ -20,8 +20,8 @@ export const MesaImperial: FC<propsMesaImperial> = ({ table, invitados, setDisab
 
   return (
     <>
-      <div style={{ width: Math.ceil((table.numberChair - 2) / 2) * spaceChairs, height: spaceChairs }} className="bg-blue-300 shadow border border-gray-500 flex items-center justify-center relative">
-        <span className="font-display text-xs tracking-tight">{table.title}</span>
+      <div style={{ width: Math.ceil((table.numberChair - 2) / 2) * spaceChairs, height: spaceChairs }} className="bg-white shadow border border-gray-500 flex items-center justify-center relative">
+        <span style={{ rotate: `-${table?.rotation}deg` }} className="font-display text-xs tracking-tight">{table.title}</span>
         <Chair
           table={table}
           className="absolute flex my-auto inset-y-0 left-1 transform -translate-x-full"

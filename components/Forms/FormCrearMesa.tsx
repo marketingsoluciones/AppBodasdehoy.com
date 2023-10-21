@@ -26,8 +26,48 @@ type initialValues = {
   tipo: string
 }
 
+export const dicc = {
+  cuadrada: {
+    icon: <MesaCuadrada />,
+    min: 1,
+    max: 24,
+  },
+  podio: {
+    icon: <MesaPodio />,
+    min: 1,
+    max: 40
+  },
+  redonda: {
+    icon: <MesaRedonda />,
+    min: 3,
+    max: 20
+  },
+  imperial: {
+    icon: <MesaImperial />,
+    min: 1,
+    max: 40
+  },
+  militar: {
+    icon: <MesaMilitar />,
+    min: 1,
+    max: 42
+  },
+  bancos: {
+    icon: <LineaBancos />,
+    min: 1,
+    max: 24
+  },
+  banco: {
+    icon: <Banco />,
+    min: 1,
+    max: 1
+  },
+};
+
 const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
   const { modelo, offsetX, offsetY } = values
+  console.log(5445, dicc[modelo]?.min)
+
   const { event, setEvent, planSpaceActive, setPlanSpaceActive } = EventContextProvider();
   const toast = useToast()
 
@@ -38,13 +78,11 @@ const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
     cantidad_sillas: yup.number().required("El Nº de sillas es requerido"),
   });
 
-  const dicChair = {
-    cuadrada: 4,
-  }
+
 
   const initialValues: initialValues = {
     nombre_mesa: "",
-    cantidad_sillas: dicChair[modelo],
+    cantidad_sillas: undefined,
     defPosicion: {
       x: Math.round(offsetX),
       y: Math.round(offsetY),
@@ -52,43 +90,7 @@ const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
     tipo: modelo,
   }
 
-  const dicc = {
-    cuadrada: {
-      icon: <MesaCuadrada />,
-      min: 4,
-      max: 4,
-    },
-    podio: {
-      icon: <MesaPodio />,
-      min: 4,
-      max: 40
-    },
-    redonda: {
-      icon: <MesaRedonda />,
-      min: 2,
-      max: 10
-    },
-    imperial: {
-      icon: <MesaImperial />,
-      min: 10,
-      max: 16
-    },
-    militar: {
-      icon: <MesaMilitar />,
-      min: 10,
-      max: 16
-    },
-    bancos: {
-      icon: <LineaBancos />,
-      min: 4,
-      max: 12
-    },
-    banco: {
-      icon: <Banco />,
-      min: 1,
-      max: 1
-    },
-  };
+
 
   const handleSubmit = async (values: FormikValues, actions: any) => {
     try {
@@ -106,7 +108,7 @@ const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
           })
         },
       })
-      planSpaceActive.tables.push(result)
+      planSpaceActive.tables.push({ ...result })
       setPlanSpaceActive({ ...planSpaceActive })
       event.planSpace[event.planSpaceSelect] = planSpaceActive
       setEvent({ ...event })
@@ -126,7 +128,6 @@ const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
       onSubmit={handleSubmit}
     >
       {({ values, isSubmitting }) => {
-        console.log(modelo)
         return (
           <Form className="text-gray-900 grid gap-4 pt-2">
             <div className="grid-cols-3 grid gap-2 w-full">
@@ -136,6 +137,7 @@ const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
                   name="nombre_mesa"
                   label="Nombre de mesa"
                   type="text"
+                  autoFocus
                 />
                 <InputField
                   name="cantidad_sillas"
@@ -144,8 +146,8 @@ const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
                   min={dicc[modelo].min}
                   max={dicc[modelo].max}
                   autoComplete="off"
-                  className="bg-tertiary text-primary font-semibold"
-                  disabled={values.tipo == "cuadrada" ? true : false}
+                  className="text-primary font-semibold"
+                // disabled={values.tipo == "cuadrada" ? true : false}
                 />
               </div>
             </div>

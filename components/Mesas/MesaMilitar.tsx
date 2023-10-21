@@ -8,7 +8,6 @@ interface propsMesaMilitar extends propsTableType {
   setDisableWrapper: any
 }
 export const MesaMilitar: FC<propsMesaMilitar> = ({ table, invitados, setDisableWrapper, setShowFormEditar, disableDrag, spaceChairs }) => {
-  table.numberChair = 9
   const dec = parseInt(`${(`${(table?.numberChair / 2).toFixed(2)}`)}`.split(".")[1])
   const qwe = dec / 25
   const numberChairForSide = Math.ceil(table?.numberChair / 2)
@@ -36,8 +35,8 @@ export const MesaMilitar: FC<propsMesaMilitar> = ({ table, invitados, setDisable
     <>
       <div
         style={{ width: size, height: spaceChairs }}
-        className="bg-blue-300 shadow border border-gray-500 flex items-center justify-center relative">
-        <span className="font-display text-xs tracking-tight">{table.title}</span>
+        className="bg-white shadow border border-gray-500 flex items-center justify-center relative">
+        <span style={{ rotate: `-${table?.rotation}deg` }} className="font-display text-xs tracking-tight">{table.title}</span>
 
         <div
           style={{

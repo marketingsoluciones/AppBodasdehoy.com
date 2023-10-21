@@ -231,10 +231,10 @@ type propsMoveInvitado = {
   setEvent: Dispatch<SetStateAction<Event>>
   planSpaceActive: planSpace
   setPlanSpaceActive: Dispatch<SetStateAction<planSpace>>
-  filterGuests: any
-  prefijo: string
+  filterGuests?: any
+  prefijo?: string
 }
-const moveGuest = async ({ invitadoID, chair, tableID, eventID, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo }: propsMoveInvitado): Promise<void> => {
+export const moveGuest = async ({ invitadoID, chair, tableID, eventID, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo }: propsMoveInvitado): Promise<void> => {
   try {
     console.log({ chair })
     if (chair >= 0) {
