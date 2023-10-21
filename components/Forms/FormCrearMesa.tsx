@@ -137,6 +137,7 @@ const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
                   label="Nombre de mesa"
                   type="text"
                   autoFocus
+                  className="font-semibold"
                 />
                 <InputField
                   name="cantidad_sillas"
@@ -145,7 +146,7 @@ const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
                   min={dicc[modelo].min}
                   max={dicc[modelo].max}
                   autoComplete="off"
-                  className="text-primary font-semibold"
+                  className="font-semibold"
                 // disabled={values.tipo == "cuadrada" ? true : false}
                 />
               </div>
