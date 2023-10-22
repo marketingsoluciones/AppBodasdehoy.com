@@ -1,6 +1,5 @@
 import { FC, ReactNode, forwardRef, useEffect, useState } from "react";
 import ClickAwayListener from "react-click-away-listener";
-import { EditDefaul } from "./EditDefault";
 import { EventContextProvider } from "../../context";
 import { MesaContent } from "./MesaContent";
 import { ElementContent } from "./ElementContent";
@@ -74,8 +73,6 @@ export const DragableDefault: FC<propsTable> = forwardRef(({ item, setDisableWra
       className={`${!disableDrag && "js-drag"} ${editDefault?.clicked === item?._id && "bg-gray-200 bg-opacity-50 border-gray-300 shadow-md"} draggable-touch absolute hover:bg-gray-300 hover:bg-opacity-50 border border-transparent hover:border-gray-200 hover:shadow-md p-10 rounded-2xl`}
       style={{ rotate: `${rot}deg` }}>
       <div className="relative">
-        {/* {clicked && <EditDefaul item={item} itemTipo={prefijo} setShowFormEditar={setShowFormEditar} setDisableClickAwayListener={setDisableClickAwayListener} />} */}
-
         {prefijo === "table"
           ? <MesaContent
             table={item}

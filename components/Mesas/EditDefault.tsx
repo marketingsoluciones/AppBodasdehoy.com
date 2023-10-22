@@ -39,9 +39,9 @@ export const EditDefaul: FC<EditDefault> = ({ item, setShowFormEditar, setDisabl
   }
   const handleRotate = async (direcction) => {
     if (item?.rotation == 0 && direcction === "left") {
-      item.rotation = 360 - 45
+      item.rotation = 360 - 15
     } else {
-      item.rotation = item.rotation + (direcction === "left" ? -45 : 45)
+      item.rotation = item.rotation + (direcction === "left" ? -15 : 15)
       if (item?.rotation === 360) {
         item.rotation = 0
       }
@@ -78,9 +78,6 @@ export const EditDefaul: FC<EditDefault> = ({ item, setShowFormEditar, setDisabl
         setShowFormEditar({ table: item, visible: true })
       }} className="bg-white border border-primary rounded-md w-7 h-7 flex items-center justify-center">
         <EditarIcon className="text-gray-600 w-5 h-5" />
-      </button>
-      <button onClick={() => { }} className="bg-white border border-primary rounded-md w-7 h-7 flex items-center justify-center">
-        <MdSettings className="text-gray-600 w-5 h-5" />
       </button>
       {/* </div > */}
       {/* <div className="hidden md:block absolute transform -translate-x-1/2 -translate-y-[30px]  left-[50%]"> */}

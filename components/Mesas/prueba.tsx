@@ -60,7 +60,7 @@ const Prueba: FC<propsPrueba> = ({ setShowFormEditar, fullScreen, setFullScreen 
               <div
                 onMouseDown={() => setEditDefault({ ...editDefault, active: false })}
                 onTouchStart={() => setEditDefault({ ...editDefault, active: false })}
-                className={`bg-gray-200 opacity-70 w-10 h-48 absolute z-[20] left-0 top-10 rounded-r-lg`}>
+                className={`bg-gray-200 opacity-70 w-10 h-44 absolute z-[20] left-0 top-10 rounded-r-lg`}>
                 <EditDefaul {...editDefault} />
               </div>
             </ClickAwayListener>
