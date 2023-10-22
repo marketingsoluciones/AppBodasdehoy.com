@@ -37,6 +37,35 @@ export const EditDefaul: FC<EditDefault> = ({ item, setShowFormEditar, setDisabl
       console.log(error)
     }
   }
+  const handleRotate = async (direcction) => {
+    if (item?.rotation == 0 && direcction === "left") {
+      item.rotation = 360 - 45
+    } else {
+      item.rotation = item.rotation + (direcction === "left" ? -45 : 45)
+      if (item?.rotation === 360) {
+        item.rotation = 0
+      }
+    }
+    const table: any = await fetchApiEventos({
+      query: queries.editTable,
+      variables: {
+        eventID: event._id,
+        planSpaceID: planSpaceActive?._id,
+        tableID: item._id,
+        variable: "rotation",
+        valor: JSON.stringify(item?.rotation)
+      }
+    })
+    const f1 = planSpaceActive.tables.findIndex(elem => elem._id === item._id)
+    planSpaceActive.tables.splice(f1, 1, table)
+    setPlanSpaceActive({ ...planSpaceActive })
+    setEvent((old) => {
+      const f1 = old.planSpace.findIndex(elem => elem._id === old.planSpaceSelect)
+      old.planSpace[f1] = planSpaceActive
+      return { ...old }
+    })
+  }
+
   return (
     <div className="bg-transparent absolute w-full h-full flex flex-col items-center justify-between py-3" >
       {/* <div className="block w-[20px] absolute transform -translate-x-[36px] -translate-y-[15px]"> */}
@@ -55,10 +84,10 @@ export const EditDefaul: FC<EditDefault> = ({ item, setShowFormEditar, setDisabl
       </button>
       {/* </div > */}
       {/* <div className="hidden md:block absolute transform -translate-x-1/2 -translate-y-[30px]  left-[50%]"> */}
-      <button onClick={() => { }} className="bg-white border border-primary rounded-md w-7 h-7 flex items-center justify-center">
+      <button onClick={() => { handleRotate("right") }} className="bg-white border border-primary rounded-md w-7 h-7 flex items-center justify-center">
         <MdRotateRight className="text-gray-600 w-5 h-5" />
       </button>
-      <button onClick={() => { }} className="bg-white border border-primary rounded-md w-7 h-7 flex items-center justify-center">
+      <button onClick={() => { handleRotate("left") }} className="bg-white border border-primary rounded-md w-7 h-7 flex items-center justify-center">
         <MdRotateLeft className="text-gray-600 w-5 h-5" />
       </button>
       {/* </div > */}

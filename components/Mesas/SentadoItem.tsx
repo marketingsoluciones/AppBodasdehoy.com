@@ -3,12 +3,17 @@ import useHover from "../../hooks/useHover";
 import { guests } from "../../utils/Interfaces";
 import TooltipOld from "../Utils/TooltipOld";
 
+interface invitado extends guests {
+  chair: number
+}
+
 interface propsSentadoItem {
-  invitado: guests,
+  invitado: invitado,
   posicion?: number
   setDisableWrapper: any
 }
 export const SentadoItem: FC<propsSentadoItem> = ({ invitado, posicion, setDisableWrapper }) => {
+  console.log(2255, invitado)
   useEffect(() => {
     const element = document.getElementById(`dragS${invitado._id}`)
     element.parentElement.classList.remove("js-dropGuests")
@@ -71,7 +76,7 @@ export const SentadoItem: FC<propsSentadoItem> = ({ invitado, posicion, setDisab
               id={`dragS${invitado._id}B`}
               className={`w-full h-full bg-primary rounded-full relative flex flex-col items-center justify-center correccion *-rotate-90`}
             >
-              <span className="text-tertiary text-center text-[8px]">{posicion}</span>
+              <span className="text-tertiary text-center text-[8px]">{invitado?.chair + 1}</span>
               <p className="h-[18px] w-[93%] text-[6px] font-display font-light text-white text-center twoline">
                 {invitado.nombre}
               </p>

@@ -20,11 +20,17 @@ export const DragableDefault: FC<propsTable> = forwardRef(({ item, setDisableWra
   const [clicked, setClicked] = useState(false)
   const [disableClickAwayListener, setDisableClickAwayListener] = useState(false)
   const { editDefault, setEditDefault } = EventContextProvider()
+  const [rot, setRot] = useState(15)
+
+  useEffect(() => {
+    setRot(item?.rotation)
+  }, [item?.rotation])
+
 
   //Setear posicion
   useEffect(() => {
     const el = document.getElementById(`${prefijo}_${item._id}`)
-    el.setAttribute('style', `left: ${item.position.x}px; top: ${item.position.y}px`)
+    el.setAttribute('style', `left: ${item.position.x}px; top: ${item.position.y}px; rotate: ${rot}deg`)
     el.setAttribute('data-x', `${item.position.x}`)
     el.setAttribute('data-y', `${item.position.y}`)
   }, [item.position.x, item.position.y, item._id])
@@ -65,22 +71,28 @@ export const DragableDefault: FC<propsTable> = forwardRef(({ item, setDisableWra
         !disableDrag && setDisableWrapper(false)
       }}
       // onClick={() => { setClicked(true) }}
-      className={`${!disableDrag && "js-drag"} ${editDefault?.clicked === item?._id && "bg-gray-200 bg-opacity-50 border-gray-300 shadow-md"} draggable-touch absolute hover:bg-gray-300 hover:bg-opacity-50 border border-transparent hover:border-gray-200 hover:shadow-md p-10 rounded-2xl rotate-[${item?.rotation}deg]`}>
+      className={`${!disableDrag && "js-drag"} ${editDefault?.clicked === item?._id && "bg-gray-200 bg-opacity-50 border-gray-300 shadow-md"} draggable-touch absolute hover:bg-gray-300 hover:bg-opacity-50 border border-transparent hover:border-gray-200 hover:shadow-md p-10 rounded-2xl`}
+      style={{ rotate: `${rot}deg` }}>
       <div className="relative">
         {/* {clicked && <EditDefaul item={item} itemTipo={prefijo} setShowFormEditar={setShowFormEditar} setDisableClickAwayListener={setDisableClickAwayListener} />} */}
-        <div >
-          {prefijo === "table"
-            ? <MesaContent
-              table={item}
-              DefinePosition={DefinePosition}
-              setDisableWrapper={setDisableWrapper}
-              disableDrag={disableDrag}
-              setShowFormEditar={setShowFormEditar}
-            />
-            : <ElementContent item={item} />
-          }
-        </div>
+
+        {prefijo === "table"
+          ? <MesaContent
+            table={item}
+            DefinePosition={DefinePosition}
+            setDisableWrapper={setDisableWrapper}
+            disableDrag={disableDrag}
+            setShowFormEditar={setShowFormEditar}
+          />
+          : <ElementContent item={item} />
+        }
       </div>
+      <style>{`
+      .rotateT {
+        --tw-rotate: ${rot}deg;
+        transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+      }
+      `}</style>
     </div>
   );
 })

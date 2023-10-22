@@ -1,6 +1,5 @@
 import interact from 'interactjs'
 import { FC, RefObject, useEffect, useRef, useState } from 'react'
-import { MesaContent } from './MesaContent';
 import { EventContextProvider } from '../../context'
 import { ActualizarPosicion, setupDropzone } from './FuntionsDragable'
 import { size, table, element } from '../../utils/Interfaces';
