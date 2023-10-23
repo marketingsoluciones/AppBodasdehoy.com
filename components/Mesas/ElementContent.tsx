@@ -10,13 +10,16 @@ export const ElementContent: FC<propsElement> = ({ item }) => {
   const [invitados, setInvitados] = useState<any>();
 
   useEffect(() => {
-    setInvitados(cloneElement(ListElements.find(elem => elem.title === item.tipo)?.icon, { style: { width: item.size.width, height: item.size.height } }))
+    if (item?.tipo) {
+      console.log(875221, item)
+      const element = ListElements.find(elem => elem.tipo === item.tipo)
+      setInvitados(cloneElement(element?.icon, { style: element?.size }))
+    }
   }, [item]);
 
   return (
     <>
       {invitados}
     </>
-
   );
 };

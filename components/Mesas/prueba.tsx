@@ -25,6 +25,7 @@ const Prueba: FC<propsPrueba> = ({ setShowFormEditar, fullScreen, setFullScreen 
   const { event, setEvent, planSpaceActive, editDefault, setEditDefault } = EventContextProvider()
   const [lienzo, setLienzo] = useState<size>(event?.planSpace?.find(elem => elem?._id === event?.planSpaceSelect)?.size)
 
+
   useEffect(() => {
     setLienzo(event?.planSpace?.find(elem => elem?._id === event?.planSpaceSelect)?.size)
   }, [event.planSpaceSelect])

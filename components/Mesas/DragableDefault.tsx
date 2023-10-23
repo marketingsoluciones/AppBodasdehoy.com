@@ -33,8 +33,8 @@ export const DragableDefault: FC<propsTable> = forwardRef(({ item, setDisableWra
     el.setAttribute('data-x', `${item.position.x}`)
     el.setAttribute('data-y', `${item.position.y}`)
   }, [item.position.x, item.position.y, item._id])
-  return (
 
+  return (
     <div
       ref={ref}
       id={`${prefijo}_${item._id}`}
@@ -70,7 +70,7 @@ export const DragableDefault: FC<propsTable> = forwardRef(({ item, setDisableWra
         !disableDrag && setDisableWrapper(false)
       }}
       // onClick={() => { setClicked(true) }}
-      className={`${!disableDrag && "js-drag"} ${editDefault?.clicked === item?._id && "bg-gray-200 bg-opacity-50 border-gray-300 shadow-md"} draggable-touch absolute hover:bg-gray-300 hover:bg-opacity-50 border border-transparent hover:border-gray-200 hover:shadow-md p-10 rounded-2xl`}
+      className={`${!disableDrag && "js-drag"} ${editDefault?.clicked === item?._id && "bg-gray-200 bg-opacity-50 border-gray-300 shadow-md"} draggable-touch absolute hover:bg-gray-300 hover:bg-opacity-50 border border-transparent hover:border-gray-200 hover:shadow-md ${prefijo === "table" ? "p-10" : "p-3"} rounded-2xl`}
       style={{ rotate: `${rot}deg` }}>
       <div className="relative">
         {prefijo === "table"
@@ -82,14 +82,9 @@ export const DragableDefault: FC<propsTable> = forwardRef(({ item, setDisableWra
             setShowFormEditar={setShowFormEditar}
           />
           : <ElementContent item={item} />
+          //<div className="bg-red w-[80px] h-[80px]"></div>
         }
       </div>
-      <style>{`
-      .rotateT {
-        --tw-rotate: ${rot}deg;
-        transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-      }
-      `}</style>
     </div>
   );
 })

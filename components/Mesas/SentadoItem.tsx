@@ -13,7 +13,6 @@ interface propsSentadoItem {
   setDisableWrapper: any
 }
 export const SentadoItem: FC<propsSentadoItem> = ({ invitado, posicion, setDisableWrapper }) => {
-  console.log(2255, invitado)
   useEffect(() => {
     const element = document.getElementById(`dragS${invitado._id}`)
     element.parentElement.classList.remove("js-dropGuests")

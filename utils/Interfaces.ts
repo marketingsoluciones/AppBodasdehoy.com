@@ -197,4 +197,5 @@ export interface EditDefault {
     itemTipo?: string
     setShowFormEditar?: any
     setDisableClickAwayListener?: any
+    setShowConfigElement: any
 }
