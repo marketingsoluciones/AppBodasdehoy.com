@@ -4,7 +4,6 @@ import { EventContextProvider } from '../../context'
 import { ActualizarPosicion, setupDropzone } from './FuntionsDragable'
 import { size, table, element } from '../../utils/Interfaces';
 import { DragableDefault } from './DragableDefault';
-import { ElementContent } from './ElementContent';
 import ClickAwayListener from 'react-click-away-listener';
 
 // Calculadora de posicion de sillas (Grados °) en mesa redonda
@@ -147,7 +146,7 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
     manualStart: false,
     listeners: {
       start(e) {
-        console.log(e)
+        //console.log(e)
         const element = document.getElementById(e.target.id.replace(/dragS/, "dragM"))
         if (element) {
           position.x = parseInt(element.getAttribute("data-x"), 10) || 0

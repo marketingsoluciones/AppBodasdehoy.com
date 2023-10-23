@@ -192,10 +192,8 @@ export interface signalItem {
     invitado: guests;
 }
 
-export interface EditDefault {
+export interface EditDefaultState {
     item?: table
     itemTipo?: string
     setShowFormEditar?: any
-    setDisableClickAwayListener?: any
-    setShowConfigElement: any
 }

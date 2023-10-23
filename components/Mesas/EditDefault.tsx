@@ -1,13 +1,13 @@
 import { FC, useState } from "react"
 import { EventContextProvider } from "../../context"
 import { fetchApiEventos, queries } from "../../utils/Fetching"
-import { EditDefault, table } from "../../utils/Interfaces"
+import { EditDefaultState, table } from "../../utils/Interfaces"
 import { BorrarIcon, EditarIcon } from "../icons"
 
 import { MdRotateRight, MdRotateLeft } from 'react-icons/md'
 
 
-export const EditDefaul: FC<EditDefault> = ({ item, setShowFormEditar, setDisableClickAwayListener, itemTipo, setShowConfigElement }) => {
+export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, itemTipo }) => {
   const { event, setEvent, planSpaceActive, setPlanSpaceActive, editDefault, setEditDefault } = EventContextProvider()
 
   const handleDeleteItem = async () => {
@@ -98,7 +98,6 @@ export const EditDefaul: FC<EditDefault> = ({ item, setShowFormEditar, setDisabl
       </button>
       <button onClick={() => {
         setEditDefault({ ...editDefault, activeButtons: false })
-        setDisableClickAwayListener(true)
         setShowFormEditar({ table: item, visible: true })
       }}
         className={`bg-white border border-primary rounded-md w-7 h-7 flex items-center justify-center`}

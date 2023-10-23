@@ -81,7 +81,7 @@ export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, eventID,
       })
       //cuando SUELTA sobre una zona drogleable
       .on('drop', (event) => {
-        // // // console.log("SOLTADO2", event.currentTarget.id)
+        // console.log("SOLTADO2", event.currentTarget.id)
         if (event.currentTarget.id === "lienzo-drop") {
           const asd = event.relatedTarget.id.replace(/dragN/, "").split("_")
           values = { ...values, modelo: asd[0], tipo: asd[1] }

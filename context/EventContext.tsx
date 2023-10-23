@@ -1,5 +1,5 @@
 import { createContext, useState, useContext, useEffect, Dispatch, SetStateAction } from "react";
-import { EditDefault, Event, filterGuest, planSpace } from "../utils/Interfaces";
+import { EditDefaultState, Event, filterGuest, planSpace } from "../utils/Interfaces";
 import { EventsGroupContextProvider } from "./EventsGroupContext";
 
 interface idxGroupEvent {
@@ -17,7 +17,7 @@ interface clicked {
   _id: string
   state: boolean
 }
-interface EditDefaultTableAndElement extends EditDefault {
+interface EditDefaultTableAndElement extends EditDefaultState {
   active?: boolean
   activeButtons?: boolean
   clicked?: {}

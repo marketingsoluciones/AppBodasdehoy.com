@@ -52,7 +52,7 @@ export const SentadoItem: FC<propsSentadoItem> = ({ invitado, posicion, setDisab
             onTouchStart={(e: TouchEvent<HTMLButtonElement>) => {
               //e.preventDefault()
               setDisableWrapper(true)
-              console.log(e.touches[0].clientX)
+              //console.log(e.touches[0].clientX)
               const rootElement = document.getElementById('areaDrag');
               const element = document.createElement('div');
               //element.textContent = invitado?.nombre;

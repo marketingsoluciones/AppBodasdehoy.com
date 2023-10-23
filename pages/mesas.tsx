@@ -22,6 +22,8 @@ import { SubMenu } from "../components/Utils/SubMenu";
 import BlockPlanos from "../components/Mesas/BlockPlanos";
 import { setupDropzone } from "../components/Mesas/FuntionsDragable";
 import BlockPanelElements, { ListElements } from "../components/Mesas/BlockPanelElements";
+import { fetchApiEventos, queries } from "../utils/Fetching";
+import { useToast } from "../hooks/useToast";
 
 
 SwiperCore.use([Pagination]);
@@ -37,6 +39,10 @@ const Mesas: FC = () => {
   const [invitadoSelected, setSelected] = useState<string | null>(null);
   const [itemSelect, setItemSelect] = useState("mesas")
   const [fullScreen, setFullScreen] = useState<boolean>(false)
+  const [creaElement, setCreaElement] = useState<boolean>(false)
+
+  const toast = useToast()
+  useMounted()
 
   const handleOnDrop = (values: any) => {
     setValues(values)
@@ -44,19 +50,44 @@ const Mesas: FC = () => {
       setShowFormCreateTable(true)
     }
     if (values.tipo === "element") {
-
+      setCreaElement(true)
     }
   }
-  useMounted()
+
+  useEffect(() => {
+    if (creaElement) {
+      try {
+        const inputValues = {
+          position: { x: values.offsetX, y: values.offsetY },
+          tipo: values.modelo,
+          rotation: 0
+        }
+        fetchApiEventos({
+          query: queries.createElement,
+          variables: {
+            eventID: event._id,
+            planSpaceID: planSpaceActive._id,
+            values: JSON.stringify({ ...inputValues })
+          },
+        }).then((result: any) => {
+          planSpaceActive.elements.push({ ...result })
+          setPlanSpaceActive({ ...planSpaceActive })
+          event.planSpace[event.planSpaceSelect] = planSpaceActive
+          setEvent({ ...event })
+          setCreaElement(false)
+        })
+      } catch (err) {
+        toast("error", "Ha ocurrido al añadir el objeto")
+        console.log(err);
+      }
+    }
+  }, [creaElement])
 
   useEffect(() => {
     const defaultTablesDraggable = ListTables.map(elem => `#dragN${elem.title}_${elem.tipo}`)
     const defaultElementsDraggable = ListElements.map(elem => `#dragN${elem.title}_${elem.tipo}`)
     setupDropzone({ target: '.js-dropTables', accept: `${[...defaultTablesDraggable, ...defaultElementsDraggable]}`, handleOnDrop, setEvent, eventID: event?._id, planSpaceActive, setPlanSpaceActive })
   }, [planSpaceActive])
-
-
-
 
   useEffect(() => {
     if (planSpaceActive) {

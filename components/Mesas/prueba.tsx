@@ -4,7 +4,7 @@ import { useToast } from "../../hooks/useToast";
 import { ComponenteTransformWrapper } from "./ComponenteTransformWrapper";
 import { EventContextProvider } from "../../context";
 import { size } from "../../utils/Interfaces";
-import { EditDefaul } from "./EditDefault";
+import { EditDefault } from "./EditDefault";
 import ClickAwayListener from "react-click-away-listener";
 
 type propsPrueba = {
@@ -62,7 +62,7 @@ const Prueba: FC<propsPrueba> = ({ setShowFormEditar, fullScreen, setFullScreen 
                 onMouseDown={() => setEditDefault({ ...editDefault, active: false })}
                 onTouchStart={() => setEditDefault({ ...editDefault, active: false })}
                 className={`bg-gray-200 opacity-70 w-10 h-44 absolute z-[20] left-0 top-10 rounded-r-lg`}>
-                <EditDefaul {...editDefault} />
+                <EditDefault {...editDefault} />
               </div>
             </ClickAwayListener>
           }

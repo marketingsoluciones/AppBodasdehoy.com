@@ -11,8 +11,7 @@ export const ElementContent: FC<propsElement> = ({ item }) => {
 
   useEffect(() => {
     if (item?.tipo) {
-      console.log(875221, item)
-      const element = ListElements.find(elem => elem.tipo === item.tipo)
+      const element = ListElements.find(elem => elem.title === item.tipo)
       setInvitados(cloneElement(element?.icon, { style: element?.size }))
     }
   }, [item]);

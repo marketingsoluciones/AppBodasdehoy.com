@@ -16,8 +16,6 @@ interface propsTable extends Partial<HTMLDivElement> {
 }
 // eslint-disable-next-line react/display-name
 export const DragableDefault: FC<propsTable> = forwardRef(({ item, setDisableWrapper, disableDrag, prefijo, setShowFormEditar, DefinePosition, idx }, ref: any) => {
-  const [clicked, setClicked] = useState(false)
-  const [disableClickAwayListener, setDisableClickAwayListener] = useState(false)
   const { editDefault, setEditDefault } = EventContextProvider()
   const [rot, setRot] = useState(15)
 
@@ -49,7 +47,6 @@ export const DragableDefault: FC<propsTable> = forwardRef(({ item, setDisableWra
           clicked: item?._id,
           item,
           itemTipo: prefijo,
-          setDisableClickAwayListener,
           setShowFormEditar
         })
         !disableDrag && setDisableWrapper(false)
@@ -64,12 +61,10 @@ export const DragableDefault: FC<propsTable> = forwardRef(({ item, setDisableWra
           clicked: item?._id,
           item,
           itemTipo: prefijo,
-          setDisableClickAwayListener,
           setShowFormEditar
         })
         !disableDrag && setDisableWrapper(false)
       }}
-      // onClick={() => { setClicked(true) }}
       className={`${!disableDrag && "js-drag"} ${editDefault?.clicked === item?._id && "bg-gray-200 bg-opacity-50 border-gray-300 shadow-md"} draggable-touch absolute hover:bg-gray-300 hover:bg-opacity-50 border border-transparent hover:border-gray-200 hover:shadow-md ${prefijo === "table" ? "p-10" : "p-3"} rounded-2xl`}
       style={{ rotate: `${rot}deg` }}>
       <div className="relative">
