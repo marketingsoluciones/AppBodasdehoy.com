@@ -102,6 +102,7 @@ const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
             title: values.nombre_mesa,
             numberChair: values.cantidad_sillas,
             position: values.defPosicion,
+            rotation: 0,
             size: { width: 100, height: 80 },
             tipo: values.tipo
           })

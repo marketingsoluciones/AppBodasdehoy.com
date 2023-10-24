@@ -24,6 +24,7 @@ import { setupDropzone } from "../components/Mesas/FuntionsDragable";
 import BlockPanelElements, { ListElements } from "../components/Mesas/BlockPanelElements";
 import { fetchApiEventos, queries } from "../utils/Fetching";
 import { useToast } from "../hooks/useToast";
+import BlockPlantillas from "../components/Mesas/BlockPlantillas";
 
 
 SwiperCore.use([Pagination]);
@@ -41,6 +42,7 @@ const Mesas: FC = () => {
   const [fullScreen, setFullScreen] = useState<boolean>(false)
   const [creaElement, setCreaElement] = useState<boolean>(false)
 
+
   const toast = useToast()
   useMounted()
 
@@ -56,9 +58,12 @@ const Mesas: FC = () => {
 
   useEffect(() => {
     if (creaElement) {
+      console.log(1005, values)
+      console.log(1006, ListElements)
+      const element = ListElements.find(elem => elem.title === values.modelo)
       try {
         const inputValues = {
-          position: { x: values.offsetX, y: values.offsetY },
+          position: { x: values.offsetX - (element.size.width / 2), y: values.offsetY - (element.size.height / 2) },
           tipo: values.modelo,
           rotation: 0
         }
@@ -226,9 +231,8 @@ const Mesas: FC = () => {
                         {itemSelect == "planos" &&
                           <BlockPlanos />
                         }
-                        {itemSelect == "plantilla" &&
-                          <span>En desarrollo!</span>
-                          // <BlockResumen InvitadoSentados={filterGuests?.sentados} />
+                        {itemSelect == "plantillas" &&
+                          <BlockPlantillas />
                         }
                         {itemSelect == "resumen" &&
                           <BlockResumen InvitadoSentados={filterGuests?.sentados} />

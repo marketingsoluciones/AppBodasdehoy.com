@@ -185,8 +185,6 @@ interface chat {
     receptor_id: string
 }
 
-
-
 export interface signalItem {
     tipo: string;
     invitado: guests;

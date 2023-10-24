@@ -659,6 +659,19 @@ export const queries = {
   //     }
   //   }
   // }`,
+
+  getPsTemplate: `query ($uid:String ) {
+    getPsTemplate(uid:$uid) {
+      _id
+      title
+    }
+    }`,
+  createPsTemplate: `mutation ($eventID:ID, $planSpaceID:ID, $title:String, $uid:String ) {
+    createPsTemplate(eventID:$eventID, planSpaceID:$planSpaceID, title:$title, uid:$uid) {
+      _id
+      title
+    }
+  }`,
   createTable: `mutation ($eventID:ID, $planSpaceID: ID, $sectionID: ID, $values: String) {
     createTable(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, values:$values) {
       _id

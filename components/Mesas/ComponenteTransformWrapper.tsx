@@ -1,6 +1,6 @@
 import { FC, useEffect, useState } from "react";
 import { ButtonConstrolsLienzo } from "./ControlsLienzo";
-import { Lock, SearchIcon } from "../icons";
+import { Lock, SearchIcon, WarningIcon } from "../icons";
 import * as mdIcons from "react-icons/md";
 import { TransformComponent } from "react-zoom-pan-pinch";
 import { LiezoDragable } from "./LienzoDragable";
@@ -8,9 +8,10 @@ import { useToast } from "../../hooks/useToast";
 import { InputMini } from "./InputMini";
 import { BiDotsVerticalRounded } from "react-icons/bi"
 import { MdOutlineRotate90DegreesCw } from "react-icons/md"
-import { EventContextProvider } from "../../context";
+import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../context";
 import ClickAwayListener from "react-click-away-listener";
 import { planSpace } from "../../utils/Interfaces";
+import { fetchApiEventos, queries } from "../../utils/Fetching";
 
 
 
@@ -21,7 +22,12 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
   const toast = useToast()
   const [showSetup, setShowSetup] = useState(false)
   const [showMiniMenu, setShowMiniMenu] = useState(false)
+  const { user } = AuthContextProvider()
   const { event, planSpaceActive } = EventContextProvider()
+  const { psTemplates, setPsTemplates } = EventsGroupContextProvider()
+  const [value, setValue] = useState("")
+  const [valir, setValir] = useState(true)
+  const [ident, setident] = useState(false)
 
   useEffect(() => {
     resetTransform()
@@ -42,6 +48,13 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
   const handleSetDisableDrag: any = () => {
     setDisableDrag(!disableDrag)
   }
+
+  useEffect(() => {
+    if (!ident) {
+      setValir(true)
+    }
+  }, [ident])
+
 
   !reset ? handleReset(resetTransform) : () => { }
   return (
@@ -72,28 +85,60 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
             <div>
               <BiDotsVerticalRounded className="h-6 w-6 cursor-pointer text-primary" onClick={() => setShowMiniMenu(!showMiniMenu)} />
               {showMiniMenu &&
-                <div className="bg-white flex flex-col absolute z-[50] top-8 right-20 rounded-b-md shadow-md *items-center text-[9px] px-3 pt-1 pb-3 text-gray-800 gap-y-2">
-                  <div className="flex flex-col bg-red">
-                    <span className="w-full text-left">Seleccionar plano:</span>
-                    <select className="capitalize w-40 cursor-pointer text-xs text-gray-500 border border-gray-600 focus:border-primary transition py-0 pr-7 rounded-sm focus:outline-none  " >
-                      {event.planSpace.map((elem: planSpace, idx: number) => {
-                        console.log(idx, elem)
-                        return (
-                          <option key={idx} value={elem.title}>{elem.title}</option>
-                        )
-                      })}
-                    </select>
-                  </div>
-                  <div className="flex flex-col bg-red">
-                    <span className="w-full text-left">Guardar plantilla:</span>
-                    <select className="capitalize w-40 cursor-pointer text-xs text-gray-500 border border-gray-600 focus:border-primary transition py-0 pr-7 rounded-sm focus:outline-none  " >
-                      {event.planSpace.map((elem: planSpace, idx: number) => {
-                        console.log(idx, elem)
-                        return (
-                          <option key={idx} value={elem.title}>{elem.title}</option>
-                        )
-                      })}
-                    </select>
+                <div className="bg-white flex flex-col absolute z-[50] top-8 right-18 rounded-b-md shadow-md *items-center text-[9px] px-3 pt-1 pb-3 text-gray-800 gap-y-2">
+                  <div className="bg-white flex flex-col absolute z-[10] top-[0px] right-0 rounded-b-md shadow-md min-w-[140px] md:min-w-[120px] *items-center text-[10px] md:text-[12px] px-3 pt-1 pb-2 text-gray-800">
+                    <span className="w-full text-left font-bold transform -ml-2">Guardar como plantilla:</span>
+                    <span className="flex flex-col text-[9px] md:text-[11px]">
+                      <span className="capitalize">nombre:</span>
+                      <div className="relative">
+                        <input type="text" className="w-64 h-4 text-[9px] md:text-[11px]"
+                          value={`${value ? value : ""}`}
+                          onChange={(e) => {
+                            if (psTemplates?.findIndex(elem => elem.title === e.target.value) > -1) {
+                              setident(true)
+                            } else {
+                              setident(false)
+                            }
+                            setValue(e.target.value)
+                          }}
+                        />
+                        {!valir && <p className="w-[75%] font-display absolute rounded-xl text-xs left-0 bottom-0 transform translate-y-full text-red flex gap-1"><WarningIcon className="w-4 h-4" />Existe una plantilla con este nombre si guarda la sustituye</p>}
+                      </div>
+                      <div className="w-full flex justify-end mt-2 ">
+                        <button onClick={async () => {
+                          if (ident && valir) {
+                            setValir(!valir)
+                            return
+                          }
+                          if (value !== "") {
+                            setShowMiniMenu(false)
+                            setValir(true)
+                            if (!valir) {
+                              //aqui actualizo en vez de guarda
+                              console.log("aqui actualizo en vez de guarda")
+                            } else {
+                              const resp = await fetchApiEventos({
+                                query: queries.createPsTemplate,
+                                variables: {
+                                  eventID: event._id,
+                                  planSpaceID: planSpaceActive._id,
+                                  title: value,
+                                  uid: user?.uid
+                                }
+                              })
+                              setPsTemplates(old => {
+                                old.push(resp)
+                                return [...old]
+                              })
+                            }
+                          }
+                          setValue("")
+                          toast("success", "Se guardó la plantilla")
+
+                        }}
+                          className="bg-primary w-16 h-5 rounded-lg text-white capitalize">guardar</button>
+                      </div>
+                    </span>
                   </div>
                 </div>
               }

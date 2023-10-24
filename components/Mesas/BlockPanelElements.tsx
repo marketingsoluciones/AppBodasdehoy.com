@@ -13,7 +13,7 @@ export const ListElements = [
   { icon: <Dj className="relative w-max" />, title: "dj", tipo: "element", size: { width: 140, height: 110 } },
   { icon: <Layer2 className="relative w-max" />, title: "layer2", tipo: "element", size: { width: 280, height: 250 } },
   { icon: <Piano className="relative w-max" />, title: "piano", tipo: "element", size: { width: 120, height: 120 } },
-  { icon: <Group83 className="relative w-max" />, title: "group83", tipo: "element" },
+  { icon: <Group83 className="relative w-max" />, title: "group83", tipo: undefined },
 ];
 
 const BlockPanelElements: FC<propsBlockPanelElements> = () => {

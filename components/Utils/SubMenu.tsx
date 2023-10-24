@@ -26,7 +26,7 @@ const sutMenus = [
     icon: <HiTemplate className="w-6 h-6" />,
   },
   {
-    title: "plantilla",
+    title: "plantillas",
     icon: <ImInsertTemplate className="w-6 h-6" />,
   },
   {
