@@ -94,7 +94,7 @@ const AuthProvider = ({ children }) => {
           pathSignout: resp?.pathSignout ? `${directory}/signout` : undefined,
           pathPerfil: resp?.pathPerfil ? `${directory}/configuracion` : undefined
         }
-        setIsProduction(false)
+        setIsProduction(idx !== -1)
       }
       try {
         firebaseClient = initializeApp(resp?.fileConfig);
