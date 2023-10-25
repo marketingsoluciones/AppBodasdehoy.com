@@ -22,7 +22,8 @@ export const useAuthentication = () => {
       if (authResult?.sessionCookie) {
         const { sessionCookie } = authResult;
         // Setear en localStorage token JWT
-        Cookies.set(config?.cookie, sessionCookie, { domain: config?.domain ?? "" });
+        const dateExpire = new Date(new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000))
+        Cookies.set(config?.cookie, sessionCookie, { domain: config?.domain ?? "", expires: dateExpire });
         return sessionCookie
       } else {
         console.warn("No se pudo cargar la cookie de sesión por que hubo un problema")
@@ -127,7 +128,7 @@ export const useAuthentication = () => {
     Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
     Cookies.remove("idToken", { domain: config?.domain ?? "" });
     await signOut(getAuth());
-    router.push(config?.pathDirectory ? `${window.origin.includes("://test") ? config?.pathDirectory.replace("//", "//test.") : config?.pathDirectory}/signout?end=true` : "/")
+    router.push(config?.pathDirectory ? `${config?.pathDirectory}/signout?end=true` : "/")
   }, [router])
 
 

@@ -83,14 +83,15 @@ const AuthProvider = ({ children }) => {
       const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[3] /*<<<<<<<<<*/
       /*--------------------------------------------------------------------*/
       resp = developments.filter(elem => elem.name === domainDevelop)[0]
+      const directory = window.origin.includes("://test.") ? process.env.NEXT_PUBLIC_DIRECTORY.replace("//", "//test") : process.env.NEXT_PUBLIC_DIRECTORY
       if (idx === -1) {
         resp = {
           ...resp,
           domain: `${process.env.NEXT_PUBLIC_DOMINIO}`,
-          pathDirectory: resp?.pathDirectory ? `${process.env.NEXT_PUBLIC_DIRECTORY}` : undefined,
-          pathLogin: resp?.pathLogin ? `${process.env.NEXT_PUBLIC_DIRECTORY}/login` : undefined,
-          pathSignout: resp?.pathSignout ? `${process.env.NEXT_PUBLIC_DIRECTORY}/signout` : undefined,
-          pathPerfil: resp?.pathPerfil ? `${process.env.NEXT_PUBLIC_DIRECTORY}/configuracion` : undefined
+          pathDirectory: resp?.pathDirectory ? `${directory}` : undefined,
+          pathLogin: resp?.pathLogin ? `${directory}/login` : undefined,
+          pathSignout: resp?.pathSignout ? `${directory}/signout` : undefined,
+          pathPerfil: resp?.pathPerfil ? `${directory}/configuracion` : undefined
         }
         setIsProduction(false)
       }
@@ -115,8 +116,9 @@ const AuthProvider = ({ children }) => {
           if (!sessionCookie) {
             let guestUid = Cookies.get(config?.cookieGuest)
             if (!guestUid) {
+              const dateExpire = new Date(new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000))
               guestUid = nanoid(28)
-              Cookies.set(config?.cookieGuest, guestUid)
+              Cookies.set(config?.cookieGuest, guestUid, { domain: `.${resp?.domain}.com`, expires: dateExpire })
             }
             setUser({ uid: guestUid, displayName: "guest" })
           }
@@ -161,8 +163,8 @@ const AuthProvider = ({ children }) => {
       getAuth().onIdTokenChanged(async user => {
         const sessionCookie = Cookies.get(config?.cookie);
         if (user && sessionCookie) {
-          console.log(1111111, "Cookies.set: idToken en ", process.env.NEXT_PUBLIC_DOMINIO ?? "")
-          Cookies.set("idToken", await user.getIdToken(), { domain: `.${resp?.domain}.com` })
+          const dateExpire = new Date(new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000))
+          Cookies.set("idToken", await user.getIdToken(), { domain: `.${resp?.domain}.com`, expires: dateExpire })
         }
       })
     }

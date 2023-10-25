@@ -121,7 +121,7 @@ const Navigation: any = (
           <span
             onClick={() => {
               //Loading(setLoading);
-              router.push(window.origin.includes("://test") ? config?.pathDirectory.replace("//", "//test.") : config?.pathDirectory)
+              router.push(config?.pathDirectory ? `${config?.pathDirectory}` : ``)
               setIsActiveStateSwiper(0)
             }}
             className="cursor-pointer w-40 items-center flex justify-center translate-x-[-14px] md:translate-x-[-160px]">
