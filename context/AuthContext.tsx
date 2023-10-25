@@ -83,7 +83,7 @@ const AuthProvider = ({ children }) => {
       const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[3] /*<<<<<<<<<*/
       /*--------------------------------------------------------------------*/
       resp = developments.filter(elem => elem.name === domainDevelop)[0]
-      const directory = window.origin.includes("://test.") ? process.env.NEXT_PUBLIC_DIRECTORY.replace("//", "//test") : process.env.NEXT_PUBLIC_DIRECTORY
+      const directory = window.origin.includes("://test") ? process.env.NEXT_PUBLIC_DIRECTORY.replace("//", "//test.") : process.env.NEXT_PUBLIC_DIRECTORY
       console.log(window.origin, window.location.hostname, directory)
       if (idx === -1) {
         resp = {
