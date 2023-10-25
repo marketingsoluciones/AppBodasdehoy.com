@@ -26,7 +26,7 @@ const Profile = ({ user, state, set, ...rest }) => {
     },
     {
       title: "Ir al directorio",
-      onClick: async () => { router.push(config?.pathDirectory) },
+      onClick: async () => { router.push(window.origin.includes("://test.") ? config?.pathDirectory.replace("//", "//test") : config?.pathDirectory) },
       user: config?.pathDirectory ? "all" : null
     },
     {
