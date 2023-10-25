@@ -34,7 +34,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
         {
             title: "Ir al directorio",
             icon: <IconShop className="w-6 h-6" />,
-            onClick: async () => { router.push(window.origin.includes("://test.") ? config?.pathDirectory.replace("//", "//test") : config?.pathDirectory) },
+            onClick: async () => { router.push(window.origin.includes("://test") ? config?.pathDirectory.replace("//", "//test") : config?.pathDirectory) },
             user: config?.pathDirectory ? "all" : null
         },
         {

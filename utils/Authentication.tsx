@@ -127,7 +127,7 @@ export const useAuthentication = () => {
     Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
     Cookies.remove("idToken", { domain: config?.domain ?? "" });
     await signOut(getAuth());
-    router.push(config?.pathDirectory ? `${window.origin.includes("://test.") ? config?.pathDirectory.replace("//", "//test") : config?.pathDirectory}/signout?end=true` : "/")
+    router.push(config?.pathDirectory ? `${window.origin.includes("://test") ? config?.pathDirectory.replace("//", "//test") : config?.pathDirectory}/signout?end=true` : "/")
   }, [router])
 
 
