@@ -20,7 +20,7 @@ const Profile = ({ user, state, set, ...rest }) => {
       user: "guest"
     },
     {
-      title: "Registro",
+      title: "Registrarse",
       onClick: async () => { router.push(config?.pathLogin ? `${config?.pathLogin}?d=app&q=register` : `/login?q=register&d=${route}`) },
       user: "guest"
     },

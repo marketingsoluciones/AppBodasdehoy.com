@@ -1,34 +1,23 @@
-import Link from "next/link"
-import ClickAwayListener from "react-click-away-listener"
-import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, LoadingContextProvider } from "../../context"
-import { ArrowLeft, Icon036Profile, IconExit, IconLightBulb16, IconLogin, IconRegistered, IconShop, InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, MesasIcon, MisEventosIcon, PresupuestoIcon, ResumenIcon } from "../icons"
+import { AuthContextProvider, EventsGroupContextProvider, LoadingContextProvider } from "../../context"
+import { ArrowLeft, Icon036Profile, IconExit, IconRegistered, IconShop, InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, MesasIcon, MisEventosIcon, PresupuestoIcon, ResumenIcon } from "../icons"
 import { useToast } from "../../hooks/useToast"
 import { capitalize } from "../../utils/Capitalize"
-import { Tooltip } from "./Tooltip"
 import { useEffect } from "react"
 import router, { useRouter } from "next/router";
 import Cookies from "js-cookie"
 import { getAuth, signOut } from "firebase/auth"
+import { RiLoginBoxFill } from "react-icons/ri"
+import { PiUserPlusFill } from "react-icons/pi"
+import { MdLogout } from "react-icons/md"
 
 /* menu desplegable izquierdo en la vista movil con las opciones de redireccion de la app */
 const Sidebar = ({ setShowSidebar, showSidebar }) => {
     const { setLoading } = LoadingContextProvider()
     const { user, config } = AuthContextProvider()
-    const { event } = EventContextProvider()
     const { eventsGroup } = EventsGroupContextProvider()
 
     const { route } = useRouter()
     const toast = useToast()
-
-    useEffect(() => {
-        console.log(10002, eventsGroup)
-        console.log(6000251, config, user)
-    }, [eventsGroup])
-
-    useEffect(() => {
-
-    }, [config])
-
 
     const ListaNavbar = [
         {
@@ -113,15 +102,15 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
         },
         {
             title: "Iniciar sesión",
-            icon: <IconLogin className="w-6 h-6" />,
+            icon: <RiLoginBoxFill className="w-6 h-6" />,
             onClick: () => {
                 router.push(config?.pathLogin ? `${config?.pathLogin}?d=app` : `/login?d=${route}`)
             },
             user: "guest"
         },
         {
-            title: "Registro",
-            icon: <IconRegistered className="w-6 h-6" />,
+            title: "Registrarse",
+            icon: <PiUserPlusFill className="w-6 h-6" />,
             onClick: () => {
                 router.push(config?.pathLogin ? `${config?.pathLogin}?d=app&q=register` : `/login?q=register&d=${route}`)
             },
@@ -129,9 +118,8 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
         },
         {
             title: "Cerrar sesión",
-            icon: <IconExit className="w-6 h-6" />,
+            icon: <MdLogout className="w-6 h-6" />,
             onClick: () => {
-                console.log(600021, config, config?.domain)
                 Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
                 Cookies.remove("idToken", { domain: config?.domain ?? "" });
                 signOut(getAuth());
@@ -143,7 +131,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             user: "loged"
         }
     ]
-    const valirUser = user?.displayName == "guest" ? "guest" : "loged"
+    const valirUser = user?.displayName == "loged" ? "loged" : "guest"
     const ListaNavbarFilter = ListaNavbar.filter(elem => elem?.user === valirUser || elem?.user === "all")
 
     const handleOnClip = async (e, item) => {
@@ -155,8 +143,6 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
         }
     }
 
-
-
     return (
         <div className={`bg-white w-5/6 opacity-95 z-[60] font-display shadow-lg fixed top-0 left-0 h-screen md:hidden transform transition duration-300 ${showSidebar ? "translate-x-0" : "-translate-x-full"}`}>
             <ArrowLeft className="absolute w-6 h-6 text-white cursor-pointer translate-x-5 translate-y-5" onClick={() => setShowSidebar(!showSidebar)} />
@@ -167,8 +153,8 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
                     alt={user?.displayName}
                 />
 
-                <p className="text-lg text-white capitalize pt-2">
-                    {user?.displayName !== "guest" && user?.displayName?.toLowerCase()}
+                <p className="text-lg text-white min-h-[36px] capitalize pt-2">
+                    {user?.displayName !== "guest" && user?.displayName}
                 </p>
             </div>
             {/* <Tooltip label="Primero debes crear un evento" icon={<IconLightBulb16 className="w-6 h-6" />} disabled={!!event?._id}> */}
