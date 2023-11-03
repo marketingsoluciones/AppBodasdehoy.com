@@ -63,7 +63,7 @@ const Mesas: FC = () => {
       const element = ListElements.find(elem => elem.title === values.modelo)
       try {
         const inputValues = {
-          position: { x: values.offsetX - (element.size.width / 2), y: values.offsetY - (element.size.height / 2) },
+          position: { x: (values.offsetX - element.size.width / 2).toFixed(0), y: (values.offsetY - element.size.height / 2).toFixed(0) },
           tipo: values.modelo,
           rotation: 0
         }
