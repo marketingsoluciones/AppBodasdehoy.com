@@ -317,8 +317,79 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         },
       },
       {
-        Header: "Mesa",
+        Header: "Mesa recepcion",
         accessor: "nombre_mesa",
+        Cell: ({ value: initialValue, row, column: { id } }) => {
+          const [value, setValue] = useState(initialValue);
+          const [show, setShow] = useState(false);
+          const [loading, setLoading] = useState(false);
+          const router = useRouter();
+
+          useEffect(() => {
+            setLoading(false);
+            updateMyData({
+              rowID: row.original._id,
+              columnID: id,
+              reemplazar: "nombre_mesa",
+              value: value,
+              loading: loading,
+              eventoID: event._id,
+            });
+            setLoading(true);
+          }, [value]);
+
+          return (
+            <ClickAwayListener onClickAway={() => setShow(false)}>
+              <div className="relative w-full flex justify-center items-center">
+                {/*value.toLowerCase() == "no asignado"*/ false ? (
+                  <button
+                    onClick={() => router.push("/mesas")}
+                    className="bg-tertiary font-display text-sm font-medium px-2rounded hover:text-gray-500 px-3 rounded-lg focus:outline-none"
+                  >
+                    Añadir mesa
+                  </button>
+                ) : (
+                  <button
+                    className="focus:outline-none font-display text-sm capitalize"
+                    onClick={() => setShow(!show)}
+                  >
+                    {value}
+                  </button>
+                )}
+
+                <ul
+                  className={`${show ? "block opacity-100" : "hidden opacity-0"
+                    } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 -top-2 z-40 w-max`}
+                >
+                  {event?.mesas_array?.map((mesa, index) => {
+                    return (
+                      <li
+                        key={index}
+                        className="cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
+                        onClick={() => {
+                          setValue(mesa.nombre_mesa);
+                          setShow(!show);
+                        }}
+                      >
+                        {mesa?.nombre_mesa}
+                      </li>
+                    );
+                  })}
+                  <li
+                    className="bg-tertiary cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
+                    onClick={() => router.push("/mesas")}
+                  >
+                    Añadir mesa
+                  </li>
+                </ul>
+              </div>
+            </ClickAwayListener>
+          );
+        },
+      },
+      {
+        Header: "Mesa Ceremonia",
+        accessor: "mesa_ceremonia",
         Cell: ({ value: initialValue, row, column: { id } }) => {
           const [value, setValue] = useState(initialValue);
           const [show, setShow] = useState(false);

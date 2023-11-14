@@ -126,8 +126,9 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
       selection: 5,
       nombre: 30,
       asistencia: 20,
-      nombre_menu: 30,
-      nombre_mesa: 15,
+      nombre_menu: 15,
+      nombre_mesa: 20,
+      mesa_ceremonia:20,
       delete: 5
     }
 
@@ -179,7 +180,7 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
                       <th
                         {...column.getHeaderProps()}
                         key={i}
-                        className={`px-6 py-3 text-center text-sm font-light font-display col-span-${ColSpan(column.id, headerGroup.headers, 11)}`}
+                        className={`px-6 py-3 text-center flex justify-center items-center text-sm font-light font-display col-span-${ColSpan(column.id, headerGroup.headers, 11)}`}
                       >
                         {
                           // Render the header
