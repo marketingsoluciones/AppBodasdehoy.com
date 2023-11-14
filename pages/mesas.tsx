@@ -214,7 +214,7 @@ const Mesas: FC = () => {
                   </div>
                   <div className={`bg-base flex w-[100%] h-[calc(100%-40px)]`} >
                     <div className="flex flex-col h-[100%] w-full md:px-2 justify-start truncate transform transition duration-700">
-                      <div className={`bg-white w-[100%] h-[100%] mb-2 ${fullScreen ? "md:h-[30%] 2xl:h-[25%]" : "md:h-[40%] 2xl:h-[25%] rounded-b-lg shadow-lg"}`}>
+                      <div className={`bg-white w-[100%] h-[100%] my-1 ${fullScreen ? "md:h-[30%] 2xl:h-[25%]" : "md:h-[40%] 2xl:h-[25%] rounded-lg shadow-lg"}`}>
                         {itemSelect == "invitados" &&
                           <BlockInvitados set={setIsMounted} setEditInv={setEditInv} editInv={editInv} setSelected={setSelected} />
                         }

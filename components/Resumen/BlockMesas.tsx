@@ -46,19 +46,16 @@ const BlockMesas: FC = () => {
                       <MesaIcon className="text-gray-500 h-5* w-8"  />
                       {(() => {
                         if (item.tables.length != 0) {
-                          return (
-                            <>
-                              {
-                                item.tables.map((item, idx) => {
-                                  return (
-                                    <p key={idx} className="font-display font-semibold text-xl text-gray-700">
-                                       {item?.guests?.length} 
-                                    </p>
-                                  )
-                                })
-                              }
-                            </>
-                          )
+                          const invi = item.tables.map((item) => {
+                            return item.guests
+                        })
+                        const inviReduce = invi.flat()
+                        return (
+                            < p key={idx} className="font-display font-semibold text-xl text-gray-700" >
+                                {inviReduce.length} de {event?.invitados_array?.length}
+                                
+                            </p>
+                        )
                         } else {
                           return (
                             <p key={idx} className="font-display font-semibold text-xl text-gray-700">
