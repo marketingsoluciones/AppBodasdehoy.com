@@ -117,10 +117,10 @@ const Invitaciones = () => {
               optionSelect={optionSelect}
               onClick={handleClickOption}
             />
-            <div className="col-span-3 p-5 md:p-0">
+            <div className="col-span-3 p-5 *md:p-0">
               {arryOptions[optionSelect].component}
             </div>
-            <FooterComponent />
+            {/* <FooterComponent /> */}
           </motion.div>
           <style jsx>
             {`

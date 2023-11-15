@@ -15,7 +15,7 @@ export const WhatsappComponent = ({ dataInvitationSent, dataInvitationNotSent, e
                 </div>
 
                 <div className=" w-full bg-white flex py-5* justify-center rounded-xl shadow-md ">
-                    <img src="/Views/whatsapp.jpg" alt="movilsmsview" className="h-auto" />
+                    <img src="/Views/wsPreView.png" alt="movilsmsview" className="h-auto" />
                 </div>
 
                 {/* {event?.invitados_array?.length > 0 && ( */}
