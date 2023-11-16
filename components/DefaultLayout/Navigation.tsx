@@ -18,7 +18,7 @@ const Navigation: any = (
   active: any,
 ): any => {
   const { event } = EventContextProvider();
-  const { user, isProduction, config, setIsActiveStateSwiper } = AuthContextProvider();
+  const { user, config, setIsActiveStateSwiper } = AuthContextProvider();
   const router = useRouter();
   const [showSidebar, setShowSidebar] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -84,17 +84,6 @@ const Navigation: any = (
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
         <meta name="description" content="¡Bodas de Hoy Organizador! Organiza tu boda en un sólo click., user-scalable=no, width=device-width, initial-scale=1" />
       </Head>
-      {!isProduction &&
-        <div className="hidden md:flex">
-          <div>
-            <ul className='absolute z-50 text-sm font-display ml-4'>
-              <li>url: {window.location.hostname}</li>
-              <li>domain: {config.domain}</li>
-              <li>event?.nombre: {event?.nombre}</li>
-            </ul>
-          </div>
-        </div>
-      }
       {shouldRenderChild && (
         <BlockNotification
           evento={event}

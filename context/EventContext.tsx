@@ -71,7 +71,7 @@ const EventProvider = ({ children }) => {
     if (eventsGroup && eventsGroup.length > 0) {
       if (!valir) {
         console.log("seteando evento")
-        const eventsPendientes = eventsGroup.filter(item => item.estatus === "pendiente" && parseInt(item.fecha) >= Math.trunc(new Date().getTime() / 100000) * 100000)
+        const eventsPendientes = eventsGroup.filter(item => item.estatus === "pendiente")
         const eventsGroupSort = eventsPendientes?.sort((a: any, b: any) => { return b.fecha_creacion - a.fecha_creacion })
         setEvent(eventsGroupSort[0]);
         setValir(true)

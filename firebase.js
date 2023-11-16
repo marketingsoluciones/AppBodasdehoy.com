@@ -117,7 +117,7 @@ export const developments = [
     cookieGuest: "guestvivetuboda",
     pathLogin: "",
     pathDirectory: "http://vivetuboda.com",
-    logoDirectory: <LogoVivetuboda className="hover:opacity-80 transition text-primary " />,
+    logoDirectory: <LogoVivetuboda className="hover:opacity-80 transition text-primary " />, 
     headTitle: "Organizador de Eventos",
     theme: {
       primaryColor: "#6096B9"/* "#6771ae" */,

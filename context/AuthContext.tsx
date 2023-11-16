@@ -15,8 +15,6 @@ const initialContext = {
   setVerificationDone: undefined,
   config: undefined,
   setConfig: undefined,
-  isProduction: true,
-  setIsProduction: undefined,
   theme: undefined,
   setTheme: undefined,
   isActiveStateSwiper: 0,
@@ -32,8 +30,6 @@ type Context = {
   setVerificationDone: any
   config: any
   setConfig: any
-  isProduction: any
-  setIsProduction: any
   theme: any
   setTheme: any
   isActiveStateSwiper: any
@@ -48,7 +44,6 @@ const AuthProvider = ({ children }) => {
   const [user, setUser] = useState<any>(initialContext.user);
   const [verificationDone, setVerificationDone] = useState<any>(false);
   const [config, setConfig] = useState<any>();
-  const [isProduction, setIsProduction] = useState<any>(true)
   const [isMounted, setIsMounted] = useState<any>(false)
   const [isActiveStateSwiper, setIsActiveStateSwiper] = useState<any>(0);
   const [theme, setTheme] = useState<any>({
@@ -80,7 +75,7 @@ const AuthProvider = ({ children }) => {
       console.log(idx)
       /*--------------------------------------------------------------------*/
       const devDomain = ["bodasdehoy", "eventosplanificador", "eventosorganizador", "vivetuboda"]
-      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[3] /*<<<<<<<<<*/
+      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[0] /*<<<<<<<<<*/
       /*--------------------------------------------------------------------*/
       resp = developments.filter(elem => elem.name === domainDevelop)[0]
       if (idx === -1 || window.origin.includes("://test")) {
@@ -94,7 +89,6 @@ const AuthProvider = ({ children }) => {
           pathSignout: resp?.pathSignout ? `${directory}/signout` : undefined,
           pathPerfil: resp?.pathPerfil ? `${directory}/configuracion` : undefined
         }
-        setIsProduction(idx !== -1)
       }
       try {
         firebaseClient = initializeApp(resp?.fileConfig);
@@ -181,7 +175,7 @@ const AuthProvider = ({ children }) => {
 
 
   return (
-    <AuthContext.Provider value={{ user, setUser, verificationDone, setVerificationDone, config, setConfig, isProduction, setIsProduction, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo }}>
+    <AuthContext.Provider value={{ user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo }}>
       {children}
     </AuthContext.Provider>
   );

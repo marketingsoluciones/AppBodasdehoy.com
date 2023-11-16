@@ -6,7 +6,7 @@ import { TransformComponent } from "react-zoom-pan-pinch";
 import { LiezoDragable } from "./LienzoDragable";
 import { useToast } from "../../hooks/useToast";
 import { InputMini } from "./InputMini";
-import { BiDotsVerticalRounded } from "react-icons/bi"
+import { MdSaveAlt } from "react-icons/md"
 import { MdOutlineRotate90DegreesCw } from "react-icons/md"
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../context";
 import ClickAwayListener from "react-click-away-listener";
@@ -80,10 +80,10 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
             <Lock className="text-primary md:block h-6 w-5" />
           </span>
         </div>
-        <div className="flex text-red-700 items-center pr-2 md:pr-3 gap-1 md:gap-2 curso">
+        <div className="flex text-red-700 items-center pr-2 md:pr-3 gap-1 md:gap-2">
           <ClickAwayListener onClickAway={() => setShowMiniMenu(false)}>
             <div>
-              <BiDotsVerticalRounded className="h-6 w-6 cursor-pointer text-primary" onClick={() => setShowMiniMenu(!showMiniMenu)} />
+              <MdSaveAlt className="h-6 w-6 cursor-pointer text-primary" onClick={() => setShowMiniMenu(!showMiniMenu)} />
               {showMiniMenu &&
                 <div className="bg-white flex flex-col absolute z-[50] top-8 right-18 rounded-b-md shadow-md *items-center text-[9px] px-3 pt-1 pb-3 text-gray-800 gap-y-2">
                   <div className="bg-white flex flex-col absolute z-[10] top-[0px] right-0 rounded-b-md shadow-md min-w-[140px] md:min-w-[120px] *items-center text-[10px] md:text-[12px] px-3 pt-1 pb-2 text-gray-800">
@@ -179,7 +179,10 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
         wrapperStyle={{ width: "100%", height: "100%", background: "gray" }}
         contentStyle={{ width: `${lienzo?.width}px`, height: `${lienzo?.height}px`, background: "blue" }}
       >
-        <div id={"lienzo-drop"} className="js-dropTables bg-gray-300 paper lienzo flex justify-center items-center">
+        <div
+          id={"lienzo-drop"}
+          onClick={(e) => { console.log(e.clientX, e.clientY) }}
+          className="js-dropTables bg-gray-300 paper lienzo flex justify-center items-center">
           <div className="lienzo border-4 border-indigo-600"></div>
           <LiezoDragable scale={state.scale} lienzo={lienzo} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} setShowFormEditar={setShowFormEditar} />
         </div>

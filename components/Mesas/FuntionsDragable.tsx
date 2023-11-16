@@ -53,6 +53,15 @@ export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, eventID,
           // only allow drops into empty dropzone elements
           if (event.type == "pointerup") {
             if (dropped) {
+              console.log(100905,
+                dragEvent.page, dragEvent.rect,
+                // event,
+                // dropped,
+                // dropzone,
+                // dropzoneElement,
+                // draggable,
+                // draggableElement,
+              )
               const { layerX, layerY, offsetX, offsetY, pageX, pageY } = event
               values = { layerX, layerY, offsetX, offsetY, pageX, pageY }
               //console.log("AL SOLTAR_0", { layerX, layerY, offsetX, offsetY, pageX, pageY })
