@@ -57,7 +57,7 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu, s
           Menu
         </button>
         <button
-          onClick={() => event?.invitados_array.length > 0 ? setCreatePDF(!createPDF): toast("error", "Debes agregar invitados")}
+          onClick={() => event?.invitados_array.length > 0 ? setCreatePDF(!createPDF) : toast("error", "Debes agregar invitados")}
           className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-2 items-center justify-between text-primary font-display font-semibold text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
         >
           {/* <PlusIcon /> */}
@@ -110,7 +110,7 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu, s
       </div>
       <SentarBlock />
       {createPDF ? (
-        <ModalPDF createPDF={createPDF} setCreatePDF={setCreatePDF} Data={event}  />
+        <ModalPDF createPDF={createPDF} setCreatePDF={setCreatePDF} Data={event} />
       ) : null}
     </div>
   );

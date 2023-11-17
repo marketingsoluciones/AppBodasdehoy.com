@@ -89,6 +89,7 @@ const AuthProvider = ({ children }) => {
           pathSignout: resp?.pathSignout ? `${directory}/signout` : undefined,
           pathPerfil: resp?.pathPerfil ? `${directory}/configuracion` : undefined
         }
+        console.log(222215, resp?.domain)
       }
       try {
         firebaseClient = initializeApp(resp?.fileConfig);
@@ -109,11 +110,12 @@ const AuthProvider = ({ children }) => {
           console.info("Verificando cookie", sessionCookie);
           //setUser(user)
           if (!sessionCookie) {
-            let guestUid = Cookies.get(config?.cookieGuest)
+            const cookieContent = JSON.parse(Cookies.get(config?.cookieGuest))
+            let guestUid = cookieContent?.guestUid
             if (!guestUid) {
               const dateExpire = new Date(new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000))
               guestUid = nanoid(28)
-              Cookies.set(config?.cookieGuest, guestUid, { domain: `.${resp?.domain}.com`, expires: dateExpire })
+              Cookies.set(config?.cookieGuest, JSON.stringify({ guestUid }), { domain: `${config?.domain}`, expires: dateExpire })
             }
             setUser({ uid: guestUid, displayName: "guest" })
           }

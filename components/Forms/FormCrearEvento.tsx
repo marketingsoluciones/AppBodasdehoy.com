@@ -6,6 +6,7 @@ import SelectField from "./SelectField";
 import { useToast } from "../../hooks/useToast";
 import * as yup from "yup";
 import { Dispatch, FC, SetStateAction, useEffect, useState } from "react";
+import Cookies from "js-cookie";
 
 // formatear fecha
 const getDate = (f: Date): string => {
@@ -28,7 +29,7 @@ interface propsFromCrearEvento {
 
 const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) => {
   const { event, setEvent } = EventContextProvider()
-  const { user } = AuthContextProvider();
+  const { user, config } = AuthContextProvider();
   const { setEventsGroup, eventsGroup } = EventsGroupContextProvider();
   const toast = useToast();
   const [valir, setValir] = useState(false)
@@ -88,9 +89,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
 
   const updateEvent = async (values) => {
     try {
-      console.log("values.fecha.salida", new Date(values.fecha).getTime())
       values.fecha = new Date(values.fecha).getTime()
-      console.log("values.fecha.salida", new Date(values.fecha))
       await fetchApiEventos({
         query: queries.eventUpdate,
         variables: { idEvento: values._id, variable: "nombre", value: values.nombre }, token: null
@@ -103,7 +102,6 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
         query: queries.eventUpdate,
         variables: { idEvento: values._id, variable: "fecha", value: values.fecha.toString() }, token: null
       })
-      /* console.log(result) */
       setEvent({ ...event, ...values })
       toast("success", "Evento actualizado con exito")
     } catch (error) {
@@ -119,6 +117,11 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
       updateEvent({ ...values })
     } else {
       createEvent(values)
+      if (user?.displayName === "guest" && eventsGroup?.length === 0) {
+        const cookieContent = JSON.parse(Cookies.get(config?.cookieGuest))
+        const dateExpire = new Date(new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000))
+        Cookies.set(config?.cookieGuest, JSON.stringify({ ...cookieContent, eventCreated: true }), { domain: `${config?.domain}`, expires: dateExpire })
+      }
     }
   };
 

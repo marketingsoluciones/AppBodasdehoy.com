@@ -3,7 +3,7 @@ import { AuthContextProvider, EventContextProvider } from "../context"
 
 export const InfoDevelopment = () => {
   const { event } = EventContextProvider()
-  const { config } = AuthContextProvider()
+  const { config, user } = AuthContextProvider()
   const [isMounted, setIsMounted] = useState(false)
   const [isDevelopment, setIsDevelopment] = useState(false)
 
@@ -32,6 +32,8 @@ export const InfoDevelopment = () => {
             <li>url: {window?.location?.hostname}</li>
             <li>domain: {config?.domain}</li>
             <li>event?.nombre: {event?.nombre}</li>
+            <li>user: {user?.displayName}</li>
+            <li>userUid: {user?.uid}</li>
           </ul>
         </div>
       }
