@@ -39,7 +39,7 @@ const Profile = ({ user, state, set, ...rest }) => {
       onClick: async () => {
         Cookies.remove("sessionBodas", { domain: config?.domain ?? "" });
         Cookies.remove("idToken", { domain: config?.domain ?? "" });
-        await signOut(getAuth());
+        signOut(getAuth());
         router.push(`${config.pathSignout}?end=true` ?? "")
       },
       user: "loged"

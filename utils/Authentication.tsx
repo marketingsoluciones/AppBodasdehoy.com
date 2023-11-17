@@ -127,7 +127,7 @@ export const useAuthentication = () => {
   const _signOut = useCallback(async () => {
     Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
     Cookies.remove("idToken", { domain: config?.domain ?? "" });
-    await signOut(getAuth());
+    signOut(getAuth());
     router.push(config?.pathDirectory ? `${config?.pathDirectory}/signout?end=true` : "/")
   }, [router])
 
