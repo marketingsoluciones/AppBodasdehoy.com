@@ -34,7 +34,7 @@ const Profile = ({ user, state, set, ...rest }) => {
     {
       title: "Mis empresas",
       onClick: async () => {
-        const path = window.origin.includes("://test.") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS
+        const path = window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS
         router.push(user?.role?.includes("empresa") ? path ?? "" : "/info-empresa")
       },
       icon: <CompanyIcon />,
@@ -50,7 +50,7 @@ const Profile = ({ user, state, set, ...rest }) => {
       title: "Mis publicaciones",
       onClick: async () => {
         //!user?.uid && toast("success", "debes ininiciar sessión o registrarte")
-        const path = `${window.origin.includes("://test.") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}/InfoPage/publicaciones`
+        const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}/InfoPage/publicaciones`
         router.push(user?.uid ? path ?? "" : `/login?d=${router.asPath.slice(1, router.asPath.length)}&end=${path}`)
       },
       icon: <Posts />,
@@ -65,7 +65,7 @@ const Profile = ({ user, state, set, ...rest }) => {
     {
       title: "Mis eventos",
       onClick: async () => {
-        router.push(cookieContent?.eventCreated || user?.uid ? window.origin.includes("://test.") ? process.env.NEXT_PUBLIC_EVENTSAPP?.replace("//", "//test") ?? "" : process.env.NEXT_PUBLIC_EVENTSAPP ?? "" : "/welcome-app",)
+        router.push(cookieContent?.eventCreated || user?.uid ? window.origin.includes("://test") ? process.env.NEXT_PUBLIC_EVENTSAPP?.replace("//", "//test") ?? "" : process.env.NEXT_PUBLIC_EVENTSAPP ?? "" : "/welcome-app",)
       },
       icon: <Eventos />,
       rol: ["all"],
@@ -73,7 +73,7 @@ const Profile = ({ user, state, set, ...rest }) => {
     {
       title: "Proveedores",
       onClick: async () => {
-        router.push(cookieContent?.eventCreated || user?.uid ? window.origin.includes("://test.") ? process.env.NEXT_PUBLIC_DIRECTORY?.replace("//", "//test") ?? "" : process.env.NEXT_PUBLIC_DIRECTORY ?? "" : "/welcome-app",)
+        router.push(cookieContent?.eventCreated || user?.uid ? window.origin.includes("://test") ? process.env.NEXT_PUBLIC_DIRECTORY?.replace("//", "//test.") ?? "" : process.env.NEXT_PUBLIC_DIRECTORY ?? "" : "/welcome-app",)
       },
       icon: <CorazonPaddinIcon />,
       rol: ["novio", "novia", "otro", "empresa"],
@@ -81,7 +81,7 @@ const Profile = ({ user, state, set, ...rest }) => {
     {
       title: "Mi perfil",
       onClick: async () => {
-        router.push(cookieContent?.eventCreated || user?.uid ? window.origin.includes("://test.") ? `${process.env.NEXT_PUBLIC_DIRECTORY}/configuracion`?.replace("//", "//test") ?? "" : `${process.env.NEXT_PUBLIC_DIRECTORY}/configuracion` ?? "" : "/welcome-app",)
+        router.push(cookieContent?.eventCreated || user?.uid ? window.origin.includes("://test") ? `${process.env.NEXT_PUBLIC_DIRECTORY}/configuracion`?.replace("//", "//test.") ?? "" : `${process.env.NEXT_PUBLIC_DIRECTORY}/configuracion` ?? "" : "/welcome-app",)
       },
       icon: <UserIcon />,
       rol: ["novio", "novia", "otro", "empresa"],
