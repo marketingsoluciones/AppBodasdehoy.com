@@ -33,8 +33,11 @@ const Profile = ({ user, state, set, ...rest }) => {
     },
     {
       title: "Mis empresas",
-      onClick: async () => { router.push(config?.directory ? `${config?.directory}/info-empresa` : `/`) },
-      icon: <CompanyIcon />,
+      onClick: async () => {
+        //!user?.uid && toast("success", "debes ininiciar sessión o registrarte")
+        const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
+        router.push(user?.uid ? path ?? "" : `/login?d=${router.asPath.slice(1, router.asPath.length)}&end=${path}`)
+      }, icon: <CompanyIcon />,
       rol: ["novio", "novia", "otro", "empresa"],
     },
     {
