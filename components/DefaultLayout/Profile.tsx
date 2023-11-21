@@ -33,12 +33,9 @@ const Profile = ({ user, state, set, ...rest }) => {
     },
     {
       title: "Mis empresas",
-      onClick: async () => {
-        const path = window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS
-        router.push(user?.role?.includes("empresa") ? path ?? "" : "/info-empresa")
-      },
+      onClick: async () => { router.push(config?.directory ? `${config?.directory}/info-empresa` : `/`) },
       icon: <CompanyIcon />,
-      rol: ["all"],
+      rol: ["novio", "novia", "otro", "empresa"],
     },
     {
       title: "Notificaciones",
@@ -54,7 +51,7 @@ const Profile = ({ user, state, set, ...rest }) => {
         router.push(user?.uid ? path ?? "" : `/login?d=${router.asPath.slice(1, router.asPath.length)}&end=${path}`)
       },
       icon: <Posts />,
-      rol: ["all"],
+      rol: ["novio", "novia", "otro", "empresa"],
     },
     {
       title: "Wedding page",
@@ -68,7 +65,7 @@ const Profile = ({ user, state, set, ...rest }) => {
         router.push(cookieContent?.eventCreated || user?.uid ? window.origin.includes("://test") ? process.env.NEXT_PUBLIC_EVENTSAPP?.replace("//", "//test") ?? "" : process.env.NEXT_PUBLIC_EVENTSAPP ?? "" : "/welcome-app",)
       },
       icon: <Eventos />,
-      rol: ["all"],
+      rol: ["novio", "novia", "otro", "empresa"],
     },
     {
       title: "Proveedores",
