@@ -21,9 +21,18 @@ module.exports = {
         primaryOrg: "#6096B9",
         secondaryOrg: "#284C77",
         acento: "#F4C02F",
-        titelCard:"#B5B5B5",
-        textGrisClaro:"#727272"
+        titelCard: "#B5B5B5",
+        textGrisClaro: "#727272"
       },
+      transitionProperty: {
+        'height': 'height'
+      },
+      spacing: {
+        '182px': '177.5px',
+        '20px': '23px',
+        '267px': '136px',
+        '17px': '17px'
+      }
     }
   },
   // corePlugins: {

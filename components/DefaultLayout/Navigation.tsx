@@ -140,17 +140,7 @@ const Navigation: any = (
                         setRoute(item.route)
                       }
                     }}
-                    className={`w-max flex flex-col justify-between items-center hover:opacity-80  transition  cursor-pointer
-                  ${route == item.route ?
-                        route == "/"
-                          ? "text-white transform scale-110"
-                          : "text-primary transform scale-110"
-                        : route == "/"
-                          ? "text-gray-200"
-                          : "text-gray-400"
-                      } 
-                    ${event?._id ? "" : ""}
-                  }`}
+                    className={`w-max flex flex-col justify-between items-center hover:opacity-80  transition  cursor-pointer text-gray-200`}
                   >
                     {item.icon}
                     <p className="font-display text-sm h-max"  >{item.title}</p>

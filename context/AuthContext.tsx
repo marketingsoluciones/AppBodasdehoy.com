@@ -110,7 +110,7 @@ const AuthProvider = ({ children }) => {
           console.info("Verificando cookie", sessionCookie);
           //setUser(user)
           if (!sessionCookie) {
-            const cookieContent = JSON.parse(Cookies.get(config?.cookieGuest))
+            const cookieContent = JSON.parse(Cookies.get(config?.cookieGuest) ?? "{}")
             let guestUid = cookieContent?.guestUid
             if (!guestUid) {
               const dateExpire = new Date(new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000))
@@ -133,11 +133,12 @@ const AuthProvider = ({ children }) => {
               console.info("Guardo datos en contexto react");
             } else {
               console.info("NO tengo user de contexto de firebase");
-              const { customToken } = await fetchApiBodas({
+              const resp = await fetchApiBodas({
                 query: queries.authStatus,
                 variables: { sessionCookie },
                 development: config?.development
               });
+              const customToken = resp?.customToken
               console.info("Llamo con mi sessionCookie para traerme customToken");
               console.info("Custom token", customToken)
               customToken && signInWithCustomToken(getAuth(), customToken);

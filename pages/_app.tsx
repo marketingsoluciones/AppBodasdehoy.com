@@ -2,7 +2,9 @@ import '../styles/globals.css'
 import DefaultLayout from '../layouts/DefaultLayout'
 import 'swiper/css';
 import "swiper/css/bundle"
-
+import "@fontsource/italiana";
+import "@fontsource/montserrat";
+import "@fontsource/poppins";
 import { AnimatePresence } from 'framer-motion';
 import { AuthContextProvider } from '../context';
 import { useEffect } from 'react';
