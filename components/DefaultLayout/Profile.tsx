@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import ClickAwayListener from "react-click-away-listener";
 import { capitalize } from "../../utils/Capitalize";
 import { CompanyIcon, CorazonPaddinIcon, Eventos, MensajeIcon, Posts, UserIcon, WeddingPage } from "../icons";
-import { useRouter } from "next/router";
+import router, { useRouter } from "next/router";
 import { getAuth, signOut } from "firebase/auth";
 import { AuthContextProvider } from "../../context";
 import Cookies from "js-cookie";
@@ -16,18 +16,18 @@ import { MdLogout } from "react-icons/md";
 const Profile = ({ user, state, set, ...rest }) => {
   const { config } = AuthContextProvider()
   const [dropdown, setDropwdon] = useState(false);
-  const router = useRouter()
+  const { route } = useRouter()
   const cookieContent = JSON.parse(Cookies.get("guestbodas") ?? "{}")
   const options: Option[] = [
     {
       title: "Iniciar sesión",
-      onClick: async () => { router.push(`/login?d=${router.asPath.slice(1, router.asPath.length)}`) },
+      onClick: async () => { router.push(config?.pathLogin ? `${config?.pathLogin}?d=app` : `/login?d=${route}`) },
       icon: <RiLoginBoxLine />,
       rol: undefined,
     },
     {
       title: "Registrarse",
-      onClick: async () => { router.push(`/login?q=register&d=${router.asPath.slice(1, router.asPath.length)}`) },
+      onClick: async () => { router.push(config?.pathLogin ? `${config?.pathLogin}?d=app&q=register` : `/login?q=register&d=${route}`) },
       icon: <PiUserPlusLight />,
       rol: undefined,
     },
@@ -72,28 +72,25 @@ const Profile = ({ user, state, set, ...rest }) => {
     },
     {
       title: "Proveedores",
-      onClick: async () => {
-        router.push(cookieContent?.eventCreated || user?.uid ? window.origin.includes("://test") ? process.env.NEXT_PUBLIC_DIRECTORY?.replace("//", "//test.") ?? "" : process.env.NEXT_PUBLIC_DIRECTORY ?? "" : "/welcome-app",)
-      },
+      onClick: async () => { router.push(config?.pathDirectory) },
       icon: <CorazonPaddinIcon />,
       rol: ["novio", "novia", "otro", "empresa"],
     },
     {
       title: "Mi perfil",
-      onClick: async () => {
-        router.push(cookieContent?.eventCreated || user?.uid ? window.origin.includes("://test") ? `${process.env.NEXT_PUBLIC_DIRECTORY}/configuracion`?.replace("//", "//test.") ?? "" : `${process.env.NEXT_PUBLIC_DIRECTORY}/configuracion` ?? "" : "/welcome-app",)
-      },
+      onClick: async () => { router.push(config?.pathPerfil) },
       icon: <UserIcon />,
       rol: ["novio", "novia", "otro", "empresa"],
     },
     {
       title: "Cerrar Sesión",
       icon: <MdLogout />,
-      // onClick: async () => {
-      //   setHovered(false)
-      //   setLoading(true);
-      //   _signOut()
-      // },
+      onClick: async () => {
+        Cookies.remove("sessionBodas", { domain: config?.domain ?? "" });
+        Cookies.remove("idToken", { domain: config?.domain ?? "" });
+        signOut(getAuth());
+        router.push(`${config.pathSignout}?end=true` ?? "")
+      },
       rol: ["novio", "novia", "otro", "empresa"],
     },
   ];
