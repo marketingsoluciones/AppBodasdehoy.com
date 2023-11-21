@@ -2,7 +2,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import ClickAwayListener from "react-click-away-listener";
 import { capitalize } from "../../utils/Capitalize";
-import { CompanyIcon, Eventos, MensajeIcon, Posts, UserIcon, WeddingPage } from "../icons";
+import { CompanyIcon, CorazonPaddinIcon, Eventos, MensajeIcon, Posts, UserIcon, WeddingPage } from "../icons";
 import { useRouter } from "next/router";
 import { getAuth, signOut } from "firebase/auth";
 import { AuthContextProvider } from "../../context";
@@ -71,8 +71,18 @@ const Profile = ({ user, state, set, ...rest }) => {
       rol: ["all"],
     },
     {
+      title: "Proveedores",
+      onClick: async () => {
+        router.push(cookieContent?.eventCreated || user?.uid ? window.origin.includes("://test.") ? process.env.NEXT_PUBLIC_DIRECTORY?.replace("//", "//test") ?? "" : process.env.NEXT_PUBLIC_DIRECTORY ?? "" : "/welcome-app",)
+      },
+      icon: <CorazonPaddinIcon />,
+      rol: ["novio", "novia", "otro", "empresa"],
+    },
+    {
       title: "Mi perfil",
-      onClick: async () => { router.push(`/configuracion`) },
+      onClick: async () => {
+        router.push(cookieContent?.eventCreated || user?.uid ? window.origin.includes("://test.") ? `${process.env.NEXT_PUBLIC_DIRECTORY}/configuracion`?.replace("//", "//test") ?? "" : `${process.env.NEXT_PUBLIC_DIRECTORY}/configuracion` ?? "" : "/welcome-app",)
+      },
       icon: <UserIcon />,
       rol: ["novio", "novia", "otro", "empresa"],
     },
