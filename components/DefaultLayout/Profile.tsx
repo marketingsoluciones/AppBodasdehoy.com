@@ -74,7 +74,7 @@ const Profile = ({ user, state, set, ...rest }) => {
       title: "Proveedores",
       onClick: async () => { router.push(config?.pathDirectory) },
       icon: <CorazonPaddinIcon />,
-      rol: ["novio", "novia", "otro", "empresa"],
+      rol: ["all"],
     },
     {
       title: "Mi perfil",
@@ -126,11 +126,11 @@ const Profile = ({ user, state, set, ...rest }) => {
 
         <ClickAwayListener onClickAway={() => dropdown && setDropwdon(false)}>
           <div
-            className="bg-blue-300 items-center gap-2 profile hidden md:flex relative"
+            className="bg-white items-center gap-2 profile hidden md:flex relative"
             onClick={() => setDropwdon(!dropdown)}
           >
             {dropdown && (
-              <div className="bg-white rounded-lg w-80 h-max shadow-lg absolute bottom-0 right-0 transform translate-y-[210px] overflow-hidden z-40 title-display">
+              <div className="bg-white rounded-lg w-80 h-max shadow-lg absolute top-0 right-0 translate-y-[46px] overflow-hidden z-40 title-display">
                 {/* < div className={`bg-red w-80 p-3 rounded-xl h-max shadow-md absolute bottom-0 right-0 inset-y-full translate-y-1 overflow-hidden z-50}`}> */}
                 <div className="w-full border-b border-gray-100 pb-2">
                   <p className="text-gray-500 font-extralight uppercase tracking-wider	text-xs text-center  cursor-default">
