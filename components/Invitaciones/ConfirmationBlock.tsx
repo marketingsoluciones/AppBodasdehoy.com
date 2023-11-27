@@ -10,17 +10,19 @@ export const ConfirmationBlock: FC<any> = ({ arrEnviarInvitaciones, set }) => {
     set([]);
   };
 
-  const Aceptar = async () => {
+  const handleSendInvitation = async () => {
     const params = {
       query: `mutation enviaInvitacion (
           $evento_id : String,
           $invitados_ids_array : [String],
-          $dominio: String
+          $dominio: String,
+          $transport: String
         ){
           enviaInvitacion(
             evento_id:$evento_id,
             invitados_ids_array:$invitados_ids_array,
-            dominio:$dominio
+            dominio:$dominio,
+            transport:$transport
           ){
             _id,
             invitados_array{
@@ -40,41 +42,48 @@ export const ConfirmationBlock: FC<any> = ({ arrEnviarInvitaciones, set }) => {
       variables: {
         evento_id: event?._id,
         invitados_ids_array: arrEnviarInvitaciones,
-        dominio: process.env.NEXT_PUBLIC_BASE_URL
+        dominio: process.env.NEXT_PUBLIC_BASE_URL,
+        transport: "whatsapp"
       },
     };
+    console.log(event)
+    if (event?.imgInvitacion) {
+      try {
+        await api.ApiApp(params);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setEvent((old) => {
+          arrEnviarInvitaciones.forEach((invitado) => {
+            const idxInvitado = event?.invitados_array?.findIndex(
+              (inv) => inv._id == invitado
+            );
+            old.invitados_array[idxInvitado] = {
+              ...old.invitados_array[idxInvitado],
+              invitacion: true,
+            };
+          });
 
-    try {
-      await api.ApiApp(params);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setEvent((old) => {
-        arrEnviarInvitaciones.forEach((invitado) => {
-          const idxInvitado = event?.invitados_array?.findIndex(
-            (inv) => inv._id == invitado
-          );
-          old.invitados_array[idxInvitado] = {
-            ...old.invitados_array[idxInvitado],
-            invitacion: true,
-          };
+          return { ...old };
         });
-
-        return { ...old };
-      });
-      set([])
+        set([])
+      }
     }
   };
   return (
     <div className="w-full h-full absolute grid place-items-center p-4">
-      <div className="bg-white rounded-xl relative w-max h-max p-6 z-30 flex flex-col gap-3">
-        <p className="font-display text-gray-500">{`¿Desea enviar ${arrEnviarInvitaciones.length
-          } ${arrEnviarInvitaciones.length > 1 ? "invitaciones" : "invitacion"
-          } de su evento?`}</p>
+      <div className="bg-white rounded-xl relative w-max md:w-[400px] h-max p-6 z-30 flex flex-col gap-3">
+        <p className="font-display text-gray-500">
+          {!event?.imgInvitacion
+            ? "Debe añadir la invitación"
+            : `¿Desea enviar ${arrEnviarInvitaciones.length} ${arrEnviarInvitaciones.length > 1 ? "invitaciones" : "invitación"} de su evento?`
+          }
+        </p>
         <div className="w-full flex gap-10 justify-center h-max items-center">
           <button
-            onClick={Aceptar}
-            className="rounded-md font-display focus:outline-none bg-green text-white hover:opacity-90 transition px-2 py-1"
+            onClick={handleSendInvitation}
+            className={`rounded-md font-display focus:outline-none ${!event?.imgInvitacion ? "bg-gray-300" : "bg-green"} text-white hover:opacity-90 transition px-2 py-1`}
+            disabled={!event?.imgInvitacion}
           >
             Aceptar
           </button>
