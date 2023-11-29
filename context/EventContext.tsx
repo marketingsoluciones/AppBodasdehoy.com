@@ -1,6 +1,7 @@
 import { createContext, useState, useContext, useEffect, Dispatch, SetStateAction } from "react";
 import { EditDefaultState, Event, filterGuest, planSpace } from "../utils/Interfaces";
 import { EventsGroupContextProvider } from "./EventsGroupContext";
+import { getAllFilterGuest } from "../utils/Funciones";
 
 interface idxGroupEvent {
   idx: number
@@ -11,6 +12,7 @@ interface idxGroupEvent {
 interface filterGuests {
   sentados: filterGuest[]
   noSentados: filterGuest[]
+  update: number
 }
 
 interface clicked {
@@ -34,6 +36,8 @@ type Context = {
   setPlanSpaceActive: Dispatch<SetStateAction<planSpace>>
   filterGuests: filterGuests
   setFilterGuests: Dispatch<SetStateAction<filterGuests>>
+  allFilterGuests: filterGuests[]
+  setAllFilterGuests: Dispatch<SetStateAction<filterGuests[]>>
   editDefault: EditDefaultTableAndElement | null
   setEditDefault: Dispatch<SetStateAction<EditDefaultTableAndElement>>
 }
@@ -47,8 +51,10 @@ const EventContext = createContext<Context>({
   setIdxGroupEvent: () => { },
   planSpaceActive: null,
   setPlanSpaceActive: () => { },
-  filterGuests: { sentados: [], noSentados: [] },
+  filterGuests: { sentados: [], noSentados: [], update: 0 },
   setFilterGuests: () => { },
+  allFilterGuests: [{ sentados: [], noSentados: [], update: 0 }],
+  setAllFilterGuests: () => { },
   editDefault: null,
   setEditDefault: () => { }
 })
@@ -60,7 +66,8 @@ const EventProvider = ({ children }) => {
   const [idxGroupEvent, setIdxGroupEvent] = useState<idxGroupEvent | null>({ idx: 0, isActiveStateSwiper: 0, event_id: null });
   const { eventsGroup } = EventsGroupContextProvider()
   const [planSpaceActive, setPlanSpaceActive] = useState<planSpace | null>(null);
-  const [filterGuests, setFilterGuests] = useState<filterGuests>({ sentados: [], noSentados: [] })
+  const [filterGuests, setFilterGuests] = useState<filterGuests>({ sentados: [], noSentados: [], update: 0 })
+  const [allFilterGuests, setAllFilterGuests] = useState<filterGuests[]>([{ sentados: [], noSentados: [], update: 0 }])
   const [editDefault, setEditDefault] = useState<EditDefaultTableAndElement>()
 
   // Capturar eventos del cumulo y seleccionar uno
@@ -95,6 +102,7 @@ const EventProvider = ({ children }) => {
   useEffect(() => {
     //console.log("seteado event _________________________")
     console.log("seteado event", event)
+    setAllFilterGuests({ ...getAllFilterGuest(event), update: new Date().getTime() })
     //console.log("---------------------------------------")
   }, [event])
 
@@ -111,7 +119,7 @@ const EventProvider = ({ children }) => {
   }, [eventsGroup])
 
   return (
-    <EventContext.Provider value={{ event, setEvent, invitadoCero, setInvitadoCero, idxGroupEvent, setIdxGroupEvent, planSpaceActive, setPlanSpaceActive, filterGuests, setFilterGuests, editDefault, setEditDefault }}>
+    <EventContext.Provider value={{ event, setEvent, invitadoCero, setInvitadoCero, idxGroupEvent, setIdxGroupEvent, planSpaceActive, setPlanSpaceActive, filterGuests, setFilterGuests, allFilterGuests, setAllFilterGuests, editDefault, setEditDefault }}>
       {children}
     </EventContext.Provider>
   );

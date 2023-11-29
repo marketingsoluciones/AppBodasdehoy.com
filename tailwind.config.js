@@ -32,6 +32,9 @@ module.exports = {
         '20px': '23px',
         '267px': '136px',
         '17px': '17px'
+      },
+      gridTemplateColumns: {
+        '24': 'repeat(24, minmax(0, 1fr))',
       }
     }
   },

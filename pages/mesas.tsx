@@ -30,7 +30,7 @@ import BlockPlantillas from "../components/Mesas/BlockPlantillas";
 SwiperCore.use([Pagination]);
 
 const Mesas: FC = () => {
-  const { event, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, setFilterGuests, setEditDefault } = EventContextProvider();
+  const { event, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, setFilterGuests, allFilterGuests, setEditDefault } = EventContextProvider();
   const [values, setValues] = useState<any>({});
   const [showFormCreateTable, setShowFormCreateTable] = useState<boolean>(false);
   const [showFormEditar, setShowFormEditar] = useState<any>({ table: {}, visible: false });
@@ -95,60 +95,10 @@ const Mesas: FC = () => {
   }, [planSpaceActive])
 
   useEffect(() => {
-    if (planSpaceActive) {
-      const guestsSections = planSpaceActive?.sections?.reduce((sections, section) => {
-        const guestsSection = section?.tables?.reduce((tables, table) => {
-          if (table?.guests?.length > 0) {
-            const asd = table.guests.map(elem => {
-              return {
-                guestID: elem._id,
-                planSpaceID: planSpaceActive._id,
-                sectionID: undefined,
-                tableID: table._id,
-                chair: elem.chair,
-                order: elem.order,
-              }
-            })
-            tables = [...tables, asd]
-          }
-          return tables
-        }, [])
-        sections.push(...guestsSection)
-        return sections
-      }, [])
-      const guestsTables = planSpaceActive?.tables?.reduce((tables, table) => {
-        if (table?.guests?.length > 0) {
-          const asd = table.guests.map(elem => {
-            return {
-              guestID: elem._id,
-              planSpaceID: planSpaceActive._id,
-              sectionID: undefined,
-              tableID: table._id,
-              chair: elem.chair,
-              order: elem.order,
-            }
-          })
-          tables = [...tables, ...asd]
-        }
-        return tables
-      }, [])
-      const guestsSentados = [...guestsSections, ...guestsTables]
-      const guestsSentadosIds = guestsSentados.map(elem => elem.guestID)
-      const filterGuest = event?.invitados_array?.reduce((acc, item) => {
-        if (guestsSentadosIds?.includes(item._id)) {
-          const guest = guestsSentados.find(elem => elem.guestID === item._id)
-          acc.sentados.push({
-            ...item,
-            ...guest
-          })
-          return acc
-        }
-        acc.noSentados.push(item)
-        return acc
-      }, { sentados: [], noSentados: [] })
-      setFilterGuests(filterGuest)
+    if (allFilterGuests) {
+      setFilterGuests(allFilterGuests[event?.planSpace?.findIndex(elem => elem._id === planSpaceActive._id)])
     }
-  }, [planSpaceActive, event])
+  }, [allFilterGuests])
 
   useEffect(() => {
     if (!showFormEditar) {
@@ -201,14 +151,14 @@ const Mesas: FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="max-w-screen-lg mx-auto inset-x-0 w-full px-5 md:px-0 ">
+              className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 ">
               <BlockTitle title={"Mesas y asientos"} />
             </motion.div>
             <div className={`${fullScreen ? "absolute z-[50] w-[100vw] h-[100vh] top-0 left-0" : "w-full h-[calc(100vh-208px)] md:h-[calc(100vh-210px)] md:mt-2"}`}>
 
 
               <div className={`flex flex-col md:flex-row w-full items-center h-full`}>
-                { /* */}<div className={`w-[calc(100%-40px)] mt-2 md:mt-0 ${fullScreen ? " md:w-[23%] h-[calc(30%-8px)]" : " md:w-[25%] h-[calc(30%-8px)]"} md:h-[100%] flex flex-col items-center truncate`}>
+                <div className={`w-[calc(100%-0px)] mt-2 md:mt-0 ${fullScreen ? " md:w-[23%] h-[calc(30%-8px)]" : " md:w-[25%] h-[calc(30%-8px)]"} md:h-[100%] flex flex-col items-center truncate`}>
                   <div className="bg-primary rounded-t-lg md:rounded-none w-[100%] ] h-10 ">
                     <SubMenu itemSelect={itemSelect} setItemSelect={setItemSelect} />
                   </div>

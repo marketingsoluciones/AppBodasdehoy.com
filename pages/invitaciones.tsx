@@ -101,7 +101,7 @@ const Invitaciones = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="max-w-screen-lg mx-auto inset-x-0 w-full px-5 md:px-0 gap-4"
+            className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 gap-4"
           >
             <BlockTitle title="Invitaciones" />
             <div className="w-full flex flex-col md:flex-row my-6 gap-6 relative">

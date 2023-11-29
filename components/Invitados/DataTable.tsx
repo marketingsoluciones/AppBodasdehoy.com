@@ -121,37 +121,48 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
   } = tableInstance;
 
   const ColSpan = (id: string, headers: { id: string }[], columns: number = 12) => {
-
     const values = {
-      selection: 5,
-      nombre: 30,
-      asistencia: 20,
-      nombre_menu: 15,
-      nombre_mesa: 20,
-      mesa_ceremonia:20,
-      delete: 5
+      selection: 1,
+      nombre: 6,
+      asistencia: 4,
+      nombre_menu: 4,
+      tableNameRecepcion: 4,
+      tableNameCeremonia: 4,
+      delete: 1
     }
+    // const values = {
+    //   selection: 5,
+    //   nombre: 25,
+    //   asistencia: 15,
+    //   nombre_menu: 15,
+    //   nombre_mesa: 15,
+    //   sexo: 15,
+    //   delete: 5
+    // }
 
-    type conteo = {
-      base: number
-      residuo: number
-      totalCount: number
-    }
+    // type conteo = {
+    //   base: number
+    //   residuo: number
+    //   totalCount: number
+    // }
 
-    const { residuo, totalCount } = headers.reduce((acc: conteo, header) => {
-      if (values[header.id]) {
-        acc.base = acc.base + values[header.id]
-        acc.totalCount = acc.totalCount + 1
-      }
-      acc.residuo = 100 - acc.base
-      return acc
-    }, { base: 0, residuo: 0, totalCount: 0 })
+    // const { residuo, totalCount } = headers.reduce((acc: conteo, header) => {
+    //   if (values[header.id]) {
+    //     acc.base = acc.base + values[header.id]
+    //     acc.totalCount = acc.totalCount + 1
+    //   }
+    //   acc.residuo = 100 - acc.base
+    //   return acc
+    // }, { base: 0, residuo: 0, totalCount: 0 })
 
-    if (residuo) {
-      const sumar = residuo / totalCount
-      const span = Math.round((values[id] + sumar) * columns / 100)
-      return span
-    }
+    // if (residuo) {
+    //   const sumar = residuo / totalCount
+    //   const span = Math.round((values[id] + sumar) * columns / 100)
+    //   const arr = ["col-span-0", "col-span-1", "col-span-2", "col-span-3", "col-span-4", "col-span-5", "col-span-6", "col-span-7", "col-span-8",]
+    //   return arr[span * 2]
+    // }
+    const arr = ["col-span-0", "col-span-1", "col-span-2", "col-span-3", "col-span-4", "col-span-5", "col-span-6", "col-span-7", "col-span-8",]
+    return arr[values[id]]
   };
 
   return (
@@ -170,7 +181,7 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
               <tr
                 {...headerGroup.getHeaderGroupProps()}
                 key={i}
-                className="grid grid-cols-12"
+                className="grid grid-cols-24"
               >
                 {
                   // Loop over the headers in each row
@@ -180,7 +191,7 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
                       <th
                         {...column.getHeaderProps()}
                         key={i}
-                        className={`px-6 py-3 text-center flex justify-center items-center text-sm font-light font-display col-span-${ColSpan(column.id, headerGroup.headers, 11)}`}
+                        className={`px-6 py-1 md:py-2 text-center flex justify-center items-center text-sm font-light font-display ${ColSpan(column.id, headerGroup.headers, 12)}`}
                       >
                         {
                           // Render the header
@@ -215,7 +226,7 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
                 <tr
                   {...row.getRowProps()}
                   key={i}
-                  className="w-full bg-white border-b font-display text-sm grid grid-cols-12"
+                  className="w-full bg-white border-b font-display text-sm grid grid-cols-24"
                 >
                   {
                     // Loop over the rows cells
@@ -224,7 +235,7 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
                         <td
                           key={i}
                           {...cell.getCellProps()}
-                          className={`px-6 py-2 flex items-center col-span-${ColSpan(cell.column.id, row.cells.map(item => item.column), 11)}`}
+                          className={`px-6 py-2 flex items-center ${ColSpan(cell.column.id, row.cells.map(item => item.column), 12)}`}
                         >
                           {
                             // Render the cell contents

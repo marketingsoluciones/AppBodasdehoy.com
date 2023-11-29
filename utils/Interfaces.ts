@@ -81,9 +81,10 @@ interface notification {
 
 interface chair {
     planSpaceID: string,
+    planSpaceName: string,
     sectionID: string,
     tableID: string,
-    position: number,
+    chair: number,
     order: string
 }
 
@@ -155,7 +156,7 @@ export interface guests {
     grupo_edad: string
     correo: string
     telefono: string
-    chairs: chair[]
+    chairs: any
     nombre_mesa: string
     puesto: string | number
     orden_puesto: string
@@ -174,7 +175,8 @@ export interface filterGuest extends guests {
     planSpaceID: string,
     sectionID: string,
     tableID: string,
-    guestID: string
+    guestID: string,
+    chair: number
 }
 
 interface chat {

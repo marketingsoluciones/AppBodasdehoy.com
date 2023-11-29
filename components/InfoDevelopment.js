@@ -6,6 +6,7 @@ export const InfoDevelopment = () => {
   const { config, user } = AuthContextProvider()
   const [isMounted, setIsMounted] = useState(false)
   const [isDevelopment, setIsDevelopment] = useState(false)
+  const [size, setSize] = useState({ x: 0, y: 0 })
 
   useEffect(() => {
     if (!isMounted) {
@@ -20,6 +21,7 @@ export const InfoDevelopment = () => {
     const path = window?.location?.hostname
     const c = path?.split(".")
     const idx = c?.findIndex(el => el === "com")
+    setSize({ x: window?.innerWidth, y: window.innerHeight })
     setIsDevelopment(idx === -1)
   }, [isMounted])
 
@@ -34,6 +36,7 @@ export const InfoDevelopment = () => {
             <li>event?.nombre: {event?.nombre}</li>
             <li>user: {user?.displayName}</li>
             <li>userUid: {user?.uid}</li>
+            <li>size: {`${size.x}x${size.y}`}</li>
           </ul>
         </div>
       }
