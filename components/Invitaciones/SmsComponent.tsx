@@ -20,23 +20,23 @@ export const SmsComponent = ({ dataInvitationSent, dataInvitationNotSent, event 
                     <img src="/Views/smsPreView.png" alt="movilsmsview" className="h-auto w-56" />
                 </div>
 
-               {/*  {event?.invitados_array?.length > 0 && ( */}
-                    <div>
-                        <div className="bg-white w-full rounded-xl shadow-md relative mt-4 mb-8">
-                            <Separator title="  Invitaciones pendientes" />
-                            <GuestTable data={dataInvitationNotSent} multiSeled={true} reenviar={false} />
-                        </div>
-                        {
-                            dataInvitationSent.length > 0 ? (
-                                <div className="bg-white w-full rounded-xl shadow-md relative mt-4 mb-8">
-                                    <Separator title="Invitaciones enviadas" />
-                                    <GuestTable data={dataInvitationSent} multiSeled={true} reenviar={true} />
-                                </div>
-                            ): 
-                            null
-                        }
+                {/*  {event?.invitados_array?.length > 0 && ( */}
+                <div>
+                    <div className="bg-white w-full rounded-xl shadow-md relative mt-4 mb-8">
+                        <Separator title="  Invitaciones pendientes" />
+                        <GuestTable data={dataInvitationNotSent} multiSeled={true} reenviar={false} />
                     </div>
-               {/*  )} */}
+                    {
+                        dataInvitationSent.length > 0 ? (
+                            <div className="bg-white w-full rounded-xl shadow-md relative mt-4 mb-8">
+                                <Separator title="Invitaciones enviadas" />
+                                <GuestTable data={dataInvitationSent} multiSeled={true} reenviar={true} />
+                            </div>
+                        ) :
+                            null
+                    }
+                </div>
+                {/*  )} */}
 
             </div>
         </>

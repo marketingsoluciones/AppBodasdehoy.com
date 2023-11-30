@@ -3,23 +3,23 @@ import { optionArryOptions } from "../../pages/invitaciones"
 
 interface propsOptionsMenu {
     arryOptions: optionArryOptions[],
-    optionSelect: number,
-    onClick: CallableFunction
+    optionSelect: string,
+    setOptionSelect: CallableFunction
 }
 
-export const OptionsMenu: FC<propsOptionsMenu> = ({ arryOptions, optionSelect, onClick }) => {
+export const OptionsMenu: FC<propsOptionsMenu> = ({ arryOptions, optionSelect, setOptionSelect }) => {
     return (
-        <>
-            <div className="  rounded-xl overflow-auto  ">
-                <div className=" flex items-center justify-between bg-primary h-20 rounded-xl overflow-auto  ">
-                    {arryOptions.map((item, idx) => (
-                        <button key={idx} onClick={() => onClick(idx)} className={`${optionSelect === idx ? "bg-white text-primary" : "text-white"} text-sm font-body flex flex-col items-center justify-center w-[20%] px-4  mx-4 py-3 rounded-xl`}>
-                            {item.icon}
-                            {item.title}
-                        </button>
-                    ))}
-                </div>
-            </div>
-        </>
+
+
+        <div className="w-full flex items-center justify-between bg-primary md:h-20 mt-3 rounded-t-md md:rounded-xl px-3 pt-1 pb-1 translate-y-10 md:translate-y-0">
+            {arryOptions.map((item, idx) => (
+                <button key={idx} onClick={() => setOptionSelect(item.title)} className={`${optionSelect === item.title ? "bg-white text-primary" : "text-white"} text-xs md:text-sm flex flex-col items-center justify-center w-[23%] md:mx-4 py-1 md:py-3 rounded-lg md:rounded-xl capitalize md:uppercase`}>
+                    {item.icon}
+                    {item.title}
+                </button>
+            ))}
+        </div>
+
+
     )
 }

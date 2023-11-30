@@ -74,7 +74,7 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
             <span className="text-sm pb-1">- </span>
           </ButtonConstrolsLienzo>
           <ButtonConstrolsLienzo onClick={handleSetDisableDrag} pulseButton={disableDrag}>
-            <span className="text-[10px] w-24 h-6 px-1 pt-[3px]">{disableDrag ? 'Desloquear plano' : 'Bloquear plano'}</span>
+            <span className="text-[10px] w-28 h-6 px-1 pt-[3px]">{disableDrag ? 'Desbloquear plano' : 'Bloquear plano'}</span>
           </ButtonConstrolsLienzo>
           <span className={`${disableDrag ? "block" : "hidden"}  `} onClick={() => { toast("error", "Desbloquea el plano para poder mover las mesas ") }}>
             <Lock className="text-primary md:block h-6 w-5" />

@@ -1,6 +1,6 @@
 import { useEffect, useState, } from "react";
 import Breadcumbs from "../components/DefaultLayout/Breadcumb";
-import { CompartirIcon, Correo, DiseñoIcon, EmailIcon, SmsIcon, SubirImagenIcon2, WhatsappIcon, } from "../components/icons";
+import { CompartirIcon, Correo, DiseñoIcon, EmailIcon, PlusIcon, SmsIcon, SubirImagenIcon2, WhatsappIcon, } from "../components/icons";
 import BlockTitle from "../components/Utils/BlockTitle";
 import useHover from "../hooks/useHover";
 import ModuloSubida from "../components/Invitaciones/ModuloSubida";
@@ -17,6 +17,7 @@ import { SmsComponent } from "../components/Invitaciones/SmsComponent";
 import { WhatsappComponent } from "../components/Invitaciones/WhatsappComponent";
 import { EnviadosComponent } from "../components/Invitaciones/EnviadosComponent";
 import { DiseñoComponent } from "../components/Invitaciones/DiseñoComponent";
+import Test from "../components/Invitaciones/Test";
 
 export type optionArryOptions = {
   title: string;
@@ -31,43 +32,41 @@ const Invitaciones = () => {
   const [hoverRef, isHovered] = useHover();
   const [dataInvitationSent, setDataInvitationSent] = useState([]);
   const [dataInvitationNotSent, setDataInvitationNotSent] = useState([]);
-  const [optionSelect, setOptionSelect] = useState(0)
+  const [showInvitation, setShowInvitation] = useState(true)
+  const [optionSelect, setOptionSelect] = useState("whatsapp")
   const arryOptions: optionArryOptions[] = [
     {
-      title: "SMS",
-      icon: <SmsIcon />,
-      component: <SmsComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent} event={event} />,
-      state: false
-    },
-    {
-      title: "Email",
-      icon: <EmailIcon />,
-      component: <EmailComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent} event={event} />,
-      state: false
-    },
-    {
-      title: "Whatsapp",
+      title: "whatsapp",
       icon: <WhatsappIcon />,
       component: <WhatsappComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent} event={event} />,
       state: false
     },
     {
-      title: "Enviados",
-      icon: <Correo />,
-      component: <EnviadosComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent} event={event} />,
+      title: "email",
+      icon: <EmailIcon />,
+      component: <EmailComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent} event={event} />,
       state: false
     },
     {
-      title: "Diseño",
+      title: "sms",
+      icon: <SmsIcon />,
+      component: <SmsComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent} event={event} />,
+      state: false
+    },
+    // {
+    //   title: "enviados",
+    //   icon: <Correo />,
+    //   component: <EnviadosComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent} event={event} />,
+    //   state: false
+    // },
+    {
+      title: "diseño",
       icon: <DiseñoIcon />,
       component: <DiseñoComponent />,
       state: false
     }
   ]
 
-  const handleClickOption = (idx: number) => {
-    setOptionSelect(idx);
-  };
   useMounted()
   useEffect(() => {
     const reduce = event?.invitados_array?.reduce((acc: any, item: any) => {
@@ -86,6 +85,7 @@ const Invitaciones = () => {
     reduce?.notSent.length != dataInvitationNotSent?.length && setDataInvitationNotSent(reduce?.notSent);
   }, [event, dataInvitationSent, dataInvitationNotSent]);
 
+  const handleClick = (e, a) => { }
 
   if (verificationDone) {
     if (!user) {
@@ -104,23 +104,49 @@ const Invitaciones = () => {
             className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 gap-4"
           >
             <BlockTitle title="Invitaciones" />
-            <div className="w-full flex flex-col md:flex-row my-6 gap-6 relative">
-              <div ref={hoverRef} className="relative w-full h-96 md:w-1/3 ">
-                <ModuloSubida event={event} use={"imgInvitacion"} />
+            <CounterInvitations />
+            <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full md:px-6 pt-2 md:pt-6 pb-28 mb-32 md:mb-0 md:p-12 relative">
+              <div className="flex gap-2 md:gap-4 items-center mt-1 mb-3 md:mb-5 mx-2">
+                <button
+                  onClick={(e) => setShowInvitation(true)}
+                  className={`focus:outline-none ${showInvitation ? "bg-primary text-white" : "bg-white text-primary"} px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary`}
+                >
+                  {/* <PlusIcon /> */}
+                  Invitación
+                </button>
+                <button
+                  onClick={(e) => setShowInvitation(false)}
+                  className={`focus:outline-none ${showInvitation ? "bg-white text-primary" : "bg-primary text-white"} px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary`}
+                >
+                  {/* <PlusIcon /> */}
+                  Lista de invitados
+                </button>
+                {/* <button
+                  onClick={(e) => handleClick(e, "menu")}
+                  className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
+                >
+                  <PlusIcon />
+                  Diseño
+                </button> */}
               </div>
-              <div className="w-full md:w-2/3 h-full* flex flex-col gap-6 relative justify-center">
-                <CounterInvitations />
-              </div>
+              {showInvitation && <div className="*bg-blue-200 flex flex-col md:flex-row">
+                <div className="*bg-blue-400 w-full md:w-1/3 flex px-14 md:px-10">
+                  <div ref={hoverRef} className="*bg-yellow-200 relative w-full h-72 md:h-80">
+                    <ModuloSubida event={event} use={"imgInvitacion"} />
+                  </div>
+                </div>
+                <div className="*bg-blue-300 w-full md:w-2/3 h-96 md:h-80">
+                  <OptionsMenu
+                    arryOptions={arryOptions}
+                    optionSelect={optionSelect}
+                    setOptionSelect={setOptionSelect}
+                  />
+                  <div className="col-span-3 p-5 *md:p-0">
+                    {optionSelect !== "diseño" ? <Test TitelComponent={optionSelect} /> : <DiseñoComponent />}
+                  </div>
+                </div>
+              </div>}
             </div>
-            <OptionsMenu
-              arryOptions={arryOptions}
-              optionSelect={optionSelect}
-              onClick={handleClickOption}
-            />
-            <div className="col-span-3 p-5 *md:p-0">
-              {arryOptions[optionSelect].component}
-            </div>
-            {/* <FooterComponent /> */}
           </motion.div>
           <style jsx>
             {`

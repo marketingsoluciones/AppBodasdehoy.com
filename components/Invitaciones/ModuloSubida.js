@@ -77,7 +77,7 @@ const ModuloSubida = ({ event, use }) => {
 
   return (
     <>
-      <div className=" w-full z-10 h-full background-image bg-gradient-to-r from-gray-200 to-gray-300 rounded-xl shadow-lg flex flex-col text-white items-center justify-center  overflow-hidden">
+      <div className=" w-full z-10 h-full background-image bg-gradient-to-r from-gray-200 to-gray-300 rounded-t-xl shadow-lg flex flex-col text-white items-center justify-center  overflow-hidden">
         <input
           id="file"
           type="file"
@@ -90,15 +90,15 @@ const ModuloSubida = ({ event, use }) => {
         {imagePreviewUrl.preview == false && (
           <label
             htmlFor="file"
-            className="hover:scale-120 transform font-display text-md font-medium flex flex-col items-center justify-center gap-1 cursor-pointer relative"
+            className="hover:scale-120 transform text-md flex flex-col items-center justify-center gap-1 cursor-pointer relative"
           >
             <SubirImagenIcon />
-            {imagePreviewUrl.preview ? cargado.titulo : "Añadir invitacion"}
+            {imagePreviewUrl.preview ? cargado.titulo : "Añadir invitación"}
           </label>
         )}
 
         {true && (
-          <div className="w-full font-body flex text-gray-500 bottom-0 absolute cursor-pointer ">
+          <div className="w-full  flex text-gray-500 bottom-0 translate-y-full absolute cursor-pointer shadow-lg rounded-b-xl">
             <BotonConfirmar onClick={subir_archivo} />
 
             <label
