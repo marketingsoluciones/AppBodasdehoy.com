@@ -129,23 +129,26 @@ const Invitaciones = () => {
                   Diseño
                 </button> */}
               </div>
-              {showInvitation && <div className="*bg-blue-200 flex flex-col md:flex-row">
-                <div className="*bg-blue-400 w-full md:w-1/3 flex px-14 md:px-10">
-                  <div ref={hoverRef} className="*bg-yellow-200 relative w-full h-72 md:h-80">
-                    <ModuloSubida event={event} use={"imgInvitacion"} />
+              {showInvitation
+                ? <div className="*bg-blue-200 flex flex-col md:flex-row">
+                  <div className="*bg-blue-400 w-full md:w-1/3 flex px-14 md:px-10">
+                    <div ref={hoverRef} className="*bg-yellow-200 relative w-full h-72 md:h-80">
+                      <ModuloSubida event={event} use={"imgInvitacion"} />
+                    </div>
+                  </div>
+                  <div className="*bg-blue-300 w-full md:w-2/3 h-96 md:h-80">
+                    <OptionsMenu
+                      arryOptions={arryOptions}
+                      optionSelect={optionSelect}
+                      setOptionSelect={setOptionSelect}
+                    />
+                    <div className="col-span-3 p-5 *md:p-0">
+                      {optionSelect !== "diseño" ? <Test TitelComponent={optionSelect} /> : <DiseñoComponent />}
+                    </div>
                   </div>
                 </div>
-                <div className="*bg-blue-300 w-full md:w-2/3 h-96 md:h-80">
-                  <OptionsMenu
-                    arryOptions={arryOptions}
-                    optionSelect={optionSelect}
-                    setOptionSelect={setOptionSelect}
-                  />
-                  <div className="col-span-3 p-5 *md:p-0">
-                    {optionSelect !== "diseño" ? <Test TitelComponent={optionSelect} /> : <DiseñoComponent />}
-                  </div>
-                </div>
-              </div>}
+                : <EnviadosComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent} event={event} />
+              }
             </div>
           </motion.div>
           <style jsx>
