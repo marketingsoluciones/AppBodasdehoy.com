@@ -11,10 +11,6 @@ import { DataTableGroupProvider } from "../context/DataTableGroupContext";
 import VistaSinCookie from "./vista-sin-cookie";
 import { useMounted } from "../hooks/useMounted"
 import { OptionsMenu } from "../components/Invitaciones/OptionsMenu";
-import { EmailComponent } from "../components/Invitaciones/EmailComponent";
-import { FooterComponent } from "../components/Invitaciones/FooterComponent";
-import { SmsComponent } from "../components/Invitaciones/SmsComponent";
-import { WhatsappComponent } from "../components/Invitaciones/WhatsappComponent";
 import { EnviadosComponent } from "../components/Invitaciones/EnviadosComponent";
 import { DiseñoComponent } from "../components/Invitaciones/DiseñoComponent";
 import Test from "../components/Invitaciones/Test";
@@ -22,7 +18,6 @@ import Test from "../components/Invitaciones/Test";
 export type optionArryOptions = {
   title: string;
   icon: any;
-  component: any;
   state: boolean;
 }
 
@@ -38,31 +33,21 @@ const Invitaciones = () => {
     {
       title: "whatsapp",
       icon: <WhatsappIcon />,
-      component: <WhatsappComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent} event={event} />,
       state: false
     },
     {
       title: "email",
       icon: <EmailIcon />,
-      component: <EmailComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent} event={event} />,
       state: false
     },
     {
       title: "sms",
       icon: <SmsIcon />,
-      component: <SmsComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent} event={event} />,
       state: false
     },
-    // {
-    //   title: "enviados",
-    //   icon: <Correo />,
-    //   component: <EnviadosComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent} event={event} />,
-    //   state: false
-    // },
     {
       title: "diseño",
       icon: <DiseñoIcon />,
-      component: <DiseñoComponent />,
       state: false
     }
   ]

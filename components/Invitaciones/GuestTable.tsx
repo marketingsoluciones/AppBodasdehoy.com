@@ -15,7 +15,7 @@ export const GuestTable: FC<any> = ({ data, multiSeled, reenviar }) => {
         Header: "NOMBRE",
         accessor: "nombre",
         id: "nombre",
-        isVisible:false,
+        isVisible: false,
         Cell: (props) => {
           const [value, setValue] = useState(props.cell.value);
           useEffect(() => {
@@ -33,8 +33,8 @@ export const GuestTable: FC<any> = ({ data, multiSeled, reenviar }) => {
             },
           };
           return (
-            
-            <div className="flex gap-1 items-center w-3/4 justify-center md:justify-start ">
+
+            <div className="flex gap-1 items-center justify-center md:justify-start ">
               <img
                 src={image[sexo]?.image}
                 className="rounded-full object-cover md:w-10 md:h-10 w-7 h-7"
