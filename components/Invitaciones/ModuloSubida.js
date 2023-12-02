@@ -14,6 +14,7 @@ const ModuloSubida = ({ event, use }) => {
 
   const { setAlerts } = useContext(AlertContext);
   const { setEvent } = EventContextProvider()
+  const [showAddImg, setShowAddImg] = useState(true)
 
   const subir_archivo = async () => {
     const newFile = new FormData();
@@ -75,6 +76,10 @@ const ModuloSubida = ({ event, use }) => {
     reader.readAsDataURL(file);
   };
 
+  useEffect(() => {
+    setShowAddImg(!event?.imgInvitacion?.i800 && !imagePreviewUrl.preview ? true : false)
+  }, [event?.imgInvitacion?.i800, imagePreviewUrl.preview])
+
   return (
     <>
       <div className=" w-full z-10 h-full background-image bg-gradient-to-r from-gray-200 to-gray-300 rounded-t-xl shadow-lg flex flex-col text-white items-center justify-center  overflow-hidden">
@@ -87,7 +92,7 @@ const ModuloSubida = ({ event, use }) => {
           onChange={(e) => handleChange(e)}
           className="hidden"
         />
-        {imagePreviewUrl.preview == false && (
+        {showAddImg && (
           <label
             htmlFor="file"
             className="hover:scale-120 transform text-md flex flex-col items-center justify-center gap-1 cursor-pointer relative"

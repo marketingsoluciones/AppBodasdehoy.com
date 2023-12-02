@@ -5,12 +5,26 @@ import Cookies from 'js-cookie';
 import { LoadingContextProvider, AuthContextProvider } from "../context";
 import { fetchApiBodas, queries } from "./Fetching";
 import { useToast } from "../hooks/useToast";
+import { PhoneNumberUtil } from 'google-libphonenumber';
+
+export const phoneUtil = PhoneNumberUtil.getInstance();
 
 export const useAuthentication = () => {
   const { setLoading } = LoadingContextProvider();
-  const { config, setUser } = AuthContextProvider();
+  const { config, setUser, geoInfo } = AuthContextProvider();
   const toast = useToast();
   const router = useRouter();
+
+  const isPhoneValid = (phone: string) => {
+    try {
+      if (phone[0] === "0") {
+        phone = `+${phoneUtil.getCountryCodeForRegion(geoInfo.ipcountry)}${phone.slice(1, phone.length)}`
+      }
+      return phoneUtil.isValidNumber(phoneUtil.parseAndKeepRawInput(phone));
+    } catch (error) {
+      return false;
+    }
+  };
 
   const getSessionCookie = useCallback(async (tokenID: any): Promise<string | undefined> => {
     if (tokenID) {
@@ -133,7 +147,7 @@ export const useAuthentication = () => {
 
 
 
-  return { signIn, _signOut, getSessionCookie };
+  return { signIn, _signOut, getSessionCookie, isPhoneValid };
 
 };
 

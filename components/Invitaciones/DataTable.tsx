@@ -41,7 +41,11 @@ export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, set
 
             useEffect(() => {
               setAsd({ arrIDs, getToggleAllRowsSelectedProps })
-            }, [])
+            }, [arrIDs])
+
+            useEffect(() => {
+              console.log(arrIDs)
+            }, [arrIDs])
 
 
             useEffect(() => {
@@ -54,7 +58,7 @@ export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, set
 
             return (
               <div className="absolute z-10 -translate-y-11 -translate-x-1">
-                <IndeterminateCheckbox  {...asd?.getToggleAllRowsSelectedProps()} />
+                <IndeterminateCheckbox  {...getToggleAllRowsSelectedProps()} />
               </div>
             )
           },
@@ -127,7 +131,7 @@ export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, set
                     <td
                       key={i}
                       {...cell.getCellProps()}
-                      className={`px-3 py-2 flex items-center col-span-${colSpan[cell.column.id]}`}
+                      className={`truncate px-3 py-2 flex items-center col-span-${colSpan[cell.column.id]}`}
                     >
                       {cell.render("Cell")}
                     </td>

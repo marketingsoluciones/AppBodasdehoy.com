@@ -12,13 +12,12 @@ interface propsInputField extends InputHTMLAttributes<HTMLInputElement> {
 const InputField: FC<Partial<propsInputField>> = ({ label, className, ...props }) => {
   const { geoInfo } = AuthContextProvider()
   const [field, meta, helpers] = useField({ name: props.name })
-
   useEffect(() => {
     if (props?.type == "tel") {
       (document.getElementsByClassName("react-international-phone-input")[0] as HTMLElement)
-        .focus()
+        ?.focus()
       const input = document.getElementsByClassName("react-international-phone-input")[0]
-      input.setAttribute("class", `ml-2 font-display text-sm text-gray-500 border border-gray-100 focus:border-primary w-full py-2 px-4 rounded-xl focus:outline-none transition ${className}`)
+      input?.setAttribute("class", `ml-2 font-display text-sm text-gray-500 border border-gray-100 focus:border-primary w-full py-2 px-4 rounded-xl focus:outline-none transition ${className}`)
       // const select = document.getElementsByClassName("react-international-phone-country-selector-button")[0]
       // select.setAttribute("class", `ml-2 font-display text-sm text-gray-500 border border-gray-100 focus:border-primary w-full py-2 px-4 rounded-xl focus:outline-none transition ${className}`)
     }
@@ -29,7 +28,7 @@ const InputField: FC<Partial<propsInputField>> = ({ label, className, ...props }
       <label className="font-display text-primary text-sm w-full">{label}</label>
       <div className="w-full">
         {props?.type !== "tel"
-          ? <input className={`font-display text-sm text-gray-500 border border-gray-100 focus:border-primary w-full py-2 px-4 rounded-xl focus:outline-none transition ${className}`} {...field} {...props}></input>
+          ? <input className={`font-display text-sm text-gray-500 border-[1px] border-gray-200 focus:border-gray-400 w-full py-2 px-4 rounded-xl focus:ring-0 focus:outline-none transition ${className}`} {...field} {...props}></input>
           : <div onBlur={() => helpers.setTouched(true)} >
             <PhoneInput
               defaultCountry={geoInfo?.ipcountry.toLowerCase()}
@@ -39,7 +38,7 @@ const InputField: FC<Partial<propsInputField>> = ({ label, className, ...props }
           </div>
         }
       </div>
-      {meta.touched && meta.error && <p className="font-display absolute rounded-xl text-xs left-0 bottom-0 transform translate-y-full text-red flex gap-1"><WarningIcon className="w-4 h-4" />{meta.error}</p>}
+      {meta.touched && meta.error && <p className="font-display absolute rounded-xl text-xs left-0 bottom-0 transform translate-y-full text-red flex gap-1">{meta.error}</p>}
       <style jsx>
         {`
         input[type=number]::-webkit-inner-spin-button, 

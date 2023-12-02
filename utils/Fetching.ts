@@ -101,6 +101,30 @@ export const fetchApiEventos = async ({ query, variables, token }: argsFetchApi)
 };
 
 export const queries = {
+  getEmailValid: `query ($email :String){
+    getEmailValid(email:$email){
+      valid
+      validators{
+        regex{
+          valid, reason
+        }
+        typo{
+          valid, reason
+        }
+        disposable{
+          valid, reason
+        }
+        mx{
+          valid, reason
+        }
+        smtp{
+          valid, reason
+        }
+      }
+      reason
+    }
+  }`,
+
   getGeoInfo: `query  {
     getGeoInfo {
       referer
