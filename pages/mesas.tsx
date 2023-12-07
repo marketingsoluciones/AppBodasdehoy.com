@@ -25,6 +25,7 @@ import BlockPanelElements, { ListElements } from "../components/Mesas/BlockPanel
 import { fetchApiEventos, queries } from "../utils/Fetching";
 import { useToast } from "../hooks/useToast";
 import BlockPlantillas from "../components/Mesas/BlockPlantillas";
+import { useRouter } from "next/router";
 
 
 SwiperCore.use([Pagination]);
@@ -41,6 +42,12 @@ const Mesas: FC = () => {
   const [itemSelect, setItemSelect] = useState("mesas")
   const [fullScreen, setFullScreen] = useState<boolean>(false)
   const [creaElement, setCreaElement] = useState<boolean>(false)
+  const [forCms, setForCms] = useState<boolean>(false)
+  const router = useRouter()
+
+  useEffect(() => {
+    setForCms(router?.query?.show === "iframe")
+  }, [router])
 
 
   const toast = useToast()
@@ -108,15 +115,15 @@ const Mesas: FC = () => {
 
   const { user, verificationDone } = AuthContextProvider()
   if (verificationDone) {
-    if (!user) {
-      return (
-        <VistaSinCookie />
-      )
-    }
+    // if (!user) {
+    //   return (
+    //     <VistaSinCookie />
+    //   )
+    // }
 
-    if (!event) return <></>
+    // if (!event) return <></>
     return (
-      <>
+      <div className={forCms && `w-full h-full absolute top-0 left-0 bg-red`}>
         {/* formulario emergente para crear mesas */}
         {showFormCreateTable ? (
           <ModalMesa set={setShowFormCreateTable} state={showFormCreateTable} title="Añadir mesa">
@@ -152,9 +159,9 @@ const Mesas: FC = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 ">
-              <BlockTitle title={"Mesas y asientos"} />
+              {!forCms && <BlockTitle title={"Mesas y asientos"} />}
             </motion.div>
-            <div className={`${fullScreen ? "absolute z-[50] w-[100vw] h-[100vh] top-0 left-0" : "w-full h-[calc(100vh-208px)] md:h-[calc(100vh-210px)] md:mt-2"}`}>
+            <div className={`${fullScreen || forCms ? "absolute z-[50] w-[100vw] h-[100vh] top-0 left-0" : "w-full h-[calc(100vh-208px)] md:h-[calc(100vh-210px)] md:mt-2"}`}>
 
 
               <div className={`flex flex-col md:flex-row w-full items-center h-full`}>
@@ -240,7 +247,7 @@ const Mesas: FC = () => {
             </div>
           </div>
         </ModalBottomSinAway>
-      </>
+      </div>
     );
   }
 };

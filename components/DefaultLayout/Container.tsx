@@ -19,6 +19,7 @@ const Container = (props) => {
   const [notificaciones, setNotificaciones] = useState([]);
   const router = useRouter();
   const url = router.pathname
+  console.log(router?.query)
 
   useEffect(() => {
     setActive(router.pathname);
@@ -73,12 +74,12 @@ const Container = (props) => {
     <>
       {/* <div className="bg-red max-w-full max-h-full w-[90%] h-[90%] flex flex-col relative"> */}
       <NavigationMobile />
-      <Navigation
+      {router?.query?.show !== "iframe" && <Navigation
         notificaciones={notificaciones}
         set={(accion: any) => setShow(accion)}
         state={show}
         active={active}
-      />
+      />}
 
       {loading && <BarraLoading />}
       <div className={`*max-w-[70%] *max-h-[10%] w-[100%]  overflow-auto ${url == "/info-app" ? "" : "h-[calc(100vh-144px)]"}`}>
