@@ -28,7 +28,7 @@ const SelectField: FC<propsSelectField> = ({ label, children, options, colSpan, 
                         ))}
                     </select>
                 </div>
-                {meta.touched && meta.error && <p className=" font-display absolute* rounded-xl text-xs *left-0 *bottom-0 transform *translate-y-full text-red flex gap-1"><WarningIcon className="w-4 h-4" />{meta.error}</p>}
+                {meta.touched && meta.error && <p className=" font-display absolute* rounded-xl text-xs *left-0 *bottom-0 transform *translate-y-full text-red flex gap-1">{meta.error}</p>}
             </div>
             <style jsx>
                 {`

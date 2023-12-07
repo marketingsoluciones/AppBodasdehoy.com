@@ -1,6 +1,6 @@
 import { Form, Formik, FormikValues, useField } from "formik";
 import { Dispatch, FC, HtmlHTMLAttributes, SetStateAction, useEffect, useState } from "react";
-import { EventContextProvider } from "../../context";
+import { AuthContextProvider, EventContextProvider } from "../../context";
 import { WarningIcon } from "../icons";
 import InputField from "./InputField";
 import SelectField from "./SelectField";
@@ -13,6 +13,7 @@ import { IoMdContacts } from "react-icons/io"
 import { ImportGuest } from "./ImportGuest";
 import { useImportGuest } from "../../hooks/useImportGuest";
 import { ForApiPeople } from "./ForApiGoogle";
+import { phoneUtil, useAuthentication } from "../../utils/Authentication";
 
 interface propsFormInvitado {
   state: any;
@@ -26,12 +27,14 @@ interface contact {
   tel: string[]
 }
 const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
+  const { geoInfo } = AuthContextProvider();
   const { event, setEvent } = EventContextProvider();
   const [contact, setContact] = useState(null)
   const [showMedioSelectImport, setShowMedioSelectImport] = useState(false)
   const [showForApiGoogle, setShowForApiGoogle] = useState({ state: false, payload: {} })
   const toast = useToast()
   const [contactsForApiGoogle] = useImportGuest()
+  const { isPhoneValid } = useAuthentication()
 
   useEffect(() => {
     const scriptGsi = document.createElement('script');
@@ -50,16 +53,32 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
   }, [])
 
   const validationSchema = yup.object().shape({
-    nombre: yup.string().required("Nombre requerido").test("Unico", "El nombre debe ser unico", values => {
-      return !event.invitados_array.map(item => item.nombre).includes(values)
-    }),
-    sexo: yup.string().required("Sexo requerido"),
-    grupo_edad: yup.string().required("Edad requerido"),
-    telefono: yup.string().required("*******").test("Unico", "Telefono requerido", (value) => {
-      return !!value?.split(" ")[1]
+    nombre: yup.string().required("Nombre requerido"),
+    telefono: yup.string().test("Unico", `Teléfono requerido`, (value) => {
+      const name = document.activeElement?.getAttribute("name")
+      if (value?.length < 4) {
+        return false
+      } else {
+        return true
+      }
+    }).test("Unico", `Número inválido`, (value) => {
+      const name = document.activeElement?.getAttribute("name")
+      if (name !== "telefono" && value?.length > 3) {
+        return isPhoneValid(value)
+      } else {
+        return true
+      }
+    }).test("Unico", `Número asignado a otro invitado`, (value) => {
+      const name = document.activeElement?.getAttribute("name")
+      if (name !== "telefono" && value?.length > 3) {
+        console.log("aqui", value)
+        return !event.invitados_array.map(item => item.telefono).includes(value)
+      } else {
+        return true
+      }
     }),
     rol: yup.string().required("Rol requerido"),
-    correo: yup.string().email().test("Unico", "El correo debe ser unico", (value) => {
+    correo: yup.string().email().test("Unico", "Correo asignado a otro invitado", (value) => {
       return !event.invitados_array.map(item => item.correo).includes(value)
     })
   });
@@ -69,13 +88,16 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
     sexo: "hombre",
     grupo_edad: "adulto",
     correo: "",
-    telefono: "",
+    telefono: `+${phoneUtil.getCountryCodeForRegion(geoInfo?.ipcountry)}`,
     rol: "",
     nombre_menu: "adultos"
   };
 
   const handleSubmit = async (values: FormikValues, actions: any) => {
     try {
+      if (values?.telefono[0] === "0") {
+        values.telefono = `+${phoneUtil.getCountryCodeForRegion(geoInfo.ipcountry)}${values?.telefono.slice(1, values?.telefono.length)}`
+      }
       if (values.nombre_menu === "sin menú") values.nombre_menu = undefined
       const result: any = await fetchApiEventos({
         query: queries.createGuests,
@@ -142,7 +164,7 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
                   //placeholder="960 66 66 66"
                   name="telefono"
                   label="Telefono"
-                  type="tel"
+                  type="text"
                 />
                 {/* </div> */}
               </div>
@@ -217,25 +239,23 @@ export default FormInvitado;
 
 const ResetForm = ({ setFieldValue, resetForm, contact }) => {
   useEffect(() => {
-    resetForm()
-    //aquí formatear todos los numeros de télefonos iguales
-    const contacto = {
-      telefono: contact?.phones[0],
-      nombre: contact?.name,
-      correo: contact?.email
-    }
+    if (contact) {
+      console.log("aqui", contact)
+      resetForm()
+      //aquí formatear todos los numeros de télefonos iguales
+      const contacto = {
+        telefono: contact?.phones[0],
+        nombre: contact?.name,
+        correo: contact?.email
+      }
 
-    for (let clave in contacto) {
-      console.log(clave, contacto[clave])
-      setFieldValue(clave, contacto[clave])
+      for (let clave in contacto) {
+        console.log(clave, contacto[clave])
+        setFieldValue(clave, contacto[clave])
+      }
     }
   }, [contact])
-  return (
-    <>
-      {/* aquí pendiente para seleccionar cuando el contacto tiene más de un numero de telefono */}
-      {/* {contact && <div className="bg-blue-200 absolute">{JSON.stringify(contact, null, 2)}</div>} */}
-    </>
-  )
+  return null
 }
 
 interface propsBooleanSwitch extends HtmlHTMLAttributes<HTMLInputElement> {

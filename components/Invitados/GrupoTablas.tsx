@@ -526,6 +526,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
           };
 
           const HandleEdit = (id) => {
+            console.log(id)
             setSelected(id);
             setIsMounted(!isMounted);
           };
@@ -559,7 +560,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                     <li
                       key={idx}
                       onClick={item.function}
-                      className="font-display cursor-pointer border-base border block px-4 text-sm text-gray-500 hover:text-gray-500 hover:bg-base"
+                      className="font-display cursor-pointer border-base border block px-4 text-sm text-gray-500 hover:text-gray-500 hover:bg-base py-3"
                     >
                       {item.title}
                     </li>

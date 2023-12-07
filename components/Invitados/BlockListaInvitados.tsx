@@ -64,7 +64,7 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu, s
           Crear PDF
         </button>
       </div>
-      {/* {shouldRenderChild && (
+      {shouldRenderChild && (
         <ModalBottom state={isMounted} set={setIsMounted}>
           <div className="flex justify-center w-full gap-6">
             <div className="w-full md:w-5/6">
@@ -97,7 +97,7 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu, s
             </div>
           </div>
         </ModalBottom>
-      )} */}
+      )}
       <div className="relative overflow-x-auto md:overflow-x-visible">
         <DatatableGroup
           GruposArray={event?.grupos_array}
