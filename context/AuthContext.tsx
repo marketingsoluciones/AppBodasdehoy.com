@@ -54,6 +54,8 @@ const AuthProvider = ({ children }) => {
     colorScroll: undefined
   })
   const [geoInfo, setGeoInfo] = useState<any>();
+  const [forCms, setForCms] = useState<boolean>(false)
+
 
   useEffect(() => {
     if (!isMounted) {

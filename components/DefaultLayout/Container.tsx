@@ -26,7 +26,7 @@ const Container = (props) => {
 
   useEffect(() => {
     setForCms(router?.query?.show === "iframe")
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     setNotificaciones(event?.notificaciones_array);
