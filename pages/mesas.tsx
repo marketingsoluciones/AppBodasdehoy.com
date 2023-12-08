@@ -49,7 +49,6 @@ const Mesas: FC = () => {
     setForCms(router?.query?.show === "iframe")
   }, [router])
 
-
   const toast = useToast()
   useMounted()
 
@@ -65,8 +64,6 @@ const Mesas: FC = () => {
 
   useEffect(() => {
     if (creaElement) {
-      console.log(1005, values)
-      console.log(1006, ListElements)
       const element = ListElements.find(elem => elem.title === values.modelo)
       try {
         const inputValues = {
@@ -115,15 +112,15 @@ const Mesas: FC = () => {
 
   const { user, verificationDone } = AuthContextProvider()
   if (verificationDone) {
-    // if (!user) {
-    //   return (
-    //     <VistaSinCookie />
-    //   )
-    // }
+    if (!user) {
+      return (
+        <VistaSinCookie />
+      )
+    }
 
-    // if (!event) return <></>
+    if (!event) return <></>
     return (
-      <div className={forCms && `w-full h-full absolute top-0 left-0 bg-red`}>
+      <div className={forCms && `w-full h-full absolute top-0 left-0 `}>
         {/* formulario emergente para crear mesas */}
         {showFormCreateTable ? (
           <ModalMesa set={setShowFormCreateTable} state={showFormCreateTable} title="Añadir mesa">
