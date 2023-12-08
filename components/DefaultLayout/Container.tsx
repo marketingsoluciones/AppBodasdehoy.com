@@ -10,23 +10,17 @@ import { motion } from "framer-motion";
 const Container = (props) => {
   const { children } = props;
 
-  const { user } = AuthContextProvider();
+  const { user, forCms } = AuthContextProvider();
   const { setChat } = ChatContextProvider();
   const { event } = EventContextProvider();
   const { setEventsGroup } = EventsGroupContextProvider();
   const { loading } = LoadingContextProvider();
-
   const [show, setShow] = useState(false);
   const [active, setActive] = useState<string | null>(null);
   const [notificaciones, setNotificaciones] = useState([]);
-  const [forCms, setForCms] = useState<boolean>(true)
-
   const router = useRouter();
   const url = router.pathname
 
-  useEffect(() => {
-    setForCms(router?.query?.show === "iframe")
-  }, [router]);
 
   useEffect(() => {
     setNotificaciones(event?.notificaciones_array);

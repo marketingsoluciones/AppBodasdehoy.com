@@ -7,6 +7,7 @@ import { developments } from "../firebase";
 import { fetchApiBodas, fetchApiEventos, queries } from "../utils/Fetching";
 import { boolean } from "yup";
 import { initializeApp } from "firebase/app";
+import { useRouter } from "next/router";
 
 const initialContext = {
   user: undefined,
@@ -21,6 +22,8 @@ const initialContext = {
   setIsActiveStateSwiper: undefined,
   geoInfo: undefined,
   setGeoInfo: undefined,
+  forCms: undefined,
+  setForCms: undefined,
 }
 
 type Context = {
@@ -36,6 +39,8 @@ type Context = {
   setIsActiveStateSwiper: any
   geoInfo: any,
   setGeoInfo: any,
+  forCms: any,
+  setForCms: any,
 }
 
 const AuthContext = createContext<Context>(initialContext);
@@ -55,7 +60,12 @@ const AuthProvider = ({ children }) => {
   })
   const [geoInfo, setGeoInfo] = useState<any>();
   const [forCms, setForCms] = useState<boolean>(false)
+  const router = useRouter()
 
+  useEffect(() => {
+    console.log(router?.query, router?.query?.show === "iframe")
+    setForCms(router?.query?.show === "iframe")
+  }, [router])
 
   useEffect(() => {
     if (!isMounted) {
@@ -69,6 +79,7 @@ const AuthProvider = ({ children }) => {
   let firebaseClient: any
   useEffect(() => {
     if (isMounted) {
+      console.log(window.location)
       const path = window.location.hostname
       //  const path = "https://www.eventosplanificador.com"
       console.log("hostname:", path)
@@ -180,7 +191,7 @@ const AuthProvider = ({ children }) => {
 
 
   return (
-    <AuthContext.Provider value={{ user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo }}>
+    <AuthContext.Provider value={{ user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms }}>
       {children}
     </AuthContext.Provider>
   );
