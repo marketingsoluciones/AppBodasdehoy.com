@@ -1,6 +1,7 @@
 import axios from "axios";
 import Cookies from "js-cookie"
 import { SubscriptionClient } from "graphql-subscriptions-client";
+import { io } from "socket.io-client";
 
 /* // llamada a wordpresss ref1001
 const wp = axios.create({
@@ -41,20 +42,17 @@ export const api = {
       }
     });
   },
-  //ref1001
-  /*MiUsuario: async(token) => {
-      return await wp.get("/wp/v2/users/me", {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-    
-    
-  },
 
-  Listings: async() => {
-    return await wp.get("wp/v2/listing?page=1&per_page=1")
-  },*/
+  socketIO: ({ token, development }) => {
+    const socket = io(process.env.NEXT_PUBLIC_BASE_API_BODAS ?? "", {
+      auth: {
+        token: `Bearer ${token}`,
+        development,
+      }
+    })
+    console.log(1000440001, socket)
+    return socket
+  },
 
   Suscripcion: async () => {
 

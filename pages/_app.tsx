@@ -16,7 +16,7 @@ const MyApp = ({ Component, pageProps }) => {
     <>
       {/*<AnimatePresence exitBeforeEnter initial={false}>*/}
       <DefaultLayout>
-        {/* <InfoDevelopment /> */}
+        <InfoDevelopment />
         <Load />
         <Component {...pageProps} />
       </DefaultLayout>

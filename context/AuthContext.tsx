@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { getAuth, signInWithCustomToken } from 'firebase/auth'
+import { getAuth, onAuthStateChanged, onIdTokenChanged, signInWithCustomToken } from 'firebase/auth'
 import Cookies from 'js-cookie'
 import { nanoid } from 'nanoid'
 
@@ -76,7 +76,6 @@ const AuthProvider = ({ children }) => {
     }
   }, [])
   let resp: any = undefined
-  let firebaseClient: any
   useEffect(() => {
     if (isMounted) {
       console.log(window.location)
@@ -105,8 +104,7 @@ const AuthProvider = ({ children }) => {
         console.log(222215, resp?.domain)
       }
       try {
-        firebaseClient = initializeApp(resp?.fileConfig);
-        // firebaseClient
+        initializeApp(resp?.fileConfig);
         console.log(8000041, getAuth())
       } catch (error) {
         console.log(90001, error)
@@ -118,9 +116,10 @@ const AuthProvider = ({ children }) => {
   useEffect(() => {
     try {
       if (isMounted) {
-        getAuth().onAuthStateChanged(async (user) => {
+
+        onAuthStateChanged(getAuth(), async (user) => {
           const sessionCookie = Cookies.get(config?.cookie);
-          console.info("Verificando cookie", sessionCookie);
+          console.info(8000042, "Verificando cookie", sessionCookie);
           //setUser(user)
           if (!sessionCookie) {
             const cookieContent = JSON.parse(Cookies.get(config?.cookieGuest) ?? "{}")
@@ -171,9 +170,10 @@ const AuthProvider = ({ children }) => {
   useEffect(() => {
     if (user && user?.displayName !== "guest") {
       console.info("getAuth().onIdTokenChanged");
-      getAuth().onIdTokenChanged(async user => {
+      onIdTokenChanged(getAuth(), async user => {
         const sessionCookie = Cookies.get(config?.cookie);
         if (user && sessionCookie) {
+          console.log("///////////----->", user.getIdToken())
           const dateExpire = new Date(new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000))
           Cookies.set("idToken", await user.getIdToken(), { domain: `.${resp?.domain}.com`, expires: dateExpire })
         }

@@ -28,44 +28,44 @@ const Container = (props) => {
 
   const [conectado, setConectado] = useState("false");
 
-  useEffect(() => {
-    async function Suscripcion() {
-      if (user) {
-        const query = `subscription{
-          canal(usuario_id:"${user?.id}"){
-            usuario_id,evento_id,_id,fecha_creacion,mensaje,tipo
-          }
-        }`;
+  // useEffect(() => {
+  //   async function Suscripcion() {
+  //     if (user) {
+  //       const query = `subscription{
+  //         canal(usuario_id:"${user?.id}"){
+  //           usuario_id,evento_id,_id,fecha_creacion,mensaje,tipo
+  //         }
+  //       }`;
 
-        // para conectarse a supscripciones de graphql
-        /*const cliente = await api.Suscripcion();
-        setConectado("true");
-        cliente.request({ query }).subscribe(({ data }) => {
-          const noti = data.canal;
-          if (noti.tipo == "notificacion") {
-            setEventsGroup((eventos: any): any => {
-              const index = eventos.findIndex(
-                (evento) => evento._id == noti.evento_id
-              );
-              const arrNoti = eventos[index]?.notificaciones_array;
-              arrNoti.push(noti);
+  //       // para conectarse a supscripciones de graphql
+  //       /*const cliente = await api.Suscripcion();
+  //       setConectado("true");
+  //       cliente.request({ query }).subscribe(({ data }) => {
+  //         const noti = data.canal;
+  //         if (noti.tipo == "notificacion") {
+  //           setEventsGroup((eventos: any): any => {
+  //             const index = eventos.findIndex(
+  //               (evento) => evento._id == noti.evento_id
+  //             );
+  //             const arrNoti = eventos[index]?.notificaciones_array;
+  //             arrNoti.push(noti);
 
-              return [
-                ...eventos,
-                (eventos[index].notificaciones_array = arrNoti),
-              ];
-            });
-          }
-          //if (noti.tipo == "chat") {
-          //  setChat((old) => ({ ...old, canales: ["1", "2", "3"] }));
-          //}
-        });*/
-      }
-    }
-    if (conectado == "false") {
-      Suscripcion();
-    }
-  }, [user]);
+  //             return [
+  //               ...eventos,
+  //               (eventos[index].notificaciones_array = arrNoti),
+  //             ];
+  //           });
+  //         }
+  //         //if (noti.tipo == "chat") {
+  //         //  setChat((old) => ({ ...old, canales: ["1", "2", "3"] }));
+  //         //}
+  //       });*/
+  //     }
+  //   }
+  //   if (conectado == "false") {
+  //     Suscripcion();
+  //   }
+  // }, [user]);
 
   return (
     <>
