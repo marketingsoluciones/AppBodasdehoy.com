@@ -66,7 +66,7 @@ const Prueba: FC<propsPrueba> = ({ setShowFormEditar, fullScreen, setFullScreen 
               </div>
             </ClickAwayListener>
           }
-          <TransformWrapper
+          {scaleIni && <TransformWrapper
             disabled={disableWrapper}
             limitToBounds={true}
             initialScale={scaleIni}
@@ -87,7 +87,7 @@ const Prueba: FC<propsPrueba> = ({ setShowFormEditar, fullScreen, setFullScreen 
             {(params) => {
               return <ComponenteTransformWrapper {...params} fullScreen={fullScreen} setFullScreen={setFullScreen} disableWrapper={disableWrapper} setDisableWrapper={setDisableWrapper} lienzo={lienzo} setLienzo={setLienzo} setShowFormEditar={setShowFormEditar} scaleIni={scaleIni} />
             }}
-          </TransformWrapper>
+          </TransformWrapper>}
         </div>
       </div>
     </>

@@ -29,19 +29,25 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
   const [valir, setValir] = useState(true)
   const [ident, setident] = useState(false)
 
+
   useEffect(() => {
-    resetTransform()
+    centerView(scaleIni)
   }, [scaleIni])
 
   const handleReset = (funcion: any) => {
-    funcion()
+    funcion(scaleIni)
     setTimeout(() => {
       setReset(true)
     }, 100);
   }
 
   useEffect(() => {
-    handleReset(resetTransform)
+    console.log("aqui", fullScreen)
+    centerView(scaleIni)
+  }, [fullScreen])
+
+  useEffect(() => {
+    handleReset(centerView)
   }, [lienzo])
 
 
@@ -56,7 +62,7 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
   }, [ident])
 
 
-  !reset ? handleReset(resetTransform) : () => { }
+  !reset ? handleReset(centerView) : () => { }
   return (
     < >
       <div className="bg-white flex w-full h-8 items-center justify-between absolute z-[20] transform translate-y-[-32px] shadow-md pl-1 md:pl-2">
@@ -65,7 +71,7 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
             <SearchIcon className="w-[13px] h-6" />
             <span className="text-sm">+</span>
           </ButtonConstrolsLienzo>
-          <ButtonConstrolsLienzo onClick={() => resetTransform()}>
+          <ButtonConstrolsLienzo onClick={() => centerView(scaleIni)}>
             <SearchIcon className="w-[13px] h-6" />
             <span>100%</span>
           </ButtonConstrolsLienzo>
