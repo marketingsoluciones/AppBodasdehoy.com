@@ -26,14 +26,6 @@ const VistaSinCookie = () => {
           </div>
         </Link>
       </div>
-      <style jsx>
-        {`
-              .section {
-                width: 100vw;
-                height: calc(100vh - 144px - 32px);
-              }
-            `}
-      </style>
     </>
   );
 }

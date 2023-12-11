@@ -14,7 +14,7 @@ const ListInvitados: FC<propsListInvitados> = ({ editInv, setEditInv, setSelecte
   return (
     <>
       <div className="w-full" >
-        {filterGuests.noSentados?.map((invitado, index) => (
+        {filterGuests?.noSentados?.map((invitado, index) => (
           <DragInvitado
             key={invitado._id}
             tipo={"invitado"}

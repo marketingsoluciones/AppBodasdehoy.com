@@ -150,13 +150,6 @@ const ListaRegalos = () => {
             </div>
           </motion.div>
         </section>
-        <style jsx>
-          {`
-          section {
-            min-height: calc(100vh - 9rem);
-          }
-        `}
-        </style>
       </>
     );
   }

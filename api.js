@@ -14,15 +14,6 @@ const WebSocket = process.env.NEXT_PUBLIC_URL_API_SOCKET
 const instance = axios.create({ baseURL: process.env.NEXT_PUBLIC_BASE_URL })
 
 export const api = {
-  //ref1001
-  /*AuthUsuario: async (usuario) => {
-    return await wp.post("/jwt-auth/v1/token", usuario);
-  },
-
-  UsuariosDetails: async() => {
-    return await wp.get("/wp/v2/users")
-  },*/
-
   ApiApp: async (params, token) => {
     const token_final = token || Cookies.get("idToken")
     return await instance.post("/graphql", params, {
@@ -43,7 +34,7 @@ export const api = {
     });
   },
 
-  socketIO: ({ token, development,father }) => {
+  socketIO: ({ token, development, father }) => {
     const socket = io(process.env.NEXT_PUBLIC_BASE_API_BODAS ?? "", {
       auth: {
         token: `Bearer ${token}`,
@@ -51,18 +42,12 @@ export const api = {
         father
       }
     })
-    console.log(1000440001, socket)
     return socket
   },
 
   Suscripcion: async () => {
-
     const token = Cookies.get("idToken")
-
     const GRAPHQL_ENDPOINT = WebSocket;
-
-
-
     const client = new SubscriptionClient(GRAPHQL_ENDPOINT, {
       reconnect: true,
       lazy: true, // only connect when there is a query
@@ -73,15 +58,7 @@ export const api = {
         error && console.error(error);
       },
     });
-
-
-
     return client
-
-
-
-
-
   },
 
   ApiBodasExpress: async ({ data, development, token }) => {

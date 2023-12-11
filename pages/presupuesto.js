@@ -37,7 +37,7 @@ const Presupuesto = () => {
     condicion == -1 && setShowCategoria({ isVisible: false, id: "" })
   }, [event?.presupuesto_objeto?.categorias_array, showCategoria?.id])
 
-  const { user, verificationDone } = AuthContextProvider()
+  const { user, verificationDone, forCms } = AuthContextProvider()
   if (verificationDone) {
     if (!user) {
       return (
@@ -48,7 +48,7 @@ const Presupuesto = () => {
     return (
       <>
         {event &&
-          <section className="bg-base w-full h-full pb-16 pt-2 md:py-0">
+          <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4" : "bg-base w-full pb-6 pt-2 md:py-0"}>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -142,13 +142,6 @@ const Presupuesto = () => {
               )}
             </motion.div>
           </section>}
-        <style jsx>
-          {`
-          section {
-            min-height: calc(100vh - 9rem);
-          }
-        `}
-        </style>
       </>
     );
   }

@@ -22,7 +22,7 @@ export type optionArryOptions = {
 }
 
 const Invitaciones = () => {
-  const { user, verificationDone } = AuthContextProvider()
+  const { user, verificationDone, forCms } = AuthContextProvider()
   const { event } = EventContextProvider();
   const [hoverRef, isHovered] = useHover();
   const [dataInvitationSent, setDataInvitationSent] = useState([]);
@@ -81,7 +81,7 @@ const Invitaciones = () => {
     if (!event) return <></>
     return (
       <DataTableGroupProvider>
-        <section className="bg-base w-full pb-6 pt-2 md:py-0">
+        <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4" : "bg-base w-full pb-6 pt-2 md:py-0"}>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -136,13 +136,6 @@ const Invitaciones = () => {
               }
             </div>
           </motion.div>
-          <style jsx>
-            {`
-              section {
-                min-height : calc(100vh - 10rem);
-              }
-            `}
-          </style>
         </section>
       </DataTableGroupProvider>
     );

@@ -56,13 +56,6 @@ const BandejaDeMensajes = () => {
           </div>
         </div>
       </section>
-      <style jsx>
-        {`
-          section {
-            min-height: calc(100vh - 9rem);
-          }
-        `}
-      </style>
     </>
   );
 };
