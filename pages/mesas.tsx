@@ -26,6 +26,7 @@ import { fetchApiEventos, queries } from "../utils/Fetching";
 import { useToast } from "../hooks/useToast";
 import BlockPlantillas from "../components/Mesas/BlockPlantillas";
 import { useRouter } from "next/router";
+import BlockZonas from "../components/Mesas/BlockZonas";
 
 
 SwiperCore.use([Pagination]);
@@ -172,7 +173,8 @@ const Mesas: FC = () => {
                           <BlockPanelElements />
                         }
                         {itemSelect == "zonas" &&
-                          <span>En desarrollo!</span>
+                          <BlockZonas />
+                          //<span>En desarrollo!</span>
                           // <BlockResumen InvitadoSentados={filterGuests?.sentados} />
                         }
                         {itemSelect == "planos" &&
@@ -180,6 +182,7 @@ const Mesas: FC = () => {
                         }
                         {itemSelect == "plantillas" &&
                           <BlockPlantillas />
+                        
                         }
                         {itemSelect == "resumen" &&
                           <BlockResumen InvitadoSentados={filterGuests?.sentados} />

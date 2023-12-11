@@ -19,7 +19,7 @@ const BlockResumen: FC<propsBlockResumen> = ({ InvitadoSentados }) => {
         { title: `${InvitadoSentados?.length} de ${event?.invitados_array?.length}`, subtitle: " Invitados sentados" },
     ]
     return (
-        <div className="bg-primary w-full px-3 md:px-6 pb-2 rounded-lg h-full">
+        <div className="bg-primary w-full px-3 md:px-6 pb-2 rounded-lg h-full overflow-y-auto *overflow-x-hidden">
             {
                 event.planSpace.map((item, idx) => {
                     return (
