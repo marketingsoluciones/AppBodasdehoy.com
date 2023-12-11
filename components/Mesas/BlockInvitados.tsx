@@ -17,7 +17,6 @@ const BlockInvitados: FC<propsBlockInvitados> = ({ set, setEditInv, editInv, set
                 <div className="hidden md:block bg-white pb-2 rounded-t-lg relative ">
                     <div className="flex justify-center">
                         <h2 className="font-display text-xl font-semibold text-gray-500">Invitados</h2>
-
                     </div>
                     <button onClick={() => set(true)} className="w-full focus:outline-none bg-primary px-3 text-white font-display text-medium flex items-center justify-center gap-2 rounded-lg text-sm absolute inset-x-0 mx-auto z-10">
                         <PlusIcon className="text-white w-3 " />
