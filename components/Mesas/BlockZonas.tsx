@@ -25,27 +25,14 @@ const BlockZonas: FC<propsBlockZonas> = () => {
                         <div>
                             <DiamanteIcon />
                         </div>
-                        <p>
-                            Activar la versión <span className="font-semibold cursor-pointer" /* onClick={() => router.push({
-                                pathname: "/facturacion",
-                                query: {
-                                    state: 1,
-                                    producto: "12",
-                                    plan: "premium"
-
-                                }
-                            })} */ >PREMIUM</span>
-                        </p>
+                        <Link href={`${redireccionFacturacion}`}>
+                            <p>
+                                Activar la versión <span className="font-semibold cursor-pointer">PREMIUM</span>
+                            </p>
+                        </Link>
                     </div>
                     <Link href={`${redireccionFacturacion}`}>
-                        <button className="text-sm text-white bg-primary px-7 py-1 rounded-lg" /* onClick={() => router.push({
-                        pathname: "/facturacion",
-                        query: {
-                            state: 1,
-                            producto: "12",
-                            plan: "premium"
-                        }
-                    })} */ >
+                        <button className="text-sm text-white bg-primary px-7 py-1 rounded-lg">
                             Empezar
                         </button>
                     </Link>
