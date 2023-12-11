@@ -1,12 +1,14 @@
 import { FC } from "react";
 import { useRouter } from "next/router";
 import { DiamanteIcon } from "../icons";
+import Link from "next/link";
 
 interface propsBlockZonas {
 
 }
 
 const BlockZonas: FC<propsBlockZonas> = () => {
+    const redireccionFacturacion = window.origin.includes("://test") ? process.env.NEXT_PUBLIC_DIRECTORY_FACTURACION?.replace("//", "//test.") : process.env.NEXT_PUBLIC_DIRECTORY_FACTURACION
     const router = useRouter()
     return (
         <>
@@ -35,7 +37,8 @@ const BlockZonas: FC<propsBlockZonas> = () => {
                             })} */ >PREMIUM</span>
                         </p>
                     </div>
-                    <button className="text-sm text-white bg-primary px-7 py-1 rounded-lg" /* onClick={() => router.push({
+                    <Link href={`${redireccionFacturacion}`}>
+                        <button className="text-sm text-white bg-primary px-7 py-1 rounded-lg" /* onClick={() => router.push({
                         pathname: "/facturacion",
                         query: {
                             state: 1,
@@ -43,10 +46,11 @@ const BlockZonas: FC<propsBlockZonas> = () => {
                             plan: "premium"
                         }
                     })} */ >
-                        Empezar
-                    </button>
+                            Empezar
+                        </button>
+                    </Link>
                 </div>
-                )
+            )
             }
 
         </>
