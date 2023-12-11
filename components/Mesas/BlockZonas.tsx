@@ -8,7 +8,7 @@ interface propsBlockZonas {
 }
 
 const BlockZonas: FC<propsBlockZonas> = () => {
-    const redireccionFacturacion = window.origin.includes("://test") ? process.env.NEXT_PUBLIC_DIRECTORY_FACTURACION?.replace("//", "//test.") : process.env.NEXT_PUBLIC_DIRECTORY_FACTURACION
+    const redireccionFacturacion = window.origin.includes("://test") ? process.env.NEXT_PUBLIC_DIRECTORY_FACTURACION?.replace("//", "//test") : process.env.NEXT_PUBLIC_DIRECTORY_FACTURACION
     const router = useRouter()
     return (
         <>
