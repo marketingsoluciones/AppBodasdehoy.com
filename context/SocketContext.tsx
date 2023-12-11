@@ -7,11 +7,12 @@ import {
   SetStateAction,
 } from "react";
 import { Socket } from "socket.io-client";
-import { AuthContextProvider } from ".";
+import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from ".";
 import { api } from '../api';
 import { Dispatch } from 'react';
 import { getCookie } from '../utils/Cookies';
 import Cookies from "js-cookie";
+import { useRouter } from "next/router";
 
 
 type Context = {
@@ -27,6 +28,7 @@ const initialContext: Context = {
 const SocketContext = createContext<Context>(initialContext);
 
 const SocketProvider: FC<any> = ({ children }): JSX.Element => {
+  const router = useRouter()
   const { user, config } = AuthContextProvider()
   const [socket, setSocket] = useState<Socket | null>(initialContext.socket);
 
@@ -34,7 +36,11 @@ const SocketProvider: FC<any> = ({ children }): JSX.Element => {
     const token = Cookies.get("idToken")
     if (token && !socket?.connected) {
       console.log("=======> Conecta...")
-      setSocket(api.socketIO({ token, development: config?.development }))
+      setSocket(api.socketIO({
+        token,
+        development: config?.development,
+        father: router?.query?.father
+      }))
     }
     if (!token && socket) {
       console.log("desconecta...")
@@ -42,7 +48,7 @@ const SocketProvider: FC<any> = ({ children }): JSX.Element => {
     }
   }, [user])
 
-  return (
+    return (
     <SocketContext.Provider value={{ socket }}>
       {children}
     </SocketContext.Provider>

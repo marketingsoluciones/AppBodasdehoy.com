@@ -2,6 +2,7 @@ import { createContext, useState, useContext, useEffect, Dispatch, SetStateActio
 import { EditDefaultState, Event, filterGuest, planSpace } from "../utils/Interfaces";
 import { EventsGroupContextProvider } from "./EventsGroupContext";
 import { getAllFilterGuest } from "../utils/Funciones";
+import { SocketContextProvider } from "./SocketContext";
 
 interface idxGroupEvent {
   idx: number
@@ -69,6 +70,7 @@ const EventProvider = ({ children }) => {
   const [filterGuests, setFilterGuests] = useState<filterGuests>({ sentados: [], noSentados: [], update: 0 })
   const [allFilterGuests, setAllFilterGuests] = useState<filterGuests[]>([{ sentados: [], noSentados: [], update: 0 }])
   const [editDefault, setEditDefault] = useState<EditDefaultTableAndElement>()
+  const { socket } = SocketContextProvider()
 
   // Capturar eventos del cumulo y seleccionar uno
   useEffect(() => {
@@ -117,6 +119,13 @@ const EventProvider = ({ children }) => {
     console.log("seteado eventsGroup", eventsGroup)
     //console.log("---------------------------------------")
   }, [eventsGroup])
+
+  socket?.on("cms:message", async (msg) => {
+    console.log(msg)
+    if (msg?.context === "event") {
+      setEvent(eventsGroup.find(elem => elem._id === msg?.eventID))
+    }
+  })
 
   return (
     <EventContext.Provider value={{ event, setEvent, invitadoCero, setInvitadoCero, idxGroupEvent, setIdxGroupEvent, planSpaceActive, setPlanSpaceActive, filterGuests, setFilterGuests, allFilterGuests, setAllFilterGuests, editDefault, setEditDefault }}>

@@ -43,11 +43,12 @@ export const api = {
     });
   },
 
-  socketIO: ({ token, development }) => {
+  socketIO: ({ token, development,father }) => {
     const socket = io(process.env.NEXT_PUBLIC_BASE_API_BODAS ?? "", {
       auth: {
         token: `Bearer ${token}`,
         development,
+        father
       }
     })
     console.log(1000440001, socket)
