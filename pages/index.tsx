@@ -71,10 +71,17 @@ const Home: NextPage = () => {
           </ModalLeft>
         )}
 
-        <section className="section relative w-full ">
+        <section className="section relative w-full">
           <Banner state={isMounted} set={setIsMounted} />
           <GridCards state={isMounted} set={setIsMounted} showEditEvent={showEditEvent} setShowEditEvent={setShowEditEvent} />
         </section>
+        <style jsx>
+          {`
+              .section {
+                height: calc(100vh - 190px);
+              }
+            `}
+        </style>
       </>
     );
   }

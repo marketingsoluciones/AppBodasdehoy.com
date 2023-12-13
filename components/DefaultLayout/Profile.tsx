@@ -2,7 +2,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import ClickAwayListener from "react-click-away-listener";
 import { capitalize } from "../../utils/Capitalize";
-import { CompanyIcon, CorazonPaddinIcon, Eventos, MensajeIcon, Posts, UserIcon, WeddingPage } from "../icons";
+import { Catering, CompanyIcon, CorazonPaddinIcon, Eventos, FotografoMenu, LugaresBodas, MensajeIcon, Posts, UserIcon, WeddingPage, WeddingPlanner } from "../icons";
 import router, { useRouter } from "next/router";
 import { getAuth, signOut } from "firebase/auth";
 import { AuthContextProvider } from "../../context";
@@ -12,13 +12,14 @@ import { RiLoginBoxLine } from "react-icons/ri";
 import { PiUserPlusLight } from "react-icons/pi";
 import { BiBell } from "react-icons/bi";
 import { MdLogout } from "react-icons/md";
+import { TbWorldWww } from "react-icons/tb";
 
 const Profile = ({ user, state, set, ...rest }) => {
   const { config } = AuthContextProvider()
   const [dropdown, setDropwdon] = useState(false);
   const { route } = useRouter()
   const cookieContent = JSON.parse(Cookies.get("guestbodas") ?? "{}")
-  const options: Option[] = [
+  const optionsStart: Option[] = [
     {
       title: "Iniciar sesión",
       onClick: async () => { router.push(config?.pathLogin ? `${config?.pathLogin}?d=app` : `/login?d=${route}`) },
@@ -34,14 +35,14 @@ const Profile = ({ user, state, set, ...rest }) => {
     {
       title: "Mis empresas",
       onClick: async () => {
-        //!user?.uid && toast("success", "debes ininiciar sessión o registrarte")
         const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
-        router.push(user?.uid ? path ?? "" : `/login?d=${router.asPath.slice(1, router.asPath.length)}&end=${path}`)
-      }, icon: <CompanyIcon />,
-      rol: ["novio", "novia", "otro", "empresa"],
+        router.push((user?.displayName !== "guest") ? path ?? "" : config?.pathLogin ? `${config?.pathDirectory}/info-empresa?d=app` : `/login?d=${route}`)
+      },
+      icon: <CompanyIcon />,
+      rol: ["all"],
     },
     {
-      title: "Notificaciones",
+      title: "Mis notificaciones",
       onClick: async () => { /*setModal(!modal)*/ },
       icon: <BiBell />,
       rol: ["novio", "novia", "otro", "empresa"],
@@ -49,15 +50,14 @@ const Profile = ({ user, state, set, ...rest }) => {
     {
       title: "Mis publicaciones",
       onClick: async () => {
-        //!user?.uid && toast("success", "debes ininiciar sessión o registrarte")
-        const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}/InfoPage/publicaciones`
-        router.push(user?.uid ? path ?? "" : `/login?d=${router.asPath.slice(1, router.asPath.length)}&end=${path}`)
+        const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
+        router.push((user?.displayName !== "guest") ? `${path}/InfoPage/publicaciones` ?? "" : config?.pathLogin ? `${config?.pathLogin}?d=app` : `/login?d=${route}`)
       },
       icon: <Posts />,
-      rol: ["novio", "novia", "otro", "empresa"],
+      rol: ["all"],
     },
     {
-      title: "Wedding page",
+      title: "Mi wedding page",
       onClick: async () => { /*setModal(!modal)*/ },
       icon: <WeddingPage />,
       rol: ["novio", "novia", "otro", "empresa"],
@@ -71,11 +71,62 @@ const Profile = ({ user, state, set, ...rest }) => {
       rol: ["novio", "novia", "otro", "empresa"],
     },
     {
-      title: "Proveedores",
+      title: "Mis proveedores",
       onClick: async () => { router.push(config?.pathDirectory) },
       icon: <CorazonPaddinIcon />,
       rol: ["all"],
     },
+  ];
+
+  const optionsCenter: Option[] = [
+    {
+      title: "Lugares para bodas",
+      onClick: async () => {
+        const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
+        router.push(`${path}/lugaresBodas`)
+      },
+      icon: <LugaresBodas />,
+      rol: ["novio", "novia", "otro", "empresa"],
+    },
+    {
+      title: "Catering de bodas",
+      onClick: async () => {
+        const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
+        router.push(`${path}/cateringBodas`)
+      },
+      icon: <Catering />,
+      rol: ["novio", "novia", "otro", "empresa"],
+    },
+    {
+      title: "Wedding Planner",
+      onClick: async () => {
+        const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
+        router.push(`${path}/weddingPlanner`)
+      },
+      icon: <WeddingPlanner />,
+      rol: ["novio", "novia", "otro", "empresa"],
+    },
+    {
+      title: "Fotografos",
+      icon: <FotografoMenu />,
+      onClick: async () => {
+        const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
+        router.push(`${path}/fotografo`)
+      },
+      rol: ["novio", "novia", "otro", "empresa"],
+    },
+    {
+      title: "Mi Web Creador",
+      icon: <TbWorldWww />,
+      onClick: async () => {
+        const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
+        router.push(`${path}/webCreator`)
+      },
+      rol: ["novio", "novia", "otro", "empresa"],
+    },
+  ]
+
+  const optionsEnd: Option[] = [
     {
       title: "Mi perfil",
       onClick: async () => { router.push(config?.pathPerfil) },
@@ -93,18 +144,27 @@ const Profile = ({ user, state, set, ...rest }) => {
       },
       rol: ["novio", "novia", "otro", "empresa"],
     },
-  ];
+  ]
 
-  const optionsReduce = options.reduce((acc: Option[], item: Option) => {
-    if (
-      item.rol?.includes(user?.role ? user.role[0] : "") ||
-      item.rol?.includes("all") ||
-      item.rol === user?.role
-    ) {
-      acc.push(item)
-    }
-    return acc
-  }, [])
+  const optionReduce = (options) => {
+    return options.reduce((acc: Option[], item: Option) => {
+      if (
+        item.rol?.includes(user?.role ? user.role[0] : "") ||
+        item.rol?.includes("all") ||
+        item.rol === user?.role
+      ) {
+        acc.push(item)
+      }
+      return acc
+    }, [])
+  }
+
+
+  const optionsReduceStart = optionReduce(optionsStart)
+  const optionsReduceCenter = optionReduce(optionsCenter)
+  const optionsReduceEnd = optionReduce(optionsEnd)
+
+
   const valirUser = user?.displayName == "guest" ? "guest" : "loged"
   //const ListaDropdownFilter = ListaDropdown.filter(elem => elem?.user === valirUser || elem?.user === "all")
   return (
@@ -141,13 +201,26 @@ const Profile = ({ user, state, set, ...rest }) => {
                   </h3>
                 </div>
                 <ul className="grid grid-cols-2 gap-2 text-xs place-items-left p-2 ">
-                  {optionsReduce.map((item: Option, idx) => (
+
+                  {optionsReduceStart.map((item: Option, idx) => (
+                    <ListItemProfile key={idx} {...item} />
+                  ))}
+                  {user?.displayName !== "guest" &&
+                    <>
+                      <hr className="col-span-2" />
+                      <span className="col-span-2 text-gray-700 font-semibold">Módulos:</span>
+                      {optionsReduceCenter.map((item: Option, idx) => (
+                        <ListItemProfile key={idx} {...item} />
+                      ))}
+                      <hr className="col-span-2" />
+                    </>
+                  }
+                  {optionsReduceEnd.map((item: Option, idx) => (
                     <ListItemProfile key={idx} {...item} />
                   ))}
                 </ul>
               </div >
             )}
-
             <img
               src={user?.photoURL ?? "/placeholder/user.png"}
               className="object-cover w-11 h-11 rounded-full"

@@ -27,7 +27,8 @@ const BlockPlantillas: FC<propsBlockPlatillas> = () => {
       console.log(error)
     }
   }
-  const redireccionFacturacion = window.origin.includes("://test") ? process.env.NEXT_PUBLIC_DIRECTORY_FACTURACION?.replace("//", "//test") : process.env.NEXT_PUBLIC_DIRECTORY_FACTURACION
+  const path = `${process.env.NEXT_PUBLIC_CMS}/facturacion`
+  const redireccionFacturacion = window.origin.includes("://test") ? path?.replace("//", "//test") : path
 
   return (
     <>

@@ -40,6 +40,7 @@ export const InfoDevelopment = () => {
             <li>user: {user?.displayName}</li>
             <li>userUid: {user?.uid}</li>
             <li>size: {`${size.x}x${size.y}`}</li>
+            {/* <li>sizeAvalible: {screen?.availHeight}</li> */}
           </ul>
           <button
             onClick={() => {

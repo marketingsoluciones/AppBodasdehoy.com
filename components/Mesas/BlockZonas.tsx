@@ -8,26 +8,27 @@ interface propsBlockZonas {
 }
 
 const BlockZonas: FC<propsBlockZonas> = () => {
-    const redireccionFacturacion = window.origin.includes("://test") ? process.env.NEXT_PUBLIC_DIRECTORY_FACTURACION?.replace("//", "//test") : process.env.NEXT_PUBLIC_DIRECTORY_FACTURACION
+    const path = `${process.env.NEXT_PUBLIC_CMS}/facturacion`
+    const redireccionFacturacion = window.origin.includes("://test") ? path?.replace("//", "//test") : path
     const router = useRouter()
     return (
         <>
             {true && (
-                <div className="flex flex-col items-center justify-center h-full overflow-y-auto ">
-                    <p className="text-sm font-display">
+                <div className="flex flex-col items-center justify-center w-full h-full px-2">
+                    <p className="bg-blue-100 w-full text-sm text-center">
                         <span className="text-primary ">Crear Zonas </span>
                         para organizar tu salón.
                     </p>
-                    <p className="text-sm text-center md:block hidden ">
-                        Diseña la distribución de tu celebración con la <br /> libertad  creativa que te facilita tu<br /> EventosOrganizador.
+                    <p className="w-full text-sm text-center block px-4 mt-2">
+                        Diseña la distribución de tu celebración con la libertad creativa que te facilita tu EventosOrganizador.
                     </p>
-                    <div className="text-yellow-500 flex items-center justify-center space-x-1 md:my-2  text-sm cursor-default">
+                    <div className="text-yellow-500 flex items-center justify-center space-x-1 md:my-2 w-full text-sm cursor-default">
                         <div>
                             <DiamanteIcon />
                         </div>
                         <Link href={`${redireccionFacturacion}`}>
                             <p>
-                                Activar la versión <span className="font-semibold cursor-pointer">PREMIUM</span>
+                                Activar la versión <span className="w-full font-semibold cursor-pointer">PREMIUM</span>
                             </p>
                         </Link>
                     </div>

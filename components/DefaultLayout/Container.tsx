@@ -75,7 +75,7 @@ const Container = (props) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1, transition: { duration: 1, delay: 1.5 } }}
 
-        className="hidden md:block relative overflow-hidden"
+        className="md:block relative"
       >
         <Navigation
           notificaciones={notificaciones}

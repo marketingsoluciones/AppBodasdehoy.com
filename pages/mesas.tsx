@@ -156,12 +156,12 @@ const Mesas: FC = () => {
             </motion.div>
             <div className={`${fullScreen || forCms ? "absolute z-[50] w-[100vw] h-[100vh] top-0 left-0" : "w-full h-[calc(100vh-208px)] md:h-[calc(100vh-210px)] md:mt-2"}`}>
               <div className={`flex flex-col md:flex-row w-full items-center h-full`}>
-                <div className={`w-[calc(100%-0px)] mt-2 md:mt-0 ${fullScreen ? " md:w-[23%] h-[calc(30%-8px)]" : " md:w-[25%] h-[calc(30%-8px)]"} md:h-[100%] flex flex-col items-center truncate`}>
+                <div className={`w-[calc(100%-0px)] mt-2 md:mt-0 ${fullScreen ? " md:w-[23%] h-[calc(30%-8px)]" : " md:w-[25%] h-[calc(30%-8px)]"} md:h-[100%] flex flex-col items-center`}>
                   <div className="bg-primary rounded-t-lg md:rounded-none w-[100%] ] h-10 ">
                     <SubMenu itemSelect={itemSelect} setItemSelect={setItemSelect} />
                   </div>
                   <div className={`bg-base flex w-[100%] h-[calc(100%-40px)]`} >
-                    <div className="flex flex-col h-[100%] w-full md:px-2 justify-start truncate transform transition duration-700">
+                    <div className="flex flex-col h-[100%] w-full md:px-2 justify-start transform transition duration-700">
                       <div className={`bg-white w-[100%] h-[100%] my-1 ${fullScreen ? "md:h-[30%] 2xl:h-[25%]" : "md:h-[40%] 2xl:h-[25%] rounded-lg shadow-lg"}`}>
                         {itemSelect == "invitados" &&
                           <BlockInvitados set={setIsMounted} setEditInv={setEditInv} editInv={editInv} setSelected={setSelected} />
@@ -182,7 +182,6 @@ const Mesas: FC = () => {
                         }
                         {itemSelect == "plantillas" &&
                           <BlockPlantillas />
-                        
                         }
                         {itemSelect == "resumen" &&
                           <BlockResumen InvitadoSentados={filterGuests?.sentados} />
