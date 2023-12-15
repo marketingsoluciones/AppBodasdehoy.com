@@ -31,7 +31,7 @@ const BlockPlantillas: FC<propsBlockPlatillas> = () => {
   const redireccionFacturacion = window.origin.includes("://test") ? path?.replace("//", "//test") : path
 
   return (
-    <>
+    <div className="w-full h-full overflow-auto">
       {
         false &&
         <BlockDefault>
@@ -49,32 +49,34 @@ const BlockPlantillas: FC<propsBlockPlatillas> = () => {
         </BlockDefault>
       }
       {true && (
-        <div className="flex flex-col items-center justify-center h-full overflow-y-auto ">
-          <p className="text-sm font-display">
-            <span className="text-primary ">Crear Plantillas </span>
-            para organizar tu salón.
-          </p>
-          <p className="text-sm text-center md:block hidden ">
-            Diseña la distribución de tu celebración con la <br /> libertad  creativa que te facilita tu<br /> EventosOrganizador.
-          </p>
-          <div className="text-yellow-500 flex items-center justify-center space-x-1 md:my-2  text-sm cursor-default">
-            <div>
-              <DiamanteIcon />
+        <div className="w-full py-2">
+          <div className="flex flex-col items-center justify-center w-full h-full px-2">
+            <p className="w-full text-sm text-center">
+              <span className="text-primary ">Crear Plantillas </span>
+              para organizar tu salón.
+            </p>
+            <p className="hidden md:block w-full text-sm text-center px-4 mt-2">
+              Diseña la distribución de tu celebración con la <br /> libertad  creativa que te facilita tu<br /> EventosOrganizador.
+            </p>
+            <div className="text-yellow-500 flex items-center justify-center space-x-1 md:my-2  text-sm cursor-default">
+              <div>
+                <DiamanteIcon />
+              </div>
+              <Link href={`${redireccionFacturacion}`}>
+                <p>
+                  Activar la versión <span className="font-semibold cursor-pointer">PREMIUM</span>
+                </p>
+              </Link>
             </div>
             <Link href={`${redireccionFacturacion}`}>
-              <p>
-                Activar la versión <span className="font-semibold cursor-pointer">PREMIUM</span>
-              </p>
+              <button className="text-sm text-white bg-primary px-7 py-1 rounded-lg" >
+                Empezar
+              </button>
             </Link>
           </div>
-          <Link href={`${redireccionFacturacion}`}>
-            <button className="text-sm text-white bg-primary px-7 py-1 rounded-lg" >
-              Empezar
-            </button>
-          </Link>
         </div>
       )}
-    </>
+    </div>
   )
 }
 
