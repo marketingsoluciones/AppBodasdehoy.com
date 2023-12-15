@@ -15,11 +15,14 @@ const ModuloSubida = ({ event, use }) => {
   const { setAlerts } = useContext(AlertContext);
   const { setEvent } = EventContextProvider()
   const [showAddImg, setShowAddImg] = useState(true)
+  const [sendedImg, setSendedImg] = useState(false)
 
   const subir_archivo = async () => {
-    const newFile = new FormData();
-    const params = {
-      query: `mutation ($file: Upload!, $_id : String, $use : String) {
+    try {
+      if (imagePreviewUrl?.file?.type && !sendedImg) {
+        const newFile = new FormData();
+        const params = {
+          query: `mutation ($file: Upload!, $_id : String, $use : String) {
                 singleUpload(file: $file, _id:$_id, use : $use){
                   _id
                   i1024
@@ -30,30 +33,37 @@ const ModuloSubida = ({ event, use }) => {
                 }
               }
             `,
-      variables: {
-        file: null,
-        _id: event?._id,
-        use: use,
-      },
-    };
+          variables: {
+            file: null,
+            _id: event?._id,
+            use: use,
+          },
+        };
 
-    let map = {
-      0: ["variables.file"],
-    };
+        let map = {
+          0: ["variables.file"],
+        };
 
-    newFile.append("operations", JSON.stringify(params));
-    newFile.append("map", JSON.stringify(map));
-    newFile.append("0", imagePreviewUrl.file, imagePreviewUrl.file.name);
+        newFile.append("operations", JSON.stringify(params));
+        newFile.append("map", JSON.stringify(map));
+        newFile.append("0", imagePreviewUrl.file, imagePreviewUrl.file.name);
 
-    try {
-      const { data } = await api.UploadFile(newFile);
-      setEvent((old) => {
-        return { ...old, imgInvitacion: data?.data?.singleUpload }
-      })
+
+        const { data } = await api.UploadFile(newFile);
+        setEvent((old) => {
+          return { ...old, imgInvitacion: data?.data?.singleUpload }
+        })
+        setSendedImg(true)
+      }
     } catch (error) {
       console.log(error);
     }
   };
+
+  useEffect(() => {
+    setSendedImg(false)
+  }, [imagePreviewUrl?.file])
+
 
   const handleChange = (e) => {
     e.preventDefault();
@@ -101,19 +111,14 @@ const ModuloSubida = ({ event, use }) => {
             {imagePreviewUrl.preview ? cargado.titulo : "Añadir invitación"}
           </label>
         )}
-
-        {true && (
-          <div className="w-full  flex text-gray-500 bottom-0 translate-y-full absolute cursor-pointer shadow-lg rounded-b-xl">
-            <BotonConfirmar onClick={subir_archivo} />
-
-            <label
-              htmlFor="file"
-              className="flex gap-1 items-center justify-center w-full bg-white px-3 py-1 hover:scale-105 transition transform cursor-pointer rounded-br-xl hover:z-10"
-            >
-              Cambiar <EditarIcon />
-            </label>
+        <div className="w-full  flex text-gray-500 bottom-0 translate-y-full absolute shadow-lg rounded-b-xl">
+          <div onClick={subir_archivo} className={`flex gap-1 items-center justify-start pl-3 w-full ${imagePreviewUrl?.file?.type ? "px-3 py-1 bg-secondary hover:scale-105 cursor-pointer" : ""} transition transform rounded-bl-xl hover:z-10`}>
+            Confirmar {sendedImg && <CheckIcon />}
           </div>
-        )}
+          <label htmlFor="file" className="flex gap-1 items-center justify-center w-full bg-white px-3 py-1 hover:scale-105 transition transform cursor-pointer rounded-br-xl hover:z-10">
+            Cambiar <EditarIcon />
+          </label>
+        </div>
       </div>
       <br />
       <br />

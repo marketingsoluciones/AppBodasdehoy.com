@@ -81,7 +81,7 @@ export default function Test({ TitelComponent }) {
   }
 
   return (
-    <div className="bg-white shadow-md rounded-2xl w-full mx-auto inset-x-0 h-max p-4 font-display flex flex-col gap-2">
+    <div className="shadow-md rounded-2xl w-full mx-auto inset-x-0 h-max py-8 md:p-4 font-display flex flex-col gap-2">
       <Formik
         validationSchema={TitelComponent === "email" ? validationSchemaEmail : validationSchemaPhoneNumber}
         onSubmit={(values, actions) => handleClick(values, actions)}

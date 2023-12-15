@@ -91,49 +91,41 @@ const Invitaciones = () => {
             <BlockTitle title="Invitaciones" />
             <CounterInvitations />
             <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full md:px-6 pt-2 md:pt-6 pb-28 mb-32 md:mb-0 md:p-12 relative">
-              <div className="flex gap-2 md:gap-4 items-center mt-1 mb-3 md:mb-5 mx-2">
+              {/* <div className="flex gap-2 md:gap-4 items-center mt-1 mb-3 md:mb-5 mx-2">
                 <button
                   onClick={(e) => setShowInvitation(true)}
                   className={`focus:outline-none ${showInvitation ? "bg-primary text-white" : "bg-white text-primary"} px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary`}
                 >
-                  {/* <PlusIcon /> */}
                   Invitación
                 </button>
                 <button
                   onClick={(e) => setShowInvitation(false)}
                   className={`focus:outline-none ${showInvitation ? "bg-white text-primary" : "bg-primary text-white"} px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary`}
                 >
-                  {/* <PlusIcon /> */}
                   Lista de invitados
                 </button>
-                {/* <button
-                  onClick={(e) => handleClick(e, "menu")}
-                  className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
-                >
-                  <PlusIcon />
-                  Diseño
-                </button> */}
-              </div>
-              {showInvitation
-                ? <div className="*bg-blue-200 flex flex-col md:flex-row">
-                  <div className="*bg-blue-400 w-full md:w-1/3 flex px-14 md:px-10">
-                    <div ref={hoverRef} className="*bg-yellow-200 relative w-full h-72 md:h-80">
-                      <ModuloSubida event={event} use={"imgInvitacion"} />
-                    </div>
-                  </div>
-                  <div className="*bg-blue-300 w-full md:w-2/3 h-96 md:h-80">
-                    <OptionsMenu
-                      arryOptions={arryOptions}
-                      optionSelect={optionSelect}
-                      setOptionSelect={setOptionSelect}
-                    />
-                    <div className="col-span-3 p-5 *md:p-0">
-                      {optionSelect !== "diseño" ? <Test TitelComponent={optionSelect} /> : <DiseñoComponent />}
-                    </div>
+              </div> */}
+
+              <div className="w-full flex flex-col md:flex-row">
+                <div className="w-full md:w-1/3 flex px-14 md:px-10">
+                  <div ref={hoverRef} className="*bg-yellow-200 relative w-full h-72 md:h-80">
+                    <ModuloSubida event={event} use={"imgInvitacion"} />
                   </div>
                 </div>
-                : <EnviadosComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent} event={event} />
-              }
+                <div className="w-full md:w-2/3  md:h-80">
+                  <OptionsMenu
+                    arryOptions={arryOptions}
+                    optionSelect={optionSelect}
+                    setOptionSelect={setOptionSelect}
+                  />
+                  <div className="col-span-3 pt-4 md:p-6 w-full">
+                    {optionSelect !== "diseño" ? <Test TitelComponent={optionSelect} /> : <DiseñoComponent />}
+                  </div>
+                </div>
+              </div>
+              <div className="md:pt-8">
+                <EnviadosComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent} event={event} />
+              </div>
             </div>
           </motion.div>
         </section>

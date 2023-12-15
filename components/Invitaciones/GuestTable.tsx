@@ -77,7 +77,6 @@ export const GuestTable: FC<any> = ({ data, multiSeled, reenviar }) => {
               setArrEnviatInvitaciones([props?.row?.original?._id]);
             }
           };
-
           return (
             <>
               <div
@@ -121,16 +120,14 @@ export const GuestTable: FC<any> = ({ data, multiSeled, reenviar }) => {
   );
 
   return (
-    <>
+    <div className="">
       {arrEnviarInvitaciones.length > 0 && (
-        <>
-          <ConfirmationBlock
-            arrEnviarInvitaciones={arrEnviarInvitaciones}
-            set={(act) => setArrEnviatInvitaciones(act)}
-          />
-        </>
+        <ConfirmationBlock
+          arrEnviarInvitaciones={arrEnviarInvitaciones}
+          set={(act) => setArrEnviatInvitaciones(act)}
+        />
       )}
       <DataTable columns={Columna} data={data} multiSeled={multiSeled} setArrEnviatInvitaciones={setArrEnviatInvitaciones} reenviar={reenviar} />
-    </>
+    </div>
   );
 };

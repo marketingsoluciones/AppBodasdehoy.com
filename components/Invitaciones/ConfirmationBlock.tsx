@@ -1,10 +1,32 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import { EventContextProvider } from "../../context";
 import { api } from "../../api";
+import { OptionsMenu } from "./OptionsMenu";
+import { EmailIcon, SmsIcon, WhatsappIcon } from "../icons";
+import { optionArryOptions } from "../../pages/invitaciones";
 
 
 export const ConfirmationBlock: FC<any> = ({ arrEnviarInvitaciones, set }) => {
   const { event, setEvent } = EventContextProvider();
+  const [optionSelect, setOptionSelect] = useState("whatsapp")
+
+  const arryOptions: optionArryOptions[] = [
+    {
+      title: "whatsapp",
+      icon: <WhatsappIcon />,
+      state: false
+    },
+    {
+      title: "email",
+      icon: <EmailIcon />,
+      state: false
+    },
+    {
+      title: "sms",
+      icon: <SmsIcon />,
+      state: false
+    },
+  ]
 
   const Cancelar = () => {
     set([]);
@@ -43,7 +65,7 @@ export const ConfirmationBlock: FC<any> = ({ arrEnviarInvitaciones, set }) => {
         evento_id: event?._id,
         invitados_ids_array: arrEnviarInvitaciones,
         dominio: process.env.NEXT_PUBLIC_BASE_URL,
-        transport: "whatsapp"
+        transport: optionSelect
       },
     };
     console.log(event)
@@ -70,32 +92,43 @@ export const ConfirmationBlock: FC<any> = ({ arrEnviarInvitaciones, set }) => {
       }
     }
   };
+
   return (
-    <div className="w-full h-full absolute grid place-items-center p-4">
-      <div className="bg-white rounded-xl relative w-max md:w-[400px] h-max p-6 z-30 flex flex-col gap-3">
-        <p className="font-display text-gray-500">
-          {!event?.imgInvitacion
-            ? "Debe añadir la invitación"
-            : `¿Desea enviar ${arrEnviarInvitaciones.length} ${arrEnviarInvitaciones.length > 1 ? "invitaciones" : "invitación"} de su evento?`
-          }
-        </p>
-        <div className="w-full flex gap-10 justify-center h-max items-center">
-          <button
-            onClick={handleSendInvitation}
-            className={`rounded-md font-display focus:outline-none ${!event?.imgInvitacion ? "bg-gray-300" : "bg-green"} text-white hover:opacity-90 transition px-2 py-1`}
-            disabled={!event?.imgInvitacion}
-          >
-            Aceptar
-          </button>
-          <button
-            onClick={Cancelar}
-            className="rounded-md font-display focus:outline-none bg-primary text-white hover:opacity-90 transition px-2 py-1"
-          >
-            Cancelar
-          </button>
+    <>
+      <div className="bg-black w-full h-full fixed rounded-xl opacity-60 z-20 top-0 left-0" />
+      <div className="w-full z-[1000] h-full fixed grid place-items-center p-4 top-0 left-0">
+        <div className="bg-white rounded-xl relative w-max md:w-[500px] h-max p-6 z-30 flex flex-col gap-1 text-gray-500">
+          <p className="font-semibold mb-2">
+            {!event?.imgInvitacion
+              ? "Debe añadir la invitación"
+              : `¿Desea enviar ${arrEnviarInvitaciones.length} ${arrEnviarInvitaciones.length > 1 ? "invitaciones" : "invitación"} de su evento?`
+            }
+          </p>
+          <span>Seleccione el medio</span>
+          <div className="grip grid-cols-3 -mt-2">
+            <OptionsMenu
+              arryOptions={arryOptions}
+              optionSelect={optionSelect}
+              setOptionSelect={setOptionSelect}
+            />
+          </div>
+          <div className="w-full flex gap-10 mt-6 justify-center h-max items-center">
+            <button
+              onClick={handleSendInvitation}
+              className={`rounded-md font-display w-28 focus:outline-none ${!event?.imgInvitacion ? "bg-gray-300" : "bg-green"} text-white hover:opacity-90 transition py-1`}
+              disabled={!event?.imgInvitacion}
+            >
+              Aceptar
+            </button>
+            <button
+              onClick={Cancelar}
+              className="rounded-md font-display w-28 focus:outline-none bg-gray-400 text-white hover:opacity-90 transition py-1"
+            >
+              Cancelar
+            </button>
+          </div>
         </div>
       </div>
-      <div className="w-full h-full absolute bg-black rounded-xl opacity-50 z-20" />
-    </div>
+    </>
   );
 };
