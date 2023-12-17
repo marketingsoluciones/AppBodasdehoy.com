@@ -67,12 +67,12 @@ const BlockPlantillas: FC<propsBlockPlatillas> = () => {
                   Activar la versión <span className="font-semibold cursor-pointer">PREMIUM</span>
                 </p>
               </Link>
-              <Link href={`${redireccionFacturacion}`}>
-                <button className="text-sm text-white bg-primary px-7 py-1 rounded-lg" >
-                  Empezar
-                </button>
-              </Link>
             </div>
+            <Link href={`${redireccionFacturacion}`}>
+              <button className="text-sm text-white bg-primary px-7 py-1 rounded-lg" >
+                Empezar
+              </button>
+            </Link>
           </div>
         </div>
       )}
