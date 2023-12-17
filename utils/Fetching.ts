@@ -139,6 +139,9 @@ export const queries = {
       sessionCookie
     }
   }`,
+  updateUser: `mutation ($uid:ID, $variable:String, $valor:String){
+    updateUser(uid:$uid, variable:$variable, valor:$valor)
+  }`,
   createUser: `mutation  ($uid : ID, $city: String, $country : String, $weddingDate : String, $phoneNumber : String, $role : [String]) {
     createUser(uid: $uid, city : $city, country : $country, weddingDate : $weddingDate, phoneNumber : $phoneNumber, role: $role){
           city
@@ -158,6 +161,7 @@ export const queries = {
           weddingDate
           signUpProgress
           status
+          eventSelected
           createdAt
           updatedAt
         }

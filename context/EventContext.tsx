@@ -3,6 +3,7 @@ import { EditDefaultState, Event, filterGuest, planSpace } from "../utils/Interf
 import { EventsGroupContextProvider } from "./EventsGroupContext";
 import { getAllFilterGuest } from "../utils/Funciones";
 import { SocketContextProvider } from "./SocketContext";
+import { AuthContextProvider } from "./AuthContext";
 
 interface idxGroupEvent {
   idx: number
@@ -71,6 +72,7 @@ const EventProvider = ({ children }) => {
   const [allFilterGuests, setAllFilterGuests] = useState<filterGuests[]>([{ sentados: [], noSentados: [], update: 0 }])
   const [editDefault, setEditDefault] = useState<EditDefaultTableAndElement>()
   const { socket } = SocketContextProvider()
+  const { user } = AuthContextProvider()
 
   // Capturar eventos del cumulo y seleccionar uno
   useEffect(() => {
@@ -82,7 +84,7 @@ const EventProvider = ({ children }) => {
         console.log("seteando evento")
         const eventsPendientes = eventsGroup.filter(item => item.estatus === "pendiente")
         const eventsGroupSort = eventsPendientes?.sort((a: any, b: any) => { return b.fecha_creacion - a.fecha_creacion })
-        setEvent(eventsGroupSort[0]);
+        setEvent(eventsGroupSort?.find(elem => elem._id === user?.eventSelected));
         setValir(true)
       }
     }
