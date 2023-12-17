@@ -2,11 +2,14 @@ import { Formik, ErrorMessage, Form, useFormikContext } from "formik";
 import { AuthContextProvider, EventContextProvider } from "../../context";
 import { api } from '../../api'
 import InputField from "../Forms/InputField";
-import { EmailIcon, PhoneMobile } from "../icons";
+import { DiamanteIcon, EmailIcon, IconLightBulb16, PhoneMobile } from "../icons";
 import * as yup from "yup";
 import { phoneUtil, useAuthentication } from "../../utils/Authentication";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { useEffect } from "react";
+import Link from "next/link";
+import { ActivatorPremium } from "../ActivatorPremium";
+import { Tooltip } from "../Utils/Tooltip";
 
 export default function Test({ TitelComponent }) {
   const { geoInfo } = AuthContextProvider()
@@ -79,9 +82,11 @@ export default function Test({ TitelComponent }) {
       actions.setSubmitting(false)
     }
   }
+  const path = `${process.env.NEXT_PUBLIC_CMS}/facturacion`
+  const redireccionFacturacion = window.origin.includes("://test") ? path?.replace("//", "//test") : path
 
   return (
-    <div className="shadow-md rounded-2xl w-full mx-auto inset-x-0 h-max py-8 md:p-4 font-display flex flex-col gap-2">
+    <div className="shadow-md rounded-2xl w-full mx-auto inset-x-0 h-60 py-8 md:p-4 font-display flex flex-col gap-2">
       <Formik
         validationSchema={TitelComponent === "email" ? validationSchemaEmail : validationSchemaPhoneNumber}
         onSubmit={(values, actions) => handleClick(values, actions)}
@@ -107,17 +112,26 @@ export default function Test({ TitelComponent }) {
                   icon={<PhoneMobile className="absolute w-4 h-4 inset-y-0 left-4 m-auto text-gray-500" />}
                 />
               }
-              <button
-                onClick={handleSubmit}
-                type="submit"
-                className="focus:outline-none hover:bg-secondary hover:text-gray-300 transition bg-primary text-white rounded-xl text-sm px-5 py-2 mt-4 w-full"
-              >
-                Enviar {TitelComponent} de prueba
-              </button>
+              <Tooltip
+                label="Primero debes añadir la imagen de la invitación"
+                icon={<IconLightBulb16 className="w-6 h-6" />}
+                disabled={TitelComponent !== "email" || event?.imgInvitacion}>
+                <button
+                  onClick={handleSubmit}
+                  type="submit"
+                  disabled={TitelComponent !== "email" || !event?.imgInvitacion}
+                  className={`${TitelComponent !== "email" ? "bg-gray-300" : "focus:outline-none hover:opacity-70 transition bg-primary"} text-white rounded-xl text-sm px-5 py-2 mt-4 w-full`}
+                >
+                  Enviar {TitelComponent} de prueba
+                </button>
+              </Tooltip>
             </>
           </Form>
         )}
       </Formik>
+      {TitelComponent !== "email" && <div className="text-yellow-500 flex items-center justify-center space-x-1 md:my-2 text-sm cursor-default gap-4">
+        <ActivatorPremium link={redireccionFacturacion} />
+      </div>}
     </div>
   );
 }

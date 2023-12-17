@@ -2,23 +2,24 @@ import { FC, useState } from "react";
 import { EventContextProvider } from "../../context";
 import { api } from "../../api";
 import { OptionsMenu } from "./OptionsMenu";
-import { EmailIcon, SmsIcon, WhatsappIcon } from "../icons";
+import { EmailIcon, IconLightBulb16, SmsIcon, WhatsappIcon } from "../icons";
 import { optionArryOptions } from "../../pages/invitaciones";
+import { ActivatorPremium } from "../ActivatorPremium";
 
 
 export const ConfirmationBlock: FC<any> = ({ arrEnviarInvitaciones, set }) => {
   const { event, setEvent } = EventContextProvider();
-  const [optionSelect, setOptionSelect] = useState("whatsapp")
+  const [optionSelect, setOptionSelect] = useState("email")
 
   const arryOptions: optionArryOptions[] = [
     {
-      title: "whatsapp",
-      icon: <WhatsappIcon />,
+      title: "email",
+      icon: <EmailIcon />,
       state: false
     },
     {
-      title: "email",
-      icon: <EmailIcon />,
+      title: "whatsapp",
+      icon: <WhatsappIcon />,
       state: false
     },
     {
@@ -92,41 +93,55 @@ export const ConfirmationBlock: FC<any> = ({ arrEnviarInvitaciones, set }) => {
       }
     }
   };
-
+  const path = `${process.env.NEXT_PUBLIC_CMS}/facturacion`
+  const redireccionFacturacion = window.origin.includes("://test") ? path?.replace("//", "//test") : path
   return (
     <>
       <div className="bg-black w-full h-full fixed rounded-xl opacity-60 z-20 top-0 left-0" />
       <div className="w-full z-[1000] h-full fixed grid place-items-center p-4 top-0 left-0">
         <div className="bg-white rounded-xl relative w-max md:w-[500px] h-max p-6 z-30 flex flex-col gap-1 text-gray-500">
-          <p className="font-semibold mb-2">
-            {!event?.imgInvitacion
-              ? "Debe añadir la invitación"
-              : `¿Desea enviar ${arrEnviarInvitaciones.length} ${arrEnviarInvitaciones.length > 1 ? "invitaciones" : "invitación"} de su evento?`
-            }
-          </p>
-          <span>Seleccione el medio</span>
-          <div className="grip grid-cols-3 -mt-2">
-            <OptionsMenu
-              arryOptions={arryOptions}
-              optionSelect={optionSelect}
-              setOptionSelect={setOptionSelect}
-            />
-          </div>
-          <div className="w-full flex gap-10 mt-6 justify-center h-max items-center">
-            <button
-              onClick={handleSendInvitation}
-              className={`rounded-md font-display w-28 focus:outline-none ${!event?.imgInvitacion ? "bg-gray-300" : "bg-green"} text-white hover:opacity-90 transition py-1`}
-              disabled={!event?.imgInvitacion}
-            >
-              Aceptar
-            </button>
-            <button
-              onClick={Cancelar}
-              className="rounded-md font-display w-28 focus:outline-none bg-gray-400 text-white hover:opacity-90 transition py-1"
-            >
-              Cancelar
-            </button>
-          </div>
+          {!event?.imgInvitacion
+            ? <div className="flex gap-2 items-center text-emerald-600">
+              <span
+                onClick={Cancelar}
+                className="font-display text-gray-500 hover:text-gray-300 transition cursor-pointer text-2xl absolute top-2 right-3">X</span>
+              <IconLightBulb16 className="w-6 h-6" />
+              <span>Primero debes añadir la imagen de la invitación</span>
+            </div> :
+            <>
+              <p className="font-semibold mb-2">
+                {`¿Desea enviar ${arrEnviarInvitaciones.length} ${arrEnviarInvitaciones.length > 1 ? "invitaciones" : "invitación"} de su evento?`}
+              </p>
+              <span>Seleccione el medio</span>
+              <div className="grip grid-cols-3 -mt-2">
+                <OptionsMenu
+                  arryOptions={arryOptions}
+                  optionSelect={optionSelect}
+                  setOptionSelect={setOptionSelect}
+                />
+              </div>
+              {optionSelect === "email"
+                ? <div className="w-full flex gap-10 mt-6 justify-center h-max items-center">
+                  <button
+                    onClick={handleSendInvitation}
+                    className={`rounded-md font-display w-28 focus:outline-none ${!event?.imgInvitacion ? "bg-gray-300" : "bg-green"} text-white hover:opacity-90 transition py-1`}
+                    disabled={!event?.imgInvitacion}
+                  >
+                    Aceptar
+                  </button>
+                  <button
+                    onClick={Cancelar}
+                    className="rounded-md font-display w-28 focus:outline-none bg-gray-400 text-white hover:opacity-90 transition py-1"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+                : <div className="text-yellow-500 flex items-center justify-center space-x-1 mt-7 text-sm cursor-default gap-4">
+                  <ActivatorPremium link={redireccionFacturacion} />
+                </div>
+              }
+            </>
+          }
         </div>
       </div>
     </>

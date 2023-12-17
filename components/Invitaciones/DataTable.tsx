@@ -85,7 +85,7 @@ export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, set
           <button
             disabled={!valir}
             onClick={() => { setArrEnviatInvitaciones(asd?.arrIDs) }}
-            className={`focus:outline-none ${valir ? "hover:bg-secondary hover:text-gray-300 transition bg-primary" : "bg-gray-300"} text-white py-1 rounded-lg text-center text-[10px] md:text-sm w-full`}>
+            className={`focus:outline-none ${valir ? "hover:opacity-70 transition bg-primary" : "bg-gray-300"} text-white py-1 rounded-lg text-center text-[10px] md:text-sm w-full`}>
             {reenviar ? "Reenviar" : "Enviar"}
           </button>
         </div>}

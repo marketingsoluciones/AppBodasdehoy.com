@@ -28,16 +28,16 @@ const Invitaciones = () => {
   const [dataInvitationSent, setDataInvitationSent] = useState([]);
   const [dataInvitationNotSent, setDataInvitationNotSent] = useState([]);
   const [showInvitation, setShowInvitation] = useState(true)
-  const [optionSelect, setOptionSelect] = useState("whatsapp")
+  const [optionSelect, setOptionSelect] = useState("email")
   const arryOptions: optionArryOptions[] = [
-    {
-      title: "whatsapp",
-      icon: <WhatsappIcon />,
-      state: false
-    },
     {
       title: "email",
       icon: <EmailIcon />,
+      state: false
+    },
+    {
+      title: "whatsapp",
+      icon: <WhatsappIcon />,
       state: false
     },
     {

@@ -1,8 +1,8 @@
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "../../api";
 import { EventContextProvider } from "../../context";
-import AlertContext from "../../context/AlertContext";
 import { CheckIcon, EditarIcon, SubirImagenIcon } from "../icons";
+import { useToast } from "../../hooks/useToast";
 
 const ModuloSubida = ({ event, use }) => {
   const [cargado, setCargado] = useState({ titulo: "esperando archivo" });
@@ -11,8 +11,7 @@ const ModuloSubida = ({ event, use }) => {
     preview: false,
     image: `${process.env.NEXT_PUBLIC_BASE_URL}${event?.imgInvitacion?.i800}`,
   });
-
-  const { setAlerts } = useContext(AlertContext);
+  const toast = useToast()
   const { setEvent } = EventContextProvider()
   const [showAddImg, setShowAddImg] = useState(true)
   const [sendedImg, setSendedImg] = useState(false)
@@ -62,28 +61,22 @@ const ModuloSubida = ({ event, use }) => {
 
   useEffect(() => {
     setSendedImg(false)
+    subir_archivo()
   }, [imagePreviewUrl?.file])
-
 
   const handleChange = (e) => {
     e.preventDefault();
     let reader = new FileReader();
     let file = e.target.files[0];
-    if (file.size < 5120000) {
+    if (file?.size < 5000000) {
       reader.onloadend = () => {
-        console.log(1, e)
-        setImagePreviewUrl({ file: file, image: reader.result, preview: true });
+        const imagePreviewUrl = { file: file, image: reader.result, preview: true }
+        setImagePreviewUrl(imagePreviewUrl);
       };
+      reader.readAsDataURL(file);
     } else {
-      setAlerts((old) => {
-        const alert = {
-          title: "Upss... La imagen es muy pesada (Max 5MB)",
-          page: "Invitaciones",
-        };
-        return [...old, alert];
-      });
+      toast("error", "Upss... La imagen es muy pesada (Máximo 5MB)")
     }
-    reader.readAsDataURL(file);
   };
 
   useEffect(() => {
@@ -111,17 +104,15 @@ const ModuloSubida = ({ event, use }) => {
             {imagePreviewUrl.preview ? cargado.titulo : "Añadir invitación"}
           </label>
         )}
-        <div className="w-full  flex text-gray-500 bottom-0 translate-y-full absolute shadow-lg rounded-b-xl">
-          <div onClick={subir_archivo} className={`flex gap-1 items-center justify-start pl-3 w-full ${imagePreviewUrl?.file?.type ? "px-3 py-1 bg-secondary hover:scale-105 cursor-pointer" : ""} transition transform rounded-bl-xl hover:z-10`}>
-            Confirmar {sendedImg && <CheckIcon />}
-          </div>
-          <label htmlFor="file" className="flex gap-1 items-center justify-center w-full bg-white px-3 py-1 hover:scale-105 transition transform cursor-pointer rounded-br-xl hover:z-10">
-            Cambiar <EditarIcon />
+        <div className="w-full flex flex-col text-gray-500 bottom-0 translate-y-full absolute">
+          <label htmlFor="file" className="gap-1 flex items-center justify-center w-full bg-gray-200 px-3 py-1 cursor-pointer rounded-b-xl shadow-sm hover:z-10">
+            <div className="flex hover:scale-105 transition transform">
+              Cambiar <EditarIcon className="w-6 h-6" />
+            </div>
           </label>
+          <span className={`${"text-xs text-gray-600 ml-2 mb-1"}`}>Tamaño máximo 5M</span>
         </div>
       </div>
-      <br />
-      <br />
       <style jsx>
         {`
           .background-image {
