@@ -84,6 +84,7 @@ export const ConfirmationBlock: FC<any> = ({ arrEnviarInvitaciones, set }) => {
             old.invitados_array[idxInvitado] = {
               ...old.invitados_array[idxInvitado],
               invitacion: true,
+              fecha_invitacion: new Date().getTime().toString()
             };
           });
 

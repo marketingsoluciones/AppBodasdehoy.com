@@ -5,10 +5,10 @@ import useHover from "../../hooks/useHover";
 import { EventContextProvider } from "../../context";
 import { ConfirmationBlock } from "../../components/Invitaciones/ConfirmationBlock"
 import { DataTable } from "../../components/Invitaciones/DataTable"
+import { getFormatTime, getRelativeTime } from "../../utils/FormatTime";
 
 export const GuestTable: FC<any> = ({ data, multiSeled, reenviar }) => {
   const [arrEnviarInvitaciones, setArrEnviatInvitaciones] = useState([]);
-
   const Columna = useMemo(
     () => [
       {
@@ -103,13 +103,12 @@ export const GuestTable: FC<any> = ({ data, multiSeled, reenviar }) => {
           useEffect(() => {
             setValue(props.value);
           }, [props.value]);
-
           return (
             <>
               <div
-                className={`truncate relative w-full h-full flex items-center justify-center pl-3 gap-1 `}
+                className={`group truncate relative w-full h-full flex items-center justify-center pl-3 gap-1 `}
               >
-                <p className="font-display text-md text-black truncate hidden md:block ">Sin enviar</p>
+                <p className="font-display text-md text-black truncate hidden md:block ">{value ? getRelativeTime(value) : "Sin enviar"}</p>
               </div>
             </>
           );

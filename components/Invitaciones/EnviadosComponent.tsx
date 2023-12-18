@@ -2,6 +2,7 @@ import { Separator } from "../Separator"
 import { GuestTable } from "./GuestTable"
 
 export const EnviadosComponent = ({ dataInvitationSent, dataInvitationNotSent, event }) => {
+    console.log(dataInvitationSent)
     return (
         <>
             <div className="my-4">

@@ -61,7 +61,8 @@ const Invitaciones = () => {
         correo: item.correo,
         sexo: item.sexo,
         invitacion: item.invitacion,
-        telefono: item.telefono
+        telefono: item.telefono,
+        date: item.fecha_invitacion
       }
       item.invitacion ? acc.sent.push(asd) : acc.notSent.push(asd);
       return acc;
@@ -71,7 +72,6 @@ const Invitaciones = () => {
   }, [event, dataInvitationSent, dataInvitationNotSent]);
 
   const handleClick = (e, a) => { }
-
   if (verificationDone) {
     if (!user) {
       return (

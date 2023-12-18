@@ -531,6 +531,7 @@ export const queries = {
         pais
         direccion
         invitacion
+        fecha_invitacion
       }
       menus_array{
         nombre_menu
@@ -608,6 +609,7 @@ export const queries = {
        correo
        sexo
        invitacion
+       fecha_invitacion
      }
    }
    }`,
@@ -623,12 +625,14 @@ export const queries = {
         correo
         telefono
         nombre_mesa
+        nombre_menu
         puesto
         asistencia
-        nombre_menu
         rol
         correo
         sexo
+        invitacion
+        fecha_invitacion
         movil
         poblacion
         pais
