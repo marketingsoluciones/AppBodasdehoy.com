@@ -10,6 +10,7 @@ import { guests } from "../../utils/Interfaces";
 import { DataTableGroupContextProvider, DataTableGroupProvider, } from "../../context/DataTableGroupContext";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
+import { moveGuest } from "../Mesas/FuntionsDragable";
 
 interface propsDatatableGroup {
   GruposArray: string[];
@@ -20,69 +21,75 @@ interface propsDatatableGroup {
   setGetMenu?: any
 }
 
+interface guestsExt extends guests {
+  tableNameRecepcion: string
+  tableNameCeremonia: string
+}
 
 const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIsMounted, menu = [] }) => {
-  const { event, setEvent, invitadoCero, setInvitadoCero } = EventContextProvider();
-  const [datas, setDatas] = useState<{ titulo: string; data: guests[] }[]>([]);
+  const toast = useToast()
+  const { event, setEvent, invitadoCero, setInvitadoCero, allFilterGuests, planSpaceActive, setPlanSpaceActive, filterGuests } = EventContextProvider();
+  const [data, setData] = useState<{ titulo: string; data: guestsExt[] }[]>([]);
 
   useEffect(() => {
     setInvitadoCero(event?.invitados_array?.filter(elem => elem.rol === event?.grupos_array[0])[0]?.nombre)
   }, [event?.invitados_array, event?.grupos_array])
 
   useEffect(() => {
+    console.log("allFilterGuests", allFilterGuests)
+    let asd = {}
+    for (let i = 0; i < event?.grupos_array?.length; i++) {
+      asd = { ...asd, [event?.grupos_array[i]]: { titulo: event?.grupos_array[i], data: [] } }
+    }
+    const tablesRecepcion = event?.planSpace.find(elem => elem?.title === "recepcion")?.tables
+    const tablesCeremonia = event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables
+    const Data = event.invitados_array.reduce((acc, item: guestsExt) => {
+      const guestRecepcion = allFilterGuests[0].sentados.find(elem => elem._id === item._id)
+      const guestCeremonia = allFilterGuests[1].sentados.find(elem => elem._id === item._id)
+      const tableRecepcion = tablesRecepcion.find(elem => elem._id === guestRecepcion?.tableID)
+      const tableCeremonia = tablesCeremonia.find(elem => elem._id === guestCeremonia?.tableID)
+      item.chairs = [
+        { planSpaceName: "recepcion", chair: guestRecepcion?.chair, table: tableRecepcion },
+        { planSpaceName: "ceremmonia", chair: guestCeremonia?.chair, table: tableCeremonia },
+      ]
+      item.tableNameRecepcion = tableRecepcion?.title ? tableRecepcion.title : "no asignado"
+      item.tableNameCeremonia = tableCeremonia?.title ? tableCeremonia.title : "no asignado"
 
-    const Datas = event?.grupos_array.reduce((acc, group) => {
-      acc[group] = { titulo: group, data: [] };
-      event.invitados_array.forEach(guest => {
-        if (event.grupos_array.includes(guest.rol)) {
-          if (guest.rol === group) {
-            acc[group] = {
-              titulo: group,
-              data: acc[group]?.data
-                ? [...acc[group]?.data, guest]
-                : [guest],
-            };
-          }
-        } else {
-          acc["no asignado"] = {
-            titulo: "no asignado",
-            data: acc["no asignado"]?.data
-              ? [...acc["no asignado"]?.data, guest]
-              : [guest],
-          };
-        }
-      })
-      return acc
-    }, {})
-
-    const Data = event?.invitados_array.reduce((acc, invitado) => {
-      event.grupos_array.forEach((group) => {
-        acc[group] = { titulo: group, data: [] };
-        if (event.grupos_array.includes(invitado.rol)) {
-          if (invitado.rol === group) {
-            acc[group] = {
-              titulo: group,
-              data: acc[group]?.data
-                ? [...acc[group]?.data, invitado]
-                : [invitado],
-            };
-          }
-        }
-      });
-
-      if (!event.grupos_array.includes(invitado.rol)) {
-        acc["no asignado"] = {
-          titulo: "no asignado",
-          data: acc["no asignado"]?.data
-            ? [...acc["no asignado"]?.data, invitado]
-            : [invitado],
-        };
+      if (event?.grupos_array?.includes(item?.rol)) {
+        acc[item.rol] = { titulo: item.rol, data: acc[item.rol]?.data ? [...acc[item.rol]?.data, item] : [item] }
+      } else {
+        acc["no asignado"] = { titulo: "no asignado", data: acc["no asignado"]?.data ? [...acc["no asignado"]?.data, item] : [item] }
       }
       return acc;
-    }, {});
+    }, asd);
+    Data && setData(Object.values(Data));
+  }, [allFilterGuests]);
 
-    Datas && setDatas(Object.values(Datas));
-  }, [event]);
+  const handleMoveGuest = (invitadoID, table) => {
+    console.log(1004, { invitadoID, table })
+    try {
+      // if (active) {
+      //   moveGuest({ eventID: event._id, chair: NaN, invitadoID: invitadoID, tableID: table?._id, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo: "dragS" })
+      //   toast("success", "El invitado fue levantado de la mesa")
+      //   return
+      // }
+      if (table?.guests?.length === table?.numberChair) {
+        toast("error", "La mesa tiene todos los puestos ocupados")
+      }
+      for (let i = 0; i < table?.numberChair; i++) {
+        console.log("1005", i, table?.numberChair)
+        console.log("1006", table?.guests?.map(el => el.chair))
+        if (!table?.guests?.map(el => el.chair).includes(i)) {
+          console.log("seguido")
+          moveGuest({ eventID: event._id, chair: i, invitadoID: invitadoID, tableID: table?._id, setEvent, planSpaceActive, setPlanSpaceActive })
+          toast("success", "El invitado fue sentado en la mesa")
+          break
+        }
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   // Funcion para Editar Invitado dropdown
   const updateMyData = ({
@@ -165,7 +172,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
 
           return (
             <div
-              className="flex justify-start items-center truncate py-2 pr-3 cursor-pointer"
+              className="flex justify-start items-center truncate pr-3 cursor-pointer"
               onClick={handleClick}
             >
               <img
@@ -317,31 +324,17 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         },
       },
       {
-        Header: "Mesa",
-        accessor: "nombre_mesa",
+        Header: "Mesa recepcion",
+        accessor: "tableNameRecepcion",
         Cell: ({ value: initialValue, row, column: { id } }) => {
           const [value, setValue] = useState(initialValue);
           const [show, setShow] = useState(false);
-          const [loading, setLoading] = useState(false);
           const router = useRouter();
-
-          useEffect(() => {
-            setLoading(false);
-            updateMyData({
-              rowID: row.original._id,
-              columnID: id,
-              reemplazar: "nombre_mesa",
-              value: value,
-              loading: loading,
-              eventoID: event._id,
-            });
-            setLoading(true);
-          }, [value]);
 
           return (
             <ClickAwayListener onClickAway={() => setShow(false)}>
               <div className="relative w-full flex justify-center items-center">
-                {/*value.toLowerCase() == "no asignado"*/ false ? (
+                {/*value?.toLowerCase() == "no asignado"*/ false ? (
                   <button
                     onClick={() => router.push("/mesas")}
                     className="bg-tertiary font-display text-sm font-medium px-2rounded hover:text-gray-500 px-3 rounded-lg focus:outline-none"
@@ -361,22 +354,83 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                   className={`${show ? "block opacity-100" : "hidden opacity-0"
                     } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 -top-2 z-40 w-max`}
                 >
-                  {event?.mesas_array?.map((mesa, index) => {
+                  {event?.planSpace.find(elem => elem?.title === "recepcion")?.tables?.map((elem, index) => {
                     return (
                       <li
                         key={index}
                         className="cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
                         onClick={() => {
-                          setValue(mesa.nombre_mesa);
+                          setValue(elem.title);
                           setShow(!show);
+                          const table = event?.planSpace.find(elem => elem?.title === "recepcion")?.tables.find(el => el.title === elem.title)
+                          handleMoveGuest(row.original._id, table)
                         }}
                       >
-                        {mesa?.nombre_mesa}
+                        {elem?.title}
                       </li>
                     );
                   })}
                   <li
-                    className="bg-tertiary cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
+                    className="*bg-gray-300 cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
+                    onClick={() => router.push("/mesas")}
+                  >
+                    Añadir mesa
+                  </li>
+                </ul>
+              </div>
+            </ClickAwayListener>
+          );
+        },
+      },
+      {
+        Header: "Mesa Ceremonia",
+        accessor: "tableNameCeremonia",
+        Cell: ({ value: initialValue, row, column: { id } }) => {
+          const [value, setValue] = useState(initialValue);
+          const [show, setShow] = useState(false);
+          const router = useRouter();
+
+          return (
+            <ClickAwayListener onClickAway={() => setShow(false)}>
+              <div className="relative w-full flex justify-center items-center">
+                {/*value?.toLowerCase() == "no asignado"*/ false ? (
+                  <button
+                    onClick={() => router.push("/mesas")}
+                    className="bg-tertiary font-display text-sm font-medium px-2rounded hover:text-gray-500 px-3 rounded-lg focus:outline-none"
+                  >
+                    Añadir mesa
+                  </button>
+                ) : (
+                  <button
+                    className="focus:outline-none font-display text-sm capitalize"
+                    onClick={() => setShow(!show)}
+                  >
+                    {value}
+                  </button>
+                )}
+
+                <ul
+                  className={`${show ? "block opacity-100" : "hidden opacity-0"
+                    } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 -top-2 z-40 w-max`}
+                >
+                  {event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables?.map((elem, index) => {
+                    return (
+                      <li
+                        key={index}
+                        className="cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
+                        onClick={() => {
+                          setValue(elem.title);
+                          setShow(!show);
+                          const table = event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables.find(el => el.title === elem.title)
+                          handleMoveGuest(row.original._id, table)
+                        }}
+                      >
+                        {elem?.title}
+                      </li>
+                    );
+                  })}
+                  <li
+                    className="bg-gray-300 cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
                     onClick={() => router.push("/mesas")}
                   >
                     Añadir mesa
@@ -432,7 +486,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                     <li
                       key={idx}
                       onClick={() => DeleteGroup()}
-                      className="font-display cursor-pointer border-base border block px-4 py-2 text-sm text-gray-500 hover:text-gray-500 hover:bg-base"
+                      className="font-display cursor-pointer border-base border block px-4 text-sm text-gray-500 hover:text-gray-500 hover:bg-base"
                     >
                       {item}
                     </li>
@@ -472,6 +526,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
           };
 
           const HandleEdit = (id) => {
+            console.log(id)
             setSelected(id);
             setIsMounted(!isMounted);
           };
@@ -505,7 +560,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                     <li
                       key={idx}
                       onClick={item.function}
-                      className="font-display cursor-pointer border-base border block px-4 py-2 text-sm text-gray-500 hover:text-gray-500 hover:bg-base"
+                      className="font-display cursor-pointer border-base border block px-4 text-sm text-gray-500 hover:text-gray-500 hover:bg-base py-3"
                     >
                       {item.title}
                     </li>
@@ -524,7 +579,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
       <div className="w-[200%] md:w-[100%]">
         <CheckBoxAll />
 
-        {datas?.map((item, idx: number) => {
+        {data?.map((item, idx: number) => {
           return (
             <DataTableFinal
               key={idx}
@@ -594,11 +649,11 @@ const CheckBoxAll: FC<any> = ({ check, ...rest }) => {
   }, [refCheckbox, arrIDs, getToggleAllRowsSelectedProps]);
 
   return (
-    <div className="h-8 w-full grid grid-cols-12 items-center">
+    <div className="h-8 w-full grid grid-cols-12 items-center translate-x-[-8px] md:translate-x-[-16px]">
       <label className="relative w-full grid place-items-center col-span-1">
         <input
           type="checkbox"
-          className="rounded-full text-primary focus:ring-primary border-gray-400 cursor-pointer "
+          className="rounded-full text-primary focus:ring-primary border-gray-400 cursor-pointer"
           ref={refCheckbox}
           {...getToggleAllRowsSelectedProps()}
           onChange={handleChange}
@@ -607,7 +662,7 @@ const CheckBoxAll: FC<any> = ({ check, ...rest }) => {
       </label>
       {arrIDs.length === 0 ? (
         <div className="col-span-11">
-          <p className="font-display text-sm md:text-sm text-gray-500 translate-x-[-8px] md:translate-x-[-16px]">
+          <p className="font-display text-sm md:text-sm text-gray-500 translate-x-[-8px] md:translate-x-[-22px]">
             Seleccionar todos
           </p>
         </div>
@@ -616,7 +671,7 @@ const CheckBoxAll: FC<any> = ({ check, ...rest }) => {
           {OptionList.map((item, idx) => (
             <li
               key={idx}
-              className="cursor-pointer flex items-center gap-2 rounded-2xl border border-gray-300 px-4 hover:bg-gray-200 hover:text-white transition text-sm text-gray-500 font-display py-1 translate-x-[-8px] md:translate-x-[-16px]"
+              className="cursor-pointer flex items-center gap-2 rounded-2xl border border-gray-300 px-4 hover:bg-gray-200 hover:text-white transition text-sm text-gray-500 font-display translate-x-[-8px] md:translate-x-[-16px]"
               onClick={item.funcion}
             >
               {item.icono}

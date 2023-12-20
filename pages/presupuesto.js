@@ -37,7 +37,7 @@ const Presupuesto = () => {
     condicion == -1 && setShowCategoria({ isVisible: false, id: "" })
   }, [event?.presupuesto_objeto?.categorias_array, showCategoria?.id])
 
-  const { user, verificationDone } = AuthContextProvider()
+  const { user, verificationDone, forCms } = AuthContextProvider()
   if (verificationDone) {
     if (!user) {
       return (
@@ -48,12 +48,12 @@ const Presupuesto = () => {
     return (
       <>
         {event &&
-          <section className="bg-base w-full h-full pb-16 pt-4 md:py-0">
+          <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4" : "bg-base w-full pb-6 pt-2 md:py-0"}>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="max-w-screen-lg mx-auto inset-x-0 w-full">
+              className="max-w-screen-lg mx-auto inset-x-0 px-2 md:px-0 w-full">
               <BlockTitle title={"Presupuesto"} />
               <div className="pt-2">
                 <div className="w-80 mx-auto inset-x-0 flex my-2 mt-2 rounded-2xl overflow-hidden">
@@ -78,14 +78,13 @@ const Presupuesto = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="grid md:grid-cols-3 w-full gap-6 pt-2 pl-3 pr-3 md:pr-0 pb-4"
+                  className="grid md:grid-cols-3 w-full gap-6 pt-2 md:pr-0 pb-4"
                 >
                   <>
                     <BlockListaCategorias
                       set={(act) => setShowCategoria(act)}
                       categorias_array={categorias}
                     />
-
                     <div className="md:col-span-2 w-full flex flex-col relative">
                       {showCategoria?.isVisible ? (
                         <BlockCategoria
@@ -143,13 +142,6 @@ const Presupuesto = () => {
               )}
             </motion.div>
           </section>}
-        <style jsx>
-          {`
-          section {
-            min-height: calc(100vh - 9rem);
-          }
-        `}
-        </style>
       </>
     );
   }

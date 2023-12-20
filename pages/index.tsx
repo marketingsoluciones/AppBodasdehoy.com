@@ -13,6 +13,7 @@ import { Event } from "../utils/Interfaces";
 import { fetchApiEventos, queries } from "../utils/Fetching";
 import VistaSinCookie from "../pages/vista-sin-cookie"
 import { useMounted } from "../hooks/useMounted"
+import { useRouter } from "next/router";
 
 const Home: NextPage = () => {
   const [isMounted, setIsMounted] = useState<boolean>(false);
@@ -21,7 +22,15 @@ const Home: NextPage = () => {
   const { event } = EventContextProvider()
   const [showEditEvent, setShowEditEvent] = useState<boolean>(false);
   const [valir, setValir] = useState<boolean>(false);
+  const router = useRouter()
   useMounted()
+
+  useEffect(() => {
+    if (router.query?.c === "true") {
+      setIsMounted(true)
+    }
+  }, [router.query])
+
 
   useEffect(() => {
     fetchApiEventos({
@@ -62,7 +71,7 @@ const Home: NextPage = () => {
           </ModalLeft>
         )}
 
-        <section className="section relative w-full ">
+        <section className="section relative w-full">
           <Banner state={isMounted} set={setIsMounted} />
           <GridCards state={isMounted} set={setIsMounted} showEditEvent={showEditEvent} setShowEditEvent={setShowEditEvent} />
         </section>

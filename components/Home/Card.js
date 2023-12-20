@@ -1,10 +1,10 @@
 import { memo, useEffect } from "react";
-import { EventContextProvider, EventsGroupContextProvider } from "../../context/";
+import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../context/";
 import useHover from "../../hooks/useHover";
 import { BorrarIcon, IconFolderOpen } from "../icons";
 import { useRouter } from "next/router";
 import { setCookie } from "../../utils/Cookies";
-import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiBodas, fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from '../../hooks/useToast'
 import { Lista } from "../../pages";
 
@@ -23,12 +23,25 @@ const Card = ({ data, grupoStatus, idx }) => {
   const [hoverRef, isHovered] = useHover();
   const [refArchivar, isArchivar] = useHover();
   const [refBorrar, isBorrar] = useHover();
+  const { user, setUser, config } = AuthContextProvider()
   const { eventsGroup, setEventsGroup } = EventsGroupContextProvider();
   const { event, setEvent, idxGroupEvent, setIdxGroupEvent } = EventContextProvider();
   const router = useRouter();
 
   const handleClick = () => {
     try {
+      console.log(10004, user?.uid)
+      fetchApiBodas({
+        query: queries.updateUser,
+        variables: {
+          uid: user?.uid,
+          variable: "eventSelected",
+          valor: data[idx]?._id
+        },
+        development: config?.development
+      })
+      user.eventSelected = data[idx]?._id
+      setUser(user)
       setEvent(data[idx]);
     } catch (error) {
       console.log(error);
@@ -103,7 +116,6 @@ const Card = ({ data, grupoStatus, idx }) => {
       console.log(error)
     }
   }
-
   const className = "bg-secondary absolute transition rounded-r-xl px-3 py-1 font-display text-xs text-gray-700* text-white right-0 top-1/2 *-translate-y-1/2 transform translate-x-[-6%] z-50"
   return (
     <div ref={hoverRef} className={`w-max h-full relative grid place-items-center bg-white transition ${isHovered ? "transform scale-105 duration-700" : ""}`}>
@@ -135,7 +147,7 @@ const Card = ({ data, grupoStatus, idx }) => {
         </div>
       </div>
 
-      {idx == idxGroupEvent?.idx && idxGroupEvent?.isActiveStateSwiper == Lista.findIndex(elem => elem.value == grupoStatus) ? <div className="w-[304px] h-40 bg-gray-300 absolute rounded-xl" /> : <></>}
+      {data[idx]?._id == user?.eventSelected ? <div className="w-[304px] h-40 bg-green absolute rounded-xl" /> : <></>}
       <div onClick={handleClick} className={`w-72 h-36 rounded-xl cardEvento z-[8] cursor-pointer shadow-lg relative overflow-hidden `}>
         <img
           src={defaultImagenes[data[idx]?.tipo]}

@@ -1,16 +1,20 @@
 import { createContext, useState, useContext, useEffect, SetStateAction, Dispatch, useReducer, Reducer } from 'react';
 import { AuthContextProvider } from "../context";
-import { fetchApiEventos, queries } from "../utils/Fetching";
+import { fetchApiBodas, fetchApiEventos, queries } from "../utils/Fetching";
 import { Event } from '../utils/Interfaces';
 import { useRouter } from 'next/router';
 
 type Context = {
   eventsGroup: Event[],
   setEventsGroup: Dispatch<SetStateAction<action>>
+  psTemplates: any,
+  setPsTemplates: Dispatch<SetStateAction<any>>
 }
 const EventsGroupContext = createContext<Context>({
   eventsGroup: null,
   setEventsGroup: (action: action) => null,
+  psTemplates: [],
+  setPsTemplates: () => { },
 });
 
 enum actions {
@@ -56,6 +60,7 @@ const reducer = (state: Event[], action: action) => {
 const EventsGroupProvider = ({ children }) => {
   const router = useRouter();
   const [eventsGroup, setEventsGroup] = useReducer<Reducer<Event[], action>>(reducer, []);
+  const [psTemplates, setPsTemplates] = useState<any>([]);
   const { user } = AuthContextProvider();
 
   useEffect(() => {
@@ -70,11 +75,19 @@ const EventsGroupProvider = ({ children }) => {
 
         })
         .catch((error) => console.log(error));
+      fetchApiEventos({
+        query: queries.getPsTemplate,
+        variables: { uid: user.uid }
+      })
+        .then((templates: any) => {
+          setPsTemplates(templates)
+        })
+        .catch((error) => console.log(error));
     }
   }, [user]);
 
   return (
-    <EventsGroupContext.Provider value={{ eventsGroup, setEventsGroup }}>
+    <EventsGroupContext.Provider value={{ eventsGroup, setEventsGroup, psTemplates, setPsTemplates }}>
       {children}
     </EventsGroupContext.Provider>
   );

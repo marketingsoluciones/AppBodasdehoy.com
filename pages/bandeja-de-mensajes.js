@@ -12,7 +12,7 @@ const BandejaDeMensajes = () => {
   return (
     <>
       <section className="bg-base w-full h-full">
-        <div className="max-w-screen-lg mx-auto inset-x-0 w-full py-2 px-5 md:px-0">
+        <div className="max-w-screen-lg mx-auto inset-x-0 w-full py-2 px-2 md:px-0">
           {/* <Breadcumbs /> */}
           <BlockTitle title="Bandeja de Entrada" />
           <div className="grid grid-cols-1 w-full md:grid-cols-4 gap-6 py-6">
@@ -56,13 +56,6 @@ const BandejaDeMensajes = () => {
           </div>
         </div>
       </section>
-      <style jsx>
-        {`
-          section {
-            min-height: calc(100vh - 9rem);
-          }
-        `}
-      </style>
     </>
   );
 };

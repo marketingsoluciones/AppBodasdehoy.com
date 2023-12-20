@@ -7,48 +7,61 @@ import { InvitacionesIcon, PlusIcon } from "../icons";
 import ModalBottom from "../Utils/ModalBottom";
 import DatatableGroup from "./GrupoTablas";
 import SentarBlock from "./SentarBlock";
+import { ModalPDF } from "../Utils/ModalPDF";
+import { useToast } from "../../hooks/useToast";
 
 interface propsBlockListaInvitados {
   state: boolean;
   set: CallableFunction;
   menu?: any
   setGetMenu?: any
+  createPDF?: any
+  setCreatePDF?: any
 }
 
-const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu, setGetMenu }) => {
+const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu, setGetMenu, createPDF, setCreatePDF }) => {
   const { event } = EventContextProvider();
   const [isMounted, setIsMounted] = useState(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const [invitadoSelected, setSelected] = useState<string | null>(null);
+  const toast = useToast()
 
   const handleClick = (e, click) => {
     e.preventDefault();
     set({ state: !state, click: click });
   };
 
+
   return (
-    <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full px-6 pt-6 pb-28 mb-32 md:mb-0 md:p-12 relative">
-      <div className="flex gap-4 items-center pb-10">
+    <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full md:px-6 pt-2 md:pt-6 pb-28 mb-32 md:mb-0 md:p-12 relative">
+      <div className="flex gap-2 md:gap-4 items-center mt-1 mb-3 md:mb-5 mx-2">
         <button
           onClick={(e) => handleClick(e, "invitado")}
-          className="focus:outline-none bg-primary px-2 md:px-6 py-1 text-white font-display font-semibold text-sm rounded-lg hover:bg-white hover:text-primary transition border border-primary flex justify-between items-center gap-2"
+          className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary md:bg-primary md:text-white md:hover:bg-white md:hover:text-primary"
         >
           <PlusIcon />
           Invitado
         </button>
         <button
           onClick={(e) => handleClick(e, "grupo")}
-          className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-2 items-center justify-between text-primary font-display font-semibold text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
+          className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
         >
           <PlusIcon />
           Grupo
         </button>
         <button
           onClick={(e) => handleClick(e, "menu")}
-          className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-2 items-center justify-between text-primary font-display font-semibold text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
+          className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
         >
           <PlusIcon />
           Menu
+        </button>
+        <button
+          onClick={() => event?.invitados_array.length > 0 ? setCreatePDF(!createPDF) : toast("error", "Debes agregar invitados")}
+          className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
+        >
+          {/* <PlusIcon /> */}
+          Crear PDF
         </button>
       </div>
       {shouldRenderChild && (
@@ -96,6 +109,9 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu, s
         />
       </div>
       <SentarBlock />
+      {createPDF ? (
+        <ModalPDF createPDF={createPDF} setCreatePDF={setCreatePDF} Data={event} />
+      ) : null}
     </div>
   );
 };

@@ -1,26 +1,51 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import { EventContextProvider } from "../../context";
 import { api } from "../../api";
+import { OptionsMenu } from "./OptionsMenu";
+import { EmailIcon, IconLightBulb16, SmsIcon, WhatsappIcon } from "../icons";
+import { optionArryOptions } from "../../pages/invitaciones";
+import { ActivatorPremium } from "../ActivatorPremium";
 
 
 export const ConfirmationBlock: FC<any> = ({ arrEnviarInvitaciones, set }) => {
   const { event, setEvent } = EventContextProvider();
+  const [optionSelect, setOptionSelect] = useState("email")
+
+  const arryOptions: optionArryOptions[] = [
+    {
+      title: "email",
+      icon: <EmailIcon />,
+      state: false
+    },
+    {
+      title: "whatsapp",
+      icon: <WhatsappIcon />,
+      state: false
+    },
+    {
+      title: "sms",
+      icon: <SmsIcon />,
+      state: false
+    },
+  ]
 
   const Cancelar = () => {
     set([]);
   };
 
-  const Aceptar = async () => {
+  const handleSendInvitation = async () => {
     const params = {
       query: `mutation enviaInvitacion (
           $evento_id : String,
           $invitados_ids_array : [String],
-          $dominio: String
+          $dominio: String,
+          $transport: String
         ){
           enviaInvitacion(
             evento_id:$evento_id,
             invitados_ids_array:$invitados_ids_array,
-            dominio:$dominio
+            dominio:$dominio,
+            transport:$transport
           ){
             _id,
             invitados_array{
@@ -40,53 +65,86 @@ export const ConfirmationBlock: FC<any> = ({ arrEnviarInvitaciones, set }) => {
       variables: {
         evento_id: event?._id,
         invitados_ids_array: arrEnviarInvitaciones,
-        dominio: process.env.NEXT_PUBLIC_BASE_URL
+        dominio: process.env.NEXT_PUBLIC_BASE_URL,
+        transport: optionSelect
       },
     };
+    console.log(event)
+    if (event?.imgInvitacion) {
+      try {
+        await api.ApiApp(params);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setEvent((old) => {
+          arrEnviarInvitaciones.forEach((invitado) => {
+            const idxInvitado = event?.invitados_array?.findIndex(
+              (inv) => inv._id == invitado
+            );
+            old.invitados_array[idxInvitado] = {
+              ...old.invitados_array[idxInvitado],
+              invitacion: true,
+              fecha_invitacion: new Date().getTime().toString()
+            };
+          });
 
-    try {
-      await api.ApiApp(params);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setEvent((old) => {
-        arrEnviarInvitaciones.forEach((invitado) => {
-          const idxInvitado = event?.invitados_array?.findIndex(
-            (inv) => inv._id == invitado
-          );
-          old.invitados_array[idxInvitado] = {
-            ...old.invitados_array[idxInvitado],
-            invitacion: true,
-          };
+          return { ...old };
         });
-
-        return { ...old };
-      });
-      set([])
+        set([])
+      }
     }
   };
+  const path = `${process.env.NEXT_PUBLIC_CMS}/facturacion`
+  const redireccionFacturacion = window.origin.includes("://test") ? path?.replace("//", "//test") : path
   return (
-    <div className="w-full h-full absolute grid place-items-center p-4">
-      <div className="bg-white rounded-xl relative w-max h-max p-6 z-30 flex flex-col gap-3">
-        <p className="font-display text-gray-500">{`¿Desea enviar ${arrEnviarInvitaciones.length
-          } ${arrEnviarInvitaciones.length > 1 ? "invitaciones" : "invitacion"
-          } de su evento?`}</p>
-        <div className="w-full flex gap-10 justify-center h-max items-center">
-          <button
-            onClick={Aceptar}
-            className="rounded-md font-display focus:outline-none bg-green text-white hover:opacity-90 transition px-2 py-1"
-          >
-            Aceptar
-          </button>
-          <button
-            onClick={Cancelar}
-            className="rounded-md font-display focus:outline-none bg-primary text-white hover:opacity-90 transition px-2 py-1"
-          >
-            Cancelar
-          </button>
+    <>
+      <div className="bg-black w-full h-full fixed rounded-xl opacity-60 z-20 top-0 left-0" />
+      <div className="w-full z-[1000] h-full fixed grid place-items-center p-4 top-0 left-0">
+        <div className="bg-white rounded-xl relative w-max md:w-[500px] h-max p-6 z-30 flex flex-col gap-1 text-gray-500">
+          {!event?.imgInvitacion
+            ? <div className="flex gap-2 items-center text-emerald-600">
+              <span
+                onClick={Cancelar}
+                className="font-display text-gray-500 hover:text-gray-300 transition cursor-pointer text-2xl absolute top-2 right-3">X</span>
+              <IconLightBulb16 className="w-6 h-6" />
+              <span>Primero debes añadir la imagen de la invitación</span>
+            </div> :
+            <>
+              <p className="font-semibold mb-2">
+                {`¿Desea enviar ${arrEnviarInvitaciones.length} ${arrEnviarInvitaciones.length > 1 ? "invitaciones" : "invitación"} de su evento?`}
+              </p>
+              <span>Seleccione el medio</span>
+              <div className="grip grid-cols-3 -mt-2">
+                <OptionsMenu
+                  arryOptions={arryOptions}
+                  optionSelect={optionSelect}
+                  setOptionSelect={setOptionSelect}
+                />
+              </div>
+              {optionSelect === "email"
+                ? <div className="w-full flex gap-10 mt-6 justify-center h-max items-center">
+                  <button
+                    onClick={handleSendInvitation}
+                    className={`rounded-md font-display w-28 focus:outline-none ${!event?.imgInvitacion ? "bg-gray-300" : "bg-green"} text-white hover:opacity-90 transition py-1`}
+                    disabled={!event?.imgInvitacion}
+                  >
+                    Aceptar
+                  </button>
+                  <button
+                    onClick={Cancelar}
+                    className="rounded-md font-display w-28 focus:outline-none bg-gray-400 text-white hover:opacity-90 transition py-1"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+                : <div className="text-yellow-500 flex items-center justify-center space-x-1 mt-7 text-sm cursor-default gap-4">
+                  <ActivatorPremium link={redireccionFacturacion} />
+                </div>
+              }
+            </>
+          }
         </div>
       </div>
-      <div className="w-full h-full absolute bg-black rounded-xl opacity-50 z-20" />
-    </div>
+    </>
   );
 };

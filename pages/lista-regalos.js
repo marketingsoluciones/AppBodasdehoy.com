@@ -36,10 +36,12 @@ const ListaRegalos = () => {
         ) : null}
 
 
-        <section className="w-full bg-base">
-          <motion.div initial={{ opacity: 0 }}
+        <section className="w-full bg-base pt-2 md:py-0">
+          <motion.div
+            initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }} className="max-w-screen-lg mx-auto inset-x-0 flex-col gap-6 flex pb-28 md:pb-10">
+            exit={{ opacity: 0 }}
+            className="max-w-screen-lg mx-auto inset-x-0 flex-col gap-6 flex pb-28 md:pb-10 px-2 md:px-0">
             <BlockTitle title={"Lista de regalos"} />
             <div className="w-full flex flex-col md:flex-row justify-center items-center gap-6 ">
               <div className="w-full md:w-1/2 bg-white shadow-lg flex gap-8 items-center justify-center p-6 rounded-xl">
@@ -148,13 +150,6 @@ const ListaRegalos = () => {
             </div>
           </motion.div>
         </section>
-        <style jsx>
-          {`
-          section {
-            min-height: calc(100vh - 9rem);
-          }
-        `}
-        </style>
       </>
     );
   }

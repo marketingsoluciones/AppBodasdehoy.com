@@ -5,12 +5,26 @@ import Cookies from 'js-cookie';
 import { LoadingContextProvider, AuthContextProvider } from "../context";
 import { fetchApiBodas, queries } from "./Fetching";
 import { useToast } from "../hooks/useToast";
+import { PhoneNumberUtil } from 'google-libphonenumber';
+
+export const phoneUtil = PhoneNumberUtil.getInstance();
 
 export const useAuthentication = () => {
   const { setLoading } = LoadingContextProvider();
-  const { config, setUser } = AuthContextProvider();
+  const { config, setUser, geoInfo } = AuthContextProvider();
   const toast = useToast();
   const router = useRouter();
+
+  const isPhoneValid = (phone: string) => {
+    try {
+      if (phone[0] === "0") {
+        phone = `+${phoneUtil.getCountryCodeForRegion(geoInfo.ipcountry)}${phone.slice(1, phone.length)}`
+      }
+      return phoneUtil.isValidNumber(phoneUtil.parseAndKeepRawInput(phone));
+    } catch (error) {
+      return false;
+    }
+  };
 
   const getSessionCookie = useCallback(async (tokenID: any): Promise<string | undefined> => {
     if (tokenID) {
@@ -22,7 +36,8 @@ export const useAuthentication = () => {
       if (authResult?.sessionCookie) {
         const { sessionCookie } = authResult;
         // Setear en localStorage token JWT
-        Cookies.set(config?.cookie, sessionCookie, { domain: config?.domain ?? "" });
+        const dateExpire = new Date(new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000))
+        Cookies.set(config?.cookie, sessionCookie, { domain: config?.domain ?? "", expires: dateExpire });
         return sessionCookie
       } else {
         console.warn("No se pudo cargar la cookie de sesión por que hubo un problema")
@@ -126,13 +141,13 @@ export const useAuthentication = () => {
   const _signOut = useCallback(async () => {
     Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
     Cookies.remove("idToken", { domain: config?.domain ?? "" });
-    await signOut(getAuth());
+    signOut(getAuth());
     router.push(config?.pathDirectory ? `${config?.pathDirectory}/signout?end=true` : "/")
   }, [router])
 
 
 
-  return { signIn, _signOut, getSessionCookie };
+  return { signIn, _signOut, getSessionCookie, isPhoneValid };
 
 };
 

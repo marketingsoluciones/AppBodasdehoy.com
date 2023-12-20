@@ -2,10 +2,13 @@ import '../styles/globals.css'
 import DefaultLayout from '../layouts/DefaultLayout'
 import 'swiper/css';
 import "swiper/css/bundle"
-
+import "@fontsource/italiana";
+import "@fontsource/montserrat";
+import "@fontsource/poppins";
 import { AnimatePresence } from 'framer-motion';
 import { AuthContextProvider } from '../context';
 import { useEffect } from 'react';
+import { InfoDevelopment } from '../components/InfoDevelopment';
 
 const MyApp = ({ Component, pageProps }) => {
 
@@ -13,6 +16,7 @@ const MyApp = ({ Component, pageProps }) => {
     <>
       {/*<AnimatePresence exitBeforeEnter initial={false}>*/}
       <DefaultLayout>
+        {/* <InfoDevelopment /> */}
         <Load />
         <Component {...pageProps} />
       </DefaultLayout>

@@ -10,11 +10,13 @@ import { AuthContextProvider, EventContextProvider } from "../context";
 import VistaSinCookie from "./vista-sin-cookie";
 import FormCrearMenu from "../components/Forms/FormCrearMenu";
 import { useMounted } from "../hooks/useMounted";
+import { ModalPDF } from "../components/Utils/ModalPDF"
 
 const Invitados: FC = () => {
   const [isMounted, setIsMounted] = useState<boolean>(false);
-  const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const [formShow, setFormShow] = useState<string | null>(null)
+  const [createPDF, setCreatePDF] = useState(false)
+  const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const { event } = EventContextProvider();
   useMounted()
 
@@ -22,7 +24,7 @@ const Invitados: FC = () => {
     setIsMounted(accion.state)
     setFormShow(accion.click)
   }
-  const { user, verificationDone } = AuthContextProvider()
+  const { user, verificationDone, forCms } = AuthContextProvider()
   if (verificationDone) {
     if (!user) {
       return (
@@ -55,20 +57,16 @@ const Invitados: FC = () => {
           </ModalLeft>
         )}
         {event &&
-          <section className="bg-base w-full h-full">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="max-w-screen-lg mx-auto inset-x-0 w-full px-5 md:px-0 gap-4">
+          <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4" : "bg-base w-full pb-6 pt-2 md:py-0"}>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 gap-4">
               <BlockCabecera />
-              <BlockListaInvitados state={isMounted} set={reciboClick} />
+              <BlockListaInvitados state={isMounted} set={reciboClick} createPDF={createPDF} setCreatePDF={setCreatePDF} />
             </motion.div>
-          </section>}
-        <style jsx>
-          {`
-          section {
-            min-height: calc(100vh - 9rem);
-            padding-bottom: 8rem;
-          }
-        `}
-        </style>
+          </section >}
       </>
     )
   }

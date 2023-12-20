@@ -18,7 +18,7 @@ const Navigation: any = (
   active: any,
 ): any => {
   const { event } = EventContextProvider();
-  const { user, isProduction, config, setIsActiveStateSwiper } = AuthContextProvider();
+  const { user, config, setIsActiveStateSwiper } = AuthContextProvider();
   const router = useRouter();
   const [showSidebar, setShowSidebar] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -81,20 +81,9 @@ const Navigation: any = (
       <Head>
         <link id="favicon" rel="icon" href="https://res.cloudinary.com/crunchbase-production/image/upload/c_lpad,h_256,w_256,f_auto,q_auto:eco,dpr_1/v1486383751/crmgiiartcuts208eqly.png" />
         <title>{config?.headTitle}</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
         <meta name="description" content="¡Bodas de Hoy Organizador! Organiza tu boda en un sólo click., user-scalable=no, width=device-width, initial-scale=1" />
       </Head>
-      {!isProduction &&
-        <div className="hidden md:flex">
-          <div>
-            <ul className='absolute z-50 text-sm font-display ml-4'>
-              <li>url: {window.location.hostname}</li>
-              <li>domain: {config.domain}</li>
-              <li>event?.nombre: {event?.nombre}</li>
-            </ul>
-          </div>
-        </div>
-      }
       {shouldRenderChild && (
         <BlockNotification
           evento={event}
@@ -152,8 +141,8 @@ const Navigation: any = (
                       }
                     }}
                     className={`w-max flex flex-col justify-between items-center hover:opacity-80  transition  cursor-pointer
-                  ${route == item.route ?
-                        route == "/"
+                  ${route == item.route
+                        ? route == "/"
                           ? "text-white transform scale-110"
                           : "text-primary transform scale-110"
                         : route == "/"
@@ -181,3 +170,5 @@ const Navigation: any = (
 };
 
 export default Navigation;
+//https://test.bodasdehoy.com/configuracion
+//https://test.bodasdehoy.com/configuracion

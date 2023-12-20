@@ -39,59 +39,42 @@ const BlockCabecera = () => {
   return (
     <>
       <BlockTitle title="Mis invitados" />
-      <div className="w-full flex flex-col gap-4 md:grid md:grid-cols-6 my-2 py-2 md:border-b-4 md:border-primary relative">
+      <div className="w-full flex flex-col gap-4 md:grid md:grid-cols-6 md:my-2 py-1 md:border-b-4 md:border-primary relative">
 
-        <div className="flex gap-10 items-center justify-center h-full w-full md:col-span-2 py-4">
+        <div className="absolute md:static z-10 -translate-y-[26px] md:translate-y-0 flex gap-10 items-center justify-center h-full w-full md:col-span-2 py-4">
           <div className="flex gap-1 items-center justify-end ">
-            <p className="font-display font-semibold text-4xl text-primary">
+            <p className="font-display font-semibold text-2xl md:text-4xl text-primary">
               {ObjInvitado?.total}
             </p>
-            <p className="font-display text-primary">invitados</p>
+            <p className="font-display text-sm md:text-[16px] text-primary">invitados</p>
           </div>
-          <div className="flex flex-col gap-1 items-start justify-center h-full col-span-1">
-            <p className="font-display font-semibold text-sm text-gray-500 flex gap-1">
+          <div className="flex flex-col md:gap-1 items-start justify-center h-full col-span-1">
+            <p className="font-display font-semibold text-sm md:text-[16px] text-gray-500 flex gap-1">
               {totalSegun("grupo_edad", "adulto")?.length}{" "}
-              <span className="font-xs font-light">adultos</span>
+              <span className="text-xs font-light">adultos</span>
             </p>
-            <p className="font-display font-semibold text-sm text-gray-500 flex gap-1">
+            <p className="font-display font-semibold text-sm  md:text-[16px] text-gray-500 flex gap-1">
               {totalSegun("grupo_edad", "niño")?.length}{" "}
-              <span className="font-xs font-light">niños y bebes</span>
+              <span className="text-xs font-light">niños y bebes</span>
             </p>
           </div>
         </div>
-
-        <Swiper
-          breakpoints={{
-            0: {
-              "slidesPerView": 2,
-              "spaceBetween": 25,
-            },
-            768: {
-              "slidesPerView": 3,
-              "allowTouchMove": false,
-              "spaceBetween": 25,
-
-
-            },
-
-          }}
-          className="bg-white rounded-xl col-span-3 shadow-lg flex items-center w-full justify-center h-24 md:h-auto relative">
-
+        <div className="bg-white rounded-xl col-span-3 shadow-lg flex items-end md:items-center pb-1 md:pb-0 w-full h-[88px] md:h-auto relative justify-between px-8 md:px-4">
           {TotalList.map((item, idx) => (
-            <SwiperSlide key={idx} className="flex gap-2 items-center justify-center">
+            <div key={idx} className={`${idx == 0 ? "hidden md:flex" : "flex"} gap-2 items-center justify-center`}>
               {item?.icon}
               <span>
-                <p className="font-display text-lg font-semibold text-gray-700 leading-5">
+                <p className="font-display md:text-lg font-semibold text-gray-700 leading-5">
                   {item?.title}
                 </p>
                 <p className="font-display text-xs font-medium text-gray-500">
                   {item?.subtitle}
                 </p>
               </span>
-            </SwiperSlide>
+            </div>
           ))}
-        </Swiper>
-        <div className="md:flex w-40 h-40 bg-primary rounded-full col-span-1 absolute right-0 flex flex-col items-center justify-center hidden z-20">
+        </div>
+        <div className="hidden md:flex w-40 h-40 bg-primary rounded-full col-span-1 absolute right-0 flex-col items-center justify-center z-20">
           <MesaIcon className="text-white" />
           <p className="font-display text-md font-semibold text-white">
             sentar <span className="font-light">invitados</span>

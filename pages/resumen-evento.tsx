@@ -19,7 +19,7 @@ const Resumen = () => {
   if (!event) return <></>
   return (
     <>
-      <section className="bg-base w-full py-10 px-5 md:px-0">
+      <section className="bg-base w-full py-10 px-2 md:px-0">
         <motion.div initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }} className="md:max-w-screen-lg mx-auto inset-x-0 flex-col flex gap-10 pb-20">

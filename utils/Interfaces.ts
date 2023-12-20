@@ -15,7 +15,9 @@ export interface Event {
     cant_invitados: number
     invitados_array: guests[]
     menus_array: menu[]
-    mesas_array: table[]
+    planSpaceSelect: string
+    planSpace: planSpace[]
+    mesas_array: tableOld[]
     grupos_array: string[]
     notificaciones_array: notification[]
     imgInvitacion: image
@@ -77,7 +79,62 @@ interface notification {
     mensaje: string
 }
 
-export interface table {
+interface chair {
+    planSpaceID: string,
+    planSpaceName: string,
+    sectionID: string,
+    tableID: string,
+    chair: number,
+    order: string
+}
+
+export interface position {
+    x: number
+    y: number
+}
+export interface size {
+    width: number
+    height: number
+}
+interface propsBase {
+    _id?: string
+    title: string
+    rotation: number
+    position: position
+    size: size
+}
+export interface element extends propsBase {
+    tipo: string
+}
+
+export interface guest {
+    _id: string,
+    chair: number,
+    order: Date
+}
+
+export interface table extends element {
+    numberChair: number
+    guests: guest[]
+}
+
+interface section extends propsBase {
+    color: string
+    elements: element[]
+    tables: table[]
+}
+export interface planSpace {
+    _id: string
+    title: string
+    size: size
+    spaceChairs: number,
+    template: boolean,
+    sections: section[]
+    elements: element[]
+    tables: table[]
+}
+
+export interface tableOld {
     _id: string
     nombre_mesa: string
     tipo: string
@@ -99,6 +156,7 @@ export interface guests {
     grupo_edad: string
     correo: string
     telefono: string
+    chairs: any
     nombre_mesa: string
     puesto: string | number
     orden_puesto: string
@@ -113,6 +171,14 @@ export interface guests {
     pais: string
 }
 
+export interface filterGuest extends guests {
+    planSpaceID: string,
+    sectionID: string,
+    tableID: string,
+    guestID: string,
+    chair: number
+}
+
 interface chat {
     _id: string
     tipo: string
@@ -121,9 +187,13 @@ interface chat {
     receptor_id: string
 }
 
-
-
 export interface signalItem {
     tipo: string;
     invitado: guests;
+}
+
+export interface EditDefaultState {
+    item?: table
+    itemTipo?: string
+    setShowFormEditar?: any
 }

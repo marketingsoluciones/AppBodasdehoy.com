@@ -38,6 +38,7 @@ const BlockCategoria = ({ cate, set }) => {
 
   const saldo = categoria?.coste_estimado - categoria?.coste_final;
 
+
   const Columna = useMemo(
     () => [
       {
@@ -47,19 +48,19 @@ const BlockCategoria = ({ cate, set }) => {
         Cell: (props) => <CellEdit categoriaID={categoria?._id} type={"text"} autofocus {...props} />
       },
       {
-        Header: "Estimado",
+        Header: <p> Estimado <br/> {getCurrency(categoria?.coste_estimado)}</p> ,
         accessor: "coste_estimado",
         id: "coste_estimado",
         Cell: (props) => <CellEdit categoriaID={categoria?._id} type={"number"} {...props} />
       },
       {
-        Header: "Coste final",
+        Header: <p>Coste final <br/> {getCurrency(categoria?.coste_final)}</p>,
         accessor: "coste_final",
         id: "coste_final",
         Cell: (props) => <CellEdit categoriaID={categoria?._id} type={"number"} {...props} />
       },
       {
-        Header: "Pagado",
+        Header:<p >Pagado <br/> {getCurrency(categoria?.pagado)} </p> ,
         accessor: "pagado",
         id: "pagado",
         Cell: (props) => <CellPagado {...props} set={act => setGastoID(act)} />,
@@ -89,7 +90,6 @@ const BlockCategoria = ({ cate, set }) => {
               }
               const { data: res } = await api.ApiApp(params);
               data = res?.data?.borraGasto
-              console.log(data)
             } catch (error) {
               console.log(error);
             } finally {
@@ -161,7 +161,6 @@ const BlockCategoria = ({ cate, set }) => {
 
       const { data } = await api.ApiApp(params);
       res = data.data.nuevoGasto;
-      console.log(res);
     } catch (error) {
       console.log(error);
     } finally {
@@ -248,7 +247,7 @@ const BlockCategoria = ({ cate, set }) => {
           </div>
         </div>
         {/* Tabla de datos */}
-        <DataTable AddGasto={AddGasto} columns={Columna} data={data ?? []} renderRowSubComponent={renderRowSubComponent} cate={categoria._id} gasto={GastoID.id} />
+        <DataTable AddGasto={AddGasto} columns={Columna} data={data ?? []} renderRowSubComponent={renderRowSubComponent} cate={categoria._id} gasto={GastoID.id} categoria={categoria} />
         <div className="bg-primary w-full grid grid-cols-10 absolute bottom-0 font-display text-white font-semibold py-1 text-sm">
           <div className="flex items-center justify-center col-span-3">
             <p>Total</p>
@@ -277,7 +276,7 @@ const BlockCategoria = ({ cate, set }) => {
 
 export default BlockCategoria;
 
-export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate, gasto }) => {
+export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate, gasto, categoria }) => {
   const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows, state: { expanded } } =
     useTable({ columns, data }, useExpanded);
 
@@ -303,7 +302,7 @@ export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate
             {headerGroup.headers.map((column, id) => (
               <th
                 {...column.getHeaderProps()}
-                className={`font-display font-semibold text-gray-500 text-sm col-span-${colSpan[column.id]
+                className={`font-display font-semibold text-gray-500 text-sm flex items-center justify-center  col-span-${colSpan[column.id]
                   }`}
                 key={id}
               >

@@ -30,7 +30,7 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
   const toast = useToast()
   const [hoverRef, isHovered] = useHover();
 
-  
+
 
   type MyValues = {
     nombre: string
@@ -188,7 +188,6 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
               <div className="grid md:grid-cols-3 w-full gap-6 relative ">
                 <div ref={hoverRef}>
                   <InputField
-                    placeholder="Ej. jhon@doe.com"
                     name="correo"
                     label="Correo"
                     onBlur={(e: any) => handleBlurData("correo", e.target.value)}
@@ -202,7 +201,6 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                   )}
                 </div>
                 <InputField
-                  placeholder="960 66 66 66"
                   name="telefono"
                   label="Telefono"
                   onBlur={(e: any) => handleBlurData("telefono", e.target.value)}

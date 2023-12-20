@@ -1,12 +1,13 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { getAuth, signInWithCustomToken } from 'firebase/auth'
+import { getAuth, onAuthStateChanged, onIdTokenChanged, signInWithCustomToken } from 'firebase/auth'
 import Cookies from 'js-cookie'
 import { nanoid } from 'nanoid'
 
 import { developments } from "../firebase";
-import { fetchApiBodas, queries } from "../utils/Fetching";
+import { fetchApiBodas, fetchApiEventos, queries } from "../utils/Fetching";
 import { boolean } from "yup";
 import { initializeApp } from "firebase/app";
+import { useRouter } from "next/router";
 
 const initialContext = {
   user: undefined,
@@ -15,12 +16,14 @@ const initialContext = {
   setVerificationDone: undefined,
   config: undefined,
   setConfig: undefined,
-  isProduction: true,
-  setIsProduction: undefined,
   theme: undefined,
   setTheme: undefined,
   isActiveStateSwiper: 0,
-  setIsActiveStateSwiper: undefined
+  setIsActiveStateSwiper: undefined,
+  geoInfo: undefined,
+  setGeoInfo: undefined,
+  forCms: undefined,
+  setForCms: undefined,
 }
 
 type Context = {
@@ -30,12 +33,14 @@ type Context = {
   setVerificationDone: any
   config: any
   setConfig: any
-  isProduction: any
-  setIsProduction: any
   theme: any
   setTheme: any
   isActiveStateSwiper: any
   setIsActiveStateSwiper: any
+  geoInfo: any,
+  setGeoInfo: any,
+  forCms: any,
+  setForCms: any,
 }
 
 const AuthContext = createContext<Context>(initialContext);
@@ -44,7 +49,6 @@ const AuthProvider = ({ children }) => {
   const [user, setUser] = useState<any>(initialContext.user);
   const [verificationDone, setVerificationDone] = useState<any>(false);
   const [config, setConfig] = useState<any>();
-  const [isProduction, setIsProduction] = useState<any>(true)
   const [isMounted, setIsMounted] = useState<any>(false)
   const [isActiveStateSwiper, setIsActiveStateSwiper] = useState<any>(0);
   const [theme, setTheme] = useState<any>({
@@ -54,6 +58,14 @@ const AuthProvider = ({ children }) => {
     baseColor: undefined,
     colorScroll: undefined
   })
+  const [geoInfo, setGeoInfo] = useState<any>();
+  const [forCms, setForCms] = useState<boolean>(false)
+  const router = useRouter()
+
+  useEffect(() => {
+    console.log(router?.query, router?.query?.show === "iframe")
+    setForCms(router?.query?.show === "iframe")
+  }, [router])
 
   useEffect(() => {
     if (!isMounted) {
@@ -64,9 +76,9 @@ const AuthProvider = ({ children }) => {
     }
   }, [])
   let resp: any = undefined
-  let firebaseClient: any
   useEffect(() => {
     if (isMounted) {
+      console.log(window.location)
       const path = window.location.hostname
       //  const path = "https://www.eventosplanificador.com"
       console.log("hostname:", path)
@@ -75,23 +87,24 @@ const AuthProvider = ({ children }) => {
       console.log(idx)
       /*--------------------------------------------------------------------*/
       const devDomain = ["bodasdehoy", "eventosplanificador", "eventosorganizador", "vivetuboda"]
-      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[3] /*<<<<<<<<<*/
+      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[0] /*<<<<<<<<<*/
       /*--------------------------------------------------------------------*/
       resp = developments.filter(elem => elem.name === domainDevelop)[0]
-      if (idx === -1) {
+      if (idx === -1 || window.origin.includes("://test")) {
+        const directory = window.origin.includes("://test") ? process.env.NEXT_PUBLIC_DIRECTORY.replace("//", "//test.") : process.env.NEXT_PUBLIC_DIRECTORY
+        console.log(window.origin, window.location.hostname, directory)
         resp = {
           ...resp,
           domain: `${process.env.NEXT_PUBLIC_DOMINIO}`,
-          pathDirectory: resp?.pathDirectory ? `${process.env.NEXT_PUBLIC_DIRECTORY}` : undefined,
-          pathLogin: resp?.pathLogin ? `${process.env.NEXT_PUBLIC_DIRECTORY}/login` : undefined,
-          pathSignout: resp?.pathSignout ? `${process.env.NEXT_PUBLIC_DIRECTORY}/signout` : undefined,
-          pathPerfil: resp?.pathPerfil ? `${process.env.NEXT_PUBLIC_DIRECTORY}/configuracion` : undefined
+          pathDirectory: resp?.pathDirectory ? `${directory}` : undefined,
+          pathLogin: resp?.pathLogin ? `${directory}/login` : undefined,
+          pathSignout: resp?.pathSignout ? `${directory}/signout` : undefined,
+          pathPerfil: resp?.pathPerfil ? `${directory}/configuracion` : undefined
         }
-        setIsProduction(false)
+        console.log(222215, resp?.domain)
       }
       try {
-        firebaseClient = initializeApp(resp?.fileConfig);
-        // firebaseClient
+        initializeApp(resp?.fileConfig);
         console.log(8000041, getAuth())
       } catch (error) {
         console.log(90001, error)
@@ -103,15 +116,18 @@ const AuthProvider = ({ children }) => {
   useEffect(() => {
     try {
       if (isMounted) {
-        getAuth().onAuthStateChanged(async (user) => {
+
+        onAuthStateChanged(getAuth(), async (user) => {
           const sessionCookie = Cookies.get(config?.cookie);
-          console.info("Verificando cookie", sessionCookie);
+          console.info(8000042, "Verificando cookie", sessionCookie);
           //setUser(user)
           if (!sessionCookie) {
-            let guestUid = Cookies.get(config?.cookieGuest)
+            const cookieContent = JSON.parse(Cookies.get(config?.cookieGuest) ?? "{}")
+            let guestUid = cookieContent?.guestUid
             if (!guestUid) {
+              const dateExpire = new Date(new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000))
               guestUid = nanoid(28)
-              Cookies.set(config?.cookieGuest, guestUid)
+              Cookies.set(config?.cookieGuest, JSON.stringify({ guestUid }), { domain: `${config?.domain}`, expires: dateExpire })
             }
             setUser({ uid: guestUid, displayName: "guest" })
           }
@@ -129,11 +145,12 @@ const AuthProvider = ({ children }) => {
               console.info("Guardo datos en contexto react");
             } else {
               console.info("NO tengo user de contexto de firebase");
-              const { customToken } = await fetchApiBodas({
+              const resp = await fetchApiBodas({
                 query: queries.authStatus,
                 variables: { sessionCookie },
                 development: config?.development
               });
+              const customToken = resp?.customToken
               console.info("Llamo con mi sessionCookie para traerme customToken");
               console.info("Custom token", customToken)
               customToken && signInWithCustomToken(getAuth(), customToken);
@@ -153,19 +170,28 @@ const AuthProvider = ({ children }) => {
   useEffect(() => {
     if (user && user?.displayName !== "guest") {
       console.info("getAuth().onIdTokenChanged");
-      getAuth().onIdTokenChanged(async user => {
+      onIdTokenChanged(getAuth(), async user => {
         const sessionCookie = Cookies.get(config?.cookie);
         if (user && sessionCookie) {
-          console.log(1111111, "Cookies.set: idToken en ", process.env.NEXT_PUBLIC_DOMINIO ?? "")
-          Cookies.set("idToken", await user.getIdToken(), { domain: `.${resp?.domain}.com` })
+          console.log("///////////----->", user.getIdToken())
+          const dateExpire = new Date(new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000))
+          Cookies.set("idToken", await user.getIdToken(), { domain: `.${resp?.domain}.com`, expires: dateExpire })
         }
       })
     }
   }, [])
 
+  useEffect(() => {
+    fetchApiEventos({
+      query: queries.getGeoInfo,
+      variables: {},
+    }).then(geoInfo => setGeoInfo(geoInfo)).catch(err => console.log(err))
+  }, [])
+
+
 
   return (
-    <AuthContext.Provider value={{ user, setUser, verificationDone, setVerificationDone, config, setConfig, isProduction, setIsProduction, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper }}>
+    <AuthContext.Provider value={{ user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms }}>
       {children}
     </AuthContext.Provider>
   );

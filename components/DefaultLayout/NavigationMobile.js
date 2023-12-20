@@ -5,8 +5,7 @@ import { InvitacionesIcon, InvitadosIcon, MesasIcon, MisEventosIcon } from "../i
 import router from "next/router";
 import { useToast } from "../../hooks/useToast";
 import Cookies from "js-cookie";
-import { signOut } from "firebase/auth";
-import { auth } from "../../firebase";
+import { getAuth, signOut } from "firebase/auth";
 
 const useOutsideSetShow = (ref, setShow) => {
   const handleClickOutside = (event) => {
@@ -127,7 +126,7 @@ const ProfileMenu = () => {
             <button onClick={async () => {
               Cookies.remove("sessionBodas", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "" });
               Cookies.remove("idToken", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "" });
-              await signOut(auth);
+              signOut(getAuth());
               router.push(`${process.env.NEXT_PUBLIC_DIRECTORY}/signout?end=true` ?? "")
             }}>Cerrar Sesión</button>
           </li>}

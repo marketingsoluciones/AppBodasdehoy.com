@@ -5,7 +5,6 @@ import { EventContextProvider } from "../../context";
 import { getCurrency } from "../../utils/Funciones";
 import { capitalize } from '../../utils/Capitalize';
 
-
 const CellEdit = (props) => {
   const { event, setEvent } = EventContextProvider()
   const [edit, setEdit] = useState(false);
@@ -17,9 +16,13 @@ const CellEdit = (props) => {
   }, [props.value])
 
   useEffect(() => {
-    console.log(2000002, value)
-    setMask(getCurrency(value, "EUR"));
-  }, [value]);
+      if(props?.type == "text"){
+        setMask(value)
+      }
+      if(props?.type == "number"){
+        setMask( getCurrency(value, "EUR") );
+      }
+  }, [ value ]);
 
   const keyDown = (e) => {
     let tecla = e.key.toLowerCase();
@@ -29,25 +32,19 @@ const CellEdit = (props) => {
     }
   };
 
-
-
   const handleChange = (e) => {
     const r = e.target.value?.split(".")
-    setValue(parseFloat(!!r[1] ? `${r[0]}.${r[1]?.slice(0, 2)}` : e.target.value));
-    // setValue(
-    //   props?.type == "number" ? parseFloat(e.target.value) : e.target.value
-    // );
+    setValue(r)
   };
 
   const handleBlur = async () => {
     setEdit(false);
     let res;
-
     if (value !== props?.value) {
       try {
         const params = {
           query: `mutation{
-              editGasto(evento_id:"${event?._id}", categoria_id: "${props?.categoriaID}", gasto_id: "${props?.row?.original?._id}", variable_reemplazar:"${props?.cell?.column?.id}", valor_reemplazar:"${!!value ? value : 0}")
+              editGasto(evento_id:"${event?._id}", categoria_id: "${props?.categoriaID}", gasto_id: "${props?.row?.original?._id}", variable_reemplazar:"${props?.cell?.column?.id}", valor_reemplazar:"${!!value ? value : "sin datos"}")
               {
                 coste_estimado
                 coste_final
@@ -73,8 +70,6 @@ const CellEdit = (props) => {
         };
         const { data } = await api.ApiApp(params);
         res = data?.data?.editGasto
-        console.log(res)
-        console.log(props?.cell?.column?.id)
       } catch (error) {
         console.log(error);
       } finally {
@@ -83,17 +78,11 @@ const CellEdit = (props) => {
             (item) => item._id == props.categoriaID
           );
           const idx = old?.presupuesto_objeto?.categorias_array[index]?.gastos_array.findIndex(item => item._id == props?.row?.original?._id)
-
           old.presupuesto_objeto[props?.cell?.column?.id] = res[props?.cell?.column?.id]
-
           old.presupuesto_objeto.categorias_array[index][props?.cell?.column?.id] = res?.categorias_array[0][props?.cell?.column?.id]
           old.presupuesto_objeto.categorias_array[index].gastos_array[idx][props?.cell?.column?.id] = res?.categorias_array[0]?.gastos_array[0][props?.cell?.column?.id]
-
-
           return { ...old }
-
         }
-
         );
       }
     }
@@ -108,7 +97,7 @@ const CellEdit = (props) => {
           <input
             type={props.type}
             min={0}
-            value={!!value ? value : ""}
+            /*  value={!!value ? value : ""} */
             onBlur={handleBlur}
             onChange={(e) => handleChange(e)}
             onKeyDown={(e) => keyDown(e)}
@@ -117,7 +106,7 @@ const CellEdit = (props) => {
           />
         ) : (
           <p className="cursor-pointer hover:scale-105 transform transition text-center w-full truncate px-2 py-1 h-6" onClick={() => setEdit(true)}>
-            {typeof value == "string" ? capitalize(value) : mask}
+            { typeof value == "string" ? capitalize(value)  : mask}
           </p>
         )}
         <style jsx>

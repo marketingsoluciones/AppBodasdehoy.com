@@ -5,7 +5,9 @@ import { DataTableGroupContextProvider } from "../../context/DataTableGroupConte
 
 
 
-export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, setArrEnviatInvitaciones }) => {
+export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, setArrEnviatInvitaciones, reenviar }) => {
+  const [valir, setValir] = useState(false)
+  const [asd, setAsd] = useState({ arrIDs: undefined, getToggleAllRowsSelectedProps: undefined })
 
 
   const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows } =
@@ -13,35 +15,7 @@ export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, set
       hooks.visibleColumns.push((columns) => [
         {
           id: "selection",
-          Header: ({ getToggleAllRowsSelectedProps }) => {
-            const { dataTableGroup: { arrIDs } } = DataTableGroupContextProvider()
-            const [valir, setValir] = useState(false)
-            useEffect(() => {
-              if (arrIDs.length > 0) {
-                setValir(true)
-              } else {
-                setValir(false)
-              }
-            }, [arrIDs, valir]);
-            return (
-              multiSeled &&
-              <div className="">
-                {
-                  valir ? (
-                    <button onClick={() => { setArrEnviatInvitaciones(arrIDs) }} className="focus:outline-none hover:bg-secondary hover:text-gray-300 transition bg-primary text-white py-1 rounded-xl text-center text-[10px] md:text-sm  w-full">
 
-                      Enviar
-                    </button>
-                  ) : (
-                    <button className="focus:outline-none bg-primary text-white py-1 rounded-xl text-center text-[10px] md:text-sm  w-full">
-                      Enviar
-                    </button>
-                  )
-                }
-                <IndeterminateCheckbox  {...getToggleAllRowsSelectedProps()} />
-              </div>
-            )
-          },
           Cell: ({ row }) => {
             const { dispatch, dataTableGroup: { arrIDs } } = DataTableGroupContextProvider()
             useEffect(() => {
@@ -62,74 +36,113 @@ export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, set
               </>
             )
           },
+          Header: ({ getToggleAllRowsSelectedProps, row }) => {
+            const { dataTableGroup: { arrIDs } } = DataTableGroupContextProvider()
+
+            useEffect(() => {
+              setAsd({ arrIDs, getToggleAllRowsSelectedProps })
+            }, [arrIDs])
+
+            useEffect(() => {
+              console.log(arrIDs)
+            }, [arrIDs])
+
+
+            useEffect(() => {
+              if (arrIDs.length > 0) {
+                setValir(true)
+              } else {
+                setValir(false)
+              }
+            }, [arrIDs, valir]);
+
+            return (
+              <div className="absolute z-10 -translate-y-11 -translate-x-1">
+                <IndeterminateCheckbox  {...getToggleAllRowsSelectedProps()} />
+              </div>
+            )
+          },
         },
         ...columns,
       ]);
     });
 
+
   const colSpan = {
     selection: 1,
-    nombre: 3,
-    invitacion: 2,
-    correo: 3,
+    nombre: 6,
+    correo: 6,
+    telefono: 4,
+    invitacion: 4,
+    date: 3
   };
+
+
   return (
-    <>
-      <div>
-        <table
-          {...getTableProps()}
-          className="table w-full rounded-lg relative p-4"
-        >
-          <thead>
-            {headerGroups.map((headerGroup: any, id: any) => (
-              <tr
-                {...headerGroup.getHeaderGroupProps()}
-                className="w-full grid grid-cols-9 py-2 px-2 pr-4"
-                key={id}
-              >
-                {headerGroup.headers.map((column: any, id: any) => (
-                  <th
-                    {...column.getHeaderProps(column.getSortByToggleProps())}
-                    className={`capitalize text-sm text-gray-500 font-light font-display col-span-${colSpan[column.id]
-                      }`}
-                    key={id}
-                  >
-                    {column.render("Header")}
-                    <span>
-                      {column.isSorted ? (column.isSortedDesc ? " 🠻" : " 🠹") : ""}
-                    </span>
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody {...getTableBodyProps()} className="text-gray-300 text-sm  ">
-            {rows.map((row, i) => {
-              prepareRow(row);
-              return (
-                <tr
-                  key={i}
-                  {...row.getRowProps()}
-                  className="w-full transition border-b border-base hover:bg-base w-full grid grid-cols-9 md:px-3 pl-3 "
+    <div className="relative">
+      {multiSeled &&
+        <div className="w-24 py-3 ml-[52px]">
+          <button
+            disabled={!valir}
+            onClick={() => { setArrEnviatInvitaciones(asd?.arrIDs) }}
+            className={`focus:outline-none ${valir ? "hover:opacity-70 transition bg-primary" : "bg-gray-300"} text-white py-1 rounded-lg text-center text-[10px] md:text-sm w-full`}>
+            {reenviar ? "Reenviar" : "Enviar"}
+          </button>
+        </div>}
+      <table
+        {...getTableProps()}
+        className="table-auto border-collapse w-full rounded-lg relative p-4 "
+      >
+        <thead className="relative text-xs text-gray-700 uppercase bg-gray-100 w-full">
+          {headerGroups.map((headerGroup: any, id: any) => (
+            <tr
+              {...headerGroup.getHeaderGroupProps()}
+              className="grid grid-cols-24"
+              key={id}
+            >
+              {headerGroup.headers.map((column: any, id: any) => (
+                <th
+                  {...column.getHeaderProps(column.getSortByToggleProps())}
+                  className={`px-6 py-1 md:py-2 text-center flex justify-center items-center text-sm font-light font-display col-span-${colSpan[column.id]
+                    }`}
+                  key={id}
                 >
-                  {row.cells.map((cell, i) => {
-                    return (
-                      <td
-                        key={i}
-                        {...cell.getCellProps()}
-                        className={` mr-5 truncate font-display grid place-items-center text-sm w-full text-black h-full text-center text-left py-2 pr-2 col-span-${colSpan[cell.column.id]
-                          }`}
-                      >
-                        {cell.render("Cell")}
-                      </td>
-                    );
-                  })}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </>
+                  {column.render("Header")}
+                  <span>
+                    {column.isSorted ? (column.isSortedDesc ? " 🠻" : " 🠹") : ""}
+                  </span>
+                </th>
+              ))}
+            </tr>
+          ))}
+        </thead>
+
+        <tbody {...getTableBodyProps()} className="text-gray-700 text-sm ">
+          {rows.length >= 1 ? rows.map((row, i) => {
+            prepareRow(row);
+            return (
+              <tr
+                key={i}
+                {...row.getRowProps()}
+                className={`w-full bg-white border-b font-display text-sm grid grid-cols-24`}
+              >
+                {row.cells.map((cell, i) => {
+                  return (
+                    <td
+                      key={i}
+                      {...cell.getCellProps()}
+                      className={`truncate px-3 py-2 flex items-center col-span-${colSpan[cell.column.id]}`}
+                    >
+                      {cell.render("Cell")}
+                    </td>
+                  );
+                })}
+              </tr>
+            );
+          }) : <tr className="transition border-b border-base hover:bg-base cursor-pointer w-full grid place-items-center">
+            <td className="py-5 font-display text-lg text-gray-500 uppercase ">No hay invitados asociados al evento</td></tr>}
+        </tbody>
+      </table>
+    </div>
   );
 };

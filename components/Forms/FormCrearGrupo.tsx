@@ -71,9 +71,8 @@ const FormCrearGrupo = ({ set, state }) => {
               </div>
             </div>
             <button
-              className={`font-display rounded-full mt-4 py-2 px-6 text-white font-medium transition w-full hover:opacity-70 ${
-                isSubmitting ? "bg-secondary" : "bg-primary"
-              }`}
+              className={`font-display rounded-full mt-4 py-2 px-6 text-white font-medium transition w-full hover:opacity-70 ${isSubmitting ? "bg-secondary" : "bg-primary"
+                }`}
               disabled={isSubmitting}
               type="submit"
             >

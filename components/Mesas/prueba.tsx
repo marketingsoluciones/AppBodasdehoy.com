@@ -1,181 +1,95 @@
-import { Dispatch, FC, SetStateAction, useEffect, useRef, useState } from "react"
-import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
-import { Dragable } from "./PruebaDragable";
-import { ActualizarPosicion, handleScale, useScreenSize } from "./FuntionsDragable";
-import { SearchIcon,Lock } from "../icons";
-import { ButtonConstrolsLienzo } from "./ControlsLienzo";
+import { FC, useEffect, useRef, useState } from "react"
+import { TransformWrapper } from "react-zoom-pan-pinch";
 import { useToast } from "../../hooks/useToast";
+import { ComponenteTransformWrapper } from "./ComponenteTransformWrapper";
+import { EventContextProvider } from "../../context";
+import { size } from "../../utils/Interfaces";
+import { EditDefault } from "./EditDefault";
+import ClickAwayListener from "react-click-away-listener";
 
 type propsPrueba = {
-  setShowTables: any
-  showTables: boolean
   setShowFormEditar: any
+  fullScreen: boolean
+  setFullScreen: any
 }
 
-const Prueba: FC<propsPrueba> = ({ setShowTables, showTables, setShowFormEditar }) => {
-  let { width, height } = useScreenSize()
-  const [scrX, setScrX] = useState(0)
-  const [scrY, setScrY] = useState(0)
-  const [reset, setReset] = useState(false)
+
+
+
+const Prueba: FC<propsPrueba> = ({ setShowFormEditar, fullScreen, setFullScreen }) => {
+  const refDiv = useRef(null)
   const [scaleIni, setScaleIni] = useState(0)
-  const [scale, setScale] = useState(0)
-  const [oculto, setOculto] = useState(true)
   const [disableWrapper, setDisableWrapper] = useState(false)
   const [disableDrag, setDisableDrag] = useState(true)
   const toast = useToast()
-  const lienzo = {
-    ancho: 2048,
-    alto: 800
-  }
+  const { event, setEvent, planSpaceActive, editDefault, setEditDefault } = EventContextProvider()
+  const [lienzo, setLienzo] = useState<size>(event?.planSpace?.find(elem => elem?._id === event?.planSpaceSelect)?.size)
+
+
+  useEffect(() => {
+    setLienzo(event?.planSpace?.find(elem => elem?._id === event?.planSpaceSelect)?.size)
+  }, [event.planSpaceSelect])
+
+
   const handleSetDisableDrag: any = () => {
     setDisableDrag(!disableDrag)
   }
-  const handleSetShowTables: any = () => {
-    setShowTables(!showTables)
+
+  const calculoEscala = (lienzo: size, contenedor: any) => {
+    const sX = contenedor.current.offsetWidth * 100 / lienzo?.width
+    const sY = contenedor.current.offsetHeight * 100 / lienzo?.height
+    const asd = Math.trunc(Math.min(sX, sY) / 10) / 10
+    return asd
   }
-
   useEffect(() => {
-    console.log("disableDrag(deshabilita mover mesa)", disableDrag)
-  }, [disableDrag])
-
-  useEffect(() => {
-    console.log("disableWrapper(deshabilita zoom lienzo)", disableWrapper)
-  }, [disableWrapper])
-
-  useEffect(() => {
-    setScrX(window.innerWidth)
-    setScrY(window.innerHeight)
-    const scaleResult = handleScale(window.innerWidth, window.innerHeight, lienzo)
-    const calScale = scaleResult / 100
-    setScaleIni(scaleResult / 100)
-    setScale(calScale)
-  }, [oculto])
-
-  useEffect(() => {
-    if (oculto) {
-      const b = document.getElementsByTagName('body')[0]
-      setOculto(false)
-    }
-  }, [oculto])
-
-  const handleReset = (funcion: any) => {
-    funcion()
-    setTimeout(() => {
-
-      setReset(true)
-    }, 100);
-  }
+    setScaleIni(calculoEscala(lienzo, refDiv))
+  }, [lienzo, fullScreen, refDiv?.current?.offsetWidth, refDiv?.current?.offsetHeight])
 
   return (
     <>
-      <div>
-        <div className="bg-white h-8 widthCalc">
-          {/* <button className="bg-red" onClick={() => { controlsZoom.in }}>reset</button> */}
-        </div>
-        <div className="*bg-orange-500 flex divOrange justify-start relative" >
-          <TransformWrapper
+      <div className="flex *bg-orange-400 divOrange w-[100%] h-[100%] justify-start relative pt-8" >
+        <div ref={refDiv} className="bg-blue-200 flex w-[100%] h-[calc(100%-32px)] relative">
+          {editDefault?.clicked &&
+            <ClickAwayListener
+              onClickAway={() => {
+                if (editDefault.activeButtons) {
+                  setEditDefault({ ...editDefault, active: true })
+                }
+              }}
+              mouseEvent="mousedown"
+              touchEvent="touchstart">
+              <div
+                onMouseDown={() => setEditDefault({ ...editDefault, active: false })}
+                onTouchStart={() => setEditDefault({ ...editDefault, active: false })}
+                className={`bg-gray-200 opacity-70 w-10 h-44 absolute z-[20] left-0 top-10 rounded-r-lg`}>
+                <EditDefault {...editDefault} />
+              </div>
+            </ClickAwayListener>
+          }
+          {scaleIni && <TransformWrapper
             disabled={disableWrapper}
             limitToBounds={true}
             initialScale={scaleIni}
             minScale={scaleIni}
             maxScale={6}
-            wheel={{ step: 0.7 }}
-            pinch={{ step: 2 }}
-            doubleClick={{ step: 1.01 }}
+            wheel={{ step: 0.25 }}
+            pinch={{ step: 5 }}
+            doubleClick={{ step: 0.5 }}
             //initialPositionX={500}
             //initialPositionY={500}
             //centerZoomedOut={true}
             centerOnInit={false}
-            //minPositionX={0}
-            //minPositionY={0}
-            //maxPositionX={0}
-            //maxPositionY={0}
-            ref={(ref) => {
-              ref && setScale(ref.state.scale)
-            }}
+          //minPositionX={0}
+          //minPositionY={0}
+          //maxPositionX={0}
+          //maxPositionY={0}
           >
-            {({ zoomIn, zoomOut, resetTransform, ...rest }) => (
-              <>
-                {!reset ? handleReset(resetTransform) : () => { }}
-                <div className="flex items-start absolute z-10 transform translate-y-[-29px]">
-                  <div className="flex widthCalc">
-                    <ButtonConstrolsLienzo onClick={() => zoomIn()}>
-                      <SearchIcon className="w-[13px]" />
-                      <span className="text-sm">+</span>
-                    </ButtonConstrolsLienzo>
-                    <ButtonConstrolsLienzo onClick={() => resetTransform()}>
-                      <SearchIcon className="w-[13px]" />
-                      <span>100%</span>
-                    </ButtonConstrolsLienzo>
-                    <ButtonConstrolsLienzo onClick={() => zoomOut()}>
-                      <SearchIcon className="w-[13px]" />
-                      <span className="text-sm pb-1">- </span>
-                    </ButtonConstrolsLienzo>
-                    <ButtonConstrolsLienzo onClick={handleSetDisableDrag} pulseButton={disableDrag}>
-                      <span className="text-[10px] w-[90px]">{disableDrag ? 'Desloquear plano' : 'Bloquear plano'}</span>
-                    </ButtonConstrolsLienzo>
-                      <button className={`${disableDrag ? "block" : "hidden"}  `} onClick={() => { toast("error", "Desbloquea el plano para poder mover las mesas ") }}>
-                        <Lock className="hidden* md:block h-7 w-7"/>
-                      </button>
-                    <ButtonConstrolsLienzo onClick={handleSetShowTables} className="md:hidden">
-                      <span className="text-[10px] w-[60px]">{showTables ? 'Ver Invitados' : 'Crear Mesas'}</span>
-                    </ButtonConstrolsLienzo>
-                  </div>
-                </div>
-                <TransformComponent wrapperClass="contenedor">
-                  <div className="bg-gray-300 paper border-4 lienzo border-indigo-600 *flex *justify-center *items-center ">
-                    <Dragable scale={Math.round(scale * 100) / 100} lienzo={lienzo} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} setShowFormEditar={setShowFormEditar} />
-                  </div>
-                </TransformComponent>
-
-              </>
-            )
-            }
-          </TransformWrapper>
+            {(params) => {
+              return <ComponenteTransformWrapper {...params} fullScreen={fullScreen} setFullScreen={setFullScreen} disableWrapper={disableWrapper} setDisableWrapper={setDisableWrapper} lienzo={lienzo} setLienzo={setLienzo} setShowFormEditar={setShowFormEditar} scaleIni={scaleIni} />
+            }}
+          </TransformWrapper>}
         </div>
-      </div >
-
-      <style >
-        {`
-          .widthCalc {
-            width: calc(${width == 0 ? scrX / 12 * 9 : width / 12 * 9}px);
-          }
-          .divOrange {
-            width: calc(${width == 0 ? scrX / 12 * 9 : width / 12 * 9}px);
-            height: calc(100vh - 144px - 32px);
-          }
-          .contenedor {
-            *background-color: cyan;
-            calc(${width == 0 ? scrX / 12 * 9 : width / 12 * 9}px);
-            height: calc(100vh - 144px - 32px);
-          }
-          .div3 {
-            background-color: white;
-          }
-          .lienzo {
-            width: ${lienzo.ancho}px;
-            height: ${lienzo.alto}px;
-          }
-
-          @media (max-width: 767px) and (orientation: portrait) {
-            .widthCalc {
-              width: calc(${scrX}px - 30px);
-            }
-            .divOrange {
-              width: calc(${scrX}px - 30px);
-              height: calc(100vh - 64px - 250px - 32px - 90px);
-            }
-            .contenedor {
-              *background-color: cyan;
-              width: calc(${scrX}px - 30px);
-              height: calc(100vh - 64px - 250px - 32px - 90px);
-            }
-            .div3 {
-              background-color: yellow;
-            }
-          }
-        `}
-      </style>
+      </div>
     </>
   )
 }

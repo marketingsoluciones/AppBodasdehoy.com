@@ -7,6 +7,7 @@ import {
   EventsGroupProvider,
   EventProvider,
   ChatProvider,
+  SocketProvider
 } from "../context";
 import Container from "../components/DefaultLayout/Container";
 import { ToastProvider } from "../context/ToastContext";
@@ -21,17 +22,19 @@ const DefaultLayout = ({ children }) => {
       </Head> */}
 
       <AuthProvider>
-        <EventsGroupProvider>
-          <EventProvider>
-            <ChatProvider>
-              <LoadingProvider>
-                <ToastProvider>
-                  <Container>{children}</Container>
-                </ToastProvider>
-              </LoadingProvider>
-            </ChatProvider>
-          </EventProvider>
-        </EventsGroupProvider>
+        <SocketProvider>
+          <EventsGroupProvider>
+            <EventProvider>
+              <ChatProvider>
+                <LoadingProvider>
+                  <ToastProvider>
+                    <Container>{children}</Container>
+                  </ToastProvider>
+                </LoadingProvider>
+              </ChatProvider>
+            </EventProvider>
+          </EventsGroupProvider>
+        </SocketProvider>
       </AuthProvider>
     </>
   );

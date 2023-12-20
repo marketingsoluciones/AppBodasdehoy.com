@@ -101,10 +101,46 @@ export const fetchApiEventos = async ({ query, variables, token }: argsFetchApi)
 };
 
 export const queries = {
+  getEmailValid: `query ($email :String){
+    getEmailValid(email:$email){
+      valid
+      validators{
+        regex{
+          valid, reason
+        }
+        typo{
+          valid, reason
+        }
+        disposable{
+          valid, reason
+        }
+        mx{
+          valid, reason
+        }
+        smtp{
+          valid, reason
+        }
+      }
+      reason
+    }
+  }`,
+
+  getGeoInfo: `query  {
+    getGeoInfo {
+      referer
+      acceptLanguage
+      loop
+      connectingIp
+      ipcountry
+    }
+  }`,
   auth: `mutation ($idToken : String){
     auth(idToken: $idToken){
       sessionCookie
     }
+  }`,
+  updateUser: `mutation ($uid:ID, $variable:String, $valor:String){
+    updateUser(uid:$uid, variable:$variable, valor:$valor)
   }`,
   createUser: `mutation  ($uid : ID, $city: String, $country : String, $weddingDate : String, $phoneNumber : String, $role : [String]) {
     createUser(uid: $uid, city : $city, country : $country, weddingDate : $weddingDate, phoneNumber : $phoneNumber, role: $role){
@@ -125,6 +161,7 @@ export const queries = {
           weddingDate
           signUpProgress
           status
+          eventSelected
           createdAt
           updatedAt
         }
@@ -170,6 +207,97 @@ export const queries = {
         fecha_lectura
         mensaje
       }
+      planSpaceSelect
+      planSpace{
+      _id
+      title
+      size{
+        width
+        height
+      }
+      spaceChairs
+      template
+      sections{
+        _id
+        title
+        position{
+          x
+          y
+        }
+        size{
+          width
+          height
+        }
+        color
+        elements{
+          _id
+          title
+          rotation
+          position{
+            x
+            y
+          }
+          size{
+            width
+            height
+          }
+        }
+        tables{
+          _id
+          title
+          rotation
+          position{
+            x
+            y
+          }
+          size{
+            width
+            height
+          }
+          tipo
+          numberChair
+          guests{
+            _id
+            chair
+            order
+          }
+        }
+      }
+      elements{
+        _id
+        title
+        rotation
+        position{
+          x
+          y
+        }
+        size{
+          width
+          height
+        }
+        tipo
+      }
+      tables{
+        _id
+        title
+        rotation
+        position{
+          x
+          y
+        }
+        size{
+          width
+          height
+        }
+        tipo
+        numberChair
+        guests{
+          _id
+          chair
+          order
+        }
+      }
+    }
       mesas_array{
             _id
             nombre_mesa
@@ -277,6 +405,97 @@ export const queries = {
         fecha_lectura
         mensaje
       }
+      planSpaceSelect
+      planSpace{
+      _id
+      title
+      size{
+        width
+        height
+      }
+      spaceChairs
+      template
+      sections{
+        _id
+        title
+        position{
+          x
+          y
+        }
+        size{
+          width
+          height
+        }
+        color
+        elements{
+          _id
+          title
+          rotation
+          position{
+            x
+            y
+          }
+          size{
+            width
+            height
+          }
+        }
+        tables{
+          _id
+          title
+          rotation
+          position{
+            x
+            y
+          }
+          size{
+            width
+            height
+          }
+          tipo
+          numberChair
+          guests{
+            _id
+            chair
+            order
+          }
+        }
+      }
+      elements{
+        _id
+        title
+        rotation
+        position{
+          x
+          y
+        }
+        size{
+          width
+          height
+        }
+        tipo
+      }
+      tables{
+        _id
+        title
+        rotation
+        position{
+          x
+          y
+        }
+        size{
+          width
+          height
+        }
+        tipo
+        numberChair
+        guests{
+          _id
+          chair
+          order
+        }
+      }
+    }
       mesas_array{
            _id
            nombre_mesa
@@ -293,6 +512,13 @@ export const queries = {
         grupo_edad
         correo
         telefono
+        chairs{
+          planSpaceID
+          sectionID
+          tableID
+          position
+          order
+        }
         nombre_mesa
         puesto
         asistencia
@@ -305,6 +531,7 @@ export const queries = {
         pais
         direccion
         invitacion
+        fecha_invitacion
       }
       menus_array{
         nombre_menu
@@ -382,6 +609,7 @@ export const queries = {
        correo
        sexo
        invitacion
+       fecha_invitacion
      }
    }
    }`,
@@ -397,12 +625,14 @@ export const queries = {
         correo
         telefono
         nombre_mesa
+        nombre_menu
         puesto
         asistencia
-        nombre_menu
         rol
         correo
         sexo
+        invitacion
+        fecha_invitacion
         movil
         poblacion
         pais
@@ -447,21 +677,119 @@ export const queries = {
       }
     }
   }`,
-  createTable: `mutation ($eventID:String, $tableName: String, $tableType:String, $numberChairs:  Int, $position: [posicionAinput]) {
-    creaMesa(evento_id:$eventID,mesas_array:{nombre_mesa:$tableName, tipo:$tableType, cantidad_sillas:$numberChairs, posicion:$position}){
-      mesas_array{
+  // createTable: `mutation ($eventID:String, $tableName: String, $tableType:String, $numberChairs:  Int, $position: [posicionAinput]) {
+  //   creaMesa(evento_id:$eventID,mesas_array:{nombre_mesa:$tableName, tipo:$tableType, cantidad_sillas:$numberChairs, posicion:$position}){
+  //     mesas_array{
+  //       _id
+  //       nombre_mesa
+  //       tipo
+  //       cantidad_sillas
+  //       posicion {
+  //         x
+  //         y
+  //       }
+  //     }
+  //   }
+  // }`,
+
+  getPsTemplate: `query ($uid:String ) {
+    getPsTemplate(uid:$uid) {
+      _id
+      title
+    }
+    }`,
+  createPsTemplate: `mutation ($eventID:ID, $planSpaceID:ID, $title:String, $uid:String ) {
+    createPsTemplate(eventID:$eventID, planSpaceID:$planSpaceID, title:$title, uid:$uid) {
+      _id
+      title
+    }
+  }`,
+  createTable: `mutation ($eventID:ID, $planSpaceID: ID, $sectionID: ID, $values: String) {
+    createTable(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, values:$values) {
+      _id
+      title
+      rotation
+      position{
+        x
+        y
+      }
+      size{
+        width
+        height
+      }
+      tipo
+      numberChair
+      guests{
         _id
-        nombre_mesa
-        tipo
-        cantidad_sillas
-        posicion {
-          x
-          y
-        }
+        chair
+        order
       }
     }
   }`,
-  editTable: `mutation ($eventID:String, $tableID: String, $variable: String, $coordenadas: [posicionAinput]) {
+  editTable: `mutation ($eventID:ID, $planSpaceID: ID, $sectionID: ID, $tableID: ID, $variable: String, $valor: String) {
+    editTable(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, tableID:$tableID, variable:$variable, valor:$valor) {
+      _id
+      title
+      rotation
+      position{
+        x
+        y
+      }
+      size{
+        width
+        height
+      }
+      tipo
+      numberChair
+      guests{
+        _id
+        chair
+        order
+      }
+    }
+  }`,
+  deleteTable: `mutation ($eventID:ID, $planSpaceID: ID, $sectionID: ID, $tableID: ID) {
+    deleteTable(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, tableID:$tableID) 
+  }`,
+
+
+  createElement: `mutation ($eventID:ID, $planSpaceID: ID, $sectionID: ID, $values: String) {
+    createElement(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, values:$values) {
+      _id
+      title
+      rotation
+      position{
+        x
+        y
+      }
+      size{
+        width
+        height
+      }
+      tipo
+    }
+  }`,
+  editElement: `mutation ($eventID:ID, $planSpaceID: ID, $sectionID: ID, $elementID: ID, $variable: String, $valor: String) {
+    editElement(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, elementID:$elementID, variable:$variable, valor:$valor) {
+      _id
+      title
+      rotation
+      position{
+        x
+        y
+      }
+      size{
+        width
+        height
+      }
+      tipo
+    }
+  }`,
+  deleteElement: `mutation ($eventID:ID, $planSpaceID: ID, $sectionID: ID, $elementID: ID) {
+    deleteElement(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, elementID:$elementID) 
+  }`,
+
+  editTableOld: `mutation ($eventID:String, $tableID: String, $variable: String, $coordenadas: [posicionAinput]) {
     editMesa(evento_id:$eventID,mesa_id:$tableID, variable_reemplazar:$variable, coordenadas:$coordenadas) {
       _id
       nombre_mesa
@@ -484,7 +812,7 @@ export const queries = {
       tipo
     }
   }`,
-  deleteTable: `mutation ($eventID:String, $tableID: String) {
+  deleteTableOld: `mutation ($eventID:String, $tableID: String) {
     borraMesa(evento_id:$eventID,mesa_id:$tableID) {
       mesas_array{
            _id
