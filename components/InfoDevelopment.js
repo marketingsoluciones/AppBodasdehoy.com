@@ -39,6 +39,7 @@ export const InfoDevelopment = () => {
             <li>event?.nombre: {event?.nombre}</li>
             <li>user: {user?.displayName}</li>
             <li>userUid: {user?.uid}</li>
+            <li>userRoles: {`[${user?.role?.join(", ")}]`}</li>
             <li>size: {`${size.x}x${size.y}`}</li>
             {/* <li>sizeAvalible: {screen?.availHeight}</li> */}
           </ul>
