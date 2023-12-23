@@ -43,14 +43,18 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             icon: <CompanyIcon className="w-6 h-6" />,
             onClick: async () => {
                 const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
-                router.push((user?.displayName !== "guest") ? path ?? "" : config?.pathLogin ? `${config?.pathDirectory}/info-empresa?d=app` : `/login?d=${route}`)
+                router.push((user?.role?.includes("empresa")) ? path ?? "" : config?.pathLogin ? `${config?.pathDirectory}/info-empresa?d=app` : `/login?d=${route}`)
             },
             user: config?.pathDirectory ? "all" : null
         },
         {
             title: "Mis publicaciones",
             icon: <Posts className="w-6 h-6" />,
-            onClick: async () => { router.push(config?.pathDirectory) },
+            onClick: async () => {
+                const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
+                const pathEnd = `${window.origin.includes("://test.") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}/InfoPage/publicaciones`
+                router.push((user?.displayName !== "guest") ? `${path}/InfoPage/publicaciones` ?? "" : config?.pathLogin ? `${config?.pathLogin}?d=app&end=${pathEnd}` : `/login?d=${route}`)
+            },
             user: config?.pathDirectory ? "all" : null
         },
         {

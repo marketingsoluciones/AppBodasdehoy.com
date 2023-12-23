@@ -36,7 +36,7 @@ const Profile = ({ user, state, set, ...rest }) => {
       title: "Mis empresas",
       onClick: async () => {
         const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
-        router.push((user?.displayName !== "guest") ? path ?? "" : config?.pathLogin ? `${config?.pathDirectory}/info-empresa?d=app` : `/login?d=${route}`)
+        router.push((user?.role?.includes("empresa")) ? path ?? "" : config?.pathLogin ? `${config?.pathDirectory}/info-empresa?d=app` : `/login?d=${route}`)
       },
       icon: <CompanyIcon />,
       rol: ["all"],
@@ -51,14 +51,17 @@ const Profile = ({ user, state, set, ...rest }) => {
       title: "Mis publicaciones",
       onClick: async () => {
         const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
-        router.push((user?.displayName !== "guest") ? `${path}/InfoPage/publicaciones` ?? "" : config?.pathLogin ? `${config?.pathLogin}?d=app` : `/login?d=${route}`)
+        const pathEnd = `${window.origin.includes("://test.") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}/InfoPage/publicaciones`
+        router.push((user?.displayName !== "guest") ? `${path}/InfoPage/publicaciones` ?? "" : config?.pathLogin ? `${config?.pathLogin}?d=app&end=${pathEnd}` : `/login?d=${route}`)
       },
       icon: <Posts />,
       rol: ["all"],
     },
     {
       title: "Mi wedding page",
-      onClick: async () => { /*setModal(!modal)*/ },
+      onClick: async () => {
+        router.push(window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CUSTOMWEB?.replace("//", "//test") ?? "" : process.env.NEXT_PUBLIC_CUSTOMWEB ?? "")
+      },
       icon: <WeddingPage />,
       rol: ["novio", "novia", "otro", "empresa"],
     },
