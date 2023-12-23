@@ -98,7 +98,7 @@ interface propsBanner {
 }
 const Banner: FC<propsBanner> = ({ set, state }) => {
   return (
-    <div className="banner bg-base w-full flex justify-center h-3/6 md:h-3/5 px-5 md:px-0 overflow-hidden relative">
+    <div className="banner bg-base w-full flex justify-center h-[60%] md:h-[calc(100%-200px-50px)] md:min-h-[300px] px-5 md:px-0 overflow-hidden relative">
       <div className="md:max-w-screen-lg 2xl:max-w-screen-xl w-full grid md:grid-cols-2 h-full">
         <div className="flex flex-col justify-center relative py-10 md:py-0">
           <h2 className="font-display font-medium text-5xl md:text-6xl tracking-tight	text-gray-500">
@@ -219,8 +219,8 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent, showEditEvent,
 
   return (
     <>
-      <div className="bg-white w-full grid-cards flex flex-col   justify-center items-center max-w-screen-lg xl:max-w-screen-xl inset-x-0 mx-auto  ">
-        <div className="flex gap-4">
+      <div className="bg-white w-full flex flex-col h-[40%] md:h-[200px] justify-center items-center max-w-screen-lg xl:max-w-screen-xl inset-x-0 mx-auto">
+        <div className="flex gap-4 mt-[100%]">
           {Lista.map((item, idx) => (
             <button
               onClick={(e) => setIsActiveStateSwiper(idx)}
@@ -235,7 +235,7 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent, showEditEvent,
             </button>
           ))}
         </div>
-        <div className="w-full h-max ">
+        <div className="w-full h-max mb-[100%] ">
           {tabsGroup.map((group, idx) => {
 
             return (
@@ -258,7 +258,7 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent, showEditEvent,
                         },
                       }}
                       id={group?.status}
-                      className={` h-60 ${isActiveStateSwiper == idx ? "" : "hidden"}`}
+                      className={`mt-4 ${isActiveStateSwiper == idx ? "" : "hidden"}`}
                     >
                       {group?.data?.map((evento, idx) => (
                         <SwiperSlide
@@ -266,10 +266,6 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent, showEditEvent,
                           className="flex items-center justify-center"
                           onClick={() => { setIdxGroupEvent({ idx, isActiveStateSwiper, event_id: evento._id }) }}
                         >
-                          {/* <div className="absolute z-50 bg-white font-display  text-center flex flex-col">
-                            <span className="text-3xl">{idx}</span>
-                            <span>{group?.data[idx]?._id}</span>
-                          </div> */}
                           <Card data={group.data} grupoStatus={group.status} idx={idx} />
                         </SwiperSlide>
                       ))}
@@ -295,13 +291,6 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent, showEditEvent,
           })}
         </div>
       </div >
-      <style jsx>
-        {`
-          .grid-cards {
-            height: 35vh;
-          }
-        `}
-      </style>
     </>
   );
 };
