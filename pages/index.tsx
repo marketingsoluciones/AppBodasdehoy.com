@@ -228,7 +228,7 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent, showEditEvent,
               className={`${isActiveStateSwiper == idx
                 ? `bg-${item.color} text-white`
                 : "bg-white text-gray-500"
-                } w-max px-4 py-0.5 rounded-xl flex items-center justify-center cursor-pointer hover:bg-${item.color
+                } w-max md:mt-4 mb-3 md:mb-1 px-4 py-0.5 rounded-xl flex items-center justify-center cursor-pointer hover:bg-${item.color
                 } hover:text-gray-500 transition focus:outline-none text-sm font-display`}
             >
               {item.nombre}
@@ -258,12 +258,12 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent, showEditEvent,
                         },
                       }}
                       id={group?.status}
-                      className={`mt-4 ${isActiveStateSwiper == idx ? "" : "hidden"}`}
+                      className={`${isActiveStateSwiper == idx ? "" : "hidden"}`}
                     >
                       {group?.data?.map((evento, idx) => (
                         <SwiperSlide
                           key={idx}
-                          className="flex items-center justify-center"
+                          className="flex items-center justify-center my-3"
                           onClick={() => { setIdxGroupEvent({ idx, isActiveStateSwiper, event_id: evento._id }) }}
                         >
                           <Card data={group.data} grupoStatus={group.status} idx={idx} />
@@ -271,14 +271,14 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent, showEditEvent,
                       ))}
                       {group.status !== "pendiente" ? group.data?.length === 0 &&
                         <SwiperSlide
-                          className={`flex items-center justify-center`}
+                          className={`flex items-center justify-center my-3`}
                         >
                           <div className={`w-72 h-36 rounded-xl flex flex-col items-center justify-center shadow-lg bg-base border border-gray-100 transition `}>
                             <p className="font-display font-base text-md">{`Ningún evento ${group.status}`}</p>
                           </div>
                         </SwiperSlide> :
                         <SwiperSlide
-                          className={`flex items-center justify-center`}
+                          className={`flex items-center justify-center my-3`}
                         >
                           <CardEmpty state={state} set={setNewEvent} />
                         </SwiperSlide>
