@@ -2,7 +2,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import ClickAwayListener from "react-click-away-listener";
 import { capitalize } from "../../utils/Capitalize";
-import { Catering, CompanyIcon, CorazonPaddinIcon, Eventos, FotografoMenu, LugaresBodas, MensajeIcon, Posts, UserIcon, WeddingPage, WeddingPlanner } from "../icons";
+import { ArrowDown, ArrowDownBodasIcon, ArrowLeft, Catering, CompanyIcon, CorazonPaddinIcon, Eventos, FotografoMenu, LugaresBodas, MensajeIcon, Posts, UserIcon, WeddingPage, WeddingPlanner } from "../icons";
 import router, { useRouter } from "next/router";
 import { getAuth, signOut } from "firebase/auth";
 import { AuthContextProvider } from "../../context";
@@ -229,8 +229,9 @@ const Profile = ({ user, state, set, ...rest }) => {
               className="object-cover w-11 h-11 rounded-full"
               alt={user?.displayName}
             />
+             <ArrowDownBodasIcon  className="w-5 h-5 rotate-90 transform cursor-pointer text-black" />
             <p className="font-display text-sm text-gray-500 capitalize">
-              {user?.displayName !== "guest" && user?.displayName?.toLowerCase()}
+              {/* {user?.displayName !== "guest" && user?.displayName?.toLowerCase()} */}
             </p>
           </div>
         </ClickAwayListener>
