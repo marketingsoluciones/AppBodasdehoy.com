@@ -24,26 +24,28 @@ const BlockMesas: FC = () => {
       </h2>
       <div className="w-full shadow rounded-xl bg-white py-4 gap-4 md:gap-16 flex flex-col md:flex-row h-max items-center justify-center">
 
-        <div className="md:w-[50%] flex flex-col space-y-3 md:space-y-1 ">
+        <div className=" flex flex-col space-y-3 md:space-y-1 ">
           {
             event?.planSpace.map((item, idx) => {
               return (
-                <div key={idx} className="md:space-x-20">
-                  <h1 className="text-regular font-display text-xs text-gray-700 capitalize ">
+                <div key={idx} className="grid md:grid-cols-3 justify-items-center items-center space-y-2">
+                  <div className="text-regular font-display text-xs text-gray-700 capitalize col-span-1 font-semibold ">
                     {item.title}
-                  </h1>
-                  <div className="flex space-x-10">
-                    <span className="flex flex-col justify-center items-center gap-2 w-max">
-                      <MesaIcon className="text-gray-500 w-8" />
+                  </div>
+                  <div className="flex space-x-10 col-span-2">
+
+                    <span className="flex flex-col justify-center items-center gap-2* w-max">
+                      <MesaIcon className="text-gray-500 w-9 " />
                       <p className="font-display font-semibold text-xl text-gray-700">
                         {item?.tables.length}
                       </p>
-                      <p className="font-display  text-xs text-gray-700 w-full">
+                      <p className="font-display  text-xs text-gray-700 w-full capitalize">
                         total de mesas
                       </p>
                     </span>
-                    <span className="flex flex-col justify-center items-center gap-2 w-max">
-                      <MesaIcon className="text-gray-500 h-5* w-8"  />
+
+                    <span className="flex flex-col justify-center items-center gap-2* w-max">
+                      <MesaIcon className="text-gray-500 w-9"  />
                       {(() => {
                         if (item.tables.length != 0) {
                           const invi = item.tables.map((item) => {
@@ -64,7 +66,7 @@ const BlockMesas: FC = () => {
                           )
                         }
                       })()}
-                      <p className="font-display font-base text-xs text-gray-700 w-full">
+                      <p className="font-display font-base text-xs text-gray-700 w-full capitalize">
                         invitados sentados
                       </p>
                     </span>

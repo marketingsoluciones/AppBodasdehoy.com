@@ -3,7 +3,7 @@ import { DiamanteIcon } from "./icons"
 
 export const ActivatorPremium = ({ link }) => {
   return (
-    <div className="flex gap-4">
+    <div className="flex md:flex-row flex-col gap-4">
       <Link href={`${link}`}>
         <p className="flex gap-1 items-center">
           <DiamanteIcon />

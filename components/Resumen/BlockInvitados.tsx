@@ -45,7 +45,7 @@ const BlockInvitados: FC = () => {
   ];
 
   return (
-    <div className="w-1/2 md:w-2/3">
+    <div className="w-1/2* md:w-2/3">
       <h2 className="font-display text-xl font-semibold text-gray-500 pb-2 text-left">
         Mis invitados
       </h2>
@@ -55,7 +55,7 @@ const BlockInvitados: FC = () => {
           pagination={{ clickable: true }}
           breakpoints={{
             0: {
-              slidesPerView: 1,
+              slidesPerView: 3,
               spaceBetween: 25,
             },
             768: {

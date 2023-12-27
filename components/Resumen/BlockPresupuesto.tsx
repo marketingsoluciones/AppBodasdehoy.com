@@ -13,7 +13,7 @@ const BlockPresupuesto = () => {
     { icon: <DineroIcon className="text-gray-500" />, amount: getCurrency(event?.presupuesto_objeto?.coste_final), subtitle: "gastado" },
   ];
   return (
-    <div className="w-[50%] md:w-1/3 box-border">
+    <div className="w-[50%]* md:w-1/3 box-border">
       <h2 className="font-display text-xl font-semibold text-gray-500 pb-2 text-left">
         Presupuesto
       </h2>
@@ -23,7 +23,7 @@ const BlockPresupuesto = () => {
           spaceBetween={50}
           breakpoints={{
             0: {
-              "slidesPerView": 1,
+              "slidesPerView": 3,
               "spaceBetween": 25,
             },
             768: {

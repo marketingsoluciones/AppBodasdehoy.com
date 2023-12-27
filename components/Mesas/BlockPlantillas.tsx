@@ -34,7 +34,7 @@ const BlockPlantillas: FC<propsBlockPlatillas> = () => {
     <div className="w-full h-full overflow-auto">
       {
         false &&
-        <BlockDefault>
+        <BlockDefault listaLength={psTemplates?.length}>
           {psTemplates?.map((item, idx) => {
             return (
               <div onClick={() => handleClick(item)} key={idx} className="w-full h-full p-2 flex-col justify-center items-center cursor-pointer">
@@ -49,16 +49,16 @@ const BlockPlantillas: FC<propsBlockPlatillas> = () => {
         </BlockDefault>
       }
       {true && (
-        <div className="w-full py-2">
+        <div className="w-full py-2 text-xs 2xl:text-sm">
           <div className="flex flex-col items-center justify-center w-full h-full px-2">
-            <p className="w-full text-sm text-center">
+            <p className="w-full text-center">
               <span className="text-primary ">Crear Plantillas </span>
               para organizar tu salón.
             </p>
-            <p className="hidden md:block w-full text-sm text-center px-4 mt-2">
+            <p className="hidden md:block w-full text-center px-4 mt-2">
               Diseña la distribución de tu celebración con la <br /> libertad  creativa que te facilita tu<br /> EventosOrganizador.
             </p>
-            <div className="text-yellow-500 flex items-center justify-center space-x-1 md:my-2  text-sm cursor-default">
+            <div className="text-yellow-500 flex items-center justify-center space-x-1 md:my-2 cursor-default">
               <div>
                 <DiamanteIcon />
               </div>
@@ -69,7 +69,7 @@ const BlockPlantillas: FC<propsBlockPlatillas> = () => {
               </Link>
             </div>
             <Link href={`${redireccionFacturacion}`}>
-              <button className="text-sm text-white bg-primary px-7 py-1 rounded-lg" >
+              <button className="text-white bg-primary px-7 py-1 rounded-lg" >
                 Empezar
               </button>
             </Link>

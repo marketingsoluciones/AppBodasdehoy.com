@@ -24,14 +24,14 @@ const BlockPlanos: FC<propsBlockPlanos> = () => {
   }
 
   return (
-    <BlockDefault> 
+    <BlockDefault listaLength={event?.planSpace?.length}>
       {event?.planSpace?.map((item, idx) => {
         return (
-          <div onClick={() => handleClick(item)} key={idx} className="w-full h-full p-2 flex-col justify-center items-center cursor-pointer">
+          <div onClick={() => handleClick(item)} key={idx} className="w-20 h-20 p-2 flex-col justify-center items-center cursor-pointer">
             <div key={idx} className={`${event?.planSpaceSelect === item?._id ? "bg-gray-200" : "bg-none"} rounded-lg flex flex-col w-full h-full transform hover:scale-105 transition justify-center items-center`}>
 
               <VscLayoutMenubar className={`text-primary w-8 h-8 2xl:w-12 2xl:h-12 `} />
-              <span className='text-gray-700'> {item?.title}</span>
+              <span className='text-gray-700 capitalize text-[10px]'> {item?.title}</span>
 
             </div>
           </div>)

@@ -10,6 +10,10 @@ const sutMenus = [
     icon: <InvitadosIcon className="w-6 h-6" />,
   },
   {
+    title: "planos",
+    icon: <HiTemplate className="w-6 h-6" />,
+  },
+  {
     title: "mesas",
     icon: <MesaIcon className="w-6 h-6" />,
   },
@@ -20,10 +24,6 @@ const sutMenus = [
   {
     title: "zonas",
     icon: <BsIntersect className="w-6 h-6" />,
-  },
-  {
-    title: "planos",
-    icon: <HiTemplate className="w-6 h-6" />,
   },
   {
     title: "plantillas",

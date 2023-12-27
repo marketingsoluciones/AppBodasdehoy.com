@@ -57,21 +57,18 @@ interface propsDragTable {
 const DragTable: FC<propsDragTable> = ({ item }) => {
 
   return (
-    <div className="w-full h-full static">
+    <div className="w-20 h-16 static">
       <div id={`icon${item.title}_${item.tipo}`} className="hidden">
         <div className="bg-gray-100 opacity-80 p-2 rounded-lg flex justify-center items-center">
           {item.icon}
-          <PlusIcon className={`absolute inset-0 m-auto text-primary w-3 h-3 `} />
+          <PlusIcon className={`absolute inset-0 m-auto text-primary w-3 h-3`} />
         </div>
       </div>
 
-      <span
-
-        className="w-full h-full flex items-center "
-      >
-        <div className="w-full h-full p-2 flex-col justify-center items-center cursor-pointer relative">
+      <span className="w-full h-full flex items-center ">
+        <div className="w-full h-full p-2 flex-col justify-center items-center *cursor-pointer relative">
           <div className="w-full h-full flex transform hover:scale-105 transition justify-center items-center relative">
-            <div id={`dragN${item.title}_${item.tipo}`} className="js-dragDefault"
+            <div id={`dragN${item.title}_${item.tipo}`} className="js-dragDefault w-full h-10 flex justify-center items-center"
               onMouseDown={(e) => { onMouseDown(e, item) }}
               onMouseUp={(e) => { onUp(e, item) }}
               onTouchStart={(e) => { onTouchStart(e, item) }}
@@ -83,12 +80,6 @@ const DragTable: FC<propsDragTable> = ({ item }) => {
         </div>
       </span>
 
-      {/* <EditarIcon
-          onClick={() => {
-            setEditInv(!editInv);
-            setSelected(invitado._id)
-          }}
-          className="h-5 w-5 cursor-pointer" /> */}
       <style>{`
         .listTables {
           touch - action: none;

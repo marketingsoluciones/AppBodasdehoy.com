@@ -24,7 +24,7 @@ const Resumen = () => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }} className="md:max-w-screen-lg mx-auto inset-x-0 flex-col flex gap-10 pb-20">
           <BlockPrincipal />
-          <div className="w-full flex justify-center gap-4 md:gap-8">
+          <div className="w-full flex md:flex-row flex-col justify-center gap-4 md:gap-8">
             <BlockPresupuesto />
             <BlockInvitados />
           </div>
@@ -34,9 +34,9 @@ const Resumen = () => {
             <BlockListaRegalos />
           </div>
           <BlockSobreMiEvento />
-          <span className="text-gray-500 text-xs gap-0">
+          {/* <span className="text-gray-500 text-xs gap-0">
             ID: {event?._id}
-          </span>
+          </span> */}
         </motion.div>
       </section>
     </>
