@@ -57,7 +57,7 @@ interface propsDragTable {
 const DragTable: FC<propsDragTable> = ({ item }) => {
 
   return (
-    <div className="w-full h-full static">
+    <div className="w-20 h-16 static">
       <div id={`icon${item.title}_${item.tipo}`} className="hidden">
         <div className="bg-gray-100 opacity-80 p-2 rounded-lg flex justify-center items-center">
           {item.icon}
