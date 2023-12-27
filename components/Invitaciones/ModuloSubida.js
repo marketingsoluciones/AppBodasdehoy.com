@@ -110,7 +110,7 @@ const ModuloSubida = ({ event, use }) => {
               Cambiar <EditarIcon className="w-6 h-6" />
             </div>
           </label>
-          <span className={`${"text-xs text-gray-600 ml-2 mb-1"}`}>Tamaño máximo 5M</span>
+          <span className={`${"text-xs text-gray-600 ml-2 mb-1 flex justify-center"}`}>Tamaño máximo 5M</span>
         </div>
       </div>
       <style jsx>

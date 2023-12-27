@@ -94,7 +94,7 @@ export default function Test({ TitelComponent }) {
   const redireccionFacturacion = window.origin.includes("://test") ? path?.replace("//", "//test") : path
 
   return (
-    <div className="shadow-md rounded-2xl w-full mx-auto inset-x-0 h-60 py-8 md:p-4 font-display flex flex-col gap-2">
+    <div className="shadow-md rounded-2xl w-full mx-auto inset-x-0 md:h-60 py-8 md:p-4 font-display flex flex-col gap-2">
       <Formik
         validationSchema={TitelComponent === "email" ? validationSchemaEmail : validationSchemaPhoneNumber}
         onSubmit={(values, actions) => handleClick(values, actions)}
