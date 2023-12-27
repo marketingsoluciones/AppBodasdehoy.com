@@ -280,7 +280,7 @@ const AboutItem: FC<propsElement> = ({ title, value, toggleClick }) => {
     <>
       <button
         onClick={toggleClick}
-        className="relative bg-white rounded-full w-32 md:w-40 h-32 md:h-40 shadow-md relative gap-2 flex flex-col items-center justify-center focus:outline-none mx-auto inset-x-0"
+        className="relative bg-white rounded-full w-32 md:w-40 h-32 md:h-40 shadow-md gap-2 flex flex-col items-center justify-center focus:outline-none mx-auto inset-x-0"
       >
         {!value ? (
           <InterrogacionIcon />

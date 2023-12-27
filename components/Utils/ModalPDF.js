@@ -81,7 +81,7 @@ export const ModalPDF = ({ createPDF, setCreatePDF, Data }) => {
                             <Page style={styles.page}>
                                 <View style={styles.title}>
                                     <Text>
-                                        lista de invitados
+                                        Lista de invitados
                                     </Text>
                                 </View>
                                 <View style={styles.description}>
