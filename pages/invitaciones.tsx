@@ -112,7 +112,7 @@ const Invitaciones = () => {
                     <ModuloSubida event={event} use={"imgInvitacion"} />
                   </div>
                 </div>
-                <div className="w-full md:w-2/3  md:h-80">
+                <div className="w-full md:w-2/3  md:h-80 mt-3 md:mt-0">
                   <OptionsMenu
                     arryOptions={arryOptions}
                     optionSelect={optionSelect}
@@ -123,7 +123,7 @@ const Invitaciones = () => {
                   </div>
                 </div>
               </div>
-              <div className="md:pt-8">
+              <div className="md:pt-14 pt-3">
                 <EnviadosComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent} event={event} />
               </div>
             </div>
