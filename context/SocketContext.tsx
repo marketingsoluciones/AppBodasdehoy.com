@@ -13,7 +13,7 @@ import { Dispatch } from 'react';
 import { getCookie } from '../utils/Cookies';
 import Cookies from "js-cookie";
 import { useRouter } from "next/router";
-
+import { parseJwt } from "../utils/Authentication"
 
 type Context = {
   socket: Socket | null;
@@ -34,6 +34,7 @@ const SocketProvider: FC<any> = ({ children }): JSX.Element => {
 
   useEffect(() => {
     const token = Cookies.get("idToken")
+    // console.log(10008, parseJwt(token), Math.trunc(new Date().getTime() / 1000))
     if (token && !socket?.connected) {
       console.log("=======> Conecta...")
       setSocket(api.socketIO({
@@ -48,7 +49,29 @@ const SocketProvider: FC<any> = ({ children }): JSX.Element => {
     }
   }, [user])
 
-    return (
+  useEffect(() => {
+    if (socket?.connect) {
+      console.log(1004, socket?.connected)
+      console.log(1005, socket?.id)
+      socket?.emit(`app`, {
+        emit: socket?.id,
+        receiver: user?.uid,
+        type: "",
+        payload: {
+          action: "",
+          value: "nueva conexión"
+        }
+      });
+    }
+  }, [socket?.connected])
+
+  socket?.on("app", async (msg) => {
+    console.log(10006, msg)
+
+  })
+
+
+  return (
     <SocketContext.Provider value={{ socket }}>
       {children}
     </SocketContext.Provider>
