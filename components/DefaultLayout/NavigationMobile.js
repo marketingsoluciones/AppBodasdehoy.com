@@ -104,7 +104,8 @@ const NavigationMobile = () => {
 };
 
 const ProfileMenu = () => {
-  const { user } = AuthContextProvider();
+
+  const { user, config } = AuthContextProvider();
   return (
     <>
       <div className={`bg-white w-40 h-16 rounded-md shadow-md overflow-hidden absolute transform translate-x-[calc(-122px)] translate-y-[calc(-110px)]`}>
@@ -124,10 +125,10 @@ const ProfileMenu = () => {
 
           {user && <li className="w-full pl-5 py-1 text-gray-500 transition  hover:bg-primary hover:text-white font-display text-sm">
             <button onClick={async () => {
-              Cookies.remove("sessionBodas", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "" });
-              Cookies.remove("idToken", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "" });
+              Cookies.remove("sessionBodas", { domain: config?.domain ?? "" });
+              Cookies.remove("idToken", { domain: config?.domain ?? "" });
               signOut(getAuth());
-              router.push(`${process.env.NEXT_PUBLIC_DIRECTORY}/signout?end=true` ?? "")
+              router.push(`${config.pathSignout}?end=true` ?? "")
             }}>Cerrar Sesión</button>
           </li>}
 
