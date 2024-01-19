@@ -13,7 +13,7 @@ export const fetchApiBodas = async ({ query = ``, variables = {}, type = "json",
     if (type === "json") {
       const {
         data: { data },
-      } = await api.ApiBodasExpress({ data: { query, variables }, development, token });
+      } = await api.ApiBodas({ data: { query, variables }, development, token });
       return Object.values(data)[0];
     } else if (type === "formData") {
       const formData = new FormData();

@@ -1,7 +1,9 @@
 import axios from "axios";
 import Cookies from "js-cookie"
 import { SubscriptionClient } from "graphql-subscriptions-client";
-import { io } from "socket.io-client";
+import { Manager, io } from "socket.io-client";
+import { getAuth } from "firebase/auth";
+import { parseJwt } from "./utils/Authentication";
 
 /* // llamada a wordpresss ref1001
 const wp = axios.create({
@@ -15,31 +17,48 @@ const instance = axios.create({ baseURL: process.env.NEXT_PUBLIC_BASE_URL })
 
 export const api = {
   ApiApp: async (params, token) => {
-    const token_final = token || Cookies.get("idToken")
+    let idToken = null
+    if (getAuth().currentUser) {
+      idToken = Cookies.get("idToken")
+      if (!idToken) {
+        idToken = await getAuth().currentUser?.getIdToken(true)
+        const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
+        Cookies.set("idToken", idToken ?? "", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "", expires: dateExpire })
+      }
+    }
     return await instance.post("/graphql", params, {
       headers: {
-        Authorization: `Bearer ${token_final}`,
+        Authorization: `Bearer ${idToken}`,
       }
     });
   },
 
   UploadFile: async (data, token) => {
-    const token_final = token || Cookies.get("idToken")
+    let idToken = null
+    if (getAuth().currentUser) {
+      idToken = Cookies.get("idToken")
+      if (!idToken) {
+        idToken = await getAuth().currentUser?.getIdToken(true)
+        const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
+        Cookies.set("idToken", idToken ?? "", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "", expires: dateExpire })
+      }
+    }
     return await instance.post("/graphql", data, {
       headers: {
-        Authorization: `Bearer ${token_final}`,
+        Authorization: `Bearer ${idToken}`,
         "Content-Type": "multipart/form-data",
         Development: "bodasdehoy"
       }
     });
   },
 
-  socketIO: ({ token, development, father }) => {
+  socketIO: ({ token, development, father, origin }) => {
     const socket = io(process.env.NEXT_PUBLIC_BASE_API_BODAS ?? "", {
       auth: {
         token: `Bearer ${token}`,
         development,
-        father
+        father,
+        origin
       }
     })
     return socket
@@ -61,11 +80,19 @@ export const api = {
     return client
   },
 
-  ApiBodasExpress: async ({ data, development, token }) => {
-    const tokenFinal = Cookies.get("idToken")
+  ApiBodas: async ({ data, development, token }) => {
+    let idToken = null
+    if (getAuth().currentUser) {
+      idToken = Cookies.get("idToken")
+      if (!idToken) {
+        idToken = await getAuth().currentUser?.getIdToken(true)
+        const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
+        Cookies.set("idToken", idToken ?? "", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "", expires: dateExpire })
+      }
+    }
     return axios.post('https://api.bodasdehoy.com/graphql', data, {
       headers: {
-        Authorization: `Bearer ${tokenFinal}`,
+        Authorization: `Bearer ${idToken}`,
         Development: development
       }
     })
