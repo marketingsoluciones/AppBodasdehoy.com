@@ -33,6 +33,11 @@ const SocketProvider: FC<any> = ({ children }): JSX.Element => {
   const [socket, setSocket] = useState<Socket | null>(initialContext.socket);
 
   useEffect(() => {
+    console.log(70003, user)
+    if (user && socket?.connected) {
+      console.log(70004, "socket.disconnect")
+      socket.disconnect();
+    }
     const token = Cookies.get("idToken")
     // console.log(10008, parseJwt(token), Math.trunc(new Date().getTime() / 1000))
     if (token && !socket?.connected) {
