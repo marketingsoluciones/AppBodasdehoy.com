@@ -33,8 +33,10 @@ const SocketProvider: FC<any> = ({ children }): JSX.Element => {
   const [socket, setSocket] = useState<Socket | null>(initialContext.socket);
 
   useEffect(() => {
+    console.log("=======> User", user)
     const token = Cookies.get("idToken")
-    // console.log(10008, parseJwt(token), Math.trunc(new Date().getTime() / 1000))
+    console.log("=======> parseJwt", parseJwt(token))
+    console.log("=======> development", config?.development)
     if (token && !socket?.connected) {
       console.log("=======> Conecta...")
       setSocket(api.socketIO({
@@ -45,7 +47,7 @@ const SocketProvider: FC<any> = ({ children }): JSX.Element => {
       }))
     }
     if (!token && socket) {
-      console.log(1445411155, "socket.disconnect")
+      console.log("=======> desconecta...")
       socket.disconnect();
     }
   }, [user])
