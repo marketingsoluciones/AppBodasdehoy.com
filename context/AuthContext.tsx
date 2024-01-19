@@ -130,8 +130,10 @@ const AuthProvider = ({ children }) => {
               development: config?.development
             });
             const customToken = resp?.customToken
+            console.info("Llamo con mi sessionCookie para traerme customToken");
+            console.info("Custom token", customToken)
             customToken && signInWithCustomToken(getAuth(), customToken);
-            console.info("Hago sesion con el custom token*****");
+            console.info("Hago sesion con el custom token****");
           }
           //setUser(user)
           if (!sessionCookie) {
