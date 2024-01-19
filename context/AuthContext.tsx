@@ -123,7 +123,15 @@ const AuthProvider = ({ children }) => {
           const asd = parseJwt(sessionCookie)
           console.info(8000042, "Verificando cookie", user?.uid, asd?.user_id);
           if (user?.uid !== asd?.user_id) {
-            sessionCookie && signInWithCustomToken(getAuth(), sessionCookie)
+            console.log("entro para loguear de nuevo")
+            const resp = await fetchApiBodas({
+              query: queries.authStatus,
+              variables: { sessionCookie },
+              development: config?.development
+            });
+            const customToken = resp?.customToken
+            customToken && signInWithCustomToken(getAuth(), customToken);
+            console.info("Hago sesion con el custom token*****");
           }
           //setUser(user)
           if (!sessionCookie) {
