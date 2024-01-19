@@ -41,7 +41,7 @@ const BlockResumen: FC<propsBlockResumen> = ({ InvitadoSentados }) => {
                                             })
                                             const inviReduce = invi.flat()
                                             return (
-                                                < p key={idx} className="bg-red text-white m-1 leading-4 text-[12px]" >
+                                                < p key={idx} className="text-white m-1 leading-4 text-[12px]" >
                                                     {inviReduce.length} de {event?.invitados_array?.length}
                                                     {/* <span className="text-xs md:text-sm m- font-light text-right"> */} Invitados sentados{/* </span> */}
                                                 </p>

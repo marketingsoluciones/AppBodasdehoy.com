@@ -8,6 +8,7 @@ import { fetchApiBodas, fetchApiEventos, queries } from "../utils/Fetching";
 import { boolean } from "yup";
 import { initializeApp } from "firebase/app";
 import { useRouter } from "next/router";
+import { parseJwt } from "../utils/Authentication";
 
 const initialContext = {
   user: undefined,
@@ -119,7 +120,21 @@ const AuthProvider = ({ children }) => {
 
         onAuthStateChanged(getAuth(), async (user) => {
           const sessionCookie = Cookies.get(config?.cookie);
-          console.info(8000042, "Verificando cookie", sessionCookie);
+          const asd = parseJwt(sessionCookie)
+          console.info(8000042, "Verificando cookie", user?.uid, asd?.user_id);
+          if (user?.uid !== asd?.user_id) {
+            console.log("entro para loguear de nuevo")
+            const resp = await fetchApiBodas({
+              query: queries.authStatus,
+              variables: { sessionCookie },
+              development: config?.development
+            });
+            const customToken = resp?.customToken
+            console.info("Llamo con mi sessionCookie para traerme customToken");
+            console.info("Custom token", customToken)
+            customToken && signInWithCustomToken(getAuth(), customToken);
+            console.info("Hago sesion con el custom token****");
+          }
           //setUser(user)
           if (!sessionCookie) {
             const cookieContent = JSON.parse(Cookies.get(config?.cookieGuest) ?? "{}")

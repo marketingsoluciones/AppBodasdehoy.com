@@ -229,7 +229,7 @@ const Profile = ({ user, state, set, ...rest }) => {
               className="object-cover w-11 h-11 rounded-full"
               alt={user?.displayName}
             />
-             <ArrowDownBodasIcon  className="w-5 h-5 rotate-90 transform cursor-pointer text-black" />
+            <ArrowDownBodasIcon className="w-5 h-5 rotate-90 transform cursor-pointer text-black" />
             <p className="font-display text-sm text-gray-500 capitalize">
               {/* {user?.displayName !== "guest" && user?.displayName?.toLowerCase()} */}
             </p>
