@@ -17,9 +17,9 @@ const instance = axios.create({ baseURL: process.env.NEXT_PUBLIC_BASE_URL })
 
 export const api = {
   ApiApp: async (params, token) => {
-    let idToken = null
+    let idToken = Cookies.get("idToken")
     if (getAuth().currentUser) {
-      idToken = Cookies.get("idToken")
+      //idToken = Cookies.get("idToken")
       if (!idToken) {
         idToken = await getAuth().currentUser?.getIdToken(true)
         const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
@@ -34,9 +34,9 @@ export const api = {
   },
 
   UploadFile: async (data, token) => {
-    let idToken = null
+    let idToken = Cookies.get("idToken")
     if (getAuth().currentUser) {
-      idToken = Cookies.get("idToken")
+      //idToken = Cookies.get("idToken")
       if (!idToken) {
         idToken = await getAuth().currentUser?.getIdToken(true)
         const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
@@ -81,9 +81,9 @@ export const api = {
   },
 
   ApiBodas: async ({ data, development, token }) => {
-    let idToken = null
+    let idToken = Cookies.get("idToken")
     if (getAuth().currentUser) {
-      idToken = Cookies.get("idToken")
+      //idToken = Cookies.get("idToken")
       if (!idToken) {
         idToken = await getAuth().currentUser?.getIdToken(true)
         const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
