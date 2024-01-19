@@ -53,7 +53,10 @@ export const api = {
   },
 
   socketIO: ({ token, development, father, origin }) => {
-    const socket = io(process.env.NEXT_PUBLIC_BASE_API_BODAS ?? "", {
+    const manager = new Manager(process.env.NEXT_PUBLIC_BASE_API_BODAS ?? "", {
+      closeOnBeforeunload: true
+    })
+    const socket = manager.socket("/", {
       auth: {
         token: `Bearer ${token}`,
         development,
