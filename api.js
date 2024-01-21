@@ -18,13 +18,16 @@ const instance = axios.create({ baseURL: process.env.NEXT_PUBLIC_BASE_URL })
 export const api = {
   ApiApp: async (params, token) => {
     let idToken = Cookies.get("idToken")
-    if (getAuth().currentUser) {
-      //idToken = Cookies.get("idToken")
-      if (!idToken) {
-        idToken = await getAuth().currentUser?.getIdToken(true)
-        const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
-        Cookies.set("idToken", idToken ?? "", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "", expires: dateExpire })
+    try {
+      if (getAuth().currentUser) {
+        if (!idToken) {
+          idToken = await getAuth().currentUser?.getIdToken(true)
+          const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
+          Cookies.set("idToken", idToken ?? "", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "", expires: dateExpire })
+        }
       }
+    } catch (error) {
+      //
     }
     return await instance.post("/graphql", params, {
       headers: {
