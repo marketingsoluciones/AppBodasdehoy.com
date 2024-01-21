@@ -122,13 +122,6 @@ const EventProvider = ({ children }) => {
     //console.log("---------------------------------------")
   }, [eventsGroup])
 
-  socket?.on("cms:message", async (msg) => {
-    console.log(msg)
-    if (msg?.context === "event") {
-      setEvent(eventsGroup.find(elem => elem._id === msg?.eventID))
-    }
-  })
-
   return (
     <EventContext.Provider value={{ event, setEvent, invitadoCero, setInvitadoCero, idxGroupEvent, setIdxGroupEvent, planSpaceActive, setPlanSpaceActive, filterGuests, setFilterGuests, allFilterGuests, setAllFilterGuests, editDefault, setEditDefault }}>
       {children}

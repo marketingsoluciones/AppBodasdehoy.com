@@ -33,7 +33,7 @@ export const InfoDevelopment = () => {
     <>
       {isDevelopment &&
         <div className="absolute z-[1000]">
-          <ul className='text-sm font-display font-semibold ml-4 text-gray-800'>
+          <ul className='bg-blue-400 opacity-70 p-1 text-sm font-display font-semibold ml-4 text-black'>
             <li>url: {window?.location?.hostname}</li>
             <li>domain: {config?.domain}</li>
             <li>event?.nombre: {event?.nombre}</li>
@@ -43,36 +43,52 @@ export const InfoDevelopment = () => {
             <li>size: {`${size.x}x${size.y}`}</li>
             {/* <li>sizeAvalible: {screen?.availHeight}</li> */}
           </ul>
-          <button
-            onClick={() => {
-              console.log(8000, "getAuth", getAuth())
-              onAuthStateChanged(getAuth(), async (user) => {
-                console.log(user?.accessToken
-                )
-              })
-            }}
-            type="button" className="rounded-lg bg-yellow-300 px-5 opacity-30 hover:opacity-75">algo1</button>
-          <button
-            onClick={async () => {
-              const resp = await getAuth().currentUser.getIdToken(true)
-              console.log(8001, "getAuth", resp)
-              onAuthStateChanged(getAuth(), async (user) => {
-                console.log(user?.accessToken === resp)
-              })
-            }}
-            type="button" className="rounded-lg bg-yellow-300 px-5 opacity-30 hover:opacity-75">algo2</button>
-          <button
-            onClick={async () => {
-              socket?.emit(`cms:message`, {
-                chatID: "data?._id",
-                receiver: "data?.addedes",
-                data: {
-                  type: "text",
-                  message: "value",
-                },
-              });
-            }}
-            type="button" className="rounded-lg bg-yellow-300 px-5 opacity-30 hover:opacity-75">socketIO</button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                console.log(8000, "getAuth", getAuth())
+                onAuthStateChanged(getAuth(), async (user) => {
+                  console.log(user?.accessToken
+                  )
+                })
+              }}
+              type="button" className="rounded-lg bg-yellow-300 px-5 opacity-80 hover:opacity-100 hover:font-bold">algo1</button>
+            <button
+              onClick={async () => {
+                const resp = await getAuth().currentUser.getIdToken(true)
+                console.log(8001, "getAuth", resp)
+                onAuthStateChanged(getAuth(), async (user) => {
+                  console.log(user?.accessToken === resp)
+                })
+              }}
+              type="button" className="rounded-lg bg-yellow-300 px-5 opacity-80 hover:opacity-100 hover:font-bold">algo2</button>
+            <button
+              onClick={async () => {
+                socket?.emit(`app:message`, {
+                  emit: user?.uid,
+                  receiver: null,
+                  type: "joinRoom",
+                  payload: {
+                    action: "add",
+                    value: event._id
+                  }
+                });
+              }}
+              type="button" className="rounded-lg bg-yellow-300 px-5 opacity-80 hover:opacity-100 hover:font-bold">socketIO</button>
+            <button
+              onClick={async () => {
+                socket?.emit(`app:message`, {
+                  emit: user?.uid,
+                  receiver: null,
+                  type: "joinRoom",
+                  payload: {
+                    action: "del",
+                    value: event._id
+                  }
+                })
+              }}
+              type="button" className="rounded-lg bg-yellow-300 px-5 opacity-80 hover:opacity-100 hover:font-bold">socketIO</button>
+          </div>
         </div>
       }
     </>

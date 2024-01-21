@@ -95,18 +95,6 @@ const Navigation: any = (
       <header className="f-top relative w-full bg-white">
         {/* primer menu superior con logo, redirecion al directiorio y opciones de perfil para la vista desktop  */}
         <div className="max-w-screen-lg h-16 px-5 lg:px-0 w-full flex justify-between items-center mx-auto inset-x-0 ">
-          <button
-            onClick={async () => {
-              socket?.emit(`cms:message`, {
-                chatID: "data?._id",
-                receiver: "data?.addedes",
-                data: {
-                  type: "text",
-                  message: "value",
-                },
-              });
-            }}
-            type="button" className="rounded-lg bg-yellow-300 px-5 opacity-30 hover:opacity-75">socketIO</button>
           <ClickAwayListener onClickAway={() => {
             setTimeout(() => {
               setShowSidebar(false)

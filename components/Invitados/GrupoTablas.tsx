@@ -46,8 +46,8 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
     const Data = event.invitados_array.reduce((acc, item: guestsExt) => {
       const guestRecepcion = allFilterGuests[0].sentados.find(elem => elem._id === item._id)
       const guestCeremonia = allFilterGuests[1].sentados.find(elem => elem._id === item._id)
-      const tableRecepcion = tablesRecepcion.find(elem => elem._id === guestRecepcion?.tableID)
-      const tableCeremonia = tablesCeremonia.find(elem => elem._id === guestCeremonia?.tableID)
+      const tableRecepcion = tablesRecepcion?.find(elem => elem._id === guestRecepcion?.tableID)
+      const tableCeremonia = tablesCeremonia?.find(elem => elem._id === guestCeremonia?.tableID)
       item.chairs = [
         { planSpaceName: "recepcion", chair: guestRecepcion?.chair, table: tableRecepcion },
         { planSpaceName: "ceremmonia", chair: guestCeremonia?.chair, table: tableCeremonia },
