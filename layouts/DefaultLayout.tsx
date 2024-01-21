@@ -9,6 +9,7 @@ import {
   ChatProvider,
   SocketProvider
 } from "../context";
+import { SocketControlator } from "../components/DefaultLayout/SocketControlator";
 import Container from "../components/DefaultLayout/Container";
 import { ToastProvider } from "../context/ToastContext";
 
@@ -28,6 +29,7 @@ const DefaultLayout = ({ children }) => {
               <ChatProvider>
                 <LoadingProvider>
                   <ToastProvider>
+                    <SocketControlator />
                     <Container>{children}</Container>
                   </ToastProvider>
                 </LoadingProvider>
