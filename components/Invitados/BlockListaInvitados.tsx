@@ -124,7 +124,7 @@ const TabladeInvitados = ({ evento, idInvitado }) => {
       {
         Header: () => {
           return (
-            <h3 className="font-display truncate md:text-xl uppercase text-gray-500 text-center capitalize font-semibold">
+            <h3 className="font-display truncate md:text-xl  text-gray-500 text-center capitalize font-semibold">
               Mis Invitados1
             </h3>
           );

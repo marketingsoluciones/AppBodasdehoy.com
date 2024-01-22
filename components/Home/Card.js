@@ -1,4 +1,4 @@
-import { memo, useEffect } from "react";
+import { memo, useEffect, useState } from "react";
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../context/";
 import useHover from "../../hooks/useHover";
 import { BorrarIcon, IconFolderOpen } from "../icons";
@@ -7,6 +7,9 @@ import { setCookie } from "../../utils/Cookies";
 import { fetchApiBodas, fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from '../../hooks/useToast'
 import { Lista } from "../../pages";
+import { PiShareFatFill } from "react-icons/pi";
+import { AddUserToEvent, UsuariosCompartidos } from "../Utils/Compartir"
+import { Modal } from "../Utils/Modal";
 
 export const defaultImagenes = {
   boda: "/cards/boda.webp",
@@ -19,7 +22,7 @@ export const defaultImagenes = {
   otro: "/cards/pexels-pixabay-50675.jpg"
 };
 
-const Card = ({ data, grupoStatus, idx }) => {
+const Card = ({ data, grupoStatus, idx, setOpenModal, openModal }) => {
   const [hoverRef, isHovered] = useHover();
   const [refArchivar, isArchivar] = useHover();
   const [refBorrar, isBorrar] = useHover();
@@ -27,6 +30,8 @@ const Card = ({ data, grupoStatus, idx }) => {
   const { eventsGroup, setEventsGroup } = EventsGroupContextProvider();
   const { event, setEvent, idxGroupEvent, setIdxGroupEvent } = EventContextProvider();
   const router = useRouter();
+  /* const [openModal, setOpenModal] = useState(false) */
+
 
   const handleClick = () => {
     try {
@@ -51,6 +56,7 @@ const Card = ({ data, grupoStatus, idx }) => {
   };
 
   const toast = useToast()
+
   const handleArchivarEvent = () => {
     try {
       const value = grupoStatus === "pendiente" ? "archivado" : "pendiente"
@@ -94,6 +100,7 @@ const Card = ({ data, grupoStatus, idx }) => {
       console.log(error)
     }
   }
+
   const handleRemoveEvent = (grupoStatus) => {
     try {
       const result = fetchApiEventos({
@@ -116,62 +123,52 @@ const Card = ({ data, grupoStatus, idx }) => {
       console.log(error)
     }
   }
-  const className = "bg-secondary absolute transition rounded-r-xl px-3 py-1 font-display text-xs text-gray-700* text-white right-0 top-1/2 *-translate-y-1/2 transform translate-x-[-6%] z-50"
+
   return (
-    <div ref={hoverRef} className={`w-max h-full relative grid place-items-center bg-white transition ${isHovered ? "transform scale-105 duration-700" : ""}`}>
-      {isArchivar ? (
-        <span className={`${className} -translate-y-[32px] `}>{grupoStatus === "pendiente" ? "Archivar" : "Desarchivar"}
-        </span>
-      ) : null}
-      {isBorrar ? (
-        <span className={`${className} -translate-y-[-12px] `}>
-          Borrar
-        </span>
-      ) : null}
-      <div className="absolute right-[-40px] w-10 h-full" />
-      <div className={`${isHovered ?
-        grupoStatus !== "realizado" ? "transform translate-x-1/2 duration-400" : ""
-        : ""
-        } transition h-32 w-16 bg-secondary absolute z-[4] right-0  rounded-xl flex flex-col items-end justify-center px-2 gap-5`}>
-        <div >
-          <span ref={refArchivar} onClick={handleArchivarEvent} className="w-max h-max relative">
-            <IconFolderOpen className="w-5 h-6 cursor-pointer text-white hover:text-gray-500" />
-
-          </span>
-        </div>
-        <div >
-          <span ref={refBorrar} onClick={handleRemoveEvent} className="w-max h-max relative"  >
-            <BorrarIcon className="cursor-pointer text-white hover:text-gray-500" />
-
-          </span>
-        </div>
-      </div>
-
-      {data[idx]?._id == user?.eventSelected ? <div className="w-[304px] h-40 bg-green absolute rounded-xl" /> : <></>}
-      <div onClick={handleClick} className={`w-72 h-36 rounded-xl cardEvento z-[8] cursor-pointer shadow-lg relative overflow-hidden `}>
-        <img
-          src={defaultImagenes[data[idx]?.tipo]}
-          className="object-cover w-full h-full absolute top-0 left-0 object-top "
-        />
-        <div className="relative w-full h-full z-10 p-4 pb-2 flex flex-col justify-between">
-          <span className="text-xs font-display text-white capitalize">
-            {data[idx]?.tipo == "otro" ? "mi evento especial" : data[idx]?.tipo}
-          </span>
-          <div className="flex flex-col ">
-            <span className="capitalize text-lg font-display text-white">
-              {data[idx]?.nombre}
-            </span>
-            <span className="mt-[-4px] uppercase text-xs font-display text-white">
-              {`${new Date(parseInt(data[idx]?.fecha)).toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}`}
-            </span>
-            <span className="mt-[-4px] uppercase text-xs font-display text-white">
-              {data[idx]?.estatus}
-            </span>
+    <>
+      <div ref={hoverRef} className={`w-max h-full relative grid place-items-center bg-white transition ${isHovered ? "transform scale-105 duration-700" : ""}`}>
+        <div className={` h-32 w-10  absolute z-[10] right-0  flex flex-col items-center justify-between px-2 `}>
+          <div onClick={() => setOpenModal(!openModal)} className="w-max h-max relative" >
+            <UsuariosCompartidos className="w-5 h-6 cursor-pointer text-white hover:text-gray-300" />
+          </div>
+          <div className="space-y-2">
+            <div onClick={() => setOpenModal(!openModal)} className="w-max h-max relative" >
+              <PiShareFatFill className="w-5 h-6 cursor-pointer text-white hover:text-gray-300 -mb-1.5" />
+            </div>
+            <div onClick={handleArchivarEvent} className="w-max h-max relative" >
+              <IconFolderOpen className="w-5 h-6 cursor-pointer text-white hover:text-gray-300" />
+            </div>
+            <div onClick={handleRemoveEvent} className="w-max h-max relative"   >
+              <BorrarIcon className="w-5 h-6 cursor-pointer text-white hover:text-gray-300" />
+            </div>
           </div>
         </div>
-      </div>
-      <style jsx>
-        {`
+
+        {data[idx]?._id == user?.eventSelected ? <div className="w-[304px] h-40 bg-green absolute rounded-xl" /> : <></>}
+        <div onClick={handleClick} className={`w-72 h-36 rounded-xl cardEvento z-[8] cursor-pointer shadow-lg relative overflow-hidden `}>
+          <img
+            src={defaultImagenes[data[idx]?.tipo]}
+            className="object-cover w-full h-full absolute top-0 left-0 object-top "
+          />
+          <div className="relative w-full h-full z-10 p-4 pb-2 flex flex-col justify-between">
+            <span className="text-xs font-display text-white capitalize">
+              {data[idx]?.tipo == "otro" ? "mi evento especial" : data[idx]?.tipo}
+            </span>
+            <div className="flex flex-col ">
+              <span className="capitalize text-lg font-display text-white">
+                {data[idx]?.nombre}
+              </span>
+              <span className="mt-[-4px] uppercase text-xs font-display text-white">
+                {`${new Date(parseInt(data[idx]?.fecha)).toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}`}
+              </span>
+              <span className="mt-[-4px] uppercase text-xs font-display text-white">
+                {data[idx]?.estatus}
+              </span>
+            </div>
+          </div>
+        </div>
+        <style jsx>
+          {`
           .cardEvento::before {
             content: "";
             width: 100%;
@@ -188,8 +185,16 @@ const Card = ({ data, grupoStatus, idx }) => {
             z-index: 1;
           }
         `}
-      </style>
-    </div>
+        </style>
+      </div>
+      {/* {
+        openModal && (
+          <Modal state={openModal} set={setOpenModal} classe={"w-[28%] h-[86%]"} >
+              <AddUserToEvent/>
+          </Modal>
+        )
+      } */}
+    </>
   );
 };
 

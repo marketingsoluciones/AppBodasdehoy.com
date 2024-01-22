@@ -375,6 +375,7 @@ export const queries = {
     queryenEvento(variable: "usuario_id", valor: $userID){
       _id
       grupos_array
+      compartido_array
       estatus
       color
       temporada
