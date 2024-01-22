@@ -196,7 +196,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
         //     icon: <MdLogout className="w-6 h-6" />,
         //     onClick: () => {
         //         Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
-        //         Cookies.remove("idToken", { domain: config?.domain ?? "" });
+        //         Cookies.remove("idTokenV0.1.0", { domain: config?.domain ?? "" });
         //         signOut(getAuth());
         //         router.push(config?.pathDirectory ? `${config?.pathDirectory}/signout?end=true` : "/")
         //         setTimeout(() => {

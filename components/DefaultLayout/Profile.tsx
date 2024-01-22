@@ -141,7 +141,7 @@ const Profile = ({ user, state, set, ...rest }) => {
       icon: <MdLogout />,
       onClick: async () => {
         Cookies.remove("sessionBodas", { domain: config?.domain ?? "" });
-        Cookies.remove("idToken", { domain: config?.domain ?? "" });
+        Cookies.remove("idTokenV0.1.0", { domain: config?.domain ?? "" });
         signOut(getAuth());
         router.push(`${config.pathSignout}?end=true` ?? "")
       },

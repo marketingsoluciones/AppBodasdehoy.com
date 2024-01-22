@@ -126,7 +126,7 @@ const ProfileMenu = () => {
           {user && <li className="w-full pl-5 py-1 text-gray-500 transition  hover:bg-primary hover:text-white font-display text-sm">
             <button onClick={async () => {
               Cookies.remove("sessionBodas", { domain: config?.domain ?? "" });
-              Cookies.remove("idToken", { domain: config?.domain ?? "" });
+              Cookies.remove("idTokenV0.1.0", { domain: config?.domain ?? "" });
               signOut(getAuth());
               router.push(`${config.pathSignout}?end=true` ?? "")
             }}>Cerrar Sesión</button>
