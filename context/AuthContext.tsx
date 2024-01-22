@@ -190,7 +190,7 @@ const AuthProvider = ({ children }) => {
         if (user && sessionCookie) {
           console.log("///////////----->", user.getIdToken())
           const dateExpire = new Date(new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000))
-          Cookies.set("idToken", await user.getIdToken(), { domain: `.${resp?.domain}.com`, expires: dateExpire })
+          Cookies.set("idTokenV0.1.0", await user.getIdToken(), { domain: `.${resp?.domain}.com`, expires: dateExpire })
         }
       })
     }

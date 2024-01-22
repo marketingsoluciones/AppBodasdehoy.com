@@ -17,13 +17,13 @@ const instance = axios.create({ baseURL: process.env.NEXT_PUBLIC_BASE_URL })
 
 export const api = {
   ApiApp: async (params, token) => {
-    let idToken = Cookies.get("idToken")
+    let idToken = Cookies.get("idTokenV0.1.0")
     try {
       if (getAuth().currentUser) {
         if (!idToken) {
           idToken = await getAuth().currentUser?.getIdToken(true)
           const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
-          Cookies.set("idToken", idToken ?? "", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "", expires: dateExpire })
+          Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "", expires: dateExpire })
         }
       }
     } catch (error) {
@@ -37,13 +37,13 @@ export const api = {
   },
 
   UploadFile: async (data, token) => {
-    let idToken = Cookies.get("idToken")
+    let idToken = Cookies.get("idTokenV0.1.0")
     if (getAuth().currentUser) {
-      //idToken = Cookies.get("idToken")
+      //idToken = Cookies.get("idTokenV0.1.0")
       if (!idToken) {
         idToken = await getAuth().currentUser?.getIdToken(true)
         const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
-        Cookies.set("idToken", idToken ?? "", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "", expires: dateExpire })
+        Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "", expires: dateExpire })
       }
     }
     return await instance.post("/graphql", data, {
@@ -80,7 +80,7 @@ export const api = {
   },
 
   Suscripcion: async () => {
-    const token = Cookies.get("idToken")
+    const token = Cookies.get("idTokenV0.1.0")
     const GRAPHQL_ENDPOINT = WebSocket;
     const client = new SubscriptionClient(GRAPHQL_ENDPOINT, {
       reconnect: true,
@@ -96,13 +96,13 @@ export const api = {
   },
 
   ApiBodas: async ({ data, development, token }) => {
-    let idToken = Cookies.get("idToken")
+    let idToken = Cookies.get("idTokenV0.1.0")
     if (getAuth().currentUser) {
-      //idToken = Cookies.get("idToken")
+      //idToken = Cookies.get("idTokenV0.1.0")
       if (!idToken) {
         idToken = await getAuth().currentUser?.getIdToken(true)
         const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
-        Cookies.set("idToken", idToken ?? "", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "", expires: dateExpire })
+        Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "", expires: dateExpire })
       }
     }
     return axios.post('https://api.bodasdehoy.com/graphql', data, {
