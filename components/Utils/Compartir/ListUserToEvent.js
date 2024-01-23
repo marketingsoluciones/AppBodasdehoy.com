@@ -29,7 +29,7 @@ const User = () => {
     const [openModal, setOpenModal] = useState(false)
     return (
         <div className="flex justify-center items-center py-5 px-2 space-x-4 relative">
-            <div>
+            <div className="hidden md:block">
                 <img
                     src={"/placeholder/user.png"}
                     className="object-cover w-11 h-11 rounded-full"
@@ -49,6 +49,7 @@ const User = () => {
                     <IoIosArrowDown />
                 </div>
             </div>
+
             {
                 openModal && (
 

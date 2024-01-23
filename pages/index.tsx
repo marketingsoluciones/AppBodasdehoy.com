@@ -77,7 +77,7 @@ const Home: NextPage = () => {
 
         {
           openModal && (
-            <Modal state={openModal} set={setOpenModal} classe={"w-[35%] h-[90%]"} >
+            <Modal state={openModal} set={setOpenModal} classe={"md:w-[35%] md:h-[90%]"} >
               <AddUserToEvent openModal={openModal} setOpenModal={setOpenModal} />
             </Modal>
           )

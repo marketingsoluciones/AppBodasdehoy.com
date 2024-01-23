@@ -7,7 +7,7 @@ import { setCookie } from "../../utils/Cookies";
 import { fetchApiBodas, fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from '../../hooks/useToast'
 import { Lista } from "../../pages";
-import { PiShareFatFill } from "react-icons/pi";
+import { IoShareSocial } from "react-icons/io5";
 import { AddUserToEvent, UsuariosCompartidos } from "../Utils/Compartir"
 import { Modal } from "../Utils/Modal";
 
@@ -133,7 +133,7 @@ const Card = ({ data, grupoStatus, idx, setOpenModal, openModal }) => {
           </div>
           <div className="space-y-2">
             <div onClick={() => setOpenModal(!openModal)} className="w-max h-max relative" >
-              <PiShareFatFill className="w-5 h-6 cursor-pointer text-white hover:text-gray-300 -mb-1.5" />
+              <IoShareSocial className="w-5 h-6 cursor-pointer text-white hover:text-gray-300 -mb-1.5" />
             </div>
             <div onClick={handleArchivarEvent} className="w-max h-max relative" >
               <IconFolderOpen className="w-5 h-6 cursor-pointer text-white hover:text-gray-300" />
