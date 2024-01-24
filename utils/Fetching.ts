@@ -153,6 +153,11 @@ export const queries = {
       }`,
   getUser: `query ($uid: ID) {
         getUser(uid:$uid){
+          photoURL
+          onLine{
+            status
+          }
+          displayName
           phoneNumber
           role
           typeRole

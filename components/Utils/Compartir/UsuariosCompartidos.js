@@ -1,19 +1,60 @@
-export const UsuariosCompartidos = () => {
-    const Users = [
-    
-    ]
+import { useEffect, useState } from "react";
+import { AuthContextProvider } from "../../../context";
+import { fetchApiBodas, queries } from "../../../utils/Fetching";
 
-    const SliceUsers = Users.slice(0, 4)
+export const UsuariosCompartidos = ({ evento }) => {
+    const [sharedUser, setSharedUser] = useState([])
+    const { config, user } = AuthContextProvider()
+    const [data, setData] = useState([])
+
+    useEffect(() => {
+        let asd = []
+        asd = evento?.compartido_array
+        asd.push(evento?.usuario_id)
+        const f1 = asd?.findIndex((elm) => elm === user?.uid)
+        asd?.splice(f1, 1)
+        console.log("asdasd", asd)
+        setData([...asd])
+    }, [evento])
+
+    useEffect(() => {
+        console.log("dataefect", data)
+    }, [evento])
+
+
+    useEffect(() => {
+        console.log("sharedUser",sharedUser)
+        data.map((item) => {
+            console.log("map del data",item)
+            try {
+                fetchApiBodas({
+                    query: queries?.getUser,
+                    variables: { uid: item },
+                    development: config?.development
+                }).then((result) => {
+                    setSharedUser((old) => {
+                        old?.push(result)
+                        return [...old]
+                    })
+                })
+
+            } catch (error) {
+                console.log(error)
+            }
+        })
+    }, [data])
+
+    const SliceUsers = sharedUser?.slice(0, 4)
 
     return (
         <>
             <div style={{ left: 11 }} className="flex relative ">
-                {SliceUsers.map((item, idx) => {
+                {SliceUsers?.map((item, idx) => {
                     return (
                         <div key={idx} style={{ right: 20 * idx }} className="absolute z-20">
                             <div className=" bg-white rounded-full w-8 h-8 flex items-center justify-center  border relative">
-                                {item.nombre}
-                                <div className={`h-2.5 w-2.5 ${item.state != false ? "bg-green" : "bg-red"} absolute rounded-full right-1 -bottom-1`} />
+                                <img src={item?.photoURL} className="rounded-full" />
+                                <div className={`h-2.5 w-2.5 ${item?.onLine?.status != false ? "bg-green" : "bg-red"} absolute rounded-full right-1 -bottom-1`} />
                             </div>
                         </div>
                     )
@@ -21,8 +62,8 @@ export const UsuariosCompartidos = () => {
 
             </div>
             {
-                Users.length > 4 && <div style={{ right: 70 }} className=" bg-white rounded-full w-8 h-8 flex items-center justify-center *text-center  border absolute z-30 text-[13px] truncate font-semibold ">
-                    +{Users.length}
+                sharedUser?.length > 4 && <div style={{ right: 70 }} className=" bg-white rounded-full w-8 h-8 flex items-center justify-center *text-center  border absolute z-30 text-[13px] truncate font-semibold ">
+                    +{sharedUser?.length}
                 </div>
             }
         </>
