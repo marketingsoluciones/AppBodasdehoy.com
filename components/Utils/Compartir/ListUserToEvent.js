@@ -7,7 +7,6 @@ export const ListUserToEvent = ({ evento }) => {
     const [sharedUser, setSharedUser] = useState([])
     const { config, user } = AuthContextProvider()
     const [data, setData] = useState([])
-    console.log( sharedUser)
 
     useEffect(() => {
         let asd = []
@@ -31,12 +30,12 @@ export const ListUserToEvent = ({ evento }) => {
                         return [...old]
                     })
                 })
-
             } catch (error) {
                 console.log(error)
             }
         })
     }, [data])
+
     return (
         <>
             <div className="flex flex-col space-y-1 mb-5 md:mb-0 ">
@@ -44,21 +43,19 @@ export const ListUserToEvent = ({ evento }) => {
                 <div className="border rounded-md section overflow-y-auto">
                     {sharedUser.map((item, idx) => {
                         return (
-                            <div idx={idx}>
-                                
-                            <User data={item}  />
-                                </div>
+                            <div key={idx}>
+                                <User data={item} />
+                            </div>
                         )
                     })}
-
                 </div>
             </div>
             <style jsx>
                 {`
-              .section {
-                height: calc(100vh - 400px);
-              }
-            `}
+                    .section {
+                        height: calc(100vh - 400px);
+                            }
+                `}
             </style>
         </>
     )
@@ -66,9 +63,8 @@ export const ListUserToEvent = ({ evento }) => {
 
 const User = ({ data }) => {
     const [openModal, setOpenModal] = useState(false)
-    
     return (
-        <div  className="flex justify-center items-center py-5 px-2 space-x-4 relative">
+        <div className="flex justify-center items-center py-5 px-2 space-x-4 relative">
             <div className="hidden md:block">
                 <img
                     src={data?.photoURL}
@@ -80,7 +76,6 @@ const User = ({ data }) => {
                 <span>{data?.displayName}</span>
                 <span className="truncate">{data?.email}</span>
             </div>
-
             <div onClick={() => setOpenModal(!openModal)} className="border text-[13px] p-1 flex items-center space-x-1 cursor-pointer rounded-md ">
                 <div>
                     Permisos
@@ -89,14 +84,12 @@ const User = ({ data }) => {
                     <IoIosArrowDown />
                 </div>
             </div>
-
             {
                 openModal && (
 
                     <PermissionList set={setOpenModal} state={openModal} />
                 )
             }
-
         </div>
     )
 }
