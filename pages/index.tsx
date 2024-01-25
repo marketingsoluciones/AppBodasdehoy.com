@@ -20,7 +20,7 @@ import { AddUserToEvent } from "../components/Utils/Compartir";
 const Home: NextPage = () => {
   const [isMounted, setIsMounted] = useState<boolean>(false);
   const [openModal, setOpenModal] = useState(false)
-  const [idxEvent, setIdxEvent] = useState("")
+  const [idEvent, setIdEvent] = useState("")
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const { setEventsGroup } = EventsGroupContextProvider()
   const { event } = EventContextProvider()
@@ -64,7 +64,7 @@ const Home: NextPage = () => {
         <VistaSinCookie />
       )
     }
-    
+
     return (
       <>
         {shouldRenderChild && (
@@ -79,14 +79,14 @@ const Home: NextPage = () => {
         {
           openModal && (
             <Modal state={openModal} set={setOpenModal} classe={"md:w-[35%] md:h-[90%]"} >
-              <AddUserToEvent openModal={openModal} setOpenModal={setOpenModal} />
+              <AddUserToEvent openModal={openModal} setOpenModal={setOpenModal} idEvent={idEvent} />
             </Modal>
           )
         }
 
         <section className="section relative w-full">
           <Banner state={isMounted} set={setIsMounted} />
-          <GridCards state={isMounted} set={setIsMounted} showEditEvent={showEditEvent} setShowEditEvent={setShowEditEvent} openModal={openModal} setOpenModal={setOpenModal} />
+          <GridCards state={isMounted} set={setIsMounted} showEditEvent={showEditEvent} setShowEditEvent={setShowEditEvent} openModal={openModal} setOpenModal={setOpenModal} setIdEvent={setIdEvent} />
         </section>
         <style jsx>
           {`
@@ -170,7 +170,8 @@ interface propsGridCards {
   showEditEvent: boolean
   setShowEditEvent: Dispatch<SetStateAction<boolean>>
   setOpenModal: any
-  openModal: boolean 
+  openModal: boolean
+  setIdEvent: any
 
 }
 
@@ -186,7 +187,7 @@ export const Lista = [
   { nombre: "Realizados", value: "realizado", color: "secondary" },
 ];
 
-const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent, showEditEvent, setShowEditEvent, setOpenModal, openModal }) => {
+const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent, showEditEvent, setShowEditEvent, setOpenModal, openModal,setIdEvent }) => {
   const { eventsGroup } = EventsGroupContextProvider();
   const { idxGroupEvent, setIdxGroupEvent } = EventContextProvider()
   const [isActiveStateSwiper, setIsActiveStateSwiper] = useState<number>(idxGroupEvent?.isActiveStateSwiper)
@@ -284,7 +285,7 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent, showEditEvent,
                           className="flex items-center justify-center my-3"
                           onClick={() => { setIdxGroupEvent({ idx, isActiveStateSwiper, event_id: evento._id }) }}
                         >
-                          <Card data={group.data} grupoStatus={group.status} idx={idx} openModal={openModal} setOpenModal={setOpenModal}  />
+                          <Card data={group.data} grupoStatus={group.status} idx={idx} openModal={openModal} setOpenModal={setOpenModal} setIdEvent={setIdEvent} />
                         </SwiperSlide>
                       ))}
                       {group.status !== "pendiente" ? group.data?.length === 0 &&

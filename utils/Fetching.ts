@@ -153,6 +153,7 @@ export const queries = {
       }`,
   getUser: `query ($uid: ID) {
         getUser(uid:$uid){
+          email
           photoURL
           onLine{
             status

@@ -3,7 +3,8 @@ import { FormAddUserToEvent } from "../../Forms/FormAddUserToEvent"
 import { CopiarLink } from "./CopiarLink"
 import { ListUserToEvent } from "./ListUserToEvent"
 
-export const AddUserToEvent = ({ openModal, setOpenModal }) => {
+export const AddUserToEvent = ({ openModal, setOpenModal, idEvent }) => {
+    console.log(idEvent)
     return (
         <ClickAwayListener onClickAway={() => openModal && setOpenModal(false)} >
 
@@ -14,7 +15,7 @@ export const AddUserToEvent = ({ openModal, setOpenModal }) => {
                 </div>
                 <div className="py-5 space-y-2 md:space-y-5 flex flex-col  ">
                     <FormAddUserToEvent />
-                    <ListUserToEvent />
+                    <ListUserToEvent evento={idEvent} />
                     <div className="flex md:flex-row flex-col space-y-1 justify-between items-center">
                         <CopiarLink />
                         <button onClick={() => setOpenModal(!openModal)} className="bg-primary text-white rounded-lg px-5 py-2 h-10">Guardar</button>
