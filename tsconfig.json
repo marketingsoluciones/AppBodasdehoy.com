@@ -25,7 +25,7 @@
     "**/*.tsx",
     "pages/iteratable.js",
     "pages/login.js"
-  ],
+, "components/Forms/FormAddUserToEvent.js"  ],
   "exclude": [
     "node_modules"
   ]

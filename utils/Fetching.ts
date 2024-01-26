@@ -382,6 +382,15 @@ export const queries = {
       _id
       grupos_array
       compartido_array
+      permisos_array{
+        uid
+        resumen
+        invitados
+        mesas
+        listaRegalos
+        presupuesto
+        invitaciones
+      }
       estatus
       color
       temporada

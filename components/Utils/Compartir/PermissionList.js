@@ -1,79 +1,65 @@
 import { MdOutlineEdit } from "react-icons/md";
 import { IoEyeOutline } from "react-icons/io5";
 import { MdOutlineCancel } from "react-icons/md";
-import ClickAwayListener from "react-click-away-listener";
+import { useEffect, useState } from "react";
 
-export const PermissionList = ({ state, set }) => {
+export const PermissionList = ({ setPermissionArry }) => {
+    const [permission, setPermission] = useState(null)
+
+    useEffect(() => {
+        if (permission !== null) {
+            setPermissionArry((old) => {
+                old?.push(permission)
+                return [...old]
+            })
+        }
+    }, [permission])
+
     const DataModulos = [
         {
             modulo: "Resumen",
-            editar: false,
-            ver:true,
-            nada:false
-
-
         },
         {
             modulo: "Invitados",
-            editar: true,
-            ver:false,
-            nada:false
-
         },
         {
             modulo: "Mesas",
-            editar: true,
-            ver:true,
-            nada:false
-
         },
         {
             modulo: "Regalos",
-            editar: false,
-            ver:true,
-            nada:false
-
         },
         {
             modulo: "Presupuesto",
-            editar: false,
-            ver:false,
-            nada:true
-
         },
         {
             modulo: "Invitaciones",
-            editar: false,
-            ver:true,
-            nada:false
-
         },
     ]
-    return (
-        <ClickAwayListener onClickAway={() => state && set(false)}>
-            <div className={`${state ? " absolute -bottom-36 right-10 z-50 " : "hidden"}  bg-gray-100  rounded-lg p-4 text-[15px] w-52 space-y-1`}>
-                {DataModulos.map((item, idx) => {
-                    return (
-                        <div key={idx} className="flex  items-center space-x-2 justify-between">
-                            <div className="cursor-default">
-                                {item.modulo}
-                            </div>
-                            <div className="flex items-center space-x-2">
-                            <div className="cursor-pointer">
-                                     <MdOutlineCancel  className={`${item.nada?"text-primary":""}`} />
-                                </div>
-                                <div className="cursor-pointer">
-                                     <IoEyeOutline className={`${item.ver?"text-primary":""}`} />
-                                </div>
-                                <div className={`${item.estado?"text-primary":""}cursor-pointer`}>
-                                    <MdOutlineEdit className={`${item.editar?"text-primary":""}`} /> 
 
-                                </div>
+    return (
+        <div className={`  bg-gray-100  rounded-lg p-4 text-[15px] w-full border space-y-[5.3px]`}>
+            <p className="text-gray-500 ">Lista de Permisos</p>
+            {DataModulos.map((item, idx) => {
+                return (
+                    <div key={idx} className="flex  items-center space-x-2 justify-between">
+                        <div className="cursor-default">
+                            {item.modulo}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <div className="cursor-pointer" onClick={() => setPermission({ modulo: item.modulo, estado: "nada" })}>
+                                <MdOutlineCancel className="hover:text-primary" />
+                            </div>
+                            <div className="cursor-pointer " onClick={() => setPermission({ modulo: item.modulo, estado: "ver" })}>
+                                <IoEyeOutline className="hover:text-primary" />
+                            </div>
+                            <div className="cursor-pointer" onClick={() => setPermission({ modulo: item.modulo, estado: "editar" })}>
+                                <MdOutlineEdit className="hover:text-primary" />
+
                             </div>
                         </div>
-                    )
-                })}
-            </div>
-        </ClickAwayListener>
+                    </div>
+                )
+            })}
+        </div>
     )
 }

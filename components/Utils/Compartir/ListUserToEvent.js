@@ -1,5 +1,5 @@
 import { IoIosArrowDown } from "react-icons/io";
-import { PermissionList } from "../Compartir";
+import { ModalPermissionList, PermissionList } from "../Compartir";
 import { useEffect, useState } from "react";
 import { AuthContextProvider } from "../../../context";
 import { fetchApiBodas, queries } from "../../../utils/Fetching";
@@ -39,7 +39,7 @@ export const ListUserToEvent = ({ evento }) => {
     return (
         <>
             <div className="flex flex-col space-y-1 mb-5 md:mb-0 ">
-                <p className="text-gray-500">Permisos por asignar</p>
+                <p className="text-gray-500">Personas con acceso</p>
                 <div className="border rounded-md section overflow-y-auto">
                     {sharedUser.map((item, idx) => {
                         return (
@@ -61,7 +61,7 @@ export const ListUserToEvent = ({ evento }) => {
     )
 }
 
-const User = ({ data }) => {
+ const User = ({ data }) => {
     const [openModal, setOpenModal] = useState(false)
     return (
         <div className="flex justify-center items-center py-5 px-2 space-x-4 relative">
@@ -87,7 +87,7 @@ const User = ({ data }) => {
             {
                 openModal && (
 
-                    <PermissionList set={setOpenModal} state={openModal} />
+                    <ModalPermissionList set={setOpenModal} state={openModal} />
                 )
             }
         </div>

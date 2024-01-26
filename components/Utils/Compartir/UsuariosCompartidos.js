@@ -6,6 +6,7 @@ export const UsuariosCompartidos = ({ evento }) => {
     const [sharedUser, setSharedUser] = useState([])
     const { config, user } = AuthContextProvider()
     const [data, setData] = useState([])
+    console.log(evento)
 
     useEffect(() => {
         let asd = []
@@ -23,9 +24,7 @@ export const UsuariosCompartidos = ({ evento }) => {
 
 
     useEffect(() => {
-        console.log("sharedUser",sharedUser)
         data.map((item) => {
-            console.log("map del data",item)
             try {
                 fetchApiBodas({
                     query: queries?.getUser,
