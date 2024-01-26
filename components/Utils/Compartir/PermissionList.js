@@ -9,8 +9,20 @@ export const PermissionList = ({ setPermissionArry }) => {
     useEffect(() => {
         if (permission !== null) {
             setPermissionArry((old) => {
-                old?.push(permission)
-                return [...old]
+                console.log(old)
+                const f1 = old?.findIndex(elem => elem.modulo == permission.modulo)
+                const f2 = old?.findIndex(elem => elem.estado == permission.estado)
+
+                if (f1 < 0) {
+                        old?.push(permission)
+                        return [...old]
+
+                    
+                }
+                if (f1 > -1) {
+                        old?.splice(f1, 1)
+                        return [...old]
+                }
             })
         }
     }, [permission])
@@ -47,13 +59,13 @@ export const PermissionList = ({ setPermissionArry }) => {
                         </div>
                         <div className="flex items-center space-x-2">
                             <div className="cursor-pointer" onClick={() => setPermission({ modulo: item.modulo, estado: "nada" })}>
-                                <MdOutlineCancel className="hover:text-primary" />
+                                <MdOutlineCancel className={` ${permission?.estado == "nada" ? "text-primary" : ""}  hover:text-primary`} />
                             </div>
                             <div className="cursor-pointer " onClick={() => setPermission({ modulo: item.modulo, estado: "ver" })}>
-                                <IoEyeOutline className="hover:text-primary" />
+                                <IoEyeOutline className={` ${permission?.estado == "ver" ? "text-primary" : ""}  hover:text-primary`} />
                             </div>
                             <div className="cursor-pointer" onClick={() => setPermission({ modulo: item.modulo, estado: "editar" })}>
-                                <MdOutlineEdit className="hover:text-primary" />
+                                <MdOutlineEdit className={` ${permission?.estado == "editar" ? "text-primary" : ""}  hover:text-primary`} />
 
                             </div>
                         </div>
