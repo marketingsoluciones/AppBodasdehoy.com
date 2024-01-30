@@ -45,10 +45,10 @@ export const AddUserToEvent = ({ openModal, setOpenModal, idEvent }) => {
                 }
             })
 
-            setEvent((old) => {
+            /* setEvent((old) => {
                 old.compartido_array.push(newArrySharedUsers)
-                return { ...old }
-            })
+                return [ ...old ]
+            }) */
             toast("success", "Evento fue compartido con exito ");
             setOpenModal(!openModal)
         } catch (error) {
