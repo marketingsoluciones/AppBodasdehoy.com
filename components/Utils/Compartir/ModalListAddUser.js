@@ -1,13 +1,12 @@
 import { useState } from "react"
 import ClickAwayListener from "react-click-away-listener"
-
+/* componente sin usar... mantener por si se puede reutilizar */
 export const ModalListAddUser = ({ set, state, evento }) => {
-    console.log(evento.invitados_array)
     return (
         <ClickAwayListener onClickAway={() => state && set(false)}>
                 <div className={`${state ? "absolute top-[145px] right-12 z-50 " : "hidden"}  h-[calc(100vh-400px)] w-[80%]  bg-white overflow-y-auto border rounded-lg`}>
                     {
-                        evento.invitados_array.map((item, idx) => {
+                        evento.compartido_array.map((item, idx) => {
                             return (
                                 <div key={idx}>
                                     <User data={item} />

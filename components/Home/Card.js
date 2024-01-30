@@ -8,7 +8,7 @@ import { fetchApiBodas, fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from '../../hooks/useToast'
 import { Lista } from "../../pages";
 import { IoShareSocial } from "react-icons/io5";
-import { AddUserToEvent, UsuariosCompartidos } from "../Utils/Compartir"
+import {  UsuariosCompartidos } from "../Utils/Compartir"
 import { Modal } from "../Utils/Modal";
 
 export const defaultImagenes = {
@@ -36,7 +36,6 @@ const Card = ({ data, grupoStatus, idx, setOpenModal, openModal, setIdEvent }) =
 
   const handleClick = () => {
     try {
-      console.log(10004, user?.uid)
       fetchApiBodas({
         query: queries.updateUser,
         variables: {
@@ -190,13 +189,6 @@ const Card = ({ data, grupoStatus, idx, setOpenModal, openModal, setIdEvent }) =
         `}
         </style>
       </div>
-      {/* {
-        openModal && (
-          <Modal state={openModal} set={setOpenModal} classe={"w-[28%] h-[86%]"} >
-              <AddUserToEvent/>
-          </Modal>
-        )
-      } */}
     </>
   );
 };

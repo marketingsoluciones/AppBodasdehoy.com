@@ -11,7 +11,7 @@ export const ListUserToEvent = ({ evento }) => {
     useEffect(() => {
         let asd = []
         asd = evento?.compartido_array
-        asd.push(evento?.usuario_id)
+        asd?.push(evento?.usuario_id)
         const f1 = asd?.findIndex((elm) => elm === user?.uid)
         asd?.splice(f1, 1)
         setData([...asd])
@@ -41,7 +41,7 @@ export const ListUserToEvent = ({ evento }) => {
             <div className="flex flex-col space-y-1 mb-5 md:mb-0 ">
                 <p className="text-gray-500">Personas con acceso</p>
                 <div className="border rounded-md section overflow-y-auto">
-                    {sharedUser.map((item, idx) => {
+                    {sharedUser?.map((item, idx) => {
                         return (
                             <div key={idx}>
                                 <User data={item} />
@@ -67,7 +67,7 @@ export const ListUserToEvent = ({ evento }) => {
         <div className="flex justify-center items-center py-5 px-2 space-x-4 relative">
             <div className="hidden md:block">
                 <img
-                    src={data?.photoURL}
+                    src={data?.photoURL != null ? data?.photoURL : "/placeholder/user.png"}
                     className="object-cover w-11 h-11 rounded-full"
                     alt={""}
                 />

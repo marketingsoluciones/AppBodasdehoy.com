@@ -71,7 +71,6 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
     }).test("Unico", `Número asignado a otro invitado`, (value) => {
       const name = document.activeElement?.getAttribute("name")
       if (name !== "telefono" && value?.length > 3) {
-        console.log("aqui", value)
         return !event.invitados_array.map(item => item.telefono).includes(value)
       } else {
         return true
@@ -240,7 +239,6 @@ export default FormInvitado;
 const ResetForm = ({ setFieldValue, resetForm, contact }) => {
   useEffect(() => {
     if (contact) {
-      console.log("aqui", contact)
       resetForm()
       //aquí formatear todos los numeros de télefonos iguales
       const contacto = {
@@ -250,7 +248,6 @@ const ResetForm = ({ setFieldValue, resetForm, contact }) => {
       }
 
       for (let clave in contacto) {
-        console.log(clave, contacto[clave])
         setFieldValue(clave, contacto[clave])
       }
     }

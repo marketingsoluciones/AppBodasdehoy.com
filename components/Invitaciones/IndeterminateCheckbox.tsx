@@ -23,7 +23,6 @@ export const IndeterminateCheckbox: ForwardRefComponent<HTMLInputElement, any> =
     }, [checked, ischecked, defaultRef]);
 
     useEffect(() => {
-      console.log("????? Se usa")
       if (defaultRef?.current?.indeterminate) {
         defaultRef.current.indeterminate = indeterminate;
       }

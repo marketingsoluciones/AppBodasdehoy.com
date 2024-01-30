@@ -69,7 +69,6 @@ export const ConfirmationBlock: FC<any> = ({ arrEnviarInvitaciones, set }) => {
         transport: optionSelect
       },
     };
-    console.log(event)
     if (event?.imgInvitacion) {
       try {
         await api.ApiApp(params);

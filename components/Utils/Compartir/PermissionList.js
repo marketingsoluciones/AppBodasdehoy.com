@@ -3,29 +3,34 @@ import { IoEyeOutline } from "react-icons/io5";
 import { MdOutlineCancel } from "react-icons/md";
 import { useEffect, useState } from "react";
 
-export const PermissionList = ({ setPermissionArry }) => {
+export const PermissionList = ({ setPermissionArry, permissionArry }) => {
     const [permission, setPermission] = useState(null)
+    //const [focusPermission, setFocusPermission] = useState("nada")
 
     useEffect(() => {
         if (permission !== null) {
             setPermissionArry((old) => {
-                console.log(old)
                 const f1 = old?.findIndex(elem => elem.modulo == permission.modulo)
                 const f2 = old?.findIndex(elem => elem.estado == permission.estado)
 
                 if (f1 < 0) {
-                        old?.push(permission)
-                        return [...old]
+                    old?.push(permission)
+                    return [...old]
 
-                    
+
                 }
                 if (f1 > -1) {
-                        old?.splice(f1, 1)
-                        return [...old]
+                    old?.splice(f1, 1)
+                    return [...old]
                 }
             })
         }
     }, [permission])
+
+    const focusPermission = permissionArry.map((item) => {
+        return { estado: item.estado }
+    })
+
 
     const DataModulos = [
         {

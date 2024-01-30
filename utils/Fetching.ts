@@ -125,6 +125,15 @@ export const queries = {
     }
   }`,
 
+  getAllUser: `query{
+    getAllUserFirebase{
+      uid
+      email
+      displayName
+      photoURL
+    }
+  }`,
+
   getGeoInfo: `query  {
     getGeoInfo {
       referer

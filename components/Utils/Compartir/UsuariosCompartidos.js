@@ -14,14 +14,10 @@ export const UsuariosCompartidos = ({ evento }) => {
         asd.push(evento?.usuario_id)
         const f1 = asd?.findIndex((elm) => elm === user?.uid)
         asd?.splice(f1, 1)
-        console.log("asdasd", asd)
         setData([...asd])
     }, [evento])
 
-    useEffect(() => {
-        console.log("dataefect", data)
-    }, [evento])
-
+    
 
     useEffect(() => {
         data.map((item) => {
@@ -52,7 +48,7 @@ export const UsuariosCompartidos = ({ evento }) => {
                     return (
                         <div key={idx} style={{ right: 20 * idx }} className="absolute z-20">
                             <div className=" bg-white rounded-full w-8 h-8 flex items-center justify-center  border relative">
-                                <img src={item?.photoURL} className="rounded-full" />
+                                <img src={item?.photoURL != null ? item?.photoURL : "/placeholder/user.png"} className="rounded-full" />
                                 <div className={`h-2.5 w-2.5 ${item?.onLine?.status != false ? "bg-green" : "bg-red"} absolute rounded-full right-1 -bottom-1`} />
                             </div>
                         </div>
