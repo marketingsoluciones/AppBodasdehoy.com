@@ -14,7 +14,7 @@ export const AddUserToEvent = ({ openModal, setOpenModal, idEvent }) => {
     const [dataUsers, setDataUsers] = useState([])
     const [permissionArry, setPermissionArry] = useState([])
     const newArrySharedUsers = selectLength.map((item) => { return item.value })
-    const OldAndNewArrySharedUsers = [...newArrySharedUsers, ...idEvent.compartido_array]
+    const OldAndNewArrySharedUsers = [...newArrySharedUsers, ...idEvent?.compartido_array]
     const [newUser, setNewUser] = useState([])
     const findUser = (dataUsers?.find(elem => elem?.email === dataInput))
 
@@ -44,10 +44,10 @@ export const AddUserToEvent = ({ openModal, setOpenModal, idEvent }) => {
                     value: JSON.stringify(permissionArry)
                 }
             })
-            
+
             setEvent((old) => {
-                old.compartido_array.push(addUser)
-                return [...old]
+                old.compartido_array.push(newArrySharedUsers)
+                return { ...old }
             })
             toast("success", "Evento fue compartido con exito ");
             setOpenModal(!openModal)
@@ -73,7 +73,15 @@ export const AddUserToEvent = ({ openModal, setOpenModal, idEvent }) => {
                     }
                     <div className="flex md:flex-row flex-col space-y-1 justify-between items-center">
                         <CopiarLink />
-                        <button onClick={handelSubmit} className="bg-primary text-white rounded-lg px-5 py-2 h-10">{selectLength.length >= 1 ? "Guardar" : "Hecho"}</button>
+                        {
+                            selectLength.length >= 1 ?
+                                (
+                                    <button onClick={handelSubmit} className="bg-primary text-white rounded-lg px-5 py-2 h-10">{"Guardar"}</button>
+                                ) :
+                                (
+                                    <button onClick={() => setOpenModal(!openModal)} className="bg-primary text-white rounded-lg px-5 py-2 h-10">{"Hecho"}</button>
+                                )
+                        }
                     </div>
                 </div>
             </div>

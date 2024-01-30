@@ -130,7 +130,7 @@ const Card = ({ data, grupoStatus, idx, setOpenModal, openModal, setIdEvent }) =
     <>
       <div ref={hoverRef} className={`w-max h-full relative grid place-items-center bg-white transition ${isHovered ? "transform scale-105 duration-700" : ""}`}>
         <div className={` h-32 w-10  absolute z-[10] right-0  flex flex-col items-center justify-between px-2 `}>
-          <div onClick={() => setOpenModal(!openModal)} className="w-max h-max relative" >
+          <div onClick={() => { setOpenModal(!openModal), setIdEvent(data[idx]) }} className="w-max h-max relative" >
             <UsuariosCompartidos evento={data[idx]} className="w-5 h-6 cursor-pointer text-white hover:text-gray-300" />
           </div>
           <div className="space-y-2">
