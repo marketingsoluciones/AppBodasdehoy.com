@@ -10,45 +10,34 @@ export const AddUserToEvent = ({ openModal, setOpenModal, idEvent }) => {
     const toast = useToast();
     const { event, setEvent } = EventContextProvider()
     const [selectLength, setSelectLength] = useState([])
-    const [dataInput, setDataInput] = useState()
-    const [dataUsers, setDataUsers] = useState([])
     const [permissionArry, setPermissionArry] = useState([])
-    const newArrySharedUsers = selectLength.map((item) => { return item.value })
-    const OldAndNewArrySharedUsers = [...newArrySharedUsers, ...idEvent?.compartido_array]
-    const [newUser, setNewUser] = useState([])
-    const findUser = (dataUsers?.find(elem => elem?.email === dataInput))
+    const OldAndNewArrySharedUsers = [...selectLength, ...idEvent?.compartido_array]
 
-    /* if (dataInput?.includes("@gmail.com")) {
-        console.log("entro al includes")
-        if (findUser === undefined) {
-            console.log("entro al undifinde")
-        }
-    } */
+    console.log(OldAndNewArrySharedUsers)
 
     const handelSubmit = async () => {
         try {
-            const addUser = await fetchApiEventos({
-                query: queries.eventUpdate,
-                variables: {
-                    idEvento: idEvent._id,
-                    variable: "compartido_array",
-                    value: JSON.stringify(OldAndNewArrySharedUsers)
-                }
-            });
+            if (selectLength > 0) {
+                const addUser = await fetchApiEventos({
+                    query: queries.eventUpdate,
+                    variables: {
+                        idEvento: idEvent._id,
+                        variable: "compartido_array",
+                        value: JSON.stringify(OldAndNewArrySharedUsers)
+                    }
+                });
+            }
+            if (permissionArry.length > 0) {
 
-            const addPermission = await fetchApiEventos({
-                query: queries?.eventUpdate,
-                variables: {
-                    idEvento: idEvent._id,
-                    variable: "permisos_array",
-                    value: JSON.stringify(permissionArry)
-                }
-            })
-
-            /* setEvent((old) => {
-                old.compartido_array.push(newArrySharedUsers)
-                return [ ...old ]
-            }) */
+                const addPermission = await fetchApiEventos({
+                    query: queries?.eventUpdate,
+                    variables: {
+                        idEvento: idEvent._id,
+                        variable: "permisos_array",
+                        value: JSON.stringify(permissionArry)
+                    }
+                })
+            }
             toast("success", "Evento fue compartido con exito ");
             setOpenModal(!openModal)
         } catch (error) {
@@ -65,7 +54,7 @@ export const AddUserToEvent = ({ openModal, setOpenModal, idEvent }) => {
                     <div className="cursor-pointer font-semibold" onClick={() => setOpenModal(!openModal)}>x</div>
                 </div>
                 <div className="py-5 space-y-2 md:space-y-5 flex flex-col relative  ">
-                    <FormAddUserToEvent evento={idEvent} setSelectLength={setSelectLength} setDataInput={setDataInput} setDataUsers={setDataUsers} dataUsers={dataUsers} />
+                    <FormAddUserToEvent setSelectLength={setSelectLength} />
                     {
                         selectLength.length >= 1 ?
                             <PermissionList permissionArry={permissionArry} setPermissionArry={setPermissionArry} /> :

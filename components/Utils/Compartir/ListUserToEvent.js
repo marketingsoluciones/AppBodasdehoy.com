@@ -64,7 +64,7 @@ export const ListUserToEvent = ({ evento }) => {
  const User = ({ data }) => {
     const [openModal, setOpenModal] = useState(false)
     return (
-        <div className="flex justify-center items-center py-5 px-2 space-x-4 relative">
+        <div className="flex justify-center items-center py-2 px-2 space-x-4 relative">
             <div className="hidden md:block">
                 <img
                     src={data?.photoURL != null ? data?.photoURL : "/placeholder/user.png"}
