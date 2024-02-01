@@ -54,29 +54,31 @@ export const PermissionList = ({ setPermissionArry, permissionArry }) => {
     ]
 
     return (
-        <div className={`  bg-gray-100  rounded-lg p-4 text-[15px] w-full border space-y-[5.3px]`}>
-            <p className="text-gray-500 ">Lista de Permisos</p>
-            {DataModulos.map((item, idx) => {
-                return (
-                    <div key={idx} className="flex  items-center space-x-2 justify-between">
-                        <div className="cursor-default">
-                            {item.modulo}
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <div className="cursor-pointer" onClick={() => setPermission({ modulo: item.modulo, estado: "nada" })}>
-                                <MdOutlineCancel className={` ${permission?.estado == "nada" ? "text-primary" : ""}  hover:text-primary`} />
+        <div className="flex flex-col space-y-1 mb-5 md:mb-0 flex-1">
+            <p className="text-primary">Lista de Permisos</p>
+            <div className={`bg-gray-100 rounded-xl px-4 py-2 text-[15px] w-full border space-y-[5.3px]`}>
+                {DataModulos.map((item, idx) => {
+                    return (
+                        <div key={idx} className="flex  items-center space-x-2 justify-between">
+                            <div className="cursor-default">
+                                {item.modulo}
                             </div>
-                            <div className="cursor-pointer " onClick={() => setPermission({ modulo: item.modulo, estado: "ver" })}>
-                                <IoEyeOutline className={` ${permission?.estado == "ver" ? "text-primary" : ""}  hover:text-primary`} />
-                            </div>
-                            <div className="cursor-pointer" onClick={() => setPermission({ modulo: item.modulo, estado: "editar" })}>
-                                <MdOutlineEdit className={` ${permission?.estado == "editar" ? "text-primary" : ""}  hover:text-primary`} />
+                            <div className="flex items-center space-x-2">
+                                <div className="cursor-pointer" onClick={() => setPermission({ modulo: item.modulo, estado: "nada" })}>
+                                    <MdOutlineCancel className={` ${permission?.estado == "nada" ? "text-primary" : ""}  hover:text-primary`} />
+                                </div>
+                                <div className="cursor-pointer " onClick={() => setPermission({ modulo: item.modulo, estado: "ver" })}>
+                                    <IoEyeOutline className={` ${permission?.estado == "ver" ? "text-primary" : ""}  hover:text-primary`} />
+                                </div>
+                                <div className="cursor-pointer" onClick={() => setPermission({ modulo: item.modulo, estado: "editar" })}>
+                                    <MdOutlineEdit className={` ${permission?.estado == "editar" ? "text-primary" : ""}  hover:text-primary`} />
 
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )
-            })}
+                    )
+                })}
+            </div>
         </div>
     )
 }

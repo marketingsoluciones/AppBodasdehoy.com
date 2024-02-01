@@ -55,33 +55,33 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
         <div id="child" className="let-0 top-0">
             {openModal &&
                 <>
-                    <div className="z-50 fixed top-0 left-0 w-screen h-screen overflow-hidden" />
-                    <div className="backdrop-blur backdrop-filter bg-black opacity-40 z-50 fixed top-0 left-0 w-screen h-screen overflow-hidden " />
-                    <div className={`md:w-[35%] md:h-[90%] space-y-4 bg-white shadow-lg fixed m-auto inset-0 z-50 rounded-xl  overflow-auto `}>
+                    <div className="z-50 fixed top-0 left-0 w-screen h-screen" />
+                    <div className="backdrop-blur backdrop-filter bg-black opacity-40 z-50 fixed top-0 left-0 w-screen h-screen" />
+                    <div className={`md:w-[35%] md:h-[90%] bg-white shadow-lg fixed m-auto inset-0 z-50 rounded-xl`}>
                         <ClickAwayListener onClickAway={() => openModal && setOpenModal(false)} >
-                            <div className="h-full px-10 py-5">
-                                <div className="flex  justify-between border-b pb-3 text-[20px]">
+                            <div className="h-full py-5 flex flex-col">
+                                <div className="flex justify-between border-b pb-3 text-[20px] mx-4">
                                     <div className="cursor-default font-semibold text-primary capitalize"> Compartir evento</div>
-                                    <div className="cursor-pointer font-semibold" onClick={() => setOpenModal(!openModal)}>x</div>
+                                    <div className="cursor-pointer font-semibold text-gray-600 -translate-y-3" onClick={() => setOpenModal(!openModal)}>x</div>
                                 </div>
-                                <div className="py-5 space-y-2 md:space-y-5 flex flex-col relative  ">
-                                    <FormAddUserToEvent setSelectLength={setSelectLength} />
-                                    {
-                                        selectLength.length >= 1 ?
-                                            <PermissionList permissionArry={permissionArry} setPermissionArry={setPermissionArry} /> :
-                                            <ListUserToEvent evento={event} />
-                                    }
-                                    <div className="flex md:flex-row flex-col space-y-1 justify-between items-center">
-                                        <CopiarLink />
-                                        {
-                                            selectLength.length >= 1 ?
-                                                (
-                                                    <button onClick={handelSubmit} className="bg-primary text-white rounded-lg px-5 py-2 h-10">{"Guardar"}</button>
-                                                ) :
-                                                (
-                                                    <button onClick={() => setOpenModal(!openModal)} className="bg-primary text-white rounded-lg px-5 py-2 h-10">{"Hecho"}</button>
-                                                )
+                                <div className="flex flex-col relative space-y-4 flex-1 overflow-auto px-8">
+                                    <div className="space-y-4 flex flex-col flex-1">
+                                        <FormAddUserToEvent setSelectLength={setSelectLength} />
+                                        {selectLength.length
+                                            ? <PermissionList permissionArry={permissionArry} setPermissionArry={setPermissionArry} />
+                                            : <ListUserToEvent evento={event} />
                                         }
+                                    </div>
+                                    <div>
+                                        <CopiarLink />
+                                        <div className="flex">
+                                            <div className="flex-1" />
+                                            {selectLength.length
+                                                ? <button onClick={handelSubmit} className="bg-primary text-white rounded-lg px-5 py-2 h-10">{"Guardar"}</button>
+                                                : <button onClick={() => setOpenModal(!openModal)} className="bg-primary text-white rounded-lg px-5 py-2 h-10">{"Hecho"}</button>
+
+                                            }
+                                        </div>
                                     </div>
                                 </div>
                             </div>

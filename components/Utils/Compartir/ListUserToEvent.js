@@ -1,8 +1,11 @@
 import { IoIosArrowDown } from "react-icons/io";
-import { ModalPermissionList, PermissionList } from "../Compartir";
+import { ModalPermissionList } from "../Compartir";
 import { useEffect, useState } from "react";
 import { AuthContextProvider } from "../../../context";
 import { fetchApiBodas, queries } from "../../../utils/Fetching";
+
+
+
 export const ListUserToEvent = ({ evento }) => {
     const [sharedUser, setSharedUser] = useState([])
     const { config, user } = AuthContextProvider()
@@ -37,31 +40,22 @@ export const ListUserToEvent = ({ evento }) => {
     }, [data])
 
     return (
-        <>
-            <div className="flex flex-col space-y-1 mb-5 md:mb-0 ">
-                <p className="text-gray-500">Personas con acceso</p>
-                <div className="border rounded-md section overflow-y-auto">
-                    {sharedUser?.map((item, idx) => {
-                        return (
-                            <div key={idx}>
-                                <User data={item} />
-                            </div>
-                        )
-                    })}
-                </div>
+        <div className="flex flex-col space-y-1 mb-5 md:mb-0 flex-1">
+            <p className="text-primary">Personas con acceso</p>
+            <div className="border border-gray-300 rounded-xl section overflow-y-auto flex-1">
+                {sharedUser?.map((item, idx) => {
+                    return (
+                        <div key={idx}>
+                            <User data={item} />
+                        </div>
+                    )
+                })}
             </div>
-            <style jsx>
-                {`
-                    .section {
-                        height: calc(100vh - 400px);
-                            }
-                `}
-            </style>
-        </>
+        </div>
     )
 }
 
- const User = ({ data }) => {
+const User = ({ data }) => {
     const [openModal, setOpenModal] = useState(false)
     return (
         <div className="flex justify-center items-center py-2 px-2 space-x-4 relative">
