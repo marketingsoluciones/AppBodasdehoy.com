@@ -125,12 +125,16 @@ export const queries = {
     }
   }`,
 
-  getAllUser: `query{
-    getAllUserFirebase{
+  getUsers: `query ($uids:[ID]){
+    getUsers(uids:$uids){
       uid
       email
       displayName
       photoURL
+      onLine{
+        status
+        dateConection
+      }
     }
   }`,
 

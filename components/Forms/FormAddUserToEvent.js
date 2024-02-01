@@ -7,7 +7,7 @@ import { AuthContextProvider } from "../../context"
 import { TagsInput } from "react-tag-input-component";
 
 
-export const FormAddUserToEvent = ({  setSelectLength }) => {
+export const FormAddUserToEvent = ({ setSelectLength }) => {
     const { config, user } = AuthContextProvider()
 
 
@@ -22,15 +22,26 @@ export const FormAddUserToEvent = ({  setSelectLength }) => {
 
 
     return (
-        <div className={`flex flex-col space-y-1 mb-5 md:mb-0 `}>
-            <label className="text-gray-500">Agregar nuevo usuario</label>
+        <div className={`flex flex-col space-y-1 mb-5 md:mb-0`}>
+            <label className="text-primary">Agregar nuevo usuario</label>
             <TagsInput
                 onChange={handleSubmit}
                 name="emails"
-                placeHolder="añadir email"
+                placeHolder="nombre@email.com"
                 beforeAddValidate={beforeAddValidate}
                 separators={["Enter", ",", " ", ";"]}
+                classNames={{
+                    tag: "!text-sm !px-2 !rounded-lg",
+                    input: "!w-full !text-sm !rounded-lg"
+                }}
             />
+            <style>{`
+                .rti--container {
+                    --rti-s: .2rem;
+                    --rti-radius: 0.75rem;
+                    }
+              
+            ` }</style>
         </div>
     )
 }

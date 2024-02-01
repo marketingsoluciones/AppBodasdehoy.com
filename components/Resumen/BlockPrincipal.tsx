@@ -2,11 +2,13 @@ import Image from "next/image";
 import React, { FC, useState } from "react";
 import { PencilEdit } from "../icons";
 import { capitalize } from '../../utils/Capitalize'
-import { EventContextProvider } from "../../context";
+import { AuthContextProvider, EventContextProvider } from "../../context";
 import ModalLeft from "../Utils/ModalLeft";
 import { useDelayUnmount } from "../../utils/Funciones";
 import FormCrearEvento from "../Forms/FormCrearEvento";
 import { defaultImagenes } from "../Home/Card";
+import { AddUserToEvent, UsuariosCompartidos } from "../Utils/Compartir";
+import { IoShareSocial } from "react-icons/io5";
 
 interface propsBlockVista {
   children?: React.ReactNode;
@@ -46,9 +48,7 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
 
   return (
     <>
-
-
-      <div className="w-full bg-white shadow rounded-xl overflow-hidden relative flex flex-col-reverse md:flex-row md:h-72 gap-12  md:gap-0 pt-6 md:pt-0">
+      <div className="w-full bg-white shadow rounded-xl overflow-hidden relative flex flex-col-reverse md:flex-row md:h-72 gap-12  md:gap-0 pt-10 md:pt-0">
         {event?.tipo && (
           <img
             src={defaultImagenes[event?.tipo]}
@@ -125,24 +125,38 @@ const BlockPrincipal: FC = () => {
   const [isMounted, setIsMounted] = useState<boolean>(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const { event } = EventContextProvider()
+  const { user } = AuthContextProvider()
+  const [openModal, setOpenModal] = useState(false)
 
   const handleEdit = (): void => {
     setIsMounted(!isMounted);
   };
+
   return (
     <>
+      <AddUserToEvent openModal={openModal} setOpenModal={setOpenModal} event={event} />
       {shouldRenderChild && (
         <ModalLeft set={setIsMounted} state={isMounted}>
           <FormCrearEvento set={setIsMounted} state={isMounted} EditEvent={true} />
         </ModalLeft>
       )}
       <BlockVista >
-        <span
-          className="absolute top-5 right-5 transition transform hover:scale-105 hover:rotate-12 cursor-pointer z-30"
-          onClick={handleEdit}
-        >
-          <PencilEdit className="w-5 h-5 text-primary" />
-        </span>
+        <div className="absolute top-3 right-5 flex gap-2 z-30">
+          <div onClick={() => { event.usuario_id === user?.uid && setOpenModal(!openModal) }} className="w-1 h-1 -translate-y-0.5">
+            <UsuariosCompartidos event={event} />
+          </div>
+          <span
+            className={`transition transform z-30 ${event.usuario_id === user?.uid ? "hover:scale-110 cursor-pointer text-primary" : "text-gray-300"}`}
+            onClick={() => { event.usuario_id === user?.uid && setOpenModal(!openModal) }}>
+            <IoShareSocial className="w-6 h-6" />
+          </span>
+          <span
+            className="transition transform hover:scale-110 *hover:rotate-12 cursor-pointer z-30"
+            onClick={handleEdit}
+          >
+            <PencilEdit className="w-6 h-6 text-primary" />
+          </span>
+        </div>
       </BlockVista>
     </>
   );

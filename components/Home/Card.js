@@ -8,8 +8,7 @@ import { fetchApiBodas, fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from '../../hooks/useToast'
 import { Lista } from "../../pages";
 import { IoShareSocial } from "react-icons/io5";
-import {  UsuariosCompartidos } from "../Utils/Compartir"
-import { Modal } from "../Utils/Modal";
+import { AddUserToEvent, UsuariosCompartidos } from "../Utils/Compartir"
 
 export const defaultImagenes = {
   boda: "/cards/boda.webp",
@@ -22,7 +21,7 @@ export const defaultImagenes = {
   otro: "/cards/pexels-pixabay-50675.jpg"
 };
 
-const Card = ({ data, grupoStatus, idx, setOpenModal, openModal, setIdEvent }) => {
+const Card = ({ data, grupoStatus, idx }) => {
   const [hoverRef, isHovered] = useHover();
   const [refArchivar, isArchivar] = useHover();
   const [refBorrar, isBorrar] = useHover();
@@ -30,6 +29,8 @@ const Card = ({ data, grupoStatus, idx, setOpenModal, openModal, setIdEvent }) =
   const { eventsGroup, setEventsGroup } = EventsGroupContextProvider();
   const { event, setEvent, idxGroupEvent, setIdxGroupEvent } = EventContextProvider();
   const router = useRouter();
+  const [openModal, setOpenModal] = useState(false)
+
 
 
 
@@ -128,15 +129,16 @@ const Card = ({ data, grupoStatus, idx, setOpenModal, openModal, setIdEvent }) =
 
   return (
     <>
+      <AddUserToEvent openModal={openModal} setOpenModal={setOpenModal} event={data[idx]} />
       <div ref={hoverRef} className={`w-max h-full relative grid place-items-center bg-white transition ${isHovered ? "transform scale-105 duration-700" : ""}`}>
         <div className={` h-32 w-10  absolute z-[10] right-0  flex flex-col items-center justify-between px-2 `}>
-          <div onClick={() => { setOpenModal(!openModal), setIdEvent(data[idx]) }} className="w-max h-max relative" >
-            <UsuariosCompartidos evento={data[idx]} className="w-5 h-6 cursor-pointer text-white hover:text-gray-300" />
+          <div onClick={() => { data[idx]?.usuario_id === user?.uid && setOpenModal(!openModal) }} className="w-max h-max relative" >
+            <UsuariosCompartidos event={data[idx]} />
           </div>
           <div className="space-y-2">
-            <div onClick={() => { setOpenModal(!openModal), setIdEvent(data[idx]) }} className="w-max h-max relative" >
-              <IoShareSocial className="w-5 h-6 cursor-pointer text-white hover:text-gray-300 -mb-1.5" />
-            </div>
+            {data[idx]?.usuario_id === user?.uid && <div onClick={() => { setOpenModal(!openModal) }} className="w-max h-max relative" >
+              <IoShareSocial className="w-6 h-6 cursor-pointer text-white hover:text-gray-300 -translate-x-1" />
+            </div>}
             <div onClick={handleArchivarEvent} className="w-max h-max relative" >
               <IconFolderOpen className="w-5 h-6 cursor-pointer text-white hover:text-gray-300" />
             </div>
