@@ -1,10 +1,10 @@
 import { useRouter } from "next/router"
 import Loading from "../components/DefaultLayout/Loading"
 import { AuthContextProvider } from "../context"
-import { auth } from "../firebase"
 import { getCookie } from "../utils/Cookies"
+import { getAuth } from "firebase/auth";
 
-const PagesWithAuth  = (WrappedComponent, authorizationByRole) => {
+const PagesWithAuth = (WrappedComponent, authorizationByRole) => {
   return (props) => {
     // checks whether we are on client / browser or server.
     if (typeof window !== "undefined") {
@@ -12,9 +12,9 @@ const PagesWithAuth  = (WrappedComponent, authorizationByRole) => {
       const user = null
       const token = getCookie('token-bodas')
 
-      auth.onAuthStateChanged(user => {
+      getAuth().onAuthStateChanged(user => {
         console.log(user)
-        if(!user){
+        if (!user) {
           router.replace("/")
           return <Loading />;
         }

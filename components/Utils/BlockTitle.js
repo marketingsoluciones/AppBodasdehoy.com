@@ -28,13 +28,13 @@ const BlockTitle = ({ title }) => {
           <span className='text-sm translate-y-2 text-primary text-[12px] first-letter:capitalize'>{event?.tipo}</span>
           <span className='uppercase w-64 truncate '>{event?.nombre}</span>
         </div>
-        <div onClick={() => { event.usuario_id === user?.uid && setOpenModal(!openModal) }}
+        <div onClick={() => { event?.usuario_id === user?.uid && setOpenModal(!openModal) }}
           className='-translate-y-1.5 -translate-x-8 md:-translate-y-[26px] md:-translate-x-8'>
           <UsuariosCompartidos event={event} />
         </div>
         <span
-          className={`transition transform ${event.usuario_id === user?.uid ? "hover:scale-110 cursor-pointer text-primary" : "text-gray-300"} z-30 translate-y-2 -translate-x-1.5 md:-translate-y-3 md:-translate-x-6`}
-          onClick={() => { event.usuario_id === user?.uid && setOpenModal(!openModal) }}
+          className={`transition transform ${event?.usuario_id === user?.uid ? "hover:scale-110 cursor-pointer text-primary" : "text-gray-300"} z-30 translate-y-2 -translate-x-1.5 md:-translate-y-3 md:-translate-x-6`}
+          onClick={() => { event?.usuario_id === user?.uid && setOpenModal(!openModal) }}
         >
           <IoShareSocial className="w-6 h-6" />
         </span>

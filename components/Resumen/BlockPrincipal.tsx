@@ -142,12 +142,12 @@ const BlockPrincipal: FC = () => {
       )}
       <BlockVista >
         <div className="absolute top-3 right-5 flex gap-2 z-30">
-          <div onClick={() => { event.usuario_id === user?.uid && setOpenModal(!openModal) }} className="w-1 h-1 -translate-y-0.5">
+          <div onClick={() => { event?.usuario_id === user?.uid && setOpenModal(!openModal) }} className="w-1 h-1 -translate-y-0.5">
             <UsuariosCompartidos event={event} />
           </div>
           <span
-            className={`transition transform z-30 ${event.usuario_id === user?.uid ? "hover:scale-110 cursor-pointer text-primary" : "text-gray-300"}`}
-            onClick={() => { event.usuario_id === user?.uid && setOpenModal(!openModal) }}>
+            className={`transition transform z-30 ${event?.usuario_id === user?.uid ? "hover:scale-110 cursor-pointer text-primary" : "text-gray-300"}`}
+            onClick={() => { event?.usuario_id === user?.uid && setOpenModal(!openModal) }}>
             <IoShareSocial className="w-6 h-6" />
           </span>
           <span

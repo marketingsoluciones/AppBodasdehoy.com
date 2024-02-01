@@ -10,7 +10,7 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
     const toast = useToast();
     const [selectLength, setSelectLength] = useState([])
     const [permissionArry, setPermissionArry] = useState([])
-    const OldAndNewArrySharedUsers = [...selectLength, ...event?.compartido_array]
+    const OldAndNewArrySharedUsers = []
 
     useEffect(() => {
         const rootSection = document.getElementById("rootsection")
@@ -32,7 +32,7 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
                     }
                 });
             }
-            if (permissionArry.length > 0) {
+            if (permissionArry?.length > 0) {
 
                 const addPermission = await fetchApiEventos({
                     query: queries?.eventUpdate,
