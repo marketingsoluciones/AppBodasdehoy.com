@@ -8,6 +8,8 @@ export interface Event {
     nombre: string
     usuario_id: string
     usuario_nombre: string
+    compartido_array: string[]
+    detalles_compartidos_array: detalle_compartidos_array[]
     nonce: string
     fecha: string
     poblacion: string
@@ -28,6 +30,18 @@ export interface Event {
 interface menu {
     nombre_menu: string
     tipo: string
+}
+
+interface permission {
+    title: string
+    value: string
+}
+
+interface detalle_compartidos_array {
+    uid: string
+    email: String
+    displayName: String
+    permissions: permission[]
 }
 
 interface estimate {

@@ -2,77 +2,51 @@ import { MdOutlineEdit } from "react-icons/md";
 import { IoEyeOutline } from "react-icons/io5";
 import { MdOutlineCancel } from "react-icons/md";
 import ClickAwayListener from "react-click-away-listener";
+import { PermissionList } from "./PermissionList";
+import { useEffect, useState } from "react";
+import { EventContextProvider } from "../../../context";
+import { fetchApiEventos, queries } from "../../../utils/Fetching";
 
-export const ModalPermissionList = ({ state, set }) => {
-    const DataModulos = [
-        {
-            modulo: "Resumen",
-            editar: false,
-            ver:true,
-            nada:false
+export const ModalPermissionList = ({ data, setOpenModal, setSharedUser }) => {
+    const { event, setEvent } = EventContextProvider()
+    const [permissions, setPermissions] = useState([...data?.permissions])
 
+    const handleChangePermision = async (values) => {
+        setPermissions(old => {
+            const f1 = old.findIndex(elem => elem.title === values.title)
+            old.splice(f1, 1, { title: values.title, value: values.value })
+            return [...old]
+        })
 
-        },
-        {
-            modulo: "Invitados",
-            editar: true,
-            ver:false,
-            nada:false
+        setSharedUser(old => {
+            const f1 = old.findIndex(elem => elem?.uid === data?.uid)
+            const f2 = old[f1]?.permissions.findIndex(elem => elem?.title === values?.title)
+            old[f1].permissions.splice(f2, 1, values)
+            return ([...old])
+        })
 
-        },
-        {
-            modulo: "Mesas",
-            editar: true,
-            ver:true,
-            nada:false
+        //setear evento hacer fetichin para actualizar en bd
+        const f1 = event.detalles_compartidos_array.findIndex(elem => elem.uid === data?.uid)
+        event.detalles_compartidos_array[f1].permissions = permissions
+        setEvent({ ...event })
 
-        },
-        {
-            modulo: "Regalos",
-            editar: false,
-            ver:true,
-            nada:false
+        await fetchApiEventos({
+            query: queries.updateCompartitions,
+            variables: {
+                args: {
+                    eventID: event._id,
+                    users: data?.uid,
+                    permissions: values
+                }
+            }
+        });
 
-        },
-        {
-            modulo: "Presupuesto",
-            editar: false,
-            ver:false,
-            nada:true
+    }
 
-        },
-        {
-            modulo: "Invitaciones",
-            editar: false,
-            ver:true,
-            nada:false
-
-        },
-    ]
     return (
-        <ClickAwayListener onClickAway={() => state && set(false)}>
-            <div className={`${state ? " absolute -bottom-36 right-10 z-50 " : "hidden"}  bg-gray-100  rounded-lg p-4 text-[15px] w-52 space-y-1`}>
-                {DataModulos.map((item, idx) => {
-                    return (
-                        <div key={idx} className="flex  items-center space-x-2 justify-between">
-                            <div className="cursor-default">
-                                {item.modulo}
-                            </div>
-                            <div className="flex items-center space-x-2">
-                            <div className="cursor-pointer">
-                                     <MdOutlineCancel  className={`${item.nada?"text-primary":""}`} />
-                                </div>
-                                <div className="cursor-pointer">
-                                     <IoEyeOutline className={`${item.ver?"text-primary":""}`} />
-                                </div>
-                                <div className={`${item.estado?"text-primary":""}cursor-pointer`}>
-                                    <MdOutlineEdit className={`${item.editar?"text-primary":""}`} /> 
-
-                                </div>
-                            </div>
-                        </div>
-                    )
-                })}
+        <ClickAwayListener onClickAway={() => setOpenModal(false)}>
+            <div style={{ left: ["50%"], }} className={`fixed z-50 bg-gray-100 rounded-lg p-4 text-[15px] w-64 ml-[50%] -translate-x-[calc(50%+14px)] md:translate-x-36 *translate-y-28`}>
+                <PermissionList permissions={permissions} handleChange={handleChangePermision} />
             </div>
         </ClickAwayListener>
     )

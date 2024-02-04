@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { AuthContextProvider, EventContextProvider } from '../../context'
 import { defaultImagenes } from '../Home/Card'
-import { AddUserToEvent, UsuariosCompartidos } from './Compartir'
+import { ModalAddUserToEvent, UsuariosCompartidos } from './Compartir'
 import { IoShareSocial } from 'react-icons/io5'
 
 const BlockTitle = ({ title }) => {
@@ -10,7 +10,7 @@ const BlockTitle = ({ title }) => {
   const [openModal, setOpenModal] = useState(false)
   return (
     <div className={`w-full h-14 bg-white rounded-xl shadow-lg ${forCms ? "hidden" : "flex"} items-center justify-between`}>
-      <AddUserToEvent openModal={openModal} setOpenModal={setOpenModal} event={event} />
+      <ModalAddUserToEvent openModal={openModal} setOpenModal={setOpenModal} event={event} />
       <div className='flex md:flex-1 flex-col px-2 md:px-6 font-display'>
         <span className='md:hidden capitalize text-gray-600 leading-[20px] font-medium'>{event?.nombre}</span>
         <span className='md:hidden capitalize text-primary text-[12px] leading-[12px]'>{event?.tipo}</span>

@@ -7,7 +7,7 @@ import ModalLeft from "../Utils/ModalLeft";
 import { useDelayUnmount } from "../../utils/Funciones";
 import FormCrearEvento from "../Forms/FormCrearEvento";
 import { defaultImagenes } from "../Home/Card";
-import { AddUserToEvent, UsuariosCompartidos } from "../Utils/Compartir";
+import { ModalAddUserToEvent, UsuariosCompartidos } from "../Utils/Compartir";
 import { IoShareSocial } from "react-icons/io5";
 
 interface propsBlockVista {
@@ -134,7 +134,7 @@ const BlockPrincipal: FC = () => {
 
   return (
     <>
-      <AddUserToEvent openModal={openModal} setOpenModal={setOpenModal} event={event} />
+      <ModalAddUserToEvent openModal={openModal} setOpenModal={setOpenModal} event={event} />
       {shouldRenderChild && (
         <ModalLeft set={setIsMounted} state={isMounted}>
           <FormCrearEvento set={setIsMounted} state={isMounted} EditEvent={true} />

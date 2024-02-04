@@ -8,7 +8,7 @@ import { fetchApiBodas, fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from '../../hooks/useToast'
 import { Lista } from "../../pages";
 import { IoShareSocial } from "react-icons/io5";
-import { AddUserToEvent, UsuariosCompartidos } from "../Utils/Compartir"
+import { ModalAddUserToEvent, UsuariosCompartidos } from "../Utils/Compartir"
 
 export const defaultImagenes = {
   boda: "/cards/boda.webp",
@@ -30,10 +30,6 @@ const Card = ({ data, grupoStatus, idx }) => {
   const { event, setEvent, idxGroupEvent, setIdxGroupEvent } = EventContextProvider();
   const router = useRouter();
   const [openModal, setOpenModal] = useState(false)
-
-
-
-
 
   const handleClick = () => {
     try {
@@ -92,9 +88,6 @@ const Card = ({ data, grupoStatus, idx }) => {
           setIdxGroupEvent({ ...idxGroupEvent, idx: valir ? idx : idx - 1, event_id: data[idx]?._id })
         }, 50);
       }
-
-
-
       toast("success", `${value == "archivado" ? `El evento ${data[idx].tipo} de "${data[idx].nombre.toUpperCase()}" se ha archivado` : `El evento ${data[idx].tipo} de "${data[idx].nombre.toUpperCase()}" se ha desarchivado`}`)
     } catch (error) {
       toast("error", "Ha ocurrido un error al archivar el evento")
@@ -125,11 +118,9 @@ const Card = ({ data, grupoStatus, idx }) => {
     }
   }
 
-
-
   return (
     <>
-      <AddUserToEvent openModal={openModal} setOpenModal={setOpenModal} event={data[idx]} />
+      <ModalAddUserToEvent openModal={openModal} setOpenModal={setOpenModal} event={data[idx]} />
       <div ref={hoverRef} className={`w-max h-full relative grid place-items-center bg-white transition ${isHovered ? "transform scale-105 duration-700" : ""}`}>
         <div className={` h-32 w-10  absolute z-[10] right-0  flex flex-col items-center justify-between px-2 `}>
           <div onClick={() => { data[idx]?.usuario_id === user?.uid && setOpenModal(!openModal) }} className="w-max h-max relative" >

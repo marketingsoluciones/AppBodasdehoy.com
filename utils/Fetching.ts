@@ -390,19 +390,24 @@ export const queries = {
       listaRegalos
     }
   }`,
+  addCompartitions: `mutation($args:inputCompartition){
+    addCompartition(args:$args)
+  }`,
+  updateCompartitions: `mutation($args:inputCompartition){
+    updateCompartition(args:$args)
+  }`,
   getEventsByID: `query SolicitarEventos($userID : String) {
     queryenEvento(variable: "usuario_id", valor: $userID){
       _id
       grupos_array
       compartido_array
-      permisos_array{
+      detalles_compartidos_array{
+        email
         uid
-        resumen
-        invitados
-        mesas
-        listaRegalos
-        presupuesto
-        invitaciones
+        permissions{
+          title
+          value
+        }
       }
       estatus
       color

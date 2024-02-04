@@ -7,12 +7,12 @@ import { AuthContextProvider } from "../../context"
 import { TagsInput } from "react-tag-input-component";
 
 
-export const FormAddUserToEvent = ({ setSelectLength }) => {
+export const FormAddUserToEvent = ({ setUsers }) => {
     const { config, user } = AuthContextProvider()
 
 
     const handleSubmit = (selectedOption) => {
-        setSelectLength(selectedOption)
+        setUsers(selectedOption)
     }
 
     const beforeAddValidate = (tag) => {
@@ -27,7 +27,7 @@ export const FormAddUserToEvent = ({ setSelectLength }) => {
             <TagsInput
                 onChange={handleSubmit}
                 name="emails"
-                placeHolder="nombre@email.com"
+                placeHolder="correo@email.com"
                 beforeAddValidate={beforeAddValidate}
                 separators={["Enter", ",", " ", ";"]}
                 classNames={{

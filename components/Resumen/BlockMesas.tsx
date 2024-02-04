@@ -6,7 +6,6 @@ import { guests } from '../../utils/Interfaces';
 
 const BlockMesas: FC = () => {
   const { event } = EventContextProvider()
-  console.log(event)
 
   const InvitadoSentados: guests[] = event?.invitados_array?.filter(
     (invitado) => invitado.nombre_mesa.toLowerCase() !== "no asignado"
@@ -45,19 +44,19 @@ const BlockMesas: FC = () => {
                     </span>
 
                     <span className="flex flex-col justify-center items-center gap-2* w-max">
-                      <MesaIcon className="text-gray-500 w-9"  />
+                      <MesaIcon className="text-gray-500 w-9" />
                       {(() => {
                         if (item.tables.length != 0) {
                           const invi = item.tables.map((item) => {
                             return item.guests
-                        })
-                        const inviReduce = invi.flat()
-                        return (
+                          })
+                          const inviReduce = invi.flat()
+                          return (
                             < p key={idx} className="font-display font-semibold text-xl text-gray-700" >
-                                {inviReduce.length} de {event?.invitados_array?.length}
-                                
+                              {inviReduce.length} de {event?.invitados_array?.length}
+
                             </p>
-                        )
+                          )
                         } else {
                           return (
                             <p key={idx} className="font-display font-semibold text-xl text-gray-700">

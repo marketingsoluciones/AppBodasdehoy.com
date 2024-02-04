@@ -24,10 +24,10 @@ export const UsuariosCompartidos = ({ event }) => {
             setSharedUser([])
             let data = []
             data = event?.compartido_array
-            data.push(event?.usuario_id)
-            const f1 = data?.findIndex((elm) => elm === user?.uid)
-            data?.splice(f1, 1)
-            if (data.length) {
+            if (data?.length) {
+                data.push(event?.usuario_id)
+                const f1 = data?.findIndex((elm) => elm === user?.uid)
+                data?.splice(f1, 1)
                 fetchApiBodas({
                     query: queries?.getUsers,
                     variables: { uids: data },
