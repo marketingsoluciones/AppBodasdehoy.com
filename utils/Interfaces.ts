@@ -36,11 +36,17 @@ interface permission {
     title: string
     value: string
 }
+interface onLine {
+    status: boolean
+    dateConection: number
+}
 
-interface detalle_compartidos_array {
+export interface detalle_compartidos_array {
     uid: string
-    email: String
-    displayName: String
+    email: string
+    displayName: string
+    photoURL: string
+    onLine: onLine
     permissions: permission[]
 }
 

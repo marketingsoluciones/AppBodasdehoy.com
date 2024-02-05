@@ -1,7 +1,7 @@
 import { createContext, useState, useContext, useEffect, SetStateAction, Dispatch, useReducer, Reducer } from 'react';
 import { AuthContextProvider } from "../context";
 import { fetchApiBodas, fetchApiEventos, queries } from "../utils/Fetching";
-import { Event } from '../utils/Interfaces';
+import { Event, detalle_compartidos_array } from '../utils/Interfaces';
 import { useRouter } from 'next/router';
 
 type Context = {
@@ -61,7 +61,18 @@ const EventsGroupProvider = ({ children }) => {
   const router = useRouter();
   const [eventsGroup, setEventsGroup] = useReducer<Reducer<Event[], action>>(reducer, []);
   const [psTemplates, setPsTemplates] = useState<any>([]);
-  const { user } = AuthContextProvider();
+  const { user, config } = AuthContextProvider();
+  const [reload, setReload] = useState<number>(0);
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    if (!isMounted) {
+      setIsMounted(true)
+    }
+    return () => {
+      setIsMounted(false)
+    }
+  }, [])
 
   useEffect(() => {
     if (user) {
@@ -71,7 +82,26 @@ const EventsGroupProvider = ({ children }) => {
       })
         .then((events: Event[]) => {
           if (events.length == 0) router.push("/")
-          setEventsGroup({ type: "INITIAL_STATE", payload: events })
+          Promise.all(
+            events.map(async (event) => {
+              if (event?.compartido_array?.length) {
+                const results = await fetchApiBodas({
+                  query: queries?.getUsers,
+                  variables: { uids: event?.compartido_array },
+                  development: config?.development
+                });
+                results.map((result: detalle_compartidos_array) => {
+                  const f1 = event.detalles_compartidos_array.findIndex(elem => elem.uid === result.uid);
+                  if (f1 > -1) {
+                    event.detalles_compartidos_array.splice(f1, 1, { ...event.detalles_compartidos_array[f1], ...result });
+                  }
+                })
+              }
+              return event
+            })
+          ).then((values) => {
+            setEventsGroup({ type: "INITIAL_STATE", payload: values })
+          })
 
         })
         .catch((error) => console.log(error));
@@ -84,7 +114,14 @@ const EventsGroupProvider = ({ children }) => {
         })
         .catch((error) => console.log(error));
     }
-  }, [user]);
+  }, [user, reload]);
+
+  useEffect(() => {
+    if (router.asPath === "/") {
+      setReload(Date.now())
+    }
+  }, [router])
+
 
   return (
     <EventsGroupContext.Provider value={{ eventsGroup, setEventsGroup, psTemplates, setPsTemplates }}>

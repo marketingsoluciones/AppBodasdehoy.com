@@ -396,6 +396,9 @@ export const queries = {
   updateCompartitions: `mutation($args:inputCompartition){
     updateCompartition(args:$args)
   }`,
+  deleteCompartitions: `mutation($args:inputCompartition){
+    deleteCompartition(args:$args)
+  }`,
   getEventsByID: `query SolicitarEventos($userID : String) {
     queryenEvento(variable: "usuario_id", valor: $userID){
       _id

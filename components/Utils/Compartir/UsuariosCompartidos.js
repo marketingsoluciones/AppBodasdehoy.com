@@ -1,49 +1,13 @@
 import { useEffect, useState } from "react";
 import { AuthContextProvider } from "../../../context";
-import { fetchApiBodas, queries } from "../../../utils/Fetching";
 
 export const UsuariosCompartidos = ({ event }) => {
     const [sharedUser, setSharedUser] = useState([])
-    const { config, user } = AuthContextProvider()
-    const [isMounted, setIsMounted] = useState(false)
+    const { user } = AuthContextProvider()
 
     useEffect(() => {
-        if (!isMounted) {
-            setIsMounted(true)
-        }
-        return () => {
-            if (isMounted) {
-                setIsMounted(false)
-            }
-        }
-    }, [isMounted])
-
-
-    useEffect(() => {
-        if (isMounted) {
-            setSharedUser([])
-            let data = []
-            data = event?.compartido_array
-            if (data?.length) {
-                data.push(event?.usuario_id)
-                const f1 = data?.findIndex((elm) => elm === user?.uid)
-                data?.splice(f1, 1)
-                fetchApiBodas({
-                    query: queries?.getUsers,
-                    variables: { uids: data },
-                    development: config?.development
-                }).then((results) => {
-                    const resultsSort = results.sort((a, b) => { return a.onLine.dateConection - b.onLine.dateConection })
-                    setSharedUser(resultsSort)
-                })
-            }
-        }
-    }, [isMounted])
-
-
-
-
-    //const SliceUsers = sharedUser?.slice(0, 4)
+        setSharedUser(event.detalles_compartidos_array.sort((a, b) => { return a?.onLine?.dateConection - b?.onLine?.dateConection }))
+    }, [event])
 
     return (
         <>
@@ -64,12 +28,6 @@ export const UsuariosCompartidos = ({ event }) => {
                         </div>
                     )
                 })}
-                {/* {
-                sharedUser?.length > 4 && <div style={{ right: 70 }} className=" bg-white rounded-full w-8 h-8 flex items-center justify-center *text-center  border absolute z-30 text-[13px] truncate font-semibold ">
-                    +{sharedUser?.length}
-                </div>
-            } */}
-
             </div>
         </>
     )

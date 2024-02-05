@@ -4,13 +4,11 @@ import { CopiarLink, ListUserToEvent, PermissionList } from "../Compartir"
 import { useEffect, useState } from "react"
 import { fetchApiEventos, queries } from "../../../utils/Fetching"
 import { useToast } from "../../../hooks/useToast"
-import { EventContextProvider } from "../../../context"
 
 export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
     const toast = useToast();
     const [users, setUsers] = useState([])
     const [permissions, setPermissions] = useState([])
-    const OldAndNewArrySharedUsers = []
     const [isMounted, setIsMounted] = useState(false)
 
     useEffect(() => {
@@ -25,7 +23,6 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
 
     const handleSubmit = async () => {
         try {
-            console.log({ users, permissions })
             await fetchApiEventos({
                 query: queries.addCompartitions,
                 variables: {
@@ -36,9 +33,9 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
                     }
                 }
             });
-
+            setUsers([])
+            // falta setear evento
             toast("success", "Evento fue compartido con exito ");
-            // setOpenModal(!openModal)
         } catch (error) {
             toast("error", "Ha ocurrido un error al compartir el evento");
             console.log(error)
@@ -77,7 +74,7 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
                                 <div className="flex">
                                     <div className="flex-1" />
                                     {users.length
-                                        ? <button onClick={() => handleSubmit} className="bg-primary text-white rounded-lg px-5 py-2 h-10">Guardar</button>
+                                        ? <button onClick={() => handleSubmit()} className="bg-primary text-white rounded-lg px-5 py-2 h-10">Guardar</button>
                                         : <button onClick={() => setOpenModal(!openModal)} className="bg-primary text-white rounded-lg px-5 py-2 h-10">Hecho</button>
 
                                     }

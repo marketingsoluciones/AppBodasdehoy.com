@@ -1,4 +1,3 @@
-import { MdOutlineEdit } from "react-icons/md";
 import { useEffect, useState } from "react";
 import { SelectPermissions } from "./SelectPermissions";
 
@@ -18,7 +17,6 @@ export const PermissionList = ({ setPermissions, permissions, handleChange }) =>
             handleChange(values)
         }
     }, [values])
-
 
     return (
         <div className="flex flex-col space-y-1 mb-5 md:mb-0 flex-1">

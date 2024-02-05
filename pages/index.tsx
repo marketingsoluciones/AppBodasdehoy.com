@@ -10,12 +10,12 @@ import ModalLeft from "../components/Utils/ModalLeft";
 import { useDelayUnmount } from "../utils/Funciones";
 import { NextPage } from "next";
 import { Event } from "../utils/Interfaces";
-import { fetchApiEventos, queries } from "../utils/Fetching";
 import VistaSinCookie from "../pages/vista-sin-cookie"
 import { useMounted } from "../hooks/useMounted"
 import { useRouter } from "next/router";
 
 const Home: NextPage = () => {
+  const { user, verificationDone, config } = AuthContextProvider()
   const [isMounted, setIsMounted] = useState<boolean>(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const { setEventsGroup } = EventsGroupContextProvider()
@@ -31,16 +31,6 @@ const Home: NextPage = () => {
     }
   }, [router.query])
 
-
-  useEffect(() => {
-    fetchApiEventos({
-      query: queries.getEventsByID,
-      variables: { userID: user?.uid },
-    })
-      .then((events: Event[]) => setEventsGroup({ type: "INITIAL_STATE", payload: events }))
-      .catch((error) => console.log(error));
-  }, []);
-
   useEffect(() => {
     if (showEditEvent && !isMounted && !valir) {
       setIsMounted(true)
@@ -52,8 +42,6 @@ const Home: NextPage = () => {
     }
   }, [showEditEvent, isMounted, valir])
 
-
-  const { user, verificationDone } = AuthContextProvider()
   if (verificationDone) {
     if (!user) {
       return (
