@@ -391,7 +391,17 @@ export const queries = {
     }
   }`,
   addCompartitions: `mutation($args:inputCompartition){
-    addCompartition(args:$args)
+    addCompartition(args:$args){
+      compartido_array
+      detalles_compartidos_array{
+        email
+        uid
+        permissions{
+          title
+          value
+        }
+      }
+    }
   }`,
   updateCompartitions: `mutation($args:inputCompartition){
     updateCompartition(args:$args)

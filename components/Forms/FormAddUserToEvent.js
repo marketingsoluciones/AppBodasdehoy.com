@@ -1,25 +1,17 @@
-import { Form, Formik } from "formik"
-import { InputFieldGlobal } from "./InputFieldGlobal"
-import React, { useEffect, useMemo, useState } from 'react'
-import Select, { StylesConfig, createFilter } from 'react-select'
-import { fetchApiBodas, queries } from "../../utils/Fetching"
-import { AuthContextProvider } from "../../context"
 import { TagsInput } from "react-tag-input-component";
 
-
-export const FormAddUserToEvent = ({ setUsers }) => {
-    const { config, user } = AuthContextProvider()
-
-
+export const FormAddUserToEvent = ({ setUsers, optionsExist }) => {
     const handleSubmit = (selectedOption) => {
         setUsers(selectedOption)
     }
 
     const beforeAddValidate = (tag) => {
+        const validator = []
         const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        return regex.test(tag);
+        validator.push(regex.test(tag) ? true : false)
+        validator.push(optionsExist.includes(tag) ? false : true)
+        return !validator.includes(false)
     }
-
 
     return (
         <div className={`flex flex-col space-y-1 mb-5 md:mb-0`}>

@@ -48,6 +48,7 @@ export const ModalPermissionList = ({ data, setOpenModal }) => {
                 }
             }
         });
+        setOpenModal(false)
     }
 
     return (
