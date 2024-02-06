@@ -82,9 +82,15 @@ const EventsGroupProvider = ({ children }) => {
       })
         .then((events: Event[]) => {
           if (events.length == 0) router.push("/")
+
           Promise.all(
             events.map(async (event) => {
               if (event?.compartido_array?.length) {
+                const fMyUid = event?.compartido_array?.findIndex(elem => elem === user?.uid)
+                if (fMyUid > -1) {
+                  event.compartido_array.splice(fMyUid, 1)
+                  event.detalles_compartidos_array.splice(fMyUid, 1)
+                }
                 const results = await fetchApiBodas({
                   query: queries?.getUsers,
                   variables: { uids: event?.compartido_array },
@@ -97,6 +103,7 @@ const EventsGroupProvider = ({ children }) => {
                   }
                 })
               }
+
               return event
             })
           ).then((values) => {
