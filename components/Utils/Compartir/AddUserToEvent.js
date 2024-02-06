@@ -4,10 +4,11 @@ import { CopiarLink, ListUserToEvent, PermissionList } from "."
 import { useEffect, useState } from "react"
 import { fetchApiEventos, queries } from "../../../utils/Fetching"
 import { useToast } from "../../../hooks/useToast"
-import { EventContextProvider, EventsGroupContextProvider } from "../../../context"
+import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../../context"
 
 export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
     const toast = useToast();
+    const { config } = AuthContextProvider()
     const { setEvent } = EventContextProvider()
     const { eventsGroup, setEventsGroup } = EventsGroupContextProvider()
     const [users, setUsers] = useState([])
@@ -57,7 +58,7 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
             return [...old]
         })
     }
-
+    console.log(config)
     return (
         <>
             <div className="z-50 fixed top-0 left-0 w-screen h-screen" />
@@ -78,7 +79,7 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
                                 }
                             </div>
                             <div>
-                                <CopiarLink link={`https://bodasdehoy.com/login?p=${event?._id}`} />
+                                <CopiarLink link={`https://${config?.domain.slice(1)}/?pAccShas=${event?._id}`} />
                                 <div className="flex">
                                     <div className="flex-1" />
                                     {users.length
