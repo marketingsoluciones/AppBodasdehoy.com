@@ -78,7 +78,7 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
                                 }
                             </div>
                             <div>
-                                <CopiarLink />
+                                <CopiarLink link={`https://bodasdehoy.com/login?p=${event?._id}`} />
                                 <div className="flex">
                                     <div className="flex-1" />
                                     {users.length
