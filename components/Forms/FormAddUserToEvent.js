@@ -2,9 +2,10 @@ import { TagsInput } from "react-tag-input-component";
 import { AuthContextProvider } from "../../context";
 import { useEffect, useState } from "react";
 
-export const FormAddUserToEvent = ({ users, setUsers, optionsExist }) => {
+export const FormAddUserToEvent = ({ users, setUsers, optionsExist, setValir }) => {
     const { user } = AuthContextProvider()
     const [error, setError] = useState(null)
+
 
     const handleSubmit = (selectedOption) => {
         setUsers(selectedOption)
@@ -24,6 +25,11 @@ export const FormAddUserToEvent = ({ users, setUsers, optionsExist }) => {
         return !validator.includes(false)
     }
 
+    const onBlur = () => {
+        const imp = document.getElementsByName("emails")
+        setValir(!imp[0].value)
+    }
+
     return (
         <div className={`flex flex-col space-y-1 mb-5 md:mb-0`}>
             <label className="text-primary">Agregar nuevo usuario</label>
@@ -31,8 +37,9 @@ export const FormAddUserToEvent = ({ users, setUsers, optionsExist }) => {
                 <TagsInput
                     value={users}
                     onChange={handleSubmit}
+                    onKeyUp={onBlur}
                     name="emails"
-                    placeHolder="correo@email.com"
+                    placeHolder="ej.: correo@email.com ;"
                     beforeAddValidate={beforeAddValidate}
                     separators={separators}
                     classNames={{

@@ -11,7 +11,7 @@ export const ListUserToEvent = ({ event }) => {
                 {event?.detalles_compartidos_array.map((item, idx) => {
                     return (
                         <div key={idx}>
-                            <User data={item} />
+                            <User data={item} event={event} />
                         </div>
                     )
                 })}
@@ -20,7 +20,7 @@ export const ListUserToEvent = ({ event }) => {
     )
 }
 
-const User = ({ data }) => {
+const User = ({ data, event }) => {
     const [openModal, setOpenModal] = useState(false)
     return (
         <div className={`${openModal && "bg-gray-100"} w-full flex items-center py-1 px-2 space-x-2 text-xs`}>
@@ -46,7 +46,7 @@ const User = ({ data }) => {
                 </div>
             </div>
             {openModal &&
-                <ModalPermissionList data={data} setOpenModal={setOpenModal} />
+                <ModalPermissionList data={data} setOpenModal={setOpenModal} event={event} />
             }
         </div>
     )

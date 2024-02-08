@@ -4,8 +4,8 @@ import { useState } from "react";
 import { EventContextProvider, EventsGroupContextProvider } from "../../../context";
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
 
-export const ModalPermissionList = ({ data, setOpenModal }) => {
-    const { event, setEvent } = EventContextProvider()
+export const ModalPermissionList = ({ data, setOpenModal, event }) => {
+    const { setEvent } = EventContextProvider()
     const { eventsGroup, setEventsGroup } = EventsGroupContextProvider()
     const [permissions, setPermissions] = useState([...data?.permissions])
 
@@ -38,7 +38,7 @@ export const ModalPermissionList = ({ data, setOpenModal }) => {
         eventsGroup[f1].detalles_compartidos_array.splice(f2, 1)
         eventsGroup[f1].compartido_array.splice(f2, 1)
         setEventsGroup([...eventsGroup])
-        setEvent({ ...eventsGroup[f1] })
+        //setEvent({ ...eventsGroup[f1] })
         await fetchApiEventos({
             query: queries.deleteCompartitions,
             variables: {

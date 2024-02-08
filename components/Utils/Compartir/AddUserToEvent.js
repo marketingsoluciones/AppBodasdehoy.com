@@ -14,6 +14,7 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
     const [users, setUsers] = useState([])
     const [permissions, setPermissions] = useState([])
     const [isMounted, setIsMounted] = useState(false)
+    const [valir, setValir] = useState(true)
 
     useEffect(() => {
         if (!isMounted) {
@@ -42,7 +43,7 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
             eventsGroup[f1].detalles_compartidos_array.push(...results.detalles_compartidos_array)
             eventsGroup[f1].compartido_array.push(...results.compartido_array)
             setEventsGroup([...eventsGroup])
-            setEvent({ ...eventsGroup[f1] })
+            // setEvent({ ...eventsGroup[f1] })
             // falta setear evento
             toast("success", "Evento fue compartido con exito ");
         } catch (error) {
@@ -72,7 +73,7 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
                         </div>
                         <div className="flex flex-col relative space-y-4 flex-1 overflow-auto px-2 md:px-8">
                             <div className="space-y-4 flex flex-col flex-1">
-                                <FormAddUserToEvent setUsers={setUsers} users={users} optionsExist={event?.detalles_compartidos_array?.map(elem => elem.email)} />
+                                <FormAddUserToEvent setUsers={setUsers} users={users} setValir={setValir} optionsExist={event?.detalles_compartidos_array?.map(elem => elem.email)} />
                                 {users.length
                                     ? <PermissionList permissions={permissions} setPermissions={setPermissions} handleChange={handleChangePermision} />
                                     : <ListUserToEvent event={event} />
@@ -83,8 +84,8 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
                                 <div className="flex">
                                     <div className="flex-1" />
                                     {users.length
-                                        ? <button onClick={() => handleSubmit()} className="bg-primary text-white rounded-lg px-5 py-2 h-10">Guardar</button>
-                                        : <button onClick={() => setOpenModal(!openModal)} className="bg-primary text-white rounded-lg px-5 py-2 h-10">Hecho</button>
+                                        ? <button onClick={() => users?.length && handleSubmit()} className={`bg-primary text-white rounded-lg px-5 py-2 h-10`}>Guardar</button>
+                                        : <button onClick={() => valir && setOpenModal(!openModal)} className={`${valir ? "bg-primary" : "bg-gray-300"} text-white rounded-lg px-5 py-2 h-10`}>Hecho</button>
 
                                     }
                                 </div>
