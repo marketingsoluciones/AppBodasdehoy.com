@@ -120,6 +120,13 @@ const Card = ({ data, grupoStatus, idx }) => {
     }
   }
 
+  useEffect(() => {
+    if (eventsGroup?.length === 1) {
+      handleClick({ final: false })
+    }
+  }, [])
+
+
   return (
     <>
       <ModalAddUserToEvent openModal={openModal} setOpenModal={setOpenModal} event={data[idx]} />

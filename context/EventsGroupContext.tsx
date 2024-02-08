@@ -121,13 +121,13 @@ const EventsGroupProvider = ({ children }) => {
         })
         .catch((error) => console.log(error));
     }
-  }, [user, reload]);
+  }, [user]);
 
-  useEffect(() => {
-    if (router.asPath === "/" && eventsGroup?.length > 0) {
-      setReload(Date.now())
-    }
-  }, [router])
+  // useEffect(() => {
+  //   if (router.asPath === "/" && eventsGroup?.length > 0) {
+  //     setReload(Date.now())
+  //   }
+  // }, [router])
 
 
   return (

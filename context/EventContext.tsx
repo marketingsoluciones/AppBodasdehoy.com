@@ -77,14 +77,20 @@ const EventProvider = ({ children }) => {
   // Capturar eventos del cumulo y seleccionar uno
   useEffect(() => {
     if (eventsGroup && eventsGroup.length === 0) {
+      console.log(1012101)
       setEvent(null);
     }
-    if (eventsGroup && eventsGroup.length > 0) {
+    if (eventsGroup?.length > 0) {
+      console.log(1012102)
       if (!valir) {
         console.log("seteando evento")
-        const eventsPendientes = eventsGroup.filter(item => item.estatus === "pendiente")
-        const eventsGroupSort = eventsPendientes?.sort((a: any, b: any) => { return b.fecha_creacion - a.fecha_creacion })
-        setEvent(eventsGroupSort?.find(elem => elem._id === user?.eventSelected));
+        if (eventsGroup?.length > 1) {
+          const eventsPendientes = eventsGroup.filter(item => item.estatus === "pendiente")
+          const eventsGroupSort = eventsPendientes?.sort((a: any, b: any) => { return b.fecha_creacion - a.fecha_creacion })
+          setEvent(eventsGroupSort?.find(elem => elem._id === user?.eventSelected));
+        } else {
+          setEvent(eventsGroup[0])
+        }
         setValir(true)
       }
     }
