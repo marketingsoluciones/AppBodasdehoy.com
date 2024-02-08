@@ -8,7 +8,7 @@ export const ListUserToEvent = ({ event }) => {
         <div className="flex flex-col space-y-1 mb-5 md:mb-0 flex-1">
             <p className="text-primary">Personas con acceso</p>
             <div className="border border-gray-300 rounded-xl section overflow-y-auto flex-1 py-1">
-                {event?.detalles_compartidos_array.map((item, idx) => {
+                {event?.detalles_compartidos_array?.map((item, idx) => {
                     return (
                         <div key={idx}>
                             <User data={item} event={event} />

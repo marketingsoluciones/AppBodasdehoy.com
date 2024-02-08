@@ -138,7 +138,9 @@ const Card = ({ data, grupoStatus, idx }) => {
           <div className="space-y-2">
             {data[idx]?.usuario_id === user?.uid && <div onClick={() => {
               if (user?.displayName !== "guest") {
-                handleClick({ final: false })
+                setTimeout(() => {
+                  handleClick({ final: false })
+                }, 100);
                 setOpenModal(!openModal)
               }
             }} className="w-max h-max relative" >

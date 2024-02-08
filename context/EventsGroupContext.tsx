@@ -81,7 +81,9 @@ const EventsGroupProvider = ({ children }) => {
         variables: { userID: user?.uid },
       })
         .then((events: Event[]) => {
-          if (events.length == 0) router.push("/")
+          setTimeout(() => {
+            if (events.length == 0) router.push("/")
+          }, 100);
 
           Promise.all(
             events.map(async (event) => {
@@ -89,7 +91,7 @@ const EventsGroupProvider = ({ children }) => {
                 const fMyUid = event?.compartido_array?.findIndex(elem => elem === user?.uid)
                 if (fMyUid > -1) {
                   event.compartido_array.splice(fMyUid, 1)
-                  event.detalles_compartidos_array.splice(fMyUid, 1)
+                  event.detalles_compartidos_array?.splice(fMyUid, 1)
                 }
                 const results = await fetchApiBodas({
                   query: queries?.getUsers,
@@ -97,9 +99,9 @@ const EventsGroupProvider = ({ children }) => {
                   development: config?.development
                 });
                 results.map((result: detalle_compartidos_array) => {
-                  const f1 = event.detalles_compartidos_array.findIndex(elem => elem.uid === result.uid);
+                  const f1 = event.detalles_compartidos_array?.findIndex(elem => elem.uid === result.uid);
                   if (f1 > -1) {
-                    event.detalles_compartidos_array.splice(f1, 1, { ...event.detalles_compartidos_array[f1], ...result });
+                    event.detalles_compartidos_array?.splice(f1, 1, { ...event.detalles_compartidos_array[f1], ...result });
                   }
                 })
               }

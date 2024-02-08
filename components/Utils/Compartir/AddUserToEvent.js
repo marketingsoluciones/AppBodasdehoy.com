@@ -26,7 +26,7 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
         }
     }, [])
 
-    
+
 
     const handleSubmit = async () => {
         try {
@@ -42,10 +42,10 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
             });
             setUsers([])
             const f1 = eventsGroup.findIndex(elem => elem._id === event._id)
-            eventsGroup[f1].detalles_compartidos_array.push(...results.detalles_compartidos_array)
+            eventsGroup[f1].detalles_compartidos_array?.push(...results.detalles_compartidos_array)
             eventsGroup[f1].compartido_array.push(...results.compartido_array)
             setEventsGroup([...eventsGroup])
-             setEvent({ ...eventsGroup[f1] })
+            setEvent({ ...eventsGroup[f1] })
             // falta setear evento
             toast("success", "Evento fue compartido con exito ");
         } catch (error) {
@@ -55,11 +55,15 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
     }
 
     const handleChangePermision = (values) => {
-        setPermissions(old => {
-            const f1 = old.findIndex(elem => elem.title === values.title)
-            old.splice(f1, 1, { title: values.title, value: values.value })
-            return [...old]
-        })
+        try {
+            setPermissions(old => {
+                const f1 = old.findIndex(elem => elem.title === values.title)
+                old.splice(f1, 1, { title: values.title, value: values.value })
+                return [...old]
+            })
+        } catch (error) {
+            console.log(error)
+        }
     }
 
     return (

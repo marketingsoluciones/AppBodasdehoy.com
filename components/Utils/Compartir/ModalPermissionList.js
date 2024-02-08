@@ -10,45 +10,53 @@ export const ModalPermissionList = ({ data, setOpenModal, event }) => {
     const [permissions, setPermissions] = useState([...data?.permissions])
 
     const handleChangePermision = async (values) => {
-        setPermissions(old => {
-            const f1 = old.findIndex(elem => elem.title === values.title)
-            old.splice(f1, 1, { title: values.title, value: values.value })
-            return [...old]
-        })
+        try {
+            setPermissions(old => {
+                const f1 = old.findIndex(elem => elem.title === values.title)
+                old.splice(f1, 1, { title: values.title, value: values.value })
+                return [...old]
+            })
 
-        const f1 = event.detalles_compartidos_array.findIndex(elem => elem.uid === data?.uid)
-        event.detalles_compartidos_array[f1].permissions = permissions
-        setEvent({ ...event })
+            const f1 = event.detalles_compartidos_array?.findIndex(elem => elem.uid === data?.uid)
+            event.detalles_compartidos_array[f1].permissions = permissions
+            setEvent({ ...event })
 
-        await fetchApiEventos({
-            query: queries.updateCompartitions,
-            variables: {
-                args: {
-                    eventID: event._id,
-                    users: data?.uid,
-                    permissions: values
+            await fetchApiEventos({
+                query: queries.updateCompartitions,
+                variables: {
+                    args: {
+                        eventID: event._id,
+                        users: data?.uid,
+                        permissions: values
+                    }
                 }
-            }
-        });
+            });
+        } catch (error) {
+            console.log(error)
+        }
     }
 
     const handleDeleteCompartititon = async () => {
-        const f1 = eventsGroup.findIndex(elem => elem._id === event._id)
-        const f2 = eventsGroup[f1].detalles_compartidos_array.findIndex(elem => elem.uid === data?.uid)
-        eventsGroup[f1].detalles_compartidos_array.splice(f2, 1)
-        eventsGroup[f1].compartido_array.splice(f2, 1)
-        setEventsGroup([...eventsGroup])
-        setEvent({ ...eventsGroup[f1] })
-        await fetchApiEventos({
-            query: queries.deleteCompartitions,
-            variables: {
-                args: {
-                    eventID: event._id,
-                    users: data?.uid,
+        try {
+            const f1 = eventsGroup.findIndex(elem => elem._id === event._id)
+            const f2 = eventsGroup[f1].detalles_compartidos_array?.findIndex(elem => elem.uid === data?.uid)
+            eventsGroup[f1].detalles_compartidos_array?.splice(f2, 1)
+            eventsGroup[f1].compartido_array.splice(f2, 1)
+            setEventsGroup([...eventsGroup])
+            setEvent({ ...eventsGroup[f1] })
+            await fetchApiEventos({
+                query: queries.deleteCompartitions,
+                variables: {
+                    args: {
+                        eventID: event._id,
+                        users: data?.uid,
+                    }
                 }
-            }
-        });
-        setOpenModal(false)
+            });
+            setOpenModal(false)
+        } catch (error) {
+            console.log(error)
+        }
     }
 
     return (
