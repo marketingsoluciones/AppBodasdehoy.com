@@ -75,7 +75,7 @@ const EventsGroupProvider = ({ children }) => {
   }, [])
 
   useEffect(() => {
-    if (user && user?.displayName !== "guest") {
+    if (user) {
       fetchApiEventos({
         query: queries.getEventsByID,
         variables: { userID: user?.uid },
@@ -124,7 +124,7 @@ const EventsGroupProvider = ({ children }) => {
   }, [user, reload]);
 
   useEffect(() => {
-    if (router.asPath === "/") {
+    if (router.asPath === "/" && eventsGroup?.length > 0) {
       setReload(Date.now())
     }
   }, [router])
