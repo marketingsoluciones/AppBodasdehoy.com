@@ -127,8 +127,8 @@ const Card = ({ data, grupoStatus, idx }) => {
             <UsuariosCompartidos event={data[idx]} />
           </div>
           <div className="space-y-2">
-            {data[idx]?.usuario_id === user?.uid && <div onClick={() => { setOpenModal(!openModal) }} className="w-max h-max relative" >
-              <IoShareSocial className="w-6 h-6 cursor-pointer text-white hover:text-gray-300 -translate-x-1" />
+            {data[idx]?.usuario_id === user?.uid && <div onClick={() => { user?.displayName !== "guest" && setOpenModal(!openModal) }} className="w-max h-max relative" >
+              <IoShareSocial className={`w-6 h-6 cursor-pointer text-white ${user?.displayName !== "guest" && "hover:text-gray-300"} -translate-x-1`} />
             </div>}
             <div onClick={handleArchivarEvent} className="w-max h-max relative" >
               <IconFolderOpen className="w-5 h-6 cursor-pointer text-white hover:text-gray-300" />

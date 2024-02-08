@@ -33,8 +33,8 @@ const BlockTitle = ({ title }) => {
           <UsuariosCompartidos event={event} />
         </div>
         <span
-          className={`transition transform ${event?.usuario_id === user?.uid ? "hover:scale-110 cursor-pointer text-primary" : "text-gray-300"} z-30 translate-y-2 -translate-x-1.5 md:-translate-y-3 md:-translate-x-6`}
-          onClick={() => { event?.usuario_id === user?.uid && setOpenModal(!openModal) }}
+          className={`transition transform ${event?.usuario_id === user?.uid && user?.displayName !== "guest" ? "hover:scale-110 cursor-pointer text-primary" : "text-gray-300"} z-30 translate-y-2 -translate-x-1.5 md:-translate-y-3 md:-translate-x-6`}
+          onClick={() => { event?.usuario_id === user?.uid && user?.displayName !== "guest" && setOpenModal(!openModal) }}
         >
           <IoShareSocial className="w-6 h-6" />
         </span>

@@ -146,8 +146,8 @@ const BlockPrincipal: FC = () => {
             <UsuariosCompartidos event={event} />
           </div>
           <span
-            className={`transition transform z-30 ${event?.usuario_id === user?.uid ? "hover:scale-110 cursor-pointer text-primary" : "text-gray-300"}`}
-            onClick={() => { event?.usuario_id === user?.uid && setOpenModal(!openModal) }}>
+            className={`transition transform z-30 ${event?.usuario_id === user?.uid && user?.displayName !== "guest" ? "hover:scale-110 cursor-pointer text-primary" : "text-gray-300"}`}
+            onClick={() => { event?.usuario_id === user?.uid && user?.displayName !== "guest" && setOpenModal(!openModal) }}>
             <IoShareSocial className="w-6 h-6" />
           </span>
           <span
