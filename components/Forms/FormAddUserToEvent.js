@@ -2,7 +2,7 @@ import { TagsInput } from "react-tag-input-component";
 import { AuthContextProvider } from "../../context";
 import { useEffect, useState } from "react";
 
-export const FormAddUserToEvent = ({ setUsers, optionsExist }) => {
+export const FormAddUserToEvent = ({ users, setUsers, optionsExist }) => {
     const { user } = AuthContextProvider()
     const [error, setError] = useState(null)
 
@@ -29,6 +29,7 @@ export const FormAddUserToEvent = ({ setUsers, optionsExist }) => {
             <label className="text-primary">Agregar nuevo usuario</label>
             <div onKeyUp={(e) => { if (!separators.includes(e.key)) { error && setError(null) } }}>
                 <TagsInput
+                    value={users}
                     onChange={handleSubmit}
                     name="emails"
                     placeHolder="correo@email.com"

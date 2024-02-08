@@ -58,7 +58,7 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
             return [...old]
         })
     }
-    console.log(config)
+
     return (
         <>
             <div className="z-50 fixed top-0 left-0 w-screen h-screen" />
@@ -72,7 +72,7 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
                         </div>
                         <div className="flex flex-col relative space-y-4 flex-1 overflow-auto px-2 md:px-8">
                             <div className="space-y-4 flex flex-col flex-1">
-                                <FormAddUserToEvent setUsers={setUsers} optionsExist={event?.detalles_compartidos_array?.map(elem => elem.email)} />
+                                <FormAddUserToEvent setUsers={setUsers} users={users} optionsExist={event?.detalles_compartidos_array?.map(elem => elem.email)} />
                                 {users.length
                                     ? <PermissionList permissions={permissions} setPermissions={setPermissions} handleChange={handleChangePermision} />
                                     : <ListUserToEvent event={event} />
