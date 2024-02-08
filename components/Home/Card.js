@@ -31,7 +31,7 @@ const Card = ({ data, grupoStatus, idx }) => {
   const router = useRouter();
   const [openModal, setOpenModal] = useState(false)
 
-  const handleClick = () => {
+  const handleClick = ({ final = true }) => {
     try {
       fetchApiBodas({
         query: queries.updateUser,
@@ -48,7 +48,9 @@ const Card = ({ data, grupoStatus, idx }) => {
     } catch (error) {
       console.log(error);
     } finally {
-      router.push("/resumen-evento");
+      if (final) {
+        router.push("/resumen-evento");
+      }
     }
   };
 
@@ -127,7 +129,12 @@ const Card = ({ data, grupoStatus, idx }) => {
             <UsuariosCompartidos event={data[idx]} />
           </div>
           <div className="space-y-2">
-            {data[idx]?.usuario_id === user?.uid && <div onClick={() => { user?.displayName !== "guest" && setOpenModal(!openModal) }} className="w-max h-max relative" >
+            {data[idx]?.usuario_id === user?.uid && <div onClick={() => {
+              if (user?.displayName !== "guest") {
+                handleClick({ final: false })
+                setOpenModal(!openModal)
+              }
+            }} className="w-max h-max relative" >
               <IoShareSocial className={`w-6 h-6 cursor-pointer text-white ${user?.displayName !== "guest" && "hover:text-gray-300"} -translate-x-1`} />
             </div>}
             <div onClick={handleArchivarEvent} className="w-max h-max relative" >

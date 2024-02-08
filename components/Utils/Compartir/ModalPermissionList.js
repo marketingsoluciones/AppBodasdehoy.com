@@ -38,7 +38,7 @@ export const ModalPermissionList = ({ data, setOpenModal, event }) => {
         eventsGroup[f1].detalles_compartidos_array.splice(f2, 1)
         eventsGroup[f1].compartido_array.splice(f2, 1)
         setEventsGroup([...eventsGroup])
-        //setEvent({ ...eventsGroup[f1] })
+        setEvent({ ...eventsGroup[f1] })
         await fetchApiEventos({
             query: queries.deleteCompartitions,
             variables: {

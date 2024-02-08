@@ -75,7 +75,7 @@ const EventsGroupProvider = ({ children }) => {
   }, [])
 
   useEffect(() => {
-    if (user) {
+    if (user && user?.displayName !== "guest") {
       fetchApiEventos({
         query: queries.getEventsByID,
         variables: { userID: user?.uid },

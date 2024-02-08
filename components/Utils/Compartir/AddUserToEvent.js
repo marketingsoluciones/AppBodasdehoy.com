@@ -26,6 +26,8 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
         }
     }, [])
 
+    
+
     const handleSubmit = async () => {
         try {
             const results = await fetchApiEventos({
@@ -43,7 +45,7 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
             eventsGroup[f1].detalles_compartidos_array.push(...results.detalles_compartidos_array)
             eventsGroup[f1].compartido_array.push(...results.compartido_array)
             setEventsGroup([...eventsGroup])
-            // setEvent({ ...eventsGroup[f1] })
+             setEvent({ ...eventsGroup[f1] })
             // falta setear evento
             toast("success", "Evento fue compartido con exito ");
         } catch (error) {
