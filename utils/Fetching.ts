@@ -210,7 +210,21 @@ export const queries = {
     ){
       _id
       grupos_array
+      compartido_array
+      detalles_compartidos_array{
+        email
+        uid
+        permissions{
+          title
+          value
+        }
+      }
       estatus
+      color
+      temporada
+      estilo
+      tematica
+      tarta
       nombre
       fecha_actualizacion
       fecha_creacion
@@ -218,8 +232,17 @@ export const queries = {
       usuario_id
       usuario_nombre
       fecha
+      listaRegalos
       poblacion
       pais
+      imgInvitacion{
+        _id
+        i1024
+        i800
+        i640
+        i320
+        createdAt
+      }
       notificaciones_array{
         _id
         fecha_creacion
@@ -333,6 +356,13 @@ export const queries = {
         grupo_edad
         correo
         telefono
+        chairs{
+          planSpaceID
+          sectionID
+          tableID
+          position
+          order
+        }
         nombre_mesa
         puesto
         asistencia
@@ -344,6 +374,8 @@ export const queries = {
         poblacion
         pais
         direccion
+        invitacion
+        fecha_invitacion
       }
       menus_array{
         nombre_menu
@@ -373,6 +405,7 @@ export const queries = {
               fecha_vencimiento
               medio_pago
               importe
+              pagado_por
             }
           }
           

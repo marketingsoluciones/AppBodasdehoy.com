@@ -2,7 +2,7 @@ import ClickAwayListener from "react-click-away-listener"
 import { FormAddUserToEvent } from "../../Forms/FormAddUserToEvent"
 import { CopiarLink, ListUserToEvent, PermissionList } from "."
 import { useEffect, useState } from "react"
-import { fetchApiEventos, queries } from "../../../utils/Fetching"
+import { fetchApiBodas, fetchApiEventos, queries } from "../../../utils/Fetching"
 import { useToast } from "../../../hooks/useToast"
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../../context"
 
@@ -40,8 +40,20 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
                     }
                 }
             });
+            const resultsUser = await fetchApiBodas({
+                query: queries?.getUsers,
+                variables: { uids: results?.compartido_array },
+                development: config?.development
+            });
+            resultsUser.map((result) => {
+                const f1 = results.detalles_compartidos_array?.findIndex(elem => elem.uid === result.uid);
+                if (f1 > -1) {
+                    results.detalles_compartidos_array?.splice(f1, 1, { ...results.detalles_compartidos_array[f1], ...result });
+                }
+            })
             setUsers([])
             const f1 = eventsGroup.findIndex(elem => elem._id === event._id)
+            console.log(eventsGroup[f1])
             eventsGroup[f1].detalles_compartidos_array?.push(...results.detalles_compartidos_array)
             eventsGroup[f1].compartido_array.push(...results.compartido_array)
             setEventsGroup([...eventsGroup])

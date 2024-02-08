@@ -20,7 +20,7 @@ export const FormAddUserToEvent = ({ users, setUsers, optionsExist, setValir }) 
         const validator = []
         const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         validator.push(regex.test(tag) ? true : errorValidator("Correo inválido"))
-        validator.push(optionsExist.includes(tag) ? errorValidator("Ya está compartido") : true)
+        validator.push(optionsExist?.includes(tag) ? errorValidator("Ya está compartido") : true)
         validator.push(user?.email === tag ? errorValidator("No permitido") : true)
         return !validator.includes(false)
     }
