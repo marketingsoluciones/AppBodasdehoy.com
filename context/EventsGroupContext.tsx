@@ -87,18 +87,7 @@ const EventsGroupProvider = ({ children }) => {
 
           Promise.all(
             events.map(async (event) => {
-              // if (user.uid === event.usuario_id) {
-              //   event.detalles_usuario_id = {
-              //     displayName: user?.displayName,
-              //     email: user?.email,
-              //     onLine: {
-              //       status: true,
-              //       dateConection: new Date().getTime()
-              //     },
-              //     photoURL: user?.photoURL,
-              //     uid: user?.uid,
-              //   }
-              // }
+
               if (event?.compartido_array?.length) {
                 const fMyUid = event?.compartido_array?.findIndex(elem => elem === user?.uid)
                 if (fMyUid > -1) {
@@ -120,13 +109,11 @@ const EventsGroupProvider = ({ children }) => {
                   }
                 })
               }
-
               return event
             })
           ).then((values) => {
             setEventsGroup({ type: "INITIAL_STATE", payload: values })
           })
-
         })
         .catch((error) => console.log(error));
       fetchApiEventos({
@@ -139,13 +126,6 @@ const EventsGroupProvider = ({ children }) => {
         .catch((error) => console.log(error));
     }
   }, [user]);
-
-  // useEffect(() => {
-  //   if (router.asPath === "/" && eventsGroup?.length > 0) {
-  //     setReload(Date.now())
-  //   }
-  // }, [router])
-
 
   return (
     <EventsGroupContext.Provider value={{ eventsGroup, setEventsGroup, psTemplates, setPsTemplates }}>

@@ -26,8 +26,6 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
         }
     }, [])
 
-
-
     const handleSubmit = async () => {
         try {
             const results = await fetchApiEventos({

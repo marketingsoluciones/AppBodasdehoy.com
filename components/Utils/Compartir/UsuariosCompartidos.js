@@ -29,7 +29,6 @@ export const UsuariosCompartidos = ({ event }) => {
                     </div>
                 </div>}
                 {sharedUser?.slice(sharedUser?.length > 5 ? -4 : -sharedUser?.length)?.map((item, idx) => {
-                    console.log(item)
                     return (
                         <div key={idx} style={{ right: 18 * idx }} className="absolute z-20">
                             <div className="bg-gray-300 rounded-full w-7 h-7 flex items-center justify-center  border relative">
