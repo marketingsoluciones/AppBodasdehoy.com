@@ -3,9 +3,13 @@ import React, { FC, useContext } from "react";
 import { EventContextProvider } from "../../context";
 import { MesaIcon } from "../icons";
 import { guests } from '../../utils/Interfaces';
+import { useAllowed } from "../../hooks/useAllowed";
+import { useRouter } from "next/router";
 
 const BlockMesas: FC = () => {
   const { event } = EventContextProvider()
+  const [isAllowed, ht] = useAllowed()
+  const router = useRouter()
 
   const InvitadoSentados: guests[] = event?.invitados_array?.filter(
     (invitado) => invitado.nombre_mesa.toLowerCase() !== "no asignado"
@@ -77,11 +81,11 @@ const BlockMesas: FC = () => {
           }
         </div>
 
-        <Link href="/mesas">
+        <div onClick={() => !isAllowed("mesas") ? ht() : router.push("/mesas")}>
           <button className="rounded-lg border border-primary px-2 font-display text-primary text-sm py-1 hover:text-white hover:bg-primary transition focus:outline-none">
             Ver mesas
           </button>
-        </Link>
+        </div>
       </div>
     </div>
   );

@@ -10,6 +10,7 @@ import { defaultImagenes } from "../Home/Card";
 import { ModalAddUserToEvent, UsuariosCompartidos } from "../Utils/Compartir";
 import { IoShareSocial } from "react-icons/io5";
 import { useAllowed } from "../../hooks/useAllowed"
+import { useToast } from "../../hooks/useToast";
 
 interface propsBlockVista {
   children?: React.ReactNode;
@@ -128,7 +129,9 @@ const BlockPrincipal: FC = () => {
   const { event } = EventContextProvider()
   const { user } = AuthContextProvider()
   const [openModal, setOpenModal] = useState(false)
-  const [isAllowed] = useAllowed()
+  const [isAllowed, ht] = useAllowed()
+
+
 
   const handleEdit = (): void => {
     setIsMounted(!isMounted);
@@ -154,7 +157,7 @@ const BlockPrincipal: FC = () => {
           </span>
           <span
             className="transition transform hover:scale-110 *hover:rotate-12 cursor-pointer z-30"
-            onClick={!isAllowed() ? null : handleEdit}
+            onClick={() => !isAllowed() ? ht() : handleEdit}
           >
             <PencilEdit className="w-6 h-6 text-primary" />
           </span >

@@ -9,6 +9,7 @@ import ModalBottom from "../Utils/ModalBottom";
 import { fetchApiEventos, queries } from '../../utils/Fetching';
 import { EventContextProvider, EventsGroupContextProvider } from "../../context";
 import { useToast } from "../../hooks/useToast";
+import { useAllowed } from "../../hooks/useAllowed";
 
 
 
@@ -273,13 +274,13 @@ interface propsElement extends schemaItem {
 }
 
 const AboutItem: FC<propsElement> = ({ title, value, toggleClick }) => {
-
+  const [isAllowed, ht] = useAllowed()
 
 
   return (
     <>
       <button
-        onClick={toggleClick}
+        onClick={() => !isAllowed() ? ht() : toggleClick()}
         className="relative bg-white rounded-full w-32 md:w-40 h-32 md:h-40 shadow-md gap-2 flex flex-col items-center justify-center focus:outline-none mx-auto inset-x-0"
       >
         {!value ? (

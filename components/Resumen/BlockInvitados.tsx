@@ -7,9 +7,11 @@ import {
   InvitadosConfirmados,
   InvitadosPendientes,
 } from "../icons";
+import { useAllowed } from "../../hooks/useAllowed";
 
 const BlockInvitados: FC = () => {
   const { event } = EventContextProvider();
+  const [isAllowed, ht] = useAllowed()
 
   const totalAccordingTo = (prop: string, param: string) => {
     return event?.invitados_array?.filter((item) => item[prop] == param)?.length;
@@ -82,7 +84,7 @@ const BlockInvitados: FC = () => {
           ))}
         </Swiper>
         <button
-          onClick={() => router.push("/invitados")}
+          onClick={() => !isAllowed("invitados") ? ht() : router.push("/invitados")}
           className="focus:outline-none rounded-lg border border-primary px-2 mx-auto inset-x-0 font-display text-primary text-sm py-1 hover:text-white hover:bg-primary transition"
         >
           Añadir Invitados
