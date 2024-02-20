@@ -9,6 +9,7 @@ import FormCrearEvento from "../Forms/FormCrearEvento";
 import { defaultImagenes } from "../Home/Card";
 import { ModalAddUserToEvent, UsuariosCompartidos } from "../Utils/Compartir";
 import { IoShareSocial } from "react-icons/io5";
+import { useAllowed } from "../../hooks/useAllowed"
 
 interface propsBlockVista {
   children?: React.ReactNode;
@@ -127,6 +128,7 @@ const BlockPrincipal: FC = () => {
   const { event } = EventContextProvider()
   const { user } = AuthContextProvider()
   const [openModal, setOpenModal] = useState(false)
+  const [isAllowed] = useAllowed()
 
   const handleEdit = (): void => {
     setIsMounted(!isMounted);
@@ -152,18 +154,20 @@ const BlockPrincipal: FC = () => {
           </span>
           <span
             className="transition transform hover:scale-110 *hover:rotate-12 cursor-pointer z-30"
-            onClick={handleEdit}
+            onClick={!isAllowed() ? null : handleEdit}
           >
             <PencilEdit className="w-6 h-6 text-primary" />
-          </span>
-        </div>
-      </BlockVista>
+          </span >
+        </div >
+      </BlockVista >
     </>
   );
 };
 export default BlockPrincipal;
 
 const BlockEditar = ({ set, state }) => {
+  const { event } = EventContextProvider()
+
   return (
     <div className="w-full bg-white shadow rounded-xl overflow-hidden relative flex flex-col-reverse md:flex-row md:h-72 gap-12 md:gap-0 p-8">
       <div className="col-span-2 border-l-2 border-gray-100 pl-3 h-20 w-full ">
@@ -175,7 +179,7 @@ const BlockEditar = ({ set, state }) => {
         </h2>
         <button className="button-primary" onClick={set(!state)}>Cancelar</button>
       </div>
-    </div>
+    </div >
   );
 };
 

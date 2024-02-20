@@ -4,6 +4,7 @@ import { EventsGroupContextProvider } from "./EventsGroupContext";
 import { getAllFilterGuest } from "../utils/Funciones";
 import { SocketContextProvider } from "./SocketContext";
 import { AuthContextProvider } from "./AuthContext";
+import { useRouter } from "next/router";
 
 interface idxGroupEvent {
   idx: number
@@ -73,6 +74,7 @@ const EventProvider = ({ children }) => {
   const [editDefault, setEditDefault] = useState<EditDefaultTableAndElement>()
   const { socket } = SocketContextProvider()
   const { user } = AuthContextProvider()
+  const router = useRouter()
 
   // Capturar eventos del cumulo y seleccionar uno
   useEffect(() => {
@@ -95,6 +97,25 @@ const EventProvider = ({ children }) => {
       }
     }
   }, [eventsGroup, valir]);
+
+  // useEffect(() => {
+  //   let path = router.asPath.split("/")[1].split("-")[0]
+  //   if (path !== "") {
+  //     if (path === "lista") {
+  //       path = "regalos"
+  //     }
+  //     const f1 = event?.permissions?.findIndex(elem => elem.title === path)
+  //     if (f1 > -1) {
+  //       event.permission = event?.permissions[f1].value === "edit"
+  //       console.log(117492, event.permission)
+  //     }
+  //   } else {
+  //     const asd = { ...event, permission: true }
+  //     if (event) event.permission = true
+  //     //setEvent()
+  //   }
+  //   console.log(117491, path, event?.permission)
+  // }, [router, event?.permissions])
 
   useEffect(() => {
     if (event?.planSpaceSelect) {

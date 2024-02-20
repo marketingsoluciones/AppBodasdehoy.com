@@ -26,6 +26,8 @@ export interface Event {
     imgInvitacion: image
     presupuesto_objeto: estimate
     listaRegalos: string
+    permissions: permission[]
+    //permission: boolean
 }
 
 interface menu {

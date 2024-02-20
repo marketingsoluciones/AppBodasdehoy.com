@@ -91,6 +91,7 @@ const EventsGroupProvider = ({ children }) => {
               if (event?.compartido_array?.length) {
                 const fMyUid = event?.compartido_array?.findIndex(elem => elem === user?.uid)
                 if (fMyUid > -1) {
+                  event.permissions = [...event.detalles_compartidos_array[fMyUid].permissions]
                   event.compartido_array.splice(fMyUid, 1)
                   event.detalles_compartidos_array?.splice(fMyUid, 1)
                 }
