@@ -7,6 +7,7 @@ export interface Event {
     tipo: string
     nombre: string
     usuario_id: string
+    detalles_usuario_id: detalle_compartidos_array
     usuario_nombre: string
     compartido_array: string[]
     detalles_compartidos_array: detalle_compartidos_array[]
@@ -47,7 +48,7 @@ export interface detalle_compartidos_array {
     displayName: string
     photoURL: string
     onLine: onLine
-    permissions: permission[]
+    permissions?: permission[]
 }
 
 interface estimate {
