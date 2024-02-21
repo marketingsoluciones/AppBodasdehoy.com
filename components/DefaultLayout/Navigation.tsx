@@ -10,6 +10,7 @@ import NavbarDirectory from "../Utils/NavbarDirectory";
 import Head from "next/head";
 import { Tooltip } from "../Utils/Tooltip";
 import ClickAwayListener from "react-click-away-listener";
+import { useAllowedRouter } from "../../hooks/useAllowed";
 
 const Navigation: any = (
   notificaciones: any,
@@ -26,6 +27,7 @@ const Navigation: any = (
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const url = router.pathname
   const { socket } = SocketContextProvider()
+  const [isAllowedRouter, ht] = useAllowedRouter()
 
   useEffect(() => {
     setRoute(router.pathname)
@@ -137,8 +139,7 @@ const Navigation: any = (
                     key={idx}
                     onClick={() => {
                       if (item.condicion) {
-                        router.push(item.route)
-                        setRoute(item.route)
+                        !isAllowedRouter(item.route) ? ht() : [router.push(item.route), setRoute(item.route)]
                       }
                     }}
                     className={`w-max flex flex-col justify-between items-center hover:opacity-80  transition  cursor-pointer

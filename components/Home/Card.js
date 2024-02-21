@@ -44,12 +44,30 @@ const Card = ({ data, grupoStatus, idx }) => {
       })
       user.eventSelected = data[idx]?._id
       setUser(user)
-      setEvent(data[idx]);
     } catch (error) {
       console.log(error);
     } finally {
       if (final) {
-        router.push("/resumen-evento");
+        if (data[idx]?.permissions) {
+          const permissions = data[idx]?.permissions?.filter(elem => ["view", "edit"].includes(elem.value))
+          if (permissions.length) {
+            const f1 = permissions.findIndex(elem => elem.value === "resumen")
+            if (f1 > -1) {
+              setEvent(data[idx]);
+              router.push("/resumen-evento");
+            } else {
+              setEvent(data[idx]);
+              let p = permissions[0].title
+              if (p === "regalos") p = "lista-regalos"
+              router.push("/" + p);
+            }
+          } else {
+            toast("warning", "No tienes permiso, contacta al organizador del evento")
+          }
+        } else {
+          setEvent(data[idx]);
+          router.push("/resumen-evento");
+        }
       }
     }
   };
