@@ -157,7 +157,7 @@ const BlockPrincipal: FC = () => {
           </span>
           <span
             className="transition transform hover:scale-110 *hover:rotate-12 cursor-pointer z-30"
-            onClick={() => !isAllowed() ? ht() : handleEdit}
+            onClick={() => !isAllowed() ? ht() : handleEdit()}
           >
             <PencilEdit className="w-6 h-6 text-primary" />
           </span >

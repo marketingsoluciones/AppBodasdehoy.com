@@ -9,6 +9,7 @@ import DatatableGroup from "./GrupoTablas";
 import SentarBlock from "./SentarBlock";
 import { ModalPDF } from "../Utils/ModalPDF";
 import { useToast } from "../../hooks/useToast";
+import { useAllowed } from "../../hooks/useAllowed";
 
 interface propsBlockListaInvitados {
   state: boolean;
@@ -25,6 +26,7 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu, s
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const [invitadoSelected, setSelected] = useState<string | null>(null);
   const toast = useToast()
+  const [isAllowed, ht] = useAllowed()
 
   const handleClick = (e, click) => {
     e.preventDefault();
@@ -36,28 +38,28 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu, s
     <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full md:px-6 pt-2 md:pt-6 pb-28 mb-32 md:mb-0 md:p-12 relative">
       <div className="flex gap-2 md:gap-4 items-center mt-1 mb-3 md:mb-5 mx-2">
         <button
-          onClick={(e) => handleClick(e, "invitado")}
+          onClick={(e) => !isAllowed() ? ht() : handleClick(e, "invitado")}
           className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary md:bg-primary md:text-white md:hover:bg-white md:hover:text-primary"
         >
           <PlusIcon />
           Invitado
         </button>
         <button
-          onClick={(e) => handleClick(e, "grupo")}
+          onClick={(e) => !isAllowed() ? ht() : handleClick(e, "grupo")}
           className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
         >
           <PlusIcon />
           Grupo
         </button>
         <button
-          onClick={(e) => handleClick(e, "menu")}
+          onClick={(e) => !isAllowed() ? ht() : handleClick(e, "menu")}
           className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
         >
           <PlusIcon />
           Menu
         </button>
         <button
-          onClick={() => event?.invitados_array.length > 0 ? setCreatePDF(!createPDF) : toast("error", "Debes agregar invitados")}
+          onClick={() => !isAllowed() ? ht() : event?.invitados_array.length > 0 ? setCreatePDF(!createPDF) : toast("error", "Debes agregar invitados")}
           className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
         >
           {/* <PlusIcon /> */}
