@@ -17,6 +17,7 @@ export const useAllowed = () => {
     const toast = useToast();
 
     const router = useRouter()
+
     const isAllowed = (pathM?: keyof typeof types) => {
       let path = pathM ? pathM : router.asPath.split("/")[1].split("-")[0]
       if (path !== "") {

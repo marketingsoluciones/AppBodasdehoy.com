@@ -4,25 +4,27 @@ import { api } from "../../api";
 import { EventContextProvider } from "../../context";
 import { getCurrency } from "../../utils/Funciones";
 import { capitalize } from '../../utils/Capitalize';
+import { useAllowed } from "../../hooks/useAllowed";
 
 const CellEdit = (props) => {
   const { event, setEvent } = EventContextProvider()
   const [edit, setEdit] = useState(false);
   const [mask, setMask] = useState(0);
   const [value, setValue] = useState();
+  const [isAllowed, ht] = useAllowed()
 
   useEffect(() => {
     setValue(typeof props?.value == "string" ? capitalize(props?.value) : props?.value)
   }, [props.value])
 
   useEffect(() => {
-      if(props?.type == "text"){
-        setMask(value)
-      }
-      if(props?.type == "number"){
-        setMask( getCurrency(value, "EUR") );
-      }
-  }, [ value ]);
+    if (props?.type == "text") {
+      setMask(value)
+    }
+    if (props?.type == "number") {
+      setMask(getCurrency(value, "EUR"));
+    }
+  }, [value]);
 
   const keyDown = (e) => {
     let tecla = e.key.toLowerCase();
@@ -105,8 +107,8 @@ const CellEdit = (props) => {
             className="focus:outline-none text-center w-full border-b border-gray-200 px-2 py-1 h-full"
           />
         ) : (
-          <p className="cursor-pointer hover:scale-105 transform transition text-center w-full truncate px-2 py-1 h-6" onClick={() => setEdit(true)}>
-            { typeof value == "string" ? capitalize(value)  : mask}
+          <p className="cursor-pointer hover:scale-105 transform transition text-center w-full truncate px-2 py-1 h-6" onClick={() => !isAllowed() ? null : setEdit(true)}>
+            {typeof value == "string" ? capitalize(value) : mask}
           </p>
         )}
         <style jsx>

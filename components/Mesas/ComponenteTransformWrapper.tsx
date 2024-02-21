@@ -12,8 +12,7 @@ import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider }
 import ClickAwayListener from "react-click-away-listener";
 import { planSpace } from "../../utils/Interfaces";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
-
-
+import { useAllowed } from "../../hooks/useAllowed";
 
 export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransform, resetTransform, centerView, state, setFullScreen, disableWrapper,
   setDisableWrapper, fullScreen, lienzo, setLienzo, scale, setScale, setShowFormEditar, scaleIni, ...rest }) => {
@@ -28,7 +27,7 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
   const [value, setValue] = useState("")
   const [valir, setValir] = useState(true)
   const [ident, setident] = useState(false)
-
+  const [isAllowed, ht] = useAllowed()
 
   useEffect(() => {
     centerView(scaleIni)
@@ -79,7 +78,7 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
             <SearchIcon className="w-[13px] h-6" />
             <span className="text-sm pb-1">- </span>
           </ButtonConstrolsLienzo>
-          <ButtonConstrolsLienzo onClick={handleSetDisableDrag} pulseButton={disableDrag}>
+          <ButtonConstrolsLienzo onClick={() => { !isAllowed() ? ht() : handleSetDisableDrag() }} pulseButton={disableDrag}>
             <span className="text-[10px] w-28 h-6 px-1 pt-[3px]">{disableDrag ? 'Desbloquear plano' : 'Bloquear plano'}</span>
           </ButtonConstrolsLienzo>
           <span className={`${disableDrag ? "block" : "hidden"}  `} onClick={() => { toast("error", "Desbloquea el plano para poder mover las mesas ") }}>
@@ -89,7 +88,7 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
         <div className="flex text-red-700 items-center pr-2 md:pr-3 gap-1 md:gap-2">
           <ClickAwayListener onClickAway={() => setShowMiniMenu(false)}>
             <div>
-              <MdSaveAlt className="h-6 w-6 cursor-pointer text-primary" onClick={() => setShowMiniMenu(!showMiniMenu)} />
+              <MdSaveAlt className="h-6 w-6 cursor-pointer text-primary" onClick={() => { !isAllowed() ? ht() : setShowMiniMenu(!showMiniMenu) }} />
               {showMiniMenu &&
                 <div className="bg-white flex flex-col absolute z-[50] top-8 right-18 rounded-b-md shadow-md *items-center text-[9px] px-3 pt-1 pb-3 text-gray-800 gap-y-2">
                   <div className="bg-white flex flex-col absolute z-[10] top-[0px] right-0 rounded-b-md shadow-md min-w-[140px] md:min-w-[120px] *items-center text-[10px] md:text-[12px] px-3 pt-1 pb-2 text-gray-800">
@@ -97,17 +96,7 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
                     <span className="flex flex-col text-[9px] md:text-[11px]">
                       <span className="capitalize">nombre:</span>
                       <div className="relative">
-                        <input type="text" className="w-64 h-4 text-[9px] md:text-[11px]"
-                          value={`${value ? value : ""}`}
-                          onChange={(e) => {
-                            if (psTemplates?.findIndex(elem => elem.title === e.target.value) > -1) {
-                              setident(true)
-                            } else {
-                              setident(false)
-                            }
-                            setValue(e.target.value)
-                          }}
-                        />
+
                         {!valir && <p className="w-[75%] font-display absolute rounded-xl text-xs left-0 bottom-0 transform translate-y-full text-red flex gap-1"><WarningIcon className="w-4 h-4" />Existe una plantilla con este nombre si guarda la sustituye</p>}
                       </div>
                       <div className="w-full flex justify-end mt-2 ">

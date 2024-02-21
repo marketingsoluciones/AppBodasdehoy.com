@@ -4,6 +4,7 @@ import { WarningIcon } from '../icons'
 // import { PhoneInput, usePhoneInput } from 'react-international-phone';
 // import 'react-international-phone/style.css';
 import { AuthContextProvider } from "../../context";
+import { useAllowed } from "../../hooks/useAllowed";
 
 interface propsInputField extends InputHTMLAttributes<HTMLInputElement> {
   label: string
@@ -12,6 +13,8 @@ interface propsInputField extends InputHTMLAttributes<HTMLInputElement> {
 const InputField: FC<Partial<propsInputField>> = ({ label, className, ...props }) => {
   const { geoInfo } = AuthContextProvider()
   const [field, meta, helpers] = useField({ name: props.name })
+  const [isAllowed, ht] = useAllowed()
+
   // useEffect(() => {
   //   if (props?.type == "tel") {
   //     (document.getElementsByClassName("react-international-phone-input")[0] as HTMLElement)
@@ -28,7 +31,7 @@ const InputField: FC<Partial<propsInputField>> = ({ label, className, ...props }
       <label className="font-display text-primary text-sm w-full">{label}</label>
       <div className="w-full">
         {props?.type !== "tel"
-          ? <input className={`font-display text-sm text-gray-500 border-[1px] border-gray-200 focus:border-gray-400 w-full py-2 px-4 rounded-xl focus:ring-0 focus:outline-none transition ${className}`} {...field} {...props}></input>
+          ? <input disabled={!isAllowed()} className={`font-display text-sm text-gray-500 border-[1px] border-gray-200 focus:border-gray-400 w-full py-2 px-4 rounded-xl focus:ring-0 focus:outline-none transition ${className}`} {...field} {...props}></input>
           : <div onBlur={() => helpers.setTouched(true)} >
             {/* <PhoneInput
               defaultCountry={geoInfo?.ipcountry.toLowerCase()}

@@ -28,10 +28,12 @@ interface propsDropzone {
   setPlanSpaceActive?: Dispatch<SetStateAction<planSpace>>
   handleOnDrop?: any
   filterGuests?: any
+  isAllowed?: any
+  ht?: any
 }
-export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, eventID, planSpaceActive, setPlanSpaceActive, filterGuests }: propsDropzone) => {
+export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, eventID, planSpaceActive, setPlanSpaceActive, filterGuests, isAllowed, ht }: propsDropzone) => {
   if (target == ".js-dropTables") {
-    let values = {}
+    let values: any = {}
     interact(target)
       .dropzone({
         accept: accept,
@@ -53,7 +55,7 @@ export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, eventID,
           // only allow drops into empty dropzone elements
           if (event.type == "pointerup") {
             if (dropped) {
-              console.log(100905,
+              console.log(100905, values,
                 dragEvent.page, dragEvent.rect,
                 // event,
                 // dropped,
@@ -94,7 +96,9 @@ export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, eventID,
         if (event.currentTarget.id === "lienzo-drop") {
           const asd = event.relatedTarget.id.replace(/dragN/, "").split("_")
           values = { ...values, modelo: asd[0], tipo: asd[1] }
-          handleOnDrop(values)
+          if (values?.layerX) {
+            handleOnDrop(values)
+          }
         }
 
       })
@@ -138,7 +142,7 @@ export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, eventID,
               const prefijo = draggableElement.id.slice(0, 5)
               const tableID = dropzoneElement.id.split('-@-')[0]
               const chair = parseInt(dropzoneElement.id.split('-@-')[1])
-              moveGuest({ eventID, chair, invitadoID, tableID, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo })
+              !isAllowed() ? ht() : moveGuest({ eventID, chair, invitadoID, tableID, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo })
               // console.log("--------------------------------------")
               // console.log("draggableElement:", draggableElement.id, invitadoID)
               // console.log("dropped:", dropped)

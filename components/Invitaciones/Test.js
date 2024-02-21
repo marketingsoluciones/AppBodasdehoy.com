@@ -11,6 +11,7 @@ import Link from "next/link";
 import { ActivatorPremium } from "../ActivatorPremium";
 import { Tooltip } from "../Utils/Tooltip";
 import { useToast } from "../../hooks/useToast";
+import { useAllowed } from "../../hooks/useAllowed";
 
 export default function Test({ TitelComponent }) {
   const { geoInfo } = AuthContextProvider()
@@ -18,6 +19,7 @@ export default function Test({ TitelComponent }) {
   const { isPhoneValid } = useAuthentication()
   const [valirReset, setValirReset] = useState(false)
   const toast = useToast()
+  const [isAllowed, ht] = useAllowed()
 
   const initialValues = {
     email: "",
@@ -125,6 +127,7 @@ export default function Test({ TitelComponent }) {
                 icon={<IconLightBulb16 className="w-6 h-6" />}
                 disabled={TitelComponent !== "email" || event?.imgInvitacion}>
                 <button
+                  onClick={() => !isAllowed() ? ht() : null}
                   type="submit"
                   disabled={TitelComponent !== "email" || !event?.imgInvitacion}
                   className={`${TitelComponent !== "email" ? "bg-gray-300" : "focus:outline-none hover:opacity-70 transition bg-primary"} text-white rounded-xl text-sm px-5 py-2 mt-4 w-full`}

@@ -7,12 +7,14 @@ import { AuthContextProvider, EventContextProvider } from "../context";
 import VistaSinCookie from "./vista-sin-cookie";
 import FormGuardarRegalos from "../components/Forms/FormGuardarRegalos"
 import { useMounted } from "../hooks/useMounted"
-
+import { useAllowed } from "../hooks/useAllowed"
 
 const ListaRegalos = () => {
   const { event } = EventContextProvider()
   const { user, verificationDone } = AuthContextProvider()
   const [showForm, setShowForm] = useState(false)
+  const [isAllowed, ht] = useAllowed()
+
   useMounted()
 
   if (verificationDone) {
@@ -71,16 +73,16 @@ const ListaRegalos = () => {
             <div className="w-full bg-white shadow-lg flex gap-4 items-center justify-center p-6 rounded-xl">
               <AmazonIcon className="w-28 h-28 text-primary" />
               <div className="font-display flex flex-col items-start">
-                <h3 className="text-lg text-gray-300 font-medium leading-5">
+                <h3 className="text-lg text-gray-400 font-medium leading-5">
                   Construye vuestra lista de regalos
                   <br />
                   <span className="text-sm">
                     con millones de opciones para elegir.
                   </span>
                 </h3>
-                <div className=" flex flex-col md:flex-row gap-4">
+                <div onClick={() => !isAllowed() ? ht() : null} className="cursor-pointer flex flex-col md:flex-row gap-4">
                   <a
-                    href="https://www.amazon.com/-/es/registries/create-registry?ref_=gr_universal_landing"
+                    href={isAllowed() && "https://www.amazon.com/-/es/registries/create-registry?ref_=gr_universal_landing"}
                     className="button-secondary uppercase mt-2 text-sm"
                     target={"_blank"}
                     rel={"noopener noreferrer"}
@@ -89,7 +91,7 @@ const ListaRegalos = () => {
                   </a >
                   <div className={`${event.listaRegalos ? "block mt-2.5" : "hidden"}`}>
                     <a
-                      href={event.listaRegalos}
+                      href={isAllowed() && event.listaRegalos}
                       className={`button-secondary uppercase  text-sm`}
                       target={"_blank"}
                       rel={"noopener noreferrer"}
@@ -103,11 +105,11 @@ const ListaRegalos = () => {
             <h3 className="font-display text-xl text-gray-500 w-max inset-x-0 mx-auto pt-2 pb-2">
               ¿Como funciona la lista?
             </h3>
-            <div className="w-full grid-cols-1 md:grid-cols-3 grid gap-6">
+            <div onClick={() => !isAllowed() ? ht() : null} className="w-full grid-cols-1 md:grid-cols-3 grid gap-6 cursor-pointer">
               {/* First Card */}
               <a
                 className="bg-secondary rounded-xl shadow-lg col-span-1 flex justify-center flex-col items-center font-display h-max p-6 gap-4 hover:scale-105 transition duration-200 transform "
-                href="https://www.amazon.com/-/es/registries/create-registry?ref_=gr_universal_landing"
+                href={isAllowed() && "https://www.amazon.com/-/es/registries/create-registry?ref_=gr_universal_landing"}
                 target={"_blank"}
                 rel={"noopener noreferrer"}
               >
@@ -125,7 +127,7 @@ const ListaRegalos = () => {
                 className="bg-primary rounded-xl shadow-lg col-span-1 flex justify-center flex-col items-center font-display h-max p-6 gap-4 hover:scale-105 transition duration-200 transform "
                 state={showForm}
                 set={setShowForm}
-                onClick={() => setShowForm(!showForm)}
+                onClick={() => !isAllowed() ? null : setShowForm(!showForm)}
               >
                 <CompartirIcon className="text-white w-10 h-10" />
                 <h3 className="text-lg font-semibold text-white text-center leading-4 flex flex-col gap-2 ">
@@ -137,7 +139,7 @@ const ListaRegalos = () => {
                 </h3>
               </buttom>
               {/* Tertiary Card */}
-              <div className="bg-tertiary rounded-xl shadow-lg col-span-1 flex justify-center flex-col items-center font-display h-max p-6 gap-4 hover:scale-105 transition duration-200 transform ">
+              <div onClick={() => !isAllowed() ? null : null} className="bg-tertiary rounded-xl shadow-lg col-span-1 flex justify-center flex-col items-center font-display h-max p-6 gap-4 hover:scale-105 transition duration-200 transform ">
                 <ListaTwo />
                 <h3 className="text-lg font-semibold text-gray-300 text-center leading-4 flex flex-col gap-2 ">
                   Transfiere el dinero

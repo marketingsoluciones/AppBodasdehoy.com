@@ -4,12 +4,13 @@ import { EditarIcon, MesaIcon, PendienteIcon } from "../icons";
 import ModalBottom from "../Utils/ModalBottom";
 import ModalBottomSinAway from "../Utils/ModalBottomSinAway";
 import FormEditarInvitado from "../Forms/FormEditarInvitado";
+import { useAllowed } from "../../hooks/useAllowed";
 
 
 const DragInvitado = (props) => {
   const { tipo, invitado, index, setEditInv, editInv, setSelected } = props;
   /* const shouldRenderChild = useDelayUnmount(isMounted, 500); */
-
+  const [isAllowed, ht] = useAllowed()
 
 
   return (
@@ -72,8 +73,9 @@ const DragInvitado = (props) => {
         </span>
         <EditarIcon
           onClick={() => {
-            setEditInv(!editInv);
-            setSelected(invitado._id)
+            !isAllowed()
+            ? ht()
+            : [setEditInv(!editInv), setSelected(invitado._id)]
           }}
           className="h-5 w-5 cursor-pointer" />
       </div>

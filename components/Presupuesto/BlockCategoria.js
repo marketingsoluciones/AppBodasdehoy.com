@@ -13,12 +13,14 @@ import {
 import CellEdit from "./CellEdit";
 import CellPagado from "./CellPagado";
 import SubComponentePagos from "./SubComponentePagos";
+import { useAllowed } from "../../hooks/useAllowed";
 
 const BlockCategoria = ({ cate, set }) => {
   const { event, setEvent } = EventContextProvider()
   const [categoria, setCategoria] = useState({});
   const [data, setData] = useState([]);
   const [GastoID, setGastoID] = useState({ id: "", crear: false })
+  const [isAllowed, ht] = useAllowed()
 
   useEffect(() => {
     setCategoria(
@@ -48,19 +50,19 @@ const BlockCategoria = ({ cate, set }) => {
         Cell: (props) => <CellEdit categoriaID={categoria?._id} type={"text"} autofocus {...props} />
       },
       {
-        Header: <p> Estimado <br/> {getCurrency(categoria?.coste_estimado)}</p> ,
+        Header: <p> Estimado <br /> {getCurrency(categoria?.coste_estimado)}</p>,
         accessor: "coste_estimado",
         id: "coste_estimado",
         Cell: (props) => <CellEdit categoriaID={categoria?._id} type={"number"} {...props} />
       },
       {
-        Header: <p>Coste final <br/> {getCurrency(categoria?.coste_final)}</p>,
+        Header: <p>Coste final <br /> {getCurrency(categoria?.coste_final)}</p>,
         accessor: "coste_final",
         id: "coste_final",
         Cell: (props) => <CellEdit categoriaID={categoria?._id} type={"number"} {...props} />
       },
       {
-        Header:<p >Pagado <br/> {getCurrency(categoria?.pagado)} </p> ,
+        Header: <p >Pagado <br /> {getCurrency(categoria?.pagado)} </p>,
         accessor: "pagado",
         id: "pagado",
         Cell: (props) => <CellPagado {...props} set={act => setGastoID(act)} />,
@@ -129,7 +131,7 @@ const BlockCategoria = ({ cate, set }) => {
 
               <div className="w-full h-full flex items-center justify-center cursor-pointer relative">
                 <BorrarIcon
-                  onClick={handleRemove}
+                  onClick={!isAllowed() ? null : handleRemove}
                   className="hover:text-gray-300 text-gray-500 transition w-3"
                 />
               </div>
@@ -196,7 +198,7 @@ const BlockCategoria = ({ cate, set }) => {
           <FormAddPago GastoID={GastoID?.id} cate={categoria?._id} />
         </div>
       )}
-      <div className={`bg-white block-categoria h-max py-10 w-full rounded-xl shadow-lg overflow-hidden flex flex-col items-center relative ${GastoID.crear?"hidden":"block"}`}>
+      <div className={`bg-white block-categoria h-max py-10 w-full rounded-xl shadow-lg overflow-hidden flex flex-col items-center relative ${GastoID.crear ? "hidden" : "block"}`}>
         <div
           onClick={() => set({ isVisible: false, id: "" })}
           className="cursor-pointer absolute top-5 right-5 font-display hover:scale-125 transition transform text-gray-500 hover:text-gray-500 font-semibold text-lg "
@@ -279,6 +281,7 @@ export default BlockCategoria;
 export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate, gasto, categoria }) => {
   const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows, state: { expanded } } =
     useTable({ columns, data }, useExpanded);
+  const [isAllowed, ht] = useAllowed()
 
   const colSpan = {
     nombre: 3,
@@ -347,7 +350,7 @@ export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate
         })}
         <tr className="w-full transition border-b border-base  cursor-pointer  grid grid-cols-4">
           <td
-            onClick={() => AddGasto()}
+            onClick={() => !isAllowed() ? ht() : AddGasto()}
             className="font-display text-sm text-primary w-full text-left py-3 flex gap-2 items-center justify-center hover:opacity-90 hover:translate-x-2 transition transform"
           >
             <PlusIcon /> Añadir servicio

@@ -5,11 +5,13 @@ import { OptionsMenu } from "./OptionsMenu";
 import { EmailIcon, IconLightBulb16, SmsIcon, WhatsappIcon } from "../icons";
 import { optionArryOptions } from "../../pages/invitaciones";
 import { ActivatorPremium } from "../ActivatorPremium";
+import { useAllowed } from "../../hooks/useAllowed";
 
 
 export const ConfirmationBlock: FC<any> = ({ arrEnviarInvitaciones, set }) => {
   const { event, setEvent } = EventContextProvider();
   const [optionSelect, setOptionSelect] = useState("email")
+  const [isAllowed, ht] = useAllowed()
 
   const arryOptions: optionArryOptions[] = [
     {
@@ -123,7 +125,7 @@ export const ConfirmationBlock: FC<any> = ({ arrEnviarInvitaciones, set }) => {
               {optionSelect === "email"
                 ? <div className="w-full flex gap-10 mt-6 justify-center h-max items-center">
                   <button
-                    onClick={handleSendInvitation}
+                    onClick={() => !isAllowed() ? ht() : handleSendInvitation()}
                     className={`rounded-md font-display w-28 focus:outline-none ${!event?.imgInvitacion ? "bg-gray-300" : "bg-green"} text-white hover:opacity-90 transition py-1`}
                     disabled={!event?.imgInvitacion}
                   >

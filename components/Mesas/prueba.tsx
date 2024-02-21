@@ -6,6 +6,7 @@ import { EventContextProvider } from "../../context";
 import { size } from "../../utils/Interfaces";
 import { EditDefault } from "./EditDefault";
 import ClickAwayListener from "react-click-away-listener";
+import { useAllowed } from "../../hooks/useAllowed";
 
 type propsPrueba = {
   setShowFormEditar: any
@@ -24,7 +25,7 @@ const Prueba: FC<propsPrueba> = ({ setShowFormEditar, fullScreen, setFullScreen 
   const toast = useToast()
   const { event, setEvent, planSpaceActive, editDefault, setEditDefault } = EventContextProvider()
   const [lienzo, setLienzo] = useState<size>(event?.planSpace?.find(elem => elem?._id === event?.planSpaceSelect)?.size)
-
+  const [isAllowed, ht] = useAllowed()
 
   useEffect(() => {
     setLienzo(event?.planSpace?.find(elem => elem?._id === event?.planSpaceSelect)?.size)
