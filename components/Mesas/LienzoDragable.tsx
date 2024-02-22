@@ -57,11 +57,11 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
       return acc
     }, {})
 
-    const dragablesNoSentados = filterGuests?.noSentados?.map(elem => `#dragN${elem?._id}`)
+    const dragablesNoSentados = filterGuests?.noSentados?.map(elem => `#dragN${elem?._id}`) ?? []
     const positionsNoSentados = filterGuests?.noSentados?.reduce((acc, elem) => {
       return { ...acc, [`dragN${elem?._id}`]: { x: 0, y: 0 } }
     }, {})
-    const dragablesSentados = filterGuests?.sentados?.map(elem => `#dragS${elem?._id}`)
+    const dragablesSentados = filterGuests?.sentados?.map(elem => `#dragS${elem?._id}`) ?? []
     const positionsSentados = filterGuests?.sentados?.reduce((acc, elem) => {
       return { ...acc, [`dragS${elem?._id}`]: { x: 0, y: 0 } }
     }, {})

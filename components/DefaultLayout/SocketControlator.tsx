@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, SocketContextProvider, } from "../../context"
+import { useRouter } from "next/router";
 
 export const SocketControlator = () => {
   const { user } = AuthContextProvider()
@@ -11,7 +12,7 @@ export const SocketControlator = () => {
   const [valirRemotePlanSpaceActive, setValirRemotePlanSpaceActive] = useState(false)
   const [reconet, setReconet] = useState(null)
   const [received, setReceived] = useState({ channel: "", msg: null, d: null })
-
+const router = useRouter()
 
   useEffect(() => {
     if (!isMounted) {
@@ -54,20 +55,11 @@ export const SocketControlator = () => {
 
   useEffect(() => {
     socket?.on("cms:message", async (msg) => {
-      if (msg?.context === "event") {
-        const eventOld = {
-          compartido_array: event?.compartido_array,
-          detalles_compartidos_array: event?.detalles_compartidos_array,
-          detalles_usuario_id: event?.detalles_usuario_id,
-          permissions: event?.permissions,
-          planSpaceSelect: event?.planSpaceSelect,
-        }
-        console.log(8880222410, eventOld)
-        const eventNew = { ...msg?.payload?.value, ...eventOld }
-        console.log(8880222411, { ...msg?.payload?.value, ...eventOld })
-
-        setEvent({ ...eventNew })
-      }
+      console.log(msg)
+      router.push("/mesas/?show=iframe&father=kDg22rHNnkg8rr0RwveEL")
+      // if (msg?.context === "event") {
+      //   setEvent(eventsGroup.find(elem => elem._id === msg?.eventID))
+      // }
     })
 
     socket?.on("app:message", async (msg) => {
