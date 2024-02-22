@@ -81,17 +81,20 @@ const EventProvider = ({ children }) => {
       setEvent(null);
     }
     if (eventsGroup?.length > 0) {
-      console.log(1012102)
+      console.log("seteando evento", 10001)
       if (!valir) {
-        console.log("seteando evento")
+        console.log("seteando evento", 10002)
         if (eventsGroup?.length > 1) {
+          console.log("seteando evento", 10003)
           const eventsPendientes = eventsGroup.filter(item => item.estatus === "pendiente")
           const eventsGroupSort = eventsPendientes?.sort((a: any, b: any) => { return b.fecha_creacion - a.fecha_creacion })
           setEvent(eventsGroupSort?.find(elem => elem._id === user?.eventSelected));
         } else {
+          console.log("seteando evento", 10004, eventsGroup)
           setEvent(eventsGroup[0])
         }
-        setValir(true)
+        console.log("seteando evento", 10005, eventsGroup)
+        eventsGroup[0] && setValir(true)
       }
     }
   }, [eventsGroup, valir]);
