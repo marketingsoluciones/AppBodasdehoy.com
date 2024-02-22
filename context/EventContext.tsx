@@ -67,7 +67,7 @@ const EventProvider = ({ children }) => {
   const [invitadoCero, setInvitadoCero] = useState<string | null>(null);
   const [valir, setValir] = useState<boolean | null>(false);
   const [idxGroupEvent, setIdxGroupEvent] = useState<idxGroupEvent | null>({ idx: 0, isActiveStateSwiper: 0, event_id: null });
-  const { eventsGroup } = EventsGroupContextProvider()
+  const { eventsGroup, setEventsGroup } = EventsGroupContextProvider()
   const [planSpaceActive, setPlanSpaceActive] = useState<planSpace | null>(null);
   const [filterGuests, setFilterGuests] = useState<filterGuests>({ sentados: [], noSentados: [], update: 0 })
   const [allFilterGuests, setAllFilterGuests] = useState<filterGuests[]>([{ sentados: [], noSentados: [], update: 0 }])
@@ -112,6 +112,10 @@ const EventProvider = ({ children }) => {
   useEffect(() => {
     //console.log("seteado event _________________________")
     console.log("seteado event", event)
+    const f1 = eventsGroup.findIndex(elem => elem._id === event?._id)
+    eventsGroup.splice(f1, 1, event)
+    console.log("SEUDO seteado eventsGroup", eventsGroup)
+    setEventsGroup({ type: "INITIAL_STATE", payload: [...eventsGroup] })
     setAllFilterGuests({ ...getAllFilterGuest(event), update: new Date().getTime() })
     //console.log("---------------------------------------")
   }, [event])
