@@ -52,6 +52,7 @@
     "react-dom": "^18.1.0",
     "react-draggable": "^4.4.3",
     "react-icons": "^4.10.1",
+    "react-image-file-resizer": "^0.4.8",
     "react-select": "^5.7.3",
     "react-table": "^7.6.3",
     "react-tag-input-component": "^2.0.2",
