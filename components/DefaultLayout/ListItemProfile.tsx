@@ -6,6 +6,7 @@ export interface Option {
   onClick?: MouseEventHandler;
   sizeIcon?: keyof typeof sizesIcon;
   target?: string;
+  development: string[]
   rol: string[] | undefined
 }
 

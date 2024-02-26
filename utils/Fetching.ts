@@ -101,6 +101,9 @@ export const fetchApiEventos = async ({ query, variables, token }: argsFetchApi)
 };
 
 export const queries = {
+  createUserWithPassword: `mutation($email:String, $password:String) { 
+    createUserWithPassword(email:$email, password:$password)
+  }`,
   getEmailValid: `query ($email :String){
     getEmailValid(email:$email){
       valid

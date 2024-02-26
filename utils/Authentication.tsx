@@ -63,8 +63,43 @@ export const useAuthentication = () => {
 
   }, [])
 
+  const types = {
+    provider: async (payload: any) => {
+      try {
+        const asdf = await signInWithPopup(getAuth(), payload)
+
+        return asdf
+      } catch (error: any) {
+        setLoading(false);
+        const er = error.toString().split(".")[0].split(": Error ")[1]
+        if (er == "(auth/account-exists-with-different-credential)") {
+          toast("error", "El correo asociado a su provedor ya se encuentra registrado en bodasdehoy.com");
+        }
+      }
+    },
+    credentials: async (payload: any) => {
+      return await signInWithEmailAndPassword(getAuth(), payload.identifier, payload.password)
+        .then(result => {
+          return result
+        })
+        .catch(error => {
+          console.log(8000044, error?.message)
+        })
+
+    }
+  };
+
+
+  interface propsSinnIn {
+    type: keyof typeof types
+    payload: any
+    verificationId?: any
+    setStage: any
+    whoYouAre?: any
+  }
+
   const signIn = useCallback(
-    async (type: keyof typeof types, payload: any) => {
+    async ({ type, payload, verificationId, setStage, whoYouAre }: propsSinnIn) => {
       //### Login por primera vez
       //1.- Verificar tipo de login y tomar del diccionario el metodo
       //2.- Obtener el tokenID del usuario
@@ -72,27 +107,9 @@ export const useAuthentication = () => {
       //4.- Almacenar en una cookie el token de la sessionCookie
       //5.- Mutar el contexto User de React con los datos de Firebase + MoreInfo (API BODAS)
 
-
-      const types = {
-        provider: async () => {
-          try {
-            const asdf = await signInWithPopup(getAuth(), payload)
-
-            return asdf
-          } catch (error: any) {
-            setLoading(false);
-            const er = error.toString().split(".")[0].split(": Error ")[1]
-            if (er == "(auth/account-exists-with-different-credential)") {
-              toast("error", "El correo asociado a su provedor ya se encuentra registrado en bodasdehoy.com");
-            }
-          }
-        },
-        credentials: async () => await signInWithEmailAndPassword(getAuth(), payload.identifier, payload.password)
-      };
-
       // Autenticar con firebase
       try {
-        const res: UserCredential | void = await types[type]();
+        const res: UserCredential | void = await types[type](payload);
         if (res) {
 
           // Solicitar datos adicionales del usuario

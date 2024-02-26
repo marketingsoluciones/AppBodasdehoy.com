@@ -88,7 +88,7 @@ const AuthProvider = ({ children }) => {
       console.log(idx)
       /*--------------------------------------------------------------------*/
       const devDomain = ["bodasdehoy", "eventosplanificador", "eventosorganizador", "vivetuboda"]
-      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[0] /*<<<<<<<<<*/
+      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[3] /*<<<<<<<<<*/
       /*--------------------------------------------------------------------*/
       resp = developments.filter(elem => elem.name === domainDevelop)[0]
       if (idx === -1 || window.origin.includes("://test")) {
@@ -106,7 +106,20 @@ const AuthProvider = ({ children }) => {
       }
       try {
         initializeApp(resp?.fileConfig);
-        console.log(8000041, getAuth())
+        const sessionCookie = Cookies.get(resp?.cookie);
+        const asd = parseJwt(sessionCookie)
+        console.log(8000041, { currentUser: getAuth()?.currentUser?.uid, asd })
+        if (!sessionCookie || getAuth()?.currentUser?.uid !== asd) {
+          getAuth().signOut().then(() => {
+            Cookies.remove(resp?.cookie, { domain: resp?.domain ?? "" });
+            Cookies.remove("idTokenV0.1.0", { domain: resp?.domain ?? "" });
+            console.log(8000043, "signOut con éxito")
+          })
+            .catch((error) => {
+              console.log(error);
+            });
+        }
+
       } catch (error) {
         console.log(90001, error)
       }

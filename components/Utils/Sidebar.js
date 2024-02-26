@@ -28,6 +28,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             onClick: () => {
                 router.push(config?.pathLogin ? `${config?.pathLogin}?d=app` : `/login?d=${route}`)
             },
+            development: ["bodasdehoy", "all"],
             user: "guest"
         },
         {
@@ -36,6 +37,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             onClick: () => {
                 router.push(config?.pathLogin ? `${config?.pathLogin}?d=app&q=register` : `/login?q=register&d=${route}`)
             },
+            development: ["bodasdehoy", "all"],
             user: "guest"
         },
         {
@@ -45,6 +47,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
                 const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
                 router.push((user?.role?.includes("empresa")) ? path ?? "" : config?.pathLogin ? `${config?.pathDirectory}/info-empresa?d=app` : `/login?d=${route}`)
             },
+            development: ["bodasdehoy"],
             user: config?.pathDirectory ? "all" : null
         },
         {
@@ -55,17 +58,20 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
                 const pathEnd = `${window.origin.includes("://test.") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}/InfoPage/publicaciones`
                 router.push((user?.displayName !== "guest") ? `${path}/InfoPage/publicaciones` ?? "" : config?.pathLogin ? `${config?.pathLogin}?d=app&end=${pathEnd}` : `/login?d=${route}`)
             },
+            development: ["bodasdehoy"],
             user: config?.pathDirectory ? "all" : null
         },
         {
             title: "Mis proveedores",
             icon: <CorazonPaddinIcon className="w-6 h-6 text-primary" />,
             onClick: async () => { router.push(config?.pathDirectory) },
+            development: ["bodasdehoy"],
             user: config?.pathDirectory ? "all" : null
         },
         {
             title: "",
             icon: <div className="bg-primary h-[1px] w-[240px] flex" />,
+            development: ["bodasdehoy"],
             user: eventsGroup?.length > 0 ? "all" : null
         },
         {
@@ -73,6 +79,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             route: "/",
             icon: <MisEventosIcon className="w-6 h-6" />,
             onClick: async () => { router.push(`/`) },
+            development: ["bodasdehoy", "all"],
             user: eventsGroup?.length > 0 ? "all" : null
         },
         {
@@ -82,6 +89,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             onClick: () => {
                 router.push(`/resumen-evento`)
             },
+            development: ["bodasdehoy", "all"],
             user: eventsGroup?.length > 0 ? "all" : null
         },
         {
@@ -91,6 +99,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             onClick: () => {
                 router.push(`/invitados`)
             },
+            development: ["bodasdehoy", "all"],
             user: eventsGroup?.length > 0 ? "all" : null
         },
         {
@@ -100,6 +109,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             onClick: () => {
                 router.push(`/mesas`)
             },
+            development: ["bodasdehoy", "all"],
             user: eventsGroup?.length > 0 ? "all" : null
         },
         {
@@ -109,6 +119,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             onClick: () => {
                 router.push(`/lista-regalos`)
             },
+            development: ["bodasdehoy", "all"],
             user: eventsGroup?.length > 0 ? "all" : null
         },
         {
@@ -118,6 +129,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             onClick: () => {
                 router.push(`presupuesto`)
             },
+            development: ["bodasdehoy", "all"],
             user: eventsGroup?.length > 0 ? "all" : null
         },
         {
@@ -127,6 +139,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             onClick: () => {
                 router.push(`invitaciones`)
             },
+            development: ["bodasdehoy", "all"],
             user: eventsGroup?.length > 0 ? "all" : null
         },
         {
@@ -135,6 +148,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
                 <div className="bg-primary h-[1px] w-[240px] flex" />
                 <span className="mt-2 -mb-2">Módulos</span>
             </div>,
+            development: ["bodasdehoy"],
             user: eventsGroup?.length > 0 ? "all" : null
         },
         {
@@ -144,6 +158,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
                 router.push(`${path}/lugaresBodas`)
             },
             icon: <LugaresBodas />,
+            development: ["bodasdehoy"],
             user: "all",
         },
         {
@@ -153,6 +168,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
                 router.push(`${path}/cateringBodas`)
             },
             icon: <Catering />,
+            development: ["bodasdehoy"],
             user: "all",
         },
         {
@@ -162,6 +178,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
                 router.push(`${path}/weddingPlanner`)
             },
             icon: <WeddingPlanner />,
+            development: ["bodasdehoy"],
             user: "all",
         },
         {
@@ -171,6 +188,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
                 const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
                 router.push(`${path}/fotografo`)
             },
+            development: ["bodasdehoy"],
             user: "all",
         },
         {
@@ -180,6 +198,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
                 const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
                 router.push(`${path}/webCreator`)
             },
+            development: ["bodasdehoy"],
             user: "all",
         },
         // {
@@ -207,7 +226,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
         // }
     ]
     const valirUser = user?.displayName == "guest" ? "guest" : "loged"
-    const ListaNavbarFilter = ListaNavbar.filter(elem => elem?.user === valirUser || elem?.user === "all")
+    const ListaNavbarFilter = ListaNavbar.filter(elem => { return (elem?.user === valirUser || elem?.user === "all") && (elem.development.includes(config?.development) || elem.development.includes("all")) })
 
     const handleOnClip = async (e, item) => {
         e.preventDefault();

@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { Providers, RegisterQuestion } from "./Components";
 import FormLogin from "./Forms/FormLogin";
 import FormResetPassword from "./Forms/FormResetPassword";
@@ -9,16 +9,20 @@ import PageLogin from "../../../pages/login";
 interface propsLogin {
   fStageRegister?: any
   setStage: CallableFunction;
+  stageRegister?: any
+  setStageRegister?: any
+  whoYouAre: string
+  setWhoYouAre?: any
 }
 
-export const Login: FC<propsLogin> = ({ setStage }) => {
+export const Login: FC<propsLogin> = ({ setStage, whoYouAre, setWhoYouAre }) => {
 
   return (
     <>
       <h2 className={`font-light text-tertiary justify-center flex text-md mt-12`}>
         Accede a tu cuenta
       </h2>
-      <Providers setStage={setStage} />
+      <Providers setStage={setStage} whoYouAre={whoYouAre} />
       <h2 className={`font-light text-tertiary justify-center flex gap-2 text-md `}>
         O accede con tu email
       </h2>
@@ -29,9 +33,11 @@ export const Login: FC<propsLogin> = ({ setStage }) => {
   );
 };
 
-export const Register: FC<propsLogin> = ({ setStage, fStageRegister }) => {
-  const [whoYouAre, setWhoYouAre] = useState<string>(fStageRegister == 1 ? "empresa" : "");
-  const [stageRegister, setStageRegister] = useState(fStageRegister)
+export const Register: FC<propsLogin> = ({ setStage, fStageRegister, stageRegister, setStageRegister, whoYouAre, setWhoYouAre }) => {
+  useEffect(() => {
+    setWhoYouAre(fStageRegister == 1 ? "empresa" : "")
+  }, [])
+
   return (
     <>
       {(() => {
@@ -40,7 +46,7 @@ export const Register: FC<propsLogin> = ({ setStage, fStageRegister }) => {
             return <FirstStep setStageRegister={setStageRegister} value={setWhoYouAre} />
             break;
           case 1:
-            return <SecondStep setStageRegister={setStageRegister} stageRegister={stageRegister} whoYouAre={""} setStage={setStage} />
+            return <SecondStep setStageRegister={setStageRegister} stageRegister={stageRegister} whoYouAre={whoYouAre} setStage={setStage} />
             break;
           default:
             return <PageLogin />
@@ -52,7 +58,10 @@ export const Register: FC<propsLogin> = ({ setStage, fStageRegister }) => {
         ¿Dispones de una cuenta?
         <span
           className="text-sm text-primary font-semibold cursor-pointer hover:text-tertiary transition"
-          onClick={() => setStage("login")}
+          onClick={() => {
+            setStageRegister(0)
+            setStage("login")
+          }}
         >
           Inicia Sesión
         </span>
@@ -64,14 +73,14 @@ export const Register: FC<propsLogin> = ({ setStage, fStageRegister }) => {
 export const ResetPass: FC<propsLogin> = ({ setStage }) => {
   return (
     <>
-      <h2 className={`font-light text-tertiary flex justify-center text-md mt-12`}>
-        Recupera tu cuenta
-      </h2>
+      <div className="flex flex-col gap-2 items-center justify-center w-full">
+        {/* <LogoFullColor className="w-auto h-10" /> */}
+      </div>
       <FormResetPassword setStage={setStage} />
       <h2
-        className={`font-light text-tertiary flex gap-2 text-sm `}
+        className={`font-light text-tertiary flex gap-2 items-center text-sm `}
       >
-        ¿Dispones de una cuenta?
+        ¿Dispones de una cuenta1?
         <span
           className="text-sm text-primary font-semibold cursor-pointer hover:text-tertiary transition"
           onClick={() => setStage("login")}
