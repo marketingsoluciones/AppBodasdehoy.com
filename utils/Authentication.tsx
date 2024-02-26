@@ -77,16 +77,7 @@ export const useAuthentication = () => {
         }
       }
     },
-    credentials: async (payload: any) => {
-      return await signInWithEmailAndPassword(getAuth(), payload.identifier, payload.password)
-        .then(result => {
-          return result
-        })
-        .catch(error => {
-          console.log(8000044, error?.message)
-        })
-
-    }
+    credentials: async (payload: any) => await signInWithEmailAndPassword(getAuth(), payload.identifier, payload.password),
   };
 
 
@@ -111,38 +102,46 @@ export const useAuthentication = () => {
       try {
         const res: UserCredential | void = await types[type](payload);
         if (res) {
+          const idToken = await res?.user?.getIdToken()
+          const dateExpire = new Date(parseJwt(idToken).exp * 1000)
+          Cookies.set("idTokenV0.1.0", idToken, { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "", expires: dateExpire })
 
           // Solicitar datos adicionales del usuario
-          const moreInfo = await fetchApiBodas({
+          fetchApiBodas({
             query: queries.getUser,
             variables: { uid: res.user.uid },
             development: config?.development
-          });
-          if (moreInfo?.status && res?.user?.email) {
-            const token = (await res?.user?.getIdTokenResult())?.token;
-            console.log(41001, token)
-            const sessionCookie = await getSessionCookie(token)
-            console.log(41001, sessionCookie)
-            if (sessionCookie) { }
-            // Actualizar estado con los dos datos
-            setUser({ ...res.user, ...moreInfo });
-
-            /////// REDIRECIONES ///////
-            setLoading(true)
-            router.push(`${router.query?.d}`)
-            ///////////////////////////
-
-          } else {
-            toast("error", "aun no está registrado");
-            //verificar que firebase me devuelva un correo del usuario
-            if (res?.user?.email) {
-              //seteo usuario temporal pasar nombre y apellido de firebase a formulario de registro
-              //setUserTemp({ ...res.user });
-              toast("success", "Seleccione quien eres y luego completa el formulario");
+          }).then(async (moreInfo) => {
+            if (moreInfo?.status && res?.user?.email) {
+              const token = (await res?.user?.getIdTokenResult())?.token;
+              console.log(41001, token)
+              const sessionCookie = await getSessionCookie(token)
+              console.log(41001, sessionCookie)
+              if (sessionCookie) { }
+              // Actualizar estado con los dos datos
+              setUser({ ...res.user, ...moreInfo });
+              toast("success", `Inicio sesión con éxito`)
             } else {
-              toast("error", "usted debe tener asociado un correo a su cuenta de proveedor");
+              if (whoYouAre !== "") {
+                console.log({ whoYouAre })
+                fetchApiBodas({
+                  query: queries.createUser,
+                  variables: {
+                    uid: res?.user?.uid,
+                    role: whoYouAre
+                  },
+                  development: config.development
+                }).then(async () => {
+                  await getSessionCookie(idToken)
+                  setUser({ ...res.user, role: [whoYouAre] });
+                  toast("success", `Registro sesión con éxito`)
+                })
+              } else {
+                toast("error", `${res?.user?.email} no está registrado`)
+                toast("success", `Haz click en Regístrate`)
+              }
             }
-          }
+          })
         }
       } catch (error: any) {
         const errorCode: string = error?.code ? error.code : error?.message
@@ -160,6 +159,8 @@ export const useAuthentication = () => {
             break;
         }
 
+
+        toast("error", "usuario o contraseña inválida");
         console.log("error", error)
         console.log("errorCode", error?.code ? error.code : error?.message)
       }

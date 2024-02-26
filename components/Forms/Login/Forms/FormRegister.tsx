@@ -190,7 +190,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
         validationSchema={validationSchema ?? {}}
         onSubmit={handleSubmit}
       >
-        <Form className="w-full md:w-[350px] text-gray-200 *md:grid *md:grid-cols-2 gap-4 md:gap-5 md:space-y-0 flex flex-col">
+        <Form className="w-full md:w-[350px] text-gray-200 *md:grid *md:grid-cols-2 gap-4 md:gap-3 md:space-y-0 flex flex-col m-4">
           <div className="col-span-2">
             <InputField
               name="fullName"

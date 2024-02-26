@@ -145,7 +145,7 @@ const Profile = ({ user, state, set, ...rest }) => {
   const optionsEnd: Option[] = [
     {
       title: "Mi perfil",
-      onClick: async () => { router.push(config?.pathPerfil) },
+      onClick: async () => { config?.pathPerfil && router.push(config?.pathPerfil) },
       icon: <UserIcon />,
       development: ["bodasdehoy", "all"],
       rol: ["novio", "novia", "otro", "empresa"],
@@ -160,7 +160,7 @@ const Profile = ({ user, state, set, ...rest }) => {
         router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "")
       },
       development: ["bodasdehoy", "all"],
-      rol: ["novio", "novia", "otro", "empresa", "all"],
+      rol: ["novio", "novia", "otro"],
     },
   ]
 

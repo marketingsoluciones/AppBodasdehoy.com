@@ -108,15 +108,13 @@ interface propsSecondStep {
 }
 export const SecondStep: FC<propsSecondStep> = (props) => {
   return (
-    <div className="flex flex-col justify-center items-center w-full mt-8">
-      <h2 className={`font-light text-tertiary flex items-center text-md `}>
-        Crea tu cuenta
-      </h2>
-      <FormRegister {...props} />
-      <h2 className={`font-light text-tertiary flex items-center text-md`}>
+    <div className="gap-1 flex flex-col justify-center items-center w-full mt-2">
+      <Providers setStage={props.setStage} whoYouAre={props?.whoYouAre} />
+      <h2 className={`font-light w-full text-tertiary text-center text-md`}>
         Ó
       </h2>
-      <Providers setStage={props.setStage} />
+      <FormRegister {...props} />
+
     </div>
   );
 };
