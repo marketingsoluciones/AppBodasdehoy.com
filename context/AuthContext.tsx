@@ -50,7 +50,8 @@ const AuthProvider = ({ children }) => {
   const [user, setUser] = useState<any>(initialContext.user);
   const [verificationDone, setVerificationDone] = useState<any>(false);
   const [config, setConfig] = useState<any>();
-  const [isMounted, setIsMounted] = useState<any>(false)
+  const [isMounted, setIsMounted] = useState<boolean>(false)
+  const [valirAutoLogout, setValirAutoLogout] = useState<boolean>(false)
   const [isActiveStateSwiper, setIsActiveStateSwiper] = useState<any>(0);
   const [theme, setTheme] = useState<any>({
     primaryColor: undefined,
@@ -105,21 +106,7 @@ const AuthProvider = ({ children }) => {
         console.log(222215, resp?.domain)
       }
       try {
-        initializeApp(resp?.fileConfig);
-        const sessionCookie = Cookies.get(resp?.cookie);
-        const asd = parseJwt(sessionCookie)
-        console.log(8000041, { currentUser: getAuth()?.currentUser?.uid, asd })
-        if (!sessionCookie || getAuth()?.currentUser?.uid !== asd) {
-          getAuth().signOut().then(() => {
-            Cookies.remove(resp?.cookie, { domain: resp?.domain ?? "" });
-            Cookies.remove("idTokenV0.1.0", { domain: resp?.domain ?? "" });
-            console.log(8000043, "signOut con éxito")
-          })
-            .catch((error) => {
-              console.log(error);
-            });
-        }
-
+        initializeApp(resp?.fileConfig)
       } catch (error) {
         console.log(90001, error)
       }
@@ -127,13 +114,31 @@ const AuthProvider = ({ children }) => {
     }
   }, [isMounted])
 
+
   useEffect(() => {
     try {
       if (isMounted) {
+        console.log(800003000)
 
         onAuthStateChanged(getAuth(), async (user) => {
           const sessionCookie = Cookies.get(config?.cookie);
+          console.log(8000030, resp?.cookie, sessionCookie, user)
+          if (user?.uid) { setValirAutoLogout(true) }
           const asd = parseJwt(sessionCookie)
+          console.log(800003002, asd)
+
+          if (sessionCookie && getAuth()?.currentUser?.uid !== asd.user_id) {
+            getAuth().signOut().then(() => {
+              console.log(800003004, "borra cookie idtoken y session")
+              Cookies.remove(resp?.cookie, { domain: resp?.domain ?? "" });
+              Cookies.remove("idTokenV0.1.0", { domain: resp?.domain ?? "" });
+              console.log(8000043, "signOut con éxito")
+            })
+              .catch((error) => {
+                console.log(error);
+              });
+          }
+
           console.info(8000042, "Verificando cookie", user?.uid, asd?.user_id);
           if (user?.uid !== asd?.user_id) {
             console.log("entro para loguear de nuevo")
