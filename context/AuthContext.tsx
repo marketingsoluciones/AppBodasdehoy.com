@@ -97,7 +97,7 @@ const AuthProvider = ({ children }) => {
         console.log(window.origin, window.location.hostname, directory)
         resp = {
           ...resp,
-          domain: `${process.env.NEXT_PUBLIC_DOMINIO}`,
+          domain: process.env.NEXT_PUBLIC_PRODUCTION ? resp?.domain : process.env.NEXT_PUBLIC_DOMINIO,
           pathDirectory: resp?.pathDirectory ? `${directory}` : undefined,
           pathLogin: resp?.pathLogin ? `${directory}/login` : undefined,
           pathSignout: resp?.pathSignout ? `${directory}/signout` : undefined,

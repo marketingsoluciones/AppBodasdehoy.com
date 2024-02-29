@@ -163,7 +163,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
           const idToken = await getAuth().currentUser?.getIdToken(true)
           console.log("*************************----------**********8888888885 parseJwt", parseJwt(idToken ?? ""))
           const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
-          Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "", expires: dateExpire })
+          Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_PRODUCTION ? config?.domain : process.env.NEXT_PUBLIC_DOMINIO, expires: dateExpire })
           await getSessionCookie(idToken)
           // Crear usuario en MongoDB
           fetchApiBodas({

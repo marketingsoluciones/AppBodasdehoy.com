@@ -105,7 +105,7 @@ export const useAuthentication = () => {
         if (res) {
           const idToken = await res?.user?.getIdToken()
           const dateExpire = new Date(parseJwt(idToken).exp * 1000)
-          Cookies.set("idTokenV0.1.0", idToken, { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "", expires: dateExpire })
+          Cookies.set("idTokenV0.1.0", idToken, { domain: process.env.NEXT_PUBLIC_PRODUCTION ? config?.domain : process.env.NEXT_PUBLIC_DOMINIO, expires: dateExpire })
 
           // Solicitar datos adicionales del usuario
           fetchApiBodas({
