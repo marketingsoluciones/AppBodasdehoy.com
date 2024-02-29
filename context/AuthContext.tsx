@@ -137,47 +137,10 @@ const AuthProvider = ({ children }) => {
               .catch((error) => {
                 console.log(error);
               });
-          }
-
-          console.info(8000042, "Verificando cookie", user?.uid, asd?.user_id);
-          if (user?.uid !== asd?.user_id) {
-            console.log("entro para loguear de nuevo")
-            const resp = await fetchApiBodas({
-              query: queries.authStatus,
-              variables: { sessionCookie },
-              development: config?.development
-            });
-            const customToken = resp?.customToken
-            console.info("Llamo con mi sessionCookie para traerme customToken");
-            console.info("Custom token", customToken)
-            customToken && signInWithCustomToken(getAuth(), customToken);
-            console.info("Hago sesion con el custom token****");
-          }
-          //setUser(user)
-          if (!sessionCookie) {
-            const cookieContent = JSON.parse(Cookies.get(config?.cookieGuest) ?? "{}")
-            let guestUid = cookieContent?.guestUid
-            if (!guestUid) {
-              const dateExpire = new Date(new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000))
-              guestUid = nanoid(28)
-              Cookies.set(config?.cookieGuest, JSON.stringify({ guestUid }), { domain: `${config?.domain}`, expires: dateExpire })
-            }
-            setUser({ uid: guestUid, displayName: "guest" })
-          }
-          if (sessionCookie) {
-            console.info("Tengo cookie de sesion");
-            if (user) {
-              console.info("Tengo user de contexto firebase");
-              const moreInfo = await fetchApiBodas({
-                query: queries.getUser,
-                variables: { uid: user?.uid },
-                development: config?.development
-              });
-              moreInfo && console.info("Tengo datos de la base de datos");
-              setUser({ ...user, ...moreInfo });
-              console.info("Guardo datos en contexto react");
-            } else {
-              console.info("NO tengo user de contexto de firebase");
+          } else {
+            console.info(8000042, "Verificando cookie", user?.uid, asd?.user_id);
+            if (user?.uid !== asd?.user_id) {
+              console.log("entro para loguear de nuevo")
               const resp = await fetchApiBodas({
                 query: queries.authStatus,
                 variables: { sessionCookie },
@@ -187,12 +150,50 @@ const AuthProvider = ({ children }) => {
               console.info("Llamo con mi sessionCookie para traerme customToken");
               console.info("Custom token", customToken)
               customToken && signInWithCustomToken(getAuth(), customToken);
-              console.info("Hago sesion con el custom token");
+              console.info("Hago sesion con el custom token****");
             }
+            //setUser(user)
+            if (!sessionCookie) {
+              const cookieContent = JSON.parse(Cookies.get(config?.cookieGuest) ?? "{}")
+              let guestUid = cookieContent?.guestUid
+              if (!guestUid) {
+                const dateExpire = new Date(new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000))
+                guestUid = nanoid(28)
+                Cookies.set(config?.cookieGuest, JSON.stringify({ guestUid }), { domain: `${config?.domain}`, expires: dateExpire })
+              }
+              setUser({ uid: guestUid, displayName: "guest" })
+            }
+            if (sessionCookie) {
+              console.info("Tengo cookie de sesion");
+              if (user) {
+                console.info("Tengo user de contexto firebase");
+                const moreInfo = await fetchApiBodas({
+                  query: queries.getUser,
+                  variables: { uid: user?.uid },
+                  development: config?.development
+                });
+                moreInfo && console.info("Tengo datos de la base de datos");
+                setUser({ ...user, ...moreInfo });
+                console.info("Guardo datos en contexto react");
+              } else {
+                console.info("NO tengo user de contexto de firebase");
+                const resp = await fetchApiBodas({
+                  query: queries.authStatus,
+                  variables: { sessionCookie },
+                  development: config?.development
+                });
+                const customToken = resp?.customToken
+                console.info("Llamo con mi sessionCookie para traerme customToken");
+                console.info("Custom token", customToken)
+                customToken && signInWithCustomToken(getAuth(), customToken);
+                console.info("Hago sesion con el custom token");
+              }
+            }
+            setTimeout(() => {
+              setVerificationDone(true)
+            }, 800);
           }
-          setTimeout(() => {
-            setVerificationDone(true)
-          }, 800);
+
         });
       }
     } catch (error) {
