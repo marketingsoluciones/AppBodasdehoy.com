@@ -201,6 +201,7 @@ export const queries = {
     $poblacion: String,
     $usuario_id: String!
     $usuario_nombre: String!
+    $development: String!
   ){
     crearEvento(
       nombre: $nombre,
@@ -210,6 +211,7 @@ export const queries = {
       poblacion: $poblacion,
       usuario_id: $usuario_id,
       usuario_nombre: $usuario_nombre
+      development: $development
     ){
       _id
       grupos_array
@@ -445,8 +447,8 @@ export const queries = {
   deleteCompartitions: `mutation($args:inputCompartition){
     deleteCompartition(args:$args)
   }`,
-  getEventsByID: `query SolicitarEventos($userID : String) {
-    queryenEvento(variable: "usuario_id", valor: $userID){
+  getEventsByID: `query ($userID : String, $development: String!) {
+    queryenEvento(variable: "usuario_id", valor: $userID, development: $development){
       _id
       grupos_array
       compartido_array

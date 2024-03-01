@@ -43,7 +43,7 @@ type Context = {
   forCms: any,
   setForCms: any,
 }
-
+export let varGlobalDomain = ""
 const AuthContext = createContext<Context>(initialContext);
 
 const AuthProvider = ({ children }) => {
@@ -105,6 +105,9 @@ const AuthProvider = ({ children }) => {
         }
         console.log(222215, resp?.domain)
       }
+
+      varGlobalDomain = resp?.domain
+
       try {
         initializeApp(resp?.fileConfig)
       } catch (error) {

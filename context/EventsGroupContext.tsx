@@ -78,7 +78,7 @@ const EventsGroupProvider = ({ children }) => {
     if (user) {
       fetchApiEventos({
         query: queries.getEventsByID,
-        variables: { userID: user?.uid },
+        variables: { userID: user?.uid, development: config?.development },
       })
         .then((events: Event[]) => {
           setTimeout(() => {

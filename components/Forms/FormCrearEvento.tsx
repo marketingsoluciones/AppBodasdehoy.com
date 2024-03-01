@@ -63,7 +63,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
     try {
       const crearEvento: Partial<Event> = await fetchApiEventos({
         query: queries.eventCreate,
-        variables: values,
+        variables: { ...values, development: config?.development },
       });
       if (crearEvento) {
         setEventsGroup({ type: "ADD_EVENT", payload: crearEvento });
