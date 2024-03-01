@@ -11,6 +11,7 @@ import { DataTableGroupContextProvider, DataTableGroupProvider, } from "../../co
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
 import { moveGuest } from "../Mesas/FuntionsDragable";
+import { useAllowed } from "../../hooks/useAllowed";
 
 interface propsDatatableGroup {
   GruposArray: string[];
@@ -30,6 +31,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
   const toast = useToast()
   const { event, setEvent, invitadoCero, setInvitadoCero, allFilterGuests, planSpaceActive, setPlanSpaceActive, filterGuests } = EventContextProvider();
   const [data, setData] = useState<{ titulo: string; data: guestsExt[] }[]>([]);
+  const [isAllowed] = useAllowed()
 
   useEffect(() => {
     setInvitadoCero(event?.invitados_array?.filter(elem => elem.rol === event?.grupos_array[0])[0]?.nombre)
@@ -173,7 +175,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
           return (
             <div
               className="flex justify-start items-center truncate pr-3 cursor-pointer"
-              onClick={handleClick}
+              onClick={!isAllowed() ? null : handleClick}
             >
               <img
                 className="block w-10 h-10 mr-2"
@@ -231,7 +233,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
               <div className="relative w-full items-center justify-center flex">
                 <button
                   className="font-display text-gray-500 hover:text-gray-400 transition text-sm capitalize flex gap-2 items-center justify-center focus:outline-none"
-                  onClick={() => setShow(!show)}
+                  onClick={() => !isAllowed() ? null : setShow(!show)}
                 >
                   {cloneElement(dicc[value].icon, { className: "w-5 h-5" })}
                   {value}
@@ -286,7 +288,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
               <div className="relative w-full items-center justify-center flex">
                 <button
                   className="font-display text-gray-500 hover:text-gray-400 transition text-sm capitalize flex gap-2 items-center justify-center focus:outline-none"
-                  onClick={() => setShow(!show)}
+                  onClick={() => !isAllowed() ? null : setShow(!show)}
                 >
                   {value}
                 </button>
@@ -344,7 +346,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                 ) : (
                   <button
                     className="focus:outline-none font-display text-sm capitalize"
-                    onClick={() => setShow(!show)}
+                    onClick={() => !isAllowed() ? null : setShow(!show)}
                   >
                     {value}
                   </button>
@@ -403,7 +405,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                 ) : (
                   <button
                     className="focus:outline-none font-display text-sm capitalize"
-                    onClick={() => setShow(!show)}
+                    onClick={() => !isAllowed() ? null : setShow(!show)}
                   >
                     {value}
                   </button>
@@ -473,7 +475,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
             <ClickAwayListener onClickAway={() => show && setShow(false)}>
               <div className="w-full flex justify-end items-center relative">
                 <span
-                  onClick={() => setShow(!show)}
+                  onClick={() => !isAllowed() ? null : setShow(!show)}
                   className={`cursor-pointer relative w-max rounded-lg text-sm text-gray-700 ${title === "no asignado" ? "hidden" : ""}`}
                 >
                   <DotsOpcionesIcon className="text-gray-500 w-4 h-4" />
@@ -547,7 +549,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
             <ClickAwayListener onClickAway={() => show && setShow(false)}>
               <div className="w-full flex justify-end items-center relative">
                 <span
-                  onClick={() => setShow(!show)}
+                  onClick={() => !isAllowed() ? null : setShow(!show)}
                   className="cursor-pointer relative w-max rounded-lg text-sm text-gray-700"
                 >
                   <DotsOpcionesIcon className="text-gray-500 w-4 h-4" />
@@ -604,6 +606,7 @@ const CheckBoxAll: FC<any> = ({ check, ...rest }) => {
   const { event, setEvent } = EventContextProvider();
   const toast = useToast();
   const refCheckbox: any = useRef();
+  const [isAllowed, ht] = useAllowed()
 
   const getToggleAllRowsSelectedProps = () => {
     const totalGuests: number = event?.invitados_array?.length;
@@ -657,6 +660,7 @@ const CheckBoxAll: FC<any> = ({ check, ...rest }) => {
           ref={refCheckbox}
           {...getToggleAllRowsSelectedProps()}
           onChange={handleChange}
+          disabled={!isAllowed()}
           {...rest}
         />
       </label>

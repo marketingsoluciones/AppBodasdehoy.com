@@ -24,12 +24,14 @@ const Profile = ({ user, state, set, ...rest }) => {
       title: "Iniciar sesión",
       onClick: async () => { router.push(config?.pathLogin ? `${config?.pathLogin}?d=app` : `/login?d=${route}`) },
       icon: <RiLoginBoxLine />,
+      development: ["bodasdehoy", "all"],
       rol: undefined,
     },
     {
       title: "Registrarse",
       onClick: async () => { router.push(config?.pathLogin ? `${config?.pathLogin}?d=app&q=register` : `/login?q=register&d=${route}`) },
       icon: <PiUserPlusLight />,
+      development: ["bodasdehoy", "all"],
       rol: undefined,
     },
     {
@@ -39,13 +41,15 @@ const Profile = ({ user, state, set, ...rest }) => {
         router.push((user?.role?.includes("empresa")) ? path ?? "" : config?.pathLogin ? `${config?.pathDirectory}/info-empresa?d=app` : `/login?d=${route}`)
       },
       icon: <CompanyIcon />,
+      development: ["bodasdehoy"],
       rol: ["all"],
     },
     {
       title: "Mis notificaciones",
       onClick: async () => { /*setModal(!modal)*/ },
       icon: <BiBell />,
-      rol: ["novio", "novia", "otro", "empresa"],
+      development: ["bodasdehoy", "all"],
+      rol: ["novio", "novia", "otro", "empresa", "all"],
     },
     {
       title: "Mis publicaciones",
@@ -55,6 +59,7 @@ const Profile = ({ user, state, set, ...rest }) => {
         router.push((user?.displayName !== "guest") ? `${path}/InfoPage/publicaciones` ?? "" : config?.pathLogin ? `${config?.pathLogin}?d=app&end=${pathEnd}` : `/login?d=${route}`)
       },
       icon: <Posts />,
+      development: ["bodasdehoy"],
       rol: ["all"],
     },
     {
@@ -63,6 +68,7 @@ const Profile = ({ user, state, set, ...rest }) => {
         router.push(window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CUSTOMWEB?.replace("//", "//test") ?? "" : process.env.NEXT_PUBLIC_CUSTOMWEB ?? "")
       },
       icon: <WeddingPage />,
+      development: ["bodasdehoy"],
       rol: ["novio", "novia", "otro", "empresa"],
     },
     {
@@ -71,12 +77,14 @@ const Profile = ({ user, state, set, ...rest }) => {
         router.push(cookieContent?.eventCreated || user?.uid ? window.origin.includes("://test") ? process.env.NEXT_PUBLIC_EVENTSAPP?.replace("//", "//test") ?? "" : process.env.NEXT_PUBLIC_EVENTSAPP ?? "" : "/welcome-app",)
       },
       icon: <Eventos />,
+      development: ["bodasdehoy"],
       rol: ["novio", "novia", "otro", "empresa"],
     },
     {
       title: "Mis proveedores",
       onClick: async () => { router.push(config?.pathDirectory) },
       icon: <CorazonPaddinIcon />,
+      development: ["bodasdehoy"],
       rol: ["all"],
     },
   ];
@@ -89,6 +97,7 @@ const Profile = ({ user, state, set, ...rest }) => {
         router.push(`${path}/lugaresBodas`)
       },
       icon: <LugaresBodas />,
+      development: ["bodasdehoy"],
       rol: ["novio", "novia", "otro", "empresa"],
     },
     {
@@ -98,6 +107,7 @@ const Profile = ({ user, state, set, ...rest }) => {
         router.push(`${path}/cateringBodas`)
       },
       icon: <Catering />,
+      development: ["bodasdehoy"],
       rol: ["novio", "novia", "otro", "empresa"],
     },
     {
@@ -107,6 +117,7 @@ const Profile = ({ user, state, set, ...rest }) => {
         router.push(`${path}/weddingPlanner`)
       },
       icon: <WeddingPlanner />,
+      development: ["bodasdehoy"],
       rol: ["novio", "novia", "otro", "empresa"],
     },
     {
@@ -116,6 +127,7 @@ const Profile = ({ user, state, set, ...rest }) => {
         const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
         router.push(`${path}/fotografo`)
       },
+      development: ["bodasdehoy"],
       rol: ["novio", "novia", "otro", "empresa"],
     },
     {
@@ -125,6 +137,7 @@ const Profile = ({ user, state, set, ...rest }) => {
         const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
         router.push(`${path}/webCreator`)
       },
+      development: ["bodasdehoy"],
       rol: ["novio", "novia", "otro", "empresa"],
     },
   ]
@@ -132,31 +145,35 @@ const Profile = ({ user, state, set, ...rest }) => {
   const optionsEnd: Option[] = [
     {
       title: "Mi perfil",
-      onClick: async () => { router.push(config?.pathPerfil) },
+      onClick: async () => { config?.pathPerfil && router.push(config?.pathPerfil) },
       icon: <UserIcon />,
+      development: ["bodasdehoy", "all"],
       rol: ["novio", "novia", "otro", "empresa"],
     },
     {
       title: "Cerrar Sesión",
       icon: <MdLogout />,
       onClick: async () => {
-        Cookies.remove("sessionBodas", { domain: config?.domain ?? "" });
+        Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
         Cookies.remove("idTokenV0.1.0", { domain: config?.domain ?? "" });
         signOut(getAuth());
-        router.push(`${config.pathSignout}?end=true` ?? "")
+        router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "")
       },
-      rol: ["novio", "novia", "otro", "empresa"],
+      development: ["bodasdehoy", "all"],
+      rol: ["novio", "novia", "otro"],
     },
   ]
 
-  const optionReduce = (options) => {
+  const optionReduce = (options: Option[]) => {
     return options.reduce((acc: Option[], item: Option) => {
-      if (
-        item.rol?.includes(user?.role ? user.role[0] : "") ||
-        item.rol?.includes("all") ||
-        item.rol === user?.role
-      ) {
-        acc.push(item)
+      if (item.development?.includes(config?.development) || item.development?.includes("all")) {
+        if (
+          item.rol?.includes(user?.role ? user.role[0] : "") ||
+          item.rol?.includes("all") ||
+          item.rol === user?.role
+        ) {
+          acc.push(item)
+        }
       }
       return acc
     }, [])
@@ -208,7 +225,7 @@ const Profile = ({ user, state, set, ...rest }) => {
                   {optionsReduceStart.map((item: Option, idx) => (
                     <ListItemProfile key={idx} {...item} />
                   ))}
-                  {user?.displayName !== "guest" &&
+                  {(user?.displayName !== "guest" && config?.development === "bodasdehoy") &&
                     <>
                       <hr className="col-span-2" />
                       <span className="col-span-2 text-gray-700 font-semibold">Módulos:</span>

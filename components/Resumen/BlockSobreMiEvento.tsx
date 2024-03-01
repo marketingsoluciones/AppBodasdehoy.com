@@ -7,11 +7,9 @@ import InputField from "../Forms/InputField";
 import { useDelayUnmount } from "../../utils/Funciones";
 import ModalBottom from "../Utils/ModalBottom";
 import { fetchApiEventos, queries } from '../../utils/Fetching';
-import { EventContextProvider, EventsGroupContextProvider } from "../../context";
+import { EventContextProvider } from "../../context";
 import { useToast } from "../../hooks/useToast";
-
-
-
+import { useAllowed } from "../../hooks/useAllowed";
 
 interface propsInsideBlock extends schemaItem {
   setSelected?: Dispatch<
@@ -59,7 +57,6 @@ const InsideBlockWithButtons: FC<propsInsideBlock> = ({
 
 const InsideBlockWithForm: FC<propsInsideBlock> = ({ setEditing, setFieldValue, title, values }) => {
   const { event, setEvent } = EventContextProvider()
-  console.log("values", values)
   return (
     <div className="px-5">
       <Formik initialValues={values[title]} onSubmit={async (values) => {
@@ -171,22 +168,24 @@ interface typeEvent {
 
 const BlockSobreMiEvento: FC = () => {
   const { event } = EventContextProvider()
-
-  const initialValues2: values | {} = schema.reduce((acc, item) => {
-    if (event) {
-      acc[item.title] = {
-        title: event[item.title] ?? "",
-        color: item?.list?.find(e => e.title === event[item.title])?.color ?? null,
-        icon: item?.list?.find(e => e.title === event[item.title])?.icon ?? null,
-      }
-    }
-    return acc
-  }, {})
-
-  const [values, setValues] = useState<values | {}>(initialValues2);
+  const [values, setValues] = useState<values | {}>({});
   const [isMounted, setIsMounted] = useState<boolean>(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const [itemSelected, setItemSelected] = useState<schemaItem | null>(null)
+
+  useEffect(() => {
+    const initialValues2: values | {} = schema.reduce((acc, item) => {
+      if (event) {
+        acc[item.title] = {
+          title: event[item.title] ?? "",
+          color: item?.list?.find(e => e.title === event[item.title])?.color ?? null,
+          icon: item?.list?.find(e => e.title === event[item.title])?.icon ?? null,
+        }
+      }
+      return acc
+    }, {})
+    setValues(initialValues2)
+  }, [event])
 
   const setFieldValue = (field: string, value: string) => {
     setValues((old) => ({
@@ -273,13 +272,13 @@ interface propsElement extends schemaItem {
 }
 
 const AboutItem: FC<propsElement> = ({ title, value, toggleClick }) => {
-
+  const [isAllowed, ht] = useAllowed()
 
 
   return (
     <>
       <button
-        onClick={toggleClick}
+        onClick={() => !isAllowed() ? ht() : toggleClick()}
         className="relative bg-white rounded-full w-32 md:w-40 h-32 md:h-40 shadow-md gap-2 flex flex-col items-center justify-center focus:outline-none mx-auto inset-x-0"
       >
         {!value ? (

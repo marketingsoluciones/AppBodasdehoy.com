@@ -10,16 +10,14 @@ import ModalLeft from "../components/Utils/ModalLeft";
 import { useDelayUnmount } from "../utils/Funciones";
 import { NextPage } from "next";
 import { Event } from "../utils/Interfaces";
-import { fetchApiEventos, queries } from "../utils/Fetching";
 import VistaSinCookie from "../pages/vista-sin-cookie"
 import { useMounted } from "../hooks/useMounted"
 import { useRouter } from "next/router";
 
 const Home: NextPage = () => {
+  const { user, verificationDone } = AuthContextProvider()
   const [isMounted, setIsMounted] = useState<boolean>(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
-  const { setEventsGroup } = EventsGroupContextProvider()
-  const { event } = EventContextProvider()
   const [showEditEvent, setShowEditEvent] = useState<boolean>(false);
   const [valir, setValir] = useState<boolean>(false);
   const router = useRouter()
@@ -30,16 +28,6 @@ const Home: NextPage = () => {
       setIsMounted(true)
     }
   }, [router.query])
-
-
-  useEffect(() => {
-    fetchApiEventos({
-      query: queries.getEventsByID,
-      variables: { userID: user?.uid },
-    })
-      .then((events: Event[]) => setEventsGroup({ type: "INITIAL_STATE", payload: events }))
-      .catch((error) => console.log(error));
-  }, []);
 
   useEffect(() => {
     if (showEditEvent && !isMounted && !valir) {
@@ -52,14 +40,13 @@ const Home: NextPage = () => {
     }
   }, [showEditEvent, isMounted, valir])
 
-
-  const { user, verificationDone } = AuthContextProvider()
   if (verificationDone) {
     if (!user) {
       return (
         <VistaSinCookie />
       )
     }
+
     return (
       <>
         {shouldRenderChild && (
@@ -71,9 +58,9 @@ const Home: NextPage = () => {
           </ModalLeft>
         )}
 
-        <section className="section relative w-full">
+        <section id="rootsection" className="section relative w-full">
           <Banner state={isMounted} set={setIsMounted} />
-          <GridCards state={isMounted} set={setIsMounted} showEditEvent={showEditEvent} setShowEditEvent={setShowEditEvent} />
+          <GridCards state={isMounted} set={setIsMounted} />
         </section>
         <style jsx>
           {`
@@ -87,6 +74,7 @@ const Home: NextPage = () => {
   }
 };
 export default Home;
+
 
 export async function getServerSideProps({ req, res }) {
   return { props: {} };
@@ -154,8 +142,6 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
 interface propsGridCards {
   state: boolean
   set: Dispatch<SetStateAction<boolean>>
-  showEditEvent: boolean
-  setShowEditEvent: Dispatch<SetStateAction<boolean>>
 }
 
 type dataTab = {
@@ -170,16 +156,17 @@ export const Lista = [
   { nombre: "Realizados", value: "realizado", color: "secondary" },
 ];
 
-const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent, showEditEvent, setShowEditEvent }) => {
+const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
   const { eventsGroup } = EventsGroupContextProvider();
   const { idxGroupEvent, setIdxGroupEvent } = EventContextProvider()
   const [isActiveStateSwiper, setIsActiveStateSwiper] = useState<number>(idxGroupEvent?.isActiveStateSwiper)
   const [tabsGroup, setTabsGroup] = useState<dataTab[]>([]);
+  const [idxNew, setIdxNew] = useState<number>(-2)
 
   useEffect(() => {
     if (eventsGroup) {
       const arrNuevo = eventsGroup?.reduce((acc, event) => {
-        acc[event.estatus.toLowerCase()].push(event)
+        acc[event?.estatus?.toLowerCase()]?.push(event)
         return acc;
       },
         { pendiente: [], archivado: [], realizado: [] }
@@ -195,18 +182,26 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent, showEditEvent,
       };
 
       const result: dataTab[] = Object.entries(arrNuevo).map((eventos: any[]) => {
+        const events = eventos[1]
+        const eventsSort = events?.sort((a: any, b: any) => {
+          const aNew = a.fecha_creacion.length < 16 ? parseInt(a.fecha_creacion) : new Date(a.fecha_creacion).getTime()
+          const bNew = b.fecha_creacion.length < 16 ? parseInt(b.fecha_creacion) : new Date(b.fecha_creacion).getTime()
+          return bNew - aNew
+        })
         return ({
           status: eventos[0],
-          data: eventos[1]?.sort((a: any, b: any) => { return b.fecha_creacion - a.fecha_creacion }),
+          data: eventsSort,
           vacio: countEmptys(eventos[1]),
         })
       });
-
       setTabsGroup(result);
     }
   }, [eventsGroup, idxGroupEvent]);
 
-  const idxNew = tabsGroup[isActiveStateSwiper]?.data.findIndex(elem => elem._id == idxGroupEvent.event_id)
+  useEffect(() => {
+    setIdxNew(tabsGroup[isActiveStateSwiper]?.data.findIndex(elem => elem._id == idxGroupEvent.event_id))
+  }, [tabsGroup])
+
   useEffect(() => {
     if (idxNew > -1) {
       setTimeout(() => {
@@ -242,7 +237,7 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent, showEditEvent,
               <div key={idx}>
                 {isActiveStateSwiper == idx ? (
                   <>
-                    <Swiper
+                    {idxNew > -2 && <Swiper
                       //slideToClickedSlide={true}
                       initialSlide={idxNew < 0 ? idxGroupEvent?.idx - 2 : idxNew - 2}
                       spaceBetween={50}
@@ -283,7 +278,7 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent, showEditEvent,
                           <CardEmpty state={state} set={setNewEvent} />
                         </SwiperSlide>
                       }
-                    </Swiper>
+                    </Swiper>}
                   </>
                 ) : null}
               </div>

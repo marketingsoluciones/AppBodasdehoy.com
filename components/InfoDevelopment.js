@@ -9,7 +9,6 @@ export const InfoDevelopment = () => {
   const [isMounted, setIsMounted] = useState(false)
   const [isDevelopment, setIsDevelopment] = useState(false)
   const [size, setSize] = useState({ x: 0, y: 0 })
-  const [showCookie, setShowCookie] = useState()
 
   useEffect(() => {
     if (!isMounted) {

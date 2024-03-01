@@ -63,8 +63,34 @@ export const useAuthentication = () => {
 
   }, [])
 
+  const types = {
+    provider: async (payload: any) => {
+      try {
+        const asdf = await signInWithPopup(getAuth(), payload)
+
+        return asdf
+      } catch (error: any) {
+        setLoading(false);
+        const er = error.toString().split(".")[0].split(": Error ")[1]
+        if (er == "(auth/account-exists-with-different-credential)") {
+          toast("error", "El correo asociado a su provedor ya se encuentra registrado en bodasdehoy.com");
+        }
+      }
+    },
+    credentials: async (payload: any) => await signInWithEmailAndPassword(getAuth(), payload.identifier, payload.password),
+  };
+
+
+  interface propsSinnIn {
+    type: keyof typeof types
+    payload: any
+    verificationId?: any
+    setStage: any
+    whoYouAre?: any
+  }
+
   const signIn = useCallback(
-    async (type: keyof typeof types, payload: any) => {
+    async ({ type, payload, verificationId, setStage, whoYouAre }: propsSinnIn) => {
       //### Login por primera vez
       //1.- Verificar tipo de login y tomar del diccionario el metodo
       //2.- Obtener el tokenID del usuario
@@ -72,60 +98,51 @@ export const useAuthentication = () => {
       //4.- Almacenar en una cookie el token de la sessionCookie
       //5.- Mutar el contexto User de React con los datos de Firebase + MoreInfo (API BODAS)
 
-
-      const types = {
-        provider: async () => {
-          try {
-            const asdf = await signInWithPopup(getAuth(), payload)
-
-            return asdf
-          } catch (error: any) {
-            setLoading(false);
-            const er = error.toString().split(".")[0].split(": Error ")[1]
-            if (er == "(auth/account-exists-with-different-credential)") {
-              toast("error", "El correo asociado a su provedor ya se encuentra registrado en bodasdehoy.com");
-            }
-          }
-        },
-        credentials: async () => await signInWithEmailAndPassword(getAuth(), payload.identifier, payload.password)
-      };
-
       // Autenticar con firebase
       try {
-        const res: UserCredential | void = await types[type]();
+        console.log(800003050)
+        const res: UserCredential | void = await types[type](payload);
         if (res) {
+          const idToken = await res?.user?.getIdToken()
+          const dateExpire = new Date(parseJwt(idToken).exp * 1000)
+          Cookies.set("idTokenV0.1.0", idToken, { domain: process.env.NEXT_PUBLIC_PRODUCTION ? config?.domain : process.env.NEXT_PUBLIC_DOMINIO, expires: dateExpire })
 
           // Solicitar datos adicionales del usuario
-          const moreInfo = await fetchApiBodas({
+          fetchApiBodas({
             query: queries.getUser,
             variables: { uid: res.user.uid },
             development: config?.development
-          });
-          if (moreInfo?.status && res?.user?.email) {
-            const token = (await res?.user?.getIdTokenResult())?.token;
-            console.log(41001, token)
-            const sessionCookie = await getSessionCookie(token)
-            console.log(41001, sessionCookie)
-            if (sessionCookie) { }
-            // Actualizar estado con los dos datos
-            setUser({ ...res.user, ...moreInfo });
-
-            /////// REDIRECIONES ///////
-            setLoading(true)
-            router.push(`${router.query?.d}`)
-            ///////////////////////////
-
-          } else {
-            toast("error", "aun no está registrado");
-            //verificar que firebase me devuelva un correo del usuario
-            if (res?.user?.email) {
-              //seteo usuario temporal pasar nombre y apellido de firebase a formulario de registro
-              //setUserTemp({ ...res.user });
-              toast("success", "Seleccione quien eres y luego completa el formulario");
+          }).then(async (moreInfo) => {
+            if (moreInfo?.status && res?.user?.email) {
+              const token = (await res?.user?.getIdTokenResult())?.token;
+              console.log(41001, token)
+              const sessionCookie = await getSessionCookie(token)
+              console.log(41001, sessionCookie)
+              if (sessionCookie) { }
+              // Actualizar estado con los dos datos
+              setUser({ ...res.user, ...moreInfo });
+              toast("success", `Inicio sesión con éxito`)
             } else {
-              toast("error", "usted debe tener asociado un correo a su cuenta de proveedor");
+              if (whoYouAre !== "") {
+                console.log({ whoYouAre })
+                fetchApiBodas({
+                  query: queries.createUser,
+                  variables: {
+                    uid: res?.user?.uid,
+                    role: whoYouAre
+                  },
+                  development: config.development
+                }).then(async () => {
+                  await getSessionCookie(idToken)
+                  setUser({ ...res.user, role: [whoYouAre] });
+                  toast("success", `Registro sesión con éxito`)
+                })
+              } else {
+                toast("error", `${res?.user?.email} no está registrado`)
+                toast("success", `Haz click en Regístrate`)
+              }
             }
-          }
+          })
         }
       } catch (error: any) {
         const errorCode: string = error?.code ? error.code : error?.message
@@ -143,6 +160,8 @@ export const useAuthentication = () => {
             break;
         }
 
+
+        toast("error", "usuario o contraseña inválida");
         console.log("error", error)
         console.log("errorCode", error?.code ? error.code : error?.message)
       }

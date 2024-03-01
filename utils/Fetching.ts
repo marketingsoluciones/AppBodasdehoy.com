@@ -101,6 +101,9 @@ export const fetchApiEventos = async ({ query, variables, token }: argsFetchApi)
 };
 
 export const queries = {
+  createUserWithPassword: `mutation($email:String, $password:String) { 
+    createUserWithPassword(email:$email, password:$password)
+  }`,
   getEmailValid: `query ($email :String){
     getEmailValid(email:$email){
       valid
@@ -122,6 +125,19 @@ export const queries = {
         }
       }
       reason
+    }
+  }`,
+
+  getUsers: `query ($uids:[ID]){
+    getUsers(uids:$uids){
+      uid
+      email
+      displayName
+      photoURL
+      onLine{
+        status
+        dateConection
+      }
     }
   }`,
 
@@ -153,6 +169,12 @@ export const queries = {
       }`,
   getUser: `query ($uid: ID) {
         getUser(uid:$uid){
+          email
+          photoURL
+          onLine{
+            status
+          }
+          displayName
           phoneNumber
           role
           typeRole
@@ -179,6 +201,7 @@ export const queries = {
     $poblacion: String,
     $usuario_id: String!
     $usuario_nombre: String!
+    $development: String!
   ){
     crearEvento(
       nombre: $nombre,
@@ -188,10 +211,25 @@ export const queries = {
       poblacion: $poblacion,
       usuario_id: $usuario_id,
       usuario_nombre: $usuario_nombre
+      development: $development
     ){
       _id
       grupos_array
+      compartido_array
+      detalles_compartidos_array{
+        email
+        uid
+        permissions{
+          title
+          value
+        }
+      }
       estatus
+      color
+      temporada
+      estilo
+      tematica
+      tarta
       nombre
       fecha_actualizacion
       fecha_creacion
@@ -199,8 +237,17 @@ export const queries = {
       usuario_id
       usuario_nombre
       fecha
+      listaRegalos
       poblacion
       pais
+      imgInvitacion{
+        _id
+        i1024
+        i800
+        i640
+        i320
+        createdAt
+      }
       notificaciones_array{
         _id
         fecha_creacion
@@ -314,6 +361,13 @@ export const queries = {
         grupo_edad
         correo
         telefono
+        chairs{
+          planSpaceID
+          sectionID
+          tableID
+          position
+          order
+        }
         nombre_mesa
         puesto
         asistencia
@@ -325,6 +379,8 @@ export const queries = {
         poblacion
         pais
         direccion
+        invitacion
+        fecha_invitacion
       }
       menus_array{
         nombre_menu
@@ -354,6 +410,7 @@ export const queries = {
               fecha_vencimiento
               medio_pago
               importe
+              pagado_por
             }
           }
           
@@ -371,10 +428,38 @@ export const queries = {
       listaRegalos
     }
   }`,
-  getEventsByID: `query SolicitarEventos($userID : String) {
-    queryenEvento(variable: "usuario_id", valor: $userID){
+  addCompartitions: `mutation($args:inputCompartition){
+    addCompartition(args:$args){
+      compartido_array
+      detalles_compartidos_array{
+        email
+        uid
+        permissions{
+          title
+          value
+        }
+      }
+    }
+  }`,
+  updateCompartitions: `mutation($args:inputCompartition){
+    updateCompartition(args:$args)
+  }`,
+  deleteCompartitions: `mutation($args:inputCompartition){
+    deleteCompartition(args:$args)
+  }`,
+  getEventsByID: `query ($userID : String, $development: String!) {
+    queryenEvento(variable: "usuario_id", valor: $userID, development: $development){
       _id
       grupos_array
+      compartido_array
+      detalles_compartidos_array{
+        email
+        uid
+        permissions{
+          title
+          value
+        }
+      }
       estatus
       color
       temporada

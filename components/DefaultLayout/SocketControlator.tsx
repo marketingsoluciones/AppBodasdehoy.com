@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, SocketContextProvider, } from "../../context"
+import { useRouter } from "next/router";
 
 export const SocketControlator = () => {
   const { user } = AuthContextProvider()
@@ -10,6 +11,8 @@ export const SocketControlator = () => {
   const [valirRemoteEvent, setValirRemoteEvent] = useState(false)
   const [valirRemotePlanSpaceActive, setValirRemotePlanSpaceActive] = useState(false)
   const [reconet, setReconet] = useState(null)
+  const [received, setReceived] = useState({ channel: "", msg: null, d: null })
+const router = useRouter()
 
   useEffect(() => {
     if (!isMounted) {
@@ -29,22 +32,38 @@ export const SocketControlator = () => {
   }, [valirRemotePlanSpaceActive])
 
   useEffect(() => {
-    socket?.on("cms:message", async (msg) => {
-      if (msg?.context === "event") {
-        setEvent(eventsGroup.find(elem => elem._id === msg?.eventID))
+    if (received.channel === "app:message") {
+      if (received?.msg?.payload?.action === "setEvent") {
+        setValirRemoteEvent(true)
+        const eventOld = {
+          compartido_array: event?.compartido_array,
+          detalles_compartidos_array: event?.detalles_compartidos_array,
+          detalles_usuario_id: event?.detalles_usuario_id,
+          permissions: event?.permissions,
+          planSpaceSelect: event?.planSpaceSelect,
+          updatedAt: new Date()
+        }
+        const eventNew = { ...received.msg?.payload?.value, ...eventOld }
+        setEvent({ ...eventNew })
       }
+      if (received?.msg?.payload?.action === "setPlanSpaceActive") {
+        setValirRemotePlanSpaceActive(true)
+        setPlanSpaceActive(received?.msg?.payload?.value)
+      }
+    }
+  }, [received])
+
+  useEffect(() => {
+    socket?.on("cms:message", async (msg) => {
+      console.log(msg)
+      router.push("/mesas/?show=iframe&father=kDg22rHNnkg8rr0RwveEL")
+      // if (msg?.context === "event") {
+      //   setEvent(eventsGroup.find(elem => elem._id === msg?.eventID))
+      // }
     })
 
-
     socket?.on("app:message", async (msg) => {
-      if (msg?.payload?.action === "setEvent") {
-        setValirRemoteEvent(true)
-        setEvent(msg?.payload?.value)
-      }
-      if (msg?.payload?.action === "setPlanSpaceActive") {
-        setValirRemotePlanSpaceActive(true)
-        setPlanSpaceActive(msg?.payload?.value)
-      }
+      setReceived({ channel: "app:message", msg, d: new Date() })
     })
     socket?.io.on("reconnect_attempt", (attempt) => {
       setReconet(new Date())

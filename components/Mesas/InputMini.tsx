@@ -2,6 +2,7 @@ import { Dispatch, FC, SetStateAction, useEffect, useState } from "react"
 import { size } from "../../utils/Interfaces"
 import { EventContextProvider } from "../../context"
 import { fetchApiEventos, queries } from "../../utils/Fetching"
+import { useAllowed } from "../../hooks/useAllowed"
 
 interface propsInputMini {
   label: string
@@ -12,6 +13,7 @@ interface propsInputMini {
 }
 
 export const InputMini: FC<propsInputMini> = ({ label, lienzo, setLienzo, centerView, resetTransform, }) => {
+  const [isAllowed, ht] = useAllowed()
   const { event, setEvent, planSpaceActive } = EventContextProvider()
   const [idxPlanSpace, setIdxPlanSpace] = useState(event.planSpace.findIndex(elem => elem._id === event.planSpaceSelect))
   const [value, setValue] = useState(
@@ -48,7 +50,7 @@ export const InputMini: FC<propsInputMini> = ({ label, lienzo, setLienzo, center
       <span className="flex flex-col text-[9px] md:text-[11px]">
         {label && <span className="capitalize">{label}:</span>}
         <div>
-          <input type="number" step={0.01} name="scala" className="w-10 h-4 text-[9px] md:text-[11px]"
+          <input disabled={!isAllowed()} type="number" step={0.01} name="scala" className="w-10 h-4 text-[9px] md:text-[11px]"
             value={`${value}`}
             onChange={(e) => { handleOnChange(e) }}
             onBlur={(e) => {

@@ -3,11 +3,13 @@ import { EventContextProvider } from "../../context";
 import { useRouter } from "next/router";
 import { Swiper, SwiperSlide } from "swiper/react";
 import BlockTitle from "../Utils/BlockTitle";
+import { useAllowed } from "../../hooks/useAllowed";
 
 
 const BlockCabecera = () => {
   const { event } = EventContextProvider();
   const router = useRouter();
+  const [isAllowed, ht] = useAllowed()
 
   const totalSegun = (prop, param) => {
     return event?.invitados_array?.filter((item) => item[prop] == param);
@@ -80,7 +82,7 @@ const BlockCabecera = () => {
             sentar <span className="font-light">invitados</span>
           </p>
           <button
-            onClick={() => router.push("/mesas")}
+            onClick={() => !isAllowed("mesas") ? ht() : router.push("/mesas")}
             className="focus:outline-none bg-tertiary rounded-lg text-gray-700 font-display text-sm font-semibold px-2 "
           >
             Añadir mesa

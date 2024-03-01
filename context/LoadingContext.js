@@ -1,6 +1,7 @@
-import { createContext, useState, useContext } from "react";
+import { createContext, useState, useContext, useEffect } from "react";
 import Loading from "../components/DefaultLayout/Loading";
-
+import { useRouter } from "next/router";
+import { useAllowedRouter } from "../hooks/useAllowed";
 
 const initialContext = {
   loading: false,
@@ -10,11 +11,12 @@ const initialContext = {
 const LoadingContext = createContext(initialContext);
 
 const LoadingProvider = ({ children }) => {
+  const [isAllowedRouter] = useAllowedRouter()
   const [loading, setLoading] = useState(false);
   return (
     <LoadingContext.Provider value={{ loading, setLoading }}>
       {loading && <Loading />}
-      {children}
+      {!isAllowedRouter() ? <Redirection /> : children}
     </LoadingContext.Provider>
   );
 };
@@ -22,3 +24,11 @@ const LoadingProvider = ({ children }) => {
 const LoadingContextProvider = () => useContext(LoadingContext);
 
 export { LoadingContextProvider, LoadingProvider };
+
+const Redirection = () => {
+  const router = useRouter()
+  useEffect(() => {
+    router.push("/")
+  }, [])
+  return null
+}

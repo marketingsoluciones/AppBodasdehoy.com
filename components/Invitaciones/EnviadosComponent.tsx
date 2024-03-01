@@ -2,7 +2,6 @@ import { Separator } from "../Separator"
 import { GuestTable } from "./GuestTable"
 
 export const EnviadosComponent = ({ dataInvitationSent, dataInvitationNotSent, event }) => {
-    console.log(dataInvitationSent)
     return (
         <>
             <div className="my-4">
@@ -17,7 +16,7 @@ export const EnviadosComponent = ({ dataInvitationSent, dataInvitationNotSent, e
                         </div>
                     </div>
                     {
-                        dataInvitationSent.length > 0 ? (
+                        dataInvitationSent?.length > 0 ? (
                             <div className="bg-white w-full rounded-xl shadow-md relative mt-4 mb-8">
                                 <Separator title="Invitaciones enviadas" />
                                 <div className="w-full overflow-auto">

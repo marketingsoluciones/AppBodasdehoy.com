@@ -4,15 +4,16 @@ import { useRowSelect, useTable } from "react-table";
 import { EventContextProvider } from "../../context";
 import { guests } from "../../utils/Interfaces";
 import { DataTableGroupContextProvider } from "../../context/DataTableGroupContext";
+import { useAllowed } from "../../hooks/useAllowed";
 
 // Para checkbox
 export const IndeterminateCheckbox: ForwardRefComponent<HTMLInputElement, any> =
   forwardRef(({ indeterminate, checked, propParent, ...rest }, ref) => {
     const [ischecked, setChecked] = useState<boolean>(false);
+    const [isAllowed, ht] = useAllowed()
     //@ts-ignore
     const ref1: any = ref;
     const ref2 = useRef<any>();
-
     const defaultRef = ref1 || ref2;
 
     useEffect(() => {
@@ -42,6 +43,7 @@ export const IndeterminateCheckbox: ForwardRefComponent<HTMLInputElement, any> =
       <label className="relative">
         <input
           onClick={handleCheck}
+          disabled={!isAllowed()}
           type="checkbox"
           className="rounded-full text-primary focus:ring-primary border-gray-400"
           ref={defaultRef}

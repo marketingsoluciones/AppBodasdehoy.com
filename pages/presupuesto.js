@@ -15,6 +15,7 @@ import VistaSinCookie from "./vista-sin-cookie";
 import BlockTitle from "../components/Utils/BlockTitle";
 import { useToast } from "../hooks/useToast";
 import { useMounted } from "../hooks/useMounted"
+import { useAllowed } from "../hooks/useAllowed"
 
 const Presupuesto = () => {
 
@@ -154,6 +155,7 @@ const MontoPresupuesto = ({ estimado }) => {
   const [value, setValue] = useState(estimado.toFixed(2));
   const [mask, setMask] = useState();
   const { event, setEvent } = EventContextProvider()
+  const [isAllowed, ht] = useAllowed()
 
   useEffect(() => {
     setMask(getCurrency(!!value ? value : 0, "EUR"));
@@ -240,7 +242,7 @@ const MontoPresupuesto = ({ estimado }) => {
         </span>
       )}
       <button
-        onClick={() => setModificar(!modificar)}
+        onClick={() => !isAllowed() ? ht() : setModificar(!modificar)}
         className="border-primary border font-display focus:outline-none text-primary text-xs bg-white px-3 py-1 rounded-lg my-2 hover:bg-primary hover:text-white transition"
       >
         {modificar ? "Aceptar" : "Modificar presupuesto"}
@@ -266,6 +268,7 @@ const BlockListaCategorias = ({ categorias_array, set }) => {
   const { event, setEvent } = EventContextProvider()
   const [colorText, setColorText] = useState(event?.presupuesto_objeto?.coste_estimado == 0 ? "text-gray-300" : "text-gray-500");
   const Presu = event?.presupuesto_objeto?.coste_estimado
+  const [isAllowed, ht] = useAllowed()
 
   useEffect(() => {
     setCategorias(categorias_array)
@@ -299,7 +302,7 @@ const BlockListaCategorias = ({ categorias_array, set }) => {
       )}
       <div className="bg-white w-full shadow-md rounded-xl h-max ">
         <button
-          onClick={() => setIsMounted([true, "crear"])}
+          onClick={() => !isAllowed() ? ht() : setIsMounted([true, "crear"])}
           className="focus:outline-none bg-primary rounded-xl font-display font-light text-md flex gap-2 w-full transform py-1 items-center justify-center text-white hover:scale-105 transition transform"
         >
           <PlusIcon className="text-white w-4 h-4" />
@@ -330,7 +333,7 @@ const ItemCategoria = ({ item, setVisible, set }) => {
   const [show, setShow] = useState(false);
   const toast = useToast()
   const Presu = event?.presupuesto_objeto?.coste_estimado
-
+  const [isAllowed, ht] = useAllowed()
 
   const BorrarCategoria = async () => {
     setShow(!show)
@@ -388,7 +391,7 @@ const ItemCategoria = ({ item, setVisible, set }) => {
         </div>
         <div className="relative ">
           <DotsOpcionesIcon
-            onClick={() => Presu != 0 ? setShow(!show) : null}
+            onClick={() => !isAllowed() ? null : Presu != 0 ? setShow(!show) : null}
             className={`w-3 h-3 ${Presu != 0 ? "cursor-pointer" : ""} `}
           />
           {show && (

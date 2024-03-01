@@ -6,6 +6,7 @@ import { getCurrency } from "../../utils/Funciones";
 import FormEditarPago from "../Forms/FormEditarPago";
 import { EditarIcon } from "../icons";
 import { capitalize } from '../../utils/Capitalize';
+import { useAllowed } from "../../hooks/useAllowed";
 
 
 const BlockPagos = () => {
@@ -54,6 +55,7 @@ const TablaDatosPagos = () => {
   const categorias = event?.presupuesto_objeto?.categorias_array;
   const [PagosOrFormAdd, setShowPagos] = useState(true)
   const [PagoID, setPagoID] = useState("")
+  const [isAllowed, ht] = useAllowed()
 
   const Columna = useMemo(
     () => [
@@ -145,7 +147,7 @@ const TablaDatosPagos = () => {
           }
 
           return (
-            <div onClick={handleEdit} className=" w-10 rounded-md hover:shadow-md hover:bg-gray-300 grid place-items-center h-full right-0 mx-auto">
+            <div onClick={() => !isAllowed() ? ht() : handleEdit} className=" w-10 rounded-md hover:shadow-md hover:bg-gray-300 grid place-items-center h-full right-0 mx-auto">
               <EditarIcon className="w-5 h-5" />
             </div>
           );
@@ -187,7 +189,7 @@ const TablaDatosPagos = () => {
     return acc;
   }, []);
 
-  
+
 
 
 

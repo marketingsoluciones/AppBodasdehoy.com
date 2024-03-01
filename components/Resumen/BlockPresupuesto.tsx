@@ -4,10 +4,12 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import router from "next/router";
 import { getCurrency } from "../../utils/Funciones";
 import { EventContextProvider } from "../../context";
+import { useAllowed } from "../../hooks/useAllowed";
 
 
 const BlockPresupuesto = () => {
   const { event } = EventContextProvider();
+  const [isAllowed, ht] = useAllowed()
   const ListaBlock = [
     { icon: <CochinoIcon className="text-gray-500" />, amount: getCurrency(event?.presupuesto_objeto?.coste_estimado), subtitle: "estimado" },
     { icon: <DineroIcon className="text-gray-500" />, amount: getCurrency(event?.presupuesto_objeto?.coste_final), subtitle: "gastado" },
@@ -51,7 +53,7 @@ const BlockPresupuesto = () => {
           ))}
         </Swiper>
 
-        <button onClick={() => router.push("/presupuesto")} className="focus:outline-none rounded-lg border border-primary px-2 mx-auto inset-x-0 font-display text-primary text-sm py-1 hover:text-white hover:bg-primary transition">
+        <button onClick={() => !isAllowed("presupuesto") ? ht() : router.push("/presupuesto")} className="focus:outline-none rounded-lg border border-primary px-2 mx-auto inset-x-0 font-display text-primary text-sm py-1 hover:text-white hover:bg-primary transition">
           Añadir gastos
         </button>
       </div>

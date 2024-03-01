@@ -1,7 +1,7 @@
 import { createContext, useState, useContext, useEffect, SetStateAction, Dispatch, useReducer, Reducer } from 'react';
 import { AuthContextProvider } from "../context";
 import { fetchApiBodas, fetchApiEventos, queries } from "../utils/Fetching";
-import { Event } from '../utils/Interfaces';
+import { Event, detalle_compartidos_array } from '../utils/Interfaces';
 import { useRouter } from 'next/router';
 
 type Context = {
@@ -61,18 +61,60 @@ const EventsGroupProvider = ({ children }) => {
   const router = useRouter();
   const [eventsGroup, setEventsGroup] = useReducer<Reducer<Event[], action>>(reducer, []);
   const [psTemplates, setPsTemplates] = useState<any>([]);
-  const { user } = AuthContextProvider();
+  const { user, config } = AuthContextProvider();
+  const [reload, setReload] = useState<number>(0);
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    if (!isMounted) {
+      setIsMounted(true)
+    }
+    return () => {
+      setIsMounted(false)
+    }
+  }, [])
 
   useEffect(() => {
     if (user) {
       fetchApiEventos({
         query: queries.getEventsByID,
-        variables: { userID: user?.uid },
+        variables: { userID: user?.uid, development: config?.development },
       })
         .then((events: Event[]) => {
-          if (events.length == 0) router.push("/")
-          setEventsGroup({ type: "INITIAL_STATE", payload: events })
+          setTimeout(() => {
+            if (events.length == 0) router.push("/")
+          }, 100);
 
+          Promise.all(
+            events.map(async (event) => {
+
+              if (event?.compartido_array?.length) {
+                const fMyUid = event?.compartido_array?.findIndex(elem => elem === user?.uid)
+                if (fMyUid > -1) {
+                  event.permissions = [...event.detalles_compartidos_array[fMyUid].permissions]
+                  event.compartido_array.splice(fMyUid, 1)
+                  event.detalles_compartidos_array?.splice(fMyUid, 1)
+                }
+                const results = await fetchApiBodas({
+                  query: queries?.getUsers,
+                  variables: { uids: user?.uid === event?.usuario_id ? event?.compartido_array : [...event?.compartido_array, event?.usuario_id] },
+                  development: config?.development
+                });
+                results.map((result: detalle_compartidos_array) => {
+                  const f1 = event.detalles_compartidos_array?.findIndex(elem => elem.uid === result.uid);
+                  if (f1 > -1) {
+                    event.detalles_compartidos_array?.splice(f1, 1, { ...event.detalles_compartidos_array[f1], ...result });
+                  }
+                  if (result.uid === event?.usuario_id) {
+                    event.detalles_usuario_id = result
+                  }
+                })
+              }
+              return event
+            })
+          ).then((values) => {
+            setEventsGroup({ type: "INITIAL_STATE", payload: values })
+          })
         })
         .catch((error) => console.log(error));
       fetchApiEventos({

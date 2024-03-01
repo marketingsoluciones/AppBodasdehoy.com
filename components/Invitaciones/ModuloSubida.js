@@ -3,6 +3,32 @@ import { api } from "../../api";
 import { EventContextProvider } from "../../context";
 import { CheckIcon, EditarIcon, SubirImagenIcon } from "../icons";
 import { useToast } from "../../hooks/useToast";
+import { useAllowed } from "../../hooks/useAllowed";
+import Resizer from "react-image-file-resizer";
+
+const resizeImage = (file) => {
+  try {
+    console.log(file)
+    return new Promise((resolve) => {
+      Resizer.imageFileResizer(
+        file,
+        1200,
+        1200,
+        "JPEG",
+        100,
+        0,
+        (uri) => {
+          console.log(uri)
+          resolve(uri);
+        },
+        "file"
+      );
+    });
+  } catch (error) {
+    console.log(error)
+    return error
+  }
+}
 
 const ModuloSubida = ({ event, use }) => {
   const [cargado, setCargado] = useState({ titulo: "esperando archivo" });
@@ -15,6 +41,7 @@ const ModuloSubida = ({ event, use }) => {
   const { setEvent } = EventContextProvider()
   const [showAddImg, setShowAddImg] = useState(true)
   const [sendedImg, setSendedImg] = useState(false)
+  const [isAllowed, ht] = useAllowed()
 
   const subir_archivo = async () => {
     try {
@@ -64,18 +91,22 @@ const ModuloSubida = ({ event, use }) => {
     subir_archivo()
   }, [imagePreviewUrl?.file])
 
-  const handleChange = (e) => {
-    e.preventDefault();
-    let reader = new FileReader();
-    let file = e.target.files[0];
-    if (file?.size < 5000000) {
+  const handleChange = async (e) => {
+    try {
+      e.preventDefault();
+      let reader = new FileReader();
+      let file = e.target.files[0];
+      // if (file?.size < 5000000) {
+      const fileNew = file?.size > 900000 ? await resizeImage(file) : file
+      console.log("1043464", file?.size, fileNew?.size)
       reader.onloadend = () => {
-        const imagePreviewUrl = { file: file, image: reader.result, preview: true }
+        const imagePreviewUrl = { file: fileNew, image: reader.result, preview: true }
         setImagePreviewUrl(imagePreviewUrl);
       };
       reader.readAsDataURL(file);
-    } else {
-      toast("error", "Upss... La imagen es muy pesada (Máximo 5MB)")
+    } catch (error) {
+      toast("error", "Upss... Ha ocurrido un error prueba con otra imagen")
+      console.log(error)
     }
   };
 
@@ -97,7 +128,8 @@ const ModuloSubida = ({ event, use }) => {
         />
         {showAddImg && (
           <label
-            htmlFor="file"
+            onClick={() => !isAllowed() ? ht() : null}
+            htmlFor={!isAllowed() ? "null" : "file"}
             className="hover:scale-120 transform text-md flex flex-col items-center justify-center gap-1 cursor-pointer relative"
           >
             <SubirImagenIcon />
@@ -105,12 +137,12 @@ const ModuloSubida = ({ event, use }) => {
           </label>
         )}
         <div className="w-full flex flex-col text-gray-500 bottom-0 translate-y-full absolute">
-          <label htmlFor="file" className="gap-1 flex items-center justify-center w-full bg-gray-200 px-3 py-1 cursor-pointer rounded-b-xl shadow-sm hover:z-10">
+          <label onClick={() => !isAllowed() ? ht() : null} htmlFor={!isAllowed() ? "null" : "file"} className="gap-1 flex items-center justify-center w-full bg-gray-200 px-3 py-1 cursor-pointer rounded-b-xl shadow-sm hover:z-10">
             <div className="flex hover:scale-105 transition transform">
               Cambiar <EditarIcon className="w-6 h-6" />
             </div>
           </label>
-          <span className={`${"text-xs text-gray-600 ml-2 mb-1 flex justify-center"}`}>Tamaño máximo 5M</span>
+          {/*<span className={`${"text-xs text-gray-600 ml-2 mb-1 flex justify-center"}`}>Tamaño máximo 5M</span>*/}
         </div>
       </div>
       <style jsx>

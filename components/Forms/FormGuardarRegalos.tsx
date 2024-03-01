@@ -17,7 +17,6 @@ const FormGuardarRegalos: FC<propsFormCrearMesa> = ({ modelo, set, state }) => {
 
   const handleSubmit = async (values: FormikValues, actions: any) => {
     try {
-      console.log("values", values.valor_reemplazar)
       const { listaRegalos }: any = await fetchApiEventos({
         query: queries.guardarListaRegalos,
         variables: {
@@ -27,7 +26,6 @@ const FormGuardarRegalos: FC<propsFormCrearMesa> = ({ modelo, set, state }) => {
         }
       })
       setEvent((old) => ({ ...old, listaRegalos }));
-      console.log("propiedades de la lista: ", listaRegalos)
       toast("success", "se guardo tu lista de regalos")
 
     } catch (err) {

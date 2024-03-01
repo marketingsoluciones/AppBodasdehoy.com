@@ -2,6 +2,7 @@ import { Dispatch, FC, SetStateAction } from 'react';
 import { guests } from "../../utils/Interfaces"
 import { PlusIcon } from "../icons"
 import ListInvitados from "./ListInvitados"
+import { useAllowed } from '../../hooks/useAllowed';
 
 interface propsBlockInvitados {
     set: Dispatch<SetStateAction<boolean>>
@@ -11,6 +12,8 @@ interface propsBlockInvitados {
 }
 
 const BlockInvitados: FC<propsBlockInvitados> = ({ set, setEditInv, editInv, setSelected }) => {
+    const [isAllowed, ht] = useAllowed()
+
     return (
         <>
             <div className="w-full h-[100%] shadow-lg relative">
@@ -18,7 +21,7 @@ const BlockInvitados: FC<propsBlockInvitados> = ({ set, setEditInv, editInv, set
                     <div className="flex justify-center">
                         <h2 className="font-display text-xl font-semibold text-gray-500">Invitados</h2>
                     </div>
-                    <button onClick={() => set(true)} className="w-full focus:outline-none bg-primary px-3 text-white font-display text-medium flex items-center justify-center gap-2 rounded-lg text-sm absolute inset-x-0 mx-auto z-10">
+                    <button onClick={() => !isAllowed() ? ht() : set(true)} className="w-full focus:outline-none bg-primary px-3 text-white font-display text-medium flex items-center justify-center gap-2 rounded-lg text-sm absolute inset-x-0 mx-auto z-10">
                         <PlusIcon className="text-white w-3 " />
                         <p>Añadir invitado</p>
                     </button>

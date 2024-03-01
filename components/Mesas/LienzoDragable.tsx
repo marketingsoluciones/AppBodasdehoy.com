@@ -5,6 +5,7 @@ import { ActualizarPosicion, setupDropzone } from './FuntionsDragable'
 import { size, table, element } from '../../utils/Interfaces';
 import { DragableDefault } from './DragableDefault';
 import ClickAwayListener from 'react-click-away-listener';
+import { useAllowed } from '../../hooks/useAllowed';
 
 // Calculadora de posicion de sillas (Grados °) en mesa redonda
 const DefinePosition: CallableFunction = (valor: number, mesa: { tipo: string | number }): number[] | number => {
@@ -36,10 +37,11 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
   const [disableLayout, setDisableLayout] = useState<boolean>(false);
   const [dragPositions, setDragPositions] = useState<any>();
   const [dragables, setDragables] = useState<any>([]);
+  const [isAllowed, ht] = useAllowed()
 
   useEffect(() => {
     if (dragables?.length > 0) {
-      setupDropzone({ target: '.js-dropGuests', accept: `${dragables}`, setEvent, eventID: event?._id, planSpaceActive, setPlanSpaceActive, filterGuests })
+      setupDropzone({ target: '.js-dropGuests', accept: `${dragables}`, setEvent, eventID: event?._id, planSpaceActive, setPlanSpaceActive, filterGuests, isAllowed, ht })
     }
   }, [dragables, filterGuests])
 
@@ -55,12 +57,12 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
       return acc
     }, {})
 
-    const dragablesNoSentados = filterGuests.noSentados.map(elem => `#dragN${elem?._id}`)
-    const positionsNoSentados = filterGuests.noSentados.reduce((acc, elem) => {
+    const dragablesNoSentados = filterGuests?.noSentados?.map(elem => `#dragN${elem?._id}`) ?? []
+    const positionsNoSentados = filterGuests?.noSentados?.reduce((acc, elem) => {
       return { ...acc, [`dragN${elem?._id}`]: { x: 0, y: 0 } }
     }, {})
-    const dragablesSentados = filterGuests.sentados.map(elem => `#dragS${elem?._id}`)
-    const positionsSentados = filterGuests.sentados.reduce((acc, elem) => {
+    const dragablesSentados = filterGuests?.sentados?.map(elem => `#dragS${elem?._id}`) ?? []
+    const positionsSentados = filterGuests?.sentados?.reduce((acc, elem) => {
       return { ...acc, [`dragS${elem?._id}`]: { x: 0, y: 0 } }
     }, {})
 

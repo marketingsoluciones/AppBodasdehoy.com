@@ -7,7 +7,10 @@ export interface Event {
     tipo: string
     nombre: string
     usuario_id: string
+    detalles_usuario_id: detalle_compartidos_array
     usuario_nombre: string
+    compartido_array: string[]
+    detalles_compartidos_array: detalle_compartidos_array[]
     nonce: string
     fecha: string
     poblacion: string
@@ -23,11 +26,31 @@ export interface Event {
     imgInvitacion: image
     presupuesto_objeto: estimate
     listaRegalos: string
+    permissions: permission[]
+    //permission: boolean
 }
 
 interface menu {
     nombre_menu: string
     tipo: string
+}
+
+interface permission {
+    title: string
+    value: string
+}
+interface onLine {
+    status: boolean
+    dateConection: number
+}
+
+export interface detalle_compartidos_array {
+    uid: string
+    email: string
+    displayName: string
+    photoURL: string
+    onLine: onLine
+    permissions?: permission[]
 }
 
 interface estimate {

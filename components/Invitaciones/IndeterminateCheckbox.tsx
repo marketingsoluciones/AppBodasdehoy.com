@@ -1,11 +1,12 @@
 import { ForwardRefComponent } from "framer-motion";
 import { useEffect, forwardRef, useRef, useState } from "react";
+import { useAllowed } from "../../hooks/useAllowed";
 
 // Para checkbox
 export const IndeterminateCheckbox: ForwardRefComponent<HTMLInputElement, any> =
   forwardRef(({ indeterminate, checked, propParent, ...rest }, ref) => {
     const [ischecked, setChecked] = useState<boolean>(false);
-
+    const [isAllowed, ht] = useAllowed()
     //@ts-ignore
     const ref1: any = ref;
     const ref2 = useRef<any>();
@@ -23,7 +24,6 @@ export const IndeterminateCheckbox: ForwardRefComponent<HTMLInputElement, any> =
     }, [checked, ischecked, defaultRef]);
 
     useEffect(() => {
-      console.log("????? Se usa")
       if (defaultRef?.current?.indeterminate) {
         defaultRef.current.indeterminate = indeterminate;
       }
@@ -40,6 +40,7 @@ export const IndeterminateCheckbox: ForwardRefComponent<HTMLInputElement, any> =
       <label className="relative">
         <input
           onClick={handleCheck}
+          disabled={!isAllowed()}
           type="checkbox"
           className="rounded-full text-primary focus:ring-primary border-gray-400"
           ref={defaultRef}

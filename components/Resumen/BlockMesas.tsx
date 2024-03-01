@@ -3,10 +3,13 @@ import React, { FC, useContext } from "react";
 import { EventContextProvider } from "../../context";
 import { MesaIcon } from "../icons";
 import { guests } from '../../utils/Interfaces';
+import { useAllowed } from "../../hooks/useAllowed";
+import { useRouter } from "next/router";
 
 const BlockMesas: FC = () => {
   const { event } = EventContextProvider()
-  console.log(event)
+  const [isAllowed, ht] = useAllowed()
+  const router = useRouter()
 
   const InvitadoSentados: guests[] = event?.invitados_array?.filter(
     (invitado) => invitado.nombre_mesa.toLowerCase() !== "no asignado"
@@ -45,19 +48,19 @@ const BlockMesas: FC = () => {
                     </span>
 
                     <span className="flex flex-col justify-center items-center gap-2* w-max">
-                      <MesaIcon className="text-gray-500 w-9"  />
+                      <MesaIcon className="text-gray-500 w-9" />
                       {(() => {
                         if (item.tables.length != 0) {
                           const invi = item.tables.map((item) => {
                             return item.guests
-                        })
-                        const inviReduce = invi.flat()
-                        return (
+                          })
+                          const inviReduce = invi.flat()
+                          return (
                             < p key={idx} className="font-display font-semibold text-xl text-gray-700" >
-                                {inviReduce.length} de {event?.invitados_array?.length}
-                                
+                              {inviReduce.length} de {event?.invitados_array?.length}
+
                             </p>
-                        )
+                          )
                         } else {
                           return (
                             <p key={idx} className="font-display font-semibold text-xl text-gray-700">
@@ -78,11 +81,11 @@ const BlockMesas: FC = () => {
           }
         </div>
 
-        <Link href="/mesas">
+        <div onClick={() => !isAllowed("mesas") ? ht() : router.push("/mesas")}>
           <button className="rounded-lg border border-primary px-2 font-display text-primary text-sm py-1 hover:text-white hover:bg-primary transition focus:outline-none">
             Ver mesas
           </button>
-        </Link>
+        </div>
       </div>
     </div>
   );

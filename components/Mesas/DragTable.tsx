@@ -1,11 +1,7 @@
-import { Dispatch, FC, SetStateAction, TouchEvent, useEffect, useState } from "react";
-import { ImageProfile, useDelayUnmount } from "../../utils/Funciones";
-import { EditarIcon, MesaIcon, PendienteIcon, PlusIcon } from "../icons";
-import ModalBottom from "../Utils/ModalBottom";
-import ModalBottomSinAway from "../Utils/ModalBottomSinAway";
-import FormEditarInvitado from "../Forms/FormEditarInvitado";
-import ReactDOMServer from "react-dom/server";
+import { FC } from "react";
+import { PlusIcon } from "../icons";
 import { table } from "../../utils/Interfaces";
+import { useAllowed } from "../../hooks/useAllowed";
 
 const onMouseDown = (e, item) => {
   console.log("DOWN")
@@ -55,7 +51,6 @@ interface propsDragTable {
 }
 
 const DragTable: FC<propsDragTable> = ({ item }) => {
-
   return (
     <div className="w-20 h-16 static">
       <div id={`icon${item.title}_${item.tipo}`} className="hidden">

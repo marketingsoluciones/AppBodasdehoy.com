@@ -27,6 +27,7 @@ import { useToast } from "../hooks/useToast";
 import BlockPlantillas from "../components/Mesas/BlockPlantillas";
 import { useRouter } from "next/router";
 import BlockZonas from "../components/Mesas/BlockZonas";
+import { useAllowed } from "../hooks/useAllowed";
 
 
 SwiperCore.use([Pagination]);
@@ -44,17 +45,27 @@ const Mesas: FC = () => {
   const [itemSelect, setItemSelect] = useState("mesas")
   const [fullScreen, setFullScreen] = useState<boolean>(false)
   const [creaElement, setCreaElement] = useState<boolean>(false)
+  const [isAllowed, ht] = useAllowed()
+  const [isAllowedState, setIsAllowedState] = useState<boolean>(false)
+  const [isHtState, setIsHtState] = useState<boolean>(false)
+
+  useEffect(() => {
+    setIsAllowedState(isAllowed())
+  }, [])
+
 
   const toast = useToast()
   useMounted()
 
   const handleOnDrop = (values: any) => {
-    setValues(values)
-    if (values.tipo === "table") {
-      setShowFormCreateTable(true)
-    }
-    if (values.tipo === "element") {
-      setCreaElement(true)
+    if (!isAllowed()) { ht() } else {
+      setValues(values)
+      if (values.tipo === "table") {
+        setShowFormCreateTable(true)
+      }
+      if (values.tipo === "element") {
+        setCreaElement(true)
+      }
     }
   }
 

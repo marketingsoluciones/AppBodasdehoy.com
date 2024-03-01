@@ -4,6 +4,7 @@ import { EventsGroupContextProvider } from "./EventsGroupContext";
 import { getAllFilterGuest } from "../utils/Funciones";
 import { SocketContextProvider } from "./SocketContext";
 import { AuthContextProvider } from "./AuthContext";
+import { useRouter } from "next/router";
 
 interface idxGroupEvent {
   idx: number
@@ -66,26 +67,34 @@ const EventProvider = ({ children }) => {
   const [invitadoCero, setInvitadoCero] = useState<string | null>(null);
   const [valir, setValir] = useState<boolean | null>(false);
   const [idxGroupEvent, setIdxGroupEvent] = useState<idxGroupEvent | null>({ idx: 0, isActiveStateSwiper: 0, event_id: null });
-  const { eventsGroup } = EventsGroupContextProvider()
+  const { eventsGroup, setEventsGroup } = EventsGroupContextProvider()
   const [planSpaceActive, setPlanSpaceActive] = useState<planSpace | null>(null);
   const [filterGuests, setFilterGuests] = useState<filterGuests>({ sentados: [], noSentados: [], update: 0 })
   const [allFilterGuests, setAllFilterGuests] = useState<filterGuests[]>([{ sentados: [], noSentados: [], update: 0 }])
   const [editDefault, setEditDefault] = useState<EditDefaultTableAndElement>()
-  const { socket } = SocketContextProvider()
   const { user } = AuthContextProvider()
 
   // Capturar eventos del cumulo y seleccionar uno
   useEffect(() => {
     if (eventsGroup && eventsGroup.length === 0) {
+      console.log(1012101)
       setEvent(null);
     }
-    if (eventsGroup && eventsGroup.length > 0) {
+    if (eventsGroup?.length > 0) {
+      console.log("seteando evento", 10001)
       if (!valir) {
-        console.log("seteando evento")
-        const eventsPendientes = eventsGroup.filter(item => item.estatus === "pendiente")
-        const eventsGroupSort = eventsPendientes?.sort((a: any, b: any) => { return b.fecha_creacion - a.fecha_creacion })
-        setEvent(eventsGroupSort?.find(elem => elem._id === user?.eventSelected));
-        setValir(true)
+        console.log("seteando evento", 10002)
+        if (eventsGroup?.length > 1) {
+          console.log("seteando evento", 10003)
+          const eventsPendientes = eventsGroup.filter(item => item.estatus === "pendiente")
+          const eventsGroupSort = eventsPendientes?.sort((a: any, b: any) => { return b.fecha_creacion - a.fecha_creacion })
+          setEvent(eventsGroupSort?.find(elem => elem._id === user?.eventSelected));
+        } else {
+          console.log("seteando evento", 10004, eventsGroup)
+          setEvent(eventsGroup[0])
+        }
+        console.log("seteando evento", 10005, eventsGroup)
+        eventsGroup[0] && setValir(true)
       }
     }
   }, [eventsGroup, valir]);
@@ -106,6 +115,10 @@ const EventProvider = ({ children }) => {
   useEffect(() => {
     //console.log("seteado event _________________________")
     console.log("seteado event", event)
+    const f1 = eventsGroup.findIndex(elem => elem._id === event?._id)
+    eventsGroup.splice(f1, 1, event)
+    console.log("SEUDO seteado eventsGroup", eventsGroup)
+    setEventsGroup({ type: "INITIAL_STATE", payload: [...eventsGroup] })
     setAllFilterGuests({ ...getAllFilterGuest(event), update: new Date().getTime() })
     //console.log("---------------------------------------")
   }, [event])

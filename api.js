@@ -4,6 +4,7 @@ import { SubscriptionClient } from "graphql-subscriptions-client";
 import { Manager, io } from "socket.io-client";
 import { getAuth } from "firebase/auth";
 import { parseJwt } from "./utils/Authentication";
+import { varGlobalDomain } from "./context/AuthContext"
 
 /* // llamada a wordpresss ref1001
 const wp = axios.create({
@@ -23,7 +24,7 @@ export const api = {
         if (!idToken) {
           idToken = await getAuth().currentUser?.getIdToken(true)
           const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
-          Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "", expires: dateExpire })
+          Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_PRODUCTION ? varGlobalDomain : process.env.NEXT_PUBLIC_DOMINIO, expires: dateExpire })
         }
       }
     } catch (error) {
@@ -43,7 +44,7 @@ export const api = {
       if (!idToken) {
         idToken = await getAuth().currentUser?.getIdToken(true)
         const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
-        Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "", expires: dateExpire })
+        Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_PRODUCTION ? varGlobalDomain : process.env.NEXT_PUBLIC_DOMINIO, expires: dateExpire })
       }
     }
     return await instance.post("/graphql", data, {
@@ -102,7 +103,7 @@ export const api = {
       if (!idToken) {
         idToken = await getAuth().currentUser?.getIdToken(true)
         const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
-        Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "", expires: dateExpire })
+        Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_PRODUCTION ? varGlobalDomain : process.env.NEXT_PUBLIC_DOMINIO, expires: dateExpire })
       }
     }
     return axios.post('https://api.bodasdehoy.com/graphql', data, {

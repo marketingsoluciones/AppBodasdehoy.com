@@ -22,7 +22,8 @@ module.exports = {
         secondaryOrg: "#284C77",
         acento: "#F4C02F",
         titelCard: "#B5B5B5",
-        textGrisClaro: "#727272"
+        textGrisClaro: "#727272",
+        'azulCorporativo': '#49516F'
       },
       transitionProperty: {
         'height': 'height'
@@ -42,7 +43,8 @@ module.exports = {
   //   preflight: false,
   // },
   plugins: [
-    require('@tailwindcss/forms')
+    require('@tailwindcss/forms'),
+    require('@tailwindcss/line-clamp')
   ],
 
 }
