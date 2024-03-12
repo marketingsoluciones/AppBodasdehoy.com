@@ -448,7 +448,7 @@ export const queries = {
     deleteCompartition(args:$args)
   }`,
   getEventsByID: `query ($userID : String, $development: String!) {
-    queryenEvento(variable: "usuario_id", valor: $userID, development: $development){
+    queryenEvento( valor: $userID, development: $development){
       _id
       grupos_array
       compartido_array
