@@ -120,7 +120,7 @@ export const developments = [
     logoDirectory: <LogoVivetuboda className="hover:opacity-80 transition text-primary " />,
     headTitle: "Organizador de Eventos",
     theme: {
-      primaryColor: "#6096B9"/* "#6771ae" */,
+      primaryColor: "#F4A4A4"/* "#6771ae" */,
       secondaryColor: "#284C77" /* "#c589a9" */,
       tertiaryColor: "#F4C02F" /* "#b3dbb4" */,
       baseColor: "#F2F2F2",
