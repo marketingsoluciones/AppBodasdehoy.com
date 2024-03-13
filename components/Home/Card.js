@@ -21,6 +21,47 @@ export const defaultImagenes = {
   otro: "/cards/pexels-pixabay-50675.jpg"
 };
 
+export const handleClickCard = ({ final = true, data, user, config, setEvent, router }) => {
+  try {
+    fetchApiBodas({
+      query: queries.updateUser,
+      variables: {
+        uid: user?.uid,
+        variable: "eventSelected",
+        valor: data?._id
+      },
+      development: config?.development
+    })
+    user.eventSelected = data?._id
+    setUser(user)
+  } catch (error) {
+    console.log(error);
+  } finally {
+    if (final) {
+      if (data?.permissions) {
+        const permissions = data?.permissions?.filter(elem => ["view", "edit"].includes(elem.value))
+        if (permissions.length) {
+          const f1 = permissions.findIndex(elem => elem.value === "resumen")
+          if (f1 > -1) {
+            setEvent(data);
+            router.push("/resumen-evento");
+          } else {
+            setEvent(data);
+            let p = permissions[0].title
+            if (p === "regalos") p = "lista-regalos"
+            router.push("/" + p);
+          }
+        } else {
+          toast("warning", "No tienes permiso, contacta al organizador del evento")
+        }
+      } else {
+        setEvent(data);
+        router.push("/resumen-evento");
+      }
+    }
+  }
+};
+
 const Card = ({ data, grupoStatus, idx }) => {
   const [hoverRef, isHovered] = useHover();
   const [refArchivar, isArchivar] = useHover();
@@ -30,47 +71,7 @@ const Card = ({ data, grupoStatus, idx }) => {
   const { event, setEvent, idxGroupEvent, setIdxGroupEvent } = EventContextProvider();
   const router = useRouter();
   const [openModal, setOpenModal] = useState(false)
-
-  const handleClick = ({ final = true }) => {
-    try {
-      fetchApiBodas({
-        query: queries.updateUser,
-        variables: {
-          uid: user?.uid,
-          variable: "eventSelected",
-          valor: data[idx]?._id
-        },
-        development: config?.development
-      })
-      user.eventSelected = data[idx]?._id
-      setUser(user)
-    } catch (error) {
-      console.log(error);
-    } finally {
-      if (final) {
-        if (data[idx]?.permissions) {
-          const permissions = data[idx]?.permissions?.filter(elem => ["view", "edit"].includes(elem.value))
-          if (permissions.length) {
-            const f1 = permissions.findIndex(elem => elem.value === "resumen")
-            if (f1 > -1) {
-              setEvent(data[idx]);
-              router.push("/resumen-evento");
-            } else {
-              setEvent(data[idx]);
-              let p = permissions[0].title
-              if (p === "regalos") p = "lista-regalos"
-              router.push("/" + p);
-            }
-          } else {
-            toast("warning", "No tienes permiso, contacta al organizador del evento")
-          }
-        } else {
-          setEvent(data[idx]);
-          router.push("/resumen-evento");
-        }
-      }
-    }
-  };
+  const [received, setReceived] = useState({ channel: "", msg: null, d: null })
 
   const toast = useToast()
 
@@ -140,7 +141,7 @@ const Card = ({ data, grupoStatus, idx }) => {
 
   useEffect(() => {
     if (eventsGroup?.length === 1) {
-      handleClick({ final: false })
+      handleClickCard({ final: false, config, data: data[idx], setEvent, user, router })
     }
   }, [])
 
@@ -157,7 +158,7 @@ const Card = ({ data, grupoStatus, idx }) => {
             {data[idx]?.usuario_id === user?.uid && <div onClick={() => {
               if (user?.displayName !== "guest") {
                 setTimeout(() => {
-                  handleClick({ final: false })
+                  handleClickCard({ final: false, config, data: data[idx], setEvent, user, router })
                 }, 100);
                 setOpenModal(!openModal)
               }
@@ -174,7 +175,7 @@ const Card = ({ data, grupoStatus, idx }) => {
         </div>
 
         {data[idx]?._id == user?.eventSelected ? <div className="w-[304px] h-40 bg-green absolute rounded-xl" /> : <></>}
-        <div onClick={handleClick} className={`w-72 h-36 rounded-xl cardEvento z-[8] cursor-pointer shadow-lg relative overflow-hidden `}>
+        <div onClick={() => handleClickCard({ final: true, config, data: data[idx], setEvent, user, router })} className={`w-72 h-36 rounded-xl cardEvento z-[8] cursor-pointer shadow-lg relative overflow-hidden `}>
           <img
             src={defaultImagenes[data[idx]?.tipo]}
             className="object-cover w-full h-full absolute top-0 left-0 object-top "

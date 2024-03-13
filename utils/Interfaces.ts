@@ -27,6 +27,7 @@ export interface Event {
     presupuesto_objeto: estimate
     listaRegalos: string
     permissions: permission[]
+    valirRemote: boolean
     //permission: boolean
 }
 
