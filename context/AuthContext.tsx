@@ -66,7 +66,9 @@ const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     console.log(router?.query, router?.query?.show === "iframe")
-    setForCms(router?.query?.show === "iframe")
+    if (!forCms) {
+      setForCms(router?.query?.show === "iframe")
+    }
   }, [router])
 
   useEffect(() => {

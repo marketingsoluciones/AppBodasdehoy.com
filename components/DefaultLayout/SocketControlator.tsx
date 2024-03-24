@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react"
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, SocketContextProvider, } from "../../context"
 import { useRouter } from "next/router";
+import { handleClickCard } from "../Home/Card";
 
 export const SocketControlator = () => {
-  const { user } = AuthContextProvider()
+  const { user, config } = AuthContextProvider()
   const { event, setEvent, planSpaceActive, setPlanSpaceActive } = EventContextProvider()
   const { socket } = SocketContextProvider()
   const [isMounted, setIsMounted] = useState<any>(false)
@@ -12,7 +13,7 @@ export const SocketControlator = () => {
   const [valirRemotePlanSpaceActive, setValirRemotePlanSpaceActive] = useState(false)
   const [reconet, setReconet] = useState(null)
   const [received, setReceived] = useState({ channel: "", msg: null, d: null })
-const router = useRouter()
+  const router = useRouter()
 
   useEffect(() => {
     if (!isMounted) {
@@ -32,9 +33,10 @@ const router = useRouter()
   }, [valirRemotePlanSpaceActive])
 
   useEffect(() => {
+    setValirRemoteEvent(true)
+    setValirRemotePlanSpaceActive(true)
     if (received.channel === "app:message") {
       if (received?.msg?.payload?.action === "setEvent") {
-        setValirRemoteEvent(true)
         const eventOld = {
           compartido_array: event?.compartido_array,
           detalles_compartidos_array: event?.detalles_compartidos_array,
@@ -47,21 +49,27 @@ const router = useRouter()
         setEvent({ ...eventNew })
       }
       if (received?.msg?.payload?.action === "setPlanSpaceActive") {
-        setValirRemotePlanSpaceActive(true)
         setPlanSpaceActive(received?.msg?.payload?.value)
+      }
+    }
+    if (received.channel === "cms:message") {
+      if (received?.msg?.payload?.action === "clickCard") {
+        const data = eventsGroup.find(elem => elem._id === received?.msg?.payload?.value)
+        handleClickCard({ final: true, config, data, setEvent, user, router })
+      }
+      if (received?.msg?.payload?.action === "setRoute") {
+        router.push(`${received?.msg?.payload?.value}`)
+      }
+      if (received?.msg?.payload?.action === "setEventId") {
+        setValirRemoteEvent(true)
       }
     }
   }, [received])
 
   useEffect(() => {
     socket?.on("cms:message", async (msg) => {
-      console.log(msg)
-      router.push("/mesas/?show=iframe&father=kDg22rHNnkg8rr0RwveEL")
-      // if (msg?.context === "event") {
-      //   setEvent(eventsGroup.find(elem => elem._id === msg?.eventID))
-      // }
+      setReceived({ channel: "cms:message", msg, d: new Date() })
     })
-
     socket?.on("app:message", async (msg) => {
       setReceived({ channel: "app:message", msg, d: new Date() })
     })

@@ -87,7 +87,7 @@ const Container = (props) => {
       }
 
       {loading && <BarraLoading />}
-      <div className={`*max-w-[70%] *max-h-[10%] w-[100%]  overflow-auto ${url == "/info-app" ? "" : "h-[calc(100vh-144px)]"}`}>
+      <div className={`*max-w-[70%] *max-h-[10%] w-[100%]  overflow-auto ${url == "/info-app" ? "" : forCms ? "h-[100vh]" : "h-[calc(100vh-144px)]"}`}>
         <main>
           {children}
         </main>

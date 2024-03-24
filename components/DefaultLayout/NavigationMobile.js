@@ -60,7 +60,7 @@ const NavigationMobile = () => {
   useOutsideSetShow(wrapperRef, setShow);
   return (
     <>
-      <ul className="f-bottom md:hidden bg-white z-50 rounded-t-2xl h-max py-5 shadow-lg w-full fixed bottom-0 grid grid-cols-5 place-items-center">
+      <ul className="f-bottom md:hidden bg-white z-50 rounded-t-2xl py-5 shadow-lg w-full fixed bottom-0 grid grid-cols-5 place-items-center">
         {Navbar.map((item, idx) => (
           <Link key={idx} href={item.route}>
             <li
