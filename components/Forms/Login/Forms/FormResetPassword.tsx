@@ -12,7 +12,7 @@ type MyFormValues = {
 };
 
 const FormResetPassword: FC<any> = ({ setStage }) => {
-  // const { resetPassword } = useAuthentication();
+  const { resetPassword } = useAuthentication();
   const toast = useToast()
   const initialValues: MyFormValues = {
     identifier: "",
@@ -27,7 +27,7 @@ const FormResetPassword: FC<any> = ({ setStage }) => {
 
   const handleSubmit = async (values: MyFormValues, actions: any) => {
     try {
-      //resetPassword(values, setStage)
+      resetPassword(values, setStage)
     } catch (error: any) {
       console.error(JSON.stringify(error));
       toast("error", JSON.stringify(errorsCode[error.code]))

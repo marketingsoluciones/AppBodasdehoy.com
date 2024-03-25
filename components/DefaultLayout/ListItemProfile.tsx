@@ -20,7 +20,7 @@ export const ListItemProfile: FC<Option> = ({ title, icon, sizeIcon = "sm", targ
   return (
     <>
       <li onClick={onClick && onClick}
-        className="flex text-gray-500 gap-2 hover:bg-color-base transition cursor-pointer rounded-lg py-1 px-2 items-center justify-start">
+        className="flex text-gray-700 gap-2 hover:bg-color-base transition cursor-pointer rounded-lg py-1 px-2 items-center justify-start">
         {cloneElement(icon, { className: sizesIcon[sizeIcon] })}
         {title}
       </li>

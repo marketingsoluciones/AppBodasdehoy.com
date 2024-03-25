@@ -2,7 +2,7 @@ import { SetStateAction, useEffect, useState, Dispatch, FC } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { motion } from "framer-motion";
 import { CircleBanner, LineaHome } from "../components/icons";
-import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, } from "../context";
+import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, LoadingContextProvider, } from "../context";
 import Card from "../components/Home/Card";
 import CardEmpty from "../components/Home/CardEmpty";
 import FormCrearEvento from "../components/Forms/FormCrearEvento";
@@ -17,45 +17,58 @@ import { Modal } from "../components/Utils/Modal";
 import { ObtenerFullAcceso } from "../components/InfoApp/ObtenerFullAcceso";
 
 const Home: NextPage = () => {
-  const { user, verificationDone, actionModals } = AuthContextProvider()
-  const [isMounted, setIsMounted] = useState<boolean>(false);
-  const shouldRenderChild = useDelayUnmount(isMounted, 500);
+  const { user, actionModals } = AuthContextProvider()
+  const { setLoading } = LoadingContextProvider()
+  const [valirQuery, setValirQuery] = useState<boolean>(false);
+  const shouldRenderChild = useDelayUnmount(valirQuery, 500);
   const [showEditEvent, setShowEditEvent] = useState<boolean>(false);
   const [valir, setValir] = useState<boolean>(false);
   const router = useRouter()
-  useMounted()
+  const [isMounted, setIsMounted] = useState<boolean>(false)
+
+  useEffect(() => {
+    if (!isMounted) {
+      setIsMounted(true)
+      setLoading(false)
+    }
+    return () => {
+      if (isMounted) {
+        setIsMounted(false)
+        setLoading(true)
+      }
+    }
+  }, [isMounted])
 
   useEffect(() => {
     if (router.query?.c === "true") {
-      setIsMounted(true)
+      setValirQuery(true)
     }
   }, [router.query])
 
   useEffect(() => {
-    if (showEditEvent && !isMounted && !valir) {
-      setIsMounted(true)
+    if (showEditEvent && !valirQuery && !valir) {
+      setValirQuery(true)
       setValir(true)
     }
-    if (showEditEvent && !isMounted && valir) {
+    if (showEditEvent && !valirQuery && valir) {
       setShowEditEvent(false)
       setValir(false)
     }
-  }, [showEditEvent, isMounted, valir])
+  }, [showEditEvent, valirQuery, valir])
 
-  if (verificationDone) {
+  if (isMounted) {
     if (!user) {
       return (
         <VistaSinCookie />
       )
     }
-
     return (
       <>
         {shouldRenderChild && (
-          <ModalLeft state={isMounted} set={setIsMounted}>
+          <ModalLeft state={valirQuery} set={setValirQuery}>
             {showEditEvent ?
-              <FormCrearEvento state={isMounted} set={setIsMounted} EditEvent={showEditEvent} />
-              : <FormCrearEvento state={isMounted} set={setIsMounted} />
+              <FormCrearEvento state={valirQuery} set={setValirQuery} EditEvent={showEditEvent} />
+              : <FormCrearEvento state={valirQuery} set={setValirQuery} />
             }
           </ModalLeft>
         )}
@@ -69,15 +82,15 @@ const Home: NextPage = () => {
         }
 
         <section id="rootsection" className="section relative w-full">
-          <Banner state={isMounted} set={setIsMounted} />
-          <GridCards state={isMounted} set={setIsMounted} />
+          <Banner state={valirQuery} set={setValirQuery} />
+          <GridCards state={valirQuery} set={setValirQuery} />
         </section>
         <style jsx>
           {`
-              .section {
-                height: calc(100vh - 190px);
-              }
-            `}
+                .section {
+                  height: calc(100vh - 190px);
+                }
+              `}
         </style>
       </>
     );

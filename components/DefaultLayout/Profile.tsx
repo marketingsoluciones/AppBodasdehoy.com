@@ -2,25 +2,29 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import ClickAwayListener from "react-click-away-listener";
 import { capitalize } from "../../utils/Capitalize";
-import { ArrowDown, ArrowDownBodasIcon, ArrowLeft, Catering, CompanyIcon, CorazonPaddinIcon, Eventos, FotografoMenu, LugaresBodas, MensajeIcon, Posts, UserIcon, WeddingPage, WeddingPlanner } from "../icons";
+import { ArrowDown, ArrowDownBodasIcon, ArrowLeft, Catering, CompanyIcon, CorazonPaddinIcon, Eventos, FotografoMenu, LugaresBodas, MensajeIcon, MisEventosIcon, Posts, UserIcon, WeddingPage, WeddingPlanner } from "../icons";
 import router, { useRouter } from "next/router";
 import { getAuth, signOut } from "firebase/auth";
-import { AuthContextProvider } from "../../context";
-
-
+import { AuthContextProvider, LoadingContextProvider } from "../../context";
 import Cookies from "js-cookie";
 import { ListItemProfile, Option } from "./ListItemProfile"
 import { RiLoginBoxLine } from "react-icons/ri";
 import { PiUserPlusLight } from "react-icons/pi";
 import { BiBell } from "react-icons/bi";
 import { MdLogout } from "react-icons/md";
+import { RiNotification2Fill } from "react-icons/ri";
 import { TbWorldWww } from "react-icons/tb";
+import { useToast } from "../../hooks/useToast";
 
 const Profile = ({ user, state, set, ...rest }) => {
-  const { config, setActionModals, actionModals } = AuthContextProvider()
+  const { config, setUser, setActionModals, actionModals } = AuthContextProvider()
+  const { setLoading } = LoadingContextProvider()
   const [dropdown, setDropwdon] = useState(false);
+  const [notifications, setNotifications] = useState(false);
   const { route } = useRouter()
+  const toast = useToast()
   const cookieContent = JSON.parse(Cookies.get("guestbodas") ?? "{}")
+
   const optionsStart: Option[] = [
     {
       title: "Iniciar sesión",
@@ -156,10 +160,18 @@ const Profile = ({ user, state, set, ...rest }) => {
       title: "Cerrar Sesión",
       icon: <MdLogout />,
       onClick: async () => {
+        setLoading(true)
         Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
         Cookies.remove("idTokenV0.1.0", { domain: config?.domain ?? "" });
-        signOut(getAuth());
-        router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "")
+        signOut(getAuth()).then(() => {
+          if (["vivetuboda"].includes(config?.development)) {
+            setUser()
+            router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "/login")
+            return
+          }
+          toast("success", `Cerró sesión con éxito`)
+          router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "/")
+        })
       },
       development: ["bodasdehoy", "all"],
       rol: ["novio", "novia", "otro"],
@@ -194,14 +206,48 @@ const Profile = ({ user, state, set, ...rest }) => {
       >
         <span className="flex items-center gap-2 relative">
         </span>
+        <ClickAwayListener onClickAway={() => setNotifications(false)}>
+          <div onClick={() => setNotifications(!notifications)} className="bg-white items-center flex relative">
+            <div className="bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200" >
+              <RiNotification2Fill className="text-primary w-6 h-6 scale-x-90" />
+              <div className={`absolute w-2.5 h-2.5 rounded-full bg-green translate-x-2.5 translate-y-1.5`} />
+            </div>
+            {notifications && (
+              <div className="absolute bg-white rounded-lg w-80 h-max shadow-lg shadow-gray-400 top-0 right-0 md:translate-x-[224px] translate-y-[46px] overflow-hidden z-40 title-display">
+                <div className="w-full pb-2">
+                </div>
+                <ul className="bg-white flex flex-col gap-2 text-xs place-items-left p-2 text-black max-h-[50vh] overflow-y-scroll">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10,].map((item, idx) => (
+                    <li key={idx} className="flex">
+                      <div className="w-full hover:bg-base rounded-lg text-gray-700 flex space-x-2 p-2">
+                        <MisEventosIcon className="mt-1 text-gray-500 w-5 h-5" />
+                        <div className="flex-1 flex flex-col">
+                          <span className="text-sm">
+                            Eduardo compartió el evento Boda boda de eduardo contigo
+                          </span>
+                          <span className="text-xs">
+                            Hace 4 semanas
+                          </span>
+                        </div>
+                        <div className="w-4 flex items-center justify-center">
+                          <div className={`w-2.5 h-2.5 rounded-full bg-green`} />
+                        </div>
+                      </div>
+                    </li>
+                  ))}
 
+                </ul>
+              </div >
+            )}
+          </div>
+        </ClickAwayListener>
         <ClickAwayListener onClickAway={() => dropdown && setDropwdon(false)}>
           <div
-            className="bg-white items-center gap-2 profile hidden md:flex relative"
+            className="bg-white items-center gap-2 min-w-[200px] hidden md:flex relative"
             onClick={() => setDropwdon(!dropdown)}
           >
             {dropdown && (
-              <div className="bg-white rounded-lg w-80 h-max shadow-lg absolute top-0 right-0 translate-y-[46px] overflow-hidden z-40 title-display">
+              <div className="bg-white rounded-lg w-80 h-max shadow-lg shadow-gray-400 absolute top-0 right-0 translate-y-[46px] overflow-hidden z-40 title-display">
                 {/* < div className={`bg-red w-80 p-3 rounded-xl h-max shadow-md absolute bottom-0 right-0 inset-y-full translate-y-1 overflow-hidden z-50}`}> */}
                 <div className="w-full border-b border-gray-100 pb-2">
                   <p className="text-gray-500 font-extralight uppercase tracking-wider	text-xs text-center  cursor-default">
@@ -253,13 +299,6 @@ const Profile = ({ user, state, set, ...rest }) => {
           </div>
         </ClickAwayListener>
       </div>
-      <style jsx>
-        {`
-          .profile {
-            min-width: 200px;
-          }
-        `}
-      </style>
     </>
   );
 };
