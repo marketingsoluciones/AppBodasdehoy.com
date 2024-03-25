@@ -100,9 +100,9 @@ export const useAuthentication = () => {
 
       // Autenticar con firebase
       try {
-        console.log(800003050)
         const res: UserCredential | void = await types[type](payload);
         if (res) {
+          setLoading(true)
           const idToken = await res?.user?.getIdToken()
           const dateExpire = new Date(parseJwt(idToken).exp * 1000)
           Cookies.set("idTokenV0.1.0", idToken, { domain: process.env.NEXT_PUBLIC_PRODUCTION ? config?.domain : process.env.NEXT_PUBLIC_DOMINIO, expires: dateExpire })
@@ -124,7 +124,6 @@ export const useAuthentication = () => {
               toast("success", `Inicio sesión con éxito`)
             } else {
               if (whoYouAre !== "") {
-                console.log({ whoYouAre })
                 fetchApiBodas({
                   query: queries.createUser,
                   variables: {
@@ -136,6 +135,7 @@ export const useAuthentication = () => {
                   await getSessionCookie(idToken)
                   setUser({ ...res.user, role: [whoYouAre] });
                   toast("success", `Registro sesión con éxito`)
+                  router.push("/")
                 })
               } else {
                 toast("error", `${res?.user?.email} no está registrado`)
@@ -174,7 +174,7 @@ export const useAuthentication = () => {
     Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
     Cookies.remove("idTokenV0.1.0", { domain: config?.domain ?? "" });
     signOut(getAuth());
-    // router.push(config?.pathDirectory ? `${config?.pathDirectory}/signout?end=true` : "/")
+    router.push(config?.pathDirectory ? `${config?.pathDirectory}/signout?end=true` : "/")
   }, [router])
 
 

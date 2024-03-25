@@ -5,7 +5,7 @@ import { capitalize } from "../../utils/Capitalize";
 import { ArrowDown, ArrowDownBodasIcon, ArrowLeft, Catering, CompanyIcon, CorazonPaddinIcon, Eventos, FotografoMenu, LugaresBodas, MensajeIcon, MisEventosIcon, Posts, UserIcon, WeddingPage, WeddingPlanner } from "../icons";
 import router, { useRouter } from "next/router";
 import { getAuth, signOut } from "firebase/auth";
-import { AuthContextProvider } from "../../context";
+import { AuthContextProvider, LoadingContextProvider } from "../../context";
 import Cookies from "js-cookie";
 import { ListItemProfile, Option } from "./ListItemProfile"
 import { RiLoginBoxLine } from "react-icons/ri";
@@ -14,13 +14,17 @@ import { BiBell } from "react-icons/bi";
 import { MdLogout } from "react-icons/md";
 import { RiNotification2Fill } from "react-icons/ri";
 import { TbWorldWww } from "react-icons/tb";
+import { useToast } from "../../hooks/useToast";
 
 const Profile = ({ user, state, set, ...rest }) => {
-  const { config } = AuthContextProvider()
+  const { config, setUser } = AuthContextProvider()
+  const { setLoading } = LoadingContextProvider()
   const [dropdown, setDropwdon] = useState(false);
   const [notifications, setNotifications] = useState(false);
   const { route } = useRouter()
+  const toast = useToast()
   const cookieContent = JSON.parse(Cookies.get("guestbodas") ?? "{}")
+
   const optionsStart: Option[] = [
     {
       title: "Iniciar sesión",
@@ -156,10 +160,18 @@ const Profile = ({ user, state, set, ...rest }) => {
       title: "Cerrar Sesión",
       icon: <MdLogout />,
       onClick: async () => {
+        setLoading(true)
         Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
         Cookies.remove("idTokenV0.1.0", { domain: config?.domain ?? "" });
-        signOut(getAuth());
-        router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "")
+        signOut(getAuth()).then(() => {
+          if (["vivetuboda"].includes(config?.development)) {
+            setUser()
+            router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "/login")
+            return
+          }
+          toast("success", `Cerró sesión con éxito`)
+          router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "/")
+        })
       },
       development: ["bodasdehoy", "all"],
       rol: ["novio", "novia", "otro"],
@@ -217,7 +229,7 @@ const Profile = ({ user, state, set, ...rest }) => {
                 </div>
                 <ul className="bg-white flex flex-col gap-2 text-xs place-items-left p-2 text-black max-h-[50vh] overflow-y-scroll">
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10,].map((item, idx) => (
-                    <li key={idx} onClick={() => { console.log("click") }} className="flex">
+                    <li key={idx} className="flex">
                       <div className="w-full hover:bg-base rounded-lg text-gray-700 flex space-x-2 p-2">
                         <MisEventosIcon className="mt-1 text-gray-500 w-5 h-5" />
                         <div className="flex-1 flex flex-col">

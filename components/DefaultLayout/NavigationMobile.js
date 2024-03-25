@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { AuthContextProvider, EventContextProvider } from "../../context";
+import { AuthContextProvider, EventContextProvider, LoadingContextProvider } from "../../context";
 import Link from "next/link";
 import { InvitacionesIcon, InvitadosIcon, MesasIcon, MisEventosIcon } from "../icons";
 import router from "next/router";
@@ -91,8 +91,9 @@ const NavigationMobile = () => {
 };
 
 const ProfileMenu = () => {
-
   const { user, config } = AuthContextProvider();
+  const { setLoading } = LoadingContextProvider();
+
   return (
     <div className={`bg-white w-40 rounded-md shadow-md overflow-hidden absolute transform translate-x-[calc(-122px)] -translate-y-[calc(100%+44px)]`}>
       <ul className="w-full">
@@ -108,10 +109,19 @@ const ProfileMenu = () => {
         </Link>}
         {(user?.uid && user.displayName !== "guest") && <li className="w-full pl-5 py-1 text-gray-500 transition  hover:bg-primary hover:text-white font-display text-sm">
           <button onClick={async () => {
+            setLoading(true)
             Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
             Cookies.remove("idTokenV0.1.0", { domain: config?.domain ?? "" });
-            signOut(getAuth());
-            router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "")
+            signOut(getAuth()).then(() => {
+              if (["vivetuboda"].includes(config?.development)) {
+                setUser()
+                router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "/login")
+                return
+              }
+              toast("success", `Cerró sesión con éxito`)
+              router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "/")
+
+            })
           }}>Cerrar Sesión</button>
         </li>}
       </ul>
