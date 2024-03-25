@@ -45,8 +45,8 @@ export const MesaCuadradaNew: FC<propsMesaCuadradra> = ({ table, invitados, setD
               key={idx}
               index={item}
             >
-              {invitados.filter(element => element.chair == item.toString())[0] && <SentadoItem
-                invitado={invitados.filter(element => element.chair == item.toString())[0]}
+              {invitados?.filter(element => element.chair == item.toString())[0] && <SentadoItem
+                invitado={invitados?.filter(element => element.chair == item.toString())[0]}
                 setDisableWrapper={setDisableWrapper}
               />}
               <span />
@@ -66,8 +66,8 @@ export const MesaCuadradaNew: FC<propsMesaCuadradra> = ({ table, invitados, setD
               key={idx}
               index={item}
             >
-              {invitados.filter(element => element.chair == item.toString())[0] && <SentadoItem
-                invitado={invitados.filter(element => element.chair == item.toString())[0]}
+              {invitados?.filter(element => element.chair == item.toString())[0] && <SentadoItem
+                invitado={invitados?.filter(element => element.chair == item.toString())[0]}
                 setDisableWrapper={setDisableWrapper}
               />}
               <span />
@@ -87,8 +87,8 @@ export const MesaCuadradaNew: FC<propsMesaCuadradra> = ({ table, invitados, setD
                 key={idx}
                 index={item}
               >
-                {invitados.filter(element => element.chair == item.toString())[0] && <SentadoItem
-                  invitado={invitados.filter(element => element.chair == item.toString())[0]}
+                {invitados?.filter(element => element.chair == item.toString())[0] && <SentadoItem
+                  invitado={invitados?.filter(element => element.chair == item.toString())[0]}
                   setDisableWrapper={setDisableWrapper}
                 />}
                 <span />
@@ -109,8 +109,8 @@ export const MesaCuadradaNew: FC<propsMesaCuadradra> = ({ table, invitados, setD
               key={idx}
               index={item}
             >
-              {invitados.filter(element => element.chair == item.toString())[0] && <SentadoItem
-                invitado={invitados.filter(element => element.chair == item.toString())[0]}
+              {invitados?.filter(element => element.chair == item.toString())[0] && <SentadoItem
+                invitado={invitados?.filter(element => element.chair == item.toString())[0]}
                 setDisableWrapper={setDisableWrapper}
               />}
               <span />

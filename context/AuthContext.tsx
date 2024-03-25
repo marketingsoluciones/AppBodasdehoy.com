@@ -63,7 +63,9 @@ const AuthProvider = ({ children }) => {
   const [geoInfo, setGeoInfo] = useState<any>();
   const [forCms, setForCms] = useState<boolean>(false)
   const router = useRouter()
-
+  useEffect(() => {
+    console.log(74551100, user)
+  }, [user])
   useEffect(() => {
     console.log(router?.query, router?.query?.show === "iframe")
     if (!forCms) {
@@ -159,7 +161,7 @@ const AuthProvider = ({ children }) => {
             console.info("Hago sesion con el custom token****");
           }
           //setUser(user)
-          if (!sessionCookie) {
+          if (!["vivetuboda"].includes(config?.development) && !sessionCookie) {
             const cookieContent = JSON.parse(Cookies.get(config?.cookieGuest) ?? "{}")
             let guestUid = cookieContent?.guestUid
             if (!guestUid) {
@@ -180,6 +182,7 @@ const AuthProvider = ({ children }) => {
               });
               moreInfo && console.info("Tengo datos de la base de datos");
               setUser({ ...user, ...moreInfo });
+              setVerificationDone(true)
               console.info("Guardo datos en contexto react");
             } else {
               console.info("NO tengo user de contexto de firebase");
@@ -191,13 +194,15 @@ const AuthProvider = ({ children }) => {
               const customToken = resp?.customToken
               console.info("Llamo con mi sessionCookie para traerme customToken");
               console.info("Custom token", customToken)
-              customToken && signInWithCustomToken(getAuth(), customToken);
+              customToken && signInWithCustomToken(getAuth(), customToken)
+                .then(() => {
+                  setVerificationDone(true)
+                })
               console.info("Hago sesion con el custom token");
             }
-          }
-          setTimeout(() => {
+          } else {
             setVerificationDone(true)
-          }, 800);
+          }
         });
       }
     } catch (error) {
@@ -230,7 +235,7 @@ const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{ user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms }}>
-      {children}
+      {verificationDone && children}
     </AuthContext.Provider>
   );
 };

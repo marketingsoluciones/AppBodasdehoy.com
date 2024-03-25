@@ -14,7 +14,7 @@ const ToastContainer: FC = () => {
       {/*  {
         
         <TransitionGroup initial={false} > */}
-      <ul className="fixed bottom-3 md:bottom-3 right-5 mx-auto w-max md:w-2/6 h-max z-[1000] grid grid-flow-row gap-6">
+      <ul className="fixed bottom-3 left-3 space-y-3 pt-3 z-[1000]">
         {toasts.map((toast) => (
           <Toast key={toast.id} {...toast} />
         ))}
@@ -41,7 +41,7 @@ const Toast: FC<Toast> = ({ message, id, type }) => {
         <div className="flex">
           <div className="flex-shrink-0"></div>
           <div className="ml-3">
-            <p className={`text-sm font-display font-medium`}>
+            <p className={`text-sm font-display font-medium first-letter:capitalize`}>
               {message && message}
             </p>
           </div>

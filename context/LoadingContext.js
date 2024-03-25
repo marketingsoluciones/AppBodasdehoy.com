@@ -12,7 +12,7 @@ const LoadingContext = createContext(initialContext);
 
 const LoadingProvider = ({ children }) => {
   const [isAllowedRouter] = useAllowedRouter()
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   return (
     <LoadingContext.Provider value={{ loading, setLoading }}>
       {loading && <Loading />}

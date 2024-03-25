@@ -25,8 +25,8 @@ export const InputField: FC<propsField> = ({
       <span className="flex items-center gap-2">
         <label className="text-sm text-gray-500">{label}</label>
         {meta.touched && meta.error ? (
-          <span className="text-red-500 text-xs font-medium absolute z-10 translate-y-14">
-            Campo requerido
+          <span className="text-red text-xs font-medium absolute z-10 translate-y-14">
+            {meta.error}
           </span>
         ) : null}
       </span>
