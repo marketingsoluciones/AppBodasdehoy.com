@@ -1,6 +1,7 @@
 import { GoogleAuthProvider, FacebookAuthProvider, getAuth, OAuthProvider } from "firebase/auth";
 import { LogoEventosOrganizador, LogoEventosPlanificador, LogoNuevoBodasBlanco, LogoVivetuboda } from "./components/icons";
 
+
 const firebaseConfigBodas = {
   apiKey: "AIzaSyDVMoVLWWvolofYOcTYA0JZ0QHyng72LAM",
   authDomain: "bodasdehoy-1063.firebaseapp.com",
@@ -117,7 +118,7 @@ export const developments = [
     cookieGuest: "guestvivetuboda",
     pathLogin: "",
     pathDirectory: "http://vivetuboda.com",
-    logoDirectory: <LogoVivetuboda className="hover:opacity-80 transition text-primary " />,
+    logoDirectory: <img className="hover:opacity-80 transition text-primary " src="/LogoVivetuboda.png" />,
     headTitle: "Organizador de Eventos",
     theme: {
       primaryColor: "#F4A4A4"/* "#6771ae" */,
