@@ -8,7 +8,7 @@ import { ButtonComponent } from "../../ButtonComponent";
 import { useToast } from "../../../../hooks/useToast";
 import { AuthContextProvider, LoadingContextProvider } from "../../../../context";
 import { UserCredential, createUserWithEmailAndPassword, getAuth, signInWithCustomToken, updateProfile } from "firebase/auth";
-import { parseJwt, useAuthentication } from "../../../../utils/Authentication";
+import { parseJwt, phoneUtil, useAuthentication } from "../../../../utils/Authentication";
 import { fetchApiBodas, queries } from "../../../../utils/Fetching";
 import { useRouter } from "next/router";
 import { FirebaseError } from 'firebase/app';
@@ -23,6 +23,7 @@ interface initialValues {
   identifier: string
   fullName: string;
   password: string;
+  phoneNumber: string
   role: string
 }
 
@@ -41,9 +42,8 @@ interface propsFormRegister {
 
 
 const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
-  console.log("---------------------->", { whoYouAre, setStage })
   const router = useRouter()
-  const { user, setUser, config } = AuthContextProvider();
+  const { user, setUser, config, geoInfo } = AuthContextProvider();
   const { setLoading } = LoadingContextProvider()
   const [passwordView, setPasswordView] = useState(false)
   const { getSessionCookie, isPhoneValid } = useAuthentication();
@@ -52,11 +52,18 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
     identifier: "",
     fullName: "",
     password: "",
+    phoneNumber: `+${phoneUtil?.getCountryCodeForRegion(geoInfo?.ipcountry)}`,
     role: whoYouAre
   };
-
   const validationSchema = yup.object().shape({
-    identifier: yup.string().required("Campo requerido").test("Unico", "Correo inválido", async (value) => {
+    identifier: yup.string().required("Campo requerido").test("Unico", "Correo inválido", (value) => {
+      const name = document.activeElement?.getAttribute("name")
+      if (name !== "identifier" && !value?.includes("@")) {
+        return isPhoneValid(value ?? "")
+      } else {
+        return true
+      }
+    }).test("Unico", "Correo inválido", async (value) => {
       const name = document.activeElement?.getAttribute("name")
       if (name !== "identifier" && value?.includes("@")) {
         const result = await fetchApiBodas({
@@ -135,8 +142,8 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
             })
             if (result === "apiBodas/email-already-in-use") {
               console.log(550012, error.code)
-              toast("error", "Ups... este correo ya esta registrado1")
-              setLoading(true)
+              toast("error", "Ups... este correo ya está registrado")
+              setLoading(false)
               return false
             }
             const asd = await signInWithCustomToken(getAuth(), result)
@@ -151,7 +158,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
 
       } else {
         toast("error", "Ups... algo a salido mal")
-        setLoading(true)
+        setLoading(false)
         return false
       }
     }
@@ -161,7 +168,6 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
       updateProfile(UserFirebase, { displayName: values?.fullName })
         .then(async () => {
           const idToken = await getAuth().currentUser?.getIdToken(true)
-          console.log("*************************----------**********8888888885 parseJwt", parseJwt(idToken ?? ""))
           const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
           Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_PRODUCTION ? config?.domain : process.env.NEXT_PUBLIC_DOMINIO, expires: dateExpire })
           await getSessionCookie(idToken)
@@ -190,7 +196,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
         validationSchema={validationSchema ?? {}}
         onSubmit={handleSubmit}
       >
-        <Form className="w-full md:w-[350px] text-gray-200 *md:grid *md:grid-cols-2 gap-4 md:gap-3 md:space-y-0 flex flex-col m-4">
+        <Form className="w-full md:w-[350px] text-gray-200 *md:grid *md:grid-cols-2 gap-4 md:gap-5 md:space-y-0 flex flex-col">
           <div className="col-span-2">
             <InputField
               name="fullName"

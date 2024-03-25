@@ -115,7 +115,6 @@ export const useAuthentication = () => {
           }).then(async (moreInfo) => {
             if (moreInfo?.status && res?.user?.email) {
               const token = (await res?.user?.getIdTokenResult())?.token;
-              console.log(41001, token)
               const sessionCookie = await getSessionCookie(token)
               console.log(41001, sessionCookie)
               if (sessionCookie) { }
@@ -177,9 +176,22 @@ export const useAuthentication = () => {
     router.push(config?.pathDirectory ? `${config?.pathDirectory}/signout?end=true` : "/")
   }, [router])
 
+  const resetPassword = async (values: any, setStage: any) => {// funcion para conectar con con firebase para enviar el correo 
+    if (values?.identifier !== "") {
+      try {
+        await sendPasswordResetEmail(getAuth(), values?.identifier);
+        setStage("login")
+        toast("success", "Email enviado correctamente")
+      } catch (error) {
+        toast("error", "Error, email no encontrado")
+        console.log(error);
+      }
+    } else {
+      toast("error", "introduce un correo")
+    }
+  };
 
-
-  return { signIn, _signOut, getSessionCookie, isPhoneValid };
+  return { signIn, _signOut, getSessionCookie, isPhoneValid, resetPassword };
 
 };
 
