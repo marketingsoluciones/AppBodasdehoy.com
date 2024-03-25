@@ -13,9 +13,11 @@ import { Event } from "../utils/Interfaces";
 import VistaSinCookie from "../pages/vista-sin-cookie"
 import { useMounted } from "../hooks/useMounted"
 import { useRouter } from "next/router";
+import { Modal } from "../components/Utils/Modal";
+import { ObtenerFullAcceso } from "../components/InfoApp/ObtenerFullAcceso";
 
 const Home: NextPage = () => {
-  const { user, verificationDone } = AuthContextProvider()
+  const { user, verificationDone, actionModals } = AuthContextProvider()
   const [isMounted, setIsMounted] = useState<boolean>(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const [showEditEvent, setShowEditEvent] = useState<boolean>(false);
@@ -57,6 +59,14 @@ const Home: NextPage = () => {
             }
           </ModalLeft>
         )}
+
+        {
+          actionModals && (
+            <Modal classe={"w-[50%] h-[90%]"} >
+              <ObtenerFullAcceso/>
+            </Modal>
+          )
+        }
 
         <section id="rootsection" className="section relative w-full">
           <Banner state={isMounted} set={setIsMounted} />
