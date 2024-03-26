@@ -66,7 +66,7 @@ const Card = ({ data, grupoStatus, idx }) => {
   const [hoverRef, isHovered] = useHover();
   const [refArchivar, isArchivar] = useHover();
   const [refBorrar, isBorrar] = useHover();
-  const { user, setUser, config } = AuthContextProvider()
+  const { user, setUser, config, actionModals, setActionModals } = AuthContextProvider()
   const { eventsGroup, setEventsGroup } = EventsGroupContextProvider();
   const { event, setEvent, idxGroupEvent, setIdxGroupEvent } = EventContextProvider();
   const router = useRouter();
@@ -76,44 +76,50 @@ const Card = ({ data, grupoStatus, idx }) => {
   const toast = useToast()
 
   const handleArchivarEvent = () => {
-    try {
-      const value = grupoStatus === "pendiente" ? "archivado" : "pendiente"
-      const result = fetchApiEventos({
-        query: queries.eventUpdate,
-        variables: { idEvento: data[idx]?._id, variable: "estatus", value },
-        token: null
-      })
-      if (!result || result.errors) {
-        throw new Error("Ha ocurrido un error")
-      }
-      setEventsGroup({
-        type: "EDIT_EVENT",
-        payload: {
-          _id: data[idx]?._id,
-          estatus: value
+
+    if (false) {
+      try {
+        const value = grupoStatus === "pendiente" ? "archivado" : "pendiente"
+        const result = fetchApiEventos({
+          query: queries.eventUpdate,
+          variables: { idEvento: data[idx]?._id, variable: "estatus", value },
+          token: null
+        })
+        if (!result || result.errors) {
+          throw new Error("Ha ocurrido un error")
         }
-      })
+        setEventsGroup({
+          type: "EDIT_EVENT",
+          payload: {
+            _id: data[idx]?._id,
+            estatus: value
+          }
+        })
 
-      if (grupoStatus === "archivado") {
-        setEvent(data[idx])
-        setTimeout(() => {
-          setIdxGroupEvent({ idx: 0, isActiveStateSwiper: 0, event_id: data[idx]?._id })
-        }, 50);
-        router.push("/resumen-evento");
-      }
+        if (grupoStatus === "archivado") {
+          setEvent(data[idx])
+          setTimeout(() => {
+            setIdxGroupEvent({ idx: 0, isActiveStateSwiper: 0, event_id: data[idx]?._id })
+          }, 50);
+          router.push("/resumen-evento");
+        }
 
-      if (idxGroupEvent?.idx == idx && value == "archivado") {
-        const valir = (data?.length - idx) > 1
-        setTimeout(() => {
-          setEvent(data[valir ? idx + 1 : idx - 1]);
-          setIdxGroupEvent({ ...idxGroupEvent, idx: valir ? idx : idx - 1, event_id: data[idx]?._id })
-        }, 50);
+        if (idxGroupEvent?.idx == idx && value == "archivado") {
+          const valir = (data?.length - idx) > 1
+          setTimeout(() => {
+            setEvent(data[valir ? idx + 1 : idx - 1]);
+            setIdxGroupEvent({ ...idxGroupEvent, idx: valir ? idx : idx - 1, event_id: data[idx]?._id })
+          }, 50);
+        }
+        toast("success", `${value == "archivado" ? `El evento ${data[idx].tipo} de "${data[idx].nombre.toUpperCase()}" se ha archivado` : `El evento ${data[idx].tipo} de "${data[idx].nombre.toUpperCase()}" se ha desarchivado`}`)
+      } catch (error) {
+        toast("error", "Ha ocurrido un error al archivar el evento")
+        console.log(error)
       }
-      toast("success", `${value == "archivado" ? `El evento ${data[idx].tipo} de "${data[idx].nombre.toUpperCase()}" se ha archivado` : `El evento ${data[idx].tipo} de "${data[idx].nombre.toUpperCase()}" se ha desarchivado`}`)
-    } catch (error) {
-      toast("error", "Ha ocurrido un error al archivar el evento")
-      console.log(error)
+    } else {
+      setActionModals(!actionModals)
     }
+
   }
 
   const handleRemoveEvent = (grupoStatus) => {
@@ -169,7 +175,7 @@ const Card = ({ data, grupoStatus, idx }) => {
               <IconFolderOpen className="w-5 h-6 cursor-pointer text-white hover:text-gray-300" />
             </div>
             <div onClick={handleRemoveEvent} className="w-max h-max relative"   >
-              <BorrarIcon className="w-5 h-6 cursor-pointer text-white hover:text-gray-300" />
+              <BorrarIcon className="w-4 h-5 cursor-pointer text-white hover:text-gray-300" />
             </div>
           </div>
         </div>

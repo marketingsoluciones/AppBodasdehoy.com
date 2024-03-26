@@ -99,6 +99,15 @@ interface propsBanner {
   set: Dispatch<SetStateAction<boolean>>;
 }
 const Banner: FC<propsBanner> = ({ set, state }) => {
+  const { eventsGroup } = EventsGroupContextProvider();
+  const { actionModals, setActionModals } = AuthContextProvider()
+  const ConditionalAction = () =>{
+    if(eventsGroup.length >= 1 ){
+        setActionModals(!actionModals)
+    }else{
+      set(!state)
+    }
+  }
   return (
     <div className="banner bg-base w-full flex justify-center h-[60%] md:h-[calc(100%-200px-50px)] md:min-h-[300px] px-5 md:px-0 overflow-hidden relative">
       <div className="md:max-w-screen-lg 2xl:max-w-screen-xl w-full grid md:grid-cols-2 h-full">
@@ -111,7 +120,7 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
           </h1>
           <span className="flex gap-2 justify-center items-end">
             <button
-              onClick={() => set(!state)}
+              onClick={() => ConditionalAction()}
               className="mt-4 bg-primary font-display font-medium text-white px-24 py-3 rounded-lg  box-border hover:bg-gray-200 transition focus:outline-none z-20"
             >
               Crear un evento
