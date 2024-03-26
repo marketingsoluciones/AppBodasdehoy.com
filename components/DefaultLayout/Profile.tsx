@@ -15,6 +15,8 @@ import { MdLogout } from "react-icons/md";
 import { RiNotification2Fill } from "react-icons/ri";
 import { TbWorldWww } from "react-icons/tb";
 import { useToast } from "../../hooks/useToast";
+import { Modal } from "../Utils/Modal";
+import { ObtenerFullAcceso } from "../InfoApp/ObtenerFullAcceso";
 
 const Profile = ({ user, state, set, ...rest }) => {
   const { config, setUser, setActionModals, actionModals } = AuthContextProvider()
@@ -299,6 +301,13 @@ const Profile = ({ user, state, set, ...rest }) => {
           </div>
         </ClickAwayListener>
       </div>
+      {
+          actionModals && (
+            <Modal classe={"w-[50%] h-[100%]"} >
+              <ObtenerFullAcceso/>
+            </Modal>
+          )
+        }
     </>
   );
 };

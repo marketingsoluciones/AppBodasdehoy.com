@@ -72,15 +72,6 @@ const Home: NextPage = () => {
             }
           </ModalLeft>
         )}
-
-        {
-          actionModals && (
-            <Modal classe={"w-[50%] h-[90%]"} >
-              <ObtenerFullAcceso/>
-            </Modal>
-          )
-        }
-
         <section id="rootsection" className="section relative w-full">
           <Banner state={valirQuery} set={setValirQuery} />
           <GridCards state={valirQuery} set={setValirQuery} />
