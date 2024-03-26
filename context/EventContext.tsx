@@ -115,7 +115,7 @@ const EventProvider = ({ children }) => {
   useEffect(() => {
     //console.log("seteado event _________________________")
     console.log("seteado event", event)
-    const f1 = eventsGroup.findIndex(elem => elem._id === event?._id)
+    const f1 = eventsGroup.findIndex(elem => elem?._id === event?._id)
     eventsGroup.splice(f1, 1, event)
     console.log("SEUDO seteado eventsGroup", eventsGroup)
     setEventsGroup({ type: "INITIAL_STATE", payload: [...eventsGroup] })
