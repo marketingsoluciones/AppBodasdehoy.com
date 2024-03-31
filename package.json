@@ -19,6 +19,7 @@
     "axios": "^0.21.1",
     "chart.js": "^3.3.2",
     "cors": "^2.8.5",
+    "date-fns": "^3.6.0",
     "firebase": "^9.6.9",
     "firebase-admin": "^9.11.0",
     "formik": "^2.2.6",
