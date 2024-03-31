@@ -25,6 +25,8 @@ const initialContext = {
   setGeoInfo: undefined,
   forCms: undefined,
   setForCms: undefined,
+  actionModals: undefined,
+  setActionModals: undefined
 }
 
 type Context = {
@@ -42,6 +44,9 @@ type Context = {
   setGeoInfo: any,
   forCms: any,
   setForCms: any,
+  setActionModals: any,
+  actionModals: any
+
 }
 export let varGlobalDomain = ""
 export let varGlobalDevelopment = ""
@@ -54,6 +59,7 @@ const AuthProvider = ({ children }) => {
   const [isMounted, setIsMounted] = useState<boolean>(false)
   const [valirAutoLogout, setValirAutoLogout] = useState<boolean>(false)
   const [isActiveStateSwiper, setIsActiveStateSwiper] = useState<any>(0);
+  const [actionModals, setActionModals] = useState(false);
   const [theme, setTheme] = useState<any>({
     primaryColor: undefined,
     secondaryColor: undefined,
@@ -236,7 +242,7 @@ const AuthProvider = ({ children }) => {
 
 
   return (
-    <AuthContext.Provider value={{ user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms }}>
+    <AuthContext.Provider value={{ setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms }}>
       {verificationDone && children}
     </AuthContext.Provider>
   );

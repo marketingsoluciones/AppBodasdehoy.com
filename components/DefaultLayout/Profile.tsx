@@ -14,9 +14,11 @@ import { MdLogout } from "react-icons/md";
 import { TbWorldWww } from "react-icons/tb";
 import { useToast } from "../../hooks/useToast";
 import { Notifications } from "../Notifications";
+import { Modal } from "../Utils/Modal";
+import { ObtenerFullAcceso } from "../InfoApp/ObtenerFullAcceso";
 
 const Profile = ({ user, state, set, ...rest }) => {
-  const { config, setUser } = AuthContextProvider()
+  const { config, setUser, setActionModals, actionModals } = AuthContextProvider()
   const { setLoading } = LoadingContextProvider()
   const [dropdown, setDropwdon] = useState(false);
 
@@ -192,14 +194,11 @@ const Profile = ({ user, state, set, ...rest }) => {
     }, [])
   }
 
-
   const optionsReduceStart = optionReduce(optionsStart)
   const optionsReduceCenter = optionReduce(optionsCenter)
   const optionsReduceEnd = optionReduce(optionsEnd)
-
-
   const valirUser = user?.displayName == "guest" ? "guest" : "loged"
-  //const ListaDropdownFilter = ListaDropdown.filter(elem => elem?.user === valirUser || elem?.user === "all")
+
   return (
     <>
       <div
@@ -207,14 +206,6 @@ const Profile = ({ user, state, set, ...rest }) => {
         {...rest}
       >
         <span className="flex items-center gap-2 relative">
-          {/* <CorazonIcono
-            className="cursor-pointer hover:opacity-80 transition"
-            onClick={() => set(!state)}
-          /> */}
-
-          {/* <a href={process.env.NEXT_PUBLIC_CHAT ?? "/"} >
-            <MensajeIcon className="cursor-pointer hover:opacity-80 transition" />
-          </a> */}
         </span>
         <Notifications />
         <ClickAwayListener onClickAway={() => dropdown && setDropwdon(false)}>
@@ -238,6 +229,7 @@ const Profile = ({ user, state, set, ...rest }) => {
                   {optionsReduceStart.map((item: Option, idx) => (
                     <ListItemProfile key={idx} {...item} />
                   ))}
+
                   {(user?.displayName !== "guest" && config?.development === "bodasdehoy") &&
                     <>
                       <hr className="col-span-2" />
@@ -248,9 +240,17 @@ const Profile = ({ user, state, set, ...rest }) => {
                       <hr className="col-span-2" />
                     </>
                   }
+
                   {optionsReduceEnd.map((item: Option, idx) => (
                     <ListItemProfile key={idx} {...item} />
                   ))}
+                  {
+                    true ?
+                      <div onClick={() => setActionModals(!actionModals)} className="col-span-2 flex text-white gap-2 bg-primary hover:bg-slate-400 transition cursor-pointer rounded-lg py-1 px-2 items-center justify-center ">
+                        Obten full acceso
+                      </div> :
+                      null
+                  }
                 </ul>
               </div >
             )}
@@ -266,6 +266,13 @@ const Profile = ({ user, state, set, ...rest }) => {
           </div>
         </ClickAwayListener>
       </div>
+      {
+        actionModals && (
+          <Modal classe={"w-[50%] h-[100%]"} >
+            <ObtenerFullAcceso />
+          </Modal>
+        )
+      }
     </>
   );
 };

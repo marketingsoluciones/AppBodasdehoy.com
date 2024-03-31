@@ -3,6 +3,7 @@ import { guests } from "../../utils/Interfaces"
 import { PlusIcon } from "../icons"
 import ListInvitados from "./ListInvitados"
 import { useAllowed } from '../../hooks/useAllowed';
+import { AuthContextProvider, EventContextProvider } from '../../context';
 
 interface propsBlockInvitados {
     set: Dispatch<SetStateAction<boolean>>
@@ -13,6 +14,16 @@ interface propsBlockInvitados {
 
 const BlockInvitados: FC<propsBlockInvitados> = ({ set, setEditInv, editInv, setSelected }) => {
     const [isAllowed, ht] = useAllowed()
+    const { event } = EventContextProvider()
+    const { actionModals, setActionModals } = AuthContextProvider()
+
+    const ConditionalAction = () => {
+        if (event.invitados_array.length >= 5) {
+            setActionModals(!actionModals)
+        } else {
+            set(true)
+        }
+    }
 
     return (
         <>
@@ -21,7 +32,7 @@ const BlockInvitados: FC<propsBlockInvitados> = ({ set, setEditInv, editInv, set
                     <div className="flex justify-center">
                         <h2 className="font-display text-xl font-semibold text-gray-500">Invitados</h2>
                     </div>
-                    <button onClick={() => !isAllowed() ? ht() : set(true)} className="w-full focus:outline-none bg-primary px-3 text-white font-display text-medium flex items-center justify-center gap-2 rounded-lg text-sm absolute inset-x-0 mx-auto z-10">
+                    <button onClick={() => !isAllowed() ? ht() : ConditionalAction()} className="w-full focus:outline-none bg-primary px-3 text-white font-display text-medium flex items-center justify-center gap-2 rounded-lg text-sm absolute inset-x-0 mx-auto z-10">
                         <PlusIcon className="text-white w-3 " />
                         <p>Añadir invitado</p>
                     </button>
