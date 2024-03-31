@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { ComponentType, useEffect, useState } from "react";
 import ClickAwayListener from "react-click-away-listener"
 import { RiNotification2Fill } from "react-icons/ri";
 import { MisEventosIcon } from "./icons";
@@ -7,6 +7,8 @@ import { AuthContextProvider, SocketContextProvider } from "../context";
 import { Notification, ResultNotifications } from "../utils/Interfaces";
 import { formatDistanceStrict } from "date-fns";
 import { es } from "date-fns/locale";
+import { Interweave, Node } from "interweave";
+import { HashtagMatcher, Link, Url, UrlMatcher, UrlProps } from "interweave-autolink";
 
 export const Notifications = () => {
   const { user, config } = AuthContextProvider()
@@ -113,6 +115,10 @@ export const Notifications = () => {
     }
   }
 
+  const replacesLink: ComponentType<UrlProps> = (props) => {
+    return <b><a className="text-xs" href={props?.url} target="_blank">{props?.children}</a></b>
+  };
+
   return (
     <ClickAwayListener onClickAway={() => { handleFalseShowNotifications() }}>
       <div onClick={() => { !showNotifications ? setShowNotifications(true) : handleFalseShowNotifications() }} className="bg-white items-center flex relative cursor-default select-none">
@@ -124,16 +130,21 @@ export const Notifications = () => {
           <div className="absolute bg-white rounded-lg w-80 h-max shadow-lg shadow-gray-400 top-0 right-0 md:translate-x-[224px] translate-y-[46px] overflow-hidden z-40 title-display">
             <div className="w-full pb-2">
             </div>
-            <ul id="ul-notifications" className="bg-white flex flex-col gap-2 text-xs place-items-left p-2 text-black max-h-[365px] overflow-y-scroll">
+            <ul id="ul-notifications" className="bg-white flex flex-col gap-2 text-xs place-items-left p-2 text-black max-h-[365px] overflow-y-scroll break-words break-all">
               {notifications?.results?.map((item: Notification, idx: number) => (
                 <li key={idx} className="flex">
                   <div className="w-full hover:bg-base rounded-lg text-gray-700 flex space-x-2 p-2">
                     <MisEventosIcon className="mt-1 text-gray-500 w-5 h-5" />
                     <div className="flex-1 flex flex-col">
-                      <span className="text-sm">
-                        {item.message}
-                      </span>
-                      <span className="text-xs">
+                      <Interweave
+                        className="text-sm"
+                        content={item?.message}
+                        matchers={[
+                          new UrlMatcher('url', {}, replacesLink),
+                          new HashtagMatcher('hashtag')
+                        ]}
+                      />
+                      <span className="text-[11px]">
                         Hace {formatDistanceStrict(
                           new Date(item.createdAt),
                           new Date(),
