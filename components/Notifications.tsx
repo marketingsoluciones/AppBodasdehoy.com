@@ -161,7 +161,7 @@ export const Notifications = () => {
               < li className="flex items-center justify-center">
                 <span className="text-xs">{
                   notifications.results.length === notifications.total
-                    ? "No hay mas notificaciones"
+                    ? notifications.results.length ? "No hay más notificaciones" : "No hay notificaciones"
                     : !showLoad ? "burcar más" : "cargando"
                 }</span>
               </li>

@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import { handleClickCard } from "../Home/Card";
 
 export const SocketControlator = () => {
-  const { user, config } = AuthContextProvider()
+  const { user, setUser, config } = AuthContextProvider()
   const { event, setEvent, planSpaceActive, setPlanSpaceActive } = EventContextProvider()
   const { socket, notifications, setNotifications } = SocketContextProvider()
   const [isMounted, setIsMounted] = useState<any>(false)
@@ -55,7 +55,7 @@ export const SocketControlator = () => {
     if (received.channel === "cms:message") {
       if (received?.msg?.payload?.action === "clickCard") {
         const data = eventsGroup.find(elem => elem._id === received?.msg?.payload?.value)
-        handleClickCard({ final: true, config, data, setEvent, user, router })
+        handleClickCard({ final: true, config, data, setEvent, user, setUser, router })
       }
       if (received?.msg?.payload?.action === "setRoute") {
         router.push(`${received?.msg?.payload?.value}`)

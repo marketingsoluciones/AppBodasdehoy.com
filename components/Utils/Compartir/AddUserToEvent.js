@@ -96,7 +96,7 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
                                 }
                             </div>
                             <div>
-                                <CopiarLink link={`https://${config?.pathDomain}/?pAccShas=${event?._id}`} />
+                                {/* <CopiarLink link={`${config?.pathDomain}/?pAccShas=${event?._id}`} /> */}
                                 <div className="flex">
                                     <div className="flex-1" />
                                     {users.length

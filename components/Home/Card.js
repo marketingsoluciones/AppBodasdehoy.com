@@ -21,7 +21,7 @@ export const defaultImagenes = {
   otro: "/cards/pexels-pixabay-50675.jpg"
 };
 
-export const handleClickCard = ({ final = true, data, user, config, setEvent, router }) => {
+export const handleClickCard = ({ final = true, data, user, setUser, config, setEvent, router }) => {
   try {
     fetchApiBodas({
       query: queries.updateUser,
@@ -147,7 +147,7 @@ const Card = ({ data, grupoStatus, idx }) => {
 
   useEffect(() => {
     if (eventsGroup?.length === 1) {
-      handleClickCard({ final: false, config, data: data[idx], setEvent, user, router })
+      handleClickCard({ final: false, config, data: data[idx], setEvent, user, setUser, router })
     }
   }, [])
 
@@ -164,7 +164,7 @@ const Card = ({ data, grupoStatus, idx }) => {
             {data[idx]?.usuario_id === user?.uid && <div onClick={() => {
               if (user?.displayName !== "guest") {
                 setTimeout(() => {
-                  handleClickCard({ final: false, config, data: data[idx], setEvent, user, router })
+                  handleClickCard({ final: false, config, data: data[idx], setEvent, user, setUser, router })
                 }, 100);
                 setOpenModal(!openModal)
               }
@@ -181,7 +181,7 @@ const Card = ({ data, grupoStatus, idx }) => {
         </div>
 
         {data[idx]?._id == user?.eventSelected ? <div className="w-[304px] h-40 bg-green absolute rounded-xl" /> : <></>}
-        <div onClick={() => handleClickCard({ final: true, config, data: data[idx], setEvent, user, router })} className={`w-72 h-36 rounded-xl cardEvento z-[8] cursor-pointer shadow-lg relative overflow-hidden `}>
+        <div onClick={() => handleClickCard({ final: true, config, data: data[idx], setEvent, user, setUser, router })} className={`w-72 h-36 rounded-xl cardEvento z-[8] cursor-pointer shadow-lg relative overflow-hidden `}>
           <img
             src={defaultImagenes[data[idx]?.tipo]}
             className="object-cover w-full h-full absolute top-0 left-0 object-top "
