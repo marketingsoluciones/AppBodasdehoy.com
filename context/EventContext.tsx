@@ -4,7 +4,6 @@ import { EventsGroupContextProvider } from "./EventsGroupContext";
 import { getAllFilterGuest } from "../utils/Funciones";
 import { SocketContextProvider } from "./SocketContext";
 import { AuthContextProvider } from "./AuthContext";
-import { useRouter } from "next/router";
 
 interface idxGroupEvent {
   idx: number

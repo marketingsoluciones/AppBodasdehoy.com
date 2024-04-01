@@ -11,10 +11,7 @@ import { useDelayUnmount } from "../utils/Funciones";
 import { NextPage } from "next";
 import { Event } from "../utils/Interfaces";
 import VistaSinCookie from "../pages/vista-sin-cookie"
-import { useMounted } from "../hooks/useMounted"
 import { useRouter } from "next/router";
-import { Modal } from "../components/Utils/Modal";
-import { ObtenerFullAcceso } from "../components/InfoApp/ObtenerFullAcceso";
 
 const Home: NextPage = () => {
   const { user, actionModals } = AuthContextProvider()
@@ -29,7 +26,7 @@ const Home: NextPage = () => {
   useEffect(() => {
     if (!isMounted) {
       setIsMounted(true)
-      setLoading(false)
+      //setLoading(false)
     }
     return () => {
       if (isMounted) {
@@ -62,6 +59,7 @@ const Home: NextPage = () => {
         <VistaSinCookie />
       )
     }
+    setLoading(false)
     return (
       <>
         {shouldRenderChild && (
@@ -101,10 +99,10 @@ interface propsBanner {
 const Banner: FC<propsBanner> = ({ set, state }) => {
   const { eventsGroup } = EventsGroupContextProvider();
   const { actionModals, setActionModals } = AuthContextProvider()
-  const ConditionalAction = () =>{
-    if(eventsGroup.length >= 1 ){
-        setActionModals(!actionModals)
-    }else{
+  const ConditionalAction = () => {
+    if (eventsGroup.length >= 1) {
+      setActionModals(!actionModals)
+    } else {
       set(!state)
     }
   }

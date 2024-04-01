@@ -15,7 +15,6 @@ type MyFormValues = {
 const FormLogin: FC<any> = ({ setStage }) => {
   const { signIn } = useAuthentication();
   const [passwordView, setPasswordView] = useState(false)
-  //const { signIn } = useAuthentication();
   const toast = useToast()
   const initialValues: MyFormValues = {
     identifier: "",

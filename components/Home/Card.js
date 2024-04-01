@@ -49,6 +49,7 @@ export const handleClickCard = ({ final = true, data, user, setUser, config, set
             setEvent(data);
             let p = permissions[0].title
             if (p === "regalos") p = "lista-regalos"
+            if (p === "resumen") p = "resumen-evento"
             router.push("/" + p);
           }
         } else {

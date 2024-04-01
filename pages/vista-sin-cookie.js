@@ -17,14 +17,12 @@ const VistaSinCookie = () => {
     return () => {
       if (isMounted) {
         setIsMounted(false)
-        //setLoading(false)
       }
     }
   }, [isMounted])
-
   if (isMounted) {
     if (["vivetuboda"].includes(config?.development)) {
-      router?.push("/login")
+      router?.push(`/login${router?.query?.pAccShas ? `?pAccShas=${router?.query?.pAccShas}` : ""}`)
     } else {
       return (
         <>

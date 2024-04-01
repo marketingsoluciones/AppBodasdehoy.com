@@ -18,7 +18,7 @@ export const useMounted = () => {
   useEffect(() => {
     if (isMounted) {
       //setTimeout(() => {
-      setLoading()
+      setLoading(false)
       //}, 50);
     }
   }, [isMounted])

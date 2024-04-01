@@ -116,12 +116,14 @@ export const Notifications = () => {
   }
 
   const replacesLink: ComponentType<UrlProps> = (props) => {
-    return <b><a className="text-xs" href={props?.url} target="_blank">{props?.children}</a></b>
+    return (
+      <b><a className="text-xs" href={props?.url} >{props?.children}</a></b>
+    )
   };
 
   return (
     <ClickAwayListener onClickAway={() => { handleFalseShowNotifications() }}>
-      <div onClick={() => { !showNotifications ? setShowNotifications(true) : handleFalseShowNotifications() }} className="bg-white items-center flex relative cursor-default select-none">
+      <div onClick={() => { !showNotifications ? setShowNotifications(true) : handleFalseShowNotifications() }} className="bg-white items-center flex relative cursor-default">
         <div className="bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200" >
           <RiNotification2Fill className="text-primary w-6 h-6 scale-x-90" />
           {notifications?.results[0]?.state === "sent" && <div className={`absolute w-2.5 h-2.5 rounded-full bg-green translate-x-2.5 translate-y-1.5`} />}
