@@ -21,7 +21,7 @@ const VistaSinCookie = () => {
   }, [isMounted])
   if (isMounted) {
     console.log("------------------------------>")
-    if (["vivetuboda"].includes(config?.development)) {
+    if (["vivetuboda", "eventosplanificador"].includes(config?.development)) {
       router?.push(`/login`)
     } else {
       return (
