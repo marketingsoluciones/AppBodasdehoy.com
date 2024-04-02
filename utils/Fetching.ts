@@ -101,6 +101,22 @@ export const fetchApiEventos = async ({ query, variables, token }: argsFetchApi)
 };
 
 export const queries = {
+   updateNotifications: `mutation ($args:inputNotification){
+    updateNotifications(args:$args)
+  }`,
+   getNotifications: `query ($args:inputNotification, $sort:sortCriteriaNotification, $skip:Int, $limit:Int){
+    getNotifications(args:$args, sort:$sort, skip:$skip, limit:$limit){
+      total
+      results{
+        _id
+        uid
+        message
+        state
+        createdAt
+        updatedAt
+      }
+    }
+  }`,
   createUserWithPassword: `mutation($email:String, $password:String) { 
     createUserWithPassword(email:$email, password:$password)
   }`,

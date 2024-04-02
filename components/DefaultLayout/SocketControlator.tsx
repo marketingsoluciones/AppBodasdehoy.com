@@ -4,9 +4,9 @@ import { useRouter } from "next/router";
 import { handleClickCard } from "../Home/Card";
 
 export const SocketControlator = () => {
-  const { user, config } = AuthContextProvider()
+  const { user, setUser, config } = AuthContextProvider()
   const { event, setEvent, planSpaceActive, setPlanSpaceActive } = EventContextProvider()
-  const { socket } = SocketContextProvider()
+  const { socket, notifications, setNotifications } = SocketContextProvider()
   const [isMounted, setIsMounted] = useState<any>(false)
   const { eventsGroup } = EventsGroupContextProvider()
   const [valirRemoteEvent, setValirRemoteEvent] = useState(false)
@@ -55,7 +55,7 @@ export const SocketControlator = () => {
     if (received.channel === "cms:message") {
       if (received?.msg?.payload?.action === "clickCard") {
         const data = eventsGroup.find(elem => elem._id === received?.msg?.payload?.value)
-        handleClickCard({ final: true, config, data, setEvent, user, router })
+        handleClickCard({ final: true, config, data, setEvent, user, setUser, router })
       }
       if (received?.msg?.payload?.action === "setRoute") {
         router.push(`${received?.msg?.payload?.value}`)
@@ -63,6 +63,12 @@ export const SocketControlator = () => {
       if (received?.msg?.payload?.action === "setEventId") {
         setValirRemoteEvent(true)
       }
+    }
+    if (received.channel === "notification") {
+      console.log(8745001, received.msg)
+      notifications.total = notifications.total + 1
+      notifications.results.unshift(received.msg)
+      setNotifications({ ...notifications })
     }
   }, [received])
 
@@ -72,6 +78,9 @@ export const SocketControlator = () => {
     })
     socket?.on("app:message", async (msg) => {
       setReceived({ channel: "app:message", msg, d: new Date() })
+    })
+    socket?.on("notification", async (msg) => {
+      setReceived({ channel: "notification", msg, d: new Date() })
     })
     socket?.io.on("reconnect_attempt", (attempt) => {
       setReconet(new Date())

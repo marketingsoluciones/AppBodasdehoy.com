@@ -25,6 +25,8 @@ const initialContext = {
   setGeoInfo: undefined,
   forCms: undefined,
   setForCms: undefined,
+  actionModals: undefined,
+  setActionModals: undefined
 }
 
 type Context = {
@@ -42,8 +44,12 @@ type Context = {
   setGeoInfo: any,
   forCms: any,
   setForCms: any,
+  setActionModals: any,
+  actionModals: any
+
 }
 export let varGlobalDomain = ""
+export let varGlobalDevelopment = ""
 const AuthContext = createContext<Context>(initialContext);
 
 const AuthProvider = ({ children }) => {
@@ -53,6 +59,7 @@ const AuthProvider = ({ children }) => {
   const [isMounted, setIsMounted] = useState<boolean>(false)
   const [valirAutoLogout, setValirAutoLogout] = useState<boolean>(false)
   const [isActiveStateSwiper, setIsActiveStateSwiper] = useState<any>(0);
+  const [actionModals, setActionModals] = useState(false);
   const [theme, setTheme] = useState<any>({
     primaryColor: undefined,
     secondaryColor: undefined,
@@ -63,9 +70,8 @@ const AuthProvider = ({ children }) => {
   const [geoInfo, setGeoInfo] = useState<any>();
   const [forCms, setForCms] = useState<boolean>(false)
   const router = useRouter()
-  useEffect(() => {
-    console.log(74551100, user)
-  }, [user])
+
+
   useEffect(() => {
     console.log(router?.query, router?.query?.show === "iframe")
     if (!forCms) {
@@ -111,6 +117,7 @@ const AuthProvider = ({ children }) => {
       }
 
       varGlobalDomain = resp?.domain
+      varGlobalDevelopment = resp?.development
 
       try {
         initializeApp(resp?.fileConfig)
@@ -234,7 +241,7 @@ const AuthProvider = ({ children }) => {
 
 
   return (
-    <AuthContext.Provider value={{ user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms }}>
+    <AuthContext.Provider value={{ setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms }}>
       {verificationDone && children}
     </AuthContext.Provider>
   );

@@ -1,11 +1,4 @@
-import {
-  createContext,
-  FC,
-  useState,
-  useEffect,
-  useContext,
-  SetStateAction,
-} from "react";
+import { createContext, FC, useState, useEffect, useContext, SetStateAction } from "react";
 import { Socket } from "socket.io-client";
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from ".";
 import { api } from '../api';
@@ -14,14 +7,19 @@ import { getCookie } from '../utils/Cookies';
 import Cookies from "js-cookie";
 import { useRouter } from "next/router";
 import { parseJwt } from "../utils/Authentication"
+import { Notification, ResultNotifications } from "../utils/Interfaces";
 
 type Context = {
   socket: Socket | null;
+  notifications: ResultNotifications
+  setNotifications: Dispatch<SetStateAction<ResultNotifications>>
   //setSocket : Dispatch<SetStateAction<Socket | null>>
 };
 
 const initialContext: Context = {
   socket: null,
+  notifications: null,
+  setNotifications: () => { }
   //setSocket : () => {}
 };
 
@@ -31,6 +29,7 @@ const SocketProvider: FC<any> = ({ children }): JSX.Element => {
   const router = useRouter()
   const { user, config } = AuthContextProvider()
   const [socket, setSocket] = useState<Socket | null>(initialContext.socket);
+  const [notifications, setNotifications] = useState<ResultNotifications>();
 
   useEffect(() => {
     console.log("=======> User", user)
@@ -93,7 +92,7 @@ const SocketProvider: FC<any> = ({ children }): JSX.Element => {
 
 
   return (
-    <SocketContext.Provider value={{ socket }}>
+    <SocketContext.Provider value={{ socket, notifications, setNotifications }}>
       {children}
     </SocketContext.Provider>
   );

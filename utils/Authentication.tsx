@@ -134,7 +134,7 @@ export const useAuthentication = () => {
                   await getSessionCookie(idToken)
                   setUser({ ...res.user, role: [whoYouAre] });
                   toast("success", `Registro sesión con éxito`)
-                  router.push("/")
+                  //router.push("/?9")
                 })
               } else {
                 toast("error", `${res?.user?.email} no está registrado`)

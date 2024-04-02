@@ -1,6 +1,9 @@
 import { IoIosArrowDown } from "react-icons/io";
 import { ModalPermissionList } from "../Compartir";
 import { useState } from "react";
+import { MdClose } from "react-icons/md";
+import { EventContextProvider, EventsGroupContextProvider } from "../../../context";
+import { fetchApiEventos, queries } from "../../../utils/Fetching";
 
 export const ListUserToEvent = ({ event }) => {
 
@@ -21,6 +24,31 @@ export const ListUserToEvent = ({ event }) => {
 }
 
 const User = ({ data, event }) => {
+    const { setEvent } = EventContextProvider()
+    const { eventsGroup, setEventsGroup } = EventsGroupContextProvider()
+
+    const handleDeleteCompartititon = async () => {
+        try {
+            const f1 = eventsGroup.findIndex(elem => elem._id === event._id)
+            const f2 = eventsGroup[f1].detalles_compartidos_array?.findIndex(elem => elem.uid === data?.uid)
+            eventsGroup[f1].detalles_compartidos_array?.splice(f2, 1)
+            eventsGroup[f1].compartido_array.splice(f2, 1)
+            setEventsGroup([...eventsGroup])
+            setEvent({ ...eventsGroup[f1] })
+            await fetchApiEventos({
+                query: queries.deleteCompartitions,
+                variables: {
+                    args: {
+                        eventID: event._id,
+                        users: data?.uid,
+                    }
+                }
+            });
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
     const [openModal, setOpenModal] = useState(false)
     return (
         <div className={`${openModal && "bg-gray-100"} w-full flex items-center py-1 px-2 space-x-2 text-xs`}>
@@ -44,6 +72,9 @@ const User = ({ data, event }) => {
                         <IoIosArrowDown />
                     </div>
                 </div>
+            </div>
+            <div onClick={() => handleDeleteCompartititon()} className="w-4 h-4 cursor-pointer">
+                <MdClose className="w-4 h-4 text-gray-700" />
             </div>
             {openModal &&
                 <ModalPermissionList data={data} setOpenModal={setOpenModal} event={event} />

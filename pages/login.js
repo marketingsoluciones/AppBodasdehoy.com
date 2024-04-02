@@ -47,7 +47,7 @@ const PageLogin = () => {
     }, 100);
   }
   if (user && user?.displayName !== "guest") {
-    router.push("/")
+    //router.push("/?8")
   } else {
     return (
       config?.development !== "bodasdehoy" && (
