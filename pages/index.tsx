@@ -68,6 +68,10 @@ const Home: NextPage = () => {
         return <></>
       }
     }
+    if ((!user || user.displayName === "guest") && ["vivetuboda", "eventosplanificador"].includes(config?.development)) {
+      router?.push(`/login`)
+      return <></>
+    }
     if (!user) {
       return (
         <VistaSinCookie />
