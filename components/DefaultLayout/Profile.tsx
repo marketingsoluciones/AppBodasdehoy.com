@@ -175,7 +175,7 @@ const Profile = ({ user, state, set, ...rest }) => {
         })
       },
       development: ["bodasdehoy", "all"],
-      rol: ["novio", "novia", "otro"],
+      rol: ["novio", "novia", "otro", "empresa"],
     },
   ]
 

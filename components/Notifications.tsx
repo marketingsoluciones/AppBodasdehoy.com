@@ -117,7 +117,7 @@ export const Notifications = () => {
 
   const replacesLink: ComponentType<UrlProps> = (props) => {
     return (
-      <b><a className="text-xs" href={props?.url} >{props?.children}</a></b>
+      <b><a className="text-xs break-all" href={props?.url} >{props?.children}</a></b>
     )
   };
 
@@ -132,7 +132,7 @@ export const Notifications = () => {
           <div className="absolute bg-white rounded-lg w-80 h-max shadow-lg shadow-gray-400 top-0 right-0 md:translate-x-[224px] translate-y-[46px] overflow-hidden z-40 title-display">
             <div className="w-full pb-2">
             </div>
-            <ul id="ul-notifications" className="bg-white flex flex-col gap-2 text-xs place-items-left p-2 text-black max-h-[365px] overflow-y-scroll break-words break-all">
+            <ul id="ul-notifications" className="bg-white flex flex-col gap-2 text-xs place-items-left p-2 text-black max-h-[365px] overflow-y-scroll break-words">
               {notifications?.results?.map((item: Notification, idx: number) => (
                 <li key={idx} className="flex">
                   <div className="w-full hover:bg-base rounded-lg text-gray-700 flex space-x-2 p-2">
