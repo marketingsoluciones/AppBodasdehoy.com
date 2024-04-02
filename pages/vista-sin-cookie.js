@@ -1,11 +1,10 @@
-import FormLogin from "../components/Forms/FormLogin";
-import { LogoNuevoBodasBlanco } from "../components/icons";
 import Link from "next/link";
 import { AuthContextProvider } from "../context";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 const VistaSinCookie = () => {
+
   const router = useRouter()
   const { config } = AuthContextProvider()
   const [isMounted, setIsMounted] = useState(false)
@@ -21,8 +20,9 @@ const VistaSinCookie = () => {
     }
   }, [isMounted])
   if (isMounted) {
+    console.log("------------------------------>")
     if (["vivetuboda"].includes(config?.development)) {
-      router?.push(`/login${router?.query?.pAccShas ? `?pAccShas=${router?.query?.pAccShas}` : ""}`)
+      router?.push(`/login`)
     } else {
       return (
         <>

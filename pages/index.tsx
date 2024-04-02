@@ -3,7 +3,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { motion } from "framer-motion";
 import { CircleBanner, LineaHome } from "../components/icons";
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, LoadingContextProvider, } from "../context";
-import Card from "../components/Home/Card";
+import Card, { handleClickCard } from "../components/Home/Card";
 import CardEmpty from "../components/Home/CardEmpty";
 import FormCrearEvento from "../components/Forms/FormCrearEvento";
 import ModalLeft from "../components/Utils/ModalLeft";
@@ -14,7 +14,9 @@ import VistaSinCookie from "../pages/vista-sin-cookie"
 import { useRouter } from "next/router";
 
 const Home: NextPage = () => {
-  const { user, actionModals } = AuthContextProvider()
+  const { user, actionModals, verificationDone, config, setUser } = AuthContextProvider()
+  const { eventsGroup, eventsGroupDone } = EventsGroupContextProvider()
+  const { setEvent } = EventContextProvider()
   const { setLoading } = LoadingContextProvider()
   const [valirQuery, setValirQuery] = useState<boolean>(false);
   const shouldRenderChild = useDelayUnmount(valirQuery, 500);
@@ -53,7 +55,19 @@ const Home: NextPage = () => {
     }
   }, [showEditEvent, valirQuery, valir])
 
-  if (isMounted) {
+  if (verificationDone && eventsGroupDone) {
+    console.log("***********************>")
+    if (router?.query?.pAccShas) {
+      if (!user || user?.displayName === "guest") {
+        router.push(config?.pathLogin ? `${config?.pathLogin}?pAccShas=${router?.query?.pAccShas}` : `/login?pAccShas=${router?.query?.pAccShas}`)
+        return <></>
+      }
+      const data = eventsGroup?.find(elem => elem?._id === router?.query?.pAccShas?.slice(-24))
+      if (data) {
+        handleClickCard({ final: true, config, data, setEvent, user, setUser, router })
+        return <></>
+      }
+    }
     if (!user) {
       return (
         <VistaSinCookie />
