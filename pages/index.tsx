@@ -12,6 +12,7 @@ import { NextPage } from "next";
 import { Event } from "../utils/Interfaces";
 import VistaSinCookie from "../pages/vista-sin-cookie"
 import { useRouter } from "next/router";
+import { useToast } from "../hooks/useToast";
 
 const Home: NextPage = () => {
   const { user, actionModals, verificationDone, config, setUser } = AuthContextProvider()
@@ -24,6 +25,7 @@ const Home: NextPage = () => {
   const [valir, setValir] = useState<boolean>(false);
   const router = useRouter()
   const [isMounted, setIsMounted] = useState<boolean>(false)
+  const toast = useToast()
 
   useEffect(() => {
     if (!isMounted) {
@@ -64,7 +66,8 @@ const Home: NextPage = () => {
       }
       const data = eventsGroup?.find(elem => elem?._id === router?.query?.pAccShas?.slice(-24))
       if (data) {
-        handleClickCard({ final: true, config, data, setEvent, user, setUser, router })
+        const resp = handleClickCard({ final: true, config, data, setEvent, user, setUser, router })
+        if (resp) toast("warning", resp)
         return <></>
       }
     }

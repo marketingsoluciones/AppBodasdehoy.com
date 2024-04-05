@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, SocketContextProvider, } from "../../context"
 import { useRouter } from "next/router";
 import { handleClickCard } from "../Home/Card";
+import { useToast } from "../../hooks/useToast";
 
 export const SocketControlator = () => {
   const { user, setUser, config } = AuthContextProvider()
@@ -14,6 +15,7 @@ export const SocketControlator = () => {
   const [reconet, setReconet] = useState(null)
   const [received, setReceived] = useState({ channel: "", msg: null, d: null })
   const router = useRouter()
+  const toast = useToast()
 
   useEffect(() => {
     if (!isMounted) {
@@ -36,6 +38,7 @@ export const SocketControlator = () => {
     setValirRemoteEvent(true)
     setValirRemotePlanSpaceActive(true)
     if (received.channel === "app:message") {
+      console.log(8745000, received.msg)
       if (received?.msg?.payload?.action === "setEvent") {
         const eventOld = {
           compartido_array: event?.compartido_array,
@@ -53,6 +56,7 @@ export const SocketControlator = () => {
       }
     }
     if (received.channel === "cms:message") {
+
       if (received?.msg?.payload?.action === "clickCard") {
         const data = eventsGroup.find(elem => elem._id === received?.msg?.payload?.value)
         handleClickCard({ final: true, config, data, setEvent, user, setUser, router })
