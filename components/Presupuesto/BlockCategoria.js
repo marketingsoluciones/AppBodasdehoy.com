@@ -15,6 +15,8 @@ import CellPagado from "./CellPagado";
 import SubComponentePagos from "./SubComponentePagos";
 import { useAllowed } from "../../hooks/useAllowed";
 
+import DetallesPago from "./DetallesPago";
+
 const BlockCategoria = ({ cate, set }) => {
   const { event, setEvent } = EventContextProvider()
   const [categoria, setCategoria] = useState({});
@@ -44,7 +46,7 @@ const BlockCategoria = ({ cate, set }) => {
   const Columna = useMemo(
     () => [
       {
-        Header: "Concepto",
+        Header: "Proveedor",
         accessor: "nombre",
         id: "nombre",
         Cell: (props) => <CellEdit categoriaID={categoria?._id} type={"text"} autofocus {...props} />
@@ -129,7 +131,9 @@ const BlockCategoria = ({ cate, set }) => {
           return (
             <>
 
-              <div className="w-full h-full flex items-center justify-center cursor-pointer relative">
+              <div className="w-full h-full flex items-center justify-center cursor-pointer relative space-x-3">
+                <DetallesPago {...props} set={act => setGastoID(act)}/>
+
                 <BorrarIcon
                   onClick={!isAllowed() ? null : handleRemove}
                   className="hover:text-gray-300 text-gray-500 transition w-3"
@@ -139,6 +143,7 @@ const BlockCategoria = ({ cate, set }) => {
           );
         },
       },
+
     ],
     [categoria]
   );

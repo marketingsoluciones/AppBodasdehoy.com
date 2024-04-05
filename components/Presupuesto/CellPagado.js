@@ -5,21 +5,17 @@ import { useAllowed } from "../../hooks/useAllowed";
 const CellPagado = ({ set, ...props }) => {
   const [value, setValue] = useState();
   const [isAllowed, ht] = useAllowed()
+  console.log(1111, props)
 
   useEffect(() => {
     setValue(props?.row?.original?.pagado)
   }, [props.row.original.pagado])
 
   const handleClick = () => {
-    if (props?.row?.original?.pagos_array?.length >= 1) {
-      set({ id: props?.row?.original?._id, crear: false })
-      props.toggleAllRowsExpanded(false)
-      props.row.toggleRowExpanded()
-      return
-    } else {
+   
       set({ id: props?.row?.original?._id, crear: true })
       return
-    }
+    
   }
 
   return (
