@@ -31,6 +31,20 @@ export interface Event {
     //permission: boolean
 }
 
+export interface Notification {
+    _id:string
+    uid:string
+    message:string
+    state:string
+    createdAt:number
+    updatedAt:number
+}
+
+export interface ResultNotifications{
+    total: number
+    results: Notification[]
+}
+
 interface menu {
     nombre_menu: string
     tipo: string

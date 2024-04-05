@@ -21,7 +21,7 @@ export const defaultImagenes = {
   otro: "/cards/pexels-pixabay-50675.jpg"
 };
 
-export const handleClickCard = ({ final = true, data, user, config, setEvent, router }) => {
+export const handleClickCard = ({ final = true, data, user, setUser, config, setEvent, router }) => {
   try {
     fetchApiBodas({
       query: queries.updateUser,
@@ -49,10 +49,11 @@ export const handleClickCard = ({ final = true, data, user, config, setEvent, ro
             setEvent(data);
             let p = permissions[0].title
             if (p === "regalos") p = "lista-regalos"
+            if (p === "resumen") p = "resumen-evento"
             router.push("/" + p);
           }
         } else {
-          toast("warning", "No tienes permiso, contacta al organizador del evento")
+          return "No tienes permiso, contacta al organizador del evento"
         }
       } else {
         setEvent(data);
@@ -147,7 +148,8 @@ const Card = ({ data, grupoStatus, idx }) => {
 
   useEffect(() => {
     if (eventsGroup?.length === 1) {
-      handleClickCard({ final: false, config, data: data[idx], setEvent, user, router })
+      const resp = handleClickCard({ final: false, config, data: data[idx], setEvent, user, setUser, router })
+      if (resp) toast("warning", resp)
     }
   }, [])
 
@@ -160,28 +162,32 @@ const Card = ({ data, grupoStatus, idx }) => {
           <div onClick={() => { data[idx]?.usuario_id === user?.uid && setOpenModal(!openModal) }} className="w-max h-max relative" >
             <UsuariosCompartidos event={data[idx]} />
           </div>
-          <div className="space-y-2">
-            {data[idx]?.usuario_id === user?.uid && <div onClick={() => {
+          {data[idx]?.usuario_id === user?.uid && <div className="space-y-2">
+            <div onClick={() => {
               if (user?.displayName !== "guest") {
                 setTimeout(() => {
-                  handleClickCard({ final: false, config, data: data[idx], setEvent, user, router })
+                  const resp = handleClickCard({ final: false, config, data: data[idx], setEvent, user, setUser, router, toast })
+                  if (resp) toast("warning", resp)
                 }, 100);
                 setOpenModal(!openModal)
               }
             }} className="w-max h-max relative" >
               <IoShareSocial className={`w-6 h-6 cursor-pointer text-white ${user?.displayName !== "guest" && "hover:text-gray-300"} -translate-x-1`} />
-            </div>}
+            </div>
             <div onClick={handleArchivarEvent} className="w-max h-max relative" >
               <IconFolderOpen className="w-5 h-6 cursor-pointer text-white hover:text-gray-300" />
             </div>
             <div onClick={handleRemoveEvent} className="w-max h-max relative"   >
               <BorrarIcon className="w-4 h-5 cursor-pointer text-white hover:text-gray-300" />
             </div>
-          </div>
+          </div>}
         </div>
 
         {data[idx]?._id == user?.eventSelected ? <div className="w-[304px] h-40 bg-green absolute rounded-xl" /> : <></>}
-        <div onClick={() => handleClickCard({ final: true, config, data: data[idx], setEvent, user, router })} className={`w-72 h-36 rounded-xl cardEvento z-[8] cursor-pointer shadow-lg relative overflow-hidden `}>
+        <div onClick={() => {
+          const resp = handleClickCard({ final: true, config, data: data[idx], setEvent, user, setUser, router })
+          if (resp) toast("warning", resp)
+        }} className={`w-72 h-36 rounded-xl cardEvento z-[8] cursor-pointer shadow-lg relative overflow-hidden `}>
           <img
             src={defaultImagenes[data[idx]?.tipo]}
             className="object-cover w-full h-full absolute top-0 left-0 object-top "

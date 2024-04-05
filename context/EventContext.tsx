@@ -4,7 +4,6 @@ import { EventsGroupContextProvider } from "./EventsGroupContext";
 import { getAllFilterGuest } from "../utils/Funciones";
 import { SocketContextProvider } from "./SocketContext";
 import { AuthContextProvider } from "./AuthContext";
-import { useRouter } from "next/router";
 
 interface idxGroupEvent {
   idx: number
@@ -113,14 +112,16 @@ const EventProvider = ({ children }) => {
   }, [planSpaceActive])
 
   useEffect(() => {
-    //console.log("seteado event _________________________")
-    console.log("seteado event", event)
-    const f1 = eventsGroup.findIndex(elem => elem?._id === event?._id)
-    eventsGroup.splice(f1, 1, event)
-    console.log("SEUDO seteado eventsGroup", eventsGroup)
-    setEventsGroup({ type: "INITIAL_STATE", payload: [...eventsGroup] })
-    setAllFilterGuests({ ...getAllFilterGuest(event), update: new Date().getTime() })
-    //console.log("---------------------------------------")
+    if (event) {
+      //console.log("seteado event _________________________")
+      console.log("seteado event", event)
+      const f1 = eventsGroup.findIndex(elem => elem?._id === event?._id)
+      eventsGroup.splice(f1, 1, event)
+      console.log("SEUDO seteado eventsGroup", { ...eventsGroup })
+      setEventsGroup({ type: "INITIAL_STATE", payload: [...eventsGroup] })
+      setAllFilterGuests({ ...getAllFilterGuest(event), update: new Date().getTime() })
+      //console.log("---------------------------------------")
+    }
   }, [event])
 
   useEffect(() => {

@@ -4,7 +4,7 @@ import { SubscriptionClient } from "graphql-subscriptions-client";
 import { Manager, io } from "socket.io-client";
 import { getAuth } from "firebase/auth";
 import { parseJwt } from "./utils/Authentication";
-import { varGlobalDomain } from "./context/AuthContext"
+import { varGlobalDomain, varGlobalDevelopment } from "./context/AuthContext"
 
 /* // llamada a wordpresss ref1001
 const wp = axios.create({
@@ -33,6 +33,7 @@ export const api = {
     return await instance.post("/graphql", params, {
       headers: {
         Authorization: `Bearer ${idToken}`,
+        Development: varGlobalDevelopment
       }
     });
   },

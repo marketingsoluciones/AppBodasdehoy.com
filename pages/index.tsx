@@ -3,7 +3,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { motion } from "framer-motion";
 import { CircleBanner, LineaHome } from "../components/icons";
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, LoadingContextProvider, } from "../context";
-import Card from "../components/Home/Card";
+import Card, { handleClickCard } from "../components/Home/Card";
 import CardEmpty from "../components/Home/CardEmpty";
 import FormCrearEvento from "../components/Forms/FormCrearEvento";
 import ModalLeft from "../components/Utils/ModalLeft";
@@ -11,13 +11,13 @@ import { useDelayUnmount } from "../utils/Funciones";
 import { NextPage } from "next";
 import { Event } from "../utils/Interfaces";
 import VistaSinCookie from "../pages/vista-sin-cookie"
-import { useMounted } from "../hooks/useMounted"
 import { useRouter } from "next/router";
-import { Modal } from "../components/Utils/Modal";
-import { ObtenerFullAcceso } from "../components/InfoApp/ObtenerFullAcceso";
+import { useToast } from "../hooks/useToast";
 
 const Home: NextPage = () => {
-  const { user, actionModals } = AuthContextProvider()
+  const { user, actionModals, verificationDone, config, setUser } = AuthContextProvider()
+  const { eventsGroup, eventsGroupDone } = EventsGroupContextProvider()
+  const { setEvent } = EventContextProvider()
   const { setLoading } = LoadingContextProvider()
   const [valirQuery, setValirQuery] = useState<boolean>(false);
   const shouldRenderChild = useDelayUnmount(valirQuery, 500);
@@ -25,11 +25,12 @@ const Home: NextPage = () => {
   const [valir, setValir] = useState<boolean>(false);
   const router = useRouter()
   const [isMounted, setIsMounted] = useState<boolean>(false)
+  const toast = useToast()
 
   useEffect(() => {
     if (!isMounted) {
       setIsMounted(true)
-      setLoading(false)
+      //setLoading(false)
     }
     return () => {
       if (isMounted) {
@@ -56,12 +57,30 @@ const Home: NextPage = () => {
     }
   }, [showEditEvent, valirQuery, valir])
 
-  if (isMounted) {
+  if (verificationDone && eventsGroupDone) {
+    console.log("***********************>")
+    if (router?.query?.pAccShas) {
+      if (!user || user?.displayName === "guest") {
+        router.push(config?.pathLogin ? `${config?.pathLogin}?pAccShas=${router?.query?.pAccShas}` : `/login?pAccShas=${router?.query?.pAccShas}`)
+        return <></>
+      }
+      const data = eventsGroup?.find(elem => elem?._id === router?.query?.pAccShas?.slice(-24))
+      if (data) {
+        const resp = handleClickCard({ final: true, config, data, setEvent, user, setUser, router })
+        if (resp) toast("warning", resp)
+        return <></>
+      }
+    }
+    if ((!user || user.displayName === "guest") && ["vivetuboda", "eventosplanificador"].includes(config?.development)) {
+      router?.push(`/login`)
+      return <></>
+    }
     if (!user) {
       return (
         <VistaSinCookie />
       )
     }
+    setLoading(false)
     return (
       <>
         {shouldRenderChild && (
@@ -101,10 +120,10 @@ interface propsBanner {
 const Banner: FC<propsBanner> = ({ set, state }) => {
   const { eventsGroup } = EventsGroupContextProvider();
   const { actionModals, setActionModals } = AuthContextProvider()
-  const ConditionalAction = () =>{
-    if(eventsGroup.length >= 1 ){
-        setActionModals(!actionModals)
-    }else{
+  const ConditionalAction = () => {
+    if (eventsGroup.length >= 1) {
+      setActionModals(!actionModals)
+    } else {
       set(!state)
     }
   }

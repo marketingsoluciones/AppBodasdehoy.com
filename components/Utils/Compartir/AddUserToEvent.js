@@ -51,7 +51,6 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
             })
             setUsers([])
             const f1 = eventsGroup.findIndex(elem => elem._id === event._id)
-            console.log(eventsGroup[f1])
             eventsGroup[f1].detalles_compartidos_array?.push(...results.detalles_compartidos_array)
             eventsGroup[f1].compartido_array.push(...results.compartido_array)
             setEventsGroup([...eventsGroup])
@@ -96,7 +95,7 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
                                 }
                             </div>
                             <div>
-                                <CopiarLink link={`https://${config?.domain.slice(1)}/?pAccShas=${event?._id}`} />
+                                <CopiarLink link={`${window.location.host}/?pAccShas=${event?._id.slice(3, 9)}${event?._id}`} />
                                 <div className="flex">
                                     <div className="flex-1" />
                                     {users.length
