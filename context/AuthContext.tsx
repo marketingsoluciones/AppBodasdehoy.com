@@ -26,7 +26,9 @@ const initialContext = {
   forCms: undefined,
   setForCms: undefined,
   actionModals: undefined,
-  setActionModals: undefined
+  setActionModals: undefined,
+  currency: undefined,
+  setCurrency: undefined
 }
 
 type Context = {
@@ -45,7 +47,9 @@ type Context = {
   forCms: any,
   setForCms: any,
   setActionModals: any,
-  actionModals: any
+  actionModals: any,
+  currency: any,
+  setCurrency: any
 
 }
 export let varGlobalDomain = ""
@@ -69,6 +73,7 @@ const AuthProvider = ({ children }) => {
   })
   const [geoInfo, setGeoInfo] = useState<any>();
   const [forCms, setForCms] = useState<boolean>(false)
+  const [currency, setCurrency] = useState<string>("EUR")
   const router = useRouter()
 
 
@@ -241,7 +246,7 @@ const AuthProvider = ({ children }) => {
 
 
   return (
-    <AuthContext.Provider value={{ setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms }}>
+    <AuthContext.Provider value={{ currency, setCurrency, setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms }}>
       {verificationDone && children}
     </AuthContext.Provider>
   );

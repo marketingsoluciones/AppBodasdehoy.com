@@ -1,13 +1,14 @@
 import { useContext, useEffect, useState } from "react";
 import ClickAwayListener from "react-click-away-listener";
 import { api } from "../../api";
-import { EventContextProvider } from "../../context";
+import { EventContextProvider,AuthContextProvider } from "../../context";
 import { getCurrency } from "../../utils/Funciones";
 import { capitalize } from '../../utils/Capitalize';
 import { useAllowed } from "../../hooks/useAllowed";
 
 const CellEdit = (props) => {
   const { event, setEvent } = EventContextProvider()
+  const { currency } = AuthContextProvider()
   const [edit, setEdit] = useState(false);
   const [mask, setMask] = useState(0);
   const [value, setValue] = useState();
@@ -22,9 +23,9 @@ const CellEdit = (props) => {
       setMask(value)
     }
     if (props?.type == "number") {
-      setMask(getCurrency(value, "EUR"));
+      setMask(getCurrency(value, currency));
     }
-  }, [value]);
+  }, [value, currency]);
 
   const keyDown = (e) => {
     let tecla = e.key.toLowerCase();

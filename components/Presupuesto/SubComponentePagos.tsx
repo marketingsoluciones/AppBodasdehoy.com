@@ -3,12 +3,13 @@ import { capitalize } from '../../utils/Capitalize';
 import { BorrarIcon, EditarIcon, PlusIcon } from "../icons";
 import { api } from "../../api";
 import { useContext, useEffect, useState } from "react";
-import { EventContextProvider } from "../../context";
+import { EventContextProvider, AuthContextProvider } from "../../context";
 import FormEditarPago from "../Forms/FormEditarPago";
 
 const SubComponentePagos = ({ row, cate, gasto, wantCreate }) => {
   const [show, setShow] = useState(true);
   const [PagoModificar, setPagoModificar] = useState("")
+  
 
   useEffect(() => {
     if (row.original.pagos_array.length <= 0) {
@@ -44,6 +45,7 @@ export default SubComponentePagos;
 
 const ListadoComponent = ({ pagos_array, cate, gasto, wantCreate, idModificar, row }) => {
   const { event, setEvent } = EventContextProvider();
+  const {currency} = AuthContextProvider()
   const BorrarPago = async (pagoID) => {
     let data;
     const params = {
@@ -129,7 +131,7 @@ const ListadoComponent = ({ pagos_array, cate, gasto, wantCreate, idModificar, r
 
           <span className="items-center col-span-2 flex flex-col justify-center">
             <p className="font-display text-md font-medium">IMPORTE</p>
-            <p className="font-display text-md">{getCurrency(item.importe)}</p>
+            <p className="font-display text-md">{getCurrency(item.importe, currency)}</p>
           </span>
 
           <span className="items-center col-span-2 flex flex-col justify-center">

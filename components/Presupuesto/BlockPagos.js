@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useTable } from "react-table";
-import { EventContextProvider } from "../../context";
+import { EventContextProvider, AuthContextProvider } from "../../context";
 import { getCurrency } from "../../utils/Funciones";
 import FormEditarPago from "../Forms/FormEditarPago";
 import { EditarIcon } from "../icons";
@@ -12,36 +12,14 @@ import { useAllowed } from "../../hooks/useAllowed";
 const BlockPagos = () => {
   const [active, setActive] = useState(0);
 
-  const ListaTabs = [
-    { title: "todos" },
-    { title: "pagados" },
-    { title: "Pendientes" },
-  ];
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="w-full max-w-screen-lg relative mx-auto inset-x-0"
+      className="w-full max-w-screen-lg relative mx-auto inset-x-0   "
     >
-      {/* <div className="">
-        <div className="flex gap-3 font-display text-gray-500 capitalize items-center pt-6 pb-3">
-          <p>Mostrar:</p>
-          {ListaTabs.map((item, idx) => (
-            <p
-              className={`text-sm text-gray-300 cursor-pointer ${
-                active == idx && "font-semibold"
-              }`}
-              onClick={() => setActive(idx)}
-            >
-              {item.title}
-            </p>
-          ))}
-        </div>
-      </div> */}
-
-      <div className="bg-white p-6 h-max shadow-md rounded-xl mt-10 overflow-x-auto ">
+      <div className="bg-white p-6 h-max shadow-md rounded-xl mt-10 overflow-x-auto*  ">
         <TablaDatosPagos active={active} />
       </div>
     </motion.div>
@@ -52,6 +30,7 @@ export default BlockPagos;
 
 const TablaDatosPagos = () => {
   const { event } = EventContextProvider()
+  const { currency } = AuthContextProvider()
   const categorias = event?.presupuesto_objeto?.categorias_array;
   const [PagosOrFormAdd, setShowPagos] = useState(true)
   const [PagoID, setPagoID] = useState("")
@@ -81,7 +60,7 @@ const TablaDatosPagos = () => {
         },
       },
       {
-        Header: "Gasto",
+        Header: "Proveedor",
         accessor: "nombreGasto",
         id: "gasto",
         Cell: (props) => {
@@ -90,8 +69,8 @@ const TablaDatosPagos = () => {
             setValue(props?.value)
           }, [props?.value])
           return (
-            <div className="w-full ">
-              <p className="font-display font-semibold text-gray-500 text-lg *md:text-left leading-5 ">
+            <div className="w-full flex flex-col justify-center h-full ">
+              <p className="font-display font-semibold text-gray-500 text-[14px] leading-5 ">
                 {capitalize(value)} <br />
                 <span className="text-xs font-light">{capitalize(props?.row?.original?.nombreCategoria)}</span>
               </p>
@@ -100,7 +79,7 @@ const TablaDatosPagos = () => {
         },
       },
       {
-        Header: "Detalles",
+        Header: "Fecha de pago",
         accessor: "fecha_pago",
         id: "detalles",
         Cell: (props) => {
@@ -109,8 +88,8 @@ const TablaDatosPagos = () => {
             setValue(props?.value)
           }, [props?.value])
           return (
-            <div className="font-display text-gray-500 flex items-center justify-center flex-col h-full   ">
-              {value && <p className="w-2/4">Pagado el {value}</p>}
+            <div className="font-display text-gray-500 flex items-center justify-center flex-col h-full">
+              {value && <p className="w-full"> {value}</p>}
             </div>
           );
         },
@@ -120,13 +99,48 @@ const TablaDatosPagos = () => {
         accessor: "importe",
         id: "importe",
         Cell: (props) => {
+          console.log("Importe",props)
           const [value, setValue] = useState(props?.value);
           useEffect(() => {
             setValue(props?.value)
           }, [props?.value])
           return (
+            <div className="font-display font-semibold text-gray-500 text-[15px] grid place-items-center h-full ">
+              <p className="w-4/5">{getCurrency(value, currency)}</p>
+            </div>
+          );
+        },
+      },
+      {
+        Header: "Modo de pago",
+        accessor: "medio_pago",
+        id: "medio_pago",
+        Cell: (props) => {
+          console.log("Modo de pago",props)
+          const [value, setValue] = useState(props?.value);
+          useEffect(() => {
+            setValue(props?.value)
+          }, [props?.value])
+          return (
+            <div className=" text-gray-500 grid place-items-center h-full ">
+              <p className="w-4/5">{value}</p>
+            </div>
+          );
+        },
+      },
+      {
+        Header: "Concepto",
+        accessor: "concepto",
+        id: "concepto",
+        Cell: (props) => {
+          const [value, setValue] = useState(props?.value);
+          console.log("concepto",props)
+          useEffect(() => {
+            setValue(props?.value)
+          }, [props?.value])
+          return (
             <div className="font-display font-semibold text-gray-500 text-lg grid place-items-center h-full ">
-              <p className="w-4/5">{getCurrency(value)}</p>
+              <p className="w-full">{value}</p>
             </div>
           );
         },
@@ -147,14 +161,14 @@ const TablaDatosPagos = () => {
           }
 
           return (
-            <div onClick={() => !isAllowed() ? ht() : handleEdit} className=" w-10 rounded-md hover:shadow-md hover:bg-gray-300 grid place-items-center h-full right-0 mx-auto">
+            <div onClick={() => !isAllowed() ? ht() : handleEdit()} className=" w-10 rounded-md hover:shadow-md hover:bg-gray-300 grid place-items-center h-full right-0 mx-auto">
               <EditarIcon className="w-5 h-5" />
             </div>
           );
         },
       },
     ],
-    []
+    [currency]
   );
 
   //Recorrer cada categoria
@@ -218,7 +232,9 @@ const DataTable = ({ columns, data }) => {
     1: 2,
     2: 2,
     3: 2,
-    4: 1,
+    4: 2,
+    5: 2,
+    6: 1
   };
   const colSpanMovil = {
     0: 1,
@@ -234,7 +250,7 @@ const DataTable = ({ columns, data }) => {
           {headerGroups.map((headerGroup, id) => (
             <tr
               {...headerGroup.getHeaderGroupProps()}
-              className="w-full grid grid-cols-4 md:grid-cols-8 py-2 bg-base uppercase"
+              className="w-full grid grid-cols-4 md:grid-cols-12 py-2 bg-base uppercase"
               key={id}
             >
               {headerGroup.headers.map((column, idx, id) => (
@@ -255,7 +271,7 @@ const DataTable = ({ columns, data }) => {
             return (
               <tr
                 {...row.getRowProps()}
-                className="w-full transition border-b border-base hover:bg-base cursor-pointer w-full grid grid-cols-5* md:grid-cols-8 "
+                className="transition border-b border-base hover:bg-base cursor-pointer w-full grid grid-cols-5* md:grid-cols-12 "
                 key={id}
               >
                 {row.cells.map((cell, idx) => {
@@ -271,7 +287,7 @@ const DataTable = ({ columns, data }) => {
                 })}
               </tr>
             );
-          }) : <tr className="w-full transition border-b border-base hover:bg-base cursor-pointer w-full grid place-items-center">
+          }) : <tr className=" transition border-b border-base hover:bg-base cursor-pointer w-full grid place-items-center">
             <td className="py-5 font-display text-lg text-gray-500 uppercase ">No hay pagos asociados</td></tr>}
         </tbody>
       </table>
