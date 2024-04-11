@@ -137,7 +137,7 @@ const ListadoComponent = ({ pagos_array, cate, gasto, wantCreate, idModificar, r
           <span className="items-center col-span-2 flex flex-col justify-center">
             <p className="font-display text-md font-medium">DETALLES</p>
             <p
-              className={`font-display text-md ${item.estado == "pagado" ? "text-green" : ""
+              className={`font-display text-md ${item.estado == "pagado" ? "text-green" : " text-red"
                 }`}
             >
               {capitalize(item.estado)}

@@ -24,11 +24,6 @@ const BlockCategoria = ({ cate, set }) => {
   const [GastoID, setGastoID] = useState({ id: "", crear: false })
   const [isAllowed, ht] = useAllowed()
   const { currency } = AuthContextProvider()
-  const [propsCurrency, setPropsCurrency] = useState({ importe: "", currency: " " })
-  const [mask, setMask] = useState(0)
-
-
-
 
   useEffect(() => {
     setCategoria(
@@ -43,10 +38,6 @@ const BlockCategoria = ({ cate, set }) => {
     );
     setGastoID(old => ({ ...old, crear: false }))
   }, [cate, event, currency]);
-
- 
-
-
 
   const saldo = categoria?.coste_estimado - categoria?.coste_final;
 

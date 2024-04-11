@@ -123,6 +123,7 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state }) => {
             }
             if(values.pagado !== checkbox[pago?.estado]){
               //Actualizar estado en gasto
+              old.presupuesto_objeto.categorias_array[idxCategoria].gastos_array[idxGasto].pagado = res?.categorias_array[0]?.gastos_array[0].pagado
               old.presupuesto_objeto.categorias_array[idxCategoria].gastos_array[idxGasto].pagos_array[idxPago].estado = res?.categorias_array[0]?.gastos_array[0].pagos_array[0].estado
             }
             return { ...old }

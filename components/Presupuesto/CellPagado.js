@@ -10,7 +10,7 @@ const CellPagado = ({ set, ...props }) => {
   const { currency } = AuthContextProvider()
 
   useEffect(() => {
-    setMask(value)
+    setMask(getCurrency(value, currency))
   }, [value, currency])
 
   useEffect(() => {
@@ -27,7 +27,7 @@ const CellPagado = ({ set, ...props }) => {
   return (
     <>
       <div className="w-full flex items-center justify-center h-full">
-        <p onClick={!isAllowed() ? null : handleClick} className="hover:shadow-md rounded px-2 hover:bg-gray-200 hover:text-white transition w-max cursor-pointer">
+        <p onClick={() => !isAllowed() ? null : handleClick()} className="hover:shadow-md rounded px-2 hover:bg-gray-200 hover:text-white transition w-max cursor-pointer">
           {mask}
         </p>
       </div>

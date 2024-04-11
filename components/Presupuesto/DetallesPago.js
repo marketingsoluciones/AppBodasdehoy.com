@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useAllowed } from "../../hooks/useAllowed";
 import { GrMoney } from "react-icons/gr"
+import { useToast } from "../../hooks/useToast";
 
 const DetallesPago = ({ set, ...props }) => {
   const [value, setValue] = useState();
   const [isAllowed, ht] = useAllowed()
+  const toast = useToast()
 
 
   useEffect(() => {
@@ -18,7 +20,7 @@ const DetallesPago = ({ set, ...props }) => {
       props.row.toggleRowExpanded()
       return
     } else {
-      null
+      toast("error", "no tienes pago para visualizar ")
       return
     }
   }
