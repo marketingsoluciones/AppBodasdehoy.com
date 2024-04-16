@@ -9,15 +9,11 @@ import InputField from "./InputField";
 
 const validacion = (values) => {
   let errors = {}
-
   if (!values.importe) {
     errors.importe = "Importe requerido"
   }
   if (!values.fechaPago) {
     errors.fechaPago = "Selecciona una fecha"
-  }
-  if (!values.fechaVencimiento) {
-    errors.fechaVencimiento = "Selecciona una fecha"
   }
   if (!values.pagado_por) {
     errors.pagado_por = "Favor indicar quien paga"
@@ -28,10 +24,20 @@ const validacion = (values) => {
 
   return errors
 }
+const validacion2 = (values) => {
+  let errors = {}
+  if (!values.importe) {
+    errors.importe = "Importe requerido"
+  }
+  if (!values.fechaPago) {
+    errors.fechaPago = "Selecciona una fecha"
+  }
+  return errors
+}
 
 const FormAddPago = ({ GastoID, cate }) => {
   const { event, setEvent } = EventContextProvider()
-
+  const [ischecked, setCheck] = useState(false)
 
   const checkbox = {
     true: "pagado",
@@ -46,7 +52,8 @@ const FormAddPago = ({ GastoID, cate }) => {
         fechaPago: "",
         fechaVencimiento: "",
         pagado_por: "",
-        medio_pago: ""
+        medio_pago: "",
+        concepto: "",
 
       }}
 
@@ -61,6 +68,7 @@ const FormAddPago = ({ GastoID, cate }) => {
                   fecha_vencimiento : "${values.fechaVencimiento}",
                   pagado_por: "${values.pagado_por}"
                   medio_pago : "${values.medio_pago}"
+                  concepto:"${values.concepto}"
                 }){
                   pagado
                   categorias_array{
@@ -76,10 +84,10 @@ const FormAddPago = ({ GastoID, cate }) => {
                         medio_pago
                         importe
                         pagado_por
+                        concepto
                       }
                     }
                   }
-                    
                 }
               }`,
           variables: {},
@@ -102,9 +110,9 @@ const FormAddPago = ({ GastoID, cate }) => {
         }
       }}
 
-      validate={validacion}
+      validate={ischecked ? validacion : validacion2}
     >
-      {(props) => <BasicFormLogin {...props} />}
+      {(props) => <BasicFormLogin ischecked={ischecked} setCheck={setCheck} props {...props} />}
     </Formik>
   );
 }
@@ -113,28 +121,36 @@ export default FormAddPago
 
 
 export const BasicFormLogin = ({
+  ischecked,
+  setCheck,
   handleChange,
   handleSubmit,
   isSubmitting,
   values,
 }) => {
 
-  const [ischecked, setCheck] = useState(false)
-
   useEffect(() => {
     values.pagado = ischecked
   }, [ischecked])
+
+
   return (
     <>
-      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6 py-6 w-full place-items-center *justify-items-center" >
-        <div className="col-span-2 border-l-2 border-gray-100 pl-3 w-full ">
-          <h2 className="font-display text-3xl capitalize text-primary font-light">Añadir</h2>
-          <h2 className="font-display text-5xl capitalize text-gray-500 font-medium">Pago</h2>
+      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6 py-6 w-full h-ful " >
+
+        <div className=" grid grid-cols-2 col-span-2 border-gray-100 pl-3 w-full ">
+          <div className="col-span-1 border-l-2 border-gray-100 pl-3 w-full  ">
+            <h2 className="font-display text-3xl capitalize text-primary font-light">Añadir</h2>
+            <h2 className="font-display text-5xl capitalize text-gray-500 font-medium">Pago</h2>
+          </div>
+          <div className="self-center text-center text-azulCorporativo text-[13px]">
+            Marcar la factira como Pagada definira si fue un pago realizado o quieres agendar el pago a futuro
+          </div>
         </div>
+
         <InputField
           name="importe"
           label="Importe"
-          placeholder="Costo"
           onChange={handleChange}
           value={values.importe}
           type="number"
@@ -142,7 +158,7 @@ export const BasicFormLogin = ({
           step="0.10"
           autoComplete="off" />
 
-        <div className="relative flex items-center gap-2">
+        <div className="relative flex items-center gap-2 justify-self-center">
           <input type="checkbox" className="hidden" name="pagado" checked={ischecked} onChange={() => setCheck(!ischecked)} />
           <div onClick={() => setCheck(!ischecked)} className={`w-6 h-6 rounded-md border border-gray-200 transition ${ischecked && "bg-primary border-none"} cursor-pointer`}>
             {ischecked && <CheckIcon className="text-white " />}
@@ -152,38 +168,46 @@ export const BasicFormLogin = ({
 
         <InputField
           name="fechaPago"
-          label="Fecha de pago"
+          label={`${ischecked?"Fecha de pago":"Fecha de futuro pago"}`}
           onChange={handleChange}
           value={values.fechaPago}
           type="date"
           autoComplete="off" />
 
         <InputField
-          name="fechaVencimiento"
-          label="Fecha de vencimiento"
+          name="medio_pago"
+          label="Modo de pago"
+          disabled={!ischecked}
+          className={`${ischecked ? "" : "bg-slate-200"}`}
           onChange={handleChange}
-          value={values.fechaVencimiento}
-          type="date"
+          value={values.medio_pago}
+          type="text"
           autoComplete="off" />
 
-       
-          <InputField
-            name="pagado_por"
-            label="Pagado por"
-            placeholder="Nombre"
-            onChange={handleChange}
-            value={values.pagado_por}
-            type="text"
-            autoComplete="off" />
+        <InputField
+          name="pagado_por"
+          label="Pagado por"
+          onChange={handleChange}
+          value={values.pagado_por}
+          disabled={!ischecked}
+          className={`${ischecked ? "" : "bg-slate-200"}`}
+          type="text"
+          autoComplete="off" />
 
+
+        <div className="col-span-2">
           <InputField
-            name="medio_pago"
-            label="Modo de pago"
-            placeholder="tipo"
+            name="concepto"
+            label="concepto del pago"
             onChange={handleChange}
-            value={values.medio_pago}
+            value={values.concepto}
             type="text"
             autoComplete="off" />
+        </div>
+
+
+
+
 
         <button disabled={isSubmitting} type="submit" className={`col-span-2 font-display rounded-full mt-4 py-2 px-6 text-white font-medium transition w-full hover:opacity-70 ${isSubmitting ? "bg-secondary" : "bg-primary"
           }`} >Añadir pago</button>
