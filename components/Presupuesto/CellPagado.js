@@ -10,7 +10,6 @@ const CellPagado = ({ set, ...props }) => {
   const [mask, setMask] = useState()
   const { currency } = AuthContextProvider()
   const toast = useToast()
-  console.log("mis prosp pago=>>>>>",props)
   const costeFional = props.row.original.coste_final
 
   useEffect(() => {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAllowed } from "../../hooks/useAllowed";
-import { GrMoney } from "react-icons/gr"
+import { FaRegEye } from "react-icons/fa";
 import { useToast } from "../../hooks/useToast";
 
 const DetallesPago = ({ set, ...props }) => {
@@ -29,7 +29,7 @@ const DetallesPago = ({ set, ...props }) => {
     <>
       <div className="flex items-center justify-center h-full">
         <p onClick={!isAllowed() ? null : handleClick} className=" rounded px-2 hover:text-gray-400 transition cursor-pointer">
-          <GrMoney />
+        <FaRegEye />
         </p>
       </div>
     </>
