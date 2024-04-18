@@ -166,8 +166,6 @@ const AuthProvider = ({ children }) => {
         if (sessionCookieParsed?.user_id !== user?.uid) {
           console.log(0.00002)
           getAuth().signOut().then(() => {
-            Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
-            Cookies.remove("idTokenV0.1.0", { domain: config?.domain ?? "" });
             console.log(8000043, "signOut con éxito")
           })
             .catch((error) => {
