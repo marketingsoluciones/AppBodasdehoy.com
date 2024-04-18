@@ -61,7 +61,6 @@ const AuthProvider = ({ children }) => {
   const [verificationDone, setVerificationDone] = useState<any>(false);
   const [config, setConfig] = useState<any>();
   const [isMounted, setIsMounted] = useState<boolean>(false)
-  const [valirAutoLogout, setValirAutoLogout] = useState<boolean>(false)
   const [isActiveStateSwiper, setIsActiveStateSwiper] = useState<any>(0);
   const [actionModals, setActionModals] = useState(false);
   const [theme, setTheme] = useState<any>({
@@ -75,10 +74,12 @@ const AuthProvider = ({ children }) => {
   const [forCms, setForCms] = useState<boolean>(false)
   const [currency, setCurrency] = useState<string>("EUR")
   const router = useRouter()
+  const [triggerAuthStateChanged, setTriggerAuthStateChanged] = useState<number | null>(null)
 
 
   useEffect(() => {
-    console.log(router?.query, router?.query?.show === "iframe")
+    console.log("query", router?.query,)
+    console.log("isIframe:", router?.query?.show === "iframe")
     if (!forCms) {
       setForCms(router?.query?.show === "iframe")
     }
@@ -101,10 +102,10 @@ const AuthProvider = ({ children }) => {
       console.log("hostname:", path)
       const c = path?.split(".")
       const idx = c?.findIndex(el => el === "com")
-      console.log(idx)
+      console.log("isProduction:", idx)
       /*--------------------------------------------------------------------*/
       const devDomain = ["bodasdehoy", "eventosplanificador", "eventosorganizador", "vivetuboda"]
-      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[0] /*<<<<<<<<<*/
+      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[3] /*<<<<<<<<<*/
       /*--------------------------------------------------------------------*/
       resp = developments.filter(elem => elem.name === domainDevelop)[0]
       if (idx === -1 || window.origin.includes("://test")) {
@@ -118,123 +119,124 @@ const AuthProvider = ({ children }) => {
           pathSignout: resp?.pathSignout ? `${directory}/signout` : undefined,
           pathPerfil: resp?.pathPerfil ? `${directory}/configuracion` : undefined
         }
-        console.log(222215, resp?.domain)
+        console.log(222215, { domain: resp?.domain })
       }
 
       varGlobalDomain = resp?.domain
       varGlobalDevelopment = resp?.development
-
+      setConfig(resp)
       try {
         initializeApp(resp?.fileConfig)
       } catch (error) {
         console.log(90001, error)
       }
-      setConfig(resp)
     }
   }, [isMounted])
 
-
   useEffect(() => {
-    try {
-      if (isMounted) {
-        console.log(800003000)
-
-        onAuthStateChanged(getAuth(), async (user) => {
-          const sessionCookie = Cookies.get(config?.cookie);
-          console.log(8000030, resp?.cookie, sessionCookie, user)
-          if (user?.uid) { setValirAutoLogout(true) }
-          const asd = parseJwt(sessionCookie)
-          console.log(800003002, asd)
-
-          if (sessionCookie && getAuth()?.currentUser?.uid !== asd.user_id) {
-            getAuth().signOut().then(() => {
-              console.log(800003004, "borra cookie idtoken y session")
-              Cookies.remove(resp?.cookie, { domain: resp?.domain ?? "" });
-              Cookies.remove("idTokenV0.1.0", { domain: resp?.domain ?? "" });
-              console.log(8000043, "signOut con éxito")
-            })
-              .catch((error) => {
-                console.log(error);
-              });
-          }
-
-          console.info(8000042, "Verificando cookie", user?.uid, asd?.user_id);
-          if (user?.uid !== asd?.user_id) {
-            console.log("entro para loguear de nuevo")
-            const resp = await fetchApiBodas({
-              query: queries.authStatus,
-              variables: { sessionCookie },
-              development: config?.development
-            });
-            const customToken = resp?.customToken
-            console.info("Llamo con mi sessionCookie para traerme customToken");
-            console.info("Custom token", customToken)
-            customToken && signInWithCustomToken(getAuth(), customToken);
-            console.info("Hago sesion con el custom token****");
-          }
-          //setUser(user)
-          if (!["vivetuboda"].includes(config?.development) && !sessionCookie) {
-            const cookieContent = JSON.parse(Cookies.get(config?.cookieGuest) ?? "{}")
-            let guestUid = cookieContent?.guestUid
-            if (!guestUid) {
-              const dateExpire = new Date(new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000))
-              guestUid = nanoid(28)
-              Cookies.set(config?.cookieGuest, JSON.stringify({ guestUid }), { domain: `${config?.domain}`, expires: dateExpire })
-            }
-            setUser({ uid: guestUid, displayName: "guest" })
-          }
-          if (sessionCookie) {
-            console.info("Tengo cookie de sesion");
-            if (user) {
-              console.info("Tengo user de contexto firebase");
-              const moreInfo = await fetchApiBodas({
-                query: queries.getUser,
-                variables: { uid: user?.uid },
-                development: config?.development
-              });
-              moreInfo && console.info("Tengo datos de la base de datos");
-              setUser({ ...user, ...moreInfo });
-              setVerificationDone(true)
-              console.info("Guardo datos en contexto react");
-            } else {
-              console.info("NO tengo user de contexto de firebase");
-              const resp = await fetchApiBodas({
-                query: queries.authStatus,
-                variables: { sessionCookie },
-                development: config?.development
-              });
-              const customToken = resp?.customToken
-              console.info("Llamo con mi sessionCookie para traerme customToken");
-              console.info("Custom token", customToken)
-              customToken && signInWithCustomToken(getAuth(), customToken)
-                .then(() => {
-                  setVerificationDone(true)
-                })
-              console.info("Hago sesion con el custom token");
-            }
-          } else {
-            setVerificationDone(true)
-          }
-        });
-      }
-    } catch (error) {
-      console.log(90002, error)
+    if (isMounted && config) {
+      onAuthStateChanged(getAuth(), async () => {
+        setTriggerAuthStateChanged(new Date().getTime())
+      });
     }
   }, [config]);
 
   useEffect(() => {
-    if (user && user?.displayName !== "guest") {
-      console.info("getAuth().onIdTokenChanged");
-      onIdTokenChanged(getAuth(), async user => {
-        const sessionCookie = Cookies.get(config?.cookie);
-        if (user && sessionCookie) {
-          console.log("///////////----->", user.getIdToken())
-          const dateExpire = new Date(new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000))
-          Cookies.set("idTokenV0.1.0", await user.getIdToken(), { domain: `.${resp?.domain}.com`, expires: dateExpire })
-        }
-      })
+    if (triggerAuthStateChanged) {
+      console.log(800003000, "verificando")
+      const user = getAuth().currentUser
+      const sessionCookie = Cookies.get(config?.cookie);
+      verificator({ user, sessionCookie })
     }
-  }, [])
+  }, [triggerAuthStateChanged])
+
+  const verificator = async ({ user, sessionCookie }) => {
+    try {
+      console.log(80000301, { "user?.uid": user?.uid })
+      const sessionCookieParsed = parseJwt(sessionCookie)
+      console.log(80000302, { "sessionCookieParsed?.user_id": sessionCookieParsed?.user_id })
+
+      if (!sessionCookieParsed?.user_id && user?.uid) {
+        console.log(0.00001)
+        getAuth().signOut().then(() => {
+        })
+      }
+
+      if (sessionCookieParsed?.user_id && user?.uid) {
+        if (sessionCookieParsed?.user_id !== user?.uid) {
+          console.log(0.00002)
+          getAuth().signOut().then(() => {
+            Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
+            Cookies.remove("idTokenV0.1.0", { domain: config?.domain ?? "" });
+            console.log(8000043, "signOut con éxito")
+          })
+            .catch((error) => {
+              console.log(error);
+            });
+        }
+
+        if (sessionCookieParsed?.user_id === user?.uid) {
+          console.log(0.00003)
+          setUser(user)
+        }
+      }
+
+      if (sessionCookieParsed?.user_id && !user?.uid) {
+        console.log(0.00004)
+        const resp = await fetchApiBodas({
+          query: queries.authStatus,
+          variables: { sessionCookie },
+          development: config?.development
+        });
+        const customToken = resp?.customToken
+        console.info("Llamo con mi sessionCookie para traerme customToken");
+        if (customToken) {
+          console.info("customTokenParse", parseJwt(customToken))
+          signInWithCustomToken(getAuth(), customToken)
+            .then(result => {
+              setUser(result?.user)
+            })
+        }
+      }
+
+      if (!["vivetuboda"].includes(config?.development) && !sessionCookie) {
+        const cookieContent = JSON.parse(Cookies.get(config?.cookieGuest) ?? "{}")
+        let guestUid = cookieContent?.guestUid
+        if (!guestUid) {
+          const dateExpire = new Date(new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000))
+          guestUid = nanoid(28)
+          Cookies.set(config?.cookieGuest, JSON.stringify({ guestUid }), { domain: `${config?.domain}`, expires: dateExpire })
+        }
+        setUser({ uid: guestUid, displayName: "guest" })
+      }
+
+      if (sessionCookie) {
+        console.info("Tengo cookie de sesion");
+        if (user) {
+          console.info("Tengo user de contexto firebase");
+          let idToken = Cookies.get("idTokenV0.1.0")
+          if (!idToken) {
+            idToken = await getAuth().currentUser?.getIdToken(true)
+            const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
+            Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_PRODUCTION ? varGlobalDomain : process.env.NEXT_PUBLIC_DOMINIO, expires: dateExpire })
+          }
+          const moreInfo = await fetchApiBodas({
+            query: queries.getUser,
+            variables: { uid: user?.uid },
+            development: config?.development
+          });
+          moreInfo && console.info("Tengo datos de la base de datos");
+          setUser({ ...user, ...moreInfo });
+          setVerificationDone(true)
+          console.info("Guardo datos en contexto react");
+        }
+      } else {
+        setVerificationDone(true)
+      }
+    } catch (error) {
+      console.log(90002, error)
+    }
+  }
 
   useEffect(() => {
     fetchApiEventos({
