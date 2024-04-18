@@ -15,15 +15,11 @@ import InputField from "./InputField";
 
 const validacion = (values) => {
   let errors = {}
-
   if (!values.importe) {
     errors.importe = "Importe requerido"
   }
   if (!values.fechaPago) {
     errors.fechaPago = "Selecciona una fecha"
-  }
-  if (!values.fechaVencimiento) {
-    errors.fechaVencimiento = "Selecciona una fecha"
   }
   if (!values.pagado_por) {
     errors.pagado_por = "Favor indicar quien paga"
@@ -32,6 +28,16 @@ const validacion = (values) => {
     errors.medio_pago = "Modo de pago requerido"
   }
 
+  return errors
+}
+const validacion2 = (values) => {
+  let errors = {}
+  if (!values.importe) {
+    errors.importe = "Importe requerido"
+  }
+  if (!values.fechaPago) {
+    errors.fechaPago = "Selecciona una fecha"
+  }
   return errors
 }
 
@@ -50,10 +56,6 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state }) => {
     }
   }, [IDs])
 
-
-
-
-
   const checkbox = {
     true: "pagado",
     false: "pendiente",
@@ -69,7 +71,8 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state }) => {
         fechaPago: pago?.fecha_pago,
         fechaVencimiento: pago?.fecha_vencimiento,
         pagado_por: pago?.pagado_por,
-        medio_pago: pago?.medio_pago
+        medio_pago: pago?.medio_pago,
+        concepto: pago?.concepto
       }}
 
       onSubmit={async (values, actions) => {
@@ -82,6 +85,7 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state }) => {
                   fecha_vencimiento: "${values.fechaVencimiento}",
                   pagado_por: "${values.pagado_por}"
                   medio_pago: "${values.medio_pago}",
+                  concepto:"${values.concepto}"
                 }
               ){
                 categorias_array{
@@ -89,8 +93,15 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state }) => {
                   gastos_array{
                     pagado
                     pagos_array{
-                      importe
-                      estado
+                      _id
+                        estado
+                        fecha_creacion
+                        fecha_pago
+                        fecha_vencimiento
+                        medio_pago
+                        importe
+                        pagado_por
+                        concepto
                     }
                   }
                 }
@@ -116,15 +127,17 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state }) => {
               ...values
             }
             if (values.importe !== pago.importe) {
+
               //Actualizar pagado en categoria
               old.presupuesto_objeto.categorias_array[idxCategoria].pagado = res?.categorias_array[0]?.pagado
               //Actualizar pagado en gasto
               old.presupuesto_objeto.categorias_array[idxCategoria].gastos_array[idxGasto].pagado = res?.categorias_array[0]?.gastos_array[0].pagado
             }
-            if(values.pagado !== checkbox[pago?.estado]){
+            if (values.pagado !== checkbox[pago?.estado]) {
               //Actualizar estado en gasto
               old.presupuesto_objeto.categorias_array[idxCategoria].gastos_array[idxGasto].pagado = res?.categorias_array[0]?.gastos_array[0].pagado
               old.presupuesto_objeto.categorias_array[idxCategoria].gastos_array[idxGasto].pagos_array[idxPago].estado = res?.categorias_array[0]?.gastos_array[0].pagos_array[0].estado
+              old.presupuesto_objeto.categorias_array[idxCategoria].pagado = res?.categorias_array[0]?.pagado
             }
             return { ...old }
           })
@@ -152,15 +165,21 @@ export const BasicFormLogin = ({
   const [ischecked, setCheck] = useState(values.pagado)
 
   useEffect(() => {
-    values.pagado=ischecked
+    values.pagado = ischecked
   }, [ischecked])
 
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6 pt-6 w-full place-items-center" >
-        <div className="col-span-2 border-l-2 border-gray-100 pl-3 w-full ">
-          <h2 className="font-display text-3xl capitalize text-primary font-light flex-col flex">Editar <span className="font-display text-5xl capitalize text-gray-500 font-medium">Pago</span></h2>
+      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6 pt-6 w-full " >
+        <div className=" grid grid-cols-2 col-span-2 border-gray-100 pl-3 w-full ">
+          <div className="col-span-1 border-l-2 border-gray-100 pl-3 w-full  ">
+            <h2 className="font-display text-3xl capitalize text-primary font-light">Editar</h2>
+            <h2 className="font-display text-5xl capitalize text-gray-500 font-medium">Pago</h2>
+          </div>
+          <div className="self-center text-center text-azulCorporativo text-[13px]">
+            Marcar la factira como Pagada definira si fue un pago realizado o quieres agendar el pago a futuro
+          </div>
         </div>
 
         <InputField
@@ -173,7 +192,7 @@ export const BasicFormLogin = ({
           step="0.10"
           autoComplete="off" />
 
-        <div className="relative flex items-center gap-2">
+        <div className="relative flex items-center gap-2 justify-self-center">
           <input type="checkbox" className="hidden" name="pagado" checked={ischecked} onChange={() => setCheck(!ischecked)} />
           <div onClick={() => setCheck(!ischecked)} className={`w-6 h-6 rounded-md border border-gray-200 transition ${ischecked && "bg-primary border-none"} cursor-pointer`}>
             {ischecked && <CheckIcon className="text-white " />}
@@ -187,30 +206,38 @@ export const BasicFormLogin = ({
           onChange={handleChange}
           value={values.fechaPago}
           type="date"
-          autoComplete="off"
-          className="px-2 md:px-4" />
+          autoComplete="off" />
+
         <InputField
-          name="fechaVencimiento"
-          label="Fecha de vencimiento"
+          name="medio_pago"
+          label="Modo de pago"
+          disabled={!ischecked}
+          className={`${ischecked ? "" : "bg-slate-200"}`}
           onChange={handleChange}
-          value={values.fechaVencimiento}
-          type="date"
-          autoComplete="off" 
-          className="px-2 md:px-4"/>
+          value={values.medio_pago}
+          type="text"
+          autoComplete="off" />
+
         <InputField
           name="pagado_por"
           label="Pagado por"
           onChange={handleChange}
           value={values.pagado_por}
+          disabled={!ischecked}
+          className={`${ischecked ? "" : "bg-slate-200"}`}
           type="text"
           autoComplete="off" />
-        <InputField
-          name="medio_pago"
-          label="Modo de pago"
-          onChange={handleChange}
-          value={values.medio_pago}
-          type="text"
-          autoComplete="off" />
+
+
+        <div className="col-span-2">
+          <InputField
+            name="concepto"
+            label="concepto del pago"
+            onChange={handleChange}
+            value={values.concepto}
+            type="text"
+            autoComplete="off" />
+        </div>
 
         <button disabled={isSubmitting} type="submit" className={`col-span-2 font-display rounded-full mt-4 py-2 px-6 text-white font-medium transition w-full hover:opacity-70 ${isSubmitting ? "bg-secondary" : "bg-primary"
           }`} >Confirmar edición</button>

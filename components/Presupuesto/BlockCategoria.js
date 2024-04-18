@@ -41,6 +41,8 @@ const BlockCategoria = ({ cate, set }) => {
 
   const saldo = categoria?.coste_estimado - categoria?.coste_final;
 
+  console.log(categoria?.pagado)
+
 
   const Columna = useMemo(
     () => [
@@ -144,7 +146,7 @@ const BlockCategoria = ({ cate, set }) => {
       },
 
     ],
-    [categoria, currency]
+    [categoria, currency, event]
   );
 
   const AddGasto = async () => {
@@ -191,6 +193,10 @@ const BlockCategoria = ({ cate, set }) => {
   ),
     []
   )
+
+  const porcentaje = (categoria?.coste_final/categoria?.coste_estimado)*100
+
+  console.log(porcentaje.toFixed(2))
 
 
 
@@ -239,19 +245,25 @@ const BlockCategoria = ({ cate, set }) => {
             </h3>
           </div>
         </div>
+
         {/* Barra de estado */}
         <div className=" w-4/6 mx-auto flex gap-1 items-center py-2 inset-x-0">
           <div className="bg-gray-300 rounded-xl flex items-center overflow-hidden md:h-5 w-full relative">
             <p className="font-display text-xs text-white pl-2 z-10 relative p-3">
-              Diferencia en su saldo final {getCurrency(saldo, currency)}
+              {
+                Math.abs(saldo)== saldo ? `Saldo a favor ${getCurrency(saldo, currency)}`:`Saldo en contra de ${getCurrency(saldo, currency)}`
+              }
+              
             </p>
             <svg
               className={`bg-${Math.abs(saldo) == saldo ? "green" : "red"
-                } h-full absolute top-0 left-0 z-0 transition`}
-              width={`${50}%`}
+                } h-full absolute top-0 left-0 z-0  transition-all duration-700 `}
+              width={`${porcentaje}%`}
             ></svg>
           </div>
         </div>
+
+
         {/* Tabla de datos */}
         <DataTable AddGasto={AddGasto} columns={Columna} data={data ?? []} renderRowSubComponent={renderRowSubComponent} cate={categoria._id} gasto={GastoID.id} categoria={categoria} />
         <div className="bg-primary w-full grid grid-cols-10 absolute bottom-0 font-display text-white font-semibold py-1 text-sm">
