@@ -116,7 +116,7 @@ export const useAuthentication = () => {
             if (moreInfo?.status && res?.user?.email) {
               const token = (await res?.user?.getIdTokenResult())?.token;
               const sessionCookie = await getSessionCookie(token)
-              console.log(41001, sessionCookie)
+              console.log(41001, parseJwt(sessionCookie))
               if (sessionCookie) { }
               // Actualizar estado con los dos datos
               setUser({ ...res.user, ...moreInfo });

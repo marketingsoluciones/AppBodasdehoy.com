@@ -150,6 +150,31 @@ const AuthProvider = ({ children }) => {
     }
   }, [triggerAuthStateChanged])
 
+  const moreInfo = async (user) => {
+    console.log("moreInfo")
+    let idToken = Cookies.get("idTokenV0.1.0")
+    if (!idToken) {
+      idToken = await getAuth().currentUser?.getIdToken(true)
+      const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
+      Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_PRODUCTION ? varGlobalDomain : process.env.NEXT_PUBLIC_DOMINIO, expires: dateExpire })
+    }
+    const moreInfo = await fetchApiBodas({
+      query: queries.getUser,
+      variables: { uid: user?.uid },
+      development: config?.development
+    });
+    moreInfo && console.info("Tengo datos de la base de datos");
+    console.log(100.004)
+    setUser({ ...user, ...moreInfo });
+    setVerificationDone(true)
+    console.info("Guardo datos en contexto react");
+  }
+
+  useEffect(() => {
+    console.log(user)
+  }, [user])
+
+
   const verificator = async ({ user, sessionCookie }) => {
     try {
       console.log(80000301, { "user?.uid": user?.uid })
@@ -159,6 +184,7 @@ const AuthProvider = ({ children }) => {
       if (!sessionCookieParsed?.user_id && user?.uid) {
         console.log(0.00001)
         getAuth().signOut().then(() => {
+          setVerificationDone(true)
         })
       }
 
@@ -167,6 +193,7 @@ const AuthProvider = ({ children }) => {
           console.log(0.00002)
           getAuth().signOut().then(() => {
             console.log(8000043, "signOut con éxito")
+            setVerificationDone(true)
           })
             .catch((error) => {
               console.log(error);
@@ -175,7 +202,9 @@ const AuthProvider = ({ children }) => {
 
         if (sessionCookieParsed?.user_id === user?.uid) {
           console.log(0.00003)
+          console.log(100.001)
           setUser(user)
+          moreInfo(user)
         }
       }
 
@@ -186,13 +215,16 @@ const AuthProvider = ({ children }) => {
           variables: { sessionCookie },
           development: config?.development
         });
-        const customToken = resp?.customToken
         console.info("Llamo con mi sessionCookie para traerme customToken");
-        if (customToken) {
-          console.info("customTokenParse", parseJwt(customToken))
-          signInWithCustomToken(getAuth(), customToken)
+        if (resp?.customToken) {
+          console.info("customTokenParse", parseJwt(resp.customToken))
+          await signInWithCustomToken(getAuth(), resp.customToken)
             .then(result => {
+              console.log(100.002)
               setUser(result?.user)
+              moreInfo(result?.user)
+            }).catch(error => {
+              console.log(error)
             })
         }
       }
@@ -205,32 +237,14 @@ const AuthProvider = ({ children }) => {
           guestUid = nanoid(28)
           Cookies.set(config?.cookieGuest, JSON.stringify({ guestUid }), { domain: `${config?.domain}`, expires: dateExpire })
         }
+        console.log(100.003)
         setUser({ uid: guestUid, displayName: "guest" })
-      }
-
-      if (sessionCookie) {
-        console.info("Tengo cookie de sesion");
-        if (user) {
-          console.info("Tengo user de contexto firebase");
-          let idToken = Cookies.get("idTokenV0.1.0")
-          if (!idToken) {
-            idToken = await getAuth().currentUser?.getIdToken(true)
-            const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
-            Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_PRODUCTION ? varGlobalDomain : process.env.NEXT_PUBLIC_DOMINIO, expires: dateExpire })
-          }
-          const moreInfo = await fetchApiBodas({
-            query: queries.getUser,
-            variables: { uid: user?.uid },
-            development: config?.development
-          });
-          moreInfo && console.info("Tengo datos de la base de datos");
-          setUser({ ...user, ...moreInfo });
-          setVerificationDone(true)
-          console.info("Guardo datos en contexto react");
-        }
-      } else {
         setVerificationDone(true)
       }
+
+
+
+
     } catch (error) {
       console.log(90002, error)
     }
