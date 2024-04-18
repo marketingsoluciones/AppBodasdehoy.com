@@ -72,6 +72,7 @@ interface estimate {
     coste_estimado: number
     coste_final: number
     pagado: number
+    currency:string
     categorias_array: estimateCategory[]
 }
 

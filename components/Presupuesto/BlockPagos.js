@@ -30,7 +30,6 @@ export default BlockPagos;
 
 const TablaDatosPagos = ({ estado }) => {
   const { event } = EventContextProvider()
-  const { currency } = AuthContextProvider()
   const categorias = event?.presupuesto_objeto?.categorias_array;
   const [PagosOrFormAdd, setShowPagos] = useState(true)
   const [PagoID, setPagoID] = useState("")
@@ -107,7 +106,7 @@ const TablaDatosPagos = ({ estado }) => {
             }, [props?.value])
             return (
               <div className="font-display font-semibold text-gray-500 text-[15px] grid place-items-center h-full ">
-                <p className="w-4/5">{getCurrency(value, currency)}</p>
+                <p className="w-4/5">{getCurrency(value, event?.presupuesto_objeto?.currency)}</p>
               </div>
             );
           },
@@ -167,7 +166,7 @@ const TablaDatosPagos = ({ estado }) => {
           },
         },
       ],
-    [currency]
+    [event?.presupuesto_objeto?.currency]
   );
 
   const Columna2 = useMemo(
@@ -268,7 +267,7 @@ const TablaDatosPagos = ({ estado }) => {
           },
         },
       ],
-    [currency]
+    [event?.presupuesto_objeto?.currency]
   );
 
   //Recorrer cada categoria

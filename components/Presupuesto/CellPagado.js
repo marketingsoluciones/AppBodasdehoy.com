@@ -8,13 +8,12 @@ const CellPagado = ({ set, ...props }) => {
   const [value, setValue] = useState();
   const [isAllowed, ht] = useAllowed()
   const [mask, setMask] = useState()
-  const { currency } = AuthContextProvider()
   const toast = useToast()
   const costeFional = props.row.original.coste_final
 
   useEffect(() => {
-    setMask(getCurrency(value, currency))
-  }, [value, currency])
+    setMask(getCurrency(value, event?.presupuesto_objeto?.currency))
+  }, [value, event?.presupuesto_objeto?.currency])
 
   useEffect(() => {
     setValue(props?.row?.original?.pagado)
