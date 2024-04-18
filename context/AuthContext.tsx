@@ -27,8 +27,6 @@ const initialContext = {
   setForCms: undefined,
   actionModals: undefined,
   setActionModals: undefined,
-  currency: undefined,
-  setCurrency: undefined
 }
 
 type Context = {
@@ -48,8 +46,6 @@ type Context = {
   setForCms: any,
   setActionModals: any,
   actionModals: any,
-  currency: any,
-  setCurrency: any
 
 }
 export let varGlobalDomain = ""
@@ -72,7 +68,6 @@ const AuthProvider = ({ children }) => {
   })
   const [geoInfo, setGeoInfo] = useState<any>();
   const [forCms, setForCms] = useState<boolean>(false)
-  const [currency, setCurrency] = useState<string>("EUR")
   const router = useRouter()
   const [triggerAuthStateChanged, setTriggerAuthStateChanged] = useState<number | null>(null)
 
@@ -242,8 +237,10 @@ const AuthProvider = ({ children }) => {
         setVerificationDone(true)
       }
 
-
-
+      if (!sessionCookieParsed?.user_id && !user?.uid) {
+        console.log(0.00005)
+        setVerificationDone(true)
+      }
 
     } catch (error) {
       console.log(90002, error)
@@ -260,7 +257,7 @@ const AuthProvider = ({ children }) => {
 
 
   return (
-    <AuthContext.Provider value={{ currency, setCurrency, setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms }}>
+    <AuthContext.Provider value={{ setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms }}>
       {verificationDone && children}
     </AuthContext.Provider>
   );
