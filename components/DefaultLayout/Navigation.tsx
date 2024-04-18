@@ -1,6 +1,6 @@
 import { useMemo, useEffect, useState, FC } from "react";
 import { useRouter } from "next/router";
-import { AuthContextProvider, EventContextProvider, SocketContextProvider } from "../../context";
+import { AuthContextProvider, EventContextProvider } from "../../context";
 import { Banner, IconLightBulb16, InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, MenuIcon, MesasIcon, MisEventosIcon, PresupuestoIcon, ResumenIcon } from "../icons";
 import { useDelayUnmount } from "../../utils/Funciones";
 import Profile from "./Profile";
@@ -12,12 +12,7 @@ import { Tooltip } from "../Utils/Tooltip";
 import ClickAwayListener from "react-click-away-listener";
 import { useAllowedRouter } from "../../hooks/useAllowed";
 
-const Navigation: any = (
-  notificaciones: any,
-  set: any,
-  state: any,
-  active: any,
-): any => {
+const Navigation: FC = () => {
   const { event } = EventContextProvider();
   const { user, config, setIsActiveStateSwiper } = AuthContextProvider();
   const router = useRouter();
@@ -26,13 +21,11 @@ const Navigation: any = (
   const [route, setRoute] = useState<string>("");
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const url = router.pathname
-  const { socket } = SocketContextProvider()
   const [isAllowedRouter, ht] = useAllowedRouter()
 
   useEffect(() => {
     setRoute(router.pathname)
   }, [router])
-
 
   const Navbar = useMemo(() => [
     {
@@ -172,5 +165,3 @@ const Navigation: any = (
 };
 
 export default Navigation;
-//https://test.bodasdehoy.com/configuracion
-//https://test.bodasdehoy.com/configuracion
