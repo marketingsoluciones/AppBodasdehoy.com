@@ -1,7 +1,7 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useExpanded, useTable } from "react-table";
 import { api } from "../../api";
-import { EventContextProvider } from "../../context";
+import { EventContextProvider, AuthContextProvider } from "../../context";
 import { getCurrency } from "../../utils/Funciones";
 import { capitalize } from '../../utils/Capitalize';
 import FormAddPago from "../Forms/FormAddPago";
@@ -15,12 +15,15 @@ import CellPagado from "./CellPagado";
 import SubComponentePagos from "./SubComponentePagos";
 import { useAllowed } from "../../hooks/useAllowed";
 
+import DetallesPago from "./DetallesPago";
+
 const BlockCategoria = ({ cate, set }) => {
   const { event, setEvent } = EventContextProvider()
   const [categoria, setCategoria] = useState({});
   const [data, setData] = useState([]);
   const [GastoID, setGastoID] = useState({ id: "", crear: false })
   const [isAllowed, ht] = useAllowed()
+  const { currency } = AuthContextProvider()
 
   useEffect(() => {
     setCategoria(
@@ -34,35 +37,35 @@ const BlockCategoria = ({ cate, set }) => {
       )?.gastos_array
     );
     setGastoID(old => ({ ...old, crear: false }))
-  }, [cate, event]);
-
-
+  }, [cate, event, currency]);
 
   const saldo = categoria?.coste_estimado - categoria?.coste_final;
+
+  console.log(categoria?.pagado)
 
 
   const Columna = useMemo(
     () => [
       {
-        Header: "Concepto",
+        Header: "Proveedor",
         accessor: "nombre",
         id: "nombre",
         Cell: (props) => <CellEdit categoriaID={categoria?._id} type={"text"} autofocus {...props} />
       },
       {
-        Header: <p> Estimado <br /> {getCurrency(categoria?.coste_estimado)}</p>,
+        Header: <p> Estimado <br /> {getCurrency(categoria?.coste_estimado, currency)}</p>,
         accessor: "coste_estimado",
         id: "coste_estimado",
         Cell: (props) => <CellEdit categoriaID={categoria?._id} type={"number"} {...props} />
       },
       {
-        Header: <p>Coste final <br /> {getCurrency(categoria?.coste_final)}</p>,
+        Header: <p>Coste final <br /> {getCurrency(categoria?.coste_final, currency)}</p>,
         accessor: "coste_final",
         id: "coste_final",
         Cell: (props) => <CellEdit categoriaID={categoria?._id} type={"number"} {...props} />
       },
       {
-        Header: <p >Pagado <br /> {getCurrency(categoria?.pagado)} </p>,
+        Header: <p >Pagado <br /> {getCurrency(categoria?.pagado, currency)} </p>,
         accessor: "pagado",
         id: "pagado",
         Cell: (props) => <CellPagado {...props} set={act => setGastoID(act)} />,
@@ -129,7 +132,9 @@ const BlockCategoria = ({ cate, set }) => {
           return (
             <>
 
-              <div className="w-full h-full flex items-center justify-center cursor-pointer relative">
+              <div className="w-full h-full flex items-center justify-center cursor-pointer relative space-x-3">
+                <DetallesPago {...props} set={act => setGastoID(act)} />
+
                 <BorrarIcon
                   onClick={!isAllowed() ? null : handleRemove}
                   className="hover:text-gray-300 text-gray-500 transition w-3"
@@ -139,8 +144,9 @@ const BlockCategoria = ({ cate, set }) => {
           );
         },
       },
+
     ],
-    [categoria]
+    [categoria, currency, event]
   );
 
   const AddGasto = async () => {
@@ -188,6 +194,10 @@ const BlockCategoria = ({ cate, set }) => {
     []
   )
 
+  const porcentaje = (categoria?.coste_final/categoria?.coste_estimado)*100
+
+  console.log(porcentaje.toFixed(2))
+
 
 
   return (
@@ -219,7 +229,7 @@ const BlockCategoria = ({ cate, set }) => {
             <h3 className="text-sm font-medium ">
               Coste estimado:
               <span className="text-sm text-gray-500 pl-1">
-                {getCurrency(categoria?.coste_estimado)}
+                {getCurrency(categoria?.coste_estimado, currency)}
               </span>
             </h3>
           </div>
@@ -230,24 +240,30 @@ const BlockCategoria = ({ cate, set }) => {
                 className={`text-sm pl-1 text-${Math.abs(saldo) == saldo ? "green" : "red"
                   }`}
               >
-                {getCurrency(categoria?.coste_final)}
+                {getCurrency(categoria?.coste_final, currency)}
               </span>
             </h3>
           </div>
         </div>
+
         {/* Barra de estado */}
         <div className=" w-4/6 mx-auto flex gap-1 items-center py-2 inset-x-0">
           <div className="bg-gray-300 rounded-xl flex items-center overflow-hidden md:h-5 w-full relative">
             <p className="font-display text-xs text-white pl-2 z-10 relative p-3">
-              Diferencia en su saldo final {getCurrency(saldo)}
+              {
+                Math.abs(saldo)== saldo ? `Saldo a favor ${getCurrency(saldo, currency)}`:`Saldo en contra de ${getCurrency(saldo, currency)}`
+              }
+              
             </p>
             <svg
               className={`bg-${Math.abs(saldo) == saldo ? "green" : "red"
-                } h-full absolute top-0 left-0 z-0 transition`}
-              width={`${50}%`}
+                } h-full absolute top-0 left-0 z-0  transition-all duration-700 `}
+              width={`${porcentaje}%`}
             ></svg>
           </div>
         </div>
+
+
         {/* Tabla de datos */}
         <DataTable AddGasto={AddGasto} columns={Columna} data={data ?? []} renderRowSubComponent={renderRowSubComponent} cate={categoria._id} gasto={GastoID.id} categoria={categoria} />
         <div className="bg-primary w-full grid grid-cols-10 absolute bottom-0 font-display text-white font-semibold py-1 text-sm">
@@ -255,13 +271,13 @@ const BlockCategoria = ({ cate, set }) => {
             <p>Total</p>
           </div>
           <div className="flex items-center justify-center col-span-2">
-            <p>{getCurrency(categoria?.coste_estimado)}</p>
+            <p>{getCurrency(categoria?.coste_estimado, currency)}</p>
           </div>
           <div className="flex items-center justify-center col-span-2">
-            <p>{getCurrency(categoria?.coste_final)}</p>
+            <p>{getCurrency(categoria?.coste_final, currency)}</p>
           </div>
           <div className="flex items-center justify-center col-span-2">
-            <p>{getCurrency(categoria?.pagado)}</p>
+            <p>{getCurrency(categoria?.pagado, currency)}</p>
           </div>
         </div>
       </div>
