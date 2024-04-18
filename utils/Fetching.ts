@@ -406,6 +406,7 @@ export const queries = {
         coste_final
         pagado
         coste_estimado
+        currency
         categorias_array{
           _id
           nombre
@@ -643,6 +644,7 @@ export const queries = {
        coste_final
        pagado
        coste_estimado
+       currency
        categorias_array{
          _id
          nombre
