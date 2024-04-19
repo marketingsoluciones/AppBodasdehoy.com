@@ -27,6 +27,7 @@ const initialContext = {
   setForCms: undefined,
   actionModals: undefined,
   setActionModals: undefined,
+  setIsStartingRegisterOrLogin: undefined
 }
 
 type Context = {
@@ -46,7 +47,7 @@ type Context = {
   setForCms: any,
   setActionModals: any,
   actionModals: any,
-
+  setIsStartingRegisterOrLogin: any
 }
 export let varGlobalDomain = ""
 export let varGlobalDevelopment = ""
@@ -70,6 +71,7 @@ const AuthProvider = ({ children }) => {
   const [forCms, setForCms] = useState<boolean>(false)
   const router = useRouter()
   const [triggerAuthStateChanged, setTriggerAuthStateChanged] = useState<number | null>(null)
+  const [isStartingRegisterOrLogin, setIsStartingRegisterOrLogin] = useState<boolean>()
 
 
   useEffect(() => {
@@ -100,7 +102,7 @@ const AuthProvider = ({ children }) => {
       console.log("isProduction:", idx)
       /*--------------------------------------------------------------------*/
       const devDomain = ["bodasdehoy", "eventosplanificador", "eventosorganizador", "vivetuboda"]
-      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[3] /*<<<<<<<<<*/
+      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[1] /*<<<<<<<<<*/
       /*--------------------------------------------------------------------*/
       resp = developments.filter(elem => elem.name === domainDevelop)[0]
       if (idx === -1 || window.origin.includes("://test")) {
@@ -137,11 +139,14 @@ const AuthProvider = ({ children }) => {
   }, [config]);
 
   useEffect(() => {
-    if (triggerAuthStateChanged) {
+    if (triggerAuthStateChanged && !isStartingRegisterOrLogin) {
       console.log(800003000, "verificando")
       const user = getAuth().currentUser
       const sessionCookie = Cookies.get(config?.cookie);
       verificator({ user, sessionCookie })
+    }
+    if (!isStartingRegisterOrLogin) {
+      setIsStartingRegisterOrLogin(false)
     }
   }, [triggerAuthStateChanged])
 
@@ -161,6 +166,7 @@ const AuthProvider = ({ children }) => {
     moreInfo && console.info("Tengo datos de la base de datos");
     console.log(100.004)
     setUser({ ...user, ...moreInfo });
+    //aqui fetch de accesed
     setVerificationDone(true)
     console.info("Guardo datos en contexto react");
   }
@@ -257,7 +263,7 @@ const AuthProvider = ({ children }) => {
 
 
   return (
-    <AuthContext.Provider value={{ setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms }}>
+    <AuthContext.Provider value={{ setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms, setIsStartingRegisterOrLogin }}>
       {verificationDone && children}
     </AuthContext.Provider>
   );

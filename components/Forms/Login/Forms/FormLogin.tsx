@@ -5,6 +5,7 @@ import { InputField } from "../../InputFieldIcons";
 import { ButtonComponent } from "../../ButtonComponent";
 import { useToast } from "../../../../hooks/useToast";
 import { useAuthentication } from "../../../../utils/Authentication";
+import { AuthContextProvider } from "../../../../context";
 
 type MyFormValues = {
   identifier: string;
@@ -13,6 +14,7 @@ type MyFormValues = {
 };
 
 const FormLogin: FC<any> = ({ setStage }) => {
+  const { setIsStartingRegisterOrLogin } = AuthContextProvider()
   const { signIn } = useAuthentication();
   const [passwordView, setPasswordView] = useState(false)
   const toast = useToast()
@@ -30,7 +32,7 @@ const FormLogin: FC<any> = ({ setStage }) => {
 
   const handleSubmit = async (values: MyFormValues, actions: any) => {
     try {
-      signIn({ type: "credentials", payload: values, setStage })
+      signIn({ type: "credentials", payload: values, setStage, setIsStartingRegisterOrLogin })
     } catch (error: any) {
       console.error(JSON.stringify(error));
       toast("error", JSON.stringify(errorsCode[error.code]))

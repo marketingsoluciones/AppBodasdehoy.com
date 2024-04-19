@@ -87,10 +87,12 @@ export const useAuthentication = () => {
     verificationId?: any
     setStage: any
     whoYouAre?: any
+    setIsStartingRegisterOrLogin: any
   }
 
   const signIn = useCallback(
-    async ({ type, payload, verificationId, setStage, whoYouAre }: propsSinnIn) => {
+    async ({ type, payload, verificationId, setStage, whoYouAre, setIsStartingRegisterOrLogin }: propsSinnIn) => {
+      setIsStartingRegisterOrLogin(true)
       //### Login por primera vez
       //1.- Verificar tipo de login y tomar del diccionario el metodo
       //2.- Obtener el tokenID del usuario
