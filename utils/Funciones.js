@@ -30,12 +30,6 @@ export function useDelayUnmount(isMounted, delayTime) {
 
 export const getCurrency = (value, currency = "EUR") => {
   const v = parseFloat(!!value ? value : 0)
-  console.log("------", v.toLocaleString(navigator.language, {
-    style: "currency",
-    currency: currency.toUpperCase(),
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }))
   return v.toLocaleString(navigator.language, {
     style: "currency",
     currency: currency,
