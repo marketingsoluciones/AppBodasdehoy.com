@@ -227,6 +227,9 @@ const AuthProvider = ({ children }) => {
             }).catch(error => {
               console.log(error)
             })
+        } else {
+          console.log(0.00006)
+          setVerificationDone(true)
         }
       }
 
