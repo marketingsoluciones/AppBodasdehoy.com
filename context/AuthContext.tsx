@@ -145,7 +145,7 @@ const AuthProvider = ({ children }) => {
       const sessionCookie = Cookies.get(config?.cookie);
       verificator({ user, sessionCookie })
     }
-    if (!isStartingRegisterOrLogin) {
+    if (isStartingRegisterOrLogin) {
       setIsStartingRegisterOrLogin(false)
     }
   }, [triggerAuthStateChanged])
@@ -170,11 +170,6 @@ const AuthProvider = ({ children }) => {
     setVerificationDone(true)
     console.info("Guardo datos en contexto react");
   }
-
-  useEffect(() => {
-    console.log(user)
-  }, [user])
-
 
   const verificator = async ({ user, sessionCookie }) => {
     try {

@@ -123,6 +123,7 @@ export const useAuthentication = () => {
               // Actualizar estado con los dos datos
               setUser({ ...res.user, ...moreInfo });
               toast("success", `Inicio sesión con éxito`)
+              router.push("/")
             } else {
               if (whoYouAre !== "") {
                 fetchApiBodas({
@@ -136,7 +137,7 @@ export const useAuthentication = () => {
                   await getSessionCookie(idToken)
                   setUser({ ...res.user, role: [whoYouAre] });
                   toast("success", `Registro sesión con éxito`)
-                  //router.push("/?9")
+                  router.push("/")
                 })
               } else {
                 toast("error", `${res?.user?.email} no está registrado`)
