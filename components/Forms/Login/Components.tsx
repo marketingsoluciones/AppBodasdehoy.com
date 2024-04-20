@@ -43,18 +43,6 @@ export const ResetPassword: FC<propsResetPassword> = ({ onClick }) => {
 export const Providers: FC<any> = ({ setStage, whoYouAre }) => {
   console.log({ setStage, whoYouAre })
 
-  //const { signIn } = useAuthentication();
-  const toast = useToast();
-
-  const handleClick = async (provider: any) => {
-    try {
-      //signIn("provider", provider);
-    } catch (error) {
-      toast("error", JSON.stringify(error));
-      console.log("este es un error en el onClick de los listProviders", error);
-    }
-  };
-
   return (
     <>
       <div className={`text-center flex flex-col gap-2 w-full items-center `}>
