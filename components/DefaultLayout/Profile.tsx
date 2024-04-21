@@ -16,6 +16,7 @@ import { useToast } from "../../hooks/useToast";
 import { Notifications } from "../Notifications";
 import { Modal } from "../Utils/Modal";
 import { ObtenerFullAcceso } from "../InfoApp/ObtenerFullAcceso";
+import { useActivity } from "../../hooks/useActivity";
 
 const Profile = ({ user, state, set, ...rest }) => {
   const { config, setUser, setActionModals, actionModals } = AuthContextProvider()
@@ -24,6 +25,7 @@ const Profile = ({ user, state, set, ...rest }) => {
 
   const { route } = useRouter()
   const toast = useToast()
+  const [updateActivity, updateActivityLink] = useActivity()
   const cookieContent = JSON.parse(Cookies.get("guestbodas") ?? "{}")
 
   const optionsStart: Option[] = [
@@ -162,6 +164,8 @@ const Profile = ({ user, state, set, ...rest }) => {
       icon: <MdLogout />,
       onClick: async () => {
         setLoading(true)
+        updateActivity("logoutd")
+        updateActivityLink("logoutd")
         Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
         Cookies.remove("idTokenV0.1.0", { domain: config?.domain ?? "" });
         signOut(getAuth()).then(() => {

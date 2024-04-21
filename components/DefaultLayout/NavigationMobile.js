@@ -6,6 +6,7 @@ import router from "next/router";
 import { useToast } from "../../hooks/useToast";
 import Cookies from "js-cookie";
 import { getAuth, signOut } from "firebase/auth";
+import { useActivity } from "../../hooks/useActivity";
 
 const useOutsideSetShow = (ref, setShow) => {
   const handleClickOutside = (event) => {
@@ -93,6 +94,8 @@ const NavigationMobile = () => {
 const ProfileMenu = () => {
   const { user, config } = AuthContextProvider();
   const { setLoading } = LoadingContextProvider();
+  const toast = useToast()
+  const [updateActivity, updateActivityLink] = useActivity()
 
   return (
     <div className={`bg-white w-40 rounded-md shadow-md overflow-hidden absolute transform translate-x-[calc(-122px)] -translate-y-[calc(100%+44px)]`}>
@@ -119,8 +122,9 @@ const ProfileMenu = () => {
                 return
               }
               toast("success", `Cerró sesión con éxito`)
+              updateActivity("logoutd")
+              updateActivityLink("logoutd")
               router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "/")
-
             })
           }}>Cerrar Sesión</button>
         </li>}

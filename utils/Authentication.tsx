@@ -6,6 +6,7 @@ import { LoadingContextProvider, AuthContextProvider } from "../context";
 import { fetchApiBodas, queries } from "./Fetching";
 import { useToast } from "../hooks/useToast";
 import { PhoneNumberUtil } from 'google-libphonenumber';
+import { useActivity } from "../hooks/useActivity";
 
 export const phoneUtil = PhoneNumberUtil.getInstance();
 
@@ -26,6 +27,7 @@ export const useAuthentication = () => {
   const { setLoading } = LoadingContextProvider();
   const { config, setUser, geoInfo } = AuthContextProvider();
   const toast = useToast();
+  const [updateActivity, updateActivityLink] = useActivity();
   const router = useRouter();
 
   const isPhoneValid = (phone: string) => {
@@ -121,11 +123,13 @@ export const useAuthentication = () => {
               console.log(41001, parseJwt(sessionCookie))
               if (sessionCookie) { }
               // Actualizar estado con los dos datos
-              setUser({ ...res.user, ...moreInfo });
+              setUser({ ...res.user, ...moreInfo })
               toast("success", `Inicio sesión con éxito`)
+              updateActivity("logged")
+              updateActivityLink("logged")
               router.push("/")
             } else {
-              if (whoYouAre !== "") {
+              if (whoYouAre && whoYouAre !== "") {
                 fetchApiBodas({
                   query: queries.createUser,
                   variables: {
@@ -137,7 +141,10 @@ export const useAuthentication = () => {
                   await getSessionCookie(idToken)
                   setUser({ ...res.user, role: [whoYouAre] });
                   toast("success", `Registro sesión con éxito`)
+                  updateActivity("registered")
+                  updateActivityLink("registered")
                   router.push("/")
+
                 })
               } else {
                 toast("error", `${res?.user?.email} no está registrado`)

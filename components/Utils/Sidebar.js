@@ -201,29 +201,6 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             development: ["bodasdehoy"],
             user: "all",
         },
-        // {
-        //     title: "Perfil",
-        //     icon: <Icon036Profile className="w-7 h-7" />,
-        //     onClick: () => {
-        //         router.push(config?.pathPerfil)
-        //     },
-        //     user: "loged"
-        // },
-
-        // {
-        //     title: "Cerrar sesión",
-        //     icon: <MdLogout className="w-6 h-6" />,
-        //     onClick: () => {
-        //         Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
-        //         Cookies.remove("idTokenV0.1.0", { domain: config?.domain ?? "" });
-        //         signOut(getAuth());
-        //         router.push(config?.pathDirectory ? `${config?.pathDirectory}/signout?end=true` : "/")
-        //         setTimeout(() => {
-        //             setLoading(false)
-        //         }, 600);
-        //     },
-        //     user: "loged"
-        // }
     ]
     const valirUser = user?.displayName == "guest" ? "guest" : "loged"
     const ListaNavbarFilter = ListaNavbar.filter(elem => { return (elem?.user === valirUser || elem?.user === "all") && (elem.development.includes(config?.development) || elem.development.includes("all")) })

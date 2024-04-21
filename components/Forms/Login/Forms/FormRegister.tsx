@@ -15,8 +15,7 @@ import { FirebaseError } from 'firebase/app';
 import { redirections } from "./redirections";
 import Cookies from 'js-cookie';
 import * as yup from "yup";
-
-
+import { useActivity } from '../../../../hooks/useActivity';
 
 interface initialValues {
   uid?: string
@@ -43,11 +42,13 @@ interface propsFormRegister {
 
 const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
   const router = useRouter()
-  const { user, setUser, config, geoInfo } = AuthContextProvider();
+  const { user, setUser, config, geoInfo, setVerificationDone, setIsStartingRegisterOrLogin } = AuthContextProvider();
   const { setLoading } = LoadingContextProvider()
   const [passwordView, setPasswordView] = useState(false)
   const { getSessionCookie, isPhoneValid } = useAuthentication();
   const toast = useToast()
+  const [updateActivity, updateActivityLink] = useActivity()
+
   const initialValues: initialValues = {
     identifier: "",
     fullName: "",
@@ -111,6 +112,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
   const handleSubmit = async (values: initialValues, actions: any) => {
     let UserFirebase: any = user ?? {};
     try {
+      setIsStartingRegisterOrLogin(true)
       setLoading(true)
       // Si es registro completo
       // Autenticacion con firebase
@@ -175,12 +177,19 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
           fetchApiBodas({
             query: queries.createUser,
             variables: {
-              role: values.role, uid: values.uid, email: UserFirebase?.email
+              role: values.role,
+              uid: values.uid,
+              email: UserFirebase?.email,
+              phoneNumber: values?.phoneNumber
             },
             development: config?.development
           }).then(async (moreInfo: any) => {
             setUser({ ...UserFirebase, ...moreInfo });
-            redirections({ router, moreInfo, toast })
+            toast("success", `Registro sesión con éxito`)
+            updateActivity("registered")
+            updateActivityLink("registered")
+            setVerificationDone(true)
+            router.push("/")
           })
         })
         .catch((error): any => {
