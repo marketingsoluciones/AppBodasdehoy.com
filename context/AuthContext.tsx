@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { getAuth, onAuthStateChanged, onIdTokenChanged, signInWithCustomToken } from 'firebase/auth'
 import Cookies from 'js-cookie'
-import { nanoid } from 'nanoid'
+import { nanoid, customAlphabet, } from 'nanoid'
 
 import { developments } from "../firebase";
 import { fetchApiBodas, fetchApiEventos, queries } from "../utils/Fetching";
@@ -9,6 +9,7 @@ import { boolean } from "yup";
 import { initializeApp } from "firebase/app";
 import { useRouter } from "next/router";
 import { parseJwt } from "../utils/Authentication";
+import { useActivity } from "../hooks/useActivity";
 
 const initialContext = {
   user: undefined,
@@ -27,7 +28,11 @@ const initialContext = {
   setForCms: undefined,
   actionModals: undefined,
   setActionModals: undefined,
-  setIsStartingRegisterOrLogin: undefined
+  setIsStartingRegisterOrLogin: undefined,
+  link_id: undefined,
+  SetLink_id: undefined,
+  storage_id: undefined,
+  SetStorage_id: undefined
 }
 
 type Context = {
@@ -48,6 +53,10 @@ type Context = {
   setActionModals: any,
   actionModals: any,
   setIsStartingRegisterOrLogin: any
+  link_id: any
+  SetLink_id: any
+  storage_id: any
+  SetStorage_id: any
 }
 export let varGlobalDomain = ""
 export let varGlobalDevelopment = ""
@@ -69,18 +78,39 @@ const AuthProvider = ({ children }) => {
   })
   const [geoInfo, setGeoInfo] = useState<any>();
   const [forCms, setForCms] = useState<boolean>(false)
+  const [link_id, SetLink_id] = useState<string | string[] | null>(null)
+  const [storage_id, SetStorage_id] = useState<string | null>(null)
   const router = useRouter()
   const [triggerAuthStateChanged, setTriggerAuthStateChanged] = useState<number | null>(null)
   const [isStartingRegisterOrLogin, setIsStartingRegisterOrLogin] = useState<boolean>()
+  const [updateActivity] = useActivity()
 
 
   useEffect(() => {
-    console.log("query", router?.query,)
-    console.log("isIframe:", router?.query?.show === "iframe")
     if (!forCms) {
       setForCms(router?.query?.show === "iframe")
     }
+    if (!link_id && router?.query?.link) {
+      SetLink_id(router?.query?.link)
+      const storage_id = localStorage.getItem("_id")
+      if (!storage_id) {
+        const _id = customAlphabet('1234567890abcdef', 24)()
+        localStorage.setItem("_id", _id)
+        SetStorage_id(_id)
+      } else {
+        SetStorage_id(storage_id)
+      }
+    }
   }, [router])
+
+  useEffect(() => {
+    if (storage_id && link_id) {
+      fetchApiEventos({
+        query: queries.updateActivityLink,
+        variables: { args: { link_id, storage_id, activity: "accessed" } }
+      }).catch(error => console.log(90000, error))
+    }
+  }, [storage_id, link_id])
 
   useEffect(() => {
     if (!isMounted) {
@@ -102,7 +132,7 @@ const AuthProvider = ({ children }) => {
       console.log("isProduction:", idx)
       /*--------------------------------------------------------------------*/
       const devDomain = ["bodasdehoy", "eventosplanificador", "eventosorganizador", "vivetuboda"]
-      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[1] /*<<<<<<<<<*/
+      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[3] /*<<<<<<<<<*/
       /*--------------------------------------------------------------------*/
       resp = developments.filter(elem => elem.name === domainDevelop)[0]
       if (idx === -1 || window.origin.includes("://test")) {
@@ -166,6 +196,7 @@ const AuthProvider = ({ children }) => {
     moreInfo && console.info("Tengo datos de la base de datos");
     console.log(100.004)
     setUser({ ...user, ...moreInfo });
+    updateActivity("accessed")
     //aqui fetch de accesed
     setVerificationDone(true)
     console.info("Guardo datos en contexto react");
@@ -198,7 +229,6 @@ const AuthProvider = ({ children }) => {
 
         if (sessionCookieParsed?.user_id === user?.uid) {
           console.log(0.00003)
-          console.log(100.001)
           setUser(user)
           moreInfo(user)
         }
@@ -261,7 +291,7 @@ const AuthProvider = ({ children }) => {
 
 
   return (
-    <AuthContext.Provider value={{ setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms, setIsStartingRegisterOrLogin }}>
+    <AuthContext.Provider value={{ setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms, setIsStartingRegisterOrLogin, link_id, SetLink_id, storage_id, SetStorage_id }}>
       {verificationDone && children}
     </AuthContext.Provider>
   );
