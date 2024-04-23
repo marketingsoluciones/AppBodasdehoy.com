@@ -1,6 +1,7 @@
 import { FC } from "react";
 import { useToast } from "../../../../hooks/useToast";
 import { useAuthentication } from "../../../../utils/Authentication";
+import { AuthContextProvider } from "../../../../context";
 
 interface propsButtonProvider {
   provider: string
@@ -11,12 +12,13 @@ interface propsButtonProvider {
 }
 
 export const ButtonProvider: FC<propsButtonProvider> = ({ provider, handle, icon, setStage, whoYouAre }) => {
+  const { setIsStartingRegisterOrLogin } = AuthContextProvider()
   const { signIn } = useAuthentication();
   const toast = useToast();
   const handleClick = async (provider: any) => {
     console.log("click ButtonProvider", setStage)
     try {
-      signIn({ type: "provider", payload: provider, setStage, whoYouAre });
+      signIn({ type: "provider", payload: provider, setStage, whoYouAre, setIsStartingRegisterOrLogin });
     } catch (error) {
       toast("error", JSON.stringify(error));
       console.log("este es un error en el onClick de los listProviders", error);

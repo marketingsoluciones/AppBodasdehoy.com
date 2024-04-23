@@ -23,8 +23,6 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
   const [data, setData] = useState([]);
   const [GastoID, setGastoID] = useState({ id: "", crear: false })
   const [isAllowed, ht] = useAllowed()
-  const { currency } = AuthContextProvider()
-  setGetId(GastoID?.id);
 
   
   useEffect(() => {
@@ -39,7 +37,7 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
       )?.gastos_array
     );
     setGastoID(old => ({ ...old, crear: false }))
-  }, [cate, event, currency]);
+  }, [cate, event, event?.presupuesto_objeto?.currency]);
 
   const saldo = categoria?.coste_estimado - categoria?.coste_final;
 
@@ -54,19 +52,19 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
         Cell: (props) => <CellEdit categoriaID={categoria?._id} type={"text"} autofocus {...props} />
       },
       {
-        Header: <p> Estimado <br /> {getCurrency(categoria?.coste_estimado, currency)}</p>,
+        Header: <p> Estimado <br /> {getCurrency(categoria?.coste_estimado, event?.presupuesto_objeto?.currency)}</p>,
         accessor: "coste_estimado",
         id: "coste_estimado",
         Cell: (props) => <CellEdit categoriaID={categoria?._id} type={"number"} {...props} />
       },
       {
-        Header: <p>Coste Real <br /> {getCurrency(categoria?.coste_final, currency)}</p>,
+        Header: <p>Coste final <br /> {getCurrency(categoria?.coste_final, event?.presupuesto_objeto?.currency)}</p>,
         accessor: "coste_final",
         id: "coste_final",
         Cell: (props) => <CellEdit categoriaID={categoria?._id} type={"number"} {...props} />
       },
       {
-        Header: <p >Pagado <br /> {getCurrency(categoria?.pagado, currency)} </p>,
+        Header: <p >Pagado <br /> {getCurrency(categoria?.pagado, event?.presupuesto_objeto?.currency)} </p>,
         accessor: "pagado",
         id: "pagado",
         Cell: (props) => <CellPagado {...props} set={act => setGastoID(act)} />,
@@ -147,7 +145,7 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
       },
 
     ],
-    [categoria, currency, event]
+    [categoria, event?.presupuesto_objeto?.currency, event]
   );
 
   const AddGasto = async () => {
@@ -226,7 +224,7 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
             <h3 className="text-sm font-medium ">
               Coste estimado:
               <span className="text-sm text-gray-500 pl-1">
-                {getCurrency(categoria?.coste_estimado, currency)}
+                {getCurrency(categoria?.coste_estimado, event?.presupuesto_objeto?.currency)}
               </span>
             </h3>
           </div>
@@ -237,7 +235,7 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
                 className={`text-sm pl-1 text-${Math.abs(saldo) == saldo ? "green" : "red"
                   }`}
               >
-                {getCurrency(categoria?.coste_final, currency)}
+                {getCurrency(categoria?.coste_final, event?.presupuesto_objeto?.currency)}
               </span>
             </h3>
           </div>
@@ -248,7 +246,7 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
           <div className="bg-gray-300 rounded-xl flex items-center overflow-hidden md:h-5 w-full relative">
             <p className="font-display text-xs text-white pl-2 z-10 relative p-3">
               {
-                Math.abs(saldo)== saldo ? `Saldo a favor ${getCurrency(saldo, currency)}`:`Saldo en contra de ${getCurrency(saldo, currency)}`
+                Math.abs(saldo)== saldo ? `Saldo a favor ${getCurrency(saldo, event?.presupuesto_objeto?.currency)}`:`Saldo en contra de ${getCurrency(saldo, event?.presupuesto_objeto?.currency)}`
               }
               
             </p>
@@ -268,13 +266,13 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
             <p>Total</p>
           </div>
           <div className="flex items-center justify-center col-span-2">
-            <p>{getCurrency(categoria?.coste_estimado, currency)}</p>
+            <p>{getCurrency(categoria?.coste_estimado, event?.presupuesto_objeto?.currency)}</p>
           </div>
           <div className="flex items-center justify-center col-span-2">
-            <p>{getCurrency(categoria?.coste_final, currency)}</p>
+            <p>{getCurrency(categoria?.coste_final, event?.presupuesto_objeto?.currency)}</p>
           </div>
           <div className="flex items-center justify-center col-span-2">
-            <p>{getCurrency(categoria?.pagado, currency)}</p>
+            <p>{getCurrency(categoria?.pagado, event?.presupuesto_objeto?.currency)}</p>
           </div>
         </div>
       </div>

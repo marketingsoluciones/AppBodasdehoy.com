@@ -7,11 +7,10 @@ const BarraLoading = () => {
       <div className={`h-2 w-full bg-base fixed bottom-0`}>
         <div
           id="barLoading"
-          className={`absolute h-2 w-1/2 transition transform -translate-x-full ${
-            loading
+          className={`absolute h-2 w-1/2 transition transform -translate-x-full ${loading
               ? " duration-1000 bg-gradient-to-r from-primary to-base"
               : ""
-          }`}
+            }`}
         />
       </div>
 

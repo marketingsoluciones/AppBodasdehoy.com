@@ -38,7 +38,7 @@ const Presupuesto = () => {
     condicion == -1 && setShowCategoria({ isVisible: false, id: "" })
   }, [event?.presupuesto_objeto?.categorias_array, showCategoria?.id])
 
-  const { user, verificationDone, forCms, currency } = AuthContextProvider()
+  const { user, verificationDone, forCms } = AuthContextProvider()
   if (verificationDone) {
     if (!user) {
       return (
@@ -122,7 +122,7 @@ const Presupuesto = () => {
                                   <span className="font-semibold text-lg text-center">
                                     {getCurrency(
                                       event?.presupuesto_objeto?.coste_final,
-                                      currency
+                                      event?.presupuesto_objeto?.currency
                                     )}
                                   </span>
                                 </p>
@@ -132,7 +132,7 @@ const Presupuesto = () => {
                                       Pagado {
                                         getCurrency(
                                           event?.presupuesto_objeto?.pagado,
-                                          currency
+                                          event?.presupuesto_objeto?.currency
                                         )
                                       }
                                     </p>
@@ -140,7 +140,7 @@ const Presupuesto = () => {
 
                                   <div className="w-1/2 bg-tertiary py-1 px-3">
                                     <p className="text-xs font-display text-primary">
-                                      Por pagar {getCurrency(event?.presupuesto_objeto?.coste_final - event?.presupuesto_objeto?.pagado, currency)}
+                                      Por pagar {getCurrency(event?.presupuesto_objeto?.coste_final - event?.presupuesto_objeto?.pagado, event?.presupuesto_objeto?.currency)}
                                     </p>
                                   </div>
                                 </div>
@@ -198,11 +198,11 @@ const MontoPresupuesto = ({ estimado }) => {
   const [mask, setMask] = useState();
   const { event, setEvent } = EventContextProvider()
   const [isAllowed, ht] = useAllowed()
-  const { currency, setCurrency } = AuthContextProvider()
+  const { setCurrency } = AuthContextProvider()
 
   useEffect(() => {
     setMask(!!value ? value : 0);
-  }, [value, currency]);
+  }, [value, event?.presupuesto_objeto?.currency]);
 
   const handleChange = (e) => {
     e.preventDefault();
@@ -261,11 +261,29 @@ const MontoPresupuesto = ({ estimado }) => {
       setModificar(false)
       setEvent(old => ({ ...old, presupuesto_objeto: datos }))
     }
-
   }
 
   const handleChangeS = (e) => {
-    setCurrency(e.target.value)
+    const params = {
+      query: `mutation {
+        editCurrency(evento_id:"${event._id}", currency:"${e.target.value}"  ){
+          currency
+        }
+      }`,
+      variables: {},
+    }
+    let datos;
+    try {
+      api.ApiApp(params).then(result => {
+        const currency = result.data.data.editCurrency
+        setModificar(false)
+        const presupuesto_objeto = { ...event.presupuesto_objeto, ...currency }
+        event.presupuesto_objeto = presupuesto_objeto
+        setEvent({ ...event })
+      })
+    } catch (error) {
+      console.log(error)
+    }
   }
 
 
@@ -288,9 +306,11 @@ const MontoPresupuesto = ({ estimado }) => {
       ) : (
         <span className="font-display text-gray-500 font-semibold text-lg text-center">
           {mask}
-          <select value={currency} className="border-none focus:ring-0 cursor-pointer" onChange={(e) => handleChangeS(e)}  >
-            <option value={"EUR"}>EUR</option>
-            <option value={"USD"}>USD</option>
+          <select value={event?.presupuesto_objeto?.currency} className="border-none focus:ring-0 cursor-pointer" onChange={(e) => handleChangeS(e)}  >
+            <option value={"eur"}>EUR</option>
+            <option value={"usd"}>USD</option>
+            <option value={"ves"}>VES</option>
+            <option value={"mxn"}>MXN</option>
           </select>
         </span>
       )}
@@ -383,7 +403,6 @@ const BlockListaCategorias = ({ categorias_array, set }) => {
 // Componente hijo para lista de categorias
 const ItemCategoria = ({ item, setVisible, set }) => {
   const { event, setEvent } = EventContextProvider()
-  const { currency } = AuthContextProvider()
   const [show, setShow] = useState(false);
   const toast = useToast()
   const Presu = event?.presupuesto_objeto?.coste_estimado
@@ -441,7 +460,7 @@ const ItemCategoria = ({ item, setVisible, set }) => {
       </span>
       <span className="gap-4 flex items-center py-3 md:py-0" >
         <div >
-          {getCurrency(DefinirCoste(item), currency)}
+          {getCurrency(DefinirCoste(item), event?.presupuesto_objeto?.currency)}
         </div>
         <div className="relative ">
           <DotsOpcionesIcon

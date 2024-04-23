@@ -101,7 +101,13 @@ export const fetchApiEventos = async ({ query, variables, token }: argsFetchApi)
 };
 
 export const queries = {
-   updateNotifications: `mutation ($args:inputNotification){
+  updateActivity: `mutation ($args:inputActivity){
+    updateActivity(args:$args)
+  }`,
+   updateActivityLink: `mutation ($args:inputActivityLink){
+    updateActivityLink(args:$args)
+  }`,
+  updateNotifications: `mutation ($args:inputNotification){
     updateNotifications(args:$args)
   }`,
    getNotifications: `query ($args:inputNotification, $sort:sortCriteriaNotification, $skip:Int, $limit:Int){
@@ -406,6 +412,7 @@ export const queries = {
         coste_final
         pagado
         coste_estimado
+        currency
         categorias_array{
           _id
           nombre
@@ -643,6 +650,7 @@ export const queries = {
        coste_final
        pagado
        coste_estimado
+       currency
        categorias_array{
          _id
          nombre

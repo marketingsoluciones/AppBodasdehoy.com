@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { getAuth, onAuthStateChanged, onIdTokenChanged, signInWithCustomToken } from 'firebase/auth'
 import Cookies from 'js-cookie'
-import { nanoid } from 'nanoid'
+import { nanoid, customAlphabet, } from 'nanoid'
 
 import { developments } from "../firebase";
 import { fetchApiBodas, fetchApiEventos, queries } from "../utils/Fetching";
@@ -9,6 +9,7 @@ import { boolean } from "yup";
 import { initializeApp } from "firebase/app";
 import { useRouter } from "next/router";
 import { parseJwt } from "../utils/Authentication";
+import { useActivity } from "../hooks/useActivity";
 
 const initialContext = {
   user: undefined,
@@ -27,8 +28,11 @@ const initialContext = {
   setForCms: undefined,
   actionModals: undefined,
   setActionModals: undefined,
-  currency: undefined,
-  setCurrency: undefined
+  setIsStartingRegisterOrLogin: undefined,
+  link_id: undefined,
+  SetLink_id: undefined,
+  storage_id: undefined,
+  SetStorage_id: undefined
 }
 
 type Context = {
@@ -48,9 +52,11 @@ type Context = {
   setForCms: any,
   setActionModals: any,
   actionModals: any,
-  currency: any,
-  setCurrency: any
-
+  setIsStartingRegisterOrLogin: any
+  link_id: any
+  SetLink_id: any
+  storage_id: any
+  SetStorage_id: any
 }
 export let varGlobalDomain = ""
 export let varGlobalDevelopment = ""
@@ -61,7 +67,6 @@ const AuthProvider = ({ children }) => {
   const [verificationDone, setVerificationDone] = useState<any>(false);
   const [config, setConfig] = useState<any>();
   const [isMounted, setIsMounted] = useState<boolean>(false)
-  const [valirAutoLogout, setValirAutoLogout] = useState<boolean>(false)
   const [isActiveStateSwiper, setIsActiveStateSwiper] = useState<any>(0);
   const [actionModals, setActionModals] = useState(false);
   const [theme, setTheme] = useState<any>({
@@ -73,16 +78,52 @@ const AuthProvider = ({ children }) => {
   })
   const [geoInfo, setGeoInfo] = useState<any>();
   const [forCms, setForCms] = useState<boolean>(false)
-  const [currency, setCurrency] = useState<string>("EUR")
+  const [link_id, SetLink_id] = useState<string | string[] | null>(null)
+  const [storage_id, SetStorage_id] = useState<string | null>(null)
   const router = useRouter()
+  const [triggerAuthStateChanged, setTriggerAuthStateChanged] = useState<number | null>(null)
+  const [isStartingRegisterOrLogin, setIsStartingRegisterOrLogin] = useState<boolean>()
+  const [updateActivity] = useActivity()
 
 
   useEffect(() => {
-    console.log(router?.query, router?.query?.show === "iframe")
     if (!forCms) {
       setForCms(router?.query?.show === "iframe")
     }
+    if (!link_id && router?.query?.link) {
+      SetLink_id(router?.query?.link)
+      const storage_id = localStorage.getItem("_id")
+      if (!storage_id) {
+        const _id = customAlphabet('1234567890abcdef', 24)()
+        localStorage.setItem("_id", _id)
+        SetStorage_id(_id)
+      } else {
+        SetStorage_id(storage_id)
+      }
+    }
   }, [router])
+
+  useEffect(() => {
+    if (storage_id && link_id) {
+      fetchApiEventos({
+        query: queries.updateActivityLink,
+        variables: {
+          args: {
+            link_id,
+            storage_id,
+            activity: "accessed",
+            usuario_id: user?.uid,
+            name: user?.displayName,
+            role: user?.role,
+            email: user?.email,
+            phoneNumber: user?.phoneNumber,
+            navigator: navigator?.userAgentData?.platform,
+            mobile: (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))
+          }
+        }
+      }).catch(error => console.log(90000, error))
+    }
+  }, [storage_id, link_id, user])
 
   useEffect(() => {
     if (!isMounted) {
@@ -101,7 +142,7 @@ const AuthProvider = ({ children }) => {
       console.log("hostname:", path)
       const c = path?.split(".")
       const idx = c?.findIndex(el => el === "com")
-      console.log(idx)
+      console.log("isProduction:", idx)
       /*--------------------------------------------------------------------*/
       const devDomain = ["bodasdehoy", "eventosplanificador", "eventosorganizador", "vivetuboda"]
       const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[0] /*<<<<<<<<<*/
@@ -118,123 +159,142 @@ const AuthProvider = ({ children }) => {
           pathSignout: resp?.pathSignout ? `${directory}/signout` : undefined,
           pathPerfil: resp?.pathPerfil ? `${directory}/configuracion` : undefined
         }
-        console.log(222215, resp?.domain)
+        console.log(222215, { domain: resp?.domain })
       }
 
       varGlobalDomain = resp?.domain
       varGlobalDevelopment = resp?.development
-
+      setConfig(resp)
       try {
         initializeApp(resp?.fileConfig)
       } catch (error) {
         console.log(90001, error)
       }
-      setConfig(resp)
     }
   }, [isMounted])
 
-
   useEffect(() => {
-    try {
-      if (isMounted) {
-        console.log(800003000)
-
-        onAuthStateChanged(getAuth(), async (user) => {
-          const sessionCookie = Cookies.get(config?.cookie);
-          console.log(8000030, resp?.cookie, sessionCookie, user)
-          if (user?.uid) { setValirAutoLogout(true) }
-          const asd = parseJwt(sessionCookie)
-          console.log(800003002, asd)
-
-          if (sessionCookie && getAuth()?.currentUser?.uid !== asd.user_id) {
-            getAuth().signOut().then(() => {
-              console.log(800003004, "borra cookie idtoken y session")
-              Cookies.remove(resp?.cookie, { domain: resp?.domain ?? "" });
-              Cookies.remove("idTokenV0.1.0", { domain: resp?.domain ?? "" });
-              console.log(8000043, "signOut con éxito")
-            })
-              .catch((error) => {
-                console.log(error);
-              });
-          }
-
-          console.info(8000042, "Verificando cookie", user?.uid, asd?.user_id);
-          if (user?.uid !== asd?.user_id) {
-            console.log("entro para loguear de nuevo")
-            const resp = await fetchApiBodas({
-              query: queries.authStatus,
-              variables: { sessionCookie },
-              development: config?.development
-            });
-            const customToken = resp?.customToken
-            console.info("Llamo con mi sessionCookie para traerme customToken");
-            console.info("Custom token", customToken)
-            customToken && signInWithCustomToken(getAuth(), customToken);
-            console.info("Hago sesion con el custom token****");
-          }
-          //setUser(user)
-          if (!["vivetuboda"].includes(config?.development) && !sessionCookie) {
-            const cookieContent = JSON.parse(Cookies.get(config?.cookieGuest) ?? "{}")
-            let guestUid = cookieContent?.guestUid
-            if (!guestUid) {
-              const dateExpire = new Date(new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000))
-              guestUid = nanoid(28)
-              Cookies.set(config?.cookieGuest, JSON.stringify({ guestUid }), { domain: `${config?.domain}`, expires: dateExpire })
-            }
-            setUser({ uid: guestUid, displayName: "guest" })
-          }
-          if (sessionCookie) {
-            console.info("Tengo cookie de sesion");
-            if (user) {
-              console.info("Tengo user de contexto firebase");
-              const moreInfo = await fetchApiBodas({
-                query: queries.getUser,
-                variables: { uid: user?.uid },
-                development: config?.development
-              });
-              moreInfo && console.info("Tengo datos de la base de datos");
-              setUser({ ...user, ...moreInfo });
-              setVerificationDone(true)
-              console.info("Guardo datos en contexto react");
-            } else {
-              console.info("NO tengo user de contexto de firebase");
-              const resp = await fetchApiBodas({
-                query: queries.authStatus,
-                variables: { sessionCookie },
-                development: config?.development
-              });
-              const customToken = resp?.customToken
-              console.info("Llamo con mi sessionCookie para traerme customToken");
-              console.info("Custom token", customToken)
-              customToken && signInWithCustomToken(getAuth(), customToken)
-                .then(() => {
-                  setVerificationDone(true)
-                })
-              console.info("Hago sesion con el custom token");
-            }
-          } else {
-            setVerificationDone(true)
-          }
-        });
-      }
-    } catch (error) {
-      console.log(90002, error)
+    if (isMounted && config) {
+      onAuthStateChanged(getAuth(), async () => {
+        setTriggerAuthStateChanged(new Date().getTime())
+      });
     }
   }, [config]);
 
   useEffect(() => {
-    if (user && user?.displayName !== "guest") {
-      console.info("getAuth().onIdTokenChanged");
-      onIdTokenChanged(getAuth(), async user => {
-        const sessionCookie = Cookies.get(config?.cookie);
-        if (user && sessionCookie) {
-          console.log("///////////----->", user.getIdToken())
-          const dateExpire = new Date(new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000))
-          Cookies.set("idTokenV0.1.0", await user.getIdToken(), { domain: `.${resp?.domain}.com`, expires: dateExpire })
-        }
-      })
+    if (triggerAuthStateChanged && !isStartingRegisterOrLogin) {
+      console.log(800003000, "verificando")
+      const user = getAuth().currentUser
+      const sessionCookie = Cookies.get(config?.cookie);
+      verificator({ user, sessionCookie })
     }
-  }, [])
+    if (isStartingRegisterOrLogin) {
+      setIsStartingRegisterOrLogin(false)
+    }
+  }, [triggerAuthStateChanged])
+
+  const moreInfo = async (user) => {
+    console.log("moreInfo")
+    let idToken = Cookies.get("idTokenV0.1.0")
+    if (!idToken) {
+      idToken = await getAuth().currentUser?.getIdToken(true)
+      const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
+      Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_PRODUCTION ? varGlobalDomain : process.env.NEXT_PUBLIC_DOMINIO, expires: dateExpire })
+    }
+    const moreInfo = await fetchApiBodas({
+      query: queries.getUser,
+      variables: { uid: user?.uid },
+      development: config?.development
+    });
+    moreInfo && console.info("Tengo datos de la base de datos");
+    console.log(100.004)
+    setUser({ ...user, ...moreInfo });
+    updateActivity("accessed")
+    //aqui fetch de accesed
+    setVerificationDone(true)
+    console.info("Guardo datos en contexto react");
+  }
+
+  const verificator = async ({ user, sessionCookie }) => {
+    try {
+      console.log(80000301, { "user?.uid": user?.uid })
+      const sessionCookieParsed = parseJwt(sessionCookie)
+      console.log(80000302, { "sessionCookieParsed?.user_id": sessionCookieParsed?.user_id })
+
+      if (!sessionCookieParsed?.user_id && user?.uid) {
+        console.log(0.00001)
+        getAuth().signOut().then(() => {
+          setVerificationDone(true)
+        })
+      }
+
+      if (sessionCookieParsed?.user_id && user?.uid) {
+        if (sessionCookieParsed?.user_id !== user?.uid) {
+          console.log(0.00002)
+          getAuth().signOut().then(() => {
+            console.log(8000043, "signOut con éxito")
+            setVerificationDone(true)
+          })
+            .catch((error) => {
+              console.log(error);
+            });
+        }
+
+        if (sessionCookieParsed?.user_id === user?.uid) {
+          console.log(0.00003)
+          setUser(user)
+          moreInfo(user)
+        }
+      }
+
+      if (sessionCookieParsed?.user_id && !user?.uid) {
+        console.log(0.00004)
+        const resp = await fetchApiBodas({
+          query: queries.authStatus,
+          variables: { sessionCookie },
+          development: config?.development
+        });
+        console.info("Llamo con mi sessionCookie para traerme customToken");
+        if (resp?.customToken) {
+          console.info("customTokenParse", parseJwt(resp.customToken))
+          setIsStartingRegisterOrLogin(true)
+          await signInWithCustomToken(getAuth(), resp.customToken)
+            .then(result => {
+              console.log(100.002)
+              setUser(result?.user)
+              moreInfo(result?.user)
+            }).catch(error => {
+              console.log(error)
+            })
+        } else {
+          console.log(0.00006)
+          //cambiar el tiempo duracion de sessioncookie y una semana, hacerlo coincidir expiracion de la cookie para que se borre y evaluarlo como se hace con los idtoken que si no exite se renueve
+          setVerificationDone(true)
+        }
+      }
+
+      if (!["vivetuboda"].includes(config?.development) && !sessionCookie) {
+        const cookieContent = JSON.parse(Cookies.get(config?.cookieGuest) ?? "{}")
+        let guestUid = cookieContent?.guestUid
+        if (!guestUid) {
+          const dateExpire = new Date(new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000))
+          guestUid = nanoid(28)
+          Cookies.set(config?.cookieGuest, JSON.stringify({ guestUid }), { domain: `${config?.domain}`, expires: dateExpire })
+        }
+        console.log(100.003)
+        setUser({ uid: guestUid, displayName: "guest" })
+        setVerificationDone(true)
+      }
+
+      if (!sessionCookieParsed?.user_id && !user?.uid) {
+        console.log(0.00005)
+        setVerificationDone(true)
+      }
+
+    } catch (error) {
+      console.log(90002, error)
+    }
+  }
 
   useEffect(() => {
     fetchApiEventos({
@@ -246,7 +306,7 @@ const AuthProvider = ({ children }) => {
 
 
   return (
-    <AuthContext.Provider value={{ currency, setCurrency, setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms }}>
+    <AuthContext.Provider value={{ setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms, setIsStartingRegisterOrLogin, link_id, SetLink_id, storage_id, SetStorage_id }}>
       {verificationDone && children}
     </AuthContext.Provider>
   );

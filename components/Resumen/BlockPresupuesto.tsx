@@ -9,11 +9,10 @@ import { useAllowed } from "../../hooks/useAllowed";
 
 const BlockPresupuesto = () => {
   const { event } = EventContextProvider();
-  const {currency} = AuthContextProvider()
   const [isAllowed, ht] = useAllowed()
   const ListaBlock = [
-    { icon: <CochinoIcon className="text-gray-500" />, amount: getCurrency(event?.presupuesto_objeto?.coste_estimado, currency), subtitle: "estimado" },
-    { icon: <DineroIcon className="text-gray-500" />, amount: getCurrency(event?.presupuesto_objeto?.coste_final, currency), subtitle: "gastado" },
+    { icon: <CochinoIcon className="text-gray-500" />, amount: getCurrency(event?.presupuesto_objeto?.coste_estimado, event?.presupuesto_objeto?.currency), subtitle: "estimado" },
+    { icon: <DineroIcon className="text-gray-500" />, amount: getCurrency(event?.presupuesto_objeto?.coste_final, event?.presupuesto_objeto?.currency), subtitle: "gastado" },
   ];
   return (
     <div className="w-[50%]* md:w-1/3 box-border">
