@@ -9,7 +9,7 @@ import { capitalize } from '../../utils/Capitalize';
 import { useAllowed } from "../../hooks/useAllowed";
 
 
-const BlockPagos = ({ estado }) => {
+const BlockPagos = ({ estado, getId,  setGetId, cate }) => {
   const [active, setActive] = useState(0);
 
   return (
@@ -20,7 +20,7 @@ const BlockPagos = ({ estado }) => {
       className="w-full max-w-screen-lg relative mx-auto inset-x-0   "
     >
       <div className="bg-white p-6 h-max shadow-md rounded-xl mt-10 overflow-x-auto*  ">
-        <TablaDatosPagos active={active} estado={estado} />
+        <TablaDatosPagos active={active} estado={estado} getId={getId} setGetId={setGetId} cate={cate} />
       </div>
     </motion.div>
   );
@@ -28,7 +28,7 @@ const BlockPagos = ({ estado }) => {
 
 export default BlockPagos;
 
-const TablaDatosPagos = ({ estado }) => {
+const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
   const { event } = EventContextProvider()
   const { currency } = AuthContextProvider()
   const categorias = event?.presupuesto_objeto?.categorias_array;
@@ -151,11 +151,13 @@ const TablaDatosPagos = ({ estado }) => {
           Cell: (props) => {
             const handleEdit = () => {
               try {
+                console.log(2222, props)
                 setShowPagos(!PagosOrFormAdd)
               } catch (error) {
                 console.log(error)
               } finally {
                 setPagoID(props?.row?.original?._id)
+                setGetId(props?.row?.original?.idGasto)
               }
             }
 
@@ -313,7 +315,7 @@ const TablaDatosPagos = ({ estado }) => {
         : (
           <div className="bg-white  p-6">
             <p onClick={() => setShowPagos(!PagosOrFormAdd)} className="absolute font-display text-xl transform transition top-5 right-5 text-gray-500 hover:scale-125 cursor-pointer">X</p>
-            <FormEditarPago ListaPagos={data} IDPagoAModificar={PagoID} set={act => setShowPagos(act)} state={PagosOrFormAdd} />
+            <FormEditarPago getId={getId} categorias={cate} ListaPagos={data} IDPagoAModificar={PagoID} set={act => setShowPagos(act)} state={PagosOrFormAdd} />
           </div>
         )
       }
@@ -328,8 +330,6 @@ const DataTable = ({ columns, data, estado }) => {
     useTable({ columns, data });
 
   const [stado, setStado] = useState({})
-
-  console.log(stado)
 
   const colSpan = {
     0: 1,
