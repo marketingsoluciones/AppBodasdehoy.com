@@ -4,7 +4,7 @@ import { fetchApiEventos, queries } from "../utils/Fetching";
 
 
 export const useActivity = () => {
-  const { link_id, storage_id } = AuthContextProvider()
+  const { link_id, storage_id, user } = AuthContextProvider()
 
   enum activities {
     used,

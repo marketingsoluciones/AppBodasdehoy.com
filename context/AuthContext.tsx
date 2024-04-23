@@ -107,10 +107,23 @@ const AuthProvider = ({ children }) => {
     if (storage_id && link_id) {
       fetchApiEventos({
         query: queries.updateActivityLink,
-        variables: { args: { link_id, storage_id, activity: "accessed" } }
+        variables: {
+          args: {
+            link_id,
+            storage_id,
+            activity: "accessed",
+            usuario_id: user?.uid,
+            name: user?.displayName,
+            role: user?.role,
+            email: user?.email,
+            phoneNumber: user?.phoneNumber,
+            navigator: navigator?.userAgentData?.platform,
+            mobile: (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))
+          }
+        }
       }).catch(error => console.log(90000, error))
     }
-  }, [storage_id, link_id])
+  }, [storage_id, link_id, user])
 
   useEffect(() => {
     if (!isMounted) {
@@ -132,7 +145,7 @@ const AuthProvider = ({ children }) => {
       console.log("isProduction:", idx)
       /*--------------------------------------------------------------------*/
       const devDomain = ["bodasdehoy", "eventosplanificador", "eventosorganizador", "vivetuboda"]
-      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[3] /*<<<<<<<<<*/
+      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[0] /*<<<<<<<<<*/
       /*--------------------------------------------------------------------*/
       resp = developments.filter(elem => elem.name === domainDevelop)[0]
       if (idx === -1 || window.origin.includes("://test")) {
@@ -244,6 +257,7 @@ const AuthProvider = ({ children }) => {
         console.info("Llamo con mi sessionCookie para traerme customToken");
         if (resp?.customToken) {
           console.info("customTokenParse", parseJwt(resp.customToken))
+          setIsStartingRegisterOrLogin(true)
           await signInWithCustomToken(getAuth(), resp.customToken)
             .then(result => {
               console.log(100.002)
@@ -254,6 +268,7 @@ const AuthProvider = ({ children }) => {
             })
         } else {
           console.log(0.00006)
+          //cambiar el tiempo duracion de sessioncookie y una semana, hacerlo coincidir expiracion de la cookie para que se borre y evaluarlo como se hace con los idtoken que si no exite se renueve
           setVerificationDone(true)
         }
       }
