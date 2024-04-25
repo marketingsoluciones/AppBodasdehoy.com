@@ -8,6 +8,8 @@ import { CheckIcon, DiamanteIcon } from "../icons";
 import InputField from "./InputField";
 import { useToast } from "../../hooks/useToast";
 import { getCurrency } from "../../utils/Funciones";
+import { GoChevronDown } from "react-icons/go";
+
 
 
 const validacion = (values) => {
@@ -32,9 +34,9 @@ const validacion = (values) => {
 const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categorias, getId }) => {
   const { event, setEvent } = EventContextProvider()
   const [pago, setPago] = useState(ListaPagos?.find(item => item._id == IDPagoAModificar))
+  const toast = useToast()
 
-  console.log(getId)
-  console.log("categorias",categorias)
+
 
 
   useEffect(() => {
@@ -155,11 +157,13 @@ export const BasicFormLogin = ({
   categorias,
   getId
 }) => {
-  
+
   const { event } = EventContextProvider()
   const [ischecked, setCheck] = useState(values.pagado)
   const toast = useToast()
   const { currency } = AuthContextProvider()
+  const [showProOptions, setShowProOptions] = useState(false)
+
 
 
   useEffect(() => {
@@ -170,7 +174,7 @@ export const BasicFormLogin = ({
   const Categoria = event?.presupuesto_objeto?.categorias_array?.find(item => item?._id == categorias)?.nombre
   const idxCate = event?.presupuesto_objeto?.categorias_array?.findIndex(item => item?._id == categorias)
   const Proveedor = event?.presupuesto_objeto?.categorias_array[idxCate]?.gastos_array?.find(item => item?._id == getId)
- 
+
 
   return (
     <>
@@ -298,7 +302,7 @@ export const BasicFormLogin = ({
             <div className="col-span-2 space-y-5">
               <InputField
                 name="fechaPago"
-                label={`${ischecked ? "Fecha de pago" : "Fecha de futuro pago"}`}
+                label={`${ischecked ? "Fecha de pago" : "Fecha de proximo pago"}`}
                 onChange={handleChange}
                 value={values.fechaPago}
                 type="date"
@@ -325,46 +329,56 @@ export const BasicFormLogin = ({
           )
         }
 
-        <div className="col-span-2 h-[400px] flex flex-col space-y-2 ">
+        <div className="col-span-2 h-[400px]* flex flex-col space-y-2 transition-all duration-500 ">
+          <div className="flex  items-center justify-between">
+            <div className="flex  items-center space-x-2 cursor-pointer hover:underline hover:decoration-1 decoration-azulCorporativo ">
+              <h2 className="text-2xl text-azulCorporativo">  Opciones Pro </h2>
+              <div className="text-yellow-200 h-auto w-5">
+                <DiamanteIcon className="h-8 w-8" />
+              </div>
+            </div>
+            <div onClick={() => setShowProOptions(!showProOptions)}>
+              <GoChevronDown className={` h-8 w-8 text-azulCorporativo cursor-pointer transition-all ${showProOptions && "rotate-180"}`} />
+            </div>
+          </div>
+          {
+            showProOptions ?
+              <div className={`space-y-2 transition-all duration-200`}>
 
-          <div className="flex  items-center space-x-2 cursor-pointer hover:underline hover:decoration-1 decoration-azulCorporativo ">
-            <h2 className="text-2xl text-azulCorporativo">  Opciones Pro </h2>
-            <div className="text-yellow-200 h-auto w-5">
-              <DiamanteIcon className="h-8 w-8" />
-            </div>
-          </div>
-          <div className="h-[200px] flex flex-col space-y-2 cursor-not-allowed">
-            <h2 className="text-gray-800 text-[14px]"> Cargar Documento</h2>
-            <div className=" self-center flex items-center justify-center bg-slate-200  border-dotted border-2 border-slate-600  h-full  w-[80%] rounded-md ">
-              <GoFileDiff className="h-14 w-14 text-gray-400" />
-            </div>
-          </div>
-          <div className=" flex flex-col space-y-2  ">
-            <h2 className="text-gray-800 text-[14px]">Numero de Documento</h2>
-            <div className="w-[90%] self-center">
-              <InputField
-                name="a"
-                onChange={handleChange}
-                disabled={true}
-                className={`${false ? "" : "bg-slate-200"}`}
-                type="text"
-                autoComplete="off" />
-            </div>
-          </div>
+                <div className="h-[200px] flex flex-col space-y-2 cursor-not-allowed">
+                  <h2 className="text-gray-800 text-[14px]"> Cargar Documento</h2>
+                  <div className=" self-center flex items-center justify-center bg-slate-200  border-dotted border-2 border-slate-600  h-full  w-[80%] rounded-md ">
+                    <GoFileDiff className="h-14 w-14 text-gray-400" />
+                  </div>
+                </div>
+                <div className=" flex flex-col space-y-2  ">
+                  <h2 className="text-gray-800 text-[14px]">Numero de Documento</h2>
+                  <div className="w-[90%] self-center">
+                    <InputField
+                      name="a"
+                      onChange={handleChange}
+                      disabled={true}
+                      className={`${false ? "" : "bg-slate-200"}`}
+                      type="text"
+                      autoComplete="off" />
+                  </div>
+                </div>
+                <div className="flex flex-col space-y-2  ">
+                  <h2 className="text-gray-800 text-[14px]">Contacto</h2>
+                  <div className="w-[90%] self-center">
+                    <InputField
+                      name="b"
+                      onChange={handleChange}
+                      disabled={true}
+                      className={`${false ? "" : "bg-slate-200"}`}
+                      type="text"
+                      autoComplete="off" />
+                  </div>
+                </div>
 
-          <div className="flex flex-col space-y-2  ">
-            <h2 className="text-gray-800 text-[14px]">Contacto</h2>
-            <div className="w-[90%] self-center">
-              <InputField
-                name="b"
-                onChange={handleChange}
-                disabled={true}
-                className={`${false ? "" : "bg-slate-200"}`}
-                type="text"
-                autoComplete="off" />
-            </div>
-          </div>
-
+              </div> :
+              null
+          }
         </div>
         <button disabled={isSubmitting} type="submit" className={`col-span-2 font-display rounded-full mt-4 py-2 px-6 text-white font-medium transition w-full hover:opacity-70 ${isSubmitting ? "bg-secondary" : "bg-primary"
           }`} >Confirmar edición</button>

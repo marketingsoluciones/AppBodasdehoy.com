@@ -14,6 +14,8 @@ import { useMounted } from "../hooks/useMounted"
 const Resumen = () => {
   const { event } = EventContextProvider()
 
+  console.log(event)
+
   useMounted()
 
   if (!event) return <></>

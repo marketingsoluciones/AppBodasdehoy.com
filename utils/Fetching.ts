@@ -101,16 +101,64 @@ export const fetchApiEventos = async ({ query, variables, token }: argsFetchApi)
 };
 
 export const queries = {
+
+  editTask: `mutation ($eventID:String, $itinerarioID:String, $taskID:String, $variable:String, $valor:String){
+    editTask(eventID:$eventID itinerarioID:$itinerarioID  taskID:$taskID  variable:$variable  valor:$valor )
+  }`,
+  createTask: `mutation ($eventID:String, $itinerarioID:String, $hora:String, $duracion:Int){
+    createTask(eventID:$eventID itinerarioID:$itinerarioID  hora:$hora, duracion:$duracion ){
+      _id
+      hora
+      icon
+      descripcion
+      responsable
+      duracion
+      tips
+      estatus
+      fecha_creacion
+    }
+  }`,
+  deleteTask: `
+  mutation  ( $eventID:String, $itinerarioID:String, $taskID:String  ) {
+    deleteTask ( eventID:$eventID  itinerarioID:$itinerarioID  taskID:$taskID)
+  }`,
+  createItinerario: `mutation ($eventID:String, $title:String){
+    createItinerario(eventID:$eventID title:$title ){
+      _id
+      title
+      tasks{
+        _id
+        hora
+        duracion
+      }
+    }
+  }`,
+  deleteItinerario: `
+  mutation  ( $eventID:String, $itinerarioID:String ) {
+    deleteItinerario ( eventID:$eventID  itinerarioID:$itinerarioID  )
+  }`,
+  getItinerario: ` query($evento_id:String, $itinario_id: String){
+    getItinerario(evento_id:$evento_id, itinario_id:$itinario_id){
+      total
+      response{
+        _id
+        title
+        tasks
+        estatus
+        fecha_creacion
+      }
+    }
+  }`,
   updateActivity: `mutation ($args:inputActivity){
     updateActivity(args:$args)
   }`,
-   updateActivityLink: `mutation ($args:inputActivityLink){
+  updateActivityLink: `mutation ($args:inputActivityLink){
     updateActivityLink(args:$args)
   }`,
   updateNotifications: `mutation ($args:inputNotification){
     updateNotifications(args:$args)
   }`,
-   getNotifications: `query ($args:inputNotification, $sort:sortCriteriaNotification, $skip:Int, $limit:Int){
+  getNotifications: `query ($args:inputNotification, $sort:sortCriteriaNotification, $skip:Int, $limit:Int){
     getNotifications(args:$args, sort:$sort, skip:$skip, limit:$limit){
       total
       results{
@@ -149,7 +197,6 @@ export const queries = {
       reason
     }
   }`,
-
   getUsers: `query ($uids:[ID]){
     getUsers(uids:$uids){
       uid
@@ -162,7 +209,6 @@ export const queries = {
       }
     }
   }`,
-
   getGeoInfo: `query  {
     getGeoInfo {
       referer
@@ -188,7 +234,7 @@ export const queries = {
           phoneNumber
           role
         }
-      }`,
+  }`,
   getUser: `query ($uid: ID) {
         getUser(uid:$uid){
           email
@@ -209,12 +255,12 @@ export const queries = {
           createdAt
           updatedAt
         }
-      }`,
+  }`,
   authStatus: `mutation ($sessionCookie : String){
         status(sessionCookie: $sessionCookie){
           customToken
         }
-      }`,
+  }`,
   eventCreate: `mutation (
     $nombre: String,
     $tipo: String!,
@@ -692,8 +738,7 @@ export const queries = {
     borrarEvento(evento_id:$eventoID){
       modificado
     }
-  }
-  `,
+  }`,
   eventUpdate: `mutation ($idEvento: String!, $variable:String, $value : String){
     editEvento(
       evento_id: $idEvento, 
@@ -722,7 +767,7 @@ export const queries = {
        fecha_invitacion
      }
    }
-   }`,
+  }`,
   editGuests: `mutation ($eventID:String, $guestID:String, $variable: String, $value:String) {
     editInvitado(
       evento_id:$eventID, 
@@ -748,7 +793,7 @@ export const queries = {
         pais
         direccion
       }
-    }`,
+  }`,
   removeGuests: `mutation ($eventID:String, $guests: [String]){
       borraInvitados(evento_id:$eventID,
       invitados_ids_array:$guests){
@@ -765,7 +810,7 @@ export const queries = {
           rol
         }
       }
-    }`,
+  }`,
   createGroup: `mutation ($eventID: String, $name: String) {
     creaGrupo(evento_id:$eventID, nombre_grupo: $name){
       grupos_array
@@ -801,13 +846,12 @@ export const queries = {
   //     }
   //   }
   // }`,
-
   getPsTemplate: `query ($uid:String ) {
     getPsTemplate(uid:$uid) {
       _id
       title
     }
-    }`,
+  }`,
   createPsTemplate: `mutation ($eventID:ID, $planSpaceID:ID, $title:String, $uid:String ) {
     createPsTemplate(eventID:$eventID, planSpaceID:$planSpaceID, title:$title, uid:$uid) {
       _id
@@ -861,8 +905,6 @@ export const queries = {
   deleteTable: `mutation ($eventID:ID, $planSpaceID: ID, $sectionID: ID, $tableID: ID) {
     deleteTable(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, tableID:$tableID) 
   }`,
-
-
   createElement: `mutation ($eventID:ID, $planSpaceID: ID, $sectionID: ID, $values: String) {
     createElement(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, values:$values) {
       _id
@@ -898,7 +940,6 @@ export const queries = {
   deleteElement: `mutation ($eventID:ID, $planSpaceID: ID, $sectionID: ID, $elementID: ID) {
     deleteElement(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, elementID:$elementID) 
   }`,
-
   editTableOld: `mutation ($eventID:String, $tableID: String, $variable: String, $coordenadas: [posicionAinput]) {
     editMesa(evento_id:$eventID,mesa_id:$tableID, variable_reemplazar:$variable, coordenadas:$coordenadas) {
       _id
