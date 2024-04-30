@@ -3,7 +3,9 @@ import React, { FC, InputHTMLAttributes } from "react"
 import { useAllowed } from "../../hooks/useAllowed";
 
 interface propsInputField extends InputHTMLAttributes<HTMLInputElement> {
-  label: string
+  label?: string
+  className?:string
+  disabled?: boolean
 }
 
 const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled = false, ...props }) => {

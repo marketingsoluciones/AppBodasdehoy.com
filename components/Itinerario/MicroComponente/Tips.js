@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useField } from "formik";
+import { InputFieldGlobal } from "../../Forms/InputFieldGlobal";
 /* import { Box, Textarea } from "@chakra-ui/react"; */
 
 export const Tips = ({ ...props }) => {
@@ -31,22 +32,15 @@ export const Tips = ({ ...props }) => {
     }, [refInput])
     return (
         <div className='w-full md:mx-12 lg:mx-4 my-2 lg:my-0'>
-            {/* <Box gap={"0.3rem"} alignItems={"center"}>
-                <Textarea
-                    resize={"none"}
-                    rows={rows}
-                    ref={refInput}
-                    className=" overflow-y-scroll"
-                    onChange={(e) => { handleChange(e) }}
-                    fontSize={{ md: "sm", lg: "md" }}
-                    value={field.value}
-                    placeholder={"Tips para esta actividad"}
-                    _focus={""}
-                    bg={"none"}
-                    border={"1px"}
-                    {...props}
-                />
-            </Box> */}
+             <InputFieldGlobal
+                onChange={(e) => { handleChange(e) }}
+                name={props.name}
+                className="rounded-xl w-full border-gray-400 md:text-sm lg:text-md outline-none focus:outline-none"
+                placeholder="Tips para esta actividad"
+                value={field.value}
+                {...field} 
+                {...props}
+            />
         </div>
     )
 }

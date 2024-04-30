@@ -47,7 +47,7 @@ export const AddEvent = ({ itinerario, tasks }) => {
             <span>
                 +
             </span>
-            <span className="text-rosa hover:text-pink-600">
+            <span className="text-Primary hover:text-pink-600">
                 Añadir actividad
             </span>
         </div>

@@ -58,7 +58,7 @@ const Home: NextPage = () => {
   }, [showEditEvent, valirQuery, valir])
 
   if (verificationDone && eventsGroupDone) {
-    console.log("***********************>")
+    
     if (router?.query?.pAccShas) {
       if (!user || user?.displayName === "guest") {
         router.push(config?.pathLogin ? `${config?.pathLogin}?pAccShas=${router?.query?.pAccShas}` : `/login?pAccShas=${router?.query?.pAccShas}`)

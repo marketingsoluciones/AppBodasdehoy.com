@@ -37,6 +37,7 @@ export const Task = ({ itinerario, task, title }) => {
         domain
       })
       setEvent((old) => {
+       
         const f1 = old.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
         const f2 = old.itinerarios_array[f1].tasks.findIndex(elem => elem._id === task._id)
         old.itinerarios_array[f1].tasks[f2][`${variable}`] = valor
@@ -111,10 +112,3 @@ export const Task = ({ itinerario, task, title }) => {
     </>
   )
 }
-
-/* const AutoFormik = ({ values }) => {
-  useEffect(() => {
-    console.log(values.icon)
-  }, [values])
-  return (null)
-} */

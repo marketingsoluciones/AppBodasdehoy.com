@@ -5,7 +5,7 @@ export const MenuOptions = ({ DataOptionsArry, optionSelect, onClick }) => {
                 {
                     DataOptionsArry.map((item, idx) => {
                         return (
-                            <div key={idx} onClick={() => onClick(item?.title)} className={`flex items-center space-x-1 pb-0.5 cursor-pointer ${optionSelect === item.title ? " border-b-2 border-rosa text-rosa" : "text-gray-400"} `}>
+                            <div key={idx} onClick={() => onClick(item?.title)} className={`flex items-center space-x-1 pb-0.5 cursor-pointer ${optionSelect === item.title ? " border-b-2 border-primary text-primary" : "text-gray-400"} `}>
                                 <div>
                                     {item.icon}
                                 </div>

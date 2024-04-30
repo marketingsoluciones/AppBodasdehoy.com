@@ -9,6 +9,7 @@ import { AuthContextProvider } from "../../../context";
 import { EventContextProvider } from "../../../context/EventContext";
 import { Modal } from "../../utils/Modal";
 import { useToast } from "../../../hooks/useToast";
+import { useRouter } from "next/router";
 
 
 
@@ -22,8 +23,11 @@ export const Itinerario = ({ data }) => {
     const [tasks, setTasks] = useState()
     const [modal, setModal] = useState(false)
     const toast = useToast()
+    const router = useRouter()
 
-    console.log("en itinerario",event)
+
+
+
 
     useEffect(() => {
         const itinerario = event?.itinerarios_array?.find(elem => elem.title === data?.title)
@@ -48,7 +52,7 @@ export const Itinerario = ({ data }) => {
                         if (!old?.itinerarios_array) {
                             old.itinerarios_array = []
                         }
-                        old.itinerarios_array.push(result)
+                        old?.itinerarios_array?.push(result)
                         return { ...old }
                     })
                 })
@@ -56,7 +60,7 @@ export const Itinerario = ({ data }) => {
                 console.log(error)
             };
         }
-    }, [event._id, data.title, event])
+    }, [event._id, data.title, event, router])
 
     const deleteItinerario = async () => {
         try {
@@ -85,7 +89,7 @@ export const Itinerario = ({ data }) => {
         <>
             <SubHeader button={modal} setButton={setModal} date={date} title={data?.title} itinerario={itinerario} />
             <div className="w-full h-full overflow-auto flex flex-col items-center">
-                <div className="w-full">
+                <div className="w-[88%]">
                     {tasks?.map((elem, idx) => {
                         return (
                             <Task task={elem} key={idx} date={date} itinerario={itinerario} title={data?.title} />
@@ -95,7 +99,6 @@ export const Itinerario = ({ data }) => {
                 </div>
                 <AddEvent tasks={tasks} itinerario={itinerario} />
             </div>
-            {/* <GuardarButtom /> */}
             {
                 modal ? (
                     <>
