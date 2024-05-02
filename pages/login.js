@@ -36,7 +36,7 @@ const PageLogin = () => {
 
   useEffect(() => {
     setStageRegister(!preregister ? 0 : 1)
-  }, [])
+  }, [preregister])
   const Stages = {
     login: <Login setStage={setStage} whoYouAre={whoYouAre} setWhoYouAre={setWhoYouAre} />,
     register: <Register setStage={setStage} stageRegister={stageRegister} setStageRegister={setStageRegister} whoYouAre={whoYouAre} setWhoYouAre={setWhoYouAre} />,
