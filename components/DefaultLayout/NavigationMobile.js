@@ -61,7 +61,7 @@ const NavigationMobile = () => {
   useOutsideSetShow(wrapperRef, setShow);
   return (
     <>
-      <ul className="f-bottom md:hidden bg-white z-50 rounded-t-2xl py-5 shadow-lg w-full fixed bottom-0 grid grid-cols-5 place-items-center">
+      <ul className={`${window?.location?.pathname === "/login" ? "hidden" : "grid"} grid-cols-5 md:hidden f-bottom bg-white z-50 rounded-t-2xl py-5 shadow-lg w-full fixed bottom-0 place-items-center`}>
         {Navbar.map((item, idx) => (
           <Link key={idx} href={item.route}>
             <li
@@ -92,7 +92,7 @@ const NavigationMobile = () => {
 };
 
 const ProfileMenu = () => {
-  const { user, config } = AuthContextProvider();
+  const { user, setUser, config } = AuthContextProvider();
   const { setLoading } = LoadingContextProvider();
   const toast = useToast()
   const [updateActivity, updateActivityLink] = useActivity()
