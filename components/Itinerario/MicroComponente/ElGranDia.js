@@ -1,7 +1,7 @@
 import { Form, Formik } from "formik";
 import { SubHeader } from "./SubHeader";
 import { AddEvent, Description, Duration, GuardarButtom, IconList, Responsable, ResponsableList, SelectIcon, Time, Tips } from "../MicroComponente";
-import { Modal } from "../../utils/Modal";
+import { Modal } from "../../Utils/Modal";
 import { useState } from "react";
 import { InputTime } from "../../Forms/inputs/InputTime";
 
