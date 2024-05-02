@@ -101,6 +101,9 @@ export const fetchApiEventos = async ({ query, variables, token }: argsFetchApi)
 };
 
 export const queries = {
+  getPreregister: `query ($_id :ID){
+    getPreregister(_id:$_id)
+  }`,
   updateActivity: `mutation ($args:inputActivity){
     updateActivity(args:$args)
   }`,

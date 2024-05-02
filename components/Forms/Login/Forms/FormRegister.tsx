@@ -9,7 +9,7 @@ import { useToast } from "../../../../hooks/useToast";
 import { AuthContextProvider, LoadingContextProvider } from "../../../../context";
 import { UserCredential, createUserWithEmailAndPassword, getAuth, signInWithCustomToken, updateProfile } from "firebase/auth";
 import { parseJwt, phoneUtil, useAuthentication } from "../../../../utils/Authentication";
-import { fetchApiBodas, queries } from "../../../../utils/Fetching";
+import { fetchApiBodas, fetchApiEventos, queries } from "../../../../utils/Fetching";
 import { useRouter } from "next/router";
 import { FirebaseError } from 'firebase/app';
 import { redirections } from "./redirections";
@@ -42,19 +42,20 @@ interface propsFormRegister {
 
 const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
   const router = useRouter()
-  const { user, setUser, config, geoInfo, setVerificationDone, setIsStartingRegisterOrLogin } = AuthContextProvider();
+  const { user, setUser, config, geoInfo, setVerificationDone, setIsStartingRegisterOrLogin, linkMedia, storage_id, link_id, preregister } = AuthContextProvider();
   const { setLoading } = LoadingContextProvider()
   const [passwordView, setPasswordView] = useState(false)
   const { getSessionCookie, isPhoneValid } = useAuthentication();
   const toast = useToast()
   const [updateActivity, updateActivityLink] = useActivity()
+  const [phoneNumber, setPhoneNumber] = useState<string | null>()
 
   const initialValues: initialValues = {
-    identifier: "",
-    fullName: "",
+    identifier: preregister?.email ?? "",
+    fullName: preregister?.name ?? "",
     password: "",
-    phoneNumber: `+${phoneUtil?.getCountryCodeForRegion(geoInfo?.ipcountry)}`,
-    role: whoYouAre
+    phoneNumber: preregister?.phoneNumber ?? `+${phoneUtil?.getCountryCodeForRegion(geoInfo?.ipcountry)}`,
+    role: preregister?.role[0] ?? whoYouAre
   };
   const validationSchema = yup.object().shape({
     identifier: yup.string().required("Campo requerido").test("Unico", "Correo inválido", (value) => {
@@ -78,14 +79,16 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
       }
     }),
     fullName: yup.string().required("Campo requerido"),
-    password: yup.string().required("Campo requerido").test("Unico", `Debe contener entre 8 y 12 caractéres`, (value: any) => {
-      const name = document.activeElement?.getAttribute("name")
-      if (name !== "password") {
-        return value?.length > 7 && value?.length < 11
-      } else {
-        return true
-      }
-    }),
+    password: !["tiktok"].includes(linkMedia)
+      ? yup.string().required("Campo requerido").test("Unico", `Debe contener entre 8 y 12 caractéres`, (value: any) => {
+        const name = document.activeElement?.getAttribute("name")
+        if (name !== "password") {
+          return value?.length > 7 && value?.length < 11
+        } else {
+          return true
+        }
+      })
+      : null,
     phoneNumber: yup.string().test("Unico", `Campo requerido`, (value: any) => {
       const name = document.activeElement?.getAttribute("name")
       if (value?.length < 4) {
@@ -198,16 +201,44 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
     }
   }
 
+  const handleSumitMedia = async (values: initialValues, actions: any) => {
+    try {
+      console.log(values)
+      if (storage_id && link_id) {
+        fetchApiEventos({
+          query: queries.updateActivityLink,
+          variables: {
+            args: {
+              link_id,
+              storage_id,
+              activity: "preregistered",
+              name: values?.fullName,
+              role: values?.role,
+              email: values?.identifier,
+              phoneNumber: values.phoneNumber,
+              navigator: navigator?.userAgentData?.platform,
+              mobile: (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))
+            }
+          }
+        }).catch(error => console.log(90000, error))
+      }
+      setPhoneNumber(values?.phoneNumber)
+    } catch (error) {
+      console.log(45111, error)
+    }
+  }
+
   return (
     <>
       <Formik
         initialValues={initialValues ?? {}}
         validationSchema={validationSchema ?? {}}
-        onSubmit={handleSubmit}
+        onSubmit={!["tiktok"].includes(linkMedia) ? handleSubmit : handleSumitMedia}
       >
         <Form className="w-full md:w-[350px] text-gray-200 *md:grid *md:grid-cols-2 gap-4 md:gap-5 md:space-y-0 flex flex-col">
           <div className="col-span-2">
             <InputField
+              disabled={!!phoneNumber}
               name="fullName"
               type="text"
               autoComplete="off"
@@ -217,6 +248,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
           </div>
           <div className="col-span-2">
             <InputField
+              disabled={!!phoneNumber}
               name="identifier"
               type="text"
               autoComplete="off"
@@ -224,7 +256,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
               icon={<EmailIcon className="absolute w-4 h-4 inset-y-0 left-4 m-auto text-gray-500" />}
             />
           </div>
-          <div className="w-full relative">
+          {!["tiktok"].includes(linkMedia) && <div className="w-full relative">
             <InputField
               name="password"
               type={passwordView ? "password" : "text"}
@@ -234,9 +266,10 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
             <div onClick={() => { setPasswordView(!passwordView) }} className="absolute cursor-pointer inset-y-0 top-5 right-4 m-auto w-4 h-4 text-gray-500" >
               {!passwordView ? <Eye /> : <EyeSlash />}
             </div>
-          </div>
+          </div>}
           <span className="w-full relative ">
             <InputField
+              disabled={!!phoneNumber}
               name="phoneNumber"
               type="text"
               autoComplete="off"
@@ -250,9 +283,23 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
               type="submit"
               className="col-span-2 bg-primary rounded-full px-10 py-2 text-white font-medium mx-auto inset-x-0 md:hover:bg-tertiary transition"
             >
-              Registrar
+              {!phoneNumber ? "Registrar" : "Reenviar Link"}
             </button>
           </div>
+          {["tiktok"].includes(linkMedia) && <div className='text-gray-900 w-full h-40'>
+            {phoneNumber &&
+              <>
+                <p className='w-full text-center text-sm'>
+                  En hora buena, te hemos enviado un mensaje por whatsapp al número {phoneNumber}; haz click en link de confirmación para continuar con el registro.
+                </p>
+                {/* <button type="button" className="col-span-2 bg-emerald-500 rounded-full px-2 py-0 text-white font-medium mx-auto inset-x-0 md:hover:bg-emerald-700 transition"
+                >
+                  Enviar link al correo electrónico
+                </button> */}
+              </>
+
+            }
+          </div>}
         </Form>
       </Formik>
       <style jsx>

@@ -6,13 +6,11 @@ import { useMounted } from "../hooks/useMounted";
 import { AuthContextProvider, LoadingContextProvider } from "../context";
 import { ArrowLeft } from "../components/icons";
 
-
-
 const PageLogin = () => {
-  const { config, user } = AuthContextProvider()
+  const { config, user, linkMedia, preregister } = AuthContextProvider()
   const { setLoading } = LoadingContextProvider()
   const { query } = useRouter()
-  const [stage, setStage] = useState(query?.q || "login");
+  const [stage, setStage] = useState((["tiktok"].includes(linkMedia) ? "register" : null) || query?.q || "login");
   const [stageRegister, setStageRegister] = useState(0)
   const [whoYouAre, setWhoYouAre] = useState("");
   const [isMounted, setIsMounted] = useState(false)
@@ -33,12 +31,16 @@ const PageLogin = () => {
   }, [isMounted])
 
   useEffect(() => {
-    setStageRegister(0)
+    console.log(10000492, linkMedia)
+  }, [])
+
+  useEffect(() => {
+    setStageRegister(!preregister ? 0 : 1)
   }, [])
   const Stages = {
     login: <Login setStage={setStage} whoYouAre={whoYouAre} setWhoYouAre={setWhoYouAre} />,
     register: <Register setStage={setStage} stageRegister={stageRegister} setStageRegister={setStageRegister} whoYouAre={whoYouAre} setWhoYouAre={setWhoYouAre} />,
-    resetPassword: <ResetPass setStage={setStage} whoYouAre={whoYouAre} />
+    resetPassword: <ResetPass setStage={setStage} whoYouAre={whoYouAre} />,
   };
 
   const handleClose = () => {
