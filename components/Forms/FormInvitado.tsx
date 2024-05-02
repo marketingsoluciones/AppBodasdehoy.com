@@ -150,8 +150,10 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
                       })
                   }}
                 >
-                  <p className="w-14 text-xs leading-3 capitalize">importar contactos</p>
-                  <IoMdContacts className="w-7 h-7" />
+                  <div className=" flex items-center space-x-2 border px-2 py-0.5 rounded-lg hover:border-gray-300 " >
+                    <p className="w-14 text-xs leading-3 capitalize">importar contactos</p>
+                    <IoMdContacts className="w-7 h-7" />
+                  </div>
                 </div>
                 <img
                   src={ImageProfile[values.sexo]?.image ?? "/placeholder/user.png"}

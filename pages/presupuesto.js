@@ -24,15 +24,10 @@ const Presupuesto = () => {
     isVisible: false,
     id: "",
   });
-
   const [active, setActive] = useState("presupuesto");
   const { event } = EventContextProvider();
   const [categorias, setCategorias] = useState([]);
-
-  useEffect(() => {
-    console.log(1111, active)
-  }, [active])
-
+  const [getId, setGetId] = useState()
 
   useEffect(() => {
     setCategorias(event?.presupuesto_objeto?.categorias_array)
@@ -62,34 +57,32 @@ const Presupuesto = () => {
               className="max-w-screen-lg mx-auto inset-x-0 px-2 md:px-0 w-full  "
             >
               <BlockTitle title={"Presupuesto"} />
-              <div className="pt-2">
-                <div className="w-80 mx-auto inset-x-0 flex my-2 mt-2 rounded-2xl overflow-hidden">
+              <div className="md:w-96 mx-auto inset-x-0 flex my-2 mt-4 rounded-2xl overflow-hidden">
 
-                  <div
-                    onClick={() => setActive("presupuesto")}
-                    className={`w-3/4 py-1 ${active == "presupuesto" ? "bg-primary text-white" : "bg-white text-primary"
-                      } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
-                  >
-                    <p>Presupuesto</p>
-                  </div>
-
-                  <div
-                    onClick={() => setActive("pagos")}
-                    className={`w-1/2 py-1 ${active == "pagos" ? "bg-primary text-white" : "bg-white text-primary"
-                      } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
-                  >
-                    <p>Pagos</p>
-                  </div>
-
-                  <div
-                    onClick={() => setActive("futuro")}
-                    className={`w-3/4 py-1 ${active == "futuro" ? "bg-primary text-white" : "bg-white text-primary"
-                      } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
-                  >
-                    <p>Pagos a futuro</p>
-                  </div>
-
+                <div
+                  onClick={() => setActive("presupuesto")}
+                  className={`w-[40%] md:w-[270px] py-1  ${active == "presupuesto" ? "bg-primary text-white" : "bg-white text-primary"
+                    } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
+                >
+                  <p>Presupuesto</p>
                 </div>
+
+                <div
+                  onClick={() => setActive("pagos")}
+                  className={`w-[25%] md:w-1/2 py-1 ${active == "pagos" ? "bg-primary text-white" : "bg-white text-primary"
+                    } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90 border-x-2`}
+                >
+                  <p>Pagos</p>
+                </div>
+
+                <div
+                  onClick={() => setActive("futuro")}
+                  className={` w-[40%] md:w-[270px] py-1 ${active == "futuro" ? "bg-primary text-white" : "bg-white text-primary"
+                    } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
+                >
+                  <p>Pagos pendientes</p>
+                </div>
+
               </div>
               {active == "presupuesto" && (
                 <motion.div
@@ -109,6 +102,7 @@ const Presupuesto = () => {
                           <BlockCategoria
                             set={(act) => setShowCategoria(act)}
                             cate={showCategoria?.id}
+                            setGetId={setGetId}
                           />
                         ) :
                         (
@@ -173,7 +167,7 @@ const Presupuesto = () => {
                     exit={{ opacity: 0 }}
                     className=" w-full gap-6 pt-2 md:pr-0 pb-4 h-[100vh]"
                   >
-                    <BlockPagos estado={"pagado"} />
+                    <BlockPagos cate={showCategoria?.id}  setGetId={setGetId} getId={getId} categorias_array={categorias} estado={"pagado"} />
                   </motion.div>
                 )
               }
@@ -185,7 +179,7 @@ const Presupuesto = () => {
                     exit={{ opacity: 0 }}
                     className=" w-full gap-6 pt-2 md:pr-0 pb-4 h-[100vh]"
                   >
-                    <BlockPagos estado={"pendiente"} />
+                    <BlockPagos cate={showCategoria?.id}  setGetId={setGetId} getId={getId} categorias_array={categorias} estado={"pendiente"} />
                   </motion.div>
                 )
               }

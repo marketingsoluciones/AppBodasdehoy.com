@@ -6,7 +6,7 @@ import { useContext, useEffect, useState } from "react";
 import { EventContextProvider, AuthContextProvider } from "../../context";
 import FormEditarPago from "../Forms/FormEditarPago";
 
-const SubComponentePagos = ({ row, cate, gasto, wantCreate }) => {
+const SubComponentePagos = ({ row, cate, gasto, wantCreate,getId }) => {
   const [show, setShow] = useState(true);
   const [PagoModificar, setPagoModificar] = useState("")
   
@@ -34,7 +34,7 @@ const SubComponentePagos = ({ row, cate, gasto, wantCreate }) => {
       ) : (
         <div className="w-full h-max p-6 bg-white relative">
           <p onClick={() => setShow(!show)} className="absolute font-display text-xl transform transition top-5 right-5 text-gray-500 hover:scale-125 cursor-pointer">X</p>
-          <FormEditarPago ListaPagos={row.original.pagos_array} IDPagoAModificar={PagoModificar} IDs={{ idGasto: gasto, idCategoria: cate }} set={act => setShow(act)} state={show} />
+          <FormEditarPago getId={getId} categorias={cate} ListaPagos={row.original.pagos_array} IDPagoAModificar={PagoModificar} IDs={{ idGasto: gasto, idCategoria: cate }} set={act => setShow(act)} state={show} />
         </div>
       )}
     </div>
@@ -107,6 +107,7 @@ const ListadoComponent = ({ pagos_array, cate, gasto, wantCreate, idModificar, r
       });
     }
   };
+ 
   return (
     <>
       <button
@@ -144,8 +145,8 @@ const ListadoComponent = ({ pagos_array, cate, gasto, wantCreate, idModificar, r
           </span>
 
           <span className="items-center col-span-3 flex flex-col justify-center">
-            <p className="font-display text-md font-medium">VENCIMIENTO</p>
-            <p className={`font-display text-md`}>{item.fecha_vencimiento}</p>
+            <p className="font-display text-md font-medium">Fecha de pago</p>
+            <p className={`font-display text-md`}>{item.fecha_pago}</p>
           </span>
 
           <span className="items-center col-span-2 flex gap-3 text-gray-500 justify-center">

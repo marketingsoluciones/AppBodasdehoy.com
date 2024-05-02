@@ -32,7 +32,11 @@ const initialContext = {
   link_id: undefined,
   SetLink_id: undefined,
   storage_id: undefined,
-  SetStorage_id: undefined
+  SetStorage_id: undefined,
+  linkMedia: undefined,
+  SetLinkMedia: undefined,
+  preregister: undefined,
+  SetPreregister: undefined
 }
 
 type Context = {
@@ -57,6 +61,10 @@ type Context = {
   SetLink_id: any
   storage_id: any
   SetStorage_id: any
+  linkMedia: any
+  SetLinkMedia: any
+  preregister: any
+  SetPreregister: any
 }
 export let varGlobalDomain = ""
 export let varGlobalDevelopment = ""
@@ -79,6 +87,8 @@ const AuthProvider = ({ children }) => {
   const [geoInfo, setGeoInfo] = useState<any>();
   const [forCms, setForCms] = useState<boolean>(false)
   const [link_id, SetLink_id] = useState<string | string[] | null>(null)
+  const [preregister, SetPreregister] = useState<any>(null)
+  const [linkMedia, SetLinkMedia] = useState<string | string[] | null>(null)
   const [storage_id, SetStorage_id] = useState<string | null>(null)
   const router = useRouter()
   const [triggerAuthStateChanged, setTriggerAuthStateChanged] = useState<number | null>(null)
@@ -87,11 +97,26 @@ const AuthProvider = ({ children }) => {
 
 
   useEffect(() => {
+    console.log(100047, router?.query, { router })
     if (!forCms) {
       setForCms(router?.query?.show === "iframe")
     }
     if (!link_id && router?.query?.link) {
+      if (router?.query?._id) {
+        fetchApiEventos({
+          query: queries.getPreregister,
+          variables: { _id: router?.query?._id }
+        }).then((result: any) => {
+          SetPreregister(JSON.parse(result ?? {}))
+        })
+      }
+      SetLinkMedia(router?.query?.m)
       SetLink_id(router?.query?.link)
+      console.log(router?.query)
+      if (["tiktok"].includes(router?.query?.m?.toString()) || router?.query?._id) {
+        console.log(100048, router?.query, { router })
+        router.push("/login?q=register")
+      }
       const storage_id = localStorage.getItem("_id")
       if (!storage_id) {
         const _id = customAlphabet('1234567890abcdef', 24)()
@@ -102,6 +127,11 @@ const AuthProvider = ({ children }) => {
       }
     }
   }, [router])
+
+  useEffect(() => {
+    console.log(preregister)
+  }, [preregister])
+
 
   useEffect(() => {
     if (storage_id && link_id) {
@@ -145,7 +175,7 @@ const AuthProvider = ({ children }) => {
       console.log("isProduction:", idx)
       /*--------------------------------------------------------------------*/
       const devDomain = ["bodasdehoy", "eventosplanificador", "eventosorganizador", "vivetuboda"]
-      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[0] /*<<<<<<<<<*/
+      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[3] /*<<<<<<<<<*/
       /*--------------------------------------------------------------------*/
       resp = developments.filter(elem => elem.name === domainDevelop)[0]
       if (idx === -1 || window.origin.includes("://test")) {
@@ -306,7 +336,9 @@ const AuthProvider = ({ children }) => {
 
 
   return (
-    <AuthContext.Provider value={{ setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms, setIsStartingRegisterOrLogin, link_id, SetLink_id, storage_id, SetStorage_id }}>
+    <AuthContext.Provider value={{
+      setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms, setIsStartingRegisterOrLogin, link_id, SetLink_id, storage_id, SetStorage_id, linkMedia, SetLinkMedia, preregister, SetPreregister
+    }}>
       {verificationDone && children}
     </AuthContext.Provider>
   );

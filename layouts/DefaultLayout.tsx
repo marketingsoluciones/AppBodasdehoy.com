@@ -12,8 +12,27 @@ import {
 import { SocketControlator } from "../components/DefaultLayout/SocketControlator";
 import Container from "../components/DefaultLayout/Container";
 import { ToastProvider } from "../context/ToastContext";
+// import { useRouter } from "next/router";
+// import { useEffect, useState } from "react";
 
 const DefaultLayout = ({ children }) => {
+  // const router = useRouter()
+  // const [isMounted, setIsMounted] = useState<boolean>(false)
+  // const [showPreview, setShowPreview] = useState<string | string[] | null>(null)
+
+  // useEffect(() => {
+  //   if (!isMounted) {
+  //     if (["tiktok"].includes(router?.query?.m?.toString())) {
+  //       console.log(router?.query, { router })
+  //       router.push("/login")
+  //     }
+  //     setShowPreview(router?.query?.m)
+  //     setIsMounted(true)
+  //   }
+  //   return () => {
+  //     setIsMounted(false)
+  //   }
+  // }, [])
   return (
     <>
       {/* <Head>
@@ -21,7 +40,10 @@ const DefaultLayout = ({ children }) => {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="description" content="¡Bodas de Hoy Organizador! Organiza tu boda en un sólo click., user-scalable=no, width=device-width, initial-scale=1" />
       </Head> */}
-
+      {/* {isMounted &&
+        showPreview
+        ? <></>
+        : */}
       <AuthProvider>
         <SocketProvider>
           <EventsGroupProvider>
@@ -38,6 +60,7 @@ const DefaultLayout = ({ children }) => {
           </EventsGroupProvider>
         </SocketProvider>
       </AuthProvider>
+      {/*      }       */}
     </>
   );
 };

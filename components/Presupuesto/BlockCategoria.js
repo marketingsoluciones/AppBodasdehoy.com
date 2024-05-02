@@ -17,13 +17,14 @@ import { useAllowed } from "../../hooks/useAllowed";
 
 import DetallesPago from "./DetallesPago";
 
-const BlockCategoria = ({ cate, set }) => {
+const BlockCategoria = ({ cate, set, setGetId }) => {
   const { event, setEvent } = EventContextProvider()
   const [categoria, setCategoria] = useState({});
   const [data, setData] = useState([]);
   const [GastoID, setGastoID] = useState({ id: "", crear: false })
   const [isAllowed, ht] = useAllowed()
 
+  
   useEffect(() => {
     setCategoria(
       event?.presupuesto_objeto?.categorias_array.find(
@@ -40,7 +41,6 @@ const BlockCategoria = ({ cate, set }) => {
 
   const saldo = categoria?.coste_estimado - categoria?.coste_final;
 
-  console.log(categoria?.pagado)
 
 
   const Columna = useMemo(
@@ -188,16 +188,12 @@ const BlockCategoria = ({ cate, set }) => {
 
 
   const renderRowSubComponent = useCallback(({ row, cate, gasto }) => (
-    <SubComponentePagos row={row} cate={cate} gasto={gasto} wantCreate={act => setGastoID(old => ({ ...old, crear: act }))} />
+    <SubComponentePagos getId={GastoID?.id} row={row} cate={cate} gasto={gasto} wantCreate={act => setGastoID(old => ({ ...old, crear: act }))} />
   ),
-    []
+    [GastoID]
   )
 
   const porcentaje = (categoria?.coste_final/categoria?.coste_estimado)*100
-
-  console.log(porcentaje.toFixed(2))
-
-
 
   return (
     <>
@@ -234,7 +230,7 @@ const BlockCategoria = ({ cate, set }) => {
           </div>
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-medium ">
-              Coste final:
+              Coste real:
               <span
                 className={`text-sm pl-1 text-${Math.abs(saldo) == saldo ? "green" : "red"
                   }`}

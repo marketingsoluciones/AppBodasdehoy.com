@@ -78,3 +78,8 @@ input[type=number] {
 input[type="text"]:focus {
   --tw-ring-shadow:none
 }
+
+input[type="time"]::-webkit-calendar-picker-indicator {
+  background: none;
+  margin-left: -20px;
+}
