@@ -203,7 +203,6 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
 
   const handleSumitMedia = async (values: initialValues, actions: any) => {
     try {
-      console.log(values)
       if (storage_id && link_id) {
         fetchApiEventos({
           query: queries.updateActivityLink,
@@ -262,6 +261,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
               type={passwordView ? "password" : "text"}
               autoComplete="off"
               label="Contraseña"
+              autoFocus={!!preregister}
               icon={<LockClosed className="absolute w-4 h-4 inset-y-0 left-4 m-auto  text-gray-500" />} />
             <div onClick={() => { setPasswordView(!passwordView) }} className="absolute cursor-pointer inset-y-0 top-5 right-4 m-auto w-4 h-4 text-gray-500" >
               {!passwordView ? <Eye /> : <EyeSlash />}

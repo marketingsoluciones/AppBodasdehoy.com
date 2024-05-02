@@ -9,6 +9,7 @@ interface propsField {
   icon?: ReactNode;
   label?: string;
   disabled?: boolean
+  autoFocus?: boolean
 }
 export const InputField: FC<propsField> = ({
   icon = false,

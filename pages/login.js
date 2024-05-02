@@ -20,7 +20,7 @@ const PageLogin = () => {
       setIsMounted(true)
       setTimeout(() => {
         setLoading(false)
-      }, 800);
+      }, 1000);
     }
     return () => {
       if (isMounted) {
@@ -31,12 +31,12 @@ const PageLogin = () => {
   }, [isMounted])
 
   useEffect(() => {
-    console.log(10000492, linkMedia)
-  }, [])
-
-  useEffect(() => {
-    setStageRegister(!preregister ? 0 : 1)
+    if (preregister) {
+      setStage("register")
+      setStageRegister(1)
+    }
   }, [preregister])
+
   const Stages = {
     login: <Login setStage={setStage} whoYouAre={whoYouAre} setWhoYouAre={setWhoYouAre} />,
     register: <Register setStage={setStage} stageRegister={stageRegister} setStageRegister={setStageRegister} whoYouAre={whoYouAre} setWhoYouAre={setWhoYouAre} />,
@@ -55,7 +55,7 @@ const PageLogin = () => {
       config?.development !== "bodasdehoy" && (
         <>
           <div className="w-screen fixed h-full top-0 left-0 md:grid z-30 grid-cols-5 font-display">
-            <ArrowLeft className={`${(["vivetuboda"].includes(config?.development) && (stage === "login" || (stage === "register" && stageRegister === 0))) && "hidden"} absolute w-6 h-6 z-[10] text-gray-500 cursor-pointer translate-x-5 translate-y-5`} onClick={() => {
+            <ArrowLeft className={`${(["vivetuboda"].includes(config?.development) && (stage === "login" || (stage === "register" && stageRegister === 0) || preregister)) && "hidden"} absolute w-6 h-6 z-[10] text-gray-500 cursor-pointer translate-x-5 translate-y-5`} onClick={() => {
               if (stage === "resetPassword") {
                 setStage("login")
                 return

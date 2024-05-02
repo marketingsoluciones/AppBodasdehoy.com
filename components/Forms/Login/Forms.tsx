@@ -34,7 +34,7 @@ export const Login: FC<propsLogin> = ({ setStage, whoYouAre, setWhoYouAre }) => 
 };
 
 export const Register: FC<propsLogin> = ({ setStage, fStageRegister, stageRegister, setStageRegister, whoYouAre, setWhoYouAre }) => {
-  const {linkMedia} = AuthContextProvider()
+  const { linkMedia, preregister } = AuthContextProvider()
 
   useEffect(() => {
     setWhoYouAre(fStageRegister == 1 ? "empresa" : "")
@@ -56,7 +56,7 @@ export const Register: FC<propsLogin> = ({ setStage, fStageRegister, stageRegist
         }
       })()}
 
-      {!["tiktok"].includes(linkMedia) && <h2 className={`font-light text-tertiary flex gap-2 text-sm`}>
+      {(!["tiktok"].includes(linkMedia) && !preregister) && <h2 className={`font-light text-tertiary flex gap-2 text-sm`}>
         ¿Dispones de una cuenta?
         <span
           className="text-sm text-primary font-semibold cursor-pointer hover:text-tertiary transition"

@@ -41,7 +41,6 @@ export const ResetPassword: FC<propsResetPassword> = ({ onClick }) => {
 };
 
 export const Providers: FC<any> = ({ setStage, whoYouAre }) => {
-  console.log({ setStage, whoYouAre })
 
   return (
     <>
