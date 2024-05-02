@@ -7,7 +7,7 @@ import { GuardarButtom } from "./GuardarButtom";
 import { useEffect, useState } from "react";
 import { AuthContextProvider } from "../../../context";
 import { EventContextProvider } from "../../../context/EventContext";
-import { Modal } from "../../utils/Modal";
+import { Modal } from "../../Utils/Modal";
 import { useToast } from "../../../hooks/useToast";
 import { useRouter } from "next/router";
 
