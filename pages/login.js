@@ -54,7 +54,7 @@ const PageLogin = () => {
     return (
       config?.development !== "bodasdehoy" && (
         <>
-          <div className="w-screen fixed h-full top-0 left-0 md:grid z-30 grid-cols-5 font-display">
+          <div className="w-screen fixed h-full top-0 left-0 md:grid z-30 grid-cols-5 font-display overflow-auto">
             <ArrowLeft className={`${(["vivetuboda"].includes(config?.development) && (stage === "login" || (stage === "register" && stageRegister === 0) || preregister)) && "hidden"} absolute w-6 h-6 z-[10] text-gray-500 cursor-pointer translate-x-5 translate-y-5`} onClick={() => {
               if (stage === "resetPassword") {
                 setStage("login")
@@ -68,12 +68,12 @@ const PageLogin = () => {
             }} />
             <div className="bg-white w-full h-full col-span-3 relative flex items-center justify-center  ">
               {!["vivetuboda"].includes(config?.development) && < ButtonClose onClick={handleClose} />}
-              <div className="flex flex-col items-center gap-4 w-full h-[85%]  md:h-[60,l%] px-10 md:px-0 sm:w-3/4 md:w-2/3">
-                <div className="flex w-full md:w-2/3 h-[calc(100%-100px)] flex-col">
-                  <div className={`flex flex-col items-center justify-center transform ${config?.name == "vivetuboda" ? "scale-[110%]" : "scale-[150%]"}`}>
+              <div className="flex flex-col items-center gap-4 w-full h-[85%]  md:h-[60,l%] px-10 md:px-0 sm:w-3/4 md:w-2/3 relative">
+                <div className="flex w-full md:w-2/3 h-[calc(100%-100px)] flex-col items-center">
+                  <div className={`flex flex-col items-center justify-center transform ${config?.name == "vivetuboda" ? "scale-[95%]" : "scale-[150%]"} absolute`}>
                     {config?.logoDirectory}
                   </div>
-                  <div className="flex-1 flex flex-col items-center justify-center">
+                  <div className="flex-1 flex flex-col items-center justify-center mt-14">
                     {Stages[stage]}
                   </div>
                 </div>
