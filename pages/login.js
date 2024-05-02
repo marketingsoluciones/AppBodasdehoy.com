@@ -10,7 +10,7 @@ const PageLogin = () => {
   const { config, user, linkMedia, preregister } = AuthContextProvider()
   const { setLoading } = LoadingContextProvider()
   const { query } = useRouter()
-  const [stage, setStage] = useState((["tiktok"].includes(linkMedia) ? "register" : null) || query?.q || "login");
+  const [stage, setStage] = useState((["tiktok", "instagram", "facebook", "x", "youtube"].includes(linkMedia) ? "register" : null) || query?.q || "login");
   const [stageRegister, setStageRegister] = useState(0)
   const [whoYouAre, setWhoYouAre] = useState("");
   const [isMounted, setIsMounted] = useState(false)

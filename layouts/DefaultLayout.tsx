@@ -22,7 +22,7 @@ const DefaultLayout = ({ children }) => {
 
   // useEffect(() => {
   //   if (!isMounted) {
-  //     if (["tiktok"].includes(router?.query?.m?.toString())) {
+  //     if (["tiktok", "instagram", "facebook", "x", "youtube"].includes(router?.query?.m?.toString())) {
   //       console.log(router?.query, { router })
   //       router.push("/login")
   //     }

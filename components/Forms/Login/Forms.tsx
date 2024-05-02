@@ -56,7 +56,7 @@ export const Register: FC<propsLogin> = ({ setStage, fStageRegister, stageRegist
         }
       })()}
 
-      {(!["tiktok"].includes(linkMedia) && !preregister) && <h2 className={`font-light text-tertiary flex gap-2 text-sm`}>
+      {(!["tiktok", "instagram", "facebook", "x", "youtube"].includes(linkMedia) && !preregister) && <h2 className={`font-light text-tertiary flex gap-2 text-sm`}>
         ¿Dispones de una cuenta?
         <span
           className="text-sm text-primary font-semibold cursor-pointer hover:text-tertiary transition"
