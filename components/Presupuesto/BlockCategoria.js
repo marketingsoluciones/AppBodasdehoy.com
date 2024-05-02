@@ -16,6 +16,7 @@ import SubComponentePagos from "./SubComponentePagos";
 import { useAllowed } from "../../hooks/useAllowed";
 
 import DetallesPago from "./DetallesPago";
+import { array } from "yup";
 
 const BlockCategoria = ({ cate, set, setGetId }) => {
   const { event, setEvent } = EventContextProvider()
@@ -24,7 +25,7 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
   const [GastoID, setGastoID] = useState({ id: "", crear: false })
   const [isAllowed, ht] = useAllowed()
 
-  
+
   useEffect(() => {
     setCategoria(
       event?.presupuesto_objeto?.categorias_array.find(
@@ -179,7 +180,8 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
           ...old.presupuesto_objeto.categorias_array[index].gastos_array,
           res,
         ];
-
+        const f2 = old.presupuesto_objeto.categorias_array[index].gastos_array.findIndex((elemt) => elemt._id == res._id)
+        old.presupuesto_objeto.categorias_array[index].gastos_array[f2].pagos_array = []
         return { ...old };
       });
     }
@@ -193,7 +195,7 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
     [GastoID]
   )
 
-  const porcentaje = (categoria?.coste_final/categoria?.coste_estimado)*100
+  const porcentaje = (categoria?.coste_final / categoria?.coste_estimado) * 100
 
   return (
     <>
@@ -246,9 +248,9 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
           <div className="bg-gray-300 rounded-xl flex items-center overflow-hidden md:h-5 w-full relative">
             <p className="font-display text-xs text-white pl-2 z-10 relative p-3">
               {
-                Math.abs(saldo)== saldo ? `Saldo a favor ${getCurrency(saldo, event?.presupuesto_objeto?.currency)}`:`Saldo en contra de ${getCurrency(saldo, event?.presupuesto_objeto?.currency)}`
+                Math.abs(saldo) == saldo ? `Saldo a favor ${getCurrency(saldo, event?.presupuesto_objeto?.currency)}` : `Saldo en contra de ${getCurrency(saldo, event?.presupuesto_objeto?.currency)}`
               }
-              
+
             </p>
             <svg
               className={`bg-${Math.abs(saldo) == saldo ? "green" : "red"

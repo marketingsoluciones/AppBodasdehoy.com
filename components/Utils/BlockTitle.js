@@ -13,8 +13,6 @@ const BlockTitle = ({ title }) => {
   const [openModal, setOpenModal] = useState(false)
   const [openModalDrive, setOpenModalDrive] = useState(false)
 
-  console.log(openModalDrive)
-
   return (
     <div className={`w-full h-14 bg-white rounded-xl shadow-lg ${forCms ? "hidden" : "flex"} items-center justify-between`}>
       <ModalAddUserToEvent openModal={openModal} setOpenModal={setOpenModal} event={event} />
