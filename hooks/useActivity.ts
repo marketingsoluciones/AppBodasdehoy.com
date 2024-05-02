@@ -4,7 +4,7 @@ import { fetchApiEventos, queries } from "../utils/Fetching";
 
 
 export const useActivity = () => {
-  const { link_id, storage_id, user, preregister } = AuthContextProvider()
+  const { link_id, storage_id, user, preregister, SetPreregister } = AuthContextProvider()
 
   enum activities {
     used,
@@ -29,7 +29,7 @@ export const useActivity = () => {
   const updateActivityLink = async (activity: keyof typeof activities) => {
     try {
       if (link_id) {
-        await fetchApiEventos({
+        fetchApiEventos({
           query: queries.updateActivityLink,
           variables: {
             args: {
@@ -37,6 +37,10 @@ export const useActivity = () => {
               [preregister ? "_id" :"storage_id"]:preregister ?preregister?._id:storage_id,
               activity
             }
+          }
+        }).then(result => {
+          if (activity === "registered") {
+            SetPreregister(null)
           }
         })
       }
