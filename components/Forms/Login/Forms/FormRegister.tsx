@@ -79,7 +79,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
       }
     }),
     fullName: yup.string().required("Campo requerido"),
-    password: !["tiktok"].includes(linkMedia)
+    password: !["tiktok", "instagram", "facebook", "x", "youtube"].includes(linkMedia)
       ? yup.string().required("Campo requerido").test("Unico", `Debe contener entre 8 y 12 caractéres`, (value: any) => {
         const name = document.activeElement?.getAttribute("name")
         if (name !== "password") {
@@ -232,7 +232,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
       <Formik
         initialValues={initialValues ?? {}}
         validationSchema={validationSchema ?? {}}
-        onSubmit={!["tiktok"].includes(linkMedia) ? handleSubmit : handleSumitMedia}
+        onSubmit={!["tiktok", "instagram", "facebook", "x", "youtube"].includes(linkMedia) ? handleSubmit : handleSumitMedia}
       >
         <Form className="w-full md:w-[350px] text-gray-200 *md:grid *md:grid-cols-2 gap-4 md:gap-5 md:space-y-0 flex flex-col">
           <div className="col-span-2">
@@ -255,7 +255,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
               icon={<EmailIcon className="absolute w-4 h-4 inset-y-0 left-4 m-auto text-gray-500" />}
             />
           </div>
-          {!["tiktok"].includes(linkMedia) && <div className="w-full relative">
+          {!["tiktok", "instagram", "facebook", "x", "youtube"].includes(linkMedia) && <div className="w-full relative">
             <InputField
               name="password"
               type={passwordView ? "password" : "text"}
@@ -286,7 +286,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
               {!phoneNumber ? "Registrar" : "Reenviar Link"}
             </button>
           </div>
-          {["tiktok"].includes(linkMedia) && <div className='text-gray-900 w-full h-40'>
+          {["tiktok", "instagram", "facebook", "x", "youtube"].includes(linkMedia) && <div className='text-gray-900 w-full h-40'>
             {phoneNumber &&
               <>
                 <p className='w-full text-center text-sm'>

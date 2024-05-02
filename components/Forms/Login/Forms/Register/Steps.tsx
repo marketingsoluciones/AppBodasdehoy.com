@@ -107,15 +107,15 @@ interface propsSecondStep {
   setStage: CallableFunction
 }
 export const SecondStep: FC<propsSecondStep> = (props) => {
-  const  {linkMedia}=AuthContextProvider()
+  const { linkMedia } = AuthContextProvider()
   return (
     <div className="gap-1 flex flex-col justify-center items-center w-full mt-2">
-      {!["tiktok"].includes(linkMedia) && 
+      {!["tiktok", "instagram", "facebook", "x", "youtube"].includes(linkMedia) &&
         <>
-      <Providers setStage={props.setStage} whoYouAre={props?.whoYouAre} />
-      <h2 className={`font-light w-full text-tertiary text-center text-md`}>
-        Ó
-      </h2>
+          <Providers setStage={props.setStage} whoYouAre={props?.whoYouAre} />
+          <h2 className={`font-light w-full text-tertiary text-center text-md`}>
+            Ó
+          </h2>
         </>
       }
       <FormRegister {...props} />
