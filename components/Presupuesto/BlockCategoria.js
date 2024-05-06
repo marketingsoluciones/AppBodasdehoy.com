@@ -17,6 +17,7 @@ import { useAllowed } from "../../hooks/useAllowed";
 
 import DetallesPago from "./DetallesPago";
 import { array } from "yup";
+import AddPagado from "./AddPagado";
 
 const BlockCategoria = ({ cate, set, setGetId }) => {
   const { event, setEvent } = EventContextProvider()
@@ -132,9 +133,9 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
           return (
             <>
 
-              <div className="w-full h-full flex items-center justify-center cursor-pointer relative space-x-3">
+              <div className="w-full h-full flex items-center justify-center cursor-pointer relative space-x-1">
+                <AddPagado {...props} set={act => setGastoID(act)} />
                 <DetallesPago {...props} set={act => setGastoID(act)} />
-
                 <BorrarIcon
                   onClick={!isAllowed() ? null : handleRemove}
                   className="hover:text-gray-300 text-gray-500 transition w-3"
@@ -301,7 +302,7 @@ export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate
     coste_estimado: 2,
     coste_final: 2,
     pagado: 2,
-    options: 1,
+    options: 2,
   };
   return (
     <table
@@ -312,7 +313,7 @@ export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate
         {headerGroups.map((headerGroup, id) => (
           <tr
             {...headerGroup.getHeaderGroupProps()}
-            className="w-full grid grid-cols-10 py-2 bg-base"
+            className="w-full grid grid-cols-11 py-2 bg-base"
             key={id}
           >
             {headerGroup.headers.map((column, id) => (
@@ -336,7 +337,7 @@ export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate
               <tr
                 key={i}
                 {...row.getRowProps()}
-                className="w-full transition border-b border-base hover:bg-base grid grid-cols-10"
+                className="w-full transition border-b border-base hover:bg-base grid grid-cols-11"
               >
                 {row.cells.map((cell, i) => {
                   return (
