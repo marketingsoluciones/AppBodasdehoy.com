@@ -13,9 +13,8 @@ const Itinerario = () => {
     const [createPdf, setCreatePdf] = useState(false)
     const { event } = EventContextProvider()
     const { user, verificationDone, forCms } = AuthContextProvider()
-    const [option, setOption] = useState()
-    const f1 = event.itinerarios_array.find(itinerario => itinerario.title === option)
-    console.log(f1)
+    const [option, setOption] = useState("el gran día")
+    const f1 = event?.itinerarios_array?.find(itinerario => itinerario.title === option)
 
     if (verificationDone) {
         if (!user) {
@@ -26,7 +25,7 @@ const Itinerario = () => {
         if (!event) return <></>
         return (
             <>
-                <section className={` flex flex-col items-center bg-base ${f1.tasks.length <= 2 ? "h-[calc(100vh-145px)] " : ""} `}>
+                <section className={` flex flex-col items-center bg-base ${f1?.tasks?.length <= 2 ? "h-[calc(100vh-145px)] " : ""} `}>
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
