@@ -80,7 +80,7 @@ export const Task = ({ itinerario, task, title }) => {
           return (
             <Form>
               <div className=" md:grid lg:grid-cols-12 items-center justify-center md:px-10 lg:px-10 2xl:px-36 py-1" >
-                <div className="md:flex  lg:col-span-8 md:justify-end ">
+                <div className="md:flex lg:col-span-8 md:justify-end ">
                   
                   <SelectIcon name="icon" handleChange={handleBlurData} />
 

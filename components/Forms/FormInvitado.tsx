@@ -141,7 +141,7 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
 
             <div className="text-gray-500 font-body flex flex-col gap-4 w-full">
               <div className="input-name w-full flex items-center justify-center relative pt-4">
-                <div className="flex absolute z-[5] right-0 top-0 text-secondary cursor-pointer"
+                <div className="flex absolute z-[5] right-0 top-0 text-white cursor-pointer"
                   onClick={() => {
                     window["ReactNativeWebView"] || navigator["contacts"]
                       ? setShowMedioSelectImport(true)
@@ -150,7 +150,7 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
                       })
                   }}
                 >
-                  <div className=" flex items-center space-x-2 border px-2 py-0.5 rounded-lg hover:border-gray-300 " >
+                  <div className=" flex items-center space-x-2 border px-2 py-0.5 rounded-lg hover:border-gray-300 bg-primary " >
                     <p className="w-14 text-xs leading-3 capitalize">importar contactos</p>
                     <IoMdContacts className="w-7 h-7" />
                   </div>

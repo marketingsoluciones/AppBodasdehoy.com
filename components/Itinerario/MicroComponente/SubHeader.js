@@ -25,7 +25,7 @@ export const SubHeader = ({ title, date, setButton, button }) => {
             </div>
             <div className="flex flex-col justify-center items-center">
                 <span className="text-3xl md:text-[40px] font-title text-primary">{title}</span>
-                <div className="w-[70px] bg-primary h-1 rounded-md" />
+                <div className="w-[100px] bg-primary h-0.5 rounded-md mt-2" />
             </div>
         </div >
     )

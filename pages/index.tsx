@@ -35,7 +35,7 @@ const Home: NextPage = () => {
     return () => {
       if (isMounted) {
         setIsMounted(false)
-        setLoading(true)
+   /*      setLoading(true) */
       }
     }
   }, [isMounted])

@@ -1,15 +1,19 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { CiHeart } from "react-icons/ci";
 import { BsCake } from "react-icons/bs";
 import { LiaRingSolid } from "react-icons/lia";
 import { MenuOptions, Itinerario } from "./MicroComponente"
 
-export const BoddyIter = ({ IterArryst, setIterArryst, createPdf }) => {
+export const BoddyIter = ({ IterArryst, setIterArryst, createPdf, setOption }) => {
     const [optionSelect, setOptionSelect] = useState("el gran día")
 
     const handleClickOption = (idx) => {
         setOptionSelect(idx);
     };
+
+    useEffect(() => {
+        setOption(optionSelect)
+    }, [optionSelect])
 
     const OptionsArry = [
         {

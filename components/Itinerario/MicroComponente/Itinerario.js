@@ -88,7 +88,7 @@ export const Itinerario = ({ data }) => {
     return (
         <>
             <SubHeader button={modal} setButton={setModal} date={date} title={data?.title} itinerario={itinerario} />
-            <div className="w-full h-full overflow-auto flex flex-col items-center">
+            <div className="w-full h-full overflow-auto* flex flex-col items-center">
                 <div className="w-[88%]">
                     {tasks?.map((elem, idx) => {
                         return (
