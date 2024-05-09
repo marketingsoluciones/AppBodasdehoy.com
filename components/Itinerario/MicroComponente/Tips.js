@@ -31,11 +31,11 @@ export const Tips = ({ ...props }) => {
         }
     }, [refInput])
     return (
-        <div className='w-full md:mx-12 lg:mx-4 my-2 lg:my-0'>
+        <div className='w-full md:my-2 lg:my-0'>
              <InputFieldGlobal
                 onChange={(e) => { handleChange(e) }}
                 name={props.name}
-                className="rounded-xl w-full border-gray-400 md:text-sm lg:text-md outline-none focus:outline-none"
+                className="rounded-xl w-full border-gray-400 md:text-sm lg:text-md outline-none focus:outline-none md:ml-2"
                 placeholder="Tips para esta actividad"
                 value={field.value}
                 {...field} 
