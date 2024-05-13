@@ -16,6 +16,8 @@ import SubComponentePagos from "./SubComponentePagos";
 import { useAllowed } from "../../hooks/useAllowed";
 
 import DetallesPago from "./DetallesPago";
+import { array } from "yup";
+import AddPagado from "./AddPagado";
 
 const BlockCategoria = ({ cate, set, setGetId }) => {
   const { event, setEvent } = EventContextProvider()
@@ -24,7 +26,7 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
   const [GastoID, setGastoID] = useState({ id: "", crear: false })
   const [isAllowed, ht] = useAllowed()
 
-  
+
   useEffect(() => {
     setCategoria(
       event?.presupuesto_objeto?.categorias_array.find(
@@ -131,9 +133,9 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
           return (
             <>
 
-              <div className="w-full h-full flex items-center justify-center cursor-pointer relative space-x-3">
+              <div className="w-full h-full flex items-center justify-center cursor-pointer relative space-x-1">
+                <AddPagado {...props} set={act => setGastoID(act)} />
                 <DetallesPago {...props} set={act => setGastoID(act)} />
-
                 <BorrarIcon
                   onClick={!isAllowed() ? null : handleRemove}
                   className="hover:text-gray-300 text-gray-500 transition w-3"
@@ -179,7 +181,8 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
           ...old.presupuesto_objeto.categorias_array[index].gastos_array,
           res,
         ];
-
+        const f2 = old.presupuesto_objeto.categorias_array[index].gastos_array.findIndex((elemt) => elemt._id == res._id)
+        old.presupuesto_objeto.categorias_array[index].gastos_array[f2].pagos_array = []
         return { ...old };
       });
     }
@@ -193,7 +196,7 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
     [GastoID]
   )
 
-  const porcentaje = (categoria?.coste_final/categoria?.coste_estimado)*100
+  const porcentaje = (categoria?.coste_final / categoria?.coste_estimado) * 100
 
   return (
     <>
@@ -246,9 +249,9 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
           <div className="bg-gray-300 rounded-xl flex items-center overflow-hidden md:h-5 w-full relative">
             <p className="font-display text-xs text-white pl-2 z-10 relative p-3">
               {
-                Math.abs(saldo)== saldo ? `Saldo a favor ${getCurrency(saldo, event?.presupuesto_objeto?.currency)}`:`Saldo en contra de ${getCurrency(saldo, event?.presupuesto_objeto?.currency)}`
+                Math.abs(saldo) == saldo ? `Saldo a favor ${getCurrency(saldo, event?.presupuesto_objeto?.currency)}` : `Saldo en contra de ${getCurrency(saldo, event?.presupuesto_objeto?.currency)}`
               }
-              
+
             </p>
             <svg
               className={`bg-${Math.abs(saldo) == saldo ? "green" : "red"
@@ -299,7 +302,7 @@ export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate
     coste_estimado: 2,
     coste_final: 2,
     pagado: 2,
-    options: 1,
+    options: 2,
   };
   return (
     <table
@@ -310,7 +313,7 @@ export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate
         {headerGroups.map((headerGroup, id) => (
           <tr
             {...headerGroup.getHeaderGroupProps()}
-            className="w-full grid grid-cols-10 py-2 bg-base"
+            className="w-full grid grid-cols-11 py-2 bg-base"
             key={id}
           >
             {headerGroup.headers.map((column, id) => (
@@ -334,7 +337,7 @@ export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate
               <tr
                 key={i}
                 {...row.getRowProps()}
-                className="w-full transition border-b border-base hover:bg-base grid grid-cols-10"
+                className="w-full transition border-b border-base hover:bg-base grid grid-cols-11"
               >
                 {row.cells.map((cell, i) => {
                   return (

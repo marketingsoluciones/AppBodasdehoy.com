@@ -70,12 +70,6 @@ const Navigation: FC = () => {
       route: "/invitaciones",
       condicion: event?._id ? true : false
     },
-    /* {
-      title: "Itinerario",
-      icon: <InvitacionesIcon />,
-      route: "/itinerario",
-      condicion: event?._id ? true : false
-    }, */
   ], [event]);
 
   return (

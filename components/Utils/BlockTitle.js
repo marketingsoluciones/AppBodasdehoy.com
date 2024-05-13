@@ -6,14 +6,12 @@ import { IoShareSocial } from 'react-icons/io5'
 import { DiGoogleDrive } from "react-icons/di";
 import { Modal } from './Modal'
 
-const BlockTitle = ({ title }) => {
+ export const BlockTitle = ({ title }) => {
 
   const { forCms, user } = AuthContextProvider()
   const { event } = EventContextProvider()
   const [openModal, setOpenModal] = useState(false)
   const [openModalDrive, setOpenModalDrive] = useState(false)
-
-  console.log(openModalDrive)
 
   return (
     <div className={`w-full h-14 bg-white rounded-xl shadow-lg ${forCms ? "hidden" : "flex"} items-center justify-between`}>

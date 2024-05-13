@@ -13,7 +13,7 @@ export const Task = ({ itinerario, task, title }) => {
   const { domain } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
   const toast = useToast()
-  
+
   const initialValues = {
     icon: !task?.icon ? "" : task?.icon,
     time: !task?.hora ? "" : task?.hora,
@@ -37,7 +37,7 @@ export const Task = ({ itinerario, task, title }) => {
         domain
       })
       setEvent((old) => {
-       
+
         const f1 = old.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
         const f2 = old.itinerarios_array[f1].tasks.findIndex(elem => elem._id === task._id)
         old.itinerarios_array[f1].tasks[f2][`${variable}`] = valor
@@ -72,37 +72,71 @@ export const Task = ({ itinerario, task, title }) => {
     }
   }
 
+  /*  return (
+     <>
+ 
+       <Formik enableReinitialize initialValues={initialValues} >
+         {({ values, }) => {
+           return (
+             <Form>
+               <div className=" md:grid lg:grid-cols-12 items-center justify-center md:px-10 lg:px-10 2xl:px-36 py-1" >
+                 <div className="md:flex lg:col-span-8 md:justify-end ">
+                   
+                   <SelectIcon name="icon" handleChange={handleBlurData} />
+ 
+                   <div className=" py-4 md:py-0 flex md:flex-col justify-center items-center ">
+ 
+                     <InputTime name="time" onBlur={() => { handleBlurData("hora", values.time) }} />
+ 
+                     <Duration name="duration" onBlur={() => { handleBlurData("duracion", values.duration.toString()) }} />
+ 
+                   </div>
+ 
+                   <Description name="description" onBlur={() => { handleBlurData("descripcion", values.description) }} />
+ 
+                   <Responsable name="responsable" handleChange={handleBlurData} itinerario={itinerario} task={task} title={title} />
+ 
+                 </div>
+ 
+                 <div className="flex lg:col-span-4 items-center ">
+                   <Tips name="tips" onBlur={() => { handleBlurData("tips", values.tips) }} />
+                   <div className="md:-ml-3" >
+                     <MdOutlineDeleteOutline className="w-7 h-auto cursor-pointer text-gray-500 hover:text-gray-700" onClick={() => deleteTask()} />
+                   </div>
+                 </div>
+               </div>
+             </Form>
+           )
+         }}
+       </Formik>
+     </>
+   ) */
   return (
     <>
 
       <Formik enableReinitialize initialValues={initialValues} >
-        {({ values, }) => {
+        {({ values }) => {
           return (
-            <Form>
-              <div className=" md:grid lg:grid-cols-12 items-center justify-center md:px-10 lg:px-10 2xl:px-36 py-1" >
-                <div className="md:flex  lg:col-span-8 md:justify-end ">
-                  
+            <Form className="">
+              <div className=" md:grid grid-cols-12 items-center justify-center 2xl:px-36 py-1  " >
+                <div className=" grid grid-cols-2 md:grid-cols-3 col-span-3 py-5 md:py-0 ">
                   <SelectIcon name="icon" handleChange={handleBlurData} />
-
-                  <div className=" py-4 md:py-0 flex md:flex-col justify-center items-center ">
-
+                  <div className="  flex flex-col justify-center md:items-center md:col-span-2 ">
                     <InputTime name="time" onBlur={() => { handleBlurData("hora", values.time) }} />
-
                     <Duration name="duration" onBlur={() => { handleBlurData("duracion", values.duration.toString()) }} />
-
                   </div>
-
-                  <Description name="description" onBlur={() => { handleBlurData("descripcion", values.description) }} />
-
-                  <Responsable name="responsable" handleChange={handleBlurData} itinerario={itinerario} task={task} title={title} />
-
                 </div>
-
-                <div className="flex lg:col-span-4 items-center ">
+                <div className="col-span-3 px-8 md:px-0">
+                  <Description name="description" onBlur={() => { handleBlurData("descripcion", values.description) }} />
+                </div>
+                <div className="col-span-1 py-3 md:py-0">
+                  <Responsable name="responsable" handleChange={handleBlurData} itinerario={itinerario} task={task} title={title} />
+                </div>
+                <div className="col-span-4 md:-mr-3 px-8 md:px-0 ">
                   <Tips name="tips" onBlur={() => { handleBlurData("tips", values.tips) }} />
-                  <div className="md:-ml-3" >
-                    <MdOutlineDeleteOutline className="w-7 h-auto cursor-pointer text-gray-500 hover:text-gray-700" onClick={() => deleteTask()} />
-                  </div>
+                </div>
+                <div className="flex items-center justify-center py-3 md:py-0">
+                  <MdOutlineDeleteOutline className="w-7 h-auto cursor-pointer text-gray-500 hover:text-gray-700" onClick={() => deleteTask()} />
                 </div>
               </div>
             </Form>

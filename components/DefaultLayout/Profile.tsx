@@ -17,6 +17,7 @@ import { Notifications } from "../Notifications";
 import { Modal } from "../Utils/Modal";
 import { ObtenerFullAcceso } from "../InfoApp/ObtenerFullAcceso";
 import { useActivity } from "../../hooks/useActivity";
+import { GoChecklist } from "react-icons/go";
 
 const Profile = ({ user, state, set, ...rest }) => {
   const { config, setUser, setActionModals, actionModals } = AuthContextProvider()
@@ -206,11 +207,20 @@ const Profile = ({ user, state, set, ...rest }) => {
   return (
     <>
       <div
-        className="text-gray-100 flex gap-6 cursor-pointer hover:text-gray-300 relative"
+        className="text-gray-100 flex space-x-4  hover:text-gray-300 relative"
         {...rest}
       >
         <span className="flex items-center gap-2 relative">
         </span>
+   
+
+        <div className="bg-white items-center flex relative cursor-default ">
+          <div onClick={() => router.push("/itinerario")} className="bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200 cursor-pointer" >
+            <GoChecklist className="text-primary w-6 h-6 scale-x-90" />
+          </div>
+        </div>
+        
+
         <Notifications />
         <ClickAwayListener onClickAway={() => dropdown && setDropwdon(false)}>
           <div

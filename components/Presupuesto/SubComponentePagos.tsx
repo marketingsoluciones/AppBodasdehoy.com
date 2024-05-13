@@ -5,6 +5,7 @@ import { api } from "../../api";
 import { useContext, useEffect, useState } from "react";
 import { EventContextProvider, AuthContextProvider } from "../../context";
 import FormEditarPago from "../Forms/FormEditarPago";
+import { GoPlusCircle } from "react-icons/go";
 
 const SubComponentePagos = ({ row, cate, gasto, wantCreate,getId }) => {
   const [show, setShow] = useState(true);

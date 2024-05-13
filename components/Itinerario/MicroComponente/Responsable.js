@@ -51,6 +51,7 @@ export const Responsable = ({ itinerario, handleChange, title, task, ...props })
     const [field, meta, helpers] = useField({ name: props?.name });
     const [selectIcon, setSelectIcon] = useState([])
     const [openResponsableList, setOpenResponsableList] = useState(false)
+    const [FieldArry, setFieldArry] = useState([])
 
     useEffect(() => {
         if (selectIcon) {
@@ -58,6 +59,17 @@ export const Responsable = ({ itinerario, handleChange, title, task, ...props })
             handleChange("responsable", selectIcon.map((item) => item.title))
         }
     }, [selectIcon])
+
+    useEffect(() => {
+        if (field.value.length > 1) {
+            setFieldArry(field.value.slice(0, 2))
+
+        } else {
+            setFieldArry(field.value)
+        }
+    }, [field.value])
+
+    const longitud = field.value.length
 
     return (
         <div
@@ -67,31 +79,44 @@ export const Responsable = ({ itinerario, handleChange, title, task, ...props })
             {field?.value.length > 0
                 ?
                 <div
-                    style={{ width: 25 * field?.value?.length }}
-                    className="w-10 md:w-8 lg:w-8 h-12 md:h-8 lg:h-10 cursor-pointer relative">
-                    {field.value.map((item, idx) => {
+                    style={{ width: field.value.length >= 3 ? 47 * FieldArry?.length : FieldArry.length == 1 ? 63 * FieldArry?.length : 35 * FieldArry?.length }}
+                    className=" cursor-pointer relative -mr-5 my-5 md:my-0">
+                    {FieldArry.map((item, idx) => {
                         return (
                             < div
                                 key={idx}
-                                style={{ left: 20 * idx }}
-                                className="w-10 md:w-8 lg:w-10 h-10 md:h-8 lg:h-10 cursor-pointer absolute border border-gray-400 flex items-center justify-center rounded-full shadow-lg mt-2 md:mt-0"
+                                style={{ left: 15 * idx }}
+                                className=" cursor-pointer absolute border border-gray-400  rounded-full shadow-lg -top-5  "
                                 onClick={() => {
                                     setOpenResponsableList(!openResponsableList)
                                 }} {...props}>
-                                    <img src={ResponsablesArry.find((elem) => elem?.title === item)?.icon} className="h-10 " />
+                                <img src={ResponsablesArry.find((elem) => elem?.title === item)?.icon} className="h-10 " />
                             </div>
                         )
                     })}
+                    {
+                        field.value.length > 2 ? (
+                            < div
+                                style={{ left: 30 }}
+                                className="w-11 h-11 cursor-pointer absolute border border-gray-400  rounded-full shadow-lg -top-5 bg-slate-100  flex items-center  justify-center"
+                                onClick={() => {
+                                    setOpenResponsableList(!openResponsableList)
+                                }} {...props}>
+                                {"+" + longitud}
+                            </div>
+                        ) :
+                            null
+                    }
                 </div>
                 :
-                <div onClick={() => setOpenResponsableList(!openResponsableList)} className="w-10 md:w-12 lg:w-8 h-10 md:h-12 lg:h-14 rounded-full flex items-center justify-center cursor-pointer text-gray-600 hover:text-gray-800 -mr-4 mt-2 md:mt-0">
+                <div onClick={() => setOpenResponsableList(!openResponsableList)} className="w-full h-full rounded-full flex justify-center cursor-pointer text-gray-600 hover:text-gray-800 ">
                     <AddUser className="w-10 md:w-8 lg:w-10 h-10 md:h-8 lg:h-10" />
                 </div>
             }
             {
                 openResponsableList
                     ? <Modal openIcon={openResponsableList} setOpenIcon={setOpenResponsableList} classe={"h-max md:w-[20%]"} >
-                        <ResponsableList itinerario={itinerario} DataArry={ResponsablesArry}  openModal={openResponsableList} setOpenModal={setOpenResponsableList} setSelectIcon={setSelectIcon} task={task} selectIcon={selectIcon} value={field.value} />
+                        <ResponsableList itinerario={itinerario} DataArry={ResponsablesArry} openModal={openResponsableList} setOpenModal={setOpenResponsableList} setSelectIcon={setSelectIcon} task={task} selectIcon={selectIcon} value={field.value} />
                     </Modal>
                     : null
             }

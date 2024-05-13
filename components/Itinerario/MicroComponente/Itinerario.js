@@ -25,10 +25,6 @@ export const Itinerario = ({ data }) => {
     const toast = useToast()
     const router = useRouter()
 
-
-
-
-
     useEffect(() => {
         const itinerario = event?.itinerarios_array?.find(elem => elem.title === data?.title)
         setItinerario({ ...itinerario })
@@ -88,11 +84,13 @@ export const Itinerario = ({ data }) => {
     return (
         <>
             <SubHeader button={modal} setButton={setModal} date={date} title={data?.title} itinerario={itinerario} />
-            <div className="w-full h-full overflow-auto flex flex-col items-center">
-                <div className="w-[88%]">
+            <div className="w-full h-full overflow-auto* flex flex-col items-center">
+                <div className="w-[88%] divide-y-2 md:divide-y-0">
                     {tasks?.map((elem, idx) => {
                         return (
-                            <Task task={elem} key={idx} date={date} itinerario={itinerario} title={data?.title} />
+                            <div key={idx}>
+                                <Task task={elem} key={idx} date={date} itinerario={itinerario} title={data?.title} />
+                            </div>
                         )
                     })
                     }

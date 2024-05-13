@@ -20,7 +20,7 @@ export const InputTime = ({ ...props }) => {
 
     return (
         <>
-            <input type="time" className="text-[14px] md:text-[20px] lg:text-[25px] block bg-transparent focus:outline-none truncate -mb-[20px] border-none" {...field} {...props} />
+            <input type="time" className="text-[15px] md:text-[20px] lg:text-[25px] block bg-transparent outline-none truncate md:-mb-[20px] border-none  " {...field} {...props} />
         </>
     )
 }

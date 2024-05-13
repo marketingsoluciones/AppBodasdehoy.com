@@ -43,11 +43,11 @@ export const AddEvent = ({ itinerario, tasks }) => {
     }
 
     return (
-        <div onClick={() => addTask()} className="flex space-x-2 items-center justify-center mt-3 cursor-pointer hover:text-pink-600">
+        <div onClick={() => addTask()} className=" text-primary flex space-x-2 items-center justify-center my-3 cursor-pointer hover:text-pink-600">
             <span>
                 +
             </span>
-            <span className="text-Primary hover:text-pink-600">
+            <span >
                 Añadir actividad
             </span>
         </div>
