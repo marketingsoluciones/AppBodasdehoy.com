@@ -12,6 +12,7 @@ import {
 import { SocketControlator } from "../components/DefaultLayout/SocketControlator";
 import Container from "../components/DefaultLayout/Container";
 import { ToastProvider } from "../context/ToastContext";
+import GoogleAnalytics from '../components/GoogleAnalitytcs';
 // import { useRouter } from "next/router";
 // import { useEffect, useState } from "react";
 
@@ -52,7 +53,10 @@ const DefaultLayout = ({ children }) => {
                 <LoadingProvider>
                   <ToastProvider>
                     <SocketControlator />
-                    <Container>{children}</Container>
+                    <Container>
+                      {!!process?.env?.NEXT_PUBLIC_ID_ANALYTICS && <GoogleAnalytics />}
+                      {children}
+                    </Container>
                   </ToastProvider>
                 </LoadingProvider>
               </ChatProvider>
