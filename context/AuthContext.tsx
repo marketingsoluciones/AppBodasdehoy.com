@@ -113,7 +113,7 @@ const AuthProvider = ({ children }) => {
       SetLinkMedia(router?.query?.m)
       SetLink_id(router?.query?.link)
       console.log(router?.query)
-      if (["tiktok", "instagram", "facebook", "x", "youtube"].includes(router?.query?.m?.toString()) || router?.query?._id) {
+      if (![].includes(router?.query?.m?.toString()) || router?.query?._id) {
         console.log(100048, router?.query, { router })
         router.push("/login?q=register")
       }
