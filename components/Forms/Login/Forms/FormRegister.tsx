@@ -80,10 +80,10 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
     }),
     fullName: yup.string().required("Campo requerido"),
     password: linkMedia == null
-      ? yup.string().required("Campo requerido").test("Unico", `Debe contener entre 8 y 12 caractéres`, (value: any) => {
+      ? yup.string().required("Campo requerido").test("Unico", `Debe contener mas de 5 caractéres`, (value: any) => {
         const name = document.activeElement?.getAttribute("name")
         if (name !== "password") {
-          return value?.length > 7 && value?.length < 11
+          return value?.length > 5 
         } else {
           return true
         }
@@ -265,7 +265,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
                 autoFocus={!!preregister}
                 icon={<LockClosed className="absolute w-4 h-4 inset-y-0 left-4 m-auto  text-gray-500" />} />
               <div onClick={() => { setPasswordView(!passwordView) }} className="absolute cursor-pointer inset-y-0 top-5 right-4 m-auto w-4 h-4 text-gray-500" >
-                {passwordView ? <Eye /> : <EyeSlash />}
+                {!passwordView ? <Eye /> : <EyeSlash />}
               </div>
             </div>
           }
