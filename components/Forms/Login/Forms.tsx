@@ -15,8 +15,7 @@ interface propsLogin {
   setWhoYouAre?: any
 }
 
-export const Login: FC<propsLogin> = ({ setStage, whoYouAre, setWhoYouAre }) => {
-
+export const Login: FC<propsLogin> = ({ setStage, whoYouAre}) => {
   return (
     <>
       <h2 className={`font-light text-tertiary justify-center flex text-md mt-12`}>
@@ -56,7 +55,7 @@ export const Register: FC<propsLogin> = ({ setStage, fStageRegister, stageRegist
         }
       })()}
 
-      {([].includes(linkMedia) && !preregister) && <h2 className={`font-light text-tertiary flex gap-2 text-sm`}>
+      {(linkMedia == null && !preregister) && <h2 className={`font-light text-tertiary flex gap-2 text-sm  pt-3`}>
         ¿Dispones de una cuenta?
         <span
           className="text-sm text-primary font-semibold cursor-pointer hover:text-tertiary transition"

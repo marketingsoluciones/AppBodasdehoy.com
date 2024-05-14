@@ -36,7 +36,9 @@ const initialContext = {
   linkMedia: undefined,
   SetLinkMedia: undefined,
   preregister: undefined,
-  SetPreregister: undefined
+  SetPreregister: undefined,
+  WihtProvider: undefined,
+  SetWihtProvider: undefined,
 }
 
 type Context = {
@@ -65,6 +67,8 @@ type Context = {
   SetLinkMedia: any
   preregister: any
   SetPreregister: any
+  WihtProvider: any,
+  SetWihtProvider: any,
 }
 export let varGlobalDomain = ""
 export let varGlobalDevelopment = ""
@@ -92,7 +96,9 @@ const AuthProvider = ({ children }) => {
   const [storage_id, SetStorage_id] = useState<string | null>(null)
   const router = useRouter()
   const [triggerAuthStateChanged, setTriggerAuthStateChanged] = useState<number | null>(null)
-  const [isStartingRegisterOrLogin, setIsStartingRegisterOrLogin] = useState<boolean>()
+  const [isStartingRegisterOrLogin, setIsStartingRegisterOrLogin] = useState<boolean>(null)
+  const [WihtProvider, SetWihtProvider] = useState<boolean>(false)
+
   const [updateActivity] = useActivity()
 
 
@@ -337,7 +343,7 @@ const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{
-      setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms, setIsStartingRegisterOrLogin, link_id, SetLink_id, storage_id, SetStorage_id, linkMedia, SetLinkMedia, preregister, SetPreregister
+      SetWihtProvider, WihtProvider, setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms, setIsStartingRegisterOrLogin, link_id, SetLink_id, storage_id, SetStorage_id, linkMedia, SetLinkMedia, preregister, SetPreregister
     }}>
       {verificationDone && children}
     </AuthContext.Provider>
