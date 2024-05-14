@@ -70,7 +70,7 @@ const PageLogin = () => {
               {!["vivetuboda"].includes(config?.development) && < ButtonClose onClick={handleClose} />}
               <div className="flex flex-col items-center gap-4 w-full h-[85%]  md:h-[60,l%] px-10 md:px-0 sm:w-3/4 md:w-2/3 relative">
                 <div className="flex w-full md:w-2/3 h-[calc(100%-100px)] flex-col items-center">
-                  <div className={`flex flex-col items-center justify-center transform ${config?.name == "vivetuboda" ? "scale-[95%]" : "scale-[150%]"} absolute`}>
+                  <div className={`flex flex-col items-center justify-center transform ${config?.name == "vivetuboda" ? "scale-[80%] -top-10" : "scale-[150%]"} absolute`}>
                     {config?.logoDirectory}
                   </div>
                   <div className="flex-1 flex flex-col items-center justify-center mt-14">
