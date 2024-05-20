@@ -45,11 +45,6 @@ export const Providers: FC<any> = ({ setStage, whoYouAre }) => {
   return (
     <>
       <div className={`text-center flex flex-col gap-2 w-full items-center `}>
-        {/* <div className="gap-4 flex items-center">
-        {ListProviders.map((item, idx) => (
-          <Icon key={idx} icon={item.icon} onClick={item.function} />
-        ))}
-      </div> */}
         <div className="">
           <ButtonProvider provider="Google" handle={GoogleProvider()} setStage={setStage} whoYouAre={whoYouAre} icon={<GoogleIcon className="ml-[15px] w-[20px] h-[20px] text-gray-500" />} />
           <ButtonProvider provider="Facebook" handle={FacebookProvider} setStage={setStage} whoYouAre={whoYouAre} icon={<FacebookIcon2 className="ml-[15px] w-[20px] h-[20px] text-gray-500" />} />

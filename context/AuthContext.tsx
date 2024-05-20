@@ -36,7 +36,9 @@ const initialContext = {
   linkMedia: undefined,
   SetLinkMedia: undefined,
   preregister: undefined,
-  SetPreregister: undefined
+  SetPreregister: undefined,
+  WihtProvider: undefined,
+  SetWihtProvider: undefined,
 }
 
 type Context = {
@@ -65,6 +67,8 @@ type Context = {
   SetLinkMedia: any
   preregister: any
   SetPreregister: any
+  WihtProvider: any,
+  SetWihtProvider: any,
 }
 export let varGlobalDomain = ""
 export let varGlobalDevelopment = ""
@@ -90,9 +94,10 @@ const AuthProvider = ({ children }) => {
   const [preregister, SetPreregister] = useState<any>(null)
   const [linkMedia, SetLinkMedia] = useState<string | string[] | null>(null)
   const [storage_id, SetStorage_id] = useState<string | null>(null)
-  const router = useRouter()
   const [triggerAuthStateChanged, setTriggerAuthStateChanged] = useState<number | null>(null)
-  const [isStartingRegisterOrLogin, setIsStartingRegisterOrLogin] = useState<boolean>()
+  const [isStartingRegisterOrLogin, setIsStartingRegisterOrLogin] = useState<boolean>(null)
+  const [WihtProvider, SetWihtProvider] = useState<boolean>(false)
+  const router = useRouter()
   const [updateActivity] = useActivity()
 
 
@@ -113,7 +118,7 @@ const AuthProvider = ({ children }) => {
       SetLinkMedia(router?.query?.m)
       SetLink_id(router?.query?.link)
       console.log(router?.query)
-      if (["tiktok", "instagram", "facebook", "x", "youtube"].includes(router?.query?.m?.toString()) || router?.query?._id) {
+      if (![].includes(router?.query?.m?.toString()) || router?.query?._id) {
         console.log(100048, router?.query, { router })
         router.push("/login?q=register")
       }
@@ -337,7 +342,7 @@ const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{
-      setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms, setIsStartingRegisterOrLogin, link_id, SetLink_id, storage_id, SetStorage_id, linkMedia, SetLinkMedia, preregister, SetPreregister
+      setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms, setIsStartingRegisterOrLogin, link_id, SetLink_id, storage_id, SetStorage_id, linkMedia, SetLinkMedia, preregister, SetPreregister, SetWihtProvider, WihtProvider,
     }}>
       {verificationDone && children}
     </AuthContext.Provider>

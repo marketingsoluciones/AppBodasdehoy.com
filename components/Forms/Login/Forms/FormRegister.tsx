@@ -42,7 +42,7 @@ interface propsFormRegister {
 
 const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
   const router = useRouter()
-  const { user, setUser, config, geoInfo, setVerificationDone, setIsStartingRegisterOrLogin, linkMedia, storage_id, link_id, preregister } = AuthContextProvider();
+  const { user, setUser, config, geoInfo, setVerificationDone, setIsStartingRegisterOrLogin, linkMedia, storage_id, link_id, preregister, WihtProvider } = AuthContextProvider();
   const { setLoading } = LoadingContextProvider()
   const [passwordView, setPasswordView] = useState(false)
   const { getSessionCookie, isPhoneValid } = useAuthentication();
@@ -79,11 +79,11 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
       }
     }),
     fullName: yup.string().required("Campo requerido"),
-    password: !["tiktok", "instagram", "facebook", "x", "youtube"].includes(linkMedia)
-      ? yup.string().required("Campo requerido").test("Unico", `Debe contener entre 8 y 12 caractéres`, (value: any) => {
+    password: linkMedia == null
+      ? yup.string().required("Campo requerido").test("Unico", `Debe contener mas de 5 caractéres`, (value: any) => {
         const name = document.activeElement?.getAttribute("name")
         if (name !== "password") {
-          return value?.length > 7 && value?.length < 11
+          return value?.length > 5 
         } else {
           return true
         }
@@ -232,10 +232,10 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
       <Formik
         initialValues={initialValues ?? {}}
         validationSchema={validationSchema ?? {}}
-        onSubmit={!["tiktok", "instagram", "facebook", "x", "youtube"].includes(linkMedia) ? handleSubmit : handleSumitMedia}
+        onSubmit={linkMedia == null ? handleSubmit : handleSumitMedia}
       >
-        <Form className="w-full md:w-[350px] text-gray-200 *md:grid *md:grid-cols-2 gap-4 md:gap-5 md:space-y-0 flex flex-col">
-          <div className="col-span-2">
+        <Form className={`w-full md:w-[350px] text-gray-200 gap-4 md:gap-5 md:space-y-0 flex flex-col ${WihtProvider ? "mt-16":""} `}>
+          <div className={`col-span-2 ${WihtProvider ? "hidden" : ""}`}>
             <InputField
               disabled={!!phoneNumber}
               name="fullName"
@@ -245,7 +245,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
               icon={<UserForm className="absolute w-4 h-4 inset-y-0 left-4 m-auto  text-gray-500" />}
             />
           </div>
-          <div className="col-span-2">
+          <div className={`col-span-2 ${WihtProvider ? "hidden" : ""}`}>
             <InputField
               disabled={!!phoneNumber}
               name="identifier"
@@ -255,18 +255,20 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
               icon={<EmailIcon className="absolute w-4 h-4 inset-y-0 left-4 m-auto text-gray-500" />}
             />
           </div>
-          {!["tiktok", "instagram", "facebook", "x", "youtube"].includes(linkMedia) && <div className="w-full relative">
-            <InputField
-              name="password"
-              type={passwordView ? "password" : "text"}
-              autoComplete="off"
-              label="Contraseña"
-              autoFocus={!!preregister}
-              icon={<LockClosed className="absolute w-4 h-4 inset-y-0 left-4 m-auto  text-gray-500" />} />
-            <div onClick={() => { setPasswordView(!passwordView) }} className="absolute cursor-pointer inset-y-0 top-5 right-4 m-auto w-4 h-4 text-gray-500" >
-              {passwordView ? <Eye /> : <EyeSlash />}
+          {linkMedia == null &&
+            <div className={`w-full relative ${WihtProvider ? "hidden" : ""}`}>
+              <InputField
+                name="password"
+                type={passwordView ? "password" : "text"}
+                autoComplete="off"
+                label="Contraseña"
+                autoFocus={!!preregister}
+                icon={<LockClosed className="absolute w-4 h-4 inset-y-0 left-4 m-auto  text-gray-500" />} />
+              <div onClick={() => { setPasswordView(!passwordView) }} className="absolute cursor-pointer inset-y-0 top-5 right-4 m-auto w-4 h-4 text-gray-500" >
+                {!passwordView ? <Eye /> : <EyeSlash />}
+              </div>
             </div>
-          </div>}
+          }
           <span className="w-full relative ">
             <InputField
               disabled={!!phoneNumber}
@@ -277,27 +279,22 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
               label={"Número de telefono"}
             />
           </span>
-          <div className="flex items-center w-fit col-span-2 gap-6 mx-auto pt-3 ">
+          <div className="flex items-center w-fit col-span-2 gap-6 mx-auto  ">
             <button
               id="sign-in-button"
               type="submit"
               className="col-span-2 bg-primary rounded-full px-10 py-2 text-white font-medium mx-auto inset-x-0 md:hover:bg-tertiary transition"
             >
-              {!phoneNumber ? "Registrar" : "Reenviar Link"}
+              {linkMedia != null ? !phoneNumber ? "siguiente" : "Reenviar Link" : !phoneNumber ? "Registrar" : "Reenviar Link"}
             </button>
           </div>
-          {["tiktok", "instagram", "facebook", "x", "youtube"].includes(linkMedia) && <div className='text-gray-900 w-full h-40'>
+          {linkMedia != null && <div className='text-gray-900 w-full h-40'>
             {phoneNumber &&
               <>
                 <p className='w-full text-center text-sm'>
                   En hora buena, te hemos enviado un mensaje por whatsapp al número {phoneNumber}; haz click en link de confirmación para continuar con el registro.
                 </p>
-                {/* <button type="button" className="col-span-2 bg-emerald-500 rounded-full px-2 py-0 text-white font-medium mx-auto inset-x-0 md:hover:bg-emerald-700 transition"
-                >
-                  Enviar link al correo electrónico
-                </button> */}
               </>
-
             }
           </div>}
         </Form>
