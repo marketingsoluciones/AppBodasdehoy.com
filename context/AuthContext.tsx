@@ -94,11 +94,10 @@ const AuthProvider = ({ children }) => {
   const [preregister, SetPreregister] = useState<any>(null)
   const [linkMedia, SetLinkMedia] = useState<string | string[] | null>(null)
   const [storage_id, SetStorage_id] = useState<string | null>(null)
-  const router = useRouter()
   const [triggerAuthStateChanged, setTriggerAuthStateChanged] = useState<number | null>(null)
   const [isStartingRegisterOrLogin, setIsStartingRegisterOrLogin] = useState<boolean>(null)
   const [WihtProvider, SetWihtProvider] = useState<boolean>(false)
-
+  const router = useRouter()
   const [updateActivity] = useActivity()
 
 
@@ -343,7 +342,7 @@ const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{
-      SetWihtProvider, WihtProvider, setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms, setIsStartingRegisterOrLogin, link_id, SetLink_id, storage_id, SetStorage_id, linkMedia, SetLinkMedia, preregister, SetPreregister
+      setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms, setIsStartingRegisterOrLogin, link_id, SetLink_id, storage_id, SetStorage_id, linkMedia, SetLinkMedia, preregister, SetPreregister, SetWihtProvider, WihtProvider,
     }}>
       {verificationDone && children}
     </AuthContext.Provider>
