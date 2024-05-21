@@ -11,7 +11,7 @@ type CompVentas1Type = {
   propMinWidth?: CSSProperties["minWidth"];
 };
 
-const CompVentas1: FC <CompVentas1Type> = memo(
+const CompVentas1: FC <CompVentas1Type> = 
   ({ lolo, icon, propMinWidth, link, componentState, setComponentState}) => {
     const loloStyle: CSSProperties = useMemo(() => {
       return {
@@ -62,7 +62,6 @@ const CompVentas1: FC <CompVentas1Type> = memo(
 
       </div>
     );
-  },
-);
+  };
 
 export default CompVentas1;

@@ -1,4 +1,4 @@
-import { memo, useMemo, type CSSProperties, FC } from "react";
+import { useMemo, type CSSProperties, FC } from "react";
 
 export type DataUsuarioRType = {
   nombre?: string;
@@ -11,15 +11,7 @@ export type DataUsuarioRType = {
   propColor?: CSSProperties["color"];
 };
 
-const DataUsuarioR: FC <DataUsuarioRType> = memo(
-  ({
-    nombre,
-    correo,
-    icon,
-    propMinWidth,
-    propBackgroundColor,
-    propColor,
-  }) => {
+const DataUsuarioR: FC<DataUsuarioRType> = ({nombre, correo, icon, propMinWidth, propBackgroundColor,propColor,}) => {
     const DataUsuarioRStyle: CSSProperties = useMemo(() => {
       return {
         minWidth: propMinWidth,
@@ -77,7 +69,6 @@ const DataUsuarioR: FC <DataUsuarioRType> = memo(
         </div>
       </div>
     );
-  },
-);
+  };
 
 export default DataUsuarioR;

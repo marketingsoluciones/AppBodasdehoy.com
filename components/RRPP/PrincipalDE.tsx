@@ -5,7 +5,7 @@ interface propsPrincipalDE {
   
   }
 
-const PrincipalDE: FC <propsPrincipalDE> = memo(({componentState,setComponentState}) => {
+const PrincipalDE: FC <propsPrincipalDE> = ({componentState,setComponentState}) => {
   return (
     <div className="w-[100%] h-[100%] bg-slate-100 overflow-hidden flex flex-row items-start justify-center pt-[40.5px] px-[88px] box-border gap-[21px] tracking-[normal] text-left text-sm text-gray-600 font-medium mq416:pl-11 mq416:pr-11 mq416:box-border">
       <div onClick={()=>{ 
@@ -100,6 +100,6 @@ const PrincipalDE: FC <propsPrincipalDE> = memo(({componentState,setComponentSta
       </div>
     </div>
   );
-});
+};
 
 export default PrincipalDE;

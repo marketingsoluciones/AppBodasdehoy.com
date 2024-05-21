@@ -5,7 +5,7 @@ interface propsEntradasGratis {
   
   }
 
-const EntradasGratis: FC <propsEntradasGratis> = memo(({componentState,setComponentState}) => {
+const EntradasGratis: FC <propsEntradasGratis> = ({componentState,setComponentState}) => {
   return (
     <div className="w-full h-full bg-slate-100 overflow-hidden flex flex-col items-center justify-start pt-[30px] box-border tracking-[normal] text-left text-base text-gray-600 font-semibold">
       <section className="self-stretch flex flex-col items-start justify-center py-0  pl-0 gap-[10px] text-left text-sm text-gray-600 mq416:pr-[362px] mq416:box-border">
@@ -216,6 +216,6 @@ const EntradasGratis: FC <propsEntradasGratis> = memo(({componentState,setCompon
       </div>
     </div>
   );
-});
+};
 
 export default EntradasGratis;

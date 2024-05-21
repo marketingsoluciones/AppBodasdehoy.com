@@ -7,7 +7,7 @@ interface propsVentasEntradas {
   }
 
 
-const VentasEntradas: FC <propsVentasEntradas> = memo(({componentState,setComponentState}) => {
+const VentasEntradas: FC <propsVentasEntradas> = ({componentState,setComponentState}) => {
   return (
     <div className="w-full bg-slate-100 overflow-hidden flex flex-row items-start justify-center py-[30px]  box-border gap-[40px] tracking-[normal] text-left text-2xl text-text-primary font-medium mq416:pl-5 mq416:pr-5 mq416:box-border">
       
@@ -287,6 +287,6 @@ const VentasEntradas: FC <propsVentasEntradas> = memo(({componentState,setCompon
       </div>
     </div>
   );
-});
+};
 
 export default VentasEntradas;
