@@ -4,17 +4,18 @@ import { useAllowed } from "../../hooks/useAllowed";
 
 interface propsInputField extends InputHTMLAttributes<HTMLInputElement> {
   label?: string
-  className?:string
+  className?: string
   disabled?: boolean
+  labelClass?: boolean
 }
 
-const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled = false, ...props }) => {
+const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled = false, labelClass = true, ...props }) => {
   const [field, meta, helpers] = useField({ name: props.name })
   const [isAllowed, ht] = useAllowed()
 
   return (
     <div className="w-full h-max relative">
-      <label className="font-display text-primary text-sm w-full">{label}</label>
+      <label className={` font-display ${labelClass ? "text-primary" : "text-textGrisClaro"} text-sm w-full `}>{label}</label>
       <div className="w-full">
         {props?.type !== "tel"
           ? <input disabled={!isAllowed() || disabled} className={`font-display text-sm text-gray-500 border-[1px] border-gray-200 focus:border-gray-400 w-full py-2 px-4 rounded-xl focus:ring-0 focus:outline-none transition ${className}`} {...field} {...props}></input>

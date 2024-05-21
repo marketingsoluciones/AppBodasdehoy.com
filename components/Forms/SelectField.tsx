@@ -5,21 +5,23 @@ import { EventContextProvider } from "../../context"
 import { number } from "yup"
 
 interface propsSelectField extends HtmlHTMLAttributes<HTMLSelectElement> {
-    label: string
-    name: string
-    options: string[]
+    label?: string
+    name?: string
+    options?: string[]
     colSpan?: number
+    labelClass?: boolean
+
 }
-const SelectField: FC<propsSelectField> = ({ label, children, options, colSpan, ...props }) => {
+const SelectField: FC<propsSelectField> = ({ label, children, options, colSpan, labelClass = true, ...props }) => {
     const { invitadoCero, event } = EventContextProvider();
     const [field, meta] = useField({ name: props.name })
     if (field.value == null) field.value = "sin menú"
     return (
         <>
             <div className={`relative* w-full h-full col-span${colSpan && `-${colSpan}`} content-between`}>
-                <label className="font-display text-sm text-primary w-full">{label}</label>
+                <label className={`font-display text-sm ${labelClass ? "text-primary" : "text-textGrisClaro"} w-full`}>{label}</label>
                 <div>
-                    <select className="font-display capitalize cursor-pointer text-sm text-gray-500 border border-gray-100 focus:border-gray-400 focus:ring-0 transition w-full py-2 pr-7 rounded-xl focus:outline-none  " {...field} {...props} >
+                    <select className="font-display capitalize cursor-pointer text-sm text-gray-500 border border-gray-200 focus:border-gray-400 focus:ring-0 transition w-full py-2 pr-7 rounded-xl focus:outline-none  " {...field} {...props} >
                         <option disabled value="" >
                             Seleccionar
                         </option>
