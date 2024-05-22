@@ -10,8 +10,13 @@ interface propsVentasEntradas {
 
 const VentasEntradas: FC <propsVentasEntradas> = ({componentState,setComponentState}) => {
   return (
+<<<<<<< HEAD
     <div className="w-full bg-slate-100 overflow-hidden flex flex-col items-start justify-center py-[30px]  box-border gap-[40px] tracking-[normal] text-left font-medium mq416:pl-5 mq416:pr-5 mq416:box-border">
       <HeaderComp componentState={componentState} setComponentState={setComponentState}/>
+=======
+    <div className="w-full bg-slate-100 overflow-hidden flex flex-col items-start justify-center py-[20px]  box-border gap-[40px] tracking-[normal] text-left font-medium mq416:pl-5 mq416:pr-5 mq416:box-border">
+      <HeaderComp/>
+>>>>>>> 3623d75bc68dd9768cc156fa8f7b211f47b4a1f9
       <div className="flex flex-row w-full items-start justify-center gap-8">
       <div className="h-auto w-auto flex flex-col items-start justify-start gap-[43px] mq416:gap-[21px]">
         <img
