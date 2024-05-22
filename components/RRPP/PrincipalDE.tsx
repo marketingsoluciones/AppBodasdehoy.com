@@ -9,7 +9,7 @@ interface propsPrincipalDE {
 const PrincipalDE: FC <propsPrincipalDE> = ({componentState,setComponentState}) => {
   return (
     <div className="w-[100%] h-[100%] bg-slate-100 overflow-hidden flex flex-col items-center justify-center pt-[40.5px]  box-border gap-[21px] tracking-[normal] text-left text-sm text-gray-600 font-medium mq416:pl-11 mq416:pr-11 mq416:box-border">
-      <HeaderComp/>
+      <HeaderComp componentState={componentState} setComponentState={setComponentState}/>
       <div className="flex flex-row items-center justify-center gap-4">
       <div onClick={()=>{ 
         setComponentState(1)

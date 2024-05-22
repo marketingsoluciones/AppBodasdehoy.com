@@ -10,7 +10,7 @@ interface propsEntradasGratis {
 const EntradasGratis: FC <propsEntradasGratis> = ({componentState,setComponentState}) => {
   return (
     <div className="w-full h-full bg-slate-100 overflow-hidden flex flex-col items-center justify-center pt-[30px] gap-4 box-border tracking-[normal] text-left text-base text-gray-600 font-semibold">
-    <HeaderComp/>
+    <HeaderComp componentState={componentState} setComponentState={setComponentState}/>
       <section className="self-stretch flex flex-col  items-start justify-center py-0 px-10 gap-[10px] text-left text-sm text-gray-600 mq416:pr-[362px] mq416:box-border">
         
         <div className="flex flex-row flex-wrap items-start justify-center pl-8 gap-[10px]">

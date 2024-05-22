@@ -14,7 +14,7 @@ interface propsRegistroEntradasUser {
 const RegistroEntradasUser: FC <propsRegistroEntradasUser> = ({componentState, setComponentState}) => {
   return (
     <div className="bg-slate-100 w-full h-full flex flex-col gap-4 items-center justify-start px-10 pt-10">
-      <HeaderComp/>
+      <HeaderComp componentState={componentState} setComponentState={setComponentState}/>
       <div className="w-[100%] h-full text-left text-sm font-medium">
 
         <CabeceraR componentState={componentState} setComponentState={setComponentState}/>
