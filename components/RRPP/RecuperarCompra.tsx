@@ -4,10 +4,10 @@ import HeaderComp from "./Sub-Componentes/HeaderComp";
 interface propsRecuperarCompra {
     componentState: any;
     setComponentState: any;
-  
+    className?:any
   }
 
-const RecuperarCompra: FC<propsRecuperarCompra> = ({componentState, setComponentState}) => {
+const RecuperarCompra: FC<propsRecuperarCompra> = ({componentState, setComponentState,className}) => {
   return (
     <div className={`w-[100%] max-w-full flex flex-col items-start justify-start py-0 px-[21px] box-border gap-[42px] tracking-[normal] leading-[normal] mq450:gap-[21px] ${className}`}>
       <HeaderComp componentState={componentState} setComponentState={setComponentState}/>
