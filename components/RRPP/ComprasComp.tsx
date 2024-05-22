@@ -11,7 +11,7 @@ interface propsComprasComp {
 
 const ComprasComp: FC<propsComprasComp> = ({componentState, setComponentState}) => {
   return (
-    <div className="w-[100%] [filter:blur(0px)] flex flex-col items-start justify-start gap-[21px] tracking-[normal] leading-[normal] mq450:max-w-full mq725:max-w-full mq975:max-w-full mq1000:max-w-full">
+    <div className="w-[100%] h-[100vh] pt[20px] [filter:blur(0px)] flex flex-col items-start justify-start gap-[21px] tracking-[normal] leading-[normal] mq450:max-w-full mq725:max-w-full mq975:max-w-full mq1000:max-w-full">
       <HeaderComp componentState={componentState} setComponentState={setComponentState}/>
       <section className="self-stretch flex flex-col items-start justify-start gap-[10.5px] text-center text-7xl-3 px-10 text-gray-600 font-medium">
         <div className="self-stretch flex flex-col items-center justify-start py-0 px-5">

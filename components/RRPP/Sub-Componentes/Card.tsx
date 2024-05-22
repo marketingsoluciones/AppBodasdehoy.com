@@ -15,9 +15,7 @@ const Card1: FC = () => {
           <div className="self-stretch flex flex-row flex-wrap items-center justify-between gap-[20px]">
             <div className="w-auto flex flex-col items-start justify-start py-0 pr-2.5 pl-0 box-border">
              
-                
-                
-              
+
                   <div className="flex flex-col items-start justify-start">
                     <div className="relative tracking-[2.45px] leading-[17.5px] uppercase inline-block">
                       <span className="font-extralight">sáb.</span> 

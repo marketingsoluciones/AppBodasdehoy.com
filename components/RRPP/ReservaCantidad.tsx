@@ -9,7 +9,7 @@ interface propsReservaCantidad {
 
 const ReservaCantidad: FC <propsReservaCantidad> = ({componentState, setComponentState}) => {
   return (
-    <div className="w-[100%] h-[100%] max-w-full flex flex-col gap-4 items-center justify-center  box-border tracking-[normal] text-center text-sm text-[#6096B9] ">
+    <div className="w-[100%] h-[100vh] max-w-full flex flex-col gap-4 items-center justify-center  box-border tracking-[normal] pt-[20px] text-center text-sm text-[#6096B9] ">
       <HeaderComp componentState={componentState} setComponentState={setComponentState}/>
       <div className="w-[60%] rounded-md bg-white shadow-[0px_1px_10px_rgba(0,_0,_0,_0.12),_0px_4px_5px_rgba(0,_0,_0,_0.14),_0px_2px_4px_-1px_rgba(0,_0,_0,_0.2)] overflow-hidden flex flex-col items-start justify-start box-border max-w-full">
         
