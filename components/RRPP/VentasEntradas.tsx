@@ -1,5 +1,6 @@
 import { FC, FunctionComponent, memo } from "react";
 import CompVentas1 from "./CompVentas1";
+import HeaderComp from "./Sub-Componentes/HeaderComp";
 interface propsVentasEntradas {
     componentState: any;
     setComponentState: any;
@@ -9,9 +10,10 @@ interface propsVentasEntradas {
 
 const VentasEntradas: FC <propsVentasEntradas> = ({componentState,setComponentState}) => {
   return (
-    <div className="w-full bg-slate-100 overflow-hidden flex flex-row items-start justify-center py-[30px]  box-border gap-[40px] tracking-[normal] text-left text-2xl text-text-primary font-medium mq416:pl-5 mq416:pr-5 mq416:box-border">
-      
-      <div className="h-auto w-[293.3px] flex flex-col items-start justify-start gap-[43px] min-w-[293.3000000000029px] mq416:gap-[21px]">
+    <div className="w-full bg-slate-100 overflow-hidden flex flex-col items-start justify-center py-[30px]  box-border gap-[40px] tracking-[normal] text-left font-medium mq416:pl-5 mq416:pr-5 mq416:box-border">
+      <HeaderComp/>
+      <div className="flex flex-row w-full items-start justify-center gap-8">
+      <div className="h-auto w-auto flex flex-col items-start justify-start gap-[43px] mq416:gap-[21px]">
         <img
           className="self-stretch h-[366.6px] relative rounded-md max-w-full overflow-hidden shrink-0 object-cover [debug_commit:1cbd860]"
           loading="lazy"
@@ -30,10 +32,10 @@ const VentasEntradas: FC <propsVentasEntradas> = ({componentState,setComponentSt
             Banaoro / Rocafuerte y 25 de junio
             </div>
           </div>
-          <button className="cursor-pointer [border:none] pt-[3.5px] pb-[3px] pr-[4.700000000004366px] pl-[7px] bg-red-600 rounded-[5.25px] flex flex-row items-start justify-start gap-[3.5px]">
+          <button className="cursor-pointer [border:none] pt-[3.5px] pb-[3px] pr-[4.700000000004366px] pl-[7px] bg-red rounded-[5.25px] flex flex-row items-start justify-start gap-[3.5px]">
             <div className="h-[15px] flex flex-col items-start justify-start pt-0.5 px-0 pb-0 box-border">
               <img
-                className="w-[9.2px] h-[13px] relative overflow-hidden shrink-0"
+                className="w-auto h-auto relative overflow-hidden shrink-0"
                 alt=""
                 src="ModuloEvento/ubi1.svg"
               />
@@ -53,7 +55,7 @@ const VentasEntradas: FC <propsVentasEntradas> = ({componentState,setComponentSt
               <div onClick={()=>{ 
         setComponentState(0)
       }} 
-               className="cursor-pointer rounded-md bg-rosa flex flex-row items-center justify-center py-[10.5px] pr-[11.30000000000291px] pl-[11.39999999999418px]">
+               className="cursor-pointer rounded-md bg-[#6096B9] flex flex-row items-center justify-center py-[10.5px] pr-[11.30000000000291px] pl-[11.39999999999418px]">
                 <div className="flex flex-col items-start justify-start">
                   <div className="h-3.5 flex flex-row items-start justify-start">
                     <img
@@ -85,13 +87,13 @@ const VentasEntradas: FC <propsVentasEntradas> = ({componentState,setComponentSt
                 </div>
               </div>
             </div>
-            <div className="flex flex-col items-start justify-start gap-[14px] max-w-full text-[32.5px] text-rosa">
+            <div className="flex flex-col items-start justify-start gap-[14px] max-w-full text-[32.5px] text-[#6096B9]">
               <b className="w-full h-14 relative leading-[56px] inline-block max-w-[668.6699829101562px] mq416:text-[31px] mq416:leading-[34px]">
                 Concierto de los Iracunddos
               </b>
               <div className="flex flex-row items-start justify-start gap-[7px] text-smi-3 text-primary-contrast">
                 
-                <div className="rounded-md bg-red-400 text-white flex flex-row items-start justify-start pt-[3.5px] pb-[3px] pr-[6.700000000004366px] pl-[7px] gap-[3.5px]">
+                <div className="rounded-md bg-red opacity-50 text-white flex flex-row items-start justify-start pt-[3.5px] pb-[3px] pr-[6.700000000004366px] pl-[7px] gap-[3.5px]">
                   <div className="h-[15px] flex flex-col items-start justify-start pt-0.5 px-0 pb-0 box-border">
                     <img
                       className="w-[9.2px] h-[13px] relative overflow-hidden shrink-0"
@@ -122,16 +124,16 @@ const VentasEntradas: FC <propsVentasEntradas> = ({componentState,setComponentSt
           </div>
 
           <div className="self-stretch rounded-md flex flex-col items-start justify-start pt-5 pb-[10.5px] pr-2.5 pl-[10.5px] box-border gap-[11px] max-w-full text-black">
-            <div className="flex flex-row items-start justify-start text-2xl">
+            <div className="flex flex-row items-start justify-start text-lg">
               <div className="flex flex-col items-start justify-start pt-[4.5px] px-0 pb-0">
-                <div className="w-[3.5px] h-[17.5px] relative rounded-md bg-green-600" />
+                <div className="w-[3.5px] h-[17.5px] relative rounded-md bg-green" />
               </div>
               <b className="h-7 w-full relative pl-1 tracking-[4.2px] leading-[28px] uppercase inline-block mq416:text-mid mq416:leading-[22px]">
                 {" "}
                 Entradas
               </b>
             </div>
-            <div className="self-stretch rounded-md bg-white shadow-[0px_1px_14px_rgba(0,_0,_0,_0.12),_0px_5px_8px_rgba(0,_0,_0,_0.14),_0px_3px_5px_-1px_rgba(0,_0,_0,_0.2)] overflow-hidden flex flex-col items-start justify-start max-w-full">
+            <div className="self-stretch rounded-md bg-white hover:bg-green hover:bg-opacity-50 shadow-[0px_1px_14px_rgba(0,_0,_0,_0.12),_0px_5px_8px_rgba(0,_0,_0,_0.14),_0px_3px_5px_-1px_rgba(0,_0,_0,_0.2)] overflow-hidden flex flex-col items-start justify-start max-w-full hover:border-[2px] hover:border-green ">
               <div className="self-stretch rounded-md shadow-[0px_1px_5px_rgba(0,_0,_0,_0.12),_0px_2px_2px_rgba(0,_0,_0,_0.14),_0px_3px_1px_-2px_rgba(0,_0,_0,_0.2)] box-border flex flex-col items-start justify-start py-px px-0 max-w-full border-[1px] border-solid border-green-400">
                 <div className="self-stretch flex flex-row items-center justify-start max-w-full [row-gap:20px]">
                   <div className="flex-1 flex flex-col items-start justify-start py-[10.5px] pr-[21px] pl-[10.5px] box-border min-w-[323px] max-w-full">
@@ -158,7 +160,7 @@ const VentasEntradas: FC <propsVentasEntradas> = ({componentState,setComponentSt
         setComponentState(2)
       }}  
                        className="cursor-pointer [border:none] p-0 bg-[transparent] flex flex-col items-start justify-start">
-                        <div className="rounded-md bg-rosa flex flex-row items-start justify-start pt-[13.5px] px-[21px] pb-[15px]">
+                        <div className="rounded-md bg-[#6096B9] flex flex-row items-start justify-start pt-[13.5px] px-[21px] pb-[15px]">
                           <div className="h-[17px] flex flex-row items-start justify-start">
                             <img
                               className="h-[17px] w-[15.3px] relative overflow-hidden shrink-0"
@@ -173,7 +175,8 @@ const VentasEntradas: FC <propsVentasEntradas> = ({componentState,setComponentSt
                 </div>
               </div>
             </div>
-            <div className="self-stretch rounded-md bg-white shadow-[0px_1px_14px_rgba(0,_0,_0,_0.12),_0px_5px_8px_rgba(0,_0,_0,_0.14),_0px_3px_5px_-1px_rgba(0,_0,_0,_0.2)] overflow-hidden flex flex-col items-start justify-start max-w-full">
+
+            <div className="self-stretch rounded-md bg-white hover:bg-green hover:bg-opacity-50 shadow-[0px_1px_14px_rgba(0,_0,_0,_0.12),_0px_5px_8px_rgba(0,_0,_0,_0.14),_0px_3px_5px_-1px_rgba(0,_0,_0,_0.2)] overflow-hidden flex flex-col items-start justify-start max-w-full hover:border-[2px] hover:border-green">
               <div className="self-stretch rounded-md shadow-[0px_1px_5px_rgba(0,_0,_0,_0.12),_0px_2px_2px_rgba(0,_0,_0,_0.14),_0px_3px_1px_-2px_rgba(0,_0,_0,_0.2)] box-border flex flex-col items-start justify-start py-px px-0 max-w-full border-[1px] border-solid border-green-400">
                 <div className="self-stretch flex flex-row items-center justify-start max-w-full [row-gap:20px]">
                   <div className="flex-1 flex flex-col items-start justify-start py-[10.5px] pr-[21px] pl-[10.5px] box-border min-w-[323px] max-w-full">
@@ -200,7 +203,7 @@ const VentasEntradas: FC <propsVentasEntradas> = ({componentState,setComponentSt
         setComponentState(2)
       }}  
                        className="cursor-pointer [border:none] p-0 bg-[transparent] flex flex-col items-start justify-start">
-                        <div className="rounded-md bg-rosa flex flex-row items-start justify-start pt-[13.5px] px-[21px] pb-[15px]">
+                        <div className="rounded-md bg-[#6096B9] flex flex-row items-start justify-start pt-[13.5px] px-[21px] pb-[15px]">
                           <div className="h-[17px] flex flex-row items-start justify-start">
                             <img
                               className="h-[17px] w-[15.3px] relative overflow-hidden shrink-0"
@@ -216,7 +219,7 @@ const VentasEntradas: FC <propsVentasEntradas> = ({componentState,setComponentSt
               </div>
             </div>
             
-            <div className="self-stretch rounded-md bg-white shadow-[0px_1px_14px_rgba(0,_0,_0,_0.12),_0px_5px_8px_rgba(0,_0,_0,_0.14),_0px_3px_5px_-1px_rgba(0,_0,_0,_0.2)] overflow-hidden flex flex-col items-start justify-start p-px box-border max-w-full">
+            <div className="self-stretch rounded-md bg-white hover:bg-green hover:bg-opacity-50 shadow-[0px_1px_14px_rgba(0,_0,_0,_0.12),_0px_5px_8px_rgba(0,_0,_0,_0.14),_0px_3px_5px_-1px_rgba(0,_0,_0,_0.2)] overflow-hidden flex flex-col items-start justify-start p-px box-border max-w-full hover:border-[2px] hover:border-green">
               <div className="self-stretch flex flex-row items-center justify-start max-w-full [row-gap:20px]">
                 <div className="flex flex-col items-start justify-start py-[10.5px] pr-[21px] pl-[10.5px] box-border min-w-[318px] max-w-full">
                   <div className="self-stretch flex flex-col items-start justify-start">
@@ -239,7 +242,7 @@ const VentasEntradas: FC <propsVentasEntradas> = ({componentState,setComponentSt
                       </div>
                     </div>
                     <button className="cursor-pointer [border:none] p-0 bg-[transparent] flex flex-col items-start justify-start z-[1] ml-[-0.22px]">
-                      <div className="rounded-md bg-rosa flex flex-row items-start justify-start pt-[13.5px] px-[21px] pb-[15px]">
+                      <div className="rounded-md bg-[#6096B9] flex flex-row items-start justify-start pt-[13.5px] px-[21px] pb-[15px]">
                         <div className="h-[17px] flex flex-row items-start justify-start">
                           <img
                             className="h-[17px] w-[15.3px] relative overflow-hidden shrink-0"
@@ -253,14 +256,15 @@ const VentasEntradas: FC <propsVentasEntradas> = ({componentState,setComponentSt
                 </div>
               </div>
             </div>
+
           </div>
 
         </div>
 
-        <div className="self-stretch rounded-md flex flex-col items-start justify-start pt-5 pb-[10.5px] pr-2.5 pl-[10.5px] box-border gap-[1px] max-w-full text-2xl text-black">
-          <div className="flex flex-row items-start justify-start">
+        <div className="self-stretch rounded-md flex flex-col items-start justify-start pt-5 pb-[10.5px] pr-2.5 pl-[10.5px] box-border gap-[1px] max-w-full text-black">
+          <div className="flex flex-row items-start justify-start gap-1">
             <div className="flex flex-col items-start justify-start pt-[4.5px] px-0 pb-0">
-              <div className="w-[3.5px] h-[17.5px] relative rounded-[5.25px] bg-slate-200" />
+              <div className="w-[3.5px] h-[17.5px] relative rounded-[5.25px] bg-blue-800" />
             </div>
             <b className="h-7 w-full relative tracking-[4.2px] leading-[28px] uppercase inline-block min-w-[101px] mq416:text-mid mq416:leading-[22px]">
               {" "}
@@ -284,6 +288,7 @@ const VentasEntradas: FC <propsVentasEntradas> = ({componentState,setComponentSt
             />
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

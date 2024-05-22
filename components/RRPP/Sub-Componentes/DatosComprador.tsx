@@ -7,9 +7,9 @@ interface propsDatosComprador{
 export const DatosComprador: FC<propsDatosComprador> = ({idx,item}) => {
     
     return( <>
-        <div className="w-[600px] rounded-md overflow-hidden bg-white shadow-[0px_1px_5px_rgba(0,_0,_0,_0.12),_0px_2px_2px_rgba(0,_0,_0,_0.14),_0px_3px_1px_-2px_rgba(0,_0,_0,_0.2)] flex flex-col items-start justify-start">
+        <div className="w-auto rounded-md overflow-hidden bg-white shadow-[0px_1px_5px_rgba(0,_0,_0,_0.12),_0px_2px_2px_rgba(0,_0,_0,_0.14),_0px_3px_1px_-2px_rgba(0,_0,_0,_0.2)] flex flex-col items-start justify-start text-gray-600">
         <div className="w-full bg-rosa flex flex-col items-start justify-start py-[10.5px] pl-[21px]">
-          <b className="relative leading-[21px] uppercase text-white inline-block">
+          <b className="relative leading-[21px] uppercase text-gray-600 inline-block">
             Datos del Comprador #{idx+1}
           </b>
         </div>

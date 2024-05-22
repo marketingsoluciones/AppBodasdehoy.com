@@ -1,4 +1,5 @@
 import { FC } from "react";
+import HeaderComp from "./Sub-Componentes/HeaderComp";
 interface propsCancelarReserva {
     componentState: any;
     setComponentState: any;
@@ -7,7 +8,8 @@ interface propsCancelarReserva {
 
 const CancelarReserva: FC <propsCancelarReserva> = ({componentState, setComponentState}) => {
   return (
-    <div className="w-[100%] h-[100%] max-w-full flex flex-row items-start justify-center px-0 box-border tracking-[normal] text-left text-xl text-rosa">
+    <div className="w-[100%] h-[100%] max-w-full flex flex-col items-center justify-center px-0 box-border tracking-[normal] text-left text-xl text-[#6096B9]">
+      <HeaderComp/>
       <div className="flex-1 flex flex-col items-center justify-center max-w-[700px] mq450:max-w-full mq650:max-w-full mq675:max-w-full">
         
         <div className="self-stretch flex flex-row items-start justify-center py-0 px-5">
@@ -164,7 +166,7 @@ const CancelarReserva: FC <propsCancelarReserva> = ({componentState, setComponen
       }} 
            className="cursor-pointer [border:none] p-0 bg-[transparent] w-[161.1px] flex flex-col items-start justify-start">
             <div className="self-stretch flex flex-row items-center justify-center">
-              <div className="flex-1 rounded-md bg-rosa flex flex-col items-center justify-start pt-[9.80000000000291px] pb-[10.69999999999709px] pr-[8.099999999998545px] pl-2.5 whitespace-nowrap">
+              <div className="flex-1 rounded-md bg-[#6096B9] flex flex-col items-center justify-start pt-[9.80000000000291px] pb-[10.69999999999709px] pr-[8.099999999998545px] pl-2.5 whitespace-nowrap">
                 <div className="self-stretch relative text-mid-5 leading-[25px] font-medium text-white text-center">
                   Cancelar reserva
                 </div>

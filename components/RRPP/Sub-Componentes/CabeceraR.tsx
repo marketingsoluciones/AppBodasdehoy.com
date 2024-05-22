@@ -13,7 +13,7 @@ export const CabeceraR: FC <propsCabeceraR> =({componentState, setComponentState
           <div onClick={()=>{ 
         setComponentState(2)
       }}
-          className="cursor-pointer rounded-md bg-rosa flex flex-row items-center justify-center py-[10.5px] px-[11px]">
+          className="cursor-pointer rounded-md bg-[#6096B9] hover:bg-[#428bbd] flex flex-row items-center justify-center py-[10.5px] px-[11px]">
             <div className="flex flex-col items-start justify-start py-0 pr-px pl-0">
               <div className="flex flex-row items-start justify-start">
                 <img

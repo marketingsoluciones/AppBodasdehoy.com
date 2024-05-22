@@ -7,7 +7,7 @@ export const CheckCondition =() => {
         />
         <div className="absolute top-[0px] left-[21.4px] leading-[21px]">
           <span>{`Quiero recibir información sobre eventos o promociones de `}</span>
-          <b>Beach Aguilas</b>
+          <b>EventoOrganizador</b>
           <span>.</span>
         </div>
       </div>

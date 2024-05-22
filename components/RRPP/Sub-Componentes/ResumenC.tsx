@@ -7,11 +7,14 @@ interface propsResumenComponents {
 }
 export const ResumenComponents: FC <propsResumenComponents> =({componentState, setComponentState}) => {
     return(
-        <div className="self-stretch w-auto flex flex-col items-start justify-start box-border text-base">
-        <div className="self-stretch flex flex-col items-center justify-start">
+        <div className="self-stretch w-auto flex flex-col items-start justify-start box-border ">
+        
+
           <div className="self-stretch rounded-md bg-white shadow-[0px_1px_10px_rgba(0,_0,_0,_0.12),_0px_4px_5px_rgba(0,_0,_0,_0.14),_0px_2px_4px_-1px_rgba(0,_0,_0,_0.2)] flex flex-col items-start justify-start p-[10.5px] gap-[10.5px]">
-            <div className="self-stretch [filter:blur(0px)] flex flex-col items-start justify-start">
+           
+           <div className="self-stretch [filter:blur(0px)] flex flex-col items-start justify-start">
               <div className="self-stretch flex flex-col items-start justify-start gap-[10.5px]">
+                
                 <div className="self-stretch flex flex-col items-start justify-start ">
                   <div className="relative leading-[24.5px] font-semibold inline-block">
                     Resumen
@@ -50,7 +53,7 @@ export const ResumenComponents: FC <propsResumenComponents> =({componentState, s
                     </div>
                     <div className="w-[42.1px] flex flex-col items-end justify-start text-right">
                       <div className="relative leading-[21px] font-light">
-                        0,00 $
+                        8,25 $
                       </div>
                     </div>
                   </div>
@@ -64,7 +67,7 @@ export const ResumenComponents: FC <propsResumenComponents> =({componentState, s
                   </div>
                   <div className="w-[49.9px] flex flex-col items-end justify-start text-right">
                     <div className="relative leading-[24.5px] font-semibold inline-block max-h-[24.5px]">
-                    55,50 $
+                    63,75 $
                     </div>
                   </div>
                 </div>
@@ -72,7 +75,7 @@ export const ResumenComponents: FC <propsResumenComponents> =({componentState, s
             </div>
             <button onClick={()=>{ 
         setComponentState(4)
-      }} className="cursor-pointer [border:none] pt-[9.5px] px-0 pb-[11px] bg-rosa self-stretch rounded-md flex flex-row items-center justify-center">
+      }} className="cursor-pointer [border:none] pt-[9.5px] px-0 pb-[11px] bg-[#6096B9] self-stretch rounded-md flex flex-row items-center justify-center">
               <div className="relative text-mid-5 leading-[24.5px] font-medium text-white text-center inline-block max-w-[264.3399963378906px]">
                 Descargar entrada
               </div>
@@ -88,7 +91,7 @@ export const ResumenComponents: FC <propsResumenComponents> =({componentState, s
               y condiciones de uso del sitio web. Más información.
             </div>
           </div>
-        </div>
+        
       </div>
     )
 }

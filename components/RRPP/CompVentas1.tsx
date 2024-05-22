@@ -20,9 +20,9 @@ const CompVentas1: FC <CompVentas1Type> =
     }, [propMinWidth]);
 
     return (
-      <div className="self-stretch rounded-md bg-white shadow-[0px_1px_14px_rgba(0,_0,_0,_0.12),_0px_5px_8px_rgba(0,_0,_0,_0.14),_0px_3px_5px_-1px_rgba(0,_0,_0,_0.2)] overflow-hidden flex flex-col items-start justify-start p-px box-border max-w-full text-left text-base text-black font-medium">
-          <div className="self-stretch flex flex-row items-center justify-start p-[10.5px] box-border max-w-full [row-gap:20px]">
-            <div className="flex flex-col items-start justify-start pr-[10.5px] pl-0 box-border min-w-[316px] max-w-full">
+      <div className="self-stretch rounded-md bg-white hover:bg-green hover:bg-opacity-50 shadow-[0px_1px_14px_rgba(0,_0,_0,_0.12),_0px_5px_8px_rgba(0,_0,_0,_0.14),_0px_3px_5px_-1px_rgba(0,_0,_0,_0.2)] overflow-hidden flex flex-row items-center justify-center box-border max-w-full text-left text-base text-black font-medium hover:border-[2px] hover:border-green">
+          
+            <div className="flex flex-col items-start justify-start pl-0 box-border min-w-[316px] max-w-full">
               <div className="self-stretch overflow-hidden flex flex-col items-start justify-start">
                 <div
                   className="w-auto h-[24.5px] relative leading-[24.5px] font-semibold inline-block min-w-[28px] max-w-[537.3599853515625px] max-h-[24.5px]"
@@ -32,7 +32,8 @@ const CompVentas1: FC <CompVentas1Type> =
                 </div>
               </div>
             </div>
-            <div className="w-auto flex flex-col items-start justify-start py-[10.5px] pr-[10.5px] pl-0 box-border z-[1] text-center">
+
+            <div className="w-auto flex flex-col items-start justify-start py-[10.5px] pl-0 box-border text-center">
               <div className="self-stretch flex flex-row items-center justify-start gap-[5px]">
                 <div className="flex flex-col items-center justify-start">
                   <div className="self-stretch rounded-md bg-green-200 flex flex-row items-start justify-start p-[10.5px]">
@@ -46,7 +47,7 @@ const CompVentas1: FC <CompVentas1Type> =
                 <button onClick={()=>{ 
         setComponentState(link)
       }}   className="cursor-pointer [border:none] p-0 bg-[transparent] flex-1 flex flex-col items-start justify-start">
-                  <div className="self-stretch rounded-md bg-rosa flex flex-row items-start justify-start pt-[13.5px] px-[21px] pb-[15px]">
+                  <div className="self-stretch rounded-md bg-[#6096B9] flex flex-row items-start justify-start pt-[13.5px] px-[21px] pb-[15px]">
                     <div className="h-[17px] flex flex-row items-start justify-start">
                       <img
                         className="h-[17px] w-[15.3px] relative overflow-hidden shrink-0"
@@ -58,7 +59,7 @@ const CompVentas1: FC <CompVentas1Type> =
                 </button>
               </div>
             </div>
-          </div>
+          
 
       </div>
     );

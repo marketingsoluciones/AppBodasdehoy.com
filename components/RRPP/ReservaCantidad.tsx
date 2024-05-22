@@ -1,4 +1,6 @@
 import { FC } from "react";
+import NumericCounter from "./Sub-Componentes/ContadorNumerico";
+import HeaderComp from "./Sub-Componentes/HeaderComp";
 interface propsReservaCantidad {
     componentState: any;
     setComponentState: any;
@@ -7,7 +9,8 @@ interface propsReservaCantidad {
 
 const ReservaCantidad: FC <propsReservaCantidad> = ({componentState, setComponentState}) => {
   return (
-    <div className="w-[100%] h-[100%] max-w-full flex flex-row items-center justify-center  box-border tracking-[normal] text-center text-sm text-rosa">
+    <div className="w-[100%] h-[100%] max-w-full flex flex-col gap-4 items-center justify-center  box-border tracking-[normal] text-center text-sm text-[#6096B9] ">
+      <HeaderComp/>
       <div className="w-[60%] rounded-md bg-white shadow-[0px_1px_10px_rgba(0,_0,_0,_0.12),_0px_4px_5px_rgba(0,_0,_0,_0.14),_0px_2px_4px_-1px_rgba(0,_0,_0,_0.2)] overflow-hidden flex flex-col items-start justify-start box-border max-w-full">
         
         <div className="self-stretch bg-gray-100 [backdrop-filter:blur(8px)] flex flex-row items-start justify-between pt-[10.5px] px-[21px] pb-[13.5px] box-border max-w-full gap-[20px] z-[1] mq450:flex-wrap">
@@ -17,7 +20,7 @@ const ReservaCantidad: FC <propsReservaCantidad> = ({componentState, setComponen
         setComponentState(1)
       }} 
              className="cursor-pointer [border:none] py-0 pr-[10.5px] pl-0 bg-[transparent] flex flex-col items-start justify-start">
-              <div className="rounded-md bg-rosa flex flex-row items-center justify-center py-[10.5px] px-[11px]">
+              <div className="rounded-md bg-[#6096B9] flex flex-row items-center justify-center py-[10.5px] px-[11px]">
                 <div className="w-[13px] flex flex-col items-start justify-start">
                   <div className="h-3.5 flex flex-row items-start justify-start">
                     <img
@@ -54,7 +57,7 @@ const ReservaCantidad: FC <propsReservaCantidad> = ({componentState, setComponen
             </div>
           </div>
           <div className="flex flex-col items-start justify-start">
-            <div className="rounded-md bg-rosa flex flex-row items-center justify-center py-[10.5px] px-[13px]">
+            <div className="rounded-md bg-[#6096B9] flex flex-row items-center justify-center py-[10.5px] px-[13px]">
               <div className="w-[9px] flex flex-col items-end justify-start">
                 <div className="h-3.5 flex flex-row items-start justify-start">
                   <img
@@ -127,7 +130,7 @@ const ReservaCantidad: FC <propsReservaCantidad> = ({componentState, setComponen
                   </div>
                 </div>
               </div>
-              <div className="self-stretch rounded-md shadow-[0px_1px_10px_rgba(0,_0,_0,_0.12),_0px_4px_5px_rgba(0,_0,_0,_0.14),_0px_2px_4px_-1px_rgba(0,_0,_0,_0.2)] flex flex-col items-start justify-start py-[31.5px] px-[9px] text-center text-xl text-rosa border-[1px] border-solid border-gray-100">
+              <div className="self-stretch rounded-md shadow-[0px_1px_10px_rgba(0,_0,_0,_0.12),_0px_4px_5px_rgba(0,_0,_0,_0.14),_0px_2px_4px_-1px_rgba(0,_0,_0,_0.2)] flex flex-col items-start justify-start py-[31.5px] px-[9px] text-center text-xl text-[#6096B9] border-[1px] border-solid border-gray-100">
                 <div className="self-stretch flex flex-col items-center justify-center py-0 px-5">
                   <div className="w-auto flex flex-col items-start justify-start pt-0 pb-[10.5px] px-0 box-border">
                     <div className="w-auto flex flex-col items-center justify-start">
@@ -136,46 +139,15 @@ const ReservaCantidad: FC <propsReservaCantidad> = ({componentState, setComponen
                       </h3>
                     </div>
                   </div>
-                  <div className="w-[246.5px] flex flex-row items-center justify-center py-0 pr-[26.700000000000728px] pl-[26.799999999999272px] box-border gap-[10.5px] ">
-                    <div className="flex-1 flex flex-col items-start justify-start">
-                      <div className="self-stretch rounded-full bg-gray-400 flex flex-row items-center justify-center py-2.5 pr-[22.900000000001455px] pl-[23.099999999998545px]">
-                        <div className="flex-1 flex flex-col items-center justify-start">
-                          <h3 className="m-0 self-stretch relative text-white leading-[36px] font-medium font-inherit inline-block min-w-[10px] mq450:text-mid mq450:leading-[29px]">
-                            -
-                          </h3>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex-1 flex flex-col items-start justify-start min-w-[60px] text-xl">
-                      <div className="self-stretch flex flex-col items-start justify-start py-0 px-[10.5px]">
-                        <div className="self-stretch flex flex-row items-center justify-start">
-                          <div className="flex-1 flex flex-col items-start justify-start">
-                            <div className="self-stretch overflow-hidden flex flex-col items-center justify-start py-0 pr-[11.299999999999272px] pl-[11.700000000000728px]">
-                              <div className="w-full relative text-black leading-[36px] inline-block min-w-[16px] max-w-[39px] mq450:text-2xl mq450:leading-[29px]">
-                                2
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex-1 flex flex-col items-start justify-start">
-                      <div className="self-stretch rounded-full bg-rosa shadow-[0px_1px_3px_rgba(0,_0,_0,_0.1),_0px_1px_2px_rgba(0,_0,_0,_0.06)] flex flex-row items-center justify-center py-2.5 pr-[20.900000000001455px] pl-[21.099999999998545px]">
-                        <div className="flex-1 flex flex-col items-center justify-start">
-                          <div className="self-stretch relative leading-[36px] font-medium text-white inline-block min-w-[14px] mq450:text-mid mq450:leading-[29px]">
-                            +
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+
+                  <NumericCounter/>
                 </div>
               </div>
             </div>
             <button onClick={()=>{ 
         setComponentState(6)
       }} 
-             className="cursor-pointer [border:none] py-0 pr-5 pl-[21px] bg-rosa self-stretch rounded-md flex flex-row items-start justify-center hover:bg-steelblue-100">
+             className="cursor-pointer [border:none] py-0 pr-5 pl-[21px] bg-[#6096B9] self-stretch rounded-md flex flex-row items-start justify-center hover:bg-steelblue-100">
               <div className="w-[66px] relative text-sm leading-[36px] font-medium text-white text-center flex items-center justify-center min-w-[66px] max-w-[535px] mq650:max-w-full">
                 Continuar
               </div>

@@ -1,5 +1,6 @@
 import { FC } from "react";
 import Checkbox from "../RRPP/Checkbox1";
+import HeaderComp from "./Sub-Componentes/HeaderComp";
 interface propsReservaDatos {
     componentState: any;
     setComponentState: any;
@@ -8,7 +9,8 @@ interface propsReservaDatos {
 
 const ReservaDatos: FC <propsReservaDatos> = ({componentState, setComponentState}) => {
   return (
-    <div className="w-[100%] h-[100%] max-w-full flex flex-row  items-start justify-center pt-10 box-border tracking-[normal] text-center text-sm text-rosa">
+    <div className="w-[100%] h-[100%] max-w-full flex flex-col  items-center justify-center pt-10 box-border tracking-[normal] text-center text-sm text-[#6096B9] ">
+      <HeaderComp/>
       <div className="rounded-md bg-white shadow-[0px_1px_10px_rgba(0,_0,_0,_0.12),_0px_4px_5px_rgba(0,_0,_0,_0.14),_0px_2px_4px_-1px_rgba(0,_0,_0,_0.2)] box-border overflow-hidden flex flex-col items-start justify-start pt-px px-0 pb-[22.5px] gap-[61px] max-w-full border-[1px] border-solid border-divider mq450:gap-[30px_61px]">
         
       <div className="self-stretch bg-gray-100 [backdrop-filter:blur(8px)] flex flex-row items-start justify-between pt-[10.5px] px-[21px] pb-[13.5px] box-border max-w-full gap-[20px] z-[1] mq450:flex-wrap">
@@ -18,7 +20,7 @@ const ReservaDatos: FC <propsReservaDatos> = ({componentState, setComponentState
         setComponentState(5)
       }} 
             className="cursor-pointer [border:none] bg-[transparent] flex flex-col items-start justify-start">
-              <div className="rounded-md bg-rosa flex flex-row items-center justify-center py-[10.5px] px-[11px]">
+              <div className="rounded-md bg-[#6096B9] flex flex-row items-center justify-center py-[10.5px] px-[11px]">
                 <div className="w-[13px] flex flex-col items-start justify-start">
                   <div className="h-3.5 flex flex-row items-start justify-start">
                     <img
@@ -55,7 +57,7 @@ const ReservaDatos: FC <propsReservaDatos> = ({componentState, setComponentState
             </div>
 
           <div className="flex flex-col items-start justify-start">
-            <div className="rounded-md bg-rosa flex flex-row items-center justify-center py-[10.5px] px-[13px]">
+            <div className="rounded-md bg-[#6096B9] flex flex-row items-center justify-center py-[10.5px] px-[13px]">
               <div className="w-[9px] flex flex-col items-end justify-start">
                 <div className="h-3.5 flex flex-row items-start justify-start">
                   <img
@@ -176,7 +178,7 @@ const ReservaDatos: FC <propsReservaDatos> = ({componentState, setComponentState
                 <div className="self-stretch flex flex-row items-center justify-start py-[3.5px] px-0 box-border">             
         <Checkbox/>
                   <div className="text-sm text-gray-400">
-                  Quiero recibir información sobre eventos o promociones de <b>Oro Verde</b>
+                  Quiero recibir información sobre eventos o promociones de <b>EventosOrganizador</b>
                   </div>                
                   <span>.</span>
                 </div>
@@ -205,8 +207,8 @@ const ReservaDatos: FC <propsReservaDatos> = ({componentState, setComponentState
               <div onClick={()=>{ 
         setComponentState(7)
       }} 
-              className=" cursor-pointer self-stretch rounded-md bg-rosa flex flex-row items-start justify-center py-0 pr-5 pl-[21px] opacity-[0.5] hover:bg-rosa hover:opacity-100 text-center text-white">
-                <div className="w-[94px] relative leading-[36px] font-medium flex items-center justify-center min-w-[94px] max-w-[535px] mq650:max-w-full">
+              className=" cursor-pointer self-stretch rounded-md bg-[#6096B9] flex flex-row items-start justify-center py-0 pr-5 pl-[21px] opacity-[0.5] hover:bg-[#6096B9] hover:opacity-100 text-center text-white">
+                <div className="w-auto relative leading-[36px] font-medium flex items-center justify-center min-w-[94px] max-w-[535px] mq650:max-w-full">
                   Hacer reserva
                 </div>
               </div>

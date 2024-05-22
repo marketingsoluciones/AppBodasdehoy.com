@@ -1,4 +1,5 @@
 import { FC, memo } from "react";
+import HeaderComp from "./Sub-Componentes/HeaderComp";
 interface propsPrincipalDE {
     componentState: any;
     setComponentState: any;
@@ -7,7 +8,9 @@ interface propsPrincipalDE {
 
 const PrincipalDE: FC <propsPrincipalDE> = ({componentState,setComponentState}) => {
   return (
-    <div className="w-[100%] h-[100%] bg-slate-100 overflow-hidden flex flex-row items-start justify-center pt-[40.5px] px-[88px] box-border gap-[21px] tracking-[normal] text-left text-sm text-gray-600 font-medium mq416:pl-11 mq416:pr-11 mq416:box-border">
+    <div className="w-[100%] h-[100%] bg-slate-100 overflow-hidden flex flex-col items-center justify-center pt-[40.5px]  box-border gap-[21px] tracking-[normal] text-left text-sm text-gray-600 font-medium mq416:pl-11 mq416:pr-11 mq416:box-border">
+      <HeaderComp/>
+      <div className="flex flex-row items-center justify-center gap-4">
       <div onClick={()=>{ 
         setComponentState(1)
       }} 
@@ -24,7 +27,7 @@ const PrincipalDE: FC <propsPrincipalDE> = ({componentState,setComponentState}) 
               <div className="self-stretch flex flex-row items-end justify-start gap-[6.6px]">
                 <div className="flex flex-row items-start justify-start">
                   <div className="flex flex-col items-start justify-start py-0 pr-[10.5px] pl-0 text-white">
-                    <div className="rounded-[5.25px] bg-rosa flex flex-col items-start justify-start py-[3.5px] px-[7px]">
+                    <div className="rounded-[5.25px] bg-blue-400 flex flex-col items-start justify-start py-[3.5px] px-[7px]">
                       <div className="overflow-x-auto flex flex-row items-start justify-start py-0 pr-[2.5px] pl-0 gap-[4.4px]">
                         <div className="h-[17.5px] w-9 relative tracking-[2.45px] leading-[17.5px] uppercase font-extralight inline-block min-w-[36px] max-h-[17.5px] whitespace-nowrap">
                           Sab.
@@ -55,11 +58,11 @@ const PrincipalDE: FC <propsPrincipalDE> = ({componentState,setComponentState}) 
                   </div>
                 </div>
               </div>
-              <h3 className="m-0 w-auto h-7 relative text-2xl leading-[28px] font-semibold font-inherit text-text-primary inline-block max-w-[528.6599731445312px] mq416:max-w-full">
+              <h3 className="m-0 w-auto h-7 relative text-base leading-[28px] font-semibold font-inherit text-gray-600 inline-block  mq416:max-w-full">
                 Concierto de los Iracundos
               </h3>
             </div>
-            <button className="cursor-pointer [border:none] pt-[3.5px] pb-[3px] pr-1.5 pl-[7px] bg-rosa rounded-[5.25px] flex flex-row items-start justify-start gap-[3.5px] opacity-[0.4]">
+            <button className="cursor-pointer [border:none] pt-[3.5px] pb-[3px] pr-1.5 pl-[7px] bg-red rounded-[5.25px] flex flex-row items-start justify-start gap-[3.5px] opacity-[0.4]">
               <div className="h-[15px] flex flex-col items-start justify-start pt-0.5 px-0 pb-0 box-border">
                 <img
                   className="w-[9.2px] h-[13px] relative overflow-hidden shrink-0"
@@ -97,6 +100,7 @@ const PrincipalDE: FC <propsPrincipalDE> = ({componentState,setComponentState}) 
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
