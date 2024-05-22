@@ -8,8 +8,8 @@ interface propsCancelarReserva {
 
 const CancelarReserva: FC <propsCancelarReserva> = ({componentState, setComponentState}) => {
   return (
-    <div className="w-[100%] h-[100%] max-w-full flex flex-col items-center justify-center px-0 box-border tracking-[normal] text-left text-xl text-[#6096B9]">
-      <HeaderComp/>
+    <div className="w-[100%] h-[100vh] max-w-full flex flex-col items-center justify-center pt-[20px] box-border tracking-[normal] text-left text-xl text-[#6096B9]">
+      <HeaderComp componentState={componentState} setComponentState={setComponentState}/>
       <div className="flex-1 flex flex-col items-center justify-center max-w-[700px] mq450:max-w-full mq650:max-w-full mq675:max-w-full">
         
         <div className="self-stretch flex flex-row items-start justify-center py-0 px-5">

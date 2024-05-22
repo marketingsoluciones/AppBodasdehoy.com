@@ -1,5 +1,6 @@
 import { FC, useState } from "react";
 import CancelarReserva from "../components/RRPP/CancelarReserva";
+import ComprasComp from "../components/RRPP/ComprasComp";
 import EntradasGratis from "../components/RRPP/EntradasGratis";
 import PrincipalDE from "../components/RRPP/PrincipalDE";
 import ReciboEntradas from "../components/RRPP/ReciboEntradas";
@@ -39,6 +40,9 @@ const RelacionesPublicas: FC = () => {
     },
     {
       component: <CancelarReserva componentState={optionSelect} setComponentState={setOptionSelect} />
+    },
+    {
+      component: <ComprasComp componentState={optionSelect} setComponentState={setOptionSelect} />
     },
   ]
 

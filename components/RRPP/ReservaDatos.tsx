@@ -9,8 +9,8 @@ interface propsReservaDatos {
 
 const ReservaDatos: FC <propsReservaDatos> = ({componentState, setComponentState}) => {
   return (
-    <div className="w-[100%] h-[100%] max-w-full flex flex-col  items-center justify-center pt-10 box-border tracking-[normal] text-center text-sm text-[#6096B9] ">
-      <HeaderComp/>
+    <div className="w-[100%] h-[100vh] max-w-full flex flex-col  items-center justify-center pt-[20px] box-border tracking-[normal] text-center text-sm text-[#6096B9] ">
+      <HeaderComp componentState={componentState} setComponentState={setComponentState}/>
       <div className="rounded-md bg-white shadow-[0px_1px_10px_rgba(0,_0,_0,_0.12),_0px_4px_5px_rgba(0,_0,_0,_0.14),_0px_2px_4px_-1px_rgba(0,_0,_0,_0.2)] box-border overflow-hidden flex flex-col items-start justify-start pt-px px-0 pb-[22.5px] gap-[61px] max-w-full border-[1px] border-solid border-divider mq450:gap-[30px_61px]">
         
       <div className="self-stretch bg-gray-100 [backdrop-filter:blur(8px)] flex flex-row items-start justify-between pt-[10.5px] px-[21px] pb-[13.5px] box-border max-w-full gap-[20px] z-[1] mq450:flex-wrap">
