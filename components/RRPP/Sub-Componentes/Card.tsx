@@ -10,7 +10,8 @@ const Card1: FC = () => {
       
       </div>
 
-      <section className="flex flex-col items-start justify-start pt-[10.5px] px-2.5 pb-2.5 box-border relative min-w-[244px] min-h-[159px] max-w-full text-left text-sm text-gray-600 font-semibold mq401:flex-1">
+      <section className="flex flex-col items-start justify-between pt-[10.5px] px-2.5 pb-2.5 box-border relative min-w-[244px] min-h-[159px] max-w-full text-left text-sm text-gray-600 font-semibold mq401:flex-1">
+        
         <div className="self-stretch flex flex-col items-start justify-start py-0 pr-px pl-0 gap-[10.5px]">
           <div className="self-stretch flex flex-row flex-wrap items-center justify-between gap-[20px]">
             <div className="w-auto flex flex-col items-start justify-start py-0 pr-2.5 pl-0 box-border">
@@ -34,53 +35,54 @@ const Card1: FC = () => {
                       className="h-[13px] w-[13.2px] relative overflow-hidden shrink-0"
                       loading="lazy"
                       alt=""
-                      src="/icon1.svg"
+                      src="ModuloEvento/Vectorflechita.svg"
                     />
                   </div>
                   <div className="flex-1 relative tracking-[2.45px] leading-[18px] uppercase inline-block min-w-[46px] whitespace-nowrap">
-                    07:30
+                   07:30
                   </div>
                 </div>
 
               
             </div>
-            <div className="w-[87px] rounded-[5.25px] bg-wwwfourvenuescom-elm flex flex-col items-start justify-start py-[3.5px] pr-1 pl-1.5 box-border text-profourvenuescom-nero">
-              <div className="relative tracking-[2.45px] leading-[18px] uppercase inline-block min-w-[75px]">
+            <div className="w-[87px] rounded-[5.25px] bg-green flex flex-col items-start justify-start py-[3.5px] pr-1 pl-1.5 box-border text-profourvenuescom-nero">
+              <div className="relative tracking-[2.45px] leading-[18px] uppercase inline-block min-w-[75px] text-white">
                 Entrada
               </div>
             </div>
           </div>
-          <div className="self-stretch overflow-hidden flex flex-col items-start justify-start text-2xl text-text-primary">
+          <div className="self-stretch overflow-hidden flex flex-col items-start justify-start text-sm text-text-primary">
             <div className="self-stretch relative leading-[28px] font-semibold mq450:text-mid mq450:leading-[22px]">
-              Playa y rumba
+            Concierto de los Iracundos
             </div>
           </div>
         </div>
-        <div className="!m-[0] absolute w-[52.65%] right-[44.55%] bottom-[10px] left-[2.8%] flex flex-row items-start justify-start py-0 px-0 box-border">
+
+        <div className="w-auto flex flex-row items-start justify-start py-0 px-0 box-border">
           <button className="cursor-pointer [border:none] pt-[0.3px] pb-[0.2px] pr-[3px] pl-0 bg-[transparent] flex flex-col items-start justify-center">
-            <div className="rounded-[5.25px] bg-wwwfourvenuescom-ship-gray flex flex-row items-center justify-start pt-[3px] px-[7px] pb-[3.5px] gap-[3.5px]">
+            <div className="rounded-[5.25px] bg-[#3F3F46] flex flex-row items-center justify-start pt-[3px] px-[7px] pb-[3.5px] gap-[3.5px]">
               <div className="flex flex-row items-start justify-start">
                 <img
                   className="h-[13px] w-[9.2px] relative overflow-hidden shrink-0"
                   alt=""
-                  src="/icon-1.svg"
+                  src="ModuloEvento/Vectordescarga.svg"
                 />
               </div>
-              <div className="relative text-smi-3 leading-[18px] capitalize font-profourvenuescom-inter-bold-14 text-wwwfourvenuescom-shamrock text-left inline-block min-w-[60px]">
+              <div className="relative text-smi-3 leading-[18px] capitalize text-green text-left inline-block min-w-[60px]">
                 Descargar
               </div>
             </div>
           </button>
-          <button className="cursor-pointer [border:none] pt-[3.3px] px-[7px] pb-[3.7px] bg-wwwfourvenuescom-ship-gray rounded-[5.25px] flex flex-row items-center justify-start">
+          <button className="cursor-pointer [border:none] pt-[3.3px] px-[7px] pb-[3.7px] rounded-[5.25px] bg-[#3F3F46] flex flex-row items-center justify-start">
             <div className="flex flex-row items-start justify-start">
               <img
                 className="h-[13px] w-[9.2px] relative overflow-hidden shrink-0"
                 alt=""
-                src="/icon-2.svg"
+                src="ModuloEvento/Containerubicacion.svg"
               />
             </div>
-            <div className="relative text-smi-3 leading-[18px] font-profourvenuescom-inter-bold-14 text-wwwfourvenuescom-santas-gray text-left inline-block min-w-[86px]">
-               Beach Aguilas
+            <div className="relative text-sm leading-[18px] text-gray-300 text-left inline-block min-w-[86px]">
+               Banaoro / RocaFuerte Y 25 de junio
             </div>
           </button>
         </div>

@@ -4,6 +4,7 @@ import ComprasComp from "../components/RRPP/ComprasComp";
 import EntradasGratis from "../components/RRPP/EntradasGratis";
 import PrincipalDE from "../components/RRPP/PrincipalDE";
 import ReciboEntradas from "../components/RRPP/ReciboEntradas";
+import RecuperarCompra from "../components/RRPP/RecuperarCompra";
 import RegistroEntradasUser from "../components/RRPP/RegistroEntradasUser";
 import ReservaCantidad from "../components/RRPP/ReservaCantidad";
 import ReservaDatos from "../components/RRPP/ReservaDatos";
@@ -43,6 +44,9 @@ const RelacionesPublicas: FC = () => {
     },
     {
       component: <ComprasComp componentState={optionSelect} setComponentState={setOptionSelect} />
+    },
+    {
+      component: <RecuperarCompra componentState={optionSelect} setComponentState={setOptionSelect} />
     },
   ]
 
