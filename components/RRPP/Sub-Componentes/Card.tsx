@@ -3,7 +3,7 @@ import { FC } from "react";
 
 const Card1: FC = () => {
   return (
-    <div className="w-auto rounded-md bg-gray-100 shadow-[0px_1px_5px_rgba(0,_0,_0,_0.12),_0px_2px_2px_rgba(0,_0,_0,_0.14),_0px_3px_1px_-2px_rgba(0,_0,_0,_0.2)] max-w-full overflow-hidden flex flex-row items-start justify-start leading-[normal] tracking-[normal] [row-gap:20px]">
+    <div className="w-auto rounded-md bg-white shadow-[0px_1px_5px_rgba(0,_0,_0,_0.12),_0px_2px_2px_rgba(0,_0,_0,_0.14),_0px_3px_1px_-2px_rgba(0,_0,_0,_0.2)] max-w-full overflow-hidden flex flex-row items-start justify-start leading-[normal] tracking-[normal] [row-gap:20px]">
 
         <div className="h-[159px] w-[138.6px] relative shrink-0 [debug_commit:bf4bc93]">
           <img src="ModuloEvento/evento1.jpg" alt="" />

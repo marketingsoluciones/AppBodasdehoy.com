@@ -11,7 +11,7 @@ interface propsComprasComp {
 
 const ComprasComp: FC<propsComprasComp> = ({componentState, setComponentState}) => {
   return (
-    <div className="w-[100%] h-[100vh] pt[20px] [filter:blur(0px)] flex flex-col items-start justify-center pt-[20px] gap-[21px] tracking-[normal] leading-[normal] mq450:max-w-full mq725:max-w-full mq975:max-w-full mq1000:max-w-full">
+    <div className="w-[100%] h-[100%] bg-slate-100 pt[20px] [filter:blur(0px)] flex flex-col items-start justify-start pt-[20px] gap-[21px] tracking-[normal] leading-[normal] mq450:max-w-full mq725:max-w-full mq975:max-w-full mq1000:max-w-full">
       <HeaderComp componentState={componentState} setComponentState={setComponentState}/>
       <section className="self-stretch flex flex-col items-start justify-start gap-[10.5px] text-center text-7xl-3 px-10 text-gray-600 font-medium">
         <div className="self-stretch flex flex-col items-center justify-start py-0 px-5">
@@ -39,7 +39,7 @@ const ComprasComp: FC<propsComprasComp> = ({componentState, setComponentState}) 
         </div>
       </section>
       <section className="w-full flex flex-row items-start justify-center py-0 px-[262px] box-border text-center text-sm text-gray-600 mq450:pl-5 mq450:pr-5 mq450:box-border mq450:max-w-full mq725:pl-[131px] mq725:pr-[131px] mq725:box-border mq725:max-w-full mq975:max-w-full mq1000:max-w-full">
-        <div className="flex-1 rounded-md box-border flex flex-col items-start justify-start pt-5 px-[21px] pb-6 gap-[10.8px] max-w-[500px] border-[1px] border-solid border-slate-200 mq725:max-w-full">
+        <div className="flex-1 rounded-md box-border flex flex-col items-start justify-start pt-5 px-[21px] pb-6 gap-[10.8px] max-w-[500px] border-[1px] border-solid border-gray-300 mq725:max-w-full">
           <div className="self-stretch flex flex-row items-start justify-center text-[16px] text-wwwfourvenuescom-santas-gray">
             <div className="relative leading-[25px]">
               ¿No encuentras tu ticket?

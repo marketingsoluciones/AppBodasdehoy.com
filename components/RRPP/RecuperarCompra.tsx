@@ -10,7 +10,7 @@ interface propsRecuperarCompra {
 const RecuperarCompra: FC<propsRecuperarCompra> = ({componentState, setComponentState}) => {
     const [inputValue, setInputValue] = useState("");
   return (
-    <div className="w-[100%] max-w-full flex flex-col items-center justify-start py-0 px-[21px] box-border gap-[42px] tracking-[normal] leading-[normal] mq450:gap-[21px]">
+    <div className="w-[100%] max-w-full flex flex-col bg-slate-100 items-center justify-start py-0 px-[21px] box-border gap-[42px] tracking-[normal] leading-[normal] mq450:gap-[21px]">
       <HeaderComp componentState={componentState} setComponentState={setComponentState}/>
       <div className="w-[60%] flex flex-col items-center justify-center gap-4">
       <section className="self-stretch flex flex-col items-start justify-start gap-[25.8px] text-left text-7xl-3 text-wwwfourvenuescom-athens-gray font-wwwfourvenuescom-inter-regular-123">
@@ -57,7 +57,7 @@ const RecuperarCompra: FC<propsRecuperarCompra> = ({componentState, setComponent
           </div>
         </div>
       </section>
-      <section className="self-stretch rounded-md bg-gray-200 py-4 flex flex-row items-start justify-start py-0 px-[21px] box-border max-w-full">
+      <section className="self-stretch rounded-md bg-white py-4 flex flex-row items-start justify-start px-[21px] box-border max-w-full">
         <form className="m-0 flex-1 flex flex-col items-start justify-start gap-[10px] max-w-full">
           <div className="self-stretch flex flex-col items-start justify-start pt-0 px-0 pb-[10.5px] gap-[7px]">
             <div className="self-stretch relative text-sm leading-[21px] font-semibold font-wwwfourvenuescom-inter-regular-123 text-wwwfourvenuescom-iron1 text-left">
@@ -273,7 +273,7 @@ const RecuperarCompra: FC<propsRecuperarCompra> = ({componentState, setComponent
 
         </form>
       </section>
-      <section className="self-stretch rounded-md bg-gray-200 flex flex-col items-center justify-start py-3.5 px-[21px] box-border gap-[6.3px] max-w-full text-center text-sm">
+      <section className="self-stretch rounded-md bg-white flex flex-col items-center justify-start py-3.5 px-[21px] box-border gap-[6.3px] max-w-full text-center text-sm">
         <div className="relative leading-[29px] font-semibold shrink-0">
           ¿Has utilizado otro método de pago?
         </div>
