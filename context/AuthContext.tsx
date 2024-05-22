@@ -1,11 +1,9 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { getAuth, onAuthStateChanged, onIdTokenChanged, signInWithCustomToken } from 'firebase/auth'
+import { getAuth, onAuthStateChanged, signInWithCustomToken } from 'firebase/auth'
 import Cookies from 'js-cookie'
 import { nanoid, customAlphabet, } from 'nanoid'
-
 import { developments } from "../firebase";
 import { fetchApiBodas, fetchApiEventos, queries } from "../utils/Fetching";
-import { boolean } from "yup";
 import { initializeApp } from "firebase/app";
 import { useRouter } from "next/router";
 import { parseJwt } from "../utils/Authentication";
@@ -72,8 +70,8 @@ type Context = {
 }
 export let varGlobalDomain = ""
 export let varGlobalDevelopment = ""
-const AuthContext = createContext<Context>(initialContext);
 
+const AuthContext = createContext<Context>(initialContext);
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState<any>(initialContext.user);
   const [verificationDone, setVerificationDone] = useState<any>(false);
@@ -102,10 +100,10 @@ const AuthProvider = ({ children }) => {
 
 
   useEffect(() => {
-    console.log(100047, router?.query, { router })
     if (!forCms) {
       setForCms(router?.query?.show === "iframe")
     }
+
     if (!link_id && router?.query?.link) {
       if (router?.query?._id) {
         fetchApiEventos({
@@ -117,9 +115,7 @@ const AuthProvider = ({ children }) => {
       }
       SetLinkMedia(router?.query?.m)
       SetLink_id(router?.query?.link)
-      console.log(router?.query)
       if (![].includes(router?.query?.m?.toString()) || router?.query?._id) {
-        console.log(100048, router?.query, { router })
         router.push("/login?q=register")
       }
       const storage_id = localStorage.getItem("_id")
@@ -133,9 +129,9 @@ const AuthProvider = ({ children }) => {
     }
   }, [router])
 
-  useEffect(() => {
+  /* useEffect(() => {
     console.log(preregister)
-  }, [preregister])
+  }, [preregister]) */
 
 
   useEffect(() => {
@@ -168,16 +164,18 @@ const AuthProvider = ({ children }) => {
       setIsMounted(false)
     }
   }, [])
+
   let resp: any = undefined
+
   useEffect(() => {
     if (isMounted) {
-      console.log(window.location)
+      /* console.log(window.location) */
       const path = window.location.hostname
       //  const path = "https://www.eventosplanificador.com"
-      console.log("hostname:", path)
+      /*  console.log("hostname:", path) */
       const c = path?.split(".")
       const idx = c?.findIndex(el => el === "com")
-      console.log("isProduction:", idx)
+      /* console.log("isProduction:", idx) */
       /*--------------------------------------------------------------------*/
       const devDomain = ["bodasdehoy", "eventosplanificador", "eventosorganizador", "vivetuboda"]
       const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[3] /*<<<<<<<<<*/
@@ -185,7 +183,7 @@ const AuthProvider = ({ children }) => {
       resp = developments.filter(elem => elem.name === domainDevelop)[0]
       if (idx === -1 || window.origin.includes("://test")) {
         const directory = window.origin.includes("://test") ? process.env.NEXT_PUBLIC_DIRECTORY.replace("//", "//test.") : process.env.NEXT_PUBLIC_DIRECTORY
-        console.log(window.origin, window.location.hostname, directory)
+        /* console.log(window.origin, window.location.hostname, directory) */
         resp = {
           ...resp,
           domain: process.env.NEXT_PUBLIC_PRODUCTION ? resp?.domain : process.env.NEXT_PUBLIC_DOMINIO,
@@ -194,7 +192,7 @@ const AuthProvider = ({ children }) => {
           pathSignout: resp?.pathSignout ? `${directory}/signout` : undefined,
           pathPerfil: resp?.pathPerfil ? `${directory}/configuracion` : undefined
         }
-        console.log(222215, { domain: resp?.domain })
+        /* console.log(222215, { domain: resp?.domain }) */
       }
 
       varGlobalDomain = resp?.domain
@@ -218,7 +216,7 @@ const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (triggerAuthStateChanged && !isStartingRegisterOrLogin) {
-      console.log(800003000, "verificando")
+      /* console.log(800003000, "verificando") */
       const user = getAuth().currentUser
       const sessionCookie = Cookies.get(config?.cookie);
       verificator({ user, sessionCookie })
@@ -229,7 +227,7 @@ const AuthProvider = ({ children }) => {
   }, [triggerAuthStateChanged])
 
   const moreInfo = async (user) => {
-    console.log("moreInfo")
+    /* console.log("moreInfo") */
     let idToken = Cookies.get("idTokenV0.1.0")
     if (!idToken) {
       idToken = await getAuth().currentUser?.getIdToken(true)
@@ -241,23 +239,23 @@ const AuthProvider = ({ children }) => {
       variables: { uid: user?.uid },
       development: config?.development
     });
-    moreInfo && console.info("Tengo datos de la base de datos");
-    console.log(100.004)
+    /* moreInfo && console.info("Tengo datos de la base de datos"); */
+    /* console.log(100.004) */
     setUser({ ...user, ...moreInfo });
     updateActivity("accessed")
     //aqui fetch de accesed
     setVerificationDone(true)
-    console.info("Guardo datos en contexto react");
+    /* console.info("Guardo datos en contexto react"); */
   }
 
   const verificator = async ({ user, sessionCookie }) => {
     try {
-      console.log(80000301, { "user?.uid": user?.uid })
+      /* console.log(80000301, { "user?.uid": user?.uid }) */
       const sessionCookieParsed = parseJwt(sessionCookie)
-      console.log(80000302, { "sessionCookieParsed?.user_id": sessionCookieParsed?.user_id })
+      /* console.log(80000302, { "sessionCookieParsed?.user_id": sessionCookieParsed?.user_id }) */
 
       if (!sessionCookieParsed?.user_id && user?.uid) {
-        console.log(0.00001)
+        /* console.log(0.00001) */
         getAuth().signOut().then(() => {
           setVerificationDone(true)
         })
@@ -265,9 +263,9 @@ const AuthProvider = ({ children }) => {
 
       if (sessionCookieParsed?.user_id && user?.uid) {
         if (sessionCookieParsed?.user_id !== user?.uid) {
-          console.log(0.00002)
+          /*  console.log(0.00002) */
           getAuth().signOut().then(() => {
-            console.log(8000043, "signOut con éxito")
+            /*  console.log(8000043, "signOut con éxito") */
             setVerificationDone(true)
           })
             .catch((error) => {
@@ -276,33 +274,33 @@ const AuthProvider = ({ children }) => {
         }
 
         if (sessionCookieParsed?.user_id === user?.uid) {
-          console.log(0.00003)
+          /*  console.log(0.00003) */
           setUser(user)
           moreInfo(user)
         }
       }
 
       if (sessionCookieParsed?.user_id && !user?.uid) {
-        console.log(0.00004)
+        /*  console.log(0.00004) */
         const resp = await fetchApiBodas({
           query: queries.authStatus,
           variables: { sessionCookie },
           development: config?.development
         });
-        console.info("Llamo con mi sessionCookie para traerme customToken");
+        /* console.info("Llamo con mi sessionCookie para traerme customToken"); */
         if (resp?.customToken) {
-          console.info("customTokenParse", parseJwt(resp.customToken))
+          /* console.info("customTokenParse", parseJwt(resp.customToken)) */
           setIsStartingRegisterOrLogin(true)
           await signInWithCustomToken(getAuth(), resp.customToken)
             .then(result => {
-              console.log(100.002)
+              /* console.log(100.002) */
               setUser(result?.user)
               moreInfo(result?.user)
             }).catch(error => {
               console.log(error)
             })
         } else {
-          console.log(0.00006)
+          /* console.log(0.00006) */
           //cambiar el tiempo duracion de sessioncookie y una semana, hacerlo coincidir expiracion de la cookie para que se borre y evaluarlo como se hace con los idtoken que si no exite se renueve
           setVerificationDone(true)
         }
@@ -316,13 +314,13 @@ const AuthProvider = ({ children }) => {
           guestUid = nanoid(28)
           Cookies.set(config?.cookieGuest, JSON.stringify({ guestUid }), { domain: `${config?.domain}`, expires: dateExpire })
         }
-        console.log(100.003)
+        /* console.log(100.003) */
         setUser({ uid: guestUid, displayName: "guest" })
         setVerificationDone(true)
       }
 
       if (!sessionCookieParsed?.user_id && !user?.uid) {
-        console.log(0.00005)
+        /*   console.log(0.00005) */
         setVerificationDone(true)
       }
 
