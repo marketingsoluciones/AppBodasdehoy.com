@@ -7,12 +7,8 @@ interface propsRecuperarCompra {
     className?:any
   }
 
-<<<<<<< HEAD
 const RecuperarCompra: FC<propsRecuperarCompra> = ({componentState, setComponentState}) => {
     const [inputValue, setInputValue] = useState("");
-=======
-const RecuperarCompra: FC<propsRecuperarCompra> = ({componentState, setComponentState,className}) => {
->>>>>>> 699b610f46b62f09dbdce527c26f43f0b6dbf4c3
   return (
     <div className="w-[100%] max-w-full flex flex-col items-center justify-start py-0 px-[21px] box-border gap-[42px] tracking-[normal] leading-[normal] mq450:gap-[21px]">
       <HeaderComp componentState={componentState} setComponentState={setComponentState}/>
