@@ -16,7 +16,7 @@ const EntradasGratis: FC <propsEntradasGratis> = ({componentState,setComponentSt
         <div className="flex flex-row flex-wrap items-start justify-center pl-8 gap-[10px]">
           
           <div onClick={()=>{ 
-        setComponentState(1)
+        setComponentState(2)
       }} 
            className="cursor-pointer rounded-md bg-[#6096B9] flex flex-row items-center justify-center py-[10.5px] pr-[11.299999999995634px] pl-[11.400000000001455px]">
             <div className="flex flex-col items-start justify-start">
@@ -173,7 +173,7 @@ const EntradasGratis: FC <propsEntradasGratis> = ({componentState,setComponentSt
               </div>
             </div>
             <button onClick={()=>{ 
-        setComponentState(3)
+        setComponentState(4)
       }}  className="cursor-pointer [border:none] pt-[9.5px] pb-[11px] pr-5 pl-[21px] bg-[#6096B9] hover:bg-[#4189b9] self-stretch rounded-md flex flex-row items-start justify-center hover:bg-crimson-100">
               <div className="h-[25px] w-[83px] relative text-mid-5 leading-[25px] font-medium text-white text-center flex items-center justify-center min-w-[83px] max-w-[264.3399963378906px]">
                 Continuar

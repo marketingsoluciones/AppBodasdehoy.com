@@ -53,7 +53,7 @@ const VentasEntradas: FC <propsVentasEntradas> = ({componentState,setComponentSt
             <div className="flex flex-row items-center justify-start gap-[11px] max-w-full">
               
               <div onClick={()=>{ 
-        setComponentState(0)
+        setComponentState(1)
       }} 
                className="cursor-pointer rounded-md bg-[#6096B9] flex flex-row items-center justify-center py-[10.5px] pr-[11.30000000000291px] pl-[11.39999999999418px]">
                 <div className="flex flex-col items-start justify-start">
@@ -157,7 +157,7 @@ const VentasEntradas: FC <propsVentasEntradas> = ({componentState,setComponentSt
                         </div>
                       </div>
                       <button onClick={()=>{ 
-        setComponentState(2)
+        setComponentState(3)
       }}  
                        className="cursor-pointer [border:none] p-0 bg-[transparent] flex flex-col items-start justify-start">
                         <div className="rounded-md bg-[#6096B9] flex flex-row items-start justify-start pt-[13.5px] px-[21px] pb-[15px]">
@@ -200,7 +200,7 @@ const VentasEntradas: FC <propsVentasEntradas> = ({componentState,setComponentSt
                         </div>
                       </div>
                       <button onClick={()=>{ 
-        setComponentState(2)
+        setComponentState(3)
       }}  
                        className="cursor-pointer [border:none] p-0 bg-[transparent] flex flex-col items-start justify-start">
                         <div className="rounded-md bg-[#6096B9] flex flex-row items-start justify-start pt-[13.5px] px-[21px] pb-[15px]">
@@ -276,14 +276,14 @@ const VentasEntradas: FC <propsVentasEntradas> = ({componentState,setComponentSt
               lolo="Zona Vip"
               icon="ModuloEvento/flesh.svg"
               propMinWidth="28px"
-              link="5"
+              link="6"
               componentState={componentState} setComponentState={setComponentState}
             />
             <CompVentas1
               lolo="invitados generales"
               icon="ModuloEvento/flesh.svg"
               propMinWidth="unset"
-              link="0"
+              link="1"
               componentState={componentState} setComponentState={setComponentState}
             />
           </div>

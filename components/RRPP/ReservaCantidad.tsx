@@ -17,7 +17,7 @@ const ReservaCantidad: FC <propsReservaCantidad> = ({componentState, setComponen
           <div className="flex flex-row items-start justify-start gap-[154.90000000000146px] max-w-full mq450:flex-wrap mq450:gap-[154.9px_77px]">
             
             <button onClick={()=>{ 
-        setComponentState(1)
+        setComponentState(2)
       }} 
              className="cursor-pointer [border:none] py-0 pr-[10.5px] pl-0 bg-[transparent] flex flex-col items-start justify-start">
               <div className="rounded-md bg-[#6096B9] flex flex-row items-center justify-center py-[10.5px] px-[11px]">
@@ -145,7 +145,7 @@ const ReservaCantidad: FC <propsReservaCantidad> = ({componentState, setComponen
               </div>
             </div>
             <button onClick={()=>{ 
-        setComponentState(6)
+        setComponentState(7)
       }} 
              className="cursor-pointer [border:none] py-0 pr-5 pl-[21px] bg-[#6096B9] self-stretch rounded-md flex flex-row items-start justify-center hover:bg-steelblue-100">
               <div className="w-[66px] relative text-sm leading-[36px] font-medium text-white text-center flex items-center justify-center min-w-[66px] max-w-[535px] mq650:max-w-full">

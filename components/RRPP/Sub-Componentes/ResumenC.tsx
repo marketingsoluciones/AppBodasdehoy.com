@@ -74,7 +74,7 @@ export const ResumenComponents: FC <propsResumenComponents> =({componentState, s
               </div>
             </div>
             <button onClick={()=>{ 
-        setComponentState(4)
+        setComponentState(5)
       }} className="cursor-pointer [border:none] pt-[9.5px] px-0 pb-[11px] bg-[#6096B9] self-stretch rounded-md flex flex-row items-center justify-center">
               <div className="relative text-mid-5 leading-[24.5px] font-medium text-white text-center inline-block max-w-[264.3399963378906px]">
                 Descargar entrada

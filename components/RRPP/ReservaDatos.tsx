@@ -17,7 +17,7 @@ const ReservaDatos: FC <propsReservaDatos> = ({componentState, setComponentState
           
 
             <button onClick={()=>{ 
-        setComponentState(5)
+        setComponentState(6)
       }} 
             className="cursor-pointer [border:none] bg-[transparent] flex flex-col items-start justify-start">
               <div className="rounded-md bg-[#6096B9] flex flex-row items-center justify-center py-[10.5px] px-[11px]">
@@ -205,7 +205,7 @@ const ReservaDatos: FC <propsReservaDatos> = ({componentState, setComponentState
                 </div>
               </div>
               <div onClick={()=>{ 
-        setComponentState(7)
+        setComponentState(8)
       }} 
               className=" cursor-pointer self-stretch rounded-md bg-[#6096B9] flex flex-row items-start justify-center py-0 pr-5 pl-[21px] opacity-[0.5] hover:bg-[#6096B9] hover:opacity-100 text-center text-white">
                 <div className="w-auto relative leading-[36px] font-medium flex items-center justify-center min-w-[94px] max-w-[535px] mq650:max-w-full">

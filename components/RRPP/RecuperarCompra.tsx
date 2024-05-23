@@ -265,7 +265,10 @@ const RecuperarCompra: FC<propsRecuperarCompra> = ({componentState, setComponent
             </div>
           </div>
 
-          <button className="cursor-pointer [border:none] py-[21px] px-5 bg-[#6096B9] self-stretch rounded-md flex flex-row items-start justify-center opacity-[0.5] hover:bg-blue-900">
+          <button onClick={()=>{ 
+        setComponentState(2)
+      }}
+          className="cursor-pointer [border:none] py-[21px] px-5 bg-[#6096B9] self-stretch rounded-md flex flex-row items-start justify-center opacity-[0.5] hover:bg-blue-900">
             <div className="relative text-sm leading-[25px] font-medium text-white text-center">
               Recuperar compra
             </div>
@@ -301,7 +304,7 @@ const RecuperarCompra: FC<propsRecuperarCompra> = ({componentState, setComponent
           </div>
         </div>
       </section>
-      </div>
+      </div> 
     </div>
   );
 };

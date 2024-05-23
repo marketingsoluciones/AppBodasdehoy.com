@@ -162,7 +162,7 @@ const CancelarReserva: FC <propsCancelarReserva> = ({componentState, setComponen
 
         <div className="self-stretch flex flex-row items-start justify-center py-0 px-5">
           <button onClick={()=>{ 
-        setComponentState(1)
+        setComponentState(2)
       }} 
            className="cursor-pointer [border:none] p-0 bg-[transparent] w-[161.1px] flex flex-col items-start justify-start">
             <div className="self-stretch flex flex-row items-center justify-center">

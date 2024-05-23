@@ -52,7 +52,7 @@ const ComprasComp: FC<propsComprasComp> = ({componentState, setComponentState}) 
               </div>
               <div className="self-stretch flex flex-row items-start justify-center py-0 pr-5 pl-[22px]">
                 <button onClick={()=>{ 
-        setComponentState(9)
+        setComponentState(10)
       }}
                 className="cursor-pointer [border:none] py-0 px-2.5 bg-[#6096B9] hover:bg-[#3f85b4] rounded-md flex flex-row items-end justify-start gap-[10.9px]">
                   <div className="flex flex-col items-start justify-end pt-0 px-0 pb-[10.5px]">

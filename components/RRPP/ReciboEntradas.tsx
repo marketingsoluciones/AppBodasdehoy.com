@@ -74,7 +74,7 @@ const ReciboEntradas: FC <propsReciboEntradas> = ({componentState, setComponentS
             </div>
           </div>
           <button onClick={()=>{ 
-        setComponentState(1)
+        setComponentState(2)
       }}
            className="cursor-pointer [border:none] p-0 bg-[transparent] w-[130px] flex flex-col items-start justify-start">
             <div className="self-stretch rounded-md bg-[#6096B9] flex flex-row items-center justify-start py-0 pr-[21px] pl-[22.5px] gap-[8.107246398925781px]">
