@@ -62,7 +62,7 @@ const Comp3: FC<propsComp3> = ({ componentState, setComponentState }) => {
                 alt=""
                 src="ModuloEvento/frame-54@2x.png"
               />
-              <div className="relative md:leading-[34px] md:inline-block max-w-full  md:px-0 px-3 md:py-0 py-5  text-center md:text-left ">
+              <div className="relative md:leading-[34px] md:inline-block max-w-full  md:px-0 px-3 md:py-0 py-5  text-center md:text-left text-white ">
                 <p className="m-0">Es una banda uruguaya de pop originaria de Paysandú, 
                 considerada la más importante del género en la historia de
                 Uruguay. </p>

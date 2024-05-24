@@ -4,7 +4,7 @@ const Header: FC = () => {
   const [isNavOpen, setIsNavOpen] = useState(false);
 
   return (
-    <div className="self-stretch flex flex-row items-center justify-between py-8 px-4 overflow-hidden text-white font-Clicker z-50 ">
+    <div className="self-stretch flex flex-row items-center justify-between py-4 px-4 overflow-hidden text-white font-Clicker z-50 ">
       <a href="#">
         <img className="flex w-24 h-14 " src="ModuloEvento/LOGOMACHALA 1.png" alt="logo" />
       </a>
