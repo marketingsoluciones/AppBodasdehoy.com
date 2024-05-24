@@ -1,81 +1,60 @@
-// Importa los módulos necesarios
-import React, { useState } from 'react';
+import { FC, useState } from "react";
 
-// Componente funcional para el menú
-const Menu = () => {
-  // Estado para controlar la visibilidad del menú en dispositivos móviles
-  const [showMenu, setShowMenu] = useState(false);
-
-  // Función para alternar la visibilidad del menú
-  const toggleMenu = () => {
-    setShowMenu(!showMenu);
-  };
+const Header: FC = () => {
+  const [isNavOpen, setIsNavOpen] = useState(false);
 
   return (
-    <header className="w-full h-16 bg-indigo-600 shadow-lg">
-      <div className="container px-4 md:px-0 h-full mx-auto flex justify-between items-center">
-        {/* Logo */}
-        <a
-          className="text-yellow-400 text-xl font-bold italic"
-          href="#"
-        >
-          <img src="ModuloEvento/logo.png" alt="" />
-        </a>
+    <div className="self-stretch flex flex-row items-center justify-between py-8 px-4 overflow-hidden text-white font-Clicker z-50 ">
+      <a href="#">
+        <img className="flex w-24 h-14 " src="ModuloEvento/LOGOMACHALA 1.png" alt="logo" />
+      </a>
+      <nav>
 
-        {/* Botón de menú en dispositivos móviles */}
-        <div className="md:hidden">
-          <button
-            className="text-white text-4xl font-bold opacity-70 hover:opacity-100 duration-300"
-            onClick={toggleMenu}
+        <section className="MOBILE-MENU flex-col lg:hidden gap-2 ">
+          <div
+            className="HAMBURGER-ICON space-y-2 cursor-pointer"
+            onClick={() => setIsNavOpen((prev) => !prev)}
           >
-            <img src="ModuloEvento/mingcute_menu-fill.svg" alt="" />
-          </button>
-        </div>
+            <span className="block h-0.5 w-8 bg-white"></span>
+            <span className="block h-0.5 w-8 bg-white"></span>
+            <span className="block h-0.5 w-8 bg-white"></span>
+          </div>
 
-        {/* Menú de navegación */}
-        <ul
-          id="menu"
-          className={`${
-            showMenu ? 'block' : 'hidden'
-          } md:block md:relative md:flex md:p-0 md:bg-transparent md:flex-row md:space-x-6`}
-        >
-          <li className="md:hidden z-90 fixed top-4 right-6">
-            <a
-              href="javascript:void(0)"
-              className="text-right text-white text-4xl"
-              onClick={toggleMenu}
-            >
-              ×
-            </a>
+          <div className={isNavOpen ? "block " : "hidden "}>
+
+            <div className="mobile-menu-container absolute left-40 right-4 top-32 bg-white rounded-md shadow-md text-black">
+                
+              <ul className="MENU-LINK-MOBILE-OPEN flex flex-col items-center justify-between min-h-[250px]">
+                <li className="border-b border-gray-400 my-4 uppercase ">
+                  <a href="/Inicio">Inicio</a>
+                </li>
+                <li className="border-b border-gray-400 my-4 uppercase">
+                  <a href="/Servicios">Servicios</a>
+                </li>
+                <li className="border-b border-gray-400 my-4 uppercase">
+                  <a href="/Contactanos">Contactanos</a>
+                </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+        <ul className="DESKTOP-MENU hidden space-x-8 lg:flex">
+          <li>
+            <a href="/Inicio">Inicio</a>
           </li>
           <li>
-            <a
-              className="text-white opacity-70 hover:opacity-100 duration-300"
-              href="#"
-            >
-              Inicio
-            </a>
+            <a href="/Servicios">Servicios</a>
           </li>
           <li>
-            <a
-              className="text-white opacity-70 hover:opacity-100 duration-300"
-              href="#"
-            >
-              Sesión
-            </a>
-          </li>
-          <li>
-            <a
-              className="text-white opacity-70 hover:opacity-100 duration-300"
-              href="#"
-            >
-              Registrarse
-            </a>
+            <a href="/Contactanos">Contactanos</a>
           </li>
         </ul>
-      </div>
-    </header>
+      </nav>
+    </div>
   );
 };
 
-export default Menu;
+export default Header;
+

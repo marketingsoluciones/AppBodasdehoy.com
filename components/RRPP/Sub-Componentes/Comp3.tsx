@@ -1,4 +1,5 @@
 import { FC } from "react";
+import Header from "./MenuComp";
 interface propsComp3 {
   componentState: any;
   setComponentState: any;
@@ -10,7 +11,8 @@ const Comp3: FC<propsComp3> = ({ componentState, setComponentState }) => {
   return (
     <section className="self-stretch flex flex-row items-start justify-end pt-0 md:px-[65px] md:pb-[126px] box-border max-w-full text-left text-xl md:text-white font-playfair mq750:pl-8 mq750:pr-8 mq750:pb-[82px] mq750:box-border">
       <div className="md:flex-1 flex flex-col md:items-start justify-start gap-[88px] max-w-full">
-        <header className="self-stretch flex flex-row items-start justify-start py-0 px-7 box-border max-w-full text-left text-16xl text-white font-clicker-script">
+    
+{/*         <header className="self-stretch flex flex-row items-start justify-start py-0 px-7 box-border max-w-full text-left text-16xl text-white font-clicker-script">
           <div className="flex-1 flex flex-row items-start justify-between max-w-full gap-[20px]">
             <div className="flex flex-col items-start justify-start pt-px px-0 pb-0">
               <div className="relative inline-block min-w-[118px] font-Clicker whitespace-nowrap z-[1]">
@@ -49,13 +51,13 @@ const Comp3: FC<propsComp3> = ({ componentState, setComponentState }) => {
               </div>
             </div>
           </div>
-        </header>
-
+        </header> */}
+        <Header/>
         <div className="md:self-stretch flex flex-col md:flex-row md:items-start md:justify-between gap-[10px] md:max-w-full ">
           <div className="md:w-[546px] flex flex-col md:items-start md:justify-start md:pt-[7.5px]  md:min-w-[546px] md:max-w-full ">
             <div className="self-stretch flex flex-col md:items-start  items-center justify-start gap-[10px] max-w-full">
               <img
-                className="md:self-stretch md:h-[291px] md:max-w-full md:overflow-hidden md:shrink-0 md:object-cover z-[1]"
+                className="md:self-stretch md:h-[291px] md:max-w-full md:overflow-hidden md:shrink-0 md:object-cover z-30"
                 loading="lazy"
                 alt=""
                 src="ModuloEvento/frame-54@2x.png"
