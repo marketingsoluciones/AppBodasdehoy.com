@@ -14,10 +14,10 @@ const Comp3: FC<propsComp3> = ({ componentState, setComponentState }) => {
           <div className="flex-1 flex flex-row items-start justify-between max-w-full gap-[20px]">
             <div className="flex flex-col items-start justify-start pt-px px-0 pb-0">
               <div className="relative inline-block min-w-[118px] font-Clicker whitespace-nowrap z-[1]">
-                Oro Verde
+                <img className="flex w-24 h-14 " src="ModuloEvento/LOGOMACHALA 1.png" alt="" />
               </div>
             </div>
-            <div className="w-[780px] flex flex-row items-start justify-start gap-[209px] max-w-full text-sm font-playfair-display mq750:w-[600px] mq1025:w-[389px] mq1025:gap-[104px] mq450:gap-[52px]">
+            <div className="w-auto flex flex-row items-start justify-start gap-[209px] max-w-full text-sm font-playfair-display mq750:w-[600px] mq1025:w-[389px] mq1025:gap-[104px] mq450:gap-[52px]">
               <div className="flex-1 flex flex-col items-start justify-start pt-3.5 px-0 pb-0 box-border max-w-full mq1025:hidden">
                 <div className="self-stretch flex flex-row items-start justify-between gap-[20px] mq1025:hidden mq450:hidden">
                   <div className="relative font-medium inline-block min-w-[37px] z-[1]">
