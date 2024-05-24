@@ -146,9 +146,9 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                 </div>
               </div>
               <div className="w-full h-full gap-2 flex-col flex">
-                <div className="grid md:grid-cols-6 w-full gap-6 relative border-b  border-base ">
+                <div className="grid md:grid-cols-6 w-full gap-6 relative  ">
                   <SelectField
-                    colSpan={3}
+                    colSpan={2}
                     options={event?.grupos_array}
                     name="rol"
                     label="Grupo"
@@ -166,6 +166,13 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                     name="nombre_menu"
                     label="Menú"
                     onChangeCapture={(e: any) => handleBlurData("nombre_menu", e.target.value)}
+                  />
+                  <InputField
+                    name="acompañantes"
+                    label="Acompañantes"
+                    onBlur={(e: any) => handleBlurData("acompañantes", e.target.value)}
+                    type="number"
+                    
                   />
                 </div>
               </div>
@@ -204,13 +211,13 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                   name="telefono"
                   label="Telefono"
                   onBlur={(e: any) => handleBlurData("telefono", e.target.value)}
-                  type="tel"
+                  type="text"
                 />
                 <InputField
                   name="movil"
                   label="Movil"
                   onBlur={(e: any) => handleBlurData("movil", e.target.value)}
-                  type="tel"
+                  type="text"
                 />
                 <InputField
                   name="direccion"

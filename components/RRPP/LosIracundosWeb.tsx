@@ -12,7 +12,7 @@ const LosIracundosWeb: FC<propsLosIracundosWeb> = ({componentState, setComponent
   return (
     <div className="w-full relative bg-gray-100 overflow-hidden flex flex-col items-end justify-start pt-5 px-0 pb-0 box-border gap-[50px] tracking-[normal] leading-[normal] mq750:gap-[25px]">
       <img
-        className="w-full h-[768px] absolute !m-[0] top-[0px] right-[0px] left-[0px] max-w-full overflow-hidden shrink-0 object-cover"
+        className="w-full h-[400px] md:h-[768px] absolute !m-[0] top-[0px] right-[0px] left-[0px] max-w-full md:overflow-hidden shrink-0 md:object-cover"
         alt=""
         src="ModuloEvento/coffee_image.png"
       />

@@ -201,6 +201,15 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
                   type="email"
                 />
               </div>
+
+              <div className="w-full h-8 flex flex-col relative text-sm mb-7">
+                <SelectField
+                  name={"rol"}
+                  label={"Rol"}
+                  options={event.grupos_array}
+                />
+              </div>
+
               <div className="w-full h-full flex gap-6">
 
                 <div className="w-1/2   ">
@@ -211,13 +220,14 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
                   />
                 </div>
 
-              </div>
-              <div className="w-full h-8 flex flex-col relative text-sm mb-7">
-                <SelectField
-                  name={"rol"}
-                  label={"Rol"}
-                  options={event.grupos_array}
-                />
+                <div className="w-1/2">
+                  <InputField
+                    name={"acompañantes"}
+                    label={"Acompañantes"}
+                    type="number"
+                  />
+                </div>
+
               </div>
 
               <button

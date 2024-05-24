@@ -8,8 +8,8 @@ interface propsComp1 {
 
 const Comp1: FC<propsComp1> = ({componentState, setComponentState}) => {
   return (
-    <div className="self-stretch bg-[#8B1710] flex flex-row items-start justify-center px-5 pt-5 box-border gap-[20px] max-w-full text-left text-[16px] text-white font-Clicker mq750:pt-[76px] mq750:pb-[76px] mq750:box-border mq1125:flex-wrap">
-      <div className="w-[690px] flex flex-col items-start justify-start gap-[19px] min-w-[690px] max-w-full mq1025:min-w-full mq1125:flex-1">
+    <div className="self-stretch bg-[#8B1710] flex flex-col md:flex-row items-start justify-center px-5 pt-5 box-border gap-[20px] max-w-full text-left text-[16px] text-white font-Clicker ">
+      <div className="md:w-[690px] flex flex-col items-start justify-start gap-[19px] min-w-[690px] max-w-full mq1025:min-w-full mq1125:flex-1">
         <div className="self-stretch flex flex-row items-start justify-between gap-[20px] mq750:flex-wrap">
           <div className="relative mq450:text-13xl">
             Oro Verde

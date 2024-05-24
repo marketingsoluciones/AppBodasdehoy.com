@@ -6,10 +6,10 @@ interface propsComp3 {
 }
 
 
-const Comp3: FC<propsComp3> = ({componentState, setComponentState}) => {
+const Comp3: FC<propsComp3> = ({ componentState, setComponentState }) => {
   return (
-    <section className="self-stretch flex flex-row items-start justify-end pt-0 px-[65px] pb-[126px] box-border max-w-full text-left text-xl text-white font-playfair mq750:pl-8 mq750:pr-8 mq750:pb-[82px] mq750:box-border">
-      <div className="flex-1 flex flex-col items-start justify-start gap-[88px] max-w-full mq750:gap-[44px] mq450:gap-[22px]">
+    <section className="self-stretch flex flex-row items-start justify-end pt-0 md:px-[65px] md:pb-[126px] box-border max-w-full text-left text-xl md:text-white font-playfair mq750:pl-8 mq750:pr-8 mq750:pb-[82px] mq750:box-border">
+      <div className="md:flex-1 flex flex-col md:items-start justify-start gap-[88px] max-w-full">
         <header className="self-stretch flex flex-row items-start justify-start py-0 px-7 box-border max-w-full text-left text-16xl text-white font-clicker-script">
           <div className="flex-1 flex flex-row items-start justify-between max-w-full gap-[20px]">
             <div className="flex flex-col items-start justify-start pt-px px-0 pb-0">
@@ -51,25 +51,25 @@ const Comp3: FC<propsComp3> = ({componentState, setComponentState}) => {
           </div>
         </header>
 
-        <div className="self-stretch flex flex-row items-start justify-between gap-[10px] max-w-full mq1125:flex-wrap">
-          <div className="w-[546px] flex flex-col items-start justify-start pt-[7.5px] px-0 pb-0 box-border min-w-[546px] max-w-full mq750:min-w-full mq1125:flex-1">
-            <div className="self-stretch flex flex-col items-start justify-start gap-[10px] max-w-full">
+        <div className="md:self-stretch flex flex-col md:flex-row md:items-start md:justify-between gap-[10px] md:max-w-full ">
+          <div className="md:w-[546px] flex flex-col md:items-start md:justify-start md:pt-[7.5px]  md:min-w-[546px] md:max-w-full ">
+            <div className="self-stretch flex flex-col md:items-start  items-center justify-start gap-[10px] max-w-full">
               <img
-                className="self-stretch h-[291px] max-w-full overflow-hidden shrink-0 object-cover z-[1]"
+                className="md:self-stretch md:h-[291px] md:max-w-full md:overflow-hidden md:shrink-0 md:object-cover z-[1]"
                 loading="lazy"
                 alt=""
                 src="ModuloEvento/frame-54@2x.png"
               />
-              <div className="relative leading-[34px] inline-block max-w-full z-[1] mq450:text-base mq450:leading-[27px]">
-                <p className="m-0">{`es una banda uruguaya de pop originaria de Paysandú, `}</p>
-                <p className="m-0">{`considerada la más importante del género en la historia de `}</p>
-                <p className="m-0">Uruguay. </p>
+              <div className="relative md:leading-[34px] md:inline-block max-w-full  md:px-0 px-3 md:py-0 py-5  text-center md:text-left ">
+                <p className="m-0">Es una banda uruguaya de pop originaria de Paysandú, 
+                considerada la más importante del género en la historia de
+                Uruguay. </p>
               </div>
               <button onClick={() => {
-          setComponentState(1)
-        }}
-               className="cursor-pointer [border:none] pt-3.5 px-[21px] pb-[13px] bg-[#8B1710] shadow-[0px_6px_12px_rgba(249,_192,_106,_0.22)] rounded-3xl flex flex-row items-start justify-start whitespace-nowrap z-[1] hover:bg-brown">
-                <div className="h-12 w-[134px] relative shadow-[0px_6px_12px_rgba(249,_192,_106,_0.22)] rounded-3xl bg-[#8B1710] hidden" />
+                setComponentState(1)
+              }}
+                className="cursor-pointer pt-3.5 px-[21px] pb-3.5 bg-[#8B1710] rounded-3xl flex items-start justify-start whitespace-nowrap z-[1] ">
+                <div className="h-12 w-[134px] relative rounded-3xl bg-[#8B1710] hidden" />
                 <b className="relative text-base inline-block font-playfair-display text-primary-contrast text-left min-w-[92px] z-[1]">
                   Comprar ya!
                 </b>
