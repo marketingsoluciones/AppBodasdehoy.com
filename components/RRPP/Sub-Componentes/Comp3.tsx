@@ -68,7 +68,7 @@ const Comp3: FC<propsComp3> = ({ componentState, setComponentState }) => {
                 Uruguay. </p>
               </div>
               <button onClick={() => {
-                setComponentState(1)
+                setComponentState(2)
               }}
                 className="cursor-pointer pt-3.5 px-[21px] pb-3.5 bg-[#8B1710] rounded-3xl flex items-start justify-start whitespace-nowrap z-[1] ">
                 <div className="h-12 w-[134px] relative rounded-3xl bg-[#8B1710] hidden" />
