@@ -1,6 +1,11 @@
 import { FC, useState } from "react";
+interface propsHeader {
+    componentState: any;
+    setComponentState: any;
+  
+  }
 
-const Header: FC = () => {
+const Header: FC<propsHeader> = ({componentState, setComponentState}) => {
   const [isNavOpen, setIsNavOpen] = useState(false);
 
   return (
@@ -26,13 +31,19 @@ const Header: FC = () => {
                 
               <ul className="MENU-LINK-MOBILE-OPEN flex flex-col items-center justify-between min-h-[250px]">
                 <li className="border-b border-gray-400 my-4 uppercase ">
-                  <a href="/Inicio">Inicio</a>
+                  <a onClick={() => {
+                setComponentState(0)
+              }} className="cursor-pointer">Inicio</a>
                 </li>
                 <li className="border-b border-gray-400 my-4 uppercase">
-                  <a href="/Servicios">Servicios</a>
+                  <a onClick={() => {
+                setComponentState(1)
+              }} className="cursor-pointer">Eventos</a>
                 </li>
                 <li className="border-b border-gray-400 my-4 uppercase">
-                  <a href="/Contactanos">Contactanos</a>
+                  <a onClick={() => {
+                setComponentState(0)
+              }} className="cursor-pointer">Contactanos</a>
                 </li>
               </ul>
             </div>
@@ -42,13 +53,19 @@ const Header: FC = () => {
 
         <ul className="DESKTOP-MENU hidden space-x-8 lg:flex">
           <li>
-            <a href="/Inicio">Inicio</a>
+            <a onClick={() => {
+                setComponentState(0)
+              }} className="cursor-pointer" >Inicio</a>
           </li>
           <li>
-            <a href="/Servicios">Servicios</a>
+            <a onClick={() => {
+                setComponentState(1)
+              }} className="cursor-pointer">Eventos</a>
           </li>
           <li>
-            <a href="/Contactanos">Contactanos</a>
+            <a onClick={() => {
+                setComponentState(0)
+              }} className="cursor-pointer">Contactanos</a>
           </li>
         </ul>
       </nav>

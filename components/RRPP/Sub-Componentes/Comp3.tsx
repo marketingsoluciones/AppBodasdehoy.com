@@ -52,7 +52,7 @@ const Comp3: FC<propsComp3> = ({ componentState, setComponentState }) => {
             </div>
           </div>
         </header> */}
-        <Header/>
+        <Header componentState={componentState} setComponentState={setComponentState} />
         <div className="md:self-stretch flex flex-col md:flex-row md:items-start md:justify-between gap-[10px] md:max-w-full ">
           <div className="md:w-[546px] flex flex-col md:items-start md:justify-start md:pt-[7.5px]  md:min-w-[546px] md:max-w-full ">
             <div className="self-stretch flex flex-col md:items-start  items-center justify-start gap-[10px] max-w-full">
