@@ -266,7 +266,7 @@ const Comp2: FC<propsComp2> = ({ componentState, setComponentState }) => {
 
         <div className="self-stretch flex flex-row items-start justify-center py-0 pr-[21px] pl-5 box-border max-w-full">
           <button onClick={() => {
-            setComponentState(1)
+            setComponentState(3)
           }}
             className="cursor-pointer [border:none] p-5 bg-[#8B1710] w-[396px] shadow-[0px_6px_12px_rgba(249,_192,_106,_0.22)] rounded-3xl flex flex-row items-start justify-center box-border max-w-full hover:bg-brown">
             <b className="relative text-[18px] inline-block font-playfair text-white min-w-[110px] mq450:text-2xl">
