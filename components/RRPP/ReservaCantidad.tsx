@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import NumericCounter from "./Sub-Componentes/ContadorNumerico";
 import HeaderComp from "./Sub-Componentes/HeaderComp";
 interface propsReservaCantidad {
@@ -8,6 +8,7 @@ interface propsReservaCantidad {
   }
 
 const ReservaCantidad: FC <propsReservaCantidad> = ({componentState, setComponentState}) => {
+  const [count, setCount] = useState<number>(1)
   return (
     <div className="w-[100%] md:h-[100vh] h-[100%] max-w-full flex flex-col bg-slate-100 gap-4 items-center justify-center  box-border tracking-[normal] pt-[20px] px-3 text-center text-sm text-[#6096B9] ">
       <HeaderComp componentState={componentState} setComponentState={setComponentState}/>
@@ -152,7 +153,7 @@ const ReservaCantidad: FC <propsReservaCantidad> = ({componentState, setComponen
                     </div>
                   </div>
 
-                  <NumericCounter/>
+                  <NumericCounter count={count} setCount={setCount} />
                 </div>
               </div>
             </div>
