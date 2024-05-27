@@ -10,9 +10,9 @@ interface propsVentasEntradas {
 
 const VentasEntradas: FC<propsVentasEntradas> = ({ componentState, setComponentState }) => {
   return (
-    <div className="w-full h-[100vh] bg-slate-100 flex flex-col py-[20px] gap-[40px] overflow-auto">
+    <div className="w-full h-[100%] bg-slate-100 flex flex-col py-[20px] gap-[40px] overflow-auto">
       <HeaderComp componentState={componentState} setComponentState={setComponentState} />
-      <div className="flex flex-row w-full items-start justify-center gap-8">
+      <div className="flex md:flex-row w-full items-start justify-center gap-8">
         <div className="h-auto w-auto flex flex-col items-start gap-[43px]">
           <img
             className="self-stretch h-[366.6px] relative rounded-md max-w-full overflow-hidden shrink-0 object-cover [debug_commit:1cbd860]"
@@ -21,7 +21,7 @@ const VentasEntradas: FC<propsVentasEntradas> = ({ componentState, setComponentS
             src="ModuloEvento/evento1.jpg"
           />
 
-          <div className="flex flex-col items-start justify-start gap-[10.5px] shrink-0 [debug_commit:1cbd860]">
+          <div className="flex md:flex-col items-start justify-start gap-[10.5px] shrink-0 [debug_commit:1cbd860]">
             <div className="w-full h-7 relative leading-[28px] font-semibold inline-block min-w-[102px] max-w-[313.3299865722656px] mq416:text-mid mq416:leading-[22px]">
               Ubicación
             </div>
