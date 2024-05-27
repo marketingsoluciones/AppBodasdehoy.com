@@ -9,17 +9,17 @@ interface propsReservaDatos {
 
 const ReservaDatos: FC <propsReservaDatos> = ({componentState, setComponentState}) => {
   return (
-    <div className="w-[100%] h-[100vh] max-w-full flex flex-col items-center justify-center pt-[20px] box-border tracking-[normal] text-center text-sm text-[#6096B9] ">
+    <div className="w-[100%] md:h-[100vh] h-[100%] max-w-full flex flex-col items-center justify-center px-[12px] pt-[20px] box-border tracking-[normal] text-center text-sm text-[#6096B9] ">
       <HeaderComp componentState={componentState} setComponentState={setComponentState}/>
       <div className="rounded-md bg-white shadow-[0px_1px_10px_rgba(0,_0,_0,_0.12),_0px_4px_5px_rgba(0,_0,_0,_0.14),_0px_2px_4px_-1px_rgba(0,_0,_0,_0.2)] box-border overflow-hidden flex flex-col items-start justify-start pt-px px-0 pb-[22.5px] gap-[61px] max-w-full border-[1px] border-solid border-divider mq450:gap-[30px_61px]">
         
-      <div className="self-stretch bg-gray-100 [backdrop-filter:blur(8px)] flex flex-row items-start justify-between pt-[10.5px] px-[21px] pb-[13.5px] box-border max-w-full gap-[20px] z-[1] mq450:flex-wrap">
-          
-
+      <div className="w-full bg-gray-100 flex flex-row items-center justify-between pt-[10.5px] px-[21px] pb-[13.5px] box-border max-w-full gap-[20px] mq450:flex-wrap">
+          <div className="flex flex-row items-start justify-start md:gap-[154.90000000000146px] max-w-full mq450:flex-wrap mq450:gap-[154.9px_77px]">
+            
             <button onClick={()=>{ 
         setComponentState(6)
       }} 
-            className="cursor-pointer [border:none] bg-[transparent] flex flex-col items-start justify-start">
+             className="cursor-pointer [border:none] py-0 pr-[10.5px] pl-0 bg-[transparent] flex flex-col items-start justify-start">
               <div className="rounded-md bg-[#6096B9] flex flex-row items-center justify-center py-[10.5px] px-[11px]">
                 <div className="w-[13px] flex flex-col items-start justify-start">
                   <div className="h-3.5 flex flex-row items-start justify-start">
@@ -32,9 +32,8 @@ const ReservaDatos: FC <propsReservaDatos> = ({componentState, setComponentState
                 </div>
               </div>
             </button>
-         
-
-          <div className="flex flex-row items-end justify-start gap-1">
+          </div>
+          <div className="flex flex-row items-end justify-start gap-[5.899999999997817px]">
               <div className="h-[13px] flex flex-col items-start justify-end pt-0 px-0 pb-[3px] box-border">
                 <img
                   className="w-[9.2px] h-2.5 relative overflow-hidden shrink-0"
@@ -43,9 +42,9 @@ const ReservaDatos: FC <propsReservaDatos> = ({componentState, setComponentState
                   src="ModuloEvento/calendar1.svg"
                 />
               </div>
-              <div className="flex flex-col items-start justify-start">
-                <div className="flex flex-row items-start justify-center">
-                  <b className="w-auto relative leading-[21px] flex items-center justify-center min-w-[96px] max-w-[465px] mq450:max-w-full">
+              <div className="flex flex-col items-start justify-center">
+                <div className="flex flex-row items-start justify-center ">
+                  <b className="w-auto relative leading-[21px] flex items-center justify-center max-w-[465px] mq450:max-w-full">
                     Concierto de los Iracundos
                   </b>
                 </div>
@@ -55,7 +54,6 @@ const ReservaDatos: FC <propsReservaDatos> = ({componentState, setComponentState
                 </div>
               </div>
             </div>
-
           <div className="flex flex-col items-start justify-start">
             <div className="rounded-md bg-[#6096B9] flex flex-row items-center justify-center py-[10.5px] px-[13px]">
               <div className="w-[9px] flex flex-col items-end justify-start">
@@ -77,33 +75,44 @@ const ReservaDatos: FC <propsReservaDatos> = ({componentState, setComponentState
           <div className="flex-1 flex flex-col items-end justify-start gap-[21px] max-w-full">
             
           <div className="self-stretch rounded-md bg-gray-100 flex flex-col items-start justify-start p-[10.5px]">
-              <div className="self-stretch flex flex-row flex-wrap items-start justify-start [row-gap:20px]">
-                <div className="flex-1 flex flex-col items-start justify-start min-w-[262px]">
+              
+              <div className="self-stretch flex flex-row items-start md:justify-start justify-between [row-gap:20px]">
+                
+                <div className="md:flex-1 flex flex-col items-start justify-start md:min-w-[262px]">
+                  
                   <div className="self-stretch flex flex-col items-start justify-start">
-                    <div className="self-stretch flex flex-col items-center justify-start py-0 px-5 opacity-[0.5]">
-                      <b className="w-full relative leading-[14px] uppercase inline-block min-w-[31px] max-w-[267.5px]">
+                    
+                    <div className="self-stretch flex flex-col items-center justify-start py-0 md:px-5 opacity-[0.5]">
+                      <b className="md:w-full w-auto relative leading-[14px] uppercase md:inline-block md:min-w-[31px] md:max-w-[267.5px]">
                         Zona
                       </b>
                     </div>
+
                     <div className="self-stretch flex flex-col items-center justify-start py-0 px-5">
-                      <div className="w-full relative leading-[14px] inline-block min-w-[18px] max-w-[267.5px]">
+                      <div className="md:w-full w-auto relative leading-[14px] md:inline-block md:min-w-[18px] md:max-w-[267.5px]">
                         VIP
                       </div>
                     </div>
+
                   </div>
+
                 </div>
-                <div className="flex-1 flex flex-col items-start justify-start min-w-[262px]">
+
+                <div className="md:flex-1 flex flex-col items-start justify-start md:min-w-[262px]">
                   <div className="self-stretch flex flex-col items-start justify-start">
+                    
                     <div className="self-stretch flex flex-col items-center justify-start py-0 px-5 opacity-[0.5]">
                       <b className="w-full relative leading-[14px] uppercase inline-block min-w-[22px] max-w-[267.5px]">
                         Pax
                       </b>
                     </div>
+
                     <div className="self-stretch flex flex-col items-center justify-start py-0 px-5">
                       <b className="w-full relative leading-[14px] inline-block min-w-[5px] max-w-[267.5px]">
                         -
                       </b>
                     </div>
+
                   </div>
                 </div>
               </div>
