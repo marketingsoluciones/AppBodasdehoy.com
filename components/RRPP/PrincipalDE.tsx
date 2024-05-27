@@ -11,21 +11,23 @@ const PrincipalDE: FC<propsPrincipalDE> = ({ componentState, setComponentState }
     <div className="w-[100%] h-[100vh] bg-slate-100 overflow-hidden flex flex-col pt-[20px]  box-border gap-[21px] tracking-[normal] text-left text-sm text-gray-600 font-medium mq416:pl-11 mq416:pr-11 mq416:box-border">
       <HeaderComp componentState={componentState} setComponentState={setComponentState}/>
       <div className="flex md:flex-row flex-col items-center justify-center gap-4">
+        
         <div onClick={() => {
           setComponentState(2)
         }}
-          className="cursor-pointer md:w-[550px] w-auto rounded-md bg-white shadow-[0px_16px_25px_-5px_rgba(0,_0,_0,_0.1),_0px_10px_10px_-5px_rgba(0,_0,_0,_0.04)] overflow-hidden flex flex-row items-start justify-start gap-[10.5px] min-w-[364px] max-w-full mq416:min-w-full">
+          className="cursor-pointer md:w-[550px] w-auto rounded-md bg-white shadow-[0px_16px_25px_-5px_rgba(0,_0,_0,_0.1),_0px_10px_10px_-5px_rgba(0,_0,_0,_0.04)] overflow-hidden flex flex-row items-start justify-start gap-[10.5px] md:min-w-[364px] min-w-[300px] max-w-full mq416:min-w-full">
           <img
-            className=" w-[126px] relative overflow-hidden shrink-0 object-cover"
+            className=" md:w-[126px] w-[100px] h-[160px] relative overflow-hidden shrink-0 object-cover"
             loading="lazy"
             alt=""
             src="ModuloEvento/evento1.jpg"
           />
-          <div className="w-full flex flex-col items-start justify-start pt-[10.5px] px-0 pb-0 box-border min-w-[238.1999999999971px]">
+          <div className="w-full flex flex-col items-start justify-start pt-[10.5px] px-0 pb-0 box-border md:min-w-[238.1999999999971px]">
             <div className="self-stretch flex flex-col items-start justify-start gap-[50.5px]">
               <div className="self-stretch flex flex-col items-start justify-start gap-[10.5px]">
                 <div className="self-stretch flex flex-row items-end justify-start gap-[6.6px]">
-                  <div className="flex flex-row items-start justify-start">
+                  
+                  <div className="flex flex-row items-center justify-center">
                     <div className="flex flex-col items-start justify-start py-0 pr-[10.5px] pl-0 text-white">
                       <div className="rounded-[5.25px] bg-blue-400 flex flex-col items-start justify-start py-[3.5px] px-[7px]">
                         <div className="overflow-x-auto flex flex-row items-start justify-start py-0 pr-[2.5px] pl-0 gap-[4.4px]">
@@ -41,22 +43,29 @@ const PrincipalDE: FC<propsPrincipalDE> = ({ componentState, setComponentState }
                         </div>
                       </div>
                     </div>
-                    <div className="flex flex-col items-start justify-start pt-[3.5px] pb-0 pr-[3px] pl-0">
+                    <div className="flex flex-row items-center justify-center gap-1">
+
+                    <div className="flex items-start justify-start">
                       <div className="w-auto h-[18px] relative tracking-[2.45px] leading-[18px] uppercase inline-block min-w-[47px] whitespace-nowrap">
                         00:00
                       </div>
                     </div>
-                    <div className="w-auto flex flex-col items-start justify-start pt-[5.5px] px-0 pb-0 box-border font-www-fourvenues-com-es-christian-lanza1-events-playa-y-rumba-29-02-2024-81y9-tickets-clrusb7w7018g01aeancrb2z0sg4m98f-1358x573-default-font-awesome-5-free-regular-123-upper">
+
+                    <div className="w-auto flex items-start justify-start box-border ">
                       <div className="self-stretch h-[13px] relative tracking-[2.45px] leading-[12.25px] uppercase inline-block whitespace-nowrap">
                         <img className="text-gray-400" src="ModuloEvento/Symbol123.svg" alt="" />
                       </div>
                     </div>
-                  </div>
-                  <div className="flex flex-col items-start justify-end pt-0 px-0 pb-[3px]">
+
+                    <div className="flex items-center justify-center">
                     <div className="w-auto h-[18px] relative tracking-[2.45px] leading-[18px] uppercase inline-block min-w-[46px] whitespace-nowrap">
                       07:30
                     </div>
                   </div>
+
+                  </div>
+                  </div>
+
                 </div>
                 <h3 className="m-0 w-auto h-7 relative text-base leading-[28px] font-semibold font-inherit text-gray-600 inline-block  mq416:max-w-full">
                   Concierto de los Iracundos
