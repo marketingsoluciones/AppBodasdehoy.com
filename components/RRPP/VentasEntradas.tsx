@@ -219,7 +219,7 @@ const VentasEntradas: FC<propsVentasEntradas> = ({ componentState, setComponentS
                     <div className="flex flex-col items-start justify-start py-[10.5px] pr-[14px] pl-[10.5px] box-border max-w-full">
                       <div className="flex flex-col items-start justify-start">
                         <div className="w-auto h-[24.5px] relative leading-[24.5px] font-semibold inline-block min-w-[46px] max-w-[497.1600036621094px] max-h-[24.5px]">
-                        Entrada Vip + Whisky
+                        VIP + Whisky
                         </div>
                       </div>
                     </div>
