@@ -10,9 +10,9 @@ interface propsRecuperarCompra {
 const RecuperarCompra: FC<propsRecuperarCompra> = ({componentState, setComponentState}) => {
     const [inputValue, setInputValue] = useState("");
   return (
-    <div className="w-[100%] max-w-full flex flex-col bg-slate-100 items-center justify-start py-0 px-[21px] box-border gap-[42px] tracking-[normal] leading-[normal] mq450:gap-[21px]">
+    <div className="w-[100%] max-w-full flex flex-col bg-slate-100 items-center justify-start py-0 md:px-[21px] px-[12px] box-border gap-[42px] tracking-[normal] leading-[normal] mq450:gap-[21px]">
       <HeaderComp componentState={componentState} setComponentState={setComponentState}/>
-      <div className="w-[60%] flex flex-col items-center justify-center gap-4">
+      <div className="md:w-[60%] w-[100%] flex flex-col items-center justify-center gap-4">
       <section className="self-stretch flex flex-col items-start justify-start gap-[25.8px] text-left text-7xl-3 text-wwwfourvenuescom-athens-gray font-wwwfourvenuescom-inter-regular-123">
         <div className="self-stretch flex flex-col items-start justify-start gap-[10.5px]">
           <b className="self-stretch relative text-[16px] leading-[32px] mq450:text-2xl mq450:leading-[25px]">
@@ -209,7 +209,7 @@ const RecuperarCompra: FC<propsRecuperarCompra> = ({componentState, setComponent
           />
         </div>
       </div>
-      <div className="flex-1 flex flex-col items-start justify-start min-w-[148px]">
+      <div className="md:flex-1 w-full flex flex-col items-start justify-between md:min-w-[148px]">
         <div className="self-stretch flex flex-col items-start justify-start pt-0 px-0 pb-[7px]">
           <div className="self-stretch relative text-sm leading-[21px] font-semibold text-left">
             Fecha de la compra
@@ -236,31 +236,27 @@ const RecuperarCompra: FC<propsRecuperarCompra> = ({componentState, setComponent
 
 
           <div className="self-stretch rounded-md bg-[#6096B9] flex flex-col items-start justify-start p-3.5 box-border gap-[10.5px] max-w-full">
-            <div className="self-stretch flex flex-row flex-wrap items-start justify-start py-0 pr-[65px] pl-0 box-border max-w-full [row-gap:20px] mq600:pr-8 mq600:box-border">
-              <div className="flex flex-col items-start justify-start py-0 pr-[7px] pl-0">
-                <div className="flex flex-col items-center justify-center">
+            
+            <div className="self-stretch flex flex-row items-start justify-start gap-2 py-0 md:pr-[65px] pl-0 box-border max-w-full ">
+              <div className="w-auto flex md:flex-col items-start justify-start py-0 md:pr-[7px] md:pl-0">
                   <img
-                    className="w-[18px] h-[18px] relative object-cover"
+                    className="md:w-[18px] w-8 md:h-[18px] h-8 relative md:object-cover"
                     loading="lazy"
                     alt=""
                     src="ModuloEvento/Containerexclamacion.svg"
                   />
-                </div>
               </div>
-              <div className="flex-1 flex flex-col items-start justify-start min-w-[324px] max-w-full">
-                <div className="relative text-sm leading-[18px] font-semibold text-blue-900 text-left">
-                  Revisa los movimientos de tu tarjeta para conocer el importe
-                  total de la transacción.
+              <div className="md:flex-1 flex flex-col items-start justify-start md:min-w-[324px] max-w-full">
+                <div className="w-auto relative md:text-sm text-xs leading-[18px] font-semibold text-blue-900 text-left">
+                  Revisa los movimientos de tu tarjeta para conocer el importe total de la transacción.
                 </div>
               </div>
             </div>
             <div className="self-stretch flex flex-col items-start justify-start">
-              <div className="relative text-sm leading-[17.5px] font-wwwfourvenuescom-inter-regular-123 text-white text-left">
+              <div className="relative md:text-sm text-xs leading-[17.5px] font-wwwfourvenuescom-inter-regular-123 text-white text-left">
                 <p className="m-0">
                   El importe total debe incluir los gastos de gestión y
-                  cualquier otra compra que hayas adquirido en la
-                </p>
-                <p className="m-0">misma transacción.</p>
+                  cualquier otra compra que hayas adquirido en la misma transacción.</p>
               </div>
             </div>
           </div>

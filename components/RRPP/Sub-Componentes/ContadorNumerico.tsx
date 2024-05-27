@@ -1,9 +1,14 @@
 // NumericCounter.tsx
 
-import React, { useState } from 'react';
+import React, { useState, FC } from 'react';
 
-const NumericCounter: React.FC = () => {
-  const [count, setCount] = useState<number>(1); // Inicializamos el contador en 15
+interface propsNumericCounter {
+  setCount: any
+  count: any
+}
+
+const NumericCounter: FC<propsNumericCounter> = ({ setCount, count }) => {
+ /*  const [count, setCount] = useState<number>(1); */ // Inicializamos el contador en 15
 
   const decreaseCount = () => {
     if (count > 1) {

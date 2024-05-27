@@ -1,4 +1,4 @@
-import { FC, FunctionComponent, memo } from "react";
+import { FC, FunctionComponent, memo, useState } from "react";
 import NumericCounter from "./Sub-Componentes/ContadorNumerico";
 import HeaderComp from "./Sub-Componentes/HeaderComp";
 interface propsEntradasGratis {
@@ -12,8 +12,9 @@ interface propsEntradasGratis {
 const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentState, ticketsArray, ticket }) => {
 
   const FindTicket = ticketsArray.find(({nameRadioButton})=> nameRadioButton === ticket)
-
-  console.log("===>",FindTicket)
+  const [count, setCount] = useState<number>(1)
+  const TotalCompra = (count * FindTicket.total) + FindTicket.subTotal + 8.25
+  console.log(TotalCompra)
 
   return (
     <div className="w-full h-[100vh] bg-slate-100 overflow-hidden flex flex-col items-center justify-start pt-[20px] gap-4 box-border tracking-[normal] text-left text-base text-gray-600 font-semibold">
@@ -35,6 +36,7 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
               </div>
             </div>
           </div>
+
 
           <div className="flex flex-col items-start justify-start gap-[10px] min-w-[155px]">
             <div className="self-stretch flex flex-row items-center justify-start gap-[9px]">
@@ -75,7 +77,9 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
               </div>
             </div>
           </div>
+
         </div>
+
         <div className="flex flex-col items-start justify-start pl-8 text-xl text-[#6096B9]">
           <b className="w-auto h-[31.5px] relative leading-[31.5px] inline-block max-w-[1024px] max-h-[31.5px] mq416:max-w-full">
             Concierto de los Iracundos
@@ -83,26 +87,24 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
         </div>
       </section>
 
-      <div className="w-auto flex flex-row items-start justify-start gap-[31.5px] max-w-full">
+      <div className="w-auto flex md:flex-row flex-col items-center justify-center gap-[31.5px] max-w-full">
         <div className="flex flex-col items-start justify-start pt-[21px] px-0 pb-0 box-border gap-[21px] max-w-full mq416:min-w-full">
-
           <div className="self-stretch rounded-md bg-green bg-opacity-40 box-border flex flex-col items-start justify-start py-[22px] px-[21px] max-w-full border-[1px] border-solid border-green">
-            <div className="self-stretch flex flex-row items-center justify-start max-w-full [row-gap:20px]">
-              <div className="flex-1 flex flex-col items-start justify-start py-0 pr-[10.5px] pl-0 box-border min-w-[395px] max-w-full mq416:min-w-full">
-                <div className="self-stretch flex flex-col items-start justify-start">
+            <div className="self-stretch flex flex-row items-center justify-between max-w-full [row-gap:20px]">
+              <div className="flex flex-col items-start justify-start py-0 pr-[10.5px] pl-0 box-border max-w-full mq416:min-w-full">
                   <div className="w-auto h-[24.5px] relative leading-[24.5px] font-semibold inline-block text-black max-h-[24.5px]">
-                    Entrada General
+                    {FindTicket.title}
                   </div>
-                </div>
               </div>
               <div className="flex flex-col items-start justify-start text-mid-5 text-success-dark">
                 <div className="w-auto h-[24.5px] relative leading-[24.5px] font-semibold inline-block text-black whitespace-nowrap">
-                  55.50$
+                 {FindTicket.total}
                 </div>
               </div>
             </div>
           </div>
-          <div className="self-stretch w-full rounded-md box-border flex flex-col items-start justify-start py-[11.5px] px-2.5 max-w-full text-sm border-[1px] border-solid border-blue-600">
+
+          <div className="self-stretch w-full rounded-md box-border flex flex-col items-start justify-start py-[11.5px] px-2.5 max-w-full md:text-sm text-xs border-[1px] border-solid border-blue-600">
             <div className="self-stretch flex flex-row items-start justify-start py-0 pl-0 box-border max-w-full [row-gap:20px]">
               <div className="flex flex-col items-start justify-start pt-1 pb-[3px] pr-[10.5px] pl-0">
                 <div className="flex flex-row items-start justify-start">
@@ -113,7 +115,7 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
                   />
                 </div>
               </div>
-              <div className="flex flex-row w-full items-start justify-start gap-[3.47px] min-w-[228px] max-w-full">
+              <div className="flex flex-row w-full items-start justify-start gap-[3.47px] max-w-full">
                 <div className="h-[21px] w-auto relative leading-[21px] inline-block">
                   Descarga tus entradas una vez compradas.
                 </div>
@@ -123,28 +125,26 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
               </div>
             </div>
           </div>
+
           <div className="self-stretch rounded-md bg-white shadow-[0px_1px_10px_rgba(0,_0,_0,_0.12),_0px_4px_5px_rgba(0,_0,_0,_0.14),_0px_2px_4px_-1px_rgba(0,_0,_0,_0.2)] flex flex-col items-center justify-center gap-4 py-[10.5px] px-5 text-center text-xl text-[#6096B9]">
-
-
             <h3 className="m-0 self-stretch h-7 relative text-inherit leading-[28px] font-bold font-inherit inline-block">
               Seleccionar cantidad
             </h3>
-
-            <NumericCounter />
-
-
+            <NumericCounter count={count} setCount={setCount} />
           </div>
+
         </div>
-        <div className="w-auto flex flex-col items-start justify-start pt-[21px] px-0 pb-0 box-border min-w-[306.3000000000029px] text-text-primary">
+
+        <div className="w-auto flex flex-col items-start justify-start pt-[21px] px-0 pb-0 box-border min-w-[312px] text-text-primary">
           <div className="self-stretch rounded-md bg-white shadow-[0px_1px_10px_rgba(0,_0,_0,_0.12),_0px_4px_5px_rgba(0,_0,_0,_0.14),_0px_2px_4px_-1px_rgba(0,_0,_0,_0.2)] flex flex-col items-start justify-start p-[10.5px] gap-[10.5px]">
-            <div className="self-stretch [filter:blur(0px)] flex flex-col items-start justify-start gap-[10.5px]">
+            <div className="self-stretch flex flex-col items-start justify-start gap-[10.5px]">
               <div className="w-[71px] h-[24.5px] relative leading-[24.5px] font-semibold inline-block min-w-[71px] max-w-[285.3399963378906px] max-h-[24.5px]">
                 Resumen
               </div>
               <div className="self-stretch flex flex-row items-start justify-between gap-[20px] text-sm text-gray-600">
                 <div className="flex flex-col items-start justify-start gap-[10.5px]">
                   <div className="w-[auto h-[21px] relative leading-[21px] font-light inline-block min-w-[120px] max-w-[243.27999877929688px]">
-                    1  x General (55,50 $)
+                   {count}  x {FindTicket.title} ({FindTicket.total} $)
                   </div>
                   <div className="w-auto h-[21px] relative leading-[21px] font-light inline-block min-w-[55px] max-w-[243.27999877929688px]">
                     Subtotal
@@ -152,10 +152,10 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
                 </div>
                 <div className="w-auto flex flex-col items-start justify-start gap-[10.5px] text-right">
                   <div className="self-stretch h-[21px] relative leading-[21px] font-light inline-block min-w-[43px]">
-                    55,50 $
+                    {count * FindTicket.total}$
                   </div>
                   <div className="self-stretch h-[21px] relative leading-[21px] font-light inline-block min-w-[43px]">
-                    55,50 $
+                   {FindTicket.subTotal} $
                   </div>
                 </div>
               </div>
@@ -169,11 +169,11 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
               </div>
               <div className="self-stretch h-px relative bg-gray-600" />
               <div className="self-stretch flex flex-row items-start justify-between gap-[20px]">
-                <div className="h-[24.5px] w-[38px] relative leading-[24.5px] font-semibold inline-block min-w-[38px] max-w-[235.47000122070312px] max-h-[24.5px]">
+                <div className="h-[24.5px] w-[38px]  leading-[24.5px] font-semibold inline-block min-w-[38px] max-w-[235.47000122070312px] max-h-[24.5px]">
                   Total
                 </div>
-                <div className="h-[24.5px] w-[51px] relative leading-[24.5px] font-semibold text-right inline-block min-w-[51px] max-h-[24.5px]">
-                  63,75 $
+                <div className="h-[24.5px] w-[51px]* leading-[24.5px] font-semibold ">
+                  {TotalCompra} $
                 </div>
               </div>
             </div>
@@ -186,6 +186,7 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
             </button>
           </div>
         </div>
+
       </div>
 
     </div>

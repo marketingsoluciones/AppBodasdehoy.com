@@ -23,29 +23,29 @@ const RelacionesPublicas: FC = () => {
       title: "Entrada General",
       disponibilidad: true,
       fechaDisponibilidad: "10 junio",
-      total: "61.75",
-      subTotal: "55.50",
+      total: 61.75,
+      subTotal: 55.50,
       nameRadioButton:"General0"
     }, {
       title: "Entrada General",
       disponibilidad: false,
       fechaDisponibilidad: null,
-      total: "31.75",
-      subTotal: "25.50",
+      total: 31.75,
+      subTotal: 25.50,
       nameRadioButton:"General1"
     }, {
       title: "Mesa VIP",
       disponibilidad: true,
       fechaDisponibilidad: "10 junio",
-      total: "31.75",
-      subTotal: "25.50",
+      total: 31.75,
+      subTotal: 25.50,
       nameRadioButton:"MesaVip"
     }, {
       title: "Reserva VIP + Whisky",
       disponibilidad: true,
       fechaDisponibilidad: "10 junio",
-      total: "174.16",
-      subTotal: "155.50",
+      total: 174.16,
+      subTotal: 155.50,
       nameRadioButton:"ReservaVip"
     },
 
