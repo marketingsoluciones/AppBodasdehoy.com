@@ -13,7 +13,7 @@ const EntradasGratis: FC <propsEntradasGratis> = ({componentState,setComponentSt
     <HeaderComp componentState={componentState} setComponentState={setComponentState}/>
       <section className="self-stretch flex flex-col  items-start justify-center py-0 px-10 gap-[10px] text-left text-sm text-gray-600 mq416:pr-[362px] mq416:box-border">
         
-        <div className="flex flex-row flex-wrap items-start justify-center pl-8 gap-[10px]">
+        <div className="flex flex-row items-start justify-start pl-8 gap-[10px]">
           
           <div onClick={()=>{ 
         setComponentState(2)
@@ -30,6 +30,7 @@ const EntradasGratis: FC <propsEntradasGratis> = ({componentState,setComponentSt
               </div>
             </div>
           </div>
+
 
           <div className="flex flex-col items-start justify-start gap-[10px] min-w-[155px]">
             <div className="self-stretch flex flex-row items-center justify-start gap-[9px]">
@@ -70,6 +71,7 @@ const EntradasGratis: FC <propsEntradasGratis> = ({componentState,setComponentSt
               </div>
             </div>
           </div>
+
         </div>
         <div className="flex flex-col items-start justify-start pl-8 text-xl text-[#6096B9]">
           <b className="w-auto h-[31.5px] relative leading-[31.5px] inline-block max-w-[1024px] max-h-[31.5px] mq416:max-w-full">

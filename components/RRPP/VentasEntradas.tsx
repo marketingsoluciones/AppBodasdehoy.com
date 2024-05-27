@@ -29,7 +29,7 @@ const VentasEntradas: FC<propsVentasEntradas> = ({ componentState, setComponentS
     </div>
     <button className="bg-red text-white rounded-md py-2 px-4 flex items-center gap-2">
       <img
-        class="w-4 h-4"
+        className="w-4 h-4"
         alt=""
         src="ModuloEvento/ubi1.svg"
       />
