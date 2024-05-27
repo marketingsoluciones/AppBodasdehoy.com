@@ -27,8 +27,8 @@ const ReciboEntradas: FC <propsReciboEntradas> = ({componentState, setComponentS
           </div>
         </div>
       </div>
-      <div className="rounded-md bg-white flex flex-col items-center justify-center pt-3.5 px-3.5 pb-7 box-border gap-[14px] max-w-full text-left text-sm  mq450:pt-5 mq450:pb-5 mq450:box-border">
-        <div className="w-[100%] overflow-x-auto flex flex-col items-start justify-start max-w-full">
+      <div className="w-auto rounded-md bg-white flex flex-col items-center justify-center pt-3.5 px-3.5 pb-7 box-border gap-[14px] md:max-w-full text-left md:text-sm">
+        <div className="md:w-[100%] w-auto md:overflow-x-auto flex flex-col items-start justify-start md:max-w-full">
           <DatosUsurariosR
             nombre="yoe stener"
             correo="azulprofile@gmail.com"
@@ -60,7 +60,7 @@ const ReciboEntradas: FC <propsReciboEntradas> = ({componentState, setComponentS
           />
         </div>
         <div className="self-stretch flex flex-row flex-wrap items-center justify-start gap-[10.5px] max-w-full">
-          <div className="flex-1 flex flex-col items-start justify-start min-w-[327px] max-w-full">
+          <div className="flex flex-col items-start justify-start max-w-full text-xs">
             <div className="self-stretch flex flex-col items-start justify-start">
               <div className="w-auto relative leading-[21px] flex items-center text-gray-400 box-border pr-5 mq625:max-w-full">
                 <span className="w-full">

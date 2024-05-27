@@ -14,7 +14,7 @@ export const DatosComprador: FC<propsDatosComprador> = ({idx,item}) => {
           </b>
         </div>
         <div className="self-stretch w-full h-auto pb-5 px-5 pt-2">
-          <div className="self-stretch flex flex-row gap-2 items-center justify-center ">
+          <div className="self-stretch flex md:flex-row flex-col gap-2 items-center justify-center ">
           
           <div className="h-[100%)] w-[100%] flex flex-col items-start justify-start">
             <div className="self-stretch flex flex-col items-start justify-start ">
@@ -60,6 +60,7 @@ export const DatosComprador: FC<propsDatosComprador> = ({idx,item}) => {
             /> 
           </div>
           </div>
+
           <div className="h-[100%] w-[100%] flex flex-col items-start justify-start">
             <div className="self-stretch flex flex-col items-start justify-start ">
               <div className="relative leading-[21px] font-semibold inline-block">

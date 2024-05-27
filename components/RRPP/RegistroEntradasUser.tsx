@@ -19,12 +19,7 @@ const RegistroEntradasUser: FC <propsRegistroEntradasUser> = ({componentState, s
 
         <CabeceraR componentState={componentState} setComponentState={setComponentState}/>
 
-        <div className="w-full right-[0px] left-[0px] flex flex-col items-start py-0 pl-0 box-border text-xl  text-gray">
-          <div className="relative w-full leading-[31.5px] font-semibold inline-block max-h-[31.5px]">
-            Concierto de los Iracundos
-          </div>
-        </div>
-        <div className="w-full flex flex-row items-start justify-center py-0 pl-0 box-border gap-[21px] text-sm text-black">
+        <div className="w-full flex md:flex-row flex-col items-start justify-center py-0 pl-0 box-border gap-[21px] text-sm text-black">
           
             <div className="self-stretch flex flex-col items-center justify-start gap-[21px]">
             {

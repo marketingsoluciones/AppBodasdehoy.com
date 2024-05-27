@@ -31,12 +31,12 @@ const DataUsuarioR: FC<DataUsuarioRType> = ({nombre, correo, icon, propMinWidth,
     }, [propColor]);
 
     return (
-      <div className="w-[100%] box-border flex flex-col items-start justify-start pt-3.5 px-3.5 pb-[15px] text-left text-mid-5 text-black font-semibold border-b-[1px] border-solid border-gray-200">
-        <div className="self-stretch flex flex-row items-center justify-start max-w-full">
-          <div className="flex-1 flex flex-col items-start justify-start min-w-[316px] max-w-full">
+      <div className="md:w-[100%] w-auto box-border flex flex-col items-start justify-start pt-3.5 px-3.5 pb-[15px] text-left text-md text-black font-semibold border-b-[1px] border-solid border-gray-200">
+        <div className="self-stretch flex md:flex-row flex-col md:items-center justify-start">
+          <div className="flex-1 flex flex-col items-start justify-start max-w-full">
             <div className="self-stretch flex flex-col items-start justify-start">
               <div
-                className="relative leading-[24.5px] font-semibold inline-block min-w-[90px] max-h-[24.5px] mq625:max-w-full"
+                className="relative leading-[24.5px] font-semibold inline-block  max-h-[24.5px] mq625:max-w-full"
                 style={DataUsuarioRStyle}
               >
                 {nombre}

@@ -9,9 +9,9 @@ interface propsEntradasGratis {
 
 const EntradasGratis: FC <propsEntradasGratis> = ({componentState,setComponentState}) => {
   return (
-    <div className="w-full h-[100vh] bg-slate-100 overflow-hidden flex flex-col items-center justify-start pt-[20px] gap-4 box-border tracking-[normal] text-left text-base text-gray-600 font-semibold">
+    <div className="w-full h-[100%] bg-slate-100 overflow-hidden flex flex-col items-center justify-start pt-[20px] gap-4 box-border tracking-[normal] text-left text-base text-gray-600 font-semibold">
     <HeaderComp componentState={componentState} setComponentState={setComponentState}/>
-      <section className="self-stretch flex flex-col  items-start justify-center py-0 px-10 gap-[10px] text-left text-sm text-gray-600 mq416:pr-[362px] mq416:box-border">
+      <section className="self-stretch flex flex-col  items-start justify-start py-0 md:px-10 gap-[10px] text-left text-sm text-gray-600 mq416:pr-[362px] mq416:box-border">
         
         <div className="flex flex-row items-start justify-start pl-8 gap-[10px]">
           
@@ -80,26 +80,32 @@ const EntradasGratis: FC <propsEntradasGratis> = ({componentState,setComponentSt
         </div>
       </section>
 
-      <div className="w-auto flex flex-row items-start justify-start gap-[31.5px] max-w-full">
+      <div className="w-auto flex md:flex-row flex-col items-center justify-center gap-[31.5px] max-w-full">
         <div className="flex flex-col items-start justify-start pt-[21px] px-0 pb-0 box-border gap-[21px] max-w-full mq416:min-w-full">
           
           <div className="self-stretch rounded-md bg-green bg-opacity-40 box-border flex flex-col items-start justify-start py-[22px] px-[21px] max-w-full border-[1px] border-solid border-green">
-            <div className="self-stretch flex flex-row items-center justify-start max-w-full [row-gap:20px]">
-              <div className="flex-1 flex flex-col items-start justify-start py-0 pr-[10.5px] pl-0 box-border min-w-[395px] max-w-full mq416:min-w-full">
-                <div className="self-stretch flex flex-col items-start justify-start">
+            
+            <div className="self-stretch flex flex-row items-center justify-between max-w-full [row-gap:20px]">
+              
+              <div className="flex flex-col items-start justify-start py-0 pr-[10.5px] pl-0 box-border max-w-full mq416:min-w-full">
+
                   <div className="w-auto h-[24.5px] relative leading-[24.5px] font-semibold inline-block text-black max-h-[24.5px]">
                     Entrada General
                   </div>
-                </div>
+                
               </div>
+              
               <div className="flex flex-col items-start justify-start text-mid-5 text-success-dark">
                 <div className="w-auto h-[24.5px] relative leading-[24.5px] font-semibold inline-block text-black whitespace-nowrap">
                   55.50$
                 </div>
               </div>
+
             </div>
+
           </div>
-          <div className="self-stretch w-full rounded-md box-border flex flex-col items-start justify-start py-[11.5px] px-2.5 max-w-full text-sm border-[1px] border-solid border-blue-600">
+
+          <div className="self-stretch w-full rounded-md box-border flex flex-col items-start justify-start py-[11.5px] px-2.5 max-w-full md:text-sm text-xs border-[1px] border-solid border-blue-600">
             <div className="self-stretch flex flex-row items-start justify-start py-0 pl-0 box-border max-w-full [row-gap:20px]">
               <div className="flex flex-col items-start justify-start pt-1 pb-[3px] pr-[10.5px] pl-0">
                 <div className="flex flex-row items-start justify-start">
@@ -110,7 +116,7 @@ const EntradasGratis: FC <propsEntradasGratis> = ({componentState,setComponentSt
                   />
                 </div>
               </div>
-              <div className="flex flex-row w-full items-start justify-start gap-[3.47px] min-w-[228px] max-w-full">
+              <div className="flex flex-row w-full items-start justify-start gap-[3.47px] max-w-full">
                 <div className="h-[21px] w-auto relative leading-[21px] inline-block">
                   Descarga tus entradas una vez compradas.
                 </div>
@@ -120,6 +126,7 @@ const EntradasGratis: FC <propsEntradasGratis> = ({componentState,setComponentSt
               </div>
             </div>
           </div>
+
           <div className="self-stretch rounded-md bg-white shadow-[0px_1px_10px_rgba(0,_0,_0,_0.12),_0px_4px_5px_rgba(0,_0,_0,_0.14),_0px_2px_4px_-1px_rgba(0,_0,_0,_0.2)] flex flex-col items-center justify-center gap-4 py-[10.5px] px-5 text-center text-xl text-[#6096B9]">
 
 
@@ -132,6 +139,7 @@ const EntradasGratis: FC <propsEntradasGratis> = ({componentState,setComponentSt
 
           </div>
         </div>
+
         <div className="w-auto flex flex-col items-start justify-start pt-[21px] px-0 pb-0 box-border min-w-[306.3000000000029px] text-text-primary">
           <div className="self-stretch rounded-md bg-white shadow-[0px_1px_10px_rgba(0,_0,_0,_0.12),_0px_4px_5px_rgba(0,_0,_0,_0.14),_0px_2px_4px_-1px_rgba(0,_0,_0,_0.2)] flex flex-col items-start justify-start p-[10.5px] gap-[10.5px]">
             <div className="self-stretch [filter:blur(0px)] flex flex-col items-start justify-start gap-[10.5px]">
@@ -183,6 +191,7 @@ const EntradasGratis: FC <propsEntradasGratis> = ({componentState,setComponentSt
             </button>
           </div>
         </div>
+
       </div>
 
     </div>
