@@ -10,11 +10,11 @@ const PrincipalDE: FC<propsPrincipalDE> = ({ componentState, setComponentState }
   return (
     <div className="w-[100%] h-[100vh] bg-slate-100 overflow-hidden flex flex-col pt-[20px]  box-border gap-[21px] tracking-[normal] text-left text-sm text-gray-600 font-medium mq416:pl-11 mq416:pr-11 mq416:box-border">
       <HeaderComp componentState={componentState} setComponentState={setComponentState}/>
-      <div className="flex flex-row items-center justify-center gap-4">
+      <div className="flex md:flex-row flex-col items-center justify-center gap-4">
         <div onClick={() => {
           setComponentState(2)
         }}
-          className="cursor-pointer w-[550px] rounded-md bg-white shadow-[0px_16px_25px_-5px_rgba(0,_0,_0,_0.1),_0px_10px_10px_-5px_rgba(0,_0,_0,_0.04)] overflow-hidden flex flex-row items-start justify-start gap-[10.5px] min-w-[364px] max-w-full mq416:min-w-full">
+          className="cursor-pointer md:w-[550px] w-auto rounded-md bg-white shadow-[0px_16px_25px_-5px_rgba(0,_0,_0,_0.1),_0px_10px_10px_-5px_rgba(0,_0,_0,_0.04)] overflow-hidden flex flex-row items-start justify-start gap-[10.5px] min-w-[364px] max-w-full mq416:min-w-full">
           <img
             className=" w-[126px] relative overflow-hidden shrink-0 object-cover"
             loading="lazy"
@@ -62,7 +62,7 @@ const PrincipalDE: FC<propsPrincipalDE> = ({ componentState, setComponentState }
                   Concierto de los Iracundos
                 </h3>
               </div>
-              <button className="cursor-pointer [border:none] pt-[3.5px] pb-[3px] pr-1.5 pl-[7px] bg-red rounded-[5.25px] flex flex-row items-start justify-start gap-[3.5px] opacity-[0.4]">
+              <button className="cursor-pointer [border:none] pt-[3.5px] pb-[3px] px-1 bg-red rounded-[5.25px] flex flex-row items-start justify-start gap-[3.5px] opacity-[0.4]">
                 <div className="h-[15px] flex flex-col items-start justify-start pt-0.5 px-0 pb-0 box-border">
                   <img
                     className="w-[9.2px] h-[13px] relative overflow-hidden shrink-0"
@@ -70,13 +70,14 @@ const PrincipalDE: FC<propsPrincipalDE> = ({ componentState, setComponentState }
                     src="ModuloEvento/ubi1.svg"
                   />
                 </div>
-                <div className="h-[18px] w-auto relative text-smi-3 leading-[18px] font-medium text-white text-left inline-block min-w-[82px]">
+                <div className="h-[18px] w-auto relative text-xs leading-[18px] font-medium text-white text-left inline-block ">
                   Banaoro / Rocafuerte y 25 de junio
                 </div>
               </button>
             </div>
           </div>
         </div>
+
         <div className="w-[327.3px] bg-white rounded-md flex flex-col items-start justify-start pt-[7.5px] px-0 pb-0 box-border min-w-[327.3000000000029px] min-h-[160px] max-w-full text-center text-sm">
           <div className="self-stretch flex flex-col items-start justify-start">
             <div className="self-stretch rounded-2xs-5 bg-primary-contrast flex flex-col items-center justify-center pt-[21px] px-[21px] pb-[31.5px]">
