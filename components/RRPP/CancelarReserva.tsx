@@ -24,10 +24,10 @@ const CancelarReserva: FC <propsCancelarReserva> = ({componentState, setComponen
           </div>
         </div>
 
-        <div className="self-stretch  flex flex-row items-start justify-start pt-0 px-0 pb-[21px] box-border min-h-[521px] max-w-full text-sm text-black ">
+        <div className="self-stretch flex flex-row items-start justify-start pt-0 px-[12px] pb-[21px] box-border md:min-h-[521px] max-w-full text-sm text-black ">
           <div className="md:flex-1 rounded-md bg-white shadow-[0px_1px_10px_rgba(0,_0,_0,_0.12),_0px_4px_5px_rgba(0,_0,_0,_0.14),_0px_2px_4px_-1px_rgba(0,_0,_0,_0.2)] overflow-hidden flex flex-col items-start justify-start pt-0 px-0 pb-[10.5px] box-border gap-[24.5px] md:min-h-[500px] md:max-w-full">
             <img
-              className="self-stretch h-[200px] max-w-full overflow-hidden shrink-0 object-cover"
+              className="self-stretch md:h-[200px] max-w-full overflow-hidden shrink-0 object-cover"
               loading="lazy"
               alt=""
               src="ModuloEvento/vip.jpg"
@@ -81,14 +81,7 @@ const CancelarReserva: FC <propsCancelarReserva> = ({componentState, setComponen
                         <div className="h-[9px] w-6 rounded-md bg-black flex flex-col items-start justify-start p-0.5 box-border">
                           <div className="w-5 h-[5px] relative rounded-md bg-black hidden" />
                         </div>
-                        <div className="h-[9px] w-6 rounded-md bg-black flex flex-col items-start justify-start p-0.5 box-border">
-                          <div className="w-5 h-[5px] relative rounded-md bg-black hidden" />
-                        </div>
-                        <div className="h-[9px] w-6 rounded-md bg-black flex flex-col items-start justify-start p-0.5 box-border">
-                          <div className="w-5 h-[5px] relative rounded-md bg-black hidden" />
-                        </div>                        <div className="h-[9px] w-6 rounded-md bg-black flex flex-col items-start justify-start p-0.5 box-border">
-                          <div className="w-5 h-[5px] relative rounded-md bg-black hidden" />
-                        </div>                        <div className="h-[9px] w-6 rounded-md bg-black flex flex-col items-start justify-start p-0.5 box-border">
+                     <div className="h-[9px] w-6 rounded-md bg-black flex flex-col items-start justify-start p-0.5 box-border">
                           <div className="w-5 h-[5px] relative rounded-md bg-black hidden" />
                         </div>                        <div className="h-[9px] w-6 rounded-md bg-black flex flex-col items-start justify-start p-0.5 box-border">
                           <div className="w-5 h-[5px] relative rounded-md bg-black hidden" />
