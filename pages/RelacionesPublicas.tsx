@@ -18,10 +18,48 @@ const RelacionesPublicas: FC = () => {
     setOptionSelect(idx);
   };
 
+  const ticketsArray = [
+    {
+      title: "Entrada General",
+      disponibilidad: true,
+      fechaDisponibilidad: "10 junio",
+      total: "61.75",
+      subTotal: "55.50",
+      nameRadioButton:"General0"
+    }, {
+      title: "Entrada General",
+      disponibilidad: false,
+      fechaDisponibilidad: null,
+      total: "31.75",
+      subTotal: "25.50",
+      nameRadioButton:"General1"
+    }, {
+      title: "Mesa VIP",
+      disponibilidad: true,
+      fechaDisponibilidad: "10 junio",
+      total: "31.75",
+      subTotal: "25.50",
+      nameRadioButton:"MesaVip"
+    }, {
+      title: "Reserva VIP + Whisky",
+      disponibilidad: true,
+      fechaDisponibilidad: "10 junio",
+      total: "174.16",
+      subTotal: "155.50",
+      nameRadioButton:"ReservaVip"
+    },
+
+  ]
+
+  const [ticket, setTicket] = useState(null)
+
+  console.log(ticket)
+
+
   const dataComponents = [
     /* 0 */
     {
-      component: <LosIracundosWeb componentState={optionSelect} setComponentState={setOptionSelect} />
+      component: <LosIracundosWeb componentState={optionSelect} setComponentState={setOptionSelect} ticketsArray={ticketsArray} setTicket={setTicket} />
     },
     /* 1 */
     {
@@ -33,7 +71,7 @@ const RelacionesPublicas: FC = () => {
     },
     /* 3 */
     {
-      component: <EntradasGratis componentState={optionSelect} setComponentState={setOptionSelect} />
+      component: <EntradasGratis componentState={optionSelect} setComponentState={setOptionSelect} ticketsArray={ticketsArray} ticket={ticket}  />
     },
     /* 4 */
     {

@@ -3,12 +3,13 @@ import Comp1 from "./Sub-Componentes/Comp1";
 import Comp2 from "./Sub-Componentes/Comp2";
 import Comp3 from "./Sub-Componentes/Comp3";
 interface propsLosIracundosWeb {
-    componentState: any;
-    setComponentState: any;
-  
-  }
+  componentState: any;
+  setComponentState: any;
+  ticketsArray: any
+  setTicket:any
+}
 
-const LosIracundosWeb: FC<propsLosIracundosWeb> = ({componentState, setComponentState}) => {
+const LosIracundosWeb: FC<propsLosIracundosWeb> = ({ componentState, setComponentState, ticketsArray, setTicket }) => {
   return (
     <div className="w-full relative bg-gray-100 overflow-hidden flex flex-col items-end justify-start pt-5 px-0 pb-0 box-border gap-[50px] tracking-[normal] leading-[normal]  mq750:gap-[25px]">
       <img
@@ -17,8 +18,8 @@ const LosIracundosWeb: FC<propsLosIracundosWeb> = ({componentState, setComponent
         src="ModuloEvento/coffee_image.png"
       />
       <Comp3 componentState={componentState} setComponentState={setComponentState} />
-      <Comp2 componentState={componentState} setComponentState={setComponentState}/>
-      <Comp1 componentState={componentState} setComponentState={setComponentState}/>
+      <Comp2 componentState={componentState} setComponentState={setComponentState} ticketsArray={ticketsArray} setTicket={setTicket} />
+      <Comp1 componentState={componentState} setComponentState={setComponentState} />
     </div>
   );
 };

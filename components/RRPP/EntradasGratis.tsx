@@ -2,23 +2,28 @@ import { FC, FunctionComponent, memo } from "react";
 import NumericCounter from "./Sub-Componentes/ContadorNumerico";
 import HeaderComp from "./Sub-Componentes/HeaderComp";
 interface propsEntradasGratis {
-    componentState: any;
-    setComponentState: any;
-  
-  }
+  componentState: any;
+  setComponentState: any;
+  ticketsArray: any;
+  ticket: any;
 
-const EntradasGratis: FC <propsEntradasGratis> = ({componentState,setComponentState}) => {
+}
+
+const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentState, ticketsArray, ticket }) => {
+
+  const FindTicket = ticketsArray.find(({nameRadioButton})=> nameRadioButton === ticket)
+
+  console.log("===>",FindTicket)
+
   return (
     <div className="w-full h-[100vh] bg-slate-100 overflow-hidden flex flex-col items-center justify-start pt-[20px] gap-4 box-border tracking-[normal] text-left text-base text-gray-600 font-semibold">
-    <HeaderComp componentState={componentState} setComponentState={setComponentState}/>
+      <HeaderComp componentState={componentState} setComponentState={setComponentState} />
       <section className="self-stretch flex flex-col  items-start justify-center py-0 px-10 gap-[10px] text-left text-sm text-gray-600 mq416:pr-[362px] mq416:box-border">
-        
         <div className="flex flex-row flex-wrap items-start justify-center pl-8 gap-[10px]">
-          
-          <div onClick={()=>{ 
-        setComponentState(2)
-      }} 
-           className="cursor-pointer rounded-md bg-[#6096B9] flex flex-row items-center justify-center py-[10.5px] pr-[11.299999999995634px] pl-[11.400000000001455px]">
+          <div onClick={() => {
+            setComponentState(2)
+          }}
+            className="cursor-pointer rounded-md bg-[#6096B9] flex flex-row items-center justify-center py-[10.5px] pr-[11.299999999995634px] pl-[11.400000000001455px]">
             <div className="flex flex-col items-start justify-start">
               <div className="h-3.5 flex flex-row items-start justify-start">
                 <img
@@ -80,7 +85,7 @@ const EntradasGratis: FC <propsEntradasGratis> = ({componentState,setComponentSt
 
       <div className="w-auto flex flex-row items-start justify-start gap-[31.5px] max-w-full">
         <div className="flex flex-col items-start justify-start pt-[21px] px-0 pb-0 box-border gap-[21px] max-w-full mq416:min-w-full">
-          
+
           <div className="self-stretch rounded-md bg-green bg-opacity-40 box-border flex flex-col items-start justify-start py-[22px] px-[21px] max-w-full border-[1px] border-solid border-green">
             <div className="self-stretch flex flex-row items-center justify-start max-w-full [row-gap:20px]">
               <div className="flex-1 flex flex-col items-start justify-start py-0 pr-[10.5px] pl-0 box-border min-w-[395px] max-w-full mq416:min-w-full">
@@ -121,11 +126,11 @@ const EntradasGratis: FC <propsEntradasGratis> = ({componentState,setComponentSt
           <div className="self-stretch rounded-md bg-white shadow-[0px_1px_10px_rgba(0,_0,_0,_0.12),_0px_4px_5px_rgba(0,_0,_0,_0.14),_0px_2px_4px_-1px_rgba(0,_0,_0,_0.2)] flex flex-col items-center justify-center gap-4 py-[10.5px] px-5 text-center text-xl text-[#6096B9]">
 
 
-                    <h3 className="m-0 self-stretch h-7 relative text-inherit leading-[28px] font-bold font-inherit inline-block">
-                      Seleccionar cantidad
-                    </h3>
+            <h3 className="m-0 self-stretch h-7 relative text-inherit leading-[28px] font-bold font-inherit inline-block">
+              Seleccionar cantidad
+            </h3>
 
-<NumericCounter/>
+            <NumericCounter />
 
 
           </div>
@@ -172,9 +177,9 @@ const EntradasGratis: FC <propsEntradasGratis> = ({componentState,setComponentSt
                 </div>
               </div>
             </div>
-            <button onClick={()=>{ 
-        setComponentState(4)
-      }}  className="cursor-pointer [border:none] pt-[9.5px] pb-[11px] pr-5 pl-[21px] bg-[#6096B9] hover:bg-[#4189b9] self-stretch rounded-md flex flex-row items-start justify-center hover:bg-crimson-100">
+            <button onClick={() => {
+              setComponentState(4)
+            }} className="cursor-pointer [border:none] pt-[9.5px] pb-[11px] pr-5 pl-[21px] bg-[#6096B9] hover:bg-[#4189b9] self-stretch rounded-md flex flex-row items-start justify-center hover:bg-crimson-100">
               <div className="h-[25px] w-[83px] relative text-mid-5 leading-[25px] font-medium text-white text-center flex items-center justify-center min-w-[83px] max-w-[264.3399963378906px]">
                 Continuar
               </div>
