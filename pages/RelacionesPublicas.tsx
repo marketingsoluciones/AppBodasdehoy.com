@@ -52,8 +52,10 @@ const RelacionesPublicas: FC = () => {
   ]
 
   const [ticket, setTicket] = useState(null)
+  const [count, setCount] = useState<number>(1)
 
-  console.log(ticket)
+
+  
 
 
   const dataComponents = [
@@ -71,11 +73,11 @@ const RelacionesPublicas: FC = () => {
     },
     /* 3 */
     {
-      component: <EntradasGratis componentState={optionSelect} setComponentState={setOptionSelect} ticketsArray={ticketsArray} ticket={ticket}  />
+      component: <EntradasGratis componentState={optionSelect} setComponentState={setOptionSelect} ticketsArray={ticketsArray} ticket={ticket} setCount={setCount} count={count}  />
     },
     /* 4 */
     {
-      component: <RegistroEntradasUser componentState={optionSelect} setComponentState={setOptionSelect} />
+      component: <RegistroEntradasUser componentState={optionSelect} setComponentState={setOptionSelect} ticketsArray={ticketsArray}  ticket={ticket} count={count}  />
     },
     /* 5 */
     {

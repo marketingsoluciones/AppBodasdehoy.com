@@ -6,15 +6,14 @@ interface propsEntradasGratis {
   setComponentState: any;
   ticketsArray: any;
   ticket: any;
-
+  count:number;
+  setCount: any
 }
 
-const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentState, ticketsArray, ticket }) => {
+const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentState, ticketsArray, ticket, count, setCount }) => {
 
   const FindTicket = ticketsArray.find(({nameRadioButton})=> nameRadioButton === ticket)
-  const [count, setCount] = useState<number>(1)
   const TotalCompra = (count * FindTicket.total) + FindTicket.subTotal + 8.25
-  console.log(TotalCompra)
 
   return (
     <div className="w-full h-[100vh] bg-slate-100 overflow-hidden flex flex-col items-center justify-start pt-[20px] gap-4 box-border tracking-[normal] text-left text-base text-gray-600 font-semibold">

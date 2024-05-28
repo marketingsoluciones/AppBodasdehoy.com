@@ -3,18 +3,17 @@ import { FC } from "react";
 interface propsResumenComponents {
   componentState: any;
   setComponentState: any;
+  TotalCompra?:any;
+  FindTicket?:any;
+  count?:number
 
 }
-export const ResumenComponents: FC <propsResumenComponents> =({componentState, setComponentState}) => {
+export const ResumenComponents: FC <propsResumenComponents> =({componentState, setComponentState, TotalCompra,FindTicket, count }) => {
     return(
         <div className="self-stretch w-auto flex flex-col items-start justify-start box-border ">
-        
-
           <div className="self-stretch rounded-md bg-white shadow-[0px_1px_10px_rgba(0,_0,_0,_0.12),_0px_4px_5px_rgba(0,_0,_0,_0.14),_0px_2px_4px_-1px_rgba(0,_0,_0,_0.2)] flex flex-col items-start justify-start p-[10.5px] gap-[10.5px]">
-           
            <div className="self-stretch [filter:blur(0px)] flex flex-col items-start justify-start">
               <div className="self-stretch flex flex-col items-start justify-start gap-[10.5px]">
-                
                 <div className="self-stretch flex flex-col items-start justify-start ">
                   <div className="relative leading-[24.5px] font-semibold inline-block">
                     Resumen
@@ -24,12 +23,12 @@ export const ResumenComponents: FC <propsResumenComponents> =({componentState, s
                   <div className="self-stretch flex flex-row items-center justify-start">
                     <div className="flex-1 flex flex-col items-start justify-start py-0 pr-[123.27999877929688px] pl-0">
                       <div className="relative leading-[21px] font-light inline-block max-w-[243.27999877929688px]">
-                        1  x Gratis (55,50 $)
+                      {count}  x {FindTicket.title} ({FindTicket.total} $)
                       </div>
                     </div>
                     <div className="w-[42.1px] flex flex-col items-end justify-start text-right">
                       <div className="relative leading-[21px] font-light">
-                      55,50 $
+                      {count * FindTicket.total} $
                       </div>
                     </div>
                   </div>
@@ -41,7 +40,7 @@ export const ResumenComponents: FC <propsResumenComponents> =({componentState, s
                     </div>
                     <div className="w-[42.1px] flex flex-col items-end justify-start text-right">
                       <div className="relative leading-[21px] font-light">
-                      55,50 $
+                      {FindTicket.subTotal}$
                       </div>
                     </div>
                   </div>
@@ -67,7 +66,7 @@ export const ResumenComponents: FC <propsResumenComponents> =({componentState, s
                   </div>
                   <div className="w-[49.9px] flex flex-col items-end justify-start text-right">
                     <div className="relative leading-[24.5px] font-semibold inline-block max-h-[24.5px]">
-                    63,75 $
+                    {TotalCompra} $
                     </div>
                   </div>
                 </div>

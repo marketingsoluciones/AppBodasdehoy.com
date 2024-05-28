@@ -9,7 +9,7 @@ interface propsReciboEntradas {
 
 const ReciboEntradas: FC <propsReciboEntradas> = ({componentState, setComponentState}) => {
   return (
-    <div className="w-[100%] h-[100%] flex flex-col bg-slate-100 items-center justify-start py-[20px] px-0 box-border gap-[56px] tracking-[normal] text-center text-xl mq450:gap-[28px_56px] mq450:max-w-full mq625:max-w-full mq675:max-w-full">
+    <div className="w-[100%] h-[100vh] flex flex-col bg-slate-100 items-center justify-start py-[20px] px-0 box-border gap-[56px] tracking-[normal] text-center text-xl mq450:gap-[28px_56px] mq450:max-w-full mq625:max-w-full mq675:max-w-full">
       <HeaderComp componentState={componentState} setComponentState={setComponentState}/>
       <div className="self-stretch h-[172.5px] flex flex-col items-start justify-start gap-[28px]">
         <div className="self-stretch flex-1 flex flex-col items-center justify-start pt-0 px-5 pb-px">
