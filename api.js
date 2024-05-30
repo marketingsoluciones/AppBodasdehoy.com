@@ -33,7 +33,8 @@ export const api = {
     return await instance.post("/graphql", params, {
       headers: {
         Authorization: `Bearer ${idToken}`,
-        Development: varGlobalDevelopment
+        Development: varGlobalDevelopment,
+        
       }
     });
   },
@@ -110,7 +111,8 @@ export const api = {
     return axios.post('https://api.bodasdehoy.com/graphql', data, {
       headers: {
         Authorization: `Bearer ${idToken}`,
-        Development: development
+        Development: development,
+        IsProduction: process?.env?.NEXT_PUBLIC_PRODUCTION
       }
     })
   }

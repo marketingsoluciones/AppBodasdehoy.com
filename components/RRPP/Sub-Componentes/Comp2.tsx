@@ -13,42 +13,10 @@ const Comp2: FC<propsComp2> = ({ componentState, setComponentState, ticketsArray
   const [isChecked, setIsChecked] = useState(false)
 
   const onChangeCheckbox = (e) => {
+    console.log(e.target.value)
     setIsChecked(e.target.checked);
     setTicket(e.target.value);
   };
-
-  /* const ticketsArray = [
-    {
-      title: "Entrada General",
-      disponibilidad: true,
-      fechaDisponibilidad: "10 junio",
-      total: "61.75",
-      subTotal: "55.50",
-      nameRadioButton:"General1"
-    }, {
-      title: "Entrada General",
-      disponibilidad: false,
-      fechaDisponibilidad: null,
-      total: "31.75",
-      subTotal: "25.50",
-      nameRadioButton:"General0"
-    }, {
-      title: "Mesa VIP",
-      disponibilidad: true,
-      fechaDisponibilidad: "10 junio",
-      total: "31.75",
-      subTotal: "25.50",
-      nameRadioButton:"MesaVip"
-    }, {
-      title: "Reserva VIP + Whisky",
-      disponibilidad: true,
-      fechaDisponibilidad: "10 junio",
-      total: "174.16",
-      subTotal: "155.50",
-      nameRadioButton:"ReservaVip"
-    },
-
-  ] */
 
   return (
     <section className="self-stretch flex flex-row items-start justify-end py-0 px-[66px] box-border max-w-full text-center text-26xl text-black font-inter   ">
@@ -134,7 +102,7 @@ const Comp2: FC<propsComp2> = ({ componentState, setComponentState, ticketsArray
           </div>
 
           <div className="flex flex-col items-start justify-start pt-0 px-0 pb-[0.1px] box-border gap-[23px] md:min-w-[500px] max-w-full text-right text-xl text-gray-200 ">
-            {ticketsArray.map((item, idx) => {
+            {ticketsArray?.map((item, idx) => {
               return (
                 <div key={idx} className="md:self-stretch rounded-md hover:bg-[#D1A29E] box-border flex md:flex-row flex-col items-start justify-start py-[26px] px-5 md:pr-[46px] md:pl-[47px] md:max-w-full border-[1.3px] border-solid border-gray-400 hover:border-[#8B1710] text-gray-600 hover:text-gray-50 w-full">
                   <div className="md:flex-1 flex md:flex-row flex-col md:items-start items-center md:justify-between md:gap-[36.4px] md:max-w-full mq750:flex-wrap mq750:gap-[18px] w-full">
@@ -145,14 +113,14 @@ const Comp2: FC<propsComp2> = ({ componentState, setComponentState, ticketsArray
                           type="radio"
                           /* checked={isChecked} */
                           onChange={onChangeCheckbox}
-                          value={item.nameRadioButton}
+                          value={item.name}
                           name="tickets"
                         />
                       </div>
 
                       <div className="w-auto flex flex-col md:items-start items-center justify-start md:gap-[8.1px] text-left text-[16px] ">
                         <div className=" font-semibold  ">
-                          {item.title}
+                          {item.name}
                         </div>
                         <div className={` ${item.disponibilidad ? "bg-green text-green" : " bg-red bg-opacity-30 text-red"} w-auto rounded-full  bg-opacity-30 flex flex-row items-start justify-start pt-[3.7px] px-2 pb-[3.8px] whitespace-nowrap text-center text-xs font-semibold `}>
                           {item.disponibilidad ? `Disponible hasta ${item.fechaDisponibilidad}` : "no disponible"}
@@ -163,11 +131,11 @@ const Comp2: FC<propsComp2> = ({ componentState, setComponentState, ticketsArray
                     <div className="md:w-auto flex md:flex-col md:items-end md:justify-start justify-between gap-[4.8px] w-full px-5 md:px-0 pb-2 md:pb-0 ">
                       <div className="self-stretch relative shrink-0 [debug_commit:bf4bc93] mq450:text-base">{`Total `}</div>
                       <div className="w-auto relative text-[18px] font-semibold inline-block shrink-0 [debug_commit:bf4bc93] whitespace-nowrap mq450:text-3xl">
-                        ${item.total}
+                        {`${item?.prices[0]?.currency=== "usd"? "$" : item?.prices[0]?.currency} ${item?.prices[0]?.unit_amount / 100}`}
                       </div>
                     </div>
 
-                    <div className="md:w-auto flex md:flex-col md:items-start md:justify-start justify-center pt-[1.2px] px-0 pb-0 box-border w-full ">
+                    {/* <div className="md:w-auto flex md:flex-col md:items-start md:justify-start justify-center pt-[1.2px] px-0 pb-0 box-border w-full ">
                       <div className="self-stretch flex  md:flex-col md:items-end md:justify-start justify-between gap-[4.2px] w-full px-5 md:px-0">
                         <div className="w-auto relative inline-block mq450:text-base">
                           Sub-Total
@@ -176,188 +144,12 @@ const Comp2: FC<propsComp2> = ({ componentState, setComponentState, ticketsArray
                           ${item.subTotal}
                         </div>
                       </div>
-                    </div>
+                    </div> */}
 
                   </div>
                 </div>
               )
             })}
-
-            {/* tarjeta 1 */}
-            {/* <div className="md:self-stretch rounded-md hover:bg-[#D1A29E] box-border flex md:flex-row flex-col items-start justify-start py-[26px] px-5 md:pr-[46px] md:pl-[47px] md:max-w-full border-[1.3px] border-solid border-gray-400 hover:border-[#8B1710] text-gray-600 hover:text-gray-50 w-full">
-              <div className="md:flex-1 flex md:flex-row flex-col md:items-start items-center md:justify-between md:gap-[36.4px] md:max-w-full mq750:flex-wrap mq750:gap-[18px] w-full">
-                <div className="flex flex-row md:items-start items-center justify-center gap-3 pb-4 md:pb-0">
-                  <div className="flex flex-col items-start justify-start pt-[16.1px] px-0 pb-0">
-                    <input
-                      className="m-0 w-[31.3px] h-[31.3px] rounded-[62.65px] text-[#8B1710] border-[#8B1710] overflow-hidden shrink-0"
-                      type="checkbox"
-                      checked={isChecked}
-                      onChange={onChangeCheckbox}
-                    />
-                  </div>
-
-                  <div className="w-auto flex flex-col md:items-start items-center justify-start md:gap-[8.1px] text-left text-[16px] ">
-                    <div className=" font-semibold  ">
-                      Entrada General
-                    </div>
-                    <div className="w-auto rounded-full bg-green bg-opacity-30 flex flex-row items-start justify-start pt-[3.7px] px-2 pb-[3.8px] whitespace-nowrap text-center text-xs font-semibold text-green">
-                      Disponible hasta 10 junio
-                    </div>
-                  </div>
-                </div>
-
-                <div className="md:w-auto flex md:flex-col md:items-end md:justify-start justify-between gap-[4.8px] w-full px-5 md:px-0 pb-2 md:pb-0 ">
-                  <div className="self-stretch relative shrink-0 [debug_commit:bf4bc93] mq450:text-base">{`Total `}</div>
-                  <div className="w-auto relative text-[18px] font-semibold inline-block shrink-0 [debug_commit:bf4bc93] whitespace-nowrap mq450:text-3xl">
-                    $61.75
-                  </div>
-                </div>
-
-                <div className="md:w-auto flex md:flex-col md:items-start md:justify-start justify-center pt-[1.2px] px-0 pb-0 box-border w-full ">
-                  <div className="self-stretch flex  md:flex-col md:items-end md:justify-start justify-between gap-[4.2px] w-full px-5 md:px-0">
-                    <div className="w-auto relative inline-block mq450:text-base">
-                      Sub-Total
-                    </div>
-                    <div className="self-stretch relative text-8xl-6 font-semibold text-iracundosc1 whitespace-nowrap mq450:text-3xl">
-                      $55.50
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </div> */}
-            {/* tarjeta 2 */}
-            {/* <div className="md:self-stretch rounded-md hover:bg-[#D1A29E] box-border flex md:flex-row flex-col items-start justify-start py-[26px] px-5 md:pr-[46px] md:pl-[47px] md:max-w-full border-[1.3px] border-solid border-gray-400 hover:border-[#8B1710] text-gray-600 hover:text-gray-50 w-full">
-              <div className="md:flex-1 flex md:flex-row flex-col md:items-start items-center md:justify-between md:gap-[36.4px] md:max-w-full mq750:flex-wrap mq750:gap-[18px] w-full">
-                <div className="flex flex-row md:items-start items-center justify-center gap-3 pb-4 md:pb-0">
-                  <div className="flex flex-col items-start justify-start pt-[16.1px] px-0 pb-0">
-                    <input
-                      className="m-0 w-[31.3px] h-[31.3px] rounded-[62.65px] text-[#8B1710] border-[#8B1710] overflow-hidden shrink-0"
-                      type="checkbox"
-                      checked={isChecked}
-                      onChange={onChangeCheckbox}
-                    />
-                  </div>
-
-                  <div className="w-auto flex flex-col items-start justify-start gap-[8.1px] text-left text-[16px] ">
-                    <div className="relative font-semibold inline-block mq450:text-lg ">
-                      Entrada General
-                    </div>
-                    <div className="w-auto rounded-full bg-red bg-opacity-30 flex flex-row items-start justify-start pt-[3.7px] px-2 pb-[3.8px] whitespace-nowrap text-center text-xs font-semibold text-red">
-
-                      Agotada
-
-                    </div>
-                  </div>
-                </div>
-
-                <div className="md:w-auto flex md:flex-col md:items-end md:justify-start justify-between gap-[4.8px] w-full px-5 md:px-0 pb-2 md:pb-0 ">
-                  <div className="self-stretch relative shrink-0 [debug_commit:bf4bc93] mq450:text-base">{`Total `}</div>
-                  <div className="w-auto relative text-[18px] font-semibold inline-block shrink-0 [debug_commit:bf4bc93] whitespace-nowrap mq450:text-3xl">
-                    $31.75
-                  </div>
-                </div>
-
-                <div className="md:w-auto flex md:flex-col md:items-start md:justify-start justify-center pt-[1.2px] px-0 pb-0 box-border w-full ">
-                  <div className="self-stretch flex  md:flex-col md:items-end md:justify-start justify-between gap-[4.2px] w-full px-5 md:px-0">
-                    <div className="w-auto relative inline-block mq450:text-base">
-                      Sub-Total
-                    </div>
-                    <div className="self-stretch relative text-8xl-6 font-semibold  whitespace-nowrap mq450:text-3xl">
-                      $25.50
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </div> */}
-            {/* tarjeta 3 */}
-            {/* <div className="md:self-stretch rounded-md hover:bg-[#D1A29E] box-border flex md:flex-row flex-col items-start justify-start py-[26px] px-5 md:pr-[46px] md:pl-[47px] md:max-w-full border-[1.3px] border-solid border-gray-400 hover:border-[#8B1710] text-gray-600 hover:text-gray-50 w-full">
-              <div className="md:flex-1 flex md:flex-row flex-col md:items-start items-center md:justify-between md:gap-[36.4px] md:max-w-full mq750:flex-wrap mq750:gap-[18px] w-full">
-                <div className="flex flex-row md:items-start items-center justify-center gap-3 pb-4 md:pb-0">
-                  <div className="flex flex-col items-start justify-start pt-[16.1px] px-0 pb-0">
-                    <input
-                      className="m-0 w-[31.3px] h-[31.3px] rounded-[62.65px] text-[#8B1710] border-[#8B1710] overflow-hidden shrink-0"
-                      type="checkbox"
-                    />
-                  </div>
-
-                  <div className="w-auto flex flex-col items-start justify-start gap-[8.1px] text-left text-[16px] ">
-                    <div className="relative font-semibold inline-block mq450:text-lg ">
-                      Mesa VIP
-                    </div>
-                    <div className="w-auto rounded-full bg-green bg-opacity-30 flex flex-row items-start justify-start pt-[3.7px] px-2 pb-[3.8px] whitespace-nowrap text-center text-xs font-semibold text-green">
-
-                      Disponible hasta 10 junio
-
-                    </div>
-                  </div>
-                </div>
-
-                <div className="md:w-auto flex md:flex-col md:items-end md:justify-start justify-between gap-[4.8px] w-full px-5 md:px-0 pb-2 md:pb-0">
-                  <div className="self-stretch relative shrink-0 [debug_commit:bf4bc93] mq450:text-base">{`Total `}</div>
-                  <div className="w-auto relative text-[18px] font-semibold inline-block shrink-0 [debug_commit:bf4bc93] whitespace-nowrap mq450:text-3xl">
-                    $31.75
-                  </div>
-                </div>
-
-                <div className="md:w-auto flex md:flex-col md:items-start md:justify-start justify-center pt-[1.2px] px-0 pb-0 box-border w-full ">
-                  <div className="self-stretch flex  md:flex-col md:items-end md:justify-start justify-between gap-[4.2px] w-full px-5 md:px-0">
-                    <div className="w-auto relative inline-block mq450:text-base">
-                      Sub-Total
-                    </div>
-                    <div className="self-stretch relative text-8xl-6 font-semibold  whitespace-nowrap mq450:text-3xl">
-                      $25.50
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </div> */}
-            {/* tarjeta 4 */}
-            {/* <div className="md:self-stretch rounded-md hover:bg-[#D1A29E] box-border flex md:flex-row flex-col items-start justify-start py-[26px] px-5 md:pr-[46px] md:pl-[47px] md:max-w-full border-[1.3px] border-solid border-gray-400 hover:border-[#8B1710] text-gray-600 hover:text-gray-50 w-full">
-              <div className="md:flex-1 flex md:flex-row flex-col md:items-start items-center md:justify-between md:gap-[36.4px] md:max-w-full mq750:flex-wrap mq750:gap-[18px] w-full">
-                <div className="flex flex-row md:items-start items-center justify-center gap-3 pb-4 md:pb-0">
-                  <div className="flex flex-col items-start justify-start pt-[16.1px] px-0 pb-0">
-                    <input
-                      className="m-0 w-[31.3px] h-[31.3px] rounded-[62.65px] text-[#8B1710] border-[#8B1710] overflow-hidden shrink-0"
-                      type="checkbox"
-                    />
-                  </div>
-
-                  <div className="w-auto flex flex-col items-start justify-start gap-[8.1px] text-left text-[16px] ">
-                    <div className="relative font-semibold inline-block mq450:text-lg ">
-                      Reserva VIP + Whisky
-                    </div>
-                    <div className="w-auto rounded-full bg-green bg-opacity-30 flex flex-row items-start justify-start pt-[3.7px] px-2 pb-[3.8px] whitespace-nowrap text-center text-xs font-semibold text-green">
-
-                      Disponible hasta 10 junio
-
-                    </div>
-                  </div>
-                </div>
-
-                <div className="md:w-auto flex md:flex-col md:items-end md:justify-start justify-between gap-[4.8px] w-full px-5 md:px-0 pb-2 md:pb-0">
-                  <div className="self-stretch relative shrink-0 [debug_commit:bf4bc93] mq450:text-base">{`Total `}</div>
-                  <div className="w-auto relative text-[18px] font-semibold inline-block shrink-0 [debug_commit:bf4bc93] whitespace-nowrap mq450:text-3xl">
-                    $174.16
-                  </div>
-                </div>
-
-                <div className="md:w-auto flex md:flex-col md:items-start md:justify-start justify-center pt-[1.2px] px-0 pb-0 box-border w-full">
-                  <div className="self-stretch flex  md:flex-col md:items-end md:justify-start justify-between gap-[4.2px] w-full px-5 md:px-0">
-                    <div className="w-auto relative inline-block mq450:text-base">
-                      Sub-Total
-                    </div>
-                    <div className="self-stretch relative text-8xl-6 font-semibold whitespace-nowrap mq450:text-3xl">
-                      $155.50
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </div> */}
-
           </div>
         </div>
 

@@ -6,10 +6,12 @@ interface propsLosIracundosWeb {
   componentState: any;
   setComponentState: any;
   ticketsArray: any
-  setTicket:any
+  setTicket: any;
+  data: any;
 }
 
-const LosIracundosWeb: FC<propsLosIracundosWeb> = ({ componentState, setComponentState, ticketsArray, setTicket }) => {
+const LosIracundosWeb: FC<propsLosIracundosWeb> = ({ componentState, setComponentState, ticketsArray, setTicket, data }) => {
+  const datafilter = data?.data?.filter(element => (element.metadata.grupo === "ticket"))
   return (
     <div className="w-full relative bg-gray-100 overflow-hidden flex flex-col items-end justify-start pt-5 px-0 pb-0 box-border gap-[50px] tracking-[normal] leading-[normal]  mq750:gap-[25px]">
       <img
@@ -18,7 +20,7 @@ const LosIracundosWeb: FC<propsLosIracundosWeb> = ({ componentState, setComponen
         src="ModuloEvento/coffee_image.png"
       />
       <Comp3 componentState={componentState} setComponentState={setComponentState} />
-      <Comp2 componentState={componentState} setComponentState={setComponentState} ticketsArray={ticketsArray} setTicket={setTicket} />
+      <Comp2 componentState={componentState} setComponentState={setComponentState} ticketsArray={datafilter} setTicket={setTicket} />
       <Comp1 componentState={componentState} setComponentState={setComponentState} />
     </div>
   );

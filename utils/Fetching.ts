@@ -101,6 +101,13 @@ export const fetchApiEventos = async ({ query, variables, token }: argsFetchApi)
 };
 
 export const queries = {
+  createCheckoutSession: `mutation ($pricesIDs:[String], $email:String, $cancel_url:String){
+    createCheckoutSession(pricesIDs:$pricesIDs, email:$email, cancel_url:$cancel_url)
+  }`,
+
+  getAllProducts: `query {
+    getAllProducts
+  }`,
 
   editTask: `mutation ($eventID:String, $itinerarioID:String, $taskID:String, $variable:String, $valor:String){
     editTask(eventID:$eventID itinerarioID:$itinerarioID  taskID:$taskID  variable:$variable  valor:$valor )

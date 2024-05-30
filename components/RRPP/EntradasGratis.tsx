@@ -1,19 +1,44 @@
 import { FC, FunctionComponent, memo, useState } from "react";
 import NumericCounter from "./Sub-Componentes/ContadorNumerico";
 import HeaderComp from "./Sub-Componentes/HeaderComp";
+import { fetchApiBodas, queries } from "../../utils/Fetching";
+import { AuthContextProvider } from "../../context";
+import { useRouter } from "next/router";
 interface propsEntradasGratis {
   componentState: any;
   setComponentState: any;
   ticketsArray: any;
   ticket: any;
-  count:number;
-  setCount: any
+  count: number;
+  setCount: any;
+  data: any;
 }
 
-const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentState, ticketsArray, ticket, count, setCount }) => {
+const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentState, ticket, count, setCount, data }) => {
 
-  const FindTicket = ticketsArray.find(({nameRadioButton})=> nameRadioButton === ticket)
-  const TotalCompra = (count * FindTicket.total) + FindTicket.subTotal + 8.25
+  const datafilter = data?.data?.filter(element => (element.metadata.grupo === "ticket"))
+  const findTicket = datafilter.find(({ name }) => name === ticket)
+  const price = findTicket?.prices[0]?.unit_amount / 100
+  const totalCompra = (count * price) + 8.25
+  const { user } = AuthContextProvider()
+  const router = useRouter()
+
+  console.log(findTicket)
+
+
+  const handleCheckout = () => {
+    fetchApiBodas({
+      query: queries.createCheckoutSession,
+      variables: {
+        pricesIDs: findTicket?.id,
+        email: user?.email,
+        cancel_url: `${window.location.href}/?stage=1`
+      },
+      development: "bodasdehoy"
+    }).then((result) => {
+      router?.push(result)
+    })
+  }
 
   return (
     <div className="w-full h-[100vh] bg-slate-100 overflow-hidden flex flex-col items-center justify-start pt-[20px] gap-4 box-border tracking-[normal] text-left text-base text-gray-600 font-semibold">
@@ -91,13 +116,13 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
           <div className="self-stretch rounded-md bg-green bg-opacity-40 box-border flex flex-col items-start justify-start py-[22px] px-[21px] max-w-full border-[1px] border-solid border-green">
             <div className="self-stretch flex flex-row items-center justify-between max-w-full [row-gap:20px]">
               <div className="flex flex-col items-start justify-start py-0 pr-[10.5px] pl-0 box-border max-w-full mq416:min-w-full">
-                  <div className="w-auto h-[24.5px] relative leading-[24.5px] font-semibold inline-block text-black max-h-[24.5px]">
-                    {FindTicket.title}
-                  </div>
+                <div className="w-auto h-[24.5px] relative leading-[24.5px] font-semibold inline-block text-black max-h-[24.5px]">
+                  {findTicket?.name}
+                </div>
               </div>
               <div className="flex flex-col items-start justify-start text-mid-5 text-success-dark">
                 <div className="w-auto h-[24.5px] relative leading-[24.5px] font-semibold inline-block text-black whitespace-nowrap">
-                 {FindTicket.total}
+                  {findTicket?.total}
                 </div>
               </div>
             </div>
@@ -143,18 +168,12 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
               <div className="self-stretch flex flex-row items-start justify-between gap-[20px] text-sm text-gray-600">
                 <div className="flex flex-col items-start justify-start gap-[10.5px]">
                   <div className="w-[auto h-[21px] relative leading-[21px] font-light inline-block min-w-[120px] max-w-[243.27999877929688px]">
-                   {count}  x {FindTicket.title} ({FindTicket.total} $)
-                  </div>
-                  <div className="w-auto h-[21px] relative leading-[21px] font-light inline-block min-w-[55px] max-w-[243.27999877929688px]">
-                    Subtotal
+                    {count}  x {findTicket?.name} ({price} $)
                   </div>
                 </div>
                 <div className="w-auto flex flex-col items-start justify-start gap-[10.5px] text-right">
                   <div className="self-stretch h-[21px] relative leading-[21px] font-light inline-block min-w-[43px]">
-                    {count * FindTicket.total}$
-                  </div>
-                  <div className="self-stretch h-[21px] relative leading-[21px] font-light inline-block min-w-[43px]">
-                   {FindTicket.subTotal} $
+                    {count * price}$
                   </div>
                 </div>
               </div>
@@ -172,13 +191,11 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
                   Total
                 </div>
                 <div className="h-[24.5px] w-[51px]* leading-[24.5px] font-semibold ">
-                  {TotalCompra} $
+                  {totalCompra} $
                 </div>
               </div>
             </div>
-            <button onClick={() => {
-              setComponentState(4)
-            }} className="cursor-pointer [border:none] pt-[9.5px] pb-[11px] pr-5 pl-[21px] bg-[#6096B9] hover:bg-[#4189b9] self-stretch rounded-md flex flex-row items-start justify-center hover:bg-crimson-100">
+            <button onClick={handleCheckout} className="cursor-pointer [border:none] pt-[9.5px] pb-[11px] pr-5 pl-[21px] bg-[#6096B9] hover:bg-[#4189b9] self-stretch rounded-md flex flex-row items-start justify-center hover:bg-crimson-100">
               <div className="h-[25px] w-[83px] relative text-mid-5 leading-[25px] font-medium text-white text-center flex items-center justify-center min-w-[83px] max-w-[264.3399963378906px]">
                 Continuar
               </div>
@@ -193,3 +210,4 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
 };
 
 export default EntradasGratis;
+//setComponentState(4)

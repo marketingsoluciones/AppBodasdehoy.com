@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import CancelarReserva from "../components/RRPP/CancelarReserva";
 import ComprasComp from "../components/RRPP/ComprasComp";
 import EntradasGratis from "../components/RRPP/EntradasGratis";
@@ -10,13 +10,35 @@ import RegistroEntradasUser from "../components/RRPP/RegistroEntradasUser";
 import ReservaCantidad from "../components/RRPP/ReservaCantidad";
 import ReservaDatos from "../components/RRPP/ReservaDatos";
 import VentasEntradas from "../components/RRPP/VentasEntradas";
+import { fetchApiBodas, queries } from "../utils/Fetching";
 
 
 const RelacionesPublicas: FC = () => {
   const [optionSelect, setOptionSelect] = useState(0)
+  const [data, setData] = useState({})
+
+  //
   const handleClickOption = (idx) => {
     setOptionSelect(idx);
   };
+  
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = JSON.parse(await fetchApiBodas({
+        query: queries.getAllProducts,
+        variables: {},
+        development: "bodasdehoy"
+      }));
+      const asd = data.reduce((acc, item) => {
+        if (!acc.modulos.includes(item.metadata.grupo)) {
+          acc.modulos.push(item.metadata.grupo)
+        }
+        return acc
+      }, { modulos: [] })
+      setData({ data, ...asd })
+    }
+    fetchData()
+  }, [optionSelect])
 
   const ticketsArray = [
     {
@@ -25,43 +47,39 @@ const RelacionesPublicas: FC = () => {
       fechaDisponibilidad: "10 junio",
       total: 61.75,
       subTotal: 55.50,
-      nameRadioButton:"General0"
+      nameRadioButton: "General0"
     }, {
       title: "Entrada General",
       disponibilidad: false,
       fechaDisponibilidad: null,
       total: 31.75,
       subTotal: 25.50,
-      nameRadioButton:"General1"
+      nameRadioButton: "General1"
     }, {
       title: "Mesa VIP",
       disponibilidad: true,
       fechaDisponibilidad: "10 junio",
       total: 31.75,
       subTotal: 25.50,
-      nameRadioButton:"MesaVip"
+      nameRadioButton: "MesaVip"
     }, {
       title: "Reserva VIP + Whisky",
       disponibilidad: true,
       fechaDisponibilidad: "10 junio",
       total: 174.16,
       subTotal: 155.50,
-      nameRadioButton:"ReservaVip"
+      nameRadioButton: "ReservaVip"
     },
 
   ]
-
   const [ticket, setTicket] = useState(null)
   const [count, setCount] = useState<number>(1)
-
-
-  
 
 
   const dataComponents = [
     /* 0 */
     {
-      component: <LosIracundosWeb componentState={optionSelect} setComponentState={setOptionSelect} ticketsArray={ticketsArray} setTicket={setTicket} />
+      component: <LosIracundosWeb componentState={optionSelect} setComponentState={setOptionSelect} ticketsArray={ticketsArray} setTicket={setTicket} data={data} />
     },
     /* 1 */
     {
@@ -73,11 +91,11 @@ const RelacionesPublicas: FC = () => {
     },
     /* 3 */
     {
-      component: <EntradasGratis componentState={optionSelect} setComponentState={setOptionSelect} ticketsArray={ticketsArray} ticket={ticket} setCount={setCount} count={count}  />
+      component: <EntradasGratis componentState={optionSelect} setComponentState={setOptionSelect} ticketsArray={ticketsArray} ticket={ticket} setCount={setCount} count={count} data={data} />
     },
     /* 4 */
     {
-      component: <RegistroEntradasUser componentState={optionSelect} setComponentState={setOptionSelect} ticketsArray={ticketsArray}  ticket={ticket} count={count}  />
+      component: <RegistroEntradasUser componentState={optionSelect} setComponentState={setOptionSelect} ticketsArray={ticketsArray} ticket={ticket} count={count} />
     },
     /* 5 */
     {
