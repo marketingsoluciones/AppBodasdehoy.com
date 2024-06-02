@@ -7,7 +7,6 @@ import { useRouter } from "next/router";
 interface propsEntradasGratis {
   componentState: any;
   setComponentState: any;
-  ticketsArray: any;
   ticket: any;
   count: number;
   setCount: any;
@@ -20,6 +19,7 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
   const findTicket = datafilter.find(({ name }) => name === ticket)
   const price = findTicket?.prices[0]?.unit_amount / 100
   const totalCompra = (count * price) + 8.25
+  const priceId= findTicket?.prices[0]?.id
   const { user } = AuthContextProvider()
   const router = useRouter()
 
@@ -30,9 +30,9 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
     fetchApiBodas({
       query: queries.createCheckoutSession,
       variables: {
-        pricesIDs: findTicket?.id,
+        pricesIDs: priceId,
         email: user?.email,
-        cancel_url: `${window.location.href}/?stage=1`
+        cancel_url: `${window.location.href}/?stage=3`
       },
       development: "bodasdehoy"
     }).then((result) => {
@@ -159,7 +159,7 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
 
         </div>
 
-        <div className="w-auto flex flex-col items-start justify-start pt-[21px] px-0 pb-0 box-border min-w-[312px] text-text-primary">
+        <div className="w-[400px] flex flex-col items-start justify-start pt-[21px] px-0 pb-0 box-border min-w-[312px] text-text-primary">
           <div className="self-stretch rounded-md bg-white shadow-[0px_1px_10px_rgba(0,_0,_0,_0.12),_0px_4px_5px_rgba(0,_0,_0,_0.14),_0px_2px_4px_-1px_rgba(0,_0,_0,_0.2)] flex flex-col items-start justify-start p-[10.5px] gap-[10.5px]">
             <div className="self-stretch flex flex-col items-start justify-start gap-[10.5px]">
               <div className="w-[71px] h-[24.5px] relative leading-[24.5px] font-semibold inline-block min-w-[71px] max-w-[285.3399963378906px] max-h-[24.5px]">
@@ -167,8 +167,8 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
               </div>
               <div className="self-stretch flex flex-row items-start justify-between gap-[20px] text-sm text-gray-600">
                 <div className="flex flex-col items-start justify-start gap-[10.5px]">
-                  <div className="w-[auto h-[21px] relative leading-[21px] font-light inline-block min-w-[120px] max-w-[243.27999877929688px]">
-                    {count}  x {findTicket?.name} ({price} $)
+                  <div className="w-[600px] h-[21px] relative leading-[21px] font-light inline-block min-w-[200px] max-w-[250px]">
+                    {count} x {findTicket?.name} ({price} $)
                   </div>
                 </div>
                 <div className="w-auto flex flex-col items-start justify-start gap-[10.5px] text-right">

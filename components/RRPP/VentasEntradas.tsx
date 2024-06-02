@@ -4,42 +4,41 @@ import HeaderComp from "./Sub-Componentes/HeaderComp";
 interface propsVentasEntradas {
   componentState: any;
   setComponentState: any;
-
+  data: any
+  setTicket: any
 }
 
 
-const VentasEntradas: FC<propsVentasEntradas> = ({ componentState, setComponentState }) => {
+const VentasEntradas: FC<propsVentasEntradas> = ({ componentState, setComponentState, data, setTicket }) => {
+  const datafilter = data?.data?.filter(element => (element.metadata.grupo === "ticket"))
   return (
-    <div className="w-full h-[100%] bg-slate-100 flex flex-col py-[20px] gap-[40px] overflow-auto">
+    <div className="w-full h-[100vh] bg-slate-100 flex flex-col py-[20px] gap-[40px] overflow-auto">
       <HeaderComp componentState={componentState} setComponentState={setComponentState} />
       <div className="flex md:flex-row flex-col items-center justify-center gap-8">
-<div className="flex flex-col items-start gap-4">
-  <img
-    className="w-60 h-auto rounded-md object-cover"
-    loading="lazy"
-    alt=""
-    src="ModuloEvento/evento1.jpg"
-  />
+        <div className="flex flex-col items-start gap-4">
+          <img
+            className="w-60 h-auto rounded-md object-cover"
+            loading="lazy"
+            alt=""
+            src="ModuloEvento/evento1.jpg"
+          />
 
-  <div className="flex flex-col items-start gap-2">
-    <div className="font-semibold text-lg">Ubicación</div>
-    <div className="text-sm">
-      <div className="font-semibold">Oro Verde</div>
-      <div>Banaoro / Rocafuerte y 25 de junio</div>
-    </div>
-    <button className="bg-red text-white rounded-md py-2 px-4 flex items-center gap-2">
-      <img
-        className="w-4 h-4"
-        alt=""
-        src="ModuloEvento/ubi1.svg"
-      />
-      <span className="font-medium">Ver mapa</span>
-    </button>
-  </div>
-</div>
-
-
-
+          <div className="flex flex-col items-start gap-2">
+            <div className="font-semibold text-lg">Ubicación</div>
+            <div className="text-sm">
+              <div className="font-semibold">Oro Verde</div>
+              <div>Banaoro / Rocafuerte y 25 de junio</div>
+            </div>
+            <button className="bg-red text-white rounded-md py-2 px-4 flex items-center gap-2">
+              <img
+                className="w-4 h-4"
+                alt=""
+                src="ModuloEvento/ubi1.svg"
+              />
+              <span className="font-medium">Ver mapa</span>
+            </button>
+          </div>
+        </div>
         <div className="w-auto flex flex-col items-start justify-start gap-[30px] max-w-full text-base-8 text-gray-300">
           <div className="self-stretch flex flex-col items-center justify-center gap-[40.5px] max-w-full">
             <div className="flex flex-col items-start justify-start gap-[10.5px] max-w-full">
@@ -66,7 +65,7 @@ const VentasEntradas: FC<propsVentasEntradas> = ({ componentState, setComponentS
                     Sab. 29 Junio 2024 /
                   </div>
                   <div className="h-auto w-auto relative tracking-[3.15px] leading-[25px] uppercase inline-block min-w-[60px] whitespace-nowrap">{`00:00 `}</div>
-                  
+
                   <div className="h-4 flex flex-row items-start justify-start opacity-[0.5]">
                     <img
                       className="h-4 w-[16.9px] relative overflow-hidden shrink-0"
@@ -117,7 +116,6 @@ const VentasEntradas: FC<propsVentasEntradas> = ({ componentState, setComponentS
                 </div>
               </div>
             </div>
-
             <div className="self-stretch rounded-md flex flex-col items-start justify-start pt-5 pb-[10.5px] pr-2.5 pl-[10.5px] box-border gap-[11px] max-w-full text-black">
               <div className="flex flex-row items-start justify-start text-lg">
                 <div className="flex flex-col items-start justify-start pt-[4.5px] px-0 pb-0">
@@ -128,144 +126,60 @@ const VentasEntradas: FC<propsVentasEntradas> = ({ componentState, setComponentS
                   Entradas
                 </b>
               </div>
-
-              <div className="self-stretch rounded-md bg-white hover:bg-green hover:bg-opacity-50 shadow-[0px_1px_14px_rgba(0,_0,_0,_0.12),_0px_5px_8px_rgba(0,_0,_0,_0.14),_0px_3px_5px_-1px_rgba(0,_0,_0,_0.2)] overflow-hidden flex flex-col items-start justify-start max-w-full hover:border-[2px] hover:border-green ">
-                <div className="self-stretch rounded-md shadow-[0px_1px_5px_rgba(0,_0,_0,_0.12),_0px_2px_2px_rgba(0,_0,_0,_0.14),_0px_3px_1px_-2px_rgba(0,_0,_0,_0.2)] box-border flex flex-col items-start justify-start py-px px-0 max-w-full border-[1px] border-solid border-green-400">
-                  <div className="self-stretch flex flex-row items-center justify-between max-w-full [row-gap:20px]">
-                    <div className="flex flex-col items-start justify-start py-[10.5px] pr-[21px] pl-[10.5px] box-border max-w-full">
-                      <div className="flex flex-col items-start justify-start">
-                        <div className="w-auto h-[24.5px] relative leading-[24.5px] font-semibold inline-block min-w-[46px] max-w-[497.1600036621094px] max-h-[24.5px]">
-                          Entrada General
+              {datafilter.map((item: any, idx: any) => {
+                return (
+                  <div key={idx} className="select-none self-stretch rounded-md bg-white hover:bg-green hover:bg-opacity-50 shadow-[0px_1px_14px_rgba(0,_0,_0,_0.12),_0px_5px_8px_rgba(0,_0,_0,_0.14),_0px_3px_5px_-1px_rgba(0,_0,_0,_0.2)] overflow-hidden flex flex-col items-start justify-start max-w-full  hover:border-green ">
+                    <div className="self-stretch rounded-md flex flex-col items-start justify-start py-px px-0 max-w-full  ">
+                      <div className="self-stretch flex flex-row items-center justify-between max-w-full [row-gap:20px]">
+                        <div className="flex flex-col items-start justify-start py-[10.5px] pr-[21px] pl-[10.5px] box-border max-w-full">
+                          <div className="flex flex-col items-start justify-start">
+                            <div className="w-auto h-[24.5px] relative leading-[24.5px] font-semibold inline-block min-w-[46px] max-w-[497.1600036621094px] max-h-[24.5px]">
+                              {item.name}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                    <div className="w-auto flex flex-col items-start justify-start py-[10.5px] pr-[10.5px] pl-0 box-border ml-[-0.01px] text-center mq416:ml-0">
-                      <div className="self-stretch flex flex-row items-center justify-start gap-[0.01px]">
-                        <div className="flex-1 flex flex-col items-start justify-start py-0 pr-[7px] pl-0">
-                          <div className="self-stretch flex flex-col items-center justify-start">
-                            <div className="self-stretch rounded-md bg-green-200 flex flex-row items-start justify-start p-[10.5px]">
-                              <div className="flex flex-col items-center justify-start py-0 pr-2.5 pl-[10.19999999999709px]">
-                                <div className="self-stretch h-[24.5px] relative leading-[24.5px] font-semibold inline-block min-w-[22px] max-h-[24.5px] whitespace-nowrap">
-                                  55.50$
+                        <div className="w-auto flex flex-col items-start justify-start py-[10.5px] pr-[10.5px] pl-0 box-border ml-[-0.01px] text-center mq416:ml-0">
+                          <div className="self-stretch flex flex-row items-center justify-start gap-[0.01px]">
+                            <div className="flex-1 flex flex-col items-start justify-start py-0 pr-[7px] pl-0">
+                              <div className="self-stretch flex flex-col items-center justify-start">
+                                <div className="self-stretch rounded-md bg-green-200 flex flex-row items-start justify-start p-[10.5px]">
+                                  <div className="flex flex-col items-center justify-start py-0 pr-2.5 pl-[10.19999999999709px]">
+                                    <div className="self-stretch h-[24.5px] relative leading-[24.5px] font-semibold inline-block min-w-[22px] max-h-[24.5px] whitespace-nowrap">
+                                      {`${item?.prices[0]?.currency === "usd" ? "$" : item?.prices[0]?.currency} ${item?.prices[0]?.unit_amount / 100}`}
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        </div>
-                        <button onClick={() => {
-                          setComponentState(3)
-                        }}
-                          className="cursor-pointer [border:none] p-0 bg-[transparent] flex flex-col items-start justify-start">
-                          <div className="rounded-md bg-[#6096B9] flex flex-row items-start justify-start pt-[13.5px] px-[21px] pb-[15px]">
-                            <div className="h-[17px] flex flex-row items-start justify-start">
-                              <img
-                                className="h-[17px] w-[15.3px] relative overflow-hidden shrink-0"
-                                alt=""
-                                src="ModuloEvento/flesh.svg"
-                              />
-                            </div>
-                          </div>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="self-stretch rounded-md bg-white hover:bg-green hover:bg-opacity-50 shadow-[0px_1px_14px_rgba(0,_0,_0,_0.12),_0px_5px_8px_rgba(0,_0,_0,_0.14),_0px_3px_5px_-1px_rgba(0,_0,_0,_0.2)] overflow-hidden flex flex-col items-start justify-start max-w-full hover:border-[2px] hover:border-green ">
-                <div className="self-stretch rounded-md shadow-[0px_1px_5px_rgba(0,_0,_0,_0.12),_0px_2px_2px_rgba(0,_0,_0,_0.14),_0px_3px_1px_-2px_rgba(0,_0,_0,_0.2)] box-border flex flex-col items-start justify-start py-px px-0 max-w-full border-[1px] border-solid border-green-400">
-                  <div className="self-stretch flex flex-row items-center justify-between max-w-full [row-gap:20px]">
-                    <div className="flex flex-col items-start justify-start py-[10.5px] pr-[21px] pl-[10.5px] box-border max-w-full">
-                      <div className="flex flex-col items-start justify-start">
-                        <div className="w-auto h-[24.5px] relative leading-[24.5px] font-semibold inline-block min-w-[46px] max-w-[497.1600036621094px] max-h-[24.5px]">
-                        Entrada + Servicio
-                        </div>
-                      </div>
-                    </div>
-                    <div className="w-auto flex flex-col items-start justify-start py-[10.5px] pr-[10.5px] pl-0 box-border ml-[-0.01px] text-center mq416:ml-0">
-                      <div className="self-stretch flex flex-row items-center justify-start gap-[0.01px]">
-                        <div className="flex-1 flex flex-col items-start justify-start py-0 pr-[7px] pl-0">
-                          <div className="self-stretch flex flex-col items-center justify-start">
-                            <div className="self-stretch rounded-md bg-green-200 flex flex-row items-start justify-start p-[10.5px]">
-                              <div className="flex flex-col items-center justify-start py-0 pr-2.5 pl-[10.19999999999709px]">
-                                <div className="self-stretch h-[24.5px] relative leading-[24.5px] font-semibold inline-block min-w-[22px] max-h-[24.5px] whitespace-nowrap">
-                                55.50$
+                            <button onClick={() => {
+                              setComponentState(3), setTicket(item.name)
+                            }}
+                              className="cursor-pointer [border:none] p-0 bg-[transparent] flex flex-col items-start justify-start">
+                              <div className="rounded-md bg-[#6096B9] flex flex-row items-start justify-start pt-[13.5px] px-[21px] pb-[15px]">
+                                <div className="h-[17px] flex flex-row items-start justify-start">
+                                  <img
+                                    className="h-[17px] w-[15.3px] relative overflow-hidden shrink-0"
+                                    alt=""
+                                    src="ModuloEvento/flesh.svg"
+                                  />
                                 </div>
                               </div>
-                            </div>
+                            </button>
                           </div>
                         </div>
-                        <button onClick={() => {
-                          setComponentState(3)
-                        }}
-                          className="cursor-pointer [border:none] p-0 bg-[transparent] flex flex-col items-start justify-start">
-                          <div className="rounded-md bg-[#6096B9] flex flex-row items-start justify-start pt-[13.5px] px-[21px] pb-[15px]">
-                            <div className="h-[17px] flex flex-row items-start justify-start">
-                              <img
-                                className="h-[17px] w-[15.3px] relative overflow-hidden shrink-0"
-                                alt=""
-                                src="ModuloEvento/flesh.svg"
-                              />
-                            </div>
-                          </div>
-                        </button>
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-              <div className="self-stretch rounded-md bg-white hover:bg-green hover:bg-opacity-50 shadow-[0px_1px_14px_rgba(0,_0,_0,_0.12),_0px_5px_8px_rgba(0,_0,_0,_0.14),_0px_3px_5px_-1px_rgba(0,_0,_0,_0.2)] overflow-hidden flex flex-col items-start justify-start max-w-full hover:border-[2px] hover:border-green ">
-                <div className="self-stretch rounded-md shadow-[0px_1px_5px_rgba(0,_0,_0,_0.12),_0px_2px_2px_rgba(0,_0,_0,_0.14),_0px_3px_1px_-2px_rgba(0,_0,_0,_0.2)] box-border flex flex-col items-start justify-start py-px px-0 max-w-full border-[1px] border-solid border-green-400">
-                  <div className="self-stretch flex flex-row items-center justify-between max-w-full [row-gap:20px]">
-                    <div className="flex flex-col items-start justify-start py-[10.5px] pr-[14px] pl-[10.5px] box-border max-w-full">
-                      <div className="flex flex-col items-start justify-start">
-                        <div className="w-auto h-[24.5px] relative leading-[24.5px] font-semibold inline-block min-w-[46px] max-w-[497.1600036621094px] max-h-[24.5px]">
-                        VIP + Whisky
-                        </div>
-                      </div>
-                    </div>
-                    <div className="w-auto flex flex-col items-start justify-start py-[10.5px] pr-[10.5px] pl-0 box-border ml-[-0.01px] text-center mq416:ml-0">
-                      <div className="self-stretch flex flex-row items-center justify-start gap-[0.01px]">
-                        <div className="flex-1 flex flex-col items-start justify-start py-0 pr-[7px] pl-0">
-                          <div className="self-stretch flex flex-col items-center justify-start">
-                            <div className="self-stretch rounded-md bg-green-200 flex flex-row items-start justify-start p-[10.5px]">
-                              <div className="flex flex-col items-center justify-start py-0 pr-2.5 pl-[10.19999999999709px]">
-                                <div className="self-stretch h-[24.5px] relative leading-[24.5px] font-semibold inline-block min-w-[22px] max-h-[24.5px] whitespace-nowrap">
-                                150.50$
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <button onClick={() => {
-                          setComponentState(3)
-                        }}
-                          className="cursor-pointer [border:none] p-0 bg-[transparent] flex flex-col items-start justify-start">
-                          <div className="rounded-md bg-[#6096B9] flex flex-row items-start justify-start pt-[13.5px] px-[21px] pb-[15px]">
-                            <div className="h-[17px] flex flex-row items-start justify-start">
-                              <img
-                                className="h-[17px] w-[15.3px] relative overflow-hidden shrink-0"
-                                alt=""
-                                src="ModuloEvento/flesh.svg"
-                              />
-                            </div>
-                          </div>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
+                )
+              })}
             </div>
-
           </div>
-
           <div className="self-stretch rounded-md flex flex-col items-start justify-start pt-5 pb-[10.5px] pr-2.5 pl-[10.5px] box-border gap-[1px] max-w-full text-black">
             <div className="flex flex-row items-start justify-start gap-1">
               <div className="flex flex-col items-start justify-start pt-[4.5px] px-0 pb-0">
                 <div className="w-[3.5px] h-[17.5px] relative rounded-[5.25px] bg-blue-800" />
               </div>
-              <b className="h-7 w-full relative tracking-[4.2px] leading-[28px] uppercase inline-block min-w-[101px] mq416:text-mid mq416:leading-[22px]">
+              <b className="h-7 w-full relative tracking-[4.2px] leading-[28px] uppercase inline-block min-w-[101px] ">
                 {" "}
                 Zonas de Reserva
               </b>

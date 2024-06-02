@@ -29,34 +29,25 @@ export const DatosComprador: FC<propsDatosComprador> = ({ idx }) => {
       <Form className="self-stretch w-full h-auto pb-5 px-5 pt-2 space-y-2 ">
         <>
           <AutoSubmit setValuesForm={setValues} />
-          <div className="w-full rounded-md bg-white shadow-[0px_1px_5px_rgba(0,_0,_0,_0.12),_0px_2px_2px_rgba(0,_0,_0,_0.14),_0px_3px_1px_-2px_rgba(0,_0,_0,_0.2)] flex flex-col  text-gray-600 pb-5 px-5 pt-2">
+          <div className="w-[400px] rounded-md bg-white shadow-[0px_1px_5px_rgba(0,_0,_0,_0.12),_0px_2px_2px_rgba(0,_0,_0,_0.14),_0px_3px_1px_-2px_rgba(0,_0,_0,_0.2)] flex flex-col  text-gray-600 pb-5 px-5 pt-2 space-y-4">
             <div className="w-full flex flex-col items-start justify-start py-[10.5px] pl-[21px]">
               <b className=" leading-[21px] uppercase text-gray-600 inline-block">
                 Datos del Comprador #{idx + 1}
               </b>
             </div>
-            <div className="self-stretch flex md:flex-row flex-col gap-2 items-center justify-center ">
-              <div className="h-[100%)] w-[100%] flex flex-col items-start justify-start">
-                <InputField
-                  name="nombre"
-                  label="Nombre y apellidos"
-                  labelClass={false}
-                />
-              </div>
-              <div className="h-[100%)] w-[100%] flex flex-col items-start justify-start">
-                <InputField
-                  name="email"
-                  label="Correo electrónico"
-                  labelClass={false}
-                />
-              </div>
-              {/* <div className="h-[100%)] w-[100%] flex flex-col items-start justify-start">
+            <div className="h-[100%)] w-[100%] flex flex-col items-start justify-start">
               <InputField
-              name="verificarEmail"
-              label="Repetir correo electrónico"
-              labelClass={false}
+                name="nombre"
+                label="Nombre y apellidos"
+                labelClass={false}
               />
-            </div> */}
+            </div>
+            <div className="h-[100%)] w-[100%] flex flex-col items-start justify-start">
+              <InputField
+                name="email"
+                label="Correo electrónico"
+                labelClass={false}
+              />
             </div>
             <div className="h-[100%)] w-[100%] flex flex-col items-start justify-start">
               <InputField
@@ -67,6 +58,7 @@ export const DatosComprador: FC<propsDatosComprador> = ({ idx }) => {
             </div>
           </div >
         </>
+
       </Form>
     </Formik>
   </>)

@@ -20,7 +20,7 @@ const CompVentas1: FC <CompVentas1Type> =
     }, [propMinWidth]);
 
     return (
-      <div className="self-stretch rounded-md bg-white hover:bg-green hover:bg-opacity-50 shadow-[0px_1px_14px_rgba(0,_0,_0,_0.12),_0px_5px_8px_rgba(0,_0,_0,_0.14),_0px_3px_5px_-1px_rgba(0,_0,_0,_0.2)] overflow-hidden flex flex-row items-center justify-between px-3 box-border max-w-full text-left text-base text-black font-medium hover:border-[2px] hover:border-green">
+      <div className="self-stretch rounded-md bg-white hover:bg-green hover:bg-opacity-50 shadow-[0px_1px_14px_rgba(0,_0,_0,_0.12),_0px_5px_8px_rgba(0,_0,_0,_0.14),_0px_3px_5px_-1px_rgba(0,_0,_0,_0.2)] overflow-hidden flex flex-row items-center justify-between px-3 box-border max-w-full text-left text-base text-black font-medium  hover:border-green">
           
             <div className="flex flex-col items-start justify-between pl-0 box-border max-w-full">
               <div className="self-stretch overflow-hidden flex flex-col items-start justify-between">

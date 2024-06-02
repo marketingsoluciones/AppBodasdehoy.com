@@ -14,14 +14,15 @@ import { fetchApiBodas, queries } from "../utils/Fetching";
 
 
 const RelacionesPublicas: FC = () => {
-  const [optionSelect, setOptionSelect] = useState(0)
+  const [optionSelect, setOptionSelect] = useState(4)
   const [data, setData] = useState({})
 
   //
-  const handleClickOption = (idx) => {
+  /* const handleClickOption = (idx) => {
     setOptionSelect(idx);
-  };
-  
+  }; */
+
+  //fetch para obtener la data de todos los productos de stripe
   useEffect(() => {
     const fetchData = async () => {
       const data = JSON.parse(await fetchApiBodas({
@@ -40,46 +41,24 @@ const RelacionesPublicas: FC = () => {
     fetchData()
   }, [optionSelect])
 
-  const ticketsArray = [
-    {
-      title: "Entrada General",
-      disponibilidad: true,
-      fechaDisponibilidad: "10 junio",
-      total: 61.75,
-      subTotal: 55.50,
-      nameRadioButton: "General0"
-    }, {
-      title: "Entrada General",
-      disponibilidad: false,
-      fechaDisponibilidad: null,
-      total: 31.75,
-      subTotal: 25.50,
-      nameRadioButton: "General1"
-    }, {
-      title: "Mesa VIP",
-      disponibilidad: true,
-      fechaDisponibilidad: "10 junio",
-      total: 31.75,
-      subTotal: 25.50,
-      nameRadioButton: "MesaVip"
-    }, {
-      title: "Reserva VIP + Whisky",
-      disponibilidad: true,
-      fechaDisponibilidad: "10 junio",
-      total: 174.16,
-      subTotal: 155.50,
-      nameRadioButton: "ReservaVip"
-    },
-
-  ]
+  //Estado que almacena el ticket seleccionado 
   const [ticket, setTicket] = useState(null)
+
+  //Estado que almacena el numero de ticket que se quieren comprar 
   const [count, setCount] = useState<number>(1)
 
+  //Funcion que reinicia elcontador de tickets si el componente que se renderiza es menor a 3 en el array de componentes
+  useEffect(() => {
+    if (optionSelect < 3) {
+      setCount(1)
+    }
+  }, [optionSelect])
 
+  //Array de componentes
   const dataComponents = [
     /* 0 */
     {
-      component: <LosIracundosWeb componentState={optionSelect} setComponentState={setOptionSelect} ticketsArray={ticketsArray} setTicket={setTicket} data={data} />
+      component: <LosIracundosWeb componentState={optionSelect} setComponentState={setOptionSelect} setTicket={setTicket} data={data} />
     },
     /* 1 */
     {
@@ -87,15 +66,15 @@ const RelacionesPublicas: FC = () => {
     },
     /* 2 */
     {
-      component: <VentasEntradas componentState={optionSelect} setComponentState={setOptionSelect} />
+      component: <VentasEntradas componentState={optionSelect} setComponentState={setOptionSelect} data={data} setTicket={setTicket} />
     },
     /* 3 */
     {
-      component: <EntradasGratis componentState={optionSelect} setComponentState={setOptionSelect} ticketsArray={ticketsArray} ticket={ticket} setCount={setCount} count={count} data={data} />
+      component: <EntradasGratis componentState={optionSelect} setComponentState={setOptionSelect} ticket={ticket} setCount={setCount} count={count} data={data} />
     },
     /* 4 */
     {
-      component: <RegistroEntradasUser componentState={optionSelect} setComponentState={setOptionSelect} ticketsArray={ticketsArray} ticket={ticket} count={count} />
+      component: <RegistroEntradasUser componentState={optionSelect} setComponentState={setOptionSelect} ticket={ticket} count={count} data={data}/>
     },
     /* 5 */
     {
