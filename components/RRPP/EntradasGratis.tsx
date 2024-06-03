@@ -19,11 +19,10 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
   const findTicket = datafilter.find(({ name }) => name === ticket)
   const price = findTicket?.prices[0]?.unit_amount / 100
   const totalCompra = (count * price) + 8.25
-  const priceId= findTicket?.prices[0]?.id
+  const priceId = findTicket?.prices[0]?.id
   const { user } = AuthContextProvider()
   const router = useRouter()
 
-  console.log(findTicket)
 
 
   const handleCheckout = () => {
@@ -32,7 +31,10 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
       variables: {
         pricesIDs: priceId,
         email: user?.email,
-        cancel_url: `${window.location.href}/?stage=3`
+        cancel_url: `${window.location.href}/?stage=3`,
+        mode: "payment",
+        quantity: count,
+        success_url:`${window.location.href}/?stage=4&count=${count}`
       },
       development: "bodasdehoy"
     }).then((result) => {

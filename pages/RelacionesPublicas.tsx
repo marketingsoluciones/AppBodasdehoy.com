@@ -11,16 +11,15 @@ import ReservaCantidad from "../components/RRPP/ReservaCantidad";
 import ReservaDatos from "../components/RRPP/ReservaDatos";
 import VentasEntradas from "../components/RRPP/VentasEntradas";
 import { fetchApiBodas, queries } from "../utils/Fetching";
+import { useRouter } from "next/router";
 
 
 const RelacionesPublicas: FC = () => {
-  const [optionSelect, setOptionSelect] = useState(4)
+  const router = useRouter()
+  const initialStage = router?.query?.stage
+  const stage = initialStage && +initialStage
+  const [optionSelect, setOptionSelect] = useState(stage != null ? stage : 0)
   const [data, setData] = useState({})
-
-  //
-  /* const handleClickOption = (idx) => {
-    setOptionSelect(idx);
-  }; */
 
   //fetch para obtener la data de todos los productos de stripe
   useEffect(() => {
@@ -74,7 +73,7 @@ const RelacionesPublicas: FC = () => {
     },
     /* 4 */
     {
-      component: <RegistroEntradasUser componentState={optionSelect} setComponentState={setOptionSelect} ticket={ticket} count={count} data={data}/>
+      component: <RegistroEntradasUser componentState={optionSelect} setComponentState={setOptionSelect} ticket={ticket} count={count} data={data} />
     },
     /* 5 */
     {
