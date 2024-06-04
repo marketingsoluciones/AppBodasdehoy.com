@@ -20,7 +20,7 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
   const price = findTicket?.prices[0]?.unit_amount / 100
   const totalCompra = (count * price) + 8.25
   const priceId = findTicket?.prices[0]?.id
-  const { user } = AuthContextProvider()
+  const { user, storage_id } = AuthContextProvider()
   const router = useRouter()
 
 
@@ -30,11 +30,11 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
       query: queries.createCheckoutSession,
       variables: {
         pricesIDs: priceId,
-        email: user?.email,
+       /*  email: user?.email, */
         cancel_url: `${window.location.href}/?stage=3`,
         mode: "payment",
         quantity: count,
-        success_url:`${window.location.href}/?stage=4&count=${count}`
+        success_url:`${window.location.href}/?stage=4&count=${count}&sId=${storage_id}`
       },
       development: "bodasdehoy"
     }).then((result) => {

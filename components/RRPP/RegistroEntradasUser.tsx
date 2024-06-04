@@ -5,6 +5,7 @@ import { CabeceraR } from "./Sub-Componentes/CabeceraR";
 import { CheckCondition } from "./Sub-Componentes/CheckConition";
 import HeaderComp from "./Sub-Componentes/HeaderComp";
 import { useRouter } from "next/router";
+import { AuthContextProvider } from "../../context";
 
 
 interface propsRegistroEntradasUser {
@@ -16,8 +17,10 @@ interface propsRegistroEntradasUser {
 }
 
 const RegistroEntradasUser: FC<propsRegistroEntradasUser> = ({ componentState, setComponentState, ticket, count, data }) => {
+  const { storage_id } = AuthContextProvider()
   const router = useRouter()
   const initialCount = router?.query?.count
+  const ValirStorage = storage_id === router?.query?.sId
   const newCount = initialCount && +initialCount
   const datafilter = data?.data?.filter(element => (element.metadata.grupo === "ticket"))
   const FindTicket = datafilter?.find(({ name }) => name === ticket)
@@ -27,6 +30,15 @@ const RegistroEntradasUser: FC<propsRegistroEntradasUser> = ({ componentState, s
   const handleSubmit = (values) => {
     console.log('Valores del formulario:', values)
   };
+
+  useEffect(() => {
+    if (!ValirStorage) {
+      router.push("/RelacionesPublicas?stage=1")
+    }
+    if (ValirStorage) {
+
+    }
+  }, [router])
 
   return (
     <div className="bg-slate-100 w-full h-[100vh] flex flex-col gap-4 items-center justify-start  pt-[20px]">

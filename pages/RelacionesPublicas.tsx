@@ -12,6 +12,7 @@ import ReservaDatos from "../components/RRPP/ReservaDatos";
 import VentasEntradas from "../components/RRPP/VentasEntradas";
 import { fetchApiBodas, queries } from "../utils/Fetching";
 import { useRouter } from "next/router";
+import { AuthContextProvider } from "../context";
 
 
 const RelacionesPublicas: FC = () => {
@@ -20,6 +21,9 @@ const RelacionesPublicas: FC = () => {
   const stage = initialStage && +initialStage
   const [optionSelect, setOptionSelect] = useState(stage != null ? stage : 0)
   const [data, setData] = useState({})
+  const { EventTicket } = AuthContextProvider()
+
+  console.log("event ticket", EventTicket)
 
   //fetch para obtener la data de todos los productos de stripe
   useEffect(() => {

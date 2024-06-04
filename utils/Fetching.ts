@@ -101,6 +101,22 @@ export const fetchApiEventos = async ({ query, variables, token }: argsFetchApi)
 };
 
 export const queries = {
+
+
+  getEventTicket: `query ( $args:inputEventTicket, $sort:sortCriteriaEventTicket, $skip:Int, $limit:Int )
+  {
+    getEventTicket(args:$args, sort:$sort, skip:$skip, limit:$limit ){
+      total
+      results{
+        _id
+        title
+        createdAt
+        updatedAt
+      }
+    }
+  }`,
+
+
   createCheckoutSession: `mutation ($pricesIDs:[String], $email:String, $cancel_url:String, $mode:String, $quantity:Int, $success_url:String){
     createCheckoutSession(pricesIDs:$pricesIDs, email:$email, cancel_url:$cancel_url, mode:$mode, quantity:$quantity, success_url:$success_url)
   }`,

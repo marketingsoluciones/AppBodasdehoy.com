@@ -37,6 +37,8 @@ const initialContext = {
   SetPreregister: undefined,
   WihtProvider: undefined,
   SetWihtProvider: undefined,
+  EventTicket: undefined,
+  setEventTicket: undefined
 }
 
 type Context = {
@@ -67,6 +69,8 @@ type Context = {
   SetPreregister: any
   WihtProvider: any,
   SetWihtProvider: any,
+  EventTicket: any,
+  setEventTicket: any
 }
 export let varGlobalDomain = ""
 export let varGlobalDevelopment = ""
@@ -97,9 +101,22 @@ const AuthProvider = ({ children }) => {
   const [WihtProvider, SetWihtProvider] = useState<boolean>(false)
   const router = useRouter()
   const [updateActivity] = useActivity()
+  const [EventTicket, setEventTicket] = useState({})
+
+
 
 
   useEffect(() => {
+
+    const storage_id = localStorage.getItem("_id")
+    if (!storage_id) {
+      const _id = customAlphabet('1234567890abcdef', 24)()
+      localStorage.setItem("_id", _id)
+      SetStorage_id(_id)
+    } else {
+      SetStorage_id(storage_id)
+    }
+    
     if (!forCms) {
       setForCms(router?.query?.show === "iframe")
     }
@@ -118,14 +135,19 @@ const AuthProvider = ({ children }) => {
       if (![].includes(router?.query?.m?.toString()) || router?.query?._id) {
         router.push("/login?q=register")
       }
-      const storage_id = localStorage.getItem("_id")
-      if (!storage_id) {
-        const _id = customAlphabet('1234567890abcdef', 24)()
-        localStorage.setItem("_id", _id)
-        SetStorage_id(_id)
-      } else {
-        SetStorage_id(storage_id)
+    }
+
+    if (router?.query?.eventTicket) {
+
+      const fetchData = async () => {
+        const data = await fetchApiBodas({
+          query: queries.getEventTicket,
+          variables: {},
+          development: "bodasdehoy"
+        });
+        setEventTicket({ data })
       }
+      fetchData()
     }
   }, [router])
 
@@ -340,7 +362,7 @@ const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{
-      setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms, setIsStartingRegisterOrLogin, link_id, SetLink_id, storage_id, SetStorage_id, linkMedia, SetLinkMedia, preregister, SetPreregister, SetWihtProvider, WihtProvider,
+      EventTicket, setEventTicket, setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms, setIsStartingRegisterOrLogin, link_id, SetLink_id, storage_id, SetStorage_id, linkMedia, SetLinkMedia, preregister, SetPreregister, SetWihtProvider, WihtProvider,
     }}>
       {verificationDone && children}
     </AuthContext.Provider>
