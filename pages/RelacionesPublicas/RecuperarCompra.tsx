@@ -1,17 +1,14 @@
 import { FC, useState } from "react";
 import HeaderComp from "../../components/RRPP/Sub-Componentes/HeaderComp";
+import { useRouter } from "next/router";
 
-interface propsRecuperarCompra {
-  componentState: any;
-  setComponentState: any;
-  className?: any
-}
+interface propsRecuperarCompra { }
 
-const RecuperarCompra: FC<propsRecuperarCompra> = ({ componentState, setComponentState }) => {
-  const [inputValue, setInputValue] = useState("");
+const RecuperarCompra: FC<propsRecuperarCompra> = ({ }) => {
+  const router = useRouter()
   return (
-    <div className="w-[100%] max-w-full flex flex-col bg-slate-100 items-center justify-start py-0 md:px-[21px] px-[12px] box-border gap-[42px] tracking-[normal] leading-[normal] mq450:gap-[21px]">
-      <HeaderComp componentState={componentState} setComponentState={setComponentState} />
+    <div className="w-[100%] h-[100vh] max-w-full flex flex-col bg-slate-100 items-center justify-start py-0 md:px-[21px] px-[12px] box-border gap-[42px] tracking-[normal] leading-[normal] mq450:gap-[21px]">
+      <HeaderComp />
       <div className="md:w-[60%] w-[100%] flex flex-col items-center justify-center gap-4">
         <section className="self-stretch flex flex-col items-start justify-start gap-[25.8px] text-left text-7xl-3 text-wwwfourvenuescom-athens-gray font-wwwfourvenuescom-inter-regular-123">
           <div className="self-stretch flex flex-col items-start justify-start gap-[10.5px]">
@@ -243,7 +240,7 @@ const RecuperarCompra: FC<propsRecuperarCompra> = ({ componentState, setComponen
                     className="md:w-[18px] w-8 md:h-[18px] h-8 relative md:object-cover"
                     loading="lazy"
                     alt=""
-                    src="ModuloEvento/Containerexclamacion.svg"
+                    src="../ModuloEvento/Containerexclamacion.svg"
                   />
                 </div>
                 <div className="md:flex-1 flex flex-col items-start justify-start md:min-w-[324px] max-w-full">
@@ -262,7 +259,7 @@ const RecuperarCompra: FC<propsRecuperarCompra> = ({ componentState, setComponen
             </div>
 
             <button onClick={() => {
-              setComponentState(2)
+              router.push("VentasEntradas")
             }}
               className="cursor-pointer [border:none] py-[21px] px-5 bg-[#6096B9] self-stretch rounded-md flex flex-row items-start justify-center opacity-[0.5] hover:bg-blue-900">
               <div className="relative text-sm leading-[25px] font-medium text-white text-center">
@@ -288,7 +285,7 @@ const RecuperarCompra: FC<propsRecuperarCompra> = ({ componentState, setComponen
                   <img
                     className="h-4 w-[21px] relative object-cover"
                     alt=""
-                    src="ModuloEvento/Vectormensaje.svg"
+                    src="../ModuloEvento/Vectormensaje.svg"
                   />
                 </div>
               </div>

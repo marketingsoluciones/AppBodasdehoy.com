@@ -1,23 +1,21 @@
 import { FC } from "react";
 import DatosUsurariosR from "../../components/RRPP/Sub-Componentes/DataUsuarios";
 import HeaderComp from "../../components/RRPP/Sub-Componentes/HeaderComp";
-interface propsReciboEntradas {
-  componentState: any;
-  setComponentState: any;
+import { useRouter } from "next/router";
+interface propsReciboEntradas {}
 
-}
-
-const ReciboEntradas: FC<propsReciboEntradas> = ({ componentState, setComponentState }) => {
+const ReciboEntradas: FC<propsReciboEntradas> = ({}) => {
+  const router = useRouter()
   return (
     <div className="w-[100%] h-[100vh] flex flex-col bg-slate-100 items-center justify-start py-[20px] px-0 box-border gap-[56px] tracking-[normal] text-center text-xl mq450:gap-[28px_56px] mq450:max-w-full mq625:max-w-full mq675:max-w-full">
-      <HeaderComp componentState={componentState} setComponentState={setComponentState} />
+      <HeaderComp />
       <div className="self-stretch h-[172.5px] flex flex-col items-start justify-start gap-[28px]">
         <div className="self-stretch flex-1 flex flex-col items-center justify-start pt-0 px-5 pb-px">
           <div className="flex-1 flex flex-row items-start justify-start">
             <img
               className="h-28 w-28 relative overflow-hidden shrink-0"
               alt=""
-              src="ModuloEvento/checkgrande.svg"
+              src="../ModuloEvento/checkgrande.svg"
             />
           </div>
         </div>
@@ -74,7 +72,7 @@ const ReciboEntradas: FC<propsReciboEntradas> = ({ componentState, setComponentS
             </div>
           </div>
           <button onClick={() => {
-            setComponentState(2)
+            router.push("VentasEntradas")
           }}
             className="cursor-pointer [border:none] p-0 bg-[transparent] w-[130px] flex flex-col items-start justify-start">
             <div className="self-stretch rounded-md bg-[#6096B9] flex flex-row items-center justify-start py-0 pr-[21px] pl-[22.5px] gap-[8.107246398925781px]">
@@ -83,7 +81,7 @@ const ReciboEntradas: FC<propsReciboEntradas> = ({ componentState, setComponentS
                 <img
                   className="h-3.5 w-[12.3px] relative overflow-hidden shrink-0"
                   alt=""
-                  src="ModuloEvento/flechade.svg"
+                  src="../ModuloEvento/flechade.svg"
                 />
               </div>
             </div>
