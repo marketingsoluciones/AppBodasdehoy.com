@@ -35,7 +35,7 @@ const Home: NextPage = () => {
     return () => {
       if (isMounted) {
         setIsMounted(false)
-   /*      setLoading(true) */
+        /*      setLoading(true) */
       }
     }
   }, [isMounted])
@@ -58,7 +58,7 @@ const Home: NextPage = () => {
   }, [showEditEvent, valirQuery, valir])
 
   if (verificationDone && eventsGroupDone) {
-    
+
     if (router?.query?.pAccShas) {
       if (!user || user?.displayName === "guest") {
         router.push(config?.pathLogin ? `${config?.pathLogin}?pAccShas=${router?.query?.pAccShas}` : `/login?pAccShas=${router?.query?.pAccShas}`)
@@ -71,7 +71,7 @@ const Home: NextPage = () => {
         return <></>
       }
     }
-    if ((!user || user.displayName === "guest") && ["vivetuboda"/* , "eventosplanificador" */].includes(config?.development)) {
+    if ((!user || user.displayName === "guest") && ["vivetuboda"].includes(config?.development)) {
       router?.push(`/login`)
       return <></>
     }

@@ -15,11 +15,11 @@ const Container = (props) => {
     setLoading(false)
   }, [])
 
-  const urls = ["/info-app", "/confirmar-asistencia","/RelacionesPublicas"]
+  const urls = ["/info-app", "/confirmar-asistencia", "/RelacionesPublicas"]
 
   return (
     <>
-      {router?.pathname == "/RelacionesPublicas" ? null : <>
+      {(!["RelacionesPublicas"].includes(router?.route.split("/")[1])) && <>
         <NavigationMobile />
         {!forCms && <motion.div
           initial={{ opacity: 0 }}

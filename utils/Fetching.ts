@@ -117,8 +117,8 @@ export const queries = {
   }`,
 
 
-  createCheckoutSession: `mutation ($pricesIDs:[String], $email:String, $cancel_url:String, $mode:String, $quantity:Int, $success_url:String){
-    createCheckoutSession(pricesIDs:$pricesIDs, email:$email, cancel_url:$cancel_url, mode:$mode, quantity:$quantity, success_url:$success_url)
+  createCheckoutSession: `mutation ($items:[inputItemsCheckout], $email:String, $cancel_url:String, $mode:String, $success_url:String){
+    createCheckoutSession(items:$items, email:$email, cancel_url:$cancel_url, mode:$mode, success_url:$success_url)
   }`,
 
   getAllProducts: `query {

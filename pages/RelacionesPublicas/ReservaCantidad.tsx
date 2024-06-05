@@ -1,26 +1,26 @@
 import { FC, useState } from "react";
-import NumericCounter from "./Sub-Componentes/ContadorNumerico";
-import HeaderComp from "./Sub-Componentes/HeaderComp";
+import NumericCounter from "../../components/RRPP/Sub-Componentes/ContadorNumerico";
+import HeaderComp from "../../components/RRPP/Sub-Componentes/HeaderComp";
 interface propsReservaCantidad {
-    componentState: any;
-    setComponentState: any;
-  
-  }
+  componentState: any;
+  setComponentState: any;
 
-const ReservaCantidad: FC <propsReservaCantidad> = ({componentState, setComponentState}) => {
+}
+
+const ReservaCantidad: FC<propsReservaCantidad> = ({ componentState, setComponentState }) => {
   const [count, setCount] = useState<number>(1)
   return (
     <div className="w-[100%] md:h-[100vh] h-[100%] max-w-full flex flex-col bg-slate-100 gap-4 items-center justify-center  box-border tracking-[normal] pt-[20px] px-3 text-center text-sm text-[#6096B9] ">
-      <HeaderComp componentState={componentState} setComponentState={setComponentState}/>
+      <HeaderComp componentState={componentState} setComponentState={setComponentState} />
       <div className="md:w-[60%] w-[100%] rounded-md bg-white shadow-[0px_1px_10px_rgba(0,_0,_0,_0.12),_0px_4px_5px_rgba(0,_0,_0,_0.14),_0px_2px_4px_-1px_rgba(0,_0,_0,_0.2)] overflow-hidden flex flex-col items-start justify-center box-border max-w-full">
-        
+
         <div className="w-full bg-gray-100 flex flex-row items-center justify-between pt-[10.5px] px-[21px] pb-[13.5px] box-border max-w-full gap-[20px] mq450:flex-wrap">
           <div className="flex flex-row items-start justify-start md:gap-[154.90000000000146px] max-w-full mq450:flex-wrap mq450:gap-[154.9px_77px]">
-            
-            <button onClick={()=>{ 
-        setComponentState(2)
-      }} 
-             className="cursor-pointer [border:none] py-0 pr-[10.5px] pl-0 bg-[transparent] flex flex-col items-start justify-start">
+
+            <button onClick={() => {
+              setComponentState(2)
+            }}
+              className="cursor-pointer [border:none] py-0 pr-[10.5px] pl-0 bg-[transparent] flex flex-col items-start justify-start">
               <div className="rounded-md bg-[#6096B9] flex flex-row items-center justify-center py-[10.5px] px-[11px]">
                 <div className="w-[13px] flex flex-col items-start justify-start">
                   <div className="h-3.5 flex flex-row items-start justify-start">
@@ -35,26 +35,26 @@ const ReservaCantidad: FC <propsReservaCantidad> = ({componentState, setComponen
             </button>
           </div>
           <div className="flex flex-row items-end justify-start gap-[5.899999999997817px]">
-              <div className="h-[13px] flex flex-col items-start justify-end pt-0 px-0 pb-[3px] box-border">
-                <img
-                  className="w-[9.2px] h-2.5 relative overflow-hidden shrink-0"
-                  loading="lazy"
-                  alt=""
-                  src="ModuloEvento/calendar1.svg"
-                />
+            <div className="h-[13px] flex flex-col items-start justify-end pt-0 px-0 pb-[3px] box-border">
+              <img
+                className="w-[9.2px] h-2.5 relative overflow-hidden shrink-0"
+                loading="lazy"
+                alt=""
+                src="ModuloEvento/calendar1.svg"
+              />
+            </div>
+            <div className="flex flex-col items-start justify-center">
+              <div className="flex flex-row items-start justify-center ">
+                <b className="w-auto relative leading-[21px] flex items-center justify-center max-w-[465px] mq450:max-w-full">
+                  Concierto de los Iracundos
+                </b>
               </div>
-              <div className="flex flex-col items-start justify-center">
-                <div className="flex flex-row items-start justify-center ">
-                  <b className="w-auto relative leading-[21px] flex items-center justify-center max-w-[465px] mq450:max-w-full">
-                    Concierto de los Iracundos
-                  </b>
-                </div>
-                <div className="relative text-2xs-5 leading-[14px] text-gray-600 whitespace-nowrap">
-                  <b>Sabado</b>
-                  <span>, 29 de Junio 2024</span>
-                </div>
+              <div className="relative text-2xs-5 leading-[14px] text-gray-600 whitespace-nowrap">
+                <b>Sabado</b>
+                <span>, 29 de Junio 2024</span>
               </div>
             </div>
+          </div>
           <div className="flex flex-col items-start justify-start">
             <div className="rounded-md bg-[#6096B9] flex flex-row items-center justify-center py-[10.5px] px-[13px]">
               <div className="w-[9px] flex flex-col items-end justify-start">
@@ -73,15 +73,15 @@ const ReservaCantidad: FC <propsReservaCantidad> = ({componentState, setComponen
 
         <div className="self-stretch flex flex-row items-start justify-start py-0 px-5 box-border max-w-full mt-[-2px] text-2xs-5 text-text-primary">
           <div className="md:flex-1 flex flex-col items-start justify-start pt-[31.5px] px-0 pb-[11.5px] box-border gap-[10.166666666666666px] md:max-w-[1024px] ">
-            
+
             <div className="self-stretch rounded-md bg-gray-100 flex flex-col items-start justify-start p-[10.5px]">
-              
+
               <div className="self-stretch flex flex-row items-start md:justify-start justify-between [row-gap:20px]">
-                
+
                 <div className="md:flex-1 flex flex-col items-start justify-start md:min-w-[262px]">
-                  
+
                   <div className="self-stretch flex flex-col items-start justify-start">
-                    
+
                     <div className="self-stretch flex flex-col items-center justify-start py-0 md:px-5 opacity-[0.5]">
                       <b className="md:w-full w-auto relative leading-[14px] uppercase md:inline-block md:min-w-[31px] md:max-w-[267.5px]">
                         Zona
@@ -100,7 +100,7 @@ const ReservaCantidad: FC <propsReservaCantidad> = ({componentState, setComponen
 
                 <div className="md:flex-1 flex flex-col items-start justify-start md:min-w-[262px]">
                   <div className="self-stretch flex flex-col items-start justify-start">
-                    
+
                     <div className="self-stretch flex flex-col items-center justify-start py-0 px-5 opacity-[0.5]">
                       <b className="w-full relative leading-[14px] uppercase inline-block min-w-[22px] max-w-[267.5px]">
                         Pax
@@ -121,7 +121,7 @@ const ReservaCantidad: FC <propsReservaCantidad> = ({componentState, setComponen
 
             <div className="self-stretch flex flex-col items-start justify-start gap-[10.5px] max-w-full text-left md:text-sm text-xs text-gray-600">
               <div className="self-stretch rounded-md box-border flex flex-col items-start justify-start py-[11.5px] px-2.5 max-w-full border-[1px] border-solid border-blue-600">
-                
+
                 <div className="self-stretch flex flex-row items-start justify-start py-0 md:pr-[85px] pl-0 box-border max-w-full [row-gap:20px] mq450:pr-5 mq450:box-border mq650:pr-[42px] mq650:box-border">
                   <div className="flex flex-col items-start justify-start pt-1 pb-[3px] pr-[10.5px] pl-0">
                     <div className="h-3.5 flex flex-row items-start justify-start">
@@ -157,10 +157,10 @@ const ReservaCantidad: FC <propsReservaCantidad> = ({componentState, setComponen
                 </div>
               </div>
             </div>
-            <button onClick={()=>{ 
-        setComponentState(7)
-      }} 
-             className="cursor-pointer [border:none] py-0 pr-5 pl-[21px] bg-[#6096B9] self-stretch rounded-md flex flex-row items-start justify-center hover:bg-steelblue-100">
+            <button onClick={() => {
+              setComponentState(7)
+            }}
+              className="cursor-pointer [border:none] py-0 pr-5 pl-[21px] bg-[#6096B9] self-stretch rounded-md flex flex-row items-start justify-center hover:bg-steelblue-100">
               <div className="w-[66px] relative text-sm leading-[36px] font-medium text-white text-center flex items-center justify-center min-w-[66px] max-w-[535px] mq650:max-w-full">
                 Continuar
               </div>
@@ -171,12 +171,12 @@ const ReservaCantidad: FC <propsReservaCantidad> = ({componentState, setComponen
                 <div className="flex-1 flex flex-row items-end justify-start gap-[1.2000000000007276px]">
                   <div className="flex-1 flex flex-col items-center justify-center pt-0 px-0 pb-px">
                     <div className="self-stretch relative leading-[11px] inline-block min-w-[11px]">
-                    <img
-                    className="w-[10.5px] h-2.5 relative overflow-hidden shrink-0"
-                    loading="lazy"
-                    alt=""
-                    src="ModuloEvento/cb1.svg"
-                  />
+                      <img
+                        className="w-[10.5px] h-2.5 relative overflow-hidden shrink-0"
+                        loading="lazy"
+                        alt=""
+                        src="ModuloEvento/cb1.svg"
+                      />
                     </div>
                   </div>
                   <div className="w-2 relative leading-[14px] font-semibold text-gray-400 inline-block min-w-[8px]">{` - `}</div>

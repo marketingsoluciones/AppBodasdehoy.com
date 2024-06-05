@@ -1,12 +1,6 @@
 import { FC } from "react";
-interface propsComp1 {
-    componentState: any;
-    setComponentState: any;
-  
-  }
 
-
-const Comp1: FC<propsComp1> = ({componentState, setComponentState}) => {
+const Footer: FC = () => {
   return (
     <div className="self-stretch bg-[#8B1710] flex flex-col md:flex-row items-start justify-center px-5 pt-5 box-border gap-[20px] max-w-full text-left text-[16px] text-white font-Clicker ">
       <div className="md:w-[690px] flex flex-col items-start justify-start gap-[19px] min-w-[690px] max-w-full mq1025:min-w-full mq1125:flex-1">
@@ -93,4 +87,4 @@ const Comp1: FC<propsComp1> = ({componentState, setComponentState}) => {
   );
 };
 
-export default Comp1;
+export default Footer;

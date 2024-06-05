@@ -5,7 +5,7 @@ import { getAuth, onAuthStateChanged } from "firebase/auth"
 export const InfoDevelopment = () => {
   const { event } = EventContextProvider()
   const { socket } = SocketContextProvider()
-  const { config, user } = AuthContextProvider()
+  const { config, user, link_id } = AuthContextProvider()
   const [isMounted, setIsMounted] = useState(false)
   const [isDevelopment, setIsDevelopment] = useState(false)
   const [size, setSize] = useState({ x: 0, y: 0 })
@@ -34,6 +34,7 @@ export const InfoDevelopment = () => {
         <div className="absolute z-[1000]">
           <ul className='bg-blue-400 opacity-70 p-1 text-sm font-display font-semibold ml-4 text-black'>
             <li>url: {window?.location?.hostname}</li>
+            <li>link_id: {link_id}</li>
             <li>domain: {config?.domain}</li>
             <li>event?.nombre: {event?.nombre}</li>
             <li>user: {user?.displayName}</li>

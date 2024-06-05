@@ -1,17 +1,17 @@
 import { FC } from "react";
-import HeaderComp from "./Sub-Componentes/HeaderComp";
+import HeaderComp from "../../components/RRPP/Sub-Componentes/HeaderComp";
 interface propsCancelarReserva {
-    componentState: any;
-    setComponentState: any;
-  
-  }
+  componentState: any;
+  setComponentState: any;
 
-const CancelarReserva: FC <propsCancelarReserva> = ({componentState, setComponentState}) => {
+}
+
+const CancelarReserva: FC<propsCancelarReserva> = ({ setComponentState }) => {
   return (
     <div className="w-[100%] md:h-[100vh] h-[100%] max-w-full flex flex-col items-center justify-center pt-[20px] px-[12px] box-border tracking-[normal] text-left text-xl text-[#6096B9]">
-      <HeaderComp componentState={componentState} setComponentState={setComponentState}/>
+      <HeaderComp />
       <div className="md:flex-1 flex flex-col items-center justify-center md:max-w-[700px] ">
-        
+
         <div className="self-stretch flex flex-row items-start justify-center py-0 px-5">
           <div className="flex flex-col items-start justify-start pt-0 px-0 pb-3.5">
             <div className="flex flex-row items-center justify-center">
@@ -46,7 +46,7 @@ const CancelarReserva: FC <propsCancelarReserva> = ({componentState, setComponen
                     </div>
                     <div className="flex flex-row items-center justify-start gap-[12.8px] text-sm ">
                       <div className="h-[13px] w-2.5 relative leading-[12.25px] flex items-center">
-                       
+
                       </div>
                       <div className="relative text-sm leading-[21px] font-light inline-block min-w-[92px]">
                         Banaoro / Rocafuerte y 25 de junio
@@ -54,8 +54,8 @@ const CancelarReserva: FC <propsCancelarReserva> = ({componentState, setComponen
                     </div>
                     <div className="flex flex-row items-center justify-start gap-[10.229999542236328px]">
                       <div className="relative leading-[13px] inline-block min-w-[11px]">
-                      <img src="ModuloEvento/humanci.svg" alt="" />
-                      
+                        <img src="ModuloEvento/humanci.svg" alt="" />
+
                       </div>
                       <div className="relative text-sm leading-[21px] font-light font-www-fourvenues-com-es-christian-lanza1-success-hlruskh2900003j8e5u90hawff1v50hb-1358x573-default-inter-semi-bold-175 inline-block min-w-[9px]">
                         5
@@ -65,11 +65,11 @@ const CancelarReserva: FC <propsCancelarReserva> = ({componentState, setComponen
                 </div>
                 <div className="self-stretch flex flex-row items-start justify-center py-0 px-5 box-border max-w-full">
                   <div className="flex flex-row items-start justify-start max-w-full">
-                    
+
                     <div className="h-5 w-2.5 relative rounded-tl-none rounded-tr-full rounded-br-full rounded-bl-none bg-black" />
-                    
+
                     <div className="flex flex-col items-start justify-start pt-[5.5px] px-0 pb-0 box-border md:max-w-[calc(100%_-_20px)]">
-                      
+
                       <div className="flex flex-row items-start justify-start gap-[1.5866666666666185px] mq450:flex-wrap">
 
                         <div className="h-[9px] w-6 rounded-md bg-black flex flex-col items-start justify-start p-0.5 box-border">
@@ -81,7 +81,7 @@ const CancelarReserva: FC <propsCancelarReserva> = ({componentState, setComponen
                         <div className="h-[9px] w-6 rounded-md bg-black flex flex-col items-start justify-start p-0.5 box-border">
                           <div className="w-5 h-[5px] relative rounded-md bg-black hidden" />
                         </div>
-                     <div className="h-[9px] w-6 rounded-md bg-black flex flex-col items-start justify-start p-0.5 box-border">
+                        <div className="h-[9px] w-6 rounded-md bg-black flex flex-col items-start justify-start p-0.5 box-border">
                           <div className="w-5 h-[5px] relative rounded-md bg-black hidden" />
                         </div>                        <div className="h-[9px] w-6 rounded-md bg-black flex flex-col items-start justify-start p-0.5 box-border">
                           <div className="w-5 h-[5px] relative rounded-md bg-black hidden" />
@@ -113,7 +113,7 @@ const CancelarReserva: FC <propsCancelarReserva> = ({componentState, setComponen
                     </div>
 
                     <div className="h-5 w-2.5 relative rounded-tl-full rounded-tr-none rounded-br-none rounded-bl-full bg-black" />
-                  
+
                   </div>
                 </div>
               </div>
@@ -154,19 +154,19 @@ const CancelarReserva: FC <propsCancelarReserva> = ({componentState, setComponen
         </div>
 
 
-          <button onClick={()=>{ 
-        setComponentState(2)
-      }} 
-           className="cursor-pointer [border:none] p-0 bg-[transparent] md:w-[161.1px] w-auto flex flex-col items-start justify-start">
-            <div className="self-stretch flex flex-row items-center justify-center">
-              <div className="md:flex-1 rounded-md bg-[#6096B9] flex flex-col items-center justify-start pt-[9.80000000000291px] pb-[10.69999999999709px] pr-[8.099999999998545px] pl-2.5 whitespace-nowrap">
-                <div className="self-stretch relative text-mid-5 leading-[25px] font-medium text-white text-center">
-                  Cancelar reserva
-                </div>
+        <button onClick={() => {
+          setComponentState(2)
+        }}
+          className="cursor-pointer [border:none] p-0 bg-[transparent] md:w-[161.1px] w-auto flex flex-col items-start justify-start">
+          <div className="self-stretch flex flex-row items-center justify-center">
+            <div className="md:flex-1 rounded-md bg-[#6096B9] flex flex-col items-center justify-start pt-[9.80000000000291px] pb-[10.69999999999709px] pr-[8.099999999998545px] pl-2.5 whitespace-nowrap">
+              <div className="self-stretch relative text-mid-5 leading-[25px] font-medium text-white text-center">
+                Cancelar reserva
               </div>
             </div>
-          </button>
-        
+          </div>
+        </button>
+
 
       </div>
     </div>

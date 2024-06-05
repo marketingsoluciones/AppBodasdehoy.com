@@ -1,25 +1,25 @@
 import { FC } from "react";
 import Checkbox from "../RRPP/Checkbox1";
-import HeaderComp from "./Sub-Componentes/HeaderComp";
+import HeaderComp from "../../components/RRPP/Sub-Componentes/HeaderComp";
 interface propsReservaDatos {
-    componentState: any;
-    setComponentState: any;
-  
-  }
+  componentState: any;
+  setComponentState: any;
 
-const ReservaDatos: FC <propsReservaDatos> = ({componentState, setComponentState}) => {
+}
+
+const ReservaDatos: FC<propsReservaDatos> = ({ componentState, setComponentState }) => {
   return (
     <div className="w-[100%] md:h-[100vh] h-[100%] max-w-full flex flex-col items-center justify-center px-[12px] pt-[20px] box-border tracking-[normal] text-center text-sm text-[#6096B9] ">
-      <HeaderComp componentState={componentState} setComponentState={setComponentState}/>
+      <HeaderComp componentState={componentState} setComponentState={setComponentState} />
       <div className="rounded-md bg-white shadow-[0px_1px_10px_rgba(0,_0,_0,_0.12),_0px_4px_5px_rgba(0,_0,_0,_0.14),_0px_2px_4px_-1px_rgba(0,_0,_0,_0.2)] box-border overflow-hidden flex flex-col items-start justify-start pt-px px-0 pb-[22.5px] gap-[61px] max-w-full border-[1px] border-solid border-divider mq450:gap-[30px_61px]">
-        
-      <div className="w-full bg-gray-100 flex flex-row items-center justify-between pt-[10.5px] px-[21px] pb-[13.5px] box-border max-w-full gap-[20px] mq450:flex-wrap">
+
+        <div className="w-full bg-gray-100 flex flex-row items-center justify-between pt-[10.5px] px-[21px] pb-[13.5px] box-border max-w-full gap-[20px] mq450:flex-wrap">
           <div className="flex flex-row items-start justify-start md:gap-[154.90000000000146px] max-w-full mq450:flex-wrap mq450:gap-[154.9px_77px]">
-            
-            <button onClick={()=>{ 
-        setComponentState(6)
-      }} 
-             className="cursor-pointer [border:none] py-0 pr-[10.5px] pl-0 bg-[transparent] flex flex-col items-start justify-start">
+
+            <button onClick={() => {
+              setComponentState(6)
+            }}
+              className="cursor-pointer [border:none] py-0 pr-[10.5px] pl-0 bg-[transparent] flex flex-col items-start justify-start">
               <div className="rounded-md bg-[#6096B9] flex flex-row items-center justify-center py-[10.5px] px-[11px]">
                 <div className="w-[13px] flex flex-col items-start justify-start">
                   <div className="h-3.5 flex flex-row items-start justify-start">
@@ -34,26 +34,26 @@ const ReservaDatos: FC <propsReservaDatos> = ({componentState, setComponentState
             </button>
           </div>
           <div className="flex flex-row items-end justify-start gap-[5.899999999997817px]">
-              <div className="h-[13px] flex flex-col items-start justify-end pt-0 px-0 pb-[3px] box-border">
-                <img
-                  className="w-[9.2px] h-2.5 relative overflow-hidden shrink-0"
-                  loading="lazy"
-                  alt=""
-                  src="ModuloEvento/calendar1.svg"
-                />
+            <div className="h-[13px] flex flex-col items-start justify-end pt-0 px-0 pb-[3px] box-border">
+              <img
+                className="w-[9.2px] h-2.5 relative overflow-hidden shrink-0"
+                loading="lazy"
+                alt=""
+                src="ModuloEvento/calendar1.svg"
+              />
+            </div>
+            <div className="flex flex-col items-start justify-center">
+              <div className="flex flex-row items-start justify-center ">
+                <b className="w-auto relative leading-[21px] flex items-center justify-center max-w-[465px] mq450:max-w-full">
+                  Concierto de los Iracundos
+                </b>
               </div>
-              <div className="flex flex-col items-start justify-center">
-                <div className="flex flex-row items-start justify-center ">
-                  <b className="w-auto relative leading-[21px] flex items-center justify-center max-w-[465px] mq450:max-w-full">
-                    Concierto de los Iracundos
-                  </b>
-                </div>
-                <div className="relative text-2xs-5 leading-[14px] text-gray-600 whitespace-nowrap">
-                  <b>Sabado</b>
-                  <span>, 29 de Junio 2024</span>
-                </div>
+              <div className="relative text-2xs-5 leading-[14px] text-gray-600 whitespace-nowrap">
+                <b>Sabado</b>
+                <span>, 29 de Junio 2024</span>
               </div>
             </div>
+          </div>
           <div className="flex flex-col items-start justify-start">
             <div className="rounded-md bg-[#6096B9] flex flex-row items-center justify-center py-[10.5px] px-[13px]">
               <div className="w-[9px] flex flex-col items-end justify-start">
@@ -73,15 +73,15 @@ const ReservaDatos: FC <propsReservaDatos> = ({componentState, setComponentState
 
         <div className="self-stretch flex flex-row items-start justify-start py-0 px-5 box-border max-w-full text-xs text-black">
           <div className="flex-1 flex flex-col items-end justify-start gap-[21px] max-w-full">
-            
-          <div className="self-stretch rounded-md bg-gray-100 flex flex-col items-start justify-start p-[10.5px]">
-              
+
+            <div className="self-stretch rounded-md bg-gray-100 flex flex-col items-start justify-start p-[10.5px]">
+
               <div className="self-stretch flex flex-row items-start md:justify-start justify-between [row-gap:20px]">
-                
+
                 <div className="md:flex-1 flex flex-col items-start justify-start md:min-w-[262px]">
-                  
+
                   <div className="self-stretch flex flex-col items-start justify-start">
-                    
+
                     <div className="self-stretch flex flex-col items-center justify-start py-0 md:px-5 opacity-[0.5]">
                       <b className="md:w-full w-auto relative leading-[14px] uppercase md:inline-block md:min-w-[31px] md:max-w-[267.5px]">
                         Zona
@@ -100,7 +100,7 @@ const ReservaDatos: FC <propsReservaDatos> = ({componentState, setComponentState
 
                 <div className="md:flex-1 flex flex-col items-start justify-start md:min-w-[262px]">
                   <div className="self-stretch flex flex-col items-start justify-start">
-                    
+
                     <div className="self-stretch flex flex-col items-center justify-start py-0 px-5 opacity-[0.5]">
                       <b className="w-full relative leading-[14px] uppercase inline-block min-w-[22px] max-w-[267.5px]">
                         Pax
@@ -184,11 +184,11 @@ const ReservaDatos: FC <propsReservaDatos> = ({componentState, setComponentState
               </div>
               <div className="flex flex-row items-end justify-start pt-0 px-0 pb-5 box-border gap-[3.4px] max-w-full text-text-disabled">
 
-                <div className="self-stretch flex flex-row items-center justify-start py-[3.5px] px-0 box-border">             
-        <Checkbox/>
+                <div className="self-stretch flex flex-row items-center justify-start py-[3.5px] px-0 box-border">
+                  <Checkbox />
                   <div className="text-sm text-gray-400">
-                  Quiero recibir información sobre eventos o promociones de <b>EventosOrganizador</b>
-                  </div>                
+                    Quiero recibir información sobre eventos o promociones de <b>EventosOrganizador</b>
+                  </div>
                   <span>.</span>
                 </div>
               </div>
@@ -213,10 +213,10 @@ const ReservaDatos: FC <propsReservaDatos> = ({componentState, setComponentState
                   </div>
                 </div>
               </div>
-              <div onClick={()=>{ 
-        setComponentState(8)
-      }} 
-              className=" cursor-pointer self-stretch rounded-md bg-[#6096B9] flex flex-row items-start justify-center py-0 pr-5 pl-[21px] opacity-[0.5] hover:bg-[#6096B9] hover:opacity-100 text-center text-white">
+              <div onClick={() => {
+                setComponentState(8)
+              }}
+                className=" cursor-pointer self-stretch rounded-md bg-[#6096B9] flex flex-row items-start justify-center py-0 pr-5 pl-[21px] opacity-[0.5] hover:bg-[#6096B9] hover:opacity-100 text-center text-white">
                 <div className="w-auto relative leading-[36px] font-medium flex items-center justify-center min-w-[94px] max-w-[535px] mq650:max-w-full">
                   Hacer reserva
                 </div>
@@ -234,11 +234,11 @@ const ReservaDatos: FC <propsReservaDatos> = ({componentState, setComponentState
                 <div className="w-2 relative leading-[14px] inline-block min-w-[8px]">{` - `}</div>
                 <div className="flex-1 flex flex-col items-start justify-end pt-0 px-0 pb-px font-www-fourvenues-com-es-christian-lanza1-my-tickets-booking-pls4z3fgj1gu901dw7c075ptv4hejjwd-cancel-b-81y931x9l-0c02b57039897024944853aa75818e88cd46dccdfaa53215199820ece72e9159-18106666259765625x764-default-font-awesome-5-free-regular-123">
                   <div className="self-stretch relative leading-[11px] inline-block min-w-[11px]">
-                  <img
-                    className="w-[10.5px] h-2.5 relative overflow-hidden shrink-0"
-                    alt=""
-                    src="ModuloEvento/cb2.svg"
-                  />
+                    <img
+                      className="w-[10.5px] h-2.5 relative overflow-hidden shrink-0"
+                      alt=""
+                      src="ModuloEvento/cb2.svg"
+                    />
                   </div>
                 </div>
               </div>

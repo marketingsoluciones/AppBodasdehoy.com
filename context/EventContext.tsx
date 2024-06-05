@@ -66,7 +66,7 @@ const EventProvider = ({ children }) => {
   const [invitadoCero, setInvitadoCero] = useState<string | null>(null);
   const [valir, setValir] = useState<boolean | null>(false);
   const [idxGroupEvent, setIdxGroupEvent] = useState<idxGroupEvent | null>({ idx: 0, isActiveStateSwiper: 0, event_id: null });
-  const {eventsGroup, setEventsGroup } = EventsGroupContextProvider()
+  const { eventsGroup, setEventsGroup } = EventsGroupContextProvider()
   const [planSpaceActive, setPlanSpaceActive] = useState<planSpace | null>(null);
   const [filterGuests, setFilterGuests] = useState<filterGuests>({ sentados: [], noSentados: [], update: 0 })
   const [allFilterGuests, setAllFilterGuests] = useState<filterGuests[]>([{ sentados: [], noSentados: [], update: 0 }])

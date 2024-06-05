@@ -1,6 +1,6 @@
 import { FC, FunctionComponent, memo } from "react";
 import CompVentas1 from "./CompVentas1";
-import HeaderComp from "./Sub-Componentes/HeaderComp";
+import HeaderComp from "../../components/RRPP/Sub-Componentes/HeaderComp";
 interface propsVentasEntradas {
   componentState: any;
   setComponentState: any;

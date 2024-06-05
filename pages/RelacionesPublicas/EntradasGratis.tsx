@@ -1,9 +1,10 @@
 import { FC, FunctionComponent, memo, useState } from "react";
-import NumericCounter from "./Sub-Componentes/ContadorNumerico";
-import HeaderComp from "./Sub-Componentes/HeaderComp";
+import NumericCounter from "../../components/RRPP/Sub-Componentes/ContadorNumerico";
+import HeaderComp from "../../components/RRPP/Sub-Componentes/HeaderComp";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { AuthContextProvider } from "../../context";
 import { useRouter } from "next/router";
+import { useToast } from "../../hooks/useToast";
 interface propsEntradasGratis {
   componentState: any;
   setComponentState: any;
@@ -16,12 +17,13 @@ interface propsEntradasGratis {
 const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentState, ticket, count, setCount, data }) => {
 
   const datafilter = data?.data?.filter(element => (element.metadata.grupo === "ticket"))
-  const findTicket = datafilter.find(({ name }) => name === ticket)
+  const findTicket = datafilter?.find(({ name }) => name === ticket)
   const price = findTicket?.prices[0]?.unit_amount / 100
   const totalCompra = (count * price) + 8.25
   const priceId = findTicket?.prices[0]?.id
   const { user, storage_id } = AuthContextProvider()
   const router = useRouter()
+  const toast = useToast()
 
 
 
@@ -29,16 +31,19 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
     fetchApiBodas({
       query: queries.createCheckoutSession,
       variables: {
-        pricesIDs: priceId,
-       /*  email: user?.email, */
+        items: [{ price: priceId, quantity: count }],
+        /*  email: user?.email, */
         cancel_url: `${window.location.href}/?stage=3`,
         mode: "payment",
-        quantity: count,
-        success_url:`${window.location.href}/?stage=4&count=${count}&sId=${storage_id}`
+        success_url: `${window.location.href}/?stage=4&count=${count}&sId=${storage_id}`
       },
       development: "bodasdehoy"
     }).then((result) => {
-      router?.push(result)
+      if (result) {
+        router?.push(result)
+      } else {
+        toast("error", "Ha ocurrido un error, inténtalo nuevamente")
+      }
     })
   }
 

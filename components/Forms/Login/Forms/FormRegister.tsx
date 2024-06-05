@@ -83,7 +83,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
       ? yup.string().required("Campo requerido").test("Unico", `Debe contener mas de 5 caractéres`, (value: any) => {
         const name = document.activeElement?.getAttribute("name")
         if (name !== "password") {
-          return value?.length > 5 
+          return value?.length > 5
         } else {
           return true
         }
@@ -234,7 +234,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
         validationSchema={validationSchema ?? {}}
         onSubmit={linkMedia == null ? handleSubmit : handleSumitMedia}
       >
-        <Form className={`w-full md:w-[350px] text-gray-200 gap-4 md:gap-5 md:space-y-0 flex flex-col ${WihtProvider ? "mt-16":""} `}>
+        <Form className={`w-full md:w-[350px] text-gray-200 gap-4 md:gap-5 md:space-y-0 flex flex-col ${WihtProvider ? "mt-16" : ""} `}>
           <div className={`col-span-2 ${WihtProvider ? "hidden" : ""}`}>
             <InputField
               disabled={!!phoneNumber}

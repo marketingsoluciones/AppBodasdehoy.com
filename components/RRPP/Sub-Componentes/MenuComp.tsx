@@ -1,11 +1,8 @@
+import { useRouter } from "next/router";
 import { FC, useState } from "react";
-interface propsHeader {
-    componentState: any;
-    setComponentState: any;
-  
-  }
 
-const Header: FC<propsHeader> = ({componentState, setComponentState}) => {
+const Header: FC = () => {
+  const router = useRouter()
   const [isNavOpen, setIsNavOpen] = useState(false);
 
   return (
@@ -14,7 +11,6 @@ const Header: FC<propsHeader> = ({componentState, setComponentState}) => {
         <img className="flex w-24 h-14 " src="ModuloEvento/LOGOMACHALA 1.png" alt="logo" />
       </a>
       <nav>
-
         <section className="MOBILE-MENU flex-col lg:hidden gap-2 ">
           <div
             className="HAMBURGER-ICON space-y-2 cursor-pointer"
@@ -24,48 +20,43 @@ const Header: FC<propsHeader> = ({componentState, setComponentState}) => {
             <span className="block h-0.5 w-8 bg-white"></span>
             <span className="block h-0.5 w-8 bg-white"></span>
           </div>
-
           <div className={isNavOpen ? "block " : "hidden "}>
-
             <div className="mobile-menu-container absolute left-40 right-4 top-32 bg-white rounded-md shadow-md text-black">
-                
               <ul className="MENU-LINK-MOBILE-OPEN flex flex-col items-center justify-between min-h-[250px]">
                 <li className="border-b border-gray-400 my-4 uppercase ">
                   <a onClick={() => {
-                setComponentState(0)
-              }} className="cursor-pointer">Inicio</a>
+                    router?.push("RelacionesPublicas/")
+                  }} className="cursor-pointer">Inicio</a>
                 </li>
                 <li className="border-b border-gray-400 my-4 uppercase">
                   <a onClick={() => {
-                setComponentState(1)
-              }} className="cursor-pointer">Eventos</a>
+                    router?.push("RelacionesPublicas/PrincipalDE")
+                  }} className="cursor-pointer">Eventos</a>
                 </li>
                 <li className="border-b border-gray-400 my-4 uppercase">
                   <a onClick={() => {
-                setComponentState(0)
-              }} className="cursor-pointer">Contactanos</a>
+                    router?.push("RelacionesPublicas/")
+                  }} className="cursor-pointer">Contactanos</a>
                 </li>
               </ul>
             </div>
-
           </div>
         </section>
-
         <ul className="DESKTOP-MENU hidden space-x-8 lg:flex">
           <li>
             <a onClick={() => {
-                setComponentState(0)
-              }} className="cursor-pointer" >Inicio</a>
+              router?.push("RelacionesPublicas/")
+            }} className="cursor-pointer" >Inicio</a>
           </li>
           <li>
             <a onClick={() => {
-                setComponentState(1)
-              }} className="cursor-pointer">Eventos</a>
+              router?.push("RelacionesPublicas/PrincipalDE")
+            }} className="cursor-pointer">Eventos</a>
           </li>
           <li>
             <a onClick={() => {
-                setComponentState(0)
-              }} className="cursor-pointer">Contactanos</a>
+              router?.push("RelacionesPublicas/")
+            }} className="cursor-pointer">Contactanos</a>
           </li>
         </ul>
       </nav>

@@ -1,9 +1,9 @@
 import { FC, FunctionComponent, useEffect, useRef, useState } from "react";
-import { DatosComprador } from "./Sub-Componentes/DatosComprador";
-import { ResumenComponents } from "./Sub-Componentes/ResumenC";
-import { CabeceraR } from "./Sub-Componentes/CabeceraR";
-import { CheckCondition } from "./Sub-Componentes/CheckConition";
-import HeaderComp from "./Sub-Componentes/HeaderComp";
+import { DatosComprador } from "../../components/RRPP/Sub-Componentes/DatosComprador";
+import { ResumenComponents } from "../../components/RRPP/Sub-Componentes/ResumenC";
+import { CabeceraR } from "../../components/RRPP/Sub-Componentes/CabeceraR";
+import { CheckCondition } from "../../components/RRPP/Sub-Componentes/CheckConition";
+import HeaderComp from "../../components/RRPP/Sub-Componentes/HeaderComp";
 import { useRouter } from "next/router";
 import { AuthContextProvider } from "../../context";
 
