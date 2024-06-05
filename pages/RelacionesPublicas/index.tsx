@@ -20,10 +20,7 @@ const Slug = () => {
     const initialStage = router?.query?.stage
     const stage = initialStage && +initialStage
     const [optionSelect, setOptionSelect] = useState(stage != null ? stage : 0)
-    const [data, setData] = useState({})
-    const { EventTicket } = AuthContextProvider()
-
-    console.log("event ticket", EventTicket)
+    const { EventTicket, setDataEventTicket } = AuthContextProvider()
 
     //fetch para obtener la data de todos los productos de stripe
     useEffect(() => {
@@ -39,7 +36,7 @@ const Slug = () => {
                 }
                 return acc
             }, { modulos: [] })
-            setData({ data, ...asd })
+            setDataEventTicket({ data, ...asd })
         }
         fetchData()
     }, [optionSelect])
@@ -60,7 +57,7 @@ const Slug = () => {
     return (
         <div className="w-[100%] h-[100%] items-center justify-center">
             <div id="rootElement" />
-            <LosIracundosWeb setTicket={setTicket} data={data} />
+            <LosIracundosWeb setTicket={setTicket}  />
         </div>
     );
 };

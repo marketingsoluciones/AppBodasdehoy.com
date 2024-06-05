@@ -1,19 +1,22 @@
+import { useRouter } from "next/router";
 import { FC, useState } from "react";
+import { AuthContextProvider } from "../../../context";
+
 
 interface props {
   ticketsArray: any;
   setTicket: any
 }
 
-
-const Comp2: FC<props> = ({ ticketsArray, setTicket }) => {
-
+export const BodyTicket: FC<props> = ({ ticketsArray, setTicket }) => {
+  const router = useRouter()
   const [isChecked, setIsChecked] = useState(false)
+  const { setSelectTicket } = AuthContextProvider()
 
   const onChangeCheckbox = (e) => {
     console.log(e.target.value)
     setIsChecked(e.target.checked);
-    setTicket(e.target.value);
+    setSelectTicket(e.target.value);
   };
 
   return (
@@ -137,7 +140,7 @@ const Comp2: FC<props> = ({ ticketsArray, setTicket }) => {
         <div className="self-stretch flex flex-row items-start justify-center py-0 pr-[21px] pl-5 box-border max-w-full">
           <button onClick={() => {
             if (isChecked) {
-
+              router.push("RelacionesPublicas/EntradasGratis")
             }
           }}
             className={`${isChecked ? "cursor-pointer bg-[#8B1710]" : "cursor-default bg-[#8b161060]"}  [border:none] p-5  w-[396px] shadow-[0px_6px_12px_rgba(249,_192,_106,_0.22)] rounded-3xl flex flex-row items-start justify-center box-border max-w-full hover:bg-brown `}>
@@ -151,4 +154,4 @@ const Comp2: FC<props> = ({ ticketsArray, setTicket }) => {
   );
 };
 
-export default Comp2;
+;

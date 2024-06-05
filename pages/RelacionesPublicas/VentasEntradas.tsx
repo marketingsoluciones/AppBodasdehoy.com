@@ -1,26 +1,29 @@
-import { FC, FunctionComponent, memo } from "react";
+import { FC } from "react";
 import CompVentas1 from "./CompVentas1";
 import HeaderComp from "../../components/RRPP/Sub-Componentes/HeaderComp";
+import { AuthContextProvider } from "../../context";
+
 interface propsVentasEntradas {
-  componentState: any;
-  setComponentState: any;
-  data: any
-  setTicket: any
+  componentState?: any;
+  setComponentState?: any;
+  data?: any
+  setTicket?: any
 }
 
 
 const VentasEntradas: FC<propsVentasEntradas> = ({ componentState, setComponentState, data, setTicket }) => {
-  const datafilter = data?.data?.filter(element => (element.metadata.grupo === "ticket"))
+  const { dataEventTicket } = AuthContextProvider()
+  const datafilter = dataEventTicket?.data?.filter(element => (element.metadata.grupo === "ticket"))
   return (
-    <div className="w-full h-[100vh] bg-slate-100 flex flex-col py-[20px] gap-[40px] overflow-auto">
-      <HeaderComp componentState={componentState} setComponentState={setComponentState} />
+    <div className="w-full h-[100vh] bg-slate-100 flex flex-col py-[20px] gap-[40px] ">
+      <HeaderComp />
       <div className="flex md:flex-row flex-col items-center justify-center gap-8">
         <div className="flex flex-col items-start gap-4">
           <img
             className="w-60 h-auto rounded-md object-cover"
             loading="lazy"
             alt=""
-            src="ModuloEvento/evento1.jpg"
+            src="../ModuloEvento/evento1.jpg"
           />
 
           <div className="flex flex-col items-start gap-2">
@@ -33,7 +36,7 @@ const VentasEntradas: FC<propsVentasEntradas> = ({ componentState, setComponentS
               <img
                 className="w-4 h-4"
                 alt=""
-                src="ModuloEvento/ubi1.svg"
+                src="../ModuloEvento/ubi1.svg"
               />
               <span className="font-medium">Ver mapa</span>
             </button>
@@ -54,7 +57,7 @@ const VentasEntradas: FC<propsVentasEntradas> = ({ componentState, setComponentS
                         className="h-3.5 w-[12.3px] relative overflow-hidden shrink-0"
                         loading="lazy"
                         alt=""
-                        src="ModuloEvento/flechablanca.svg"
+                        src="../ModuloEvento/flechablanca.svg"
                       />
                     </div>
                   </div>
@@ -71,7 +74,7 @@ const VentasEntradas: FC<propsVentasEntradas> = ({ componentState, setComponentS
                       className="h-4 w-[16.9px] relative overflow-hidden shrink-0"
                       loading="lazy"
                       alt=""
-                      src="ModuloEvento/dereflecha.svg"
+                      src="../ModuloEvento/dereflecha.svg"
                     />
                   </div>
                   <div className="h-[25px] w-full] relative tracking-[3.15px] leading-[25px] uppercase inline-block min-w-[63px] whitespace-nowrap">
@@ -92,7 +95,7 @@ const VentasEntradas: FC<propsVentasEntradas> = ({ componentState, setComponentS
                       <img
                         className="w-[9.2px] h-[13px] relative overflow-hidden shrink-0"
                         alt=""
-                        src="ModuloEvento/mas.svg"
+                        src="../ModuloEvento/mas.svg"
                       />
                     </div>
                     <b className="h-[18px] w-full relative text-xs leading-[18px] inline-block min-w-[17px]">
@@ -105,7 +108,7 @@ const VentasEntradas: FC<propsVentasEntradas> = ({ componentState, setComponentS
                       <img
                         className="w-[15.3px] h-[13px] relative overflow-hidden shrink-0"
                         alt=""
-                        src="ModuloEvento/camisa.svg"
+                        src="../ModuloEvento/camisa.svg"
                       />
                     </div>
                     <b className="h-[18px] w-full text-xs relative leading-[18px] inline-block min-w-[45px]">
@@ -126,7 +129,7 @@ const VentasEntradas: FC<propsVentasEntradas> = ({ componentState, setComponentS
                   Entradas
                 </b>
               </div>
-              {datafilter.map((item: any, idx: any) => {
+              {datafilter?.map((item: any, idx: any) => {
                 return (
                   <div key={idx} className="select-none self-stretch rounded-md bg-white hover:bg-green hover:bg-opacity-50 shadow-[0px_1px_14px_rgba(0,_0,_0,_0.12),_0px_5px_8px_rgba(0,_0,_0,_0.14),_0px_3px_5px_-1px_rgba(0,_0,_0,_0.2)] overflow-hidden flex flex-col items-start justify-start max-w-full  hover:border-green ">
                     <div className="self-stretch rounded-md flex flex-col items-start justify-start py-px px-0 max-w-full  ">
@@ -160,7 +163,7 @@ const VentasEntradas: FC<propsVentasEntradas> = ({ componentState, setComponentS
                                   <img
                                     className="h-[17px] w-[15.3px] relative overflow-hidden shrink-0"
                                     alt=""
-                                    src="ModuloEvento/flesh.svg"
+                                    src="../ModuloEvento/flesh.svg"
                                   />
                                 </div>
                               </div>

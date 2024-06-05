@@ -1,6 +1,6 @@
 import { FC } from "react";
 
-const Comp3: FC = () => {
+export const InfoHeader: FC = () => {
   return (
     <section className="self-stretch flex flex-row items-start justify-end pt-0 md:px-[65px] md:pb-[126px] box-border max-w-full text-left text-xl md:text-white font-playfair mq750:pl-8 mq750:pr-8 mq750:pb-[82px] mq750:box-border">
       <img
@@ -44,4 +44,4 @@ const Comp3: FC = () => {
   );
 };
 
-export default Comp3;
+

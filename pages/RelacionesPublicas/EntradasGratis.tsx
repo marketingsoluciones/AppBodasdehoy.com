@@ -1,4 +1,4 @@
-import { FC, FunctionComponent, memo, useState } from "react";
+import { FC, FunctionComponent, memo, useEffect, useState } from "react";
 import NumericCounter from "../../components/RRPP/Sub-Componentes/ContadorNumerico";
 import HeaderComp from "../../components/RRPP/Sub-Componentes/HeaderComp";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
@@ -11,19 +11,42 @@ interface propsEntradasGratis {
   ticket: any;
   count: number;
   setCount: any;
-  data: any;
+
 }
 
-const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentState, ticket, count, setCount, data }) => {
+const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentState, ticket}) => {
+  const { storage_id, selectTicket } = AuthContextProvider()
+  const [data, SetData] = useState({})
 
   const datafilter = data?.data?.filter(element => (element.metadata.grupo === "ticket"))
-  const findTicket = datafilter?.find(({ name }) => name === ticket)
+  const findTicket = datafilter?.find(({ name }) => name === selectTicket)
+  const [count, setCount] = useState(1)
+
   const price = findTicket?.prices[0]?.unit_amount / 100
   const totalCompra = (count * price) + 8.25
   const priceId = findTicket?.prices[0]?.id
-  const { user, storage_id } = AuthContextProvider()
   const router = useRouter()
   const toast = useToast()
+
+  console.log(datafilter)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = JSON.parse(await fetchApiBodas({
+        query: queries.getAllProducts,
+        variables: {},
+        development: "bodasdehoy"
+      }));
+      const asd = data.reduce((acc, item) => {
+        if (!acc.modulos.includes(item.metadata.grupo)) {
+          acc.modulos.push(item.metadata.grupo)
+        }
+        return acc
+      }, { modulos: [] })
+      SetData({ data, ...asd })
+    }
+    fetchData()
+  }, [])
 
 
 
@@ -49,7 +72,7 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
 
   return (
     <div className="w-full h-[100vh] bg-slate-100 overflow-hidden flex flex-col items-center justify-start pt-[20px] gap-4 box-border tracking-[normal] text-left text-base text-gray-600 font-semibold">
-      <HeaderComp componentState={componentState} setComponentState={setComponentState} />
+      <HeaderComp />
       <section className="self-stretch flex flex-col  items-start justify-center py-0 px-10 gap-[10px] text-left text-sm text-gray-600 mq416:pr-[362px] mq416:box-border">
         <div className="flex flex-row flex-wrap items-start justify-center pl-8 gap-[10px]">
           <div onClick={() => {
@@ -62,7 +85,7 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
                   className="h-3.5 w-[12.3px] relative overflow-hidden shrink-0"
                   loading="lazy"
                   alt=""
-                  src="ModuloEvento/flechablanca.svg"
+                  src="../ModuloEvento/flechablanca.svg"
                 />
               </div>
             </div>
@@ -76,7 +99,7 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
                   className="h-[13px] w-[13.2px] relative overflow-hidden shrink-0"
                   loading="lazy"
                   alt=""
-                  src="ModuloEvento/vre.svg"
+                  src="../ModuloEvento/vre.svg"
                 />
               </div>
               <div className="h-[18px] w-[217px] relative tracking-[2.45px] leading-[17.5px] uppercase font-medium inline-block">
@@ -119,6 +142,7 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
       </section>
 
       <div className="w-auto flex md:flex-row flex-col items-center justify-center gap-[31.5px] max-w-full">
+        {/*  */}
         <div className="flex flex-col items-start justify-start pt-[21px] px-0 pb-0 box-border gap-[21px] max-w-full mq416:min-w-full">
           <div className="self-stretch rounded-md bg-green bg-opacity-40 box-border flex flex-col items-start justify-start py-[22px] px-[21px] max-w-full border-[1px] border-solid border-green">
             <div className="self-stretch flex flex-row items-center justify-between max-w-full [row-gap:20px]">
@@ -142,7 +166,7 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
                   <img
                     className="h-3.5 w-3.5 relative overflow-hidden shrink-0"
                     alt=""
-                    src="ModuloEvento/info2.svg"
+                    src="../ModuloEvento/info2.svg"
                   />
                 </div>
               </div>
@@ -165,7 +189,7 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
           </div>
 
         </div>
-
+        {/* Resumen */}
         <div className="w-[400px] flex flex-col items-start justify-start pt-[21px] px-0 pb-0 box-border min-w-[312px] text-text-primary">
           <div className="self-stretch rounded-md bg-white shadow-[0px_1px_10px_rgba(0,_0,_0,_0.12),_0px_4px_5px_rgba(0,_0,_0,_0.14),_0px_2px_4px_-1px_rgba(0,_0,_0,_0.2)] flex flex-col items-start justify-start p-[10.5px] gap-[10.5px]">
             <div className="self-stretch flex flex-col items-start justify-start gap-[10.5px]">

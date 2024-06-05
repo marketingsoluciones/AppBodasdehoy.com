@@ -38,7 +38,11 @@ const initialContext = {
   WihtProvider: undefined,
   SetWihtProvider: undefined,
   EventTicket: undefined,
-  setEventTicket: undefined
+  setEventTicket: undefined,
+  setDataEventTicket: undefined,
+  dataEventTicket: undefined,
+  selectTicket: undefined,
+  setSelectTicket: undefined,
 }
 
 type Context = {
@@ -70,7 +74,11 @@ type Context = {
   WihtProvider: any,
   SetWihtProvider: any,
   EventTicket: any,
-  setEventTicket: any
+  setEventTicket: any,
+  setDataEventTicket: any,
+  dataEventTicket: any,
+  selectTicket: any,
+  setSelectTicket: any,
 }
 export let varGlobalDomain = ""
 export let varGlobalDevelopment = ""
@@ -102,12 +110,10 @@ const AuthProvider = ({ children }) => {
   const router = useRouter()
   const [updateActivity] = useActivity()
   const [EventTicket, setEventTicket] = useState({})
-
-
-
+  const [dataEventTicket, setDataEventTicket] = useState({})
+  const [selectTicket, setSelectTicket] = useState(null)
 
   useEffect(() => {
-
     const storage_id = localStorage.getItem("_id")
     if (!storage_id) {
       const _id = customAlphabet('1234567890abcdef', 24)()
@@ -362,7 +368,7 @@ const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{
-      EventTicket, setEventTicket, setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms, setIsStartingRegisterOrLogin, link_id, SetLink_id, storage_id, SetStorage_id, linkMedia, SetLinkMedia, preregister, SetPreregister, SetWihtProvider, WihtProvider,
+      selectTicket, setSelectTicket, setDataEventTicket, dataEventTicket, EventTicket, setEventTicket, setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms, setIsStartingRegisterOrLogin, link_id, SetLink_id, storage_id, SetStorage_id, linkMedia, SetLinkMedia, preregister, SetPreregister, SetWihtProvider, WihtProvider,
     }}>
       {verificationDone && children}
     </AuthContext.Provider>
