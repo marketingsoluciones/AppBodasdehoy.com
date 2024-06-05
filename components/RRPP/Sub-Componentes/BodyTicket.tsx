@@ -5,10 +5,9 @@ import { AuthContextProvider } from "../../../context";
 
 interface props {
   ticketsArray: any;
-  setTicket: any
 }
 
-export const BodyTicket: FC<props> = ({ ticketsArray, setTicket }) => {
+export const BodyTicket: FC<props> = ({ ticketsArray}) => {
   const router = useRouter()
   const [isChecked, setIsChecked] = useState(false)
   const { setSelectTicket } = AuthContextProvider()

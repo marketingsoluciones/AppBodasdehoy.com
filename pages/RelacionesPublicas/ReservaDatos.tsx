@@ -1,24 +1,21 @@
 import { FC } from "react";
-import Checkbox from "../RRPP/Checkbox1";
+import Checkbox from "../../components/RRPP/Sub-Componentes/Checkbox1";
 import HeaderComp from "../../components/RRPP/Sub-Componentes/HeaderComp";
-interface propsReservaDatos {
-  componentState: any;
-  setComponentState: any;
+import { useRouter } from "next/router";
 
-}
+interface propsReservaDatos { }
 
-const ReservaDatos: FC<propsReservaDatos> = ({ componentState, setComponentState }) => {
+const ReservaDatos: FC<propsReservaDatos> = ({ }) => {
+  const router = useRouter()
   return (
-    <div className="w-[100%] md:h-[100vh] h-[100%] max-w-full flex flex-col items-center justify-center px-[12px] pt-[20px] box-border tracking-[normal] text-center text-sm text-[#6096B9] ">
-      <HeaderComp componentState={componentState} setComponentState={setComponentState} />
+    <div className="w-[100%] md:h-[100vh] h-[100%] max-w-full flex flex-col items-center justify-center px-[12px] pt-[20px] box-border tracking-[normal] text-center text-sm text-[#6096B9] overflow-auto ">
+      <HeaderComp />
       <div className="rounded-md bg-white shadow-[0px_1px_10px_rgba(0,_0,_0,_0.12),_0px_4px_5px_rgba(0,_0,_0,_0.14),_0px_2px_4px_-1px_rgba(0,_0,_0,_0.2)] box-border overflow-hidden flex flex-col items-start justify-start pt-px px-0 pb-[22.5px] gap-[61px] max-w-full border-[1px] border-solid border-divider mq450:gap-[30px_61px]">
 
         <div className="w-full bg-gray-100 flex flex-row items-center justify-between pt-[10.5px] px-[21px] pb-[13.5px] box-border max-w-full gap-[20px] mq450:flex-wrap">
           <div className="flex flex-row items-start justify-start md:gap-[154.90000000000146px] max-w-full mq450:flex-wrap mq450:gap-[154.9px_77px]">
 
-            <button onClick={() => {
-              setComponentState(6)
-            }}
+            <button onClick={() => { window.history.back() }}
               className="cursor-pointer [border:none] py-0 pr-[10.5px] pl-0 bg-[transparent] flex flex-col items-start justify-start">
               <div className="rounded-md bg-[#6096B9] flex flex-row items-center justify-center py-[10.5px] px-[11px]">
                 <div className="w-[13px] flex flex-col items-start justify-start">
@@ -26,7 +23,7 @@ const ReservaDatos: FC<propsReservaDatos> = ({ componentState, setComponentState
                     <img
                       className="h-3.5 w-[12.3px] relative overflow-hidden shrink-0"
                       alt=""
-                      src="ModuloEvento/FlechaIzquerda2.svg"
+                      src="../ModuloEvento/FlechaIzquerda2.svg"
                     />
                   </div>
                 </div>
@@ -39,7 +36,7 @@ const ReservaDatos: FC<propsReservaDatos> = ({ componentState, setComponentState
                 className="w-[9.2px] h-2.5 relative overflow-hidden shrink-0"
                 loading="lazy"
                 alt=""
-                src="ModuloEvento/calendar1.svg"
+                src="../ModuloEvento/calendar1.svg"
               />
             </div>
             <div className="flex flex-col items-start justify-center">
@@ -62,7 +59,7 @@ const ReservaDatos: FC<propsReservaDatos> = ({ componentState, setComponentState
                     className="h-3.5 w-[8.8px] relative overflow-hidden shrink-0"
                     loading="lazy"
                     alt=""
-                    src="ModuloEvento/equis2.svg"
+                    src="../ModuloEvento/equis2.svg"
                   />
                 </div>
               </div>
@@ -214,7 +211,7 @@ const ReservaDatos: FC<propsReservaDatos> = ({ componentState, setComponentState
                 </div>
               </div>
               <div onClick={() => {
-                setComponentState(8)
+                router.push("")
               }}
                 className=" cursor-pointer self-stretch rounded-md bg-[#6096B9] flex flex-row items-start justify-center py-0 pr-5 pl-[21px] opacity-[0.5] hover:bg-[#6096B9] hover:opacity-100 text-center text-white">
                 <div className="w-auto relative leading-[36px] font-medium flex items-center justify-center min-w-[94px] max-w-[535px] mq650:max-w-full">
@@ -228,7 +225,7 @@ const ReservaDatos: FC<propsReservaDatos> = ({ componentState, setComponentState
                   <img
                     className="w-[10.5px] h-2.5 relative overflow-hidden shrink-0"
                     alt=""
-                    src="ModuloEvento/cb1.svg"
+                    src="../ModuloEvento/cb1.svg"
                   />
                 </div>
                 <div className="w-2 relative leading-[14px] inline-block min-w-[8px]">{` - `}</div>
@@ -237,7 +234,7 @@ const ReservaDatos: FC<propsReservaDatos> = ({ componentState, setComponentState
                     <img
                       className="w-[10.5px] h-2.5 relative overflow-hidden shrink-0"
                       alt=""
-                      src="ModuloEvento/cb2.svg"
+                      src="../ModuloEvento/cb2.svg"
                     />
                   </div>
                 </div>

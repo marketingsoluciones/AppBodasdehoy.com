@@ -1,20 +1,14 @@
-import { FC, FunctionComponent, memo, useEffect, useState } from "react";
+import { FC,useEffect, useState } from "react";
 import NumericCounter from "../../components/RRPP/Sub-Componentes/ContadorNumerico";
 import HeaderComp from "../../components/RRPP/Sub-Componentes/HeaderComp";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { AuthContextProvider } from "../../context";
 import { useRouter } from "next/router";
 import { useToast } from "../../hooks/useToast";
-interface propsEntradasGratis {
-  componentState: any;
-  setComponentState: any;
-  ticket: any;
-  count: number;
-  setCount: any;
 
-}
+interface propsEntradasGratis { }
 
-const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentState, ticket}) => {
+const EntradasGratis: FC<propsEntradasGratis> = ({ }) => {
   const { storage_id, selectTicket } = AuthContextProvider()
   const [data, SetData] = useState({})
 
@@ -27,8 +21,6 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
   const priceId = findTicket?.prices[0]?.id
   const router = useRouter()
   const toast = useToast()
-
-  console.log(datafilter)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -47,8 +39,6 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
     }
     fetchData()
   }, [])
-
-
 
   const handleCheckout = () => {
     fetchApiBodas({
@@ -76,7 +66,7 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
       <section className="self-stretch flex flex-col  items-start justify-center py-0 px-10 gap-[10px] text-left text-sm text-gray-600 mq416:pr-[362px] mq416:box-border">
         <div className="flex flex-row flex-wrap items-start justify-center pl-8 gap-[10px]">
           <div onClick={() => {
-            setComponentState(2)
+            window.history.back()
           }}
             className="cursor-pointer rounded-md bg-[#6096B9] flex flex-row items-center justify-center py-[10.5px] pr-[11.299999999995634px] pl-[11.400000000001455px]">
             <div className="flex flex-col items-start justify-start">
@@ -241,4 +231,3 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ componentState, setComponentS
 };
 
 export default EntradasGratis;
-//setComponentState(4)

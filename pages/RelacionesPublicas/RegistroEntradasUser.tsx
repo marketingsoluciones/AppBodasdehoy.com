@@ -31,18 +31,18 @@ const RegistroEntradasUser: FC<propsRegistroEntradasUser> = ({ componentState, s
     console.log('Valores del formulario:', values)
   };
 
-  useEffect(() => {
+/*   useEffect(() => {
     if (!ValirStorage) {
       router.push("/RelacionesPublicas?stage=1")
     }
     if (ValirStorage) {
 
     }
-  }, [router])
+  }, [router]) */
 
   return (
     <div className="bg-slate-100 w-full h-[100vh] flex flex-col gap-4 items-center justify-start  pt-[20px]">
-      <HeaderComp componentState={componentState} setComponentState={setComponentState} />
+      <HeaderComp />
       <div className="w-[100%] h-full text-left text-sm font-medium">
         <CabeceraR componentState={componentState} setComponentState={setComponentState} activo={false} />
         <div className="w-full flex md:flex-row flex-col items-start justify-center box-border gap-[25px] text-sm text-black">

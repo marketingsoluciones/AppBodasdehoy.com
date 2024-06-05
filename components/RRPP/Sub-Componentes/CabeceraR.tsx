@@ -23,7 +23,7 @@ export const CabeceraR: FC<propsCabeceraR> = ({ componentState, setComponentStat
                 className="h-3.5 w-[12.3px] relative overflow-hidden shrink-0"
                 loading="lazy"
                 alt=""
-                src="ModuloEvento/flechablanca.svg"
+                src="../ModuloEvento/flechablanca.svg"
               />
             </div>
           </div>
@@ -37,13 +37,11 @@ export const CabeceraR: FC<propsCabeceraR> = ({ componentState, setComponentStat
                 className="h-[13px] w-[13.2px] relative overflow-hidden shrink-0"
                 loading="lazy"
                 alt=""
-                src="ModuloEvento/vre.svg"
+                src="../ModuloEvento/vre.svg"
               />
             </div>
             <div className="h-[18px] w-[217px] relative tracking-[2.45px] leading-[17.5px] uppercase font-medium inline-block">
               <b>Sabado</b>
-
-
               <span>, 29 Junio 2024</span>
             </div>
           </div>
@@ -53,7 +51,7 @@ export const CabeceraR: FC<propsCabeceraR> = ({ componentState, setComponentStat
                 className="h-[13px] w-[14.7px] relative overflow-hidden shrink-0"
                 loading="lazy"
                 alt=""
-                src="ModuloEvento/relog3.svg"
+                src="../ModuloEvento/relog3.svg"
               />
             </div>
             <div className="h-[18px] flex-1 relative tracking-[2.45px] leading-[18px] uppercase font-medium inline-block whitespace-nowrap">

@@ -1,6 +1,7 @@
 import { FC, useState } from "react";
 import NumericCounter from "../../components/RRPP/Sub-Componentes/ContadorNumerico";
 import HeaderComp from "../../components/RRPP/Sub-Componentes/HeaderComp";
+import { useRouter } from "next/router";
 interface propsReservaCantidad {
   componentState: any;
   setComponentState: any;
@@ -9,17 +10,16 @@ interface propsReservaCantidad {
 
 const ReservaCantidad: FC<propsReservaCantidad> = ({ componentState, setComponentState }) => {
   const [count, setCount] = useState<number>(1)
+  const router = useRouter()
   return (
-    <div className="w-[100%] md:h-[100vh] h-[100%] max-w-full flex flex-col bg-slate-100 gap-4 items-center justify-center  box-border tracking-[normal] pt-[20px] px-3 text-center text-sm text-[#6096B9] ">
-      <HeaderComp componentState={componentState} setComponentState={setComponentState} />
+    <div className="w-[100%] md:h-[100vh] h-[100%] max-w-full flex flex-col bg-slate-100 gap-4 items-center box-border tracking-[normal] pt-[20px] px-3 text-center text-sm text-[#6096B9] ">
+      <HeaderComp />
       <div className="md:w-[60%] w-[100%] rounded-md bg-white shadow-[0px_1px_10px_rgba(0,_0,_0,_0.12),_0px_4px_5px_rgba(0,_0,_0,_0.14),_0px_2px_4px_-1px_rgba(0,_0,_0,_0.2)] overflow-hidden flex flex-col items-start justify-center box-border max-w-full">
 
         <div className="w-full bg-gray-100 flex flex-row items-center justify-between pt-[10.5px] px-[21px] pb-[13.5px] box-border max-w-full gap-[20px] mq450:flex-wrap">
           <div className="flex flex-row items-start justify-start md:gap-[154.90000000000146px] max-w-full mq450:flex-wrap mq450:gap-[154.9px_77px]">
 
-            <button onClick={() => {
-              setComponentState(2)
-            }}
+            <button onClick={() => { window.history.back() }}
               className="cursor-pointer [border:none] py-0 pr-[10.5px] pl-0 bg-[transparent] flex flex-col items-start justify-start">
               <div className="rounded-md bg-[#6096B9] flex flex-row items-center justify-center py-[10.5px] px-[11px]">
                 <div className="w-[13px] flex flex-col items-start justify-start">
@@ -27,7 +27,7 @@ const ReservaCantidad: FC<propsReservaCantidad> = ({ componentState, setComponen
                     <img
                       className="h-3.5 w-[12.3px] relative overflow-hidden shrink-0"
                       alt=""
-                      src="ModuloEvento/FlechaIzquerda2.svg"
+                      src="../ModuloEvento/FlechaIzquerda2.svg"
                     />
                   </div>
                 </div>
@@ -40,7 +40,7 @@ const ReservaCantidad: FC<propsReservaCantidad> = ({ componentState, setComponen
                 className="w-[9.2px] h-2.5 relative overflow-hidden shrink-0"
                 loading="lazy"
                 alt=""
-                src="ModuloEvento/calendar1.svg"
+                src="../ModuloEvento/calendar1.svg"
               />
             </div>
             <div className="flex flex-col items-start justify-center">
@@ -63,7 +63,7 @@ const ReservaCantidad: FC<propsReservaCantidad> = ({ componentState, setComponen
                     className="h-3.5 w-[8.8px] relative overflow-hidden shrink-0"
                     loading="lazy"
                     alt=""
-                    src="ModuloEvento/equis2.svg"
+                    src="../ModuloEvento/equis2.svg"
                   />
                 </div>
               </div>
@@ -128,7 +128,7 @@ const ReservaCantidad: FC<propsReservaCantidad> = ({ componentState, setComponen
                       <img
                         className="h-3.5 w-3.5 relative overflow-hidden shrink-0"
                         alt=""
-                        src="ModuloEvento/info4.svg"
+                        src="../ModuloEvento/info4.svg"
                       />
                     </div>
                   </div>
@@ -158,7 +158,7 @@ const ReservaCantidad: FC<propsReservaCantidad> = ({ componentState, setComponen
               </div>
             </div>
             <button onClick={() => {
-              setComponentState(7)
+              router.push("ReservaDatos")
             }}
               className="cursor-pointer [border:none] py-0 pr-5 pl-[21px] bg-[#6096B9] self-stretch rounded-md flex flex-row items-start justify-center hover:bg-steelblue-100">
               <div className="w-[66px] relative text-sm leading-[36px] font-medium text-white text-center flex items-center justify-center min-w-[66px] max-w-[535px] mq650:max-w-full">
@@ -175,7 +175,7 @@ const ReservaCantidad: FC<propsReservaCantidad> = ({ componentState, setComponen
                         className="w-[10.5px] h-2.5 relative overflow-hidden shrink-0"
                         loading="lazy"
                         alt=""
-                        src="ModuloEvento/cb1.svg"
+                        src="../ModuloEvento/cb1.svg"
                       />
                     </div>
                   </div>
@@ -186,7 +186,7 @@ const ReservaCantidad: FC<propsReservaCantidad> = ({ componentState, setComponen
                     className="w-[10.5px] h-2.5 relative overflow-hidden shrink-0"
                     loading="lazy"
                     alt=""
-                    src="ModuloEvento/cb2.svg"
+                    src="../ModuloEvento/cb2.svg"
                   />
                 </div>
               </div>

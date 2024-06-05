@@ -13,7 +13,7 @@ interface propsDatosComprador {
 export const DatosComprador: FC<propsDatosComprador> = ({ }) => {
   const router = useRouter()
   const initialCount = router?.query?.count
-  const newCount = initialCount && +initialCount
+  const newCount = initialCount ? initialCount && +initialCount : 2
   const FormsIndices = Array.from({ length: newCount }, (_, index) => index);
 
   return (

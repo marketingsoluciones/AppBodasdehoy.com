@@ -1,19 +1,39 @@
-import { FC } from "react";
+import { FC, useEffect, useState } from "react";
 import CompVentas1 from "./CompVentas1";
 import HeaderComp from "../../components/RRPP/Sub-Componentes/HeaderComp";
+import { fetchApiBodas, queries } from "../../utils/Fetching";
+import { useRouter } from "next/router";
 import { AuthContextProvider } from "../../context";
 
-interface propsVentasEntradas {
-  componentState?: any;
-  setComponentState?: any;
-  data?: any
-  setTicket?: any
-}
+interface propsVentasEntradas { }
 
 
-const VentasEntradas: FC<propsVentasEntradas> = ({ componentState, setComponentState, data, setTicket }) => {
-  const { dataEventTicket } = AuthContextProvider()
-  const datafilter = dataEventTicket?.data?.filter(element => (element.metadata.grupo === "ticket"))
+const VentasEntradas: FC<propsVentasEntradas> = ({ }) => {
+
+  const { setSelectTicket } = AuthContextProvider()
+  const [data, SetData] = useState({})
+  const router = useRouter()
+  const datafilter = data?.data?.filter(element => (element.metadata.grupo === "ticket"))
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = JSON.parse(await fetchApiBodas({
+        query: queries.getAllProducts,
+        variables: {},
+        development: "bodasdehoy"
+      }));
+      const asd = data.reduce((acc, item) => {
+        if (!acc.modulos.includes(item.metadata.grupo)) {
+          acc.modulos.push(item.metadata.grupo)
+        }
+        return acc
+      }, { modulos: [] })
+      SetData({ data, ...asd })
+    }
+    fetchData()
+  }, [])
+
+  
   return (
     <div className="w-full h-[100vh] bg-slate-100 flex flex-col py-[20px] gap-[40px] ">
       <HeaderComp />
@@ -47,9 +67,7 @@ const VentasEntradas: FC<propsVentasEntradas> = ({ componentState, setComponentS
             <div className="flex flex-col items-start justify-start gap-[10.5px] max-w-full">
               <div className="flex flex-row items-center justify-start gap-[11px] max-w-full">
 
-                <div onClick={() => {
-                  setComponentState(1)
-                }}
+                <div onClick={() => { window.history.back() }}
                   className="cursor-pointer rounded-md bg-[#6096B9] flex flex-row items-center justify-center py-[10.5px] pr-[11.30000000000291px] pl-[11.39999999999418px]">
                   <div className="flex flex-col items-start justify-start">
                     <div className="h-3.5 flex flex-row items-start justify-start">
@@ -155,7 +173,7 @@ const VentasEntradas: FC<propsVentasEntradas> = ({ componentState, setComponentS
                               </div>
                             </div>
                             <button onClick={() => {
-                              setComponentState(3), setTicket(item.name)
+                              router.push("EntradasGratis"), setSelectTicket(item.name)
                             }}
                               className="cursor-pointer [border:none] p-0 bg-[transparent] flex flex-col items-start justify-start">
                               <div className="rounded-md bg-[#6096B9] flex flex-row items-start justify-start pt-[13.5px] px-[21px] pb-[15px]">
@@ -177,7 +195,7 @@ const VentasEntradas: FC<propsVentasEntradas> = ({ componentState, setComponentS
               })}
             </div>
           </div>
-          <div className="self-stretch rounded-md flex flex-col items-start justify-start pt-5 pb-[10.5px] pr-2.5 pl-[10.5px] box-border gap-[1px] max-w-full text-black">
+          {/* <div className="self-stretch rounded-md flex flex-col items-start justify-start pt-5 pb-[10.5px] pr-2.5 pl-[10.5px] box-border gap-[1px] max-w-full text-black">
             <div className="flex flex-row items-start justify-start gap-1">
               <div className="flex flex-col items-start justify-start pt-[4.5px] px-0 pb-0">
                 <div className="w-[3.5px] h-[17.5px] relative rounded-[5.25px] bg-blue-800" />
@@ -193,7 +211,8 @@ const VentasEntradas: FC<propsVentasEntradas> = ({ componentState, setComponentS
                 icon="ModuloEvento/flesh.svg"
                 propMinWidth="28px"
                 link="6"
-                componentState={componentState} setComponentState={setComponentState}
+                componentState={componentState} 
+                setComponentState={setComponentState}
               />
               <CompVentas1
                 lolo="invitados generales"
@@ -203,10 +222,10 @@ const VentasEntradas: FC<propsVentasEntradas> = ({ componentState, setComponentS
                 componentState={componentState} setComponentState={setComponentState}
               />
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 

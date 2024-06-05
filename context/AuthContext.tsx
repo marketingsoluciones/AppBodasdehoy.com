@@ -39,8 +39,6 @@ const initialContext = {
   SetWihtProvider: undefined,
   EventTicket: undefined,
   setEventTicket: undefined,
-  setDataEventTicket: undefined,
-  dataEventTicket: undefined,
   selectTicket: undefined,
   setSelectTicket: undefined,
 }
@@ -75,8 +73,6 @@ type Context = {
   SetWihtProvider: any,
   EventTicket: any,
   setEventTicket: any,
-  setDataEventTicket: any,
-  dataEventTicket: any,
   selectTicket: any,
   setSelectTicket: any,
 }
@@ -110,7 +106,7 @@ const AuthProvider = ({ children }) => {
   const router = useRouter()
   const [updateActivity] = useActivity()
   const [EventTicket, setEventTicket] = useState({})
-  const [dataEventTicket, setDataEventTicket] = useState({})
+
   const [selectTicket, setSelectTicket] = useState(null)
 
   useEffect(() => {
@@ -156,11 +152,6 @@ const AuthProvider = ({ children }) => {
       fetchData()
     }
   }, [router])
-
-  /* useEffect(() => {
-    console.log(preregister)
-  }, [preregister]) */
-
 
   useEffect(() => {
     if (storage_id && link_id) {
@@ -244,7 +235,6 @@ const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (triggerAuthStateChanged && !isStartingRegisterOrLogin) {
-      /* console.log(800003000, "verificando") */
       const user = getAuth().currentUser
       const sessionCookie = Cookies.get(config?.cookie);
       verificator({ user, sessionCookie })
@@ -368,7 +358,7 @@ const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{
-      selectTicket, setSelectTicket, setDataEventTicket, dataEventTicket, EventTicket, setEventTicket, setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms, setIsStartingRegisterOrLogin, link_id, SetLink_id, storage_id, SetStorage_id, linkMedia, SetLinkMedia, preregister, SetPreregister, SetWihtProvider, WihtProvider,
+      selectTicket, setSelectTicket, EventTicket, setEventTicket, setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms, setIsStartingRegisterOrLogin, link_id, SetLink_id, storage_id, SetStorage_id, linkMedia, SetLinkMedia, preregister, SetPreregister, SetWihtProvider, WihtProvider,
     }}>
       {verificationDone && children}
     </AuthContext.Provider>

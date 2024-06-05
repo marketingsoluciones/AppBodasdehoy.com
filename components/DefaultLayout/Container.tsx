@@ -15,7 +15,7 @@ const Container = (props) => {
     setLoading(false)
   }, [])
 
-  const urls = ["/info-app", "/confirmar-asistencia", "/RelacionesPublicas", "/RelacionesPublicas/VentasEntradas", "/RelacionesPublicas/EntradasGratis"]
+  const urls = ["/info-app", "/confirmar-asistencia", "/RelacionesPublicas", "/RelacionesPublicas/VentasEntradas", "/RelacionesPublicas/EntradasGratis", "/RelacionesPublicas/ReservaDatos", "/RelacionesPublicas/ReservaCantidad","/RelacionesPublicas/RegistroEntradasUser"]
 
   return (
     <>
