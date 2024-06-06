@@ -1,4 +1,4 @@
-import { FC,useEffect, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import NumericCounter from "../../components/RRPP/Sub-Componentes/ContadorNumerico";
 import HeaderComp from "../../components/RRPP/Sub-Componentes/HeaderComp";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
@@ -8,9 +8,9 @@ import { useToast } from "../../hooks/useToast";
 
 interface propsEntradasGratis { }
 
-const EntradasGratis: FC<propsEntradasGratis> = ({ }) => {
+const EntradasGratis: FC<propsEntradasGratis> = () => {
   const { storage_id, selectTicket } = AuthContextProvider()
-  const [data, SetData] = useState({})
+  const [data, SetData] = useState({ data: [] })
 
   const datafilter = data?.data?.filter(element => (element.metadata.grupo === "ticket"))
   const findTicket = datafilter?.find(({ name }) => name === selectTicket)
@@ -41,6 +41,7 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ }) => {
   }, [])
 
   const handleCheckout = () => {
+    // console.log(`${window.location.origin}/RelacionesPublicas/RegistroEntradasUser/?stage=4&count=${count}&sId=${storage_id}`, `${window.location.href}/?stage=4&count=${count}&sId=${storage_id}`, window.location)
     fetchApiBodas({
       query: queries.createCheckoutSession,
       variables: {
@@ -48,7 +49,7 @@ const EntradasGratis: FC<propsEntradasGratis> = ({ }) => {
         /*  email: user?.email, */
         cancel_url: `${window.location.href}/?stage=3`,
         mode: "payment",
-        success_url: `${window.location.href}/?stage=4&count=${count}&sId=${storage_id}`
+        success_url: `${window.location.origin}/RelacionesPublicas/RegistroEntradasUser/?stage=4&count=${count}&sId=${storage_id}`
       },
       development: "bodasdehoy"
     }).then((result) => {
