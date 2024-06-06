@@ -1,5 +1,6 @@
 import { FC } from "react";
 import HeaderComp from "../../components/RRPP/Sub-Componentes/HeaderComp";
+import { useRouter } from "next/router";
 interface propsCancelarReserva {
   componentState: any;
   setComponentState: any;
@@ -7,6 +8,7 @@ interface propsCancelarReserva {
 }
 
 const CancelarReserva: FC<propsCancelarReserva> = ({ setComponentState }) => {
+  const router = useRouter()
   return (
     <div className="w-[100%] md:h-[100vh] h-[100%] max-w-full flex flex-col items-center justify-center pt-[20px] px-[12px] box-border tracking-[normal] text-left text-xl text-[#6096B9]">
       <HeaderComp />
@@ -30,7 +32,7 @@ const CancelarReserva: FC<propsCancelarReserva> = ({ setComponentState }) => {
               className="self-stretch md:h-[200px] max-w-full overflow-hidden shrink-0 object-cover"
               loading="lazy"
               alt=""
-              src="ModuloEvento/vip.jpg"
+              src="../ModuloEvento/vip.jpg"
             />
             <div className="self-stretch flex flex-col md:items-start items-center justify-start gap-[28px] max-w-full">
               <div className="self-stretch flex flex-col items-start justify-start gap-[17.5px] max-w-full">
@@ -38,7 +40,7 @@ const CancelarReserva: FC<propsCancelarReserva> = ({ setComponentState }) => {
                   <div className="self-stretch flex flex-col md:items-start items-center justify-start py-[10.5px] md:pr-[534.2999999999993px] pl-[10.5px] mq450:pr-5 mq450:box-border">
                     <div className="flex flex-row items-center justify-start gap-[10.229999542236328px]">
                       <div className="relative leading-[13px] inline-block min-w-[11px]">
-                        <img src="ModuloEvento/calcal.svg" alt="" />
+                        <img src="../ModuloEvento/calcal.svg" alt="" />
                       </div>
                       <div className="relative text-sm leading-[21px] font-light ">
                         29 Sab. Junio 2024
@@ -54,7 +56,7 @@ const CancelarReserva: FC<propsCancelarReserva> = ({ setComponentState }) => {
                     </div>
                     <div className="flex flex-row items-center justify-start gap-[10.229999542236328px]">
                       <div className="relative leading-[13px] inline-block min-w-[11px]">
-                        <img src="ModuloEvento/humanci.svg" alt="" />
+                        <img src="../ModuloEvento/humanci.svg" alt="" />
 
                       </div>
                       <div className="relative text-sm leading-[21px] font-light font-www-fourvenues-com-es-christian-lanza1-success-hlruskh2900003j8e5u90hawff1v50hb-1358x573-default-inter-semi-bold-175 inline-block min-w-[9px]">
@@ -129,7 +131,7 @@ const CancelarReserva: FC<propsCancelarReserva> = ({ setComponentState }) => {
                     <div className="flex flex-row items-start justify-start gap-[12.8px]">
                       <div className="w-2.5 flex flex-col items-start justify-start pt-1 px-0 pb-0 box-border">
                         <div className="self-stretch h-[13px] relative leading-[12.25px] flex items-center">
-                          <img src="ModuloEvento/telefono.svg" alt="" />
+                          <img src="../ModuloEvento/telefono.svg" alt="" />
                         </div>
                       </div>
                       <div className="relative text-sm leading-[21px] font-light  inline-block min-w-[108px] whitespace-nowrap">
@@ -139,7 +141,7 @@ const CancelarReserva: FC<propsCancelarReserva> = ({ setComponentState }) => {
                     <div className="flex flex-row items-start justify-start gap-[9.799999999999272px] text-smi-1 text-text-disabled">
                       <div className="flex flex-col items-start justify-start pt-1 px-0 pb-0">
                         <div className="relative leading-[13px] inline-block min-w-[13px]">
-                          <img src="ModuloEvento/mensajeria.svg" alt="" />
+                          <img src="../ModuloEvento/mensajeria.svg" alt="" />
                         </div>
                       </div>
                       <div className="relative text-sm leading-[21px] font-light whitespace-nowrap">
@@ -155,7 +157,7 @@ const CancelarReserva: FC<propsCancelarReserva> = ({ setComponentState }) => {
 
 
         <button onClick={() => {
-          setComponentState(2)
+          router.push("VentasEntradas")
         }}
           className="cursor-pointer [border:none] p-0 bg-[transparent] md:w-[161.1px] w-auto flex flex-col items-start justify-start">
           <div className="self-stretch flex flex-row items-center justify-center">

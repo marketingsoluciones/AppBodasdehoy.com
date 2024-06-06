@@ -15,7 +15,7 @@ const Container = (props) => {
     setLoading(false)
   }, [])
 
-  const urls = ["/info-app", "/confirmar-asistencia", "/RelacionesPublicas", "/RelacionesPublicas/VentasEntradas", "/RelacionesPublicas/EntradasGratis", "/RelacionesPublicas/ReservaDatos", "/RelacionesPublicas/ReservaCantidad","/RelacionesPublicas/RegistroEntradasUser","/RelacionesPublicas/RecuperarCompra",]
+  const urls = ["/info-app", "/confirmar-asistencia", "/RelacionesPublicas", "/RelacionesPublicas/VentasEntradas", "/RelacionesPublicas/EntradasGratis", "/RelacionesPublicas/ReservaDatos", "/RelacionesPublicas/ReservaCantidad", "/RelacionesPublicas/RegistroEntradasUser", "/RelacionesPublicas/RecuperarCompra", "/RelacionesPublicas/ReciboEntradas", "/RelacionesPublicas/CancelarReserva", "/RelacionesPublicas/ComprasComp", "/RelacionesPublicas/PrincipalDE"]
 
   return (
     <>
@@ -32,7 +32,7 @@ const Container = (props) => {
       </>
       }
 
-      <div className={`*max-w-[70%] w-[100%]  overflow-auto ${urls.includes(router?.pathname) ? "" : forCms ? "h-[100vh]" : "h-[calc(100vh-144px)]"}`}>
+      <div className={`w-[100%]  overflow-auto ${urls.includes(router?.pathname) ? "" : forCms ? "h-[100vh]" : "h-[calc(100vh-144px)]"}`}>
         <main>
           {children}
         </main>

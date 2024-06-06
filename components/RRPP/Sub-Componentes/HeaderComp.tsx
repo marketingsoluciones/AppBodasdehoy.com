@@ -11,10 +11,7 @@ const HeaderComp: FC<propsHeaderComp> = ({ logo = "../ModuloEvento/logo.png", Pa
   const [isNavOpen, setIsNavOpen] = useState(false);
   return (
     <div className="self-stretch flex flex-row items-center justify-between py-4 px-4 overflow-hidden text-white font-Clicker z-50 ">
-      {/* <a onClick={() => { window.history.back() }} > */}
-      <img className="cursor-pointer flex w-24 h-auto " src={logo} alt="logo" />
-      {/* </a> */}
-
+      <img className="w-24 h-auto " src={logo} alt="logo" />
       <nav>
         {/* Menu Hamburguesa */}
         <section className="flex-col lg:hidden gap-2 ">
@@ -32,18 +29,27 @@ const HeaderComp: FC<propsHeaderComp> = ({ logo = "../ModuloEvento/logo.png", Pa
               <ul className="flex flex-col items-center justify-between min-h-[250px]">
                 <li className="border-b border-gray-400 my-4 uppercase ">
                   <a onClick={() => {
-                    router.push("/RelacionesPublicas")
-                  }} className="cursor-pointer hover:bg-[#6096B9] [border:none] pt-[6.7px] px-[7px] pb-[6.8px]  rounded-[5.25px] justify-center text-sm text-gray-600 hover:text-white text-left min-w-[53px]">Eventos</a>
+                    if (!PageIndex) { router.push("/RelacionesPublicas") }
+                    if (PageIndex) { router.push("/RelacionesPublicas") }
+                  }} className={`cursor-pointer ${PageIndex ? "" : "hover:bg-[#6096B9]  text-gray-600 "} [border:none] pt-[6.7px] pb-[6.8px] px-2 rounded-[5.25px]  text-sm leading-[18px] hover:text-white text-left min-w-[53px]`} >
+                    {PageIndex ? "Inicio" : "Eventos"}
+                  </a>
                 </li>
                 <li className="border-b border-gray-400 my-4 uppercase">
                   <a onClick={() => {
-                    router.push("ComprasComp")
-                  }} className="cursor-pointer hover:bg-[#6096B9] [border:none] pt-[6.7px] px-[7px] pb-[6.8px]  rounded-[5.25px] justify-center text-sm text-gray-600 hover:text-white text-left min-w-[53px]">Compras</a>
+                    if (!PageIndex) { router.push("ComprasComp") }
+                    if (PageIndex) { router.push("RelacionesPublicas/PrincipalDE") }
+                  }} className={`cursor-pointer ${PageIndex ? "" : "hover:bg-[#6096B9]  text-gray-600 "} [border:none] pt-[6.7px] pb-[6.8px] px-2 rounded-[5.25px]  text-sm leading-[18px] hover:text-white text-left min-w-[53px]`}>
+                    {PageIndex ? "Eventos" : "Compras"}
+                  </a>
                 </li>
                 <li className="border-b border-gray-400 my-4 uppercase">
                   <a onClick={() => {
-                    router.push("#")
-                  }} className="cursor-pointer hover:bg-[#6096B9] [border:none] pt-[6.7px] px-[7px] pb-[6.8px]  rounded-[5.25px] justify-center text-sm text-gray-600 hover:text-white text-left min-w-[53px]">Cuentas</a>
+                    if (!PageIndex) { router.push("#") }
+                    if (PageIndex) { router.push("RelacionesPublicas") }
+                  }} className={`cursor-pointer ${PageIndex ? "" : "hover:bg-[#6096B9]  text-gray-600 "} [border:none] pt-[6.7px] pb-[6.8px] px-2 rounded-[5.25px]  text-sm leading-[18px] hover:text-white text-left min-w-[53px]`}>
+                    {PageIndex ? "Contactanos" : "Cuenta"}
+                  </a>
                 </li>
               </ul>
             </div>

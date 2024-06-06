@@ -1,13 +1,10 @@
-import { FC, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import LosIracundosWeb from "../../components/RRPP/LosIracundosWeb";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
-import { useRouter } from "next/router";
-import { AuthContextProvider } from "../../context";
 
 
 const Slug = () => {
     const [data, setData] = useState({})
-
     //fetch para obtener la data de todos los productos de stripe
     useEffect(() => {
         const fetchData = async () => {
@@ -30,7 +27,7 @@ const Slug = () => {
     return (
         <div className="w-[100%] h-[100%] items-center justify-center">
             <div id="rootElement" />
-            <LosIracundosWeb  data={data} />
+            <LosIracundosWeb data={data} />
         </div>
     );
 };

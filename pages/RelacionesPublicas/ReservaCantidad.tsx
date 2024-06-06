@@ -2,13 +2,10 @@ import { FC, useState } from "react";
 import NumericCounter from "../../components/RRPP/Sub-Componentes/ContadorNumerico";
 import HeaderComp from "../../components/RRPP/Sub-Componentes/HeaderComp";
 import { useRouter } from "next/router";
-interface propsReservaCantidad {
-  componentState: any;
-  setComponentState: any;
 
-}
+interface propsReservaCantidad { }
 
-const ReservaCantidad: FC<propsReservaCantidad> = ({ componentState, setComponentState }) => {
+const ReservaCantidad: FC<propsReservaCantidad> = ({ }) => {
   const [count, setCount] = useState<number>(1)
   const router = useRouter()
   return (

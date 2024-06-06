@@ -15,7 +15,7 @@ import { useRouter } from "next/router";
 import { useToast } from "../hooks/useToast";
 
 const Home: NextPage = () => {
-  const { user, actionModals, verificationDone, config, setUser } = AuthContextProvider()
+  const { user, verificationDone, config, setUser } = AuthContextProvider()
   const { eventsGroup, eventsGroupDone } = EventsGroupContextProvider()
   const { setEvent } = EventContextProvider()
   const { setLoading } = LoadingContextProvider()
@@ -30,12 +30,10 @@ const Home: NextPage = () => {
   useEffect(() => {
     if (!isMounted) {
       setIsMounted(true)
-      //setLoading(false)
     }
     return () => {
       if (isMounted) {
         setIsMounted(false)
-        /*      setLoading(true) */
       }
     }
   }, [isMounted])

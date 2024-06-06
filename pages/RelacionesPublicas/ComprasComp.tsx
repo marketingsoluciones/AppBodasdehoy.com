@@ -2,16 +2,14 @@ import { FC } from "react";
 import Checkbox from "../../components/RRPP/Sub-Componentes/Checkbox1";
 import Card1 from "../../components/RRPP/Sub-Componentes/Card";
 import HeaderComp from "../../components/RRPP/Sub-Componentes/HeaderComp";
+import { useRouter } from "next/router";
 
-interface propsComprasComp {
-  componentState: any;
-  setComponentState: any;
+interface propsComprasComp { }
 
-}
-
-const ComprasComp: FC<propsComprasComp> = () => {
+const ComprasComp: FC<propsComprasComp> = ({ }) => {
+  const router = useRouter()
   return (
-    <div className="w-[100%] h-[100%] bg-slate-100 pt[20px] [filter:blur(0px)] flex flex-col md:items-start items-center justify-start pt-[20px] gap-[21px] tracking-[normal] leading-[normal] mq450:max-w-full mq725:max-w-full mq975:max-w-full mq1000:max-w-full">
+    <div className="w-[100%] h-[100vh] bg-slate-100 pt[20px] [filter:blur(0px)] flex flex-col md:items-start items-center justify-start pt-[20px] gap-[21px] tracking-[normal] leading-[normal] mq450:max-w-full mq725:max-w-full mq975:max-w-full mq1000:max-w-full">
       <HeaderComp />
       <section className="self-stretch flex flex-col items-start justify-start gap-[10.5px] text-center px-3 text-gray-600 font-medium">
         <div className="self-stretch flex md:flex-row md:items-start items-center justify-between">
@@ -55,7 +53,7 @@ const ComprasComp: FC<propsComprasComp> = () => {
               </div>
               <div className="self-stretch flex flex-row items-start justify-center py-0 pr-5 pl-[22px]">
                 <button onClick={() => {
-                  setComponentState(10)
+                  router.push("RecuperarCompra")
                 }}
                   className="cursor-pointer [border:none] py-0 px-2.5 bg-[#6096B9] hover:bg-[#3f85b4] rounded-md flex flex-row md:items-end items-center md:justify-start justify-center gap-[10.9px]">
                   <div className="flex md:flex-col items-start justify-end pt-0 px-0 md:pb-[10.5px]">

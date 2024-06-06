@@ -11,7 +11,7 @@ interface propsVentasEntradas { }
 const VentasEntradas: FC<propsVentasEntradas> = ({ }) => {
 
   const { setSelectTicket } = AuthContextProvider()
-  const [data, SetData] = useState({})
+  const [data, SetData] = useState({ data: [] })
   const router = useRouter()
   const datafilter = data?.data?.filter(element => (element.metadata.grupo === "ticket"))
 
@@ -33,7 +33,7 @@ const VentasEntradas: FC<propsVentasEntradas> = ({ }) => {
     fetchData()
   }, [])
 
-  
+
   return (
     <div className="w-full h-[100vh] bg-slate-100 flex flex-col py-[20px] gap-[40px] ">
       <HeaderComp />

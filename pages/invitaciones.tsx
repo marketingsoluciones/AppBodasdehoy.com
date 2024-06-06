@@ -1,5 +1,5 @@
 import { useEffect, useState, } from "react";
-import Breadcumbs from "../components/DefaultLayout/Breadcumb";
+import Breadcumbs from "../components/DefaultLayout/BreadCumbs";
 import { CompartirIcon, Correo, DiseñoIcon, EmailIcon, PlusIcon, SmsIcon, SubirImagenIcon2, WhatsappIcon, } from "../components/icons";
 import BlockTitle from "../components/Utils/BlockTitle";
 import useHover from "../hooks/useHover";
