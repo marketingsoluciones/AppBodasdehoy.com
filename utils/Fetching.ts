@@ -101,8 +101,20 @@ export const fetchApiEventos = async ({ query, variables, token }: argsFetchApi)
 };
 
 export const queries = {
-
-
+  setCheckoutItems: `mutation ( $unique:ID, $args:[inputDetailsItemsCheckout] )
+  {
+    setCheckoutItems(unique:$unique, args:$args)
+  }`,
+  getCheckoutItems: `query ( $unique:ID )
+  {
+    getCheckoutItems(unique:$unique){
+      currency
+      amount
+      name
+      price
+      quantity
+    }
+  }`,
   getEventTicket: `query ( $args:inputEventTicket, $sort:sortCriteriaEventTicket, $skip:Int, $limit:Int )
   {
     getEventTicket(args:$args, sort:$sort, skip:$skip, limit:$limit ){
@@ -115,7 +127,6 @@ export const queries = {
       }
     }
   }`,
-
 
   createCheckoutSession: `mutation ($items:[inputItemsCheckout], $email:String, $cancel_url:String, $mode:String, $success_url:String){
     createCheckoutSession(items:$items, email:$email, cancel_url:$cancel_url, mode:$mode, success_url:$success_url)
