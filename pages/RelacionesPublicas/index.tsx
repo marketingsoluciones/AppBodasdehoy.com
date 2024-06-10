@@ -8,7 +8,7 @@ const Slug = () => {
     //fetch para obtener la data de todos los productos de stripe
     useEffect(() => {
         const fetchData = async () => {
-            const data = JSON.parse(await fetchApiBodas({
+            const data = JSON?.parse(await fetchApiBodas({
                 query: queries.getAllProducts,
                 variables: {},
                 development: "bodasdehoy"
