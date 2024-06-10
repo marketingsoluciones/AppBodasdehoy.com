@@ -5,14 +5,20 @@ import { useRouter } from 'next/router';
 import * as yup from "yup";
 import { fetchApiBodas, queries } from '../../../utils/Fetching';
 
-export const DatosComprador: FC = () => {
+interface propsDatosComprador {
+  valirButton: any,
+  setValirButton: any,
+}
+
+export const DatosComprador: FC<propsDatosComprador> = ({ valirButton, setValirButton }) => {
   const router = useRouter()
   const quantity = parseInt(`${router?.query?.count}`, 10)
   const arr = Array.from({ length: quantity }, (_, index) => index);
-  const [valirButton, setValirButton] = useState<boolean>(true)
+
 
   let initialValues = {}
   let yupSchema = {}
+
   for (let i = 0; i < quantity; i++) {
     initialValues = {
       ...initialValues,
@@ -27,8 +33,6 @@ export const DatosComprador: FC = () => {
   }
 
   const validationSchema = yup.object().shape(yupSchema);
-
-  console.log("validationSchema", validationSchema)
 
   const handleSubmit = (values) => {
     const unique = router?.query?.sId?.slice(-24)

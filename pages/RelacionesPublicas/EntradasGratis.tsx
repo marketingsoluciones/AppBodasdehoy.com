@@ -12,18 +12,15 @@ interface propsEntradasGratis { }
 const EntradasGratis: FC<propsEntradasGratis> = () => {
   const { storage_id, selectTicket, config } = AuthContextProvider()
   const [data, SetData] = useState({ data: [] })
-
   const datafilter = data?.data?.filter(element => (element.metadata.grupo === "ticket"))
   const findTicket = datafilter?.find(({ name }) => name === selectTicket)
   const [count, setCount] = useState(1)
-
   const price = findTicket?.prices[0]?.unit_amount / 100
   const totalCompra = (count * price) + 8.25
   const priceId = findTicket?.prices[0]?.id
   const router = useRouter()
   const toast = useToast()
 
-  console.log("=>>>>", findTicket)
 
   useEffect(() => {
     const fetchData = async () => {
