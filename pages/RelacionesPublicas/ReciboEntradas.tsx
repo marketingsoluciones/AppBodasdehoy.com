@@ -42,17 +42,8 @@ const ReciboEntradas: FC<propsReciboEntradas> = ({ }) => {
             )
           })}
         </div>
-        <div className="self-stretch flex flex-row flex-wrap items-center justify-start gap-[10.5px] max-w-full">
-          <div className="flex flex-col items-start justify-start max-w-full text-xs">
-            <div className="self-stretch flex flex-col items-start justify-start">
-              <div className="w-full relative leading-[21px] flex items-center text-gray-400 box-border pr-5">
-                <p className="max-w-[350px]">
-                  Siempre puedes descargar los PDFs en My tickets o en tu
-                  bandeja de entrada.
-                </p>
-              </div>
-            </div>
-          </div>
+        <div className="self-stretch flex flex-row flex-wrap items-center justify-end pr-[11px]  max-w-full">
+
           <button onClick={() => {
             router.push("VentasEntradas")
           }}
@@ -70,6 +61,16 @@ const ReciboEntradas: FC<propsReciboEntradas> = ({ }) => {
           </button>
         </div>
       </div>
+      <div className="flex flex-col items-start justify-start max-w-full text-xs">
+            <div className="self-stretch flex flex-col items-start justify-start">
+              <div className="w-full relative leading-[21px] flex items-center text-gray-400 box-border pr-5">
+                <p className="max-w-[350px]">
+                  Siempre puedes descargar los PDFs en My tickets o en tu
+                  bandeja de entrada.
+                </p>
+              </div>
+            </div>
+          </div>
     </div>
   );
 };

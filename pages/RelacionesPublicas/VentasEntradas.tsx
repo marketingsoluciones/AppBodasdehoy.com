@@ -33,6 +33,7 @@ const VentasEntradas: FC<propsVentasEntradas> = ({ }) => {
     fetchData()
   }, [])
 
+  console.log(datafilter.length)
 
   return (
     <>
@@ -149,8 +150,11 @@ const VentasEntradas: FC<propsVentasEntradas> = ({ }) => {
                     Entradas
                   </b>
                 </div>
+
+
                 {
-                  datafilter === undefined ? <div className="flex  items-center justify-center w-full h-[307px]">
+                
+                datafilter.length <= 0 ? <div className="flex  items-center justify-center w-full h-[307px]">
                     < div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>
                   </div> :
 

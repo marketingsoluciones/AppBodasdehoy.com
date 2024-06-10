@@ -12,7 +12,7 @@ interface propsDatosComprador {
 }
 
 export const DatosComprador: FC<propsDatosComprador> = ({ valirButton, setValirButton }) => {
-  const {setUsuariosTickets } = AuthContextProvider()
+  const { setUsuariosTickets } = AuthContextProvider()
 
   const router = useRouter()
   const quantity = parseInt(`${router?.query?.count}`, 10)
@@ -31,7 +31,8 @@ export const DatosComprador: FC<propsDatosComprador> = ({ valirButton, setValirB
     }
     yupSchema = {
       ...yupSchema,
-      [`email_${i}`]: yup.string().required("Email es requerido")
+      [`email_${i}`]: yup.string().required("Email es requerido"),
+      [`name_${i}`]: yup.string().required("Nombre es requerido")
     }
   }
 
@@ -48,7 +49,7 @@ export const DatosComprador: FC<propsDatosComprador> = ({ valirButton, setValirB
       }
       sendValues.push(item)
     }
-   setUsuariosTickets( sendValues)
+    setUsuariosTickets(sendValues)
     fetchApiBodas({
       query: queries.setCheckoutItems,
       variables: {
