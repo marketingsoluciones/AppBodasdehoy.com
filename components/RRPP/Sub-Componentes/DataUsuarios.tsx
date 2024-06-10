@@ -48,7 +48,7 @@ const DataUsuarioR: FC<DataUsuarioRType> = ({nombre, correo, icon, propMinWidth,
               </div>
             </div>
           </div>
-          <button className="cursor-pointer [border:none] p-0 bg-[transparent] w-[130px] flex flex-col items-start justify-start">
+          <div className="cursor-default [border:none] p-0 bg-[transparent] w-[130px] flex flex-col items-start justify-start">
             <div
               className="self-stretch rounded-md bg-gray-200 flex flex-row items-center justify-start py-0 pr-[18px] pl-[19.299999999999272px] gap-[8.244684219360352px]"
               style={buttonStyle}
@@ -56,16 +56,16 @@ const DataUsuarioR: FC<DataUsuarioRType> = ({nombre, correo, icon, propMinWidth,
               <div
                 className="flex-1 relative text-sm leading-[36px] font-medium text-black text-center inline-block min-w-[69px] max-w-[109px]"
                 style={descargarStyle}
-              >{`Descargar `}</div>
-              <div className="h-3.5 flex flex-row items-start justify-start">
+              >{`Enviado `}</div>
+              {/* <div className="h-3.5 flex flex-row items-start justify-start">
                 <img
                   className="h-3.5 w-[15.8px] relative overflow-hidden shrink-0"
                   alt=""
                   src={icon}
                 />
-              </div>
+              </div> */}
             </div>
-          </button>
+          </div>
         </div>
       </div>
     );

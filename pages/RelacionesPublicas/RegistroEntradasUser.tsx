@@ -1,4 +1,4 @@
-import { FC, FunctionComponent, useEffect, useRef, useState } from "react";
+import { FC,  useEffect,useState } from "react";
 import { DatosComprador } from "../../components/RRPP/Sub-Componentes/DatosComprador";
 import { ResumenComponents } from "../../components/RRPP/Sub-Componentes/ResumenC";
 import { CabeceraR } from "../../components/RRPP/Sub-Componentes/CabeceraR";
@@ -18,12 +18,12 @@ interface propsRegistroEntradasUser {
 }
 
 const RegistroEntradasUser: FC<propsRegistroEntradasUser> = ({ componentState, setComponentState }) => {
-  const { storage_id, config } = AuthContextProvider()
+  const { storage_id, config, } = AuthContextProvider()
   const router = useRouter()
   const [data, setData] = useState()
   const [valirButton, setValirButton] = useState(true)
   const [spinner, setSpinner] = useState(false)
-  console.log("ValirButton ==>>>", valirButton)
+  
 
   useEffect(() => {
     if (storage_id === router?.query?.sId?.slice(0, 24)) {

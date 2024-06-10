@@ -2,10 +2,14 @@ import { FC } from "react";
 import DatosUsurariosR from "../../components/RRPP/Sub-Componentes/DataUsuarios";
 import HeaderComp from "../../components/RRPP/Sub-Componentes/HeaderComp";
 import { useRouter } from "next/router";
-interface propsReciboEntradas {}
+import { AuthContextProvider } from "../../context";
+import { id } from "date-fns/locale";
+interface propsReciboEntradas { }
 
-const ReciboEntradas: FC<propsReciboEntradas> = ({}) => {
+const ReciboEntradas: FC<propsReciboEntradas> = ({ }) => {
+  const { usuariosTickets } = AuthContextProvider()
   const router = useRouter()
+
   return (
     <div className="w-[100%] h-[100vh] flex flex-col bg-slate-100 items-center justify-start py-[20px] px-0 box-border gap-[56px] tracking-[normal] text-center text-xl mq450:gap-[28px_56px] mq450:max-w-full mq625:max-w-full mq675:max-w-full">
       <HeaderComp />
@@ -25,49 +29,27 @@ const ReciboEntradas: FC<propsReciboEntradas> = ({}) => {
           </div>
         </div>
       </div>
-      <div className="w-auto rounded-md bg-white flex flex-col items-center justify-center pt-3.5 px-3.5 pb-7 box-border gap-[14px] md:max-w-full text-left md:text-sm">
+      <div className="w-[550px] rounded-md bg-white flex flex-col items-center justify-center pt-3.5 px-3.5 pb-7 box-border gap-[14px] md:max-w-full text-left md:text-sm">
         <div className="md:w-[100%] w-auto md:overflow-x-auto flex flex-col items-start justify-start md:max-w-full">
-          <DatosUsurariosR
-            nombre="yoe stener"
-            correo="azulprofile@gmail.com"
-            icon="ModuloEvento/descarga.svg"
-          />
-          <DatosUsurariosR
-            nombre="juan carlos carrillo"
-            correo="carlos.carrillo@recargaexpress.com"
-            icon="ModuloEvento/descarga.svg"
-            propMinWidth="unset"
-            propBackgroundColor="#e4e4e7"
-            propColor="#18181b"
-          />
-          <DatosUsurariosR
-            nombre="christian lanza"
-            correo="christian.lanza95@gmail.com"
-            icon="ModuloEvento/descarga.svg"
-            propMinWidth="124px"
-            propBackgroundColor="#e4e4e7"
-            propColor="#18181b"
-          />
-          <DatosUsurariosR
-            nombre="jhuliana delgado"
-            correo="crisyelit@gmail.com"
-            icon="ModuloEvento/descarga.svg"
-            propMinWidth="unset"
-            propBackgroundColor="#e4e4e7"
-            propColor="#18181b"
-          />
+          {usuariosTickets.map((item, idx) => {
+            return (
+              <div className="w-full" key={idx}>
+                <DatosUsurariosR
+                  nombre={item.name}
+                  correo={item.email}
+                />
+              </div>
+            )
+          })}
         </div>
         <div className="self-stretch flex flex-row flex-wrap items-center justify-start gap-[10.5px] max-w-full">
           <div className="flex flex-col items-start justify-start max-w-full text-xs">
             <div className="self-stretch flex flex-col items-start justify-start">
-              <div className="w-auto relative leading-[21px] flex items-center text-gray-400 box-border pr-5 mq625:max-w-full">
-                <span className="w-full">
-                  <p className="m-0">
-                    Siempre puedes descargar los PDFs en My tickets o en tu
-                    bandeja de
-                  </p>
-                  <p className="m-0">entrada.</p>
-                </span>
+              <div className="w-full relative leading-[21px] flex items-center text-gray-400 box-border pr-5">
+                <p className="max-w-[350px]">
+                  Siempre puedes descargar los PDFs en My tickets o en tu
+                  bandeja de entrada.
+                </p>
               </div>
             </div>
           </div>

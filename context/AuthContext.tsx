@@ -41,6 +41,8 @@ const initialContext = {
   setEventTicket: undefined,
   selectTicket: undefined,
   setSelectTicket: undefined,
+  usuariosTickets: undefined,
+  setUsuariosTickets: undefined,
 }
 
 type Context = {
@@ -75,6 +77,8 @@ type Context = {
   setEventTicket: any,
   selectTicket: any,
   setSelectTicket: any,
+  usuariosTickets: any,
+  setUsuariosTickets: any,
 }
 export let varGlobalDomain = ""
 export let varGlobalDevelopment = ""
@@ -108,6 +112,7 @@ const AuthProvider = ({ children }) => {
   const [EventTicket, setEventTicket] = useState({})
 
   const [selectTicket, setSelectTicket] = useState(null)
+  const [usuariosTickets, setUsuariosTickets] = useState([])
 
   useEffect(() => {
     const storage_id = localStorage.getItem("_id")
@@ -358,7 +363,7 @@ const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{
-      selectTicket, setSelectTicket, EventTicket, setEventTicket, setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms, setIsStartingRegisterOrLogin, link_id, SetLink_id, storage_id, SetStorage_id, linkMedia, SetLinkMedia, preregister, SetPreregister, SetWihtProvider, WihtProvider,
+      usuariosTickets, setUsuariosTickets, selectTicket, setSelectTicket, EventTicket, setEventTicket, setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms, setIsStartingRegisterOrLogin, link_id, SetLink_id, storage_id, SetStorage_id, linkMedia, SetLinkMedia, preregister, SetPreregister, SetWihtProvider, WihtProvider,
     }}>
       {verificationDone && children}
     </AuthContext.Provider>

@@ -4,6 +4,7 @@ import InputField from "../../Forms/InputField";
 import { useRouter } from 'next/router';
 import * as yup from "yup";
 import { fetchApiBodas, queries } from '../../../utils/Fetching';
+import { AuthContextProvider } from '../../../context';
 
 interface propsDatosComprador {
   valirButton: any,
@@ -11,6 +12,8 @@ interface propsDatosComprador {
 }
 
 export const DatosComprador: FC<propsDatosComprador> = ({ valirButton, setValirButton }) => {
+  const {setUsuariosTickets } = AuthContextProvider()
+
   const router = useRouter()
   const quantity = parseInt(`${router?.query?.count}`, 10)
   const arr = Array.from({ length: quantity }, (_, index) => index);
@@ -45,7 +48,7 @@ export const DatosComprador: FC<propsDatosComprador> = ({ valirButton, setValirB
       }
       sendValues.push(item)
     }
-    console.log("sendValues", sendValues)
+   setUsuariosTickets( sendValues)
     fetchApiBodas({
       query: queries.setCheckoutItems,
       variables: {
