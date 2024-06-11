@@ -81,6 +81,7 @@ type Context = {
   setUsuariosTickets: any,
 }
 export let varGlobalDomain = ""
+export let varGlobalSubdomain = ""
 export let varGlobalDevelopment = ""
 
 const AuthContext = createContext<Context>(initialContext);
@@ -223,6 +224,7 @@ const AuthProvider = ({ children }) => {
       }
 
       varGlobalDomain = resp?.domain
+      varGlobalSubdomain = resp?.subdomain
       varGlobalDevelopment = resp?.development
       setConfig(resp)
       try {
