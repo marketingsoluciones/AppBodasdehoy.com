@@ -202,9 +202,12 @@ const AuthProvider = ({ children }) => {
       /* console.log("isProduction:", idx) */
       /*--------------------------------------------------------------------*/
       const devDomain = ["bodasdehoy", "eventosplanificador", "eventosorganizador", "vivetuboda"]
+      const devSubdomain = [undefined, "invitado", "ticket"]
       const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[2] /*<<<<<<<<<*/
+      const subdomainDevelop = idx === -1 && devSubdomain[2] /*<<<<<<<<<*/
       /*--------------------------------------------------------------------*/
       resp = developments.filter(elem => elem.name === domainDevelop)[0]
+      resp.subdomain = ["ticket", "testticket", "invitado", "testinvitado", "dev"].includes(c[0]) ? c[0] : subdomainDevelop
       if (idx === -1 || window.origin.includes("://test")) {
         const directory = window.origin.includes("://test") ? process.env.NEXT_PUBLIC_DIRECTORY.replace("//", "//test.") : process.env.NEXT_PUBLIC_DIRECTORY
         /* console.log(window.origin, window.location.hostname, directory) */
