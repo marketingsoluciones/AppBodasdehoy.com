@@ -54,22 +54,23 @@ export const Responsable = ({ itinerario, handleChange, title, task, ...props })
     const [FieldArry, setFieldArry] = useState([])
 
     useEffect(() => {
+        if (field.value.length >1) {
+            setFieldArry(field?.value?.slice(0, 2))
+
+        }
+        if (field.value.length <= 1){
+            setFieldArry(field?.value)
+        }
+    }, [selectIcon, field?.value])
+
+    useEffect(() => {
         if (selectIcon) {
             helpers.setValue(selectIcon.map((item) => item.title))
             handleChange("responsable", selectIcon.map((item) => item.title))
         }
     }, [selectIcon])
 
-    useEffect(() => {
-        if (field.value.length > 1) {
-            setFieldArry(field.value.slice(0, 2))
-
-        } else {
-            setFieldArry(field.value)
-        }
-    }, [field.value])
-
-    const longitud = field.value.length
+    const longitud = field?.value.length
 
     return (
         <div
@@ -81,21 +82,24 @@ export const Responsable = ({ itinerario, handleChange, title, task, ...props })
                 <div
                     style={{ width: field.value.length >= 3 ? 47 * FieldArry?.length : FieldArry.length == 1 ? 63 * FieldArry?.length : 35 * FieldArry?.length }}
                     className=" cursor-pointer relative -mr-5 my-5 md:my-0">
-                    {FieldArry.map((item, idx) => {
-                        return (
-                            < div
-                                key={idx}
-                                style={{ left: 15 * idx }}
-                                className=" cursor-pointer absolute border border-gray-400  rounded-full shadow-lg -top-5  "
-                                onClick={() => {
-                                    setOpenResponsableList(!openResponsableList)
-                                }} {...props}>
-                                <img src={ResponsablesArry.find((elem) => elem?.title === item)?.icon} className="h-10 " />
-                            </div>
-                        )
-                    })}
                     {
-                        field.value.length > 2 ? (
+
+                        FieldArry?.map((item, idx) => {
+                            return (
+                                < div
+                                    key={idx}
+                                    style={{ left: 15 * idx }}
+                                    className=" cursor-pointer absolute border border-gray-400  rounded-full shadow-lg -top-5  "
+                                    onClick={() => {
+                                        setOpenResponsableList(!openResponsableList)
+                                    }} {...props}>
+                                    <img src={ResponsablesArry.find((elem) => elem?.title === item)?.icon} className="h-10 " />
+                                </div>
+                            )
+                        })
+                    }
+                    {
+                        field?.value?.length > 2 ? (
                             < div
                                 style={{ left: 30 }}
                                 className="w-11 h-11 cursor-pointer absolute border border-gray-400  rounded-full shadow-lg -top-5 bg-slate-100  flex items-center  justify-center"
@@ -115,8 +119,8 @@ export const Responsable = ({ itinerario, handleChange, title, task, ...props })
             }
             {
                 openResponsableList
-                    ? <Modal openIcon={openResponsableList} setOpenIcon={setOpenResponsableList} classe={"h-max md:w-[20%]"} >
-                        <ResponsableList itinerario={itinerario} DataArry={ResponsablesArry} openModal={openResponsableList} setOpenModal={setOpenResponsableList} setSelectIcon={setSelectIcon} task={task} selectIcon={selectIcon} value={field.value} />
+                    ? <Modal openIcon={openResponsableList} setOpenIcon={setOpenResponsableList} classe={"h-max w-[80%] md:w-[18%]"} >
+                        <ResponsableList  DataArry={ResponsablesArry} openModal={openResponsableList} setOpenModal={setOpenResponsableList} setSelectIcon={setSelectIcon}   value={field.value}  />
                     </Modal>
                     : null
             }

@@ -35,7 +35,7 @@ export const Tips = ({ ...props }) => {
              <InputFieldGlobal
                 onChange={(e) => { handleChange(e) }}
                 name={props.name}
-                className="rounded-xl w-full border-gray-400 md:text-sm lg:text-md outline-none focus:outline-none md:ml-2"
+                className="rounded-xl w-full border-gray-400 md:text-sm lg:text-md focus:ring-0 focus:border-gray-600 md:ml-2"
                 placeholder="Tips para esta actividad"
                 value={field.value}
                 {...field} 

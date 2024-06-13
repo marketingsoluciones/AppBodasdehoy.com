@@ -10,7 +10,7 @@ const PrincipalDE: FC = () => {
       <div className="flex md:flex-row flex-col items-center justify-center gap-4">
 
         <div onClick={() => {
-          router.push("RelacionesPublicas/VentasEntradas")
+          router.push("VentasEntradas")
         }}
           className="cursor-pointer md:w-[550px] w-auto rounded-md bg-white shadow-[0px_16px_25px_-5px_rgba(0,_0,_0,_0.1),_0px_10px_10px_-5px_rgba(0,_0,_0,_0.04)] overflow-hidden flex flex-row items-start justify-start gap-[10.5px] md:min-w-[364px] min-w-[300px] max-w-full mq416:min-w-full">
           <img

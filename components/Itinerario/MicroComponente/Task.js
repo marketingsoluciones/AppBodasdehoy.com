@@ -19,7 +19,7 @@ export const Task = ({ itinerario, task, title }) => {
     time: !task?.hora ? "" : task?.hora,
     duration: !task?.duracion ? "" : task?.duracion,
     description: !task?.descripcion ? "" : task?.descripcion,
-    responsable: !task?.responsable ? "" : task?.responsable,
+    responsable: !task?.responsable ? [] : task?.responsable,
     tips: !task?.tips ? "" : task?.tips,
   }
 
@@ -37,7 +37,6 @@ export const Task = ({ itinerario, task, title }) => {
         domain
       })
       setEvent((old) => {
-
         const f1 = old.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
         const f2 = old.itinerarios_array[f1].tasks.findIndex(elem => elem._id === task._id)
         old.itinerarios_array[f1].tasks[f2][`${variable}`] = valor
@@ -72,45 +71,6 @@ export const Task = ({ itinerario, task, title }) => {
     }
   }
 
-  /*  return (
-     <>
- 
-       <Formik enableReinitialize initialValues={initialValues} >
-         {({ values, }) => {
-           return (
-             <Form>
-               <div className=" md:grid lg:grid-cols-12 items-center justify-center md:px-10 lg:px-10 2xl:px-36 py-1" >
-                 <div className="md:flex lg:col-span-8 md:justify-end ">
-                   
-                   <SelectIcon name="icon" handleChange={handleBlurData} />
- 
-                   <div className=" py-4 md:py-0 flex md:flex-col justify-center items-center ">
- 
-                     <InputTime name="time" onBlur={() => { handleBlurData("hora", values.time) }} />
- 
-                     <Duration name="duration" onBlur={() => { handleBlurData("duracion", values.duration.toString()) }} />
- 
-                   </div>
- 
-                   <Description name="description" onBlur={() => { handleBlurData("descripcion", values.description) }} />
- 
-                   <Responsable name="responsable" handleChange={handleBlurData} itinerario={itinerario} task={task} title={title} />
- 
-                 </div>
- 
-                 <div className="flex lg:col-span-4 items-center ">
-                   <Tips name="tips" onBlur={() => { handleBlurData("tips", values.tips) }} />
-                   <div className="md:-ml-3" >
-                     <MdOutlineDeleteOutline className="w-7 h-auto cursor-pointer text-gray-500 hover:text-gray-700" onClick={() => deleteTask()} />
-                   </div>
-                 </div>
-               </div>
-             </Form>
-           )
-         }}
-       </Formik>
-     </>
-   ) */
   return (
     <>
 
@@ -130,7 +90,7 @@ export const Task = ({ itinerario, task, title }) => {
                   <Description name="description" onBlur={() => { handleBlurData("descripcion", values.description) }} />
                 </div>
                 <div className="col-span-1 py-3 md:py-0">
-                  <Responsable name="responsable" handleChange={handleBlurData} itinerario={itinerario} task={task} title={title} />
+                  <Responsable name="responsable" /* onBlur={()=>{handleBlurData("responsable", values.responsable)}} */  handleChange={handleBlurData} itinerario={itinerario} task={task} title={title} />
                 </div>
                 <div className="col-span-4 md:-mr-3 px-8 md:px-0 ">
                   <Tips name="tips" onBlur={() => { handleBlurData("tips", values.tips) }} />

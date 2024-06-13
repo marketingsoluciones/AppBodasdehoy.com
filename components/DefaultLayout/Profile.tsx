@@ -4,7 +4,7 @@ import ClickAwayListener from "react-click-away-listener";
 import { ArrowDown, ArrowDownBodasIcon, ArrowLeft, Catering, CompanyIcon, CorazonPaddinIcon, Eventos, FotografoMenu, LugaresBodas, MensajeIcon, MisEventosIcon, Posts, UserIcon, WeddingPage, WeddingPlanner } from "../icons";
 import router, { useRouter } from "next/router";
 import { getAuth, signOut } from "firebase/auth";
-import { AuthContextProvider, LoadingContextProvider } from "../../context";
+import { AuthContextProvider, EventContextProvider, LoadingContextProvider } from "../../context";
 import Cookies from "js-cookie";
 import { ListItemProfile, Option } from "./ListItemProfile"
 import { RiLoginBoxLine } from "react-icons/ri";
@@ -23,6 +23,7 @@ const Profile = ({ user, state, set, ...rest }) => {
   const { config, setUser, setActionModals, actionModals } = AuthContextProvider()
   const { setLoading } = LoadingContextProvider()
   const [dropdown, setDropwdon] = useState(false);
+  const { event } = EventContextProvider()
 
   const { route } = useRouter()
   const toast = useToast()
@@ -212,14 +213,14 @@ const Profile = ({ user, state, set, ...rest }) => {
       >
         <span className="flex items-center gap-2 relative">
         </span>
-   
 
-        <div className="bg-white items-center flex relative cursor-default ">
-          <div onClick={() => router.push("/itinerario")} className="bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200 cursor-pointer" >
+
+        <div className="items-center flex relative cursor-default ">
+          <div onClick={() => !event ? toast("error", `No tienes eventos creados`) : router.push("/itinerario")} className={`${!event ? "opacity-40" : ""} bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200 cursor-pointer`} >
             <GoChecklist className="text-primary w-6 h-6 scale-x-90" />
           </div>
         </div>
-        
+
 
         <Notifications />
         <ClickAwayListener onClickAway={() => dropdown && setDropwdon(false)}>

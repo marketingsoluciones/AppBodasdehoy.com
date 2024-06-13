@@ -25,6 +25,10 @@ export const Itinerario = ({ data }) => {
     const toast = useToast()
     const router = useRouter()
 
+    
+
+
+
     useEffect(() => {
         const itinerario = event?.itinerarios_array?.find(elem => elem.title === data?.title)
         setItinerario({ ...itinerario })
@@ -34,6 +38,8 @@ export const Itinerario = ({ data }) => {
     }, [data, event])
 
     useEffect(() => {
+        setTimeout(() => {
+            
         if (event && !event?.itinerarios_array?.find(elem => elem.title === data.title)) {
             try {
                 fetchApiEventos({
@@ -56,7 +62,9 @@ export const Itinerario = ({ data }) => {
                 console.log(error)
             };
         }
-    }, [event._id, data.title, event, router])
+    }, 500)
+
+    }, [data?.title, event])
 
     const deleteItinerario = async () => {
         try {
@@ -84,15 +92,15 @@ export const Itinerario = ({ data }) => {
     return (
         <>
             <SubHeader button={modal} setButton={setModal} date={date} title={data?.title} itinerario={itinerario} />
-            <div className="w-full h-full overflow-auto* flex flex-col items-center">
+            <div className="w-full h-full flex flex-col items-center">
                 <div className="w-[88%] divide-y-2 md:divide-y-0">
                     {tasks?.map((elem, idx) => {
-                        return (
-                            <div key={idx}>
-                                <Task task={elem} key={idx} date={date} itinerario={itinerario} title={data?.title} />
-                            </div>
-                        )
-                    })
+                            return (
+                                <div key={idx}>
+                                    <Task task={elem} key={idx} date={date} itinerario={itinerario} title={data?.title} />
+                                </div>
+                            )
+                        })
                     }
                 </div>
                 <AddEvent tasks={tasks} itinerario={itinerario} />
@@ -100,14 +108,14 @@ export const Itinerario = ({ data }) => {
             {
                 modal ? (
                     <>
-                        <Modal classe={"w-[40%] h-[20%]"}>
+                        <Modal classe={"w-[30%] h-[20%]"}>
                             <div className="flex flex-col items-center justify-center h-full space-y-2">
                                 <p className="text-azulCorporativo" >¿ Estas seguro de borrar todo el itinerario ?</p>
-                                <div className="space-x-2">
-                                    <button onClick={() => setModal(!modal)} className=" bg-botonBack h-10 w-20 rounded-lg text-white text-base font-base ">
+                                <div className="space-x-5">
+                                    <button onClick={() => setModal(!modal)} className=" bg-gray-400 h-10 w-24 rounded-lg text-white font-body hover:opacity-80">
                                         Descartar
                                     </button>
-                                    <button onClick={() => deleteItinerario()} className=" bg-rosa h-10 w-20 rounded-lg justify-center text-base text-white">
+                                    <button onClick={() => deleteItinerario()} className=" bg-primary h-10 w-24 rounded-lg text-white font-body  hover:opacity-80">
                                         Eliminar
                                     </button>
                                 </div>

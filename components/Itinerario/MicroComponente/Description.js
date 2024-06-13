@@ -17,7 +17,7 @@ export const Description = ({ ...props }) => {
             <input
                 onChange={(e) => { handleChange(e) }}
                 name={props.name}
-                className="rounded-xl w-full border-gray-400 md:text-sm lg:text-md outline-none focus:outline-none"
+                className="focus:ring-0 focus:border-gray-600 rounded-xl w-full border-gray-400 md:text-sm lg:text-md "
                 placeholder="Título de actividad "
                 value={field.value}
                 {...field} 

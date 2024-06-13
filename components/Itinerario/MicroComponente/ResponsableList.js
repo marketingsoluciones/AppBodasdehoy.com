@@ -1,6 +1,5 @@
 import ClickAwayListener from "react-click-away-listener"
-export const ResponsableList = ({  openModal, setOpenModal, DataArry, setSelectIcon, value }) => {
-
+export const ResponsableList = ({ openModal, setOpenModal, DataArry, setSelectIcon, value }) => {
     const handleClick = (item) => {
         setSelectIcon((old) => {
             const f1 = old.findIndex(elem => elem.title === item.title)
@@ -19,9 +18,9 @@ export const ResponsableList = ({  openModal, setOpenModal, DataArry, setSelectI
 
     return (
         <ClickAwayListener onClickAway={() => openModal && setOpenModal(false)}>
-            <div className="flex flex-col items-center space-y-2 w-max*" >
-                <span className="text-rosa text-[20px]">Responsable </span>
-                <div className="overflow-y-auto flex flex-col h-[calc(100vh-300px)] pr-3 space-y-2 ">
+            <div className="flex flex-col items-center space-y-4 w-max* py-8" >
+                <span className="text-primary text-[20px]">Responsable </span>
+                <div className="overflow-y-auto flex flex-col h-[max] pr-3 space-y-2 ">
 
                     {
                         DataArry.map((item, idx) => {
@@ -41,8 +40,8 @@ export const ResponsableList = ({  openModal, setOpenModal, DataArry, setSelectI
                     }
                 </div>
 
-                <button className="bg-rosa py-1 px-2 text-white rounded-lg text-" onClick={() => setOpenModal(!openModal)}>
-                    cerrar
+                <button className="bg-primary py-1 px-2 text-white rounded-lg text-" onClick={() => setOpenModal(!openModal)}>
+                    Guardar
                 </button>
             </div>
         </ClickAwayListener>
