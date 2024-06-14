@@ -90,7 +90,7 @@ export const Task = ({ itinerario, task, title }) => {
                   <Description name="description" onBlur={() => { handleBlurData("descripcion", values.description) }} />
                 </div>
                 <div className="col-span-1 py-3 md:py-0">
-                  <Responsable name="responsable" /* onBlur={()=>{handleBlurData("responsable", values.responsable)}} */  handleChange={handleBlurData} itinerario={itinerario} task={task} title={title} />
+                  <Responsable name="responsable"   handleChange={handleBlurData} itinerario={itinerario} task={task} title={title} />
                 </div>
                 <div className="col-span-4 md:-mr-3 px-8 md:px-0 ">
                   <Tips name="tips" onBlur={() => { handleBlurData("tips", values.tips) }} />

@@ -88,7 +88,7 @@ const IconArray = [
 ]
 
 export const SelectIcon = ({ handleChange, ...props }) => {
-    const [field, helpers] = useField({ name: props?.name });
+    const [field] = useField({ name: props?.name });
     const [selectIcon, setSelectIcon] = useState()
     const [openIcon, setOpenIcon] = useState(false)
 

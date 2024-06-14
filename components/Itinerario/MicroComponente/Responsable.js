@@ -53,21 +53,23 @@ export const Responsable = ({ itinerario, handleChange, title, task, ...props })
     const [openResponsableList, setOpenResponsableList] = useState(false)
     const [FieldArry, setFieldArry] = useState([])
 
+    console.log(selectIcon)
+
     useEffect(() => {
-        if (field.value.length >1) {
+        if (field.value.length > 1) {
             setFieldArry(field?.value?.slice(0, 2))
 
         }
-        if (field.value.length <= 1){
+        if (field.value.length <= 1) {
             setFieldArry(field?.value)
         }
     }, [selectIcon, field?.value])
 
     useEffect(() => {
-        if (selectIcon) {
-            helpers.setValue(selectIcon.map((item) => item.title))
-            handleChange("responsable", selectIcon.map((item) => item.title))
-        }
+
+        helpers.setValue(selectIcon.map((item) => item.title))
+        handleChange("responsable", selectIcon.map((item) => item.title))
+
     }, [selectIcon])
 
     const longitud = field?.value.length
@@ -120,7 +122,7 @@ export const Responsable = ({ itinerario, handleChange, title, task, ...props })
             {
                 openResponsableList
                     ? <Modal openIcon={openResponsableList} setOpenIcon={setOpenResponsableList} classe={"h-max w-[80%] md:w-[18%]"} >
-                        <ResponsableList  DataArry={ResponsablesArry} openModal={openResponsableList} setOpenModal={setOpenResponsableList} setSelectIcon={setSelectIcon}   value={field.value}  />
+                        <ResponsableList DataArry={ResponsablesArry} openModal={openResponsableList} setOpenModal={setOpenResponsableList} setSelectIcon={setSelectIcon} value={field.value} />
                     </Modal>
                     : null
             }

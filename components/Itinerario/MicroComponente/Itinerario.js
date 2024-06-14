@@ -23,11 +23,6 @@ export const Itinerario = ({ data }) => {
     const [tasks, setTasks] = useState()
     const [modal, setModal] = useState(false)
     const toast = useToast()
-    const router = useRouter()
-
-    
-
-
 
     useEffect(() => {
         const itinerario = event?.itinerarios_array?.find(elem => elem.title === data?.title)
@@ -37,9 +32,8 @@ export const Itinerario = ({ data }) => {
         }
     }, [data, event])
 
+
     useEffect(() => {
-        setTimeout(() => {
-            
         if (event && !event?.itinerarios_array?.find(elem => elem.title === data.title)) {
             try {
                 fetchApiEventos({
@@ -62,8 +56,6 @@ export const Itinerario = ({ data }) => {
                 console.log(error)
             };
         }
-    }, 500)
-
     }, [data?.title, event])
 
     const deleteItinerario = async () => {
@@ -95,12 +87,12 @@ export const Itinerario = ({ data }) => {
             <div className="w-full h-full flex flex-col items-center">
                 <div className="w-[88%] divide-y-2 md:divide-y-0">
                     {tasks?.map((elem, idx) => {
-                            return (
-                                <div key={idx}>
-                                    <Task task={elem} key={idx} date={date} itinerario={itinerario} title={data?.title} />
-                                </div>
-                            )
-                        })
+                        return (
+                            <div key={idx}>
+                                <Task task={elem} key={idx} date={date} itinerario={itinerario} title={data?.title} />
+                            </div>
+                        )
+                    })
                     }
                 </div>
                 <AddEvent tasks={tasks} itinerario={itinerario} />

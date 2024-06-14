@@ -171,13 +171,23 @@ export const queries = {
   mutation  ( $eventID:String, $itinerarioID:String ) {
     deleteItinerario ( eventID:$eventID  itinerarioID:$itinerarioID  )
   }`,
-  getItinerario: ` query($evento_id:String, $itinario_id: String){
-    getItinerario(evento_id:$evento_id, itinario_id:$itinario_id){
+  getItinerario: ` query($evento_id:String){
+    getItinerario(evento_id:$evento_id){
       total
       response{
         _id
         title
-        tasks
+        tasks{
+          _id
+          hora
+          icon
+          descripcion
+          responsable
+          duracion
+          tips
+          estatus
+          fecha_creacion
+        }
         estatus
         fecha_creacion
       }
@@ -596,6 +606,21 @@ export const queries = {
         fecha_creacion
         fecha_lectura
         mensaje
+      }
+         itinerarios_array{
+        _id
+        title
+        tasks{
+          _id
+          hora
+          icon
+          descripcion
+          responsable
+          duracion
+          tips
+          estatus
+        }
+        estatus
       }
       planSpaceSelect
       planSpace{

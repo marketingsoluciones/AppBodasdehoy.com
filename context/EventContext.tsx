@@ -76,23 +76,23 @@ const EventProvider = ({ children }) => {
   // Capturar eventos del cumulo y seleccionar uno
   useEffect(() => {
     if (eventsGroup && eventsGroup.length === 0) {
-      console.log(1012101)
+      //console.log(1012101)
       setEvent(null);
     }
     if (eventsGroup?.length > 0) {
-      console.log("seteando evento", 10001)
+      //console.log("seteando evento", 10001)
       if (!valir) {
-        console.log("seteando evento", 10002)
+        //console.log("seteando evento", 10002)
         if (eventsGroup?.length > 1) {
-          console.log("seteando evento", 10003)
+          //console.log("seteando evento", 10003)
           const eventsPendientes = eventsGroup.filter(item => item.estatus === "pendiente")
           const eventsGroupSort = eventsPendientes?.sort((a: any, b: any) => { return b.fecha_creacion - a.fecha_creacion })
           setEvent(eventsGroupSort?.find(elem => elem._id === user?.eventSelected));
         } else {
-          console.log("seteando evento", 10004, eventsGroup)
+          //console.log("seteando evento", 10004, eventsGroup)
           setEvent(eventsGroup[0])
         }
-        console.log("seteando evento", 10005, eventsGroup)
+        //console.log("seteando evento", 10005, eventsGroup)
         eventsGroup[0] && setValir(true)
       }
     }
@@ -107,7 +107,7 @@ const EventProvider = ({ children }) => {
 
   useEffect(() => {
     //console.log("seteado PlanSpaceActive________________")
-    console.log("seteado PlanSpaceActive", planSpaceActive)
+    //console.log("seteado PlanSpaceActive", planSpaceActive)
     //console.log("---------------------------------------")
   }, [planSpaceActive])
 
@@ -117,7 +117,7 @@ const EventProvider = ({ children }) => {
       console.log("seteado event", event)
       const f1 = eventsGroup.findIndex(elem => elem?._id === event?._id)
       eventsGroup.splice(f1, 1, event)
-      console.log("SEUDO seteado eventsGroup", { ...eventsGroup })
+      //console.log("SEUDO seteado eventsGroup", { ...eventsGroup })
       setEventsGroup({ type: "INITIAL_STATE", payload: [...eventsGroup] })
       setAllFilterGuests({ ...getAllFilterGuest(event), update: new Date().getTime() })
       //console.log("---------------------------------------")
@@ -126,13 +126,13 @@ const EventProvider = ({ children }) => {
 
   useEffect(() => {
     //console.log("seteado event.planSpaceSelect__________")
-    console.log("seteado event.planSpaceSelect", event?.planSpaceSelect)
+    //console.log("seteado event.planSpaceSelect", event?.planSpaceSelect)
     //console.log("---------------------------------------")
   }, [event?.planSpaceSelect])
 
   useEffect(() => {
     //console.log("seteado eventsGroup____________________")
-    console.log("seteado eventsGroup", eventsGroup)
+    //console.log("seteado eventsGroup", eventsGroup)
     //console.log("---------------------------------------")
   }, [eventsGroup])
 
