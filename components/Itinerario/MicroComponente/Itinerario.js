@@ -10,6 +10,7 @@ import { EventContextProvider } from "../../../context/EventContext";
 import { Modal } from "../../Utils/Modal";
 import { useToast } from "../../../hooks/useToast";
 import { useRouter } from "next/router";
+import { useAllowed } from "../../../hooks/useAllowed";
 
 
 
@@ -23,6 +24,8 @@ export const Itinerario = ({ data }) => {
     const [tasks, setTasks] = useState()
     const [modal, setModal] = useState(false)
     const toast = useToast()
+    const [isAllowed, ht] = useAllowed()
+    const disable = !isAllowed("itinerario")
 
     useEffect(() => {
         const itinerario = event?.itinerarios_array?.find(elem => elem.title === data?.title)
@@ -83,19 +86,19 @@ export const Itinerario = ({ data }) => {
 
     return (
         <>
-            <SubHeader button={modal} setButton={setModal} date={date} title={data?.title} itinerario={itinerario} />
+            <SubHeader button={modal} setButton={setModal} date={date} title={data?.title} itinerario={itinerario} disable={disable} ht={ht} />
             <div className="w-full h-full flex flex-col items-center">
                 <div className="w-[88%] divide-y-2 md:divide-y-0">
                     {tasks?.map((elem, idx) => {
                         return (
                             <div key={idx}>
-                                <Task task={elem} key={idx} date={date} itinerario={itinerario} title={data?.title} />
+                                <Task task={elem} key={idx} date={date} itinerario={itinerario} title={data?.title} disable={disable} ht={ht} />
                             </div>
                         )
                     })
                     }
                 </div>
-                <AddEvent tasks={tasks} itinerario={itinerario} />
+                <AddEvent tasks={tasks} itinerario={itinerario} disable={disable} />
             </div>
             {
                 modal ? (

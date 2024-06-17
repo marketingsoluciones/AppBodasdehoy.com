@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { SelectPermissions } from "./SelectPermissions";
 
-const DataModulos = ["resumen", "invitados", "mesas", "regalos", "presupuesto", "invitaciones",]
+const DataModulos = ["resumen", "invitados", "mesas", "regalos", "presupuesto", "invitaciones","itinerario"]
 
 export const PermissionList = ({ setPermissions, permissions, handleChange }) => {
     const [values, setValues] = useState(null)

@@ -18,12 +18,15 @@ import { Modal } from "../Utils/Modal";
 import { ObtenerFullAcceso } from "../InfoApp/ObtenerFullAcceso";
 import { useActivity } from "../../hooks/useActivity";
 import { GoChecklist } from "react-icons/go";
+import { useAllowed } from "../../hooks/useAllowed";
 
 const Profile = ({ user, state, set, ...rest }) => {
   const { config, setUser, setActionModals, actionModals } = AuthContextProvider()
   const { setLoading } = LoadingContextProvider()
   const [dropdown, setDropwdon] = useState(false);
   const { event } = EventContextProvider()
+  const [isAllowed, ht] = useAllowed()
+
 
   const { route } = useRouter()
   const toast = useToast()
@@ -216,7 +219,7 @@ const Profile = ({ user, state, set, ...rest }) => {
 
 
         <div className="items-center flex relative cursor-default ">
-          <div onClick={() => !event ? toast("error", `No tienes eventos creados`) : router.push("/itinerario")} className={`${!event ? "opacity-40" : ""} bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200 cursor-pointer`} >
+          <div onClick={() => !event ? toast("error", `No tienes eventos creados`) : /* !isAllowed("itinerario") ? ht() : */ router.push("/itinerario")} className={`${!event ? "opacity-40" : ""} bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200 cursor-pointer`} >
             <GoChecklist className="text-primary w-6 h-6 scale-x-90" />
           </div>
         </div>

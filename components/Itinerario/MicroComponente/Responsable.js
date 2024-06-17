@@ -47,13 +47,11 @@ const ResponsablesArry = [
     },
 ]
 
-export const Responsable = ({ itinerario, handleChange, title, task, ...props }) => {
+export const Responsable = ({ disable, itinerario, handleChange, title, task,ht, ...props }) => {
     const [field, meta, helpers] = useField({ name: props?.name });
     const [selectIcon, setSelectIcon] = useState([])
     const [openResponsableList, setOpenResponsableList] = useState(false)
     const [FieldArry, setFieldArry] = useState([])
-
-    console.log(selectIcon)
 
     useEffect(() => {
         if (field.value.length > 1) {
@@ -93,7 +91,9 @@ export const Responsable = ({ itinerario, handleChange, title, task, ...props })
                                     style={{ left: 15 * idx }}
                                     className=" cursor-pointer absolute border border-gray-400  rounded-full shadow-lg -top-5  "
                                     onClick={() => {
-                                        setOpenResponsableList(!openResponsableList)
+                                        disable ?
+                                        ht() :
+                                            setOpenResponsableList(!openResponsableList)
                                     }} {...props}>
                                     <img src={ResponsablesArry.find((elem) => elem?.title === item)?.icon} className="h-10 " />
                                 </div>
@@ -106,7 +106,9 @@ export const Responsable = ({ itinerario, handleChange, title, task, ...props })
                                 style={{ left: 30 }}
                                 className="w-11 h-11 cursor-pointer absolute border border-gray-400  rounded-full shadow-lg -top-5 bg-slate-100  flex items-center  justify-center"
                                 onClick={() => {
-                                    setOpenResponsableList(!openResponsableList)
+                                    disable ?
+                                    ht() :
+                                        setOpenResponsableList(!openResponsableList)
                                 }} {...props}>
                                 {"+" + longitud}
                             </div>
@@ -115,7 +117,7 @@ export const Responsable = ({ itinerario, handleChange, title, task, ...props })
                     }
                 </div>
                 :
-                <div onClick={() => setOpenResponsableList(!openResponsableList)} className="w-full h-full rounded-full flex justify-center cursor-pointer text-gray-600 hover:text-gray-800 ">
+                <div onClick={() => disable ? ht() : setOpenResponsableList(!openResponsableList)} className="w-full h-full rounded-full flex justify-center cursor-pointer text-gray-600 hover:text-gray-800 ">
                     <AddUser className="w-10 md:w-8 lg:w-10 h-10 md:h-8 lg:h-10" />
                 </div>
             }

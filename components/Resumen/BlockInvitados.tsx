@@ -74,10 +74,10 @@ const BlockInvitados: FC = () => {
               className="flex-col flex items-center justify-center w-full text-gray-500"
             >
               {item.icon}
-              <p className="font-display font-semibold text-gray-300 text-xl text-gray-700">
+              <p className="font-display font-semibold  text-xl text-gray-700">
                 {item.title}
               </p>
-              <p className="font-display font-ligth text-gray-300 text-xs text-gray-700">
+              <p className="font-display font-ligth  text-xs text-gray-700">
                 {item.subtitle}
               </p>
             </SwiperSlide>

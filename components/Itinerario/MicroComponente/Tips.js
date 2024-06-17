@@ -3,7 +3,7 @@ import { useField } from "formik";
 import { InputFieldGlobal } from "../../Forms/InputFieldGlobal";
 /* import { Box, Textarea } from "@chakra-ui/react"; */
 
-export const Tips = ({ ...props }) => {
+export const Tips = ({ disable, ...props }) => {
 
     const refInput = useRef(null)
     const [field, meta, helpers] = useField({ name: props.name });
@@ -32,13 +32,14 @@ export const Tips = ({ ...props }) => {
     }, [refInput])
     return (
         <div className='w-full md:my-2 lg:my-0'>
-             <InputFieldGlobal
+            <InputFieldGlobal
+                disabled={disable}
                 onChange={(e) => { handleChange(e) }}
                 name={props.name}
                 className="rounded-xl w-full border-gray-400 md:text-sm lg:text-md focus:ring-0 focus:border-gray-600 md:ml-2"
                 placeholder="Tips para esta actividad"
                 value={field.value}
-                {...field} 
+                {...field}
                 {...props}
             />
         </div>

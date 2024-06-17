@@ -2,7 +2,7 @@ import { AuthContextProvider } from "../../../context"
 import { EventContextProvider } from "../../../context/EventContext"
 import { fetchApiEventos, queries } from "../../../utils/Fetching"
 
-export const AddEvent = ({ itinerario, tasks }) => {
+export const AddEvent = ({ disable, itinerario, tasks }) => {
     const { domain } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
     const addTask = async () => {
@@ -43,7 +43,7 @@ export const AddEvent = ({ itinerario, tasks }) => {
     }
 
     return (
-        <div onClick={() => addTask()} className=" text-primary flex space-x-2 items-center justify-center my-3 cursor-pointer hover:text-pink-600">
+        <div onClick={() => disable ? null : addTask()} className=" text-primary flex space-x-2 items-center justify-center my-3 cursor-pointer hover:text-pink-600">
             <span>
                 +
             </span>

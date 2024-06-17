@@ -82,12 +82,12 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
             <div className={`w-[320px] md:w-[382px] h-[80%] md:h-[90%] bg-white shadow-lg fixed m-auto inset-0 z-50 rounded-xl`}>
                 <ClickAwayListener onClickAway={() => openModal && setOpenModal(false)} >
                     <div className="h-full py-5 flex flex-col">
-                        <div className="flex justify-between border-b pb-3 text-[20px] mx-4">
+                        <div className="flex justify-between border-b pb-1 text-[20px] mx-4">
                             <div className="cursor-default font-semibold text-primary capitalize"> Compartir evento</div>
                             <div className="cursor-pointer font-semibold text-gray-600 -translate-y-3" onClick={() => setOpenModal(!openModal)}>x</div>
                         </div>
-                        <div className="flex flex-col relative space-y-4 flex-1 overflow-auto px-2 md:px-8">
-                            <div className="space-y-4 flex flex-col flex-1">
+                        <div className="flex flex-col relative space-y-4 pt-3 flex-1 overflow-auto px-2 md:px-8">
+                            <div className=" flex flex-col flex-1">
                                 <FormAddUserToEvent setUsers={setUsers} users={users} setValir={setValir} optionsExist={event?.detalles_compartidos_array?.map(elem => elem.email)} />
                                 {users.length
                                     ? <PermissionList permissions={permissions} setPermissions={setPermissions} handleChange={handleChangePermision} />
