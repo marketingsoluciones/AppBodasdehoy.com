@@ -11,21 +11,27 @@ import { Modal } from "../../Utils/Modal";
 import { useToast } from "../../../hooks/useToast";
 import { useRouter } from "next/router";
 import { useAllowed } from "../../../hooks/useAllowed";
+import { DeleteConfirmation } from "./DeleteConfirmation";
+import { WarningMessage } from "./WarningMessage";
 
 
 
 export const Itinerario = ({ data }) => {
     const { domain } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
+    const [isAllowed, ht] = useAllowed()
+    const disable = !isAllowed("itinerario")
+    const toast = useToast()
     const newDate = new Date();
     const options = { year: "numeric", month: "long", day: "numeric" };
     const date = newDate.toLocaleDateString(navigator?.languages, options)
     const [itinerario, setItinerario] = useState()
     const [tasks, setTasks] = useState()
     const [modal, setModal] = useState(false)
-    const toast = useToast()
-    const [isAllowed, ht] = useAllowed()
-    const disable = !isAllowed("itinerario")
+    const [modalStatus, setModalStatus] = useState(false)
+    const [modalWorkFlow, setModalWorkFlow] = useState(false)
+
+
 
     useEffect(() => {
         const itinerario = event?.itinerarios_array?.find(elem => elem.title === data?.title)
@@ -92,7 +98,7 @@ export const Itinerario = ({ data }) => {
                     {tasks?.map((elem, idx) => {
                         return (
                             <div key={idx}>
-                                <Task task={elem} key={idx} date={date} itinerario={itinerario} title={data?.title} disable={disable} ht={ht} />
+                                <Task task={elem}  itinerario={itinerario} title={data?.title} disable={disable} ht={ht} setModalStatus={setModalStatus} modalStatus={modalStatus}  setModalWorkFlow={setModalWorkFlow} modalWorkFlow={modalWorkFlow} />
                             </div>
                         )
                     })
@@ -104,21 +110,28 @@ export const Itinerario = ({ data }) => {
                 modal ? (
                     <>
                         <Modal classe={"w-[30%] h-[20%]"}>
-                            <div className="flex flex-col items-center justify-center h-full space-y-2">
-                                <p className="text-azulCorporativo" >¿ Estas seguro de borrar todo el itinerario ?</p>
-                                <div className="space-x-5">
-                                    <button onClick={() => setModal(!modal)} className=" bg-gray-400 h-10 w-24 rounded-lg text-white font-body hover:opacity-80">
-                                        Descartar
-                                    </button>
-                                    <button onClick={() => deleteItinerario()} className=" bg-primary h-10 w-24 rounded-lg text-white font-body  hover:opacity-80">
-                                        Eliminar
-                                    </button>
-                                </div>
-                            </div>
+                            <DeleteConfirmation setModal={setModal} modal={modal} deleteItinerario={deleteItinerario} />
                         </Modal>
                     </>
-                ) :
-                    null
+                ) : null
+            }
+            {
+                modalStatus ? (
+                    <>
+                        <Modal classe={"w-[30%] h-[370px]"}>
+                            <WarningMessage setModal={setModalStatus} modal={modalStatus} title={"Visibilidad"} />
+                        </Modal>
+                    </>
+                ) : null
+            }
+            {
+                modalWorkFlow ? (
+                    <>
+                        <Modal classe={"w-[30%] h-[370px]"}>
+                            <WarningMessage setModal={setModalWorkFlow} modal={modalWorkFlow} title={"WorkFlow"}/>
+                        </Modal>
+                    </>
+                ) : null
             }
         </>
     )

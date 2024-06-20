@@ -68,21 +68,12 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
   }, [allFilterGuests]);
 
   const handleMoveGuest = (invitadoID, table) => {
-    console.log(1004, { invitadoID, table })
     try {
-      // if (active) {
-      //   moveGuest({ eventID: event._id, chair: NaN, invitadoID: invitadoID, tableID: table?._id, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo: "dragS" })
-      //   toast("success", "El invitado fue levantado de la mesa")
-      //   return
-      // }
       if (table?.guests?.length === table?.numberChair) {
         toast("error", "La mesa tiene todos los puestos ocupados")
       }
       for (let i = 0; i < table?.numberChair; i++) {
-        console.log("1005", i, table?.numberChair)
-        console.log("1006", table?.guests?.map(el => el.chair))
         if (!table?.guests?.map(el => el.chair).includes(i)) {
-          console.log("seguido")
           moveGuest({ eventID: event._id, chair: i, invitadoID: invitadoID, tableID: table?._id, setEvent, planSpaceActive, setPlanSpaceActive })
           toast("success", "El invitado fue sentado en la mesa")
           break
@@ -107,9 +98,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
       if (loading == true) {
         setEvent((viejo) => {
           const { invitados_array: arr } = viejo;
-
           const rowIndex = arr.findIndex((e) => e._id == rowID);
-
           const resultado = arr.map((invitado) => {
             if (invitado._id === rowID) {
               //Para escribir en base de datos
@@ -443,6 +432,58 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
           );
         },
       },
+      {
+        Header: "Acompañantes",
+        accessor: "acompañantes",
+        Cell: ({ value: initialValue, row, column: { id } }) => {
+          const [value, setValue] = useState(initialValue);
+          const [show, setShow] = useState(false);
+          const router = useRouter();
+
+          return (
+            <ClickAwayListener onClickAway={() => setShow(false)}>
+              <div className="relative w-full flex justify-center items-center">
+
+                <button
+                  className="focus:outline-none font-display text-sm capitalize"
+                  onClick={() => !isAllowed() ? null : setShow(!show)}
+                >
+                  {value ? value : 0}
+                </button>
+
+                <ul
+                  className={`${show ? "block opacity-100" : "hidden opacity-0"
+                    } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 -top-2 z-40 w-max`}
+                >
+                  {event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables?.map((elem, index) => {
+                    return (
+                      <li
+                        key={index}
+                        className="cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
+                        onClick={() => {
+                          setValue(elem.title);
+                          setShow(!show);
+                          const table = event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables.find(el => el.title === elem.title)
+                          handleMoveGuest(row.original._id, table)
+                        }}
+                      >
+                        {elem?.title}
+                      </li>
+                    );
+                  })}
+                  <li
+                    className="bg-gray-300 cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
+                    onClick={() => router.push("/mesas")}
+                  >
+                    Añadir Acompañante
+                  </li>
+                </ul>
+              </div>
+            </ClickAwayListener>
+          );
+        },
+      },
+
       {
         Header: () => {
           const [show, setShow] = useState(false);

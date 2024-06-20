@@ -3,6 +3,7 @@ import { AddUser } from "../../icons"
 import { ResponsableList } from "./ResponsableList"
 import { useEffect, useState } from "react"
 import { useField } from "formik";
+import { EventContextProvider } from "../../../context";
 
 const ResponsablesArry = [
     {
@@ -11,7 +12,7 @@ const ResponsablesArry = [
     },
     {
         icon: "/rol_Fotografo.png",
-        title: "Fotográfor",
+        title: "Fotográfo",
     },
     {
         icon: "/rol_Catering.png",
@@ -47,44 +48,43 @@ const ResponsablesArry = [
     },
 ]
 
-export const Responsable = ({ disable, itinerario, handleChange, title, task,ht, ...props }) => {
+export const Responsable = ({ disable, itinerario, handleChange, title, task, ht, ...props }) => {
     const [field, meta, helpers] = useField({ name: props?.name });
     const [selectIcon, setSelectIcon] = useState([])
     const [openResponsableList, setOpenResponsableList] = useState(false)
     const [FieldArry, setFieldArry] = useState([])
+    const { event } = EventContextProvider()
 
     useEffect(() => {
-        if (field.value.length > 1) {
+        if (field?.value?.length > 1) {
             setFieldArry(field?.value?.slice(0, 2))
 
         }
-        if (field.value.length <= 1) {
+        if (field?.value?.length <= 1) {
             setFieldArry(field?.value)
         }
     }, [selectIcon, field?.value])
 
     useEffect(() => {
-
-        helpers.setValue(selectIcon.map((item) => item.title))
-        handleChange("responsable", selectIcon.map((item) => item.title))
-
+        helpers.setValue(selectIcon?.map((item) => item.title ? item?.title : item?.displayName != null? item?.displayName: item?.email))
+        handleChange("responsable", selectIcon?.map((item) => item.title ? item?.title : item?.displayName != null? item?.displayName: item?.email ))
     }, [selectIcon])
 
-    const longitud = field?.value.length
+    const longitud = field?.value?.length
 
     return (
         <div
-            style={{ paddingRight: field?.value?.length + 5, marginRight: -5.5 * field.value.length }}
+            style={{ paddingRight: field?.value?.length + 5, marginRight: -5.5 * field?.value?.length }}
             className="flex justify-center items-center pl-1 "
         >
-            {field?.value.length > 0
+            {field?.value?.length > 0
                 ?
                 <div
-                    style={{ width: field.value.length >= 3 ? 47 * FieldArry?.length : FieldArry.length == 1 ? 63 * FieldArry?.length : 35 * FieldArry?.length }}
+                    style={{ width: field?.value?.length >= 3 ? 47 * FieldArry?.length : FieldArry?.length == 1 ? 63 * FieldArry?.length : 35 * FieldArry?.length }}
                     className=" cursor-pointer relative -mr-5 my-5 md:my-0">
                     {
-
                         FieldArry?.map((item, idx) => {
+                            console.log(event?.detalles_compartidos_array)
                             return (
                                 < div
                                     key={idx}
@@ -92,10 +92,10 @@ export const Responsable = ({ disable, itinerario, handleChange, title, task,ht,
                                     className=" cursor-pointer absolute border border-gray-400  rounded-full shadow-lg -top-5  "
                                     onClick={() => {
                                         disable ?
-                                        ht() :
+                                            ht() :
                                             setOpenResponsableList(!openResponsableList)
                                     }} {...props}>
-                                    <img src={ResponsablesArry.find((elem) => elem?.title === item)?.icon} className="h-10 " />
+                                    <img src={ResponsablesArry?.find((elem) => elem?.title === item)?.icon != undefined? ResponsablesArry.find((elem) => elem?.title === item)?.icon: event?.detalles_compartidos_array.find((elem)=> elem?.displayName ===item)?.photoURL != null ? event?.detalles_compartidos_array.find((elem)=> elem?.displayName ===item)?.photoURL : "/placeholder/user.png" } className="h-10 rounded-full " />
                                 </div>
                             )
                         })
@@ -107,7 +107,7 @@ export const Responsable = ({ disable, itinerario, handleChange, title, task,ht,
                                 className="w-11 h-11 cursor-pointer absolute border border-gray-400  rounded-full shadow-lg -top-5 bg-slate-100  flex items-center  justify-center"
                                 onClick={() => {
                                     disable ?
-                                    ht() :
+                                        ht() :
                                         setOpenResponsableList(!openResponsableList)
                                 }} {...props}>
                                 {"+" + longitud}
@@ -123,7 +123,7 @@ export const Responsable = ({ disable, itinerario, handleChange, title, task,ht,
             }
             {
                 openResponsableList
-                    ? <Modal openIcon={openResponsableList} setOpenIcon={setOpenResponsableList} classe={"h-max w-[80%] md:w-[18%]"} >
+                    ? <Modal openIcon={openResponsableList} setOpenIcon={setOpenResponsableList} classe={"md:h-[550px] w-[80%] md:w-[20%]"} >
                         <ResponsableList DataArry={ResponsablesArry} openModal={openResponsableList} setOpenModal={setOpenResponsableList} setSelectIcon={setSelectIcon} value={field.value} />
                     </Modal>
                     : null
