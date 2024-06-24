@@ -66,36 +66,35 @@ export const Responsable = ({ disable, itinerario, handleChange, title, task, ht
     }, [selectIcon, field?.value])
 
     useEffect(() => {
-        helpers.setValue(selectIcon?.map((item) => item.title ? item?.title : item?.displayName != null? item?.displayName: item?.email))
-        handleChange("responsable", selectIcon?.map((item) => item.title ? item?.title : item?.displayName != null? item?.displayName: item?.email ))
+        helpers.setValue(selectIcon?.map((item) => item.title ? item?.title : item?.displayName != null ? item?.displayName : item?.email))
+        handleChange("responsable", selectIcon?.map((item) => item.title ? item?.title : item?.displayName != null ? item?.displayName : item?.email))
     }, [selectIcon])
 
     const longitud = field?.value?.length
 
     return (
         <div
-            style={{ paddingRight: field?.value?.length + 5, marginRight: -5.5 * field?.value?.length }}
+            /* style={{ marginRight: field?.value?.length  }} */
             className="flex justify-center items-center pl-1 "
         >
             {field?.value?.length > 0
                 ?
                 <div
-                    style={{ width: field?.value?.length >= 3 ? 47 * FieldArry?.length : FieldArry?.length == 1 ? 63 * FieldArry?.length : 35 * FieldArry?.length }}
-                    className=" cursor-pointer relative -mr-5 my-5 md:my-0">
+                    style={{ paddingRight: field?.value?.length >= 2 ? 20: null }}
+                    className=" flex items-center justify-center w-full cursor-pointer relative my-5 md:my-0 h-full">
                     {
                         FieldArry?.map((item, idx) => {
-                            console.log(event?.detalles_compartidos_array)
                             return (
                                 < div
                                     key={idx}
-                                    style={{ left: 15 * idx }}
-                                    className=" cursor-pointer absolute border border-gray-400  rounded-full shadow-lg -top-5  "
+                                    style={{ right: idx >= 1 ? field.value.length > 1 ? 20 * idx : null : null }}
+                                    className=" cursor-pointer absolute border border-gray-400  rounded-full shadow-lg -top-5   "
                                     onClick={() => {
                                         disable ?
                                             ht() :
                                             setOpenResponsableList(!openResponsableList)
                                     }} {...props}>
-                                    <img src={ResponsablesArry?.find((elem) => elem?.title === item)?.icon != undefined? ResponsablesArry.find((elem) => elem?.title === item)?.icon: event?.detalles_compartidos_array.find((elem)=> elem?.displayName ===item)?.photoURL != null ? event?.detalles_compartidos_array.find((elem)=> elem?.displayName ===item)?.photoURL : "/placeholder/user.png" } className="h-10 rounded-full " />
+                                    <img src={ResponsablesArry?.find((elem) => elem?.title === item)?.icon != undefined ? ResponsablesArry.find((elem) => elem?.title === item)?.icon : event?.detalles_compartidos_array.find((elem) => elem?.displayName === item)?.photoURL != null ? event?.detalles_compartidos_array.find((elem) => elem?.displayName === item)?.photoURL : "/placeholder/user.png"} className="h-10 rounded-full " />
                                 </div>
                             )
                         })
@@ -103,7 +102,7 @@ export const Responsable = ({ disable, itinerario, handleChange, title, task, ht
                     {
                         field?.value?.length > 2 ? (
                             < div
-                                style={{ left: 30 }}
+                                style={{ left: 36 }}
                                 className="w-11 h-11 cursor-pointer absolute border border-gray-400  rounded-full shadow-lg -top-5 bg-slate-100  flex items-center  justify-center"
                                 onClick={() => {
                                     disable ?

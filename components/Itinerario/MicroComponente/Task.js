@@ -96,7 +96,7 @@ export const Task = ({ itinerario, task, title, disable, ht, setModalStatus, mod
                   <Responsable name="responsable" handleChange={handleBlurData} itinerario={itinerario} task={task} title={title} disable={disable} ht={ht} />
                 </div>
 
-                <div className="col-span-4 md:-mr-3* mr-6  px-8 md:px-0 ">
+                <div className="col-span-4 md:-mr-3* mr-6 px-8 md:px-0 ">
                   <Tips name="tips" onBlur={() => { handleBlurData("tips", values.tips) }} disable={disable} ht={ht} />
                 </div>
 
