@@ -12,6 +12,8 @@ import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
 import { moveGuest } from "../Mesas/FuntionsDragable";
 import { useAllowed } from "../../hooks/useAllowed";
+import { LiaLinkSolid } from "react-icons/lia";
+import { CopiarLink } from "../Utils/Compartir";
 
 interface propsDatatableGroup {
   GruposArray: string[];
@@ -38,7 +40,6 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
   }, [event?.invitados_array, event?.grupos_array])
 
   useEffect(() => {
-    console.log("allFilterGuests", allFilterGuests)
     let asd = {}
     for (let i = 0; i < event?.grupos_array?.length; i++) {
       asd = { ...asd, [event?.grupos_array[i]]: { titulo: event?.grupos_array[i], data: [] } }
@@ -46,8 +47,8 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
     const tablesRecepcion = event?.planSpace.find(elem => elem?.title === "recepcion")?.tables
     const tablesCeremonia = event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables
     const Data = event.invitados_array.reduce((acc, item: guestsExt) => {
-      const guestRecepcion = allFilterGuests[0].sentados.find(elem => elem._id === item._id)
-      const guestCeremonia = allFilterGuests[1].sentados.find(elem => elem._id === item._id)
+      const guestRecepcion = allFilterGuests[0]?.sentados.find(elem => elem._id === item._id)
+      const guestCeremonia = allFilterGuests[1]?.sentados.find(elem => elem._id === item._id)
       const tableRecepcion = tablesRecepcion?.find(elem => elem._id === guestRecepcion?.tableID)
       const tableCeremonia = tablesCeremonia?.find(elem => elem._id === guestCeremonia?.tableID)
       item.chairs = [
@@ -343,7 +344,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
 
                 <ul
                   className={`${show ? "block opacity-100" : "hidden opacity-0"
-                    } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 -top-2 z-40 w-max`}
+                    } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-6 z-40 w-max`}
                 >
                   {event?.planSpace.find(elem => elem?.title === "recepcion")?.tables?.map((elem, index) => {
                     return (
@@ -402,7 +403,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
 
                 <ul
                   className={`${show ? "block opacity-100" : "hidden opacity-0"
-                    } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 -top-2 z-40 w-max`}
+                    } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-6 z-40 w-max`}
                 >
                   {event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables?.map((elem, index) => {
                     return (
@@ -421,7 +422,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                     );
                   })}
                   <li
-                    className="bg-gray-300 cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
+                    className=" cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
                     onClick={() => router.push("/mesas")}
                   >
                     Añadir mesa
@@ -435,11 +436,15 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
       {
         Header: "Acompañantes",
         accessor: "acompañantes",
-        Cell: ({ value: initialValue, row, column: { id } }) => {
+        Cell: ({ value: initialValue, row, column: { id } }, props) => {
           const [value, setValue] = useState(initialValue);
           const [show, setShow] = useState(false);
           const router = useRouter();
-
+          const acompañantes = 0
+          const handleClick = () => {
+            setSelected(id);
+            setIsMounted(!isMounted);
+          };
           return (
             <ClickAwayListener onClickAway={() => setShow(false)}>
               <div className="relative w-full flex justify-center items-center">
@@ -453,9 +458,9 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
 
                 <ul
                   className={`${show ? "block opacity-100" : "hidden opacity-0"
-                    } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 -top-2 z-40 w-max`}
+                    } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-6 z-40 w-max`}
                 >
-                  {event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables?.map((elem, index) => {
+                  {/*  {event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables?.map((elem, index) => {
                     return (
                       <li
                         key={index}
@@ -470,12 +475,53 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                         {elem?.title}
                       </li>
                     );
-                  })}
+                  })} */}
+
+                  {
+                   /*  acompañantes != 0 ?
+                      <li
+                        className=" cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
+                      >
+                        tus acompañantes aun no han confirmado su invitacion
+                      </li>
+                      : <li
+                        className=" cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
+                        onClick={ handleClick}
+                      >
+                        Añadir Acompañante
+                      </li> */
+                  }
+                </ul>
+              </div>
+            </ClickAwayListener>
+          );
+        },
+      },
+      {
+        Header: "",
+        accessor: "compartir",
+        Cell: ({ value: initialValue, row, column: { id } }) => {
+          const [value, setValue] = useState(initialValue);
+          const [show, setShow] = useState(false);
+          const router = useRouter();
+
+          return (
+            <ClickAwayListener onClickAway={() => setShow(false)}>
+              <div className="relative w-full flex justify-center items-center">
+                <button
+                  className="focus:outline-none font-display text-sm capitalize"
+                  onClick={() => !isAllowed() ? null : setShow(!show)}
+                >
+                  <LiaLinkSolid className="h-auto w-5" />
+                </button>
+                <ul
+                  className={`${show ? "block opacity-100" : "hidden opacity-0"
+                    } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-6 z-40 w-max`}
+                >
                   <li
-                    className="bg-gray-300 cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
-                    onClick={() => router.push("/mesas")}
+                    className="flex items-center py-4 px-6 font-display text-sm text-gray-500 bg-base transition w-full capitalize"
                   >
-                    Añadir Acompañante
+                    <CopiarLink link={`${window.location.host}/?pAccShas=${event?._id.slice(3, 9)}`} />
                   </li>
                 </ul>
               </div>
@@ -483,7 +529,6 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
           );
         },
       },
-
       {
         Header: () => {
           const [show, setShow] = useState(false);
@@ -569,7 +614,6 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
           };
 
           const HandleEdit = (id) => {
-            console.log(id)
             setSelected(id);
             setIsMounted(!isMounted);
           };
@@ -621,7 +665,6 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
     <DataTableGroupProvider>
       <div className="w-[200%] md:w-[100%]">
         <CheckBoxAll />
-
         {data?.map((item, idx: number) => {
           return (
             <DataTableFinal

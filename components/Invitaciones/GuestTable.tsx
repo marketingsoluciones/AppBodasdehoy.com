@@ -95,6 +95,26 @@ export const GuestTable: FC<any> = ({ data, multiSeled, reenviar }) => {
         },
       },
       {
+        Header: "ACOMPAÑANTES",
+        accessor: "acompañantes",
+        id: "acompañantes",
+        Cell: (props) => {
+          const [value, setValue] = useState(props.value);
+          const [hoverRef, isHovered] = useHover();
+    
+          return (
+            <>
+              <div
+                ref={hoverRef}
+                className={`truncate relative w-full h-full flex items-center justify-center pl-3 gap-1  cursor-pointer transform transition hover:scale-105"`}
+              >
+               0
+              </div>
+            </>
+          );
+        },
+      },
+      {
         Header: "ENVIADO",
         accessor: "date",
         id: "date",

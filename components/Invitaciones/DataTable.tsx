@@ -70,10 +70,11 @@ export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, set
 
   const colSpan = {
     selection: 1,
-    nombre: 6,
-    correo: 6,
+    nombre: 4,
+    correo: 5,
     telefono: 4,
     invitacion: 4,
+    acompañantes: 3,
     date: 3
   };
 

@@ -123,7 +123,7 @@ export const Responsable = ({ disable, itinerario, handleChange, title, task, ht
             }
             {
                 openResponsableList
-                    ? <Modal openIcon={openResponsableList} setOpenIcon={setOpenResponsableList} classe={"md:h-[550px] w-[80%] md:w-[20%]"} >
+                    ? <Modal openIcon={openResponsableList} setOpenIcon={setOpenResponsableList} classe={"md:h-[550px] w-[80%] md:w-[270px]"} >
                         <ResponsableList DataArry={ResponsablesArry} openModal={openResponsableList} setOpenModal={setOpenResponsableList} setSelectIcon={setSelectIcon} value={field.value} />
                     </Modal>
                     : null

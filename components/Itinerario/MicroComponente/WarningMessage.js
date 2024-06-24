@@ -9,17 +9,12 @@ export const WarningMessage = ({ modal, setModal, title }) => {
                 {title}
             </div>
             <div>
-                <p className="text-[12px]">
-                    <span className="text-[15px]"> Estimado/a <span className="capitalize font-semibold">  {user.displayName} </span> .</span><br /><br />
-
-                    Para habilitar esta función específica, debes ponerte en contacto con nuestro equipo. Ellos estarán encantados de ayudarte a activar esta función que necesitas.<br />
-
-                    Por favor, comunícate con nosotros a través de nuestro Whatsapp para obtener más información y asistencia.<br />
-
-                    ¡Gracias por tu interés en nuestros servicios!<br /><br />
-
-                    Atentamente, <span className="capitalize font-semibold">{config.development}</span>
+                <span className="text-[15px]"> Estimado/a <span className="capitalize font-semibold">  {user.displayName} </span> .</span><br /><br />
+                <p className="text-[14px] w-[350px] ">
+                    Para habilitar esta función específica, debes habilitar la version <sapn className="font-semibold"> Premium.</sapn><br /><br />
+                    Comunícate con nosotros a través de nuestro Whatsapp para solicitar un periodo de prueba.<br /><br />
                 </p>
+                Atentamente, <span className="capitalize font-semibold">{config.development}</span>
             </div>
             <div className="flex flex-col space-y-1">
 

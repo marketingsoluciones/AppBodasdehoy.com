@@ -1,6 +1,6 @@
 import { ForwardRefComponent } from "framer-motion";
 import { useEffect, forwardRef, useRef, useState, FC, ReactNode } from "react";
-import { useRowSelect, useTable } from "react-table";
+import { useRowSelect, useTable,  useExpanded, } from "react-table";
 import { EventContextProvider } from "../../context";
 import { guests } from "../../utils/Interfaces";
 import { DataTableGroupContextProvider } from "../../context/DataTableGroupContext";
@@ -62,6 +62,8 @@ interface propsDataTableFinal {
 
 const DataTableFinal: FC<propsDataTableFinal> = (props) => {
   const { children, data = [], columns = [] } = props;
+  const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows, state: { expanded } } =
+    useTable({ columns, data }, useExpanded);
   const { event } = EventContextProvider();
 
   // Uso de useTable para pasar data y cargar propiedades
@@ -113,14 +115,14 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
     }
   );
 
-  const {
+ /*  const {
     getTableProps,
     getTableBodyProps,
     headerGroups,
     prepareRow,
     rows,
     toggleHideColumn,
-  } = tableInstance;
+  } = tableInstance; */
 
   const ColSpan = (id: string, headers: { id: string }[], columns: number = 12) => {
     const values = {
@@ -130,7 +132,8 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
       nombre_menu: 3,
       tableNameRecepcion: 4,
       tableNameCeremonia: 4,
-      acompañantes:3,
+      acompañantes: 3,
+      compartir:1, 
       delete: 1
     }
     const arr = ["col-span-0", "col-span-1", "col-span-2", "col-span-3", "col-span-4", "col-span-5", "col-span-6", "col-span-7", "col-span-8",]
@@ -194,30 +197,38 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
               // Prepare the row for display
               prepareRow(row);
               return (
-                // Apply the row props
-                <tr
-                  {...row.getRowProps()}
-                  key={i}
-                  className="w-full bg-white border-b font-display text-sm grid grid-cols-24"
-                >
-                  {
-                    // Loop over the rows cells
-                    row.cells.map((cell, i) => {
-                      return (
-                        <td
-                          key={i}
-                          {...cell.getCellProps()}
-                          className={`px-6 py-2 flex items-center ${ColSpan(cell.column.id, row.cells.map(item => item.column), 12)}`}
-                        >
-                          {
-                            // Render the cell contents
-                            cell.render("Cell")
-                          }
-                        </td>
-                      );
-                    })
-                  }
-                </tr>
+                <>
+                  {/*  Apply the row props */}
+                  <tr
+                    key={i}
+                    {...row.getRowProps()}
+                    className="w-full bg-white border-b font-display text-sm grid grid-cols-24"
+                  >
+                    {
+                      // Loop over the rows cells
+                      row.cells.map((cell, i) => {
+                        return (
+                          <td
+                            key={i}
+                            {...cell.getCellProps()}
+                            className={`px-6 py-2 flex items-center ${ColSpan(cell.column.id, row.cells.map(item => item.column), 12)}`}
+                          >
+                            {
+                              // Render the cell contents
+                              cell.render("Cell")
+                            }
+                          </td>
+                        );
+                      })}
+                  </tr>
+                  {row.isExpanded ? (
+                    <tr key={i} className="h-40 w-full">
+                      <td >
+                        {/* {renderRowSubComponent({ row, cate, gasto })} */}
+                      </td>
+                    </tr>
+                  ) : null}
+                </>
               );
             })
           }
