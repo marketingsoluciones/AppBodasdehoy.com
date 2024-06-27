@@ -35,6 +35,8 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
   const [data, setData] = useState<{ titulo: string; data: guestsExt[] }[]>([]);
   const [isAllowed] = useAllowed()
 
+
+
   useEffect(() => {
     setInvitadoCero(event?.invitados_array?.filter(elem => elem.rol === event?.grupos_array[0])[0]?.nombre)
   }, [event?.invitados_array, event?.grupos_array])
@@ -129,6 +131,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
       console.log(error);
     }
   };
+
 
   //Definir Columnas
   const CrearColumna = (title) => {
@@ -439,12 +442,17 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         Cell: ({ value: initialValue, row, column: { id } }, props) => {
           const [value, setValue] = useState(initialValue);
           const [show, setShow] = useState(false);
+
           const router = useRouter();
           const acompañantes = 0
+
           const handleClick = () => {
             setSelected(id);
             setIsMounted(!isMounted);
           };
+
+
+
           return (
             <ClickAwayListener onClickAway={() => setShow(false)}>
               <div className="relative w-full flex justify-center items-center">
@@ -478,18 +486,18 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                   })} */}
 
                   {
-                   /*  acompañantes != 0 ?
-                      <li
-                        className=" cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
-                      >
-                        tus acompañantes aun no han confirmado su invitacion
-                      </li>
-                      : <li
-                        className=" cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
-                        onClick={ handleClick}
-                      >
-                        Añadir Acompañante
-                      </li> */
+                    /*  acompañantes != 0 ?
+                       <li
+                         className=" cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
+                       >
+                         tus acompañantes aun no han confirmado su invitacion
+                       </li>
+                       : <li
+                         className=" cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
+                         onClick={ handleClick}
+                       >
+                         Añadir Acompañante
+                       </li> */
                   }
                 </ul>
               </div>
@@ -501,9 +509,23 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         Header: "",
         accessor: "compartir",
         Cell: ({ value: initialValue, row, column: { id } }) => {
-          const [value, setValue] = useState(initialValue);
           const [show, setShow] = useState(false);
-          const router = useRouter();
+          const [link, setLink] = useState<any>("")
+          const GetLink = async () => {
+            try {
+              const result = await fetchApiEventos({
+                query: queries.getLinkInvitation,
+                variables: { evento_id: event._id }
+              })
+              setLink(result)
+            } catch (error) {
+              console.log(error)
+            }
+          }
+
+          useEffect(() => {
+            GetLink()
+          }, [])
 
           return (
             <ClickAwayListener onClickAway={() => setShow(false)}>
@@ -521,7 +543,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                   <li
                     className="flex items-center py-4 px-6 font-display text-sm text-gray-500 bg-base transition w-full capitalize"
                   >
-                    <CopiarLink link={`${window.location.host}/?pAccShas=${event?._id.slice(3, 9)}`} />
+                    <CopiarLink link={ link && link?.link} />
                   </li>
                 </ul>
               </div>

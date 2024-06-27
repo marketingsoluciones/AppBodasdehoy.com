@@ -101,6 +101,13 @@ export const fetchApiEventos = async ({ query, variables, token }: argsFetchApi)
 };
 
 export const queries = {
+  getLinkInvitation: ` query($evento_id:String){
+  getLinkInvitation(evento_id:$evento_id){
+      link
+    }
+  }`,
+
+
   setCheckoutItems: `mutation ( $unique:ID, $args:[inputDetailsItemsCheckout] )
   {
     setCheckoutItems(unique:$unique, args:$args)
