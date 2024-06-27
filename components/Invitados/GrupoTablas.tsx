@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, FC, Dispatch, SetStateAction, cloneElement } from "react";
+import { useEffect, useRef, useState, FC, Dispatch, SetStateAction, cloneElement, useCallback } from "react";
 import ClickAwayListener from "react-click-away-listener";
 import { useRouter } from "next/router";
 import { EventContextProvider } from "../../context";
@@ -438,7 +438,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
       },
       {
         Header: "Acompañantes",
-        accessor: "acompañantes",
+        accessor: "passesQuantity",
         Cell: ({ value: initialValue, row, column: { id } }, props) => {
           const [value, setValue] = useState(initialValue);
           const [show, setShow] = useState(false);
@@ -538,12 +538,12 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                 </button>
                 <ul
                   className={`${show ? "block opacity-100" : "hidden opacity-0"
-                    } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-6 z-40 w-max`}
+                    } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-6 z-40 w-[300px]`}
                 >
                   <li
                     className="flex items-center py-4 px-6 font-display text-sm text-gray-500 bg-base transition w-full capitalize"
                   >
-                    <CopiarLink link={ link && link?.link} />
+                    <CopiarLink link={link && link?.link} />
                   </li>
                 </ul>
               </div>

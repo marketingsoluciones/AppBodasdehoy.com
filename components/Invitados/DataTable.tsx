@@ -1,6 +1,6 @@
 import { ForwardRefComponent } from "framer-motion";
 import { useEffect, forwardRef, useRef, useState, FC, ReactNode } from "react";
-import { useRowSelect, useTable,  useExpanded, } from "react-table";
+import { useRowSelect, useTable, useExpanded, } from "react-table";
 import { EventContextProvider } from "../../context";
 import { guests } from "../../utils/Interfaces";
 import { DataTableGroupContextProvider } from "../../context/DataTableGroupContext";
@@ -115,14 +115,14 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
     }
   );
 
- /*  const {
-    getTableProps,
-    getTableBodyProps,
-    headerGroups,
-    prepareRow,
-    rows,
-    toggleHideColumn,
-  } = tableInstance; */
+  /*  const {
+     getTableProps,
+     getTableBodyProps,
+     headerGroups,
+     prepareRow,
+     rows,
+     toggleHideColumn,
+   } = tableInstance; */
 
   const ColSpan = (id: string, headers: { id: string }[], columns: number = 12) => {
     const values = {
@@ -132,7 +132,7 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
       nombre_menu: 3,
       tableNameRecepcion: 4,
       tableNameCeremonia: 4,
-      acompañantes: 3,
+      passesQuantity: 3,
       compartir:1, 
       delete: 1
     }

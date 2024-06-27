@@ -89,7 +89,8 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
     correo: "",
     telefono: `+${phoneUtil.getCountryCodeForRegion(geoInfo?.ipcountry)}`,
     rol: "",
-    nombre_menu: "adultos"
+    nombre_menu: "adultos",
+    passesQuantity:""
   };
 
   const handleSubmit = async (values: FormikValues, actions: any) => {
@@ -222,7 +223,7 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
 
                 <div className="w-1/2">
                   <InputField
-                    name={"acompañantes"}
+                    name="passesQuantity"
                     label={"Acompañantes"}
                     type="number"
                   />

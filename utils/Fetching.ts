@@ -490,6 +490,8 @@ export const queries = {
           position
           order
         }
+        father
+        passesQuantity
         nombre_mesa
         puesto
         asistencia
@@ -743,6 +745,8 @@ export const queries = {
           position
           order
         }
+        father
+        passesQuantity
         nombre_mesa
         puesto
         asistencia
@@ -825,6 +829,8 @@ export const queries = {
        grupo_edad
        correo
        telefono
+       father
+       passesQuantity
        nombre_mesa
        nombre_menu
        puesto
@@ -861,6 +867,7 @@ export const queries = {
         poblacion
         pais
         direccion
+        passesQuantity
       }
   }`,
   removeGuests: `mutation ($eventID:String, $guests: [String]){
@@ -877,6 +884,8 @@ export const queries = {
           puesto
           asistencia
           rol
+          father
+          passesQuantity
         }
       }
   }`,

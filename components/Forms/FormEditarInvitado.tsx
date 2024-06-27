@@ -29,6 +29,7 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
   const { event, setEvent } = EventContextProvider();
   const toast = useToast()
   const [hoverRef, isHovered] = useHover();
+  console.log(invitado)
 
 
 
@@ -40,6 +41,7 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
     telefono: string
     rol: string
     menu: string
+    passesQuantity:number
   }
 
   const initialValues: MyValues = {
@@ -49,7 +51,10 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
     correo: invitado?.correo,
     telefono: invitado?.telefono,
     rol: invitado?.rol,
-    menu: invitado?.nombre_menu
+    menu: invitado?.nombre_menu,
+    passesQuantity: invitado?.passesQuantity
+    
+
   }
 
 
@@ -168,9 +173,9 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                     onChangeCapture={(e: any) => handleBlurData("nombre_menu", e.target.value)}
                   />
                   <InputField
-                    name="acompañantes"
+                    name="passesQuantity"
                     label="Acompañantes"
-                    onBlur={(e: any) => handleBlurData("acompañantes", e.target.value)}
+                    onBlur={(e: any) => handleBlurData("passesQuantity", e.target.value)}
                     type="number"
                     
                   />
