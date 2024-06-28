@@ -11,7 +11,7 @@ const AddPagado = ({ set, ...props }) => {
   const [isAllowed, ht] = useAllowed()
   const [mask, setMask] = useState()
   const toast = useToast()
-  const costeFional = props.row.original.coste_final
+  const costeFional = props?.row?.original?.coste_final
 
   useEffect(() => {
     setMask(getCurrency(value, event?.presupuesto_objeto?.currency))
@@ -19,10 +19,9 @@ const AddPagado = ({ set, ...props }) => {
 
   useEffect(() => {
     setValue(props?.row?.original?.pagado)
-  }, [props.row.original.pagado])
+  }, [props?.row?.original.pagado])
 
   const handleClick = () => {
-
     set({ id: props?.row?.original?._id, crear: true })
     return
 

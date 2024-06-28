@@ -107,7 +107,7 @@ const EventsGroupProvider = ({ children }) => {
                     variables: { uids: user?.uid === event?.usuario_id ? event?.compartido_array : [...event?.compartido_array, event?.usuario_id] },
                     development: config?.development
                   });
-                  results.map((result: detalle_compartidos_array) => {
+                  results?.map((result: detalle_compartidos_array) => {
                     const f1 = event.detalles_compartidos_array?.findIndex(elem => elem.uid === result.uid);
                     if (f1 > -1) {
                       event.detalles_compartidos_array?.splice(f1, 1, { ...event.detalles_compartidos_array[f1], ...result });
