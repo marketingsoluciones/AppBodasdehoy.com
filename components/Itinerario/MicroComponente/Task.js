@@ -65,53 +65,44 @@ export const Task = ({ itinerario, task, title, disable, ht, setModalStatus, mod
         return { ...old }
       })
       toast("success", "La actividad fue borrada");
-
     } catch (error) {
       console.log(error)
     }
   }
 
   return (
-    <>
-
-      <Formik enableReinitialize initialValues={initialValues} >
-        {({ values }) => {
-          return (
-            <Form className="">
-              <div className=" md:grid grid-cols-12 items-center justify-center 2xl:px-36 py-1  " >
-
-                <div className=" grid grid-cols-2 md:grid-cols-3 col-span-3 py-5 md:py-0 ">
-                  <SelectIcon name="icon" handleChange={handleBlurData} disable={disable} ht={ht} />
-                  <div className="  flex flex-col justify-center md:items-center md:col-span-2 ">
-                    <InputTime name="time" onBlur={() => { handleBlurData("hora", values.time) }} disable={disable} ht={ht} />
-                    <Duration name="duration" onBlur={() => { handleBlurData("duracion", values.duration.toString()) }} disable={disable} ht={ht} />
-                  </div>
-                </div>
-
-                <div className="col-span-3 px-8 md:px-0">
-                  <Description name="description" onBlur={() => { handleBlurData("descripcion", values.description) }} disable={disable} ht={ht} />
-                </div>
-
-                <div className="col-span-1 py-3 md:py-0">
-                  <Responsable name="responsable" handleChange={handleBlurData} itinerario={itinerario} task={task} title={title} disable={disable} ht={ht} />
-                </div>
-
-                <div className="col-span-4 md:-mr-3* mr-6 px-8 md:px-0 ">
-                  <Tips name="tips" onBlur={() => { handleBlurData("tips", values.tips) }} disable={disable} ht={ht} />
-                </div>
-
-                <div className="flex items-center justify-center py-3 md:py-0 space-x-2">
-                  <EstatusItinerario setModalStatus={setModalStatus} modalStatus={modalStatus} />
-                  <WorkFlowItinerario setModalWorkFlow={setModalWorkFlow} modalWorkFlow={modalWorkFlow} />
-                  <div>
-                    <MdOutlineDeleteOutline className="w-7 h-auto cursor-pointer text-gray-500 hover:text-gray-700" onClick={() => disable ? ht() : deleteTask()} />
-                  </div>
+    <Formik enableReinitialize initialValues={initialValues} >
+      {({ values }) => {
+        return (
+          <Form className="">
+            <div className=" md:grid grid-cols-12 items-center justify-center 2xl:px-36 py-1  " >
+              <div className=" grid grid-cols-2 md:grid-cols-3 col-span-3 py-5 md:py-0 ">
+                <SelectIcon name="icon" handleChange={handleBlurData} disable={disable} ht={ht} />
+                <div className="  flex flex-col justify-center md:items-center md:col-span-2 ">
+                  <InputTime name="time" onBlur={() => { handleBlurData("hora", values.time) }} disable={disable} ht={ht} />
+                  <Duration name="duration" onBlur={() => { handleBlurData("duracion", values.duration.toString()) }} disable={disable} ht={ht} />
                 </div>
               </div>
-            </Form>
-          )
-        }}
-      </Formik>
-    </>
+              <div className="col-span-3 px-8 md:px-0">
+                <Description name="description" onBlur={() => { handleBlurData("descripcion", values.description) }} disable={disable} ht={ht} />
+              </div>
+              <div className="col-span-1 py-3 md:py-0">
+                <Responsable name="responsable" handleChange={handleBlurData} itinerario={itinerario} task={task} title={title} disable={disable} ht={ht} />
+              </div>
+              <div className="col-span-4 md:-mr-3* mr-6 px-8 md:px-0 ">
+                <Tips name="tips" onBlur={() => { handleBlurData("tips", values.tips) }} disable={disable} ht={ht} />
+              </div>
+              <div className="flex items-center justify-center py-3 md:py-0 space-x-2">
+                <EstatusItinerario setModalStatus={setModalStatus} modalStatus={modalStatus} />
+                <WorkFlowItinerario setModalWorkFlow={setModalWorkFlow} modalWorkFlow={modalWorkFlow} />
+                <div>
+                  <MdOutlineDeleteOutline className="w-7 h-auto cursor-pointer text-gray-500 hover:text-gray-700" onClick={() => disable ? ht() : deleteTask()} />
+                </div>
+              </div>
+            </div>
+          </Form>
+        )
+      }}
+    </Formik>
   )
 }

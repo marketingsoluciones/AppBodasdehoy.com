@@ -98,7 +98,7 @@ export const Itinerario = ({ data }) => {
                     {tasks?.map((elem, idx) => {
                         return (
                             <div key={idx}>
-                                <Task task={elem}  itinerario={itinerario} title={data?.title} disable={disable} ht={ht} setModalStatus={setModalStatus} modalStatus={modalStatus}  setModalWorkFlow={setModalWorkFlow} modalWorkFlow={modalWorkFlow} />
+                                <Task task={elem} itinerario={itinerario} title={data?.title} disable={disable} ht={ht} setModalStatus={setModalStatus} modalStatus={modalStatus} setModalWorkFlow={setModalWorkFlow} modalWorkFlow={modalWorkFlow} />
                             </div>
                         )
                     })
@@ -106,32 +106,17 @@ export const Itinerario = ({ data }) => {
                 </div>
                 <AddEvent tasks={tasks} itinerario={itinerario} disable={disable} />
             </div>
-            {
-                modal ? (
-                    <>
-                        <Modal classe={"w-[30%] h-[20%]"}>
-                            <DeleteConfirmation setModal={setModal} modal={modal} deleteItinerario={deleteItinerario} />
-                        </Modal>
-                    </>
-                ) : null
+            {modal && <Modal classe={"w-[30%] h-[20%]"}>
+                <DeleteConfirmation setModal={setModal} modal={modal} deleteItinerario={deleteItinerario} />
+            </Modal>
             }
-            {
-                modalStatus ? (
-                    <>
-                        <Modal classe={"w-[30%] h-[370px]"}>
-                            <WarningMessage setModal={setModalStatus} modal={modalStatus} title={"Visibilidad"} />
-                        </Modal>
-                    </>
-                ) : null
+            {modalStatus && <Modal classe={"w-[30%] h-[370px]"}>
+                <WarningMessage setModal={setModalStatus} modal={modalStatus} title={"Visibilidad"} />
+            </Modal>
             }
-            {
-                modalWorkFlow ? (
-                    <>
-                        <Modal classe={"w-[30%] h-[370px]"}>
-                            <WarningMessage setModal={setModalWorkFlow} modal={modalWorkFlow} title={"WorkFlow"}/>
-                        </Modal>
-                    </>
-                ) : null
+            {modalWorkFlow && <Modal classe={"w-[30%] h-[370px]"}>
+                <WarningMessage setModal={setModalWorkFlow} modal={modalWorkFlow} title={"WorkFlow"} />
+            </Modal>
             }
         </>
     )
