@@ -14,6 +14,8 @@ import { moveGuest } from "../Mesas/FuntionsDragable";
 import { useAllowed } from "../../hooks/useAllowed";
 import { LiaLinkSolid } from "react-icons/lia";
 import { CopiarLink } from "../Utils/Compartir";
+import { SubComponenteTabla } from "./SubTabla";
+import DetallesPago from "../Presupuesto/DetallesPago";
 
 interface propsDatatableGroup {
   GruposArray: string[];
@@ -34,8 +36,11 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
   const { event, setEvent, invitadoCero, setInvitadoCero, allFilterGuests, planSpaceActive, setPlanSpaceActive, filterGuests } = EventContextProvider();
   const [data, setData] = useState<{ titulo: string; data: guestsExt[] }[]>([]);
   const [isAllowed] = useAllowed()
+  const [acompañanteID, setAcompañanteID] = useState({ id: "", crear: false })
 
-
+  useEffect(() => {
+    setAcompañanteID(old => ({ ...old, crear: false }))
+  }, [])
 
   useEffect(() => {
     setInvitadoCero(event?.invitados_array?.filter(elem => elem.rol === event?.grupos_array[0])[0]?.nombre)
@@ -86,6 +91,12 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
       console.log(error)
     }
   }
+
+  const renderRowSubComponent = useCallback(({ row }) => (
+    <SubComponenteTabla row={row} getId={acompañanteID?.id} wantCreate={act => setAcompañanteID(old => ({ ...old, crear: act }))} />
+  ),
+    [acompañanteID]
+  )
 
   // Funcion para Editar Invitado dropdown
   const updateMyData = ({
@@ -439,69 +450,26 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
       {
         Header: "Acompañantes",
         accessor: "passesQuantity",
-        Cell: ({ value: initialValue, row, column: { id } }, props) => {
+        Cell: ({ value: initialValue, column: { id }, ...props }) => {
           const [value, setValue] = useState(initialValue);
-          const [show, setShow] = useState(false);
-
-          const router = useRouter();
-          const acompañantes = 0
-
+          console.log(55555, props)
           const handleClick = () => {
-            setSelected(id);
-            setIsMounted(!isMounted);
-          };
+            setAcompañanteID({ id: "22", crear: false })
+            props?.toggleAllRowsExpanded(false)
+            props?.row?.toggleRowExpanded()
+            return
 
-
+          }
 
           return (
-            <ClickAwayListener onClickAway={() => setShow(false)}>
-              <div className="relative w-full flex justify-center items-center">
-
-                <button
-                  className="focus:outline-none font-display text-sm capitalize"
-                  onClick={() => !isAllowed() ? null : setShow(!show)}
-                >
-                  {value ? value : 0}
-                </button>
-
-                <ul
-                  className={`${show ? "block opacity-100" : "hidden opacity-0"
-                    } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-6 z-40 w-max`}
-                >
-                  {/*  {event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables?.map((elem, index) => {
-                    return (
-                      <li
-                        key={index}
-                        className="cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
-                        onClick={() => {
-                          setValue(elem.title);
-                          setShow(!show);
-                          const table = event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables.find(el => el.title === elem.title)
-                          handleMoveGuest(row.original._id, table)
-                        }}
-                      >
-                        {elem?.title}
-                      </li>
-                    );
-                  })} */}
-
-                  {
-                    /*  acompañantes != 0 ?
-                       <li
-                         className=" cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
-                       >
-                         tus acompañantes aun no han confirmado su invitacion
-                       </li>
-                       : <li
-                         className=" cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
-                         onClick={ handleClick}
-                       >
-                         Añadir Acompañante
-                       </li> */
-                  }
-                </ul>
-              </div>
-            </ClickAwayListener>
+            <div className="relative w-full flex justify-center items-center">
+              <button
+                className="focus:outline-none font-display text-sm capitalize"
+                onClick={() => !isAllowed() ? null : handleClick()}
+              >
+                {value ? value : 0}
+              </button>
+            </div >
           );
         },
       },
@@ -692,6 +660,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
             <DataTableFinal
               key={idx}
               data={item.data}
+              renderRowSubComponent={renderRowSubComponent}
               columns={CrearColumna(!item.titulo.match("(nombre)") ? item.titulo : item.titulo.replace("(nombre)", invitadoCero ? invitadoCero : event?.grupos_array[0]))}
             />
           )

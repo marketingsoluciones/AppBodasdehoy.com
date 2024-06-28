@@ -11,7 +11,7 @@ const DetallesPago = ({ set, ...props }) => {
 
   useEffect(() => {
     setValue(props?.row?.original?.pagado)
-  }, [props.row.original.pagado])
+  }, [props?.row?.original?.pagado])
 
   const handleClick = () => {
     if (props?.row?.original?.pagos_array?.length >= 1) {

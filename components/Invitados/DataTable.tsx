@@ -58,10 +58,11 @@ interface propsDataTableFinal {
   data: guests[];
   columns: any;
   children?: ReactNode;
+  renderRowSubComponent?: any
 }
 
 const DataTableFinal: FC<propsDataTableFinal> = (props) => {
-  const { children, data = [], columns = [] } = props;
+  const { children, data = [], columns = [], renderRowSubComponent } = props;
   const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows, state: { expanded } } =
     useTable({ columns, data }, useExpanded);
   const { event } = EventContextProvider();
@@ -133,7 +134,7 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
       tableNameRecepcion: 4,
       tableNameCeremonia: 4,
       passesQuantity: 3,
-      compartir:1, 
+      compartir: 1,
       delete: 1
     }
     const arr = ["col-span-0", "col-span-1", "col-span-2", "col-span-3", "col-span-4", "col-span-5", "col-span-6", "col-span-7", "col-span-8",]
@@ -224,7 +225,7 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
                   {row.isExpanded ? (
                     <tr key={i} className="h-40 w-full">
                       <td >
-                        {/* {renderRowSubComponent({ row, cate, gasto })} */}
+                        {renderRowSubComponent({ row})}
                       </td>
                     </tr>
                   ) : null}
