@@ -69,6 +69,11 @@ const Home: NextPage = () => {
         return <></>
       }
     }
+    /* Redireccion para la confirmacion de la asistencia */
+    if (router?.query?.pGuestEvent) {
+      router.push(`/confirmar-asistencia?pGuestEvent=${router?.query?.pGuestEvent}`)
+    }
+
     if ((!user || user.displayName === "guest") && ["vivetuboda"].includes(config?.development)) {
       router?.push(`/login`)
       return <></>

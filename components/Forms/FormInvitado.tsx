@@ -224,7 +224,7 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
                 <div className="w-1/2">
                   <InputField
                     name="passesQuantity"
-                    label={"Acompañantes"}
+                    label={"No. Acompañantes"}
                     type="number"
                   />
                 </div>

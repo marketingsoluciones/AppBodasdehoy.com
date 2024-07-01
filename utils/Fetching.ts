@@ -101,8 +101,8 @@ export const fetchApiEventos = async ({ query, variables, token }: argsFetchApi)
 };
 
 export const queries = {
-  getLinkInvitation: ` query($evento_id:String){
-  getLinkInvitation(evento_id:$evento_id){
+  getLinkInvitation: ` query($evento_id:String, $invitado_id:String){
+  getLinkInvitation(evento_id:$evento_id, invitado_id:$invitado_id){
       link
     }
   }`,

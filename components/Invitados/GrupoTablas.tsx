@@ -476,14 +476,18 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
       {
         Header: "",
         accessor: "compartir",
-        Cell: ({ value: initialValue, row, column: { id } }) => {
+        Cell: ({ value: initialValue, row }) => {
           const [show, setShow] = useState(false);
           const [link, setLink] = useState<any>("")
+
           const GetLink = async () => {
             try {
               const result = await fetchApiEventos({
                 query: queries.getLinkInvitation,
-                variables: { evento_id: event._id }
+                variables: { 
+                  evento_id: event._id,
+                  invitado_id: row.original._id
+                }
               })
               setLink(result)
             } catch (error) {

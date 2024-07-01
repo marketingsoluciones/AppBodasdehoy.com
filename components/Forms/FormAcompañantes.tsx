@@ -19,9 +19,6 @@ export const FormComponent = () => {
         },
     ]
 
-
-
-
     return (
         <>
             <div className="bg-white rounded-lg shadow flex flex-col items-center py-7 space-y-5">

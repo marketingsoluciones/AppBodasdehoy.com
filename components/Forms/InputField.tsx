@@ -48,20 +48,20 @@ const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled =
     if (props?.type === "telefono") {
       let result: Flag | null = null
       let number = ""
-      if (field.value.slice(0, 1) !== "+") {
+      if (field?.value?.slice(0, 1) !== "+") {
         helpers.setValue(`+${field.value}`)
       }
-      result = flags.find(elem => elem.cod === parseInt(field.value.slice(1, 2)))
+      result = flags?.find(elem => elem.cod === parseInt(field?.value?.slice(1, 2)))
       if (result) {
-        number = field.value.slice(2)
+        number = field?.value?.slice(2)
       } else {
-        result = flags.find(elem => elem.cod === parseInt(field.value.slice(1, 3)))
+        result = flags?.find(elem => elem.cod === parseInt(field?.value?.slice(1, 3)))
         if (result) {
-          number = field.value.slice(3)
+          number = field?.value?.slice(3)
         } else {
-          result = flags.find(elem => elem.cod === parseInt(field.value.slice(1, 4)))
+          result = flags?.find(elem => elem.cod === parseInt(field?.value?.slice(1, 4)))
           if (result) {
-            number = field.value.slice(4)
+            number = field?.value?.slice(4)
           }
         }
       }
