@@ -90,7 +90,7 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
     telefono: `+${phoneUtil.getCountryCodeForRegion(geoInfo?.ipcountry)}`,
     rol: "",
     nombre_menu: "adultos",
-    passesQuantity:""
+    passesQuantity: ""
   };
 
   const handleSubmit = async (values: FormikValues, actions: any) => {
@@ -166,7 +166,7 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
                   //placeholder="960 66 66 66"
                   name="telefono"
                   label="Telefono"
-                  type="text"
+                  type="telefono"
                 />
                 {/* </div> */}
               </div>
