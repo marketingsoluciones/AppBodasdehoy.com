@@ -92,6 +92,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
     }
   }
 
+  console.log("1212", event?.invitados_array)
   const renderRowSubComponent = useCallback(({ row }) => (
     <SubComponenteTabla row={row} getId={acompañanteID?.id} wantCreate={act => setAcompañanteID(old => ({ ...old, crear: act }))} />
   ),
@@ -450,15 +451,14 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
       {
         Header: "Acompañantes",
         accessor: "passesQuantity",
-        Cell: ({ value: initialValue, column: { id }, ...props }) => {
+        Cell: ({ value: initialValue, column: { id },  ...props }) => {
           const [value, setValue] = useState(initialValue);
-          console.log(55555, props)
+        
           const handleClick = () => {
-            setAcompañanteID({ id: "22", crear: false })
+            setAcompañanteID({ id: props.row.original._id, crear: false })
             props?.toggleAllRowsExpanded(false)
             props?.row?.toggleRowExpanded()
             return
-
           }
 
           return (

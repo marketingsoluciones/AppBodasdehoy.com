@@ -21,15 +21,22 @@ interface Flag {
 }
 
 const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled = false, labelClass = true, ...props }) => {
-  console.log("aqui")
   const { geoInfo } = AuthContextProvider()
   const [field, meta, helpers] = useField({ name: props.name })
+
   const [isAllowed, ht] = useAllowed()
   const [showFlags, setShowFlags] = useState(false)
   const [options, setOptions] = useState<Flag[]>(flags)
   const [optionSelect, setOptionSelect] = useState<Flag>(flags.find(elem => elem.pre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') === geoInfo?.ipcountry.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')))
   const [filterFlags, setFilterFlags] = useState<string>()
   const [number, setNumber] = useState<string>("")
+
+  useEffect(() => {
+    if (props.name === "telefono") {
+      console.log("inputField", props.name)
+      console.log("inputField", field)
+    }
+  }, [field.value])
 
   useEffect(() => {
     if (filterFlags) {
@@ -47,7 +54,7 @@ const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled =
   useEffect(() => {
     if (props?.type === "telefono") {
       let result: Flag | null = null
-      let number = ""
+      let number = field.value ?? ""
       if (field?.value?.slice(0, 1) !== "+") {
         helpers.setValue(`+${field.value}`)
       }
@@ -109,7 +116,7 @@ const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled =
           </>
         }
         {props?.type != "tel"
-          ? <input id={props?.type} autoFocus={props?.type === "telefono"} disabled={!isAllowed() || disabled} className={`${props?.type === "telefono" && "pl-14"} font-display text-sm text-gray-500 border-[1px] ${(props?.type !== "tel" ? true : meta.touched) && meta.error ? "border-rose-300" : "border-gray-200"} focus:border-gray-400 w-full py-2 px-4 rounded-xl focus:ring-0 focus:outline-none transition ${className}`} {...field} {...props} type={props?.type === "telefono" ? "tel" : props?.type }/>
+          ? <input id={props?.type} autoFocus={props?.type === "telefono"} disabled={!isAllowed() || disabled} className={`${props?.type === "telefono" && "pl-14"} font-display text-sm text-gray-500 border-[1px] ${(props?.type !== "tel" ? true : meta.touched) && meta.error ? "border-rose-300" : "border-gray-200"} focus:border-gray-400 w-full py-2 px-4 rounded-xl focus:ring-0 focus:outline-none transition ${className}`} {...field} {...props} type={props?.type === "telefono" ? "tel" : props?.type} />
           : <div onBlur={() => helpers.setTouched(true)} >
           </div>
         }

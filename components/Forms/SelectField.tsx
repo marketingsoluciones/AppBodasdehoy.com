@@ -1,5 +1,5 @@
 import { useField } from "formik"
-import { FC, HtmlHTMLAttributes } from "react"
+import { FC, HtmlHTMLAttributes, useEffect } from "react"
 import { WarningIcon } from "../icons"
 import { EventContextProvider } from "../../context"
 import { number } from "yup"
@@ -16,6 +16,12 @@ const SelectField: FC<propsSelectField> = ({ label, children, options, colSpan, 
     const { invitadoCero, event } = EventContextProvider();
     const [field, meta] = useField({ name: props.name })
     if (field.value == null) field.value = "sin menú"
+    useEffect(()=>{
+        if(props.name==="edad"){
+          console.log("selectField",props.name)
+          console.log("selectField",field)
+        }
+      },[field.value])
     return (
         <>
             <div className={`relative* w-full h-full col-span${colSpan && `-${colSpan}`} content-between`}>

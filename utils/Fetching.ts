@@ -101,17 +101,35 @@ export const fetchApiEventos = async ({ query, variables, token }: argsFetchApi)
 };
 
 export const queries = {
+
+  getPGuestEvent: `query($p:String){
+    getPGuestEvent(p:$p){
+      _id
+      sexo
+      nombre
+      estatus
+      correo
+      telefono
+      asistencia
+      alergenos
+      passesQuantity
+      father
+      nombre_menu
+      grupo_edad
+    }
+  }`,
+
   getLinkInvitation: ` query($evento_id:String, $invitado_id:String){
   getLinkInvitation(evento_id:$evento_id, invitado_id:$invitado_id){
       link
     }
   }`,
 
-
   setCheckoutItems: `mutation ( $unique:ID, $args:[inputDetailsItemsCheckout] )
   {
     setCheckoutItems(unique:$unique, args:$args)
   }`,
+
   getCheckoutItems: `query ( $unique:ID )
   {
     getCheckoutItems(unique:$unique){
@@ -122,6 +140,7 @@ export const queries = {
       quantity
     }
   }`,
+
   getEventTicket: `query ( $args:inputEventTicket, $sort:sortCriteriaEventTicket, $skip:Int, $limit:Int )
   {
     getEventTicket(args:$args, sort:$sort, skip:$skip, limit:$limit ){

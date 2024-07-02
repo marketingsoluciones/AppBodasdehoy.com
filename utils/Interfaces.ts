@@ -32,15 +32,15 @@ export interface Event {
 }
 
 export interface Notification {
-    _id:string
-    uid:string
-    message:string
-    state:string
-    createdAt:number
-    updatedAt:number
+    _id: string
+    uid: string
+    message: string
+    state: string
+    createdAt: number
+    updatedAt: number
 }
 
-export interface ResultNotifications{
+export interface ResultNotifications {
     total: number
     results: Notification[]
 }
@@ -72,7 +72,7 @@ interface estimate {
     coste_estimado: number
     coste_final: number
     pagado: number
-    currency:string
+    currency: string
     categorias_array: estimateCategory[]
 }
 
@@ -208,6 +208,7 @@ export interface guests {
     direccion: string
     poblacion: string
     pais: string
+    father: string
 }
 
 export interface filterGuest extends guests {

@@ -4,26 +4,34 @@ import SelectField from "./SelectField"
 import * as yup from "yup";
 import { phoneUtil } from "../../utils/Authentication";
 import { AuthContextProvider } from "../../context";
+import { useEffect } from "react";
 
-export const FormConfirmarAsistencia = ({ visible, setVisible,  pases  }) => {
+
+export const FormConfirmarAsistencia = ({ visible, setVisible, guestData }) => {
     const { geoInfo } = AuthContextProvider();
-    const quantity = parseInt(`0`, 10)
-    const GuetsArray = Array.from({ length: quantity }, (_, index) => index);
 
-    let initialValues = {}
+    const GuestFather = guestData.find(e => e.father === null)
+    const GuestAcompañantes = guestData.filter(e => e.father != null)
+    const GuetsArray = Array.from({ length: GuestFather?.passesQuantity }, (_, index) => index);
+
+
     let yupSchema = {}
 
-    for (let i = 0; i < quantity; i++) {
+
+    let initialValues = {
+        nombre: GuestFather?.nombre ?? "",
+        telefono: GuestFather?.telefono ?? "",
+        email: GuestFather?.correo ?? "",
+        sexo: GuestFather?.sexo ?? "",
+        edad: GuestFather?.grupo_edad ?? "",
+        menu: GuestFather?.nombre_menu ?? "",
+        confirmacion: GuestFather?.asistencia ?? "",
+    }
+    /* for (let i = 0; i < GuestFather?.passesQuantity; i++) {
+        console.log("invitado",)
         initialValues = {
             ...initialValues,
-            nombre: "",
-            telefono: `+${phoneUtil.getCountryCodeForRegion(geoInfo?.ipcountry)}`,
-            email: "",
-            sexo: "",
-            edad: "",
-            menu: "",
-            confirmacion: "",
-            [`nombre_${i}`]: "",
+            [`nombre_${i}`]: GuestAcompañantes[i]?.nombre ?? "",
             [`telefono_${i}`]: `+${phoneUtil.getCountryCodeForRegion(geoInfo?.ipcountry)}`,
             [`email_${i}`]: "",
             [`sexo_${i}`]: "",
@@ -31,22 +39,30 @@ export const FormConfirmarAsistencia = ({ visible, setVisible,  pases  }) => {
             [`menu_${i}`]: "",
             [`confirmacion_${i}`]: "",
         }
-        /* yupSchema = {
-          ...yupSchema,
-          [`nombre_${i}`]: yup.string().required("Nombre es requerido"),
-          [`telefono_${i}`]:yup.string().required("Telefono es requerido"),
-          [`email_${i}`]:yup.string().required("Email es requerido"),
-          [`sexo_${i}`]:yup.string().required("Sexo es requerido"),
-          [`edad_${i}`]:yup.string().required("Edad es requerido"),
-          [`menu_${i}`]:yup.string().required("Menu es requerido"),
-          [`confirmacion_${i}`]:yup.string().required("La confirmacion es requerida"),
-        } */
-    }
+        yupSchema = {
+            ...yupSchema,
+            [`nombre_${i}`]: yup.string().required("Nombre es requerido"),
+            [`telefono_${i}`]: yup.string().required("Telefono es requerido"),
+            [`email_${i}`]: yup.string().required("Email es requerido"),
+            [`sexo_${i}`]: yup.string().required("Sexo es requerido"),
+            [`edad_${i}`]: yup.string().required("Edad es requerido"),
+            [`menu_${i}`]: yup.string().required("Menu es requerido"),
+            [`confirmacion_${i}`]: yup.string().required("La confirmacion es requerida"),
+        }
+    } */
+
+
+
+
+
+
 
     const handelSubmit = (values: any) => {
         /*  setVisible(!visible) */
         console.log(values)
     }
+
+    console.log(11111111, initialValues)
 
     return (
         <>
@@ -56,12 +72,14 @@ export const FormConfirmarAsistencia = ({ visible, setVisible,  pases  }) => {
                         <div className="px-5 space-y-3">
                             <div className="grid grid-cols-2 gap-5 ">
                                 <InputField
+                                    id="nombre"
                                     name="nombre"
                                     label="Nombre del invitado"
                                     type="text"
                                     labelClass={false}
                                 />
                                 <InputField
+                                    id="telefono"
                                     name="telefono"
                                     label="Telefono"
                                     type="telefono"
