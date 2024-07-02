@@ -36,11 +36,11 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
   const { event, setEvent, invitadoCero, setInvitadoCero, allFilterGuests, planSpaceActive, setPlanSpaceActive, filterGuests } = EventContextProvider();
   const [data, setData] = useState<{ titulo: string; data: guestsExt[] }[]>([]);
   const [isAllowed] = useAllowed()
-  const [acompañanteID, setAcompañanteID] = useState({ id: "", crear: false })
+  const [acompañanteID, setAcompañanteID] = useState({ id: "", crear: true })
 
   useEffect(() => {
     setAcompañanteID(old => ({ ...old, crear: false }))
-  }, [])
+  }, [acompañanteID.id])
 
   useEffect(() => {
     setInvitadoCero(event?.invitados_array?.filter(elem => elem.rol === event?.grupos_array[0])[0]?.nombre)
@@ -92,7 +92,6 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
     }
   }
 
-  console.log("1212", event?.invitados_array)
   const renderRowSubComponent = useCallback(({ row }) => (
     <SubComponenteTabla row={row} getId={acompañanteID?.id} wantCreate={act => setAcompañanteID(old => ({ ...old, crear: act }))} />
   ),
@@ -453,14 +452,13 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         accessor: "passesQuantity",
         Cell: ({ value: initialValue, column: { id },  ...props }) => {
           const [value, setValue] = useState(initialValue);
-        
+        console.log(props)
           const handleClick = () => {
-            setAcompañanteID({ id: props.row.original._id, crear: false })
+            setAcompañanteID({ id: props.row.original._id, crear: false})
             props?.toggleAllRowsExpanded(false)
             props?.row?.toggleRowExpanded()
             return
           }
-
           return (
             <div className="relative w-full flex justify-center items-center">
               <button
