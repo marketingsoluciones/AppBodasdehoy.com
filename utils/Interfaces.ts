@@ -45,7 +45,7 @@ export interface ResultNotifications {
     results: Notification[]
 }
 
-interface menu {
+export interface menu {
     nombre_menu: string
     tipo: string
 }
@@ -209,6 +209,7 @@ export interface guests {
     poblacion: string
     pais: string
     father: string
+    passesQuantity: number
 }
 
 export interface filterGuest extends guests {

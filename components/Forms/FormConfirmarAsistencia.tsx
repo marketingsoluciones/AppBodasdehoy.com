@@ -3,66 +3,57 @@ import InputField from "./InputField"
 import SelectField from "./SelectField"
 import * as yup from "yup";
 import { phoneUtil } from "../../utils/Authentication";
-import { AuthContextProvider } from "../../context";
-import { useEffect } from "react";
+import { AuthContextProvider, EventContextProvider } from "../../context";
+import { FC } from "react";
+import { guests, menu } from "../../utils/Interfaces";
+
+interface props {
+    visible: boolean
+    setVisible: any
+    guestData: guests[]
+    guestFather: guests
+    menus_array: menu[]
+}
 
 
-export const FormConfirmarAsistencia = ({ visible, setVisible, guestData }) => {
+export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestData, guestFather, menus_array }) => {
     const { geoInfo } = AuthContextProvider();
+    const { event } = EventContextProvider()
 
-    const GuestFather = guestData.find(e => e.father === null)
     const GuestAcompañantes = guestData.filter(e => e.father != null)
-    const GuetsArray = Array.from({ length: GuestFather?.passesQuantity }, (_, index) => index);
-
+    const GuetsArray = Array.from({ length: guestFather?.passesQuantity }, (_, index) => index);
 
     let yupSchema = {}
 
-
     let initialValues = {
-        nombre: GuestFather?.nombre ?? "",
-        telefono: GuestFather?.telefono ?? "",
-        email: GuestFather?.correo ?? "",
-        sexo: GuestFather?.sexo ?? "",
-        edad: GuestFather?.grupo_edad ?? "",
-        menu: GuestFather?.nombre_menu ?? "",
-        confirmacion: GuestFather?.asistencia ?? "",
+        nombre: guestFather?.nombre ?? "",
+        telefono: guestFather?.telefono ? guestFather?.telefono : `+${phoneUtil.getCountryCodeForRegion(geoInfo?.ipcountry)}`,
+        email: guestFather?.correo ?? "",
+        sexo: guestFather?.sexo ?? "",
+        edad: guestFather?.grupo_edad ?? "",
+        menu: guestFather?.nombre_menu ?? "",
+        confirmacion: guestFather?.asistencia ?? "",
     }
-    /* for (let i = 0; i < GuestFather?.passesQuantity; i++) {
-        console.log("invitado",)
+
+
+
+    for (let i = 0; i < guestFather?.passesQuantity; i++) {
         initialValues = {
             ...initialValues,
             [`nombre_${i}`]: GuestAcompañantes[i]?.nombre ?? "",
-            [`telefono_${i}`]: `+${phoneUtil.getCountryCodeForRegion(geoInfo?.ipcountry)}`,
-            [`email_${i}`]: "",
-            [`sexo_${i}`]: "",
-            [`edad_${i}`]: "",
-            [`menu_${i}`]: "",
-            [`confirmacion_${i}`]: "",
+            [`telefono_${i}`]: GuestAcompañantes[i]?.telefono ? GuestAcompañantes[i].telefono : `+${phoneUtil.getCountryCodeForRegion(geoInfo?.ipcountry)}`,
+            [`email_${i}`]: GuestAcompañantes[i]?.correo ?? "",
+            [`sexo_${i}`]: GuestAcompañantes[i]?.sexo ?? "",
+            [`edad_${i}`]: GuestAcompañantes[i]?.grupo_edad ?? "",
+            [`menu_${i}`]: GuestAcompañantes[i]?.nombre_menu ?? "",
+            [`confirmacion_${i}`]: GuestAcompañantes[i]?.asistencia ?? "",
         }
-        yupSchema = {
-            ...yupSchema,
-            [`nombre_${i}`]: yup.string().required("Nombre es requerido"),
-            [`telefono_${i}`]: yup.string().required("Telefono es requerido"),
-            [`email_${i}`]: yup.string().required("Email es requerido"),
-            [`sexo_${i}`]: yup.string().required("Sexo es requerido"),
-            [`edad_${i}`]: yup.string().required("Edad es requerido"),
-            [`menu_${i}`]: yup.string().required("Menu es requerido"),
-            [`confirmacion_${i}`]: yup.string().required("La confirmacion es requerida"),
-        }
-    } */
-
-
-
-
-
-
+    }
 
     const handelSubmit = (values: any) => {
         /*  setVisible(!visible) */
         console.log(values)
     }
-
-    console.log(11111111, initialValues)
 
     return (
         <>
@@ -111,6 +102,7 @@ export const FormConfirmarAsistencia = ({ visible, setVisible, guestData }) => {
                             </div>
                             <div className="grid grid-cols-2 gap-5">
                                 <SelectField
+                                    nullable
                                     options={["Confirmado", "Cancelado"]}
                                     name="confirmacion"
                                     label="Confirmacion de asistencia"
@@ -119,7 +111,7 @@ export const FormConfirmarAsistencia = ({ visible, setVisible, guestData }) => {
                                 <SelectField
                                     name={`nombre_menu`}
                                     label={"Menu"}
-                                    options={[/* ...event?.menus_array?.map(elem => elem.nombre_menu), "sin menú" */]}
+                                    options={[...menus_array?.map(elem => elem.nombre_menu), "sin menú"]}
                                 />
                             </div>
                         </div>
@@ -137,7 +129,7 @@ export const FormConfirmarAsistencia = ({ visible, setVisible, guestData }) => {
                                 }
                             })()
                         }
-                        {GuetsArray.map((_, i) => {
+                        {GuetsArray?.map((_, i) => {
                             return (
                                 <div key={i} className="px-5">
                                     < div >
@@ -161,6 +153,7 @@ export const FormConfirmarAsistencia = ({ visible, setVisible, guestData }) => {
                                                     name={`telefono_${i}`}
                                                     label="Telefono"
                                                     type="telefono"
+                                                    labelClass={false}
                                                 />
 
                                             </div>
@@ -191,17 +184,16 @@ export const FormConfirmarAsistencia = ({ visible, setVisible, guestData }) => {
                                             </div>
                                             <div className="grid grid-cols-2 gap-5">
                                                 <SelectField
-                                                    id={`confirmacion_${i}`}
-                                                    name={`confirmacion_${i}`}
-                                                    label="Confirmacion de asistencia"
+                                                    nullable
                                                     options={["Confirmado", "Cancelado"]}
+                                                    name="confirmacion"
+                                                    label="Confirmacion de asistencia"
                                                     labelClass={false}
                                                 />
                                                 <SelectField
-                                                    id={`nombre_menu_${i}`}
-                                                    name={`nombre_menu_${i}`}
+                                                    name={`nombre_menu`}
                                                     label={"Menu"}
-                                                    options={[/* ...event?.menus_array?.map(elem => elem.nombre_menu), "sin menú" */]}
+                                                    options={[...menus_array?.map(elem => elem.nombre_menu), "sin menú"]}
                                                 />
                                             </div>
                                         </div>

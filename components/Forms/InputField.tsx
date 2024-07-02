@@ -30,13 +30,7 @@ const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled =
   const [optionSelect, setOptionSelect] = useState<Flag>(flags.find(elem => elem.pre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') === geoInfo?.ipcountry.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')))
   const [filterFlags, setFilterFlags] = useState<string>()
   const [number, setNumber] = useState<string>("")
-
-  useEffect(() => {
-    if (props.name === "telefono") {
-      console.log("inputField", props.name)
-      console.log("inputField", field)
-    }
-  }, [field.value])
+  const [valir, setValir] = useState(0)
 
   useEffect(() => {
     if (filterFlags) {
@@ -46,9 +40,10 @@ const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled =
   }, [filterFlags])
 
   useEffect(() => {
-    if (props?.type === "telefono" && optionSelect) {
+    if (props?.type === "telefono" && optionSelect && valir) {
       helpers.setValue(`+${optionSelect?.cod}${number}`)
     }
+    setValir(1)
   }, [optionSelect])
 
   useEffect(() => {

@@ -104,18 +104,24 @@ export const queries = {
 
   getPGuestEvent: `query($p:String){
     getPGuestEvent(p:$p){
-      _id
-      sexo
-      nombre
-      estatus
-      correo
-      telefono
-      asistencia
-      alergenos
-      passesQuantity
-      father
-      nombre_menu
-      grupo_edad
+      invitados_array{
+        _id
+        sexo
+        nombre
+        estatus
+        correo
+        telefono
+        asistencia
+        alergenos
+        passesQuantity
+        father
+        nombre_menu
+        grupo_edad
+      }
+      menus_array{
+        nombre_menu
+        tipo
+      }
     }
   }`,
 
