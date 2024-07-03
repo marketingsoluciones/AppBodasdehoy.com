@@ -71,14 +71,14 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
     }).test("Unico", `Número asignado a otro invitado`, (value) => {
       const name = document.activeElement?.getAttribute("name")
       if (name !== "telefono" && value?.length > 3) {
-        return !event.invitados_array.map(item => item.telefono).includes(value)
+        return !event.invitados_array.map(item => item?.telefono).includes(value)
       } else {
         return true
       }
     }),
     rol: yup.string().required("Rol requerido"),
     correo: yup.string().email().test("Unico", "Correo asignado a otro invitado", (value) => {
-      return !event.invitados_array.map(item => item.correo).includes(value)
+      return !event.invitados_array.map(item => item?.correo).includes(value)
     })
   });
 

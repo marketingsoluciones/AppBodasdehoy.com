@@ -1,11 +1,12 @@
 import { Formik, Form } from "formik"
 import InputField from "./InputField"
 import SelectField from "./SelectField"
-import * as yup from "yup";
 import { phoneUtil } from "../../utils/Authentication";
 import { AuthContextProvider, EventContextProvider } from "../../context";
 import { FC } from "react";
 import { guests, menu } from "../../utils/Interfaces";
+import { useRouter } from "next/router";
+import { fetchApiEventos, queries } from "../../utils/Fetching";
 
 interface props {
     visible: boolean
@@ -18,24 +19,20 @@ interface props {
 
 export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestData, guestFather, menus_array }) => {
     const { geoInfo } = AuthContextProvider();
-    const { event } = EventContextProvider()
-
+    const router = useRouter()
     const GuestAcompañantes = guestData.filter(e => e.father != null)
     const GuetsArray = Array.from({ length: guestFather?.passesQuantity }, (_, index) => index);
-
-    let yupSchema = {}
+    const eventID = router?.query?.pGuestEvent?.slice(-24)
 
     let initialValues = {
         nombre: guestFather?.nombre ?? "",
         telefono: guestFather?.telefono ? guestFather?.telefono : `+${phoneUtil.getCountryCodeForRegion(geoInfo?.ipcountry)}`,
-        email: guestFather?.correo ?? "",
+        correo: guestFather?.correo ?? "",
         sexo: guestFather?.sexo ?? "",
-        edad: guestFather?.grupo_edad ?? "",
-        menu: guestFather?.nombre_menu ?? "",
+        grupo_edad: guestFather?.grupo_edad ?? "",
+        nombre_menu: guestFather?.nombre_menu ?? "",
         confirmacion: guestFather?.asistencia ?? "",
     }
-
-
 
     for (let i = 0; i < guestFather?.passesQuantity; i++) {
         initialValues = {
@@ -51,8 +48,29 @@ export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestD
     }
 
     const handelSubmit = (values: any) => {
-        /*  setVisible(!visible) */
-        console.log(values)
+        let sendValues = []
+        for (let i = 0; i < guestFather?.passesQuantity; i++) {
+            const item = {
+                nombre: values[`nombre_${i}`],
+                telefono: values[`telefono_${i}`],
+                correo: values[`correo_${i}`],
+                sexo: values[`sexo_${i}`],
+                grupo_edad: values[`grupo_edad_${i}`],
+                nombre_menu: values[`nombre_menu_${i}`],
+            }
+            sendValues.push(item)
+        }
+        fetchApiEventos({
+            query: queries.createGuests,
+            variables: {
+                eventID: eventID,
+                guestsArray: sendValues
+            },
+        }).then(result => {
+            if (result === "ok") {
+                console.log("ok")
+            }
+        })
     }
 
     return (
@@ -79,7 +97,7 @@ export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestD
                             </div>
                             <div className="grid md:grid-cols-2 md:gap-5">
                                 <InputField
-                                    name="email"
+                                    name="correo"
                                     label="Correo electronico"
                                     type="email"
                                     labelClass={false}
@@ -94,7 +112,7 @@ export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestD
                                     />
                                     <SelectField
                                         options={["Adulto", "Niño"]}
-                                        name="edad"
+                                        name="grupo_edad"
                                         label="Edad"
                                         labelClass={false}
                                     />
@@ -159,8 +177,8 @@ export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestD
                                             </div>
                                             <div className="grid md:grid-cols-2 md:gap-5">
                                                 <InputField
-                                                    id={`email_${i}`}
-                                                    name={`email_${i}`}
+                                                    id={`correo_${i}`}
+                                                    name={`correo_${i}`}
                                                     label="Correo electronico"
                                                     type="email"
                                                     labelClass={false}
@@ -175,7 +193,7 @@ export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestD
                                                     />
                                                     <SelectField
                                                         id={`edad_${i}`}
-                                                        name={`edad_${i}`}
+                                                        name={`grupo_edad_${i}`}
                                                         label="Edad"
                                                         options={["Adulto", "Niño"]}
                                                         labelClass={false}
@@ -186,12 +204,12 @@ export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestD
                                                 <SelectField
                                                     nullable
                                                     options={["Confirmado", "Cancelado"]}
-                                                    name="confirmacion"
+                                                    name={`confirmacion_${i}`}
                                                     label="Confirmacion de asistencia"
                                                     labelClass={false}
                                                 />
                                                 <SelectField
-                                                    name={`nombre_menu`}
+                                                    name={`nombre_menu_${i}`}
                                                     label={"Menu"}
                                                     options={[...menus_array?.map(elem => elem.nombre_menu), "sin menú"]}
                                                 />

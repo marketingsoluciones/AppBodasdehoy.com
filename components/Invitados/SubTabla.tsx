@@ -1,8 +1,7 @@
 
-import { FC, cloneElement, useEffect, useState } from "react";
+import { FC, cloneElement } from "react";
 import { EventContextProvider } from "../../context";
 import { CanceladoIcon, ConfirmadosIcon, PendienteIcon } from "../icons";
-
 
 interface propsSubComponenteTabla {
     row?: any,
@@ -12,14 +11,8 @@ interface propsSubComponenteTabla {
 
 export const SubComponenteTabla: FC<propsSubComponenteTabla> = ({ row, wantCreate, getId }) => {
     const { event } = EventContextProvider();
-    const GuestsByFather = event.invitados_array.filter((invitado) => invitado.father === getId)
-    console.log(getId,row)
- /*    useEffect(() => {
-      
-            row.toggleRowExpanded(false);
-      
-    }, [getId]); */
-
+    console.log(event?.invitados_array)
+    const GuestsByFather = event?.invitados_array?.filter((invitado) => invitado?.father === getId)
     return (
         <div className="grid bg-base px-10 pb-12 pt-6 relative">
             <ListadoComponent
@@ -104,14 +97,14 @@ const ListadoComponent = ({ row, GuestsByFather }) => {
 
                         <span className="items-center col-span-2 flex flex-col h-full">
                             <p className="font-body text-[15px] font-semibold">Menu</p>
-                            <p className="h-full flex items-center">
+                            <p className="h-full flex items-center capitalize">
                                 {item.nombre_menu}
                             </p>
                         </span>
 
                         <span className="items-center col-span-2 flex flex-col  h-full">
                             <p className="font-body text-[15px] font-semibold">edad</p>
-                            <p className={`font-display text-md h-full flex items-center`}>
+                            <p className={`font-display text-md h-full flex items-center capitalize`}>
                                 {item.grupo_edad}
                             </p>
                         </span>

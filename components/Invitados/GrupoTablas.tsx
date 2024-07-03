@@ -34,6 +34,7 @@ interface guestsExt extends guests {
 const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIsMounted, menu = [] }) => {
   const toast = useToast()
   const { event, setEvent, invitadoCero, setInvitadoCero, allFilterGuests, planSpaceActive, setPlanSpaceActive, filterGuests } = EventContextProvider();
+  const GuestsFathers = event?.invitados_array?.filter((invitado) => invitado?.father === null)
   const [data, setData] = useState<{ titulo: string; data: guestsExt[] }[]>([]);
   const [isAllowed] = useAllowed()
   const [acompañanteID, setAcompañanteID] = useState({ id: "", crear: true })
@@ -43,7 +44,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
   }, [acompañanteID.id])
 
   useEffect(() => {
-    setInvitadoCero(event?.invitados_array?.filter(elem => elem.rol === event?.grupos_array[0])[0]?.nombre)
+    setInvitadoCero(event?.invitados_array?.filter(elem => elem?.rol === event?.grupos_array[0])[0]?.nombre)
   }, [event?.invitados_array, event?.grupos_array])
 
   useEffect(() => {
@@ -53,7 +54,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
     }
     const tablesRecepcion = event?.planSpace.find(elem => elem?.title === "recepcion")?.tables
     const tablesCeremonia = event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables
-    const Data = event.invitados_array.reduce((acc, item: guestsExt) => {
+    const Data = GuestsFathers.reduce((acc, item: guestsExt) => {
       const guestRecepcion = allFilterGuests[0]?.sentados.find(elem => elem._id === item._id)
       const guestCeremonia = allFilterGuests[1]?.sentados.find(elem => elem._id === item._id)
       const tableRecepcion = tablesRecepcion?.find(elem => elem._id === guestRecepcion?.tableID)
@@ -594,7 +595,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                 const { invitados_array: arr } = old;
 
                 const resultado = arr.filter(
-                  (invitado) => invitado._id !== rowID
+                  (invitado) => invitado?._id !== rowID
                 );
                 return {
                   ...old,
