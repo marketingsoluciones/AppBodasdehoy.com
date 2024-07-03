@@ -12,7 +12,10 @@ const BlockCabecera = () => {
   const [isAllowed, ht] = useAllowed()
 
   const totalSegun = (prop, param) => {
-    console.log(prop)
+    console.log(111, prop)
+    console.log(112, param)
+    console.log(113, event?.invitados_array)
+
     return event?.invitados_array?.filter((item) => item[prop] == param);
   };
 

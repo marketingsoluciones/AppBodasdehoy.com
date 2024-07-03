@@ -63,7 +63,7 @@ const Invitados: FC = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 gap-4">
-              {/* <BlockCabecera /> */}
+              <BlockCabecera />
               <BlockListaInvitados state={isMounted} set={reciboClick} createPDF={createPDF} setCreatePDF={setCreatePDF} />
             </motion.div>
           </section >}

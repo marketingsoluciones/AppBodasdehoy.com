@@ -8,8 +8,9 @@ import { AuthContextProvider } from "../../../context";
 import { useToast } from "../../../hooks/useToast";
 import { EstatusItinerario } from "./EstatusItinerario";
 import { WorkFlowItinerario } from "./WorkFlowItinerario";
+import { LiaLinkSolid } from "react-icons/lia";
 
-export const Task = ({ itinerario, task, title, disable, ht, setModalStatus, modalStatus, setModalWorkFlow, modalWorkFlow }) => {
+export const Task = ({ itinerario, task, title, disable, ht, setModalStatus, modalStatus, setModalWorkFlow, modalWorkFlow,setModalCompartirTask, modalCompartirTask }) => {
   const { domain } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
   const toast = useToast()
@@ -92,12 +93,11 @@ export const Task = ({ itinerario, task, title, disable, ht, setModalStatus, mod
               <div className="col-span-4 md:-mr-3* mr-6 px-8 md:px-0 ">
                 <Tips name="tips" onBlur={() => { handleBlurData("tips", values.tips) }} disable={disable} ht={ht} />
               </div>
-              <div className="flex items-center justify-center py-3 md:py-0 space-x-2">
+              <div className="grid grid-cols-4 items-center justify-center py-3 md:py-0 space-x-2* gap-1 ">
                 <EstatusItinerario setModalStatus={setModalStatus} modalStatus={modalStatus} />
                 <WorkFlowItinerario setModalWorkFlow={setModalWorkFlow} modalWorkFlow={modalWorkFlow} />
-                <div>
-                  <MdOutlineDeleteOutline className="w-7 h-auto cursor-pointer text-gray-500 hover:text-gray-700" onClick={() => disable ? ht() : deleteTask()} />
-                </div>
+                <LiaLinkSolid className="h-auto w-5 cursor-pointer text-gray-500 hover:text-gray-700" onClick={()=>setModalCompartirTask(!modalCompartirTask)} />
+                <MdOutlineDeleteOutline className="w-7 h-auto cursor-pointer text-gray-500 hover:text-gray-700" onClick={() => disable ? ht() : deleteTask()} />
               </div>
             </div>
           </Form>

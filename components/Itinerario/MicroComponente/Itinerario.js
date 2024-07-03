@@ -30,6 +30,7 @@ export const Itinerario = ({ data }) => {
     const [modal, setModal] = useState(false)
     const [modalStatus, setModalStatus] = useState(false)
     const [modalWorkFlow, setModalWorkFlow] = useState(false)
+    const [modalCompartirTask, setModalCompartirTask] = useState(false)
 
 
 
@@ -98,7 +99,7 @@ export const Itinerario = ({ data }) => {
                     {tasks?.map((elem, idx) => {
                         return (
                             <div key={idx}>
-                                <Task task={elem} itinerario={itinerario} title={data?.title} disable={disable} ht={ht} setModalStatus={setModalStatus} modalStatus={modalStatus} setModalWorkFlow={setModalWorkFlow} modalWorkFlow={modalWorkFlow} />
+                                <Task task={elem} itinerario={itinerario} title={data?.title} disable={disable} ht={ht} setModalStatus={setModalStatus} modalStatus={modalStatus} setModalWorkFlow={setModalWorkFlow} modalWorkFlow={modalWorkFlow} setModalCompartirTask={setModalCompartirTask} modalCompartirTask={modalCompartirTask} />
                             </div>
                         )
                     })
@@ -116,6 +117,10 @@ export const Itinerario = ({ data }) => {
             }
             {modalWorkFlow && <Modal classe={"w-[30%] h-[370px]"}>
                 <WarningMessage setModal={setModalWorkFlow} modal={modalWorkFlow} title={"WorkFlow"} />
+            </Modal>
+            }
+            {modalCompartirTask && <Modal classe={"w-[30%] h-[370px]"}>
+                <WarningMessage setModal={setModalCompartirTask} modal={modalCompartirTask} title={"Compartir"} />
             </Modal>
             }
         </>

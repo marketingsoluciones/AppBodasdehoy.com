@@ -39,6 +39,9 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
   const [isAllowed] = useAllowed()
   const [acompañanteID, setAcompañanteID] = useState({ id: "", crear: true })
 
+
+console.log(event?.invitados_array)
+
   useEffect(() => {
     setAcompañanteID(old => ({ ...old, crear: false }))
   }, [acompañanteID.id])

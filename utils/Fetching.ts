@@ -849,6 +849,7 @@ export const queries = {
   createGuests: `mutation ($eventID: String, $guestsArray : [invitAinput]) {
     creaInvitado(evento_id: $eventID, invitados_array: $guestsArray){
      invitados_array{
+       father
        _id
        nombre
        grupo_edad

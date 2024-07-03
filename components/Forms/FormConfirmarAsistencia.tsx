@@ -23,6 +23,7 @@ export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestD
     const GuestAcompañantes = guestData.filter(e => e.father != null)
     const GuetsArray = Array.from({ length: guestFather?.passesQuantity }, (_, index) => index);
     const eventID = router?.query?.pGuestEvent?.slice(-24)
+    console.log(guestFather)
 
     let initialValues = {
         nombre: guestFather?.nombre ?? "",
@@ -57,6 +58,8 @@ export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestD
                 sexo: values[`sexo_${i}`],
                 grupo_edad: values[`grupo_edad_${i}`],
                 nombre_menu: values[`nombre_menu_${i}`],
+                father: guestFather._id,
+                asistencia: values[`confirmacion_${i}`]
             }
             sendValues.push(item)
         }
