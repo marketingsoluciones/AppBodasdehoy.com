@@ -69,8 +69,8 @@ export const ResponsableList = ({ openModal, setOpenModal, DataArry, setSelectIc
                                         </div>
                                     )
                                 })
-                                : <div className="flex items-center justify-center h-full text-[20px] text-center">
-                                    no tienes invitados colaboradores
+                                : <div className=" flex items-center justify-center h-full text-[13.6px] text-center">
+                                        no tienes invitados colaboradores
                                 </div>
                         }
                     </div>

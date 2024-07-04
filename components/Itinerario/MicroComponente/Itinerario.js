@@ -31,8 +31,7 @@ export const Itinerario = ({ data }) => {
     const [modalStatus, setModalStatus] = useState(false)
     const [modalWorkFlow, setModalWorkFlow] = useState(false)
     const [modalCompartirTask, setModalCompartirTask] = useState(false)
-
-
+    const [modalPlantilla, setModalPlantilla] = useState(false)
 
     useEffect(() => {
         const itinerario = event?.itinerarios_array?.find(elem => elem.title === data?.title)
@@ -93,13 +92,26 @@ export const Itinerario = ({ data }) => {
 
     return (
         <>
-            <SubHeader button={modal} setButton={setModal} date={date} title={data?.title} itinerario={itinerario} disable={disable} ht={ht} />
+            <SubHeader button={modal} setButton={setModal} date={date} title={data?.title} itinerario={itinerario} disable={disable} ht={ht} setModalPlantilla={setModalPlantilla} modalPlantilla={modalPlantilla} />
             <div className="w-full h-full flex flex-col items-center">
                 <div className="w-[88%] divide-y-2 md:divide-y-0">
                     {tasks?.map((elem, idx) => {
                         return (
                             <div key={idx}>
-                                <Task task={elem} itinerario={itinerario} title={data?.title} disable={disable} ht={ht} setModalStatus={setModalStatus} modalStatus={modalStatus} setModalWorkFlow={setModalWorkFlow} modalWorkFlow={modalWorkFlow} setModalCompartirTask={setModalCompartirTask} modalCompartirTask={modalCompartirTask} />
+                                <Task
+                                    task={elem}
+                                    itinerario={itinerario}
+                                    title={data?.title}
+                                    disable={disable}
+                                    ht={ht}
+                                    setModalStatus={setModalStatus}
+                                    modalStatus={modalStatus}
+                                    setModalWorkFlow={setModalWorkFlow}
+                                    modalWorkFlow={modalWorkFlow}
+                                    setModalCompartirTask={setModalCompartirTask}
+                                    modalCompartirTask={modalCompartirTask}
+
+                                />
                             </div>
                         )
                     })
@@ -121,6 +133,10 @@ export const Itinerario = ({ data }) => {
             }
             {modalCompartirTask && <Modal classe={"w-[30%] h-[370px]"}>
                 <WarningMessage setModal={setModalCompartirTask} modal={modalCompartirTask} title={"Compartir"} />
+            </Modal>
+            }
+            {modalPlantilla && <Modal classe={"w-[30%] h-[370px]"}>
+                <WarningMessage setModal={setModalPlantilla} modal={modalPlantilla} title={"Plantilla"} />
             </Modal>
             }
         </>

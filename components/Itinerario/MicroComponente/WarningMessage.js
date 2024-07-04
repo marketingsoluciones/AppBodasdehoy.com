@@ -18,7 +18,11 @@ export const WarningMessage = ({ modal, setModal, title }) => {
             </div>
             <div className="flex flex-col space-y-1">
 
-                <button className="bg-primary rounded-lg px-3 py-1 text-white text-[15px]">Contactanos</button>
+                <button className="bg-primary rounded-lg px-3 py-1 text-white text-[15px]">
+                    <a href="https://wa.me/34910603622">
+                        Contactanos
+                    </a>
+                </button>
                 <button className="text-primary text-[12px]" onClick={() => setModal(!modal)}>Cerrar</button>
             </div>
         </div>

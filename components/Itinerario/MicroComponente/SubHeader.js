@@ -4,11 +4,11 @@ import { EventContextProvider } from "../../../context/EventContext"
 import { fetchApiEventos, queries } from "../../../utils/Fetching"
 
 
-export const SubHeader = ({ title, date, setButton, button, disable, ht }) => {
+export const SubHeader = ({ title, date, setButton, button, disable, ht, setModalPlantilla, modalPlantilla }) => {
     const { event } = EventContextProvider()
     const { user } = AuthContextProvider()
 
-    
+
 
     return (
         <div className="w-full px-4 md:px-10 py-4 space-y-2" >
@@ -23,12 +23,18 @@ export const SubHeader = ({ title, date, setButton, button, disable, ht }) => {
                         <span className="text-primary">{disable ? "Lectura" : "Edicion"}</span>
                     </div>
                 </div>
-                <div className="flex w-1/2 text-xs md:text-[14px] justify-end items-center">
+                <div className="flex flex-col w-1/2 text-xs md:text-[14px] justify-end items-end space-y-1">
                     <span
                         className="text-primary text-right cursor-pointer hover:text-pink-500"
                         onClick={() => disable ? ht() : setButton(!button)}
                     >
                         Restablecer todo el itinerario
+                    </span>
+                    <span
+                        className="text-primary text-right cursor-pointer hover:text-pink-500"
+                        onClick={() => disable ? ht() : setModalPlantilla(!modalPlantilla)}
+                    >
+                        Cargar plantilla
                     </span>
                 </div>
             </div>
