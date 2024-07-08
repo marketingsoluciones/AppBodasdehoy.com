@@ -7,7 +7,7 @@ import { ConfirmationBlock } from "../../components/Invitaciones/ConfirmationBlo
 import { DataTable } from "../../components/Invitaciones/DataTable"
 import { getFormatTime, getRelativeTime } from "../../utils/FormatTime";
 
-export const GuestTable: FC<any> = ({ data, multiSeled, reenviar }) => {
+export const GuestTable: FC<any> = ({ data, multiSeled, reenviar, activeFunction }) => {
   const [arrEnviarInvitaciones, setArrEnviatInvitaciones] = useState([]);
   const Columna = useMemo(
     () => [
@@ -146,7 +146,7 @@ export const GuestTable: FC<any> = ({ data, multiSeled, reenviar }) => {
           set={(act) => setArrEnviatInvitaciones(act)}
         />
       )}
-      <DataTable columns={Columna} data={data} multiSeled={multiSeled} setArrEnviatInvitaciones={setArrEnviatInvitaciones} reenviar={reenviar} />
+      <DataTable columns={Columna} data={data} multiSeled={multiSeled} setArrEnviatInvitaciones={setArrEnviatInvitaciones} reenviar={reenviar} activeFunction={activeFunction}/>
     </div>
   );
 };

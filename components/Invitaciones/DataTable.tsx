@@ -5,7 +5,7 @@ import { DataTableGroupContextProvider } from "../../context/DataTableGroupConte
 
 
 
-export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, setArrEnviatInvitaciones, reenviar }) => {
+export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, setArrEnviatInvitaciones, reenviar, activeFunction }) => {
   const [valir, setValir] = useState(false)
   const [asd, setAsd] = useState({ arrIDs: undefined, getToggleAllRowsSelectedProps: undefined })
 
@@ -82,12 +82,15 @@ export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, set
   return (
     <div className="relative">
       {multiSeled &&
-        <div className="w-24 py-3 ml-[52px]">
+        <div className=" flex justify-between py-3 ml-[52px] w-auto pr-5">
           <button
             disabled={!valir}
             onClick={() => { setArrEnviatInvitaciones(asd?.arrIDs) }}
-            className={`focus:outline-none ${valir ? "hover:opacity-70 transition bg-primary" : "bg-gray-300"} text-white py-1 rounded-lg text-center text-[10px] md:text-sm w-full`}>
+            className={`focus:outline-none ${valir ? "hover:opacity-70 transition bg-primary" : "bg-gray-300"} text-white py-1 px-2 rounded-lg text-center text-[10px] md:text-sm w-full*`}>
             {reenviar ? "Reenviar" : "Enviar"}
+          </button>
+          <button onClick={() => activeFunction()} className="border border-primary rounded-lg px-2 text-sm text-primary">
+            Detalles
           </button>
         </div>}
       <table
