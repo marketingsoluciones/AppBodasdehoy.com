@@ -8,7 +8,7 @@ export const EnviadosComponent = ({ dataInvitationSent, dataInvitationNotSent, e
     const [stateTablet, setStateTablet] = useState(false)
     const [stateSpinner, setStateSpinner] = useState(false)
 
-    console.log(stateSpinner)
+    console.log(dataInvitationNotSent)
     const activeFunction = () => {
         setStateSpinner(true)
         setTimeout(() => {
