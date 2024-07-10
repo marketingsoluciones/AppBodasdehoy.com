@@ -67,7 +67,7 @@ export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestD
             query: queries.createGuests,
             variables: {
                 eventID: eventID,
-                guestsArray: sendValues
+                invitados_array: sendValues
             },
         }).then(result => {
             if (result === "ok") {

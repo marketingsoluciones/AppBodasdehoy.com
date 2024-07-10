@@ -36,7 +36,7 @@ export const GuestTable: FC<any> = ({ data, multiSeled, reenviar, activeFunction
 
             <div className="flex gap-1 items-center justify-center md:justify-start ">
               <img
-                src={image[sexo]?.image}
+                src={image[sexo]?.image ? image[sexo]?.image : "/placeholder/user.png"}
                 className="rounded-full object-cover md:w-10 md:h-10 w-7 h-7"
               />
               <p className="font-display text-sm capitalize overflow-ellipsis text-black truncate">
@@ -101,14 +101,14 @@ export const GuestTable: FC<any> = ({ data, multiSeled, reenviar, activeFunction
         Cell: (props) => {
           const [value, setValue] = useState(props.value);
           const [hoverRef, isHovered] = useHover();
-    
+
           return (
             <>
               <div
                 ref={hoverRef}
                 className={`truncate relative w-full h-full flex items-center justify-center pl-3 gap-1  cursor-pointer transform transition hover:scale-105"`}
               >
-               0
+                0
               </div>
             </>
           );
@@ -146,7 +146,7 @@ export const GuestTable: FC<any> = ({ data, multiSeled, reenviar, activeFunction
           set={(act) => setArrEnviatInvitaciones(act)}
         />
       )}
-      <DataTable columns={Columna} data={data} multiSeled={multiSeled} setArrEnviatInvitaciones={setArrEnviatInvitaciones} reenviar={reenviar} activeFunction={activeFunction}/>
+      <DataTable columns={Columna} data={data} multiSeled={multiSeled} setArrEnviatInvitaciones={setArrEnviatInvitaciones} reenviar={reenviar} activeFunction={activeFunction} />
     </div>
   );
 };

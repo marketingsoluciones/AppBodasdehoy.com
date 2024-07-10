@@ -11,10 +11,10 @@ interface propsSubComponenteTabla {
 
 export const SubComponenteTabla: FC<propsSubComponenteTabla> = ({ row, wantCreate, getId }) => {
     const { event } = EventContextProvider();
-    console.log(event?.invitados_array)
+    console.log(11111, event?.invitados_array)
     const GuestsByFather = event?.invitados_array?.filter((invitado) => invitado?.father === getId)
     return (
-        <div className="grid bg-base px-10 pb-12 pt-6 relative">
+        <div className=" bg-base px-10 pb-12 pt-6 relative">
             <ListadoComponent
                 GuestsByFather={GuestsByFather}
                 row={row}
@@ -69,14 +69,33 @@ const ListadoComponent = ({ row, GuestsByFather }) => {
             <p className="text-gray-500 text-lg pb-2">
                 Acompañantes
             </p>
+            <div className="grid grid-cols-12 px-5 justify-between border-b py-4 border-gray-100  transition bg-white capitalize">
+                <span className="items-center col-span-2 flex flex-col ">
+                    <p className="font-body text-[15px] font-semibold">Nombre</p>
+                </span>
+                <span className="items-center col-span-2 flex flex-col h-full">
+                    <p className="font-body text-[15px] font-semibold">Asistencia</p>
+                </span>
+                <span className="items-center col-span-2 flex flex-col h-full">
+                    <p className="font-body text-[15px] font-semibold">Menu</p>
+                </span>
+                <span className="items-center col-span-2 flex flex-col  h-full">
+                    <p className="font-body text-[15px] font-semibold">edad</p>
+                </span>
+                <span className="items-center col-span-2 flex flex-col h-full">
+                    <p className="font-body text-[15px] font-semibold">Mesa Recepcion</p>
+                </span>
+                <span className="items-center col-span-2 flex flex-col  h-full">
+                    <p className="font-body text-[15px] font-semibold">Mesa  Ceremonia</p>
+                </span>
+            </div>
             {GuestsByFather.length ? GuestsByFather?.map((item, idx) => {
                 return (
                     <div
                         key={idx}
-                        className="grid grid-cols-8 px-5 justify-between border-b py-4 border-gray-100  transition bg-white  "
+                        className="grid grid-cols-12 px-5 justify-between border-b py-4 border-gray-100  transition bg-white  "
                     >
                         <span className="items-center col-span-2 flex flex-col ">
-                            <p className="font-body text-[15px] font-semibold">Nombre</p>
                             <div className="flex items-center justify-start gap-1 w-full p-2">
                                 <img
                                     className="block w-8 h-8 "
@@ -88,7 +107,6 @@ const ListadoComponent = ({ row, GuestsByFather }) => {
                         </span>
 
                         <span className="items-center col-span-2 flex flex-col h-full">
-                            <p className="font-body text-[15px] font-semibold">Asistencia</p>
                             <div className="flex items-center gap-1 h-full">
                                 {cloneElement(dicc[item.asistencia].icon, { className: "w-5 h-5" })}
                                 <p className="font-display text-md capitalize">{item.asistencia}</p>
@@ -96,27 +114,34 @@ const ListadoComponent = ({ row, GuestsByFather }) => {
                         </span>
 
                         <span className="items-center col-span-2 flex flex-col h-full">
-                            <p className="font-body text-[15px] font-semibold">Menu</p>
                             <p className="h-full flex items-center capitalize">
                                 {item.nombre_menu}
                             </p>
                         </span>
 
                         <span className="items-center col-span-2 flex flex-col  h-full">
-                            <p className="font-body text-[15px] font-semibold">edad</p>
                             <p className={`font-display text-md h-full flex items-center capitalize`}>
-                                {item.grupo_edad}
+                                {item?.grupo_edad ? item?.grupo_edad : "sin edad"}
+                            </p>
+                        </span>
+                        <span className="items-center col-span-2 flex flex-col  h-full">
+                            <p className={`font-display text-md h-full flex items-center capitalize`}>
+                                no asignado
+                            </p>
+                        </span>
+                        <span className="items-center col-span-2 flex flex-col  h-full">
+                            <p className={`font-display text-md h-full flex items-center capitalize`}>
+                                no asignado
                             </p>
                         </span>
                     </div>
                 )
-            } ) :
+            }) :
                 <span className="items-center col-span-3 flex gap-3 text-gray-500 justify-center pt-5">
                     Sin Acompañantes confirmados
-
                 </span>
             }
-            
+
         </>
     );
 };
