@@ -15,7 +15,7 @@ interface propsSelectField extends HtmlHTMLAttributes<HTMLSelectElement> {
 }
 const SelectField: FC<propsSelectField> = ({ label, children, options, colSpan, labelClass = true, nullable, ...props }) => {
     const { invitadoCero, event } = EventContextProvider();
-    const [field, meta] = useField({ name: props.name })
+    const [field, meta, { setValue }] = useField({ name: props.name })
     if (field.value == null) field.value = "sin menú"
 
     return (
