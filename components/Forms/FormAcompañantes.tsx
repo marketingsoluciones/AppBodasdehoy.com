@@ -1,33 +1,11 @@
-import { useEffect, useState } from "react"
+import {  useState } from "react"
 import { FormConfirmarAsistencia } from "../Forms/FormConfirmarAsistencia"
 import { ConfirmacionIcon } from "../icons"
-import { fetchApiEventos, queries } from "../../utils/Fetching"
 import { useRouter } from "next/router"
-import { Event, guests, menu } from "../../utils/Interfaces"
 
-export const FormComponent = () => {
+export const FormComponent = ({ guestData, guestFather, menus_array }) => {
     const router = useRouter()
     const [visible, setVisible] = useState<boolean>(false)
-    const [guestData, setGuestData] = useState<guests[]>()
-    const [guestFather, setGuestFather] = useState<guests>()
-    const [menus_array, setMenus_array] = useState<menu[]>()
-
-    useEffect(() => {
-        try {
-            fetchApiEventos({
-                query: queries.getPGuestEvent,
-                variables: {
-                    p: router?.query?.pGuestEvent
-                },
-            }).then((result: Event) => {
-                setGuestData(result?.invitados_array)
-                setGuestFather(result?.invitados_array?.find(e => e.father === null))
-                setMenus_array(result?.menus_array)
-            })
-        } catch (error) {
-            console.log(error)
-        }
-    }, [router?.query?.pGuestEvent])
 
     return (
         <>

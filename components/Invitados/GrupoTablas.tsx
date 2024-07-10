@@ -491,7 +491,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                   invitado_id: row.original._id
                 }
               })
-              setLink("")
+              setLink(result)
             } catch (error) {
               console.log(error)
             }

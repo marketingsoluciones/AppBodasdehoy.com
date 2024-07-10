@@ -846,8 +846,8 @@ export const queries = {
       _id
     }
   }`,
-  createGuests: `mutation ($eventID: String, $guestsArray : [invitAinput]) {
-    creaInvitado(evento_id: $eventID, invitados_array: $guestsArray){
+  createGuests: `mutation ($eventID: String, $invitados_array: [invitAinput]) {
+    creaInvitado(evento_id: $eventID, invitados_array: $invitados_array){
      invitados_array{
        father
        _id
