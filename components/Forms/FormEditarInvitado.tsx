@@ -1,6 +1,6 @@
 //@ts-check
 import { ErrorMessage, Formik, useField, FormikValues, Form } from 'formik';
-import { useContext, useEffect, useState } from "react";
+import { FC, useContext, useEffect, useState } from "react";
 import { EventContextProvider } from "../../context";
 import { BorrarInvitado, EditarInvitado } from "../../hooks/EditarInvitado";
 import { BorrarIcon } from "../icons";
@@ -29,9 +29,7 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
   const { event, setEvent } = EventContextProvider();
   const toast = useToast()
   const [hoverRef, isHovered] = useHover();
-  console.log(invitado)
-
-
+  const [mesasDisponibles, setMesasDiosponibles] = useState({ ceremonia: [], recepcion: [] })
 
   type MyValues = {
     nombre: string
@@ -41,7 +39,7 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
     telefono: string
     rol: string
     menu: string
-    passesQuantity:number
+    passesQuantity: number
   }
 
   const initialValues: MyValues = {
@@ -53,13 +51,12 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
     rol: invitado?.rol,
     menu: invitado?.nombre_menu,
     passesQuantity: invitado?.passesQuantity
-    
-
   }
 
-
   const handleSubmit = async (values: FormikValues, actions: any) => {
-    set(!state)
+    console.log(1000004, values)
+
+    //set(!state)
   }
 
   const handleRemove = async () => {
@@ -109,18 +106,19 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
       }
     }
 
-
   };
   return (
     <Formik
       initialValues={initialValues}
-      enableReinitialize
+      // enableReinitialize
       onSubmit={handleSubmit}
-      validationSchema={validationSchema}
+    // validationSchema={validationSchema}
     >
       {({ values, isSubmitting }) => {
+
         return (
           <>
+            <Asd values={values} />
             <Form
               className="text-gray-500 font-body lg:overflow-auto flex flex-col gap-8 w-full my-4 px-2"
             >
@@ -136,7 +134,7 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                   <InputField
                     name="nombre"
                     label="Nombre"
-                    onBlur={() => handleBlurData("nombre", values.nombre)}
+                    // onBlur={() => handleBlurData("nombre", values.nombre)}
                     type="text"
                   />
                 </div>
@@ -146,130 +144,162 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                     options={["pendiente", "confirmado", "cancelado"]}
                     name="asistencia"
                     label="Asistencia"
-                    onChangeCapture={(e: any) => handleBlurData("asistencia", e?.target?.value)}
+                  //onChangeCapture={(e: any) => handleBlurData("asistencia", e?.target?.value)}
                   />
                 </div>
               </div>
+              {!invitado?.father && <div className="w-full h-full gap-2 flex-col flex">
+                <div className="grid md:grid-cols-6 w-full gap-6 relative md:pl-20">
+                  <div className='col-span-2'>
+                    <InputField
+                      name="passesQuantity"
+                      label="Acompañantes"
+                      // onBlur={(e: any) => handleBlurData("passesQuantity", e.target.value)}
+                      type="number"
+                    />
+                  </div>
+                </div>
+              </div>}
               <div className="w-full h-full gap-2 flex-col flex">
-                <div className="grid md:grid-cols-6 w-full gap-6 relative  ">
+                <div className="md:grid md:grid-cols-9 w-full gap-6 relative  ">
                   <SelectField
-                    colSpan={2}
+                    colSpan={3}
                     options={event?.grupos_array}
                     name="rol"
-                    label="Grupo"
-                    onChangeCapture={(e: any) => handleBlurData("rol", e?.target?.value)}
+                    label="Rol o Grupo de invitados"
+                  // onChangeCapture={(e: any) => handleBlurData("rol", e?.target?.value)}
                   />
                   <SelectField
                     colSpan={2}
-                    options={event?.mesas_array?.map((item) => item?.nombre_mesa)}
+                    options={event?.planSpace.find(elem => elem?.title === "recepción")?.tables?.reduce((acc, item) => {
+                      console.log(5000002, item, item?.guests.length, item?.numberChair)
+                      if (item?.guests.length < item?.numberChair) {
+                        acc.push(item?.title)
+                      }
+                      return acc
+                    }, [])}
                     name="nombre_mesa"
-                    label="Mesa"
-                    onChangeCapture={(e: any) => handleBlurData("nombre_mesa", e.target.value)}
+                    label="Mesa Recepción"
+                  // onChangeCapture={(e: any) => handleBlurData("nombre_mesa", e.target.value)}
                   />
                   <SelectField
+                    colSpan={2}
+                    options={event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables?.reduce((acc, item) => {
+                      console.log(5000003, item, item?.guests.length, item?.numberChair)
+                      if (item?.guests.length < item?.numberChair) {
+                        acc.push(item?.title)
+                      }
+                      return acc
+                    }, [])}
+                    name="nombre_mesa"
+                    label="Mesa Ceremonia"
+                  // onChangeCapture={(e: any) => handleBlurData("nombre_mesa", e.target.value)}
+                  />
+                  <SelectField
+                    colSpan={2}
                     options={[...event?.menus_array?.map((item) => item?.nombre_menu), "sin menú"]}
                     name="nombre_menu"
                     label="Menú"
-                    onChangeCapture={(e: any) => handleBlurData("nombre_menu", e.target.value)}
-                  />
-                  <InputField
-                    name="passesQuantity"
-                    label="Acompañantes"
-                    onBlur={(e: any) => handleBlurData("passesQuantity", e.target.value)}
-                    type="number"
-                    
+                  // onChangeCapture={(e: any) => handleBlurData("nombre_menu", e.target.value)}
                   />
                 </div>
               </div>
               <div className="grid grid-cols-2 w-full gap-6 relative">
                 <BooleanSwitch
-                  disabled={true}
+                  // disabled={true}
                   label="Sexo"
                   lista={["hombre", "mujer"]}
                   name="sexo"
-                  onChangeCapture={(e: any) => handleBlurData("sexo", e.target.value)}
+                // onChangeCapture={(e: any) => handleBlurData("sexo", e.target.value)}
                 />
                 <BooleanSwitch
-                  disabled={true}
+                  // disabled={true}
                   label="Edad"
                   lista={["adulto", "niño"]}
                   name="grupo_edad"
-                  onChangeCapture={(e: any) => handleBlurData("grupo_edad", e.target.value)}
+                // onChangeCapture={(e: any) => handleBlurData("grupo_edad", e.target.value)}
                 />
               </div>
-              <div className="grid md:grid-cols-3 w-full gap-6 relative ">
-                <div ref={hoverRef}>
+              <div className="grid md:grid-cols-3 w-full gap-6 relative">
+                <div ref={hoverRef} className='md:col-span-6'>
                   <InputField
                     name="correo"
                     label="Correo"
-                    onBlur={(e: any) => handleBlurData("correo", e.target.value)}
+                    // onBlur={(e: any) => handleBlurData("correo", e.target.value)}
                     type="email"
                     disabled={true}
                   />
                   {isHovered && (
-                    <div className="transform translate-y-2 bg-gray-700 absolute z-10 top-14 rounded-lg text-white px-3 py-1 text-xs">
-                      Campo bloqueado, elmine el invitado y créelo nuevamente.
+                    <div className="transform w-[80%] md:w-[400px] pr-10 pt-2 md:pt-1 translate-y-2 bg-gray-700 absolute z-10 top-14 rounded-lg text-white px-3 py-1 text-xs">
+                      El correo no se puede modificar, si el correo no corresponde al invitado debes eliminar el invitado y crearlo nuevamente.
                     </div>
                   )}
                 </div>
                 <InputField
                   name="telefono"
                   label="Telefono"
-                  onBlur={(e: any) => handleBlurData("telefono", e.target.value)}
+                  // onBlur={(e: any) => handleBlurData("telefono", e.target.value)}
                   type="text"
                 />
-                <InputField
+                {/* <InputField
                   name="movil"
                   label="Movil"
-                  onBlur={(e: any) => handleBlurData("movil", e.target.value)}
+                  // onBlur={(e: any) => handleBlurData("movil", e.target.value)}
                   type="text"
-                />
-                <InputField
+                /> */}
+                {/* <InputField
                   name="direccion"
                   label="Dirección"
-                  onBlur={(e: any) => handleBlurData("direccion", e.target.value)}
+                  // onBlur={(e: any) => handleBlurData("direccion", e.target.value)}
                   type="text"
-                />
+                /> */}
                 <InputField
                   name="poblacion"
                   label="Población"
-                  onBlur={(e: any) => handleBlurData("poblacion", e.target.value)}
+                  // onBlur={(e: any) => handleBlurData("poblacion", e.target.value)}
                   type="text"
                 />
                 <InputField
                   name="pais"
                   label="País"
-                  onBlur={(e: any) => handleBlurData("pais", e.target.value)}
+                  // onBlur={(e: any) => handleBlurData("pais", e.target.value)}
                   type="text"
                 />
               </div>
-
-            </Form>
-            <div className="flex justify-between items-center text-gray-500 pt-2">
-              <div
-                className="flex gap-1 items-center justify-center hover:text-red transform transition duration-200 cursor-pointer"
-                onClick={handleRemove}
-              >
-                <BorrarIcon className="w-4 h-4 " />
-                <span className="font-display font-medium text-sm" onClick={() => set(!state)}>
-                  Eliminar Invitado
-                </span>
+              <div className="flex justify-between items-center text-gray-500 pt-2">
+                <div
+                  className="flex gap-1 items-center justify-center hover:text-red transform transition duration-200 cursor-pointer"
+                  onClick={handleRemove}
+                >
+                  <BorrarIcon className="w-4 h-4 " />
+                  <span className="font-display font-medium text-sm" onClick={() => set(!state)}>
+                    Eliminar Invitado
+                  </span>
+                </div>
+                <button
+                  className={`font-display float-right relative rounded-lg py-2 px-6 text-white font-medium transition w-max hover:opacity-70  ${isSubmitting ? "bg-secondary" : "bg-primary"
+                    }`}
+                  disabled={isSubmitting}
+                  type="submit"
+                // onClick={() => set(!state)}
+                >
+                  Guardar
+                </button>
               </div>
-              <button
-                className={`font-display float-right relative rounded-lg py-2 px-6 text-white font-medium transition w-max hover:opacity-70  ${isSubmitting ? "bg-secondary" : "bg-primary"
-                  }`}
-                disabled={isSubmitting}
-                onClick={() => set(!state)}
-              >
-                Guardar
-              </button>
-            </div>
+            </Form>
           </>
         )
       }}
     </Formik>
   );
 };
+
+const Asd = ({ values }) => {
+  useEffect(() => {
+    console.log(values)
+  }, [values])
+  return (<></>)
+}
 
 export default FormEditarInvitado;
 

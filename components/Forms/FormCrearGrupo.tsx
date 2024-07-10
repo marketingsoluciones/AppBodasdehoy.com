@@ -48,10 +48,10 @@ const FormCrearGrupo = ({ set, state }) => {
       {({ isSubmitting }) => (
         <Form className="w-full">
           <div className="border-l-2 border-gray-100 pl-3 w-full ">
-            <h2 className="font-display text-3xl capitalize text-primary font-light">
+            <h2 className="font-display text-3xl text-primary font-light">
               Crear <br />{" "}
-              <span className="font-display text-5xl capitalize text-gray-500 font-medium">
-                Grupo
+              <span className="font-display text-5xl text-gray-500 font-medium">
+                Grupo de invitados
               </span>{" "}
             </h2>
           </div>
@@ -65,7 +65,7 @@ const FormCrearGrupo = ({ set, state }) => {
                 />
                 <InputField
                   name="nombre"
-                  label="Nombre del grupo"
+                  label="Nombre del grupo de invitados"
                   type="text"
                 />
               </div>

@@ -115,6 +115,9 @@ const EventProvider = ({ children }) => {
     if (event) {
       //console.log("seteado event _________________________")
       console.log("seteado event", event)
+      console.log(5000040, "recepcion", event?.planSpace[0]?.tables[0]?.guests?.length, event?.planSpace[0]?.tables[0]?.guests)
+      console.log(5000041, "ceremonia red", event?.planSpace[1]?.tables[0]?.guests?.length, event?.planSpace[1]?.tables[0]?.guests)
+      console.log(5000042, "ceremonia cua", event?.planSpace[1]?.tables[1]?.guests?.length, event?.planSpace[1]?.tables[1]?.guests)
       const f1 = eventsGroup.findIndex(elem => elem?._id === event?._id)
       eventsGroup.splice(f1, 1, event)
       //console.log("SEUDO seteado eventsGroup", { ...eventsGroup })

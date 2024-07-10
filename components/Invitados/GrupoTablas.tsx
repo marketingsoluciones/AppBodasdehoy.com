@@ -6,7 +6,7 @@ import { api } from "../../api";
 import DataTableFinal from "./DataTable";
 import { BorrarInvitado } from "../../hooks/EditarInvitado";
 import { CanceladoIcon, ConfirmadosIcon, DotsOpcionesIcon, PendienteIcon, } from "../icons";
-import { guests } from "../../utils/Interfaces";
+import { guests, table } from "../../utils/Interfaces";
 import { DataTableGroupContextProvider, DataTableGroupProvider, } from "../../context/DataTableGroupContext";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
@@ -27,8 +27,8 @@ interface propsDatatableGroup {
 }
 
 interface guestsExt extends guests {
-  tableNameRecepcion: string
-  tableNameCeremonia: string
+  tableNameRecepcion: Partial<table>
+  tableNameCeremonia: Partial<table>
 }
 
 const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIsMounted, menu = [] }) => {
@@ -38,9 +38,6 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
   const [data, setData] = useState<{ titulo: string; data: guestsExt[] }[]>([]);
   const [isAllowed] = useAllowed()
   const [acompañanteID, setAcompañanteID] = useState({ id: "", crear: true })
-
-
-console.log(event?.invitados_array)
 
   useEffect(() => {
     setAcompañanteID(old => ({ ...old, crear: false }))
@@ -55,7 +52,7 @@ console.log(event?.invitados_array)
     for (let i = 0; i < event?.grupos_array?.length; i++) {
       asd = { ...asd, [event?.grupos_array[i]]: { titulo: event?.grupos_array[i], data: [] } }
     }
-    const tablesRecepcion = event?.planSpace.find(elem => elem?.title === "recepcion")?.tables
+    const tablesRecepcion = event?.planSpace.find(elem => elem?.title === "recepción")?.tables
     const tablesCeremonia = event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables
     const Data = GuestsFathers.reduce((acc, item: guestsExt) => {
       const guestRecepcion = allFilterGuests[0]?.sentados.find(elem => elem._id === item._id)
@@ -63,11 +60,11 @@ console.log(event?.invitados_array)
       const tableRecepcion = tablesRecepcion?.find(elem => elem._id === guestRecepcion?.tableID)
       const tableCeremonia = tablesCeremonia?.find(elem => elem._id === guestCeremonia?.tableID)
       item.chairs = [
-        { planSpaceName: "recepcion", chair: guestRecepcion?.chair, table: tableRecepcion },
+        { planSpaceName: "recepción", chair: guestRecepcion?.chair, table: tableRecepcion },
         { planSpaceName: "ceremmonia", chair: guestCeremonia?.chair, table: tableCeremonia },
       ]
-      item.tableNameRecepcion = tableRecepcion?.title ? tableRecepcion.title : "no asignado"
-      item.tableNameCeremonia = tableCeremonia?.title ? tableCeremonia.title : "no asignado"
+      item.tableNameRecepcion = tableRecepcion?.title ? tableRecepcion : { title: "no asignado" }
+      item.tableNameCeremonia = tableCeremonia?.title ? tableCeremonia : { title: "no asignado" }
 
       if (event?.grupos_array?.includes(item?.rol)) {
         acc[item.rol] = { titulo: item.rol, data: acc[item.rol]?.data ? [...acc[item.rol]?.data, item] : [item] }
@@ -79,14 +76,15 @@ console.log(event?.invitados_array)
     Data && setData(Object.values(Data));
   }, [allFilterGuests]);
 
-  const handleMoveGuest = (invitadoID, table) => {
+  const handleMoveGuest = ({ invitadoID, previousTable, lastTable }) => {
     try {
-      if (table?.guests?.length === table?.numberChair) {
+      if (lastTable?.guests?.length === lastTable?.numberChair) {
         toast("error", "La mesa tiene todos los puestos ocupados")
       }
-      for (let i = 0; i < table?.numberChair; i++) {
-        if (!table?.guests?.map(el => el.chair).includes(i)) {
-          moveGuest({ eventID: event._id, chair: i, invitadoID: invitadoID, tableID: table?._id, setEvent, planSpaceActive, setPlanSpaceActive })
+      for (let i = 0; i < lastTable?.numberChair; i++) {
+        if (!lastTable?.guests?.map(el => el.chair).includes(i)) {
+          console.log(50000012, "aqui", previousTable, lastTable)
+          moveGuest({ eventID: event._id, chair: i, invitadoID: invitadoID, tableID: lastTable?._id, previousTableID: previousTable?._id, setEvent, planSpaceActive, setPlanSpaceActive })
           toast("success", "El invitado fue sentado en la mesa")
           break
         }
@@ -334,13 +332,12 @@ console.log(event?.invitados_array)
         },
       },
       {
-        Header: "Mesa recepcion",
+        Header: "Mesa recepción",
         accessor: "tableNameRecepcion",
         Cell: ({ value: initialValue, row, column: { id } }) => {
           const [value, setValue] = useState(initialValue);
           const [show, setShow] = useState(false);
           const router = useRouter();
-
           return (
             <ClickAwayListener onClickAway={() => setShow(false)}>
               <div className="relative w-full flex justify-center items-center">
@@ -356,7 +353,7 @@ console.log(event?.invitados_array)
                     className="focus:outline-none font-display text-sm capitalize"
                     onClick={() => !isAllowed() ? null : setShow(!show)}
                   >
-                    {value}
+                    {value?.title}
                   </button>
                 )}
 
@@ -364,16 +361,18 @@ console.log(event?.invitados_array)
                   className={`${show ? "block opacity-100" : "hidden opacity-0"
                     } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-6 z-40 w-max`}
                 >
-                  {event?.planSpace.find(elem => elem?.title === "recepcion")?.tables?.map((elem, index) => {
+                  {event?.planSpace.find(elem => elem?.title === "recepción")?.tables?.map((elem, index) => {
                     return (
                       <li
                         key={index}
                         className="cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
                         onClick={() => {
-                          setValue(elem.title);
+                          const table = event?.planSpace.find(elem => elem?.title === "recepción")?.tables.find(el => el.title === elem.title)
                           setShow(!show);
-                          const table = event?.planSpace.find(elem => elem?.title === "recepcion")?.tables.find(el => el.title === elem.title)
-                          handleMoveGuest(row.original._id, table)
+                          if (value?._id !== elem?._id) {
+                            setValue(elem.title);
+                            handleMoveGuest({ invitadoID: row.original._id, previousTable: value, lastTable: table })
+                          }
                         }}
                       >
                         {elem?.title}
@@ -415,7 +414,7 @@ console.log(event?.invitados_array)
                     className="focus:outline-none font-display text-sm capitalize"
                     onClick={() => !isAllowed() ? null : setShow(!show)}
                   >
-                    {value}
+                    {value.title}
                   </button>
                 )}
 
@@ -429,10 +428,12 @@ console.log(event?.invitados_array)
                         key={index}
                         className="cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
                         onClick={() => {
-                          setValue(elem.title);
-                          setShow(!show);
                           const table = event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables.find(el => el.title === elem.title)
-                          handleMoveGuest(row.original._id, table)
+                          setShow(!show);
+                          if (value?._id !== elem?._id) {
+                            setValue(elem.title);
+                            handleMoveGuest({ invitadoID: row.original._id, previousTable: value, lastTable: table })
+                          }
                         }}
                       >
                         {elem?.title}
@@ -454,11 +455,10 @@ console.log(event?.invitados_array)
       {
         Header: "Acompañantes",
         accessor: "passesQuantity",
-        Cell: ({ value: initialValue, column: { id },  ...props }) => {
+        Cell: ({ value: initialValue, column: { id }, ...props }) => {
           const [value, setValue] = useState(initialValue);
-        console.log(props)
           const handleClick = () => {
-            setAcompañanteID({ id: props.row.original._id, crear: false})
+            setAcompañanteID({ id: props.row.original._id, crear: false })
             props?.toggleAllRowsExpanded(false)
             props?.row?.toggleRowExpanded()
             return
@@ -486,12 +486,12 @@ console.log(event?.invitados_array)
             try {
               const result = await fetchApiEventos({
                 query: queries.getLinkInvitation,
-                variables: { 
+                variables: {
                   evento_id: event._id,
                   invitado_id: row.original._id
                 }
               })
-              setLink(result)
+              setLink("")
             } catch (error) {
               console.log(error)
             }

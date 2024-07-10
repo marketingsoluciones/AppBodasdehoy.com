@@ -240,6 +240,7 @@ type propsMoveInvitado = {
   invitadoID: string,
   chair: number,
   tableID: string,
+  previousTableID?: string,
   eventID: string,
   setEvent: Dispatch<SetStateAction<Event>>
   planSpaceActive: planSpace
@@ -247,7 +248,7 @@ type propsMoveInvitado = {
   filterGuests?: any
   prefijo?: string
 }
-export const moveGuest = async ({ invitadoID, chair, tableID, eventID, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo }: propsMoveInvitado): Promise<void> => {
+export const moveGuest = async ({ invitadoID, chair, tableID, previousTableID, eventID, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo }: propsMoveInvitado): Promise<void> => {
   try {
     console.log({ chair })
     if (chair >= 0) {
@@ -280,7 +281,7 @@ export const moveGuest = async ({ invitadoID, chair, tableID, eventID, setEvent,
       });
     }
     //console.log(4511, prefijo, !chair)
-    if (prefijo === "dragS") {
+    if (prefijo === "dragS" || previousTableID) {
 
       const gestPrevMove = filterGuests.sentados.find(elem => elem._id === invitadoID)
       const f1 = planSpaceActive.tables.findIndex(elem => elem._id === gestPrevMove.tableID)
