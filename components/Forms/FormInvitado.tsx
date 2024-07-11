@@ -103,7 +103,7 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
         query: queries.createGuests,
         variables: {
           eventID: event._id,
-          guestsArray: values,
+          invitados_array: values,
         },
       });
 
