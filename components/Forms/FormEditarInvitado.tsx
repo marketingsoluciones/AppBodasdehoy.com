@@ -56,7 +56,7 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
   const handleSubmit = async (values: FormikValues, actions: any) => {
     console.log(1000004, values)
 
-    //set(!state)
+    set(!state)
   }
 
   const handleRemove = async () => {

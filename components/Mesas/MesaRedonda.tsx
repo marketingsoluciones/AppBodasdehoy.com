@@ -37,8 +37,8 @@ export const MesaRedondaNew: FC<propsRedonda> = ({ table, invitados, setDisableW
               position={360 / table.numberChair * (idx + 1)}
               radio={adyacente}
             >
-              {invitados.filter(element => element.chair == item.toString())[0] && <SentadoItem
-                invitado={invitados.filter(element => element.chair == item.toString())[0]}
+              {invitados?.filter(element => element.chair == item.toString())[0] && <SentadoItem
+                invitado={invitados?.filter(element => element.chair == item.toString())[0]}
                 setDisableWrapper={setDisableWrapper}
               />}
               <span />
