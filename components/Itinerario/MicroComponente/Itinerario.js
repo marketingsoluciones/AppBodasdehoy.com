@@ -119,23 +119,23 @@ export const Itinerario = ({ data }) => {
                 </div>
                 <AddEvent tasks={tasks} itinerario={itinerario} disable={disable} />
             </div>
-            {modal && <Modal classe={"w-[30%] h-[20%]"}>
-                <DeleteConfirmation setModal={setModal} modal={modal} deleteItinerario={deleteItinerario} />
+            {modal && <Modal classe={"w-[95%] md:w-[450px] h-[200px]"}>
+                <DeleteConfirmation setModal={setModal} modal={modal} title={"¿ Estas seguro de borrar todo el itinerario ?"} handle={deleteItinerario} />
             </Modal>
             }
-            {modalStatus && <Modal classe={"w-[30%] h-[370px]"}>
+            {modalStatus && <Modal classe={"w-[95%] md:w-[450px] h-[370px]"}>
                 <WarningMessage setModal={setModalStatus} modal={modalStatus} title={"Visibilidad"} />
             </Modal>
             }
-            {modalWorkFlow && <Modal classe={"w-[30%] h-[370px]"}>
+            {modalWorkFlow && <Modal classe={"w-[95%] md:w-[450px] h-[370px]"}>
                 <WarningMessage setModal={setModalWorkFlow} modal={modalWorkFlow} title={"WorkFlow"} />
             </Modal>
             }
-            {modalCompartirTask && <Modal classe={"w-[30%] h-[370px]"}>
+            {modalCompartirTask && <Modal classe={"w-[95%] md:w-[450px] h-[370px]"}>
                 <WarningMessage setModal={setModalCompartirTask} modal={modalCompartirTask} title={"Compartir"} />
             </Modal>
             }
-            {modalPlantilla && <Modal classe={"w-[30%] h-[370px]"}>
+            {modalPlantilla && <Modal classe={"w-[95%] md:w-[450px] h-[370px]"}>
                 <WarningMessage setModal={setModalPlantilla} modal={modalPlantilla} title={"Plantilla"} />
             </Modal>
             }

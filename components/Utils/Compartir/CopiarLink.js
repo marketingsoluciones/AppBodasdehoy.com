@@ -1,16 +1,19 @@
 import { FaCheck, FaRegCopy } from "react-icons/fa";
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ClickAwayListener from "react-click-away-listener";
 import { PiCheckFatBold } from "react-icons/pi";
+import { fetchApiEventos, queries } from "../../../utils/Fetching";
 
-export const CopiarLink = ({ link }) => {
+export const CopiarLink = ({ evento_id, invitado_id }) => {
     const [copied, setCopied] = useState(false)
 
+    const link = `${window?.location?.origin}?pGuestEvent=${invitado_id}${evento_id?.slice(3, 9)}${evento_id}`
+
     return (
-        <div className="flex flex-col space-y-1 w-full">
+        <div className="bb-red flex flex-col space-y-1 w-full">
             <input type="text"
-                value={link}
+                defaultValue={link}
                 className="border-[1px] border-gray-300 h-7 w-full text-xs text-gray-700 px-2 py-1 flex items-center rounded-xl" />
             <ClickAwayListener onClickAway={() => { setCopied(false) }}>
                 <div>

@@ -32,6 +32,7 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
   const [mesasDisponibles, setMesasDiosponibles] = useState({ ceremonia: [], recepcion: [] })
 
   type MyValues = {
+    _id: string
     nombre: string
     sexo: string
     grupo_edad: string
@@ -43,6 +44,7 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
   }
 
   const initialValues: MyValues = {
+    _id: invitado?._id,
     nombre: invitado?.nombre,
     sexo: invitado?.sexo,
     grupo_edad: invitado?.grupo_edad,
@@ -54,7 +56,14 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
   }
 
   const handleSubmit = async (values: FormikValues, actions: any) => {
-    console.log(1000004, values)
+    const result: any = await fetchApiEventos({
+      query: queries.createGuests,
+      variables: {
+        eventID: event._id,
+        invitados_array: [values],
+      },
+    });
+    console.log(1000004, result)
 
     set(!state)
   }
@@ -266,16 +275,7 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                   type="text"
                 />
               </div>
-              <div className="flex justify-between items-center text-gray-500 pt-2">
-                <div
-                  className="flex gap-1 items-center justify-center hover:text-red transform transition duration-200 cursor-pointer"
-                  onClick={handleRemove}
-                >
-                  <BorrarIcon className="w-4 h-4 " />
-                  <span className="font-display font-medium text-sm" onClick={() => set(!state)}>
-                    Eliminar Invitado
-                  </span>
-                </div>
+              <div className="flex justify-end items-center text-gray-500 pt-2">
                 <button
                   className={`font-display float-right relative rounded-lg py-2 px-6 text-white font-medium transition w-max hover:opacity-70  ${isSubmitting ? "bg-secondary" : "bg-primary"
                     }`}

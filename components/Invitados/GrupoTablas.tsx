@@ -16,6 +16,9 @@ import { LiaLinkSolid } from "react-icons/lia";
 import { CopiarLink } from "../Utils/Compartir";
 import { SubComponenteTabla } from "./SubTabla";
 import DetallesPago from "../Presupuesto/DetallesPago";
+import { IoIosArrowDown } from "react-icons/io";
+import { Modal } from "../Utils/Modal";
+import { DeleteConfirmation } from "../Itinerario/MicroComponente/DeleteConfirmation";
 
 interface propsDatatableGroup {
   GruposArray: string[];
@@ -38,6 +41,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
   const [data, setData] = useState<{ titulo: string; data: guestsExt[] }[]>([]);
   const [isAllowed] = useAllowed()
   const [acompañanteID, setAcompañanteID] = useState({ id: "", crear: true })
+  const [modal, setModal] = useState({ state: false, title: null, handle: () => { } })
 
   useEffect(() => {
     setAcompañanteID(old => ({ ...old, crear: false }))
@@ -84,7 +88,14 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
       for (let i = 0; i < lastTable?.numberChair; i++) {
         if (!lastTable?.guests?.map(el => el.chair).includes(i)) {
           console.log(50000012, "aqui", previousTable, lastTable)
-          moveGuest({ eventID: event._id, chair: i, invitadoID: invitadoID, tableID: lastTable?._id, previousTableID: previousTable?._id, setEvent, planSpaceActive, setPlanSpaceActive })
+
+
+
+
+
+
+
+          //moveGuest({ eventID: event._id, chair: i, invitadoID: invitadoID, tableID: lastTable?._id, previousTableID: previousTable?._id, setEvent, planSpaceActive, setPlanSpaceActive })
           toast("success", "El invitado fue sentado en la mesa")
           break
         }
@@ -466,10 +477,13 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
           return (
             <div className="relative w-full flex justify-center items-center">
               <button
-                className="focus:outline-none font-display text-sm capitalize"
-                onClick={() => !isAllowed() ? null : handleClick()}
+                className="focus:outline-none font-display text-sm capitalize flex items-center"
+                onClick={() => !isAllowed() ? null : value && handleClick()}
               >
                 {value ? value : 0}
+                <div className="w-2">
+                  <IoIosArrowDown className={`${!value && "hidden"} ml-1 text-gray-500`} />
+                </div>
               </button>
             </div >
           );
@@ -480,27 +494,6 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         accessor: "compartir",
         Cell: ({ value: initialValue, row }) => {
           const [show, setShow] = useState(false);
-          const [link, setLink] = useState<any>("")
-
-          const GetLink = async () => {
-            try {
-              const result = await fetchApiEventos({
-                query: queries.getLinkInvitation,
-                variables: {
-                  evento_id: event._id,
-                  invitado_id: row.original._id
-                }
-              })
-              setLink(result)
-            } catch (error) {
-              console.log(error)
-            }
-          }
-
-          useEffect(() => {
-            GetLink()
-          }, [])
-
           return (
             <ClickAwayListener onClickAway={() => setShow(false)}>
               <div className="relative w-full flex justify-center items-center">
@@ -510,16 +503,16 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                 >
                   <LiaLinkSolid className="h-auto w-5" />
                 </button>
-                <ul
+                {show && <ul
                   className={`${show ? "block opacity-100" : "hidden opacity-0"
                     } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-6 z-40 w-[300px]`}
                 >
                   <li
                     className="flex items-center py-4 px-6 font-display text-sm text-gray-500 bg-base transition w-full capitalize"
                   >
-                    <CopiarLink link={link && link?.link} />
+                    <CopiarLink evento_id={event._id} invitado_id={row.original._id} />
                   </li>
-                </ul>
+                </ul>}
               </div>
             </ClickAwayListener>
           );
@@ -624,33 +617,59 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
               function: () => HandleEdit(row.row.original._id),
             },
           ];
-
+          //gvp*hqx7xgf.PWP0xky
+          //miki.ibarra@vivetuboda.com
 
           return (
-            <ClickAwayListener onClickAway={() => show && setShow(false)}>
-              <div className="w-full flex justify-end items-center relative">
-                <span
-                  onClick={() => !isAllowed() ? null : setShow(!show)}
-                  className="cursor-pointer relative w-max rounded-lg text-sm text-gray-700"
-                >
-                  <DotsOpcionesIcon className="text-gray-500 w-4 h-4" />
-                </span>
-                <ul
-                  className={`${show ? "block" : "hidden"
-                    } top-0 right-0 absolute w-max border border-base bg-white capitalize rounded-md overflow-hidden shadow-lg z-10 translate-x-[-12px]`}
-                >
-                  {Lista.map((item, idx) => (
-                    <li
-                      key={idx}
-                      onClick={item.function}
-                      className="font-display cursor-pointer border-base border block px-4 text-sm text-gray-500 hover:text-gray-500 hover:bg-base py-3"
-                    >
-                      {item.title}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </ClickAwayListener>
+            <>
+              {modal.state && <Modal classe={"w-[95%] md:w-[450px] h-[200px]"}>
+                <DeleteConfirmation setModal={setModal} modal={modal} />
+              </Modal>}
+              <ClickAwayListener onClickAway={() => show && setShow(false)}>
+                <div className="w-full flex justify-end items-center relative">
+                  <span
+                    onClick={() => !isAllowed() ? null : setShow(!show)}
+                    className="cursor-pointer relative w-max rounded-lg text-sm text-gray-700"
+                  >
+                    <DotsOpcionesIcon className="text-gray-500 w-4 h-4" />
+                  </span>
+                  <ul
+                    className={`${show ? "block" : "hidden"
+                      } top-0 right-0 absolute w-max border border-base bg-white capitalize rounded-md overflow-hidden shadow-lg z-10 translate-x-[-12px]`}
+                  >
+                    {Lista.map((item, idx) => (
+                      <li
+                        key={idx}
+                        onClick={() => {
+                          item.title.toLowerCase() === "borrar"
+                            ? setModal({
+                              state: true,
+                              title: <span>
+                                <strong>
+                                  {`${row.row.cells[0].value} `}
+                                </strong>
+                                <span>{`${!row.row.cells[5].value
+                                  ? "será borrado"
+                                  : row.row.cells[5].value === 1
+                                    ? `y su acompañante serán borrados`
+                                    : `y sus ${row.row.cells[5].value} acompañantes serán borrados`
+                                  } de la lista de invitados`}
+                                </span>
+                              </span>,
+                              handle: () => item.function()//{console.log(row.row.cells[0].value.toUpperCase())}
+                            })
+                            : item.function()
+                        }
+                        }
+                        className="font-display cursor-pointer border-base border block px-4 text-sm text-gray-500 hover:text-gray-500 hover:bg-base py-3"
+                      >
+                        {item.title}
+                      </li>
+                    ))}
+                  </ul>
+                </div >
+              </ClickAwayListener >
+            </>
           );
         },
       },
@@ -660,7 +679,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
   return (
     <DataTableGroupProvider>
       <div className="w-[200%] md:w-[100%]">
-        <CheckBoxAll />
+        {/* <CheckBoxAll /> */}
         {data?.map((item, idx: number) => {
           return (
             <DataTableFinal

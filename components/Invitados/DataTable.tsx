@@ -4,55 +4,9 @@ import { useRowSelect, useTable, useExpanded, } from "react-table";
 import { EventContextProvider } from "../../context";
 import { guests } from "../../utils/Interfaces";
 import { DataTableGroupContextProvider } from "../../context/DataTableGroupContext";
-import { useAllowed } from "../../hooks/useAllowed";
+import { TrExpand } from "./TrExpand";
+import { IndeterminateCheckbox } from "../Invitaciones/IndeterminateCheckbox";
 
-// Para checkbox
-export const IndeterminateCheckbox: ForwardRefComponent<HTMLInputElement, any> =
-  forwardRef(({ indeterminate, checked, propParent, ...rest }, ref) => {
-    const [ischecked, setChecked] = useState<boolean>(false);
-    const [isAllowed, ht] = useAllowed()
-    //@ts-ignore
-    const ref1: any = ref;
-    const ref2 = useRef<any>();
-    const defaultRef = ref1 || ref2;
-
-    useEffect(() => {
-      if (checked !== ischecked) {
-        setChecked(checked);
-      } else {
-        if (defaultRef?.current?.checked) {
-          defaultRef.current.checked = ischecked;
-        }
-      }
-    }, [checked, ischecked, defaultRef]);
-
-    useEffect(() => {
-      if (defaultRef?.current?.indeterminate) {
-        defaultRef.current.indeterminate = indeterminate;
-      }
-    }, [defaultRef, indeterminate]);
-
-    const handleCheck = (e: any) => {
-      setChecked(e.target.checked);
-      propParent.row.toggleRowSelected(!ischecked);
-    };
-
-    IndeterminateCheckbox.displayName = "IndeterminateCheckbox";
-
-    return (
-      <label className="relative">
-        <input
-          onClick={handleCheck}
-          disabled={!isAllowed()}
-          type="checkbox"
-          className="rounded-full text-primary focus:ring-primary border-gray-400"
-          ref={defaultRef}
-          checked={ischecked}
-          {...rest}
-        />
-      </label>
-    );
-  });
 
 interface propsDataTableFinal {
   data: guests[];
@@ -63,8 +17,7 @@ interface propsDataTableFinal {
 
 const DataTableFinal: FC<propsDataTableFinal> = (props) => {
   const { children, data = [], columns = [], renderRowSubComponent } = props;
-  const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows, state: { expanded } } =
-    useTable({ columns, data }, useExpanded);
+  const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows, state: { expanded } } = useTable({ columns, data }, useExpanded);
   const { event } = EventContextProvider();
 
   // Uso de useTable para pasar data y cargar propiedades
@@ -198,38 +151,7 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
               // Prepare the row for display
               prepareRow(row);
               return (
-                <>
-                  {/*  Apply the row props */}
-                  <tr
-                    key={i}
-                    {...row.getRowProps()}
-                    className="w-full bg-white border-b font-display text-sm grid grid-cols-24"
-                  >
-                    {
-                      // Loop over the rows cells
-                      row.cells.map((cell, i) => {
-                        return (
-                          <td
-                            key={i}
-                            {...cell.getCellProps()}
-                            className={`px-6 py-2 flex items-center ${ColSpan(cell.column.id, row.cells.map(item => item.column), 12)}`}
-                          >
-                            {
-                              // Render the cell contents
-                              cell.render("Cell")
-                            }
-                          </td>
-                        );
-                      })}
-                  </tr>
-                  {row.isExpanded ? (
-                    <tr key={i} className="h-40 w-full">
-                      <td >
-                        {renderRowSubComponent({ row})}
-                      </td>
-                    </tr>
-                  ) : null}
-                </>
+                <TrExpand key={i} row={row} ColSpan={ColSpan} renderRowSubComponent={renderRowSubComponent} />
               );
             })
           }

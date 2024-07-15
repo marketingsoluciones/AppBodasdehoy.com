@@ -286,7 +286,7 @@ const Profile = ({ user, state, set, ...rest }) => {
       </div>
       {
         actionModals && (
-          <Modal classe={"w-[50%] h-[100%]"} >
+          <Modal classe={"w-[95%] md:w-[750px] h-[98%]"} >
             <ObtenerFullAcceso />
           </Modal>
         )
