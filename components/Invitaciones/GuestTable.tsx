@@ -2,10 +2,9 @@ import { FC } from "react";
 import { useEffect, useMemo, useState, } from "react";
 import { InvitacionesIcon } from "../../components/icons";
 import useHover from "../../hooks/useHover";
-import { EventContextProvider } from "../../context";
 import { ConfirmationBlock } from "../../components/Invitaciones/ConfirmationBlock"
 import { DataTable } from "../../components/Invitaciones/DataTable"
-import { getFormatTime, getRelativeTime } from "../../utils/FormatTime";
+import {  getRelativeTime } from "../../utils/FormatTime";
 
 export const GuestTable: FC<any> = ({ data, multiSeled, reenviar, activeFunction }) => {
   const [arrEnviarInvitaciones, setArrEnviatInvitaciones] = useState([]);
@@ -146,7 +145,14 @@ export const GuestTable: FC<any> = ({ data, multiSeled, reenviar, activeFunction
           set={(act) => setArrEnviatInvitaciones(act)}
         />
       )}
-      <DataTable columns={Columna} data={data} multiSeled={multiSeled} setArrEnviatInvitaciones={setArrEnviatInvitaciones} reenviar={reenviar} activeFunction={activeFunction} />
+      <DataTable
+        columns={Columna}
+        data={data}
+        multiSeled={multiSeled}
+        setArrEnviatInvitaciones={setArrEnviatInvitaciones}
+        reenviar={reenviar}
+        activeFunction={activeFunction}
+      />
     </div>
   );
 };

@@ -3,14 +3,12 @@ import { useRowSelect, useSortBy, useTable } from "react-table";
 import { IndeterminateCheckbox } from "./IndeterminateCheckbox";
 import { DataTableGroupContextProvider } from "../../context/DataTableGroupContext";
 
-
-
 export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, setArrEnviatInvitaciones, reenviar, activeFunction }) => {
   const [valir, setValir] = useState(false)
   const [asd, setAsd] = useState({ arrIDs: undefined, getToggleAllRowsSelectedProps: undefined })
 
 
-  const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows } =
+  const { getTableProps, getTableBodyProps, headerGroups, prepareRow, allColumns, rows } =
     useTable({ columns, data }, useSortBy, useRowSelect, (hooks) => {
       hooks.visibleColumns.push((columns) => [
         {
@@ -68,6 +66,7 @@ export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, set
     });
 
 
+
   const colSpan = {
     selection: 1,
     nombre: 4,
@@ -82,15 +81,12 @@ export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, set
   return (
     <div className="relative">
       {multiSeled &&
-        <div className=" flex justify-between py-3 ml-[52px] w-auto pr-5">
+        <div className=" flex justify-between py-3 ml-[52px] w-auto pr-5 relative">
           <button
             disabled={!valir}
             onClick={() => { setArrEnviatInvitaciones(asd?.arrIDs) }}
             className={`focus:outline-none ${valir ? "hover:opacity-70 transition bg-primary" : "bg-gray-300"} text-white py-1 px-2 rounded-lg text-center text-[10px] md:text-sm w-full*`}>
             {reenviar ? "Reenviar" : "Enviar"}
-          </button>
-          <button onClick={() => activeFunction()} className="border border-primary rounded-lg px-2 text-sm text-primary">
-            Detalles
           </button>
         </div>}
       <table
@@ -147,6 +143,7 @@ export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, set
             <td className="py-5 font-display text-lg text-gray-500 uppercase ">No hay invitados asociados al evento</td></tr>}
         </tbody>
       </table>
+      
     </div>
   );
 };
