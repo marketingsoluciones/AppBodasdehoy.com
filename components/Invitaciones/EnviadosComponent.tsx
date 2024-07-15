@@ -1,67 +1,35 @@
-import { useEffect, useState } from "react"
 import { Separator } from "../Separator"
 import { GuestTable } from "./GuestTable"
 import { AuthContextProvider } from "../../context"
+import { useState } from "react"
 
 export const EnviadosComponent = ({ dataInvitationSent, dataInvitationNotSent, event }) => {
     const { config } = AuthContextProvider()
-    const [stateTablet, setStateTablet] = useState(false)
-    const [stateSpinner, setStateSpinner] = useState(false)
-
-    console.log(dataInvitationNotSent)
-    const activeFunction = () => {
-        setStateSpinner(true)
-        setTimeout(() => {
-            console.log("entro")
-            setStateSpinner(false)
-            setStateTablet(!stateTablet)
-        }, 1000);
-    }
-
-
+    const [stateTable, setStateTable] = useState("noenviados")
 
     return (
         <>
             <div className="my-4">
-                {!stateSpinner
-                    ? !stateTablet
-                        ? <div>
-                            <div className="bg-white w-full rounded-xl shadow-md relative mt-4 mb-8">
-                                <Separator title="  Invitaciones pendientes" />
-                                <div className="w-full overflow-auto">
-                                    <div className="w-[200%] md:w-full">
-                                        <GuestTable data={dataInvitationNotSent} multiSeled={true} reenviar={false} activeFunction={activeFunction} />
-                                    </div>
-                                </div>
-                            </div>
-                            {
-                                dataInvitationSent?.length > 0
-                                    ? (<div className="bg-white w-full rounded-xl shadow-md relative mt-4 mb-8">
-                                        <Separator title="Invitaciones enviadas" />
-                                        <div className="w-full overflow-auto">
-                                            <div className="w-[200%] md:w-full">
-                                                <GuestTable data={dataInvitationSent} multiSeled={true} reenviar={true}
-                                                    activeFunction={activeFunction}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>)
-                                    : null
-                            }
+                <div className="w-96 mx-auto inset-x-0 flex my-2 mt-4 rounded-2xl overflow-hidden border">
+                    <button
+                        className={` w-full md:w-[270px] py-1 ${stateTable == "noenviados" ? "bg-primary text-white" : "bg-white text-primary"} h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
+                        onClick={() => setStateTable("noenviados")}>
+                        no enviados
+                    </button>
+                    <button
+                        className={` w-full md:w-[270px] py-1 ${stateTable == "enviados" ? "bg-primary text-white" : "bg-white text-primary"} h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
+                        onClick={() => setStateTable("enviados")}>
+                        enviados
+                    </button>
+                </div>
+                <div className="bg-white w-full rounded-xl shadow-md relative mt-4 mb-8">
+                    <Separator title={`${stateTable === "noenviados" ? "Invitaciones Pendientes" : "Invitaciones Enviadas"}`} />
+                    <div className="w-full overflow-auto">
+                        <div className="w-[200%] md:w-full">
+                            <GuestTable data={stateTable === "noenviados" ? dataInvitationNotSent : dataInvitationSent} multiSeled={true} reenviar={false} />
                         </div>
-                        : <div className="bg-white w-full rounded-xl shadow-md relative mt-4 mb-8">
-                            <Separator title="  Detalles de tus invitaciones" />
-                            <div className="w-full overflow-auto">
-                                <div className="w-[200%] md:w-full">
-                                    <GuestTable data={dataInvitationNotSent} multiSeled={true} reenviar={false} activeFunction={activeFunction} />
-                                </div>
-                            </div>
-                        </div>
-                    : <div className="flex  items-center justify-center w-full h-[550px]">
-                        < div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>
                     </div>
-                }
-
+                </div>
             </div>
             <style jsx>
                 {`

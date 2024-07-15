@@ -15,6 +15,7 @@ import { EnviadosComponent } from "../components/Invitaciones/EnviadosComponent"
 import { DiseñoComponent } from "../components/Invitaciones/DiseñoComponent";
 import Test from "../components/Invitaciones/Test";
 import { PlantillaTextos } from "../components/Invitaciones/PlantillaTextos";
+import { GoChevronDown } from "react-icons/go";
 
 export type optionArryOptions = {
   title: string;
@@ -30,6 +31,7 @@ const Invitaciones = () => {
   const [dataInvitationNotSent, setDataInvitationNotSent] = useState([]);
   const [showInvitation, setShowInvitation] = useState(true)
   const [optionSelect, setOptionSelect] = useState("email")
+  const [stateConfi, setStateConfi] = useState(true)
   const arryOptions: optionArryOptions[] = [
     {
       title: "email",
@@ -81,37 +83,43 @@ const Invitaciones = () => {
     if (!event) return <></>
     return (
       <DataTableGroupProvider>
-        <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4" : "bg-base w-full pb-6 pt-2 md:py-0"}>
+        <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-full top-0 left-4" : "bg-base w-full pb-6 pt-2 md:py-0"}>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 gap-4"
+            className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 gap-4 h-full "
           >
             <BlockTitle title="Invitaciones" />
             <CounterInvitations />
             <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full md:px-6 pt-2 md:pt-6 pb-28 mb-32 md:mb-0 md:p-12 relative">
-              <div className="w-full flex flex-col md:flex-row">
-                <div className={`w-full md:w-1/3 flex px-14 md:px-10  `}>
-                  <div ref={hoverRef} className="relative w-full h-72 md:h-80">
-                    <ModuloSubida event={event} use={"imgInvitacion"} />
+              <button className="text-primary flex items-center text-[20px] capitalize ml-3 " onClick={() => setStateConfi(!stateConfi)}>
+                Configuracion de la invitacion
+                <span> <GoChevronDown className={` h-6 w-6 text-azulCorporativo cursor-pointer transition-all ml-2 ${stateConfi && "rotate-180"}`} /></span>
+              </button>
+              <div className={`${stateConfi ? "" : "hidden"}`}>
+                <div className="w-full flex flex-col md:flex-row mt-3">
+                  <div className={`w-full md:w-1/3 flex px-14 md:px-10`}>
+                    <div ref={hoverRef} className="relative w-full h-72 md:h-80">
+                      <ModuloSubida event={event} use={"imgInvitacion"} />
+                    </div>
+                  </div>
+                  <div className={`w-full md:w-2/3  md:h-80 mt-3 md:mt-0 transition-all delay-150  `}>
+                    <OptionsMenu
+                      arryOptions={arryOptions}
+                      optionSelect={optionSelect}
+                      setOptionSelect={setOptionSelect}
+                    />
+                    <div className="col-span-3 pt-4 md:p-6 w-full">
+                      {optionSelect !== "diseño" ? <Test TitelComponent={optionSelect} /> : <DiseñoComponent />}
+                    </div>
                   </div>
                 </div>
-                <div className={`w-full md:w-2/3  md:h-80 mt-3 md:mt-0 transition-all delay-150  `}>
-                  <OptionsMenu
-                    arryOptions={arryOptions}
-                    optionSelect={optionSelect}
-                    setOptionSelect={setOptionSelect}
-                  />
-                  <div className="col-span-3 pt-4 md:p-6 w-full">
-                    {optionSelect !== "diseño" ? <Test TitelComponent={optionSelect} /> : <DiseñoComponent />}
-                  </div>
+                <div className={`${["whatsapp", "sms"].includes(optionSelect) ? null : "hidden"}`}>
+                  <PlantillaTextos optionSelect={optionSelect} />
                 </div>
               </div>
-              <div className={`${["whatsapp", "sms"].includes(optionSelect) ? null : "hidden"}`}>
-                <PlantillaTextos optionSelect={optionSelect} />
-              </div>
-              <div className={`${["email", "diseño"].includes(optionSelect)? "md:pt-14" : null} md:pt-14* pt-3`}>
+              <div className={`${["email", "diseño"].includes(optionSelect) ? !stateConfi ? "" : "md:pt-14" : null} pt-3`}>
                 <EnviadosComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent} event={event} />
               </div>
             </div>
