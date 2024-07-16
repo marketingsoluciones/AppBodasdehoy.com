@@ -118,15 +118,6 @@ interface notification {
     mensaje: string
 }
 
-interface chair {
-    planSpaceID: string,
-    planSpaceName: string,
-    sectionID: string,
-    tableID: string,
-    chair: number,
-    order: string
-}
-
 export interface position {
     x: number
     y: number

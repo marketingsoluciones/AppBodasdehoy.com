@@ -1,13 +1,13 @@
 import { useField } from "formik"
-import { FC, HtmlHTMLAttributes, useEffect } from "react"
+import { ChangeEvent, FC, HtmlHTMLAttributes, useEffect } from "react"
 import { WarningIcon } from "../icons"
 import { EventContextProvider } from "../../context"
-import { number } from "yup"
+import { number, object } from "yup"
 
 interface propsSelectField extends HtmlHTMLAttributes<HTMLSelectElement> {
     label?: string
     name?: string
-    options?: string[]
+    options?: string[] | { _id: string, title: string }[]
     colSpan?: number
     labelClass?: boolean
     nullable?: boolean
@@ -16,26 +16,39 @@ interface propsSelectField extends HtmlHTMLAttributes<HTMLSelectElement> {
 const SelectField: FC<propsSelectField> = ({ label, children, options, colSpan, labelClass = true, nullable, ...props }) => {
     const { invitadoCero, event } = EventContextProvider();
     const [field, meta, { setValue }] = useField({ name: props.name })
-    if (field.value == null) field.value = "sin menú"
+
+    if (props.name === "nombre_menu") {
+        if (field.value === null) {
+            field.value = "sin menú"
+        }
+    }
+
+    if (typeof options[0] !== "string") {
+        field.onChange = (e: ChangeEvent<HTMLSelectElement>) => {
+            setValue(options.find(elem => elem['_id'] === e.target.value))
+        }
+    }
 
     return (
         <>
             <div className={`relative* w-full h-full col-span${colSpan && `-${colSpan}`} content-between`}>
                 <label className={`font-display text-sm ${labelClass ? "text-primary" : "text-textGrisClaro"} w-full`}>{label}</label>
-                <div>
-                    <select className="font-display capitalize cursor-pointer text-sm text-gray-500 border border-gray-200 focus:border-gray-400 focus:ring-0 transition w-full py-2 pr-7 rounded-xl focus:outline-none" defaultValue={field?.value} {...field} >
+                <div className="relative">
+                    <select className="font-display capitalize cursor-pointer text-sm text-gray-500 border border-gray-200 focus:border-gray-400 focus:ring-0 transition w-full py-2 pr-7 rounded-xl focus:outline-none" value={typeof options[0] === "string" ? field?.value : field?.value?._id} name={field?.name} onChange={field?.onChange} >
                         {nullable &&
                             <option >
                                 Seleccionar
                             </option>}
-                        {options?.map((option: string, idx: number) => {
+                        {options?.map((option: string | { _id: string, title: string }, idx: number) => {
+                            const label = typeof option === "string" ? option : option?.title
+                            const value = typeof option === "string" ? option : option?._id
                             return (
-                                <option key={idx} value={option.toLowerCase()} >{option && `${!option.match("(nombre)") ? option : option.replace("(nombre)", (invitadoCero ? invitadoCero : event?.grupos_array[0]))}`}</option>
+                                <option key={idx} label={label} value={value?.toLowerCase()} >{value && `${!value?.match("(nombre)") ? value : value?.replace("(nombre)", (invitadoCero ? invitadoCero : event?.grupos_array[0]))}`}</option>
                             )
                         })}
                     </select>
                 </div>
-                {meta.touched && meta.error && <p className=" font-display absolute* rounded-xl text-xs *left-0 *bottom-0 transform *translate-y-full text-red flex gap-1">{meta.error}</p>}
+                {(meta.touched || meta.error) && <p className="font-display absolute rounded-xl text-xs text-red flex gap-1">{meta.error}</p>}
             </div>
             <style jsx>
                 {`

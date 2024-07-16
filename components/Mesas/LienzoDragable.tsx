@@ -41,7 +41,7 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
 
   useEffect(() => {
     if (dragables?.length > 0) {
-      setupDropzone({ target: '.js-dropGuests', accept: `${dragables}`, setEvent, eventID: event?._id, planSpaceActive, setPlanSpaceActive, filterGuests, isAllowed, ht })
+      setupDropzone({ target: '.js-dropGuests', accept: `${dragables}`, setEvent, event, planSpaceActive, setPlanSpaceActive, filterGuests, isAllowed, ht })
     }
   }, [dragables, filterGuests])
 

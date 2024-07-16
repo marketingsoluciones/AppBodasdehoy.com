@@ -23,7 +23,7 @@ interface propsDropzone {
   target: string
   accept: string
   setEvent: Dispatch<SetStateAction<Event>>
-  eventID: string
+  event: Event
   planSpaceActive: planSpace
   setPlanSpaceActive?: Dispatch<SetStateAction<planSpace>>
   handleOnDrop?: any
@@ -31,7 +31,7 @@ interface propsDropzone {
   isAllowed?: any
   ht?: any
 }
-export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, eventID, planSpaceActive, setPlanSpaceActive, filterGuests, isAllowed, ht }: propsDropzone) => {
+export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, event: eventAsd, planSpaceActive, setPlanSpaceActive, filterGuests, isAllowed, ht }: propsDropzone) => {
   if (target == ".js-dropTables") {
     let values: any = {}
     interact(target)
@@ -142,7 +142,7 @@ export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, eventID,
               const prefijo = draggableElement.id.slice(0, 5)
               const tableID = dropzoneElement.id.split('-@-')[0]
               const chair = parseInt(dropzoneElement.id.split('-@-')[1])
-              !isAllowed() ? ht() : moveGuest({ eventID, chair, invitadoID, tableID, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo })
+              !isAllowed() ? ht() : moveGuest({ event: eventAsd, chair, invitadoID, tableID, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo })
               // console.log("--------------------------------------")
               // console.log("draggableElement:", draggableElement.id, invitadoID)
               // console.log("dropped:", dropped)
@@ -240,64 +240,58 @@ type propsMoveInvitado = {
   invitadoID: string,
   chair: number,
   tableID: string,
-  eventID: string,
+  event: Event,
   setEvent: Dispatch<SetStateAction<Event>>
   planSpaceActive: planSpace
   setPlanSpaceActive: Dispatch<SetStateAction<planSpace>>
   filterGuests?: any
   prefijo?: string
 }
-export const moveGuest = async ({ invitadoID, chair, tableID, eventID, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo }: propsMoveInvitado): Promise<void> => {
+export const moveGuest = async ({ invitadoID, chair, tableID, event, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo }: propsMoveInvitado): Promise<void> => {
   try {
-    if (chair >= 0) {
-      let table: table = planSpaceActive?.tables?.find(elem => elem._id === tableID)
-      table.guests.push({ _id: invitadoID, chair, order: new Date() })
-      const f1 = planSpaceActive.tables.findIndex(elem => elem._id === tableID)
-      planSpaceActive.tables.splice(f1, 1, table)
-      setPlanSpaceActive({ ...planSpaceActive })
-      setEvent((old) => {
-        const f1 = old.planSpace.findIndex(elem => elem._id === old.planSpaceSelect)
-        old.planSpace[f1] = planSpaceActive
-        return { ...old }
-      })
-      fetchApiEventos({
-        query: queries.editTable,
-        variables: {
-          eventID,
-          planSpaceID: planSpaceActive?._id,
-          tableID: table?._id,
-          variable: "guests",
-          valor: JSON.stringify([
-            ...table?.guests,
-            {
-              _id: invitadoID,
-              chair,
-            },
-          ])
-        },
-      });
-    }
-    if (prefijo === "dragS") {
-      const gestPrevMove = filterGuests?.sentados?.find(elem => elem._id === invitadoID)
-      const f1 = planSpaceActive.tables.findIndex(elem => elem._id === gestPrevMove.tableID)
-      const f2 = planSpaceActive.tables[f1].guests.findIndex(elem => elem._id === invitadoID)
-      planSpaceActive.tables[f1].guests.splice(f2, 1)
-      fetchApiEventos({
-        query: queries.editTable,
-        variables: {
-          eventID,
-          planSpaceID: planSpaceActive?._id,
-          tableID: planSpaceActive.tables[f1]._id,
-          variable: "guests",
-          valor: JSON.stringify(planSpaceActive.tables[f1].guests)
-        },
-      });
-      setPlanSpaceActive({ ...planSpaceActive })
-      setEvent((old) => {
-        const f1 = old.planSpace.findIndex(elem => elem._id === old.planSpaceSelect)
-        old.planSpace[f1] = planSpaceActive
-        return { ...old }
-      })
+    const eventID = event?._id
+    let table: table = planSpaceActive?.tables?.find(elem => elem._id === tableID)
+    const idx = table?.guests?.findIndex(elem => elem.chair === chair)
+    if (idx < 0 || idx === undefined) {
+      if (chair >= 0) {
+        table.guests.push({ _id: invitadoID, chair, order: new Date() })
+        let f1 = planSpaceActive.tables.findIndex(elem => elem._id === tableID)
+        //planSpaceActive.tables.splice(f1, 1, table)
+        setPlanSpaceActive({ ...planSpaceActive })
+        f1 = event.planSpace.findIndex(elem => elem._id === event.planSpaceSelect)
+        event.planSpace[f1] = planSpaceActive
+        setEvent({ ...event })
+        fetchApiEventos({
+          query: queries.editTable,
+          variables: {
+            eventID,
+            planSpaceID: planSpaceActive?._id,
+            tableID: table?._id,
+            variable: "guests",
+            valor: JSON.stringify([...table?.guests])
+          },
+        });
+      }
+      if (prefijo === "dragS") {
+        const gestPrevMove = filterGuests.sentados.find(elem => elem._id === invitadoID)
+        let f1 = planSpaceActive.tables.findIndex(elem => elem._id === gestPrevMove.tableID)
+        const f2 = planSpaceActive.tables[f1].guests.findIndex(elem => elem._id === invitadoID)
+        planSpaceActive.tables[f1].guests.splice(f2, 1)
+        fetchApiEventos({
+          query: queries.editTable,
+          variables: {
+            eventID,
+            planSpaceID: planSpaceActive?._id,
+            tableID: planSpaceActive.tables[f1]._id,
+            variable: "guests",
+            valor: JSON.stringify(planSpaceActive.tables[f1].guests)
+          },
+        });
+        setPlanSpaceActive({ ...planSpaceActive })
+        f1 = event.planSpace.findIndex(elem => elem._id === event.planSpaceSelect)
+        event.planSpace[f1] = planSpaceActive
+        setEvent({ ...event })
+      }
     }
   } catch (error) {
     console.log(error);

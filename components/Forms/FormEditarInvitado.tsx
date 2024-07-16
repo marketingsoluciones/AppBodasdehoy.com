@@ -6,7 +6,7 @@ import { BorrarInvitado, EditarInvitado } from "../../hooks/EditarInvitado";
 import { BorrarIcon } from "../icons";
 import InputField from "./InputField";
 import { ImageProfile } from '../../utils/Funciones'
-import { guests } from '../../utils/Interfaces';
+import { guest, guests, table } from '../../utils/Interfaces';
 import { fetchApiEventos, queries } from '../../utils/Fetching';
 import { useToast } from '../../hooks/useToast';
 import { capitalize } from '../../utils/Capitalize';
@@ -15,14 +15,20 @@ import { BooleanSwitch } from './FormInvitado';
 import * as yup from 'yup'
 import useHover from "../../hooks/useHover";
 
+interface InitialValues extends Partial<guests> {
+  tableNameCeremonia: Partial<table>
+  tableNameRecepcion: Partial<table>
+}
+
 const msgAuto = ({ path }) => `${capitalize(path)} requerido`
 
 const validationSchema = yup.object().shape({
-  nombre: yup.string().required(msgAuto),
-  sexo: yup.string().required(msgAuto),
-  grupo_edad: yup.string().required(msgAuto),
-  telefono: yup.string().required(msgAuto),
-  rol: yup.string().required(msgAuto),
+  nombre: yup.string().required(({ path }) => `${capitalize(path)} requerido`),
+  tableNameRecepcion: yup.object().test("Unico", `Acompañantes es requerido`, (value) => {
+    console.log(102, value)
+    return true
+  }),
+  telefono: yup.string().required(({ path }) => `${capitalize(path)} requerido`),
 })
 
 const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
@@ -31,31 +37,28 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
   const [hoverRef, isHovered] = useHover();
   const [mesasDisponibles, setMesasDiosponibles] = useState({ ceremonia: [], recepcion: [] })
 
-  type MyValues = {
-    _id: string
-    nombre: string
-    sexo: string
-    grupo_edad: string
-    correo: string
-    telefono: string
-    rol: string
-    menu: string
-    passesQuantity: number
-  }
-
-  const initialValues: MyValues = {
+  const initialValues: InitialValues = {
     _id: invitado?._id,
     nombre: invitado?.nombre,
+    asistencia: invitado?.asistencia,
     sexo: invitado?.sexo,
+    poblacion: invitado?.poblacion,
+    pais: invitado?.pais,
     grupo_edad: invitado?.grupo_edad,
     correo: invitado?.correo,
     telefono: invitado?.telefono,
     rol: invitado?.rol,
-    menu: invitado?.nombre_menu,
-    passesQuantity: invitado?.passesQuantity
+    nombre_menu: invitado?.nombre_menu,
+    passesQuantity: invitado?.passesQuantity,
+    tableNameCeremonia: invitado?.tableNameCeremonia,
+    tableNameRecepcion: invitado?.tableNameRecepcion,
   }
-
+  console.log("initialValues", initialValues)
   const handleSubmit = async (values: FormikValues, actions: any) => {
+    const val = values
+    delete val?.tableNameCeremonia
+    delete val?.tableNameRecepcion
+    console.log(1000024, val)
     const result: any = await fetchApiEventos({
       query: queries.createGuests,
       variables: {
@@ -64,7 +67,8 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
       },
     });
     console.log(1000004, result)
-
+    // falta setear el cambio en las mesas queries.editTable
+    // falta setear el estado
     set(!state)
   }
 
@@ -121,18 +125,17 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
       initialValues={initialValues}
       // enableReinitialize
       onSubmit={handleSubmit}
-    // validationSchema={validationSchema}
+      validationSchema={validationSchema}
     >
-      {({ values, isSubmitting }) => {
+      {({ values, setValues, isSubmitting }) => {
 
         return (
           <>
-            <Asd values={values} />
+            <Asd values={values} setValues={setValues} />
             <Form
               className="text-gray-500 font-body lg:overflow-auto flex flex-col gap-8 w-full my-4 px-2"
             >
               <div className="grid md:grid-cols-6 w-full gap-6">
-                {/* INPUT NOMBRE */}
                 <div className="w-full flex items-center md:col-span-4 justify-center">
                   <img
                     src={ImageProfile[invitado?.sexo]?.image}
@@ -180,27 +183,31 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                   />
                   <SelectField
                     colSpan={2}
-                    options={event?.planSpace.find(elem => elem?.title === "recepción")?.tables?.reduce((acc, item) => {
-                      console.log(5000002, item, item?.guests.length, item?.numberChair)
-                      if (item?.guests.length < item?.numberChair) {
-                        acc.push(item?.title)
-                      }
-                      return acc
-                    }, [])}
-                    name="nombre_mesa"
+                    options={[
+                      { _id: null, title: "No Asignado" },
+                      ...event?.planSpace.find(elem => elem?.title === "recepción")?.tables?.reduce((acc, elem) => {
+                        if (elem?.guests.length < elem?.numberChair || values?.tableNameRecepcion?._id === elem?._id) {
+                          acc.push({ _id: elem._id, title: elem.title })
+                        }
+                        return acc
+                      }, [])
+                    ]}
+                    name="tableNameRecepcion"
                     label="Mesa Recepción"
                   // onChangeCapture={(e: any) => handleBlurData("nombre_mesa", e.target.value)}
                   />
                   <SelectField
                     colSpan={2}
-                    options={event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables?.reduce((acc, item) => {
-                      console.log(5000003, item, item?.guests.length, item?.numberChair)
-                      if (item?.guests.length < item?.numberChair) {
-                        acc.push(item?.title)
-                      }
-                      return acc
-                    }, [])}
-                    name="nombre_mesa"
+                    options={[
+                      { _id: null, title: "No Asignado" },
+                      ...event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables?.reduce((acc, elem) => {
+                        if (elem?.guests.length < elem?.numberChair || values?.tableNameRecepcion?._id === elem?._id) {
+                          acc.push({ _id: elem._id, title: elem.title })
+                        }
+                        return acc
+                      }, [])
+                    ]}
+                    name="tableNameCeremonia"
                     label="Mesa Ceremonia"
                   // onChangeCapture={(e: any) => handleBlurData("nombre_mesa", e.target.value)}
                   />
@@ -248,20 +255,8 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                   name="telefono"
                   label="Telefono"
                   // onBlur={(e: any) => handleBlurData("telefono", e.target.value)}
-                  type="text"
+                  type="telefono"
                 />
-                {/* <InputField
-                  name="movil"
-                  label="Movil"
-                  // onBlur={(e: any) => handleBlurData("movil", e.target.value)}
-                  type="text"
-                /> */}
-                {/* <InputField
-                  name="direccion"
-                  label="Dirección"
-                  // onBlur={(e: any) => handleBlurData("direccion", e.target.value)}
-                  type="text"
-                /> */}
                 <InputField
                   name="poblacion"
                   label="Población"
@@ -294,107 +289,12 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
   );
 };
 
-const Asd = ({ values }) => {
+const Asd = ({ values, setValues }) => {
   useEffect(() => {
-    console.log(values)
+    console.log(111454, values.passesQuantity)
   }, [values])
   return (<></>)
 }
 
 export default FormEditarInvitado;
 
-
-// const Dropdown = ({ label, lista, onClick, functionData, ...props }) => {
-//   const [field, meta, { setValue }] = useField(props);
-//   const [state, setState] = useState();
-//   return (
-//     <>
-//       <label className="font-display text-sm text-primary w-full">
-//         {label}
-//       </label>
-
-//       <p
-//         className={`font-display text-sm text-gray-500 border border-gray-100 focus:border-primary transition w-full py-1 px-4 rounded-xl focus:outline-none bg-white cursor-pointer capitalize`}
-//         onClick={() => setState(!state)}
-//       >
-//         {meta.value == "" ? "Seleccionar" : meta.value}
-//       </p>
-
-//       {state ? (
-//         <div
-//           className={`block absolute right-0 bottom-0 transform translate-y-full w-full bg-white rounded-xl overflow-auto shadow-xl z-10 border border-gray-100 h-max`}
-//           onClick={() => setState(!state)}
-//         >
-//           <ul>
-//             {lista.map((item, i) => (
-//               <li
-//                 key={i}
-//                 onClick={() => {
-//                   setValue(item)
-//                   functionData(item)}}
-//                 {...props}
-//                 {...field}
-//                 className="font-display transition border-b border-gray-100 cursor-pointer block px-4 py-1 text-sm text-gray-500 hover:bg-secondary hover:text-white capitalize"
-//               >
-//                 {item}
-//               </li>
-//             ))}
-//           </ul>
-//         </div>
-//       ) : null}
-//       {meta.touched && meta.error && (
-//         <p className="font-display absolute bottom-0 transform translate-y-full	 text-xs text-red-500 mt-1">
-//           {meta.error}
-//         </p>
-//       )}
-//     </>
-//   );
-// };
-
-// const BooleanSwitch = ({ lista, label, functionData, ...props }) => {
-//   const [field, meta, { setValue }] = useField(props);
-//   return (
-//     <>
-//       <label className="font-display text-sm text-primary w-full capitalize pb-1">
-//         {label}
-//       </label>
-//       <span className="flex flex h-6 items-center justify-center w-full">
-//         <button
-//           value={lista[0]}
-//           onClick={() => {
-//             setValue(lista[0])
-//             functionData(lista[0])
-//           }}
-//           type="button"
-//           {...props}
-//           {...field}
-//           className={`w-1/2 font-body h-8 border border-gray-100 py-1 text-sm rounded-l-lg focus:outline-none hover:bg-secondary hover:text-gray-500 capitalize font-medium transition ${
-//             meta.value == lista[0] ? "bg-secondary text-gray-500" : "bg-white"
-//           }`}
-//         >
-//           {lista[0]}
-//         </button>
-//         <button
-//           value={lista[1]}
-//           onClick={() => {
-//             setValue(lista[1])
-//             functionData(lista[1])
-//           }}
-//           type="button"
-//           {...props}
-//           {...field}
-//           className={`w-1/2 h-8  font-body border border-gray-100 py-1 text-sm rounded-r-lg focus:outline-none hover:bg-primary hover:text-white capitalize transition ${
-//             meta.value == lista[1] ? "bg-primary text-white" : "bg-white"
-//           }`}
-//         >
-//           {lista[1]}
-//         </button>
-//       </span>
-//       {meta.touched && meta.error && (
-//         <p className="font-display absolute rounded-xl text-white text-xs  px-4 py-1 right-0 top-1/2 transform translate-x-full">
-//           {meta.error}
-//         </p>
-//       )}
-//     </>
-//   );
-// };

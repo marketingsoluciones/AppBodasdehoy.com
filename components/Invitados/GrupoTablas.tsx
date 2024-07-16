@@ -80,24 +80,39 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
     Data && setData(Object.values(Data));
   }, [allFilterGuests]);
 
-  const handleMoveGuest = ({ invitadoID, previousTable, lastTable }) => {
+  const handleMoveGuest = ({ invitadoID, previousTable, lastTable, f1 }) => {
     try {
       if (lastTable?.guests?.length === lastTable?.numberChair) {
         toast("error", "La mesa tiene todos los puestos ocupados")
-      }
-      for (let i = 0; i < lastTable?.numberChair; i++) {
-        if (!lastTable?.guests?.map(el => el.chair).includes(i)) {
-          console.log(50000012, "aqui", previousTable, lastTable)
+      } else {
+        for (let i = 0; i < lastTable?.numberChair; i++) {
+          if (!lastTable?.guests?.map(el => el.chair).includes(i)) {
+            if (previousTable?._id) {
+              console.log(50000010, previousTable)
+              toast("success", `Lo levanto ${i}`,)
+            }
+            if (lastTable) {
+              console.log(50000011, lastTable)
+              const f2 = event?.planSpace[f1]?.tables?.findIndex(elem => elem._id === lastTable?._id)
+              event.planSpace[f1].tables[f2].guests.push({ _id: invitadoID, chair: i, order: new Date() })
+              setEvent({ ...event })
+              // falya el fetch
+              fetchApiEventos({
+                query: queries.editTable,
+                variables: {
+                  eventID: event._id,
+                  planSpaceID: event?.planSpace[f1]?._id,
+                  tableID: event.planSpace[f1].tables[f2]?._id,
+                  variable: "guests",
+                  valor: JSON.stringify([...event.planSpace[f1].tables[f2]?.guests])
+                },
+              });
 
+              toast("success", `El invitado fue sentado en la mesa puesto ${i}`,)
+            }
 
-
-
-
-
-
-          //moveGuest({ eventID: event._id, chair: i, invitadoID: invitadoID, tableID: lastTable?._id, previousTableID: previousTable?._id, setEvent, planSpaceActive, setPlanSpaceActive })
-          toast("success", "El invitado fue sentado en la mesa")
-          break
+            break
+          }
         }
       }
     } catch (error) {
@@ -373,22 +388,25 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                     } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-6 z-40 w-max`}
                 >
                   {event?.planSpace.find(elem => elem?.title === "recepción")?.tables?.map((elem, index) => {
-                    return (
-                      <li
-                        key={index}
-                        className="cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
-                        onClick={() => {
-                          const table = event?.planSpace.find(elem => elem?.title === "recepción")?.tables.find(el => el.title === elem.title)
-                          setShow(!show);
-                          if (value?._id !== elem?._id) {
-                            setValue(elem.title);
-                            handleMoveGuest({ invitadoID: row.original._id, previousTable: value, lastTable: table })
-                          }
-                        }}
-                      >
-                        {elem?.title}
-                      </li>
-                    );
+                    if (elem.guests.length < elem.numberChair || value?._id === elem?._id) {
+                      return (
+                        <li
+                          key={index}
+                          className="cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
+                          onClick={() => {
+                            const f1 = event?.planSpace.findIndex(elem => elem?.title === "recepción")
+                            const table = event.planSpace[f1]?.tables.find(el => el.title === elem.title)
+                            setShow(!show);
+                            if (value?._id !== elem?._id) {
+                              setValue(elem.title);
+                              handleMoveGuest({ invitadoID: row.original._id, previousTable: value, lastTable: table, f1 })
+                            }
+                          }}
+                        >
+                          {elem?.title}
+                        </li>
+                      )
+                    }
                   })}
                   <li
                     className="*bg-gray-300 cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
@@ -434,22 +452,25 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                     } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-6 z-40 w-max`}
                 >
                   {event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables?.map((elem, index) => {
-                    return (
-                      <li
-                        key={index}
-                        className="cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
-                        onClick={() => {
-                          const table = event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables.find(el => el.title === elem.title)
-                          setShow(!show);
-                          if (value?._id !== elem?._id) {
-                            setValue(elem.title);
-                            handleMoveGuest({ invitadoID: row.original._id, previousTable: value, lastTable: table })
-                          }
-                        }}
-                      >
-                        {elem?.title}
-                      </li>
-                    );
+                    if (elem.guests.length < elem.numberChair || value?._id === elem?._id) {
+                      return (
+                        <li
+                          key={index}
+                          className="cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
+                          onClick={() => {
+                            const f1 = event?.planSpace.findIndex(elem => elem?.title === "ceremonia")
+                            const table = event?.planSpace[f1]?.tables.find(el => el.title === elem.title)
+                            setShow(!show);
+                            if (value?._id !== elem?._id) {
+                              setValue(elem.title);
+                              handleMoveGuest({ invitadoID: row.original._id, previousTable: value, lastTable: table, f1 })
+                            }
+                          }}
+                        >
+                          {elem?.title}
+                        </li>
+                      )
+                    }
                   })}
                   <li
                     className=" cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"

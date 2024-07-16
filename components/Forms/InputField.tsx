@@ -1,5 +1,5 @@
 import { useField } from "formik"
-import React, { FC, InputHTMLAttributes, useEffect, useState } from "react"
+import React, { ChangeEvent, FC, InputHTMLAttributes, useEffect, useState } from "react"
 import { useAllowed } from "../../hooks/useAllowed";
 import { flags } from "../../utils/flags.js"
 import { AuthContextProvider } from "../../context";
@@ -31,6 +31,16 @@ const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled =
   const [filterFlags, setFilterFlags] = useState<string>()
   const [number, setNumber] = useState<string>("")
   const [valir, setValir] = useState(0)
+
+  if (props.name === "passesQuantity") {
+    if (field["onBlur"]) {
+      field.onBlur = (e: ChangeEvent<HTMLSelectElement>) => {
+        if (!e.target.value) {
+          helpers.setValue(0)
+        }
+      }
+    }
+  }
 
   useEffect(() => {
     if (filterFlags) {
@@ -116,7 +126,7 @@ const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled =
           </div>
         }
       </div>
-      {(props?.type != "tel" ? true : meta.touched) && meta.error && <p className="font-display absolute rounded-xl text-xs left-0 bottom-0 transform translate-y-full text-red flex gap-1">{meta.error}</p>}
+      {(props?.type != "tel" ? true : meta.touched) && meta.error && <p className="font-display absolute rounded-xl text-xs text-red flex gap-1">{meta.error}</p>}
       <style jsx>
         {`
         input[type=number]::-webkit-inner-spin-button, 
