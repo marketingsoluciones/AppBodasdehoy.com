@@ -62,8 +62,6 @@ export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestD
                 asistencia: values[`confirmacion`]
             }
         ]
-        console.log("initial value", initialValues)
-        console.log("values formik", values)
         for (let i = 0; i < guestFather?.passesQuantity; i++) {
             const item = {
                 _id: initialValues[`_id_${i}`] === "" ? null : initialValues[`_id_${i}`],

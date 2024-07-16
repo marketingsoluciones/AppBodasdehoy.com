@@ -23,7 +23,6 @@ interface Flag {
 const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled = false, labelClass = true, ...props }) => {
   const { geoInfo } = AuthContextProvider()
   const [field, meta, helpers] = useField({ name: props.name })
-
   const [isAllowed, ht] = useAllowed()
   const [showFlags, setShowFlags] = useState(false)
   const [options, setOptions] = useState<Flag[]>(flags)
@@ -84,7 +83,7 @@ const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled =
 
   return (
     <div className="w-full h-max relative">
-      <label className={` font-display ${labelClass ? "text-primary" : "text-textGrisClaro"} text-sm w-full `}>{label}</label>
+      {/* <label className={` font-display ${labelClass ? "text-primary" : "text-textGrisClaro"} text-sm w-full `}>{label}</label> */}
       <div className="w-full relative">
         {props?.type === "telefono" &&
           <>

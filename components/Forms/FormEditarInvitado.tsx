@@ -137,7 +137,6 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                     src={ImageProfile[invitado?.sexo]?.image}
                     alt="imagen-invitados"
                     className="w-14 h-14 rounded-full mx-3 "
-
                   />
                   <InputField
                     name="nombre"
@@ -287,7 +286,7 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
 
 const Asd = ({ values, setValues }) => {
   useEffect(() => {
-    console.log(111454, values.passesQuantity)
+    /* console.log(111454, values.passesQuantity) */
   }, [values])
   return (<></>)
 }
