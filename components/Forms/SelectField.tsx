@@ -25,11 +25,11 @@ const SelectField: FC<propsSelectField> = ({ label, children, options, colSpan, 
         }
     }
 
-    /* if (typeof options[0] != "string") {
+    if (typeof options[0] != "string") {
         field.onChange = (e: ChangeEvent<HTMLSelectElement>) => {
-            setValue(options?.find(elem => elem['_id'] === e.target.value))
+            setValue((options as Array<{ _id: string, title: string }>).find(elem => elem['_id'] === e.target.value))
         }
-    } */
+    }
 
     return (
         <>

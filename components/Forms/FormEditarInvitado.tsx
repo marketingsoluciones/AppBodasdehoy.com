@@ -25,7 +25,6 @@ const msgAuto = ({ path }) => `${capitalize(path)} requerido`
 const validationSchema = yup.object().shape({
   nombre: yup.string().required(({ path }) => `${capitalize(path)} requerido`),
   tableNameRecepcion: yup.object().test("Unico", `Acompañantes es requerido`, (value) => {
-    console.log(102, value)
     return true
   }),
   telefono: yup.string().required(({ path }) => `${capitalize(path)} requerido`),
@@ -53,12 +52,10 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
     tableNameCeremonia: invitado?.tableNameCeremonia,
     tableNameRecepcion: invitado?.tableNameRecepcion,
   }
-  console.log("initialValues", initialValues)
   const handleSubmit = async (values: FormikValues, actions: any) => {
     const val = values
     delete val?.tableNameCeremonia
     delete val?.tableNameRecepcion
-    console.log(1000024, val)
     const result: any = await fetchApiEventos({
       query: queries.createGuests,
       variables: {
@@ -66,7 +63,6 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
         invitados_array: [values],
       },
     });
-    console.log(1000004, result)
     // falta setear el cambio en las mesas queries.editTable
     // falta setear el estado
     set(!state)

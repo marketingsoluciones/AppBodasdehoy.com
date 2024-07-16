@@ -11,7 +11,6 @@ interface propsSubComponenteTabla {
 
 export const SubComponenteTabla: FC<propsSubComponenteTabla> = ({ row, wantCreate, getId }) => {
     const { event } = EventContextProvider();
-    console.log(11111, event?.invitados_array)
     const GuestsByFather = event?.invitados_array?.filter((invitado) => invitado?.father === getId)
     return (
         <div className=" bg-base px-10 pb-12 pt-6 relative">
