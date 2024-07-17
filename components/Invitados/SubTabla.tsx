@@ -2,16 +2,17 @@
 import { FC, cloneElement } from "react";
 import { EventContextProvider } from "../../context";
 import { CanceladoIcon, ConfirmadosIcon, PendienteIcon } from "../icons";
+import { RowString } from "./RowString";
+import { guests } from "../../utils/Interfaces";
 
-interface propsSubComponenteTabla {
+interface propsSubTabla {
     row?: any,
     wantCreate?: any,
-    getId?: any,
+    getId?: string,
 }
 
-export const SubComponenteTabla: FC<propsSubComponenteTabla> = ({ row, wantCreate, getId }) => {
+export const SubTabla: FC<propsSubTabla> = ({ row, wantCreate, getId }) => {
     const { event } = EventContextProvider();
-    console.log(11111, event?.invitados_array)
     const GuestsByFather = event?.invitados_array?.filter((invitado) => invitado?.father === getId)
     return (
         <div className=" bg-base px-10 pb-12 pt-6 relative">
@@ -24,9 +25,14 @@ export const SubComponenteTabla: FC<propsSubComponenteTabla> = ({ row, wantCreat
 };
 
 
+interface props {
+    row: any
+    GuestsByFather: guests[]
+}
 
-const ListadoComponent = ({ row, GuestsByFather }) => {
-    const { sexo } = row?.original;
+const ListadoComponent: FC<props> = ({ row, GuestsByFather }) => {
+    const { event } = EventContextProvider()
+    const sexo = row?.original?.sexo;
     const image = {
         hombre: {
             image: "/profile_men.png",
@@ -52,11 +58,11 @@ const ListadoComponent = ({ row, GuestsByFather }) => {
             icon: <CanceladoIcon />,
         },
     ];
+
     const dicc = Lista.reduce((acc, el) => {
         acc[el.title] = { ...el };
         return acc;
     }, {});
-
 
     return (
         <>
@@ -95,7 +101,7 @@ const ListadoComponent = ({ row, GuestsByFather }) => {
                         key={idx}
                         className="grid grid-cols-12 px-5 justify-between border-b py-4 border-gray-100  transition bg-white  "
                     >
-                        <span className="items-center col-span-2 flex flex-col ">
+                        <span className="bg-red items-center col-span-2 flex flex-col ">
                             <div className="flex items-center justify-start gap-1 w-full p-2">
                                 <img
                                     className="block w-8 h-8 "
@@ -105,25 +111,13 @@ const ListadoComponent = ({ row, GuestsByFather }) => {
                                 <p className="font-display text-md capitalize ">{item.nombre} </p>
                             </div>
                         </span>
+                        <div className="items-center col-span-2 flex flex-col h-full">
+                            <RowString Lista={Lista} dicc={dicc} initialValue={item.asistencia} columnID="" rowID="asistencia" />
+                        </div>
 
-                        <span className="items-center col-span-2 flex flex-col h-full">
-                            <div className="flex items-center gap-1 h-full">
-                                {cloneElement(dicc[item.asistencia].icon, { className: "w-5 h-5" })}
-                                <p className="font-display text-md capitalize">{item.asistencia}</p>
-                            </div>
-                        </span>
-
-                        <span className="items-center col-span-2 flex flex-col h-full">
-                            <p className="h-full flex items-center capitalize">
-                                {item.nombre_menu}
-                            </p>
-                        </span>
-
-                        <span className="items-center col-span-2 flex flex-col  h-full">
-                            <p className={`font-display text-md h-full flex items-center capitalize`}>
-                                {item?.grupo_edad ? item?.grupo_edad : "sin edad"}
-                            </p>
-                        </span>
+                        <div className="items-center col-span-2 flex flex-col h-full">
+                            <RowString Lista={event?.menus_array.map(elem => { return { title: elem.nombre_menu } })} initialValue={item.nombre_menu} rowID={row?.original?._id} columnID="nombre_menu" />
+                        </div>
                         <span className="items-center col-span-2 flex flex-col  h-full">
                             <p className={`font-display text-md h-full flex items-center capitalize`}>
                                 no asignado

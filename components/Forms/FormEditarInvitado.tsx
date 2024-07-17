@@ -14,6 +14,7 @@ import SelectField from './SelectField';
 import { BooleanSwitch } from './FormInvitado';
 import * as yup from 'yup'
 import useHover from "../../hooks/useHover";
+import { handleMoveGuest } from '../Invitados/GrupoTablas';
 
 interface InitialValues extends Partial<guests> {
   tableNameCeremonia: Partial<table>
@@ -54,19 +55,37 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
     tableNameRecepcion: invitado?.tableNameRecepcion,
   }
   console.log("initialValues", initialValues)
-  const handleSubmit = async (values: FormikValues, actions: any) => {
-    const val = values
+  const handleSubmit = async (values: InitialValues, actions: any) => {
+    const val = { ...values }
     delete val?.tableNameCeremonia
     delete val?.tableNameRecepcion
-    console.log(1000024, val)
+    console.log(1000024, values)
     const result: any = await fetchApiEventos({
       query: queries.createGuests,
       variables: {
         eventID: event._id,
-        invitados_array: [values],
+        invitados_array: [val],
       },
     });
-    console.log(1000004, result)
+    const f1 = event?.invitados_array?.findIndex(elem => elem._id === values._id)
+    event.invitados_array[f1] = { ...invitado, ...values }
+    if (initialValues?.tableNameRecepcion?._id === values.tableNameRecepcion._id && initialValues?.tableNameCeremonia?._id === values.tableNameCeremonia._id) {
+      setEvent({ ...event })
+    }
+    if (initialValues?.tableNameRecepcion?._id !== values.tableNameRecepcion._id) {
+      const f1 = event?.planSpace.findIndex(elem => elem?.title === "recepción")
+      console.log(1000005, "setear recepción", f1)
+      const table = event.planSpace[f1]?.tables.find(el => el._id === values.tableNameRecepcion._id)
+      const sendValues = { invitadoID: values._id, previousTable: initialValues.tableNameRecepcion, lastTable: table, f1, event, setEvent, toast }
+      handleMoveGuest(sendValues)
+    }
+    if (initialValues?.tableNameCeremonia?._id !== values.tableNameCeremonia._id) {
+      const f1 = event?.planSpace.findIndex(elem => elem?.title === "ceremonia")
+      console.log(1000005, "setear ceremonia", f1)
+      const table = event.planSpace[f1]?.tables.find(el => el._id === values.tableNameCeremonia._id)
+      const sendValues = { invitadoID: values._id, previousTable: initialValues.tableNameCeremonia, lastTable: table, f1, event, setEvent, toast }
+      handleMoveGuest(sendValues)
+    }
     // falta setear el cambio en las mesas queries.editTable
     // falta setear el estado
     set(!state)
