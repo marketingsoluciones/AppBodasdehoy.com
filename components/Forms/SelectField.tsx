@@ -17,15 +17,17 @@ const SelectField: FC<propsSelectField> = ({ label, children, options, colSpan, 
     const { invitadoCero, event } = EventContextProvider();
     const [field, meta, { setValue }] = useField({ name: props.name })
 
+
+
     if (props.name === "nombre_menu") {
         if (field.value === null) {
             field.value = "sin menú"
         }
     }
 
-    if (typeof options[0] !== "string") {
+    if (typeof options[0] != "string") {
         field.onChange = (e: ChangeEvent<HTMLSelectElement>) => {
-            setValue(options.find(elem => elem['_id'] === e.target.value))
+            setValue((options as Array<{ _id: string, title: string }>).find(elem => elem['_id'] === e.target.value))
         }
     }
 

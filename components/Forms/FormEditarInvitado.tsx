@@ -26,7 +26,6 @@ const msgAuto = ({ path }) => `${capitalize(path)} requerido`
 const validationSchema = yup.object().shape({
   nombre: yup.string().required(({ path }) => `${capitalize(path)} requerido`),
   tableNameRecepcion: yup.object().test("Unico", `Acompañantes es requerido`, (value) => {
-    console.log(102, value)
     return true
   }),
   telefono: yup.string().required(({ path }) => `${capitalize(path)} requerido`),
@@ -54,12 +53,10 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
     tableNameCeremonia: invitado?.tableNameCeremonia,
     tableNameRecepcion: invitado?.tableNameRecepcion,
   }
-  console.log("initialValues", initialValues)
-  const handleSubmit = async (values: InitialValues, actions: any) => {
-    const val = { ...values }
+  const handleSubmit = async (values: FormikValues, actions: any) => {
+    const val = values
     delete val?.tableNameCeremonia
     delete val?.tableNameRecepcion
-    console.log(1000024, values)
     const result: any = await fetchApiEventos({
       query: queries.createGuests,
       variables: {
@@ -160,7 +157,6 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                     src={ImageProfile[invitado?.sexo]?.image}
                     alt="imagen-invitados"
                     className="w-14 h-14 rounded-full mx-3 "
-
                   />
                   <InputField
                     name="nombre"
@@ -310,7 +306,7 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
 
 const Asd = ({ values, setValues }) => {
   useEffect(() => {
-    console.log(111454, values.passesQuantity)
+    /* console.log(111454, values.passesQuantity) */
   }, [values])
   return (<></>)
 }

@@ -62,8 +62,6 @@ export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestD
                 asistencia: values[`confirmacion`]
             }
         ]
-        console.log("initial value", initialValues)
-        console.log("values formik", values)
         for (let i = 0; i < guestFather?.passesQuantity; i++) {
             const item = {
                 _id: initialValues[`_id_${i}`] === "" ? null : initialValues[`_id_${i}`],
@@ -88,8 +86,9 @@ export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestD
                 invitados_array: sendValues
             },
         }).then(result => {
-            if (result === "ok") {
-                console.log("ok")
+            console.log(result)
+            if (result ) {
+                setVisible(!visible)
             }
         })
     }

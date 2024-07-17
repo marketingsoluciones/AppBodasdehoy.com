@@ -85,7 +85,6 @@ const EventsGroupProvider = ({ children }) => {
           variables: { variable: "usuario_id", valor: user?.uid, development: config?.development },
         })
           .then((events: Event[]) => {
-            console.log(100410, router)
             if (!["RelacionesPublicas"].includes(router?.route.split("/")[1])) {
               setTimeout(() => {
                 if (events.length === 0) router.push("/")

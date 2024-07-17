@@ -23,7 +23,6 @@ interface Flag {
 const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled = false, labelClass = true, ...props }) => {
   const { geoInfo } = AuthContextProvider()
   const [field, meta, helpers] = useField({ name: props.name })
-
   const [isAllowed, ht] = useAllowed()
   const [showFlags, setShowFlags] = useState(false)
   const [options, setOptions] = useState<Flag[]>(flags)

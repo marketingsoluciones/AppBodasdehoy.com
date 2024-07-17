@@ -76,23 +76,17 @@ const EventProvider = ({ children }) => {
   // Capturar eventos del cumulo y seleccionar uno
   useEffect(() => {
     if (eventsGroup && eventsGroup.length === 0) {
-      //console.log(1012101)
       setEvent(null);
     }
     if (eventsGroup?.length > 0) {
-      //console.log("seteando evento", 10001)
       if (!valir) {
-        //console.log("seteando evento", 10002)
         if (eventsGroup?.length > 1) {
-          //console.log("seteando evento", 10003)
           const eventsPendientes = eventsGroup.filter(item => item.estatus === "pendiente")
           const eventsGroupSort = eventsPendientes?.sort((a: any, b: any) => { return b.fecha_creacion - a.fecha_creacion })
           setEvent(eventsGroupSort?.find(elem => elem._id === user?.eventSelected));
         } else {
-          //console.log("seteando evento", 10004, eventsGroup)
           setEvent(eventsGroup[0])
         }
-        //console.log("seteando evento", 10005, eventsGroup)
         eventsGroup[0] && setValir(true)
       }
     }
@@ -100,44 +94,19 @@ const EventProvider = ({ children }) => {
 
   useEffect(() => {
     if (event?.planSpaceSelect) {
-      //console.log("seteando planSpaceSelect")
       setPlanSpaceActive(event?.planSpace?.find(elem => elem?._id === event?.planSpaceSelect))
     }
   }, [event?.planSpaceSelect])
 
   useEffect(() => {
-    //console.log("seteado PlanSpaceActive________________")
-    //console.log("seteado PlanSpaceActive", planSpaceActive)
-    //console.log("---------------------------------------")
-  }, [planSpaceActive])
-
-  useEffect(() => {
     if (event) {
-      //console.log("seteado event _________________________")
       console.log("seteado event", event)
-      console.log(5000040, "recepcion", event?.planSpace[0]?.tables[0]?.guests?.length, event?.planSpace[0]?.tables[0]?.guests)
-      console.log(5000041, "ceremonia red", event?.planSpace[1]?.tables[0]?.guests?.length, event?.planSpace[1]?.tables[0]?.guests)
-      console.log(5000042, "ceremonia cua", event?.planSpace[1]?.tables[1]?.guests?.length, event?.planSpace[1]?.tables[1]?.guests)
       const f1 = eventsGroup.findIndex(elem => elem?._id === event?._id)
       eventsGroup.splice(f1, 1, event)
-      //console.log("SEUDO seteado eventsGroup", { ...eventsGroup })
       setEventsGroup({ type: "INITIAL_STATE", payload: [...eventsGroup] })
       setAllFilterGuests({ ...getAllFilterGuest(event), update: new Date().getTime() })
-      //console.log("---------------------------------------")
     }
   }, [event])
-
-  useEffect(() => {
-    //console.log("seteado event.planSpaceSelect__________")
-    //console.log("seteado event.planSpaceSelect", event?.planSpaceSelect)
-    //console.log("---------------------------------------")
-  }, [event?.planSpaceSelect])
-
-  useEffect(() => {
-    //console.log("seteado eventsGroup____________________")
-    //console.log("seteado eventsGroup", eventsGroup)
-    //console.log("---------------------------------------")
-  }, [eventsGroup])
 
   return (
     <EventContext.Provider value={{ event, setEvent, invitadoCero, setInvitadoCero, idxGroupEvent, setIdxGroupEvent, planSpaceActive, setPlanSpaceActive, filterGuests, setFilterGuests, allFilterGuests, setAllFilterGuests, editDefault, setEditDefault }}>
