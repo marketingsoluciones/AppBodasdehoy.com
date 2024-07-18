@@ -54,9 +54,16 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
     tableNameRecepcion: invitado?.tableNameRecepcion,
   }
   const handleSubmit = async (values: FormikValues, actions: any) => {
-    const val = values
+    const val = { ...values }
     delete val?.tableNameCeremonia
     delete val?.tableNameRecepcion
+    let valirChange = false
+    Object.entries(val).forEach(([key, value]) => {
+      if (values[key] !== initialValues[key]) {
+        valirChange = true
+      }
+    });
+
     const result: any = await fetchApiEventos({
       query: queries.createGuests,
       variables: {
@@ -66,23 +73,29 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
     });
     const f1 = event?.invitados_array?.findIndex(elem => elem._id === values._id)
     event.invitados_array[f1] = { ...invitado, ...values }
-    if (initialValues?.tableNameRecepcion?._id === values.tableNameRecepcion._id && initialValues?.tableNameCeremonia?._id === values.tableNameCeremonia._id) {
-      setEvent({ ...event })
+    if (initialValues?.tableNameRecepcion?._id === values?.tableNameRecepcion?._id && initialValues?.tableNameCeremonia?._id === values?.tableNameCeremonia?._id) {
+      console.log("aqqqqqqqqiii", initialValues?.tableNameRecepcion?._id === values?.tableNameRecepcion?._id, initialValues?.tableNameCeremonia?._id === values?.tableNameCeremonia?._id)
+      if (valirChange) {
+        setEvent({ ...event })
+      }
+    } else {
+      console.log("cambio mesas")
+      if (initialValues?.tableNameRecepcion?._id !== values?.tableNameRecepcion?._id) {
+        const f1 = event?.planSpace.findIndex(elem => elem?.title === "recepción")
+        console.log(1000005, "setear recepción", f1)
+        const table = event.planSpace[f1]?.tables.find(el => el._id === values?.tableNameRecepcion?._id)
+        const sendValues = { invitadoID: values?._id, previousTable: initialValues?.tableNameRecepcion, lastTable: table, f1, event, setEvent, toast }
+        handleMoveGuest(sendValues)
+      }
+      if (initialValues?.tableNameCeremonia?._id !== values?.tableNameCeremonia?._id) {
+        const f1 = event?.planSpace.findIndex(elem => elem?.title === "ceremonia")
+        console.log(1000005, "setear ceremonia", f1)
+        const table = event.planSpace[f1]?.tables.find(el => el._id === values?.tableNameCeremonia?._id)
+        const sendValues = { invitadoID: values?._id, previousTable: initialValues?.tableNameCeremonia, lastTable: table, f1, event, setEvent, toast }
+        handleMoveGuest(sendValues)
+      }
     }
-    if (initialValues?.tableNameRecepcion?._id !== values.tableNameRecepcion._id) {
-      const f1 = event?.planSpace.findIndex(elem => elem?.title === "recepción")
-      console.log(1000005, "setear recepción", f1)
-      const table = event.planSpace[f1]?.tables.find(el => el._id === values.tableNameRecepcion._id)
-      const sendValues = { invitadoID: values._id, previousTable: initialValues.tableNameRecepcion, lastTable: table, f1, event, setEvent, toast }
-      handleMoveGuest(sendValues)
-    }
-    if (initialValues?.tableNameCeremonia?._id !== values.tableNameCeremonia._id) {
-      const f1 = event?.planSpace.findIndex(elem => elem?.title === "ceremonia")
-      console.log(1000005, "setear ceremonia", f1)
-      const table = event.planSpace[f1]?.tables.find(el => el._id === values.tableNameCeremonia._id)
-      const sendValues = { invitadoID: values._id, previousTable: initialValues.tableNameCeremonia, lastTable: table, f1, event, setEvent, toast }
-      handleMoveGuest(sendValues)
-    }
+    console.log("fiiiinaaall")
     // falta setear el cambio en las mesas queries.editTable
     // falta setear el estado
     set(!state)
@@ -306,7 +319,7 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
 
 const Asd = ({ values, setValues }) => {
   useEffect(() => {
-    /* console.log(111454, values.passesQuantity) */
+    console.log(11145000004)
   }, [values])
   return (<></>)
 }
