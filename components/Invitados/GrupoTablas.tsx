@@ -47,7 +47,6 @@ interface handleMoveGuest {
 export const handleMoveGuest = (props: handleMoveGuest) => {
   try {
     const { invitadoID, previousTable, lastTable, f1, event, setEvent, toast } = props
-    console.log(1000007, props)
     if (previousTable?._id) {
       const f2 = event?.planSpace[f1]?.tables?.findIndex(elem => elem._id === previousTable?._id)
       const f3 = event.planSpace[f1].tables[f2].guests.findIndex(elem => elem._id === invitadoID)
@@ -142,7 +141,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
   }, [allFilterGuests]);
 
   const renderRowSubComponent = useCallback(({ row }) => (
-    <SubTabla row={row} getId={acompañanteID?.id} wantCreate={act => setAcompañanteID(old => ({ ...old, crear: act }))} />
+    <SubTabla row={row} getId={acompañanteID?.id} />
   ),
     [acompañanteID]
   )
@@ -323,7 +322,6 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
           const [value, setValue] = useState(row?.original?.nombre_menu ? row?.original?.nombre_menu : "sin menú");
           const [show, setShow] = useState(false);
           const [loading, setLoading] = useState(false);
-          console.log(5555555555555555, id)
           useEffect(() => {
             setLoading(false);
             updateMyData({
@@ -404,7 +402,6 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                     {value?.title}
                   </button>
                 )}
-
                 <ul
                   className={`${show ? "block opacity-100" : "hidden opacity-0"
                     } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-7 z-40 w-max`}
@@ -520,12 +517,16 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         Header: "Acompañantes",
         accessor: "passesQuantity",
         Cell: ({ value: initialValue, column: { id }, ...props }) => {
-          const [value, setValue] = useState(initialValue);
-          const handleClick = () => {
+          if (event.showChildrenGuest === props.row.original._id && !props?.row?.isExpanded) {
             setAcompañanteID({ id: props.row.original._id, crear: false })
             props?.toggleAllRowsExpanded(false)
             props?.row?.toggleRowExpanded()
             return
+          }
+          const [value, setValue] = useState(initialValue);
+          const handleClick = () => {
+            event.showChildrenGuest = !props?.row?.isExpanded ? props.row.original._id : null
+            setEvent({ ...event })
           }
           return (
             <div className="relative w-full flex justify-center items-center">
@@ -535,7 +536,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
               >
                 {value ? value : 0}
                 <div className="w-2">
-                  <IoIosArrowDown className={`${!value && "hidden"} ml-1 text-gray-500`} />
+                  <IoIosArrowDown className={`${!value && "hidden"} ml-1 text-gray-500 ${props?.row?.isExpanded && "rotate-180"}`} />
                 </div>
               </button>
             </div >

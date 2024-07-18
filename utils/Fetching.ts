@@ -566,6 +566,7 @@ export const queries = {
           
         }
       }
+      showChildrenGuest
     }
   }`,
   guardarListaRegalos: `mutation($evento_id: String!, $variable_reemplazar: String, $valor_reemplazar: String){
@@ -795,32 +796,32 @@ export const queries = {
        pagado
        coste_estimado
        currency
-       categorias_array{
-         _id
-         nombre
-         coste_estimado
-         coste_final
-         pagado
-         gastos_array {
-           _id
-           coste_estimado
-           coste_final
-           pagado
-           nombre
-           pagos_array {
-             _id
-             estado
-             fecha_creacion
-             fecha_pago
-             fecha_vencimiento
-             medio_pago
-             importe
-             pagado_por
-           }
-         }
-         
-       }
-     }
+        categorias_array{
+          _id
+          nombre
+          coste_estimado
+          coste_final
+          pagado
+          gastos_array {
+            _id
+            coste_estimado
+            coste_final
+            pagado
+            nombre
+            pagos_array {
+              _id
+              estado
+              fecha_creacion
+              fecha_pago
+              fecha_vencimiento
+              medio_pago
+              importe
+              pagado_por
+            }
+          }
+        }
+      }
+      showChildrenGuest
     }
   }`,
   getListaRegalos: `query($_id: String){

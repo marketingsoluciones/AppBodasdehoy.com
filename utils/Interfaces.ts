@@ -28,6 +28,7 @@ export interface Event {
     listaRegalos: string
     permissions: permission[]
     valirRemote: boolean
+    showChildrenGuest: string
     //permission: boolean
 }
 

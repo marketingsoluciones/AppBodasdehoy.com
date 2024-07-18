@@ -4,14 +4,14 @@ import { EventContextProvider } from "../../context";
 import { CanceladoIcon, ConfirmadosIcon, PendienteIcon } from "../icons";
 import { RowString } from "./RowString";
 import { guests } from "../../utils/Interfaces";
+import { RowObject } from "./RowObject";
 
 interface propsSubTabla {
     row?: any,
-    wantCreate?: any,
     getId?: string,
 }
 
-export const SubTabla: FC<propsSubTabla> = ({ row, wantCreate, getId }) => {
+export const SubTabla: FC<propsSubTabla> = ({ row, getId }) => {
     const { event } = EventContextProvider();
     const GuestsByFather = event?.invitados_array?.filter((invitado) => invitado?.father === getId)
     return (
@@ -31,7 +31,7 @@ interface props {
 }
 
 const ListadoComponent: FC<props> = ({ row, GuestsByFather }) => {
-    const { event } = EventContextProvider()
+    const { event, setEvent } = EventContextProvider()
     const sexo = row?.original?.sexo;
     const image = {
         hombre: {
@@ -68,7 +68,12 @@ const ListadoComponent: FC<props> = ({ row, GuestsByFather }) => {
         <>
             <button
                 className="top-5 right-5 text-lg text-gray-500 hover:text-gray-300 transition hover:scale-125 absolute transform focus:outline-none"
-                onClick={() => row.toggleRowExpanded(false)}
+                onClick={() => {
+                    //    row.toggleRowExpanded(false)
+                    event.showChildrenGuest = null
+                    setEvent({ ...event })
+                }
+                }
             >
                 X
             </button>
@@ -76,7 +81,7 @@ const ListadoComponent: FC<props> = ({ row, GuestsByFather }) => {
                 Acompañantes
             </p>
             <div className="grid grid-cols-12 px-5 justify-between border-b py-4 border-gray-100  transition bg-white capitalize">
-                <span className="items-center col-span-2 flex flex-col ">
+                <span className="items-center col-span-4 flex flex-col ">
                     <p className="font-body text-[15px] font-semibold">Nombre</p>
                 </span>
                 <span className="items-center col-span-2 flex flex-col h-full">
@@ -84,9 +89,6 @@ const ListadoComponent: FC<props> = ({ row, GuestsByFather }) => {
                 </span>
                 <span className="items-center col-span-2 flex flex-col h-full">
                     <p className="font-body text-[15px] font-semibold">Menu</p>
-                </span>
-                <span className="items-center col-span-2 flex flex-col  h-full">
-                    <p className="font-body text-[15px] font-semibold">edad</p>
                 </span>
                 <span className="items-center col-span-2 flex flex-col h-full">
                     <p className="font-body text-[15px] font-semibold">Mesa Recepcion</p>
@@ -96,12 +98,17 @@ const ListadoComponent: FC<props> = ({ row, GuestsByFather }) => {
                 </span>
             </div>
             {GuestsByFather.length ? GuestsByFather?.map((item, idx) => {
+                const getTable = (planSpaceTitle) => {
+                    const f1 = event?.planSpace.findIndex(elem => elem?.title === planSpaceTitle)
+                    const table = event.planSpace[f1]?.tables.find(el => el.guests.find(elem => elem._id === item._id))
+                    return table
+
+                }
                 return (
                     <div
                         key={idx}
-                        className="grid grid-cols-12 px-5 justify-between border-b py-4 border-gray-100  transition bg-white  "
-                    >
-                        <span className="bg-red items-center col-span-2 flex flex-col ">
+                        className="grid grid-cols-12 px-5 justify-between border-b py-4 border-gray-100  transition bg-white">
+                        <span className="items-center col-span-4 flex flex-col ">
                             <div className="flex items-center justify-start gap-1 w-full p-2">
                                 <img
                                     className="block w-8 h-8 "
@@ -111,22 +118,18 @@ const ListadoComponent: FC<props> = ({ row, GuestsByFather }) => {
                                 <p className="font-display text-md capitalize ">{item.nombre} </p>
                             </div>
                         </span>
-                        <div className="items-center col-span-2 flex flex-col h-full">
-                            <RowString Lista={Lista} dicc={dicc} initialValue={item.asistencia} columnID="" rowID="asistencia" />
+                        <div className="col-span-2 flex flex-col h-full justify-center items-center">
+                            <RowString Lista={Lista} dicc={dicc} initialValue={item.asistencia} variable="asistencia" guestID={item._id} />
                         </div>
 
-                        <div className="items-center col-span-2 flex flex-col h-full">
-                            <RowString Lista={event?.menus_array.map(elem => { return { title: elem.nombre_menu } })} initialValue={item.nombre_menu} rowID={row?.original?._id} columnID="nombre_menu" />
+                        <div className="col-span-2 flex flex-col h-full justify-center items-center">
+                            <RowString Lista={event?.menus_array.map(elem => { return { title: elem.nombre_menu } })} initialValue={item.nombre_menu} variable="nombre_menu" guestID={item._id} />
                         </div>
-                        <span className="items-center col-span-2 flex flex-col  h-full">
-                            <p className={`font-display text-md h-full flex items-center capitalize`}>
-                                no asignado
-                            </p>
+                        <span className="col-span-2 flex flex-col h-full justify-center items-center">
+                            <RowObject initialValue={getTable("recepción")} planSpaceTitle="recepción" guestID={item._id} />
                         </span>
-                        <span className="items-center col-span-2 flex flex-col  h-full">
-                            <p className={`font-display text-md h-full flex items-center capitalize`}>
-                                no asignado
-                            </p>
+                        <span className="col-span-2 flex flex-col h-full justify-center items-center">
+                            <RowObject initialValue={getTable("ceremonia")} planSpaceTitle="ceremonia" guestID={item._id} />
                         </span>
                     </div>
                 )
