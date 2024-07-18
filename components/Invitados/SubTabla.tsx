@@ -1,10 +1,11 @@
 
-import { FC, cloneElement } from "react";
+import { FC } from "react";
 import { EventContextProvider } from "../../context";
 import { CanceladoIcon, ConfirmadosIcon, PendienteIcon } from "../icons";
 import { RowString } from "./RowString";
 import { guests } from "../../utils/Interfaces";
 import { RowObject } from "./RowObject";
+import { fetchApiEventos, queries } from "../../utils/Fetching";
 
 interface propsSubTabla {
     row?: any,
@@ -70,6 +71,14 @@ const ListadoComponent: FC<props> = ({ row, GuestsByFather }) => {
                 className="top-5 right-5 text-lg text-gray-500 hover:text-gray-300 transition hover:scale-125 absolute transform focus:outline-none"
                 onClick={() => {
                     //    row.toggleRowExpanded(false)
+                    fetchApiEventos({
+                        query: queries.eventUpdate,
+                        variables: {
+                            idEvento: event._id,
+                            variable: "showChildrenGuest",
+                            value: ""
+                        }
+                    })
                     event.showChildrenGuest = null
                     setEvent({ ...event })
                 }

@@ -10,12 +10,10 @@ import { Event, guests, table } from "../../utils/Interfaces";
 import { DataTableGroupContextProvider, DataTableGroupProvider, } from "../../context/DataTableGroupContext";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
-import { moveGuest } from "../Mesas/FuntionsDragable";
 import { useAllowed } from "../../hooks/useAllowed";
 import { LiaLinkSolid } from "react-icons/lia";
 import { CopiarLink } from "../Utils/Compartir";
 import { SubTabla } from "./SubTabla";
-import DetallesPago from "../Presupuesto/DetallesPago";
 import { IoIosArrowDown } from "react-icons/io";
 import { Modal } from "../Utils/Modal";
 import { DeleteConfirmation } from "../Itinerario/MicroComponente/DeleteConfirmation";
@@ -97,7 +95,7 @@ export const handleMoveGuest = (props: handleMoveGuest) => {
 const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIsMounted, menu = [] }) => {
   const toast = useToast()
   const { event, setEvent, invitadoCero, setInvitadoCero, allFilterGuests, planSpaceActive, setPlanSpaceActive, filterGuests } = EventContextProvider();
-  const GuestsFathers = event?.invitados_array?.filter((invitado) => invitado?.father === null)
+  const GuestsFathers = event?.invitados_array?.filter((invitado) => !invitado?.father)
   const [data, setData] = useState<{ titulo: string; data: guestsExt[] }[]>([]);
   const [isAllowed] = useAllowed()
   const [acompañanteID, setAcompañanteID] = useState({ id: "", crear: true })
@@ -109,7 +107,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
 
   useEffect(() => {
     setInvitadoCero(event?.invitados_array?.filter(elem => elem?.rol === event?.grupos_array[0])[0]?.nombre)
-  }, [event?.invitados_array, event?.grupos_array])
+  }, [event?.invitados_array, event?.grupos_array, event])
 
   useEffect(() => {
     let asd = {}
@@ -525,6 +523,14 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
           }
           const value = initialValue;
           const handleClick = () => {
+            fetchApiEventos({
+              query: queries.eventUpdate,
+              variables: {
+                idEvento: event._id,
+                variable: "showChildrenGuest",
+                value: !props?.row?.isExpanded ? props.row.original._id : ""
+              }
+            })
             event.showChildrenGuest = !props?.row?.isExpanded ? props.row.original._id : null
             setEvent({ ...event })
           }
