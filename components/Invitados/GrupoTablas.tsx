@@ -523,7 +523,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
             props?.row?.toggleRowExpanded()
             return
           }
-          const [value, setValue] = useState(initialValue);
+          const value = initialValue;
           const handleClick = () => {
             event.showChildrenGuest = !props?.row?.isExpanded ? props.row.original._id : null
             setEvent({ ...event })

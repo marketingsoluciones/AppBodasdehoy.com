@@ -31,7 +31,7 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
           Header: (props: any) => {
             return false;
           },
-          expanded: true,
+
           Cell: (props) => {
             const { row } = props;
             const { dispatch, dataTableGroup: { arrIDs, checkedAll } } = DataTableGroupContextProvider()
