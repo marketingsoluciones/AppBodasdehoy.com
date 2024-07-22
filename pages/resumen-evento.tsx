@@ -15,9 +15,6 @@ import { BlockLugarEvento } from "../components/Resumen/BlockLugarEvento";
 
 const Resumen = () => {
   const { event } = EventContextProvider()
-
-  console.log(event)
-
   useMounted()
 
   if (!event) return <></>
