@@ -14,12 +14,12 @@ export const EnviadosComponent = ({ dataInvitationSent, dataInvitationNotSent, e
                     <button
                         className={` w-full md:w-[270px] py-1 ${stateTable == "noenviados" ? "bg-primary text-white" : "bg-white text-primary"} h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
                         onClick={() => setStateTable("noenviados")}>
-                        no enviados
+                        Pendientes
                     </button>
                     <button
                         className={` w-full md:w-[270px] py-1 ${stateTable == "enviados" ? "bg-primary text-white" : "bg-white text-primary"} h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
                         onClick={() => setStateTable("enviados")}>
-                        enviados
+                        Enviadas
                     </button>
                 </div>
                 <div className="bg-white w-full rounded-xl shadow-md relative mt-4 mb-8">

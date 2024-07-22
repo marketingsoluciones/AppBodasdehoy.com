@@ -29,7 +29,6 @@ const Invitaciones = () => {
   const [hoverRef, isHovered] = useHover();
   const [dataInvitationSent, setDataInvitationSent] = useState([]);
   const [dataInvitationNotSent, setDataInvitationNotSent] = useState([]);
-  const [showInvitation, setShowInvitation] = useState(true)
   const [optionSelect, setOptionSelect] = useState("email")
   const [stateConfi, setStateConfi] = useState(true)
   const arryOptions: optionArryOptions[] = [
@@ -55,6 +54,10 @@ const Invitaciones = () => {
     }
   ]
 
+
+
+
+
   useMounted()
   useEffect(() => {
     const reduce = event?.invitados_array?.reduce((acc: any, item: any) => {
@@ -65,13 +68,15 @@ const Invitaciones = () => {
         sexo: item.sexo,
         invitacion: item.invitacion,
         telefono: item.telefono,
-        date: item.fecha_invitacion
+        date: item.fecha_invitacion,
+        father: item.father
       }
       item.invitacion ? acc.sent.push(asd) : acc.notSent.push(asd);
       return acc;
     }, { sent: [], notSent: [] })
-    reduce?.sent?.length != dataInvitationSent?.length && setDataInvitationSent(reduce?.sent);
-    reduce?.notSent.length != dataInvitationNotSent?.length && setDataInvitationNotSent(reduce?.notSent);
+
+    reduce?.sent?.length != dataInvitationSent?.length && setDataInvitationSent(reduce?.sent?.filter((invitado) => !invitado?.father));
+    reduce?.notSent.length != dataInvitationNotSent?.length && setDataInvitationNotSent(reduce?.notSent?.filter((invitado)=> !invitado?.father));
   }, [event, dataInvitationSent, dataInvitationNotSent]);
 
   if (verificationDone) {
