@@ -54,10 +54,6 @@ const Invitaciones = () => {
     }
   ]
 
-
-
-
-
   useMounted()
   useEffect(() => {
     const reduce = event?.invitados_array?.reduce((acc: any, item: any) => {
@@ -75,9 +71,12 @@ const Invitaciones = () => {
       return acc;
     }, { sent: [], notSent: [] })
 
-    reduce?.sent?.length != dataInvitationSent?.length && setDataInvitationSent(reduce?.sent?.filter((invitado) => !invitado?.father));
-    reduce?.notSent.length != dataInvitationNotSent?.length && setDataInvitationNotSent(reduce?.notSent?.filter((invitado)=> !invitado?.father));
-  }, [event, dataInvitationSent, dataInvitationNotSent]);
+    const InvitationSent = reduce?.sent?.filter((invitado:any) => !invitado?.father)
+    const InvitationNotSent = reduce?.notSent?.filter((invitado:any)=> !invitado?.father)
+
+    reduce?.sent?.length != dataInvitationSent?.length && setDataInvitationSent(InvitationSent);
+    reduce?.notSent.length != dataInvitationNotSent?.length && setDataInvitationNotSent(InvitationNotSent);
+  }, [event]);
 
   if (verificationDone) {
     if (!user) {
