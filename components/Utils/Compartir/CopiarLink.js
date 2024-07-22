@@ -5,10 +5,8 @@ import ClickAwayListener from "react-click-away-listener";
 import { PiCheckFatBold } from "react-icons/pi";
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
 
-export const CopiarLink = ({ evento_id, invitado_id }) => {
+export const CopiarLink = ({ link }) => {
     const [copied, setCopied] = useState(false)
-
-    const link = `${window?.location?.origin}?pGuestEvent=${invitado_id}${evento_id?.slice(3, 9)}${evento_id}`
 
     return (
         <div className="bb-red flex flex-col space-y-1 w-full">

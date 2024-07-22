@@ -39,3 +39,6 @@ yarn-error.log*
 #uploads directorio
 /uploads
 /public/qswedgimg
+
+# yarn 
+.yarn
