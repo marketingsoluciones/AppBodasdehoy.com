@@ -32,6 +32,7 @@ export interface Event {
     //permission: boolean
 }
 
+
 export interface Notification {
     _id: string
     uid: string
@@ -104,7 +105,7 @@ interface pay {
     pagado_por: string
 }
 
-interface image {
+export interface image {
     _id: string
     i1024: string
     i800: string

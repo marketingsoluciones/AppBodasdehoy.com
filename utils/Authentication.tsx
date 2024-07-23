@@ -148,8 +148,8 @@ export const useAuthentication = () => {
                 })
               } else {
                 setStage("register")
-               /*  toast("error", `${res?.user?.email} no está registrado`)
-                toast("success", `Haz click en Regístrate`) */
+                /*  toast("error", `${res?.user?.email} no está registrado`)
+                 toast("success", `Haz click en Regístrate`) */
               }
             }
           })
@@ -192,7 +192,7 @@ export const useAuthentication = () => {
       try {
         await sendPasswordResetEmail(getAuth(), values?.identifier);
         setStage("login")
-        toast("success", "Email enviado correctamente")
+        toast("success", "Se ha enviado un correo electrónico para restablecer tu contraseña")
       } catch (error) {
         toast("error", "Error, email no encontrado")
         console.log(error);

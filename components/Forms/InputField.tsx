@@ -88,7 +88,7 @@ const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled =
         {props?.type === "telefono" &&
           <>
             {showFlags && <ClickAwayListener onClickAway={() => { setShowFlags(false) }}>
-              <div className={`bg-white w-full h-44 absolute translate-y-10 z-10 border-[1px] rounded-b-xl flex flex-col ${(props?.type !== "tel" ? true : meta.touched) && meta.error ? "border-rose-300" : "border-gray-200"}`}>
+              <div className={`bg-white w-full h-44 absolute translate-y-10 z-10 border-[1px] rounded-b-xl flex flex-col ${meta.error ? "border-rose-300" : "border-gray-200"}`}>
                 <input type="text" autoFocus autoComplete="nope" onChange={(e) => setFilterFlags(e.target.value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''))} className="bg-gray-100 h-6 border-0 focus:border-0 w-full py-2 px-4 focus:ring-0 focus:outline-none transition text-xs text-gray-600" />
                 <ul className="w-full flex-1 cursor-pointer text-gray-900 text-xs *space-y-2 *px-2 py-1 overflow-y-scroll">
                   {options.map((elem, idx) =>

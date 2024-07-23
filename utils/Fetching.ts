@@ -102,6 +102,13 @@ export const fetchApiEventos = async ({ query, variables, token }: argsFetchApi)
 
 export const queries = {
 
+  singleUpload: `mutation($file:Upload!,$use:String)
+  {
+    singleUpload(file:$file,use:$use){
+      _id
+      i640
+    }
+  }`,
   getPGuestEvent: `query($p:String){
     getPGuestEvent(p:$p){
       invitados_array{

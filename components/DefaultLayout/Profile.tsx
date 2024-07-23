@@ -159,7 +159,7 @@ const Profile = ({ user, state, set, ...rest }) => {
   const optionsEnd: Option[] = [
     {
       title: "Mi perfil",
-      onClick: async () => { config?.pathPerfil && router.push(config?.pathPerfil) },
+      onClick: async () => { config?.pathPerfil ? router.push(config?.pathPerfil) : router.push("/configuracion") },
       icon: <UserIcon />,
       development: ["bodasdehoy", "all"],
       rol: ["novio", "novia", "otro", "empresa"],

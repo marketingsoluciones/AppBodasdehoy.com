@@ -554,6 +554,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         accessor: "compartir",
         Cell: ({ value: initialValue, row }) => {
           const [show, setShow] = useState(false);
+          const link = `${window?.location?.origin}?pGuestEvent=${row.original._id}${event._id?.slice(3, 9)}${event._id}`
           return (
             <ClickAwayListener onClickAway={() => setShow(false)}>
               <div className="relative w-full flex justify-center items-center">
@@ -570,7 +571,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                   <li
                     className="flex items-center py-4 px-6 font-display text-sm text-gray-500 bg-base transition w-full capitalize"
                   >
-                    <CopiarLink evento_id={event._id} invitado_id={row.original._id} />
+                    <CopiarLink link={link} />
                   </li>
                 </ul>}
               </div>
