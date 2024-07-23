@@ -2,7 +2,6 @@ import { MiPerfil } from "../components/perfil/CuadroDeAccion/MiPerfil";
 import { PerfilFoto } from "../components/perfil/PerfilFoto";
 import { PerfilOpciones } from "../components/perfil/PerfilOpciones";
 import { FC, useState } from "react";
-import { HeartIconOutline, SettingsIconOutline, StartIconOutline, UserIcon, ExitIcon } from "../components/Icons";
 import PagesWithAuth from "../HOC/PagesWithAuth";
 import { AuthContextProvider, LoadingContextProvider } from '../context'
 import { deleteCookie } from "../utils/Cookies";
@@ -10,6 +9,7 @@ import { useRouter } from "next/router";
 import { useToast } from '../hooks/useToast';
 import Cookies from "js-cookie";
 import { useAuthentication } from '../utils/Authentication';
+import { ExitIcon, HeartIconOutline, SettingsIconOutline, StartIconOutline } from "../components/icons";
 // import { AlertDesarrollo } from "../components/modals/AlertDesarrollo";
 
 export type optionComponent = {
@@ -98,11 +98,7 @@ const Configuration = () => {
 export default Configuration;
 //export default PagesWithAuth(Configuration);
 
-export const BlockConfiguration: FC<{ title: string; subtitle?: string }> = ({
-  title,
-  subtitle,
-  children,
-}) => {
+export const BlockConfiguration: FC<{ title: string; subtitle?: string, children?:any }> = ({  title,  subtitle,  children,}) => {
   return (
     <div className="bg-white p-6 rounded-xl shadow flex flex-col gap-2">
       <div>
