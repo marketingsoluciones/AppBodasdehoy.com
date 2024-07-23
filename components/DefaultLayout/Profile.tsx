@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import ClickAwayListener from "react-click-away-listener";
-import { ArrowDown, ArrowDownBodasIcon, ArrowLeft, Catering, CompanyIcon, CorazonPaddinIcon, Eventos, FotografoMenu, LugaresBodas, MensajeIcon, MisEventosIcon, Posts, UserIcon, WeddingPage, WeddingPlanner } from "../icons";
+import { ArrowDown, ArrowDownBodasIcon, ArrowLeft, Catering, CompanyIcon, CorazonPaddinIcon, Eventos, FotografoMenu, LugaresBodas, MensajeIcon, MisEventosIcon, Posts, TarjetaIcon, UserIcon, WeddingPage, WeddingPlanner } from "../icons";
 import router, { useRouter } from "next/router";
 import { getAuth, signOut } from "firebase/auth";
 import { AuthContextProvider, EventContextProvider, LoadingContextProvider } from "../../context";
@@ -186,6 +186,13 @@ const Profile = ({ user, state, set, ...rest }) => {
       development: ["bodasdehoy", "all"],
       rol: ["novio", "novia", "otro", "empresa"],
     },
+    {
+      title:"Facturacion",
+      onClick: async () => {router.push("/facturacion")},
+      icon:<TarjetaIcon />,
+      development: ["all"],
+      rol:["all"]
+    }
   ]
 
   const optionReduce = (options: Option[]) => {

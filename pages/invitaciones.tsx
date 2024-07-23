@@ -1,6 +1,6 @@
 import { useEffect, useState, } from "react";
 import Breadcumbs from "../components/DefaultLayout/BreadCumbs";
-import { CompartirIcon, Correo, DiseñoIcon, EmailIcon, PlusIcon, SmsIcon, SubirImagenIcon2, WhatsappIcon, } from "../components/icons";
+import {  DiseñoIcon, EmailIcon,  SmsIcon,WhatsappIcon, } from "../components/icons";
 import BlockTitle from "../components/Utils/BlockTitle";
 import useHover from "../hooks/useHover";
 import ModuloSubida from "../components/Invitaciones/ModuloSubida";

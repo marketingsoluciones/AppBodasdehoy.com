@@ -33,7 +33,6 @@ const VentasEntradas: FC<propsVentasEntradas> = ({ }) => {
     fetchData()
   }, [])
 
-  console.log(datafilter.length)
 
   return (
     <>
