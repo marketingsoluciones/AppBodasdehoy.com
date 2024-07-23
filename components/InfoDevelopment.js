@@ -46,7 +46,6 @@ export const InfoDevelopment = () => {
           <div className="flex gap-2">
             <button
               onClick={() => {
-                console.log(8000, "getAuth", getAuth())
                 onAuthStateChanged(getAuth(), async (user) => {
                   console.log(user?.accessToken
                   )
