@@ -22,7 +22,7 @@ interface propsBlockListaInvitados {
 
 const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu, setGetMenu, createPDF, setCreatePDF }) => {
   const { event } = EventContextProvider();
-  const {actionModals, setActionModals}=AuthContextProvider()
+  const { actionModals, setActionModals } = AuthContextProvider()
   const [isMounted, setIsMounted] = useState(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const [invitadoSelected, setSelected] = useState<string | null>(null);
@@ -35,7 +35,7 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu, s
   };
 
   const ConditionalAction = ({ e }) => {
-    if (event.invitados_array.length >= 5) {
+    if (event.invitados_array.length >= 10) {
       setActionModals(!actionModals)
     } else {
       handleClick(e, "invitado")
@@ -48,7 +48,7 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu, s
     <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full md:px-6 pt-2 md:pt-6 pb-28 mb-32 md:mb-0 md:p-12 relative">
       <div className="flex gap-2 md:gap-4 items-center mt-1 mb-3 md:mb-5 mx-2">
         <button
-          onClick={(e) => !isAllowed() ? ht() : ConditionalAction({e})}
+          onClick={(e) => !isAllowed() ? ht() : ConditionalAction({ e })}
           className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary md:bg-primary md:text-white md:hover:bg-white md:hover:text-primary"
         >
           <PlusIcon />

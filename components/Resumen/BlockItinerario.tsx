@@ -1,7 +1,9 @@
 import { GoChecklist } from "react-icons/go";
 import { useRouter } from "next/router";
+import { useAllowed } from "../../hooks/useAllowed";
 
 export const BlockItinerario = () => {
+   
     const router = useRouter()
     return (
         <div onClick={()=> router.push("/itinerario")} className="bg-acento space-x-3 rounded-lg text-white flex  items-center justify-center py-1.5 px-5 shadow-lg font-display text-xl cursor-pointer ">

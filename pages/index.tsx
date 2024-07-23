@@ -15,7 +15,7 @@ import { useRouter } from "next/router";
 import { useToast } from "../hooks/useToast";
 
 const Home: NextPage = () => {
-  const { user, actionModals, verificationDone, config, setUser } = AuthContextProvider()
+  const { user, verificationDone, config, setUser } = AuthContextProvider()
   const { eventsGroup, eventsGroupDone } = EventsGroupContextProvider()
   const { setEvent } = EventContextProvider()
   const { setLoading } = LoadingContextProvider()
@@ -30,12 +30,10 @@ const Home: NextPage = () => {
   useEffect(() => {
     if (!isMounted) {
       setIsMounted(true)
-      //setLoading(false)
     }
     return () => {
       if (isMounted) {
         setIsMounted(false)
-   /*      setLoading(true) */
       }
     }
   }, [isMounted])
@@ -58,7 +56,7 @@ const Home: NextPage = () => {
   }, [showEditEvent, valirQuery, valir])
 
   if (verificationDone && eventsGroupDone) {
-    
+
     if (router?.query?.pAccShas) {
       if (!user || user?.displayName === "guest") {
         router.push(config?.pathLogin ? `${config?.pathLogin}?pAccShas=${router?.query?.pAccShas}` : `/login?pAccShas=${router?.query?.pAccShas}`)
@@ -71,7 +69,12 @@ const Home: NextPage = () => {
         return <></>
       }
     }
-    if ((!user || user.displayName === "guest") && ["vivetuboda", "eventosplanificador"].includes(config?.development)) {
+    /* Redireccion para la confirmacion de la asistencia */
+    if (router?.query?.pGuestEvent) {
+      router.push(`/confirmar-asistencia?pGuestEvent=${router?.query?.pGuestEvent}`)
+    }
+
+    if ((!user || user.displayName === "guest") && ["vivetuboda"].includes(config?.development)) {
       router?.push(`/login`)
       return <></>
     }

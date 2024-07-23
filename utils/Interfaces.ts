@@ -28,24 +28,26 @@ export interface Event {
     listaRegalos: string
     permissions: permission[]
     valirRemote: boolean
+    showChildrenGuest: string
     //permission: boolean
 }
 
+
 export interface Notification {
-    _id:string
-    uid:string
-    message:string
-    state:string
-    createdAt:number
-    updatedAt:number
+    _id: string
+    uid: string
+    message: string
+    state: string
+    createdAt: number
+    updatedAt: number
 }
 
-export interface ResultNotifications{
+export interface ResultNotifications {
     total: number
     results: Notification[]
 }
 
-interface menu {
+export interface menu {
     nombre_menu: string
     tipo: string
 }
@@ -72,7 +74,7 @@ interface estimate {
     coste_estimado: number
     coste_final: number
     pagado: number
-    currency:string
+    currency: string
     categorias_array: estimateCategory[]
 }
 
@@ -103,7 +105,7 @@ interface pay {
     pagado_por: string
 }
 
-interface image {
+export interface image {
     _id: string
     i1024: string
     i800: string
@@ -116,15 +118,6 @@ interface notification {
     fecha_creacion: string,
     fecha_lectura: string
     mensaje: string
-}
-
-interface chair {
-    planSpaceID: string,
-    planSpaceName: string,
-    sectionID: string,
-    tableID: string,
-    chair: number,
-    order: string
 }
 
 export interface position {
@@ -208,6 +201,8 @@ export interface guests {
     direccion: string
     poblacion: string
     pais: string
+    father: string
+    passesQuantity: number
 }
 
 export interface filterGuest extends guests {

@@ -73,10 +73,16 @@ input::-webkit-inner-spin-button {
 /* Firefox */
 input[type=number] {
   -moz-appearance: textfield;
+
+}
+
+input[type=number]:focus {
+  outline: none !important;
+
 }
 
 input[type="text"]:focus {
-  --tw-ring-shadow:none
+  --tw-ring-shadow: none
 }
 
 input[type="time"]::-webkit-calendar-picker-indicator {

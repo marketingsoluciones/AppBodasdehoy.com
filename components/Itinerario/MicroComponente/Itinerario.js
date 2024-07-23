@@ -10,20 +10,28 @@ import { EventContextProvider } from "../../../context/EventContext";
 import { Modal } from "../../Utils/Modal";
 import { useToast } from "../../../hooks/useToast";
 import { useRouter } from "next/router";
+import { useAllowed } from "../../../hooks/useAllowed";
+import { DeleteConfirmation } from "./DeleteConfirmation";
+import { WarningMessage } from "./WarningMessage";
 
 
 
 export const Itinerario = ({ data }) => {
     const { domain } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
+    const [isAllowed, ht] = useAllowed()
+    const disable = !isAllowed("itinerario")
+    const toast = useToast()
     const newDate = new Date();
     const options = { year: "numeric", month: "long", day: "numeric" };
     const date = newDate.toLocaleDateString(navigator?.languages, options)
     const [itinerario, setItinerario] = useState()
     const [tasks, setTasks] = useState()
     const [modal, setModal] = useState(false)
-    const toast = useToast()
-    const router = useRouter()
+    const [modalStatus, setModalStatus] = useState(false)
+    const [modalWorkFlow, setModalWorkFlow] = useState(false)
+    const [modalCompartirTask, setModalCompartirTask] = useState(false)
+    const [modalPlantilla, setModalPlantilla] = useState(false)
 
     useEffect(() => {
         const itinerario = event?.itinerarios_array?.find(elem => elem.title === data?.title)
@@ -32,6 +40,7 @@ export const Itinerario = ({ data }) => {
             setTasks([...itinerario?.tasks?.sort((a, b) => a.hora.localeCompare(b.hora))])
         }
     }, [data, event])
+
 
     useEffect(() => {
         if (event && !event?.itinerarios_array?.find(elem => elem.title === data.title)) {
@@ -56,7 +65,7 @@ export const Itinerario = ({ data }) => {
                 console.log(error)
             };
         }
-    }, [event._id, data.title, event, router])
+    }, [data?.title, event])
 
     const deleteItinerario = async () => {
         try {
@@ -83,39 +92,52 @@ export const Itinerario = ({ data }) => {
 
     return (
         <>
-            <SubHeader button={modal} setButton={setModal} date={date} title={data?.title} itinerario={itinerario} />
-            <div className="w-full h-full overflow-auto* flex flex-col items-center">
+            <SubHeader button={modal} setButton={setModal} date={date} title={data?.title} itinerario={itinerario} disable={disable} ht={ht} setModalPlantilla={setModalPlantilla} modalPlantilla={modalPlantilla} />
+            <div className="w-full h-full flex flex-col items-center">
                 <div className="w-[88%] divide-y-2 md:divide-y-0">
                     {tasks?.map((elem, idx) => {
                         return (
                             <div key={idx}>
-                                <Task task={elem} key={idx} date={date} itinerario={itinerario} title={data?.title} />
+                                <Task
+                                    task={elem}
+                                    itinerario={itinerario}
+                                    title={data?.title}
+                                    disable={disable}
+                                    ht={ht}
+                                    setModalStatus={setModalStatus}
+                                    modalStatus={modalStatus}
+                                    setModalWorkFlow={setModalWorkFlow}
+                                    modalWorkFlow={modalWorkFlow}
+                                    setModalCompartirTask={setModalCompartirTask}
+                                    modalCompartirTask={modalCompartirTask}
+
+                                />
                             </div>
                         )
                     })
                     }
                 </div>
-                <AddEvent tasks={tasks} itinerario={itinerario} />
+                <AddEvent tasks={tasks} itinerario={itinerario} disable={disable} />
             </div>
-            {
-                modal ? (
-                    <>
-                        <Modal classe={"w-[40%] h-[20%]"}>
-                            <div className="flex flex-col items-center justify-center h-full space-y-2">
-                                <p className="text-azulCorporativo" >¿ Estas seguro de borrar todo el itinerario ?</p>
-                                <div className="space-x-2">
-                                    <button onClick={() => setModal(!modal)} className=" bg-botonBack h-10 w-20 rounded-lg text-white text-base font-base ">
-                                        Descartar
-                                    </button>
-                                    <button onClick={() => deleteItinerario()} className=" bg-rosa h-10 w-20 rounded-lg justify-center text-base text-white">
-                                        Eliminar
-                                    </button>
-                                </div>
-                            </div>
-                        </Modal>
-                    </>
-                ) :
-                    null
+            {modal && <Modal classe={"w-[95%] md:w-[450px] h-[200px]"}>
+                <DeleteConfirmation setModal={setModal} modal={modal} title={"¿ Estas seguro de borrar todo el itinerario ?"} handle={deleteItinerario} />
+            </Modal>
+            }
+            {modalStatus && <Modal classe={"w-[95%] md:w-[450px] h-[370px]"}>
+                <WarningMessage setModal={setModalStatus} modal={modalStatus} title={"Visibilidad"} />
+            </Modal>
+            }
+            {modalWorkFlow && <Modal classe={"w-[95%] md:w-[450px] h-[370px]"}>
+                <WarningMessage setModal={setModalWorkFlow} modal={modalWorkFlow} title={"WorkFlow"} />
+            </Modal>
+            }
+            {modalCompartirTask && <Modal classe={"w-[95%] md:w-[450px] h-[370px]"}>
+                <WarningMessage setModal={setModalCompartirTask} modal={modalCompartirTask} title={"Compartir"} />
+            </Modal>
+            }
+            {modalPlantilla && <Modal classe={"w-[95%] md:w-[450px] h-[370px]"}>
+                <WarningMessage setModal={setModalPlantilla} modal={modalPlantilla} title={"Plantilla"} />
+            </Modal>
             }
         </>
     )

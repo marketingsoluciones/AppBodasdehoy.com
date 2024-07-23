@@ -72,6 +72,8 @@ const Navigation: FC = () => {
     },
   ], [event]);
 
+  const urls= ["/info-app", "/confirmar-asistencia"]
+
   return (
     <>
       <Head>
@@ -123,7 +125,7 @@ const Navigation: FC = () => {
         </div>
 
         {/* segundo menu superior con las redirecciones funcionales de la app */}
-        <div className={`${url == "/info-app" ? "hidden" : "block"}`}>
+        <div className={`${urls.includes(url)  ? "hidden" : "block"}`}>
           <div className={`w-full h-20 relative hidden md:block bg-base z-10 `}>
             <Tooltip label="Primero debes crear un evento" icon={<IconLightBulb16 className="w-6 h-6" />} disabled={!!event?._id}>
               <ul className="absolute m-auto left-1/2 -translate-x-1/2 py-4 w-max h-max flex gap-12">

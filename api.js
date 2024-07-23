@@ -4,7 +4,7 @@ import { SubscriptionClient } from "graphql-subscriptions-client";
 import { Manager, io } from "socket.io-client";
 import { getAuth } from "firebase/auth";
 import { parseJwt } from "./utils/Authentication";
-import { varGlobalDomain, varGlobalDevelopment } from "./context/AuthContext"
+import { varGlobalDomain, varGlobalDevelopment, varGlobalSubdomain } from "./context/AuthContext"
 
 /* // llamada a wordpresss ref1001
 const wp = axios.create({
@@ -33,7 +33,8 @@ export const api = {
     return await instance.post("/graphql", params, {
       headers: {
         Authorization: `Bearer ${idToken}`,
-        Development: varGlobalDevelopment
+        Development: varGlobalDevelopment,
+
       }
     });
   },
@@ -110,7 +111,8 @@ export const api = {
     return axios.post('https://api.bodasdehoy.com/graphql', data, {
       headers: {
         Authorization: `Bearer ${idToken}`,
-        Development: development
+        Development: development,
+        IsProduction: process?.env?.NEXT_PUBLIC_PRODUCTION && !["testticket", "testinvitado"].includes(varGlobalSubdomain)
       }
     })
   }

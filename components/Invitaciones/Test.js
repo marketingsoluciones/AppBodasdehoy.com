@@ -117,7 +117,7 @@ export default function Test({ TitelComponent }) {
                 : <InputField
                   name="phoneNumber"
                   label={"Número de telefono"}
-                  type="text"
+                  type="telefono"
                   autoComplete="off"
                   icon={<PhoneMobile className="absolute w-4 h-4 inset-y-0 left-4 m-auto text-gray-500" />}
                 />

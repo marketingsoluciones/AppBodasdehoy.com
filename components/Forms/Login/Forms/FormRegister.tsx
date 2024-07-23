@@ -3,7 +3,7 @@ import { publicKey } from './../../../../publicKey.js'
 import { Formik, Form, ErrorMessage } from "formik";
 import { Dispatch, FC, SetStateAction, useState } from "react";
 import { EmailIcon, Eye, EyeSlash, LockClosed, PhoneMobile, UserForm } from "../../../icons";
-import { InputField } from "../../InputFieldIcons";
+import { InputField as InputFieldIcons } from "../../InputFieldIcons";
 import { ButtonComponent } from "../../ButtonComponent";
 import { useToast } from "../../../../hooks/useToast";
 import { AuthContextProvider, LoadingContextProvider } from "../../../../context";
@@ -16,6 +16,7 @@ import { redirections } from "./redirections";
 import Cookies from 'js-cookie';
 import * as yup from "yup";
 import { useActivity } from '../../../../hooks/useActivity';
+import InputField from '../../InputField';
 
 interface initialValues {
   uid?: string
@@ -83,7 +84,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
       ? yup.string().required("Campo requerido").test("Unico", `Debe contener mas de 5 caractéres`, (value: any) => {
         const name = document.activeElement?.getAttribute("name")
         if (name !== "password") {
-          return value?.length > 5 
+          return value?.length > 5
         } else {
           return true
         }
@@ -234,9 +235,9 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
         validationSchema={validationSchema ?? {}}
         onSubmit={linkMedia == null ? handleSubmit : handleSumitMedia}
       >
-        <Form className={`w-full md:w-[350px] text-gray-200 gap-4 md:gap-5 md:space-y-0 flex flex-col ${WihtProvider ? "mt-16":""} `}>
+        <Form className={`w-full md:w-[350px] text-gray-200 gap-4 md:gap-5 md:space-y-0 flex flex-col ${WihtProvider ? "mt-16" : ""} `}>
           <div className={`col-span-2 ${WihtProvider ? "hidden" : ""}`}>
-            <InputField
+            <InputFieldIcons
               disabled={!!phoneNumber}
               name="fullName"
               type="text"
@@ -246,7 +247,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
             />
           </div>
           <div className={`col-span-2 ${WihtProvider ? "hidden" : ""}`}>
-            <InputField
+            <InputFieldIcons
               disabled={!!phoneNumber}
               name="identifier"
               type="text"
@@ -257,7 +258,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
           </div>
           {linkMedia == null &&
             <div className={`w-full relative ${WihtProvider ? "hidden" : ""}`}>
-              <InputField
+              <InputFieldIcons
                 name="password"
                 type={passwordView ? "password" : "text"}
                 autoComplete="off"
@@ -273,9 +274,9 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
             <InputField
               disabled={!!phoneNumber}
               name="phoneNumber"
-              type="text"
+              type="telefono"
               autoComplete="off"
-              icon={<PhoneMobile className="absolute w-4 h-4 inset-y-0 left-4 m-auto  text-gray-500" />}
+              // icon={<PhoneMobile className="absolute w-4 h-4 inset-y-0 left-4 m-auto  text-gray-500" />}
               label={"Número de telefono"}
             />
           </span>

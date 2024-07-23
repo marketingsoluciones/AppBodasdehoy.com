@@ -12,7 +12,18 @@ export const useActivity = () => {
     preregistered,
     registered,
     logged,
-    logoutd
+    logoutd,
+    sessionStep1Step2,
+    selectRole,
+    enterStep2,
+    focusEmail,
+    focusName,
+    focusPhone,
+    backStep1,
+    clickFacebook,
+    clickGoogle,
+    clickRegister,
+    writePassword
   }
 
   const updateActivity = async (activity: keyof typeof activities) => {
@@ -34,7 +45,7 @@ export const useActivity = () => {
           variables: {
             args: {
               link_id,
-              [preregister ? "_id" :"storage_id"]:preregister ?preregister?._id:storage_id,
+              [preregister ? "_id" : "storage_id"]: preregister ? preregister?._id : storage_id,
               activity
             }
           }

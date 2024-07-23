@@ -85,9 +85,11 @@ const EventsGroupProvider = ({ children }) => {
           variables: { variable: "usuario_id", valor: user?.uid, development: config?.development },
         })
           .then((events: Event[]) => {
-            setTimeout(() => {
-              if (events.length == 0) router.push("/")
-            }, 100);
+            if (!["RelacionesPublicas"].includes(router?.route.split("/")[1])) {
+              setTimeout(() => {
+                if (events.length === 0) router.push("/")
+              }, 100);
+            }
 
             Promise.all(
               events.map(async (event) => {
@@ -104,7 +106,7 @@ const EventsGroupProvider = ({ children }) => {
                     variables: { uids: user?.uid === event?.usuario_id ? event?.compartido_array : [...event?.compartido_array, event?.usuario_id] },
                     development: config?.development
                   });
-                  results.map((result: detalle_compartidos_array) => {
+                  results?.map((result: detalle_compartidos_array) => {
                     const f1 = event.detalles_compartidos_array?.findIndex(elem => elem.uid === result.uid);
                     if (f1 > -1) {
                       event.detalles_compartidos_array?.splice(f1, 1, { ...event.detalles_compartidos_array[f1], ...result });

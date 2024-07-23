@@ -87,10 +87,11 @@ const IconArray = [
     },
 ]
 
-export const SelectIcon = ({ handleChange, ...props }) => {
-    const [field, helpers] = useField({ name: props?.name });
+export const SelectIcon = ({ handleChange, disable,ht, ...props }) => {
+    const [field] = useField({ name: props?.name });
     const [selectIcon, setSelectIcon] = useState()
     const [openIcon, setOpenIcon] = useState(false)
+    console.log(disable)
 
     useEffect(() => {
         if (selectIcon) {
@@ -104,12 +105,14 @@ export const SelectIcon = ({ handleChange, ...props }) => {
             {field?.value
                 ? <div className='w-full  h-full cursor-pointer flex justify-center '
                     onClick={() => {
-                        setOpenIcon(!openIcon)
+                        disable ? ht() :
+                            setOpenIcon(!openIcon)
 
                     }} {...props}>
                     {IconArray.find((elem) => elem?.title === field?.value).icon}
                 </div>
-                : <div className='w-full h-full cursor-pointer flex items-center justify-center text-gray-600 hover:text-gray-800' onClick={() => setOpenIcon(!openIcon)}>
+                : <div className='w-full h-full cursor-pointer flex items-center justify-center text-gray-600 hover:text-gray-800' onClick={() => disable ? ht() :
+                    setOpenIcon(!openIcon)}>
                     <AddIcon />
                 </div>
             }

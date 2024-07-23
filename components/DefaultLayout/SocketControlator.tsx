@@ -27,18 +27,18 @@ export const SocketControlator = () => {
   }, [])
 
   useEffect(() => {
-    console.log("valirRemoteEvent", valirRemoteEvent)
+    //console.log("valirRemoteEvent", valirRemoteEvent)
   }, [valirRemoteEvent])
 
   useEffect(() => {
-    console.log("valirRemotePlanSpaceActive", valirRemotePlanSpaceActive)
+    //console.log("valirRemotePlanSpaceActive", valirRemotePlanSpaceActive)
   }, [valirRemotePlanSpaceActive])
 
   useEffect(() => {
     setValirRemoteEvent(true)
     setValirRemotePlanSpaceActive(true)
     if (received.channel === "app:message") {
-      console.log(8745000, received.msg)
+      //console.log(8745000, received.msg)
       if (received?.msg?.payload?.action === "setEvent") {
         const eventOld = {
           compartido_array: event?.compartido_array,
@@ -69,7 +69,7 @@ export const SocketControlator = () => {
       }
     }
     if (received.channel === "notification") {
-      console.log(8745001, received.msg)
+      //console.log(8745001, received.msg)
       notifications.total = notifications.total + 1
       notifications.results.unshift(received.msg)
       setNotifications({ ...notifications })
@@ -107,7 +107,7 @@ export const SocketControlator = () => {
 
   useEffect(() => {
     if (!valirRemoteEvent && !valirRemotePlanSpaceActive) {
-      console.log("------------------------////*******----->")
+      //console.log("------------------------////*******----->")
       socket?.emit(`app:message`, {
         event: event?._id,
         emit: user?.uid,

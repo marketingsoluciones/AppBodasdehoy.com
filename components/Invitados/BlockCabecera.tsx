@@ -14,6 +14,7 @@ const BlockCabecera = () => {
   const totalSegun = (prop, param) => {
     return event?.invitados_array?.filter((item) => item[prop] == param);
   };
+
   const ObjInvitado = {
     total: event?.invitados_array?.length,
   };

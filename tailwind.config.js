@@ -7,6 +7,8 @@ module.exports = {
       "body": ['Montserrat', ...defaultTheme.fontFamily.sans],
       "display": ['Poppins', ...defaultTheme.fontFamily.sans],
       "title": ['Italiana', ...defaultTheme.fontFamily.sans],
+      "playfair": ['playfair Display', ...defaultTheme.fontFamily.sans],
+      "Clicker": ['Clicker Script', ...defaultTheme.fontFamily.sans],
     },
     extend: {
       colors: {

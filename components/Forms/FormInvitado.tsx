@@ -71,14 +71,14 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
     }).test("Unico", `Número asignado a otro invitado`, (value) => {
       const name = document.activeElement?.getAttribute("name")
       if (name !== "telefono" && value?.length > 3) {
-        return !event.invitados_array.map(item => item.telefono).includes(value)
+        return !event.invitados_array.map(item => item?.telefono).includes(value)
       } else {
         return true
       }
     }),
     rol: yup.string().required("Rol requerido"),
     correo: yup.string().email().test("Unico", "Correo asignado a otro invitado", (value) => {
-      return !event.invitados_array.map(item => item.correo).includes(value)
+      return !event.invitados_array.map(item => item?.correo).includes(value)
     })
   });
 
@@ -89,7 +89,8 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
     correo: "",
     telefono: `+${phoneUtil.getCountryCodeForRegion(geoInfo?.ipcountry)}`,
     rol: "",
-    nombre_menu: "adultos"
+    nombre_menu: "adultos",
+    passesQuantity: ""
   };
 
   const handleSubmit = async (values: FormikValues, actions: any) => {
@@ -102,7 +103,7 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
         query: queries.createGuests,
         variables: {
           eventID: event._id,
-          guestsArray: values,
+          invitados_array: values,
         },
       });
 
@@ -165,7 +166,7 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
                   //placeholder="960 66 66 66"
                   name="telefono"
                   label="Telefono"
-                  type="text"
+                  type="telefono"
                 />
                 {/* </div> */}
               </div>
@@ -201,6 +202,15 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
                   type="email"
                 />
               </div>
+
+              <div className="w-full h-8 flex flex-col relative text-sm mb-7">
+                <SelectField
+                  name={"rol"}
+                  label={"Rol"}
+                  options={event.grupos_array}
+                />
+              </div>
+
               <div className="w-full h-full flex gap-6">
 
                 <div className="w-1/2   ">
@@ -211,13 +221,14 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
                   />
                 </div>
 
-              </div>
-              <div className="w-full h-8 flex flex-col relative text-sm mb-7">
-                <SelectField
-                  name={"rol"}
-                  label={"Rol"}
-                  options={event.grupos_array}
-                />
+                <div className="w-1/2">
+                  <InputField
+                    name="passesQuantity"
+                    label={"No. Acompañantes"}
+                    type="number"
+                  />
+                </div>
+
               </div>
 
               <button

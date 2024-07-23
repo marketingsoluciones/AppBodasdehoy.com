@@ -5,12 +5,16 @@ export const UsuariosCompartidos = ({ event }) => {
     const [sharedUser, setSharedUser] = useState([])
     const { user } = AuthContextProvider()
 
+
     useEffect(() => {
-        let shU = [...event?.detalles_compartidos_array?.sort((a, b) => { return a?.onLine?.dateConection - b?.onLine?.dateConection })]
+        let shU = []
+        if (event != undefined) {
+            shU = [...event?.detalles_compartidos_array?.sort((a, b) => { return a?.onLine?.dateConection - b?.onLine?.dateConection })]
+            setSharedUser(shU)
+        }
         if (event?.detalles_usuario_id) {
             shU.push(event?.detalles_usuario_id)
         }
-        setSharedUser(shU)
     }, [event])
 
     const h = (str) => {

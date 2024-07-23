@@ -27,8 +27,10 @@
     "**/*.ts",
     "**/*.tsx",
     "pages/iteratable.js",
-    "pages/login.js"
-, "components/Forms/FormAddUserToEvent.js"  ],
+    "pages/login.js",
+    "components/Forms/FormAddUserToEvent.js",
+    "pages/RelacionesPublicas/[...slug].tsx"
+  ],
   "exclude": [
     "node_modules"
   ]

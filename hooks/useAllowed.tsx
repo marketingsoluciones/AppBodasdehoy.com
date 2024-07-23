@@ -11,6 +11,7 @@ export const useAllowed = () => {
       lista,
       presupuesto,
       invitaciones,
+      itinerario
     }
 
     const { event } = EventContextProvider()

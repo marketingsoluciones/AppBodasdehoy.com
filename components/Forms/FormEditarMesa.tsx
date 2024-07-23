@@ -111,7 +111,7 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
   const handleMoveGuest = (item) => {
     try {
       if (active) {
-        moveGuest({ eventID: event._id, chair: NaN, invitadoID: item._id, tableID: state?.table?._id, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo: "dragS" })
+        moveGuest({ event, chair: NaN, invitadoID: item._id, tableID: state?.table?._id, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo: "dragS" })
         toast("success", "El invitado fue levantado de la mesa")
         return
       }
@@ -120,7 +120,7 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
       }
       for (let i = 0; i < state?.table?.numberChair; i++) {
         if (!state?.table?.guests?.map(el => el.chair).includes(i)) {
-          moveGuest({ eventID: event._id, chair: i, invitadoID: item._id, tableID: state?.table?._id, setEvent, planSpaceActive, setPlanSpaceActive })
+          moveGuest({ event, chair: i, invitadoID: item._id, tableID: state?.table?._id, setEvent, planSpaceActive, setPlanSpaceActive })
           toast("success", "El invitado fue sentado en la mesa")
           break
         }
@@ -189,7 +189,7 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
                               onClick={() => {
                                 for (let i = 0; i < state?.table?.numberChair; i++) {
                                   if (!state?.table?.guest?.find((elem: guest) => elem?.chair == 0)) {
-                                    moveGuest({ eventID: event._id, chair: i, invitadoID: item._id, tableID: state?.table?._id, setEvent, planSpaceActive, setPlanSpaceActive })
+                                    moveGuest({ event, chair: i, invitadoID: item._id, tableID: state?.table?._id, setEvent, planSpaceActive, setPlanSpaceActive })
                                     break
                                   }
                                 }

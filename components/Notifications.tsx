@@ -75,7 +75,7 @@ export const Notifications = () => {
         acc.results.push(item)
         return acc
       }, { results: [], ids: [] })
-      if (notificationsReduce.ids.length) {
+      if (notificationsReduce?.ids?.length) {
         fetchApiBodas({
           query: queries.updateNotifications,
           variables: { args: { _id: notificationsReduce.ids, state: "received" } },
@@ -101,7 +101,7 @@ export const Notifications = () => {
       acc.results.push(item)
       return acc
     }, { results: [], ids: [] })
-    if (notificationsReduce.ids.length) {
+    if (notificationsReduce?.ids?.length) {
       fetchApiBodas({
         query: queries.updateNotifications,
         variables: { args: { _id: notificationsReduce.ids, state: "read" } },

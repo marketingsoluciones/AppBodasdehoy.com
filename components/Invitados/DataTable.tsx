@@ -1,67 +1,23 @@
 import { ForwardRefComponent } from "framer-motion";
 import { useEffect, forwardRef, useRef, useState, FC, ReactNode } from "react";
-import { useRowSelect, useTable } from "react-table";
+import { useRowSelect, useTable, useExpanded, } from "react-table";
 import { EventContextProvider } from "../../context";
 import { guests } from "../../utils/Interfaces";
 import { DataTableGroupContextProvider } from "../../context/DataTableGroupContext";
-import { useAllowed } from "../../hooks/useAllowed";
+import { TrExpand } from "./TrExpand";
+import { IndeterminateCheckbox } from "../Invitaciones/IndeterminateCheckbox";
 
-// Para checkbox
-export const IndeterminateCheckbox: ForwardRefComponent<HTMLInputElement, any> =
-  forwardRef(({ indeterminate, checked, propParent, ...rest }, ref) => {
-    const [ischecked, setChecked] = useState<boolean>(false);
-    const [isAllowed, ht] = useAllowed()
-    //@ts-ignore
-    const ref1: any = ref;
-    const ref2 = useRef<any>();
-    const defaultRef = ref1 || ref2;
-
-    useEffect(() => {
-      if (checked !== ischecked) {
-        setChecked(checked);
-      } else {
-        if (defaultRef?.current?.checked) {
-          defaultRef.current.checked = ischecked;
-        }
-      }
-    }, [checked, ischecked, defaultRef]);
-
-    useEffect(() => {
-      if (defaultRef?.current?.indeterminate) {
-        defaultRef.current.indeterminate = indeterminate;
-      }
-    }, [defaultRef, indeterminate]);
-
-    const handleCheck = (e: any) => {
-      setChecked(e.target.checked);
-      propParent.row.toggleRowSelected(!ischecked);
-    };
-
-    IndeterminateCheckbox.displayName = "IndeterminateCheckbox";
-
-    return (
-      <label className="relative">
-        <input
-          onClick={handleCheck}
-          disabled={!isAllowed()}
-          type="checkbox"
-          className="rounded-full text-primary focus:ring-primary border-gray-400"
-          ref={defaultRef}
-          checked={ischecked}
-          {...rest}
-        />
-      </label>
-    );
-  });
 
 interface propsDataTableFinal {
   data: guests[];
   columns: any;
   children?: ReactNode;
+  renderRowSubComponent?: any
 }
 
 const DataTableFinal: FC<propsDataTableFinal> = (props) => {
-  const { children, data = [], columns = [] } = props;
+  const { children, data = [], columns = [], renderRowSubComponent } = props;
+  const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows, state: { expanded } } = useTable({ columns, data }, useExpanded);
   const { event } = EventContextProvider();
 
   // Uso de useTable para pasar data y cargar propiedades
@@ -113,56 +69,27 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
     }
   );
 
-  const {
-    getTableProps,
-    getTableBodyProps,
-    headerGroups,
-    prepareRow,
-    rows,
-    toggleHideColumn,
-  } = tableInstance;
+  /*  const {
+     getTableProps,
+     getTableBodyProps,
+     headerGroups,
+     prepareRow,
+     rows,
+     toggleHideColumn,
+   } = tableInstance; */
 
   const ColSpan = (id: string, headers: { id: string }[], columns: number = 12) => {
     const values = {
       selection: 1,
-      nombre: 6,
-      asistencia: 4,
-      nombre_menu: 4,
+      nombre: 5,
+      asistencia: 3,
+      nombre_menu: 3,
       tableNameRecepcion: 4,
       tableNameCeremonia: 4,
+      passesQuantity: 3,
+      compartir: 1,
       delete: 1
     }
-    // const values = {
-    //   selection: 5,
-    //   nombre: 25,
-    //   asistencia: 15,
-    //   nombre_menu: 15,
-    //   nombre_mesa: 15,
-    //   sexo: 15,
-    //   delete: 5
-    // }
-
-    // type conteo = {
-    //   base: number
-    //   residuo: number
-    //   totalCount: number
-    // }
-
-    // const { residuo, totalCount } = headers.reduce((acc: conteo, header) => {
-    //   if (values[header.id]) {
-    //     acc.base = acc.base + values[header.id]
-    //     acc.totalCount = acc.totalCount + 1
-    //   }
-    //   acc.residuo = 100 - acc.base
-    //   return acc
-    // }, { base: 0, residuo: 0, totalCount: 0 })
-
-    // if (residuo) {
-    //   const sumar = residuo / totalCount
-    //   const span = Math.round((values[id] + sumar) * columns / 100)
-    //   const arr = ["col-span-0", "col-span-1", "col-span-2", "col-span-3", "col-span-4", "col-span-5", "col-span-6", "col-span-7", "col-span-8",]
-    //   return arr[span * 2]
-    // }
     const arr = ["col-span-0", "col-span-1", "col-span-2", "col-span-3", "col-span-4", "col-span-5", "col-span-6", "col-span-7", "col-span-8",]
     return arr[values[id]]
   };
@@ -224,30 +151,7 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
               // Prepare the row for display
               prepareRow(row);
               return (
-                // Apply the row props
-                <tr
-                  {...row.getRowProps()}
-                  key={i}
-                  className="w-full bg-white border-b font-display text-sm grid grid-cols-24"
-                >
-                  {
-                    // Loop over the rows cells
-                    row.cells.map((cell, i) => {
-                      return (
-                        <td
-                          key={i}
-                          {...cell.getCellProps()}
-                          className={`px-6 py-2 flex items-center ${ColSpan(cell.column.id, row.cells.map(item => item.column), 12)}`}
-                        >
-                          {
-                            // Render the cell contents
-                            cell.render("Cell")
-                          }
-                        </td>
-                      );
-                    })
-                  }
-                </tr>
+                <TrExpand key={i} row={row} ColSpan={ColSpan} renderRowSubComponent={renderRowSubComponent} />
               );
             })
           }

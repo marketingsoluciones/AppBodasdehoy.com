@@ -65,8 +65,8 @@ const DragInvitado = (props) => {
             }}>
             <img
               className="w-7 h-7 rounded-full mr-2 text-gray-700 border-gray-300"
-              src={ImageProfile[invitado.sexo].image}
-              alt={ImageProfile[invitado.sexo].alt}
+              src={ImageProfile[invitado.sexo]?.image}
+              alt={ImageProfile[invitado.sexo]?.alt}
             />
             <p className="w-full font-display text-sm truncate">{invitado?.nombre}</p>
           </span>

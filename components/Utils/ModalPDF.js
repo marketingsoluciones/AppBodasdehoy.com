@@ -134,7 +134,7 @@ export const ModalPDF = ({ createPDF, setCreatePDF, Data }) => {
                                     {
                                         DataInvitado?.map((item, idx) => {
                                             return (
-                                                <>
+                                                
                                                     <View key={idx} style={styles.tableRow} >
                                                         <View style={styles.tableCol}>
                                                             <Text style={styles.tableCell}>
@@ -168,7 +168,7 @@ export const ModalPDF = ({ createPDF, setCreatePDF, Data }) => {
                                                             </Text>
                                                         </View>
                                                     </View>
-                                                </>
+                                               
                                             )
                                         })
                                     }

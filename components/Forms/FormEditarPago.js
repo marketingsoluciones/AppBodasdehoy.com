@@ -381,7 +381,7 @@ export const BasicFormLogin = ({
           }
         </div>
         <button disabled={isSubmitting} type="submit" className={`col-span-2 font-display rounded-full mt-4 py-2 px-6 text-white font-medium transition w-full hover:opacity-70 ${isSubmitting ? "bg-secondary" : "bg-primary"
-          }`} >Confirmar edición</button>
+          }`} >Guardar</button>
       </form>
     </>
   )

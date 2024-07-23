@@ -102,6 +102,79 @@ export const fetchApiEventos = async ({ query, variables, token }: argsFetchApi)
 
 export const queries = {
 
+  singleUpload: `mutation($file:Upload!,$use:String)
+  {
+    singleUpload(file:$file,use:$use){
+      _id
+      i640
+    }
+  }`,
+  getPGuestEvent: `query($p:String){
+    getPGuestEvent(p:$p){
+      invitados_array{
+        _id
+        sexo
+        nombre
+        estatus
+        correo
+        telefono
+        asistencia
+        alergenos
+        passesQuantity
+        father
+        nombre_menu
+        grupo_edad
+      }
+      menus_array{
+        nombre_menu
+        tipo
+      }
+    }
+  }`,
+
+  getLinkInvitation: ` query($evento_id:String, $invitado_id:String){
+  getLinkInvitation(evento_id:$evento_id, invitado_id:$invitado_id){
+      link
+    }
+  }`,
+
+  setCheckoutItems: `mutation ( $unique:ID, $args:[inputDetailsItemsCheckout] )
+  {
+    setCheckoutItems(unique:$unique, args:$args)
+  }`,
+
+  getCheckoutItems: `query ( $unique:ID )
+  {
+    getCheckoutItems(unique:$unique){
+      currency
+      amount
+      name
+      price
+      quantity
+    }
+  }`,
+
+  getEventTicket: `query ( $args:inputEventTicket, $sort:sortCriteriaEventTicket, $skip:Int, $limit:Int )
+  {
+    getEventTicket(args:$args, sort:$sort, skip:$skip, limit:$limit ){
+      total
+      results{
+        _id
+        title
+        createdAt
+        updatedAt
+      }
+    }
+  }`,
+
+  createCheckoutSession: `mutation ($items:[inputItemsCheckout], $email:String, $cancel_url:String, $mode:String, $success_url:String){
+    createCheckoutSession(items:$items, email:$email, cancel_url:$cancel_url, mode:$mode, success_url:$success_url)
+  }`,
+
+  getAllProducts: `query {
+    getAllProducts
+  }`,
+
   editTask: `mutation ($eventID:String, $itinerarioID:String, $taskID:String, $variable:String, $valor:String){
     editTask(eventID:$eventID itinerarioID:$itinerarioID  taskID:$taskID  variable:$variable  valor:$valor )
   }`,
@@ -137,13 +210,23 @@ export const queries = {
   mutation  ( $eventID:String, $itinerarioID:String ) {
     deleteItinerario ( eventID:$eventID  itinerarioID:$itinerarioID  )
   }`,
-  getItinerario: ` query($evento_id:String, $itinario_id: String){
-    getItinerario(evento_id:$evento_id, itinario_id:$itinario_id){
+  getItinerario: ` query($evento_id:String){
+    getItinerario(evento_id:$evento_id){
       total
       response{
         _id
         title
-        tasks
+        tasks{
+          _id
+          hora
+          icon
+          descripcion
+          responsable
+          duracion
+          tips
+          estatus
+          fecha_creacion
+        }
         estatus
         fecha_creacion
       }
@@ -439,6 +522,8 @@ export const queries = {
           position
           order
         }
+        father
+        passesQuantity
         nombre_mesa
         puesto
         asistencia
@@ -488,6 +573,7 @@ export const queries = {
           
         }
       }
+      showChildrenGuest
     }
   }`,
   guardarListaRegalos: `mutation($evento_id: String!, $variable_reemplazar: String, $valor_reemplazar: String){
@@ -562,6 +648,21 @@ export const queries = {
         fecha_creacion
         fecha_lectura
         mensaje
+      }
+         itinerarios_array{
+        _id
+        title
+        tasks{
+          _id
+          hora
+          icon
+          descripcion
+          responsable
+          duracion
+          tips
+          estatus
+        }
+        estatus
       }
       planSpaceSelect
       planSpace{
@@ -677,6 +778,8 @@ export const queries = {
           position
           order
         }
+        father
+        passesQuantity
         nombre_mesa
         puesto
         asistencia
@@ -700,32 +803,32 @@ export const queries = {
        pagado
        coste_estimado
        currency
-       categorias_array{
-         _id
-         nombre
-         coste_estimado
-         coste_final
-         pagado
-         gastos_array {
-           _id
-           coste_estimado
-           coste_final
-           pagado
-           nombre
-           pagos_array {
-             _id
-             estado
-             fecha_creacion
-             fecha_pago
-             fecha_vencimiento
-             medio_pago
-             importe
-             pagado_por
-           }
-         }
-         
-       }
-     }
+        categorias_array{
+          _id
+          nombre
+          coste_estimado
+          coste_final
+          pagado
+          gastos_array {
+            _id
+            coste_estimado
+            coste_final
+            pagado
+            nombre
+            pagos_array {
+              _id
+              estado
+              fecha_creacion
+              fecha_pago
+              fecha_vencimiento
+              medio_pago
+              importe
+              pagado_por
+            }
+          }
+        }
+      }
+      showChildrenGuest
     }
   }`,
   getListaRegalos: `query($_id: String){
@@ -751,14 +854,17 @@ export const queries = {
       _id
     }
   }`,
-  createGuests: `mutation ($eventID: String, $guestsArray : [invitAinput]) {
-    creaInvitado(evento_id: $eventID, invitados_array: $guestsArray){
+  createGuests: `mutation ($eventID: String, $invitados_array: [invitAinput]) {
+    creaInvitado(evento_id: $eventID, invitados_array: $invitados_array){
      invitados_array{
+       father
        _id
        nombre
        grupo_edad
        correo
        telefono
+       father
+       passesQuantity
        nombre_mesa
        nombre_menu
        puesto
@@ -795,6 +901,7 @@ export const queries = {
         poblacion
         pais
         direccion
+        passesQuantity
       }
   }`,
   removeGuests: `mutation ($eventID:String, $guests: [String]){
@@ -811,6 +918,8 @@ export const queries = {
           puesto
           asistencia
           rol
+          father
+          passesQuantity
         }
       }
   }`,
