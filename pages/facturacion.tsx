@@ -4,13 +4,15 @@ import { motion } from "framer-motion"
 import { fetchApiBodas, queries } from "../utils/Fetching"
 import { Productos } from "../components/Facturacion/Productos"
 import { EncabezadoFacturacion } from "../components/Facturacion/EncabezadoFacturacion"
+import { Planes, MetodosDePago,InformacionFacturacion } from "../components/Facturacion"
+
 
 
 const Facturacion = () => {
     const { forCms, config } = AuthContextProvider()
     const [data, setData] = useState({ data: [] })
     const datafilter = data?.data?.filter(element => (element.metadata.grupo === "App"))
-    const [products, setProducts] = useState([])
+    const [optionSelect, setOptionSelect] = useState(0)
 
     useEffect(() => {
         const fetchData = async () => {
@@ -30,6 +32,25 @@ const Facturacion = () => {
         fetchData()
     }, [])
 
+    const ComponentesArray = [
+        {
+            title: "Planes",
+            componente: <Planes datafilter={datafilter}/>
+        },
+        {
+            title: "Métodos de pago",
+            componente: <MetodosDePago setOptionSelect={setOptionSelect}/>
+        },
+        {
+            title: "Información de Facturación",
+            componente: <InformacionFacturacion/>
+        },
+        /* {
+            title: "Historial de facturación",
+            componente: "a"
+        }, */
+    ]
+
     return (
         <>
             <section className={forCms ? " w-[calc(100vw-40px)] " : "bg-base w-full"}>
@@ -37,48 +58,34 @@ const Facturacion = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="md:max-w-screen-lg mx-auto inset-x-0 flex-col flex  pb-20"
+                    className="md:max-w-screen-lg mx-auto inset-x-0 flex-col flex mt-3 pb-20"
                 >
-                    {
-                        datafilter.length <= 0 ?
-                            <div className="flex  items-center justify-center w-full h-[calc(100vh-240px)]">
-                                < div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>
-                            </div> :
-                            <div className="space-y-4">
-                                <EncabezadoFacturacion ProductsAddList={products} />
-                                <Productos DataProductos={datafilter} products={products} setProducts={setProducts} />
-                            </div>
-                    }
+                    <div className="flex justify-center border-b space-x-8 ">
+                        {
+                            ComponentesArray.map((item, idx) => (
+                                <div
+                                    key={idx}
+                                    className={`${optionSelect === idx ? "text-primary border-b  border-primary " : ""}  cursor-pointer hover:border-b  border-primary `}
+                                    onClick={() => setOptionSelect(idx)}
+                                >
+                                    {item.title}
+                                </div>
+                            ))
+                        }
+                    </div>
+
+                    <div className="h-[calc(100vh-270px)] w-full flex items-start justify-center">
+
+
+                    {ComponentesArray[optionSelect].componente}
+
+                    </div>
+
+                   
 
                 </motion.div>
             </section>
-            <style jsx>
-                {`
-                .loader {
-                    border-top-color:  ${config?.theme?.primaryColor};
-                    -webkit-animation: spinner 1.5s linear infinite;
-                    animation: spinner 1.5s linear infinite;
-                }
-
-                @-webkit-keyframes spinner {
-                    0% {
-                    -webkit-transform: rotate(0deg);
-                    }
-                    100% {
-                    -webkit-transform: rotate(360deg);
-                    }
-                }
-
-                @keyframes spinner {
-                    0% {
-                    transform: rotate(0deg);
-                    }
-                    100% {
-                    transform: rotate(360deg);
-                    }
-                }
-                `}
-            </style>
+            
         </>
     )
 }
