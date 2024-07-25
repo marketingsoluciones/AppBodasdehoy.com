@@ -20,7 +20,8 @@ export const EncabezadoFacturacion = ({ ProductsAddList }) => {
             variables: {
                 items: asd,
                 email: user?.email,
-                cancel_url: `${window.location.href}/facturacion`
+                cancel_url: `${window.location.href}`,
+                success_url: `${window.location.href}`
             },
             development: "bodasdehoy"
         }).then((result) => {

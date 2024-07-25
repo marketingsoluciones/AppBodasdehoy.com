@@ -51,7 +51,7 @@ export const HistorialFacturacion = () => {
                                 <DotsOpcionesIcon className="text-gray-500 w-4 h-4" />
                             </span>
                             <ul
-                                className={`${show ? "block" : "hidden" } top-5 right-16 absolute w-max border border-base bg-white capitalize rounded-md  shadow-lg z-10 translate-x-[-12px] p-3`}
+                                className={`${show ? "block" : "hidden" } top-5 right-16 absolute w-max border border-base bg-white capitalize rounded-md  shadow-lg z-10 translate-x-[-12px] p-3 cursor-pointer hover:bg-gray-100`}
                             >
                                 Descargar Factura
                             </ul>

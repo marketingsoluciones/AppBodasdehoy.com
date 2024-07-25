@@ -1,5 +1,4 @@
 export const Productos = ({ DataProductos, setProducts, products }) => {
-    console.log(DataProductos)
     return (
         <div className="space-y-5">
             {DataProductos.map((item: any, idx: any) => (
