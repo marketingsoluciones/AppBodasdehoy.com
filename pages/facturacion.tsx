@@ -4,7 +4,7 @@ import { motion } from "framer-motion"
 import { fetchApiBodas, queries } from "../utils/Fetching"
 import { Productos } from "../components/Facturacion/Productos"
 import { EncabezadoFacturacion } from "../components/Facturacion/EncabezadoFacturacion"
-import { Planes, MetodosDePago,InformacionFacturacion } from "../components/Facturacion"
+import { Planes, MetodosDePago,InformacionFacturacion, HistorialFacturacion } from "../components/Facturacion"
 
 
 
@@ -45,10 +45,10 @@ const Facturacion = () => {
             title: "Información de Facturación",
             componente: <InformacionFacturacion/>
         },
-        /* {
+        {
             title: "Historial de facturación",
-            componente: "a"
-        }, */
+            componente: <HistorialFacturacion/>
+        },
     ]
 
     return (
@@ -65,7 +65,7 @@ const Facturacion = () => {
                             ComponentesArray.map((item, idx) => (
                                 <div
                                     key={idx}
-                                    className={`${optionSelect === idx ? "text-primary border-b  border-primary " : ""}  cursor-pointer hover:border-b  border-primary `}
+                                    className={`${optionSelect === idx ? "text-primary border-b  border-primary " : ""}  cursor-pointer hover:border-b  border-primary text-gray-700 `}
                                     onClick={() => setOptionSelect(idx)}
                                 >
                                     {item.title}
