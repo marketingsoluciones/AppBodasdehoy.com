@@ -124,7 +124,7 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
   const { eventsGroup } = EventsGroupContextProvider();
   const { actionModals, setActionModals } = AuthContextProvider()
   const ConditionalAction = () => {
-    if (eventsGroup.length >= 1) {
+    if (eventsGroup.length >= 10) {
       setActionModals(!actionModals)
     } else {
       set(!state)

@@ -8,18 +8,24 @@ import { LiaCartArrowDownSolid } from "react-icons/lia"
 export const EncabezadoFacturacion = ({ ProductsAddList }) => {
     const { user } = AuthContextProvider()
     const router = useRouter()
-
+    const asd = ProductsAddList.map((elem) => {
+        return {
+            price: elem.priceID,
+            quantity: 1
+        }
+    })
     const handleCheckout = () => {
         fetchApiBodas({
             query: queries.createCheckoutSession,
             variables: {
-                pricesIDs: ProductsAddList?.map(elem => elem?.priceID),
+                items: asd,
                 email: user?.email,
-                cancel_url: `${window.location.href}/facturacion`
+                cancel_url: `${window.location.href}`,
+                success_url: `${window.location.href}`
             },
             development: "bodasdehoy"
         }).then((result) => {
-            if(result!= null){
+            if (result != null) {
                 router.push(result)
             }
         })
