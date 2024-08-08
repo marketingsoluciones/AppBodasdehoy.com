@@ -102,6 +102,21 @@ export const fetchApiEventos = async ({ query, variables, token }: argsFetchApi)
 
 export const queries = {
 
+  getInvoices: `query{
+    getInvoices{
+      total
+      results{
+        number
+        amount
+        created
+        status
+        hostedInvoiceUrl
+        invoicePdf
+        currency
+      }
+    }
+  }`,
+
   singleUpload: `mutation($file:Upload!,$use:String)
   {
     singleUpload(file:$file,use:$use){
