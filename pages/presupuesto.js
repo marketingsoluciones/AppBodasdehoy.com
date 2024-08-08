@@ -167,7 +167,7 @@ const Presupuesto = () => {
                     exit={{ opacity: 0 }}
                     className=" w-full gap-6 pt-2 md:pr-0 pb-4 h-[100vh]"
                   >
-                    <BlockPagos cate={showCategoria?.id}  setGetId={setGetId} getId={getId} categorias_array={categorias} estado={"pagado"} />
+                    <BlockPagos cate={showCategoria?.id} setGetId={setGetId} getId={getId} categorias_array={categorias} estado={"pagado"} />
                   </motion.div>
                 )
               }
@@ -179,7 +179,7 @@ const Presupuesto = () => {
                     exit={{ opacity: 0 }}
                     className=" w-full gap-6 pt-2 md:pr-0 pb-4 h-[100vh]"
                   >
-                    <BlockPagos cate={showCategoria?.id}  setGetId={setGetId} getId={getId} categorias_array={categorias} estado={"pendiente"} />
+                    <BlockPagos cate={showCategoria?.id} setGetId={setGetId} getId={getId} categorias_array={categorias} estado={"pendiente"} />
                   </motion.div>
                 )
               }
@@ -293,8 +293,8 @@ const MontoPresupuesto = ({ estimado }) => {
       <p className="font-display text-gray-500 font-light text-md grid place-items-center">
         Presupuesto estimado <br />
       </p>
-      {modificar ? (
-        <input
+      {modificar
+        ? <input
           type="number"
           min={0}
           value={!!value ? value : ""}
@@ -303,8 +303,7 @@ const MontoPresupuesto = ({ estimado }) => {
           onKeyDown={(e) => keyDown(e)}
           className="font-display appearance-none text-gray-500 font-semibold text-lg text-center border-b w-1/2 focus:outline-none border-gray-200"
         />
-      ) : (
-        <span className="font-display text-gray-500 font-semibold text-lg text-center">
+        : <span className="font-display text-gray-500 font-semibold text-lg text-center">
           {mask}
           <select value={event?.presupuesto_objeto?.currency} className="border-none focus:ring-0 cursor-pointer" onChange={(e) => handleChangeS(e)}  >
             <option value={"eur"}>EUR</option>
@@ -313,7 +312,7 @@ const MontoPresupuesto = ({ estimado }) => {
             <option value={"mxn"}>MXN</option>
           </select>
         </span>
-      )}
+      }
       <button
         onClick={() => !isAllowed() ? ht() : setModificar(!modificar)}
         className="border-primary border font-display focus:outline-none text-primary text-xs bg-white px-3 py-1 rounded-lg my-2 hover:bg-primary hover:text-white transition"

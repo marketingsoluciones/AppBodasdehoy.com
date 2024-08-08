@@ -171,8 +171,8 @@ export const queries = {
     createCheckoutSession(items:$items, email:$email, cancel_url:$cancel_url, mode:$mode, success_url:$success_url)
   }`,
 
-  getAllProducts: `query {
-    getAllProducts
+  getAllProducts: `query ($grupo:String) {
+    getAllProducts(grupo:$grupo)
   }`,
 
   editTask: `mutation ($eventID:String, $itinerarioID:String, $taskID:String, $variable:String, $valor:String){
@@ -338,6 +338,7 @@ export const queries = {
           signUpProgress
           status
           eventSelected
+          currency
           createdAt
           updatedAt
         }
@@ -346,6 +347,9 @@ export const queries = {
         status(sessionCookie: $sessionCookie){
           customToken
         }
+  }`,
+  updateCurrency: `mutation ($currency : String){
+        updateCurrency(currency: $currency)
   }`,
   eventCreate: `mutation (
     $nombre: String,
