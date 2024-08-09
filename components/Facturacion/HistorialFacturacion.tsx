@@ -4,16 +4,12 @@ import { useEffect, useState } from "react";
 import { AuthContextProvider } from "../../context";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { PiNewspaperClippingThin } from "react-icons/pi";
-import { useRouter } from "next/router";
 
 export const HistorialFacturacion = () => {
     const { config } = AuthContextProvider();
     const [show, setShow] = useState({ state: false, idx: null });
     const [dataFactura, setDataFactura] = useState({ results: [], total: 0 })
     const [activeSpiner, setActiveSpiner] = useState(false)
-    const router = useRouter()
-
-    console.log(dataFactura)
 
     const options: object = {
         year: "2-digit",
