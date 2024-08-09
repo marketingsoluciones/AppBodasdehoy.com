@@ -187,7 +187,34 @@ export const queries = {
   }`,
 
   getAllProducts: `query ($grupo:String) {
-    getAllProducts(grupo:$grupo)
+    getAllProducts(grupo:$grupo){
+      total
+      results{
+        id
+        name
+        description
+        images
+        usage
+        subscriptionId
+        current_period_start
+        current_period_end
+        prices{
+          id
+          currency
+          unit_amount
+          recurring{
+            interval
+            trial_period_days
+          }
+        }
+        metadata{
+          grupo
+          includes
+          segmento
+          tipo
+        }
+      }
+    }
   }`,
 
   editTask: `mutation ($eventID:String, $itinerarioID:String, $taskID:String, $variable:String, $valor:String){

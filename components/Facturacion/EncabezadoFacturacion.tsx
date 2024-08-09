@@ -12,10 +12,6 @@ export const EncabezadoFacturacion = ({ products }) => {
     const [currency, setCurrency] = useState(user?.currency ?? countries_eur.includes(geoInfo?.ipcountry?.toLowerCase()) ? "eur" : "usd")
     const router = useRouter()
 
-    useEffect(() => {
-        console.log(products)
-    }, [products])
-
     const handleCheckout = () => {
         const items = products.map((elem) => {
             return {
@@ -24,7 +20,6 @@ export const EncabezadoFacturacion = ({ products }) => {
                 metadata: { ...elem.metadata, productId: elem.id },
             }
         })
-        console.log(items)
         fetchApiBodas({
             query: queries.createCheckoutSession,
             variables: {
@@ -70,7 +65,7 @@ export const EncabezadoFacturacion = ({ products }) => {
                 </div>
                 <div className="flex h-max">
                     <span className="font-display text-gray-500 font-semibold text-lg text-center">
-                        <select disabled={products.length} value={currency} className={`border-none focus:ring-0 ${!products.length && "cursor-pointer"}`} onChange={(e) => handleChangeS(e)}  >
+                        <select disabled={products.findIndex(elem => elem?.usage)} value={currency} className={`border-none focus:ring-0 ${!products.length && "cursor-pointer"}`} onChange={(e) => handleChangeS(e)}  >
                             <option value={"eur"}>EUR</option>
                             <option value={"usd"}>USD</option>
                         </select>

@@ -3,9 +3,10 @@ import { AuthContextProvider } from "../context"
 import { motion } from "framer-motion"
 import { fetchApiBodas, queries } from "../utils/Fetching"
 import { Planes, MetodosDePago, InformacionFacturacion, HistorialFacturacion } from "../components/Facturacion"
+import { countries_eur } from "../utils/Currencies"
 
 const Facturacion = () => {
-    const { forCms, user, config } = AuthContextProvider()
+    const { forCms, user, config, geoInfo } = AuthContextProvider()
     const [dataFetch, setDataFetch] = useState([])
     const [data, setData] = useState([])
     const [optionSelect, setOptionSelect] = useState(0)
@@ -16,18 +17,19 @@ const Facturacion = () => {
             variables: { grupo: "app" },
             development: config.development
         }).then(results => {
-            const data = JSON.parse(results)
-            console.log(data)
+            const data = results?.results
             setDataFetch(data)
         })
     }, [])
 
     useEffect(() => {
-        const data = dataFetch.map(elem => {
-            const price = elem?.prices?.find(el => el?.currency === user.currency)
+        const data = dataFetch?.map(elem => {
+            const price = elem?.prices?.find(el => user.currency
+                ? el?.currency === user?.currency
+                : el?.currency === (countries_eur.includes(geoInfo?.ipcountry?.toLowerCase()) ? "eur" : "usd"))
             return { ...elem, prices: [price] }
         })
-        console.log(99999, data)
+        console.log(90009, data)
         setData(data)
     }, [user, dataFetch])
 
@@ -58,7 +60,7 @@ const Facturacion = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="md:max-w-screen-lg mx-auto inset-x-0 flex-col flex mt-3 pb-20">
+                    className="md:max-w-screen-lg mx-auto px-3 inset-x-0 flex-col flex mt-3 pb-20">
                     <div className="flex justify-center border-b space-x-8 ">
                         {ComponentesArray.map((item, idx) => (
                             <div
