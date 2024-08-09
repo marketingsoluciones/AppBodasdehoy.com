@@ -27,7 +27,7 @@ export const InformacionFacturacion = () => {
 
 
     return (
-        <div className=" h-[100vh]* mt-3">
+        <div className="pb-5 mt-3">
             <Formik
                 initialValues={initialValues}
                 onSubmit={handleSubmit}

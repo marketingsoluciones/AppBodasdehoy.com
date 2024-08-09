@@ -8,7 +8,7 @@ export const Productos = ({ data, setProducts, products }) => {
     }
 
     return (
-        <div className="space-y-5">
+        <div className="space-y-5 pb-5">
             {data?.map((item: any, idx: any) => {
                 const status = !!item?.subscriptionId
                     ? new Date().getTime() < new Date(item?.current_period_end).getTime()
@@ -16,7 +16,7 @@ export const Productos = ({ data, setProducts, products }) => {
                         : "SUPENDIDO"
                     : "ACTIVO"
                 return (
-                    <div key={idx} className="bg-white flex rounded-lg h-24 p-3 space-x-3 items-center justify-center">
+                    <div key={idx} className="bg-white flex flex-col md:flex-row rounded-lg md:h-24 md:p-3 p-10 gap-5 md:gap-0 md:space-x-3 items-center justify-center ">
                         <div className="bg-gray-200 flex items-center w-32 justify-center rounded-lg">
                             <img
                                 src={item.images.length > 0 ? item?.images[0] : "/placeholder/image.png"}
@@ -24,7 +24,7 @@ export const Productos = ({ data, setProducts, products }) => {
                                 className="rounded-lg object-contain w-[70px] h-[70px]"
                             />
                         </div>
-                        <div className="flex-1 border-r-2 h-full capitalize flex flex-col justify-center">
+                        <div className="flex-1 md:border-r-2 h-full capitalize flex flex-col justify-center">
                             <div className="text-[22px]">
                                 {item.name}
                             </div>
@@ -32,7 +32,7 @@ export const Productos = ({ data, setProducts, products }) => {
                                 {item.description}
                             </div>
                         </div>
-                        <div className="flex flex-col w-36 h-full items-center justify-center capitalize">
+                        <div className="flex flex-col w-36 md:h-full h-[75px] items-center justify-center capitalize">
                             {item.usage
                                 ? <div className={`${status.toLowerCase() === "activo" ? "bg-green" : "bg-orange-300"} flex w-full h-11 rounded-lg items-center justify-center relative`}>
                                     <span style={{ userSelect: "none" }} className="text-[16px] font-semibold text-white">

@@ -61,11 +61,11 @@ const Facturacion = () => {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     className="md:max-w-screen-lg mx-auto px-3 inset-x-0 flex-col flex mt-3 pb-20">
-                    <div className="flex justify-center border-b space-x-8 ">
+                    <div className="flex md:justify-center md:border-b md:space-x-8 overflow-x-auto md:overflow-x-hidden items-center text-center ">
                         {ComponentesArray.map((item, idx) => (
                             <div
                                 key={idx}
-                                className={`${optionSelect === idx ? "text-primary border-b  border-primary " : ""}  cursor-pointer hover:border-b  border-primary text-gray-700 `}
+                                className={`${optionSelect === idx ? "text-primary md:border-b  md:border-primary " : ""}  cursor-pointer md:hover:border-b  md:border-primary text-gray-700 `}
                                 onClick={() => setOptionSelect(idx)}
                             >
                                 {item.title}

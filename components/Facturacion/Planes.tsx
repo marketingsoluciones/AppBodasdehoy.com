@@ -9,12 +9,10 @@ export const Planes = ({ data }) => {
 
     return (
         <>
-            <div>
-                <div className="space-y-4">
+                <div className="space-y-4 mb-5">
                     <EncabezadoFacturacion products={products} />
                     <Productos data={data} products={products} setProducts={setProducts} />
                 </div>
-            </div>
             <style jsx>
                 {`
                 .loader {
