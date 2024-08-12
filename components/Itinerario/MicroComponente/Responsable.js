@@ -52,7 +52,7 @@ export const Responsable = ({ disable, itinerario, handleChange, title, task, ht
     const [field, meta, helpers] = useField({ name: props?.name });
     const [selectIcon, setSelectIcon] = useState(field?.value?.map((item) => {
         if (typeof item === "object") {
-            return item.title ? item?.title : item?.displayName != null ? item?.displayName : item?.email
+            return item?.title ? item?.title : item?.displayName != null ? item?.displayName : item?.email
         }
         return item && item
     }))
@@ -92,7 +92,7 @@ export const Responsable = ({ disable, itinerario, handleChange, title, task, ht
                                     < div
                                         key={idx}
                                         style={{ left: idx >= 1 ? field.value.length > 1 && !showResposables ? 10 * idx : 41 * idx : null }}
-                                        className="bg-white cursor-pointer absolute border border-gray-400 rounded-full shadow-lg -top-5 w-10 h-10 translate-y-1/2 -translate-x-1 flex items-center justify-center">
+                                        className="bg-white cursor-pointer absolute border border-gray-400 rounded-full shadow-lg -top-5 w-10 h-10 translate-y-1/2 -translate-x-1 flex items-center justify-center transition-all ">
                                         {!showResposables && idx === 2 && selectIcon.length > 3
                                             ? "+" + (selectIcon.length - 2)
                                             : <img src={

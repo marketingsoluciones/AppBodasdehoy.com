@@ -1,51 +1,74 @@
-export const Productos = ({ DataProductos, setProducts, products }) => {
+
+export const Productos = ({ data, setProducts, products }) => {
+
+    const options: object = {
+        year: "2-digit",
+        month: "2-digit",
+        day: "2-digit",
+    }
+
     return (
-        <div className="space-y-5">
-            {DataProductos.map((item: any, idx: any) => (
-                <div key={idx} className="bg-white grid grid-cols-6 p-3 rounded-lg items-center justify-center">
-                    <div className="col-span-1 flex items-center justify-center rounded-lg bg-gray-200 h-[100px]">
-                        <img
-                            src={item.images.length > 0 ? item?.images[0] : "/placeholder/image.png"}
-                            alt={item.name}
-                            className="rounded-lg w-[70px] h-[70px]"
-                        />
+        <div className="space-y-5 pb-5">
+            {data?.map((item: any, idx: any) => {
+                const status = !!item?.subscriptionId
+                    ? new Date().getTime() < new Date(item?.current_period_end).getTime()
+                        ? "ACTIVO"
+                        : "SUPENDIDO"
+                    : "ACTIVO"
+                return (
+                    <div key={idx} className="bg-white flex flex-col md:flex-row rounded-lg md:h-24 md:p-3 p-10 gap-5 md:gap-0 md:space-x-3 items-center justify-center ">
+                        <div className="bg-gray-200 flex items-center w-32 justify-center rounded-lg">
+                            <img
+                                src={item.images.length > 0 ? item?.images[0] : "/placeholder/image.png"}
+                                alt={item.name}
+                                className="rounded-lg object-contain w-[70px] h-[70px]"
+                            />
+                        </div>
+                        <div className="flex-1 md:border-r-2 h-full capitalize flex flex-col justify-center">
+                            <div className="text-[22px]">
+                                {item.name}
+                            </div>
+                            <div className="text-[13px] text-gray-500">
+                                {item.description}
+                            </div>
+                        </div>
+                        <div className="flex flex-col w-36 md:h-full h-[75px] items-center justify-center capitalize">
+                            {item.usage
+                                ? <div className={`${status.toLowerCase() === "activo" ? "bg-green" : "bg-orange-300"} flex w-full h-11 rounded-lg items-center justify-center relative`}>
+                                    <span style={{ userSelect: "none" }} className="text-[16px] font-semibold text-white">
+                                        {status}
+                                    </span>
+                                    {!!item?.subscriptionId && <span className="text-gray-600 text-xs absolute -bottom-4 ">
+                                        {`${new Date(item?.current_period_start).toLocaleDateString(undefined, options)} - ${new Date(item?.current_period_end).toLocaleDateString(undefined, options)}`}
+                                    </span>}
+                                </div>
+                                : <>
+                                    <div>
+                                        {`${item?.prices[0]?.currency === "usd" ? "$" : "€"} ${(item?.prices[0]?.unit_amount / 100).toFixed(2)}`}
+                                    </div>
+                                    <div className="flex-1 flex items-center justify-center">
+                                        <button
+                                            disabled={!item?.prices[0]?.currency}
+                                            onClick={() => {
+                                                const f1 = products.findIndex(elem => elem?.id === item?.id)
+                                                if (f1 > -1) {
+                                                    products.splice(f1, 1)
+                                                    setProducts([...products])
+                                                    return
+                                                }
+                                                products.push(item)
+                                                setProducts([...products])
+                                            }}
+                                            className={`bg-primary py-1 w-full text-[13px] rounded-lg capitalize hover:opacity-90 cursor-pointer ${products?.findIndex(elem => elem?.id === item?.id) > -1 ? "bg-white border border-primary text-primary" : "bg-primary text-white"} `}>
+                                            {products?.findIndex(elem => elem?.id === item?.id) > -1 ? "- Quitar complemento" : "+ Añadir complemento"}
+                                        </button>
+                                    </div>
+                                </>
+                            }
+                        </div>
                     </div>
-                    <div className="col-span-4 border-r-2 h-full ml-3 capitalize flex flex-col justify-center">
-                        <div className="text-[22px]">
-                            {item.name}
-                        </div>
-                        <div className="text-[13px] text-gray-500">
-                            {item.description}
-                        </div>
-                    </div>
-                    <div className="col-span-1 flex flex-col items-center justify-center space-y-3 pl-1.5 capitalize">
-                        <div>
-                            {`${item?.prices[0]?.currency === "usd" ? "$" : item?.prices[0]?.currency} ${item?.prices[0]?.unit_amount / 100}`}
-                        </div>
-                        <div className="h-[50px]">
-                            <button
-                                onClick={() => {
-                                    setProducts(old => {
-                                        if (!products?.map(elem => elem.id).includes(item?.id)) {
-                                            const f1 = old.findIndex(elem => elem?.grupo === item?.metadata?.grupo)
-                                            if (f1 > -1) {
-                                                old?.splice(f1, 0)
-                                            }
-                                            old = [...old, { id: item?.id, name: item?.name, priceID: item?.prices[0]?.id, grupo: item?.metadata?.grupo }]
-                                            return old
-                                        }
-                                        const f1 = old.findIndex(elem => elem?.id === item?.id)
-                                        old?.splice(f1, 1)
-                                        return [...old]
-                                    })
-                                }} 
-                                className={`bg-primary text-[13px] py-1 px-1.5 rounded-lg  capitalize hover:opacity-90 ${products?.map(elem => elem.id).includes(item?.id) ? "bg-white border border-primary text-primary" : "bg-primary text-white"} `}>
-                                    {products?.map(elem => elem.id).includes(item?.id) ? "- Quitar complemento" : "+ Añadir complemento"}
-                                </button>
-                        </div>
-                    </div>
-                </div>
-            ))}
+                )
+            })}
         </div>
     )
 }

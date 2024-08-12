@@ -1,31 +1,33 @@
 import { Form, Formik } from "formik"
 import InputField from "../Forms/InputField"
 import SelectField from "../Forms/SelectField"
+import { AuthContextProvider } from "../../context"
 
 export const InformacionFacturacion = () => {
+    const { user } = AuthContextProvider()
+    const fullName = user?.displayName;
+    const [firstName, ...rest] = fullName?.split(" ");
+    const lastName = rest?.join(" ");
+
 
     const initialValues = {
-        nombre: "",
-        apellido: "",
-        nombreCompañia: "",
-        email: "",
-        pais: "",
-        apartamento: "",
+        nombre: firstName ?? "",
+        apellido: lastName ?? "",
+        empresa: "",
+        direccion: "",
+        codigoPostal: "",
         ciudad: "",
-        estado: "",
-        postal: "",
-        impuesto: "",
-        MetodoPago: "",
-        calle: "",
+        pais: "",
+        email: user?.email ?? "",
     }
 
-    const handleSubmit = (values, { resetForm }) => {
-        resetForm({ value: '' })
+    const handleSubmit = (values:any) => {
+        console.log(values)
     }
 
 
     return (
-        <div className=" h-[100vh]* mt-3">
+        <div className="pb-5 mt-3">
             <Formik
                 initialValues={initialValues}
                 onSubmit={handleSubmit}
@@ -38,7 +40,7 @@ export const InformacionFacturacion = () => {
                                     Tu información de facturación puede ser diferente de la información de perfil de tu cuenta. La información de facturación aparece en las facturas.
                                 </p>
 
-                                <div className="grid grid-cols-2 gap-4 w-[85%]">
+                                <div className="grid md:grid-cols-2 gap-4 w-[85%]">
                                     <div className="w-[100%]">
                                         <label className="text-gray-700 font-semibold">Nombre</label>
                                         <InputField
@@ -59,14 +61,14 @@ export const InformacionFacturacion = () => {
                                     <label className="text-gray-700 font-semibold">Empresa</label>
                                     <div className="w-[100%]">
                                         <InputField
-                                            name="nombreCompañia"
+                                            name="empresa"
                                             className="focus:outline-none border border-gray-300 rounded-lg py-1 px-3 w-[100%] truncate text-base"
                                         />
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-4 gap-4 w-[85%]">
-                                    <div className="col-span-3">
+                                <div className="grid md:grid-cols-4 gap-4 w-[85%]">
+                                    <div className="md:col-span-3 col-span-2">
                                         <label className="text-gray-700 font-semibold">Direccion</label>
                                         <div className="w-[100%]">
                                             <InputField
@@ -75,28 +77,28 @@ export const InformacionFacturacion = () => {
                                             />
                                         </div>
                                     </div>
-                                    <div className="col-span-1">
+                                    <div className="md:col-span-1 col-span-2">
                                         <label className="text-gray-700 font-semibold">Código Postal</label>
                                         <div className="w-[100%]">
                                             <InputField
-                                                name="Código Postal"
+                                                name="codigoPostal"
                                                 className="focus:outline-none border border-gray-300 rounded-lg py-1 px-3 w-[100%] truncate text-base "
                                             />
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-3 w-[85%] gap-4" >
+                                <div className="grid md:grid-cols-3 w-[85%] gap-4" >
                                     <div className="col-span-2">
                                         <label className="text-gray-700 text-base w-[30%] text-end font-semibold">Ciudad</label>
                                         <div className="w-[100%]">
                                             <InputField
-                                                name="direccion"
+                                                name="ciudad"
                                                 className="focus:outline-none border border-gray-300 rounded-lg py-1 px-3  w-[100%] truncate text-base "
                                             />
                                         </div>
                                     </div>
-                                    <div className="col-span-1">
+                                    <div className="md:col-span-1 col-span-2">
                                         <label className="text-gray-700 text-base w-[30%] text-end font-semibold">País</label>
                                         <div className="w-[100%]">
                                             <SelectField
@@ -112,7 +114,7 @@ export const InformacionFacturacion = () => {
                                     <label className="text-gray-700 text-base w-[30%] text-end font-semibold ">Email del destinatario de la factura</label>
                                     <div className="w-[100%]">
                                         <InputField
-                                            name="nombreCompañia"
+                                            name="email"
                                             className="focus:outline-none border border-gray-300 rounded-lg py-1 px-3  w-[100%] truncate text-base "
                                         />
                                     </div>

@@ -43,7 +43,7 @@ export const Itinerario = ({ data }) => {
 
 
     useEffect(() => {
-        if (event && !event?.itinerarios_array?.find(elem => elem.title === data.title)) {
+        if (event && !event?.itinerarios_array?.find(elem => elem.title === data?.title)) {
             try {
                 fetchApiEventos({
                     query: queries?.createItinerario,

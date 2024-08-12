@@ -102,6 +102,21 @@ export const fetchApiEventos = async ({ query, variables, token }: argsFetchApi)
 
 export const queries = {
 
+  getInvoices: `query{
+    getInvoices{
+      total
+      results{
+        number
+        amount
+        created
+        status
+        hostedInvoiceUrl
+        invoicePdf
+        currency
+      }
+    }
+  }`,
+
   singleUpload: `mutation($file:Upload!,$use:String)
   {
     singleUpload(file:$file,use:$use){
@@ -171,8 +186,35 @@ export const queries = {
     createCheckoutSession(items:$items, email:$email, cancel_url:$cancel_url, mode:$mode, success_url:$success_url)
   }`,
 
-  getAllProducts: `query {
-    getAllProducts
+  getAllProducts: `query ($grupo:String) {
+    getAllProducts(grupo:$grupo){
+      total
+      results{
+        id
+        name
+        description
+        images
+        usage
+        subscriptionId
+        current_period_start
+        current_period_end
+        prices{
+          id
+          currency
+          unit_amount
+          recurring{
+            interval
+            trial_period_days
+          }
+        }
+        metadata{
+          grupo
+          includes
+          segmento
+          tipo
+        }
+      }
+    }
   }`,
 
   editTask: `mutation ($eventID:String, $itinerarioID:String, $taskID:String, $variable:String, $valor:String){
@@ -338,6 +380,7 @@ export const queries = {
           signUpProgress
           status
           eventSelected
+          currency
           createdAt
           updatedAt
         }
@@ -346,6 +389,9 @@ export const queries = {
         status(sessionCookie: $sessionCookie){
           customToken
         }
+  }`,
+  updateCurrency: `mutation ($currency : String){
+        updateCurrency(currency: $currency)
   }`,
   eventCreate: `mutation (
     $nombre: String,
