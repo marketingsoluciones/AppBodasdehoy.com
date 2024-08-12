@@ -77,9 +77,10 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
       }
     }),
     rol: yup.string().required("Rol requerido"),
-    correo: yup.string().email().test("Unico", "Correo asignado a otro invitado", (value) => {
+    correo: yup.string().email().required( "Correo requerido").test("Unico", `Correo asignado a otro invitado`, (value) => {
       return !event.invitados_array.map(item => item?.correo).includes(value)
-    })
+    }),
+    
   });
 
   const initialValues = {
