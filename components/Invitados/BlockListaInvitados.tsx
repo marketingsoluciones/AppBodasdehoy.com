@@ -35,7 +35,7 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu, s
   };
 
   const ConditionalAction = ({ e }) => {
-    if (event.invitados_array.length >= 200) {
+    if (event.invitados_array.length >= 300) {
       setActionModals(!actionModals)
     } else {
       handleClick(e, "invitado")
