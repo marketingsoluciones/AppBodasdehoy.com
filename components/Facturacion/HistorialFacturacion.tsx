@@ -4,12 +4,17 @@ import { useEffect, useState } from "react";
 import { AuthContextProvider } from "../../context";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { PiNewspaperClippingThin } from "react-icons/pi";
+import { useRouter } from "next/router";
 
 export const HistorialFacturacion = () => {
     const { config } = AuthContextProvider();
+    const [activeSpiner, setActiveSpiner] = useState(false)
     const [show, setShow] = useState({ state: false, idx: null });
     const [dataFactura, setDataFactura] = useState({ results: [], total: 0 })
-    const [activeSpiner, setActiveSpiner] = useState(false)
+    const router = useRouter()
+
+
+
 
     const options: object = {
         year: "2-digit",
@@ -59,6 +64,8 @@ export const HistorialFacturacion = () => {
                         activeSpiner ?
                             dataFactura?.total > 0 ?
                                 dataFactura?.results?.map((item, idx) => {
+
+                                    console.log(item.created * 1000)
                                     return (
                                         <div key={idx} className={`grid grid-cols-12 md:px-5 justify-between py-4 transition gap-y-4 text-gray-600 ${idx % 2 === 0 ? "bg-gray-50" : ""}`}>
                                             <div className=" items-center md:col-span-3  flex flex-col">
@@ -67,7 +74,7 @@ export const HistorialFacturacion = () => {
                                                 </div>
                                             </div>
                                             <div className=" col-span-2 flex flex-col h-full justify-center items-center">
-                                                {`${new Date(item?.created).toLocaleDateString(undefined, options)}`}
+                                                {`${new Date(item?.created * 1000).toLocaleDateString(undefined, options)}`}
                                             </div>
                                             <div className="md:col-span-3 col-span-5 flex h-full justify-center items-center space-x-1">
                                                 <span>
@@ -141,9 +148,10 @@ export const HistorialFacturacion = () => {
                                                                 <a href={`${item.hostedInvoiceUrl}`} target="_blank" rel="noreferrer" className="hover:bg-gray-100 py-3 px-2 text-[14px] w-full">
                                                                     Ver Factura
                                                                 </a>
-                                                                <a href={`${item.invoicePdf}`} target="_blank" rel="noreferrer" className="hover:bg-gray-100 py-3 px-2 text-[14px] w-full">
+
+                                                                <div onClick={() => router.push(`${item.invoicePdf}`)} className="hover:bg-gray-100 py-3 px-2 text-[14px] w-full">
                                                                     Descargar Factura
-                                                                </a>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </ClickAwayListener>
@@ -189,6 +197,7 @@ export const HistorialFacturacion = () => {
                     }
                 `}
             </style>
+
         </>
 
     )
