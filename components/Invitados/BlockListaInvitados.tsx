@@ -7,7 +7,7 @@ import { InvitacionesIcon, PlusIcon } from "../icons";
 import ModalBottom from "../Utils/ModalBottom";
 import DatatableGroup from "./GrupoTablas";
 import SentarBlock from "./SentarBlock";
-import { ModalPDF } from "../Utils/ModalPDF";
+// import { ModalPDF } from "../Utils/ModalPDF";
 import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
 
@@ -35,7 +35,7 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu, s
   };
 
   const ConditionalAction = ({ e }) => {
-    if (event.invitados_array.length >= 10) {
+    if (event.invitados_array.length >= 300) {
       setActionModals(!actionModals)
     } else {
       handleClick(e, "invitado")
@@ -122,7 +122,7 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu, s
       </div>
       <SentarBlock />
       {createPDF ? (
-        <ModalPDF createPDF={createPDF} setCreatePDF={setCreatePDF} Data={event} />
+        <></>//<ModalPDF createPDF={createPDF} setCreatePDF={setCreatePDF} Data={event} />
       ) : null}
     </div>
   );
