@@ -2,17 +2,16 @@ import { useState } from "react"
 import { EncabezadoFacturacion, Productos } from "./index"
 import { AuthContextProvider } from "../../context"
 
-
-export const Planes = ({ data }) => {
-    const { forCms, config } = AuthContextProvider()
+export const Planes = ({ data, currency, setCurrency, stripeCurrency }) => {
+    const { config } = AuthContextProvider()
     const [products, setProducts] = useState([])
 
     return (
         <>
-                <div className="space-y-4 mb-5">
-                    <EncabezadoFacturacion products={products} />
-                    <Productos data={data} products={products} setProducts={setProducts} />
-                </div>
+            <div className="space-y-4 mb-5">
+                <EncabezadoFacturacion products={products} currency={currency} setCurrency={setCurrency} stripeCurrency={stripeCurrency} />
+                <Productos data={data} products={products} setProducts={setProducts} />
+            </div>
             <style jsx>
                 {`
                 .loader {

@@ -201,6 +201,7 @@ export const queries = {
 
   getAllProducts: `query ($grupo:String) {
     getAllProducts(grupo:$grupo){
+      currency
       total
       results{
         id
@@ -393,7 +394,6 @@ export const queries = {
           signUpProgress
           status
           eventSelected
-          currency
           createdAt
           updatedAt
         }
@@ -402,9 +402,6 @@ export const queries = {
         status(sessionCookie: $sessionCookie){
           customToken
         }
-  }`,
-  updateCurrency: `mutation ($currency : String){
-        updateCurrency(currency: $currency)
   }`,
   eventCreate: `mutation (
     $nombre: String,
