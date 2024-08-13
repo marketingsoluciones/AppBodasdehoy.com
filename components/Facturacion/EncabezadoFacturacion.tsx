@@ -3,13 +3,10 @@ import { AuthContextProvider } from "../../context"
 import { fetchApiBodas, queries } from "../../utils/Fetching"
 import { DiamanteIcon } from "../icons"
 import { LiaCartArrowDownSolid } from "react-icons/lia"
-import { useEffect, useState } from "react"
-import { countries_eur } from "../../utils/Currencies"
 
+export const EncabezadoFacturacion = ({ products, currency, setCurrency, stripeCurrency }) => {
+    const { user, config } = AuthContextProvider()
 
-export const EncabezadoFacturacion = ({ products }) => {
-    const { user, setUser, config, geoInfo } = AuthContextProvider()
-    const [currency, setCurrency] = useState(user?.currency ?? countries_eur.includes(geoInfo?.ipcountry?.toLowerCase()) ? "eur" : "usd")
     const router = useRouter()
 
     const handleCheckout = () => {
@@ -36,19 +33,6 @@ export const EncabezadoFacturacion = ({ products }) => {
             }
         })
     }
-    const handleChangeS = (e) => {
-        setCurrency(e.target.value)
-        fetchApiBodas({
-            query: queries.updateCurrency,
-            variables: {
-                currency: e.target.value
-            },
-            development: config.development
-        }).then((result) => {
-            const newUser = { ...user, currency: e.target.value }
-            setUser({ ...newUser })
-        })
-    }
 
     return (
         <div className="bg-white rounded-lg px-5 py-5 mt-3  ">
@@ -64,10 +48,10 @@ export const EncabezadoFacturacion = ({ products }) => {
                     <p className="text-[13px] text-gray-400 pr-5"> Si se suscribe en la mitad del ciclo de facturación, se le cobrará un monto parcial.</p>
                 </div>
                 <div className="flex h-max items-center justify-center">
-                        <select disabled={products.findIndex(elem => elem?.usage)} value={currency} className={`font-display text-gray-500 font-semibold text-lg text-center border-none focus:ring-0 ${!products.length && "cursor-pointer"}`} onChange={(e) => handleChangeS(e)}  >
-                            <option value={"eur"}>EUR</option>
-                            <option value={"usd"}>USD</option>
-                        </select>
+                    {!stripeCurrency && <select value={currency} className={`font-display text-gray-500 font-semibold text-lg text-center border-none focus:ring-0 ${!products.length && "cursor-pointer"}`} onChange={(e) => setCurrency(e.target.value)}  >
+                        <option value={"eur"}>EUR</option>
+                        <option value={"usd"}>USD</option>
+                    </select>}
                     <div className="relative flex">
                         {products?.length > 0 && <span className="bg-primary w-5 h-5 absolute z-10 rounded-full border-2 border-primary flex items-center justify-center text-white translate-x-4 translate-y-1">{products?.length}</span>}
                         <LiaCartArrowDownSolid className="w-12 h-12 text-primary" />

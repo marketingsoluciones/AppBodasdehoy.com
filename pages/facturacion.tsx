@@ -7,9 +7,11 @@ import { countries_eur } from "../utils/Currencies"
 
 const Facturacion = () => {
     const { forCms, user, config, geoInfo } = AuthContextProvider()
-    const [dataFetch, setDataFetch] = useState([])
+    const [dataFetch, setDataFetch] = useState<any>({})
     const [data, setData] = useState([])
     const [optionSelect, setOptionSelect] = useState(0)
+    const [currency, setCurrency] = useState(countries_eur.includes(geoInfo?.ipcountry?.toLowerCase()) ? "eur" : "usd")
+    const [stripeCurrency, setStripeCurrency] = useState(null)
 
     useEffect(() => {
         fetchApiBodas({
@@ -17,31 +19,30 @@ const Facturacion = () => {
             variables: { grupo: "app" },
             development: config.development
         }).then(results => {
-            const data = results?.results
-            setDataFetch(data)
+            setDataFetch(results)
+            setStripeCurrency(results?.currency)
         })
     }, [])
 
     useEffect(() => {
-        const data = dataFetch?.map(elem => {
-            const price = elem?.prices?.find(el => user.currency
-                ? el?.currency === user?.currency
-                : el?.currency === (countries_eur.includes(geoInfo?.ipcountry?.toLowerCase()) ? "eur" : "usd"))
+        const data = dataFetch?.results?.map(elem => {
+            const price = elem?.prices?.find(el => data?.currency
+                ? el?.currency === data.currency
+                : el?.currency === currency)
             return { ...elem, prices: [price] }
         })
-        console.log(90009, data)
         setData(data)
-    }, [user, dataFetch])
+    }, [user, dataFetch, currency])
 
 
     const ComponentesArray = [
         {
             title: "Planes",
-            componente: <Planes data={data} />
+            componente: <Planes data={data} currency={currency} setCurrency={setCurrency} stripeCurrency={stripeCurrency} />
         },
         {
             title: "Métodos de pago",
-            componente: <MetodosDePago setOptionSelect={setOptionSelect} />
+            componente: <MetodosDePago setOptionSelect={setOptionSelect} stripeCurrency={stripeCurrency} />
         },
         {
             title: "Información de Facturación",

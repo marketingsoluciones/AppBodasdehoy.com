@@ -1,8 +1,6 @@
 import { useField } from "formik"
 import { ChangeEvent, FC, HtmlHTMLAttributes, useEffect } from "react"
-import { WarningIcon } from "../icons"
 import { EventContextProvider } from "../../context"
-import { number, object } from "yup"
 
 interface propsSelectField extends HtmlHTMLAttributes<HTMLSelectElement> {
     label?: string
@@ -16,8 +14,6 @@ interface propsSelectField extends HtmlHTMLAttributes<HTMLSelectElement> {
 const SelectField: FC<propsSelectField> = ({ label, children, options, colSpan, labelClass = true, nullable, ...props }) => {
     const { invitadoCero, event } = EventContextProvider();
     const [field, meta, { setValue }] = useField({ name: props.name })
-
-
 
     if (props.name === "nombre_menu") {
         if (field.value === null) {

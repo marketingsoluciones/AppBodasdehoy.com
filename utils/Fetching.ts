@@ -116,7 +116,20 @@ export const queries = {
       }
     }
   }`,
-
+  updateCustomer: `mutation($args:inputCustomer){
+      updateCustomer(args:$args)
+  }`,
+  getCustomer: `query{
+    getCustomer{
+      name
+      email
+      line1
+      line2
+      postalCode
+      city
+      country
+    }
+  }`,
   singleUpload: `mutation($file:Upload!,$use:String)
   {
     singleUpload(file:$file,use:$use){
@@ -188,6 +201,7 @@ export const queries = {
 
   getAllProducts: `query ($grupo:String) {
     getAllProducts(grupo:$grupo){
+      currency
       total
       results{
         id
@@ -380,7 +394,6 @@ export const queries = {
           signUpProgress
           status
           eventSelected
-          currency
           createdAt
           updatedAt
         }
@@ -389,9 +402,6 @@ export const queries = {
         status(sessionCookie: $sessionCookie){
           customToken
         }
-  }`,
-  updateCurrency: `mutation ($currency : String){
-        updateCurrency(currency: $currency)
   }`,
   eventCreate: `mutation (
     $nombre: String,
