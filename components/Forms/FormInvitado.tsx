@@ -36,6 +36,7 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
   const [contactsForApiGoogle] = useImportGuest()
   const { isPhoneValid } = useAuthentication()
 
+
   useEffect(() => {
     const scriptGsi = document.createElement('script');
     scriptGsi.src = "https://accounts.google.com/gsi/client";
@@ -76,11 +77,11 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
         return true
       }
     }),
-    rol: yup.string().required("Rol requerido"),
-    correo: yup.string().email().required( "Correo requerido").test("Unico", `Correo asignado a otro invitado`, (value) => {
+    rol: yup.string().required("Rol requerido").notOneOf(['Seleccionar'], "Seleccione un Rol valido"),
+    correo: yup.string().email("El formato del correo no es valido").required("Correo requerido").test("Unico", `Correo asignado a otro invitado`, (value) => {
       return !event.invitados_array.map(item => item?.correo).includes(value)
-    }),
-    
+    }).email("Formato invalido")
+
   });
 
   const initialValues = {
@@ -209,6 +210,7 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
                   name={"rol"}
                   label={"Rol"}
                   options={event.grupos_array}
+                  nullable={true}
                 />
               </div>
 
