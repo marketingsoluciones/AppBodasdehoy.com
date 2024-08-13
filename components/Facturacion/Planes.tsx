@@ -5,12 +5,17 @@ import { AuthContextProvider } from "../../context"
 export const Planes = ({ data, currency, setCurrency, stripeCurrency }) => {
     const { config } = AuthContextProvider()
     const [products, setProducts] = useState([])
-
+    console.log(data)
     return (
         <>
-            <div className="space-y-4 mb-5">
+            <div className="space-y-4 mb-5 w-full">
                 <EncabezadoFacturacion products={products} currency={currency} setCurrency={setCurrency} stripeCurrency={stripeCurrency} />
-                <Productos data={data} products={products} setProducts={setProducts} />
+                {data?.length > 0 ?
+                    <Productos data={data} products={products} setProducts={setProducts} /> :
+                    <div className="flex  items-center justify-center h-[300px] ">
+                        < div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>
+                    </div>
+                }
             </div>
             <style jsx>
                 {`
