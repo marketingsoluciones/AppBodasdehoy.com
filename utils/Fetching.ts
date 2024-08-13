@@ -102,6 +102,26 @@ export const fetchApiEventos = async ({ query, variables, token }: argsFetchApi)
 
 export const queries = {
 
+  getAllBusiness: `query ($criteria :searchCriteriaBusiness, $sort : sortCriteriaBusiness, $skip :Int, $limit : Int, $development: String!) {
+    getAllBusinesses(searchCriteria:$criteria, sort: $sort, skip: $skip, limit: $limit, development: $development){
+      total
+      results{
+         _id
+         city
+        businessName
+        slug
+        content
+        imgMiniatura{
+          i1024
+          i800
+          i640
+          i320
+        }
+        
+      }
+    }
+  }`,
+
   getInvoices: `query{
     getInvoices{
       total
