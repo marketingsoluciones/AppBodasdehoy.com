@@ -1,6 +1,5 @@
-//@ts-check
 import { Formik, FormikValues, Form } from 'formik';
-import { FC, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { EventContextProvider } from "../../context";
 import { BorrarInvitado } from "../../hooks/EditarInvitado";
 import InputField from "./InputField";
@@ -19,8 +18,6 @@ interface InitialValues extends Partial<guests> {
   tableNameCeremonia: Partial<table>
   tableNameRecepcion: Partial<table>
 }
-
-const msgAuto = ({ path }) => `${capitalize(path)} requerido`
 
 const validationSchema = yup.object().shape({
   nombre: yup.string().required(({ path }) => `${capitalize(path)} requerido`),
@@ -109,47 +106,13 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
     }
   };
 
-  const handleBlurData = async (variable: string, value: string) => {
-    if (invitado[variable] !== value) {
-      try {
-        const result = await fetchApiEventos({
-          query: queries.editGuests,
-          variables: {
-            eventID: event._id,
-            guestID: invitado._id,
-            variable,
-            value
-          }
-        })
-        setEvent((old: any) => {
-          const newGuests = old.invitados_array.map(guest => {
-            if (guest._id === invitado._id) {
-              return result
-            }
-            return guest
-          })
-          return {
-            ...old,
-            invitados_array: newGuests
-          }
-        })
-        toast("success", `${capitalize(variable)} actualizado con exito`)
-      } catch (error) {
-        console.log(error)
-        toast("error", `Ha ocurrido un error al actualizar el ${capitalize(variable)} `)
-      }
-    }
-
-  };
   return (
     <Formik
       initialValues={initialValues}
-      // enableReinitialize
       onSubmit={handleSubmit}
       validationSchema={validationSchema}
     >
       {({ values, setValues, isSubmitting }) => {
-
         return (
           <>
             <Asd values={values} setValues={setValues} />
@@ -166,7 +129,6 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                   <InputField
                     name="nombre"
                     label="Nombre"
-                    // onBlur={() => handleBlurData("nombre", values.nombre)}
                     type="text"
                   />
                 </div>
@@ -176,7 +138,6 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                     options={["pendiente", "confirmado", "cancelado"]}
                     name="asistencia"
                     label="Asistencia"
-                  //onChangeCapture={(e: any) => handleBlurData("asistencia", e?.target?.value)}
                   />
                 </div>
               </div>
@@ -186,7 +147,6 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                     <InputField
                       name="passesQuantity"
                       label="Acompañantes"
-                      // onBlur={(e: any) => handleBlurData("passesQuantity", e.target.value)}
                       type="number"
                     />
                   </div>
@@ -199,7 +159,6 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                     options={event?.grupos_array}
                     name="rol"
                     label="Rol o Grupo de invitados"
-                  // onChangeCapture={(e: any) => handleBlurData("rol", e?.target?.value)}
                   />
                   <SelectField
                     colSpan={2}
@@ -214,7 +173,6 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                     ]}
                     name="tableNameRecepcion"
                     label="Mesa Recepción"
-                  // onChangeCapture={(e: any) => handleBlurData("nombre_mesa", e.target.value)}
                   />
                   <SelectField
                     colSpan={2}
@@ -229,31 +187,25 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                     ]}
                     name="tableNameCeremonia"
                     label="Mesa Ceremonia"
-                  // onChangeCapture={(e: any) => handleBlurData("nombre_mesa", e.target.value)}
                   />
                   <SelectField
                     colSpan={2}
                     options={[...event?.menus_array?.map((item) => item?.nombre_menu), "sin menú"]}
                     name="nombre_menu"
                     label="Menú"
-                  // onChangeCapture={(e: any) => handleBlurData("nombre_menu", e.target.value)}
                   />
                 </div>
               </div>
               <div className="grid grid-cols-2 w-full gap-6 relative">
                 <BooleanSwitch
-                  // disabled={true}
                   label="Sexo"
                   lista={["hombre", "mujer"]}
                   name="sexo"
-                // onChangeCapture={(e: any) => handleBlurData("sexo", e.target.value)}
                 />
                 <BooleanSwitch
-                  // disabled={true}
                   label="Edad"
                   lista={["adulto", "niño"]}
                   name="grupo_edad"
-                // onChangeCapture={(e: any) => handleBlurData("grupo_edad", e.target.value)}
                 />
               </div>
               <div className="grid md:grid-cols-3 w-full gap-6 relative">
@@ -261,7 +213,6 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                   <InputField
                     name="correo"
                     label="Correo"
-                    // onBlur={(e: any) => handleBlurData("correo", e.target.value)}
                     type="email"
                     disabled={true}
                   />
@@ -274,19 +225,16 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                 <InputField
                   name="telefono"
                   label="Telefono"
-                  // onBlur={(e: any) => handleBlurData("telefono", e.target.value)}
                   type="telefono"
                 />
                 <InputField
                   name="poblacion"
                   label="Población"
-                  // onBlur={(e: any) => handleBlurData("poblacion", e.target.value)}
                   type="text"
                 />
                 <InputField
                   name="pais"
                   label="País"
-                  // onBlur={(e: any) => handleBlurData("pais", e.target.value)}
                   type="text"
                 />
               </div>
@@ -296,7 +244,6 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                     }`}
                   disabled={isSubmitting}
                   type="submit"
-                // onClick={() => set(!state)}
                 >
                   Guardar
                 </button>

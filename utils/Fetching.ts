@@ -116,7 +116,20 @@ export const queries = {
       }
     }
   }`,
-
+  updateCustomer: `mutation($args:inputCustomer){
+      updateCustomer(args:$args)
+  }`,
+  getCustomer: `query{
+    getCustomer{
+      name
+      email
+      line1
+      line2
+      postalCode
+      city
+      country
+    }
+  }`,
   singleUpload: `mutation($file:Upload!,$use:String)
   {
     singleUpload(file:$file,use:$use){
