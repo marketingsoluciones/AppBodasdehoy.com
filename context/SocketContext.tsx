@@ -29,7 +29,7 @@ const SocketProvider: FC<any> = ({ children }): JSX.Element => {
   const router = useRouter()
   const { user, config } = AuthContextProvider()
   const [socket, setSocket] = useState<Socket | null>(initialContext.socket);
-  const [notifications, setNotifications] = useState<ResultNotifications>();
+  const [notifications, setNotifications] = useState<ResultNotifications>({ total: 0, results: [] });
 
   useEffect(() => {
     console.log("=======> User", user)

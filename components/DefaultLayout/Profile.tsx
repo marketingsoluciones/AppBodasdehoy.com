@@ -187,11 +187,11 @@ const Profile = ({ user, state, set, ...rest }) => {
       rol: ["novio", "novia", "otro", "empresa"],
     },
     {
-      title:"Facturacion",
-      onClick: async () => {router.push("/facturacion")},
-      icon:<TarjetaIcon />,
+      title: "Facturacion",
+      onClick: async () => { router.push("/facturacion") },
+      icon: <TarjetaIcon />,
       development: ["all"],
-      rol:["all"]
+      rol: ["novio", "novia", "otro", "empresa"]
     }
   ]
 
@@ -217,21 +217,15 @@ const Profile = ({ user, state, set, ...rest }) => {
 
   return (
     <>
-      <div
-        className="text-gray-100 flex space-x-4  hover:text-gray-300 relative"
-        {...rest}
-      >
+      <div className="text-gray-100 flex space-x-4  hover:text-gray-300 relative" {...rest} >
         <span className="flex items-center gap-2 relative">
         </span>
-
 
         <div className="items-center flex relative cursor-default ">
           <div onClick={() => !event ? toast("error", `No tienes eventos creados`) : /* !isAllowed("itinerario") ? ht() : */ router.push("/itinerario")} className={`${!event ? "opacity-40" : ""} bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200 cursor-pointer`} >
             <GoChecklist className="text-primary w-6 h-6 scale-x-90" />
           </div>
         </div>
-
-
         <Notifications />
         <ClickAwayListener onClickAway={() => dropdown && setDropwdon(false)}>
           <div
@@ -250,11 +244,9 @@ const Profile = ({ user, state, set, ...rest }) => {
                   </h3>
                 </div>
                 <ul className="grid grid-cols-2 gap-2 text-xs place-items-left p-2 ">
-
                   {optionsReduceStart.map((item: Option, idx) => (
                     <ListItemProfile key={idx} {...item} />
                   ))}
-
                   {(user?.displayName !== "guest" && config?.development === "bodasdehoy") &&
                     <>
                       <hr className="col-span-2" />
@@ -265,7 +257,6 @@ const Profile = ({ user, state, set, ...rest }) => {
                       <hr className="col-span-2" />
                     </>
                   }
-
                   {optionsReduceEnd.map((item: Option, idx) => (
                     <ListItemProfile key={idx} {...item} />
                   ))}

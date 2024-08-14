@@ -23,7 +23,7 @@ export const EncabezadoFacturacion = ({ products, currency, setCurrency, stripeC
                 items: items,
                 email: user?.email,
                 cancel_url: `${window.location.href}`,
-                success_url: `${window.location.href}`,
+                success_url: `${window.location.href}/facturacion`,
                 mode: products.findIndex(el => el.prices[0].recurring) > -1 ? "subscription" : "payment"
             },
             development: config.development

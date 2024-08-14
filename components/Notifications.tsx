@@ -55,13 +55,15 @@ export const Notifications = () => {
   }, [showNotifications]);
 
   useEffect(() => {
-    fetchApiBodas({
-      query: queries.getNotifications,
-      variables: { args: { uid: user?.uid }, sort: { createdAt: -1 }, skip: 0, limit: 8 },
-      development: config?.development
-    }).then((result: ResultNotifications) => {
-      setNotifications(result)
-    })
+    if (user?.uid) {
+      fetchApiBodas({
+        query: queries.getNotifications,
+        variables: { args: { uid: user?.uid }, sort: { createdAt: -1 }, skip: 0, limit: 8 },
+        development: config?.development
+      }).then((result: ResultNotifications) => {
+        setNotifications(result)
+      })
+    }
   }, [isMounted])
 
   useEffect(() => {
@@ -162,8 +164,8 @@ export const Notifications = () => {
               ))}
               < li className="flex items-center justify-center">
                 <span className="text-xs">{
-                  notifications.results.length === notifications.total
-                    ? notifications.results.length ? "No hay más notificaciones" : "No hay notificaciones"
+                  notifications?.results?.length === notifications?.total
+                    ? notifications?.results?.length ? "No hay más notificaciones" : "No hay notificaciones"
                     : !showLoad ? "burcar más" : "cargando"
                 }</span>
               </li>
