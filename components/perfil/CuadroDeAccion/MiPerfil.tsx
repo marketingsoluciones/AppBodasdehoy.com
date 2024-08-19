@@ -134,8 +134,8 @@ export const MiPerfil = () => {
                   </button>
                 </div>
                 <div className="flex flex-row space-x-2">
-                  <div className="w-full items-center">
-                    <div className="flex-1 md:flex-none md:w-[300px] relative">
+                  <div className=" flex md:flex-row flex-col w-full items-center md:space-x-2">
+                    <div className="flex-1 md:flex-none md:w-[300px] relative w-full">
                       <InputField
                         id="currentPassword"
                         disabled={!canChangePassword}
@@ -147,7 +147,7 @@ export const MiPerfil = () => {
                         {!passwordView ? <EyeSlash /> : <Eye />}
                       </div>
                     </div>
-                    <div className="flex-1 md:flex-none md:w-[300px] relative">
+                    <div className="flex-1 md:flex-none md:w-[300px] relative w-full">
                       <InputField
                         id="password"
                         disabled={!canChangePassword}
@@ -159,10 +159,10 @@ export const MiPerfil = () => {
                         {!passwordView ? <EyeSlash /> : <Eye />}
                       </div>
                     </div>
-                    <div className="h-4 hidden sm:flex flex-1" />
+                   {/*  <div className="h-4 hidden sm:flex flex-1" /> */}
                   </div>
 
-                  <div className="flex flex-col-reverse sm:flex-row sm:items-end sm:-translate-y-4 space-y-4 sm:space-y-0 sm:space-x-3 gap-4 sm:gap-0">
+                  <div className="flex sm:flex-row md:items-center items-end space-y-4 sm:space-y-0  gap-4 sm:gap-0">
                     <button
                       type="button"
                       onClick={() => {
