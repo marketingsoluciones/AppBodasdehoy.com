@@ -142,8 +142,7 @@ export const BasicFormLogin = ({
   Categoria
 
 }) => {
-  const { currency } = AuthContextProvider()
-
+  const { event } = EventContextProvider()
   const [showProOptions, setShowProOptions] = useState(false)
 
   useEffect(() => {
@@ -192,7 +191,7 @@ export const BasicFormLogin = ({
             <div className="border rounded-lg py-0.5  text-right px-2">
               {getCurrency(
                 Proveedor.coste_estimado,
-                currency
+                event?.presupuesto_objeto?.currency
               )}
 
             </div>
@@ -202,7 +201,7 @@ export const BasicFormLogin = ({
             <div className="border rounded-lg py-0.5  text-right px-2">
               {getCurrency(
                 Proveedor.coste_final,
-                currency
+                event?.presupuesto_objeto?.currency
               )}
             </div>
           </div>
@@ -211,7 +210,7 @@ export const BasicFormLogin = ({
             <div className="border rounded-lg py-0.5  text-right px-2">
               {getCurrency(
                 Proveedor.pagado,
-                currency
+                event?.presupuesto_objeto?.currency
               )}
             </div>
           </div>
