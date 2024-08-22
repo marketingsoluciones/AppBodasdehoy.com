@@ -224,16 +224,10 @@ export const InfoItemsFacturation = [
     title: "Información Eventos",
     texto: "Podras llevar la informacion de los eventos creados y sus caracteristicas."
   },
-
-
-
   {
     title: "Colaboración de eventos",
     texto: "Podras permitirle a tus usuarios poder tener acceso a crear eventos colaborativos ."
   },
-
-
-
   {
     /* el include sera la clave para que se visualice con stripe */
     include: "visor-eventos",
