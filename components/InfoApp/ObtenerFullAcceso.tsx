@@ -4,32 +4,56 @@ import { GoX } from "react-icons/go";
 
 export const ObtenerFullAcceso = () => {
     const { actionModals, setActionModals } = AuthContextProvider()
+
     const FullAccesoImgs = [
         {
+            titulo: "Obten full acceso a las funciones para Crear tus Itinerarios",
+            descripcion:"Haz que tu día especial sea perfecto con nuestro itinerario de boda, diseñado para que cada momento sea inolvidable y sin estrés. Obteniendo Actualizacion en tiempo real, Recordatorios, Compartir con invitados y diversas integraciones",
+            img: "/FullAcceso/invitaciones.png",
+            alt: "Itinerario"
+        },
+        {
+            titulo: "Obten full acceso a las funciones para crear tus eventos",
+            descripcion:"Planificar una boda nunca ha sido tan sencillo y emocionante. Descubre las ventajas de utilizar nuestro software de bodas y transforma tu día especial en una experiencia inolvidable. Con Planificacion Integral, Personalizacion Completa, Gestion de invitados entre otros ",
+            img: "/FullAcceso/resumen.png",
+            alt: "Eventos"
+        },
+        {
+            titulo: "Obten full acceso a las funciones para tus Invitaciones",
+            descripcion:"",
             img: "/FullAcceso/invitaciones.png",
             alt: "invitaciones"
         },
         {
-            img: "/FullAcceso/resumen.png",
-            alt: "resumne"
-        },
-        {
+            titulo: "Obten full acceso a las funciones para tu Presupuesto",
+            descripcion:"",
             img: "/FullAcceso/presupuesto.png",
             alt: "presupuesto"
         },
         {
+            titulo: "Obten full acceso a las funciones para crear tus Listas de Regalos",
+            descripcion:"",
+            img: "/FullAcceso/mesas.png",
+            alt: "Lista de regalos"
+        },
+        {
+            titulo: "Obten full acceso a las funciones para tus Planos",
+            descripcion:"",
             img: "/FullAcceso/mesas.png",
             alt: "mesas"
         },
         {
+            titulo: "Obten full acceso a las funciones para Crear tus Invitados",
+            descripcion:"",
             img: "/FullAcceso/invitados.png",
             alt: "invitados"
         },
     ]
+
     return (
         <div className="p-4 overflow-y-auto h-full space-y-5 relative">
             <div onClick={() => setActionModals(!actionModals)} className="absolute right-10 cursor-pointer">
-                <GoX className="w-6 h-6 transition hover:rotate-180"/>
+                <GoX className="w-6 h-6 transition hover:rotate-180" />
             </div>
             <div className="space-y-5">
                 <h1 className="text-center text-primary text-[20px]">Obten full acceso a todas las funcionalidades</h1>
