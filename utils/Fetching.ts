@@ -246,6 +246,7 @@ export const queries = {
           includes
           segmento
           tipo
+          caracteristica
         }
       }
     }

@@ -25,7 +25,7 @@ const Resumen = () => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }} className="md:max-w-screen-lg mx-auto inset-x-0 flex-col flex gap-10 pb-20">
           <BlockPrincipal />
-          <div className="w-full grid grid-cols-2 gap-4 md:gap-8">
+          <div className="w-full grid md:grid-cols-2 gap-4 md:gap-8">
             <BlockItinerario />
             <BlockLugarEvento/>
           </div>

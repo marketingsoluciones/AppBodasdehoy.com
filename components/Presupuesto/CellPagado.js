@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { getCurrency } from "../../utils/Funciones";
 import { useAllowed } from "../../hooks/useAllowed";
-import { AuthContextProvider } from "../../context";
+import { AuthContextProvider, EventContextProvider } from "../../context";
 import { useToast } from "../../hooks/useToast";
 
 const CellPagado = ({ set, ...props }) => {
+  const { event, setEvent } = EventContextProvider()
   const [value, setValue] = useState();
   const [isAllowed, ht] = useAllowed()
   const [mask, setMask] = useState()
