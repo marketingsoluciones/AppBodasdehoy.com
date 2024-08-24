@@ -34,7 +34,7 @@ const Facturacion = () => {
                 : el?.currency === currency)
             return { ...elem, prices: [price] }
         })
-        const dataSort = data.sort((a, b) => {
+        const dataSort = data?.sort((a, b) => {
             if (a.usage !== b.usage) {
                 return b.usage - a.usage
             }
