@@ -329,6 +329,7 @@ export const queries = {
         uid
         message
         state
+        type
         createdAt
         updatedAt
       }
