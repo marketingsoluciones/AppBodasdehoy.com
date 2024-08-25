@@ -38,6 +38,7 @@ export interface Notification {
     uid: string
     message: string
     state: string
+    type: string
     createdAt: number
     updatedAt: number
 }

@@ -1,7 +1,7 @@
 import { ComponentType, useEffect, useState } from "react";
 import ClickAwayListener from "react-click-away-listener"
 import { RiNotification2Fill } from "react-icons/ri";
-import { MisEventosIcon } from "./icons";
+import { MisEventosIcon, TarjetaIcon } from "./icons";
 import { fetchApiBodas, queries } from "../utils/Fetching";
 import { AuthContextProvider, SocketContextProvider } from "../context";
 import { Notification, ResultNotifications } from "../utils/Interfaces";
@@ -138,7 +138,8 @@ export const Notifications = () => {
               {notifications?.results?.map((item: Notification, idx: number) => (
                 <li key={idx} className="flex">
                   <div className="w-full hover:bg-base rounded-lg text-gray-700 flex space-x-2 p-2">
-                    <MisEventosIcon className="mt-1 text-gray-500 w-5 h-5" />
+                    {(!item?.type || item?.type === "event") && <MisEventosIcon className="mt-1 text-gray-500 w-5 h-5" />}
+                    {(item?.type === "shop") && <TarjetaIcon className="mt-1 text-gray-500 w-5 h-5" />}
                     <div className="flex-1 flex flex-col">
                       <Interweave
                         className="text-sm"

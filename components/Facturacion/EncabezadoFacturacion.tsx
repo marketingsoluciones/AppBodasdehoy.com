@@ -6,7 +6,6 @@ import { LiaCartArrowDownSolid } from "react-icons/lia"
 
 export const EncabezadoFacturacion = ({ products, currency, setCurrency, stripeCurrency }) => {
     const { user, config } = AuthContextProvider()
-
     const router = useRouter()
 
     const handleCheckout = () => {
@@ -17,19 +16,24 @@ export const EncabezadoFacturacion = ({ products, currency, setCurrency, stripeC
                 metadata: { ...elem.metadata, productId: elem.id },
             }
         })
+        const path = router?.query?.show === "iframe"
+            ? window?.origin?.includes("://test.") ? `${process.env.NEXT_PUBLIC_CMS?.replace("//", "//test")}/facturacion` ?? "" : `${process.env.NEXT_PUBLIC_CMS}/facturacion` ?? ""
+            : `${window.location.href}`
         fetchApiBodas({
             query: queries.createCheckoutSession,
             variables: {
                 items: items,
                 email: user?.email,
-                cancel_url: `${window.location.href}`,
-                success_url: `${window.location.href}/facturacion`,
+                cancel_url: path,
+                success_url: path,
                 mode: products.findIndex(el => el.prices[0].recurring) > -1 ? "subscription" : "payment"
             },
             development: config.development
         }).then((result) => {
             if (result != null) {
-                router.push(result)
+                router?.query?.show === "iframe"
+                    ? window.parent.postMessage(JSON.stringify({ type: "route", path: result }), '*')
+                    : router.push(result)
             }
         })
     }

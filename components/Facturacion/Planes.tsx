@@ -5,7 +5,6 @@ import { AuthContextProvider } from "../../context"
 export const Planes = ({ data, currency, setCurrency, stripeCurrency }) => {
     const { config } = AuthContextProvider()
     const [products, setProducts] = useState([])
-    console.log(data)
     return (
         <>
             <div className="space-y-4 mb-5 w-full">

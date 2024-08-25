@@ -1,17 +1,16 @@
 import { useState } from "react"
 import ClickAwayListener from "react-click-away-listener"
 import { ExclamacionIcon } from "../icons"
-
+import { IoSettingsOutline } from "react-icons/io5";
+import { useRouter } from "next/router";
 
 export const Productos = ({ data, setProducts, products }) => {
-
-
+  const router = useRouter()
   const options: object = {
     year: "2-digit",
     month: "2-digit",
     day: "2-digit",
   }
-
 
   return (
     <div className="space-y-5 pb-5">
@@ -46,6 +45,17 @@ export const Productos = ({ data, setProducts, products }) => {
             <div className="flex flex-col w-36 md:h-full h-[75px] items-center justify-center capitalize">
               {item.usage
                 ? <div className={`${status.toLowerCase() === "activo" ? "bg-green" : "bg-orange-300"} flex w-full h-11 rounded-lg items-center justify-center relative`}>
+                  {item?.name?.toLowerCase().includes("marca") &&
+                    <div onClick={() => {
+                      const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
+                      router?.query?.show === "iframe"
+                        ? window.parent.postMessage(JSON.stringify({ type: "route", path: `${path}/whitelabel/setup` }), '*')
+                        : router.push(`${path}/whitelabel/setup`)
+                    }} className="absolute -top-5 w-full h-4 flex justify-center items-center space-x-1 cursor-pointer hover:scale-105">
+                      <span className="text-sm text-gray-700">Configurar</span>
+                      <IoSettingsOutline className="w-5 h-5" />
+                    </div>
+                  }
                   <span style={{ userSelect: "none" }} className="text-[16px] font-semibold text-white">
                     {status}
                   </span>
