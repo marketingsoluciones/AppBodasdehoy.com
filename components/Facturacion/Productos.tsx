@@ -36,7 +36,7 @@ export const Productos = ({ data, setProducts, products }) => {
               <div className="text-[13px] text-gray-500">
                 {item.description}
               </div>
-              <div className="grid grid-cols-3 mt-1">
+              <div className="grid grid-cols-2 md:grid-cols-3 mt-1">
                 {item?.metadata?.caracteristica?.split(", ").map((el: any, idx: any) => {
                   return <InfoModulos key={idx} item={el} />
                 })}
@@ -100,7 +100,7 @@ const InfoModulos = ({ item }) => {
     < div className="text-azulCorporativo text-[13px] flex items-center  space-x-2 mb-0.5 cursor-default " >
       <ClickAwayListener onClickAway={() => setShowInfo(false)}>
         <div className="relative ">
-          {showInfo && <div className="bg-white w-[220px] top-5 left-5 border  border-primary rounded-lg p-2 shadow-lg text-[14px] absolute z-50">
+          {showInfo && <div className="bg-white w-[220px] top-5 -left-5  md:left-5 border  border-primary rounded-lg p-2 shadow-lg text-[14px] absolute z-50">
             {InfoItemsFacturation.find(elem => elem?.title === item)?.texto}
           </div>}
           <p className={`cursor-pointer ${showInfo ? "text-primary" : ""}`} onClick={() => setShowInfo(true)}>
