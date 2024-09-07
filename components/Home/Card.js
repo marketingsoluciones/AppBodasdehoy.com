@@ -183,7 +183,7 @@ const Card = ({ data, grupoStatus, idx }) => {
           </div>}
         </div>
 
-        {data[idx]?._id == user?.eventSelected ? <div className="w-[304px] h-40 bg-green absolute rounded-xl" /> : <></>}
+        {data[idx]?._id == user?.eventSelected ? <div className="w-[304px] h-40 border-dashed border-2 border-yellow-300 absolute rounded-xl" /> : <></>}
         <div onClick={() => {
           const resp = handleClickCard({ final: true, config, data: data[idx], setEvent, user, setUser, router })
           if (resp) toast("warning", resp)
