@@ -44,7 +44,7 @@ const BlockCabecera = () => {
       <BlockTitle title="Mis invitados" />
       <div className="w-full flex flex-col gap-4 md:grid md:grid-cols-6 md:my-2 py-1 md:border-b-4 md:border-primary relative">
 
-        <div className="absolute md:static z-10 -translate-y-[26px] md:translate-y-0 flex gap-10 items-center justify-center h-full w-full md:col-span-2 py-4">
+        <div className="absolute* md:static z-10 translate-y-[6px] md:translate-y-0 flex gap-10 items-center justify-center h-full w-full md:col-span-2 md:py-4">
           <div className="flex gap-1 items-center justify-end ">
             <p className="font-display font-semibold text-2xl md:text-4xl text-primary">
               {ObjInvitado?.total}
@@ -62,7 +62,7 @@ const BlockCabecera = () => {
             </p>
           </div>
         </div>
-        <div className="bg-white rounded-xl col-span-3 shadow-lg flex items-end md:items-center pb-1 md:pb-0 w-full h-[88px] md:h-auto relative justify-between px-8 md:px-4">
+        <div className="bg-white rounded-xl col-span-3 shadow-lg flex *items-end md:items-center pb-1 md:pb-0 w-full h-[88px] md:h-auto relative justify-between px-8 md:px-4">
           {TotalList.map((item, idx) => (
             <div key={idx} className={`${idx == 0 ? "hidden md:flex" : "flex"} gap-2 items-center justify-center`}>
               {item?.icon}
