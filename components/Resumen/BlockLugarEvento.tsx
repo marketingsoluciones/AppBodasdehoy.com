@@ -28,7 +28,7 @@ export const BlockLugarEvento = () => {
 
     return (
         <div className="relative">
-            <div onClick={() => setOpenList(!openList)} className="bg-primaryOrg space-x-3 rounded-lg text-white flex  items-center pl-1.5  md:pl-5 shadow-lg font-display text-xl select-none h-full   ">
+            <div onClick={() => setOpenList(!openList)} className="bg-primaryOrg space-x-3 rounded-lg text-white flex justify-between  items-center pl-1.5  md:pl-5 shadow-lg font-display text-xl select-none h-full   ">
                 <span>Lugar del evento</span>
                 <div className="bg-white w-[45.8%] md:w-[62.54%] rounded-lg h-[40px]  flex items-center justify-end">
                     <GoSearch className=" w-6 h-6 text-primaryOrg mr-2 " />
