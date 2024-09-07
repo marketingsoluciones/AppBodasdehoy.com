@@ -77,7 +77,7 @@ const NavigationMobile = () => {
             </li>
           </Link>
         ))}
-        <div className="w-10 h-10 truncate">
+       {/*  <div className="w-10 h-10 truncate">
           <li onClick={() => {
             setShow(!show)
           }} className="text-blue-primary hover:text-blue-secondary cursor-pointer transition" >
@@ -86,7 +86,7 @@ const NavigationMobile = () => {
           {show && <div ref={wrapperRef} >
             <ProfileMenu />
           </div>}
-        </div>
+        </div> */}
       </ul>
     </>
   );
