@@ -134,19 +134,19 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
     <div className="banner bg-base w-full flex justify-center h-[60%] md:h-[calc(100%-200px-50px)] md:min-h-[300px] px-5 md:px-0 overflow-hidden relative mb-1">
       <div className="md:max-w-screen-lg 2xl:max-w-screen-xl w-full grid md:grid-cols-5 h-full">
         <div className="flex flex-col justify-center relative py-10 md:py-0 col-span-2">
-          <h2 className="font-display font-medium text-5xl md:text-5xl tracking-tight	text-primary mb-1.5">
+          <h2 className="font-display font-medium text-2xl md:text-5xl tracking-tight	text-primary mb-1.5">
             Organiza tus eventos
           </h2>
-          <h3 className="font-display font-medium text-5xl md:text-3xl tracking-tight	text-gray-500 mb-1.5">
+          <h3 className="font-display font-medium text-1xl md:text-3xl tracking-tight	text-gray-500 mb-1.5">
             Comparte, colabora e invita
           </h3>
-          <h1 className="font-display font-base text-xl md:text-xl tracking-tight text-primary">
+          <h1 className="font-display font-base text-md tracking-tight text-primary">
             Planifica tus celebraciones <span className="font-semibold">sin éstres.</span>
           </h1>
           <span className="flex gap-2 justify-start items-end">
             <button
               onClick={() => ConditionalAction()}
-              className="mt-4 bg-primary font-display font-medium text-white px-24 py-2 rounded-lg  box-border hover:bg-gray-200 transition focus:outline-none z-20"
+              className="mt-4 bg-primary font-display font-medium text-white px-5 md:px-24 py-2 rounded-lg  box-border hover:bg-gray-200 transition focus:outline-none z-20"
             >
               Crear un evento
             </button>
