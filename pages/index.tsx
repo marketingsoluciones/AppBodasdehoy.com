@@ -339,22 +339,3 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
   );
 };
 
-
-// interface propsSlideto {
-//   page: number
-//   setResultsContact: any
-//   contacts: any
-// }
-// const SlideTo: FC<propsSlideto> = ({ page, setResultsContact, contacts }) => {
-//   const swiper = useSwiper();
-//   swiper.on('slideChange', function (idx) {
-//     if (idx.activeIndex != 1) {
-//       setResultsContact(contacts?.results)
-//     }
-//   });
-//   useEffect(() => {
-//     swiper.slideTo(page)
-//   }, [page, swiper])
-//   return <>
-//   </>
-// }

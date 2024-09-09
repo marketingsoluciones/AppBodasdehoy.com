@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AuthContextProvider, EventContextProvider, LoadingContextProvider } from "../../context";
 import Link from "next/link";
-import { InvitacionesIcon, InvitadosIcon, MesasIcon, MisEventosIcon, PresupuestoIcon } from "../icons";
+import { InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, MesasIcon, MisEventosIcon, PresupuestoIcon, ResumenIcon } from "../icons";
 import router from "next/router";
 import { useToast } from "../../hooks/useToast";
 import Cookies from "js-cookie";
@@ -40,15 +40,15 @@ const NavigationMobile = () => {
       condicion: event?._id ? "verdadero" : "falso"
     },
     {
-      title: "Invitados",
-      icon: <InvitadosIcon className="text-primary w-7 h-7" />,
-      route: event?._id ? "/invitados" : "/",
+      title: "Resumen",
+      icon: <ResumenIcon />,
+      route: "/resumen-evento",
       condicion: event?._id ? "verdadero" : "falso"
     },
     {
-      title: "Invitaciones",
-      icon: <InvitacionesIcon className="text-primary w-7 h-7" />,
-      route: event?._id ? "/invitaciones" : "/",
+      title: "Invitados",
+      icon: <InvitadosIcon className="text-primary w-7 h-7" />,
+      route: event?._id ? "/invitados" : "/",
       condicion: event?._id ? "verdadero" : "falso"
     },
     {
@@ -58,16 +58,28 @@ const NavigationMobile = () => {
       condicion: event?._id ? "verdadero" : "falso"
     },
     {
+      title: "Lista de regalos",
+      icon: <ListaRegalosIcon />,
+      route: "/lista-regalos",
+      condicion: event?._id ? "verdadero" : "falso"
+    },
+    {
       title: "Presupuesto",
       icon: <PresupuestoIcon className="text-primary w-7 h-7" />,
       route: event?._id ? "/presupuesto" : "/",
+      condicion: event?._id ? "verdadero" : "falso"
+    },
+    {
+      title: "Invitaciones",
+      icon: <InvitacionesIcon className="text-primary w-7 h-7" />,
+      route: event?._id ? "/invitaciones" : "/",
       condicion: event?._id ? "verdadero" : "falso"
     },
   ]
   useOutsideSetShow(wrapperRef, setShow);
   return (
     <>
-      <ul className={`${window?.location?.pathname === "/login" ? "hidden" : "grid"} grid-cols-5 md:hidden f-bottom bg-white z-50 rounded-t-2xl py-5 shadow-lg w-full fixed bottom-0 place-items-center`}>
+      <ul className={`${window?.location?.pathname === "/login" ? "hidden" : "grid"} grid-cols-7 md:hidden f-bottom bg-white z-50 rounded-t-2xl py-5 shadow-lg w-full fixed bottom-0 place-items-center`}>
         {Navbar.map((item, idx) => (
           <Link key={idx} href={item.route}>
             <li

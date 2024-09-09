@@ -229,11 +229,11 @@ const Profile = ({ user, state, set, ...rest }) => {
         <Notifications />
         <ClickAwayListener onClickAway={() => dropdown && setDropwdon(false)}>
           <div
-            className="bg-white items-center gap-2 min-w-[200px] hidden md:flex relative"
+            className="bg-white items-center gap-2 md:min-w-[200px] w-max flex relative"
             onClick={() => setDropwdon(!dropdown)}
           >
             {dropdown && (
-              <div className="bg-white rounded-lg w-80 h-max shadow-lg shadow-gray-400 absolute top-0 right-0 translate-y-[46px] overflow-hidden z-40 title-display">
+              <div className="bg-white rounded-lg w-80 h-max shadow-lg shadow-gray-400 absolute top-0 md:right-0 translate-y-[46px] -translate-x-[250px] md:-translate-x-[0px]  overflow-hidden z-40 title-display">
                 {/* < div className={`bg-red w-80 p-3 rounded-xl h-max shadow-md absolute bottom-0 right-0 inset-y-full translate-y-1 overflow-hidden z-50}`}> */}
                 <div className="w-full border-b border-gray-100 pb-2">
                   <p className="text-gray-500 font-extralight uppercase tracking-wider	text-xs text-center  cursor-default">

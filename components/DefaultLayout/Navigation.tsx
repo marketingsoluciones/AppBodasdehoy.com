@@ -92,7 +92,7 @@ const Navigation: FC = () => {
       <header className="f-top relative w-full bg-white">
         {/* primer menu superior con logo, redirecion al directiorio y opciones de perfil para la vista desktop  */}
         <div className="max-w-screen-lg h-16 px-5 lg:px-0 w-full flex justify-between items-center mx-auto inset-x-0 ">
-          <ClickAwayListener onClickAway={() => {
+          {/* <ClickAwayListener onClickAway={() => {
             setTimeout(() => {
               setShowSidebar(false)
             }, 50);
@@ -104,7 +104,7 @@ const Navigation: FC = () => {
               />
               <Sidebar showSidebar={showSidebar} setShowSidebar={setShowSidebar} />
             </div>
-          </ClickAwayListener>
+          </ClickAwayListener> */}
           <span
             onClick={() => {
               //Loading(setLoading);
