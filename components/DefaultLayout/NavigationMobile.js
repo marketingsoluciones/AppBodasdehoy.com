@@ -57,12 +57,12 @@ const NavigationMobile = () => {
       route: event?._id ? "/mesas" : "/",
       condicion: event?._id ? "verdadero" : "falso"
     },
-    {
+    /* {
       title: "Lista de regalos",
       icon: <ListaRegalosIcon />,
       route: "/lista-regalos",
       condicion: event?._id ? "verdadero" : "falso"
-    },
+    }, */
     {
       title: "Presupuesto",
       icon: <PresupuestoIcon className="text-primary w-7 h-7" />,
@@ -79,7 +79,7 @@ const NavigationMobile = () => {
   useOutsideSetShow(wrapperRef, setShow);
   return (
     <>
-      <ul className={`${window?.location?.pathname === "/login" ? "hidden" : "grid"} grid-cols-7 md:hidden f-bottom bg-white z-50 rounded-t-2xl py-5 shadow-lg w-full fixed bottom-0 place-items-center`}>
+      <ul className={`${window?.location?.pathname === "/login" ? "hidden" : "grid"} grid-cols-6 md:hidden f-bottom bg-white z-50 rounded-t-2xl py-5 shadow-lg w-full fixed bottom-0 place-items-center`}>
         {Navbar.map((item, idx) => (
           <Link key={idx} href={item.route}>
             <li

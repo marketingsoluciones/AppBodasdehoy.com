@@ -10,6 +10,7 @@ import { AuthContextProvider, EventContextProvider } from "../context";
 import VistaSinCookie from "./vista-sin-cookie";
 import FormCrearMenu from "../components/Forms/FormCrearMenu";
 import { useMounted } from "../hooks/useMounted";
+import { BlockTableroInvitados } from "../components/Invitados/BlockTableroInvitados";
 
 const Invitados: FC = () => {
   const [isMounted, setIsMounted] = useState<boolean>(false);
@@ -56,14 +57,15 @@ const Invitados: FC = () => {
           </ModalLeft>
         )}
         {event &&
-          <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4" : "bg-base w-full pb-6 pt-2 md:py-0"}>
+          <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4" : "bg-base w-full pb-6 pt-2 md:py-0 "}>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 gap-4">
+              className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 gap-4 ">
               <BlockCabecera />
               <BlockListaInvitados state={isMounted} set={reciboClick} createPDF={createPDF} setCreatePDF={setCreatePDF} />
+              {/* <BlockTableroInvitados state={isMounted} set={reciboClick} createPDF={createPDF} setCreatePDF={setCreatePDF} /> */}
             </motion.div>
           </section >}
       </>
