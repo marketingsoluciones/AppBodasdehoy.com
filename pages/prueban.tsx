@@ -1,10 +1,12 @@
 import interact from "interactjs"
 import { FC, useEffect, useState } from "react"
 import { motion } from "framer-motion";
+import { useTranslation } from 'react-i18next';
 
 
 const PruebaN: FC = () => {
   const [prueba, setPrueba] = useState(0)
+  const { t } = useTranslation();
 
   useEffect(() => {
     let position = { x: 0, y: 0 }
@@ -36,7 +38,9 @@ const PruebaN: FC = () => {
           // >
           //   <div style={{}} className="bg-violet-500 w-40 h-40 *absolute *z-[70] *translate-x-[800px] *translate-y-[300px]" />
           // </motion.div>
-          <div style={{ transition: "rotate 0.5s", rotate: `${prueba}deg` }} className="bg-red w-40 h-40"></div>
+          <div style={{ transition: "rotate 0.5s", rotate: `${prueba}deg` }} className="bg-red w-40 h-40">
+            {t('hello')}
+          </div>
         }
       </div>
 
