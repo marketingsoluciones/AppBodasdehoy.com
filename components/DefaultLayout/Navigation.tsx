@@ -11,8 +11,10 @@ import Head from "next/head";
 import { Tooltip } from "../Utils/Tooltip";
 import ClickAwayListener from "react-click-away-listener";
 import { useAllowedRouter } from "../../hooks/useAllowed";
+import { useTranslation } from 'react-i18next';
 
 const Navigation: FC = () => {
+  const { t } = useTranslation();
   const { event } = EventContextProvider();
   const { user, config, setIsActiveStateSwiper } = AuthContextProvider();
   const router = useRouter();
@@ -29,50 +31,50 @@ const Navigation: FC = () => {
 
   const Navbar = useMemo(() => [
     {
-      title: "Mis eventos",
+      title: t("myevents"),
       icon: <MisEventosIcon />,
       route: "/",
       condicion: event?._id ? true : false
     },
     {
-      title: "Resumen",
+      title: t("resumen"),
       icon: <ResumenIcon />,
       route: "/resumen-evento",
       condicion: event?._id ? true : false
     },
     {
-      title: "Invitados",
+      title: t("guest"),
       icon: <InvitadosIcon />,
       route: "/invitados",
       condicion: event?._id ? true : false
     },
     {
-      title: "Mesas",
+      title: t("table"),
       icon: <MesasIcon />,
       route: "/mesas",
       condicion: event?._id ? true : false
     },
     {
-      title: "Lista de regalos",
+      title: t("gifs"),
       icon: <ListaRegalosIcon />,
       route: "/lista-regalos",
       condicion: event?._id ? true : false
     },
     {
-      title: "Presupuesto",
+      title: t("budget"),
       icon: <PresupuestoIcon />,
       route: "/presupuesto",
       condicion: event?._id ? true : false
     },
     {
-      title: "Invitaciones",
+      title: t("invitations"),
       icon: <InvitacionesIcon />,
       route: "/invitaciones",
       condicion: event?._id ? true : false
     },
   ], [event]);
 
-  const urls= ["/info-app", "/confirmar-asistencia"]
+  const urls = ["/info-app", "/confirmar-asistencia"]
 
   return (
     <>
@@ -125,7 +127,7 @@ const Navigation: FC = () => {
         </div>
 
         {/* segundo menu superior con las redirecciones funcionales de la app */}
-        <div className={`${urls.includes(url)  ? "hidden" : "block"}`}>
+        <div className={`${urls.includes(url) ? "hidden" : "block"}`}>
           <div className={`w-full h-20 relative hidden md:block bg-base z-10 `}>
             <Tooltip label="Primero debes crear un evento" icon={<IconLightBulb16 className="w-6 h-6" />} disabled={!!event?._id}>
               <ul className="absolute m-auto left-1/2 -translate-x-1/2 py-4 w-max h-max flex gap-12">

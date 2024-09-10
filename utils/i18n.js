@@ -11,12 +11,21 @@ i18n
       en: {
         translation: {
           hello: "Hello world!",
+          saludo: "hello"
 
         }
       },
       es: {
         translation: {
-          hello: "¡Hola mundo!"
+          hello: "¡Hola mundo!",
+          saludo: "hola",
+          myevents: "Mis eventos",
+          resumen: "Resumen",
+          guest: "Invitados",
+          table: "Mesas",
+          gifs: "Lista de regalos",
+          budget: "Presupuesto",
+          invitations: "Invitaciones",
         }
       }
     },
