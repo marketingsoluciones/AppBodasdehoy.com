@@ -10,6 +10,7 @@ import { fetchApiEventos, queries } from '../../utils/Fetching';
 import { EventContextProvider } from "../../context";
 import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
+import { useTranslation } from 'react-i18next';
 
 interface propsInsideBlock extends schemaItem {
   setSelected?: Dispatch<
@@ -28,6 +29,7 @@ const InsideBlockWithButtons: FC<propsInsideBlock> = ({
 }) => {
   const toast = useToast()
   const { event, setEvent } = EventContextProvider()
+  const { t } = useTranslation();
   return (
     <div className="w-full flex items-center gap-2 ">
       {list.map((item, idx) => (
@@ -56,6 +58,7 @@ const InsideBlockWithButtons: FC<propsInsideBlock> = ({
 };
 
 const InsideBlockWithForm: FC<propsInsideBlock> = ({ setEditing, setFieldValue, title, values }) => {
+  const { t } = useTranslation();
   const { event, setEvent } = EventContextProvider()
   return (
     <div className="px-5">

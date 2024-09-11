@@ -2,6 +2,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import router from "next/router";
 import { FC } from "react";
 import { EventContextProvider } from "../../context";
+import { useTranslation } from 'react-i18next';
 import {
   InvitadosCancelados,
   InvitadosConfirmados,
@@ -12,6 +13,7 @@ import { useAllowed } from "../../hooks/useAllowed";
 const BlockInvitados: FC = () => {
   const { event } = EventContextProvider();
   const [isAllowed, ht] = useAllowed()
+  const { t } = useTranslation();
 
   const totalAccordingTo = (prop: string, param: string) => {
     return event?.invitados_array?.filter((item) => item[prop] == param)?.length;
@@ -26,7 +28,7 @@ const BlockInvitados: FC = () => {
         "asistencia",
         "pendiente"
       )} de ${totalInvitados}`,
-      subtitle: "por confirmar",
+      subtitle: t('byconfirm'),
     },
     {
       icon: <InvitadosConfirmados />,
@@ -34,7 +36,7 @@ const BlockInvitados: FC = () => {
         "asistencia",
         "confirmado"
       )} de ${totalInvitados}`,
-      subtitle: "confirmados",
+      subtitle: t("Confirmed"),
     },
     {
       icon: <InvitadosCancelados />,
@@ -42,14 +44,14 @@ const BlockInvitados: FC = () => {
         "asistencia",
         "cancelado"
       )} de ${totalInvitados}`,
-      subtitle: "cancelados",
+      subtitle: t("cancelled"),
     },
   ];
 
   return (
     <div className="w-1/2* md:w-2/3">
       <h2 className="font-display text-xl font-semibold text-gray-500 pb-2 text-left">
-        Mis invitados
+        {t("myguests")}
       </h2>
       <div className="w-full bg-white shadow rounded-xl py-4 flex flex-col gap-4 h-48 items-center justify-center">
         <Swiper
@@ -87,7 +89,7 @@ const BlockInvitados: FC = () => {
           onClick={() => !isAllowed("invitados") ? ht() : router.push("/invitados")}
           className="focus:outline-none rounded-lg border border-primary px-2 mx-auto inset-x-0 font-display text-primary text-sm py-1 hover:text-white hover:bg-primary transition"
         >
-          Añadir Invitados
+          {t("addguests")}
         </button>
       </div>
     </div>

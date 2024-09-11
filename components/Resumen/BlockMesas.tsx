@@ -5,11 +5,13 @@ import { MesaIcon } from "../icons";
 import { guests } from '../../utils/Interfaces';
 import { useAllowed } from "../../hooks/useAllowed";
 import { useRouter } from "next/router";
+import { useTranslation } from 'react-i18next';
 
 const BlockMesas: FC = () => {
   const { event } = EventContextProvider()
   const [isAllowed, ht] = useAllowed()
   const router = useRouter()
+  const { t } = useTranslation();
 
   const InvitadoSentados: guests[] = event?.invitados_array?.filter(
     (invitado) => invitado.nombre_mesa.toLowerCase() !== "no asignado"
@@ -23,7 +25,7 @@ const BlockMesas: FC = () => {
   return (
     <div className="w-full md:w-3/5 box-border">
       <h2 className="font-display text-xl font-semibold text-gray-500 pb-2 text-left">
-        Mis Mesas
+        {t("mytables")}
       </h2>
       <div className="w-full shadow rounded-xl bg-white py-4 gap-4 md:gap-16 flex flex-col md:flex-row h-max items-center justify-center">
 
@@ -43,7 +45,7 @@ const BlockMesas: FC = () => {
                         {item?.tables.length}
                       </p>
                       <p className="font-display  text-xs text-gray-700 w-full capitalize">
-                        total de mesas
+                        {t("totaltables")}
                       </p>
                     </span>
 
@@ -70,7 +72,7 @@ const BlockMesas: FC = () => {
                         }
                       })()}
                       <p className="font-display font-base text-xs text-gray-700 w-full capitalize">
-                        invitados sentados
+                        {t("seatedguests")}
                       </p>
                     </span>
 
@@ -83,7 +85,7 @@ const BlockMesas: FC = () => {
 
         <div onClick={() => !isAllowed("mesas") ? ht() : router.push("/mesas")}>
           <button className="rounded-lg border border-primary px-2 font-display text-primary text-sm py-1 hover:text-white hover:bg-primary transition focus:outline-none">
-            Ver mesas
+            {t("viewtables")}
           </button>
         </div>
       </div>

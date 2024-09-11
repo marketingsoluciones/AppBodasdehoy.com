@@ -3,11 +3,13 @@ import { GoSearch } from "react-icons/go";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { AuthContextProvider } from "../../context";
 import ClickAwayListener from "react-click-away-listener";
+import { useTranslation } from 'react-i18next';
 
 export const BlockLugarEvento = () => {
     const { config } = AuthContextProvider()
     const [placesList, setPlacesList] = useState([])
     const [openList, setOpenList] = useState(false)
+    const { t } = useTranslation();
 
     useEffect(() => {
         fetchApiBodas({
@@ -29,7 +31,7 @@ export const BlockLugarEvento = () => {
     return (
         <div className="relative">
             <div onClick={() => setOpenList(!openList)} className="bg-primaryOrg space-x-3 rounded-lg text-white flex justify-between  items-center pl-1.5  md:pl-5 shadow-lg font-display text-xl select-none h-full   ">
-                <span>Lugar del evento</span>
+                <span>{t("eventvenue")}</span>
                 <div className="bg-white w-[45.8%] md:w-[62.54%] rounded-lg h-[40px]  flex items-center justify-end">
                     <GoSearch className=" w-6 h-6 text-primaryOrg mr-2 " />
                 </div>
