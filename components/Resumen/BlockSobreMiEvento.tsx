@@ -83,8 +83,8 @@ const InsideBlockWithForm: FC<propsInsideBlock> = ({ setEditing, setFieldValue, 
         <Form className="w-full">
           <InputField
             name={"title"}
-            placeholder={"Escribe tu tematica"}
-            label={"Tématica del evento"}
+            placeholder={t("writeyourtheme")}
+            label={t("eventtheme")}
           />
         </Form>
       </Formik>
@@ -98,6 +98,7 @@ const ElementItemInsideBlock: FC<{
   onClick: MouseEventHandler<HTMLButtonElement>;
   icon: any;
 }> = ({ title, color, onClick, icon }) => {
+  
   return (
     <button
       className="bg-white w-full h-full p-3 rounded-3xl flex flex-col items-center justify-center gap-1 transform transition hover:scale-105 focus:outline-none"
@@ -113,44 +114,48 @@ interface schemaItem {
   title: string;
   list: { title: string; color: string; icon: any }[] | null;
 }
+
+const { t } = useTranslation();
+
 const schema: schemaItem[] = [
+  
   {
-    title: "color",
+    title: t("colour"),
     list: [
-      { color: "text-yellow-300	", title: "Amarillo" },
-      { color: "text-cyan-400	", title: "Celeste" },
-      { color: "text-primary", title: "Rosado" },
-      { color: "text-red-500", title: "Rojo" },
-      { color: "text-purple-600", title: "Morado" },
-      { color: "text-amber-100	", title: "Beige" },
-      { color: "text-yellow-500", title: "Dorado" },
-      { color: "text-slate-400", title: "Plata" },
+      { color: "text-yellow-300	", title: t("yellow") },
+      { color: "text-cyan-400	", title: t("celestial") },
+      { color: "text-primary", title: t("pink") },
+      { color: "text-red-500", title: t("red") },
+      { color: "text-purple-600", title: t("purple") },
+      { color: "text-amber-100	", title: t("beige") },
+      { color: "text-yellow-500", title: t("gold") },
+      { color: "text-slate-400", title: t("silver") },
     ].map((item) => ({ ...item, icon: <IconColors /> })),
   },
   {
-    title: "temporada",
+    title: t("season"),
     list: [
-      { title: "Invierno", icon: <SnowIcon />, color: "text-cyan-600" },
-      { title: "Primavera", icon: <SpringIcon />, color: "text-lime-600" },
-      { title: "Verano", icon: <SummerIcon />, color: "text-yellow-500" },
-      { title: "Otoño", icon: <FallIcon />, color: "text-yellow-700" },
+      { title: t("Winter"), icon: <SnowIcon />, color: "text-cyan-600" },
+      { title: t("Spring"), icon: <SpringIcon />, color: "text-lime-600" },
+      { title: t("Summer"), icon: <SummerIcon />, color: "text-yellow-500" },
+      { title: t("Autumn"), icon: <FallIcon />, color: "text-yellow-700" },
     ].map((item) => ({ ...item })),
   },
   {
-    title: "estilo",
+    title: t("style"),
     list: [
-      { title: "Aire libre", icon: <ParkIcon /> },
-      { title: "Salón", icon: <LivingRoomIcon /> },
-      { title: "Piscina", icon: <PoolIcon /> },
-      { title: "En casa", icon: <HouseIcon /> },
+      { title: t("openair"), icon: <ParkIcon /> },
+      { title: t("livingroom"), icon: <LivingRoomIcon /> },
+      { title: t("swimmingpool"), icon: <PoolIcon /> },
+      { title: t("athome"), icon: <HouseIcon /> },
     ].map((item) => ({ ...item, color: "text-gray-500" })),
   },
   {
-    title: "tematica",
+    title: t("theme"),
     list: null,
   },
   {
-    title: "tarta",
+    title: t("cake"),
     list: null,
   },
 ];
@@ -170,6 +175,7 @@ interface typeEvent {
 }
 
 const BlockSobreMiEvento: FC = () => {
+  const { t } = useTranslation();
   const { event } = EventContextProvider()
   const [values, setValues] = useState<values | {}>({});
   const [isMounted, setIsMounted] = useState<boolean>(false);
@@ -241,7 +247,7 @@ const BlockSobreMiEvento: FC = () => {
         </ModalBottom>
       )}
       <h2 className="font-display text-xl font-semibold text-gray-500 pb-2 text-left">
-        Sobre mi evento
+        {t("aboutmyevent")}
       </h2>
       <Swiper
         pagination={{ clickable: true }}
@@ -275,6 +281,7 @@ interface propsElement extends schemaItem {
 }
 
 const AboutItem: FC<propsElement> = ({ title, value, toggleClick }) => {
+  const { t } = useTranslation();
   const [isAllowed, ht] = useAllowed()
 
 

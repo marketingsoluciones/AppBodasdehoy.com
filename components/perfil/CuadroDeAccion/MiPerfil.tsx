@@ -9,8 +9,10 @@ import { Eye, EyeSlash } from "../../icons";
 import * as yup from "yup";
 import { parseJwt } from "../../../utils/Authentication";
 import Cookies from "js-cookie";
+import { useTranslation } from 'react-i18next';
 
 export const MiPerfil = () => {
+  const { t } = useTranslation();
   const { user, setUser } = AuthContextProvider();
   const [canChangeDisplayName, setCanChangeDisplayName] = useState(false);
   const [canChangePassword, setCanChangePassword] = useState(false);
@@ -51,11 +53,11 @@ export const MiPerfil = () => {
             displayName: values.displayName
           });
           setUser(old => ({ ...old, displayName: values.displayName }))
-          toast("success", "Nombre actualizado con exito")
+          toast("success", t("success"))
         }
       }
     } catch (error) {
-      toast("warning", "Error al actualizar el nombre")
+      toast("warning", t("warning"))
     }
   }
 
@@ -78,14 +80,14 @@ export const MiPerfil = () => {
         setPasswordView(false)
         setValues({ ...values, currentPassword: "", password: "" })
         setTimeout(() => {
-          setErrors({ password: "Contraseña actualizada con éxito" })
+          setErrors({ password: t("passwordsuccess") })
         }, 50);
-        toast("success", "Contraseña actualizada con éxito")
+        toast("success", t("passwordsuccess"))
       } catch (error) {
         if (error.code === "auth/wrong-password") {
-          toast("error", "Contraseña actual inválida")
+          toast("error", t("warningpassword"))
         } else {
-          toast("error", "Error al cambiar la contraseña, intente nuevamente")
+          toast("error", t("warningpasswordagain"))
         }
       }
     }
@@ -96,13 +98,13 @@ export const MiPerfil = () => {
       <Formik initialValues={initialValues} onSubmit={() => { }} validationSchema={validationSchema ?? {}}>
         {({ values, errors, setValues, setErrors }) => {
           return (
-            <BlockConfiguration title={"Datos de acceso"}>
+            <BlockConfiguration title={t("accessdata")}>
               <Form className="w-full flex flex-col gap-4">
                 <div className="w-full flex items-center gap-2">
                   <InputField
                     id="email"
                     disabled
-                    label={"Correo electronico"}
+                    label={t("email")}
                     name={"email"}
                     type={"text"}
                   />
@@ -111,7 +113,7 @@ export const MiPerfil = () => {
                   <InputField
                     id="displayName"
                     disabled={!canChangeDisplayName}
-                    label={"Nombre visible"}
+                    label={t("displayname")}
                     name={"displayName"}
                     type={"text"}
                   />
@@ -130,7 +132,7 @@ export const MiPerfil = () => {
                     }}
                     //disabled={canChangePassword}
                     className={`${canChangeDisplayName ? "bg-green" : "bg-primary"} w-28 h-10 text-white text-xs rounded-lg`}>
-                    {canChangeDisplayName ? "Guardar" : "Editar"}
+                    {canChangeDisplayName ? t("save") : t("edit")}
                   </button>
                 </div>
                 <div className="flex flex-row space-x-2">
@@ -139,7 +141,7 @@ export const MiPerfil = () => {
                       <InputField
                         id="currentPassword"
                         disabled={!canChangePassword}
-                        label={"Contraseña Actual"}
+                        label={t("currentpassword")}
                         name={"currentPassword"}
                         type={passwordView ? "password" : "text"}
                       />
@@ -151,7 +153,7 @@ export const MiPerfil = () => {
                       <InputField
                         id="password"
                         disabled={!canChangePassword}
-                        label={"Nuevo Contraseña"}
+                        label={t("newpassword")}
                         name={"password"}
                         type={passwordView ? "password" : "text"}
                       />
@@ -178,7 +180,7 @@ export const MiPerfil = () => {
                       }}
                       //disabled={canChangeDisplayName}
                       className={`${canChangePassword ? "bg-green" : "bg-primary"} w-20 sm:w-24 h-10 text-white text-xs rounded-lg`}>
-                      {canChangePassword ? "Actualizar" : "Editar"}
+                      {canChangePassword ? t("update") : t("edit")}
                     </button>
                   </div>
                 </div>
