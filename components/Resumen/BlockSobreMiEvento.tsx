@@ -114,48 +114,48 @@ interface schemaItem {
   title: string;
   list: { title: string; color: string; icon: any }[] | null;
 }
-
-const { t } = useTranslation();
+/* 
+const { t } = useTranslation(); */
 
 const schema: schemaItem[] = [
   
   {
-    title: t("colour"),
+    title: "color",
     list: [
-      { color: "text-yellow-300	", title: t("yellow") },
-      { color: "text-cyan-400	", title: t("celestial") },
-      { color: "text-primary", title: t("pink") },
-      { color: "text-red-500", title: t("red") },
-      { color: "text-purple-600", title: t("purple") },
-      { color: "text-amber-100	", title: t("beige") },
-      { color: "text-yellow-500", title: t("gold") },
-      { color: "text-slate-400", title: t("silver") },
+      { color: "text-yellow-300	", title: "Amarillo" },
+      { color: "text-cyan-400	", title: "Celeste" },
+      { color: "text-primary", title: "Rosado" },
+      { color: "text-red-500", title: "Rojo" },
+      { color: "text-purple-600", title: "Morado" },
+      { color: "text-amber-100	", title: "Beige" },
+      { color: "text-yellow-500", title: "Dorado" },
+      { color: "text-slate-400", title: "Plata" },
     ].map((item) => ({ ...item, icon: <IconColors /> })),
   },
   {
-    title: t("season"),
+    title: "temporada",
     list: [
-      { title: t("Winter"), icon: <SnowIcon />, color: "text-cyan-600" },
-      { title: t("Spring"), icon: <SpringIcon />, color: "text-lime-600" },
-      { title: t("Summer"), icon: <SummerIcon />, color: "text-yellow-500" },
-      { title: t("Autumn"), icon: <FallIcon />, color: "text-yellow-700" },
+      { title: "Invierno", icon: <SnowIcon />, color: "text-cyan-600" },
+      { title: "Primavera", icon: <SpringIcon />, color: "text-lime-600" },
+      { title: "Verano", icon: <SummerIcon />, color: "text-yellow-500" },
+      { title: "Otoño", icon: <FallIcon />, color: "text-yellow-700" },
     ].map((item) => ({ ...item })),
   },
   {
-    title: t("style"),
+    title: "estilo",
     list: [
-      { title: t("openair"), icon: <ParkIcon /> },
-      { title: t("livingroom"), icon: <LivingRoomIcon /> },
-      { title: t("swimmingpool"), icon: <PoolIcon /> },
-      { title: t("athome"), icon: <HouseIcon /> },
+      { title: "Aire libre", icon: <ParkIcon /> },
+      { title: "Salón", icon: <LivingRoomIcon /> },
+      { title: "Piscina", icon: <PoolIcon /> },
+      { title: "En casa", icon: <HouseIcon /> },
     ].map((item) => ({ ...item, color: "text-gray-500" })),
   },
   {
-    title: t("theme"),
+    title: "tematica",
     list: null,
   },
   {
-    title: t("cake"),
+    title: "tarta",
     list: null,
   },
 ];

@@ -2,10 +2,12 @@ import { LineaBancos, MesaCuadrada, MesaImperial, MesaPodio, MesaRedonda, PlusIc
 import { Dispatch, FC, SetStateAction, useState } from "react";
 import BlockDefault from "./BlockDefault";
 import DragTable from "./DragTable"
+import { useTranslation } from 'react-i18next';
 
 interface propsBlockPanelMesas {
 
 }
+
 
 export const ListTables = [
   { icon: <MesaCuadrada className="relative w-max" />, title: "cuadrada", tipo: "table" },
