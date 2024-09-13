@@ -1,7 +1,9 @@
 import { useRouter } from "next/router"
 import router from "next/router";
+import { useTranslation } from 'react-i18next';
 
 export const CreaPlanifica = () => {
+    const { t } = useTranslation();
     const router = useRouter()
     return (
         <>
@@ -19,16 +21,17 @@ export const CreaPlanifica = () => {
 }
 
 export const CuadroInfo = () => {
+    const { t } = useTranslation();
     return (
         <>
             <div className="flex justify-center ">
                 <div className="bg-primaryOrg text-center py-10 px-8 rounded-3xl space-y-5">
-                    <p className="md:text-3xl text-acento">Crea, planifica y conquista eventos memorables</p>
+                    <p className="md:text-3xl text-acento">{t("createplanconquer")}</p>
                     <p className="text-white ">
-                        Plataforma única de planificación y organización, capaz de integrar cada detalle de tu evento.<br /><br />
-                        No importa el tamaño o tipo de tu celebración que deseas realizar. Ahora puedes llevar <br /> las riendas de tu evento desde una sola herramienta.
+                        {t("planningorganization")}<br /><br />
+                        {t("matterwhatsize")}<br />{t("takethereins")}
                     </p>
-                    <button onClick={()=> {router.push("/")}} className="bg-acento text-white py-2 px-3">CREA GRATIS TU EVENTO</button>
+                    <button onClick={()=> {router.push("/")}} className="bg-acento text-white py-2 px-3">{t("createfree")}</button>
                 </div>
             </div>
         </>

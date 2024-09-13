@@ -7,6 +7,7 @@ import { fetchApiEventos, queries } from '../../utils/Fetching';
 import { ImInsertTemplate } from 'react-icons/im';
 import { DiamanteIcon } from '../icons';
 import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
 
 
 interface propsBlockPlatillas {
@@ -14,6 +15,7 @@ interface propsBlockPlatillas {
 }
 
 const BlockPlantillas: FC<propsBlockPlatillas> = () => {
+  const { t } = useTranslation();
   const { user } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
   const { psTemplates } = EventsGroupContextProvider()
@@ -52,11 +54,11 @@ const BlockPlantillas: FC<propsBlockPlatillas> = () => {
         <div className="w-full py-2 text-xs 2xl:text-sm">
           <div className="flex flex-col items-center justify-center w-full h-full px-2">
             <p className="w-full text-center">
-              <span className="text-primary ">Crear Plantillas </span>
-              para organizar tu salón.
+              <span className="text-primary ">{t("createtemplates ")}</span>
+              {t("livingroom")}
             </p>
             <p className="hidden md:block w-full text-center px-4 mt-2">
-              Diseña la distribución de tu celebración con la <br /> libertad  creativa que te facilita tu<br /> EventosOrganizador.
+              {t("designthelayout")}<br />{t("creativefreedom")}<br />{t("eventsOrganizer")}
             </p>
             <div className="text-yellow-500 flex items-center justify-center space-x-1 md:my-2 cursor-default">
               <div>
@@ -64,13 +66,13 @@ const BlockPlantillas: FC<propsBlockPlatillas> = () => {
               </div>
               <Link href={`${redireccionFacturacion}`}>
                 <p>
-                  Activar la versión <span className="font-semibold cursor-pointer">PREMIUM</span>
+                  {t("activateversion")}<span className="font-semibold cursor-pointer">{t("premium")}</span>
                 </p>
               </Link>
             </div>
             <Link href={`${redireccionFacturacion}`}>
               <button className="text-white bg-primary px-7 py-1 rounded-lg" >
-                Empezar
+                {t("begin")}
               </button>
             </Link>
           </div>

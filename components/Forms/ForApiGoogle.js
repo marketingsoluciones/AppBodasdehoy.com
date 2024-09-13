@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { MdOutlineSearch, MdOutlineCheck } from "react-icons/md"
 import { ArrowLeft } from "../icons"
+import { useTranslation } from 'react-i18next';
 
 export const ForApiPeople = ({ setContact, showForApiGoogle, setShowForApiGoogle, }) => {
   const [userInfo, setUserInfo] = useState()
@@ -91,7 +92,7 @@ export const ForApiPeople = ({ setContact, showForApiGoogle, setShowForApiGoogle
     })
     setShowForApiGoogle({ state: false })
   }
-
+  const { t } = useTranslation();
   return (
     <div className="fixed z-10 top-0 left-0 w-[100vw] h-[100vh]  flex items-center justify-center font-display text-md">
       <div className="bg-gray-900 opacity-50 absolute z-10 top-0 left-0 w-full h-full flex items-center justify-center" />
@@ -101,9 +102,9 @@ export const ForApiPeople = ({ setContact, showForApiGoogle, setShowForApiGoogle
             <ArrowLeft className="w-[50px] h-6 text-gray-700 cursor-pointer" onClick={handleArrowLeft} />
             <div className={`flex items-center ${!activeSearch ? "w-[calc(100%-100px)] md:w-[400px] 2xl:w-[500px]" : "w-[calc(100%-50px)] md:w-[450px] 2xl:w-[550px]"}`}>
               {activeSearch
-                ? <input autoFocus onChange={(e) => { handleOnChange(e) }} type="text" className="bg-transparent flex w-[calc(100%-20px)] h-6 border-0 focus:outline-none focus:border-none focus:ring-0 text-sm" placeholder="Busca entre tus contactos" />
+                ? <input autoFocus onChange={(e) => { handleOnChange(e) }} type="text" className="bg-transparent flex w-[calc(100%-20px)] h-6 border-0 focus:outline-none focus:border-none focus:ring-0 text-sm" placeholder={t("searchyourcontacts")} />
                 : <>
-                  <span className="text-[16px] w-[calc(100%-50px)] truncate ml-2">{itemSelect ? "1 Contacto seleccionado" : "Seleccionar un Contacto"}</span>
+                  <span className="text-[16px] w-[calc(100%-50px)] truncate ml-2">{itemSelect ? "1 Contacto seleccionado" : t("selectcontact")}</span>
                   <MdOutlineSearch className="w-[50px] h-6 cursor-pointer" onClick={() => { setActiveSearch(!activeSearch) }} />
                 </>
               }

@@ -2,8 +2,10 @@ import { Form, Formik } from "formik";
 import { useToast } from "../../hooks/useToast";
 import * as Yup from "yup"
 import InputField from "../Forms/InputField";
+import { useTranslation } from 'react-i18next';
 
 export const Email = () => {
+  const { t } = useTranslation();
 
   const toast = useToast()
   const initialValues = {
@@ -39,7 +41,7 @@ export const Email = () => {
   return (
     <>
       <div className="flex flex-col justify-center items-center space-y-5 w-full font-display px-10 md:px-0">
-        <p className="text-xl text-primaryOrg">Crea gratis todos los eventos que desees, sin límites de invitados</p>
+        <p className="text-xl text-primaryOrg">{t("createasmany")}</p>
         <Formik
           initialValues={initialValues}
           onSubmit={handleSubmit}
@@ -53,7 +55,7 @@ export const Email = () => {
                 type={"email"}
               />
               {/*  <input type="text" placeholder="Email" className=" border-none w-full rounded-lg" /> */}
-              <button type="submit" className="focus:none w-36 h-10 rounded-lg text-white bg-primaryOrg"> EMPEZAR </button>
+              <button type="submit" className="focus:none w-36 h-10 rounded-lg text-white bg-primaryOrg"> {t("begin")} </button>
             </div>
           </Form>
         </Formik>

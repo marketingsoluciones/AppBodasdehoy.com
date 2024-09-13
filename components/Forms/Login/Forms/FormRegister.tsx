@@ -17,6 +17,7 @@ import Cookies from 'js-cookie';
 import * as yup from "yup";
 import { useActivity } from '../../../../hooks/useActivity';
 import InputField from '../../InputField';
+import { useTranslation } from 'react-i18next';
 
 interface initialValues {
   uid?: string
@@ -42,6 +43,7 @@ interface propsFormRegister {
 
 
 const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
+  const { t } = useTranslation();
   const router = useRouter()
   const { user, setUser, config, geoInfo, setVerificationDone, setIsStartingRegisterOrLogin, linkMedia, storage_id, link_id, preregister, WihtProvider } = AuthContextProvider();
   const { setLoading } = LoadingContextProvider()
@@ -59,7 +61,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
     role: preregister?.role[0] ?? whoYouAre
   };
   const validationSchema = yup.object().shape({
-    identifier: yup.string().required("Campo requerido").test("Unico", "Correo inválido", (value) => {
+    identifier: yup.string().required(t("requiredfield")).test("Unico", t("invalidmail"), (value) => {
       const name = document.activeElement?.getAttribute("name")
       if (name !== "identifier" && !value?.includes("@")) {
         return isPhoneValid(value ?? "")
@@ -81,7 +83,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
     }),
     fullName: yup.string().required("Campo requerido"),
     password: linkMedia == null
-      ? yup.string().required("Campo requerido").test("Unico", `Debe contener mas de 5 caractéres`, (value: any) => {
+      ? yup.string().required(t("requiredfield")).test("Unico", t(`containmorethan`), (value: any) => {
         const name = document.activeElement?.getAttribute("name")
         if (name !== "password") {
           return value?.length > 5
@@ -90,14 +92,14 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
         }
       })
       : null,
-    phoneNumber: yup.string().test("Unico", `Campo requerido`, (value: any) => {
+    phoneNumber: yup.string().test("Unico", t("requiredfield"), (value: any) => {
       const name = document.activeElement?.getAttribute("name")
       if (value?.length < 4) {
         return false
       } else {
         return true
       }
-    }).test("Unico", `Número inválido`, (value: any) => {
+    }).test("Unico", t(`invalidnumber`), (value: any) => {
       const name = document.activeElement?.getAttribute("name")
       if (name !== "phoneNumber" && value?.length > 3) {
         return isPhoneValid(value)
@@ -108,9 +110,9 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
   })
 
   const errorsCode: any = {
-    "auth/wrong-password": "Correo o contraseña invalida",
+    "auth/wrong-password": t("invalidemailpassword"),
     "auth/too-many-requests":
-      "Demasiados intentos fallidos. Intenta de nuevo más tarde",
+      t("failedattempts"),
   };
 
   const handleSubmit = async (values: initialValues, actions: any) => {
@@ -148,7 +150,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
             })
             if (result === "apiBodas/email-already-in-use") {
               console.log(550012, error.code)
-              toast("error", "Ups... este correo ya está registrado")
+              toast("error", t("emailalreadyregistered"))
               setLoading(false)
               return false
             }
@@ -163,7 +165,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
         }
 
       } else {
-        toast("error", "Ups... algo a salido mal")
+        toast("error", t("gonewrong"))
         setLoading(false)
         return false
       }
@@ -189,7 +191,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
             development: config?.development
           }).then(async (moreInfo: any) => {
             setUser({ ...UserFirebase, ...moreInfo });
-            toast("success", `Registro sesión con éxito`)
+            toast("success", t(`successfulsessionregistration`))
             updateActivity("registered")
             updateActivityLink("registered")
             setVerificationDone(true)
@@ -242,7 +244,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
               name="fullName"
               type="text"
               autoComplete="off"
-              label={"Nombre y Apellido"}
+              label={t("namesurname")}
               icon={<UserForm className="absolute w-4 h-4 inset-y-0 left-4 m-auto  text-gray-500" />}
             />
           </div>
@@ -252,7 +254,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
               name="identifier"
               type="text"
               autoComplete="off"
-              label={"Correo electrónico"}
+              label={t("email")}
               icon={<EmailIcon className="absolute w-4 h-4 inset-y-0 left-4 m-auto text-gray-500" />}
             />
           </div>
@@ -262,7 +264,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
                 name="password"
                 type={passwordView ? "password" : "text"}
                 autoComplete="off"
-                label="Contraseña"
+                label={t("password")}
                 autoFocus={!!preregister}
                 icon={<LockClosed className="absolute w-4 h-4 inset-y-0 left-4 m-auto  text-gray-500" />} />
               <div onClick={() => { setPasswordView(!passwordView) }} className="absolute cursor-pointer inset-y-0 top-5 right-4 m-auto w-4 h-4 text-gray-500" >
@@ -277,7 +279,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
               type="telefono"
               autoComplete="off"
               // icon={<PhoneMobile className="absolute w-4 h-4 inset-y-0 left-4 m-auto  text-gray-500" />}
-              label={"Número de telefono"}
+              label={t("phonenumber")}
             />
           </span>
           <div className="flex items-center w-fit col-span-2 gap-6 mx-auto  ">
@@ -293,7 +295,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
             {phoneNumber &&
               <>
                 <p className='w-full text-center text-sm'>
-                  En hora buena, te hemos enviado un mensaje por whatsapp al número {phoneNumber}; haz click en link de confirmación para continuar con el registro.
+                  {t("ingoodtime")} {phoneNumber}; {t("clickonthe")}
                 </p>
               </>
             }

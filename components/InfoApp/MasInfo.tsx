@@ -1,40 +1,42 @@
 import { Card } from "./MicroComponente/Card"
 import { InfoGrid } from "./MicroComponente/InfoGrid"
+import { useTranslation } from 'react-i18next';
 
 export const MasInfo = () => {
+    const { t } = useTranslation();
 
     const DataCards = [
         {
-            title: "Wedding Planners y Organizadores de Eventos",
-            texto: "Aborda cada detalle de tu planificación desde una sola herramienta.",
-            button: "Crea evento",
+            title: t("weddingplanners"),
+            texto: t("addresseverydetail"),
+            button: t("createevent"),
             router: "/"
         },
         {
-            title: "Especialitas en Catering",
-            texto: "Interactúa con la lista de invitados para distribuir el menú y conocer los alérgenos o preferencias",
-            button: "Crea evento",
+            title: t("cateringspecialists"),
+            texto: t("interactwith"),
+            button: t("createevent"),
             router: "/"
         },
     ]
 
     const DataGrid = [
         {
-            title: "Fotografía y Social Media",
-            texto: "Comparte las fotografías y videos. Tus invitados pueden compartir sus mejores momentos.",
-            button: "ver más",
+            title: t("photographyandmocialmedia"),
+            texto: t("sharethephotos"),
+            button: t("ver más"),
             router: "/",
         },
         {
-            title: "Gestiona tu presupuesto",
-            texto: "Registra cada movimiento. Precios, cotizaciones, facturas, presupuesto global del evento.",
-            button: "ver más",
+            title: t("manageyourbudget"),
+            texto: t("recordeverymove"),
+            button: t("ver más"),
             router: "/presupuesto",
         },
         {
-            title: "Invitados e Invitaciones",
-            texto: "Diseña y envía las invitaciones. Confirma asistencia y accesos directos a la lista de regalos.",
-            button: "ver más",
+            title: t("guestsInvitations"),
+            texto: t("designandsendout"),
+            button: t("ver más"),
             router: "/invitaciones",
         },
 

@@ -3,6 +3,7 @@ import { Providers } from '../../Components';
 import FormRegister from '../FormRegister';
 import { AuthContextProvider } from '../../../../../context';
 import { WhoYouAre } from './WhoYouAre';
+import { useTranslation } from 'react-i18next';
 
 /*
   ### Componente FirstStep ###
@@ -14,6 +15,7 @@ interface propsFirstStep {
 }
 
 export const FirstStep: FC<propsFirstStep> = ({ value, setStageRegister }) => {
+  const { t } = useTranslation();
   const [select, setSelect] = useState<string>("");
 
   // Tipo de dato para definir opciones
@@ -33,7 +35,7 @@ export const FirstStep: FC<propsFirstStep> = ({ value, setStageRegister }) => {
         }}
         disabled={select === ""}
       >
-        Siguiente
+        {t("following")}
       </button>
     </div>
   );

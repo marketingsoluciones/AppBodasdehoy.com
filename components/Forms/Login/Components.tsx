@@ -4,6 +4,7 @@ import { ButtonProvider } from "./Forms/ButtonProvider";
 import { useToast } from "../../../hooks/useToast";
 import { useAuthentication } from "../../../utils/Authentication";
 import { FacebookIcon2, GoogleIcon } from "../../icons";
+import { useTranslation } from 'react-i18next';
 
 interface propsRegisterQuestion {
   onClick: MouseEventHandler;
@@ -14,33 +15,36 @@ interface propsResetPassword {
 }
 
 export const RegisterQuestion: FC<propsRegisterQuestion> = ({ onClick }) => {
+  const { t } = useTranslation();
   return (
     <h2 className={`font-light text-tertiary flex gap-2 items-center text-sm `}>
-      ¿No dispones de una cuenta?
+      {t("dontaccount")}
       <span
         className="text-primary font-semibold cursor-pointer hover:text-tertiary transition"
         onClick={onClick}
       >
-        Regístrate
+        {t("register")}
       </span>
     </h2>
   );
 };
 
 export const ResetPassword: FC<propsResetPassword> = ({ onClick }) => {
+  const { t } = useTranslation();
   return (
 
     <span
       className="text-sm text-primary w-full text-left font-semibold cursor-pointer hover:text-tertiary transition"
       onClick={onClick}
     >
-      Olvidé mi contraseña
+      {t("forgotassword")}
     </span>
 
   );
 };
 
 export const Providers: FC<any> = ({ setStage, whoYouAre }) => {
+  
 
   return (
     <>
@@ -61,11 +65,12 @@ export const Providers: FC<any> = ({ setStage, whoYouAre }) => {
 };
 
 export const BusinessAccess: FC = () => {
+  const { t } = useTranslation();
   return (
     <div className="w-full text-center h-max text-gray-500">
-      <p>¿Eres profesional?</p>
+      <p>{t("areyouaprofessional?")}</p>
       <h3 className="text-primary font-medium cursor-pointer hover:text-tertiary transition">
-        Acceso para empresas
+        {t("enterpriseaccess")}
       </h3>
     </div>
   );

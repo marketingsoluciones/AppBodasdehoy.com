@@ -4,6 +4,7 @@ import { AddEvent, Description, Duration, GuardarButtom, IconList, Responsable, 
 import { Modal } from "../../Utils/Modal";
 import { useState } from "react";
 import { InputTime } from "../../Forms/inputs/InputTime";
+import { useTranslation } from 'react-i18next';
 
 export const ElGranDia = ({ event, IconArry }) => {
     const newDate = new Date(parseInt(event?.fecha));

@@ -1,19 +1,20 @@
-
+import { useTranslation } from 'react-i18next';
 interface propsWhoYouAre {
   select: string
   setSelect: any
 }
 
 export const WhoYouAre = ({ select, setSelect }: propsWhoYouAre) => {
+  const { t } = useTranslation();
   type TypeOption = {
     title: string;
     icon: string;
   };
 
   const List: TypeOption[] = [
-    { title: "novia", icon: "/FormRegister/icon-women.webp" },
-    { title: "novio", icon: "/FormRegister/icon-men.webp" },
-    { title: "otro", icon: "/FormRegister/icon-heart.webp" },
+    { title: t("girlfriend"), icon: "/FormRegister/icon-women.webp" },
+    { title: t("groom"), icon: "/FormRegister/icon-men.webp" },
+    { title: t("other"), icon: "/FormRegister/icon-heart.webp" },
     // { title: "empresa", icon: "/FormRegister/icon-business.webp" },
   ];
   return (

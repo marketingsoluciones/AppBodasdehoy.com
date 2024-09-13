@@ -1,8 +1,10 @@
 import { AuthContextProvider } from "../../../context"
 import { EventContextProvider } from "../../../context/EventContext"
 import { fetchApiEventos, queries } from "../../../utils/Fetching"
+import { useTranslation } from 'react-i18next';
 
 export const AddEvent = ({ disable, itinerario, tasks }) => {
+    const { t } = useTranslation();
     const { domain } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
     const addTask = async () => {
@@ -48,7 +50,7 @@ export const AddEvent = ({ disable, itinerario, tasks }) => {
                 +
             </span>
             <span >
-                Añadir actividad
+                {t("addactivity")}
             </span>
         </div>
     )

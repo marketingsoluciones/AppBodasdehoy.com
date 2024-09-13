@@ -2,6 +2,7 @@ import { AuthContextProvider, EventsGroupContextProvider } from "../../context";
 import useHover from "../../hooks/useHover";
 import { CrearEventoIcon } from "../icons";
 import { Dispatch, FC, memo, SetStateAction } from 'react'
+import { useTranslation } from 'react-i18next';
 
 interface propsCadEmpty {
   set: Dispatch<SetStateAction<boolean>>
@@ -9,6 +10,7 @@ interface propsCadEmpty {
 }
 
 const CardEmpty: FC<propsCadEmpty> = ({ set, state }) => {
+  const { t } = useTranslation();
   const { eventsGroup } = EventsGroupContextProvider();
   const [hoverRef, isHovered] = useHover();
   const { actionModals, setActionModals } = AuthContextProvider()
@@ -32,7 +34,7 @@ const CardEmpty: FC<propsCadEmpty> = ({ set, state }) => {
         }`}
     >
       <CrearEventoIcon className="w-8 h-8" />
-      <p className="font-display font-base text-md">Crear evento</p>
+      <p className="font-display font-base text-md">{t("createevent")}</p>
     </div>
   );
 };

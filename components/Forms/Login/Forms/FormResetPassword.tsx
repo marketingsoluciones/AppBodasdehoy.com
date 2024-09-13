@@ -5,6 +5,7 @@ import { useAuthentication } from "../../../../utils/Authentication";
 import { ButtonComponent } from "../../ButtonComponent";
 import { InputField } from "../../InputFieldIcons";
 import { EmailIcon } from "../../../icons";
+import { useTranslation } from 'react-i18next';
 
 type MyFormValues = {
   identifier: string;
@@ -33,14 +34,15 @@ const FormResetPassword: FC<any> = ({ setStage }) => {
       toast("error", JSON.stringify(errorsCode[error.code]))
     }
   };
+  const { t } = useTranslation();
 
   return (
     <Formik initialValues={initialValues} onSubmit={handleSubmit}>
       <Form className="text-gray-200 flex flex-col gap-4 *py-2 w-full md:w-3/4">
-        <h1 className="text-primary mt-20">Introduce tu email para resetear tu contraseña</h1>
+        <h1 className="text-primary mt-20">{t("resetyourpassword")}</h1>
         <span className="w-full relative mt-8 mb-12">
           <InputField
-            label={"Correo electronico"}
+            label={t("email")}
             name="identifier"
             //placeholder="jhondoe@gmail.com" 
             type="email"
@@ -53,7 +55,7 @@ const FormResetPassword: FC<any> = ({ setStage }) => {
         <ButtonComponent
           type="submit"
         >
-          Enviar
+          {t("send")}
         </ButtonComponent>
       </Form>
     </Formik>

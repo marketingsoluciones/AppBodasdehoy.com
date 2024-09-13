@@ -9,11 +9,13 @@ import { useToast } from "../../../hooks/useToast";
 import { EstatusItinerario } from "./EstatusItinerario";
 import { WorkFlowItinerario } from "./WorkFlowItinerario";
 import { LiaLinkSolid } from "react-icons/lia";
+import { useTranslation } from 'react-i18next';
 
 export const Task = ({ itinerario, task, title, disable, ht, setModalStatus, modalStatus, setModalWorkFlow, modalWorkFlow,setModalCompartirTask, modalCompartirTask }) => {
   const { domain } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
   const toast = useToast()
+  const { t } = useTranslation();
 
   const initialValues = {
     icon: !task?.icon ? "" : task?.icon,
@@ -65,7 +67,7 @@ export const Task = ({ itinerario, task, title, disable, ht, setModalStatus, mod
         old.itinerarios_array[f1].tasks.splice(f2, 1)
         return { ...old }
       })
-      toast("success", "La actividad fue borrada");
+      toast("success", t("activitydeleted"));
     } catch (error) {
       console.log(error)
     }

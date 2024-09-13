@@ -2,9 +2,11 @@ import { useEffect, useState } from "react"
 import { AuthContextProvider } from "../../../context/AuthContext"
 import { EventContextProvider } from "../../../context/EventContext"
 import { fetchApiEventos, queries } from "../../../utils/Fetching"
+import { useTranslation } from 'react-i18next';
 
 
 export const SubHeader = ({ title, date, setButton, button, disable, ht, setModalPlantilla, modalPlantilla }) => {
+    const { t } = useTranslation();
     const { event } = EventContextProvider()
     const { user } = AuthContextProvider()
 
@@ -15,12 +17,12 @@ export const SubHeader = ({ title, date, setButton, button, disable, ht, setModa
             <div className="flex w-full justify-between">
                 <div className="w-1/2 flex flex-col md:block text-xs md:text-[14px] text-azulCorporativo">
                     <div>
-                        <span className="text-[14px]">Fecha boda: </span>
+                        <span className="text-[14px]">{t("weddingdate")}</span>
                         <span className="text-primary">{date}</span>
                     </div>
                     <div className={` ${event?.usuario_id === user?.uid && user?.displayName !== "guest" ? "hidden" : "block"} `}>
-                        <span>Permisos: </span>
-                        <span className="text-primary">{disable ? "Lectura" : "Edicion"}</span>
+                        <span>{t("permissions")}</span>
+                        <span className="text-primary">{disable ? t("reading") : t("edition")}</span>
                     </div>
                 </div>
                 <div className="flex flex-col w-1/2 text-xs md:text-[14px] justify-end items-end space-y-1">
@@ -28,13 +30,13 @@ export const SubHeader = ({ title, date, setButton, button, disable, ht, setModa
                         className="text-primary text-right cursor-pointer hover:text-pink-500"
                         onClick={() => disable ? ht() : setButton(!button)}
                     >
-                        Restablecer todo el itinerario
+                        {t("resetitinerary")}
                     </span>
                     <span
                         className="text-primary text-right cursor-pointer hover:text-pink-500"
                         onClick={() => disable ? ht() : setModalPlantilla(!modalPlantilla)}
                     >
-                        Cargar plantilla
+                        {t("loadtemplate")}
                     </span>
                 </div>
             </div>

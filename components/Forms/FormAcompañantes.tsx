@@ -2,8 +2,10 @@ import {  useState } from "react"
 import { FormConfirmarAsistencia } from "../Forms/FormConfirmarAsistencia"
 import { ConfirmacionIcon } from "../icons"
 import { useRouter } from "next/router"
+import { useTranslation } from 'react-i18next';
 
 export const FormComponent = ({ guestData, guestFather, menus_array }) => {
+    const { t } = useTranslation();
     const router = useRouter()
     const [visible, setVisible] = useState<boolean>(false)
 
@@ -17,7 +19,7 @@ export const FormComponent = ({ guestData, guestFather, menus_array }) => {
                             <p className=" text-5xl text-gray-500 text-center "> {guestFather?.nombre} </p>
                         </div>
                         <div className=" w-full font-semibold font-body text-lg text-primary px-5" >
-                            Por favor confirma tus datos y los de tus acompañantes
+                            {t("confirmyourdetails")}
                         </div>
                         {
                             guestFather && <FormConfirmarAsistencia visible={visible} setVisible={setVisible} guestData={guestData} guestFather={guestFather} menus_array={menus_array} />
@@ -30,7 +32,7 @@ export const FormComponent = ({ guestData, guestFather, menus_array }) => {
                                 {/*  {pases.length > 0 ? "Asistencias confirmadas" : "Asistencia confirmada"} */}
                             </p>
                             <p className="font-body text-gray-500 font-semibold text-3xl">
-                                con exito
+                                {t("successfullys")}
                             </p>
                         </div>
                     </div>
