@@ -19,11 +19,27 @@ const Invitados: FC = () => {
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const { event } = EventContextProvider();
   useMounted()
+  const { actionModals, setActionModals } = AuthContextProvider()
+
 
   const reciboClick = (accion) => {
     setIsMounted(accion.state)
     setFormShow(accion.click)
   }
+  const handleClick = (e, click) => {
+    e.preventDefault();
+    reciboClick({ state: !isMounted, click: click });
+  };
+
+  const ConditionalAction = ({ e }) => {
+    if (event.invitados_array.length >= 200) {
+      setActionModals(!actionModals)
+    } else {
+      handleClick(e, "invitado")
+    }
+
+  }
+
   const { user, verificationDone, forCms } = AuthContextProvider()
   if (verificationDone) {
     if (!user) {
@@ -64,8 +80,12 @@ const Invitados: FC = () => {
               exit={{ opacity: 0 }}
               className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 gap-4 ">
               <BlockCabecera />
-              <BlockListaInvitados state={isMounted} set={reciboClick} createPDF={createPDF} setCreatePDF={setCreatePDF} />
-              {/* <BlockTableroInvitados state={isMounted} set={reciboClick} createPDF={createPDF} setCreatePDF={setCreatePDF} /> */}
+              <div className="hidden md:block ">
+                <BlockListaInvitados createPDF={createPDF} setCreatePDF={setCreatePDF} ConditionalAction={ConditionalAction} handleClick={handleClick} />
+              </div>
+              <div className=" md:hidden ">
+                <BlockTableroInvitados createPDF={createPDF} setCreatePDF={setCreatePDF} ConditionalAction={ConditionalAction} handleClick={handleClick} />
+              </div>
             </motion.div>
           </section >}
       </>
