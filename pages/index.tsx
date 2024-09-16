@@ -16,7 +16,7 @@ import { useToast } from "../hooks/useToast";
 import { useTranslation } from 'react-i18next';
 
 const Home: NextPage = () => {
-  
+
   const { user, verificationDone, config, setUser } = AuthContextProvider()
   const { eventsGroup, eventsGroupDone } = EventsGroupContextProvider()
   const { setEvent } = EventContextProvider()
@@ -279,7 +279,7 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
                 } w-max md:mt-4 mb-3 md:mb-2 px-4 py-0.5 rounded-xl flex items-center justify-center cursor-pointer hover:bg-${item.color
                 } hover:text-gray-500 transition focus:outline-none text-sm font-display`}
             >
-              {item.nombre}
+              {t(item.nombre)}
             </button>
           ))}
         </div>
@@ -322,7 +322,7 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
                           className={`flex items-center justify-center my-3`}
                         >
                           <div className={`w-72 h-36 rounded-xl flex flex-col items-center justify-center shadow-lg bg-base border border-gray-100 transition `}>
-                            <p className="font-display font-base text-md">{`Ningún evento ${group.status}`}</p>
+                            <p className="font-display font-base text-md">{t(`Ningún evento ${group.status}`)}</p>
                           </div>
                         </SwiperSlide> :
                         <SwiperSlide

@@ -32,8 +32,8 @@ const AddPagado = ({ set, ...props }) => {
   return (
     <>
       <div className="flex items-center justify-center h-full">
-        <p onClick={() => costeFional != 0 ? !isAllowed() ? null : handleClick() : toast("error", t("payments"))} className=" hover:text-gray-400 transition cursor-pointer">
-        <GoPlus />
+        <p onClick={() => costeFional != 0 ? !isAllowed() ? null : handleClick() : toast("error", t("payments_error"))} className=" hover:text-gray-400 transition cursor-pointer">
+          <GoPlus />
         </p>
       </div>
     </>

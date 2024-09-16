@@ -97,6 +97,7 @@ export const Productos = ({ data, setProducts, products }) => {
 }
 
 const InfoModulos = ({ item }) => {
+  const { t } = useTranslation();
   const [showInfo, setShowInfo] = useState(false)
   return (
     < div className="text-azulCorporativo text-[13px] flex items-center  space-x-2 mb-0.5 cursor-default " >

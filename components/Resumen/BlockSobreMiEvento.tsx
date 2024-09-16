@@ -11,6 +11,7 @@ import { EventContextProvider } from "../../context";
 import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
+import i18n from 'i18next';
 
 interface propsInsideBlock extends schemaItem {
   setSelected?: Dispatch<
@@ -98,14 +99,14 @@ const ElementItemInsideBlock: FC<{
   onClick: MouseEventHandler<HTMLButtonElement>;
   icon: any;
 }> = ({ title, color, onClick, icon }) => {
-  
+  const { t } = useTranslation()
   return (
     <button
       className="bg-white w-full h-full p-3 rounded-3xl flex flex-col items-center justify-center gap-1 transform transition hover:scale-105 focus:outline-none"
       onClick={onClick}
     >
       {icon && cloneElement(icon, { className: `${color} w-8 h-8` })}
-      <p className={`text-gray-500 font-display text-sm`}>{title}</p>
+      <p className={`text-gray-500 font-display text-sm`}>{t(title)}</p>
     </button>
   );
 };
@@ -118,7 +119,7 @@ interface schemaItem {
 const { t } = useTranslation(); */
 
 const schema: schemaItem[] = [
-  
+
   {
     title: "color",
     list: [
@@ -165,7 +166,7 @@ interface values {
   temporada: typeEvent,
   estilo: typeEvent,
   tarta: typeEvent,
-  tematica: typeEvent,
+  temática: typeEvent,
 }
 
 interface typeEvent {
@@ -300,10 +301,10 @@ const AboutItem: FC<propsElement> = ({ title, value, toggleClick }) => {
         )}
         <span className="leading-4 text-center">
           <p className="font-display font-light md:text-md text-gray-500">
-            {title && capitalize(title)}
+            {title && capitalize(t(title))}
           </p>
           <p className={'font-display font-base text-xs md:text-sm text-gray-700 font-semibold'}>
-            {value?.title && value.title.length > 10 ? value?.title && value.title.substring(0, 10) + "..." : value?.title && value.title}
+            {t(value?.title) && t(value.title).length > 10 ? t(value?.title) && t(value.title).substring(0, 10) + "..." : t(value?.title) && t(value.title)}
           </p>
         </span>
       </button>

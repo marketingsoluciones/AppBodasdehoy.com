@@ -19,10 +19,9 @@ import { ObtenerFullAcceso } from "../InfoApp/ObtenerFullAcceso";
 import { useActivity } from "../../hooks/useActivity";
 import { GoChecklist } from "react-icons/go";
 import { useAllowed } from "../../hooks/useAllowed";
-import { useTranslation } from 'react-i18next';
+import i18next from "i18next";
 
 const Profile = ({ user, state, set, ...rest }) => {
-  const { t } = useTranslation();
   const { config, setUser, setActionModals, actionModals } = AuthContextProvider()
   const { setLoading } = LoadingContextProvider()
   const [dropdown, setDropwdon] = useState(false);
@@ -34,6 +33,12 @@ const Profile = ({ user, state, set, ...rest }) => {
   const toast = useToast()
   const [updateActivity, updateActivityLink] = useActivity()
   const cookieContent = JSON.parse(Cookies.get("guestbodas") ?? "{}")
+  const [language, setLanguage] = useState('en');
+
+  const handleChange = (event) => {
+    setLanguage(event.target.value);
+    i18next.changeLanguage(event.target.value);
+  };
 
   const optionsStart: Option[] = [
     {
@@ -231,9 +236,8 @@ const Profile = ({ user, state, set, ...rest }) => {
         <Notifications />
         <ClickAwayListener onClickAway={() => dropdown && setDropwdon(false)}>
           <div
-            className="bg-white items-center gap-2 md:min-w-[200px] w-max flex relative"
-            onClick={() => setDropwdon(!dropdown)}
-          >
+            className="bg-white items-center gap-2 flex relative"
+            onClick={() => setDropwdon(!dropdown)}>
             {dropdown && (
               <div className="bg-white rounded-lg w-80 h-max shadow-lg shadow-gray-400 absolute top-0 md:right-0 translate-y-[46px] -translate-x-[250px] md:-translate-x-[0px]  overflow-hidden z-40 title-display">
                 {/* < div className={`bg-red w-80 p-3 rounded-xl h-max shadow-md absolute bottom-0 right-0 inset-y-full translate-y-1 overflow-hidden z-50}`}> */}
@@ -252,7 +256,7 @@ const Profile = ({ user, state, set, ...rest }) => {
                   {(user?.displayName !== "guest" && config?.development === "bodasdehoy") &&
                     <>
                       <hr className="col-span-2" />
-                      <span className="col-span-2 text-gray-700 font-semibold">{t("modules")}</span>
+                      <span className="col-span-2 text-gray-700 font-semibold">Módulos:</span>
                       {optionsReduceCenter.map((item: Option, idx) => (
                         <ListItemProfile key={idx} {...item} />
                       ))}
@@ -265,7 +269,7 @@ const Profile = ({ user, state, set, ...rest }) => {
                   {
                     true ?
                       <div onClick={() => setActionModals(!actionModals)} className="col-span-2 flex text-white gap-2 bg-primary hover:bg-slate-400 transition cursor-pointer rounded-lg py-1 px-2 items-center justify-center ">
-                        {t("getfullaccess")}
+                        Obten full acceso
                       </div> :
                       null
                   }
@@ -283,6 +287,12 @@ const Profile = ({ user, state, set, ...rest }) => {
             </p>
           </div>
         </ClickAwayListener>
+        <div>
+          <select className="font-display text-sm text-gray-500" value={language} onChange={handleChange}>
+            <option value="en">En</option>
+            <option value="es">Sp</option>
+          </select>
+        </div>
       </div>
       {
         actionModals && (
