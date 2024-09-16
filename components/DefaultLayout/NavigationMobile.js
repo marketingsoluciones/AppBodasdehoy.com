@@ -7,6 +7,7 @@ import { useToast } from "../../hooks/useToast";
 import Cookies from "js-cookie";
 import { getAuth, signOut } from "firebase/auth";
 import { useActivity } from "../../hooks/useActivity";
+import { useTranslation } from 'react-i18next';
 
 const useOutsideSetShow = (ref, setShow) => {
   const handleClickOutside = (event) => {
@@ -26,6 +27,7 @@ const useOutsideSetShow = (ref, setShow) => {
 };
 /* menu inferior con las opciones de redireccion de la app en vista movil */
 const NavigationMobile = () => {
+  const { t } = useTranslation();
   const wrapperRef = useRef(null);
   const toast = useToast();
   const { event } = EventContextProvider();
@@ -83,7 +85,7 @@ const NavigationMobile = () => {
         {Navbar.map((item, idx) => (
           <Link key={idx} href={item.route}>
             <li
-              onClick={() => { item.condicion === "verdadero" ? "" : toast("error", "Debes crear un evento") }}
+              onClick={() => { item.condicion === "verdadero" ? "" : toast("error", t("youmustcreateevent")) }}
               className="cursor-pointer transition text-primary">
               {item.icon}
             </li>
@@ -105,6 +107,7 @@ const NavigationMobile = () => {
 };
 
 const ProfileMenu = () => {
+  const { t } = useTranslation();
   const { user, setUser, config } = AuthContextProvider();
   const { setLoading } = LoadingContextProvider();
   const toast = useToast()
@@ -114,13 +117,13 @@ const ProfileMenu = () => {
     <div className={`bg-white w-40 rounded-md shadow-md overflow-hidden absolute transform translate-x-[calc(-122px)] -translate-y-[calc(100%+44px)]`}>
       <ul className="w-full">
         {!user && <li className="w-full pl-5 py-1 text-gray-500 transition  hover:bg-primary hover:text-white font-display text-sm">
-          <button onClick={async () => { router.push(`${process.env.NEXT_PUBLIC_DIRECTORY}/login?d=app` ?? "") }}>Login</button>
+          <button onClick={async () => { router.push(`${process.env.NEXT_PUBLIC_DIRECTORY}/login?d=app` ?? "") }}>{t("login")}</button>
         </li>}
         {config?.pathDirectory && <Link href={config?.pathDirectory ?? ""} passHref>
           <li
             className="w-full pl-5 py-1 text-gray-500 transition  hover:bg-primary hover:text-white font-display text-sm"
           >
-            <p>Ir al directorio</p>
+            <p>{t("gotodirectory")}</p>
           </li>
         </Link>}
         {(user?.uid && user.displayName !== "guest") && <li className="w-full pl-5 py-1 text-gray-500 transition  hover:bg-primary hover:text-white font-display text-sm">
@@ -134,12 +137,12 @@ const ProfileMenu = () => {
                 router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "/login")
                 return
               }
-              toast("success", `Cerró sesión con éxito`)
+              toast("success", t(`loggedoutsuccessfully`))
               updateActivity("logoutd")
               updateActivityLink("logoutd")
               router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "/")
             })
-          }}>Cerrar Sesión</button>
+          }}>{t("logoff")}</button>
         </li>}
       </ul>
     </div>

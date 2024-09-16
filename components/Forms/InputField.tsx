@@ -5,6 +5,7 @@ import { flags } from "../../utils/flags.js"
 import { AuthContextProvider } from "../../context";
 import { IoIosArrowDown } from "react-icons/io";
 import ClickAwayListener from "react-click-away-listener"
+import { useTranslation } from 'react-i18next';
 
 
 interface propsInputField extends InputHTMLAttributes<HTMLInputElement> {
@@ -21,6 +22,7 @@ interface Flag {
 }
 
 const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled = false, labelClass = true, ...props }) => {
+  const { t } = useTranslation();
   const { geoInfo } = AuthContextProvider()
   const [field, meta, helpers] = useField({ name: props.name })
   const [isAllowed, ht] = useAllowed()

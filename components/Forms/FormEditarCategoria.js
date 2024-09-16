@@ -4,6 +4,7 @@ import { api } from "../../api";
 import { EventContextProvider } from "../../context";
 import { capitalize } from '../../utils/Capitalize';
 import InputField from "./InputField";
+import { useTranslation } from 'react-i18next';
 
 const validacion = (values) => {
   let errors = {};
@@ -63,13 +64,14 @@ export const BasicForm = ({
   values,
   handleBlur,
 }) => {
+  const { t } = useTranslation();
   return (
     <>
       <div className="border-l-2 border-gray-100 pl-3 w-full ">
         <h2 className="font-display text-3xl capitalize text-primary font-light">
-          Editar <br />
+          {t("edit")} <br />
           <span className="font-display text-5xl capitalize text-gray-500 font-medium">
-            Categoria
+            {t("category")}
           </span>
         </h2>
       </div>
@@ -83,7 +85,7 @@ export const BasicForm = ({
             />
             <InputField
               name="nombre"
-              label="Nombre de la categoria"
+              label={t("categoryname")}
               onChange={handleChange}
               value={values.nombre}
               onBlur={handleBlur}
@@ -98,7 +100,7 @@ export const BasicForm = ({
           disabled={isSubmitting}
           type="submit"
         >
-          Editar categoría
+          {t("editcategory")}
         </button>
       </form>
     </>

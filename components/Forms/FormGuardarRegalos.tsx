@@ -4,6 +4,7 @@ import InputField from "./InputField";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
 import { Dispatch, FC, SetStateAction } from "react";
+import { useTranslation } from 'react-i18next';
 
 interface propsFormCrearMesa {
   modelo: string | null,
@@ -12,6 +13,7 @@ interface propsFormCrearMesa {
 }
 
 const FormGuardarRegalos: FC<propsFormCrearMesa> = ({ modelo, set, state }) => {
+  const { t } = useTranslation();
   const { event, setEvent } = EventContextProvider();
   const toast = useToast()
 
@@ -52,7 +54,7 @@ const FormGuardarRegalos: FC<propsFormCrearMesa> = ({ modelo, set, state }) => {
             <div className="col-span-2 flex flex-col gap-6">
               <InputField
                 name="valor_reemplazar"
-                label="link de tu lista de regalos"
+                label={t("linkgiftlist")}
                 type="text"
                 className="bg-gray-100"
               />
@@ -66,14 +68,14 @@ const FormGuardarRegalos: FC<propsFormCrearMesa> = ({ modelo, set, state }) => {
               type="submit"
               className=" bg-primary w-full text-white font-semibold mx-auto inset-x-0 rounded-xl py-1  focus:outline-none"
             >
-              guardar
+              {t("save")}
             </button>
 
             <button
               className=" bg-gray-400 transition w-full text-white font-semibold mx-auto inset-x-0 rounded-xl py-1 focus:outline-none hover:opacity-80 "
               onClick={() => set(false)}
             >
-              Cancelar
+              {t("cancel")}
             </button>
           </div>
         </Form>

@@ -1,6 +1,7 @@
 import { useField } from "formik"
 import { ChangeEvent, FC, HtmlHTMLAttributes, useEffect } from "react"
 import { EventContextProvider } from "../../context"
+import { useTranslation } from 'react-i18next';
 
 interface propsSelectField extends HtmlHTMLAttributes<HTMLSelectElement> {
     label?: string
@@ -12,6 +13,7 @@ interface propsSelectField extends HtmlHTMLAttributes<HTMLSelectElement> {
 
 }
 const SelectField: FC<propsSelectField> = ({ label, children, options, colSpan, labelClass = true, nullable, ...props }) => {
+    const { t } = useTranslation();
     const { invitadoCero, event } = EventContextProvider();
     const [field, meta, { setValue }] = useField({ name: props.name })
 
@@ -35,7 +37,7 @@ const SelectField: FC<propsSelectField> = ({ label, children, options, colSpan, 
                     <select className="font-display capitalize cursor-pointer text-sm text-gray-500 border border-gray-300 focus:border-gray-400 focus:ring-0 transition w-full py-2 pr-7 rounded-xl focus:outline-none" value={typeof options[0] === "string" ? field?.value : field?.value?._id} name={field?.name} onChange={field?.onChange} >
                         {nullable &&
                             <option >
-                                Seleccionar
+                                {t("select")}
                             </option>}
                         {options?.map((option: string | { _id: string, title: string }, idx: number) => {
                             const label = typeof option === "string" ? option : option?.title

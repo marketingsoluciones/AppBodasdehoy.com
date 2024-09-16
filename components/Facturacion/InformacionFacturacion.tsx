@@ -6,8 +6,10 @@ import { flags } from "../../utils/flags"
 import { useEffect, useState } from "react"
 import { fetchApiBodas, queries } from "../../utils/Fetching"
 import { useToast } from "../../hooks/useToast"
+import { useTranslation } from 'react-i18next';
 
 export const InformacionFacturacion = () => {
+    const { t } = useTranslation();
     const { user, geoInfo, config } = AuthContextProvider()
     const [initialValues, setInitialValues] = useState<any>({})
     const toast = useToast()
@@ -54,13 +56,13 @@ export const InformacionFacturacion = () => {
                                 <Form className="md:px-20 px-5 py-10 space-y-5  ">
                                     <div className=" flex flex-col items-center space-y-4 mb-5">
                                         <p className="text-gray-500 mb-5">
-                                            Tu información de facturación puede ser diferente de la información de perfil de tu cuenta. La información de facturación aparece en las facturas.
+                                            {t("billinginformation")}
                                         </p>
                                         <div className="grid md:grid-cols-4 gap-4 w-[85%]">
                                             <div className="col-span-1 md:col-span-3">
                                                 <div className="w-[100%]">
                                                     <InputField
-                                                        label="Nombre y Apellido o Empresa"
+                                                        label={t("namesurnamecompany")}
                                                         name="name"
                                                         className="focus:outline-none border border-gray-300 rounded-lg py-1 px-3 w-[100%] truncate text-base"
                                                     />
@@ -69,27 +71,27 @@ export const InformacionFacturacion = () => {
                                         </div>
                                         <div className="w-[85%]" >
                                             <InputField
-                                                label="Dirección Linea 1"
+                                                label={t("addressone")}
                                                 name="line1"
                                                 className="focus:outline-none border border-gray-300 rounded-lg py-1 px-3 w-[100%] truncate text-base "
                                             />
                                         </div>
                                         <div className="w-[85%]" >
                                             <InputField
-                                                label="Dirección Linea 2"
+                                                label={t("addresstwo")}
                                                 name="line2"
                                                 className="focus:outline-none border border-gray-300 rounded-lg py-1 px-3 w-[100%] truncate text-base "
                                             />
                                         </div>
                                         <div className="grid grid-cols-2 md:grid-cols-3 w-[85%] gap-4" >
                                             <InputField
-                                                label="Código Postal"
+                                                label={t("zipcode")}
                                                 name="postalCode"
                                                 className="focus:outline-none border border-gray-300 rounded-lg py-1 px-3 w-[100%] truncate text-base "
                                             />
                                             <div className="grid-cols-1">
                                                 <InputField
-                                                    label="Ciudad"
+                                                    label={t("city")}
                                                     name="city"
                                                     className="focus:outline-none border border-gray-300 rounded-lg py-1 px-3  w-[100%] truncate text-base "
                                                 />
@@ -97,7 +99,7 @@ export const InformacionFacturacion = () => {
                                             <div className="col-span-1">
                                                 <div className="w-[100%]">
                                                     <SelectField
-                                                        label="País"
+                                                        label={t("country")}
                                                         name="country"
                                                         className=" capitalize cursor-pointer text-sm transition w-full py-1 px-2 mt-1 rounded-lg focus:outline-none "
                                                         options={flags.map(elem => elem.name).sort()}
@@ -107,7 +109,7 @@ export const InformacionFacturacion = () => {
                                         </div>
                                         <div className="w-[85%]" >
                                             <InputField
-                                                label="Email del destinatario de la factura"
+                                                label={t("invoicerecipientemail")}
                                                 name="email"
                                                 type="email"
                                                 className="focus:outline-none border border-gray-300 rounded-lg py-1 px-3  w-[100%] truncate text-base "
@@ -115,7 +117,7 @@ export const InformacionFacturacion = () => {
                                         </div>
                                     </div>
                                     <button type="submit" className="bg-primary rounded-lg px-7 py-2.5 text-white text-base " >
-                                        Confirmar información de facturación
+                                        {t("confirmbillinginformation")}
                                     </button>
                                 </Form>
                             )

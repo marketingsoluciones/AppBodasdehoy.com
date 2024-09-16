@@ -104,7 +104,7 @@ export const ForApiPeople = ({ setContact, showForApiGoogle, setShowForApiGoogle
               {activeSearch
                 ? <input autoFocus onChange={(e) => { handleOnChange(e) }} type="text" className="bg-transparent flex w-[calc(100%-20px)] h-6 border-0 focus:outline-none focus:border-none focus:ring-0 text-sm" placeholder={t("searchyourcontacts")} />
                 : <>
-                  <span className="text-[16px] w-[calc(100%-50px)] truncate ml-2">{itemSelect ? "1 Contacto seleccionado" : t("selectcontact")}</span>
+                  <span className="text-[16px] w-[calc(100%-50px)] truncate ml-2">{itemSelect ? t("contactselected") : t("selectcontact")}</span>
                   <MdOutlineSearch className="w-[50px] h-6 cursor-pointer" onClick={() => { setActiveSearch(!activeSearch) }} />
                 </>
               }

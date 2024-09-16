@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import React, { useMemo, useState } from 'react'
 import Select, { StylesConfig } from 'react-select'
+import { useTranslation } from 'react-i18next';
 
 
 
@@ -8,6 +9,7 @@ import { EventContextProvider, EventsGroupContextProvider } from "../../context"
 
 
 const Breadcumbs = () => {
+    const { t } = useTranslation();
     const { event, setEvent } = EventContextProvider()
     const { eventsGroup } = EventsGroupContextProvider()
     const [isClearable, setIsClearable] = useState(false);
@@ -71,7 +73,7 @@ const Breadcumbs = () => {
 return (
     <div className='flex items-center gap-2 py-4'>
         <span className='font-body cursor-default'>
-            Evento
+            {t("event")}
         </span>
 
 

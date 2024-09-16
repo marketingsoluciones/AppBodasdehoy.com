@@ -14,6 +14,7 @@ import ClickAwayListener from "react-click-away-listener"
 import { moveGuest } from '../Mesas/FuntionsDragable';
 import { BsBoxArrowInDown, BsBoxArrowUp } from 'react-icons/bs'
 import { dicc } from './FormCrearMesa';
+import { useTranslation } from 'react-i18next';
 
 
 
@@ -31,6 +32,7 @@ type initialValues = {
 }
 
 const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
+  const { t } = useTranslation();
   // console.log(10041, state)
   const { event, setEvent, planSpaceActive, setPlanSpaceActive, setEditDefault, filterGuests } = EventContextProvider();
   const [selectInvitado, setSelectedInvitado] = useState(false);
@@ -163,14 +165,14 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
                         className={`w-1/2 py-1 ${!active ? "bg-primary text-white" : "bg-white text-primary"
                           } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
                       >
-                        <p>Invitados no sentados</p>
+                        <p>{t("nonseatedguests")}</p>
                       </div>
                       <div
                         onClick={() => setActive(true)}
                         className={`w-1/2 py-1 ${active ? "bg-primary text-white" : "bg-white text-primary"
                           } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
                       >
-                        <p>Invitados sentados</p>
+                        <p>{t("seatedguests")}</p>
                       </div>
                     </div>
                   </div>
@@ -210,7 +212,7 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
                         <div className='flex items-center hover:bg-gray-200 p-2 cursor-pointer'>
                           <PlusIcon className="w-4 h-7 text-primary mx-2" />
                           <div className='font-body text-sm ml-1'>
-                            Añadir Inivtado al evento
+                            {t("addguestevent")}
                           </div>
                         </div>
                       </div>
@@ -241,7 +243,7 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
                         })
                         : <div className='flex items-center justify-center space-x-4'>
                           <XpersonIcon className="text-gray-600 " />
-                          <p className='text-center font-body text-sm w-40'>{!active ? "Todos los invitados están sentados" : "No hay invitados sentados en esta mesa"}</p>
+                          <p className='text-center font-body text-sm w-40'>{!active ? t("allguestsseated") : t("noguestsseatedtable")}</p>
                         </div>
                     }
                   </div>
@@ -251,13 +253,13 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
                     type="submit"
                     className=" bg-primary w-full text-white  mx-auto inset-x-0 rounded-xl py-1 font-body focus:outline-none"
                   >
-                    Guardar
+                    {t("save")}
                   </button>
                   <button
                     className=" bg-gray-400 transition w-full text-white font-body mx-auto inset-x-0 rounded-xl py-1 focus:outline-none"
                     onClick={() => set(false)}
                   >
-                    Cancelar
+                    {t("cancel")}
                   </button>
                 </div>
               </Form>

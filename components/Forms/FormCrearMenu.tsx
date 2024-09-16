@@ -5,6 +5,7 @@ import * as yup from "yup";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
 import { BorrarIcon, IconLocationFood } from "../icons";
+import { useTranslation } from 'react-i18next';
 
 const validationSchema = yup.object().shape({
   nombre: yup.string().required(),
@@ -16,6 +17,7 @@ const initialValues = {
 
 
 const FormCrearMenu = ({ set, state }) => {
+  const { t } = useTranslation();
   const { event, setEvent } = EventContextProvider();
   const toast = useToast();
 
@@ -77,9 +79,9 @@ const FormCrearMenu = ({ set, state }) => {
             <Form className="w-full">
               <div className="border-l-2 border-gray-100 pl-3 w-full ">
                 <h2 className="font-display text-3xl capitalize text-primary font-light">
-                  Crear <br />{" "}
+                  {t("create")} <br />{" "}
                   <span className="font-display text-5xl capitalize text-gray-500 font-medium">
-                    Menú
+                    {t("menu")}
                   </span>{" "}
                 </h2>
               </div>
@@ -93,7 +95,7 @@ const FormCrearMenu = ({ set, state }) => {
                     />
                     <InputField
                       name="nombre"
-                      label="Nombre del menú"
+                      label={t("namemenu")}
                       type="text"
                     />
                   </div>
@@ -104,7 +106,7 @@ const FormCrearMenu = ({ set, state }) => {
                   disabled={isSubmitting}
                   type="submit"
                 >
-                  Crear menú
+                  {t("createmenu")}
                 </button>
               </div>
             </Form>

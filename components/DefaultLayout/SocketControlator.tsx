@@ -3,8 +3,10 @@ import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, 
 import { useRouter } from "next/router";
 import { handleClickCard } from "../Home/Card";
 import { useToast } from "../../hooks/useToast";
+import { useTranslation } from 'react-i18next';
 
 export const SocketControlator = () => {
+  const { t } = useTranslation();
   const { user, setUser, config } = AuthContextProvider()
   const { event, setEvent, planSpaceActive, setPlanSpaceActive } = EventContextProvider()
   const { socket, notifications, setNotifications } = SocketContextProvider()

@@ -3,8 +3,10 @@ import ClickAwayListener from "react-click-away-listener"
 import { ExclamacionIcon } from "../icons"
 import { IoSettingsOutline } from "react-icons/io5";
 import { useRouter } from "next/router";
+import { useTranslation } from 'react-i18next';
 
 export const Productos = ({ data, setProducts, products }) => {
+  const { t } = useTranslation();
   const router = useRouter()
   const options: object = {
     year: "2-digit",
@@ -81,7 +83,7 @@ export const Productos = ({ data, setProducts, products }) => {
                         setProducts([...products])
                       }}
                       className={`bg-primary py-1 w-full text-[13px] rounded-lg capitalize hover:opacity-90 cursor-pointer ${products?.findIndex(elem => elem?.id === item?.id) > -1 ? "bg-white border border-primary text-primary" : "bg-primary text-white"} `}>
-                      {products?.findIndex(elem => elem?.id === item?.id) > -1 ? "- Quitar complemento" : "+ Añadir complemento"}
+                      {products?.findIndex(elem => elem?.id === item?.id) > -1 ? t("removeplugin") : t("addplugin")}
                     </button>
                   </div>
                 </>

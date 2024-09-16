@@ -7,6 +7,7 @@ import { useToast } from "../../hooks/useToast";
 import * as yup from "yup";
 import { Dispatch, FC, SetStateAction, useEffect, useState } from "react";
 import Cookies from "js-cookie";
+import { useTranslation } from 'react-i18next';
 
 // formatear fecha
 const getDate = (f: Date): string => {
@@ -28,6 +29,7 @@ interface propsFromCrearEvento {
 }
 
 const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) => {
+  const { t } = useTranslation();
   const { event, setEvent } = EventContextProvider()
   const { user, config } = AuthContextProvider();
   const { setEventsGroup, eventsGroup } = EventsGroupContextProvider();
@@ -151,7 +153,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
               {EditEvent ? "Editar" : "Crear"}
             </h2>
             <h2 className="font-display text-5xl capitalize text-gray-500 font-medium">
-              Evento
+              {t("event")}
             </h2>
           </div>
           <div
@@ -162,21 +164,21 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
               <InputField
                 placeholder="Ej. Cumpleaños de Ana"
                 name="nombre"
-                label="Nombre del evento"
+                label={t("nameevent")}
               />
             </div>
 
             <div>
               <SelectField
                 name="tipo"
-                label="Tipo de evento"
+                label={t("eventtype")}
                 options={ListaTipo}
               />
             </div>
 
             <InputField
               name="fecha"
-              label="Fecha del evento"
+              label={t("eventdate")}
               type="date"
             />
 
@@ -202,7 +204,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
               className={`font-display rounded-full mt-4 py-2 px-6 text-white font-medium transition w-full hover:opacity-70 ${isSubmitting ? "bg-secondary" : "bg-primary"
                 }`}
             >
-              Guardar
+              {t("save")}
             </button>
           </div>
         </Form>

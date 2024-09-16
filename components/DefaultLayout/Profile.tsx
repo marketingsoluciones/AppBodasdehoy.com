@@ -19,8 +19,10 @@ import { ObtenerFullAcceso } from "../InfoApp/ObtenerFullAcceso";
 import { useActivity } from "../../hooks/useActivity";
 import { GoChecklist } from "react-icons/go";
 import { useAllowed } from "../../hooks/useAllowed";
+import { useTranslation } from 'react-i18next';
 
 const Profile = ({ user, state, set, ...rest }) => {
+  const { t } = useTranslation();
   const { config, setUser, setActionModals, actionModals } = AuthContextProvider()
   const { setLoading } = LoadingContextProvider()
   const [dropdown, setDropwdon] = useState(false);
@@ -250,7 +252,7 @@ const Profile = ({ user, state, set, ...rest }) => {
                   {(user?.displayName !== "guest" && config?.development === "bodasdehoy") &&
                     <>
                       <hr className="col-span-2" />
-                      <span className="col-span-2 text-gray-700 font-semibold">Módulos:</span>
+                      <span className="col-span-2 text-gray-700 font-semibold">{t("modules")}</span>
                       {optionsReduceCenter.map((item: Option, idx) => (
                         <ListItemProfile key={idx} {...item} />
                       ))}
@@ -263,7 +265,7 @@ const Profile = ({ user, state, set, ...rest }) => {
                   {
                     true ?
                       <div onClick={() => setActionModals(!actionModals)} className="col-span-2 flex text-white gap-2 bg-primary hover:bg-slate-400 transition cursor-pointer rounded-lg py-1 px-2 items-center justify-center ">
-                        Obten full acceso
+                        {t("getfullaccess")}
                       </div> :
                       null
                   }
