@@ -4,8 +4,10 @@ import { AuthContextProvider } from '../context'
 import { ImageProfile } from "../utils/Funciones";
 import { Mensaje } from "./bandeja-de-mensajes";
 import PagesWithAuth from '../HOC/PagesWithAuth'
+import { useTranslation } from 'react-i18next';
 
 const Perfil = () => {
+  const { t } = useTranslation();
   const { user } = AuthContextProvider()
 
   const ListaTabs = [
@@ -32,11 +34,11 @@ const Perfil = () => {
             <img className="rounded-full p-1 bg-white h-40 w-40 object-cover absolute top-12 left-10" src="profile_men.png" />
             <div className="font-display py-14 px-10 leading-5">
               <h2 className="font-semibold text-xl text-gray-300">Francisco Montilla</h2>
-              <p className="font-regular text-md text-gray-300">Desarrollador Frontend MERN Stack | Diseño grafico</p>
-              <p className="font-regular text-xs text-gray-300 flex gap-4 pt-2">Venezuela <span className="font-semibold text-primary">Informacion de contacto</span></p>
+              <p className="font-regular text-md text-gray-300">{t("developergraphic")}</p>
+              <p className="font-regular text-xs text-gray-300 flex gap-4 pt-2">Venezuela <span className="font-semibold text-primary">{t("contactinformation")}</span></p>
               <div className="flex gap-6 pt-4">
-                <Button text="Seguir" primary={true} onClick={handleClick} />
-                <Button text="Compartir perfil" primary={false} onClick={handleClick} />
+                <Button text={t("follow")} primary={true} onClick={handleClick} />
+                <Button text={t("shareprofile")} primary={false} onClick={handleClick} />
               </div>
             </div>
           </div>
@@ -44,7 +46,7 @@ const Perfil = () => {
           <div className="bg-white rounded-xl h-max py-6 w-full shadow-lg overflow-hidden relative">
             <svg className="absolute w-full h-1 top-0 bg-primary" />
             <PencilEdit className="cursor-pointer transition hover:rotate-12 transform absolute top-4 right-4 text-primary w-6 h-6" />
-            <h2 className="text-xl text-gray-300 px-10 py-2">Acerca de</h2>
+            <h2 className="text-xl text-gray-300 px-10 py-2">{t("about")}</h2>
             <p className="text-sm text-gray-500 px-10">Lorem ipsum dolor sit amet consectetur, adipisicing elit. Tempore quod quia sequi, assumenda sunt eius dicta eveniet eum. Soluta rem aliquid minima delectus nisi blanditiis impedit, deserunt voluptatibus incidunt quos.</p>
 
           </div>

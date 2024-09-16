@@ -16,6 +16,7 @@ import { DiseñoComponent } from "../components/Invitaciones/DiseñoComponent";
 import Test from "../components/Invitaciones/Test";
 import { PlantillaTextos } from "../components/Invitaciones/PlantillaTextos";
 import { GoChevronDown } from "react-icons/go";
+import { useTranslation } from 'react-i18next';
 
 export type optionArryOptions = {
   title: string;
@@ -24,6 +25,7 @@ export type optionArryOptions = {
 }
 
 const Invitaciones = () => {
+  const { t } = useTranslation();
   const { user, verificationDone, forCms } = AuthContextProvider()
   const { event } = EventContextProvider();
   const [hoverRef, isHovered] = useHover();
@@ -98,7 +100,7 @@ const Invitaciones = () => {
             <CounterInvitations />
             <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full md:px-6 pt-2 md:pt-6 pb-28 mb-32 md:mb-0 md:p-12 relative">
               <button className="text-primary flex items-center text-[20px] capitalize ml-3 " onClick={() => setStateConfi(!stateConfi)}>
-                Configuracion de la invitacion
+                {t("invitationsettings")}
                 <span> <GoChevronDown className={` h-6 w-6 text-azulCorporativo cursor-pointer transition-all ml-2 ${stateConfi && "rotate-180"}`} /></span>
               </button>
               <div className={`${stateConfi ? "" : "hidden"}`}>

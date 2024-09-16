@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { AuthContextProvider } from "../context";
+import { useTranslation } from 'react-i18next';
 
 
 
 const Chat = () => {
+    const { t } = useTranslation();
     //const { GrupoEventos } = useContext(GrupoEventosContext)
     const { user } = AuthContextProvider()
     const [evento_activo, setEvento_activo] = useState([]);
@@ -47,7 +49,7 @@ const Chat = () => {
                     </div>
                 </div>
                 <div>                <button className="button-primary">
-                    Prueba
+                    {t("test")}
                 </button>
                     <div>
                         <label>eventos, largo array: {evento_activo?.invitados_array?.length} invitadosSelect: {invitadosSelect?.toString()}</label>
@@ -66,13 +68,13 @@ const Chat = () => {
                             <button className="text-black bg-gray-300 px-4 py-2 hover:bg-gray-900 hover:text-white transition" onClick={e => abrir_chat(e)} type="button">+</button>
                         </div>
 
-                        {invitadosSelect ? <InvitadosSelect evento_activo={evento_activo} state={invitadosSelect} emisorID={act => setEmisorId(act)} set={act => setInvitadosSelect(act)} /> : <p>No hay invitado seleccionado</p>}
+                        {invitadosSelect ? <InvitadosSelect evento_activo={evento_activo} state={invitadosSelect} emisorID={act => setEmisorId(act)} set={act => setInvitadosSelect(act)} /> : <p>{t("noguestselected")}</p>}
                         <div>
                             <ChatComp />
                         </div>
                     </div>
                     <div>
-                        <label>grupos</label>
+                        <label>{t("groups")}</label>
                     </div>
                     <div /></div>
             </div>
@@ -81,6 +83,7 @@ const Chat = () => {
 }
 
 const ChatComp = (props) => {
+    const { t } = useTranslation();
     const { mensajes, set, state } = props
     const [input, setInput] = useState("");
     const [valor, setValor] = useState("");
@@ -94,17 +97,17 @@ const ChatComp = (props) => {
         <>
             <div>
                 <ul className="w-max h-30 w-60 overflow-auto cursor-pointer ">
-                    <li key={1} className="hover:bg-base" onClick={e => iniciar_chat(e)}>aqui el mensaje</li>
-                    <li key={2} className="hover:bg-base" onClick={e => iniciar_chat(e)}>aqui el mensaje</li>
-                    <li key={3} className="hover:bg-base" onClick={e => iniciar_chat(e)}>aqui el mensaje</li>
-                    <li key={4} className="hover:bg-base" onClick={e => iniciar_chat(e)}>aqui el mensaje</li>
-                    <li key={5} className="hover:bg-base" onClick={e => iniciar_chat(e)}>aqui el mensaje</li>
-                    <li key={6} className="hover:bg-base" onClick={e => iniciar_chat(e)}>aqui el mensaje</li>
+                    <li key={1} className="hover:bg-base" onClick={e => iniciar_chat(e)}>{t("heremessage")}</li>
+                    <li key={2} className="hover:bg-base" onClick={e => iniciar_chat(e)}>{t("heremessage")}</li>
+                    <li key={3} className="hover:bg-base" onClick={e => iniciar_chat(e)}>{t("heremessage")}</li>
+                    <li key={4} className="hover:bg-base" onClick={e => iniciar_chat(e)}>{t("heremessage")}</li>
+                    <li key={5} className="hover:bg-base" onClick={e => iniciar_chat(e)}>{t("heremessage")}</li>
+                    <li key={6} className="hover:bg-base" onClick={e => iniciar_chat(e)}>{t("heremessage")}</li>
                 </ul>
             </div>
             <div>
                 <input value={input} placeholder="aqui el mensaje" onInput={(e) => setInput(e.target.value)} ></input>
-                <button className="text-black bg-gray-300 px-4 py-2 hover:bg-gray-900 hover:text-white transition" onClick={(e) => enviar_mensaje(e)} type="button">enviar</button>
+                <button className="text-black bg-gray-300 px-4 py-2 hover:bg-gray-900 hover:text-white transition" onClick={(e) => enviar_mensaje(e)} type="button">{t("sends")}</button>
 
             </div>
         </>

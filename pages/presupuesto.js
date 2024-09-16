@@ -16,8 +16,10 @@ import BlockTitle from "../components/Utils/BlockTitle";
 import { useToast } from "../hooks/useToast";
 import { useMounted } from "../hooks/useMounted"
 import { useAllowed } from "../hooks/useAllowed"
+import { useTranslation } from 'react-i18next';
 
 const Presupuesto = () => {
+  const { t } = useTranslation();
 
   useMounted()
   const [showCategoria, setShowCategoria] = useState({
@@ -64,7 +66,7 @@ const Presupuesto = () => {
                   className={`w-[40%] md:w-[270px] py-1  ${active == "presupuesto" ? "bg-primary text-white" : "bg-white text-primary"
                     } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
                 >
-                  <p>Presupuesto</p>
+                  <p>{t("budget")}</p>
                 </div>
 
                 <div
@@ -72,7 +74,7 @@ const Presupuesto = () => {
                   className={`w-[25%] md:w-1/2 py-1 ${active == "pagos" ? "bg-primary text-white" : "bg-white text-primary"
                     } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90 border-x-2`}
                 >
-                  <p>Pagos</p>
+                  <p>{t("payments")}</p>
                 </div>
 
                 <div
@@ -80,7 +82,7 @@ const Presupuesto = () => {
                   className={` w-[40%] md:w-[270px] py-1 ${active == "futuro" ? "bg-primary text-white" : "bg-white text-primary"
                     } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
                 >
-                  <p>Pagos pendientes</p>
+                  <p>{t("pendingpayments")}</p>
                 </div>
 
               </div>
@@ -118,7 +120,7 @@ const Presupuesto = () => {
                               <div className=" bg-white shadow-md rounded-xl grid place-items-center p-4">
                                 <DineroIcon className="w-12 h-12 text-primary " />
                                 <p className="font-display text-gray-500 font-light text-md grid place-items-center">
-                                  Coste Final <br />
+                                  {t("finalCost")} <br />
                                   <span className="font-semibold text-lg text-center">
                                     {getCurrency(
                                       event?.presupuesto_objeto?.coste_final,
@@ -129,7 +131,7 @@ const Presupuesto = () => {
                                 <div className=" w-full rounded-xl overflow-hidden flex my-2">
                                   <div className="w-1/2 bg-primary py-1 px-3">
                                     <p className="text-xs font-display text-white">
-                                      Pagado {
+                                      {t("paid")} {
                                         getCurrency(
                                           event?.presupuesto_objeto?.pagado,
                                           event?.presupuesto_objeto?.currency
@@ -140,7 +142,7 @@ const Presupuesto = () => {
 
                                   <div className="w-1/2 bg-tertiary py-1 px-3">
                                     <p className="text-xs font-display text-primary">
-                                      Por pagar {getCurrency(event?.presupuesto_objeto?.coste_final - event?.presupuesto_objeto?.pagado, event?.presupuesto_objeto?.currency)}
+                                      {t("payable")} {getCurrency(event?.presupuesto_objeto?.coste_final - event?.presupuesto_objeto?.pagado, event?.presupuesto_objeto?.currency)}
                                     </p>
                                   </div>
                                 </div>
@@ -148,7 +150,7 @@ const Presupuesto = () => {
                             </div>
                             <div className="w-full pt-2">
                               <h2 className="font-display pb-2 text-xl text-gray-500 font-semibold text-center w-full">
-                                ¿Cuanto cuesta mi evento?
+                                {t("howost")}
                               </h2>
                               <Grafico categorias={categorias} />
                             </div>
@@ -193,6 +195,7 @@ const Presupuesto = () => {
 export default Presupuesto;
 
 const MontoPresupuesto = ({ estimado }) => {
+  const { t } = useTranslation();
   const [modificar, setModificar] = useState(false);
   const [value, setValue] = useState(estimado.toFixed(2));
   const [mask, setMask] = useState();
@@ -264,6 +267,7 @@ const MontoPresupuesto = ({ estimado }) => {
   }
 
   const handleChangeS = (e) => {
+    
     const params = {
       query: `mutation {
         editCurrency(evento_id:"${event._id}", currency:"${e.target.value}"  ){
@@ -291,7 +295,7 @@ const MontoPresupuesto = ({ estimado }) => {
     <>
       <CochinoIcon className="w-12 h-12 text-gray-500 " />
       <p className="font-display text-gray-500 font-light text-md grid place-items-center">
-        Presupuesto estimado <br />
+        {t("estimatedbudget")} <br />
       </p>
       {modificar
         ? <input
@@ -334,6 +338,7 @@ const MontoPresupuesto = ({ estimado }) => {
 
 // Componente para mostrar todas las categorias
 const BlockListaCategorias = ({ categorias_array, set }) => {
+  const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState([false, ""]);
   const shouldRenderChild = useDelayUnmount(isMounted[0], 500);
   const [categorias, setCategorias] = useState([]);
@@ -375,10 +380,10 @@ const BlockListaCategorias = ({ categorias_array, set }) => {
       <div className="bg-white w-full shadow-md rounded-xl h-max ">
         <button
           onClick={() => !isAllowed() ? ht() : setIsMounted([true, "crear"])}
-          className="focus:outline-none bg-primary rounded-xl font-display font-light text-md flex gap-2 w-full transform py-1 items-center justify-center text-white hover:scale-105 transition transform"
+          className="focus:outline-none bg-primary rounded-xl font-display font-light text-md flex gap-2 w-full py-1 items-center justify-center text-white hover:scale-105 transition transform"
         >
           <PlusIcon className="text-white w-4 h-4" />
-          Nueva Categoria
+          {t("newcategory")}
         </button>
         <ul className={`w-full flex flex-col font-display text-sm h-44 overflow-y-auto md:h-max divide-y ${colorText} ${Presu == 0 ? "cursor-not-allowed*" : "cursor-pointer"}`}>
           {categorias?.map((item, idx) => (

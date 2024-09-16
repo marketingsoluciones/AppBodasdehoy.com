@@ -10,6 +10,8 @@ import { useToast } from '../hooks/useToast';
 import Cookies from "js-cookie";
 import { useAuthentication } from '../utils/Authentication';
 import { ExitIcon, HeartIconOutline, SettingsIconOutline, StartIconOutline } from "../components/icons";
+import { useTranslation } from 'react-i18next';
+
 // import { AlertDesarrollo } from "../components/modals/AlertDesarrollo";
 
 export type optionComponent = {
@@ -20,6 +22,7 @@ export type optionComponent = {
 };
 
 const Configuration = () => {
+  const { t } = useTranslation();
   const [isActive, setActive] = useState(0);
   const [modal, setModal] = useState(false)
   const { setLoading } = LoadingContextProvider()
@@ -80,7 +83,7 @@ const Configuration = () => {
         <div className="flex flex-col items-center justify-start w-full text-sm gap-6">
           <PerfilFoto />
           <button onClick={handleSignOut} className="bg-red-500 px-3 py-1 rounded text-white text-sm sm:hidden top-2 left-2 flex items-center gap-2">
-            <ExitIcon /> Cerrar sesión
+            <ExitIcon /> {t("logoff")}
           </button>
           {/* <PerfilOpciones
             components={components}

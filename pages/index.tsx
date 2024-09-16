@@ -13,8 +13,10 @@ import { Event } from "../utils/Interfaces";
 import VistaSinCookie from "../pages/vista-sin-cookie"
 import { useRouter } from "next/router";
 import { useToast } from "../hooks/useToast";
+import { useTranslation } from 'react-i18next';
 
 const Home: NextPage = () => {
+  
   const { user, verificationDone, config, setUser } = AuthContextProvider()
   const { eventsGroup, eventsGroupDone } = EventsGroupContextProvider()
   const { setEvent } = EventContextProvider()
@@ -121,6 +123,7 @@ interface propsBanner {
   set: Dispatch<SetStateAction<boolean>>;
 }
 const Banner: FC<propsBanner> = ({ set, state }) => {
+  const { t } = useTranslation();
   const { eventsGroup } = EventsGroupContextProvider();
   const { actionModals, setActionModals } = AuthContextProvider()
   const ConditionalAction = () => {
@@ -135,20 +138,20 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
       <div className="md:max-w-screen-lg 2xl:max-w-screen-xl w-full grid md:grid-cols-5 h-full">
         <div className="flex flex-col justify-center relative py-10 md:py-0 col-span-2">
           <h2 className="font-display font-medium text-2xl md:text-5xl tracking-tight	text-primary mb-1.5">
-            Organiza tus eventos
+            {t("organizeyourevents")}
           </h2>
           <h3 className="font-display font-medium text-1xl md:text-3xl tracking-tight	text-gray-500 mb-1.5">
-            Comparte, colabora e invita
+            {t("sharecollaborateinvite")}
           </h3>
           <h1 className="font-display font-base text-md tracking-tight text-primary">
-            Planifica tus celebraciones <span className="font-semibold">sin éstres.</span>
+            {t("planyourcelebrations")}<span className="font-semibold">{t("inthese")}</span>
           </h1>
           <span className="flex gap-2 justify-start items-end">
             <button
               onClick={() => ConditionalAction()}
               className="mt-4 bg-primary font-display font-medium text-white px-5 md:px-24 py-2 rounded-lg  box-border hover:bg-gray-200 transition focus:outline-none z-20"
             >
-              Crear un evento
+              {t("createanevent")}
             </button>
           </span>
           <LineaHome className="hidden md:flex md:-bottom-10 xl:-bottom-5 absolute z-10 left-0 w-max" />
@@ -206,6 +209,7 @@ export const Lista = [
 ];
 
 const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
+  const { t } = useTranslation();
   const { eventsGroup } = EventsGroupContextProvider();
   const { idxGroupEvent, setIdxGroupEvent } = EventContextProvider()
   const [isActiveStateSwiper, setIsActiveStateSwiper] = useState<number>(idxGroupEvent?.isActiveStateSwiper)
