@@ -216,7 +216,6 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
               alt: "Mujer",
             },
           };
-
           const handleClick = () => {
             setSelected(id);
             setIsMounted(!isMounted);
@@ -243,7 +242,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         Header: "Asistencia",
         accessor: "asistencia",
         Cell: ({ value: initialValue, row, column: { id } }) => {
-          const [value, setValue] = useState(initialValue ?? "No asignado");
+          const [value, setValue] = useState(initialValue ?? "pendiente");
           const [show, setShow] = useState(false);
           const [loading, setLoading] = useState(false);
           useEffect(() => {
@@ -285,7 +284,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                   className="font-display text-gray-500 hover:text-gray-400 transition text-sm capitalize flex gap-2 items-center justify-center focus:outline-none"
                   onClick={() => !isAllowed() ? null : setShow(!show)}
                 >
-                  {cloneElement(dicc[value].icon, { className: "w-5 h-5" })}
+                  {dicc[value]?.icon && cloneElement(dicc[value]?.icon, { className: "w-5 h-5" })}
                   {value}
                 </button>
                 <ul
@@ -317,6 +316,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         Header: "Menu",
         accessor: "nombre_menu",
         Cell: ({ value: initialValue, row, column: { id } }) => {
+          
           const [value, setValue] = useState(row?.original?.nombre_menu ? row?.original?.nombre_menu : "sin menú");
           const [show, setShow] = useState(false);
           const [loading, setLoading] = useState(false);
@@ -380,6 +380,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         accessor: "tableNameRecepcion",
         Cell: ({ value: initialValue, row, column: { id } }) => {
           const [value, setValue] = useState(initialValue);
+          console.log(value)
           const [show, setShow] = useState(false);
           const router = useRouter();
           return (
@@ -408,6 +409,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                     { _id: null, title: "No Asignado" },
                     ...event?.planSpace.find(elem => elem?.title === "recepción")?.tables
                   ]?.map((elem: any, index) => {
+                    console.log(elem._id)
                     if (elem?.guests?.length < elem?.numberChair || value?._id === elem?._id || !elem?._id) {
                       return (
                         <li

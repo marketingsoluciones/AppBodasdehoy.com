@@ -12,36 +12,23 @@ import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
 
 interface propsBlockListaInvitados {
-  state: boolean;
-  set: CallableFunction;
   menu?: any
   setGetMenu?: any
   createPDF?: any
   setCreatePDF?: any
+  ConditionalAction?:any
+  handleClick?:any
 }
 
-const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu, setGetMenu, createPDF, setCreatePDF }) => {
+const BlockListaInvitados: FC<propsBlockListaInvitados> = ({  menu, setGetMenu, createPDF, setCreatePDF, ConditionalAction, handleClick }) => {
   const { event } = EventContextProvider();
-  const { actionModals, setActionModals } = AuthContextProvider()
   const [isMounted, setIsMounted] = useState(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const [invitadoSelected, setSelected] = useState<string | null>(null);
   const toast = useToast()
   const [isAllowed, ht] = useAllowed()
 
-  const handleClick = (e, click) => {
-    e.preventDefault();
-    set({ state: !state, click: click });
-  };
 
-  const ConditionalAction = ({ e }) => {
-    if (event.invitados_array.length >= 1) {
-      setActionModals(!actionModals)
-    } else {
-      handleClick(e, "invitado")
-    }
-
-  }
 
 
   return (
@@ -68,13 +55,12 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu, s
           <PlusIcon />
           Menu
         </button>
-        <button
+        {/* <button
           onClick={() => !isAllowed() ? ht() : event?.invitados_array.length > 0 ? setCreatePDF(!createPDF) : toast("error", "Debes agregar invitados")}
           className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
         >
-          {/* <PlusIcon /> */}
           Crear PDF
-        </button>
+        </button> */}
       </div>
       {shouldRenderChild && (
         <ModalBottom state={isMounted} set={setIsMounted}>
