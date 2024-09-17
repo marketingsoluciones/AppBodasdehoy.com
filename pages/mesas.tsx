@@ -132,7 +132,7 @@ const Mesas: FC = () => {
       <>
         {/* formulario emergente para crear mesas */}
         {showFormCreateTable ? (
-          <ModalMesa set={setShowFormCreateTable} state={showFormCreateTable} title="Añadir mesa">
+          <ModalMesa set={setShowFormCreateTable} state={showFormCreateTable} title={t("addtable")}>
             <FormCrearMesa
               values={values}
               set={setShowFormCreateTable}
@@ -142,7 +142,7 @@ const Mesas: FC = () => {
         ) : null}
         {/* formulario emergente para editar mesas */}
         {showFormEditar.visible ? (
-          <ModalMesa set={setShowFormEditar} state={showFormEditar} title={`Mesa: "${showFormEditar.table.title}"`}>
+          <ModalMesa set={setShowFormEditar} state={showFormEditar} title={`${t("table")}: "${showFormEditar.table.title}"`}>
             <FormEditarMesa
               set={setShowFormEditar}
               state={showFormEditar}

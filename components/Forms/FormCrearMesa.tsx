@@ -73,12 +73,11 @@ const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
   const toast = useToast()
 
   const validationSchema = yup.object().shape({
-    nombre_mesa: yup.string().required().test("Unico", "El nombre ya esta en uso", values => {
+    nombre_mesa: yup.string().required().test("Unico", t("nameused"), values => {
       return !event.mesas_array.map(item => item.nombre_mesa).includes(values)
-    }).required("El nombre es requerido"),
-    cantidad_sillas: yup.number().required("El Nº de sillas es requerido"),
+    }).required(t("requiredname")),
+    cantidad_sillas: yup.number().required(t("requiredquantity")),
   });
-
 
 
   const initialValues: initialValues = {

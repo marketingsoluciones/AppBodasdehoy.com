@@ -33,7 +33,7 @@ const BlockPlanos: FC<propsBlockPlanos> = () => {
             <div key={idx} className={`${event?.planSpaceSelect === item?._id ? "bg-gray-200" : "bg-none"} rounded-lg flex flex-col w-full h-full transform hover:scale-105 transition justify-center items-center`}>
 
               <VscLayoutMenubar className={`text-primary w-8 h-8 2xl:w-12 2xl:h-12 `} />
-              <span className='text-gray-700 capitalize text-[10px]'> {item?.title}</span>
+              <span className='text-gray-700 capitalize text-[10px]'> {t(item?.title)}</span>
 
             </div>
           </div>)

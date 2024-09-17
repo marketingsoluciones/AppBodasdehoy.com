@@ -148,8 +148,8 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
                   <span className="w-max col-span-1 m-auto inset-0">{dicc[state.table.tipo]?.icon}</span>
                   <div className="font-display hover:text-gray-300 transition text-lg absolute top-3 right-5 cursor-pointer hover:scale-125" onClick={() => set(!state)}>X</div>
                   <div className="col-span-2 flex flex-col gap-1">
-                    <InputField name="nombre_mesa" label="Nombre de la mesa" type="text" className='font-semibold' />
-                    <InputField name="cantidad_sillas" label="N° de sillas" type="number"
+                    <InputField name="nombre_mesa" label={t("nametable")} type="text" className='font-semibold' />
+                    <InputField name="cantidad_sillas" label={t("numberchairs")} type="number"
                       autoComplete="off"
                       className="font-semibold"
                       disabled={values.tipo == "cuadrada" ? true : false}

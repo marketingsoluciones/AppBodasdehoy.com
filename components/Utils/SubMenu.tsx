@@ -3,6 +3,7 @@ import { GiGrandPiano } from 'react-icons/gi';
 import { BsIntersect } from 'react-icons/bs';
 import { ImInsertTemplate } from 'react-icons/im';
 import { HiDocumentReport, HiTemplate } from 'react-icons/hi';
+import { useTranslation } from "react-i18next";
 
 const sutMenus = [
   {
@@ -37,7 +38,7 @@ const sutMenus = [
 
 
 export const SubMenu = ({ itemSelect, setItemSelect }) => {
-
+  const { t } = useTranslation()
 
   const handleClick = (elem) => {
     setItemSelect(elem?.title)
@@ -49,7 +50,7 @@ export const SubMenu = ({ itemSelect, setItemSelect }) => {
         return (
           <div key={idx} onClick={() => handleClick(elem)} className={`w-1/6 h-full flex flex-col items-center justify-center rounded-lg ${elem.title == itemSelect ? "bg-base text-primary font-semibold" : "bg-primary text-white"} ${elem?.title == "invitados" && "md:hidden"}`}>
             {elem?.icon}
-            <span className={`capitalize text-[10px] leading-none`}>{elem?.title}</span>
+            <span className={`capitalize text-[9.5px] leading-none`}>{t(elem?.title)}</span>
           </div>
         )
       })}

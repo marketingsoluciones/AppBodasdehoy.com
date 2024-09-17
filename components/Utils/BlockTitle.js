@@ -5,9 +5,10 @@ import { ModalAddUserToEvent, UsuariosCompartidos } from './Compartir'
 import { IoShareSocial } from 'react-icons/io5'
 import { DiGoogleDrive } from "react-icons/di";
 import { Modal } from './Modal'
+import { useTranslation } from 'react-i18next'
 
 export const BlockTitle = ({ title }) => {
-
+  const { t } = useTranslation()
 
   const { forCms, user } = AuthContextProvider()
   const { event } = EventContextProvider()
@@ -18,7 +19,7 @@ export const BlockTitle = ({ title }) => {
     <div className={`w-full h-14 bg-white rounded-xl shadow-lg ${forCms ? "hidden" : "flex"} items-center justify-between`}>
       <ModalAddUserToEvent openModal={openModal} setOpenModal={setOpenModal} event={event} />
       <div className='flex md:flex-1 flex-col px-2 md:px-6 font-display'>
-        <span className="text-gray-500 text-[18px] leading-[20px] font-bold">{title}</span>
+        <span className="text-gray-500 text-[18px] leading-[20px] font-bold">{t(title)}</span>
         <div className='space-x-1'>
           <span className='md:hidden capitalize text-primary text-[12px] leading-[12px]'>{event?.tipo}</span>
           <span className='md:hidden capitalize text-gray-600 text-[12px] leading-[20px] font-medium'>{event?.nombre}</span>

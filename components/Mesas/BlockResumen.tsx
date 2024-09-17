@@ -26,7 +26,7 @@ const BlockResumen: FC<propsBlockResumen> = ({ InvitadoSentados }) => {
                 event.planSpace.map((item, idx) => {
                     return (
                         <div key={idx} className="md:mb-3 px-2">
-                            <h2 className="text-tertiary font-display text-medium md:text-lg capitalize -mb-1">{item?.title}</h2>
+                            <h2 className="text-tertiary font-display text-medium md:text-lg capitalize -mb-1">{t(item?.title)}</h2>
                             <div className="flex flex-wrap items-center">
                                 <div className="flex w-28 items-center ml-2">
                                     <MesaIcon className="text-white w-6 h-6" />

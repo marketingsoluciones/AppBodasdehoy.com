@@ -54,7 +54,7 @@ const BlockPlantillas: FC<propsBlockPlatillas> = () => {
         <div className="w-full py-2 text-xs 2xl:text-sm">
           <div className="flex flex-col items-center justify-center w-full h-full px-2">
             <p className="w-full text-center">
-              <span className="text-primary ">{t("createtemplates ")}</span>
+              <span className="text-primary mr-1">{t("createtemplates")}</span>
               {t("livingroom")}
             </p>
             <p className="hidden md:block w-full text-center px-4 mt-2">
