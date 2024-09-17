@@ -380,7 +380,6 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         accessor: "tableNameRecepcion",
         Cell: ({ value: initialValue, row, column: { id } }) => {
           const [value, setValue] = useState(initialValue);
-          console.log(value)
           const [show, setShow] = useState(false);
           const router = useRouter();
           return (
@@ -409,7 +408,6 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                     { _id: null, title: "No Asignado" },
                     ...event?.planSpace.find(elem => elem?.title === "recepción")?.tables
                   ]?.map((elem: any, index) => {
-                    console.log(elem._id)
                     if (elem?.guests?.length < elem?.numberChair || value?._id === elem?._id || !elem?._id) {
                       return (
                         <li
@@ -517,6 +515,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         Header: "Acompañantes",
         accessor: "passesQuantity",
         Cell: ({ value: initialValue, column: { id }, ...props }) => {
+          console.log("-->>>", event.showChildrenGuest)
           if (event.showChildrenGuest === props.row.original._id && !props?.row?.isExpanded) {
             setAcompañanteID({ id: props.row.original._id, crear: false })
             props?.toggleAllRowsExpanded(false)

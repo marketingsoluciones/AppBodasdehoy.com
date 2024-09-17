@@ -16,11 +16,11 @@ interface propsBlockListaInvitados {
   setGetMenu?: any
   createPDF?: any
   setCreatePDF?: any
-  ConditionalAction?:any
-  handleClick?:any
+  ConditionalAction?: any
+  handleClick?: any
 }
 
-const BlockListaInvitados: FC<propsBlockListaInvitados> = ({  menu, setGetMenu, createPDF, setCreatePDF, ConditionalAction, handleClick }) => {
+const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ menu, setGetMenu, createPDF, setCreatePDF, ConditionalAction, handleClick }) => {
   const { event } = EventContextProvider();
   const [isMounted, setIsMounted] = useState(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
