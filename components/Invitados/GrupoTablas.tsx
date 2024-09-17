@@ -17,6 +17,7 @@ import { SubTabla } from "./SubTabla";
 import { IoIosArrowDown } from "react-icons/io";
 import { Modal } from "../Utils/Modal";
 import { DeleteConfirmation } from "../Itinerario/MicroComponente/DeleteConfirmation";
+import { useTranslation } from 'react-i18next';
 
 interface propsDatatableGroup {
   GruposArray: string[];
@@ -382,6 +383,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
           const [value, setValue] = useState(initialValue);
           const [show, setShow] = useState(false);
           const router = useRouter();
+          const { t } = useTranslation();
           return (
             <ClickAwayListener onClickAway={() => setShow(false)}>
               <div className="relative w-full flex justify-center items-center">
@@ -434,7 +436,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                     className="*bg-gray-300 cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
                     onClick={() => router.push("/mesas")}
                   >
-                    Añadir mesa
+                    {t("addtable")}
                   </li>
                 </ul>
               </div>
@@ -449,7 +451,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
           const [value, setValue] = useState(initialValue);
           const [show, setShow] = useState(false);
           const router = useRouter();
-
+          const { t } = useTranslation();
           return (
             <ClickAwayListener onClickAway={() => setShow(false)}>
               <div className="relative w-full flex justify-center items-center">
@@ -458,7 +460,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                     onClick={() => router.push("/mesas")}
                     className="bg-tertiary font-display text-sm font-medium px-2rounded hover:text-gray-500 px-3 rounded-lg focus:outline-none"
                   >
-                    Añadir mesa
+                    {t("addtable")}
                   </button>
                 ) : (
                   <button
@@ -503,7 +505,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                     className=" cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
                     onClick={() => router.push("/mesas")}
                   >
-                    Añadir mesa
+                    {t("addtable")}
                   </li>
                 </ul>
               </div>
@@ -811,7 +813,7 @@ const CheckBoxAll: FC<any> = ({ check, ...rest }) => {
       refCheckbox.current.indeterminate = indeterminate;
     }
   }, [refCheckbox, arrIDs, getToggleAllRowsSelectedProps]);
-
+  const { t } = useTranslation();
   return (
     <div className="h-8 w-full grid grid-cols-12 items-center translate-x-[-8px] md:translate-x-[-16px]">
       <label className="relative w-full grid place-items-center col-span-1">
@@ -828,7 +830,7 @@ const CheckBoxAll: FC<any> = ({ check, ...rest }) => {
       {arrIDs.length === 0 ? (
         <div className="col-span-11">
           <p className="font-display text-sm md:text-sm text-gray-500 translate-x-[-8px] md:translate-x-[-22px]">
-            Seleccionar todos
+            {t("selectall")}
           </p>
         </div>
       ) : (

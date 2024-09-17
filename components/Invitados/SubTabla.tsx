@@ -6,6 +6,7 @@ import { RowString } from "./RowString";
 import { guests } from "../../utils/Interfaces";
 import { RowObject } from "./RowObject";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { useTranslation } from 'react-i18next';
 
 interface propsSubTabla {
     row?: any,
@@ -13,6 +14,7 @@ interface propsSubTabla {
 }
 
 export const SubTabla: FC<propsSubTabla> = ({ row, getId }) => {
+    
     const { event } = EventContextProvider();
     const GuestsByFather = event?.invitados_array?.filter((invitado) => invitado?.father === getId)
     
@@ -33,6 +35,7 @@ interface props {
 }
 
 const ListadoComponent: FC<props> = ({ row, GuestsByFather }) => {
+    const { t } = useTranslation();
     const { event, setEvent } = EventContextProvider()
     const sexo = row?.original?.sexo;
     const image = {
@@ -88,23 +91,23 @@ const ListadoComponent: FC<props> = ({ row, GuestsByFather }) => {
                 X
             </button>
             <p className="text-gray-500 text-lg pb-2">
-                Acompañantes
+                {t("companionss")}
             </p>
             <div className="grid grid-cols-12 px-5 justify-between border-b py-4 border-gray-100  transition bg-white capitalize">
                 <span className="items-center col-span-4 flex flex-col ">
-                    <p className="font-body text-[15px] font-semibold">Nombre</p>
+                    <p className="font-body text-[15px] font-semibold">{t("name")}</p>
                 </span>
                 <span className="items-center col-span-2 flex flex-col h-full">
-                    <p className="font-body text-[15px] font-semibold">Asistencia</p>
+                    <p className="font-body text-[15px] font-semibold">{t("attendance")}</p>
                 </span>
                 <span className="items-center col-span-2 flex flex-col h-full">
-                    <p className="font-body text-[15px] font-semibold">Menu</p>
+                    <p className="font-body text-[15px] font-semibold">{t("menu")}</p>
                 </span>
                 <span className="items-center col-span-2 flex flex-col h-full">
-                    <p className="font-body text-[15px] font-semibold">Mesa Recepcion</p>
+                    <p className="font-body text-[15px] font-semibold">{t("receptiontable")}</p>
                 </span>
                 <span className="items-center col-span-2 flex flex-col  h-full">
-                    <p className="font-body text-[15px] font-semibold">Mesa  Ceremonia</p>
+                    <p className="font-body text-[15px] font-semibold">{t("ceremonytable")}</p>
                 </span>
             </div>
             {GuestsByFather.length ? GuestsByFather?.map((item, idx) => {
@@ -114,6 +117,7 @@ const ListadoComponent: FC<props> = ({ row, GuestsByFather }) => {
                     return table
 
                 }
+                
                 return (
                     <div
                         key={idx}
@@ -145,7 +149,7 @@ const ListadoComponent: FC<props> = ({ row, GuestsByFather }) => {
                 )
             }) :
                 <span className="items-center col-span-3 flex gap-3 text-gray-500 justify-center pt-5">
-                    Sin Acompañantes confirmados
+                    {t("noconfirmedcompanions")}
                 </span>
             }
 

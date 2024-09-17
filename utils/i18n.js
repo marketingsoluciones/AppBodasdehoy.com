@@ -897,7 +897,7 @@ i18n
           createtable: "Crear mesa",
           editcategory: "Editar categoría",
           attendance: "Asistencia",
-          companions: "Acompañantes",
+          companionss: "Acompañantes",
           roleguestgroup: "Rol o Grupo de invitados",
           receptiontable: "Mesa Recepción",
           ceremonytable: "Mesa Ceremonia",
@@ -998,6 +998,18 @@ i18n
           newcategory: "Nueva Categoria",
           iinviteyoutologinto: "Te invito a iniciar sesion en ",
           Tobeableyourdreams: "Para poder utilizar la aplicación y organizar el evento de tus sueños",
+
+          /* carpteta de invitados */
+          adults:"adultos",
+          childrenandbabies:"niños y bebes",
+          sit:"sentar",
+          noguestss:"No hay invitados",
+          selectall:"Seleccionar todos",
+          noconfirmedcompanions:"Sin Acompañantes confirmados",
+
+
+
+
 
         }
       }

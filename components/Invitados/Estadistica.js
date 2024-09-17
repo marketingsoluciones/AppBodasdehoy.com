@@ -1,5 +1,7 @@
+import { useTranslation } from 'react-i18next';
 
 const Estadistica = (props) => {
+  const { t } = useTranslation();
   const { total: data } = props;
   const { total, confirmados, pendientes, cancelados } = data;
   return (
@@ -12,7 +14,7 @@ const Estadistica = (props) => {
                 {total}
               </div>
               <div className="text-regular font-light mt-2 text-pink-secondary">
-                Invitados
+                {t("guests")}
               </div>
             </div>
           </div>
@@ -27,18 +29,18 @@ const Estadistica = (props) => {
                 {confirmados}
               </div>
               <div className="text-xs font-light text-blue-primary">
-                confirmados
+                {t("confirmed")}
               </div>
             </div>
             <div className="flex items-center gap-1  pl-2 justify-start">
               <div className="text-xl font-bold text-gray-300">
                 {pendientes}
               </div>
-              <div className="text-xs font-light text-gray-300">pendientes</div>
+              <div className="text-xs font-light text-gray-300">{t("Earrings")}</div>
             </div>
             <div className="flex items-center gap-1 pl-2 justify-start">
               <div className="text-xl font-bold text-red-300">{cancelados}</div>
-              <div className="text-xs font-light text-red-300">cancelados</div>
+              <div className="text-xs font-light text-red-300">{t("cancelled")}</div>
             </div>
           </div>
           <div className="w-1/2 flex items-center justify-center">
@@ -55,7 +57,7 @@ const Estadistica = (props) => {
                 {total}
               </div>
               <div className="text-regular font-light mt-2 text-pink-secondary">
-                Invitados no sentados
+                {t("nonseatedguests")}
               </div>
             </div>
           </div>

@@ -14,6 +14,7 @@ import { useRouter } from "next/router";
 import { BorrarInvitado } from "../../hooks/EditarInvitado";
 import { Modal } from "../Utils/Modal";
 import { DeleteConfirmation } from "../Itinerario/MicroComponente/DeleteConfirmation";
+import { useTranslation } from "react-i18next";
 
 
 interface propsBlockListaInvitados {
@@ -42,6 +43,7 @@ interface handleMoveGuest {
 
 
 export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ createPDF, setCreatePDF, ConditionalAction, handleClick }) => {
+    const { t } = useTranslation();
     const { event, allFilterGuests, setEvent } = EventContextProvider();
     const [isMounted, setIsMounted] = useState(false);
     const shouldRenderChild = useDelayUnmount(isMounted, 500);
@@ -99,21 +101,21 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ createPDF,
                     className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary md:bg-primary md:text-white md:hover:bg-white md:hover:text-primary"
                 >
                     <PlusIcon />
-                    Invitado
+                    {t("guests")}
                 </button>
                 <button
                     onClick={(e) => !isAllowed() ? ht() : handleClick(e, "grupo")}
                     className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
                 >
                     <PlusIcon />
-                    Grupo
+                    {t("group")}
                 </button>
                 <button
                     onClick={(e) => !isAllowed() ? ht() : handleClick(e, "menu")}
                     className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
                 >
                     <PlusIcon />
-                    Menu
+                    {t("menu")}
                 </button>
                 {/* <button
                     onClick={() => !isAllowed() ? ht() : event?.invitados_array.length > 0 ? setCreatePDF(!createPDF) : toast("error", "Debes agregar invitados")}
@@ -129,9 +131,9 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ createPDF,
                         <div className="w-full md:w-5/6">
                             <div className="border-l-2 border-gray-100 pl-3 my-6 w-full ">
                                 <h2 className="font-display text-2xl capitalize text-primary font-light">
-                                    Editar <br />
+                                    {t("edit")} <br />
                                     <span className="font-display text-4xl capitalize text-gray-500 font-medium">
-                                        Invitado
+                                        {t("guest")}
                                     </span>
                                 </h2>
                             </div>
@@ -149,7 +151,7 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ createPDF,
                                 <div className="w-full h-full grid place-items-center">
                                     {" "}
                                     <p className="font-display text-lg text-gray-100">
-                                        No hay invitado seleccionado
+                                        {t("noguestselected")}
                                     </p>
                                 </div>
                             )}

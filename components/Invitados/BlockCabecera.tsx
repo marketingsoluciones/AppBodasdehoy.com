@@ -4,9 +4,11 @@ import { useRouter } from "next/router";
 import { Swiper, SwiperSlide } from "swiper/react";
 import BlockTitle from "../Utils/BlockTitle";
 import { useAllowed } from "../../hooks/useAllowed";
+import { useTranslation } from 'react-i18next';
 
 
 const BlockCabecera = () => {
+  const { t } = useTranslation();
   const { event } = EventContextProvider();
   const router = useRouter();
   const [isAllowed, ht] = useAllowed()
@@ -49,16 +51,16 @@ const BlockCabecera = () => {
             <p className="font-display font-semibold text-2xl md:text-4xl text-primary">
               {ObjInvitado?.total}
             </p>
-            <p className="font-display text-sm md:text-[16px] text-primary">invitados</p>
+            <p className="font-display text-sm md:text-[16px] text-primary">{t("guests")}</p>
           </div>
           <div className="flex flex-col md:gap-1 items-start justify-center h-full col-span-1">
             <p className="font-display font-semibold text-sm md:text-[16px] text-gray-500 flex gap-1">
               {totalSegun("grupo_edad", "adulto")?.length}{" "}
-              <span className="text-xs font-light">adultos</span>
+              <span className="text-xs font-light">{t("adults")}</span>
             </p>
             <p className="font-display font-semibold text-sm  md:text-[16px] text-gray-500 flex gap-1">
               {totalSegun("grupo_edad", "niño")?.length}{" "}
-              <span className="text-xs font-light">niños y bebes</span>
+              <span className="text-xs font-light">{t("childrenandbabies")}</span>
             </p>
           </div>
         </div>
@@ -80,13 +82,13 @@ const BlockCabecera = () => {
         <div className="hidden md:flex w-40 h-40 bg-primary rounded-full col-span-1 absolute right-0 flex-col items-center justify-center z-20">
           <MesaIcon className="text-white" />
           <p className="font-display text-md font-semibold text-white">
-            sentar <span className="font-light">invitados</span>
+            {t("sit")} <span className="font-light">{t("guests")}</span>
           </p>
           <button
             onClick={() => !isAllowed("mesas") ? ht() : router.push("/mesas")}
             className="focus:outline-none bg-tertiary rounded-lg text-gray-700 font-display text-sm font-semibold px-2 "
           >
-            Añadir mesa
+            {t("addtable")}
           </button>
         </div>
       </div>
