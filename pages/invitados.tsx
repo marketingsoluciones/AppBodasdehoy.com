@@ -30,7 +30,6 @@ const Invitados: FC = () => {
     e.preventDefault();
     reciboClick({ state: !isMounted, click: click });
   };
-
   const ConditionalAction = ({ e }) => {
     if (event.invitados_array.length >= 200) {
       setActionModals(!actionModals)

@@ -515,7 +515,6 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         Header: "Acompañantes",
         accessor: "passesQuantity",
         Cell: ({ value: initialValue, column: { id }, ...props }) => {
-          console.log("-->>>", event.showChildrenGuest)
           if (event.showChildrenGuest === props.row.original._id && !props?.row?.isExpanded) {
             setAcompañanteID({ id: props.row.original._id, crear: false })
             props?.toggleAllRowsExpanded(false)
