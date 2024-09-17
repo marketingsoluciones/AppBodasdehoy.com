@@ -1,12 +1,14 @@
+import { useTranslation } from "react-i18next"
 import { IoEyeOutline } from "react-icons/io5"
 import { MdOutlineCancel, MdOutlineEdit } from "react-icons/md"
 
 export const SelectPermissions = ({ item, setValues }) => {
+  const { t } = useTranslation()
 
   return (
     <div className="flex items-center space-x-2 justify-start hover:bg-gray-200 px-4 py-2">
       <div className="cursor-default w-32 capitalize">
-        {item?.title}
+        {t(item?.title)}
       </div>
       <div className="flex items-center space-x-3">
         <div className="cursor-pointer" onClick={() => setValues({ title: item.title, value: "none" })}>

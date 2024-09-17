@@ -4,11 +4,13 @@ import { FormComponent } from "../components/Forms/FormAcompañantes"
 import { Event, guests, menu } from "../utils/Interfaces"
 import { fetchApiEventos, queries } from "../utils/Fetching"
 import { useRouter } from "next/router"
+import { useTranslation } from 'react-i18next';
 
 /* import {  LogoOrganizador } from "../components/icons" */
 
 
 const ConfirmaAsistencia = () => {
+    const { t } = useTranslation();
     const router = useRouter()
     const [guestData, setGuestData] = useState<guests[]>()
     const [guestFather, setGuestFather] = useState<guests>()

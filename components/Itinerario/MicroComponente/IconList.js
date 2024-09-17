@@ -1,5 +1,7 @@
 import ClickAwayListener from "react-click-away-listener"
+import { useTranslation } from 'react-i18next';
 export const IconList = ({ IterArry, openIcon, setOpenIcon, setSelectIcon }) => {
+    const { t } = useTranslation();
     return (
         <ClickAwayListener onClickAway={() => openIcon && setOpenIcon(false)}>
             <div className="flex flex-col items-center">
@@ -15,7 +17,7 @@ export const IconList = ({ IterArry, openIcon, setOpenIcon, setSelectIcon }) => 
                     }
                 </div>
                 <button className="bg-rosa py-1 px-2 text-white rounded-lg mt-3" onClick={() => setOpenIcon(!openIcon)}>
-                    cerrar
+                    {t("close")}
                 </button>
             </div >
         </ClickAwayListener>

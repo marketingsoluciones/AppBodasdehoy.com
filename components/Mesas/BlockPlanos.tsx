@@ -4,12 +4,14 @@ import { EventContextProvider } from '../../context';
 import { VscLayoutMenubar } from 'react-icons/vsc';
 import { planSpace } from '../../utils/Interfaces';
 import { fetchApiEventos, queries } from '../../utils/Fetching';
+import { useTranslation } from 'react-i18next';
 
 interface propsBlockPlanos {
 
 }
 
 const BlockPlanos: FC<propsBlockPlanos> = () => {
+  const { t } = useTranslation();
   const { event, setEvent } = EventContextProvider()
   const handleClick = (item: planSpace) => {
     try {

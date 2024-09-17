@@ -8,6 +8,7 @@ import { Modal } from './Modal'
 
 export const BlockTitle = ({ title }) => {
 
+
   const { forCms, user } = AuthContextProvider()
   const { event } = EventContextProvider()
   const [openModal, setOpenModal] = useState(false)

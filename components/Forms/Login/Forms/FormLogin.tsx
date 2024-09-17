@@ -6,6 +6,7 @@ import { ButtonComponent } from "../../ButtonComponent";
 import { useToast } from "../../../../hooks/useToast";
 import { useAuthentication } from "../../../../utils/Authentication";
 import { AuthContextProvider } from "../../../../context";
+import { useTranslation } from 'react-i18next';
 
 type MyFormValues = {
   identifier: string;
@@ -14,6 +15,7 @@ type MyFormValues = {
 };
 
 const FormLogin: FC<any> = ({ setStage }) => {
+  const { t } = useTranslation();
   const { setIsStartingRegisterOrLogin } = AuthContextProvider()
   const { signIn } = useAuthentication();
   const [passwordView, setPasswordView] = useState(false)
@@ -44,7 +46,7 @@ const FormLogin: FC<any> = ({ setStage }) => {
       <Form className=" text-gray-200 flex flex-col gap-2 py-3 w-full *md:w-3/4">
         <span className="w-full relative ">
           <InputField
-            label={"Correo electronico"}
+            label={t("email")}
             name="identifier"
             // placeholder="ingrese correo electrónico"
             icon={<EmailIcon className="absolute w-4 h-4 inset-y-0 left-4 m-auto text-gray-500" />}
@@ -59,7 +61,7 @@ const FormLogin: FC<any> = ({ setStage }) => {
             type={!passwordView ? "password" : "text"}
             autoComplete="off"
             icon={<LockClosed className="absolute w-4 h-4 inset-y-0 left-4 m-auto  text-gray-500" />}
-            label={"Contraseña"}
+            label={t("password")}
           />
           <div onClick={() => { setPasswordView(!passwordView) }} className="absolute cursor-pointer inset-y-0 top-5 right-4 m-auto w-4 h-4 text-gray-500" >
             {!passwordView ? <Eye /> : <EyeSlash />}
@@ -74,14 +76,14 @@ const FormLogin: FC<any> = ({ setStage }) => {
           Olvidé mi contraseña
         </span> */}
         <div onClick={() => setStage("resetPassword")} className="text-sm text-primary w-full text-left hover:text-gray-300 transition cursor-pointer">
-          Olvidé mi contraseña
+          {t("iforgotmypassword")}
         </div>
         <ButtonComponent
           onClick={() => { }}
           type="submit"
           tabIndex={0}
         >
-          Iniciar sesión
+          {t("signin")}
         </ButtonComponent>
       </Form>
     </Formik>

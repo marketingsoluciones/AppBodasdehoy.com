@@ -4,7 +4,10 @@ import { SubHeader, SelectIcon, IconList, Time, Description, Responsable, Respon
 import { Modal } from "../../Utils/Modal";
 import { Form, Formik } from "formik";
 import { InputTime } from "../../Forms/inputs/InputTime"
+import { useTranslation } from 'react-i18next';
+
 export const Preboda = ({ event, IconArry }) => {
+    const { t } = useTranslation();
     const newDate = new Date(parseInt(event?.fecha));
     const options = { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" };
     const time = newDate.toLocaleDateString("es-VE", options)
@@ -16,19 +19,19 @@ export const Preboda = ({ event, IconArry }) => {
     const ResponsablesArry = [
         {
             icon: "/rol_novia.png",
-            title: "Novia",
+            title: t("girlfriend"),
         },
         {
             icon: "/rol_novio.png",
-            title: "Novio",
+            title: t("groom"),
         },
         {
             icon: "/rol_invitados.png",
-            title: "Invitados",
+            title: t("guest"),
         },
         {
             icon: "/rol_proveedor.png",
-            title: "Proveedor",
+            title: t("supplier"),
         },
 
     ]
@@ -44,7 +47,7 @@ export const Preboda = ({ event, IconArry }) => {
 
     return (
         <>
-            <SubHeader date={time} title={"Preboda"} />
+            <SubHeader date={time} title={t("prewedding")} />
             <Formik initialValues={initialValues} >
                 <Form>
                     <div className="flex items-center justify-center border-b border-dashed pb-3 relative" >

@@ -2,6 +2,7 @@ import { FC } from "react";
 import { Chair } from "./Chair";
 import { SentadoItem } from "./SentadoItem";
 import { propsTableType } from "./MesaComponent";
+import { useTranslation } from 'react-i18next';
 
 interface propsBancos extends propsTableType {
   invitados: any[]
@@ -13,7 +14,8 @@ export const Bancos: FC<propsBancos> = ({ table, invitados, setDisableWrapper, s
   for (let i = 0; i < table?.numberChair; i++) {
     idxsSide?.a?.push(i)
   }
-
+  const { t } = useTranslation();
+  
   return (
     <>
       <div

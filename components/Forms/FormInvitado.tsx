@@ -14,6 +14,7 @@ import { ImportGuest } from "./ImportGuest";
 import { useImportGuest } from "../../hooks/useImportGuest";
 import { ForApiPeople } from "./ForApiGoogle";
 import { phoneUtil, useAuthentication } from "../../utils/Authentication";
+import { useTranslation } from 'react-i18next';
 
 interface propsFormInvitado {
   state: any;
@@ -27,6 +28,7 @@ interface contact {
   tel: string[]
 }
 const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
+  const { t } = useTranslation();
   const { geoInfo } = AuthContextProvider();
   const { event, setEvent } = EventContextProvider();
   const [contact, setContact] = useState(null)
@@ -135,10 +137,10 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
             {showMedioSelectImport && <ImportGuest setShowMedioSelectImport={setShowMedioSelectImport} setContact={setContact} setShowForApiGoogle={setShowForApiGoogle} />}
             <div className="border-l-2 border-gray-100 pl-3 my-2 w-full ">
               <h2 className="font-display text-3xl capitalize text-primary font-light">
-                Crear
+                {t("create")}
               </h2>
               <h2 className="font-display text-5xl capitalize text-gray-500 font-medium">
-                Invitado
+                {t("guest")}
               </h2>
             </div>
 
@@ -154,7 +156,7 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
                   }}
                 >
                   <div className=" flex items-center space-x-2 border px-2 py-0.5 rounded-lg hover:border-gray-300 bg-primary " >
-                    <p className="w-14 text-xs leading-3 capitalize">importar contactos</p>
+                    <p className="w-14 text-xs leading-3 capitalize">{t("importcontacts")}</p>
                     <IoMdContacts className="w-7 h-7" />
                   </div>
                 </div>
@@ -167,7 +169,7 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
                 <InputField
                   //placeholder="960 66 66 66"
                   name="telefono"
-                  label="Telefono"
+                  label={t("phone")}
                   type="telefono"
                 />
                 {/* </div> */}
@@ -176,21 +178,21 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
                 <InputField
                   //placeholder="Ej. Francisco Montilla"
                   name="nombre"
-                  label="Nombre"
+                  label={t("name")}
                   type="text"
                 />
               </div>
               <div className=" w-full h-full flex gap-6">
                 <div className="w-1/2 flex-col flex gap-2 relative">
                   <BooleanSwitch
-                    label="Sexo"
+                    label={t("sex")}
                     lista={["hombre", "mujer"]}
                     name="sexo"
                   />
                 </div>
                 <div className="w-1/2 flex-col flex gap-2 relative">
                   <BooleanSwitch
-                    label="Edad"
+                    label={t("age")}
                     lista={["adulto", "niño"]}
                     name="grupo_edad"
                   />
@@ -200,7 +202,7 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
                 <InputField
                   //placeholder="Ej. jhon@doe.com"
                   name="correo"
-                  label="Correo"
+                  label={t("email")}
                   type="email"
                 />
               </div>
@@ -208,7 +210,7 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
               <div className="w-full h-8 flex flex-col relative text-sm mb-7">
                 <SelectField
                   name={"rol"}
-                  label={"Rol"}
+                  label={t("role")}
                   options={event.grupos_array}
                   nullable={true}
                 />
@@ -219,7 +221,7 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
                 <div className="w-1/2   ">
                   <SelectField
                     name={"nombre_menu"}
-                    label={"Menu"}
+                    label={t("menu")}
                     options={[...event?.menus_array?.map(elem => elem.nombre_menu), "sin menú"]}
                   />
                 </div>
@@ -227,7 +229,7 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
                 <div className="w-1/2">
                   <InputField
                     name="passesQuantity"
-                    label={"No. Acompañantes"}
+                    label={t("nocompanions")}
                     type="number"
                   />
                 </div>
@@ -240,7 +242,7 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
                 disabled={isSubmitting}
                 type="submit"
               >
-                Crear invitado
+                {t("createguest")}
               </button>
             </div>
           </Form>
@@ -279,6 +281,7 @@ interface propsBooleanSwitch extends HtmlHTMLAttributes<HTMLInputElement> {
 }
 
 export const BooleanSwitch: FC<propsBooleanSwitch> = ({ lista, label, disabled, ...props }) => {
+  const { t } = useTranslation();
   const [field, meta, { setValue }] = useField({ name: props.name });
   const [hoverRef, isHovered] = useHover();
 
@@ -312,7 +315,7 @@ export const BooleanSwitch: FC<propsBooleanSwitch> = ({ lista, label, disabled, 
       </div>
       {isHovered && (
         <div className="transform translate-y-1 bg-gray-700 absolute z-10 top-14 rounded-lg text-white px-3 py-1 text-xs">
-          Campo bloqueado, elmine el invitado y créelo nuevamente.
+          {t("lockedfield")}
         </div>
       )}
       {meta.touched && meta.error && (

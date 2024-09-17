@@ -5,13 +5,15 @@ import useHover from "../../hooks/useHover";
 import { ConfirmationBlock } from "../../components/Invitaciones/ConfirmationBlock"
 import { DataTable } from "../../components/Invitaciones/DataTable"
 import {  getRelativeTime } from "../../utils/FormatTime";
+import { useTranslation } from 'react-i18next';
 
 export const GuestTable: FC<any> = ({ data, multiSeled, reenviar, activeFunction }) => {
+  const { t } = useTranslation();
   const [arrEnviarInvitaciones, setArrEnviatInvitaciones] = useState([]);
   const Columna = useMemo(
     () => [
       {
-        Header: "NOMBRE",
+        Header: t("name"),
         accessor: "nombre",
         id: "nombre",
         isVisible: false,
@@ -46,17 +48,17 @@ export const GuestTable: FC<any> = ({ data, multiSeled, reenviar, activeFunction
         },
       },
       {
-        Header: "CORREO",
+        Header: t("mail"),
         accessor: "correo",
         id: "correo",
       },
       {
-        Header: "TELEFONO",
+        Header: t("phone"),
         accessor: "telefono",
         id: "telefono",
       },
       {
-        Header: "INVITACION",
+        Header: t("invitation"),
         accessor: "invitacion",
         id: "invitacion",
         Cell: (props) => {
@@ -94,7 +96,7 @@ export const GuestTable: FC<any> = ({ data, multiSeled, reenviar, activeFunction
         },
       },
       {
-        Header: "ACOMPAÑANTES",
+        Header: t("companions"),
         accessor: "acompañantes",
         id: "acompañantes",
         Cell: (props) => {
@@ -114,7 +116,7 @@ export const GuestTable: FC<any> = ({ data, multiSeled, reenviar, activeFunction
         },
       },
       {
-        Header: "ENVIADO",
+        Header: t("envoy"),
         accessor: "date",
         id: "date",
         Cell: (props) => {

@@ -6,9 +6,11 @@ import { useToast } from '../../hooks/useToast';
 import { image } from "../../utils/Interfaces";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { LoadingItem } from "../Loading";
+import { useTranslation } from 'react-i18next';
 
 
 export const PerfilFoto = () => {
+    const { t } = useTranslation();
     const { user } = AuthContextProvider()
     return (
         <div className="w-full flex flex-col items-center justify-center gap-2">
@@ -25,6 +27,7 @@ export const PerfilFoto = () => {
 }
 
 const ImageProfile: FC = () => {
+    const { t } = useTranslation();
     const auth = getAuth()
     const { user, setUser, config } = AuthContextProvider()
     const [loading, setLoading] = useState<boolean>(false)
@@ -56,7 +59,7 @@ const ImageProfile: FC = () => {
                 }
             }
             reader.readAsDataURL(file);
-            toast("success", "la imagen fue actualizado con exito")
+            toast("success", t("imagesuccessfully"))
             setTimeout(() => {
                 setLoading(false)
             }, 500);
@@ -64,7 +67,7 @@ const ImageProfile: FC = () => {
             setTimeout(() => {
                 setLoading(false)
             }, 500);
-            toast("error", "error al cargar la imagen")
+            toast("error", t("errorloadingimage"))
             console.log(error)
         }
 

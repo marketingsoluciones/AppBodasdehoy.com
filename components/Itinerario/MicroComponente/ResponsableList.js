@@ -1,8 +1,10 @@
 import ClickAwayListener from "react-click-away-listener"
 import { EventContextProvider } from "../../../context"
 import { useState } from "react"
+import { useTranslation } from 'react-i18next';
 
 export const ResponsableList = ({ openModal, setOpenModal, DataArry, setSelectIcon, value }) => {
+    const { t } = useTranslation();
     const { event } = EventContextProvider()
     const [listReturn, setListReturn] = useState("personas")
 
@@ -23,15 +25,15 @@ export const ResponsableList = ({ openModal, setOpenModal, DataArry, setSelectIc
         <ClickAwayListener onClickAway={() => openModal && setOpenModal(false)}>
             <div className="flex flex-col items-center space-y-4 py-2" >
                 <div className="w-full flex flex-col items-center">
-                    <span className="text-primary text-[24px] ">Responsable </span>
+                    <span className="text-primary text-[24px] ">{t("Responsable ")}</span>
                 </div>
                 <div>
                     <div className="w-full flex items-center justify-between text-[17px] ">
                         <button className={` ${listReturn === "personas" ? "bg-gray-100 rounded-t-lg" : null} px-3* w-full pt-1`} onClick={() => setListReturn("personas")}>
-                            Personas
+                            {t("people")}
                         </button>
                         <button className={` ${listReturn === "grupos" ? "bg-gray-100 rounded-t-lg" : null} px-3* w-full pt-1`} onClick={() => setListReturn("grupos")}>
-                            Grupos
+                            {t("groups")}
                         </button>
                     </div>
                     <div className={`" overflow-y-scroll bg-gray-100  rounded-b-lg ${listReturn != "grupos" ? "rounded-r-lg" : " rounded-l-lg"}  flex flex-col h-[380px] space-y-2 pr-2 py-1.5 pl-1.5 `}>
@@ -70,13 +72,13 @@ export const ResponsableList = ({ openModal, setOpenModal, DataArry, setSelectIc
                                     )
                                 })
                                 : <div className=" flex items-center justify-center h-full text-[13.6px] text-center">
-                                        no tienes invitados colaboradores
+                                        {t("collaboratingguests")}
                                 </div>
                         }
                     </div>
                 </div>
                 <button className="bg-primary w-[230px] py-1 px-2 text-white rounded-lg text-" onClick={() => setOpenModal(!openModal)}>
-                    Guardar
+                    {t("save")}
                 </button>
             </div>
         </ClickAwayListener>

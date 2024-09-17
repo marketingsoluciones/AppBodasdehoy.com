@@ -2,8 +2,10 @@ import { FC, useEffect, useState } from "react";
 import { useRowSelect, useSortBy, useTable } from "react-table";
 import { IndeterminateCheckbox } from "./IndeterminateCheckbox";
 import { DataTableGroupContextProvider } from "../../context/DataTableGroupContext";
+import { useTranslation } from 'react-i18next';
 
 export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, setArrEnviatInvitaciones, reenviar, activeFunction }) => {
+  const { t } = useTranslation();
   const [valir, setValir] = useState(false)
   const [asd, setAsd] = useState({ arrIDs: undefined, getToggleAllRowsSelectedProps: undefined })
 
@@ -140,7 +142,7 @@ export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, set
               </tr>
             );
           }) : <tr className="transition border-b border-base hover:bg-base cursor-pointer w-full grid place-items-center">
-            <td className="py-5 font-display text-lg text-gray-500 uppercase ">No hay invitados asociados al evento</td></tr>}
+            <td className="py-5 font-display text-lg text-gray-500 uppercase ">{t("noguests")}</td></tr>}
         </tbody>
       </table>
       

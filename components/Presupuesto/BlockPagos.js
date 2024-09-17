@@ -7,9 +7,11 @@ import FormEditarPago from "../Forms/FormEditarPago";
 import { EditarIcon } from "../icons";
 import { capitalize } from '../../utils/Capitalize';
 import { useAllowed } from "../../hooks/useAllowed";
+import { useTranslation } from 'react-i18next';
 
 
 const BlockPagos = ({ estado, getId,  setGetId, cate }) => {
+  const { t } = useTranslation();
   const [active, setActive] = useState(0);
 
   return (
@@ -29,6 +31,7 @@ const BlockPagos = ({ estado, getId,  setGetId, cate }) => {
 export default BlockPagos;
 
 const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
+  const { t } = useTranslation();
   const { event } = EventContextProvider()
   const categorias = event?.presupuesto_objeto?.categorias_array;
   const [PagosOrFormAdd, setShowPagos] = useState(true)
@@ -39,7 +42,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
     () =>
       [
         {
-          Header: "Estado",
+          Header: t("state"),
           accessor: "estado",
           id: "estado",
           Cell: (props) => {
@@ -60,7 +63,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
           },
         },
         {
-          Header: "Proveedor",
+          Header: t("supplier"),
           accessor: "nombreGasto",
           id: "gasto",
           Cell: (props) => {
@@ -79,7 +82,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
           },
         },
         {
-          Header: "Fecha de pago",
+          Header: t("paymentdate"),
           accessor: "fecha_pago",
           id: "detalles",
           Cell: (props) => {
@@ -95,7 +98,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
           },
         },
         {
-          Header: "Importe",
+          Header: t("amount"),
           accessor: "importe",
           id: "importe",
           Cell: (props) => {
@@ -112,7 +115,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
           },
         },
         {
-          Header: "Modo de pago",
+          Header: t("paymentmethod"),
           accessor: "medio_pago",
           id: "medio_pago",
           Cell: (props) => {
@@ -128,7 +131,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
           },
         },
         {
-          Header: "Concepto",
+          Header: t("concept"),
           accessor: "concepto",
           id: "concepto",
           Cell: (props) => {
@@ -175,7 +178,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
     () =>
       [
         {
-          Header: "Estado",
+          Header: t("state"),
           accessor: "estado",
           id: "estado",
           Cell: (props) => {
@@ -196,7 +199,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
           },
         },
         {
-          Header: "Proveedor",
+          Header: t("supplier"),
           accessor: "nombreGasto",
           id: "gasto",
           Cell: (props) => {
@@ -215,7 +218,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
           },
         },
         {
-          Header: "Fecha de futuro pago",
+          Header: t("futurepaymentdate"),
           accessor: "fecha_pago",
           id: "detalles",
           Cell: (props) => {
@@ -231,7 +234,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
           },
         },
         {
-          Header: "Concepto",
+          Header: t("concept"),
           accessor: "concepto",
           id: "concepto",
           Cell: (props) => {

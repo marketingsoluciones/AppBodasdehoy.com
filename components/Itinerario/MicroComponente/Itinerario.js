@@ -13,10 +13,12 @@ import { useRouter } from "next/router";
 import { useAllowed } from "../../../hooks/useAllowed";
 import { DeleteConfirmation } from "./DeleteConfirmation";
 import { WarningMessage } from "./WarningMessage";
+import { useTranslation } from 'react-i18next';
 
 
 
 export const Itinerario = ({ data }) => {
+    const { t } = useTranslation();
     const { domain } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
     const [isAllowed, ht] = useAllowed()
@@ -120,23 +122,23 @@ export const Itinerario = ({ data }) => {
                 <AddEvent tasks={tasks} itinerario={itinerario} disable={disable} />
             </div>
             {modal && <Modal classe={"w-[95%] md:w-[450px] h-[200px]"}>
-                <DeleteConfirmation setModal={setModal} modal={modal} title={"¿ Estas seguro de borrar todo el itinerario ?"} handle={deleteItinerario} />
+                <DeleteConfirmation setModal={setModal} modal={modal} title={t("deleteitinerary")} handle={deleteItinerario} />
             </Modal>
             }
             {modalStatus && <Modal classe={"w-[95%] md:w-[450px] h-[370px]"}>
-                <WarningMessage setModal={setModalStatus} modal={modalStatus} title={"Visibilidad"} />
+                <WarningMessage setModal={setModalStatus} modal={modalStatus} title={t("visibility")} />
             </Modal>
             }
             {modalWorkFlow && <Modal classe={"w-[95%] md:w-[450px] h-[370px]"}>
-                <WarningMessage setModal={setModalWorkFlow} modal={modalWorkFlow} title={"WorkFlow"} />
+                <WarningMessage setModal={setModalWorkFlow} modal={modalWorkFlow} title={t("workflow")} />
             </Modal>
             }
             {modalCompartirTask && <Modal classe={"w-[95%] md:w-[450px] h-[370px]"}>
-                <WarningMessage setModal={setModalCompartirTask} modal={modalCompartirTask} title={"Compartir"} />
+                <WarningMessage setModal={setModalCompartirTask} modal={modalCompartirTask} title={t("share")} />
             </Modal>
             }
             {modalPlantilla && <Modal classe={"w-[95%] md:w-[450px] h-[370px]"}>
-                <WarningMessage setModal={setModalPlantilla} modal={modalPlantilla} title={"Plantilla"} />
+                <WarningMessage setModal={setModalPlantilla} modal={modalPlantilla} title={t("template")} />
             </Modal>
             }
         </>

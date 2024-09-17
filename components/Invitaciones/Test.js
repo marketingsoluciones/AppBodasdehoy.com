@@ -12,8 +12,10 @@ import { ActivatorPremium } from "../ActivatorPremium";
 import { Tooltip } from "../Utils/Tooltip";
 import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
+import { useTranslation } from 'react-i18next';
 
 export default function Test({ TitelComponent }) {
+  const { t } = useTranslation();
   const { geoInfo } = AuthContextProvider()
   const { event } = EventContextProvider()
   const { isPhoneValid } = useAuthentication()
@@ -110,20 +112,20 @@ export default function Test({ TitelComponent }) {
               {TitelComponent === "email"
                 ? <InputField
                   name="email"
-                  label={"Correo electronico"}
+                  label={t("email")}
                   type="email"
                   icon={<EmailIcon className="absolute w-4 h-4 inset-y-0 left-4 m-auto text-gray-500" />}
                 />
                 : <InputField
                   name="phoneNumber"
-                  label={"Número de telefono"}
+                  label={t("phonenumber")}
                   type="telefono"
                   autoComplete="off"
                   icon={<PhoneMobile className="absolute w-4 h-4 inset-y-0 left-4 m-auto text-gray-500" />}
                 />
               }
               <Tooltip
-                label="Primero debes añadir la imagen de la invitación"
+                label={t("firstyoumust")}
                 icon={<IconLightBulb16 className="w-6 h-6" />}
                 disabled={TitelComponent !== "email" || event?.imgInvitacion}>
                 <button

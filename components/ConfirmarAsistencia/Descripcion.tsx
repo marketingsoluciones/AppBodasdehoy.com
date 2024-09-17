@@ -1,27 +1,29 @@
 import { CorazonIcono } from "../icons"
+import { useTranslation } from 'react-i18next';
 
 export const DescripcionComponente = () => {
+    const { t } = useTranslation();
     const pointsArry = [
         {
             icon: <CorazonIcono />,
-            text: "Confirma tu lista de compañantes"
+            text: t("companionlist")
         },
         {
             icon: <CorazonIcono />,
-            text: "¿Son alérgicos a algún alimento? apúntalo para que el catering lo tome en cuenta"
+            text: t("allergictoanyfood")
         },
         {
             icon: <CorazonIcono />,
-            text: "Confirmar su asistencia al evento "
+            text: t("totheevent")
         }
     ]
     return (
         <div className="font-body space-y-5">
             <p className="text-4xl text-secondary font-semibold pt-10  md:px-32">
-                Eres un invitado especial al evento
+               {t("specialguest")}
             </p>
             <p className="text-md text-secondary font-regular  md:px-32">
-                Registra aquí los detalles de tus acompañantes para así brindarles una experiencia inolvidable.
+                {t("registerexperience")}
             </p>
             <div className="md:px-32 space-y-4">
                 {

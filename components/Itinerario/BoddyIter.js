@@ -3,8 +3,10 @@ import { CiHeart } from "react-icons/ci";
 import { BsCake } from "react-icons/bs";
 import { LiaRingSolid } from "react-icons/lia";
 import { MenuOptions, Itinerario } from "./MicroComponente"
+import { useTranslation } from 'react-i18next';
 
 export const BoddyIter = ({ IterArryst, setIterArryst, createPdf, setOption }) => {
+    const { t } = useTranslation();
     const [optionSelect, setOptionSelect] = useState("el gran día")
 
     const handleClickOption = (idx) => {
@@ -17,15 +19,15 @@ export const BoddyIter = ({ IterArryst, setIterArryst, createPdf, setOption }) =
 
     const OptionsArry = [
         {
-            title: "protocolo",
+            title: t("protocol"),
             icon: <BsCake />,
         },
         {
-            title: "preboda",
+            title: t("prewedding"),
             icon: <CiHeart />,
         },
         {
-            title: "el gran día",
+            title: t("thebigday"),
             icon: <LiaRingSolid />,
         },
     ]

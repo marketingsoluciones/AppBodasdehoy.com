@@ -3,9 +3,11 @@ import { Dispatch, FC, SetStateAction, useState } from "react";
 import BlockDefault from "./BlockDefault";
 import DragTable from "./DragTable"
 
+
 interface propsBlockPanelElements {
 
 }
+
 
 export const ListElements = [
   { icon: <Arbol className="relative w-max" />, title: "arbol", tipo: "element", size: { width: 60, height: 120 } },

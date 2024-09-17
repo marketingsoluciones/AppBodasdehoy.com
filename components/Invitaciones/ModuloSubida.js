@@ -5,6 +5,7 @@ import { CheckIcon, EditarIcon, SubirImagenIcon } from "../icons";
 import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
 import Resizer from "react-image-file-resizer";
+import { useTranslation } from 'react-i18next';
 
 const resizeImage = (file) => {
   try {
@@ -31,6 +32,7 @@ const resizeImage = (file) => {
 }
 
 const ModuloSubida = ({ event, use }) => {
+  const { t } = useTranslation();
   const [cargado, setCargado] = useState({ titulo: "esperando archivo" });
   const [imagePreviewUrl, setImagePreviewUrl] = useState({
     file: {},
@@ -105,7 +107,7 @@ const ModuloSubida = ({ event, use }) => {
       };
       reader.readAsDataURL(file);
     } catch (error) {
-      toast("error", "Upss... Ha ocurrido un error prueba con otra imagen")
+      toast("error", t("erroroccurred"))
       console.log(error)
     }
   };
@@ -133,13 +135,13 @@ const ModuloSubida = ({ event, use }) => {
             className="hover:scale-120 transform text-md flex flex-col items-center justify-center gap-1 cursor-pointer relative"
           >
             <SubirImagenIcon />
-            {imagePreviewUrl.preview ? cargado.titulo : "Añadir invitación"}
+            {imagePreviewUrl.preview ? cargado.titulo : t("addinvitation")}
           </label>
         )}
         <div className="w-full flex flex-col text-gray-500 bottom-0 translate-y-full absolute">
           <label onClick={() => !isAllowed() ? ht() : null} htmlFor={!isAllowed() ? "null" : "file"} className="gap-1 flex items-center justify-center w-full bg-gray-200 px-3 py-1 cursor-pointer rounded-b-xl shadow-sm hover:z-10">
             <div className="flex hover:scale-105 transition transform">
-              Cambiar <EditarIcon className="w-6 h-6" />
+              {t("change")} <EditarIcon className="w-6 h-6" />
             </div>
           </label>
           {/*<span className={`${"text-xs text-gray-600 ml-2 mb-1 flex justify-center"}`}>Tamaño máximo 5M</span>*/}
@@ -172,7 +174,7 @@ const BotonConfirmar = ({ onClick }) => {
       onClick={onClick}
       className="flex gap-1 items-center justify-center bg-secondary w-full  px-3 py-1 hover:scale-105 transition transform rounded-bl-xl hover:z-10"
     >
-      Confirmar <CheckIcon />
+      {t("confirm")} <CheckIcon />
     </div>
   );
 };

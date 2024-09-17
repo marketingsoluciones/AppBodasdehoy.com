@@ -6,48 +6,57 @@ import { useAllowed } from "../../hooks/useAllowed";
 import { ArrowDown, CanceladoIcon, ConfirmadosIcon, PendienteIcon, PlusIcon } from "../icons";
 import ModalBottom from "../Utils/ModalBottom";
 import FormEditarInvitado from "../Forms/FormEditarInvitado";
-import { guests, table } from "../../utils/Interfaces";
+import { guests, table, Event } from "../../utils/Interfaces";
 import { SlOptionsVertical } from "react-icons/sl";
+import { fetchApiEventos, queries } from "../../utils/Fetching";
+import ClickAwayListener from "react-click-away-listener";
+import { useRouter } from "next/router";
+
 
 interface propsBlockListaInvitados {
-    state: boolean;
-    set: CallableFunction;
     menu?: any
     setGetMenu?: any
     createPDF?: any
     setCreatePDF?: any
+    ConditionalAction?: any
+    handleClick?: any
 }
 
 interface guestsExt extends guests {
     tableNameRecepcion: Partial<table>
     tableNameCeremonia: Partial<table>
 }
-export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ state, set, createPDF, setCreatePDF }) => {
-    const { event, allFilterGuests } = EventContextProvider();
-    const { actionModals, setActionModals } = AuthContextProvider()
+interface handleMoveGuest {
+    event: Event
+    setEvent: any
+    toast: any
+    invitadoID: string
+    previousTable: Partial<table>
+    lastTable: Partial<table>
+    f1: number
+}
+
+
+
+export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ createPDF, setCreatePDF, ConditionalAction, handleClick }) => {
+    const { event, allFilterGuests, setEvent } = EventContextProvider();
     const [isMounted, setIsMounted] = useState(false);
     const shouldRenderChild = useDelayUnmount(isMounted, 500);
     const [invitadoSelected, setSelected] = useState<string | null>(null);
     const GuestsFathers = event?.invitados_array?.filter((invitado) => !invitado?.father)
     const [data, setData] = useState<{ titulo: string; data: guestsExt[] }[]>([]);
     const [modal, setModal] = useState({ state: false, title: null, handle: () => { } })
-
+    const [showCards, setShowCards] = useState({})
     const toast = useToast()
     const [isAllowed, ht] = useAllowed()
 
-    const handleClick = (e, click) => {
-        e.preventDefault();
-        set({ state: !state, click: click });
+    const toggleVisibility = (itemTitle) => {
+        setShowCards((prevState) => ({
+            ...prevState,
+            [itemTitle]: !prevState[itemTitle],
+        }));
     };
 
-    const ConditionalAction = ({ e }) => {
-        if (event.invitados_array.length >= 1) {
-            setActionModals(!actionModals)
-        } else {
-            handleClick(e, "invitado")
-        }
-
-    }
 
     useEffect(() => {
         let asd = {}
@@ -78,7 +87,6 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ state, set
         Data && setData(Object.values(Data));
     }, [allFilterGuests]);
 
-    console.log(data)
 
     return (
         <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full pt-2 pb-28 mb-32  relative" >
@@ -104,13 +112,13 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ state, set
                     <PlusIcon />
                     Menu
                 </button>
-                <button
+                {/* <button
                     onClick={() => !isAllowed() ? ht() : event?.invitados_array.length > 0 ? setCreatePDF(!createPDF) : toast("error", "Debes agregar invitados")}
                     className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
                 >
-                    {/* <PlusIcon /> */}
+                    
                     Crear PDF
-                </button>
+                </button> */}
             </div>
             {shouldRenderChild && (
                 <ModalBottom state={isMounted} set={setIsMounted}>
@@ -151,7 +159,7 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ state, set
                     data.map((item, idx) => {
                         return (
                             <div key={idx} >
-                                <div className="bg-gray-100 px-3 py-3 rounded-md flex  items-center justify-between hover:cursor-pointer">
+                                <div onClick={() => toggleVisibility(item.titulo)} className="bg-gray-100 px-3 py-3 rounded-md flex  items-center justify-between hover:cursor-pointer">
                                     <div className="capitalize text-azulCorporativo">
                                         {item.titulo}
                                     </div>
@@ -159,7 +167,19 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ state, set
                                         <ArrowDown />
                                     </div>
                                 </div>
-                                <GuestCard guestData={item.data} modal={modal} setModal={setModal} />
+                                <div className={`transition-all duration-500 ease-in-out overflow-hidden ${showCards[item.titulo] ? 'max-h-screen' : 'max-h-0'
+                                    }`}>
+                                    <GuestCard
+                                        guestData={item.data}
+                                        modal={modal}
+                                        setModal={setModal}
+                                        setSelected={setSelected}
+                                        setIsMounted={setIsMounted}
+                                        isMounted={isMounted}
+                                        event={event}
+                                        setEvent={setEvent}
+                                    />
+                                </div>
                             </div>
                         )
                     })
@@ -168,12 +188,158 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ state, set
         </div>
     )
 }
+export const handleMoveGuest = (props: handleMoveGuest) => {
+    try {
+        const { invitadoID, previousTable, lastTable, f1, event, setEvent, toast } = props
+        if (previousTable?._id) {
+            const f2 = event?.planSpace[f1]?.tables?.findIndex(elem => elem._id === previousTable?._id)
+            const f3 = event.planSpace[f1].tables[f2].guests.findIndex(elem => elem._id === invitadoID)
+            event.planSpace[f1].tables[f2].guests.splice(f3, 1)
+            setEvent({ ...event })
+            fetchApiEventos({
+                query: queries.editTable,
+                variables: {
+                    eventID: event._id,
+                    planSpaceID: event?.planSpace[f1]?._id,
+                    tableID: event.planSpace[f1].tables[f2]?._id,
+                    variable: "guests",
+                    valor: JSON.stringify([...event.planSpace[f1].tables[f2]?.guests])
+                },
+            });
+            if (!lastTable) {
+                toast("success", `El invitado no está sentado en ninguna mesa`,)
+            }
+        }
+        if (lastTable) {
+            for (let i = 0; i < lastTable?.numberChair; i++) {
+                if (!lastTable?.guests?.map(el => el.chair).includes(i)) {
+                    if (lastTable) {
+                        const f2 = event?.planSpace[f1]?.tables?.findIndex(elem => elem._id === lastTable?._id)
+                        event.planSpace[f1].tables[f2].guests.push({ _id: invitadoID, chair: i, order: new Date() })
+                        setEvent({ ...event })
+                        fetchApiEventos({
+                            query: queries.editTable,
+                            variables: {
+                                eventID: event._id,
+                                planSpaceID: event?.planSpace[f1]?._id,
+                                tableID: event.planSpace[f1].tables[f2]?._id,
+                                variable: "guests",
+                                valor: JSON.stringify([...event.planSpace[f1].tables[f2]?.guests])
+                            },
+                        });
+                        toast("success", `El invitado fue sentado en la mesa; ${lastTable.title}, puesto: ${i + 1}`,)
+                    }
+                    break
+                }
+            }
+        }
+    } catch (error) {
+        console.log(error)
+    }
+}
 
-
-export const GuestCard = ({ guestData, modal, setModal }) => {
+export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounted, isMounted, event, setEvent }) => {
     const [show, setShow] = useState(false);
-    const [isAllowed] = useAllowed()
+    const [showModalMenu, setShowModalMenu] = useState({});
+    const [showModalRecepcion, setShowModalRecepcion] = useState({});
+    const [showModalCeremonia, setShowModalCeremonia] = useState({});
+    const [showModalAsistenci, setShowModalAsistenci] = useState({});
 
+
+    const [value, setValue] = useState("sin menú");
+    const [value2, setValue2] = useState({});
+    const [value3, setValue3] = useState("pendiente");
+
+    const [loading, setLoading] = useState(false);
+    const [idGuest, setIdGuest] = useState(null)
+    const router = useRouter();
+    const toast = useToast()
+
+    const updateMyData = ({
+        rowID,
+        columnID,
+        reemplazar,
+        value,
+        loading,
+        eventoID,
+    }) => {
+        try {
+            // Para modificar el estado
+            if (loading == true) {
+                setEvent((viejo) => {
+                    const { invitados_array: arr } = viejo;
+                    const rowIndex = arr.findIndex((e) => e._id == rowID);
+                    const resultado = arr.map((invitado) => {
+                        if (invitado._id === rowID) {
+                            //Para escribir en base de datos
+                            fetchApiEventos({
+                                query: queries.editGuests,
+                                variables: {
+                                    eventID: event._id,
+                                    guestID: invitado._id,
+                                    variable: reemplazar,
+                                    value: value
+                                },
+                            });
+                            return {
+                                ...arr[rowIndex],
+                                [columnID]: value,
+                            };
+                        }
+                        return invitado;
+                    });
+                    return {
+                        ...viejo,
+                        invitados_array: resultado,
+                    };
+                });
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    const toggleVisibility = (option, _id) => {
+        if (option === "menu") {
+            console.log("menu")
+            setShowModalMenu((prevState) => ({
+                ...prevState,
+                [_id]: !prevState[_id],
+            }));
+            setIdGuest(_id)
+        }
+        if (option === "recepcion") {
+            console.log("recepcion")
+            setShowModalRecepcion((prevState) => ({
+                ...prevState,
+                [_id]: !prevState[_id],
+            }));
+            setIdGuest(_id)
+        }
+        if (option === "ceremonia") {
+            console.log("ceremonia")
+            setShowModalCeremonia((prevState) => ({
+                ...prevState,
+                [_id]: !prevState[_id],
+            }));
+            setIdGuest(_id)
+        }
+        if (option === "asistencia") {
+            console.log("asistencia")
+            setShowModalAsistenci((prevState) => ({
+                ...prevState,
+                [_id]: !prevState[_id],
+            }));
+            setIdGuest(_id)
+        }
+
+    };
+
+    const [isAllowed] = useAllowed()
+    const handleClick = (id) => {
+        setSelected(id);
+        setIsMounted(!isMounted);
+    };
 
     const image = {
         hombre: {
@@ -185,7 +351,6 @@ export const GuestCard = ({ guestData, modal, setModal }) => {
             alt: "Mujer",
         },
     };
-
     const ListaState = [
         {
             title: "pendiente",
@@ -204,7 +369,6 @@ export const GuestCard = ({ guestData, modal, setModal }) => {
         acc[el.title] = { ...el };
         return acc;
     }, {});
-
     const ListaOption = [
         {
             title: "Borrar",
@@ -220,16 +384,44 @@ export const GuestCard = ({ guestData, modal, setModal }) => {
         },
     ];
 
+    useEffect(() => {
+        setLoading(false);
+        updateMyData({
+            rowID: idGuest,
+            columnID: "nombre_menu",
+            reemplazar: "nombre_menu",
+            value: value,
+            loading: loading,
+            eventoID: event._id,
+        });
+        setLoading(true);
+    }, [value]);
+
+    useEffect(() => {
+        setLoading(false);
+        updateMyData({
+            rowID: idGuest,
+            columnID: "asistencia",
+            reemplazar: "asistencia",
+            value: value3,
+            loading: loading,
+            eventoID: event._id,
+        });
+        setLoading(true);
+    }, [value3]);
+
+
     return (
         <>
             {
-                guestData.length > 0 && guestData.map((item, idx) => {
+                guestData.length > 0 && guestData?.map((item, idx) => {
+
                     return (
-                        <div key={idx} className="bg-gray-100 my-2 mx-2 rounded-md ">
+                        <div key={idx} className={`  bg-gray-100 my-2 mx-2 rounded-md transition-all delay-100 `}>
                             <div className="flex justify-between pl-5 pr-2 relative ">
                                 <div
                                     className="flex justify-start items-center truncate pr-3 cursor-pointer pt-3"
-                                /*  onClick={!isAllowed() ? null : handleClick} */
+                                    onClick={!isAllowed() ? null : () => handleClick(item._id)}
                                 >
                                     <img
                                         className="block w-10 h-10 mr-2"
@@ -279,18 +471,141 @@ export const GuestCard = ({ guestData, modal, setModal }) => {
                             </div>
 
                             <div className="grid grid-cols-8 px-2 justify-between pb-2 pt-2 border-gray-500  transition  capitalize gap-1">
-                                <div className="items-center col-span-2 flex flex-col bg-primary rounded-md text-white py-1">
+                                <div onClick={() => !isAllowed() ? null : toggleVisibility("menu", item._id)} className="items-center col-span-2 flex flex-col bg-primary rounded-md text-white py-1 relative ">
                                     <p className="font-semibold text-[12px] ">Menu</p>
                                     <p className=" font-body text-[12px]"> {item.nombre_menu}</p>
+                                    {
+                                        showModalMenu[item._id] &&
+                                        <ClickAwayListener onClickAway={() => showModalMenu[item._id] && setShowModalMenu(false)}>
+                                            {showModalMenu[item._id] &&
+                                                (
+                                                    <ul className={` absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-7 -left-[13px] z-40 w-max`}>
+                                                        {event.menus_array?.length > 0 && event?.menus_array?.map((item, index) => {
+                                                            return (
+                                                                <li
+                                                                    key={index}
+                                                                    className={`${value?.toLowerCase() === item?.nombre_menu?.toLowerCase() && "bg-gray-200"} cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize`}
+                                                                    onClick={(e) => {
+                                                                        setValue(item?.nombre_menu);
+                                                                        setShowModalMenu(false);
+                                                                    }}
+                                                                >
+                                                                    {item?.nombre_menu}
+                                                                </li>
+                                                            );
+                                                        })}
+                                                        <li
+                                                            className="cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
+                                                            onClick={(e) => {
+                                                                setValue(null);
+                                                                setShowModalMenu(!showModalMenu);
+                                                            }}
+                                                        >
+                                                            {"sin menú"}
+                                                        </li>
+                                                    </ul>
+                                                )
+                                            }
+                                        </ClickAwayListener>
+                                    }
                                 </div>
-                                <span className="items-center col-span-3 flex flex-col bg-primary rounded-md text-white py-1 ">
+                                <div onClick={() => !isAllowed() ? null : toggleVisibility("recepcion", item._id)} className="items-center col-span-3 flex flex-col bg-primary rounded-md text-white py-1 relative ">
                                     <p className="font-semibold text-[12px] ">Mesa Recepción</p>
                                     <p className=" font-body text-[12px]"> {item.tableNameRecepcion.title}</p>
-                                </span>
-                                <span className="items-center col-span-3 flex flex-col bg-primary rounded-md text-white py-1 ">
+                                    {
+                                        showModalRecepcion[item._id] &&
+                                        <ClickAwayListener onClickAway={() => showModalRecepcion[item._id] && setShowModalRecepcion(false)}>
+                                            {
+                                                showModalRecepcion[item._id] && (
+                                                    <ul className="absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-7 z-40 w-max">
+                                                        {
+                                                            [
+                                                                { _id: null, title: "No Asignado" },
+                                                                ...event?.planSpace.find(elem => elem?.title === "recepción")?.tables
+                                                            ]?.map((item: any, idx: any) => {
+                                                                console.log("hola", item)
+                                                                /* if (item?.guests?.length < item?.numberChair || value?._id === item?._id || !item?._id) { */
+                                                                return (
+                                                                    <li
+                                                                        key={idx}
+                                                                        className={`${(/* value._id === item._id || */ (/* !value2._id && */ !item._id)) && "bg-gray-200"} cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize`}
+                                                                        onClick={() => {
+                                                                            const f1 = event?.planSpace.findIndex(elem => elem?.title === "recepción")
+                                                                            const table = event.planSpace[f1]?.tables.find(el => el._id === item._id)
+                                                                            setShowModalRecepcion(!showModalRecepcion);
+                                                                            if (/* value?._id || */ item?._id) {
+                                                                                if (/* value?._id !== */ item?._id) {
+                                                                                    setValue2(item.title);
+                                                                                    handleMoveGuest({ invitadoID: idGuest, previousTable: value2, lastTable: table, f1, event, setEvent, toast })
+                                                                                }
+                                                                            }
+                                                                        }}
+                                                                    >
+                                                                        {item?.title}
+                                                                    </li>
+                                                                )
+                                                                /*  } */
+                                                            })}
+                                                        <li
+                                                            className=" cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
+                                                            onClick={() => router.push("/mesas")}
+                                                        >
+                                                            Añadir mesa
+                                                        </li>
+                                                    </ul>
+                                                )
+                                            }
+                                        </ClickAwayListener>
+                                    }
+                                </div>
+                                <div onClick={() => !isAllowed() ? null : toggleVisibility("ceremonia", item._id)} className="items-center col-span-3 flex flex-col bg-primary rounded-md text-white py-1 relative ">
                                     <p className="font-semibold text-[12px] ">Mesa  Ceremonia</p>
                                     <p className=" font-body text-[12px]"> {item.tableNameCeremonia.title}</p>
-                                </span>
+                                    {
+                                        showModalCeremonia[item._id] &&
+                                        <ClickAwayListener onClickAway={() => showModalCeremonia[item._id] && setShowModalCeremonia(false)}>
+                                            {
+                                                showModalCeremonia && (
+                                                    <ul
+                                                        className={` absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-7 z-50 w-max`}
+                                                    >
+                                                        {[
+                                                            { _id: null, title: "No Asignado" },
+                                                            ...event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables]?.map((elem: any, index) => {
+                                                                /* if (elem?.guests?.length < elem?.numberChair || value?._id === elem?._id || !elem?._id) { */
+                                                                return (
+                                                                    <li
+                                                                        key={index}
+                                                                        className={`${(/* value._id === elem._id ||  */(/* !value._id && */ !elem._id)) && "bg-gray-200"} cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize`}
+                                                                        onClick={() => {
+                                                                            const f1 = event?.planSpace.findIndex(elem => elem?.title === "ceremonia")
+                                                                            const table = event.planSpace[f1]?.tables.find(el => el._id === elem._id)
+                                                                            setShowModalCeremonia(false);
+                                                                            if (/* value?._id || */ elem?._id) {
+                                                                                if (/* value?._id !== */ elem?._id) {
+                                                                                    setValue(elem.title);
+                                                                                    handleMoveGuest({ invitadoID: idGuest, previousTable: value2, lastTable: table, f1, event, setEvent, toast })
+                                                                                }
+                                                                            }
+                                                                        }}
+                                                                    >
+                                                                        {elem?.title}
+                                                                    </li>
+                                                                )
+                                                                /* } */
+                                                            })}
+                                                        <li
+                                                            className=" cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
+                                                            onClick={() => router.push("/mesas")}
+                                                        >
+                                                            Añadir mesa
+                                                        </li>
+                                                    </ul>
+                                                )
+                                            }
+                                        </ClickAwayListener>
+                                    }
+                                </div>
                             </div>
 
                             <div className="bg-gray-200 flex justify-between text-[13px] py-1 rounded-md px-3">
@@ -303,12 +618,40 @@ export const GuestCard = ({ guestData, modal, setModal }) => {
                                         {item.passesQuantity}
                                     </div>
                                 </div>
-                                <div className="flex gap-1 ">
+                                <div onClick={() => !isAllowed() ? null : toggleVisibility("asistencia", item._id)} className="flex gap-1 relative ">
                                     <span className="">asistencia</span>
                                     <div className="flex items-center font-body space-x-1 ">
-                                        {cloneElement(dicc[item.asistencia].icon, { className: "w-3 h-3" })}
+                                        { dicc[item.asistencia]?.icon&& cloneElement(dicc[item.asistencia].icon, { className: "w-3 h-3" })}
                                         {item.asistencia}
                                     </div>
+                                    {
+                                        showModalAsistenci[item._id] &&
+                                        <ClickAwayListener onClickAway={() => showModalAsistenci[item._id] && setShowModalAsistenci(false)}>
+                                            {
+                                                showModalAsistenci && (
+                                                    <ul
+                                                        className={` absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-7 -left-9 z-40`}
+                                                    >
+                                                        {ListaState.map((item, index) => {
+                                                            return (
+                                                                <li
+                                                                    key={index}
+                                                                    className={`${value?.toLowerCase() === item?.title?.toLowerCase() && "bg-gray-200"} cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize`}
+                                                                    onClick={() => {
+                                                                        setValue3(item.title);
+                                                                        setShowModalAsistenci(false);
+                                                                    }}
+                                                                >
+                                                                    {cloneElement(item.icon, { className: "w-5 h-5" })}
+                                                                    {item.title}
+                                                                </li>
+                                                            );
+                                                        })}
+                                                    </ul>
+                                                )
+                                            }
+                                        </ClickAwayListener>
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -318,3 +661,4 @@ export const GuestCard = ({ guestData, modal, setModal }) => {
         </>
     )
 }
+

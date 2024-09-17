@@ -3,8 +3,10 @@ import { AuthContextProvider } from "../../context"
 import { fetchApiBodas, queries } from "../../utils/Fetching"
 import { DiamanteIcon } from "../icons"
 import { LiaCartArrowDownSolid } from "react-icons/lia"
+import { useTranslation } from 'react-i18next';
 
 export const EncabezadoFacturacion = ({ products, currency, setCurrency, stripeCurrency }) => {
+    const { t } = useTranslation();
     const { user, config } = AuthContextProvider()
     const router = useRouter()
 
@@ -44,12 +46,12 @@ export const EncabezadoFacturacion = ({ products, currency, setCurrency, stripeC
                 <div className="">
                     <div className="flex items-center space-x-1">
                         <p className="text-azulCorporativo text-[25px]">
-                            Obten Full Acces
+                            {t("getfullaccess")}
                         </p>
                         <DiamanteIcon className={`text-acento`} />
                     </div>
-                    <p className="text-[13px] text-gray-400">Mejora la organizacion de tus eventos</p>
-                    <p className="text-[13px] text-gray-400 pr-5"> Si se suscribe en la mitad del ciclo de facturación, se le cobrará un monto parcial.</p>
+                    <p className="text-[13px] text-gray-400">{t("improveorganization")}</p>
+                    <p className="text-[13px] text-gray-400 pr-5">{t("billingcycle")}</p>
                 </div>
                 <div className="flex h-max items-center justify-center">
                     {!stripeCurrency && <select value={currency} className={`font-display text-gray-500 font-semibold text-lg text-center border-none focus:ring-0 ${!products.length && "cursor-pointer"}`} onChange={(e) => setCurrency(e.target.value)}  >

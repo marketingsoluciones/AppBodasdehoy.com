@@ -4,12 +4,14 @@ import { useState } from "react";
 import { MdClose } from "react-icons/md";
 import { EventContextProvider, EventsGroupContextProvider } from "../../../context";
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
+import { useTranslation } from "react-i18next";
 
 export const ListUserToEvent = ({ event }) => {
+    const { t } = useTranslation()
 
     return (
         <div className="flex flex-col space-y-1 mb-5 md:mb-0 flex-1">
-            <p className="text-primary">Personas con acceso</p>
+            <p className="text-primary">{t("personwithaccess")}</p>
             <div className="border border-gray-300 rounded-xl section overflow-y-auto flex-1 py-1">
                 {event?.detalles_compartidos_array?.map((item, idx) => {
                     return (
@@ -24,6 +26,7 @@ export const ListUserToEvent = ({ event }) => {
 }
 
 const User = ({ data, event }) => {
+    const { t } = useTranslation()
     const { setEvent } = EventContextProvider()
     const { eventsGroup, setEventsGroup } = EventsGroupContextProvider()
 
@@ -67,7 +70,7 @@ const User = ({ data, event }) => {
             </div>
             <div onClick={() => setOpenModal(!openModal)} className="border text-[13px] p-1 flex-none cursor-pointer rounded-md">
                 <div className="flex items-center space-x-1">
-                    <span>Permisos</span>
+                    <span>{t("permissions")}</span>
                     <div>
                         <IoIosArrowDown />
                     </div>

@@ -9,6 +9,7 @@ import { useToast } from '../../hooks/useToast'
 import { Lista } from "../../pages";
 import { IoShareSocial } from "react-icons/io5";
 import { ModalAddUserToEvent, UsuariosCompartidos } from "../Utils/Compartir"
+import { useTranslation } from "react-i18next";
 
 export const defaultImagenes = {
   boda: "/cards/boda.webp",
@@ -16,7 +17,7 @@ export const defaultImagenes = {
   cumpleaños: "/cards/cumpleanos.webp",
   bautizo: "/cards/bautizo.webp",
   babyshower: "/cards/baby.webp",
-  "desdepida de soltero": "/cards/despedida.webp",
+  "despedida de soltero": "/cards/despedida.webp",
   graduación: "/cards/graduacion.webp",
   otro: "/cards/pexels-pixabay-50675.jpg"
 };
@@ -64,6 +65,7 @@ export const handleClickCard = ({ final = true, data, user, setUser, config, set
 };
 
 const Card = ({ data, grupoStatus, idx }) => {
+  const { t } = useTranslation()
   const [hoverRef, isHovered] = useHover();
   const [refArchivar, isArchivar] = useHover();
   const [refBorrar, isBorrar] = useHover();
@@ -194,7 +196,7 @@ const Card = ({ data, grupoStatus, idx }) => {
           />
           <div className="relative w-full h-full z-10 p-4 pb-2 flex flex-col justify-between">
             <span className="text-xs font-display text-white capitalize">
-              {data[idx]?.tipo == "otro" ? "mi evento especial" : data[idx]?.tipo}
+              {data[idx]?.tipo == "otro" ? "mi evento especial" : t(data[idx]?.tipo)}
             </span>
             <div className="flex flex-col ">
               <span className="capitalize text-lg font-display text-white">

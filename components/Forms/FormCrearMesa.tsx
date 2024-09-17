@@ -8,6 +8,7 @@ import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
 import { Dispatch, FC, SetStateAction } from "react";
 import { table } from "../../utils/Interfaces";
+import { useTranslation } from 'react-i18next';
 
 
 interface propsFormCrearMesa {
@@ -65,6 +66,7 @@ export const dicc = {
 };
 
 const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
+  const { t } = useTranslation();
   const { modelo, offsetX, offsetY } = values
 
   const { event, setEvent, planSpaceActive, setPlanSpaceActive } = EventContextProvider();
@@ -135,14 +137,14 @@ const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
               <div className="col-span-2 flex flex-col gap-4 ">
                 <InputField
                   name="nombre_mesa"
-                  label="Nombre de mesa"
+                  label={t("nametable")}
                   type="text"
                   autoFocus
                   className="font-semibold"
                 />
                 <InputField
                   name="cantidad_sillas"
-                  label="N° de sillas"
+                  label={t("numberchairs")}
                   type="number"
                   min={dicc[modelo].min}
                   max={dicc[modelo].max}
@@ -160,14 +162,14 @@ const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
                 type="submit"
                 className=" bg-primary w-full text-white font-semibold mx-auto inset-x-0 rounded-xl py-1  focus:outline-none"
               >
-                Crear mesa
+                {t("createtable")}
               </button>
 
               <button
                 className=" bg-gray-200 transition w-full text-white font-semibold mx-auto inset-x-0 rounded-xl py-1 focus:outline-none hover:opacity-80 "
                 onClick={() => set(false)}
               >
-                Cancelar
+                {t("cancel")}
               </button>
             </div>
           </Form>

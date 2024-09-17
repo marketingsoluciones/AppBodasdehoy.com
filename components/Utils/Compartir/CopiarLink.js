@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import ClickAwayListener from "react-click-away-listener";
 import { PiCheckFatBold } from "react-icons/pi";
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
+import { useTranslation } from "react-i18next";
 
 export const CopiarLink = ({ link }) => {
+    const { t } = useTranslation()
     const [copied, setCopied] = useState(false)
 
     return (
@@ -17,7 +19,7 @@ export const CopiarLink = ({ link }) => {
                 <div>
                     <CopyToClipboard text={link}>
                         <div onClick={() => setCopied(true)} className="text-blue-500 flex space-x-1 items-center cursor-pointer text-sm w-fit">
-                            <span>{!copied ? "Copiar enlace" : "Enlace copiado"} </span>
+                            <span>{!copied ? t("copylink") : t("copiedlink")} </span>
                             {!copied ? <FaRegCopy /> : <PiCheckFatBold />}
                         </div>
                     </CopyToClipboard>

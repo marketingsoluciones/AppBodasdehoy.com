@@ -5,8 +5,10 @@ import { AuthContextProvider } from "../../context";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { PiNewspaperClippingThin } from "react-icons/pi";
 import { useRouter } from "next/router";
+import { useTranslation } from 'react-i18next';
 
 export const HistorialFacturacion = () => {
+    const { t } = useTranslation();
     const { config } = AuthContextProvider();
     const [activeSpiner, setActiveSpiner] = useState(false)
     const [show, setShow] = useState({ state: false, idx: null });
@@ -41,16 +43,16 @@ export const HistorialFacturacion = () => {
             <div className=" w-full pt-6 relative rounded-lg pb-10">
                 <div className="grid grid-cols-12 px-5 justify-between border-b py-4 border-gray-100  transition bg-white capitalize rounded-t-lg">
                     <div className="items-center md:col-span-3 flex flex-col ">
-                        <p className="font-body text-[15px] font-semibold text-gray-600 hidden md:block">Id. de la Factura</p>
+                        <p className="font-body text-[15px] font-semibold text-gray-600 hidden md:block">{t("invoiceid")}</p>
                     </div>
                     <div className="items-center col-span-2 flex flex-col h-full">
-                        <p className="font-body text-[15px] font-semibold text-gray-600">Fecha</p>
+                        <p className="font-body text-[15px] font-semibold text-gray-600">{t("date")}</p>
                     </div>
                     <div className="items-center md:col-span-3 col-span-5 flex flex-col h-full">
-                        <p className="font-body text-[15px] font-semibold text-gray-600">Total</p>
+                        <p className="font-body text-[15px] font-semibold text-gray-600">{t("total")}</p>
                     </div>
                     <div className="items-center col-span-2 flex flex-col h-full">
-                        <p className="font-body text-[15px] font-semibold text-gray-600">Estatus</p>
+                        <p className="font-body text-[15px] font-semibold text-gray-600">{t("status")}</p>
                     </div>
                     <div className="items-center col-span-2 flex flex-col  h-full">
                         <p className="font-body text-[15px] font-semibold text-gray-600"></p>
@@ -83,7 +85,7 @@ export const HistorialFacturacion = () => {
                                                 <div className="flex justify-center items-center space-x-2">
                                                     <div className=" bg-white border border-gray-400 h-3 w-3 rounded-full" />
                                                     <div>
-                                                        En proceso
+                                                        {t("inprocess")}
                                                     </div>
                                                 </div>
                                             }
@@ -91,7 +93,7 @@ export const HistorialFacturacion = () => {
                                                 <div className="flex justify-center items-center space-x-2">
                                                     <div className=" bg-yellow-300 h-3 w-3 rounded-full" />
                                                     <div>
-                                                        Pendiente
+                                                        {t("earrings")}
                                                     </div>
                                                 </div>
                                             }
@@ -99,7 +101,7 @@ export const HistorialFacturacion = () => {
                                                 <div className="flex justify-center items-center space-x-2">
                                                     <div className=" bg-green h-3 w-3 rounded-full" />
                                                     <div>
-                                                        Pagado
+                                                        {t("paid")}
                                                     </div>
                                                 </div>
                                             }
@@ -107,7 +109,7 @@ export const HistorialFacturacion = () => {
                                                 <div className="flex justify-center items-center space-x-2">
                                                     <div className=" bg-gray-300 h-3 w-3 rounded-full" />
                                                     <div>
-                                                        Invalida
+                                                        {t("invalidate")}
                                                     </div>
                                                 </div>
                                             }
@@ -115,7 +117,7 @@ export const HistorialFacturacion = () => {
                                                 <div className="flex justify-center items-center space-x-2">
                                                     <div className=" bg-red h-3 w-3 rounded-full" />
                                                     <div>
-                                                        Cancelada
+                                                        {t("cancelled")}
                                                     </div>
                                                 </div>
                                             }
@@ -135,11 +137,11 @@ export const HistorialFacturacion = () => {
                                                     >
                                                         <div className="w-full flex flex-col justify-center items-center">
                                                             <a href={`${item.hostedInvoiceUrl}`} target="_blank" rel="noreferrer" className="hover:bg-gray-100 py-3 px-2 text-[14px] w-full">
-                                                                Ver Factura
+                                                                {t("viewinvoice")}
                                                             </a>
 
                                                             <div onClick={() => router.push(`${item.invoicePdf}`)} className="hover:bg-gray-100 py-3 px-2 text-[14px] w-full">
-                                                                Descargar Factura
+                                                                {t("downloadinvoice")}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -151,7 +153,7 @@ export const HistorialFacturacion = () => {
                             })
                             : <div className=" flex flex-col  items-center justify-center h-full text-[20px] text-azulCorporativo ">
                                 <PiNewspaperClippingThin className="h-20 w-20" />
-                                Aun no hay facturas disponibles
+                                {t("noavailableyet")}
                             </div>
                         : <div className="flex  items-center justify-center w-full h-full">
                             < div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>

@@ -1,29 +1,31 @@
 import router from "next/router";
+import { useTranslation } from 'react-i18next';
 
 export const GridButtons = () => {
+    const { t } = useTranslation();
     const DataButton = [
         {
-            title: "Boda",
+            title: t("wedding"),
             router: "/",
         },
         {
-            title: "Aniversarios",
+            title: t("anniversaries"),
             router: "/",
         },
         {
-            title: "Comuniones",
+            title: t("communions"),
             router: "/",
         },
         {
-            title: "Graduaciones",
+            title: t("graduations"),
             router: "/",
         },
         {
-            title: "Bar Mitzvah",
+            title: t("barmitzvah"),
             router: "/",
         },
         {
-            title: "Bautizo",
+            title: t("baptism"),
             router: "/",
         },
     ]
@@ -35,7 +37,7 @@ export const GridButtons = () => {
                         <img src="/logo.png" alt="logo" />
                     </div>
                     <p className="text-right text-2xl md:w-[40%] text-primaryOrg ">
-                        Te facilita la organización y gestión de estos eventos y más…
+                        {t("makesiteasier")}
                     </p>
                 </div>
                 <div className="grid md:grid-cols-3 p-14">

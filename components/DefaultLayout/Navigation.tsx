@@ -31,43 +31,43 @@ const Navigation: FC = () => {
 
   const Navbar = useMemo(() => [
     {
-      title: t("myevents"),
+      title: "Mis eventos",
       icon: <MisEventosIcon />,
       route: "/",
       condicion: event?._id ? true : false
     },
     {
-      title: t("resumen"),
+      title: "Resumen",
       icon: <ResumenIcon />,
       route: "/resumen-evento",
       condicion: event?._id ? true : false
     },
     {
-      title: t("guest"),
+      title: "Invitados",
       icon: <InvitadosIcon />,
       route: "/invitados",
       condicion: event?._id ? true : false
     },
     {
-      title: t("table"),
+      title: "Mesas",
       icon: <MesasIcon />,
       route: "/mesas",
       condicion: event?._id ? true : false
     },
     {
-      title: t("gifs"),
+      title: "Lista de regalos",
       icon: <ListaRegalosIcon />,
       route: "/lista-regalos",
       condicion: event?._id ? true : false
     },
     {
-      title: t("budget"),
+      title: "Presupuesto",
       icon: <PresupuestoIcon />,
       route: "/presupuesto",
       condicion: event?._id ? true : false
     },
     {
-      title: t("invitations"),
+      title: "Invitaciones",
       icon: <InvitacionesIcon />,
       route: "/invitaciones",
       condicion: event?._id ? true : false
@@ -152,7 +152,7 @@ const Navigation: FC = () => {
                   }`}
                   >
                     {item.icon}
-                    <p className="font-display text-sm h-max"  >{item.title}</p>
+                    <p className="font-display text-sm h-max"  >{t(item.title)}</p>
                   </li>
                 ))}
               </ul>

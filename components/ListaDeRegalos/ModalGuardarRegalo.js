@@ -1,5 +1,7 @@
 import ClickAwayListener from "react-click-away-listener"
+import { useTranslation } from 'react-i18next';
 const ModalGuardarRegalo = ({set, state, children}) => {
+    const { t } = useTranslation();
     
     return (
         <>
@@ -10,8 +12,8 @@ const ModalGuardarRegalo = ({set, state, children}) => {
         <div className="bg-white w-max h-72 shadow-lg fixed m-auto inset-0 z-30 rounded-xl px-10  py-5">
             {/* Cabecera */}
             <div className="w-full border-b-2 border-primary ">
-                <h2 className="font-display text-center text-xl text-gray-500 ">guarda el link de tu lista de regalos </h2>  
-                <h3 className="font-display text-center text-xl text-gray-500 pb-3 "> para que puedas compartirlo con tus invitados</h3>             
+                <h2 className="font-display text-center text-xl text-gray-500 ">{t("savethelink")}</h2>  
+                <h3 className="font-display text-center text-xl text-gray-500 pb-3 ">{t("youcanshare")}</h3>             
             </div>
             {/* Cuerpo */}
            {/*  <div>

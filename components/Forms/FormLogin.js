@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { api } from "../../api";
 import {getCookie, setCookie} from "../../utils/Cookies";
 import InputField from "./InputField";
+import { useTranslation } from 'react-i18next';
 
 const validacion = (values) => {
     let errors = {}
@@ -52,13 +53,14 @@ export const BasicFormLogin = ({
     isSubmitting,
     values,
   }) => {
+    const { t } = useTranslation();
     return (
         <form onSubmit={handleSubmit}>
             <div className="py-4">
             <InputField
             placeholder="Ej. jhon@lorem.com"
             name="username"
-            label="Usuario o correo electronico"
+            label={t("nameoremail")}
             onChange={handleChange}
             value={values.nombre}
             type="email"/>
@@ -67,13 +69,13 @@ export const BasicFormLogin = ({
             <div className="py-4">
             <InputField
             name="password"
-            label="Contraseña"
+            label={t("password")}
             onChange={handleChange}
             value={values.nombre}
             type="password"/>
             </div>
 
-            <button disabled={isSubmitting} type="submit" className="bg-primary w-full text-white rounded-full py-1 px-2">Iniciar Sesion</button>
+            <button disabled={isSubmitting} type="submit" className="bg-primary w-full text-white rounded-full py-1 px-2">{t("login")}</button>
         </form>
     )
 }

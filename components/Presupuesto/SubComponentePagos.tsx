@@ -6,8 +6,10 @@ import { useContext, useEffect, useState } from "react";
 import { EventContextProvider, AuthContextProvider } from "../../context";
 import FormEditarPago from "../Forms/FormEditarPago";
 import { GoPlusCircle } from "react-icons/go";
+import { useTranslation } from 'react-i18next';
 
 const SubComponentePagos = ({ row, cate, gasto, wantCreate,getId }) => {
+  const { t } = useTranslation();
   const [show, setShow] = useState(true);
   const [PagoModificar, setPagoModificar] = useState("")
   
@@ -45,6 +47,7 @@ const SubComponentePagos = ({ row, cate, gasto, wantCreate,getId }) => {
 export default SubComponentePagos;
 
 const ListadoComponent = ({ pagos_array, cate, gasto, wantCreate, idModificar, row }) => {
+  const { t } = useTranslation();
   const { event, setEvent } = EventContextProvider();
   const BorrarPago = async (pagoID) => {
     let data;
@@ -118,7 +121,7 @@ const ListadoComponent = ({ pagos_array, cate, gasto, wantCreate, idModificar, r
         X
       </button>
       <p className="text-gray-500 font-display text-lg pb-2">
-        Detalles de pagos
+        {t("paymentdetails")}
       </p>
       {pagos_array.map((item, idx) => (
         <div
@@ -126,17 +129,17 @@ const ListadoComponent = ({ pagos_array, cate, gasto, wantCreate, idModificar, r
           className="grid grid-cols-10 px-5 justify-between border-b py-4 border-gray-100 hover:bg-base transition bg-white  "
         >
           <span className="items-center col-span-1 flex flex-col justify-center">
-            <p className="font-display text-sm font-medium">#PAGO</p>
+            <p className="font-display text-sm font-medium">{t("payment")}</p>
             <p className="font-display text-md">{idx + 1}</p>
           </span>
 
           <span className="items-center col-span-2 flex flex-col justify-center">
-            <p className="font-display text-md font-medium">IMPORTE</p>
+            <p className="font-display text-md font-medium">{t("amount")}</p>
             <p className="font-display text-md">{getCurrency(item.importe, event?.presupuesto_objeto?.currency)}</p>
           </span>
 
           <span className="items-center col-span-2 flex flex-col justify-center">
-            <p className="font-display text-md font-medium">DETALLES</p>
+            <p className="font-display text-md font-medium">{t("details")}</p>
             <p
               className={`font-display text-md ${item.estado == "pagado" ? "text-green" : " text-red"
                 }`}
@@ -146,7 +149,7 @@ const ListadoComponent = ({ pagos_array, cate, gasto, wantCreate, idModificar, r
           </span>
 
           <span className="items-center col-span-3 flex flex-col justify-center">
-            <p className="font-display text-md font-medium">Fecha de pago</p>
+            <p className="font-display text-md font-medium">{t("paymentdate")}</p>
             <p className={`font-display text-md`}>{item.fecha_pago}</p>
           </span>
 
@@ -165,7 +168,7 @@ const ListadoComponent = ({ pagos_array, cate, gasto, wantCreate, idModificar, r
           className="focus:outline-none items-center flex justify-center gap-1 text-primary hover:scale-105 transition transform cursor-pointer"
         >
           <PlusIcon className="text-primary" />
-          <p className="font-display text-md">Añadir nuevo pago</p>
+          <p className="font-display text-md">{t("addnewpayment")}</p>
         </button>
       </div>
     </>
