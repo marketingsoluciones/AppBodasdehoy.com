@@ -40,8 +40,6 @@ interface handleMoveGuest {
     f1: number
 }
 
-
-
 export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ createPDF, setCreatePDF, ConditionalAction, handleClick }) => {
     const { t } = useTranslation();
     const { event, allFilterGuests, setEvent } = EventContextProvider();
@@ -95,7 +93,7 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ createPDF,
 
     return (
         <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full pt-2 pb-28 mb-32  relative" >
-            <div className="flex gap-2 items-center mt-1 mb-3 md:mb-5 mx-2*">
+            <div className="flex gap-2 items-center mt-1 mb-3 md:mb-5 mx-2">
                 <button
                     onClick={(e) => !isAllowed() ? ht() : ConditionalAction({ e })}
                     className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary md:bg-primary md:text-white md:hover:bg-white md:hover:text-primary"
