@@ -108,7 +108,7 @@ export default function Test({ TitelComponent }) {
           <Form className="md:w-1/2 flex flex-col gap-2 mx-auto">
             <>
               <AutoSubmitToken TitelComponent={TitelComponent} valirReset={valirReset} setValirReset={setValirReset} />
-              <h3 className="font-medium text-gray-500 first-letter:uppercase">{TitelComponent} de prueba</h3>
+              <h3 className="font-medium text-gray-500 first-letter:uppercase">{`${TitelComponent} ${t("de prueba")}`}</h3>
               {TitelComponent === "email"
                 ? <InputField
                   name="email"

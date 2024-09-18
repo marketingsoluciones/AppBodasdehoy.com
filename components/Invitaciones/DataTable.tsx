@@ -87,29 +87,26 @@ export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, set
           <button
             disabled={!valir}
             onClick={() => { setArrEnviatInvitaciones(asd?.arrIDs) }}
-            className={`focus:outline-none ${valir ? "hover:opacity-70 transition bg-primary" : "bg-gray-300"} text-white py-1 px-2 rounded-lg text-center text-[10px] md:text-sm w-full*`}>
-            {reenviar ? "Reenviar" : "Enviar"}
+            className={`focus:outline-none ${valir ? "hover:opacity-70 transition bg-primary" : "bg-gray-300"} text-white py-1 px-2 rounded-lg text-center text-[10px] md:text-sm capitalize`}>
+            {reenviar ? t("reenviar") : t("enviar")}
           </button>
         </div>}
       <table
         {...getTableProps()}
-        className="table-auto border-collapse w-full rounded-lg relative p-4 "
-      >
+        className="table-auto border-collapse w-full rounded-lg relative p-4 ">
         <thead className="relative text-xs text-gray-700 uppercase bg-gray-100 w-full">
           {headerGroups.map((headerGroup: any, id: any) => (
             <tr
               {...headerGroup.getHeaderGroupProps()}
               className="grid grid-cols-24"
-              key={id}
-            >
+              key={id} >
               {headerGroup.headers.map((column: any, id: any) => (
                 <th
                   {...column.getHeaderProps(column.getSortByToggleProps())}
                   className={`px-6 py-1 md:py-2 text-center flex justify-center items-center text-sm font-light font-display col-span-${colSpan[column.id]
                     }`}
-                  key={id}
-                >
-                  {column.render("Header")}
+                  key={id} >
+                  {typeof column.render("Header") == "string" && t(column.render("Header"))}
                   <span>
                     {column.isSorted ? (column.isSortedDesc ? " 🠻" : " 🠹") : ""}
                   </span>
@@ -145,7 +142,7 @@ export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, set
             <td className="py-5 font-display text-lg text-gray-500 uppercase ">{t("noguestsevent")}</td></tr>}
         </tbody>
       </table>
-      
+
     </div>
   );
 };

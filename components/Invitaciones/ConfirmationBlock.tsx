@@ -113,8 +113,8 @@ export const ConfirmationBlock: FC<any> = ({ arrEnviarInvitaciones, set }) => {
               <span>{t("addimageinvitation")}</span>
             </div> :
             <>
-              <p className="font-semibold mb-2">
-                {`¿Desea enviar ${arrEnviarInvitaciones.length} ${arrEnviarInvitaciones.length > 1 ? "invitaciones" : "invitación"} de su evento?`}
+              <p className="font-semibold mb-2 first-letter:capitalize">
+                {`¿${t("desea enviar")} ${arrEnviarInvitaciones.length} ${arrEnviarInvitaciones.length > 1 ? t("invitaciones") : t("invitación")} ${t("de su evento")}?`}
               </p>
               <span>{t("selectmedia")}</span>
               <div className="grip grid-cols-3 -mt-2">

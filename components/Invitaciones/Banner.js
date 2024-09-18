@@ -33,7 +33,7 @@ const Banner = () => {
           <div className="w-max h-max relative">
             <p className="font-display text-xs text-white">{t("foronly")}</p>
             <p className="font-display text-sm text-white">{t("yourinvitation")}</p>
-            <button className="focus:outline-none bg-tertiary text-gray-500 font-display text-sm px-2 rounded-lg w-full hover:text-primary hover:bg-white transition">{t("design")}</button>
+            <button className="focus:outline-none bg-tertiary text-gray-500 font-display text-sm px-2 rounded-lg w-full hover:text-primary hover:bg-white transition">{t("todesign")}</button>
             <div className="bg-tertiary w-20 h-20 absolute rounded-full top-0 right-0 translate-x-1/2 -translate-y-3/4 transform flex items-center justify-center">
               <p className="font-display text-primary text-5xl font-bold">5<span className="text-xl font-light">€</span></p>
             </div>

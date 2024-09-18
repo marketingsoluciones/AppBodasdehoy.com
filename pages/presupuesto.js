@@ -64,7 +64,7 @@ const Presupuesto = () => {
                 <div
                   onClick={() => setActive("presupuesto")}
                   className={`w-[40%] md:w-[270px] py-1  ${active == "presupuesto" ? "bg-primary text-white" : "bg-white text-primary"
-                    } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
+                    } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90 capitalize`}
                 >
                   <p>{t("budget")}</p>
                 </div>
@@ -72,7 +72,7 @@ const Presupuesto = () => {
                 <div
                   onClick={() => setActive("pagos")}
                   className={`w-[25%] md:w-1/2 py-1 ${active == "pagos" ? "bg-primary text-white" : "bg-white text-primary"
-                    } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90 border-x-2`}
+                    } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90 border-x-2 capitalize`}
                 >
                   <p>{t("payments")}</p>
                 </div>
@@ -267,7 +267,7 @@ const MontoPresupuesto = ({ estimado }) => {
   }
 
   const handleChangeS = (e) => {
-    
+
     const params = {
       query: `mutation {
         editCurrency(evento_id:"${event._id}", currency:"${e.target.value}"  ){

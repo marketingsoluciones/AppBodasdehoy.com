@@ -33,7 +33,7 @@ const Profile = ({ user, state, set, ...rest }) => {
   const toast = useToast()
   const [updateActivity, updateActivityLink] = useActivity()
   const cookieContent = JSON.parse(Cookies.get("guestbodas") ?? "{}")
-  const [language, setLanguage] = useState('en');
+  const [language, setLanguage] = useState(i18next.language);
 
   const handleChange = (event) => {
     setLanguage(event.target.value);

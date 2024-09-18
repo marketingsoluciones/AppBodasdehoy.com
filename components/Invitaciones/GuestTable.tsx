@@ -4,7 +4,7 @@ import { InvitacionesIcon } from "../../components/icons";
 import useHover from "../../hooks/useHover";
 import { ConfirmationBlock } from "../../components/Invitaciones/ConfirmationBlock"
 import { DataTable } from "../../components/Invitaciones/DataTable"
-import {  getRelativeTime } from "../../utils/FormatTime";
+import { getRelativeTime } from "../../utils/FormatTime";
 import { useTranslation } from 'react-i18next';
 
 export const GuestTable: FC<any> = ({ data, multiSeled, reenviar, activeFunction }) => {
@@ -68,11 +68,6 @@ export const GuestTable: FC<any> = ({ data, multiSeled, reenviar, activeFunction
             setValue(props.value);
           }, [props.value]);
 
-          const mensaje = {
-            true: "Enviado",
-            false: "No enviado",
-          };
-
           const handleClick = () => {
             if (!value) {
               setArrEnviatInvitaciones([props?.row?.original?._id]);
@@ -89,7 +84,7 @@ export const GuestTable: FC<any> = ({ data, multiSeled, reenviar, activeFunction
                 onClick={handleClick}
               >
                 <InvitacionesIcon className="w-5 h-5 " />
-                <p className="font-display text-md text-black truncate  ">{mensaje[value]}</p>
+                <p className="font-display text-md text-black truncate first-letter:capitalize">{value ? t("enviado") : t("no enviado")}</p>
               </div>
             </>
           );
@@ -129,7 +124,9 @@ export const GuestTable: FC<any> = ({ data, multiSeled, reenviar, activeFunction
               <div
                 className={`group truncate relative w-full h-full flex items-center justify-center pl-3 gap-1 `}
               >
-                <p className="font-display text-md text-black truncate hidden md:block ">{value ? getRelativeTime(value) : "Sin enviar"}</p>
+                <p className="font-display text-md text-black truncate hidden md:block first-letter:capitalize">
+                  {value ? getRelativeTime(value) : t("sin enviar")}
+                </p>
               </div>
             </>
           );

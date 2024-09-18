@@ -44,6 +44,7 @@ interface handleMoveGuest {
 }
 
 export const handleMoveGuest = (props: handleMoveGuest) => {
+  const { t } = useTranslation()
   try {
     const { invitadoID, previousTable, lastTable, f1, event, setEvent, toast } = props
     if (previousTable?._id) {
@@ -94,6 +95,7 @@ export const handleMoveGuest = (props: handleMoveGuest) => {
 }
 
 const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIsMounted, menu = [] }) => {
+  const { t } = useTranslation()
   const toast = useToast()
   const { event, setEvent, invitadoCero, setInvitadoCero, allFilterGuests, planSpaceActive, setPlanSpaceActive, filterGuests } = EventContextProvider();
   const GuestsFathers = event?.invitados_array?.filter((invitado) => !invitado?.father)
@@ -198,7 +200,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         Header: () => {
           return (
             <h3 className=" text-gray-500 text-left truncate capitalize font-medium">
-              {title}
+              {t(title)}
             </h3>
           );
         },
@@ -240,7 +242,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         },
       },
       {
-        Header: "Asistencia",
+        Header: t("Asistencia"),
         accessor: "asistencia",
         Cell: ({ value: initialValue, row, column: { id } }) => {
           const [value, setValue] = useState(initialValue ?? "pendiente");
@@ -286,7 +288,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                   onClick={() => !isAllowed() ? null : setShow(!show)}
                 >
                   {dicc[value]?.icon && cloneElement(dicc[value]?.icon, { className: "w-5 h-5" })}
-                  {value}
+                  {t(value)}
                 </button>
                 <ul
                   className={`${show ? "block opacity-100" : "hidden opacity-0"
@@ -303,7 +305,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                         }}
                       >
                         {cloneElement(item.icon, { className: "w-5 h-5" })}
-                        {item.title}
+                        {t(item.title)}
                       </li>
                     );
                   })}
@@ -314,7 +316,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         },
       },
       {
-        Header: "Menu",
+        Header: t("Menu"),
         accessor: "nombre_menu",
         Cell: ({ value: initialValue, row, column: { id } }) => {
 
@@ -341,7 +343,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                   className="font-display text-gray-500 hover:text-gray-400 transition text-sm capitalize flex gap-2 items-center justify-center focus:outline-none"
                   onClick={() => !isAllowed() ? null : setShow(!show)}
                 >
-                  {value}
+                  {t(value)}
                 </button>
                 <ul
                   className={`${show ? "block opacity-100" : "hidden opacity-0"
@@ -357,7 +359,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                           setShow(!show);
                         }}
                       >
-                        {item?.nombre_menu}
+                        {t(item?.nombre_menu)}
                       </li>
                     );
                   })}
@@ -368,7 +370,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                       setShow(!show);
                     }}
                   >
-                    {"sin menú"}
+                    {t("sin menú")}
                   </li>
                 </ul>
               </div>
@@ -377,7 +379,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         },
       },
       {
-        Header: "Mesa recepción",
+        Header: t("Mesa recepción"),
         accessor: "tableNameRecepcion",
         Cell: ({ value: initialValue, row, column: { id } }) => {
           const [value, setValue] = useState(initialValue);
@@ -445,7 +447,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         },
       },
       {
-        Header: "Mesa Ceremonia",
+        Header: t("Mesa Ceremonia"),
         accessor: "tableNameCeremonia",
         Cell: ({ value: initialValue, row, column: { id } }) => {
           const [value, setValue] = useState(initialValue);
@@ -514,7 +516,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         },
       },
       {
-        Header: "Acompañantes",
+        Header: t("Acompañantes"),
         accessor: "passesQuantity",
         Cell: ({ value: initialValue, column: { id }, ...props }) => {
           if (event.showChildrenGuest === props.row.original._id && !props?.row?.isExpanded) {
@@ -628,7 +630,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                       onClick={() => DeleteGroup()}
                       className="font-display cursor-pointer border-base border block px-4 text-sm text-gray-500 hover:text-gray-500 hover:bg-base"
                     >
-                      {item}
+                      {t(item)}
                     </li>
                   ))}
                 </ul>
@@ -726,7 +728,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                         }
                         className="font-display cursor-pointer border-base border block px-4 text-sm text-gray-500 hover:text-gray-500 hover:bg-base py-3"
                       >
-                        {item.title}
+                        {t(item.title)}
                       </li>
                     ))}
                   </ul>
