@@ -44,7 +44,6 @@ interface handleMoveGuest {
 }
 
 export const handleMoveGuest = (props: handleMoveGuest) => {
-  const { t } = useTranslation()
   try {
     const { invitadoID, previousTable, lastTable, f1, event, setEvent, toast } = props
     if (previousTable?._id) {
