@@ -70,10 +70,10 @@ const BlockCabecera = () => {
               {item?.icon}
               <span>
                 <p className="font-display md:text-lg font-semibold text-gray-700 leading-5">
-                  {item?.title}
+                  {t(item?.title)}
                 </p>
                 <p className="font-display text-xs font-medium text-gray-500">
-                  {item?.subtitle}
+                  {t(item?.subtitle)}
                 </p>
               </span>
             </div>

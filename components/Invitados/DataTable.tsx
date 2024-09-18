@@ -143,7 +143,7 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
               <td className="pl-6 py-4 col-span-1 table-cell	">
               </td>
               <td className="py-4 w-max pl-5 text-gray-300">
-                {t("noguestss")}
+                {t("noguests")}
               </td>
             </tr>
           )}

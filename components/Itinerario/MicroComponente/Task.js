@@ -11,7 +11,7 @@ import { WorkFlowItinerario } from "./WorkFlowItinerario";
 import { LiaLinkSolid } from "react-icons/lia";
 import { useTranslation } from 'react-i18next';
 
-export const Task = ({ itinerario, task, title, disable, ht, setModalStatus, modalStatus, setModalWorkFlow, modalWorkFlow,setModalCompartirTask, modalCompartirTask }) => {
+export const Task = ({ itinerario, task, title, disable, ht, setModalStatus, modalStatus, setModalWorkFlow, modalWorkFlow, setModalCompartirTask, modalCompartirTask }) => {
   const { domain } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
   const toast = useToast()
@@ -41,8 +41,10 @@ export const Task = ({ itinerario, task, title, disable, ht, setModalStatus, mod
       })
       setEvent((old) => {
         const f1 = old.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
-        const f2 = old.itinerarios_array[f1].tasks.findIndex(elem => elem._id === task._id)
-        old.itinerarios_array[f1].tasks[f2][`${variable}`] = valor
+        if (f1 > -1) {
+          const f2 = old.itinerarios_array[f1].tasks.findIndex(elem => elem._id === task._id)
+          old.itinerarios_array[f1].tasks[f2][`${variable}`] = valor
+        }
         return { ...old }
       })
     } catch (error) {
@@ -98,7 +100,7 @@ export const Task = ({ itinerario, task, title, disable, ht, setModalStatus, mod
               <div className="grid grid-cols-4 items-center justify-center py-3 md:py-0 space-x-2* gap-1 ">
                 <EstatusItinerario setModalStatus={setModalStatus} modalStatus={modalStatus} />
                 <WorkFlowItinerario setModalWorkFlow={setModalWorkFlow} modalWorkFlow={modalWorkFlow} />
-                <LiaLinkSolid className="h-auto w-5 cursor-pointer text-gray-500 hover:text-gray-700" onClick={()=>setModalCompartirTask(!modalCompartirTask)} />
+                <LiaLinkSolid className="h-auto w-5 cursor-pointer text-gray-500 hover:text-gray-700" onClick={() => setModalCompartirTask(!modalCompartirTask)} />
                 <MdOutlineDeleteOutline className="w-7 h-auto cursor-pointer text-gray-500 hover:text-gray-700" onClick={() => disable ? ht() : deleteTask()} />
               </div>
             </div>

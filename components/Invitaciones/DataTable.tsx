@@ -142,7 +142,7 @@ export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, set
               </tr>
             );
           }) : <tr className="transition border-b border-base hover:bg-base cursor-pointer w-full grid place-items-center">
-            <td className="py-5 font-display text-lg text-gray-500 uppercase ">{t("noguests")}</td></tr>}
+            <td className="py-5 font-display text-lg text-gray-500 uppercase ">{t("noguestsevent")}</td></tr>}
         </tbody>
       </table>
       

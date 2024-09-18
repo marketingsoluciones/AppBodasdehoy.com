@@ -317,7 +317,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         Header: "Menu",
         accessor: "nombre_menu",
         Cell: ({ value: initialValue, row, column: { id } }) => {
-          
+
           const [value, setValue] = useState(row?.original?.nombre_menu ? row?.original?.nombre_menu : "sin menú");
           const [show, setShow] = useState(false);
           const [loading, setLoading] = useState(false);

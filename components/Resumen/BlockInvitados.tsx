@@ -28,7 +28,7 @@ const BlockInvitados: FC = () => {
         "asistencia",
         "pendiente"
       )} de ${totalInvitados}`,
-      subtitle: t('byconfirm'),
+      subtitle: "por confirmar",
     },
     {
       icon: <InvitadosConfirmados />,
@@ -36,7 +36,7 @@ const BlockInvitados: FC = () => {
         "asistencia",
         "confirmado"
       )} de ${totalInvitados}`,
-      subtitle: t("Confirmed"),
+      subtitle: "confirmadas",
     },
     {
       icon: <InvitadosCancelados />,
@@ -44,7 +44,7 @@ const BlockInvitados: FC = () => {
         "asistencia",
         "cancelado"
       )} de ${totalInvitados}`,
-      subtitle: t("cancelled"),
+      subtitle: "canceladas",
     },
   ];
 
@@ -77,10 +77,10 @@ const BlockInvitados: FC = () => {
             >
               {item.icon}
               <p className="font-display font-semibold  text-xl text-gray-700">
-                {item.title}
+                {t(item.title)}
               </p>
               <p className="font-display font-ligth  text-xs text-gray-700">
-                {item.subtitle}
+                {t(item.subtitle)}
               </p>
             </SwiperSlide>
           ))}
