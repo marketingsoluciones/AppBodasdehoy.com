@@ -113,7 +113,7 @@ const Navigation: FC = () => {
               router.push(config?.pathDirectory ? `${config?.pathDirectory}` : ``)
               setIsActiveStateSwiper(0)
             }}
-            className="cursor-pointer w-40 items-center flex justify-center translate-x-[-14px] md:translate-x-[-160px]">
+            className="cursor-pointer w-[28vw]  md:w-40 items-center flex justify-center translate-x-[-14px] md:translate-x-[-160px]">
             {config?.logoDirectory}
           </span>
           <NavbarDirectory />

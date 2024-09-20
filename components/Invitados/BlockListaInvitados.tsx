@@ -11,6 +11,8 @@ import SentarBlock from "./SentarBlock";
 import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
+import { GoMultiSelect } from "react-icons/go";
+
 
 interface propsBlockListaInvitados {
   menu?: any
@@ -19,9 +21,12 @@ interface propsBlockListaInvitados {
   setCreatePDF?: any
   ConditionalAction?: any
   handleClick?: any
+  setChangueVew?: any
+  changueVew?: any
+  setOptionChengueVew?:any
 }
 
-const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ menu, setGetMenu, createPDF, setCreatePDF, ConditionalAction, handleClick }) => {
+const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ menu, setGetMenu, createPDF, setCreatePDF, ConditionalAction, handleClick, setChangueVew, changueVew, setOptionChengueVew }) => {
   const { event } = EventContextProvider();
   const [isMounted, setIsMounted] = useState(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
@@ -30,40 +35,57 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ menu, setGetMenu, c
   const [isAllowed, ht] = useAllowed()
   const { t } = useTranslation();
 
-
+  const onClickOption = (option) => {
+    setOptionChengueVew(option)
+    setChangueVew(false )
+}
 
 
   return (
     <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full md:px-6 pt-2 md:pt-6 pb-28 mb-32 md:mb-0 md:p-12 relative">
-      <div className="flex gap-2 md:gap-4 items-center mt-1 mb-3 md:mb-5 mx-2">
-        <button
-          onClick={(e) => !isAllowed() ? ht() : ConditionalAction({ e })}
-          className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary md:bg-primary md:text-white md:hover:bg-white md:hover:text-primary"
-        >
-          <PlusIcon />
-          {t("guests")}
-        </button>
-        <button
-          onClick={(e) => !isAllowed() ? ht() : handleClick(e, "grupo")}
-          className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
-        >
-          <PlusIcon />
-          {t("group")}
-        </button>
-        <button
-          onClick={(e) => !isAllowed() ? ht() : handleClick(e, "menu")}
-          className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
-        >
-          <PlusIcon />
-          {t("menu")}
-        </button>
-        {/* <button
+      <div className="flex  items-center justify-between relative">
+        <div className="flex gap-2 items-center mt-1 mb-3 md:mb-5 mx-2">
+          <button
+            onClick={(e) => !isAllowed() ? ht() : ConditionalAction({ e })}
+            className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary md:bg-primary md:text-white md:hover:bg-white md:hover:text-primary"
+          >
+            <PlusIcon />
+            {t("guests")}
+          </button>
+          <button
+            onClick={(e) => !isAllowed() ? ht() : handleClick(e, "grupo")}
+            className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
+          >
+            <PlusIcon />
+            {t("group")}
+          </button>
+          <button
+            onClick={(e) => !isAllowed() ? ht() : handleClick(e, "menu")}
+            className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
+          >
+            <PlusIcon />
+            {t("menu")}
+          </button>
+          {/* <button
           onClick={() => !isAllowed() ? ht() : event?.invitados_array.length > 0 ? setCreatePDF(!createPDF) : toast("error", "Debes agregar invitados")}
           className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
-        >
+          >
           Crear PDF
-        </button> */}
+          </button> */}
+        </div>
+        <div onClick={() => setChangueVew(!changueVew)} className="md:hidden">
+          <GoMultiSelect className="mr-3 h-7 w-7 mb-3 " />
+        </div>
+        <div className={`${changueVew ? "absolute right-5 bg-white top-7 z-50 rounded-md shadow-md " : "hidden"}`}>
+          <div onClick={() => onClickOption("tabla")} className=" px-7 py-2 text-gray-500 border-b-2 text-center">
+            Tabla
+          </div>
+          <div onClick={() => onClickOption("tarjeta")} className=" px-7 py-2 text-gray-500 text-center">
+            Tarjetas
+          </div>
+        </div>
       </div>
+
       {shouldRenderChild && (
         <ModalBottom state={isMounted} set={setIsMounted}>
           <div className="flex justify-center w-full gap-6">
@@ -90,7 +112,7 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ menu, setGetMenu, c
                 <div className="w-full h-full grid place-items-center">
                   {" "}
                   <p className="font-display text-lg text-gray-100">
-                   {t("noguestselected")}
+                    {t("noguestselected")}
                   </p>
                 </div>
               )}

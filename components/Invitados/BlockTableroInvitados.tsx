@@ -15,6 +15,7 @@ import { BorrarInvitado } from "../../hooks/EditarInvitado";
 import { Modal } from "../Utils/Modal";
 import { DeleteConfirmation } from "../Itinerario/MicroComponente/DeleteConfirmation";
 import { useTranslation } from "react-i18next";
+import { GoMultiSelect } from "react-icons/go";
 
 
 interface propsBlockListaInvitados {
@@ -24,6 +25,9 @@ interface propsBlockListaInvitados {
     setCreatePDF?: any
     ConditionalAction?: any
     handleClick?: any
+    changueVew?: any
+    setChangueVew?: any
+    setOptionChengueVew?:any
 }
 
 interface guestsExt extends guests {
@@ -40,7 +44,7 @@ interface handleMoveGuest {
     f1: number
 }
 
-export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ createPDF, setCreatePDF, ConditionalAction, handleClick }) => {
+export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ ConditionalAction, handleClick, changueVew, setChangueVew, setOptionChengueVew }) => {
     const { t } = useTranslation();
     const { event, allFilterGuests, setEvent } = EventContextProvider();
     const [isMounted, setIsMounted] = useState(false);
@@ -50,6 +54,7 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ createPDF,
     const [data, setData] = useState<{ titulo: string; data: guestsExt[] }[]>([]);
     const [modal, setModal] = useState({ state: false, title: null, handle: () => { } })
     const [showCards, setShowCards] = useState({})
+
     const toast = useToast()
     const [isAllowed, ht] = useAllowed()
 
@@ -90,38 +95,57 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ createPDF,
         Data && setData(Object.values(Data));
     }, [allFilterGuests]);
 
+    const onClickOption = (option) => {
+        setOptionChengueVew(option)
+        setChangueVew(false )
+    }
+
 
     return (
         <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full pt-2 pb-28 mb-32  relative" >
-            <div className="flex gap-2 items-center mt-1 mb-3 md:mb-5 mx-2">
-                <button
-                    onClick={(e) => !isAllowed() ? ht() : ConditionalAction({ e })}
-                    className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary md:bg-primary md:text-white md:hover:bg-white md:hover:text-primary"
-                >
-                    <PlusIcon />
-                    {t("guests")}
-                </button>
-                <button
-                    onClick={(e) => !isAllowed() ? ht() : handleClick(e, "grupo")}
-                    className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
-                >
-                    <PlusIcon />
-                    {t("group")}
-                </button>
-                <button
-                    onClick={(e) => !isAllowed() ? ht() : handleClick(e, "menu")}
-                    className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
-                >
-                    <PlusIcon />
-                    {t("menu")}
-                </button>
-                {/* <button
+            <div className="flex  items-center justify-between relative">
+                <div className="flex gap-2 items-center mt-1 mb-3 md:mb-5 mx-2">
+
+                    <button
+                        onClick={(e) => !isAllowed() ? ht() : ConditionalAction({ e })}
+                        className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary md:bg-primary md:text-white md:hover:bg-white md:hover:text-primary"
+                    >
+                        <PlusIcon />
+                        {t("guests")}
+                    </button>
+                    <button
+                        onClick={(e) => !isAllowed() ? ht() : handleClick(e, "grupo")}
+                        className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
+                    >
+                        <PlusIcon />
+                        {t("group")}
+                    </button>
+                    <button
+                        onClick={(e) => !isAllowed() ? ht() : handleClick(e, "menu")}
+                        className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
+                    >
+                        <PlusIcon />
+                        {t("menu")}
+                    </button>
+                    {/* <button
                     onClick={() => !isAllowed() ? ht() : event?.invitados_array.length > 0 ? setCreatePDF(!createPDF) : toast("error", "Debes agregar invitados")}
                     className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
-                >
+                    >
                     
                     Crear PDF
-                </button> */}
+                    </button> */}
+                </div>
+                <div onClick={() => setChangueVew(!changueVew)}>
+                    <GoMultiSelect className="mr-3 h-7 w-7 mb-3 " />
+                </div>
+                <div className={`${changueVew ? "absolute right-5 bg-white top-7 z-50 rounded-md shadow-md " : "hidden"}`}>
+                    <div onClick={()=>onClickOption("tabla")} className=" px-7 py-2 text-gray-500 border-b-2 text-center">
+                        Tabla
+                    </div>
+                    <div onClick={()=>onClickOption("tarjeta")} className=" px-7 py-2 text-gray-500 text-center">
+                        Tarjetas
+                    </div>
+                </div>
             </div>
             {shouldRenderChild && (
                 <ModalBottom state={isMounted} set={setIsMounted}>
@@ -157,7 +181,7 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ createPDF,
                     </div>
                 </ModalBottom>
             )}
-            <div className="relative overflow-x-auto md:overflow-x-visible space-y-3 mx-2* ">
+            <div className="relative overflow-x-auto md:overflow-x-visible space-y-3  ">
                 {
                     data.map((item, idx) => {
                         return (
@@ -284,8 +308,6 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
 
 
     }, [acompañanteID.id])
-
-    /* console.log("---->", event.showChildrenGuest) */
 
     const updateMyData = ({
         rowID,
@@ -501,10 +523,12 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                     </div>
                                     <div className="items-center col-span-2  grid grid-cols-2 py-1 relative">
                                         <div className="font-semibold text-[12px] ">asistencia :</div>
-                                        <div onClick={() => !isAllowed() ? null : toggleVisibility("asistencia", item._id)} className="flex items-center justify-between font-body  col-span-1 ">
-                                            <div className="flex items-center text-[14px]">
+                                        <div onClick={() => !isAllowed() ? null : toggleVisibility("asistencia", item._id)} className="flex items-center justify-between font-body col-span-1">
+                                            <div className="flex items-center text-[14px] space-x-1 -ml-[13px]">
                                                 {dicc[item.asistencia]?.icon && cloneElement(dicc[item.asistencia].icon, { className: "w-4 h-4" })}
-                                                {item.asistencia}
+                                                <div>
+                                                    {item.asistencia}
+                                                </div>
                                             </div>
 
                                             <div className="pl-2 ">
@@ -739,12 +763,15 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                     }
                                 </div>
                             </div >
+
+
+
                             {
                                 showModalAcompañante[item._id] &&
-                                GuestsByFather.length >0 && GuestsByFather?.map((item, idx) => {
+                                GuestsByFather.length > 0 && GuestsByFather?.map((item, idx) => {
                                     return (
                                         <div key={idx}>
-                                            <div className="capitalize flex justify-center "> Acompañantes de  {item.nombre}</div>
+                                            <div className="capitalize flex justify-center "> Acompañantes de {item.nombre}</div>
                                             <div className={`  bg-gray-100 my-2 mx-3 rounded-md grid grid-cols-6 relative `}>
                                                 <div onClick={!isAllowed() ? null : () => handleClick(item._id)} className=" pt-2 pl-2 justify-self-center relative col-span-1 h-max ">
                                                     <img
@@ -998,7 +1025,7 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                 showModalAcompañante[item._id] && GuestsByFather.length === 0 &&
                                 <>
                                     <div className="capitalize flex justify-center "> Acompañantes de  {item.nombre}</div>
-                                    <span className="items-center col-span-3 flex gap-3 text-gray-500 justify-center pt-5">
+                                    <span className="items-center col-span-3 flex gap-3 text-gray-500 justify-center pb-3">
                                         No tiene Acompañantes confirmados
                                     </span>
                                     <div className="border-b"></div>
@@ -1012,4 +1039,6 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
         </>
     )
 }
+
+
 

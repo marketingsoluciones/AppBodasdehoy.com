@@ -18,8 +18,12 @@ const Invitados: FC = () => {
   const [createPDF, setCreatePDF] = useState(false)
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const { event } = EventContextProvider();
-  useMounted()
   const { actionModals, setActionModals } = AuthContextProvider()
+  const [changueVew, setChangueVew] = useState(false)
+  const [optionChengueVew, setOptionChengueVew] = useState("tarjeta")
+  const { user, verificationDone, forCms } = AuthContextProvider()
+
+  useMounted()
 
 
   const reciboClick = (accion) => {
@@ -39,7 +43,6 @@ const Invitados: FC = () => {
 
   }
 
-  const { user, verificationDone, forCms } = AuthContextProvider()
   if (verificationDone) {
     if (!user) {
       return (
@@ -80,10 +83,17 @@ const Invitados: FC = () => {
               className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 gap-4 ">
               <BlockCabecera />
               <div className="hidden md:block ">
-                <BlockListaInvitados createPDF={createPDF} setCreatePDF={setCreatePDF} ConditionalAction={ConditionalAction} handleClick={handleClick} />
+                <BlockListaInvitados createPDF={createPDF} setCreatePDF={setCreatePDF} ConditionalAction={ConditionalAction} handleClick={handleClick} setChangueVew={setChangueVew} changueVew={changueVew} />
               </div>
               <div className=" md:hidden ">
-                <BlockTableroInvitados createPDF={createPDF} setCreatePDF={setCreatePDF} ConditionalAction={ConditionalAction} handleClick={handleClick} />
+                {
+                  optionChengueVew === "tarjeta" &&
+                  <BlockTableroInvitados createPDF={createPDF} setCreatePDF={setCreatePDF} ConditionalAction={ConditionalAction} handleClick={handleClick} setChangueVew={setChangueVew} changueVew={changueVew} setOptionChengueVew={setOptionChengueVew} />
+                }
+                {
+                  optionChengueVew === "tabla" &&
+                  <BlockListaInvitados createPDF={createPDF} setCreatePDF={setCreatePDF} ConditionalAction={ConditionalAction} handleClick={handleClick} setChangueVew={setChangueVew} changueVew={changueVew}  setOptionChengueVew={setOptionChengueVew}/>
+                }
               </div>
             </motion.div>
           </section >}
