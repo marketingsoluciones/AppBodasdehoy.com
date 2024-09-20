@@ -3,6 +3,7 @@ import { EncabezadoFacturacion, Productos } from "./index"
 import { AuthContextProvider } from "../../context"
 
 export const Planes = ({ data, currency, setCurrency, stripeCurrency }) => {
+    console.log(data)
     const { config } = AuthContextProvider()
     const [products, setProducts] = useState([])
     return (
