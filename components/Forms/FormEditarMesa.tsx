@@ -91,9 +91,9 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
       setEditDefault(old => {
         return { ...old, item: table }
       })
-      toast("success", "La mesa fue actualizada")
+      toast("success", t("La mesa fue actualizada"))
     } catch (err) {
-      toast("error", "Ha ocurrido un error al actualizar la mesa")
+      toast("error", t("Ha ocurrido un error al actualizar la mesa"))
       console.log(err);
     } finally {
       actions.setSubmitting(false);
@@ -114,16 +114,16 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
     try {
       if (active) {
         moveGuest({ event, chair: NaN, invitadoID: item._id, tableID: state?.table?._id, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo: "dragS" })
-        toast("success", "El invitado fue levantado de la mesa")
+        toast("success", t("El invitado fue levantado de la mesa"))
         return
       }
       if (state?.table?.guests?.length === state?.table?.numberChair) {
-        toast("error", "La mesa tiene todos los puestos ocupados")
+        toast("error", t("La mesa tiene todos los puestos ocupados"))
       }
       for (let i = 0; i < state?.table?.numberChair; i++) {
         if (!state?.table?.guests?.map(el => el.chair).includes(i)) {
           moveGuest({ event, chair: i, invitadoID: item._id, tableID: state?.table?._id, setEvent, planSpaceActive, setPlanSpaceActive })
-          toast("success", "El invitado fue sentado en la mesa")
+          toast("success", t("El invitado fue sentado en la mesa"))
           break
         }
       }
@@ -176,12 +176,6 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
                       </div>
                     </div>
                   </div>
-                  {/* <p className='font-body text-primary '>Invitados asignados a esta mesa</p>
-                  <button type='button' onClick={() => { true ? setSelectedInvitado(!selectInvitado) : toast("error", "No hay invitados disponibles para sentar") }} className='border rounded-lg w-[100%] h-10 py-1 flex items-center justify-between px-2 font-body text-sm focus:outline-none'>
-                    Agregar invitado
-                    <ArrowDown className="text-gray-500" />
-                  </button> */}
-
                   {selectInvitado ? (
                     <ClickAwayListener onClickAway={() => selectInvitado && setSelectedInvitado(!selectInvitado)}>
                       <div className={`${selectInvitado ? "block " : "hidden"} overflow-y-scroll bg-white w-[100%] h-[190px] top-[64px] absolute rounded-lg drop-shadow-md`}>

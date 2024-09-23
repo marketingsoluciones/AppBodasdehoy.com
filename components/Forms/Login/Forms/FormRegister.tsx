@@ -12,7 +12,6 @@ import { parseJwt, phoneUtil, useAuthentication } from "../../../../utils/Authen
 import { fetchApiBodas, fetchApiEventos, queries } from "../../../../utils/Fetching";
 import { useRouter } from "next/router";
 import { FirebaseError } from 'firebase/app';
-import { redirections } from "./redirections";
 import Cookies from 'js-cookie';
 import * as yup from "yup";
 import { useActivity } from '../../../../hooks/useActivity';

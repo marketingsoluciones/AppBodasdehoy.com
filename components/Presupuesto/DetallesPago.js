@@ -31,7 +31,7 @@ const DetallesPago = ({ set, ...props }) => {
     <>
       <div className="flex items-center justify-center h-full">
         <p onClick={!isAllowed() ? null : handleClick} className=" rounded px-2 hover:text-gray-400 transition cursor-pointer">
-        <FaRegEye />
+          <FaRegEye />
         </p>
       </div>
     </>

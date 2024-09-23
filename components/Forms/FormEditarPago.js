@@ -36,9 +36,7 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categor
   const { event, setEvent } = EventContextProvider()
   const [pago, setPago] = useState(ListaPagos?.find(item => item._id == IDPagoAModificar))
   const toast = useToast()
-
-
-
+  const {t}= useTranslation()
 
   useEffect(() => {
     setPago(ListaPagos?.find(item => item._id == IDPagoAModificar))
@@ -109,7 +107,7 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categor
           actions.setSubmitting(true)
           const { data } = await api.ApiApp(params)
           res = data?.data?.editPago
-          toast("success", `Pago guardado`)
+          toast("success", t(`savedpayment`))
         } catch (error) {
           console.log(error)
         } finally {

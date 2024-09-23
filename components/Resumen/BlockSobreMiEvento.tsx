@@ -46,10 +46,10 @@ const InsideBlockWithButtons: FC<propsInsideBlock> = ({
               setEvent({ ...event, [title]: item.title })
               setFieldValue(title, item)
               setEditing(false)
-              toast("success", "Guardado con exito")
+              toast("success", t("Guardado con éxito"))
             } catch (error) {
               console.log(error)
-              toast("error", "Ha ocurrido un error")
+              toast("error", t("Ha ocurrido un error"))
             }
           }}
         />

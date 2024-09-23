@@ -66,7 +66,7 @@ const Configuration = () => {
       setLoading(true);
       _signOut()
     } catch (error) {
-      toast("error", "Ups.. Hubo un error")
+      toast("error", t("Ups.. Hubo un error"))
       console.log(error)
     } finally {
       setLoading(false);
@@ -101,7 +101,7 @@ const Configuration = () => {
 export default Configuration;
 //export default PagesWithAuth(Configuration);
 
-export const BlockConfiguration: FC<{ title: string; subtitle?: string, children?:any }> = ({  title,  subtitle,  children,}) => {
+export const BlockConfiguration: FC<{ title: string; subtitle?: string, children?: any }> = ({ title, subtitle, children, }) => {
   return (
     <div className="bg-white p-6 rounded-xl shadow flex flex-col gap-2">
       <div>

@@ -64,7 +64,7 @@ export const RowObject: FC<props> = (props) => {
                     if (value?._id || elem?._id) {
                       if (value?._id !== elem?._id) {
                         setValue(elem.title);
-                        handleMoveGuest({ invitadoID: guestID, previousTable: value, lastTable: table, f1, event, setEvent, toast })
+                        handleMoveGuest({t, invitadoID: guestID, previousTable: value, lastTable: table, f1, event, setEvent, toast })
                       }
                     }
                   }}

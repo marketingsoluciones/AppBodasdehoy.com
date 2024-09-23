@@ -41,6 +41,7 @@ interface handleMoveGuest {
   previousTable: Partial<table>
   lastTable: Partial<table>
   f1: number
+  t: any
 }
 
 export const handleMoveGuest = (props: handleMoveGuest) => {
@@ -62,7 +63,7 @@ export const handleMoveGuest = (props: handleMoveGuest) => {
         },
       });
       if (!lastTable) {
-        toast("success", `El invitado no está sentado en ninguna mesa`,)
+        toast("success", props.t(`El invitado no está sentado en ninguna mesa`),)
       }
     }
     if (lastTable) {
@@ -82,7 +83,7 @@ export const handleMoveGuest = (props: handleMoveGuest) => {
                 valor: JSON.stringify([...event.planSpace[f1].tables[f2]?.guests])
               },
             });
-            toast("success", `El invitado fue sentado en la mesa; ${lastTable.title}, puesto: ${i + 1}`,)
+            toast("success", `${props.t("El invitado fue sentado en la mesa")}; ${lastTable.title}, ${props.t("puesto")}: ${i + 1}`,)
           }
           break
         }
@@ -423,7 +424,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                             if (value?._id || elem?._id) {
                               if (value?._id !== elem?._id) {
                                 setValue(elem.title);
-                                handleMoveGuest({ invitadoID: row.original._id, previousTable: value, lastTable: table, f1, event, setEvent, toast })
+                                handleMoveGuest({ t, invitadoID: row.original._id, previousTable: value, lastTable: table, f1, event, setEvent, toast })
                               }
                             }
                           }}
@@ -492,7 +493,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                             if (value?._id || elem?._id) {
                               if (value?._id !== elem?._id) {
                                 setValue(elem.title);
-                                handleMoveGuest({ invitadoID: row.original._id, previousTable: value, lastTable: table, f1, event, setEvent, toast })
+                                handleMoveGuest({ t, invitadoID: row.original._id, previousTable: value, lastTable: table, f1, event, setEvent, toast })
                               }
                             }
                           }}
@@ -771,6 +772,7 @@ const CheckBoxAll: FC<any> = ({ check, ...rest }) => {
   const toast = useToast();
   const refCheckbox: any = useRef();
   const [isAllowed, ht] = useAllowed()
+  const { t } = useTranslation();
 
   const getToggleAllRowsSelectedProps = () => {
     const totalGuests: number = event?.invitados_array?.length;
@@ -799,10 +801,10 @@ const CheckBoxAll: FC<any> = ({ check, ...rest }) => {
         invitados_array,
       }));
       dispatch({ type: "RESET_STATE" });
-      toast("success", "Invitado eliminado con exito");
+      toast("success", t("Invitado eliminado con exito"));
     } catch (error) {
       console.log(error);
-      toast("error", "Ha ocurrido un error");
+      toast("error", t("Ha ocurrido un error"));
     }
   };
 
@@ -814,7 +816,7 @@ const CheckBoxAll: FC<any> = ({ check, ...rest }) => {
       refCheckbox.current.indeterminate = indeterminate;
     }
   }, [refCheckbox, arrIDs, getToggleAllRowsSelectedProps]);
-  const { t } = useTranslation();
+
   return (
     <div className="h-8 w-full grid grid-cols-12 items-center translate-x-[-8px] md:translate-x-[-16px]">
       <label className="relative w-full grid place-items-center col-span-1">

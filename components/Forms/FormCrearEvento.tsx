@@ -71,7 +71,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
         setEventsGroup({ type: "ADD_EVENT", payload: crearEvento });
 
       }
-      toast("success", "Evento creado con exito");
+      toast("success", t("successfullycreatedevent"));
     } catch (error) {
       toast("error", "Ha ocurrido un error al crear el evento");
       console.log(error);
@@ -105,9 +105,9 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
         variables: { idEvento: values._id, variable: "fecha", value: values.fecha.toString() }, token: null
       })
       setEvent({ ...event, ...values })
-      toast("success", "Evento actualizado con exito")
+      toast("success", t("Evento actualizado con exito"))
     } catch (error) {
-      toast("error", "Ha ocurrido un error al modificar el evento");
+      toast("error", t("Ha ocurrido un error al modificar el evento"));
       console.log(error)
     } finally {
       set(!state);

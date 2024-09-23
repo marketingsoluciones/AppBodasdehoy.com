@@ -20,6 +20,7 @@ import { useActivity } from "../../hooks/useActivity";
 import { GoChecklist } from "react-icons/go";
 import { useAllowed } from "../../hooks/useAllowed";
 import i18next from "i18next";
+import { useTranslation } from "react-i18next";
 
 const Profile = ({ user, state, set, ...rest }) => {
   const { config, setUser, setActionModals, actionModals } = AuthContextProvider()
@@ -27,6 +28,7 @@ const Profile = ({ user, state, set, ...rest }) => {
   const [dropdown, setDropwdon] = useState(false);
   const { event } = EventContextProvider()
   const [isAllowed, ht] = useAllowed()
+  const { t } = useTranslation()
 
 
   const { route } = useRouter()
@@ -186,7 +188,7 @@ const Profile = ({ user, state, set, ...rest }) => {
             router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "/login")
             return
           }
-          toast("success", `Cerró sesión con éxito`)
+          toast("success", t("loggedoutsuccessfully"))
           router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "/")
         })
       },
@@ -228,7 +230,7 @@ const Profile = ({ user, state, set, ...rest }) => {
         <span className="flex items-center gap-2 relative">
         </span>
         <div className="items-center flex relative cursor-default ">
-          <div onClick={() => !event ? toast("error", `No tienes eventos creados`) : /* !isAllowed("itinerario") ? ht() : */ router.push("/itinerario")} className={`${!event ? "opacity-40" : ""} bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200 cursor-pointer`} >
+          <div onClick={() => !event ? toast("error", t("nohaveeventscreated")) : /* !isAllowed("itinerario") ? ht() : */ router.push("/itinerario")} className={`${!event ? "opacity-40" : ""} bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200 cursor-pointer`} >
             <GoChecklist className="text-primary w-6 h-6 scale-x-90" />
           </div>
         </div>

@@ -28,12 +28,12 @@ export const Email = () => {
       }) */
 
       if (data?.email) {
-        toast("success", data?.email + " gracias por suscribirte")
+        toast("success", data?.email + " " + t("gracias por suscribirte"))
         resetForm({ value: '' })
       }
     } catch (error) {
       console.log(error)
-      toast("error", "sin datos")
+      toast("error", t("sin datos"))
     }
   };
 

@@ -107,7 +107,7 @@ const FormAddPago = ({ GastoID, cate }) => {
         try {
           const { data: resp } = await api.ApiApp(params)
           res = resp.data.nuevoPago
-          toast("success", `Pago guardado`)
+          toast("success", t("savedpayment"))
         } catch (error) {
           console.log(error)
         } finally {

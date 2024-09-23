@@ -27,7 +27,7 @@ interface propsBlockListaInvitados {
     handleClick?: any
     changueVew?: any
     setChangueVew?: any
-    setOptionChengueVew?:any
+    setOptionChengueVew?: any
 }
 
 interface guestsExt extends guests {
@@ -42,6 +42,7 @@ interface handleMoveGuest {
     previousTable: Partial<table>
     lastTable: Partial<table>
     f1: number
+    t: any
 }
 
 export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ ConditionalAction, handleClick, changueVew, setChangueVew, setOptionChengueVew }) => {
@@ -97,7 +98,7 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ Conditiona
 
     const onClickOption = (option) => {
         setOptionChengueVew(option)
-        setChangueVew(false )
+        setChangueVew(false)
     }
 
 
@@ -139,10 +140,10 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ Conditiona
                     <GoMultiSelect className="mr-3 h-7 w-7 mb-3 " />
                 </div>
                 <div className={`${changueVew ? "absolute right-5 bg-white top-7 z-50 rounded-md shadow-md " : "hidden"}`}>
-                    <div onClick={()=>onClickOption("tabla")} className=" px-7 py-2 text-gray-500 border-b-2 text-center">
+                    <div onClick={() => onClickOption("tabla")} className=" px-7 py-2 text-gray-500 border-b-2 text-center">
                         Tabla
                     </div>
-                    <div onClick={()=>onClickOption("tarjeta")} className=" px-7 py-2 text-gray-500 text-center">
+                    <div onClick={() => onClickOption("tarjeta")} className=" px-7 py-2 text-gray-500 text-center">
                         Tarjetas
                     </div>
                 </div>
@@ -238,7 +239,7 @@ export const handleMoveGuest = (props: handleMoveGuest) => {
                 },
             });
             if (!lastTable) {
-                toast("success", `El invitado no está sentado en ninguna mesa`,)
+                toast("success", props.t("El invitado no está sentado en ninguna mesa"),)
             }
         }
         if (lastTable) {
@@ -258,7 +259,7 @@ export const handleMoveGuest = (props: handleMoveGuest) => {
                                 valor: JSON.stringify([...event.planSpace[f1].tables[f2]?.guests])
                             },
                         });
-                        toast("success", `El invitado fue sentado en la mesa; ${lastTable.title}, puesto: ${i + 1}`,)
+                        toast("success", `${props.t("El invitado fue sentado en la mesa")}; ${lastTable.title}, ${props.t("puesto")}: ${i + 1}`,)
                     }
                     break
                 }
@@ -286,6 +287,7 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
     const toast = useToast()
     const [isAllowed] = useAllowed()
     const GuestsByFather = event?.invitados_array?.filter((invitado) => invitado?.father === acompañanteID.id)
+    const { t } = useTranslation()
 
 
 
@@ -638,7 +640,7 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                                                                 if (/* value?._id || */ item?._id) {
                                                                                     if (/* value?._id !== */ item?._id) {
                                                                                         setValue2(item.title);
-                                                                                        handleMoveGuest({ invitadoID: idGuest, previousTable: value2, lastTable: table, f1, event, setEvent, toast })
+                                                                                        handleMoveGuest({ t, invitadoID: idGuest, previousTable: value2, lastTable: table, f1, event, setEvent, toast })
                                                                                     }
                                                                                 }
                                                                             }}
@@ -691,7 +693,7 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                                                                 if (/* value?._id || */ elem?._id) {
                                                                                     if (/* value?._id !== */ elem?._id) {
                                                                                         setValue(elem.title);
-                                                                                        handleMoveGuest({ invitadoID: idGuest, previousTable: value2, lastTable: table, f1, event, setEvent, toast })
+                                                                                        handleMoveGuest({ t, invitadoID: idGuest, previousTable: value2, lastTable: table, f1, event, setEvent, toast })
                                                                                     }
                                                                                 }
                                                                             }}
@@ -901,7 +903,7 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                                                                                 if (/* value?._id || */ item?._id) {
                                                                                                     if (/* value?._id !== */ item?._id) {
                                                                                                         setValue2(item.title);
-                                                                                                        handleMoveGuest({ invitadoID: idGuest, previousTable: value2, lastTable: table, f1, event, setEvent, toast })
+                                                                                                        handleMoveGuest({ t, invitadoID: idGuest, previousTable: value2, lastTable: table, f1, event, setEvent, toast })
                                                                                                     }
                                                                                                 }
                                                                                             }}
@@ -954,7 +956,7 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                                                                                 if (/* value?._id || */ elem?._id) {
                                                                                                     if (/* value?._id !== */ elem?._id) {
                                                                                                         setValue(elem.title);
-                                                                                                        handleMoveGuest({ invitadoID: idGuest, previousTable: value2, lastTable: table, f1, event, setEvent, toast })
+                                                                                                        handleMoveGuest({ t, invitadoID: idGuest, previousTable: value2, lastTable: table, f1, event, setEvent, toast })
                                                                                                     }
                                                                                                 }
                                                                                             }}

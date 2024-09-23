@@ -22,7 +22,7 @@ export const defaultImagenes = {
   otro: "/cards/pexels-pixabay-50675.jpg"
 };
 
-export const handleClickCard = ({ final = true, data, user, setUser, config, setEvent, router }) => {
+export const handleClickCard = ({ t, final = true, data, user, setUser, config, setEvent, router }) => {
   try {
     fetchApiBodas({
       query: queries.updateUser,
@@ -54,7 +54,7 @@ export const handleClickCard = ({ final = true, data, user, setUser, config, set
             router.push("/" + p);
           }
         } else {
-          return "No tienes permiso, contacta al organizador del evento"
+          return t("No tienes permiso, contactar al organizador del evento")
         }
       } else {
         setEvent(data);
@@ -79,50 +79,7 @@ const Card = ({ data, grupoStatus, idx }) => {
   const toast = useToast()
 
   const handleArchivarEvent = () => {
-
-    if (false) {
-      try {
-        const value = grupoStatus === "pendiente" ? "archivado" : "pendiente"
-        const result = fetchApiEventos({
-          query: queries.eventUpdate,
-          variables: { idEvento: data[idx]?._id, variable: "estatus", value },
-          token: null
-        })
-        if (!result || result.errors) {
-          throw new Error("Ha ocurrido un error")
-        }
-        setEventsGroup({
-          type: "EDIT_EVENT",
-          payload: {
-            _id: data[idx]?._id,
-            estatus: value
-          }
-        })
-
-        if (grupoStatus === "archivado") {
-          setEvent(data[idx])
-          setTimeout(() => {
-            setIdxGroupEvent({ idx: 0, isActiveStateSwiper: 0, event_id: data[idx]?._id })
-          }, 50);
-          router.push("/resumen-evento");
-        }
-
-        if (idxGroupEvent?.idx == idx && value == "archivado") {
-          const valir = (data?.length - idx) > 1
-          setTimeout(() => {
-            setEvent(data[valir ? idx + 1 : idx - 1]);
-            setIdxGroupEvent({ ...idxGroupEvent, idx: valir ? idx : idx - 1, event_id: data[idx]?._id })
-          }, 50);
-        }
-        toast("success", `${value == "archivado" ? `El evento ${data[idx].tipo} de "${data[idx].nombre.toUpperCase()}" se ha archivado` : `El evento ${data[idx].tipo} de "${data[idx].nombre.toUpperCase()}" se ha desarchivado`}`)
-      } catch (error) {
-        toast("error", "Ha ocurrido un error al archivar el evento")
-        console.log(error)
-      }
-    } else {
       setActionModals(!actionModals)
-    }
-
   }
 
   const handleRemoveEvent = (grupoStatus) => {
@@ -150,7 +107,7 @@ const Card = ({ data, grupoStatus, idx }) => {
 
   useEffect(() => {
     if (eventsGroup?.length === 1) {
-      const resp = handleClickCard({ final: false, config, data: data[idx], setEvent, user, setUser, router })
+      const resp = handleClickCard({ t, final: false, config, data: data[idx], setEvent, user, setUser, router })
       if (resp) toast("warning", resp)
     }
   }, [])
@@ -168,7 +125,7 @@ const Card = ({ data, grupoStatus, idx }) => {
             <div onClick={() => {
               if (user?.displayName !== "guest") {
                 setTimeout(() => {
-                  const resp = handleClickCard({ final: false, config, data: data[idx], setEvent, user, setUser, router, toast })
+                  const resp = handleClickCard({ t, final: false, config, data: data[idx], setEvent, user, setUser, router, toast })
                   if (resp) toast("warning", resp)
                 }, 100);
                 setOpenModal(!openModal)
@@ -187,7 +144,7 @@ const Card = ({ data, grupoStatus, idx }) => {
 
         {data[idx]?._id == user?.eventSelected ? <div className="w-[304px] h-40 border-dashed border-2 border-yellow-300 absolute rounded-xl" /> : <></>}
         <div onClick={() => {
-          const resp = handleClickCard({ final: true, config, data: data[idx], setEvent, user, setUser, router })
+          const resp = handleClickCard({ t, final: true, config, data: data[idx], setEvent, user, setUser, router })
           if (resp) toast("warning", resp)
         }} className={`w-72 h-36 rounded-xl cardEvento z-[8] cursor-pointer shadow-lg relative overflow-hidden `}>
           <img

@@ -113,9 +113,9 @@ const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
       setPlanSpaceActive({ ...planSpaceActive })
       event.planSpace[event.planSpaceSelect] = planSpaceActive
       setEvent({ ...event })
-      toast("success", "Mesa creada con exito")
+      toast("success", t("Mesa creada con exito"))
     } catch (err) {
-      toast("error", "Ha ocurrido un error al crear la mesa")
+      toast("error", t("Ha ocurrido un error al crear la mesa"))
       console.log(err);
     } finally {
       actions.setSubmitting(false);

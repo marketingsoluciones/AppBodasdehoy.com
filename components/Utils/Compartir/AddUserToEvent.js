@@ -58,9 +58,9 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
             setEventsGroup([...eventsGroup])
             setEvent({ ...eventsGroup[f1] })
             // falta setear evento
-            toast("success", "Evento fue compartido con exito ");
+            toast("success", t("Evento fue compartido con éxito"));
         } catch (error) {
-            toast("error", "Ha ocurrido un error al compartir el evento");
+            toast("error", t("Ha ocurrido un error al compartir el evento"));
             console.log(error)
         }
     }

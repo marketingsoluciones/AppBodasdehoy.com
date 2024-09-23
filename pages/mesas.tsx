@@ -95,7 +95,7 @@ const Mesas: FC = () => {
           setCreaElement(false)
         })
       } catch (err) {
-        toast("error", "Ha ocurrido al añadir el objeto")
+        toast("error", t("Ha ocurrido un error al añadir el objeto"))
         console.log(err);
       }
     }

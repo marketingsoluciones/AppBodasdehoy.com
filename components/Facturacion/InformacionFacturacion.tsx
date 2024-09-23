@@ -39,7 +39,7 @@ export const InformacionFacturacion = () => {
             development: config.development
         }).then((result) => {
             if (result === "ok") {
-                toast("success", `La información se guardó correctamente`)
+                toast("success", t("savecorrect"))
             }
         })
     }

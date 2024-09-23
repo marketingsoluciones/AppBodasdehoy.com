@@ -87,7 +87,7 @@ export default function Test({ TitelComponent }) {
       // const { data } = await api.ApiApp(params)
       // console.log(data)
       setValirReset(true)
-      toast("success", "Invitación enviada")
+      toast("success", t("Invitación enviada"))
     } catch (error) {
       console.log(error)
     } finally {

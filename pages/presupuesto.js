@@ -411,6 +411,7 @@ const ItemCategoria = ({ item, setVisible, set }) => {
   const toast = useToast()
   const Presu = event?.presupuesto_objeto?.coste_estimado
   const [isAllowed, ht] = useAllowed()
+  const { t } = useTranslation()
 
   const BorrarCategoria = async () => {
     setShow(!show)
@@ -455,7 +456,7 @@ const ItemCategoria = ({ item, setVisible, set }) => {
   ];
 
   return (
-    <li onClick={() => Presu != 0 ? setVisible({ isVisible: true, id: item._id }) : toast("error", "Agrega un monto a tu Presupuesto Estimado ")} className={`w-full justify-between items-center flex   px-5  transition ${Presu == 0 ? "" : "hover:bg-base"}`}>
+    <li onClick={() => Presu != 0 ? setVisible({ isVisible: true, id: item._id }) : toast("error", t("Agrega un monto a tu Presupuesto Estimado"))} className={`w-full justify-between items-center flex   px-5  transition ${Presu == 0 ? "" : "hover:bg-base"}`}>
       <span
         className="gap-2 py-3 flex items-center capitalize"
       >

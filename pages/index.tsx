@@ -28,6 +28,7 @@ const Home: NextPage = () => {
   const router = useRouter()
   const [isMounted, setIsMounted] = useState<boolean>(false)
   const toast = useToast()
+  const {t}=useTranslation()
 
   useEffect(() => {
     if (!isMounted) {
@@ -66,7 +67,7 @@ const Home: NextPage = () => {
       }
       const data = eventsGroup?.find(elem => elem?._id === router?.query?.pAccShas?.slice(-24))
       if (data) {
-        const resp = handleClickCard({ final: true, config, data, setEvent, user, setUser, router })
+        const resp = handleClickCard({t, final: true, config, data, setEvent, user, setUser, router })
         if (resp) toast("warning", resp)
         return <></>
       }

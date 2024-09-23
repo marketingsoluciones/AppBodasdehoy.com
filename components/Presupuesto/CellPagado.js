@@ -32,7 +32,7 @@ const CellPagado = ({ set, ...props }) => {
   return (
     <>
       <div className="w-full flex items-center justify-center h-full">
-        <p onClick={() => costeFional !=0 ? !isAllowed() ? null : handleClick():toast("error",t("payments_error"))} className="hover:shadow-md rounded px-2 hover:bg-gray-200 hover:text-white transition w-max cursor-pointer">
+        <p onClick={() => costeFional != 0 ? !isAllowed() ? null : handleClick() : toast("error", t("payments_error"))} className="hover:shadow-md rounded px-2 hover:bg-gray-200 hover:text-white transition w-max cursor-pointer">
           {mask}
         </p>
       </div>

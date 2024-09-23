@@ -84,7 +84,7 @@ export const Itinerario = ({ data }) => {
                 old.itinerarios_array.splice(f1, 1)
                 return { ...old }
             })
-            toast("success", "El itinerario fue restablecido");
+            toast("success", t("El itinerario fue restablecido"));
             setModal(!modal)
         } catch (error) {
             console.log(error)

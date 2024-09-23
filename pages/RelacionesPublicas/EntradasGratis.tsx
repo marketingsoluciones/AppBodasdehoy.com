@@ -6,6 +6,7 @@ import { AuthContextProvider } from "../../context";
 import { useRouter } from "next/router";
 import { useToast } from "../../hooks/useToast";
 import Loading from "../../components/DefaultLayout/Loading";
+import { useTranslation } from "react-i18next";
 
 interface propsEntradasGratis { }
 
@@ -20,6 +21,7 @@ const EntradasGratis: FC<propsEntradasGratis> = () => {
   const priceId = findTicket?.prices[0]?.id
   const router = useRouter()
   const toast = useToast()
+  const {t}=useTranslation()
 
 
   useEffect(() => {
@@ -54,7 +56,7 @@ const EntradasGratis: FC<propsEntradasGratis> = () => {
       if (result) {
         router?.push(result)
       } else {
-        toast("error", "Ha ocurrido un error, inténtalo nuevamente")
+        toast("error", t("Ha ocurrido un error, inténtalo nuevamente"))
       }
     })
   }

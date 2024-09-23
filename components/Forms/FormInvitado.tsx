@@ -112,9 +112,9 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
       });
 
       setEvent((old) => ({ ...old, invitados_array: result?.invitados_array }));
-      toast("success", "Invitado creado con exito")
+      toast("success", t("Invitado creado con exito"))
     } catch (error) {
-      toast("error", `Ha ocurrido un error ${error}`)
+      toast("error", `${t("Ha ocurrido un error")} ${error}`)
       console.log(error);
     } finally {
       actions.setSubmitting(false);

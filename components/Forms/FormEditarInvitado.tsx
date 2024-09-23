@@ -79,13 +79,13 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
       if (initialValues?.tableNameRecepcion?._id !== values?.tableNameRecepcion?._id) {
         const f1 = event?.planSpace.findIndex(elem => elem?.title === "recepción")
         const table = event.planSpace[f1]?.tables.find(el => el._id === values?.tableNameRecepcion?._id)
-        const sendValues = { invitadoID: values?._id, previousTable: initialValues?.tableNameRecepcion, lastTable: table, f1, event, setEvent, toast }
+        const sendValues = { t, invitadoID: values?._id, previousTable: initialValues?.tableNameRecepcion, lastTable: table, f1, event, setEvent, toast }
         handleMoveGuest(sendValues)
       }
       if (initialValues?.tableNameCeremonia?._id !== values?.tableNameCeremonia?._id) {
         const f1 = event?.planSpace.findIndex(elem => elem?.title === "ceremonia")
         const table = event.planSpace[f1]?.tables.find(el => el._id === values?.tableNameCeremonia?._id)
-        const sendValues = { invitadoID: values?._id, previousTable: initialValues?.tableNameCeremonia, lastTable: table, f1, event, setEvent, toast }
+        const sendValues = { t, invitadoID: values?._id, previousTable: initialValues?.tableNameCeremonia, lastTable: table, f1, event, setEvent, toast }
         handleMoveGuest(sendValues)
       }
     }

@@ -17,7 +17,6 @@ export const SocketControlator = () => {
   const [reconet, setReconet] = useState(null)
   const [received, setReceived] = useState({ channel: "", msg: null, d: null })
   const router = useRouter()
-  const toast = useToast()
 
   useEffect(() => {
     if (!isMounted) {
@@ -61,7 +60,7 @@ export const SocketControlator = () => {
 
       if (received?.msg?.payload?.action === "clickCard") {
         const data = eventsGroup.find(elem => elem._id === received?.msg?.payload?.value)
-        handleClickCard({ final: true, config, data, setEvent, user, setUser, router })
+        handleClickCard({ t, final: true, config, data, setEvent, user, setUser, router })
       }
       if (received?.msg?.payload?.action === "setRoute") {
         router.push(`${received?.msg?.payload?.value}`)

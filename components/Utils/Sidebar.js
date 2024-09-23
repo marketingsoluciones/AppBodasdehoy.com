@@ -9,6 +9,7 @@ import { MdLogout } from "react-icons/md";
 import Cookies from "js-cookie";
 import { useActivity } from "../../hooks/useActivity";
 import { signOut, getAuth } from "firebase/auth";
+import { useTranslation } from "react-i18next";
 
 /* menu desplegable izquierdo en la vista movil con las opciones de redireccion de la app */
 const Sidebar = ({ setShowSidebar, showSidebar }) => {
@@ -16,7 +17,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
     const { user, config, setUser } = AuthContextProvider()
     const { eventsGroup } = EventsGroupContextProvider()
     const [updateActivity, updateActivityLink] = useActivity()
-
+    const {t} = useTranslation()
     const { route } = useRouter()
     const toast = useToast()
 
@@ -199,7 +200,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
                                     router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "/login")
                                     return
                                 }
-                                toast("success", `Cerró sesión con éxito`)
+                                toast("success", t("loggedoutsuccessfully"))
                                 router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "/")
                             })
                         }}
