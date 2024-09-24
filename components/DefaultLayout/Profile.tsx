@@ -244,7 +244,7 @@ const Profile = ({ user, state, set, ...rest }) => {
                 {/* < div className={`bg-red w-80 p-3 rounded-xl h-max shadow-md absolute bottom-0 right-0 inset-y-full translate-y-1 overflow-hidden z-50}`}> */}
                 <div className="w-full border-b border-gray-100 pb-2">
                   <p className="text-gray-500 font-extralight uppercase tracking-wider	text-xs text-center  cursor-default">
-                    {user?.role && user?.role?.length > 0 && user?.role[0]}
+                    {(user?.role && user?.role?.length > 0) && t(user?.role[0])}
                   </p>
                   <h3 className="text-primary font-medium w-full text-center cursor-default ">
                     {user?.displayName}
@@ -270,7 +270,7 @@ const Profile = ({ user, state, set, ...rest }) => {
                   {
                     true ?
                       <div onClick={() => setActionModals(!actionModals)} className="col-span-2 flex text-white gap-2 bg-primary hover:bg-slate-400 transition cursor-pointer rounded-lg py-1 px-2 items-center justify-center ">
-                        Obten full acceso
+                        {t("fullaccess")}
                       </div> :
                       null
                   }
@@ -297,7 +297,7 @@ const Profile = ({ user, state, set, ...rest }) => {
       </div>
       {
         actionModals && (
-          <Modal classe={"w-[95%] md:w-[750px] h-[60%]"} >
+          <Modal classe={"w-[95%] md:w-[750px] h-[70%]"} >
             <ObtenerFullAcceso />
           </Modal>
         )

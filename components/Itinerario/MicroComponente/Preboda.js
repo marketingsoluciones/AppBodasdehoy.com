@@ -19,19 +19,19 @@ export const Preboda = ({ event, IconArry }) => {
     const ResponsablesArry = [
         {
             icon: "/rol_novia.png",
-            title: t("girlfriend"),
+            title: "novia",
         },
         {
             icon: "/rol_novio.png",
-            title: t("groom"),
+            title: "novio",
         },
         {
             icon: "/rol_invitados.png",
-            title: t("guest"),
+            title: "invitados",
         },
         {
             icon: "/rol_proveedor.png",
-            title: t("supplier"),
+            title: "proveedor",
         },
 
     ]

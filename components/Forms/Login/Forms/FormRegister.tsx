@@ -115,6 +115,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
   };
 
   const handleSubmit = async (values: initialValues, actions: any) => {
+    console.log(values)
     let UserFirebase: any = user ?? {};
     try {
       setIsStartingRegisterOrLogin(true)
@@ -204,6 +205,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
   }
 
   const handleSumitMedia = async (values: initialValues, actions: any) => {
+    console.log("aquiu")
     try {
       if (storage_id && link_id) {
         fetchApiEventos({
@@ -233,7 +235,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
     <>
       <Formik
         initialValues={initialValues ?? {}}
-        validationSchema={validationSchema ?? {}}
+        //validationSchema={validationSchema ?? {}}
         onSubmit={linkMedia == null ? handleSubmit : handleSumitMedia}
       >
         <Form className={`w-full md:w-[350px] text-gray-200 gap-4 md:gap-5 md:space-y-0 flex flex-col ${WihtProvider ? "mt-16" : ""} `}>
@@ -279,15 +281,16 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
               autoComplete="off"
               // icon={<PhoneMobile className="absolute w-4 h-4 inset-y-0 left-4 m-auto  text-gray-500" />}
               label={t("phonenumber")}
+              labelClass={false}
             />
           </span>
           <div className="flex items-center w-fit col-span-2 gap-6 mx-auto  ">
             <button
               id="sign-in-button"
               type="submit"
-              className="col-span-2 bg-primary rounded-full px-10 py-2 text-white font-medium mx-auto inset-x-0 md:hover:bg-tertiary transition"
+              className="col-span-2 bg-primary rounded-full px-10 py-2 text-white font-medium mx-auto inset-x-0 md:hover:bg-tertiary transition capitalize"
             >
-              {linkMedia != null ? !phoneNumber ? "siguiente" : "Reenviar Link" : !phoneNumber ? "Registrar" : "Reenviar Link"}
+              {linkMedia != null ? !phoneNumber ? t("siguiente") : t("reenviar link") : !phoneNumber ? t("registrar") : t("reenviar link")}
             </button>
           </div>
           {linkMedia != null && <div className='text-gray-900 w-full h-40'>

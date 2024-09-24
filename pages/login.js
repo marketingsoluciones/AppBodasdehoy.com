@@ -10,7 +10,7 @@ const PageLogin = () => {
   const { config, user, linkMedia, preregister } = AuthContextProvider()
   const { setLoading } = LoadingContextProvider()
   const { query } = useRouter()
-  const [stage, setStage] = useState(( linkMedia != null ? "register" : null) ?? query?.q ?? "login");
+  const [stage, setStage] = useState((linkMedia != null ? "register" : null) ?? query?.q ?? "login");
   const [stageRegister, setStageRegister] = useState(0)
   const [whoYouAre, setWhoYouAre] = useState("");
   const [isMounted, setIsMounted] = useState(false)
@@ -55,7 +55,7 @@ const PageLogin = () => {
       config?.development !== "bodasdehoy" && (
         <>
           <div className="w-screen fixed h-full top-0 left-0 md:grid z-30 grid-cols-5 font-display overflow-auto">
-            <ArrowLeft className={`${(["vivetuboda"].includes(config?.development) && (stage === "login" || (stage === "register" && stageRegister === 0) || preregister)) && "hidden"} absolute w-6 h-6 z-[10] text-gray-500 cursor-pointer translate-x-5 translate-y-5`} onClick={() => {
+            <ArrowLeft className={`${(!["bodasdehoy"].includes(config?.development) && (stage === "login" || (stage === "register" && stageRegister === 0) || preregister)) && "hidden"} absolute w-6 h-6 z-[10] text-gray-500 cursor-pointer translate-x-5 translate-y-5`} onClick={() => {
               if (stage === "resetPassword") {
                 setStage("login")
                 return
@@ -67,7 +67,7 @@ const PageLogin = () => {
               handleClose()
             }} />
             <div className="bg-white w-full h-full col-span-3 relative flex items-center justify-center  ">
-              {!["vivetuboda"].includes(config?.development) && < ButtonClose onClick={handleClose} />}
+              {["bodasdehoy"].includes(config?.development) && < ButtonClose onClick={handleClose} />}
               <div className="flex flex-col items-center gap-4 w-full h-[85%]  md:h-[60,l%] px-10 md:px-0 sm:w-3/4 md:w-2/3 relative">
                 <div className="flex w-full md:w-2/3 h-[calc(100%-100px)] flex-col items-center">
                   <div className={`flex flex-col items-center justify-center transform ${config?.name == "vivetuboda" ? "scale-[80%] -top-10" : "scale-[150%]"} absolute`}>

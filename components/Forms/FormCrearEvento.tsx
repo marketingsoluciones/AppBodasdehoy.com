@@ -17,11 +17,6 @@ const getDate = (f: Date): string => {
   return `${y}-${m}-${d}`
 }
 
-const validationSchema = yup.object().shape({
-  nombre: yup.string().required("Nombre de evento requerido"),
-  tipo: yup.string().required("No has seleccionado un tipo de evento"),
-});
-
 interface propsFromCrearEvento {
   state: boolean
   set: Dispatch<SetStateAction<boolean>>
@@ -35,6 +30,26 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
   const { setEventsGroup, eventsGroup } = EventsGroupContextProvider();
   const toast = useToast();
   const [valir, setValir] = useState(false)
+
+  const validationSchema = yup.object().shape({
+    nombre: yup.string().required(t("Nombre de evento requerido")),
+    tipo: yup.string()
+      .required(t("Seleciona el tipo de evento"))
+      .test("Unico", t("Seleciona el tipo de evento"), (value) => {
+        if (value === "Select") {
+          return false
+        }
+        return true
+      }),
+    fecha: yup.string()
+      .test("Unico", t("Selecciona una fecha válida"), (value) => {
+        const d = new Date(value).getTime()
+        if (new Date().getTime() > d) {
+          return false
+        }
+        return true
+      })
+  });
 
   type MyValues = {
     nombre: string
@@ -54,7 +69,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
     : {
       nombre: "",
       tipo: "",
-      fecha: new Date().toJSON(),
+      fecha: "",//new Date().toJSON(),
       pais: "",
       poblacion: "",
       usuario_id: user?.uid,
@@ -73,7 +88,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
       }
       toast("success", t("successfullycreatedevent"));
     } catch (error) {
-      toast("error", "Ha ocurrido un error al crear el evento");
+      toast("error", t("Ha ocurrido un error al crear el evento"));
       console.log(error);
     } finally {
       set(!state);
@@ -94,7 +109,10 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
       values.fecha = new Date(values.fecha).getTime()
       await fetchApiEventos({
         query: queries.eventUpdate,
-        variables: { idEvento: values._id, variable: "nombre", value: values.nombre }, token: null
+        variables: {
+          idEvento: values._id, variable: "nombre",
+          value: values.nombre
+        }, token: null
       })
       await fetchApiEventos({
         query: queries.eventUpdate,
@@ -150,7 +168,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
         <Form className="w-full">
           <div className="border-l-2 border-gray-100 pl-3 w-full ">
             <h2 className="font-display text-3xl capitalize text-primary font-light">
-              {EditEvent ? "Editar" : "Crear"}
+              {EditEvent ? t("edit") : t("create")}
             </h2>
             <h2 className="font-display text-5xl capitalize text-gray-500 font-medium">
               {t("event")}
@@ -173,6 +191,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
                 name="tipo"
                 label={t("eventtype")}
                 options={ListaTipo}
+                nullable={true}
               />
             </div>
 

@@ -61,9 +61,8 @@ export const ObtenerFullAcceso = () => {
     ]
     const objetoEncontrado = DataInfoModulos?.find(objeto => objeto?.alt === router?.asPath);
 
-
     return (
-        <div className="p-4 overflow-y-auto h-full space-y-5 relative">
+        <div className="p-4 overflow-y-auto h-full space-y-5 relative text-gray-800">
             <div onClick={() => setActionModals(!actionModals)} className="absolute right-10 cursor-pointer">
                 <GoX className="w-6 h-6 transition hover:rotate-180" />
             </div>
@@ -80,11 +79,11 @@ export const ObtenerFullAcceso = () => {
             </div>
             <div className="flex  justify-center py-4">
                 {
-                    objetoEncontrado.estado ?
+                    objetoEncontrado?.estado ?
                         <button onClick={() => router.push("/facturacion")} className="bg-primary text-white py-1 px-3 rounded-lg">{t("getaccess")}</button> :
-                        <button className="bg-primary text-white py-1 px-3 rounded-lg">
+                        <button className="bg-primary text-white py-1 px-3 rounded-lg first-letter:capitalize">
                             <a target="blank" href="https://wa.me/34910603622">
-                                {t("Contactanos")}
+                                {t("contactanos")}
                             </a>
                         </button>
                 }

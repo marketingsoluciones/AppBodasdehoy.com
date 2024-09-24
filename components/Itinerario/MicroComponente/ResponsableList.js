@@ -48,7 +48,7 @@ export const ResponsableList = ({ openModal, setOpenModal, DataArry, setSelectIc
                                         <div className="w-10 h-10 col-span-1">
                                             <img src={item.icon} className="h-10 " />
                                         </div>
-                                        <span className="col-span-2  w-28">{item?.title}</span>
+                                        <span className="col-span-2  w-28">{t(item?.title)}</span>
                                     </div>
                                 )
                             })
@@ -72,7 +72,7 @@ export const ResponsableList = ({ openModal, setOpenModal, DataArry, setSelectIc
                                     )
                                 })
                                 : <div className=" flex items-center justify-center h-full text-[13.6px] text-center">
-                                        {t("collaboratingguests")}
+                                    {t("collaboratingguests")}
                                 </div>
                         }
                     </div>

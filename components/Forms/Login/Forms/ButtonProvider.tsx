@@ -2,6 +2,7 @@ import { FC } from "react";
 import { useToast } from "../../../../hooks/useToast";
 import { useAuthentication } from "../../../../utils/Authentication";
 import { AuthContextProvider } from "../../../../context";
+import { useTranslation } from "react-i18next";
 
 interface propsButtonProvider {
   provider: string
@@ -15,6 +16,8 @@ export const ButtonProvider: FC<propsButtonProvider> = ({ provider, handle, icon
   const { setIsStartingRegisterOrLogin, SetWihtProvider } = AuthContextProvider()
   const { signIn } = useAuthentication();
   const toast = useToast();
+  const { t } = useTranslation()
+
   const handleClick = async (provider: any) => {
     SetWihtProvider(true)
     try {
@@ -31,7 +34,7 @@ export const ButtonProvider: FC<propsButtonProvider> = ({ provider, handle, icon
         <span className="*bg-white flex m-2 rounded  ">
           <button onClick={() => handleClick(handle)} className="*bg-red-200 rounded-md border-[1px] border-gray-300 hover:border-blue-300 hover:border-2 w-[250px] h-[40px] flex items-center" >
             {icon}
-            <p className="*bg-blue-300 w-[215px] font-['Roboto'] text-[14px]">{`Continúa con ${provider}`}</p>
+            <p className="*bg-blue-300 w-[215px] font-['Roboto'] text-[14px]">{`${t("Continúa con")} ${provider}`}</p>
           </button>
         </span>
       </div>

@@ -12,9 +12,9 @@ export const WhoYouAre = ({ select, setSelect }: propsWhoYouAre) => {
   };
 
   const List: TypeOption[] = [
-    { title: t("girlfriend"), icon: "/FormRegister/icon-women.webp" },
-    { title: t("groom"), icon: "/FormRegister/icon-men.webp" },
-    { title: t("other"), icon: "/FormRegister/icon-heart.webp" },
+    { title: "novia", icon: "/FormRegister/icon-women.webp" },
+    { title: "novio", icon: "/FormRegister/icon-men.webp" },
+    { title: "otro", icon: "/FormRegister/icon-heart.webp" },
     // { title: "empresa", icon: "/FormRegister/icon-business.webp" },
   ];
   return (
@@ -29,7 +29,7 @@ export const WhoYouAre = ({ select, setSelect }: propsWhoYouAre) => {
           >
             <img src={item?.icon} alt={item?.title} className="object-contain" />
           </div>
-          <h2 className="text-gray-500 text-lg text-light">{item?.title}</h2>
+          <h2 className="text-gray-500 text-lg text-light">{t(item?.title)}</h2>
         </div>
       ))}
 

@@ -79,7 +79,7 @@ const Navigation: FC = () => {
   return (
     <>
       <Head>
-        <link id="favicon" rel="icon" href="https://res.cloudinary.com/crunchbase-production/image/upload/c_lpad,h_256,w_256,f_auto,q_auto:eco,dpr_1/v1486383751/crmgiiartcuts208eqly.png" />
+        <link id="favicon" rel="icon" href="https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://champagne-events.com.mx/en/destination-weddings&size=16" />
         <title>{config?.headTitle}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
         <meta name="description" content="¡Bodas de Hoy Organizador! Organiza tu boda en un sólo click., user-scalable=no, width=device-width, initial-scale=1" />
@@ -129,7 +129,7 @@ const Navigation: FC = () => {
         {/* segundo menu superior con las redirecciones funcionales de la app */}
         <div className={`${urls.includes(url) ? "hidden" : "block"}`}>
           <div className={`w-full h-20 relative hidden md:block bg-base z-10 `}>
-            <Tooltip label="Primero debes crear un evento" icon={<IconLightBulb16 className="w-6 h-6" />} disabled={!!event?._id}>
+            <Tooltip label={t("Primero debes crear un evento")} icon={<IconLightBulb16 className="w-6 h-6" />} disabled={!!event?._id}>
               <ul className="absolute m-auto left-1/2 -translate-x-1/2 py-4 w-max h-max flex gap-12">
                 {Navbar.map((item, idx) => (
                   <li

@@ -173,7 +173,6 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
                     {user?.displayName !== "guest" && user?.displayName}
                 </p>
             </div>
-            {/* <Tooltip label="Primero debes crear un evento" icon={<IconLightBulb16 className="w-6 h-6" />} disabled={!!event?._id}> */}
             <div className="bg-white w-full h-[calc(100%-205px)] overflow-auto flex flex-col justify-between">
                 <ul className="flex flex-col pl-6 pt-2">
                     {ListaNavbarFilter.map((item, idx) => (

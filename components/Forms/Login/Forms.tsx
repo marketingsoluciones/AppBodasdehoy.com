@@ -16,7 +16,7 @@ interface propsLogin {
   setWhoYouAre?: any
 }
 
-export const Login: FC<propsLogin> = ({ setStage, whoYouAre}) => {
+export const Login: FC<propsLogin> = ({ setStage, whoYouAre }) => {
   const { t } = useTranslation();
   return (
     <>
@@ -25,7 +25,7 @@ export const Login: FC<propsLogin> = ({ setStage, whoYouAre}) => {
       </h2>
       <Providers setStage={setStage} whoYouAre={whoYouAre} />
       <h2 className={`font-light text-tertiary justify-center flex gap-2 text-md `}>
-       {t("withyouremail")}
+        {t("withyouremail")}
       </h2>
       <FormLogin setStage={setStage} />
       <RegisterQuestion onClick={() => setStage("register")} />
@@ -59,14 +59,14 @@ export const Register: FC<propsLogin> = ({ setStage, fStageRegister, stageRegist
       })()}
 
       {(linkMedia == null && !preregister) && <h2 className={`font-light text-tertiary flex gap-2 text-sm  *pt-3`}>
-        {t("Doyouhaveanaccount")}
+        {t("doyouhaveanaccount")}
         <span
           className="text-sm text-primary font-semibold cursor-pointer hover:text-tertiary transition"
           onClick={() => {
             setStageRegister(0)
             setStage("login")
           }}
-      >       {t("Log")}
+        >       {t("log")}
         </span>
       </h2>}
     </>
