@@ -34,7 +34,7 @@ export const BoddyIter = ({ IterArryst, setIterArryst, createPdf, setOption }) =
 
     return (
         <>
-            <div className="flex flex-col items-center bg-white w-full h-full rounded-lg  ">
+            <div className="border-4 border-yellow-400 flex flex-col items-center bg-white w-full h-full rounded-lg">
                 <MenuOptions DataOptionsArry={OptionsArry} optionSelect={optionSelect} onClick={handleClickOption} />
                 <Itinerario data={OptionsArry.find(elem => elem.title === optionSelect)} />
             </div>

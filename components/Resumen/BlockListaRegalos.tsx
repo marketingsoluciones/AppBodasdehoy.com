@@ -14,7 +14,7 @@ const BlockListaRegalos: FC = () => {
 
   return (
     <div className="w-full md:w-2/5 box-border">
-      <h2 className="font-display text-xl font-semibold text-gray-500 pb-2 text-left">
+      <h2 className="font-display text-xl font-semibold text-gray-500 pb-2 text-left first-letter:capitalize">
         {t("gifs")}
       </h2>
       <div className="w-full shadow rounded-xl bg-white py-4 flex flex-col items-center gap-2 justify-center">

@@ -142,7 +142,7 @@ export const developments = [
     },
   },
   {
-    name: "Champagne Events Mexico",
+    name: "champagne-events",
     development: "champagne-events",
     fileConfig: firebaseConfigChampagneEvents,
     cookie: "sessionChampagne-events",

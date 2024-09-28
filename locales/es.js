@@ -59,7 +59,8 @@ export const es = {
     "Lista de regalos": "Lista de regalos",
     "Mesas y asientos": "Mesas y asientos",
     "Itinerario": "Itinerario",
-
+    "invitado": "invitado",
+    "grupo": "grupo",
 
     "planos": "planos",
     "mobiliario": "mobiliario",
@@ -175,6 +176,7 @@ export const es = {
     aboutmyevent: "Sobre mi evento",
     payments_error: "El costo final del producto debe ser mayor a 0 para agregar pagos",
     estimatedcost: "Coste estimado:",
+    finalcost: "Coste final",
     actualcost: "Coste real:",
     balanceagainst: "Saldo en contra de",
     total: "Total",
@@ -590,7 +592,7 @@ export const es = {
     organizeyourevents: "Organiza tus eventos",
     sharecollaborateinvite: "Comparte, colabora e invita",
     planyourcelebrations: "Planifica tus celebraciones ",
-    inthese: "sin éstres.",
+    "sin estres": "sin estrés.",
     createanevent: "Crear un evento",
     invitationsettings: "Configuración de la invitación",
     totalvalue: "Valor total",
@@ -619,10 +621,11 @@ export const es = {
     shareprofile: "Compartir perfil",
     pendingpayments: "Pagos pendientes",
     payable: "Por pagar",
-    howost: "¿Cuanto cuesta mi evento?",
+    howost: "¿Cuánto cuesta mi evento?",
     estimatedbudget: "Presupuesto estimado",
     newcategory: "Nueva Categoria",
     iinviteyoutologinto: "Te invito a iniciar sesion en ",
     Tobeableyourdreams: "Para poder utilizar la aplicación y organizar el evento de tus sueños",
+    "No hay pagos asociados": "No hay pagos asociados",
   }
 }

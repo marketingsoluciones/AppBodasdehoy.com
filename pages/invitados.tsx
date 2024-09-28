@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import FormInvitado from "../components/Forms/FormInvitado";
 import FormCrearGrupo from "../components/Forms/FormCrearGrupo";
 import BlockCabecera from "../components/Invitados/BlockCabecera"
@@ -11,6 +11,9 @@ import VistaSinCookie from "./vista-sin-cookie";
 import FormCrearMenu from "../components/Forms/FormCrearMenu";
 import { useMounted } from "../hooks/useMounted";
 import { BlockTableroInvitados } from "../components/Invitados/BlockTableroInvitados";
+import { SelectModeView } from "../components/Utils/SelectModeView";
+
+type View = "table" | "cards"
 
 const Invitados: FC = () => {
   const [isMounted, setIsMounted] = useState<boolean>(false);
@@ -19,11 +22,35 @@ const Invitados: FC = () => {
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const { event } = EventContextProvider();
   const { actionModals, setActionModals } = AuthContextProvider()
-  const [changueVew, setChangueVew] = useState(false)
-  const [optionChengueVew, setOptionChengueVew] = useState("tarjeta")
+  const [viewPreferUser, setViewPreferUser] = useState<View>("cards")
+  const [view, setView] = useState<View>("table")
+  const [triggerResize, setTriggerResize] = useState<number>(new Date().getTime())
   const { user, verificationDone, forCms } = AuthContextProvider()
 
   useMounted()
+
+  const handleResize = () => {
+    setTriggerResize(new Date().getTime())
+  }
+
+  useEffect(() => {
+    if (window?.innerWidth < 768) {
+      setView(viewPreferUser)
+    } else {
+      setView("table")
+    }
+  }, [triggerResize]);
+
+  useEffect(() => {
+    setView(viewPreferUser)
+  }, [viewPreferUser]);
+
+  useEffect(() => {
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
 
   const reciboClick = (accion) => {
@@ -40,7 +67,6 @@ const Invitados: FC = () => {
     } else {
       handleClick(e, "invitado")
     }
-
   }
 
   if (verificationDone) {
@@ -75,26 +101,20 @@ const Invitados: FC = () => {
           </ModalLeft>
         )}
         {event &&
-          <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4" : "bg-base w-full pb-6 pt-2 md:py-0 "}>
+          <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4" : "bg-base w-full pb-6 pt-2 md:py-0"}>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 gap-4 ">
+              className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 gap-4 relative">
               <BlockCabecera />
-              <div className="hidden md:block ">
-                <BlockListaInvitados createPDF={createPDF} setCreatePDF={setCreatePDF} ConditionalAction={ConditionalAction} handleClick={handleClick} setChangueVew={setChangueVew} changueVew={changueVew} />
+              <div className="absolute z-10 right-5 translate-y-3" >
+                <SelectModeView value={viewPreferUser} setValue={setViewPreferUser} />
               </div>
-              <div className=" md:hidden ">
-                {
-                  optionChengueVew === "tarjeta" &&
-                  <BlockTableroInvitados createPDF={createPDF} setCreatePDF={setCreatePDF} ConditionalAction={ConditionalAction} handleClick={handleClick} setChangueVew={setChangueVew} changueVew={changueVew} setOptionChengueVew={setOptionChengueVew} />
-                }
-                {
-                  optionChengueVew === "tabla" &&
-                  <BlockListaInvitados createPDF={createPDF} setCreatePDF={setCreatePDF} ConditionalAction={ConditionalAction} handleClick={handleClick} setChangueVew={setChangueVew} changueVew={changueVew}  setOptionChengueVew={setOptionChengueVew}/>
-                }
-              </div>
+              {view === "cards"
+                ? <BlockTableroInvitados createPDF={createPDF} setCreatePDF={setCreatePDF} ConditionalAction={ConditionalAction} handleClick={handleClick} />
+                : <BlockListaInvitados createPDF={createPDF} setCreatePDF={setCreatePDF} ConditionalAction={ConditionalAction} handleClick={handleClick} />
+              }
             </motion.div>
           </section >}
       </>

@@ -24,7 +24,7 @@ const BlockMesas: FC = () => {
 
   return (
     <div className="w-full md:w-3/5 box-border">
-      <h2 className="font-display text-xl font-semibold text-gray-500 pb-2 text-left">
+      <h2 className="font-display text-xl font-semibold text-gray-500 pb-2 text-left first-letter:capitalize">
         {t("mytables")}
       </h2>
       <div className="w-full shadow rounded-xl bg-white py-4 gap-4 md:gap-16 flex flex-col md:flex-row h-max items-center justify-center">
@@ -35,7 +35,7 @@ const BlockMesas: FC = () => {
               return (
                 <div key={idx} className="grid md:grid-cols-3 justify-items-center items-center space-y-2">
                   <div className="text-regular font-display text-xs text-gray-700 capitalize col-span-1 font-semibold ">
-                    {item.title}
+                    {t(item.title)}
                   </div>
                   <div className="flex space-x-10 col-span-2">
 

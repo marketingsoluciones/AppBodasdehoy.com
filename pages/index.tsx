@@ -28,7 +28,7 @@ const Home: NextPage = () => {
   const router = useRouter()
   const [isMounted, setIsMounted] = useState<boolean>(false)
   const toast = useToast()
-  const {t}=useTranslation()
+  const { t } = useTranslation()
 
   useEffect(() => {
     if (!isMounted) {
@@ -67,7 +67,7 @@ const Home: NextPage = () => {
       }
       const data = eventsGroup?.find(elem => elem?._id === router?.query?.pAccShas?.slice(-24))
       if (data) {
-        const resp = handleClickCard({t, final: true, config, data, setEvent, user, setUser, router })
+        const resp = handleClickCard({ t, final: true, config, data, setEvent, user, setUser, router })
         if (resp) toast("warning", resp)
         return <></>
       }
@@ -145,7 +145,7 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
             {t("sharecollaborateinvite")}
           </h3>
           <h1 className="font-display font-base text-md tracking-tight text-primary">
-            {t("planyourcelebrations")}<span className="font-semibold">{t("inthese")}</span>
+            {t("planyourcelebrations") + " "} <span className="font-semibold">{t("sin estres")}</span>
           </h1>
           <span className="flex gap-2 justify-start items-end">
             <button

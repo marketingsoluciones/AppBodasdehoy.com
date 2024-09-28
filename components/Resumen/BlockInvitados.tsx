@@ -50,7 +50,7 @@ const BlockInvitados: FC = () => {
 
   return (
     <div className="w-1/2* md:w-2/3">
-      <h2 className="font-display text-xl font-semibold text-gray-500 pb-2 text-left">
+      <h2 className="font-display text-xl font-semibold text-gray-500 pb-2 text-left first-letter:capitalize">
         {t("myguests")}
       </h2>
       <div className="w-full bg-white shadow rounded-xl py-4 flex flex-col gap-4 h-48 items-center justify-center">

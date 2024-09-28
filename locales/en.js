@@ -56,6 +56,8 @@ export const en = {
     "Lista de regalos": "Gift list",
     "Mesas y asientos": "Tables and seats",
     "Itinerario": "Itinerary",
+    "invitado": "guest",
+    "grupo": "group",
 
     "planos": "plans",
     "mobiliario": "furniture",
@@ -120,7 +122,7 @@ export const en = {
     "confirmados": "confirmed",
     "cancelado": "cancelled",
     "cancelados": "cancelled",
-    "confirmadas": "confirmadas",
+    "confirmadas": "confirmed",
     "canceladas": "cancelled",
     "por confirmar": "to confirm",
     "cancelled": "cancelled",
@@ -584,7 +586,7 @@ export const en = {
     "organizeyourevents": "Organize your events",
     "sharecollaborateinvite": "Share, collaborate and invite",
     "planyourcelebrations": "Plan your celebrations",
-    "inthese": "in these",
+    "sin estres": "stress-free",
     "createanevent": "Create an event",
     "invitationsettings": "Invitation settings",
     "totalvalue": "Total value",
@@ -618,5 +620,6 @@ export const en = {
     "newcategory": "New Category",
     "iinviteyoutologinto": "I invite you to log in to",
     "Tobeableyourdreams": "To be able to use the application and organize the event of your dreams",
+    "No hay pagos asociados": "No associated payments",
   }
 }

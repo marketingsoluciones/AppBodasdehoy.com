@@ -25,9 +25,6 @@ interface propsBlockListaInvitados {
     setCreatePDF?: any
     ConditionalAction?: any
     handleClick?: any
-    changueVew?: any
-    setChangueVew?: any
-    setOptionChengueVew?: any
 }
 
 interface guestsExt extends guests {
@@ -45,7 +42,7 @@ interface handleMoveGuest {
     t: any
 }
 
-export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ ConditionalAction, handleClick, changueVew, setChangueVew, setOptionChengueVew }) => {
+export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ ConditionalAction, handleClick }) => {
     const { t } = useTranslation();
     const { event, allFilterGuests, setEvent } = EventContextProvider();
     const [isMounted, setIsMounted] = useState(false);
@@ -59,13 +56,26 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ Conditiona
     const toast = useToast()
     const [isAllowed, ht] = useAllowed()
 
-    const toggleVisibility = (itemTitle) => {
+    const handleShowCards = (itemTitle) => {
         setShowCards((prevState) => ({
             ...prevState,
             [itemTitle]: !prevState[itemTitle],
         }));
     };
 
+    useEffect(() => {
+        const keys = Object.keys(showCards)
+        if (!keys?.length) {
+            const separators = data?.reduce((acc, item) => {
+                acc = {
+                    ...acc,
+                    [item.titulo]: !!item.data.length
+                }
+                return acc
+            }, {})
+            setShowCards(separators)
+        }
+    }, [data])
 
     useEffect(() => {
         let asd = {}
@@ -96,34 +106,27 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ Conditiona
         Data && setData(Object.values(Data));
     }, [allFilterGuests]);
 
-    const onClickOption = (option) => {
-        setOptionChengueVew(option)
-        setChangueVew(false)
-    }
-
-
     return (
         <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full pt-2 pb-28 mb-32  relative" >
             <div className="flex  items-center justify-between relative">
                 <div className="flex gap-2 items-center mt-1 mb-3 md:mb-5 mx-2">
-
                     <button
                         onClick={(e) => !isAllowed() ? ht() : ConditionalAction({ e })}
-                        className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary md:bg-primary md:text-white md:hover:bg-white md:hover:text-primary"
+                        className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary md:bg-primary md:text-white md:hover:bg-white md:hover:text-primary capitalize"
                     >
                         <PlusIcon />
-                        {t("guests")}
+                        {t("invitados")}
                     </button>
                     <button
                         onClick={(e) => !isAllowed() ? ht() : handleClick(e, "grupo")}
-                        className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
+                        className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary capitalize"
                     >
                         <PlusIcon />
-                        {t("group")}
+                        {t("grupo")}
                     </button>
                     <button
                         onClick={(e) => !isAllowed() ? ht() : handleClick(e, "menu")}
-                        className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
+                        className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary capitalize"
                     >
                         <PlusIcon />
                         {t("menu")}
@@ -135,17 +138,6 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ Conditiona
                     
                     Crear PDF
                     </button> */}
-                </div>
-                <div onClick={() => setChangueVew(!changueVew)}>
-                    <GoMultiSelect className="mr-3 h-7 w-7 mb-3 " />
-                </div>
-                <div className={`${changueVew ? "absolute right-5 bg-white top-7 z-50 rounded-md shadow-md " : "hidden"}`}>
-                    <div onClick={() => onClickOption("tabla")} className=" px-7 py-2 text-gray-500 border-b-2 text-center">
-                        Tabla
-                    </div>
-                    <div onClick={() => onClickOption("tarjeta")} className=" px-7 py-2 text-gray-500 text-center">
-                        Tarjetas
-                    </div>
                 </div>
             </div>
             {shouldRenderChild && (
@@ -182,38 +174,40 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ Conditiona
                     </div>
                 </ModalBottom>
             )}
-            <div className="relative overflow-x-auto md:overflow-x-visible space-y-3  ">
-                {
-                    data.map((item, idx) => {
-                        return (
-                            <div key={idx} >
-                                <div onClick={() => toggleVisibility(item.titulo)} className="bg-gray-100 px-3 py-3  flex  items-center justify-between hover:cursor-pointer">
-                                    <div className="capitalize text-azulCorporativo">
-                                        {item.titulo}
-                                    </div>
-                                    <div className="text-azulCorporativo">
+            <div className="relative overflow-x-auto md:overflow-x-visible space-y-3">
+                {data.map((item, idx) => {
+                    return (
+                        <div key={idx} >
+                            <div onClick={() => handleShowCards(item.titulo)} className="bg-gray-100 px-3 py-2 flex items-center justify-between hover:cursor-pointer">
+                                <div className="capitalize text-azulCorporativo">
+                                    {item.titulo}
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    {!!item?.data?.length && <span className="flex text-sm rounded-full w-7 h-7 bg-gray-300 items-center justify-center">
+                                        {item?.data?.length}
+                                    </span>}
+                                    <div className={`text-azulCorporativo ${!showCards[item.titulo] && "-rotate-90"}`}>
                                         <ArrowDown />
                                     </div>
                                 </div>
-                                <div className={`transition-all duration-200 ease-in-out`}>
-                                    {
-                                        showCards[item.titulo] && <div>
-                                            <GuestCard
-                                                guestData={item.data}
-                                                modal={modal}
-                                                setModal={setModal}
-                                                setSelected={setSelected}
-                                                setIsMounted={setIsMounted}
-                                                isMounted={isMounted}
-                                                event={event}
-                                                setEvent={setEvent}
-                                            />
-                                        </div>
-                                    }
-                                </div>
                             </div>
-                        )
-                    })
+                            <div className={`transition-all duration-200 ease-in-out`}>
+                                {showCards[item.titulo] && <div>
+                                    <GuestCard
+                                        guestData={item.data}
+                                        modal={modal}
+                                        setModal={setModal}
+                                        setSelected={setSelected}
+                                        setIsMounted={setIsMounted}
+                                        isMounted={isMounted}
+                                        event={event}
+                                        setEvent={setEvent}
+                                    />
+                                </div>}
+                            </div>
+                        </div>
+                    )
+                })
                 }
             </div>
         </div>

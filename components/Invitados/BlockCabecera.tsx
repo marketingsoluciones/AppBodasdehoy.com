@@ -81,7 +81,7 @@ const BlockCabecera = () => {
         </div>
         <div className="hidden md:flex w-40 h-40 bg-primary rounded-full col-span-1 absolute right-0 flex-col items-center justify-center z-20">
           <MesaIcon className="text-white" />
-          <p className="font-display text-md font-semibold text-white">
+          <p className="font-display text-md font-semibold text-white first-letter:capitalize">
             {t("sit")} <span className="font-light">{t("guests")}</span>
           </p>
           <button

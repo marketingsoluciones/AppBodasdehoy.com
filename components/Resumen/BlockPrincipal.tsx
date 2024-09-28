@@ -96,7 +96,7 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
               <p className="font-display text-lg font-base text-gray-500">
                 {count} {t("de 3")}
               </p>
-              <p className="font-display text-center text-xs font-base text-gray-500">
+              <p className="font-display text-center text-xs font-base text-gray-500 first-letter:capitalize">
                 {t("stepstocompleteyourevent")}
               </p>
             </div>
@@ -105,8 +105,8 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
               <p className="font-display text-lg font-base text-gray-500">
                 {event?.invitados_array?.length}
               </p>
-              <p className="font-display text-xs font-base text-gray-500 pb-4">
-                invitado{event?.invitados_array?.length > 1 ? "s" : ""}
+              <p className="font-display text-xs font-base text-gray-500 pb-4  first-letter:capitalize">
+                {`${t("invitado")}${event?.invitados_array?.length > 1 ? "s" : ""}`}
               </p>
             </div>
 
@@ -114,7 +114,7 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
               <p className="font-display text-lg font-base text-gray-500">
                 {seatedGuests} de {event?.invitados_array?.length}
               </p>
-              <p className="font-display text-xs text-center font-base text-gray-500">
+              <p className="font-display text-xs text-center font-base text-gray-500 first-letter:capitalize">
                 {t("guestsseatedatyourevent")}
               </p>
             </div>

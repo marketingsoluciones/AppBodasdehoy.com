@@ -120,7 +120,7 @@ const Presupuesto = () => {
                               <div className=" bg-white shadow-md rounded-xl grid place-items-center p-4">
                                 <DineroIcon className="w-12 h-12 text-primary " />
                                 <p className="font-display text-gray-500 font-light text-md grid place-items-center">
-                                  {t("finalCost")} <br />
+                                  {t("finalcost")} <br />
                                   <span className="font-semibold text-lg text-center">
                                     {getCurrency(
                                       event?.presupuesto_objeto?.coste_final,

@@ -247,7 +247,7 @@ const BlockSobreMiEvento: FC = () => {
             ))}
         </ModalBottom>
       )}
-      <h2 className="font-display text-xl font-semibold text-gray-500 pb-2 text-left">
+      <h2 className="font-display text-xl font-semibold text-gray-500 pb-2 text-left first-letter:capitalize">
         {t("aboutmyevent")}
       </h2>
       <Swiper
