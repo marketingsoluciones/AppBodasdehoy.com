@@ -4,8 +4,8 @@ import { fetchApiEventos, queries } from "../../../utils/Fetching";
 import { SubHeader } from "./SubHeader";
 import { AddEvent } from "./AddEvent";
 import { GuardarButtom } from "./GuardarButtom";
-import { useEffect, useState } from "react";
-import { AuthContextProvider } from "../../../context";
+import { FC, useEffect, useState } from "react";
+import { AuthContextProvider } from "../../../context/AuthContext";
 import { EventContextProvider } from "../../../context/EventContext";
 import { Modal } from "../../Utils/Modal";
 import { useToast } from "../../../hooks/useToast";
@@ -14,19 +14,18 @@ import { useAllowed } from "../../../hooks/useAllowed";
 import { DeleteConfirmation } from "./DeleteConfirmation";
 import { WarningMessage } from "./WarningMessage";
 import { useTranslation } from 'react-i18next';
+import i18n from 'i18next';
 
-
-
-export const Itinerario = ({ data }) => {
+export const ItineraryPanel = ({ data }) => {
     const { t } = useTranslation();
-    const { domain } = AuthContextProvider()
+    const { config } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
     const [isAllowed, ht] = useAllowed()
     const disable = !isAllowed("itinerario")
     const toast = useToast()
     const newDate = new Date();
     const options = { year: "numeric", month: "long", day: "numeric" };
-    const date = newDate.toLocaleDateString(navigator?.languages, options)
+    const date = newDate.toLocaleDateString(i18n?.language, options)
     const [itinerario, setItinerario] = useState()
     const [tasks, setTasks] = useState()
     const [modal, setModal] = useState(false)
@@ -53,7 +52,7 @@ export const Itinerario = ({ data }) => {
                         eventID: event._id,
                         title: data?.title
                     },
-                    domain
+                    domain: config.domain
                 }).then((result) => {
                     setEvent((old) => {
                         if (!old?.itinerarios_array) {
