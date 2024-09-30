@@ -23,33 +23,26 @@ const Itinerario = () => {
                 <VistaSinCookie />
             )
         }
-        if (!event) { router.push("/") }
+        if (!event) return <></>
         return (
-            <>
-                <section className={` flex flex-col items-center bg-base h-[calc(100vh-145px)] `}>
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0   ">
-                        <BlockTitle title={"Itinerario"} />
-                    </motion.div>
+            event &&
+            <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4" : "bg-base w-full pt-2 md:py-0"}>
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="max-w-screen-lg mx-auto inset-x-0 w-full pl-2 pr-[1px] md:px-0 gap-4 relative">
+                    <BlockTitle title={"Itinerario"} />
+                    <BoddyIter IterArryst={IterArryst} setIterArryst={setIterArryst} createPdf={createPdf} setOption={setOption} />
 
-                    <div className="space-y-4 my-5 w-[80%] rounded-xl">
-                        <BoddyIter IterArryst={IterArryst} setIterArryst={setIterArryst} createPdf={createPdf} setOption={setOption} />
-                    </div>
-
-                    {/*      
-                        {
-                            createPdf ? (
-                                <Modal openIcon={createPdf} setOpenIcon={setCreatePdf} classe={"h-[50%] w-[85%]"} >
-                                <MyDocument IterArryst={IterArryst} />
-                                </Modal>
-                            ) : null
-                        } 
-                    */}
-                </section>
-            </>
+                    {/* {createPdf
+                        ? <Modal openIcon={createPdf} setOpenIcon={setCreatePdf} classe={"h-[50%] w-[85%]"} >
+                            <MyDocument IterArryst={IterArryst} />
+                        </Modal>
+                        : null
+                    } */}
+                </motion.div>
+            </section>
         )
     }
 }

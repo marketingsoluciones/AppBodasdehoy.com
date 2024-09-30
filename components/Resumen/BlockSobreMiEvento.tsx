@@ -11,7 +11,6 @@ import { EventContextProvider } from "../../context";
 import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
-import i18n from 'i18next';
 
 interface propsInsideBlock extends schemaItem {
   setSelected?: Dispatch<

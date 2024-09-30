@@ -87,11 +87,10 @@ const IconArray = [
     },
 ]
 
-export const SelectIcon = ({ handleChange, disable,ht, ...props }) => {
+export const SelectIcon = ({ handleChange, disable, ht, ...props }) => {
     const [field] = useField({ name: props?.name });
     const [selectIcon, setSelectIcon] = useState()
     const [openIcon, setOpenIcon] = useState(false)
-    console.log(disable)
 
     useEffect(() => {
         if (selectIcon) {
