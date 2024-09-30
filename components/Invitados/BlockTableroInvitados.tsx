@@ -16,6 +16,8 @@ import { Modal } from "../Utils/Modal";
 import { DeleteConfirmation } from "../Itinerario/MicroComponente/DeleteConfirmation";
 import { useTranslation } from "react-i18next";
 import { GoMultiSelect } from "react-icons/go";
+import { LiaLinkSolid } from "react-icons/lia";
+import { CopiarLink } from "../Utils/Compartir";
 
 
 interface propsBlockListaInvitados {
@@ -52,7 +54,6 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ Conditiona
     const [data, setData] = useState<{ titulo: string; data: guestsExt[] }[]>([]);
     const [modal, setModal] = useState({ state: false, title: null, handle: () => { } })
     const [showCards, setShowCards] = useState({})
-
     const toast = useToast()
     const [isAllowed, ht] = useAllowed()
 
@@ -271,6 +272,7 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
     const [showModalCeremonia, setShowModalCeremonia] = useState({});
     const [showModalAsistenci, setShowModalAsistenci] = useState({});
     const [showModalAcompañante, setShowModalAcompañante] = useState({});
+    const [showModalCompartir, setShowModalCompartir] = useState({});
     const [acompañanteID, setAcompañanteID] = useState({ id: "", crear: true })
     const [value, setValue] = useState("sin menú");
     const [value2, setValue2] = useState({});
@@ -282,6 +284,7 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
     const [isAllowed] = useAllowed()
     const GuestsByFather = event?.invitados_array?.filter((invitado) => invitado?.father === acompañanteID.id)
     const { t } = useTranslation()
+    const link = `${window?.location?.origin}?pGuestEvent=${idGuest}${event._id?.slice(3, 9)}${event._id}`
 
 
 
@@ -391,6 +394,13 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
             }));
             setAcompañanteID({ id: _id, crear: false })
         }
+        if (option === "compartir") {
+            setShowModalCompartir((prevState) => ({
+                ...prevState,
+                [_id]: !prevState[_id],
+            }));
+            setIdGuest(_id)
+        }
     };
     const handleClick = (id) => {
         setSelected(id);
@@ -460,10 +470,6 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
             title: "Editar",
             function: () => HandleEdit(idGuest),
         },
-        {
-            title: "Compartir",
-            /*  function: () => HandleEdit(row.row.original._id), */
-        },
     ];
 
     useEffect(() => {
@@ -504,16 +510,16 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                     return (
                         <>
                             <div key={idx} className={`  bg-gray-100 my-2 mx-2 rounded-md grid grid-cols-6 relative `}>
-                                <div onClick={!isAllowed() ? null : () => handleClick(item._id)} className=" pt-2 pl-2 justify-self-center relative col-span-1 h-max ">
+                                <div className=" pt-2 pl-2 justify-self-center relative col-span-1 h-max ">
                                     <img
                                         className="block w-10 h-10 mr-2"
                                         src={image[item.sexo]?.image}
                                         alt={image[item.sexo]?.alt}
                                     />
                                 </div>
-                                <div className="col-span-4 grid grid-cols-2  justify-between pb-2 pt-2 border-gray-500  transition  capitalize ">
+                                <div className="col-span-4 grid grid-cols-2  justify-between pb-2 pt-2 border-gray-500  transition  capitalize">
                                     <div className="col-span-2">
-                                        <p onClick={!isAllowed() ? null : () => handleClick(item._id)} className="font-display text-2xl capitalize overflow-ellipsis text-gray-700">
+                                        <p /* onClick={!isAllowed() ? null : () => handleClick(item._id)} */ className="font-display text-2xl capitalize overflow-ellipsis text-gray-700">
                                             {item.nombre}
                                         </p>
                                     </div>
@@ -721,9 +727,11 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                         </div>
                                     </div>
                                 </div>
-                                <div className=" justify-self-end relative col-span-1 ">
-
-                                    <div onClick={() => !isAllowed() ? null : toggleVisibility("options", item._id)} className="pt-4 pr-4">
+                                <div className=" flex  justify-self-end relative col-span-1 ">
+                                    <div onClick={() => !isAllowed() ? null : toggleVisibility("compartir", item._id)} className="pt-[13px] pr-2 h-max">
+                                        <LiaLinkSolid className="h-auto w-5" />
+                                    </div>
+                                    <div onClick={() => !isAllowed() ? null : toggleVisibility("options", item._id)} className="pt-4 pr-3 h-max">
                                         <SlOptionsVertical />
                                     </div>
                                     {
@@ -758,13 +766,23 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                         </ClickAwayListener>
                                     }
                                 </div>
+                                {
+                                    showModalCompartir[item._id] && <ClickAwayListener onClickAway={() => showModalCompartir[item._id] && setShowModalCompartir(false)}>
+                                        <ul
+                                            className={`${showModalCompartir ? "block opacity-100" : "hidden opacity-0"
+                                                } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-[50px] left-9 w-[300px]`}
+                                        >
+                                            <li
+                                                className="flex items-center py-4 px-6 font-display text-sm text-gray-500 bg-base transition w-full capitalize"
+                                            >
+                                                <CopiarLink link={link} />
+                                            </li>
+                                        </ul>
+                                    </ClickAwayListener>
+                                }
                             </div >
-
-
-
                             {
-                                showModalAcompañante[item._id] &&
-                                GuestsByFather.length > 0 && GuestsByFather?.map((item, idx) => {
+                                showModalAcompañante[item._id] && GuestsByFather.length > 0 && GuestsByFather?.map((item, idx) => {
                                     return (
                                         <div key={idx}>
                                             <div className="capitalize flex justify-center "> Acompañantes de {item.nombre}</div>
@@ -1015,11 +1033,9 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                         </div>
                                     )
                                 })
-
                             }
                             {
-                                showModalAcompañante[item._id] && GuestsByFather.length === 0 &&
-                                <>
+                                showModalAcompañante[item._id] && GuestsByFather.length === 0 && <>
                                     <div className="capitalize flex justify-center "> Acompañantes de  {item.nombre}</div>
                                     <span className="items-center col-span-3 flex gap-3 text-gray-500 justify-center pb-3">
                                         No tiene Acompañantes confirmados
