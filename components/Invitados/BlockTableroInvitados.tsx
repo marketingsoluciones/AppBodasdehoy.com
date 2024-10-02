@@ -719,11 +719,13 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                         <div className="font-semibold text-[12px] ">
                                             Acompañantes :
                                         </div>
-                                        <div onClick={() => !isAllowed() ? null : item?.passesQuantity > 0 ? toggleVisibility("acompañante", item._id) : null} className="font-body text-[12px] pl-2 flex items-center justify-between">
+                                        <div onClick={() => {
+                                            !isAllowed() ? null : item?.passesQuantity > 0 ? toggleVisibility("acompañante", item._id) : null
+                                        }} className="font-body text-[12px] pl-2 flex items-center justify-between">
                                             {item.passesQuantity}
-                                            <div className={`${item?.passesQuantity > 0 ? "block" : "hidden"} pl-2  "`}>
+                                            {/* <div className={`${item?.passesQuantity > 0 ? "block" : "hidden"} pl-2  "`}>
                                                 <ArrowDown className="h-2 w-2" />
-                                            </div>
+                                            </div> */}
                                         </div>
                                     </div>
                                 </div>
@@ -782,31 +784,31 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                 }
                             </div >
                             {
-                                showModalAcompañante[item._id] && GuestsByFather.length > 0 && <div className="border-l-2 ml-2 pb-1">
-                                    <div className="capitalize flex justify-center "> Acompañantes de {item.nombre}</div>
-                                    { GuestsByFather?.map((item, idx) => {
+                                showModalAcompañante[item._id] && GuestsByFather.length > 0 && <div className="border-l-2 border-b-2 rounded-l-lg rounded-t-none ml-2 -mt-3 pl-5 pb-1">
+                                    {/* <div className="capitalize flex justify-center "> Acompañantes de {item.nombre}</div> */}
+                                    {GuestsByFather?.map((item, idx) => {
                                         return (
                                             <div key={idx}>
-                                                <div className={`  bg-gray-100 my-2 mx-1 rounded-md grid grid-cols-6 relative `}>
-                                                    <div  className=" pt-2 pl-2 justify-self-center relative col-span-1 h-max ">
+                                                <div className={`bg-gray-100 mx-2 rounded-md grid grid-cols-8 relative `}>
+                                                    <div className=" pt-2 pl-2 justify-self-center relative col-span-1 h-max ">
                                                         <img
-                                                            className="block w-10 h-10 mr-2"
+                                                            className="block w-8 h-8 mr-2"
                                                             src={image[item.sexo]?.image}
                                                             alt={image[item.sexo]?.alt}
                                                         />
                                                     </div>
-                                                    <div className="col-span-4 grid grid-cols-2  justify-between pb-2 pt-2 border-gray-500  transition  capitalize ">
+                                                    <div className="col-span-6 grid grid-cols-2 justify-between pb-2 pt-2 pl-1 border-gray-500 transition capitalize">
                                                         <div className=" col-span-2">
-                                                            <p  className="font-display text-2xl capitalize overflow-ellipsis text-gray-700">
+                                                            <p className="font-display text-xl capitalize overflow-ellipsis text-gray-700">
                                                                 {item.nombre}
                                                             </p>
                                                         </div>
-                                                        <div className="items-center col-span-2  grid grid-cols-2 py-1 relative">
+                                                        <div className="items-center col-span-2 grid grid-cols-2 py-1 relative">
                                                             <div className="font-semibold text-[12px] ">asistencia :</div>
-                                                            <div onClick={() => !isAllowed() ? null : toggleVisibility("asistencia", item._id)} className="flex items-center justify-between font-body  col-span-1 ">
-                                                                <div className=" flex  items-center ">
+                                                            <div onClick={() => !isAllowed() ? null : toggleVisibility("asistencia", item._id)} className="flex items-center justify-between font-body col-span-1">
+                                                                <div className="flex items-center -translate-x-3">
                                                                     {dicc[item.asistencia]?.icon && cloneElement(dicc[item.asistencia].icon, { className: "w-4 h-4" })}
-                                                                    {item.asistencia}
+                                                                    <span className="translate-x-1">{item.asistencia}</span>
                                                                 </div>
 
                                                                 <div className="pl-2 ">
@@ -1033,12 +1035,12 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                             </div>
                                         )
                                     })}
-                                </div>
+                                </div >
                             }
 
                             {
                                 showModalAcompañante[item._id] && GuestsByFather.length === 0 && <div className="border-l-2 ml-2 py-2 ">
-                                <div className="capitalize flex justify-center "> Acompañantes de  {item.nombre}</div>
+                                    <div className="capitalize flex justify-center "> Acompañantes de  {item.nombre}</div>
                                     <span className="items-center col-span-3 flex gap-3 text-gray-500 justify-center ">
                                         No tiene Acompañantes confirmados
                                     </span>
