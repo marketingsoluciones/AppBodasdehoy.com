@@ -23,6 +23,7 @@ import { MdOutlineDeleteOutline } from "react-icons/md";
 import { OptionsSelect, Task, Itinerary } from "../../../utils/Interfaces"
 import { SubHeader } from "./SubHeader";
 import { ViewItinerary } from "../../../pages/invitados";
+import FormTask from "../../Forms/FormTask";
 
 interface props {
     itinerario: Itinerary
@@ -155,7 +156,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario }) => {
         <>
             {showEditTask && (
                 <ModalLeft state={showEditTask} set={setShowEditTask}>
-                    <></>
+                    <FormTask state={showEditTask} set={setShowEditTask}/>
                 </ModalLeft>
             )}
             <SubHeader button={modal} setButton={setModal} date={date} title={itinerario?.title} disable={disable} ht={ht} setModalPlantilla={setModalPlantilla} modalPlantilla={modalPlantilla} view={view} setView={setView} handleDeleteItinerario={handleDeleteItinerario} />

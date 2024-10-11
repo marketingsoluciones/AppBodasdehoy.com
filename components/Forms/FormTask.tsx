@@ -15,19 +15,14 @@ import { useImportGuest } from "../../hooks/useImportGuest";
 import { ForApiPeople } from "./ForApiGoogle";
 import { phoneUtil, useAuthentication } from "../../utils/Authentication";
 import { useTranslation } from 'react-i18next';
+import { Task } from "../../utils/Interfaces";
 
-interface propsFormInvitado {
+interface propsFormTask {
   state: any;
   set: any;
 }
-interface contact {
-  name: string[]
-  address: string[]
-  email: string[]
-  icon: string[]
-  tel: string[]
-}
-const FormTask: FC<propsFormInvitado> = ({ state, set }) => {
+
+const FormTask: FC<propsFormTask> = ({ state, set }) => {
   const { t } = useTranslation();
   const { geoInfo } = AuthContextProvider();
   const { event, setEvent } = EventContextProvider();
@@ -88,6 +83,7 @@ const FormTask: FC<propsFormInvitado> = ({ state, set }) => {
 
   const initialValues = {
     description: "",
+    title: "",
     date: new Date(),
     time: "",
     duration: 30,
@@ -132,107 +128,46 @@ const FormTask: FC<propsFormInvitado> = ({ state, set }) => {
         return (
           <Form>
             <ResetForm setFieldValue={setFieldValue} resetForm={resetForm} contact={contact} />
-            {showForApiGoogle.state && <ForApiPeople setContact={setContact} showForApiGoogle={showForApiGoogle} setShowForApiGoogle={setShowForApiGoogle} />}
-            {showMedioSelectImport && <ImportGuest setShowMedioSelectImport={setShowMedioSelectImport} setContact={setContact} setShowForApiGoogle={setShowForApiGoogle} />}
             <div className="border-l-2 border-gray-100 pl-3 my-2 w-full ">
               <h2 className="font-display text-3xl capitalize text-primary font-light">
                 {t("create")}
               </h2>
               <h2 className="font-display text-5xl capitalize text-gray-500 font-medium">
-                {t("guest")}
+                {t("task")}
               </h2>
             </div>
 
             <div className="text-gray-500 font-body flex flex-col gap-4 w-full">
-              <div className="input-name w-full flex items-center justify-center relative pt-4">
-                <div className="flex absolute z-[5] right-0 top-0 text-white cursor-pointer"
-                  onClick={() => {
-                    window["ReactNativeWebView"] || navigator["contacts"]
-                      ? setShowMedioSelectImport(true)
-                      : contactsForApiGoogle().then(result => {
-                        setShowForApiGoogle(result)
-                      })
-                  }}
-                >
-                  <div className=" flex items-center space-x-2 border px-2 py-0.5 rounded-lg hover:border-gray-300 bg-primary " >
-                    <p className="w-14 text-xs leading-3 capitalize">{t("importcontacts")}</p>
-                    <IoMdContacts className="w-7 h-7" />
-                  </div>
-                </div>
-                <img
-                  src={ImageProfile[values.sexo]?.image ?? "/placeholder/user.png"}
-                  alt={ImageProfile[values.sexo]?.alt}
-                  className="w-14 h-14 rounded-full mr-6 "
-                />
-                {/* <div className="w-1/2 flex items-center justify-center"> */}
-                <InputField
-                  //placeholder="960 66 66 66"
-                  name="telefono"
-                  label={t("phone")}
-                  type="telefono"
-                />
-                {/* </div> */}
-              </div>
+
               <div className="w-full flex items-center justify-center">
                 <InputField
                   //placeholder="Ej. Francisco Montilla"
-                  name="nombre"
-                  label={t("name")}
+                  name="titulo"
+                  label={t("title")}
                   type="text"
                 />
               </div>
+              <div className="w-full flex items-center justify-center">
+                fecha
+              </div>
               <div className=" w-full h-full flex gap-6">
                 <div className="w-1/2 flex-col flex gap-2 relative">
-                  <BooleanSwitch
-                    label={t("sex")}
-                    lista={["hombre", "mujer"]}
-                    name="sexo"
-                  />
+                  hora
                 </div>
                 <div className="w-1/2 flex-col flex gap-2 relative">
-                  <BooleanSwitch
-                    label={t("age")}
-                    lista={["adulto", "niño"]}
-                    name="grupo_edad"
-                  />
+                  duracion
                 </div>
-              </div>
-              <div className="w-full flex items-center justify-center">
-                <InputField
-                  //placeholder="Ej. jhon@doe.com"
-                  name="correo"
-                  label={t("email")}
-                  type="email"
-                />
               </div>
 
               <div className="w-full h-8 flex flex-col relative text-sm mb-7">
-                <SelectField
-                  name={"rol"}
-                  label={t("role")}
-                  options={event.grupos_array}
-                  nullable={true}
-                />
+                responsables
               </div>
 
               <div className="w-full h-full flex gap-6">
-
-                <div className="w-1/2   ">
-                  <SelectField
-                    name={"nombre_menu"}
-                    label={t("menu")}
-                    options={[...event?.menus_array?.map(elem => elem.nombre_menu), "sin menú"]}
-                  />
-                </div>
-
-                <div className="w-1/2">
-                  <InputField
-                    name="passesQuantity"
-                    label={t("nocompanions")}
-                    type="number"
-                  />
-                </div>
-
+                tips
+              </div>
+              <div className="w-full h-full flex gap-6">
+                Cargar archivo
               </div>
 
               <button
