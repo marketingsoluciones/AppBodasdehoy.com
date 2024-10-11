@@ -29,9 +29,36 @@ export interface Event {
     permissions: permission[]
     valirRemote: boolean
     showChildrenGuest: string
+    itinerarios_array: Itinerary[]
     //permission: boolean
 }
 
+export interface Task {
+    _id: string
+    fecha?: Date
+    hora: string
+    icon: string
+    descripcion: string
+    responsable: string[]
+    duracion: number
+    tips: string[]
+    attachments: string[]
+}
+
+export interface Itinerary {
+    _id: string
+    title: string
+    tasks: Task[]
+    estatus: string //activo, borrado
+    fecha_creacion: Date
+}
+
+export interface OptionsSelect {
+    value: string
+    icon: JSX.Element
+    title: string
+    onclick: any
+}
 
 export interface Notification {
     _id: string

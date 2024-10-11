@@ -14,7 +14,7 @@ export const HeaderIter: FC<HeaderIterProps> = ({ IterArryst, setIterArryst, set
     const { t } = useTranslation();
     return (
         <>
-            <div className="flex items-center justify-between bg-white px-5 rounded-lg py-1.5">
+            <div className="border-2 border-rose-400 flex items-center justify-between bg-white px-5 rounded-lg py-1.5">
                 <div className=" text-gray-500 text-[13px]">
                     {t("createitineraries")}
                 </div>

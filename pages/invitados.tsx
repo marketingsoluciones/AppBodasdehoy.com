@@ -13,7 +13,7 @@ import { useMounted } from "../hooks/useMounted";
 import { BlockTableroInvitados } from "../components/Invitados/BlockTableroInvitados";
 import { SelectModeView } from "../components/Utils/SelectModeView";
 
-type View = "table" | "cards"
+export type ViewItinerary = "table" | "cards" | "schema"
 
 const Invitados: FC = () => {
   const [isMounted, setIsMounted] = useState<boolean>(false);
@@ -22,8 +22,8 @@ const Invitados: FC = () => {
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const { event } = EventContextProvider();
   const { actionModals, setActionModals } = AuthContextProvider()
-  const [viewPreferUser, setViewPreferUser] = useState<View>("cards")
-  const [view, setView] = useState<View>("table")
+  const [viewPreferUser, setViewPreferUser] = useState<ViewItinerary>("cards")
+  const [view, setView] = useState<ViewItinerary>("table")
   const [triggerResize, setTriggerResize] = useState<number>(new Date().getTime())
   const { user, verificationDone, forCms } = AuthContextProvider()
 

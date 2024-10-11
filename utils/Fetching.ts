@@ -92,6 +92,7 @@ interface argsFetchApi {
   query: string;
   variables: object;
   token?: string;
+  domain?: string
 }
 export const fetchApiEventos = async ({ query, variables, token }: argsFetchApi) => {
   const {

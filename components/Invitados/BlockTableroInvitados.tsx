@@ -108,7 +108,7 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ Conditiona
     }, [allFilterGuests]);
 
     return (
-        <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full pt-2 pb-28 mb-32  relative" >
+        <div className="bg-white bg-red min-h-full w-full shadow-lg rounded-xl h-full pt-2 pb-28 mb-32  relative" >
             <div className="flex  items-center justify-between relative">
                 <div className="flex gap-2 items-center mt-1 mb-3 md:mb-5 mx-2">
                     <button
@@ -402,6 +402,7 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
             setIdGuest(_id)
         }
     };
+
     const handleClick = (id) => {
         setSelected(id);
         setIsMounted(!isMounted);

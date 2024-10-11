@@ -5,7 +5,7 @@ import { useEffect, useState } from "react"
 import { useField } from "formik";
 import { EventContextProvider } from "../../../context";
 
-const ResponsablesArry = [
+export const ResponsablesArry = [
     {
         icon: "/rol_Decorador.png",
         title: "Decorador",
@@ -73,7 +73,7 @@ export const Responsable = ({ disable, itinerario, handleChange, title, task, ht
     }, [selectIcon, showResposables])
 
     return (
-        <div className="flex justify-center items-center pl-1 ">
+        <div className="flex justify-start items-center pl-1 ">
             {field?.value?.length > 0
                 ? <div className="w-10 h-10 relative">
                     <div
