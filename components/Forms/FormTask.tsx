@@ -19,7 +19,7 @@ import { Task } from "../../utils/Interfaces";
 import { Duration, Responsable } from "../Itinerario/MicroComponente";
 import { useAllowedRouter } from "../../hooks/useAllowed";
 import { InputTime } from "./inputs/InputTime";
-import MyEditor from "../Itinerario/MicroComponente/QuillText";
+import {MyEditor} from "../Itinerario/MicroComponente/QuillText";
 
 interface propsFormTask {
   state: any;

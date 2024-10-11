@@ -29,7 +29,8 @@
     "pages/iteratable.js",
     "pages/login.js",
     "components/Forms/FormAddUserToEvent.js",
-    "pages/RelacionesPublicas/[...slug].tsx", "components/Itinerario/MicroComponente/QuillText.js",
+    "pages/RelacionesPublicas/[...slug].tsx", 
+    "components/Itinerario/MicroComponente/QuillText.tsx",
   ],
   "exclude": [
     "node_modules"
