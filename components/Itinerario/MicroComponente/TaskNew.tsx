@@ -139,7 +139,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, option
                       <p className="bg-white py-2 text-gray-900 leading-[2]">
                         {values?.attachments?.map((elem, idx) =>
                           <span key={idx} className="inline-flex ml-2 items-center">
-                            <IoIosAttach className="w-4 h-auto" />
+                            <IoIosAttach className="w-4 h-auto"/>
                             <span>
                               {elem}
                             </span>

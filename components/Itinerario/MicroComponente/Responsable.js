@@ -48,7 +48,7 @@ export const ResponsablesArry = [
     },
 ]
 
-export const Responsable = ({ disable, itinerario, handleChange, title, task, ht, ...props }) => {
+export const Responsable = ({ disable, handleChange , ht, ...props }) => {
     const [field, meta, helpers] = useField({ name: props?.name });
     const [selectIcon, setSelectIcon] = useState(field?.value?.map((item) => {
         if (typeof item === "object") {
@@ -73,7 +73,7 @@ export const Responsable = ({ disable, itinerario, handleChange, title, task, ht
     }, [selectIcon, showResposables])
 
     return (
-        <div className="flex justify-start items-center pl-1 ">
+        <div className="flex justify-start">
             {field?.value?.length > 0
                 ? <div className="w-10 h-10 relative">
                     <div
@@ -108,8 +108,8 @@ export const Responsable = ({ disable, itinerario, handleChange, title, task, ht
                         })}
                     </div>
                 </div>
-                : <div onClick={() => disable ? ht() : setOpenResponsableList(!openResponsableList)} className="w-full h-full rounded-full flex justify-center cursor-pointer text-gray-600 hover:text-gray-800 ">
-                    <AddUser className="w-10 md:w-8 lg:w-10 h-10 md:h-8 lg:h-10" />
+                : <div onClick={() => disable ? ht() : setOpenResponsableList(!openResponsableList)} className="h-full rounded-full flex cursor-pointer text-gray-600 hover:text-gray-800 ">
+                    <AddUser className="w-10 md:w-8 lg:w-10 h-10 md:h-8 lg:h-10 bg-white" />
                 </div>
             }
             {openResponsableList &&

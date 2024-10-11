@@ -13,10 +13,10 @@ export const Duration = ({ disable, ...props }) => {
 
     return (
         <>
-            <div className="bg-violet-400 flex text-[9px] md:text-[11px] lg:text-[13px] space-x-3">
+            <div className=" flex items-center text-[9px] md:text-[15px] lg:text-[17px] space-x-4 h-full">
                 <span> {t("duration")}</span>
-                <span className="relative bg-red" >
-                    <input ref={inputRef} disabled={disable} className="-translate-x-3 -translate-y-3 absolute focus:ring-0 w-[20px] md:w-[25px] lg:w-[28px] text-[11px] md:text-[13px] lg:text-[15px] text-center bg-transparent px-1 border-none" type="number" {...field} {...props} onClick={handleClick} />
+                <span className="relative" >
+                    <input ref={inputRef} disabled={disable} className="-translate-x-[14px] -translate-y-[20px] absolute focus:ring-0 w-[20px] md:w-[25px] lg:w-[28px] text-[11px] md:text-[13px] lg:text-[15px] text-center bg-transparent px-1 border-none" type="number" {...field} {...props} onClick={handleClick} />
                 </span>
                 <span>min</span>
             </div>

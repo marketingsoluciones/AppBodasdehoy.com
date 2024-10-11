@@ -20,7 +20,7 @@ export const InputTime = ({ disable, ht, ...props }) => {
 
     return (
         <>
-            <input disabled={disable} type="time" className="bg-yellow-300 focus:ring-0 text-[15px] md:text-[20px] lg:text-[25px] block bg-transparent border-none" {...field} {...props} />
+            <input disabled={disable} type="time" className=" focus:ring-0 text-[15px] md:text-[20px] lg:text-[25px] block bg-transparent border-none" {...field} {...props} />
         </>
     )
 }
