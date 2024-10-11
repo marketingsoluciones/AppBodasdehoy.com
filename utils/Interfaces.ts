@@ -51,6 +51,7 @@ export interface Itinerary {
     tasks: Task[]
     estatus: string //activo, borrado
     fecha_creacion: Date
+    icon?: JSX.Element
 }
 
 export interface OptionsSelect {

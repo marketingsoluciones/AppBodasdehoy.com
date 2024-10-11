@@ -16,14 +16,13 @@ import { ViewItinerary } from "../../../pages/invitados";
 interface props {
   itinerario: Itinerary
   task: Task
-  title: string
   disable: any
   ht: any
   view: ViewItinerary
   optionsItineraryButtonBox: OptionsSelect[]
 }
 
-export const TaskNew: FC<props> = ({ itinerario, task, title, disable, ht, view, optionsItineraryButtonBox }) => {
+export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, optionsItineraryButtonBox }) => {
   const { config } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
   const toast = useToast()

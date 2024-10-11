@@ -1,13 +1,13 @@
-import { useEffect, useRef, useState } from "react"
+import { FC, useEffect, useRef, useState } from "react"
 import { PlusIcon } from "../../icons"
 import { Itinerary } from "../../../utils/Interfaces"
 
 interface props {
     DataOptionsArry: Itinerary[]
     optionSelect: Itinerary
-    onClick: any
+    setOptionSelect: any
 }
-export const ItineraryTabs = ({ DataOptionsArry, optionSelect, onClick }) => {
+export const ItineraryTabs:FC<props> = ({ DataOptionsArry, optionSelect, setOptionSelect}) => {
     const [sizes, setSizes] = useState(null)
 
     const adjustSize = () => {
@@ -27,7 +27,7 @@ export const ItineraryTabs = ({ DataOptionsArry, optionSelect, onClick }) => {
         if (sizes == 0) {
             setTimeout(() => {
                 const content = document?.getElementById("content")?.offsetWidth
-                const elem = document?.getElementById(optionSelect)?.offsetWidth
+                const elem = document?.getElementById(optionSelect._id)?.offsetWidth
                 const sizes = (content - elem) / (DataOptionsArry.length - 1)
                 setSizes(sizes - 4)
             }, 100);
@@ -41,20 +41,19 @@ export const ItineraryTabs = ({ DataOptionsArry, optionSelect, onClick }) => {
                 <div className="inline-flex max-w-full h-full items-center bg-yellow-400*">
                     <div id="azul" className="inline-flex max-w-[calc(100%-32px)] h-full items-center select-none bg-blue-600*">
                         {DataOptionsArry.map((item, idx) => {
-                            console.log(100016, item)
                             return (
-                                <div id={item.title} key={idx}
+                                <div id={item._id} key={idx}
                                     onClick={() => {
-                                        if (item.title !== optionSelect) {
+                                        if (item._id !== optionSelect._id) {
                                             adjustSize()
-                                            onClick(item?.title)
+                                            setOptionSelect(item)
                                         }
                                     }}
-                                    style={optionSelect === item.title ? {} : { width: sizes }}
+                                    style={optionSelect._id === item._id ? {} : { width: sizes }}
                                     className={`flex justify-start items-center cursor-pointer h-full ${idx == 0 && "bg-yellow-300*"} ${idx == 1 && "bg-red*"} ${idx == 2 && "bg-green*"} text-blue-500 text-sm px-2 space-x-1`}
                                 >
 
-                                    {<div className={`${optionSelect === item.title ? "border-primary text-primary" : "border-gray-600 text-gray-600"} border-b-2 inline-flex space-x-1 items-center`} >
+                                    {<div className={`${optionSelect._id === item._id ? "border-primary text-primary" : "border-gray-600 text-gray-600"} border-b-2 inline-flex space-x-1 items-center`} >
                                         {!!item?.icon && <div className="flex w-5 h-5 items-center justify-center">
                                             {item.icon}
                                         </div>}

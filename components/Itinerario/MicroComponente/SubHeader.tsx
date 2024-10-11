@@ -18,12 +18,11 @@ interface props {
     modalPlantilla: any
     view: any
     setView: any
+    handleDeleteItinerario:any
 }
 
-export const SubHeader: FC<props> = ({ title, date, setButton, button, disable, ht, setModalPlantilla, modalPlantilla, view, setView }) => {
+export const SubHeader: FC<props> = ({ title, date, setButton, button, disable, ht, setModalPlantilla, modalPlantilla, view, setView, handleDeleteItinerario }) => {
     const { t } = useTranslation();
-    const { event } = EventContextProvider()
-    const { user } = AuthContextProvider()
 
     return (
         <div className="w-full px-4 md:px-10 py-4 space-y-2" >
@@ -46,8 +45,8 @@ export const SubHeader: FC<props> = ({ title, date, setButton, button, disable, 
                 </div>
                 <div className="flex flex-col w-1/2 text-xs md:text-[14px] justify-end items-end space-y-1">
                     <div className={"flex text-gray-700 space-x-2"}>
-                        <PencilEdit className="w-5 h-5" />
-                        <MdOutlineDeleteOutline className="w-5 h-5" />
+                        <PencilEdit className="w-5 h-5 cursor-pointer" />
+                        <MdOutlineDeleteOutline onClick={()=>handleDeleteItinerario()} className="w-5 h-5 curso cursor-pointer" />
                         <SelectModeView value={view} setValue={setView} />
                     </div>
                 </div>
