@@ -284,6 +284,9 @@ export const queries = {
       }
     }
   }`,
+  editItinerario: `mutation ($eventID:String, $itinerarioID:String, $variable:String, $valor:String){
+    editItinerario(eventID:$eventID itinerarioID:$itinerarioID, variable:$variable, valor:$valor )
+  }`,
   deleteItinerario: `
   mutation  ( $eventID:String, $itinerarioID:String ) {
     deleteItinerario ( eventID:$eventID  itinerarioID:$itinerarioID  )

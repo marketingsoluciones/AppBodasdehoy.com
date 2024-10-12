@@ -5,7 +5,6 @@ import { DataTableGroupContextProvider } from "../../../context/DataTableGroupCo
 import { useTranslation } from 'react-i18next';
 
 export const ItineraryTable: FC<any> = ({ columns, data = [], multiSeled = false, setArrEnviatInvitaciones, reenviar, activeFunction }) => {
-  console.log(data)
   const { t } = useTranslation();
   const [valir, setValir] = useState(false)
   const [asd, setAsd] = useState({ arrIDs: undefined, getToggleAllRowsSelectedProps: undefined })

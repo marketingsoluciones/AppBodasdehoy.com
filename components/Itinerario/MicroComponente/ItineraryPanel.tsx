@@ -27,9 +27,14 @@ import FormTask from "../../Forms/FormTask";
 
 interface props {
     itinerario: Itinerary
+    setItinerario: any
+    editTitle: boolean
+    setEditTitle: any
 }
 
-export const ItineraryPanel: FC<props> = ({ itinerario }) => {
+
+
+export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle, setEditTitle }) => {
     const { t } = useTranslation();
     const { config } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
@@ -40,14 +45,13 @@ export const ItineraryPanel: FC<props> = ({ itinerario }) => {
     const options = { year: "numeric", month: "long", day: "numeric" };
     const date = newDate.toLocaleDateString(i18n?.language)
     const [tasks, setTasks] = useState<Task[]>()
-    const [modal, setModal] = useState({ state: false, title: null, handle: () => { } })
-        const [modalStatus, setModalStatus] = useState(false)
+    const [modalStatus, setModalStatus] = useState(false)
     const [modalWorkFlow, setModalWorkFlow] = useState(false)
     const [modalCompartirTask, setModalCompartirTask] = useState(false)
     const [modalPlantilla, setModalPlantilla] = useState(false)
     const [view, setView] = useState<ViewItinerary>("schema")
     const [showEditTask, setShowEditTask] = useState(false)
-    
+
 
     const optionsItineraryButtonBox: OptionsSelect[] = [
         {
@@ -55,7 +59,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario }) => {
             icon: <PencilEdit className="w-5 h-5" />,
             title: "editar",
             onclick: (values) => {
-                console.log(100011, values)
                 setShowEditTask(!showEditTask)
             }
         },
@@ -91,44 +94,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario }) => {
         }
     }, [itinerario])
 
-    const handleDeleteItinerario = async () => {
-        console.log(100017, "aquie")
-        // setModal({
-        //                       state: true,
-        //                       title: <span>
-        //                         <strong>
-        //                           {`${row.row.cells[0].value} `}
-        //                         </strong>
-        //                         <span>{`${!row.row.cells[5].value
-        //                           ? "será borrado"
-        //                           : row.row.cells[5].value === 1
-        //                             ? `y su acompañante serán borrados`
-        //                             : `y sus ${row.row.cells[5].value} acompañantes serán borrados`
-        //                           } de la lista de invitados`}
-        //                         </span>
-        //                       </span>,
-        //                       handle: async () => {
-        //                         try {
-        //                             await fetchApiEventos({
-        //                                 query: queries.deleteItinerario,
-        //                                 variables: {
-        //                                     eventID: event._id,
-        //                                     itinerarioID: itinerario?._id,
-        //                                 },
-        //                                 domain: config.domain
-        //                             })
-        //                             const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
-        //                             event.itinerarios_array.splice(f1, 1)
-        //                             setEvent({...event})
-        //                             //toast("success", t("El itinerario fue restablecido"));
-        //                             setModal(!modal.state)
-        //                         } catch (error) {
-        //                             console.log(error)
-        //                         }
-        //                       }
-        //                     })
-    }
-
     const deleteTask = async () => {
         try {
             await fetchApiEventos({
@@ -156,10 +121,10 @@ export const ItineraryPanel: FC<props> = ({ itinerario }) => {
         <>
             {showEditTask && (
                 <ModalLeft state={showEditTask} set={setShowEditTask}>
-                    <FormTask state={showEditTask} set={setShowEditTask}/>
+                    <FormTask state={showEditTask} set={setShowEditTask} />
                 </ModalLeft>
             )}
-            <SubHeader button={modal} setButton={setModal} date={date} title={itinerario?.title} disable={disable} ht={ht} setModalPlantilla={setModalPlantilla} modalPlantilla={modalPlantilla} view={view} setView={setView} handleDeleteItinerario={handleDeleteItinerario} />
+            <SubHeader itinerario={itinerario} disable={disable} ht={ht} setModalPlantilla={setModalPlantilla} modalPlantilla={modalPlantilla} view={view} setView={setView} setOptionSelect={setItinerario} editTitle={editTitle} setEditTitle={setEditTitle} setItinerario={setItinerario} />
             <div className={`w-full h-full flex flex-col items-center md:px-2 lg:px-6`}>
                 {view !== "table"
                     ? <>
@@ -202,10 +167,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario }) => {
                 }
                 <AddEvent tasks={tasks} itinerario={itinerario} disable={disable} />
             </div>
-            {/* {modal && <Modal classe={"w-[95%] md:w-[450px] h-[200px]"}>
-                <DeleteConfirmation setModal={setModal} modal={modal} />
-            </Modal>
-            } */}
             {modalStatus && <Modal classe={"w-[95%] md:w-[450px] h-[370px]"}>
                 <WarningMessage setModal={setModalStatus} modal={modalStatus} title={t("visibility")} />
             </Modal>
