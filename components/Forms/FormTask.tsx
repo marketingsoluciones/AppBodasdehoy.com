@@ -15,14 +15,15 @@ import { useImportGuest } from "../../hooks/useImportGuest";
 import { ForApiPeople } from "./ForApiGoogle";
 import { phoneUtil, useAuthentication } from "../../utils/Authentication";
 import { useTranslation } from 'react-i18next';
-import { Task } from "../../utils/Interfaces";
+import { Itinerary, Task } from "../../utils/Interfaces";
 import { Duration, Responsable } from "../Itinerario/MicroComponente";
 import { useAllowedRouter } from "../../hooks/useAllowed";
 import { InputTime } from "./inputs/InputTime";
-import {MyEditor} from "../Itinerario/MicroComponente/QuillText";
+import { MyEditor } from "../Itinerario/MicroComponente/QuillText";
+import { EditTastk } from "../Itinerario/MicroComponente/ItineraryPanel";
 
 interface propsFormTask {
-  state: any;
+  state: EditTastk;
   set: any;
 }
 
@@ -85,17 +86,21 @@ const FormTask: FC<propsFormTask> = ({ state, set }) => {
     }).email("Formato invalido")
 
   });
+  const initialValues: Task = state?.values
+  // {
+  //   _id: "",
+  //   icon: "",
+  //   descripcion: "algo",
+  //   fecha: new Date(),
+  //   hora: "",
+  //   duracion: 30,
+  //   responsable: [],
+  //   tips: [],
+  //   attachments: [],
+  // };
 
-  const initialValues = {
-    description: "",
-    title: "",
-    date: new Date(),
-    time: "",
-    duration: 30,
-    responsables: [],
-    tips: "",
-    attachment: [],
-  };
+
+  console.log(100031, initialValues)
 
   const handleSubmit = async (values: FormikValues, actions: any) => {
     try {
@@ -118,7 +123,7 @@ const FormTask: FC<propsFormTask> = ({ state, set }) => {
       console.log(error);
     } finally {
       actions.setSubmitting(false);
-      set(!state);
+      set({ state: !state.state });
     }
   };
 
@@ -153,10 +158,10 @@ const FormTask: FC<propsFormTask> = ({ state, set }) => {
     <Formik
       initialValues={initialValues}
       onSubmit={handleSubmit}
-      validationSchema={validationSchema}
+    // validationSchema={validationSchema}
     >
       {({ isSubmitting, values, setFieldValue, resetForm }) => {
-
+        console.log(100033, values)
         return (
           <Form className="w-full">
             <ResetForm setFieldValue={setFieldValue} resetForm={resetForm} contact={contact} />
@@ -173,7 +178,7 @@ const FormTask: FC<propsFormTask> = ({ state, set }) => {
 
               <div className="w-full flex items-center justify-center">
                 <InputField
-                  name="titulo"
+                  name="descripcion"
                   label={t("title")}
                   type="text"
                 />
@@ -183,10 +188,10 @@ const FormTask: FC<propsFormTask> = ({ state, set }) => {
               </div>
               <div className=" w-full h-full flex">
                 <div className="w-1/2 flex-col flex  relative">
-                  <InputTime name="time" onBlur={() => { handleBlurData("hora", values.time) }} disable={false} ht={ht} />
+                  <InputTime name="hora" onBlur={() => { handleBlurData("hora", values.time) }} disable={false} ht={ht} />
                 </div>
                 <div className="w-1/2 flex-col flex  relative ">
-                  <Duration name="duration" onBlur={() => { handleBlurData("duracion", values.duration.toString()) }} disable={false} ht={ht} />
+                  <Duration name="duracion" onBlur={() => { handleBlurData("duracion", values.duration.toString()) }} disable={false} ht={ht} />
                 </div>
               </div>
 

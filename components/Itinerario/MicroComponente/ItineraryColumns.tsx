@@ -40,12 +40,10 @@ interface propsCell {
 
 const resolveCell = ({ data, justifyCenter }: propsCell) => {
   const value = data.cell.value
-  //console.log(value)
   if (Array.isArray(value)) {
     return (
       <div className="w-full text-gray-900 bg-blue-400">
         {value.map((elem, idx) => {
-
           return (
             <span key={idx} className="inline-flex ml-2 items-center">
               <img alt={elem} src={[]?.find(el => el.title.toLowerCase() === elem.toLowerCase())?.icon} className="w-6 h-6" />
@@ -108,37 +106,37 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         accessor: "duracion",
         id: "duration",
         Cell: (data) => (
-          <div className="flex w-full justify-center">
+          <div key={data.cell.row.id} className="flex w-full justify-center">
             {data.cell.value}
           </div>
         )
       },
       {
         Header: t("fecha"),
-        accessor: "date",
+        accessor: "fecha",
         id: "date",
         Cell: (data) => (
-          <div className="flex w-full justify-center">
-            {data.cell.value}
+          <div key={data.cell.row.id} className="flex w-full justify-center">
+            {new Date(data.cell.value).toLocaleString()}
           </div>
         )
       },
-      {
-        Header: t("hora"),
-        accessor: "hora",
-        id: "time",
-        Cell: (data) => (
-          <div className="flex w-full justify-center">
-            {data.cell.value}
-          </div>
-        )
-      },
+      // {
+      //   Header: t("hora"),
+      //   accessor: "hora",
+      //   id: "time",
+      //   Cell: (data) => (
+      //     <div className="flex w-full justify-center">
+      //       {data.cell.value}
+      //     </div>
+      //   )
+      // },
       {
         Header: t("responsables"),
         accessor: "responsable",
         id: "responsables",
         Cell: (data) => (
-          <div className="w-full text-gray-900 bg-blue-400">
+          <div key={data.cell.row.id} className="w-full text-gray-900 bg-blue-400">
             {data?.cell?.value?.map((elem, idx) => {
               return (
                 <span key={idx} className="inline-flex items-center space-x-1">
@@ -157,7 +155,7 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         accessor: "tips",
         id: "tips",
         Cell: (data) => (
-          <div className="w-full text-gray-900 bg-blue-400">
+          <div key={data.cell.row.id} className="w-full text-gray-900 bg-blue-400">
             {data?.cell?.value?.map((elem, idx) => {
               return (
                 <span key={idx} className="inline-flex items-center">
@@ -176,7 +174,7 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         accessor: "attachment",
         id: "attachment",
         Cell: (data) => (
-          <div className="w-full text-gray-900 bg-blue-400">
+          <div key={data.cell.row.id} className="w-full text-gray-900 bg-blue-400">
             {data?.cell?.value?.map((elem, idx) => {
               return (
                 <span key={idx} className="inline-flex items-center">
@@ -195,11 +193,8 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         Cell: (data) => {
           const [show, setShow] = useState(false)
           const [value, setValue] = useState("")
-          useEffect(() => {
-            console.log(10004, show)
-          }, [show])
           return (
-            <div className="relative w-full h-full flex justify-center *bg-red">
+            <div key={data.cell.row.id} className="relative w-full h-full flex justify-center *bg-red">
               <div onClick={() => setShowEditTask(!showEditTask)} className="hidden md:flex text-gray-600 cursor-pointer w-4 h-6 items-center justify-center *bg-blue-400">
                 <PencilEdit className="w-5 h-5" />
               </div>

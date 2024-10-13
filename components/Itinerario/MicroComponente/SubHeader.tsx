@@ -102,7 +102,7 @@ export const SubHeader: FC<props> = ({ itinerario, disable, ht, setModalPlantill
                 <DeleteConfirmation setModal={setModal} modal={modal} />
             </Modal>
             }            <div className="flex w-full justify-between items-start">
-                <div className="w-1/2 flex flex-col md:block text-xs md:text-[14px] text-azulCorporativo">
+                <div className="w-1/2 flex flex-col text-xs md:text-[14px] text-azulCorporativo">
                     <span className="text-primary cursor-pointer hover:text-pink-500" onClick={() => disable ? ht() : () => { }}>
                         {t("resetitinerary")}
                     </span>

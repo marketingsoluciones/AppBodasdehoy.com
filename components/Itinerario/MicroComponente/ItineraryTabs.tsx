@@ -38,11 +38,16 @@ export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTit
     }, [itinerario, sizes])
 
     const handleCreateItinerario = async () => {
+        const f = new Date(parseInt(event?.fecha))
+        const y = f.getUTCFullYear()
+        const m = f.getUTCMonth()
+        const d = f.getUTCDate()
         const result = await fetchApiEventos({
             query: queries.createItinerario,
             variables: {
                 eventID: event._id,
-                title: "sin nombre"
+                title: "sin nombre",
+                dateTime: new Date(y, m, d, 8, 0)
             },
             domain: config.domain
         })
@@ -59,23 +64,23 @@ export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTit
                     <div id="azul" className="inline-flex max-w-[calc(100%-32px)] h-full items-center select-none bg-blue-600*">
                         {event?.itinerarios_array?.map((item, idx) => {
                             return (
-                                <div id={item._id} key={idx}
+                                <div id={item?._id} key={idx}
                                     onClick={() => {
-                                        if (item._id !== itinerario?._id) {
+                                        if (item?._id !== itinerario?._id) {
                                             adjustSize()
                                             setItinerario(item)
                                         }
                                     }}
-                                    style={itinerario?._id === item._id ? {} : { width: sizes }}
+                                    style={itinerario?._id === item?._id ? {} : { width: sizes }}
                                     className={`flex justify-start items-center cursor-pointer h-full ${idx == 0 && "bg-yellow-300*"} ${idx == 1 && "bg-red*"} ${idx == 2 && "bg-green*"} text-blue-500 text-sm px-2 space-x-1`}
                                 >
 
-                                    {<div className={`${itinerario?._id === item._id ? "border-primary text-primary" : "border-gray-600 text-gray-600"} border-b-2 inline-flex space-x-1 items-center`} >
+                                    {<div className={`${itinerario?._id === item?._id ? "border-primary text-primary" : "border-gray-600 text-gray-600"} border-b-2 inline-flex space-x-1 items-center`} >
                                         {!!item?.icon && <div className="flex w-5 h-5 items-center justify-center">
-                                            {item.icon}
+                                            {item?.icon}
                                         </div>}
                                         <div className="break-all line-clamp-1">
-                                            {item.title}
+                                            {item?.title}
                                         </div>
                                     </div>}
                                 </div>

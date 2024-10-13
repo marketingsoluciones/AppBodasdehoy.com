@@ -22,8 +22,8 @@ export const ItineraryTable: FC<any> = ({ columns, data = [], multiSeled = false
 
   const colSpan = {
     description: 5,
-    date: 2,
-    time: 2,
+    date: 4,
+    // time: 2,
     duration: 2,
     responsables: 3,
     tips: 5,
@@ -45,7 +45,7 @@ export const ItineraryTable: FC<any> = ({ columns, data = [], multiSeled = false
         </div>}
       <table
         {...getTableProps()}
-        className="table-auto border-collapse w-full rounded-lg relative p-4 ">
+        className="table-auto border-collapse w-full rounded-lg relative p-4">
         <thead className="relative text-xs text-gray-700 uppercase bg-gray-100 w-full">
           {headerGroups.map((headerGroup: any, id: any) => {
             return (
@@ -57,13 +57,16 @@ export const ItineraryTable: FC<any> = ({ columns, data = [], multiSeled = false
                   return (
                     <th
                       {...column.getHeaderProps(column.getSortByToggleProps())}
-                      className={`leading-[1] px-6 py-1 md:py-2 text-center flex justify-center items-center text-sm font-light font-display col-span-${colSpan[column.id]
+                      className={`leading-[1] px-6 py-1 md:py-2 text-center flex justify-center items-center text-xs font-light font-display col-span-${colSpan[column.id]
                         }`}
-                      key={id} >
-                      {typeof column.render("Header") == "string" && t(column.render("Header"))}
-                      <span>
-                        {column.isSorted ? (column.isSortedDesc ? " 🠻" : " 🠹") : ""}
-                      </span>
+                      key={id}
+                    >
+                      <>
+                        {typeof column.render("Header") == "string" && t(column.render("Header"))}
+                        <span>
+                          {column.isSorted ? (column.isSortedDesc ? " 🠻" : " 🠹") : ""}
+                        </span>
+                      </>
                     </th>
                   )
                 })}
@@ -72,20 +75,20 @@ export const ItineraryTable: FC<any> = ({ columns, data = [], multiSeled = false
           })}
         </thead>
 
-        <tbody {...getTableBodyProps()} className="text-gray-700 text-sm ">
+        <tbody {...getTableBodyProps()} className="text-gray-700 text-xs">
           {rows.length >= 1 ? rows.map((row, i) => {
             prepareRow(row);
             return (
               <tr
-                key={i}
                 {...row.getRowProps()}
-                className={`w-full bg-white border-b font-display text-sm grid grid-cols-24`}
+                key={i}
+                className={`w-full bg-white border-b font-display grid grid-cols-24`}
               >
                 {row.cells.map((cell, i) => {
                   return (
                     <td
-                      key={i}
                       {...cell.getCellProps()}
+                      key={i}
                       className={`leading-[1.5] px-1 py-1 flex items-center col-span-${colSpan[cell.column.id]} border-[1px]`}
                     >
                       {cell.render("Cell")}
@@ -95,7 +98,7 @@ export const ItineraryTable: FC<any> = ({ columns, data = [], multiSeled = false
               </tr>
             );
           }) : <tr className="transition border-b border-base hover:bg-base cursor-pointer w-full grid place-items-center">
-            <td className="py-5 font-display text-lg text-gray-500 uppercase ">{t("noguestsevent")}</td></tr>}
+            <td className="bg-redpy-5 font-display text-lg text-gray-500 uppercase ">{t("noguestsevent")}</td></tr>}
         </tbody>
       </table>
 

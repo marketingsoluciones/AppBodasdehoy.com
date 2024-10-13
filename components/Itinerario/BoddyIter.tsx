@@ -12,7 +12,7 @@ export const BoddyIter = () => {
 
     useEffect(() => {
         if (event.itinerarios_array.length) {
-            const f1 = event?.itinerarios_array.findIndex(elem => elem._id === itinerario?._id)
+            const f1 = event?.itinerarios_array.findIndex(elem => elem?._id === itinerario?._id)
             if (f1 < 0) {
                 setItinerario(event?.itinerarios_array[0])
             } else {

@@ -23,15 +23,14 @@ interface props {
 }
 
 export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, optionsItineraryButtonBox }) => {
-  const { config } = AuthContextProvider()
+  const { config, geoInfo } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
   const toast = useToast()
   const { t } = useTranslation();
-
   const initialValues: Task = {
     _id: task._id,
     icon: !task?.icon ? "" : task?.icon,
-    hora: !task?.hora ? "" : task?.hora,
+    hora: !task?.fecha ? "" : new Date(task?.fecha).toLocaleString(geoInfo?.acceptLanguage?.split(",")[0], { hour: 'numeric', minute: 'numeric' }),
     duracion: !task?.duracion ? 30 : task?.duracion,
     descripcion: !task?.descripcion ? "" : task?.descripcion,
     responsable: !task?.responsable ? [] : task?.responsable,
@@ -79,7 +78,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, option
                     </div>
                     <div className="flex-1">
                       <div className="*bg-orange-300 inline-flex flex-col justify-start items-start">
-                        <span className="text-xl md:text-2xl text-gray-900">{values?.hora} a.m.</span>
+                        <span className="text-xl md:text-2xl text-gray-900">{values?.hora}</span>
                         <div className="*bg-violet-400 w-full flex justify-end items-end text-xs -mt-1">
                           <span> {t("duration")}</span>
                           <span className="text-[12px] md:text-[14px] lg:text-[16px] text-center bg-transparent px-1" >
@@ -139,7 +138,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, option
                       <p className="bg-white py-2 text-gray-900 leading-[2]">
                         {values?.attachments?.map((elem, idx) =>
                           <span key={idx} className="inline-flex ml-2 items-center">
-                            <IoIosAttach className="w-4 h-auto"/>
+                            <IoIosAttach className="w-4 h-auto" />
                             <span>
                               {elem}
                             </span>

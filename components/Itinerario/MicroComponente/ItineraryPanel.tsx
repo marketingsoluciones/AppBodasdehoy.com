@@ -32,11 +32,21 @@ interface props {
     setEditTitle: any
 }
 
+export interface EditTastk {
+    values?: Task
+    state: boolean
+}
+
+interface TaskReduce {
+    fecha: number
+    tasks?: Task[]
+}
+
 
 
 export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle, setEditTitle }) => {
     const { t } = useTranslation();
-    const { config } = AuthContextProvider()
+    const { config, geoInfo } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
     const [isAllowed, ht] = useAllowed()
     const disable = !isAllowed("itinerario")
@@ -45,12 +55,13 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
     const options = { year: "numeric", month: "long", day: "numeric" };
     const date = newDate.toLocaleDateString(i18n?.language)
     const [tasks, setTasks] = useState<Task[]>()
+    const [tasksReduce, setTasksReduce] = useState<TaskReduce[]>()
     const [modalStatus, setModalStatus] = useState(false)
     const [modalWorkFlow, setModalWorkFlow] = useState(false)
     const [modalCompartirTask, setModalCompartirTask] = useState(false)
     const [modalPlantilla, setModalPlantilla] = useState(false)
     const [view, setView] = useState<ViewItinerary>("schema")
-    const [showEditTask, setShowEditTask] = useState(false)
+    const [showEditTask, setShowEditTask] = useState<EditTastk>({ state: false })
 
 
     const optionsItineraryButtonBox: OptionsSelect[] = [
@@ -58,8 +69,8 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
             value: "edit",
             icon: <PencilEdit className="w-5 h-5" />,
             title: "editar",
-            onclick: (values) => {
-                setShowEditTask(!showEditTask)
+            onclick: (values: Task) => {
+                setShowEditTask({ values, state: !showEditTask.state })
             }
         },
         {
@@ -90,9 +101,26 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
 
     useEffect(() => {
         if (itinerario?.tasks?.length > 0) {
-            setTasks([...itinerario?.tasks?.sort((a, b) => a.hora.localeCompare(b.hora))])
+            const tasks = [...itinerario?.tasks?.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime())]
+            setTasks(tasks)
+            const taskReduce: TaskReduce[] = tasks.reduce((acc: TaskReduce[], item: Task) => {
+                const f = new Date(item.fecha)
+                const y = f.getUTCFullYear()
+                const m = f.getUTCMonth()
+                const d = f.getUTCDate()
+                const date = new Date(y, m, d).getTime()
+                const f1 = acc.findIndex(elem => elem.fecha === date)
+                if (f1 < 0) {
+                    acc.push({ fecha: date, tasks: [item] })
+                } else {
+                    acc[f1].tasks.push(item)
+                }
+                return acc
+            }, [])
+            setTasksReduce(taskReduce)
         }
-    }, [itinerario])
+    }, [itinerario, event])
+
 
     const deleteTask = async () => {
         try {
@@ -119,7 +147,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
 
     return (
         <>
-            {showEditTask && (
+            {showEditTask?.state && (
                 <ModalLeft state={showEditTask} set={setShowEditTask}>
                     <FormTask state={showEditTask} set={setShowEditTask} />
                 </ModalLeft>
@@ -127,26 +155,28 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
             <SubHeader itinerario={itinerario} disable={disable} ht={ht} setModalPlantilla={setModalPlantilla} modalPlantilla={modalPlantilla} view={view} setView={setView} setOptionSelect={setItinerario} editTitle={editTitle} setEditTitle={setEditTitle} setItinerario={setItinerario} />
             <div className={`w-full h-full flex flex-col items-center md:px-2 lg:px-6`}>
                 {view !== "table"
-                    ? <>
-                        <div className={`w-full flex ${view === "schema" ? "justify-start" : "justify-center"}`}>
-                            <span className={`${view === "schema" ? "border-primary border-dotted mb-3" : "border-gray-300 mb-1"} border-[1px] px-5 py-[1px] rounded-full text-[12px]`}>
-                                Sábado 22 de abril de 2022
-                            </span>
+                    ? tasksReduce?.map((el, i) =>
+                        <div key={i} className="w-full mt-4">
+                            <div className={`w-full flex ${view === "schema" ? "justify-start" : "justify-center"}`}>
+                                <span className={`${view === "schema" ? "border-primary border-dotted mb-1" : "border-gray-300 mb-1"} border-[1px] px-5 py-[1px] rounded-full text-[12px] font-semibold`}>
+                                    {new Date(el?.fecha).toLocaleString(geoInfo?.acceptLanguage?.split(",")[0], { year: "numeric", month: "long", day: "2-digit" })}
+                                </span>
+                            </div>
+                            {el?.tasks?.map((elem, idx) => {
+                                return (
+                                    <TaskNew
+                                        key={idx}
+                                        task={elem}
+                                        itinerario={itinerario}
+                                        disable={disable}
+                                        ht={ht}
+                                        view={view}
+                                        optionsItineraryButtonBox={optionsItineraryButtonBox}
+                                    />
+                                )
+                            })}
                         </div>
-                        {tasks?.map((elem, idx) => {
-                            return (
-                                <TaskNew
-                                    key={idx}
-                                    task={elem}
-                                    itinerario={itinerario}
-                                    disable={disable}
-                                    ht={ht}
-                                    view={view}
-                                    optionsItineraryButtonBox={optionsItineraryButtonBox}
-                                />
-                            )
-                        })}
-                    </>
+                    )
                     : <div className="relative overflow-x-auto md:overflow-x-visible">
                         <div className="w-[250%] md:w-[100%]">
                             <ItineraryColumns

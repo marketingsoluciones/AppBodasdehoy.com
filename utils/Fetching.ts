@@ -256,9 +256,10 @@ export const queries = {
   editTask: `mutation ($eventID:String, $itinerarioID:String, $taskID:String, $variable:String, $valor:String){
     editTask(eventID:$eventID itinerarioID:$itinerarioID  taskID:$taskID  variable:$variable  valor:$valor )
   }`,
-  createTask: `mutation ($eventID:String, $itinerarioID:String, $hora:String, $duracion:Int){
-    createTask(eventID:$eventID itinerarioID:$itinerarioID  hora:$hora, duracion:$duracion ){
+  createTask: `mutation ($eventID:String, $itinerarioID:String, $fecha:String, $descripcion:String, $hora:String, $duracion:Int){
+    createTask(eventID:$eventID, itinerarioID:$itinerarioID, fecha:$fecha, descripcion:$descripcion, hora:$hora, duracion:$duracion ){
       _id
+      fecha
       hora
       icon
       descripcion
@@ -273,12 +274,14 @@ export const queries = {
   mutation  ( $eventID:String, $itinerarioID:String, $taskID:String  ) {
     deleteTask ( eventID:$eventID  itinerarioID:$itinerarioID  taskID:$taskID)
   }`,
-  createItinerario: `mutation ($eventID:String, $title:String){
-    createItinerario(eventID:$eventID title:$title ){
+  createItinerario: `mutation ($eventID:String, $title:String, $dateTime:String){
+    createItinerario(eventID:$eventID, title:$title, dateTime:$dateTime ){
       _id
       title
       tasks{
         _id
+        descripcion
+        fecha
         hora
         duracion
       }
@@ -736,6 +739,7 @@ export const queries = {
         title
         tasks{
           _id
+          fecha
           hora
           icon
           descripcion
@@ -743,6 +747,7 @@ export const queries = {
           duracion
           tips
           estatus
+          attachments
         }
         estatus
       }
