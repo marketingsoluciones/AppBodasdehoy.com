@@ -145,6 +145,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
         }
     }
 
+
     return (
         <>
             {showEditTask?.state && (

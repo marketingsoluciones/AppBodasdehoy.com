@@ -15,6 +15,7 @@ import { HiOutlineViewList } from "react-icons/hi";
 import { LiaIdCardSolid, LiaLinkSolid } from "react-icons/lia";
 import { GoEyeClosed, GoGitBranch } from "react-icons/go";
 import { MdOutlineDeleteOutline } from "react-icons/md";
+import { EditTastk } from "./ItineraryPanel";
 
 interface props {
   data?: any[],
@@ -29,7 +30,7 @@ interface props {
   modalCompartirTask: any
   deleteTask: any
   ht: any
-  showEditTask: any
+  showEditTask: EditTastk
   setShowEditTask: any
 }
 
@@ -195,7 +196,7 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
           const [value, setValue] = useState("")
           return (
             <div key={data.cell.row.id} className="relative w-full h-full flex justify-center *bg-red">
-              <div onClick={() => setShowEditTask(!showEditTask)} className="hidden md:flex text-gray-600 cursor-pointer w-4 h-6 items-center justify-center *bg-blue-400">
+              <div onClick={() => { setShowEditTask(!showEditTask.state) }} className="hidden md:flex text-gray-600 cursor-pointer w-4 h-6 items-center justify-center *bg-blue-400">
                 <PencilEdit className="w-5 h-5" />
               </div>
               <ClickAwayListener onClickAway={() => show && setShow(false)} >
