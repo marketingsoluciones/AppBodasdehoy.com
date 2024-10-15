@@ -1,5 +1,6 @@
 export const en = {
   translation: {
+    "gift-list": "gift list",
     "quien eres": "Who are you?",
     "Asistencia": "Assistance",
     "Menu": "Menu",

@@ -1,5 +1,6 @@
 export const es = {
   translation: {
+    "gift-list": "lista de regalos",
     "quien eres": "¿Quién eres?",
     "Asistencia": "Asistencia",
     "Menu": "Menu",
