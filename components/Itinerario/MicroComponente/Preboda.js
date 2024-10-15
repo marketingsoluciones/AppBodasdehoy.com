@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { SubHeader, SelectIcon, IconList, Time, Description, Responsable, ResponsableList, Tips, Duration, AddEvent, GuardarButtom } from "../MicroComponente";
+import { SubHeader, SelectIcon, IconList, Time, Description, ResponsableSelector, ResponsableList, Tips, Duration, AddEvent, GuardarButtom } from "../MicroComponente";
 import { Modal } from "../../Utils/Modal";
 import { Form, Formik } from "formik";
 import { InputTime } from "../../Forms/inputs/InputTime"
@@ -59,7 +59,7 @@ export const Preboda = ({ event, IconArry }) => {
                         </div>
 
                         <Description />
-                        <Responsable openModal={openResponsableList} setOpenModal={setOpenResponsableList} />
+                        <ResponsableSelector openModal={openResponsableList} setOpenModal={setOpenResponsableList} />
                         <Tips />
                     </div>
                 </Form>
