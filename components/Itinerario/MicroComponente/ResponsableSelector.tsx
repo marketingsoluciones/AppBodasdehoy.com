@@ -1,9 +1,10 @@
 import { Modal } from "../../Utils/Modal";
 import { AddUser } from "../../icons"
 import { ResponsableList } from "./ResponsableList"
-import { useEffect, useState } from "react"
+import { FC, InputHTMLAttributes, useEffect, useState } from "react"
 import { useField } from "formik";
 import { EventContextProvider } from "../../../context";
+import { useAllowedRouter } from "../../../hooks/useAllowed";
 
 export const ResponsablesArry = [
     {
@@ -48,7 +49,14 @@ export const ResponsablesArry = [
     },
 ]
 
-export const Responsable = ({ disable, handleChange , ht, ...props }) => {
+interface props extends InputHTMLAttributes<HTMLInputElement> {
+    disable: boolean
+    handleChange: any
+}
+
+export const ResponsableSelector: FC<props> = ({ disable, handleChange, ...props }) => {
+    const [isAllowedRouter, ht] = useAllowedRouter()
+
     const [field, meta, helpers] = useField({ name: props?.name });
     const [selectIcon, setSelectIcon] = useState(field?.value?.map((item) => {
         if (typeof item === "object") {
@@ -113,7 +121,7 @@ export const Responsable = ({ disable, handleChange , ht, ...props }) => {
                 </div>
             }
             {openResponsableList &&
-                <Modal openIcon={openResponsableList} setOpenIcon={setOpenResponsableList} classe={"md:h-[550px] w-[80%] md:w-[270px]"} >
+                <Modal set={setOpenResponsableList} classe={"w-[80%] md:w-[270px] h-3/4 md:h-[550px]"} >
                     <ResponsableList DataArry={ResponsablesArry} openModal={openResponsableList} setOpenModal={setOpenResponsableList} setSelectIcon={setSelectIcon} value={field.value} />
                 </Modal>
             }

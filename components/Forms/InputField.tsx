@@ -33,8 +33,6 @@ const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled =
   const [number, setNumber] = useState<string>("")
   const [valir, setValir] = useState(0)
 
-  console.log(100032, field)
-
   if (props.name === "passesQuantity") {
     if (field["onBlur"]) {
       field.onBlur = (e: ChangeEvent<HTMLSelectElement>) => {
