@@ -8,7 +8,7 @@ import { getRelativeTime } from "../../../utils/FormatTime";
 import { useTranslation } from 'react-i18next';
 import { boolean } from "yup";
 import { IoIosAttach } from "react-icons/io";
-import { ResponsablesArry } from "./Responsable";
+import { ResponsablesArry } from "./ResponsableSelector";
 import { ItineraryTable } from "./ItineraryTable";
 import ClickAwayListener from "react-click-away-listener";
 import { HiOutlineViewList } from "react-icons/hi";

@@ -1,5 +1,5 @@
 import dynamic from 'next/dynamic';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import 'react-quill/dist/quill.snow.css'
 
 const ReactQuill = dynamic(() => import('react-quill'), {
@@ -8,6 +8,11 @@ const ReactQuill = dynamic(() => import('react-quill'), {
 
 export const MyEditor = () => {
   const [value, setValue] = useState('');
+
+  useEffect(() => {
+    console.log(value)
+  }, [value])
+
 
   const modules = useMemo(
     () => ({
@@ -25,8 +30,8 @@ export const MyEditor = () => {
         //   image: imageHandler, 
         // },
         'emoji-toolbar': true,
-  'emoji-textarea': true,
-  'emoji-shortname': true
+        'emoji-textarea': true,
+        'emoji-shortname': true
       },
     }),
     [],
@@ -36,6 +41,7 @@ export const MyEditor = () => {
     <ReactQuill
       value={value}
       onChange={setValue}
+      className='h-[160px] mb-16'
       modules={
         modules
         // {

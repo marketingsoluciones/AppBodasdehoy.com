@@ -60,7 +60,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
     const [modalWorkFlow, setModalWorkFlow] = useState(false)
     const [modalCompartirTask, setModalCompartirTask] = useState(false)
     const [modalPlantilla, setModalPlantilla] = useState(false)
-    const [view, setView] = useState<ViewItinerary>("schema")
+    const [view, setView] = useState<ViewItinerary>(window.innerWidth > window.innerHeight ? "table" : "cards")
     const [showEditTask, setShowEditTask] = useState<EditTastk>({ state: false })
 
 
@@ -149,7 +149,9 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
         <>
             {showEditTask?.state && (
                 <ModalLeft state={showEditTask} set={setShowEditTask}>
-                    <FormTask state={showEditTask} set={setShowEditTask} />
+                    <div className="w-full flex flex-col items-start justify-start" >
+                        <FormTask state={showEditTask} set={setShowEditTask} />
+                    </div>
                 </ModalLeft>
             )}
             <SubHeader itinerario={itinerario} disable={disable} ht={ht} setModalPlantilla={setModalPlantilla} modalPlantilla={modalPlantilla} view={view} setView={setView} setOptionSelect={setItinerario} editTitle={editTitle} setEditTitle={setEditTitle} setItinerario={setItinerario} />

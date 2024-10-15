@@ -1,5 +1,6 @@
 export const es = {
   translation: {
+    task: "tarea",
     "quien eres": "¿Quién eres?",
     "Asistencia": "Asistencia",
     "Menu": "Menu",

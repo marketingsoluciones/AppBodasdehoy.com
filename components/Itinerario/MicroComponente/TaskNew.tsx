@@ -1,6 +1,6 @@
 import { Form, Formik } from "formik";
 import { FC } from "react";
-import { Description, Duration, Responsable, SelectIcon, Tips, ResponsablesArry } from ".";
+import { Description, Duration, ResponsableSelector, SelectIcon, Tips, ResponsablesArry } from ".";
 import { InputTime } from "../../Forms/inputs/InputTime";
 import { EventContextProvider } from "../../../context/EventContext";
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
