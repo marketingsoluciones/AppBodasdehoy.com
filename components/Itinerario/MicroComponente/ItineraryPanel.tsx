@@ -69,7 +69,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
             value: "edit",
             icon: <PencilEdit className="w-5 h-5" />,
             title: "editar",
-            onclick: (values: Task) => {
+            onClick: (values: Task) => {
                 setShowEditTask({ values, state: !showEditTask.state })
             }
         },
@@ -77,25 +77,25 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
             value: "status",
             icon: <GoEyeClosed className="w-5 h-5" />,
             title: "estado",
-            onclick: () => setModalStatus(!modalStatus)
+            onClick: () => setModalStatus(!modalStatus)
         },
         {
             value: "flujo",
             icon: <GoGitBranch className="w-5 h-5" />,
             title: "flow",
-            onclick: () => setModalWorkFlow(!modalWorkFlow)
+            onClick: () => setModalWorkFlow(!modalWorkFlow)
         },
         {
             value: "share",
             icon: <LiaLinkSolid className="w-5 h-5" />,
             title: "compartir",
-            onclick: () => setModalCompartirTask(!modalCompartirTask)
+            onClick: () => setModalCompartirTask(!modalCompartirTask)
         },
         {
             value: "delete",
             icon: <MdOutlineDeleteOutline className="w-5 h-5" />,
             title: "borrar",
-            onclick: () => disable ? ht() : deleteTask()
+            onClick: () => disable ? ht() : deleteTask()
         }
     ]
 
@@ -145,6 +145,10 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
         }
     }
 
+    useEffect(() => {
+        console.log(100031, showEditTask)
+    }, [showEditTask])
+
 
     return (
         <>
@@ -191,9 +195,9 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
                                 setModalCompartirTask={setModalCompartirTask}
                                 modalCompartirTask={modalCompartirTask}
                                 deleteTask={deleteTask}
-                                ht={ht}
                                 showEditTask={showEditTask}
                                 setShowEditTask={setShowEditTask}
+                                optionsItineraryButtonBox={optionsItineraryButtonBox}
                             />
                         </div>
                     </div>

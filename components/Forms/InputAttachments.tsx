@@ -41,23 +41,28 @@ const InputAttachments: FC<Partial<props>> = ({ label, className, disabled = fal
     helpers.setValue(arrayUnido)
   }
 
+  const handleDeleteFromInput = (elem) => {
+    const f1 = field.value.findIndex(el => el.name === elem.name)
+    field.value.splice(f1, 1)
+    console.log(field.value)
+    helpers.setValue([...field.value])
+  }
 
   return (
     <div className="w-full h-max relative">
       <label className={` font-display text-primary text-sm w-full `}>{label}</label>
       <div className="w-full relative">
         <div className={`border-[1px] border-gray-300 hover:scale-120 transform flex items-center gap-1`} >
-          <p className="bg-white py-2 text-gray-900 p-1">
+          <p className="bg-white w-full py-2 text-gray-900 p-1">
             {!!field?.value?.length && [...field?.value]?.map((elem, idx) =>
-              <span key={idx} className="inline-flex ml-2 mt-1 items-start leading-[1.2]">
-                <IoIosAttach className="w-4 h-5" />
-                <span className="flex-1">
-                  {elem?.name}
-                </span>
-                <div className="w-6 h-5 flex justify-center items-center cursor-pointer p-1">
+              <div key={idx} className="flex ml-2 mt-1 px-2 items-center leading-[1.2] space-x-1 border-[1px] bg-gray-200 rounded-sm">
+                {/* <IoIosAttach className="w-4 h-5" /> */}
+                <span className="flex-1 text-sm">{elem?.name}</span>
+                <span className="text-xs font-semibold">({Math.trunc(elem.size / 1024)} K)</span>
+                <div onClick={() => handleDeleteFromInput(elem)} className="w-6 h-5 flex justify-center items-center cursor-pointer p-1">
                   <MdClose className="hover:text-gray-500" />
                 </div>
-              </span>
+              </div>
             )}
             <label htmlFor="attachments" className="cursor-pointer">
               <div className="flex items-center gap-2 mt-3">
