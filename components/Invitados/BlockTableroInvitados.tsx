@@ -290,6 +290,8 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
     const [showModalCeremonia, setShowModalCeremonia] = useState({});
     const [showModalAsistenci, setShowModalAsistenci] = useState({});
     const [showModalAcompañante, setShowModalAcompañante] = useState({});
+    const [showModalAcompañante2, setShowModalAcompañante2] = useState({ state: false, id: null });
+
     const [showModalCompartir, setShowModalCompartir] = useState({});
     const [acompañanteID, setAcompañanteID] = useState({ id: "", crear: true })
     const [value, setValue] = useState("sin menú");
@@ -304,12 +306,16 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
     const { t } = useTranslation()
     const link = `${window?.location?.origin}?pGuestEvent=${idGuest}${event._id?.slice(3, 9)}${event._id}`
 
-    console.log(link)
+
+    useEffect(() => {
+        setAcompañanteID({ id: showModalAcompañante2.id, crear: false })
+    }, [showModalAcompañante2.id])
+
 
     useEffect(() => {
         setAcompañanteID(old => ({ ...old, crear: false }))
-        if (event.showChildrenGuest === idGuest && !showModalAcompañante) {
-            setAcompañanteID({ id: idGuest, crear: false })
+        if (event.showChildrenGuest === showModalAcompañante2.id && !showModalAcompañante2) {
+            setAcompañanteID({ id: showModalAcompañante2.id, crear: false })
             return
         }
         fetchApiEventos({
@@ -317,14 +323,14 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
             variables: {
                 idEvento: event._id,
                 variable: "showChildrenGuest",
-                value: !showModalAcompañante ? idGuest : ""
+                value: !showModalAcompañante2 ? showModalAcompañante2.id : ""
             }
         })
-        event.showChildrenGuest = !showModalAcompañante ? idGuest : null
+        event.showChildrenGuest = !showModalAcompañante2 ? showModalAcompañante2.id : null
         setEvent({ ...event })
 
 
-    }, [acompañanteID.id])
+    }, [acompañanteID.id, showModalAcompañante2])
 
     const updateMyData = ({
         rowID,
@@ -739,7 +745,7 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                             Acompañantes :
                                         </div>
                                         <div onClick={() => {
-                                            !isAllowed() ? null : item?.passesQuantity > 0 ? toggleVisibility("acompañante", item._id) : null
+                                            !isAllowed() ? null : item?.passesQuantity > 0 ? /* toggleVisibility("acompañante", item._id) */ setShowModalAcompañante2({ state: !showModalAcompañante2.state, id: item._id }) : null
                                         }} className="font-body text-[12px] pl-2 flex items-center justify-between">
                                             {item.passesQuantity}
                                             <div className={`${item?.passesQuantity > 0 ? "block" : "hidden"} pl-2  "`}>
@@ -803,7 +809,7 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                 }
                             </div >
                             {
-                                showModalAcompañante[item._id] && GuestsByFather.length > 0 && <div className="border-l-2 border-b-2 border-primary rounded-l-lg rounded-t-none ml-2 -mt-3 pl-2 pb-1">
+                                showModalAcompañante2.id === item._id && /* GuestsByFather.length > 0 && */ <div /* className="border-l-2 border-b-2 border-primary rounded-l-lg rounded-t-none ml-2 -mt-3 pl-2 py-2 space-y-1 " */>
                                     <AcompañantesCard
                                         GuestsByFather={GuestsByFather}
                                         image={image}
@@ -830,22 +836,25 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                         setModal={setModal}
                                         toast={toast}
                                         setEvent={setEvent}
-                                        idGuest={idGuest}
+                                        idGuest={showModalAcompañante2.id}
+                                        showModalAcompañante2={showModalAcompañante2}
+                                        father={item.nombre}
+                                        idFather={item._id}
                                     />
                                 </div >
                             }
-                            {
-                                showModalAcompañante[item._id] && GuestsByFather.length === 0 &&
+                            {/*  {
+                                showModalAcompañante2.state && GuestsByFather.length === 0 &&
                                 <div className="border-l-2 ml-2 py-2 border-primary">
                                     <div className="capitalize flex justify-center "> Acompañantes de  {item.nombre}</div>
                                     <span className="items-center col-span-3 flex gap-3 text-primary justify-center ">
                                         No tiene Acompañantes confirmados
                                     </span>
                                     <span className="items-center col-span-3 flex  text-gray-600  justify-center ">
-                                        puedes confirmarlos <span className="text-primary pl-1" onClick={() => Redire(item._id)}>AQUI </span>
+                                        puedes confirmar <span className="text-primary pl-1" onClick={() => Redire(item._id)}>AQUI </span>
                                     </span>
                                 </div>
-                            }
+                            } */}
                         </>
                     )
                 })
@@ -855,260 +864,282 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
     )
 }
 
-export const AcompañantesCard = ({ GuestsByFather, image, showModalAsistenci, setShowModalAsistenci, setValue3, ListaState, dicc, showModalMenu, setShowModalMenu, event, setValue, value, toggleVisibility, showModalRecepcion, setShowModalRecepcion, value2, setValue2, showModalCeremonia, setShowModalCeremonia, show, setShow, ListaOption, setModal, toast, setEvent, idGuest }) => {
+export const AcompañantesCard = ({ idFather, father, showModalAcompañante2, GuestsByFather, image, showModalAsistenci, setShowModalAsistenci, setValue3, ListaState, dicc, showModalMenu, setShowModalMenu, event, setValue, value, toggleVisibility, showModalRecepcion, setShowModalRecepcion, value2, setValue2, showModalCeremonia, setShowModalCeremonia, show, setShow, ListaOption, setModal, toast, setEvent, idGuest }) => {
     const [isAllowed, ht] = useAllowed()
     const router = useRouter();
     const { t } = useTranslation()
-    return (
-        GuestsByFather?.map((item, idx) => {
-            return (
-                <div key={idx}>
-                    <div className={`bg-gray-100 mx-2 rounded-md grid grid-cols-8 relative `}>
-                        <div className=" pt-2 pl-2 justify-self-center relative col-span-1 h-max ">
-                            <img
-                                className="block w-8 h-8 mr-2"
-                                src={image[item.sexo]?.image}
-                                alt={image[item.sexo]?.alt}
-                            />
-                        </div>
-                        <div className="col-span-6 grid grid-cols-2 justify-between pb-2 pt-2 pl-1 border-gray-500 transition capitalize">
-                            <div className=" col-span-2">
-                                <p className="font-display text-xl capitalize overflow-ellipsis text-gray-700">
-                                    {item.nombre}
-                                </p>
-                            </div>
-                            <div className="items-center col-span-2 grid grid-cols-2 py-1 relative">
-                                <div className="font-semibold text-[12px] ">asistencia :</div>
-                                <div onClick={() => !isAllowed() ? null : toggleVisibility("asistencia", item._id)} className="flex items-center justify-between font-body col-span-1">
-                                    <div className="flex items-center -translate-x-3">
-                                        {dicc[item.asistencia]?.icon && cloneElement(dicc[item.asistencia].icon, { className: "w-4 h-4" })}
-                                        <span className="translate-x-1">{item.asistencia}</span>
-                                    </div>
 
-                                    <div className="pl-2 ">
-                                        <ArrowDown className="h-2 w-2" />
-                                    </div>
-                                </div>
-                                {
-                                    showModalAsistenci[item._id] &&
-                                    <ClickAwayListener onClickAway={() => showModalAsistenci[item._id] && setShowModalAsistenci(false)}>
-                                        {
-                                            showModalAsistenci && (
-                                                <ul
-                                                    className={` absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-9 -right-5 z-40`}
-                                                >
-                                                    {ListaState.map((item, index) => {
-                                                        return (
-                                                            <li
-                                                                key={index}
-                                                                className={`${value?.toLowerCase() === item?.title?.toLowerCase() && "bg-gray-200"} cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize`}
-                                                                onClick={() => {
-                                                                    setValue3(item.title);
-                                                                    setShowModalAsistenci(false);
-                                                                }}
-                                                            >
-                                                                {cloneElement(item.icon, { className: "w-5 h-5" })}
-                                                                {item.title}
-                                                            </li>
-                                                        );
-                                                    })}
-                                                </ul>
-                                            )
-                                        }
-                                    </ClickAwayListener>
-                                }
-                            </div>
-                            <div className="items-center col-span-2  grid grid-cols-2 py-1 relative">
-                                <p className="font-semibold text-[12px] ">Menu :</p>
-                                <div onClick={() => !isAllowed() ? null : toggleVisibility("menu", item._id)} className=" flex items-center justify-between ">
-                                    <p className=" font-body text-[12px] pl-2"> {item.nombre_menu}</p>
-                                    <div className="pl-2">
-                                        <ArrowDown className="h-2 w-2" />
-                                    </div>
-                                </div>
-                                {
-                                    showModalMenu[item._id] &&
-                                    <ClickAwayListener onClickAway={() => showModalMenu[item._id] && setShowModalMenu(false)}>
-                                        {showModalMenu[item._id] &&
-                                            (
-                                                <ul className={` absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-7 right-1 z-40 w-max`}>
-                                                    {event.menus_array?.length > 0 && event?.menus_array?.map((item, index) => {
-                                                        return (
-                                                            <li
-                                                                key={index}
-                                                                className={`${value?.toLowerCase() === item?.nombre_menu?.toLowerCase() && "bg-gray-200"} cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize`}
-                                                                onClick={(e) => {
-                                                                    setValue(item?.nombre_menu);
-                                                                    setShowModalMenu(false);
-                                                                }}
-                                                            >
-                                                                {item?.nombre_menu}
-                                                            </li>
-                                                        );
-                                                    })}
-                                                    <li
-                                                        className="cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
-                                                        onClick={(e) => {
-                                                            setValue(null);
-                                                            setShowModalMenu(!showModalMenu);
-                                                        }}
-                                                    >
-                                                        {"sin menú"}
-                                                    </li>
-                                                </ul>
-                                            )
-                                        }
-                                    </ClickAwayListener>
-                                }
-                            </div>
-                            <div className="items-center col-span-2  grid grid-cols-2 py-1 relative">
-                                <p className="font-semibold text-[12px] ">Mesa Recepción :</p>
-                                <div onClick={() => !isAllowed() ? null : toggleVisibility("recepcion", item._id)} className="flex items-center justify-between">
-                                    <p className=" font-body text-[12px] pl-2"> {item.nombre_mesa}</p>
-                                    <div className="pl-2">
-                                        <ArrowDown className="h-2 w-2" />
-                                    </div>
-                                </div>
-                                {
-                                    showModalRecepcion[item._id] &&
-                                    <ClickAwayListener onClickAway={() => showModalRecepcion[item._id] && setShowModalRecepcion(false)}>
-                                        {
-                                            showModalRecepcion[item._id] && (
-                                                <ul className="absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-6 -right-4 z-40 w-max">
-                                                    {
-                                                        [
-                                                            { _id: null, title: "No Asignado" },
-                                                            ...event?.planSpace.find(elem => elem?.title === "recepción")?.tables
-                                                        ]?.map((item: any, idx: any) => {
-                                                            /* if (item?.guests?.length < item?.numberChair || value?._id === item?._id || !item?._id) { */
-                                                            return (
+    return (
+        <>
+
+            {
+                showModalAcompañante2.state && GuestsByFather.length > 0 && <div className="border-l-2 border-b-2 border-primary rounded-l-lg rounded-t-none ml-2 -mt-3 pl-2 py-2 space-y-1 ">
+                    {
+                        GuestsByFather?.map((item, idx) => {
+                            return (
+                                <div key={idx}  >
+                                    <div className={`bg-gray-100 mx-2 rounded-md grid grid-cols-8 relative `}>
+                                        <div className=" pt-2 pl-2 justify-self-center relative col-span-1 h-max ">
+                                            <img
+                                                className="block w-8 h-8 mr-2"
+                                                src={image[item.sexo]?.image}
+                                                alt={image[item.sexo]?.alt}
+                                            />
+                                        </div>
+                                        <div className="col-span-6 grid grid-cols-2 justify-between pb-2 pt-2 pl-1 border-gray-500 transition capitalize">
+                                            <div className=" col-span-2">
+                                                <p className="font-display text-xl capitalize overflow-ellipsis text-gray-700">
+                                                    {item.nombre}
+                                                </p>
+                                            </div>
+                                            <div className="items-center col-span-2 grid grid-cols-2 py-1 relative">
+                                                <div className="font-semibold text-[12px] ">asistencia :</div>
+                                                <div onClick={() => !isAllowed() ? null : toggleVisibility("asistencia", item._id)} className="flex items-center justify-between font-body col-span-1">
+                                                    <div className="flex items-center -translate-x-3">
+                                                        {dicc[item.asistencia]?.icon && cloneElement(dicc[item.asistencia].icon, { className: "w-4 h-4" })}
+                                                        <span className="translate-x-1">{item.asistencia}</span>
+                                                    </div>
+
+                                                    <div className="pl-2 ">
+                                                        <ArrowDown className="h-2 w-2" />
+                                                    </div>
+                                                </div>
+                                                {
+                                                    showModalAsistenci[item._id] &&
+                                                    <ClickAwayListener onClickAway={() => showModalAsistenci[item._id] && setShowModalAsistenci(false)}>
+                                                        {
+                                                            showModalAsistenci && (
+                                                                <ul
+                                                                    className={` absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-9 -right-5 z-40`}
+                                                                >
+                                                                    {ListaState.map((item, index) => {
+                                                                        return (
+                                                                            <li
+                                                                                key={index}
+                                                                                className={`${value?.toLowerCase() === item?.title?.toLowerCase() && "bg-gray-200"} cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize`}
+                                                                                onClick={() => {
+                                                                                    setValue3(item.title);
+                                                                                    setShowModalAsistenci(false);
+                                                                                }}
+                                                                            >
+                                                                                {cloneElement(item.icon, { className: "w-5 h-5" })}
+                                                                                {item.title}
+                                                                            </li>
+                                                                        );
+                                                                    })}
+                                                                </ul>
+                                                            )
+                                                        }
+                                                    </ClickAwayListener>
+                                                }
+                                            </div>
+                                            <div className="items-center col-span-2  grid grid-cols-2 py-1 relative">
+                                                <p className="font-semibold text-[12px] ">Menu :</p>
+                                                <div onClick={() => !isAllowed() ? null : toggleVisibility("menu", item._id)} className=" flex items-center justify-between ">
+                                                    <p className=" font-body text-[12px] pl-2"> {item.nombre_menu}</p>
+                                                    <div className="pl-2">
+                                                        <ArrowDown className="h-2 w-2" />
+                                                    </div>
+                                                </div>
+                                                {
+                                                    showModalMenu[item._id] &&
+                                                    <ClickAwayListener onClickAway={() => showModalMenu[item._id] && setShowModalMenu(false)}>
+                                                        {showModalMenu[item._id] &&
+                                                            (
+                                                                <ul className={` absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-7 right-1 z-40 w-max`}>
+                                                                    {event.menus_array?.length > 0 && event?.menus_array?.map((item, index) => {
+                                                                        return (
+                                                                            <li
+                                                                                key={index}
+                                                                                className={`${value?.toLowerCase() === item?.nombre_menu?.toLowerCase() && "bg-gray-200"} cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize`}
+                                                                                onClick={(e) => {
+                                                                                    setValue(item?.nombre_menu);
+                                                                                    setShowModalMenu(false);
+                                                                                }}
+                                                                            >
+                                                                                {item?.nombre_menu}
+                                                                            </li>
+                                                                        );
+                                                                    })}
+                                                                    <li
+                                                                        className="cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
+                                                                        onClick={(e) => {
+                                                                            setValue(null);
+                                                                            setShowModalMenu(!showModalMenu);
+                                                                        }}
+                                                                    >
+                                                                        {"sin menú"}
+                                                                    </li>
+                                                                </ul>
+                                                            )
+                                                        }
+                                                    </ClickAwayListener>
+                                                }
+                                            </div>
+                                            <div className="items-center col-span-2  grid grid-cols-2 py-1 relative">
+                                                <p className="font-semibold text-[12px] ">Mesa Recepción :</p>
+                                                <div onClick={() => !isAllowed() ? null : toggleVisibility("recepcion", item._id)} className="flex items-center justify-between">
+                                                    <p className=" font-body text-[12px] pl-2"> {item.nombre_mesa}</p>
+                                                    <div className="pl-2">
+                                                        <ArrowDown className="h-2 w-2" />
+                                                    </div>
+                                                </div>
+                                                {
+                                                    showModalRecepcion[item._id] &&
+                                                    <ClickAwayListener onClickAway={() => showModalRecepcion[item._id] && setShowModalRecepcion(false)}>
+                                                        {
+                                                            showModalRecepcion[item._id] && (
+                                                                <ul className="absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-6 -right-4 z-40 w-max">
+                                                                    {
+                                                                        [
+                                                                            { _id: null, title: "No Asignado" },
+                                                                            ...event?.planSpace.find(elem => elem?.title === "recepción")?.tables
+                                                                        ]?.map((item: any, idx: any) => {
+                                                                            /* if (item?.guests?.length < item?.numberChair || value?._id === item?._id || !item?._id) { */
+                                                                            return (
+                                                                                <li
+                                                                                    key={idx}
+                                                                                    className={`${(/* value._id === item._id || */ (/* !value2._id && */ !item._id)) && "bg-gray-200"} cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize`}
+                                                                                    onClick={() => {
+                                                                                        const f1 = event?.planSpace.findIndex(elem => elem?.title === "recepción")
+                                                                                        const table = event.planSpace[f1]?.tables.find(el => el._id === item._id)
+                                                                                        setShowModalRecepcion(!showModalRecepcion);
+                                                                                        if (/* value?._id || */ item?._id) {
+                                                                                            if (/* value?._id !== */ item?._id) {
+                                                                                                setValue2(item.title);
+                                                                                                handleMoveGuest({ t, invitadoID: idGuest, previousTable: value2, lastTable: table, f1, event, setEvent, toast })
+                                                                                            }
+                                                                                        }
+                                                                                    }}
+                                                                                >
+                                                                                    {item?.title}
+                                                                                </li>
+                                                                            )
+                                                                            /*  } */
+                                                                        })}
+                                                                    <li
+                                                                        className=" cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
+                                                                        onClick={() => router.push("/mesas")}
+                                                                    >
+                                                                        Añadir mesa
+                                                                    </li>
+                                                                </ul>
+                                                            )
+                                                        }
+                                                    </ClickAwayListener>
+                                                }
+                                            </div>
+                                            <div className="items-center col-span-2  grid grid-cols-2 py-1 relative">
+                                                <p className="font-semibold text-[12px] ">Mesa  Ceremonia :</p>
+                                                <div onClick={() => !isAllowed() ? null : toggleVisibility("ceremonia", item._id)} className="flex items-center justify-between">
+                                                    <p className=" font-body text-[12px] pl-2"> {item.puesto}</p>
+                                                    <div className="pl-2">
+                                                        <ArrowDown className="h-2 w-2" />
+                                                    </div>
+                                                </div>
+                                                {
+                                                    showModalCeremonia[item._id] &&
+                                                    <ClickAwayListener onClickAway={() => showModalCeremonia[item._id] && setShowModalCeremonia(false)}>
+                                                        {
+                                                            showModalCeremonia && (
+                                                                <ul
+                                                                    className={` absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-6 -right-4 z-50 w-max`}
+                                                                >
+                                                                    {[
+                                                                        { _id: null, title: "No Asignado" },
+                                                                        ...event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables]?.map((elem: any, index) => {
+                                                                            /* if (elem?.guests?.length < elem?.numberChair || value?._id === elem?._id || !elem?._id) { */
+                                                                            return (
+                                                                                <li
+                                                                                    key={index}
+                                                                                    className={`${(/* value._id === elem._id ||  */(/* !value._id && */ !elem._id)) && "bg-gray-200"} cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize`}
+                                                                                    onClick={() => {
+                                                                                        const f1 = event?.planSpace.findIndex(elem => elem?.title === "ceremonia")
+                                                                                        const table = event.planSpace[f1]?.tables.find(el => el._id === elem._id)
+                                                                                        setShowModalCeremonia(false);
+                                                                                        if (/* value?._id || */ elem?._id) {
+                                                                                            if (/* value?._id !== */ elem?._id) {
+                                                                                                setValue(elem.title);
+                                                                                                handleMoveGuest({ t, invitadoID: idGuest, previousTable: value2, lastTable: table, f1, event, setEvent, toast })
+                                                                                            }
+                                                                                        }
+                                                                                    }}
+                                                                                >
+                                                                                    {elem?.title}
+                                                                                </li>
+                                                                            )
+                                                                            /* } */
+                                                                        })}
+                                                                    <li
+                                                                        className=" cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
+                                                                        onClick={() => router.push("/mesas")}
+                                                                    >
+                                                                        Añadir mesa
+                                                                    </li>
+                                                                </ul>
+                                                            )
+                                                        }
+                                                    </ClickAwayListener>
+                                                }
+                                            </div>
+                                        </div>
+                                        <div className=" justify-self-end relative col-span-1 ">
+
+                                            <div onClick={() => !isAllowed() ? null : toggleVisibility("options", item._id)} className="pt-4 pr-4">
+                                                <SlOptionsVertical />
+                                            </div>
+                                            {
+                                                show[item._id] &&
+                                                <ClickAwayListener onClickAway={() => show[item._id] && setShow(false)}>
+                                                    {show[item._id] && (
+                                                        <ul
+                                                            className={` top-5 right-0 absolute w-max border border-base bg-white capitalize rounded-md overflow-hidden shadow-lg z-10 translate-x-[-12px]`}
+                                                        >
+                                                            {ListaOption.map((item, idx) => (
                                                                 <li
                                                                     key={idx}
-                                                                    className={`${(/* value._id === item._id || */ (/* !value2._id && */ !item._id)) && "bg-gray-200"} cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize`}
                                                                     onClick={() => {
-                                                                        const f1 = event?.planSpace.findIndex(elem => elem?.title === "recepción")
-                                                                        const table = event.planSpace[f1]?.tables.find(el => el._id === item._id)
-                                                                        setShowModalRecepcion(!showModalRecepcion);
-                                                                        if (/* value?._id || */ item?._id) {
-                                                                            if (/* value?._id !== */ item?._id) {
-                                                                                setValue2(item.title);
-                                                                                handleMoveGuest({ t, invitadoID: idGuest, previousTable: value2, lastTable: table, f1, event, setEvent, toast })
-                                                                            }
-                                                                        }
+                                                                        item.title.toLowerCase() === "borrar"
+                                                                            ? setModal({
+                                                                                state: true,
+                                                                                title: <span>
+                                                                                    <strong>
+                                                                                        Deseas eliminar a este invitado y a sus acompañantes ?
+                                                                                    </strong>
+                                                                                </span>,
+                                                                                handle: () => item.function()
+                                                                            })
+                                                                            : item.function()
                                                                     }}
+                                                                    className="font-display cursor-pointer border-base border block px-4 text-sm text-gray-500 hover:text-gray-500 hover:bg-base py-3"
                                                                 >
-                                                                    {item?.title}
+                                                                    {item.title}
                                                                 </li>
-                                                            )
-                                                            /*  } */
-                                                        })}
-                                                    <li
-                                                        className=" cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
-                                                        onClick={() => router.push("/mesas")}
-                                                    >
-                                                        Añadir mesa
-                                                    </li>
-                                                </ul>
-                                            )
-                                        }
-                                    </ClickAwayListener>
-                                }
-                            </div>
-                            <div className="items-center col-span-2  grid grid-cols-2 py-1 relative">
-                                <p className="font-semibold text-[12px] ">Mesa  Ceremonia :</p>
-                                <div onClick={() => !isAllowed() ? null : toggleVisibility("ceremonia", item._id)} className="flex items-center justify-between">
-                                    <p className=" font-body text-[12px] pl-2"> {item.puesto}</p>
-                                    <div className="pl-2">
-                                        <ArrowDown className="h-2 w-2" />
+                                                            ))}
+                                                        </ul>)}
+                                                </ClickAwayListener>
+                                            }
+                                        </div>
                                     </div>
                                 </div>
-                                {
-                                    showModalCeremonia[item._id] &&
-                                    <ClickAwayListener onClickAway={() => showModalCeremonia[item._id] && setShowModalCeremonia(false)}>
-                                        {
-                                            showModalCeremonia && (
-                                                <ul
-                                                    className={` absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-6 -right-4 z-50 w-max`}
-                                                >
-                                                    {[
-                                                        { _id: null, title: "No Asignado" },
-                                                        ...event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables]?.map((elem: any, index) => {
-                                                            /* if (elem?.guests?.length < elem?.numberChair || value?._id === elem?._id || !elem?._id) { */
-                                                            return (
-                                                                <li
-                                                                    key={index}
-                                                                    className={`${(/* value._id === elem._id ||  */(/* !value._id && */ !elem._id)) && "bg-gray-200"} cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize`}
-                                                                    onClick={() => {
-                                                                        const f1 = event?.planSpace.findIndex(elem => elem?.title === "ceremonia")
-                                                                        const table = event.planSpace[f1]?.tables.find(el => el._id === elem._id)
-                                                                        setShowModalCeremonia(false);
-                                                                        if (/* value?._id || */ elem?._id) {
-                                                                            if (/* value?._id !== */ elem?._id) {
-                                                                                setValue(elem.title);
-                                                                                handleMoveGuest({ t, invitadoID: idGuest, previousTable: value2, lastTable: table, f1, event, setEvent, toast })
-                                                                            }
-                                                                        }
-                                                                    }}
-                                                                >
-                                                                    {elem?.title}
-                                                                </li>
-                                                            )
-                                                            /* } */
-                                                        })}
-                                                    <li
-                                                        className=" cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
-                                                        onClick={() => router.push("/mesas")}
-                                                    >
-                                                        Añadir mesa
-                                                    </li>
-                                                </ul>
-                                            )
-                                        }
-                                    </ClickAwayListener>
-                                }
-                            </div>
-                        </div>
-                        <div className=" justify-self-end relative col-span-1 ">
-
-                            <div onClick={() => !isAllowed() ? null : toggleVisibility("options", item._id)} className="pt-4 pr-4">
-                                <SlOptionsVertical />
-                            </div>
-                            {
-                                show[item._id] &&
-                                <ClickAwayListener onClickAway={() => show[item._id] && setShow(false)}>
-                                    {show[item._id] && (
-                                        <ul
-                                            className={` top-5 right-0 absolute w-max border border-base bg-white capitalize rounded-md overflow-hidden shadow-lg z-10 translate-x-[-12px]`}
-                                        >
-                                            {ListaOption.map((item, idx) => (
-                                                <li
-                                                    key={idx}
-                                                    onClick={() => {
-                                                        item.title.toLowerCase() === "borrar"
-                                                            ? setModal({
-                                                                state: true,
-                                                                title: <span>
-                                                                    <strong>
-                                                                        Deseas eliminar a este invitado y a sus acompañantes ?
-                                                                    </strong>
-                                                                </span>,
-                                                                handle: () => item.function()
-                                                            })
-                                                            : item.function()
-                                                    }}
-                                                    className="font-display cursor-pointer border-base border block px-4 text-sm text-gray-500 hover:text-gray-500 hover:bg-base py-3"
-                                                >
-                                                    {item.title}
-                                                </li>
-                                            ))}
-                                        </ul>)}
-                                </ClickAwayListener>
-                            }
-                        </div>
-                    </div>
+                            )
+                        })
+                    }
                 </div>
-            )
-        })
+            }
+            {
+                showModalAcompañante2.state && GuestsByFather.length === 0 &&
+                <div className="border-l-2 ml-2 py-2 border-primary">
+                    <div className="capitalize flex justify-center "> Acompañantes de  {father}</div>
+                    <span className="items-center col-span-3 flex gap-3 text-primary justify-center ">
+                        No tiene Acompañantes confirmados
+                    </span>
+                    <span className="items-center col-span-3 flex  text-gray-600  justify-center ">
+                        puedes confirmar <span className="text-primary pl-1" onClick={() => router.push(`${window?.location?.origin}?pGuestEvent=${idFather}${event._id?.slice(3, 9)}${event._id}`)}>AQUI </span>
+                    </span>
+                </div>
+            }
+        </>
     )
 }
 

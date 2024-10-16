@@ -58,7 +58,7 @@ export interface OptionsSelect {
     value: string
     icon: JSX.Element
     title: string
-    onclick: any
+    onClick: any
 }
 
 export interface Notification {

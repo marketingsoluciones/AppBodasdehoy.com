@@ -16,6 +16,7 @@ import { LiaIdCardSolid, LiaLinkSolid } from "react-icons/lia";
 import { GoEyeClosed, GoGitBranch } from "react-icons/go";
 import { MdOutlineDeleteOutline } from "react-icons/md";
 import { EditTastk } from "./ItineraryPanel";
+import { useAllowed } from "../../../hooks/useAllowed";
 
 interface props {
   data?: any[],
@@ -29,9 +30,9 @@ interface props {
   setModalCompartirTask: any
   modalCompartirTask: any
   deleteTask: any
-  ht: any
   showEditTask: EditTastk
   setShowEditTask: any
+  optionsItineraryButtonBox: any
 }
 
 interface propsCell {
@@ -64,36 +65,11 @@ const resolveCell = ({ data, justifyCenter }: propsCell) => {
   )
 }
 
-export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reenviar = true, activeFunction, setModalStatus, modalStatus, setModalWorkFlow, modalWorkFlow, setModalCompartirTask, modalCompartirTask, deleteTask, ht, showEditTask, setShowEditTask }) => {
+export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reenviar = true, activeFunction, setModalStatus, modalStatus, setModalWorkFlow, modalWorkFlow, setModalCompartirTask, modalCompartirTask, deleteTask, showEditTask, setShowEditTask, optionsItineraryButtonBox }) => {
   const { t } = useTranslation();
   const [arrEnviarInvitaciones, setArrEnviatInvitaciones] = useState([])
-
-  const options = [{
-    value: "edit",
-    icon: <PencilEdit className="h-auto w-5" />,
-    title: "editar"
-  },
-  {
-    value: "status",
-    icon: <GoEyeClosed className="h-auto w-5" />,
-    title: "estado"
-  },
-  {
-    value: "flujo",
-    icon: <GoGitBranch className="h-auto w-5" />,
-    title: "flow"
-  },
-  {
-    value: "share",
-    icon: <LiaLinkSolid className="h-auto w-5" />,
-    title: "compartir"
-  },
-  {
-    value: "delete",
-    icon: <MdOutlineDeleteOutline className="h-auto w-5" />,
-    title: "borrar"
-  }
-  ]
+  const [isAllowed, ht] = useAllowed()
+  const disable = !isAllowed("itinerario")
 
   const Columna = useMemo(
     () => [
@@ -196,7 +172,7 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
           const [value, setValue] = useState("")
           return (
             <div key={data.cell.row.id} className="relative w-full h-full flex justify-center *bg-red">
-              <div onClick={() => { setShowEditTask(!showEditTask.state) }} className="hidden md:flex text-gray-600 cursor-pointer w-4 h-6 items-center justify-center *bg-blue-400">
+              <div onClick={() => { setShowEditTask({ state: !showEditTask.state, values: data.cell.row.original }) }} className="hidden md:flex text-gray-600 cursor-pointer w-4 h-6 items-center justify-center *bg-blue-400">
                 <PencilEdit className="w-5 h-5" />
               </div>
               <ClickAwayListener onClickAway={() => show && setShow(false)} >
@@ -205,11 +181,12 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
                     <DotsOpcionesIcon className={`${!show ? "text-gray-600" : "text-gray-900"} w-4 h-4`} />
                   </div>
                   {show && <div className={`absolute right-9 top-0 bg-white z-50 rounded-md shadow-md`}>
-                    {options?.map((item, idx) =>
+                    {optionsItineraryButtonBox?.map((item, idx) =>
                       <div key={idx}
                         onClick={() => {
                           setValue(item.value)
                           setShow(false)
+                          !!item?.onClick && item?.onClick({ value: data.cell.row.original })
                         }}
                         className={`${item.value === "edit" ? "flex md:hidden" : "flex"} p-2 text-gray-700 text-sm items-center gap-2 capitalize cursor-pointer hover:bg-gray-100 ${item.value === value && "bg-gray-200"}`}
                       >

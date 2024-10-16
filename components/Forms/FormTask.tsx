@@ -173,22 +173,24 @@ const FormTask: FC<propsFormTask> = ({ state, set }) => {
                   <ResponsableSelector name="responsable" handleChange={handleBlurData} disable={false} />
                 </div>
               </div>
-
-              <MyEditor />
+              <div className="w-full h-max relative">
+                <label className={` font-display text-primary text-sm w-full `}>items</label>
+                <MyEditor />
+              </div>
               <div className="w-full flex pb-0">
                 <InputAttachments
                   name="attachments"
                   label="archivos adjuntos"
                 />
               </div>
-              {/* <button
+              <button
                 className={`font-display rounded-full py-2 px-6 text-white font-medium transition w-full hover:opacity-70  ${isSubmitting ? "bg-secondary" : "bg-primary"
                   }`}
                 disabled={isSubmitting}
                 type="submit"
               >
                 {t("save")}
-              </button> */}
+              </button>
             </div>
           </Form>
         )
