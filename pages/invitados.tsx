@@ -22,7 +22,7 @@ const Invitados: FC = () => {
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const { event } = EventContextProvider();
   const { actionModals, setActionModals } = AuthContextProvider()
-  const [viewPreferUser, setViewPreferUser] = useState<ViewItinerary>("cards")
+  const [viewPreferUser, setViewPreferUser] = useState<ViewItinerary>(window.innerWidth < 700 ? "cards" : "table")
   const [view, setView] = useState<ViewItinerary>("table")
   const [triggerResize, setTriggerResize] = useState<number>(new Date().getTime())
   const { user, verificationDone, forCms } = AuthContextProvider()
@@ -34,15 +34,8 @@ const Invitados: FC = () => {
   }
 
   useEffect(() => {
-    if (window?.innerWidth < 768) {
       setView(viewPreferUser)
-    } else {
-      setView("table")
-    }
-  }, [triggerResize]);
 
-  useEffect(() => {
-    setView(viewPreferUser)
   }, [viewPreferUser]);
 
   useEffect(() => {
@@ -51,7 +44,6 @@ const Invitados: FC = () => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
-
 
   const reciboClick = (accion) => {
     setIsMounted(accion.state)
@@ -109,7 +101,7 @@ const Invitados: FC = () => {
               className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 gap-4 relative"
             >
               <BlockCabecera />
-              <div className="absolute z-10 right-5 translate-y-3" >
+              <div className="absolute z-10 md:z-50 right-5 md:right-[155px] translate-y-3 md:top-[170px]">
                 <SelectModeView value={viewPreferUser} setValue={setViewPreferUser} />
               </div>
               {view === "cards"
