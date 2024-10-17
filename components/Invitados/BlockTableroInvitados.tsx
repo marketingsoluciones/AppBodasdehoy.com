@@ -840,6 +840,8 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                         showModalAcompañante2={showModalAcompañante2}
                                         father={item.nombre}
                                         idFather={item._id}
+                                        passesQuantity={ item?.passesQuantity}
+
                                     />
                                 </div >
                             }
@@ -864,7 +866,7 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
     )
 }
 
-export const AcompañantesCard = ({ idFather, father, showModalAcompañante2, GuestsByFather, image, showModalAsistenci, setShowModalAsistenci, setValue3, ListaState, dicc, showModalMenu, setShowModalMenu, event, setValue, value, toggleVisibility, showModalRecepcion, setShowModalRecepcion, value2, setValue2, showModalCeremonia, setShowModalCeremonia, show, setShow, ListaOption, setModal, toast, setEvent, idGuest }) => {
+export const AcompañantesCard = ({passesQuantity, idFather, father, showModalAcompañante2, GuestsByFather, image, showModalAsistenci, setShowModalAsistenci, setValue3, ListaState, dicc, showModalMenu, setShowModalMenu, event, setValue, value, toggleVisibility, showModalRecepcion, setShowModalRecepcion, value2, setValue2, showModalCeremonia, setShowModalCeremonia, show, setShow, ListaOption, setModal, toast, setEvent, idGuest }) => {
     const [isAllowed, ht] = useAllowed()
     const router = useRouter();
     const { t } = useTranslation()
@@ -873,7 +875,7 @@ export const AcompañantesCard = ({ idFather, father, showModalAcompañante2, Gu
         <>
 
             {
-                showModalAcompañante2.state && GuestsByFather.length > 0 && <div className="border-l-2 border-b-2 border-primary rounded-l-lg rounded-t-none ml-2 -mt-3 pl-2 py-2 space-y-1 ">
+                showModalAcompañante2.state && GuestsByFather.length > 0 && <div className="border-l border-b border-dotted border-primary rounded-l-lg rounded-t-none ml-2 -mt-3 pl-1 py-2 space-y-1 ">
                     {
                         GuestsByFather?.map((item, idx) => {
                             return (
@@ -1129,13 +1131,12 @@ export const AcompañantesCard = ({ idFather, father, showModalAcompañante2, Gu
             }
             {
                 showModalAcompañante2.state && GuestsByFather.length === 0 &&
-                <div className="border-l-2 ml-2 py-2 border-primary">
-                    <div className="capitalize flex justify-center "> Acompañantes de  {father}</div>
-                    <span className="items-center col-span-3 flex gap-3 text-primary justify-center ">
-                        No tiene Acompañantes confirmados
+                <div className="border-l border-dotted ml-2 py-2 border-primary">
+                    <span className="items-center col-span-3 flex gap-3  justify-center capitalize ">
+                    {father} tiene {passesQuantity} Acompañantes sin confirmar
                     </span>
                     <span className="items-center col-span-3 flex  text-gray-600  justify-center ">
-                        puedes confirmar <span className="text-primary pl-1" onClick={() => router.push(`${window?.location?.origin}?pGuestEvent=${idFather}${event._id?.slice(3, 9)}${event._id}`)}>AQUI </span>
+                        puedes confirmar <span className="text-primary pl-1 cursor-pointer" onClick={() => router.push(`${window?.location?.origin}?pGuestEvent=${idFather}${event._id?.slice(3, 9)}${event._id}`)}>AQUI </span>
                     </span>
                 </div>
             }
