@@ -16,6 +16,7 @@ import { useAllowedRouter } from "../../hooks/useAllowed";
 import { PlusIcon } from "../icons";
 import { IoIosAttach } from "react-icons/io";
 import InputAttachments from "./InputAttachments";
+import { InputTags } from "./InputTags";
 
 interface propsFormTask {
   state: EditTastk;
@@ -63,26 +64,21 @@ const FormTask: FC<propsFormTask> = ({ state, set }) => {
 
   });
 
-  const initialValues: Task = state?.values
-  // {
-  //   _id: "",
-  //   icon: "",
-  //   descripcion: "algo",
-  //   fecha: new Date(),
-  //   hora: "",
-  //   duracion: 30,
-  //   responsable: [],
-  //   tips: [],
-  //   attachments: [],
-  // };
+  console.log(100035, new Date(state?.values.fecha).toISOString().split('T')[1])
+  const initialValues: Task = {
+    ...state?.values,
+    fecha: new Date(state?.values.fecha).toISOString().split('T')[0],
+    hora: new Date(state?.values.fecha).toTimeString().split(' ')[0],
+    // responsable: ["Invitados"]
+    attachments: [{ _id: "id", name: "archivo", url: "https://api.bodasdehoy.com/uploads/86f9db/INSTAGRAM%20avatar_insta%20avatar-i320.webp", size: 1034 }]
+  }
 
-  console.log(100031, initialValues)
 
   const handleSubmit = async (values: FormikValues, actions: any) => {
     try {
-
+      console.log(values)
       //setEvent((old) => ({ ...old, invitados_array: result?.invitados_array }));
-      toast("success", t("Invitado creado con exito"))
+      toast("success", t("Item guardado con exito"))
     } catch (error) {
       toast("error", `${t("Ha ocurrido un error")} ${error}`)
       console.log(error);
@@ -123,7 +119,7 @@ const FormTask: FC<propsFormTask> = ({ state, set }) => {
     // validationSchema={validationSchema}
     >
       {({ isSubmitting, values }) => {
-        console.log(100033, values)
+        console.log(100030, values)
         return (
           <Form className="w-full">
             <div className="border-l-2 border-gray-100 my-2 w-full ">
@@ -162,11 +158,6 @@ const FormTask: FC<propsFormTask> = ({ state, set }) => {
                   <span className="-translate-y-2">min</span>
                 </div>
               </div>
-              <InputField
-                name="etiquetas"
-                label={t("etiquetas")}
-                type="text"
-              />
               <div className="w-full h-max relative">
                 <label className={` font-display text-primary text-sm w-full `}>responsables</label>
                 <div className="w-full relative">
@@ -183,6 +174,13 @@ const FormTask: FC<propsFormTask> = ({ state, set }) => {
                   label="archivos adjuntos"
                 />
               </div>
+              <div className="w-full h-max relative">
+                <label className={` font-display text-primary text-sm w-full `}>etiquetas</label>
+                <InputTags
+                  name="tags"
+                  label={t("etiquetas")}
+                />
+              </div>
               <button
                 className={`font-display rounded-full py-2 px-6 text-white font-medium transition w-full hover:opacity-70  ${isSubmitting ? "bg-secondary" : "bg-primary"
                   }`}
@@ -195,7 +193,7 @@ const FormTask: FC<propsFormTask> = ({ state, set }) => {
           </Form>
         )
       }}
-    </Formik>
+    </Formik >
   );
 };
 

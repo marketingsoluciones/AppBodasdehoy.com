@@ -13,8 +13,8 @@ interface propsInputField extends InputHTMLAttributes<HTMLInputElement> {
   className?: string
   disabled?: boolean
   labelClass?: boolean
-
 }
+
 interface Flag {
   pre: string
   name: string

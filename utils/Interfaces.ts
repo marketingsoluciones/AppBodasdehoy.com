@@ -33,16 +33,26 @@ export interface Event {
     //permission: boolean
 }
 
+export interface FileData {
+    _id: string
+    name: string
+    url: string
+    size: number
+    createdAt?: Date
+    updatedAt?: Date
+}
+
 export interface Task {
     _id: string
-    fecha?: Date
+    fecha: Date | string
     hora: string
     icon: string
     descripcion: string
     responsable: string[]
     duracion: number
+    tags: string[]
     tips: string[]
-    attachments: string[]
+    attachments: FileData[] | File[]
 }
 
 export interface Itinerary {

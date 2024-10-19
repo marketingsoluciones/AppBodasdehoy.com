@@ -77,7 +77,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
             value: "status",
             icon: <GoEyeClosed className="w-5 h-5" />,
             title: "estado",
-            onClick: () => setModalStatus(!modalStatus)
+            onClick: () => { setModalStatus(!modalStatus) }
         },
         {
             value: "flujo",
@@ -149,7 +149,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
         console.log(100031, showEditTask)
     }, [showEditTask])
 
-
     return (
         <>
             {showEditTask?.state && (
@@ -204,19 +203,19 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
                 }
                 <AddEvent tasks={tasks} itinerario={itinerario} disable={disable} />
             </div>
-            {modalStatus && <Modal classe={"w-[95%] md:w-[450px] h-[370px]"}>
+            {modalStatus && <Modal set={setModalStatus} state={modalStatus} classe={"w-[95%] md:w-[450px] h-[370px]"}>
                 <WarningMessage setModal={setModalStatus} modal={modalStatus} title={t("visibility")} />
             </Modal>
             }
-            {modalWorkFlow && <Modal classe={"w-[95%] md:w-[450px] h-[370px]"}>
+            {modalWorkFlow && <Modal set={setModalWorkFlow} state={modalWorkFlow} classe={"w-[95%] md:w-[450px] h-[370px]"}>
                 <WarningMessage setModal={setModalWorkFlow} modal={modalWorkFlow} title={t("workflow")} />
             </Modal>
             }
-            {modalCompartirTask && <Modal classe={"w-[95%] md:w-[450px] h-[370px]"}>
+            {modalCompartirTask && <Modal set={setModalCompartirTask} state={modalCompartirTask} classe={"w-[95%] md:w-[450px] h-[370px]"}>
                 <WarningMessage setModal={setModalCompartirTask} modal={modalCompartirTask} title={t("share")} />
             </Modal>
             }
-            {modalPlantilla && <Modal classe={"w-[95%] md:w-[450px] h-[370px]"}>
+            {modalPlantilla && <Modal set={setModalPlantilla} state={modalPlantilla} classe={"w-[95%] md:w-[450px] h-[370px]"}>
                 <WarningMessage setModal={setModalPlantilla} modal={modalPlantilla} title={t("template")} />
             </Modal>
             }

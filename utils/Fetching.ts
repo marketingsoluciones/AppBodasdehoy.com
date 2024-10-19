@@ -265,6 +265,7 @@ export const queries = {
       descripcion
       responsable
       duracion
+      tags
       tips
       estatus
       fecha_creacion
@@ -307,6 +308,7 @@ export const queries = {
           descripcion
           responsable
           duracion
+          tags
           tips
           estatus
           fecha_creacion
@@ -745,9 +747,17 @@ export const queries = {
           descripcion
           responsable
           duracion
+          tags
           tips
           estatus
-          attachments
+          attachments{
+            _id
+            name
+            url
+            size
+            createdAt
+            updatedAt
+          }
         }
         estatus
       }

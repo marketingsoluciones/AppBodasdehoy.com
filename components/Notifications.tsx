@@ -21,7 +21,6 @@ export const Notifications = () => {
   const [countScroll, setCountScroll] = useState({ count: 1 })
   const [showLoad, setShowLoad] = useState<boolean>(false);
 
-
   const handleScroll = (e) => {
     if (e.target.scrollTop + e.target.offsetHeight === e.target.scrollHeight && notifications.results.length < notifications.total) {
       setShowLoad(true)

@@ -9,11 +9,6 @@ const ReactQuill = dynamic(() => import('react-quill'), {
 export const MyEditor = () => {
   const [value, setValue] = useState('');
 
-  useEffect(() => {
-    console.log(value)
-  }, [value])
-
-
   const modules = useMemo(
     () => ({
       toolbar: {
@@ -26,7 +21,6 @@ export const MyEditor = () => {
           // [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
           // [{ header: [1, 2, 3, 4, 5, 6, false] }],
           ['bold', 'italic', 'underline', 'strike', 'blockquote', { list: 'ordered' }, { list: 'bullet' }, 'link', { color: [] }],
-          ['undo', 'redo'],
           //  [{ indent: '-1' }, { indent: '+1' }],
         ],
         // handlers: {
@@ -44,7 +38,7 @@ export const MyEditor = () => {
     <ReactQuill
       value={value}
       onChange={setValue}
-      className='h-[160px] mb-24 md:mb-16'
+      className='h-[160px] mb-24 md:mb-10'
       modules={
         modules
         // {

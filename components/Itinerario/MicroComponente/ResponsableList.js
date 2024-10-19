@@ -23,16 +23,16 @@ export const ResponsableList = ({ openModal, setOpenModal, DataArry, setSelectIc
 
     return (
         <ClickAwayListener onClickAway={() => openModal && setOpenModal(false)}>
-            <div className="flex flex-col w-full h-[95%] items-center space-y-4 py-2 px-4" >
+            <div className="flex flex-col w-full h-[95%] items-center space-y-4 py-2 px-4 text-sm" >
                 <div className="w-full flex flex-col items-center">
-                    <span className="text-primary text-[24px] ">{t("Responsable ")}</span>
+                    <span className="text-primary text-[16px]">{t("Responsable")}</span>
                 </div>
-                <div className="flex flex-col w-full h-[80%]">
-                    <div className="w-full h-[30px] flex items-center justify-between text-[17px]">
-                        <button className={` ${listReturn === "personas" ? "bg-gray-100 rounded-t-lg" : null} px-3* w-full pt-1`} onClick={() => setListReturn("personas")}>
+                <div className="flex flex-col w-full h-[83%]">
+                    <div className="w-full flex items-center justify-between text-[16px]">
+                        <button className={`py-1 ${listReturn === "personas" ? "bg-gray-100 rounded-t-lg" : null} px-3* w-full pt-1`} onClick={() => setListReturn("personas")}>
                             {t("people")}
                         </button>
-                        <button className={` ${listReturn === "grupos" ? "bg-gray-100 rounded-t-lg" : null} px-3* w-full pt-1`} onClick={() => setListReturn("grupos")}>
+                        <button className={`py-1 ${listReturn === "grupos" ? "bg-gray-100 rounded-t-lg" : null} px-3* w-full pt-1`} onClick={() => setListReturn("grupos")}>
                             {t("groups")}
                         </button>
                     </div>

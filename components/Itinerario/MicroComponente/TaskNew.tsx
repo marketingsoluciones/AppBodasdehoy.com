@@ -1,7 +1,6 @@
 import { Form, Formik } from "formik";
 import { FC } from "react";
-import { Description, Duration, ResponsableSelector, SelectIcon, Tips, ResponsablesArry } from ".";
-import { InputTime } from "../../Forms/inputs/InputTime";
+import { SelectIcon, ResponsablesArry } from ".";
 import { EventContextProvider } from "../../../context/EventContext";
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
 import { AuthContextProvider } from "../../../context";
@@ -30,8 +29,10 @@ export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, option
   const initialValues: Task = {
     _id: task._id,
     icon: !task?.icon ? "" : task?.icon,
+    fecha: !task?.fecha ? "" : task?.fecha,
     hora: !task?.fecha ? "" : new Date(task?.fecha).toLocaleString(geoInfo?.acceptLanguage?.split(",")[0], { hour: 'numeric', minute: 'numeric' }),
     duracion: !task?.duracion ? 30 : task?.duracion,
+    tags: !task?.tags ? [] : task?.tags,
     descripcion: !task?.descripcion ? "" : task?.descripcion,
     responsable: !task?.responsable ? [] : task?.responsable,
     tips: !task?.tips ? [] : task?.tips,

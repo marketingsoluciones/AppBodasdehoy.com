@@ -186,7 +186,7 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
                         onClick={() => {
                           setValue(item.value)
                           setShow(false)
-                          !!item?.onClick && item?.onClick({ value: data.cell.row.original })
+                          item?.onClick(data.cell.row.original)
                         }}
                         className={`${item.value === "edit" ? "flex md:hidden" : "flex"} p-2 text-gray-700 text-sm items-center gap-2 capitalize cursor-pointer hover:bg-gray-100 ${item.value === value && "bg-gray-200"}`}
                       >
