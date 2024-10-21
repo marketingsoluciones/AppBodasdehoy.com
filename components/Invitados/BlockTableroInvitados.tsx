@@ -178,7 +178,6 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ Conditiona
             )}
             <div className="relative overflow-x-auto md:overflow-x-visible space-y-3">
                 {data.map((item, idx) => {
-                    console.log(item.data)
                     return (
                         <div key={idx} >
                             <div onClick={() => handleShowCards(item.titulo)} className="bg-gray-100 px-3 py-2 flex items-center justify-between hover:cursor-pointer">
@@ -218,11 +217,9 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ Conditiona
                                                 <div className="capitalize flex items-center justify-center pt-4">
                                                     sin invitados
                                                 </div>
-
                                         }
                                     </div>
                                 }
-
                             </div>
                         </div>
                     )
@@ -291,7 +288,6 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
     const [showModalAsistenci, setShowModalAsistenci] = useState({});
     const [showModalAcompañante, setShowModalAcompañante] = useState({});
     const [showModalAcompañante2, setShowModalAcompañante2] = useState({ state: false, id: null });
-
     const [showModalCompartir, setShowModalCompartir] = useState({});
     const [acompañanteID, setAcompañanteID] = useState({ id: "", crear: true })
     const [value, setValue] = useState("sin menú");
@@ -306,11 +302,9 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
     const { t } = useTranslation()
     const link = `${window?.location?.origin}?pGuestEvent=${idGuest}${event._id?.slice(3, 9)}${event._id}`
 
-
     useEffect(() => {
         setAcompañanteID({ id: showModalAcompañante2.id, crear: false })
     }, [showModalAcompañante2.id])
-
 
     useEffect(() => {
         setAcompañanteID(old => ({ ...old, crear: false }))
@@ -370,6 +364,7 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                         invitados_array: resultado,
                     };
                 });
+                toast("success", `${t("Cambio guardado")} `,)
             }
         } catch (error) {
             console.log(error);
@@ -426,7 +421,6 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
             setIdGuest(_id)
         }
     };
-
     const image = {
         hombre: {
             image: "/profile_men.png",
@@ -492,7 +486,6 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
             function: () => HandleEdit(idGuest),
         },
     ];
-
     useEffect(() => {
         setLoading(false);
         updateMyData({
@@ -505,7 +498,6 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
         });
         setLoading(true);
     }, [value]);
-
     useEffect(() => {
         setLoading(false);
         updateMyData({
@@ -519,22 +511,18 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
         setLoading(true);
     }, [value3]);
 
-    const Redire = (idGuest) => {
-        router.push(`${window?.location?.origin}?pGuestEvent=${idGuest}${event._id?.slice(3, 9)}${event._id}`)
-    }
-
 
     return (
         <>
             {modal.state &&
-                <Modal classe={"w-[95%] md:w-[450px] h-[200px]"}>
+                <Modal set={setModal} state={modal.state} classe={"w-[95%] md:w-[450px] h-[200px]"}>
                     <DeleteConfirmation setModal={setModal} modal={modal} />
                 </Modal>}
             {
                 guestData.length > 0 && guestData?.map((item, idx) => {
                     return (
                         <>
-                            <div key={idx} className={`  bg-gray-100 my-2 mx-2 rounded-md grid grid-cols-6 relative `}>
+                            <div key={idx} className={`hover:bg-gray-200 ${showModalAcompañante2.state && showModalAcompañante2.id === item._id?"bg-gray-200":""}  bg-gray-100 my-2 mx-2 rounded-md grid grid-cols-6 relative `}>
                                 <div className=" pt-2 pl-2 justify-self-center relative col-span-1 h-max ">
                                     <img
                                         className="block w-10 h-10 mr-2"
@@ -594,7 +582,7 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                     <div className="items-center col-span-2  grid grid-cols-2 py-1 relative">
                                         <p className="font-semibold text-[12px] ">Menu :</p>
                                         <div onClick={() => !isAllowed() ? null : toggleVisibility("menu", item._id)} className=" flex items-center justify-between ">
-                                            <p className=" font-body text-[12px] pl-2"> {item.nombre_menu}</p>
+                                            <p className=" font-body text-[12px] pl-2"> {item.nombre_menu == null ? "sin menu" : item.nombre_menu}</p>
                                             <div className="pl-2">
                                                 <ArrowDown className="h-2 w-2" />
                                             </div>
@@ -809,7 +797,8 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                 }
                             </div >
                             {
-                                showModalAcompañante2.id === item._id && /* GuestsByFather.length > 0 && */ <div /* className="border-l-2 border-b-2 border-primary rounded-l-lg rounded-t-none ml-2 -mt-3 pl-2 py-2 space-y-1 " */>
+                                showModalAcompañante2.id === item._id && /* GuestsByFather.length > 0 && */
+                                <div /* className="border-l-2 border-b-2 border-primary rounded-l-lg rounded-t-none ml-2 -mt-3 pl-2 py-2 space-y-1 " */>
                                     <AcompañantesCard
                                         GuestsByFather={GuestsByFather}
                                         image={image}
@@ -840,23 +829,12 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                         showModalAcompañante2={showModalAcompañante2}
                                         father={item.nombre}
                                         idFather={item._id}
-                                        passesQuantity={ item?.passesQuantity}
+                                        passesQuantity={item?.passesQuantity}
 
                                     />
                                 </div >
                             }
-                            {/*  {
-                                showModalAcompañante2.state && GuestsByFather.length === 0 &&
-                                <div className="border-l-2 ml-2 py-2 border-primary">
-                                    <div className="capitalize flex justify-center "> Acompañantes de  {item.nombre}</div>
-                                    <span className="items-center col-span-3 flex gap-3 text-primary justify-center ">
-                                        No tiene Acompañantes confirmados
-                                    </span>
-                                    <span className="items-center col-span-3 flex  text-gray-600  justify-center ">
-                                        puedes confirmar <span className="text-primary pl-1" onClick={() => Redire(item._id)}>AQUI </span>
-                                    </span>
-                                </div>
-                            } */}
+                            
                         </>
                     )
                 })
@@ -866,7 +844,7 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
     )
 }
 
-export const AcompañantesCard = ({passesQuantity, idFather, father, showModalAcompañante2, GuestsByFather, image, showModalAsistenci, setShowModalAsistenci, setValue3, ListaState, dicc, showModalMenu, setShowModalMenu, event, setValue, value, toggleVisibility, showModalRecepcion, setShowModalRecepcion, value2, setValue2, showModalCeremonia, setShowModalCeremonia, show, setShow, ListaOption, setModal, toast, setEvent, idGuest }) => {
+export const AcompañantesCard = ({ passesQuantity, idFather, father, showModalAcompañante2, GuestsByFather, image, showModalAsistenci, setShowModalAsistenci, setValue3, ListaState, dicc, showModalMenu, setShowModalMenu, event, setValue, value, toggleVisibility, showModalRecepcion, setShowModalRecepcion, value2, setValue2, showModalCeremonia, setShowModalCeremonia, show, setShow, ListaOption, setModal, toast, setEvent, idGuest }) => {
     const [isAllowed, ht] = useAllowed()
     const router = useRouter();
     const { t } = useTranslation()
@@ -880,7 +858,7 @@ export const AcompañantesCard = ({passesQuantity, idFather, father, showModalAc
                         GuestsByFather?.map((item, idx) => {
                             return (
                                 <div key={idx}  >
-                                    <div className={`bg-gray-100 mx-2 rounded-md grid grid-cols-8 relative `}>
+                                    <div className={`${item._id === idFather ? "bg-gray-200" : "bg-gray-100"}  mx-2 rounded-md grid grid-cols-8 relative `}>
                                         <div className=" pt-2 pl-2 justify-self-center relative col-span-1 h-max ">
                                             <img
                                                 className="block w-8 h-8 mr-2"
@@ -910,7 +888,8 @@ export const AcompañantesCard = ({passesQuantity, idFather, father, showModalAc
                                                     showModalAsistenci[item._id] &&
                                                     <ClickAwayListener onClickAway={() => showModalAsistenci[item._id] && setShowModalAsistenci(false)}>
                                                         {
-                                                            showModalAsistenci && (
+                                                            showModalAsistenci &&
+                                                            (
                                                                 <ul
                                                                     className={` absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-9 -right-5 z-40`}
                                                                 >
@@ -938,7 +917,7 @@ export const AcompañantesCard = ({passesQuantity, idFather, father, showModalAc
                                             <div className="items-center col-span-2  grid grid-cols-2 py-1 relative">
                                                 <p className="font-semibold text-[12px] ">Menu :</p>
                                                 <div onClick={() => !isAllowed() ? null : toggleVisibility("menu", item._id)} className=" flex items-center justify-between ">
-                                                    <p className=" font-body text-[12px] pl-2"> {item.nombre_menu}</p>
+                                                    <p className=" font-body text-[12px] pl-2"> {item.nombre_menu == null ? "sin menu" : item.nombre_menu}</p>
                                                     <div className="pl-2">
                                                         <ArrowDown className="h-2 w-2" />
                                                     </div>
@@ -946,7 +925,8 @@ export const AcompañantesCard = ({passesQuantity, idFather, father, showModalAc
                                                 {
                                                     showModalMenu[item._id] &&
                                                     <ClickAwayListener onClickAway={() => showModalMenu[item._id] && setShowModalMenu(false)}>
-                                                        {showModalMenu[item._id] &&
+                                                        {
+                                                            showModalMenu[item._id] &&
                                                             (
                                                                 <ul className={` absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-7 right-1 z-40 w-max`}>
                                                                     {event.menus_array?.length > 0 && event?.menus_array?.map((item, index) => {
@@ -990,7 +970,8 @@ export const AcompañantesCard = ({passesQuantity, idFather, father, showModalAc
                                                     showModalRecepcion[item._id] &&
                                                     <ClickAwayListener onClickAway={() => showModalRecepcion[item._id] && setShowModalRecepcion(false)}>
                                                         {
-                                                            showModalRecepcion[item._id] && (
+                                                            showModalRecepcion[item._id] &&
+                                                            (
                                                                 <ul className="absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-6 -right-4 z-40 w-max">
                                                                     {
                                                                         [
@@ -1043,7 +1024,8 @@ export const AcompañantesCard = ({passesQuantity, idFather, father, showModalAc
                                                     showModalCeremonia[item._id] &&
                                                     <ClickAwayListener onClickAway={() => showModalCeremonia[item._id] && setShowModalCeremonia(false)}>
                                                         {
-                                                            showModalCeremonia && (
+                                                            showModalCeremonia &&
+                                                            (
                                                                 <ul
                                                                     className={` absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-6 -right-4 z-50 w-max`}
                                                                 >
@@ -1086,39 +1068,42 @@ export const AcompañantesCard = ({passesQuantity, idFather, father, showModalAc
                                             </div>
                                         </div>
                                         <div className=" justify-self-end relative col-span-1 ">
-
                                             <div onClick={() => !isAllowed() ? null : toggleVisibility("options", item._id)} className="pt-4 pr-4">
                                                 <SlOptionsVertical />
                                             </div>
                                             {
                                                 show[item._id] &&
                                                 <ClickAwayListener onClickAway={() => show[item._id] && setShow(false)}>
-                                                    {show[item._id] && (
-                                                        <ul
-                                                            className={` top-5 right-0 absolute w-max border border-base bg-white capitalize rounded-md overflow-hidden shadow-lg z-10 translate-x-[-12px]`}
-                                                        >
-                                                            {ListaOption.map((item, idx) => (
-                                                                <li
-                                                                    key={idx}
-                                                                    onClick={() => {
-                                                                        item.title.toLowerCase() === "borrar"
-                                                                            ? setModal({
-                                                                                state: true,
-                                                                                title: <span>
-                                                                                    <strong>
-                                                                                        Deseas eliminar a este invitado y a sus acompañantes ?
-                                                                                    </strong>
-                                                                                </span>,
-                                                                                handle: () => item.function()
-                                                                            })
-                                                                            : item.function()
-                                                                    }}
-                                                                    className="font-display cursor-pointer border-base border block px-4 text-sm text-gray-500 hover:text-gray-500 hover:bg-base py-3"
-                                                                >
-                                                                    {item.title}
-                                                                </li>
-                                                            ))}
-                                                        </ul>)}
+                                                    {
+                                                        show[item._id] &&
+                                                        (
+                                                            <ul
+                                                                className={` top-5 right-0 absolute w-max border border-base bg-white capitalize rounded-md overflow-hidden shadow-lg z-10 translate-x-[-12px]`}
+                                                            >
+                                                                {ListaOption.map((item, idx) => (
+                                                                    <li
+                                                                        key={idx}
+                                                                        onClick={() => {
+                                                                            item.title.toLowerCase() === "borrar"
+                                                                                ? setModal({
+                                                                                    state: true,
+                                                                                    title: <span>
+                                                                                        <strong>
+                                                                                            Deseas eliminar a este acompañante ?
+                                                                                        </strong>
+                                                                                    </span>,
+                                                                                    handle: () => item.function()
+                                                                                })
+                                                                                : item.function()
+                                                                        }}
+                                                                        className="font-display cursor-pointer border-base border block px-4 text-sm text-gray-500 hover:text-gray-500 hover:bg-base py-3"
+                                                                    >
+                                                                        {item.title}
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                        )
+                                                    }
                                                 </ClickAwayListener>
                                             }
                                         </div>
@@ -1132,12 +1117,10 @@ export const AcompañantesCard = ({passesQuantity, idFather, father, showModalAc
             {
                 showModalAcompañante2.state && GuestsByFather.length === 0 &&
                 <div className="border-l border-dotted ml-2 py-2 border-primary">
-                    <span className="items-center col-span-3 flex gap-3  justify-center capitalize ">
-                    {father} tiene {passesQuantity} Acompañantes sin confirmar
+                    <span className="items-center col-span-3 flex *gap-3  justify-center capitalize ">
+                        + {passesQuantity} Acompañantes.<span className="text-primary pl-1 cursor-pointer" onClick={() => router.push(`${window?.location?.origin}?pGuestEvent=${idFather}${event._id?.slice(3, 9)}${event._id}`)}>Confirmar aquí</span>
                     </span>
-                    <span className="items-center col-span-3 flex  text-gray-600  justify-center ">
-                        puedes confirmar <span className="text-primary pl-1 cursor-pointer" onClick={() => router.push(`${window?.location?.origin}?pGuestEvent=${idFather}${event._id?.slice(3, 9)}${event._id}`)}>AQUI </span>
-                    </span>
+
                 </div>
             }
         </>
