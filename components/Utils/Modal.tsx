@@ -2,8 +2,8 @@ import { FC } from "react"
 
 interface propsModal {
     children: any
-    set: any
-    state: any
+    set?: any
+    state?: any
     classe?: any
 
 }
