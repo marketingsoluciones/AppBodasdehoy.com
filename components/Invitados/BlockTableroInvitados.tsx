@@ -1,5 +1,5 @@
 import { cloneElement, FC, useEffect, useState } from "react";
-import { AuthContextProvider, EventContextProvider } from "../../context";
+import {  EventContextProvider } from "../../context";
 import { useDelayUnmount } from "../../utils/Funciones";
 import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
@@ -15,10 +15,9 @@ import { BorrarInvitado } from "../../hooks/EditarInvitado";
 import { Modal } from "../Utils/Modal";
 import { DeleteConfirmation } from "../Itinerario/MicroComponente/DeleteConfirmation";
 import { useTranslation } from "react-i18next";
-import { GoMultiSelect } from "react-icons/go";
 import { LiaLinkSolid } from "react-icons/lia";
 import { CopiarLink } from "../Utils/Compartir";
-import { redirect } from "next/dist/server/api-utils";
+import { handleMoveGuest } from "./GrupoTablas";
 
 
 interface propsBlockListaInvitados {
@@ -106,7 +105,9 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ Conditiona
             return acc;
         }, asd);
         Data && setData(Object.values(Data));
-    }, [allFilterGuests]);
+    }, [allFilterGuests, event]);
+
+    console.log(88888,allFilterGuests)
 
     return (
         <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full pt-2 pb-28 mb-32  relative" >
@@ -230,7 +231,7 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ Conditiona
     )
 }
 
-export const handleMoveGuest = (props: handleMoveGuest) => {
+/* export const handleMoveGuest = (props: handleMoveGuest) => {
     try {
         const { invitadoID, previousTable, lastTable, f1, event, setEvent, toast } = props
         if (previousTable?._id) {
@@ -278,7 +279,7 @@ export const handleMoveGuest = (props: handleMoveGuest) => {
     } catch (error) {
         console.log(error)
     }
-}
+} */
 
 export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounted, isMounted, event, setEvent }) => {
     const [show, setShow] = useState({});
@@ -301,6 +302,7 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
     const GuestsByFather = event?.invitados_array?.filter((invitado) => invitado?.father === acompañanteID.id)
     const { t } = useTranslation()
     const link = `${window?.location?.origin}?pGuestEvent=${idGuest}${event._id?.slice(3, 9)}${event._id}`
+    console.log(guestData)
 
     useEffect(() => {
         setAcompañanteID({ id: showModalAcompañante2.id, crear: false })
@@ -641,19 +643,19 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                                                     { _id: null, title: "No Asignado" },
                                                                     ...event?.planSpace.find(elem => elem?.title === "recepción")?.tables
                                                                 ]?.map((item: any, idx: any) => {
-                                                                    /* if (item?.guests?.length < item?.numberChair || value?._id === item?._id || !item?._id) { */
+                                                                    if (item?.guests?.length < item?.numberChair || item?.tableNameRecepcion?._id === item?._id || !item?._id) {
                                                                     return (
                                                                         <li
                                                                             key={idx}
-                                                                            className={`${(/* value._id === item._id || */ (/* !value2._id && */ !item._id)) && "bg-gray-200"} cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize`}
+                                                                            className={`${(item?.tableNameRecepcion?._id === item._id || (!item?.tableNameRecepcion?._id && !item._id)) && "bg-gray-200"} cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize`}
                                                                             onClick={() => {
                                                                                 const f1 = event?.planSpace.findIndex(elem => elem?.title === "recepción")
                                                                                 const table = event.planSpace[f1]?.tables.find(el => el._id === item._id)
                                                                                 setShowModalRecepcion(!showModalRecepcion);
-                                                                                if (/* value?._id || */ item?._id) {
-                                                                                    if (/* value?._id !== */ item?._id) {
+                                                                                if (item?.tableNameRecepcion?._id || item?._id) {
+                                                                                    if (item?.tableNameRecepcion?._id !== item?._id) {
                                                                                         setValue2(item.title);
-                                                                                        handleMoveGuest({ t, invitadoID: idGuest, previousTable: value2, lastTable: table, f1, event, setEvent, toast })
+                                                                                        handleMoveGuest({ t, invitadoID: idGuest, previousTable: item.tableNameRecepcion, lastTable: table, f1, event, setEvent, toast })
                                                                                     }
                                                                                 }
                                                                             }}
@@ -661,7 +663,7 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                                                             {item?.title}
                                                                         </li>
                                                                     )
-                                                                    /*  } */
+                                                                     }
                                                                 })}
                                                             <li
                                                                 className=" cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
@@ -706,7 +708,7 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                                                                 if (/* value?._id || */ elem?._id) {
                                                                                     if (/* value?._id !== */ elem?._id) {
                                                                                         setValue(elem.title);
-                                                                                        handleMoveGuest({ t, invitadoID: idGuest, previousTable: value2, lastTable: table, f1, event, setEvent, toast })
+                                                                                        handleMoveGuest({ t, invitadoID: idGuest, previousTable: elem.tableNameCeremonia, lastTable: table, f1, event, setEvent, toast })
                                                                                     }
                                                                                 }
                                                                             }}
@@ -797,8 +799,8 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                 }
                             </div >
                             {
-                                showModalAcompañante2.id === item._id && /* GuestsByFather.length > 0 && */
-                                <div /* className="border-l-2 border-b-2 border-primary rounded-l-lg rounded-t-none ml-2 -mt-3 pl-2 py-2 space-y-1 " */>
+                                showModalAcompañante2.id === item._id && 
+                                <div >
                                     <AcompañantesCard
                                         GuestsByFather={GuestsByFather}
                                         image={image}
