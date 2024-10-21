@@ -1,7 +1,6 @@
 import { useField } from "formik"
-import { FC, InputHTMLAttributes, useEffect, useRef } from "react"
+import { FC, InputHTMLAttributes, useRef } from "react"
 import { MdClose } from "react-icons/md"
-
 
 interface props extends InputHTMLAttributes<HTMLInputElement> {
   label?: string
@@ -35,7 +34,7 @@ export const InputTags: FC<props> = ({ label, ...props }) => {
         />
         <button type="button" onClick={() => handleAddTags()} className="rounded-xl bg-primary px-2 h-8 text-white text-sm hover:font-bold">Añadir</button>
       </div>
-      {!!field.value.length && <p className="border-[1px] space-y-1 p-1 text-gray-700 ">
+      {!!field?.value?.length && <p className="border-[1px] space-y-1 p-1 text-gray-700 ">
         {field.value.map((elem, idx) =>
           <div key={idx} className="inline-flex mx-1 bg-gray-200 px-2 py-1 md:py-0 rounded-sm space-x-2 items-center">
             <span>

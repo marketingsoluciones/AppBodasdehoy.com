@@ -1,21 +1,23 @@
 import { useField } from "formik"
-import React, { ChangeEvent, FC, InputHTMLAttributes, useEffect, useState } from "react"
+import React, { ChangeEvent, FC, InputHTMLAttributes } from "react"
 import { useAllowed } from "../../hooks/useAllowed";
-import { flags } from "../../utils/flags.js"
-import { AuthContextProvider } from "../../context";
-import { IoIosArrowDown, IoIosAttach } from "react-icons/io";
-import ClickAwayListener from "react-click-away-listener"
+import { AuthContextProvider, EventContextProvider } from "../../context";
+import { IoIosAttach } from "react-icons/io";
 import { useTranslation } from 'react-i18next';
 import { PlusIcon } from "../icons";
-import { MdClose, MdOutlineCancel } from "react-icons/md";
-import { CgSoftwareDownload } from "react-icons/cg";
+import { MdCheck, MdClose } from "react-icons/md";
+import { getStorage, ref, uploadBytesResumable, deleteObject } from "firebase/storage";
+import { FileData, Task } from "../../utils/Interfaces";
+import { customAlphabet } from "nanoid";
+import { fetchApiEventos, queries } from "../../utils/Fetching";
 
 interface props extends InputHTMLAttributes<HTMLInputElement> {
   label?: string
   className?: string
   disabled?: boolean
   labelClass?: boolean
-
+  task: Task
+  itinerarioID: string
 }
 interface Flag {
   pre: string
@@ -23,22 +25,75 @@ interface Flag {
   cod: number
 }
 
-const InputAttachments: FC<Partial<props>> = ({ label, className, disabled = false, labelClass = true, ...props }) => {
+const InputAttachments: FC<Partial<props>> = ({ label, task, itinerarioID, className, disabled = false, labelClass = true, ...props }) => {
   const { t } = useTranslation();
-  const { geoInfo } = AuthContextProvider()
+  const { config } = AuthContextProvider()
+  const { event, setEvent } = EventContextProvider()
   const [field, meta, helpers] = useField({ name: props.name })
   const [isAllowed, ht] = useAllowed()
-  const [values, setValues] = useState<any>([])
+  const storage = getStorage();
 
   const handleOnChange = (e: ChangeEvent<HTMLInputElement>) => {
-    let arrayUnido = [...Array.from(field.value), ...Array.from(e.target.files)]
-    helpers.setValue(arrayUnido)
+    try {
+      const files = [...Array.from(e.target.files)]
+      let attachments: FileData[] = [...field.value, ...files.map((elem: File): FileData => { return { _id: undefined, name: elem.name, size: elem.size } })]
+      helpers.setValue([...attachments])
+      files.map((elem) => {
+        const storageRef = ref(storage, `${task._id}//${elem.name}`)
+        uploadBytesResumable(storageRef, elem)
+          .then(result => {
+            const f1a = attachments.findIndex((el: FileData) => el.name === elem.name)
+            attachments[f1a]._id = customAlphabet('1234567890abcdef', 24)()
+            fetchApiEventos({
+              query: queries.editTask,
+              variables: {
+                eventID: event._id,
+                itinerarioID,
+                taskID: task._id,
+                variable: "attachments",
+                valor: JSON.stringify(attachments)
+              },
+              domain: config.domain
+            })
+              .then(() => {
+                helpers.setValue([...attachments])
+                const f1 = event.itinerarios_array.findIndex(elm => elm._id === itinerarioID)
+                const f2 = event.itinerarios_array[f1].tasks.findIndex(elm => elm._id === task._id)
+                event.itinerarios_array[f1].tasks[f2].attachments = [...attachments]
+                setEvent({ ...event })
+              })
+          })
+      })
+
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   const handleDeleteFromInput = (elem) => {
+    const storageRef = ref(storage, `${task._id}//${elem.name}`)
+    deleteObject(storageRef)
+      .then(() => { })
+      .catch(() => { })
     const f1 = field.value.findIndex(el => el.name === elem.name)
     field.value.splice(f1, 1)
-    helpers.setValue([...field.value])
+    fetchApiEventos({
+      query: queries.editTask,
+      variables: {
+        eventID: event._id,
+        itinerarioID,
+        taskID: task._id,
+        variable: "attachments",
+        valor: JSON.stringify(field.value)
+      },
+      domain: config.domain
+    }).then(() => {
+      helpers.setValue([...field.value])
+      const f1 = event.itinerarios_array.findIndex(elm => elm._id === itinerarioID)
+      const f2 = event.itinerarios_array[f1].tasks.findIndex(elm => elm._id === task._id)
+      event.itinerarios_array[f1].tasks[f2].attachments = [...field.value]
+      setEvent({ ...event })
+    })
   }
 
   return (
@@ -49,13 +104,13 @@ const InputAttachments: FC<Partial<props>> = ({ label, className, disabled = fal
           <p className="bg-white w-full py-2 text-gray-900 p-1">
             {!!field?.value?.length && [...field?.value]?.map((elem, idx) =>
               <div key={idx} className="flex ml-2 mt-1 px-2 py-1 md:py-0 items-center leading-[1.2] space-x-1 border-[1px] bg-gray-200 rounded-sm">
-                <span className="flex-1 text-sm truncate">{elem?.name}</span>
-                <span className="text-xs font-semibold">({Math.trunc(elem.size / 1024)} K)</span>
+                <span className="flex-1 text-[13px] truncate">{elem?.name}</span>
+                <span className="text-[11px] font-semibold">({Math.trunc(elem.size / 1024)} K)</span>
                 {elem?._id
-                  ? <a href={elem.url} target="_blank">
-                    <CgSoftwareDownload className="cursor-pointer hover:text-gray-500 w-5 h-5 text-gray-700" />
-                  </a>
-                  : <div className="w-5 text-[10px]">new</div>
+                  ? <MdCheck />
+                  : <div className="w-5 flex justify-center items-center">
+                    <div className="loader ease-linear rounded-full border-[3px] border-gray-50 w-4 h-4" />
+                  </div>
                 }
                 <div onClick={() => handleDeleteFromInput(elem)} className="w-6 h-5 flex justify-center items-center cursor-pointer p-1">
                   <MdClose className="hover:text-gray-500" />
@@ -82,6 +137,31 @@ const InputAttachments: FC<Partial<props>> = ({ label, className, disabled = fal
           disabled={false}
         />
       </div>
+      <style jsx>
+        {`
+          .loader {
+              border-top-color:  ${config?.theme?.primaryColor};
+              -webkit-animation: spinner 1.5s linear infinite;
+              animation: spinner 1.5s linear infinite;
+          }
+          @-webkit-keyframes spinner {
+              0% {
+              -webkit-transform: rotate(0deg);
+              }
+              100% {
+              -webkit-transform: rotate(360deg);
+              }
+          }
+          @keyframes spinner {
+              0% {
+              transform: rotate(0deg);
+              }
+              100% {
+              transform: rotate(360deg);
+              }
+          }
+        `}
+      </style>
     </div>
   )
 }

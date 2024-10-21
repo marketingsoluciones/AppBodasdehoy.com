@@ -1,13 +1,14 @@
+import { useField } from 'formik';
 import dynamic from 'next/dynamic';
-import { useEffect, useMemo, useState } from 'react';
+import { FC, InputHTMLAttributes, useMemo } from 'react';
 import 'react-quill/dist/quill.snow.css'
 
 const ReactQuill = dynamic(() => import('react-quill'), {
   ssr: false,
 });
 
-export const MyEditor = () => {
-  const [value, setValue] = useState('');
+export const MyEditor: FC<InputHTMLAttributes<HTMLInputElement>> = ({ ...props }) => {
+  const [field, meta, helpers] = useField({ name: props.name })
 
   const modules = useMemo(
     () => ({
@@ -20,7 +21,7 @@ export const MyEditor = () => {
         container: [
           // [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
           // [{ header: [1, 2, 3, 4, 5, 6, false] }],
-          ['bold', 'italic', 'underline', 'strike', 'blockquote', { list: 'ordered' }, { list: 'bullet' }, 'link', { color: [] }],
+          ['bold', 'italic', 'underline', 'strike', 'link', { color: [] }],
           //  [{ indent: '-1' }, { indent: '+1' }],
         ],
         // handlers: {
@@ -36,8 +37,8 @@ export const MyEditor = () => {
 
   return (
     <ReactQuill
-      value={value}
-      onChange={setValue}
+      value={field.value}
+      onChange={(e) => { helpers.setValue(e) }}
       className='h-[160px] mb-24 md:mb-10'
       modules={
         modules

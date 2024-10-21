@@ -27,7 +27,7 @@ export const ItineraryTable: FC<any> = ({ columns, data = [], multiSeled = false
     duration: 2,
     responsables: 3,
     tips: 5,
-    attachment: 4,
+    attachments: 4,
     selection: 1
   };
 
@@ -89,7 +89,7 @@ export const ItineraryTable: FC<any> = ({ columns, data = [], multiSeled = false
                     <td
                       {...cell.getCellProps()}
                       key={i}
-                      className={`leading-[1.5] px-1 py-1 flex items-center col-span-${colSpan[cell.column.id]} border-[1px]`}
+                      className={`leading-[1.3] px-1 py-1 flex items-center col-span-${colSpan[cell.column.id]} border-[1px]`}
                     >
                       {cell.render("Cell")}
                     </td>

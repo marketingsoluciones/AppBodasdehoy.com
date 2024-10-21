@@ -17,6 +17,8 @@ import { GoEyeClosed, GoGitBranch } from "react-icons/go";
 import { MdOutlineDeleteOutline } from "react-icons/md";
 import { EditTastk } from "./ItineraryPanel";
 import { useAllowed } from "../../../hooks/useAllowed";
+import { CgSoftwareDownload } from "react-icons/cg";
+import { getBytes, getMetadata, getStorage, ref } from "firebase/storage";
 
 interface props {
   data?: any[],
@@ -70,6 +72,27 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
   const [arrEnviarInvitaciones, setArrEnviatInvitaciones] = useState([])
   const [isAllowed, ht] = useAllowed()
   const disable = !isAllowed("itinerario")
+  const storage = getStorage();
+
+  const handleDownload = async ({ elem, task }) => {
+    try {
+      const storageRef = ref(storage, `${task._id}//${elem.name}`)
+      const metaData = await getMetadata(storageRef)
+      getBytes(storageRef).then(buffer => {
+        const blob = new Blob([buffer], { type: metaData.contentType })
+        const file = new File([blob], elem.name, { type: metaData.contentType })
+        const url = window.URL.createObjectURL(file)
+        const link = document.createElement('a')
+        link.href = url
+        link.setAttribute('download', elem.name)
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      })
+    } catch (error) {
+      console.log(10003, error)
+    }
+  }
 
   const Columna = useMemo(
     () => [
@@ -117,7 +140,7 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
             {data?.cell?.value?.map((elem, idx) => {
               return (
                 <span key={idx} className="inline-flex items-center space-x-1">
-                  <img alt={elem} src={ResponsablesArry.find(el => el.title.toLowerCase() === elem.toLowerCase()).icon} className="w-6 h-6" />
+                  <img alt={elem} src={ResponsablesArry.find(el => el.title.toLowerCase() === elem?.toLowerCase())?.icon} className="w-6 h-6" />
                   <span>
                     {elem}
                   </span>
@@ -131,39 +154,36 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         Header: t("tips"),
         accessor: "tips",
         id: "tips",
-        Cell: (data) => (
-          <div key={data.cell.row.id} className="w-full text-gray-900 bg-blue-400">
-            {data?.cell?.value?.map((elem, idx) => {
-              return (
-                <span key={idx} className="inline-flex items-center">
-                  -
-                  <span>
-                    {elem}
-                  </span>
-                </span>
-              )
-            })}
-          </div>
-        )
+        Cell: (data) => {
+          return (
+            <div key={data.cell.row.id} className="w-full text-gray-900">
+              <div dangerouslySetInnerHTML={{ __html: data?.cell?.value }} />
+            </div>
+          )
+        }
       },
       {
         Header: t("archivos adjuntos"),
-        accessor: "attachment",
-        id: "attachment",
-        Cell: (data) => (
-          <div key={data.cell.row.id} className="w-full text-gray-900 bg-blue-400">
-            {data?.cell?.value?.map((elem, idx) => {
-              return (
-                <span key={idx} className="inline-flex items-center">
-                  <IoIosAttach className="w-4 h-auto" />
-                  <span>
-                    {elem}
+        accessor: "attachments",
+        id: "attachments",
+        Cell: (data) => {
+          return (
+            <div key={data.cell.row.id} className="w-full text-gray-900 space-y-2 md:space-y-1.5" >
+              {data?.cell?.value?.map((elem, idx) => {
+                return (
+                  !!elem._id && <span key={idx} onClick={() => {
+                    handleDownload({ elem, task: data.cell.row.original })
+                  }} className="inline-flex items-center max-w-[90%] border-b-[1px] hover:font-bold border-gray-500 cursor-pointer mr-2">
+                    <span className="flex-1 truncate">
+                      {elem.name}
+                    </span>
+                    <CgSoftwareDownload className="w-4 h-auto" />
                   </span>
-                </span>
-              )
-            })}
-          </div>
-        )
+                )
+              })}
+            </div>
+          )
+        }
       },
       {
         id: "selection",

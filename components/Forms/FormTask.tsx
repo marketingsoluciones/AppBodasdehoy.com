@@ -21,11 +21,12 @@ import { InputTags } from "./InputTags";
 interface propsFormTask {
   state: EditTastk;
   set: any;
+  itinerarioID: string
 }
 
-const FormTask: FC<propsFormTask> = ({ state, set }) => {
+const FormTask: FC<propsFormTask> = ({ state, set, itinerarioID }) => {
   const { t } = useTranslation();
-  const { geoInfo } = AuthContextProvider();
+  const { geoInfo, config } = AuthContextProvider();
   const { event, setEvent } = EventContextProvider();
   const toast = useToast()
   const [isAllowedRouter, ht] = useAllowedRouter()
@@ -64,21 +65,44 @@ const FormTask: FC<propsFormTask> = ({ state, set }) => {
 
   });
 
-  console.log(100035, new Date(state?.values.fecha).toISOString().split('T')[1])
   const initialValues: Task = {
     ...state?.values,
     fecha: new Date(state?.values.fecha).toISOString().split('T')[0],
     hora: new Date(state?.values.fecha).toTimeString().split(' ')[0],
     // responsable: ["Invitados"]
-    attachments: [{ _id: "id", name: "archivo", url: "https://api.bodasdehoy.com/uploads/86f9db/INSTAGRAM%20avatar_insta%20avatar-i320.webp", size: 1034 }]
+    //attachments: [{ _id: "id", name: "archivo", taskID: "", size: 1034 }]
   }
 
 
-  const handleSubmit = async (values: FormikValues, actions: any) => {
+  const handleSubmit = async (values: any, actions: any) => {
     try {
-      console.log(values)
-      //setEvent((old) => ({ ...old, invitados_array: result?.invitados_array }));
-      toast("success", t("Item guardado con exito"))
+      const d = values.fecha.split("-")
+      const h = values.hora.split(":")
+      let dataSend = {
+        ...values,
+        fecha: new Date(d[0], d[1] - 1, d[2], h[0], h[1])
+      }
+      delete dataSend.hora
+      console.log(100060, dataSend)
+      fetchApiEventos({
+        query: queries.editTask,
+        variables: {
+          eventID: event._id,
+          itinerarioID,
+          taskID: values._id,
+          variable: "all",
+          valor: JSON.stringify(dataSend)
+        },
+        domain: config.domain
+      })
+        .then(() => {
+          const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerarioID)
+          const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === values._id)
+          event.itinerarios_array[f1].tasks[f2] = dataSend
+          setEvent({ ...event })
+          toast("success", t("Item guardado con exito"))
+          set({ state: false })
+        })
     } catch (error) {
       toast("error", `${t("Ha ocurrido un error")} ${error}`)
       console.log(error);
@@ -166,12 +190,14 @@ const FormTask: FC<propsFormTask> = ({ state, set }) => {
               </div>
               <div className="w-full h-max relative">
                 <label className={` font-display text-primary text-sm w-full `}>items</label>
-                <MyEditor />
+                <MyEditor name="tips" />
               </div>
               <div className="w-full flex pb-0">
                 <InputAttachments
                   name="attachments"
                   label="archivos adjuntos"
+                  itinerarioID={itinerarioID}
+                  task={state?.values}
                 />
               </div>
               <div className="w-full h-max relative">
@@ -185,7 +211,12 @@ const FormTask: FC<propsFormTask> = ({ state, set }) => {
                 className={`font-display rounded-full py-2 px-6 text-white font-medium transition w-full hover:opacity-70  ${isSubmitting ? "bg-secondary" : "bg-primary"
                   }`}
                 disabled={isSubmitting}
-                type="submit"
+                //  type="submit"
+                onClick={(e) => {
+                  e.preventDefault()
+                  handleSubmit(values, "actions")
+                }}
+                type="button"
               >
                 {t("save")}
               </button>

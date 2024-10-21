@@ -34,9 +34,8 @@ export interface Event {
 }
 
 export interface FileData {
-    _id: string
+    _id: string | undefined | null
     name: string
-    url: string
     size: number
     createdAt?: Date
     updatedAt?: Date
@@ -51,8 +50,8 @@ export interface Task {
     responsable: string[]
     duracion: number
     tags: string[]
-    tips: string[]
-    attachments: FileData[] | File[]
+    tips: string
+    attachments: FileData[]
 }
 
 export interface Itinerary {

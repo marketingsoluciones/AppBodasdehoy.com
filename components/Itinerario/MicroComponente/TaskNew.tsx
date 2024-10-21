@@ -7,10 +7,13 @@ import { AuthContextProvider } from "../../../context";
 import { useToast } from "../../../hooks/useToast";
 import { useTranslation } from 'react-i18next';
 import { ItineraryButtonBox } from './ItineraryButtonBox'
-import { responsePathAsArray } from "graphql";
-import { IoIosAttach } from "react-icons/io";
 import { Itinerary, OptionsSelect, Task } from "../../../utils/Interfaces";
 import { ViewItinerary } from "../../../pages/invitados";
+import { CgSoftwareDownload } from "react-icons/cg";
+import { getBytes, getMetadata, getStorage, ref } from "firebase/storage";
+import { Interweave, Markup } from "interweave";
+import { HashtagMatcher, UrlMatcher } from "interweave-autolink";
+import 'react-quill/dist/quill.snow.css'
 
 interface props {
   itinerario: Itinerary
@@ -26,6 +29,8 @@ export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, option
   const { event, setEvent } = EventContextProvider()
   const toast = useToast()
   const { t } = useTranslation();
+  const storage = getStorage();
+
   const initialValues: Task = {
     _id: task._id,
     icon: !task?.icon ? "" : task?.icon,
@@ -35,7 +40,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, option
     tags: !task?.tags ? [] : task?.tags,
     descripcion: !task?.descripcion ? "" : task?.descripcion,
     responsable: !task?.responsable ? [] : task?.responsable,
-    tips: !task?.tips ? [] : task?.tips,
+    tips: !task?.tips ? "" : task?.tips,
     attachments: !task?.attachments ? [] : task?.attachments,
   }
 
@@ -62,6 +67,26 @@ export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, option
       })
     } catch (error) {
       console.log(error)
+    }
+  }
+
+  const handleDownload = async (elem) => {
+    try {
+      const storageRef = ref(storage, `${task._id}//${elem.name}`)
+      const metaData = await getMetadata(storageRef)
+      getBytes(storageRef).then(buffer => {
+        const blob = new Blob([buffer], { type: metaData.contentType })
+        const file = new File([blob], elem.name, { type: metaData.contentType })
+        const url = window.URL.createObjectURL(file)
+        const link = document.createElement('a')
+        link.href = url
+        link.setAttribute('download', elem.name)
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      })
+    } catch (error) {
+      console.log(10003, error)
     }
   }
 
@@ -101,10 +126,11 @@ export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, option
                     <div className="bg-white w-3 h-3 rounded-full border-[1px] border-primary border-dotted absolute right-0 top-0 translate-x-1/2 -translate-y-1/2" />
                   </div>
                   <div className="*bg-rose-400 flex-1 flex flex-col px-8 md:px-0 border-t-[1px] border-primary border-dotted">
-                    {/* aqui sustiir por <p></p> */}
-                    {values?.tips.map((elem, idx) =>
-                      <p className="text-[13px]" key={idx}>{elem}</p>
-                    )}
+                    {!!values?.tips && <Interweave
+                      className="text-xs text-justify transition-all m-1 p-1 bg-white"
+                      content={values.tips}
+                      matchers={[new UrlMatcher('url'), new HashtagMatcher('hashtag')]}
+                    />}
                   </div>
                 </>}
               {view === "cards" &&
@@ -116,7 +142,11 @@ export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, option
                     <span className="text-[15px] font-bold">{values?.hora}</span>
                     <span>Duración {values?.duracion} min</span>
                     <span className="text-[19px]">{values?.descripcion}</span>
-                    <p>{values?.tips.join(", ")}</p>
+                    {!!values?.tips && <Interweave
+                      className="text-xs text-justify transition-all m-1 p-1 bg-white"
+                      content={values.tips}
+                      matchers={[new UrlMatcher('url'), new HashtagMatcher('hashtag')]}
+                    />}
                     <div>
                       <span>
                         Responsables:
@@ -124,7 +154,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, option
                       <p className="text-gray-900 leading-[0.8]">
                         {values?.responsable?.map((elem, idx) =>
                           <span key={idx} className="inline-flex ml-2 items-center">
-                            <img alt={elem} src={ResponsablesArry.find(el => el.title.toLowerCase() === elem.toLowerCase()).icon} className="w-6 h-6" />
+                            <img alt={elem} src={ResponsablesArry.find(el => el.title.toLowerCase() === elem?.toLowerCase())?.icon} className="w-6 h-6" />
                             <span>
                               {elem}
                             </span>
@@ -136,13 +166,13 @@ export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, option
                       <span>
                         Archivos adjuntos:
                       </span>
-                      <p className="bg-white py-2 text-gray-900 leading-[2]">
+                      <p className="bg-white p-2 text-gray-900 leading-[1.3] space-y-3 md:space-y-2">
                         {values?.attachments?.map((elem, idx) =>
-                          <span key={idx} className="inline-flex ml-2 items-center">
-                            <IoIosAttach className="w-4 h-auto" />
+                          !!elem._id && <span key={idx} onClick={() => { handleDownload(elem) }} className="inline-flex mr-2 md:mr-3 items-center border-b-[1px] hover:font-bold border-gray-500 cursor-pointer">
                             <span>
-                              {elem}
+                              {elem.name}
                             </span>
+                            <CgSoftwareDownload className="w-4 h-auto" />
                           </span>
                         )}
                       </p>

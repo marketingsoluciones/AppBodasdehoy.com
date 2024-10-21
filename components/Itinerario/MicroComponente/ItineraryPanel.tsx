@@ -2,15 +2,12 @@
 import { TaskNew } from "./TaskNew"
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
 import { AddEvent } from "./AddEvent";
-import { GuardarButtom } from "./GuardarButtom";
 import { FC, useEffect, useState } from "react";
 import { AuthContextProvider } from "../../../context/AuthContext";
 import { EventContextProvider } from "../../../context/EventContext";
 import { Modal } from "../../Utils/Modal";
 import { useToast } from "../../../hooks/useToast";
-import { useRouter } from "next/router";
 import { useAllowed } from "../../../hooks/useAllowed";
-import { DeleteConfirmation } from "./DeleteConfirmation";
 import { WarningMessage } from "./WarningMessage";
 import { useTranslation } from 'react-i18next';
 import i18n from 'i18next';
@@ -42,8 +39,6 @@ interface TaskReduce {
     tasks?: Task[]
 }
 
-
-
 export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle, setEditTitle }) => {
     const { t } = useTranslation();
     const { config, geoInfo } = AuthContextProvider()
@@ -62,7 +57,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
     const [modalPlantilla, setModalPlantilla] = useState(false)
     const [view, setView] = useState<ViewItinerary>(window.innerWidth > window.innerHeight ? "table" : "cards")
     const [showEditTask, setShowEditTask] = useState<EditTastk>({ state: false })
-
 
     const optionsItineraryButtonBox: OptionsSelect[] = [
         {
@@ -121,7 +115,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
         }
     }, [itinerario, event])
 
-
     const deleteTask = async () => {
         try {
             await fetchApiEventos({
@@ -152,9 +145,9 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
     return (
         <>
             {showEditTask?.state && (
-                <ModalLeft state={showEditTask} set={setShowEditTask}>
+                <ModalLeft state={showEditTask} set={setShowEditTask} clickAwayListened={false}>
                     <div className="w-full flex flex-col items-start justify-start" >
-                        <FormTask state={showEditTask} set={setShowEditTask} />
+                        <FormTask state={showEditTask} set={setShowEditTask} itinerarioID={itinerario._id} />
                     </div>
                 </ModalLeft>
             )}
