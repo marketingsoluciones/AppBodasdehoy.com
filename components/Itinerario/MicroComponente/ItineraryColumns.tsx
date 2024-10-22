@@ -19,6 +19,7 @@ import { EditTastk } from "./ItineraryPanel";
 import { useAllowed } from "../../../hooks/useAllowed";
 import { CgSoftwareDownload } from "react-icons/cg";
 import { getBytes, getMetadata, getStorage, ref } from "firebase/storage";
+import { Itinerary } from "../../../utils/Interfaces";
 
 interface props {
   data?: any[],
@@ -35,6 +36,9 @@ interface props {
   showEditTask: EditTastk
   setShowEditTask: any
   optionsItineraryButtonBox: any
+  selectTask: string
+  setSelectTask: any
+  itinerario: Itinerary
 }
 
 interface propsCell {
@@ -67,7 +71,7 @@ const resolveCell = ({ data, justifyCenter }: propsCell) => {
   )
 }
 
-export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reenviar = true, activeFunction, setModalStatus, modalStatus, setModalWorkFlow, modalWorkFlow, setModalCompartirTask, modalCompartirTask, deleteTask, showEditTask, setShowEditTask, optionsItineraryButtonBox }) => {
+export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reenviar = true, activeFunction, setModalStatus, modalStatus, setModalWorkFlow, modalWorkFlow, setModalCompartirTask, modalCompartirTask, deleteTask, showEditTask, setShowEditTask, optionsItineraryButtonBox, selectTask, setSelectTask, itinerario }) => {
   const { t } = useTranslation();
   const [arrEnviarInvitaciones, setArrEnviatInvitaciones] = useState([])
   const [isAllowed, ht] = useAllowed()
@@ -100,6 +104,11 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         Header: t("título"),
         accessor: "descripcion",
         id: "description",
+        Cell: (data) => (
+          <span key={data.cell.row.id} className="font-bold">
+            {data.cell.value}
+          </span>
+        )
       },
       {
         Header: `${t("duración")} min`,
@@ -136,7 +145,7 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         accessor: "responsable",
         id: "responsables",
         Cell: (data) => (
-          <div key={data.cell.row.id} className="w-full text-gray-900 bg-blue-400">
+          <div key={data.cell.row.id} className="w-full">
             {data?.cell?.value?.map((elem, idx) => {
               return (
                 <span key={idx} className="inline-flex items-center space-x-1">
@@ -156,7 +165,7 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         id: "tips",
         Cell: (data) => {
           return (
-            <div key={data.cell.row.id} className="w-full text-gray-900">
+            <div key={data.cell.row.id} className="w-full">
               <div dangerouslySetInnerHTML={{ __html: data?.cell?.value }} />
             </div>
           )
@@ -168,7 +177,7 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         id: "attachments",
         Cell: (data) => {
           return (
-            <div key={data.cell.row.id} className="w-full text-gray-900 space-y-2 md:space-y-1.5" >
+            <div key={data.cell.row.id} className="w-full space-y-2 md:space-y-1.5" >
               {data?.cell?.value?.map((elem, idx) => {
                 return (
                   !!elem._id && <span key={idx} onClick={() => {
@@ -184,6 +193,22 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
             </div>
           )
         }
+      },
+      {
+        Header: t("eqiquetas"),
+        accessor: "tags",
+        id: "tags",
+        Cell: (data) => (
+          <p key={data.cell.row.id} className="space-y-1 -mr-1">
+            {data?.cell?.value?.map((elem, idx) => {
+              return (
+                <span key={idx} className="inline-flex w-max-full space-x-1 border-[1px] border-gray-400 px-1 pt-[1px] pb-[2px] rounded-md break-all mr-1 leading-[1]">
+                  {elem}
+                </span>
+              )
+            })}
+          </p>
+        )
       },
       {
         id: "selection",
@@ -206,7 +231,7 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
                         onClick={() => {
                           setValue(item.value)
                           setShow(false)
-                          item?.onClick(data.cell.row.original)
+                          item?.onClick(data.cell.row.original, itinerario)
                         }}
                         className={`${item.value === "edit" ? "flex md:hidden" : "flex"} p-2 text-gray-700 text-sm items-center gap-2 capitalize cursor-pointer hover:bg-gray-100 ${item.value === value && "bg-gray-200"}`}
                       >
@@ -222,7 +247,7 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         }
       },
     ],
-    []
+    [itinerario]
   );
 
   return (
@@ -240,6 +265,8 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         setArrEnviatInvitaciones={setArrEnviatInvitaciones}
         reenviar={reenviar}
         activeFunction={activeFunction}
+        selectTask={selectTask}
+        setSelectTask={setSelectTask}
       />
     </div>
   );

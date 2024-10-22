@@ -85,7 +85,7 @@ const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled =
 
   return (
     <div className="w-full h-max relative">
-      <label className={` font-display ${labelClass ? "text-primary" : "text-gray-500"} text-sm w-full `}>{label}</label>
+      <label className={`font-display ${labelClass ? "text-primary" : "text-gray-500"} text-sm w-full`}>{label}</label>
       <div className="w-full relative">
         {props?.type === "telefono" &&
           <>

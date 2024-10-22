@@ -35,6 +35,7 @@ const InputAttachments: FC<Partial<props>> = ({ label, task, itinerarioID, class
 
   const handleOnChange = (e: ChangeEvent<HTMLInputElement>) => {
     try {
+      console.log(100061, e.target.files)
       const files = [...Array.from(e.target.files)]
       let attachments: FileData[] = [...field.value, ...files.map((elem: File): FileData => { return { _id: undefined, name: elem.name, size: elem.size } })]
       helpers.setValue([...attachments])
@@ -98,7 +99,7 @@ const InputAttachments: FC<Partial<props>> = ({ label, task, itinerarioID, class
 
   return (
     <div className="w-full h-max relative">
-      <label className={` font-display text-primary text-sm w-full inline-flex`}>{label} <IoIosAttach className="w-4 h-5 text-gray-600" /> </label>
+      <label className={`capitalize font-display text-primary text-sm w-full inline-flex`}>{label} <IoIosAttach className="w-4 h-5 text-gray-600" /> </label>
       <div className="w-full relative">
         <div className={`border-[1px] border-gray-300 hover:scale-120 transform flex items-center gap-1`} >
           <p className="bg-white w-full py-2 text-gray-900 p-1">

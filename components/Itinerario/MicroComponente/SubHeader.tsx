@@ -103,10 +103,10 @@ export const SubHeader: FC<props> = ({ itinerario, disable, ht, setModalPlantill
             </Modal>
             }            <div className="flex w-full justify-between items-start">
                 <div className="w-1/2 flex flex-col text-xs md:text-[14px] text-azulCorporativo">
-                    <span className="text-primary cursor-pointer hover:text-pink-500" onClick={() => disable ? ht() : () => { }}>
+                    {/* <span className="text-primary cursor-pointer hover:text-pink-500" onClick={() => disable ? ht() : () => { }}>
                         {t("resetitinerary")}
-                    </span>
-                    <span className="text-primary cursor-pointer hover:text-pink-500" onClick={() => disable ? ht() : setModalPlantilla(!modalPlantilla)} >
+                    </span> */}
+                    <span className="text-primary* text-gray-300 *cursor-pointer *hover:text-pink-500" onClick={() => {/*disable ? ht() : setModalPlantilla(!modalPlantilla)*/ }} >
                         {t("loadtemplate")}
                     </span>
                     {/* <div>

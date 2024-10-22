@@ -4,7 +4,7 @@ import { IndeterminateCheckbox } from "../../Invitaciones/IndeterminateCheckbox"
 import { DataTableGroupContextProvider } from "../../../context/DataTableGroupContext";
 import { useTranslation } from 'react-i18next';
 
-export const ItineraryTable: FC<any> = ({ columns, data = [], multiSeled = false, setArrEnviatInvitaciones, reenviar, activeFunction }) => {
+export const ItineraryTable: FC<any> = ({ columns, data = [], multiSeled = false, setArrEnviatInvitaciones, reenviar, activeFunction, selectTask, setSelectTask }) => {
   const { t } = useTranslation();
   const [valir, setValir] = useState(false)
   const [asd, setAsd] = useState({ arrIDs: undefined, getToggleAllRowsSelectedProps: undefined })
@@ -21,19 +21,21 @@ export const ItineraryTable: FC<any> = ({ columns, data = [], multiSeled = false
 
 
   const colSpan = {
-    description: 5,
-    date: 4,
+    description: 10,
+    duration: 3,
+    date: 5,
     // time: 2,
-    duration: 2,
-    responsables: 3,
-    tips: 5,
-    attachments: 4,
-    selection: 1
+    responsables: 6,
+    tips: 8,
+    attachments: 9,
+    tags: 5,
+    selection: 2
   };
 
 
   return (
     <div className="relative">
+      <div className="col-span-2 col-span-3 col-span-4 col-span-5 col-span-6 col-span-7 col-span-8 col-span-9 col-span-10" />
       {multiSeled &&
         <div className=" flex justify-between py-3 ml-[52px] w-auto pr-5 relative">
           {/* <button
@@ -46,12 +48,12 @@ export const ItineraryTable: FC<any> = ({ columns, data = [], multiSeled = false
       <table
         {...getTableProps()}
         className="table-auto border-collapse w-full rounded-lg relative p-4">
-        <thead className="relative text-xs text-gray-700 uppercase bg-gray-100 w-full">
+        <thead className="relative text-xs text-gray-700 uppercase bg-gray-200 w-full">
           {headerGroups.map((headerGroup: any, id: any) => {
             return (
               <tr
                 {...headerGroup.getHeaderGroupProps()}
-                className="grid grid-cols-24"
+                className="grid grid-cols-48"
                 key={id} >
                 {headerGroup.headers.map((column: any, id: any) => {
                   return (
@@ -82,14 +84,15 @@ export const ItineraryTable: FC<any> = ({ columns, data = [], multiSeled = false
               <tr
                 {...row.getRowProps()}
                 key={i}
-                className={`w-full bg-white border-b font-display grid grid-cols-24`}
+                className={`${selectTask === row.original._id ? "bg-gray-100" : "bg-white"} w-full border-b font-display grid grid-cols-48`}
+                onClick={() => setSelectTask(row.original?._id)}
               >
                 {row.cells.map((cell, i) => {
                   return (
                     <td
                       {...cell.getCellProps()}
                       key={i}
-                      className={`leading-[1.3] px-1 py-1 flex items-center col-span-${colSpan[cell.column.id]} border-[1px]`}
+                      className={`flex items-center* leading-[1.3] px-1 py-1 col-span-${colSpan[cell.column.id]} border-[1px]`}
                     >
                       {cell.render("Cell")}
                     </td>

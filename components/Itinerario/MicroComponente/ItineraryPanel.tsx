@@ -21,6 +21,7 @@ import { OptionsSelect, Task, Itinerary } from "../../../utils/Interfaces"
 import { SubHeader } from "./SubHeader";
 import { ViewItinerary } from "../../../pages/invitados";
 import FormTask from "../../Forms/FormTask";
+import { getStorage, ref, listAll, deleteObject } from "firebase/storage";
 
 interface props {
     itinerario: Itinerary
@@ -57,6 +58,8 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
     const [modalPlantilla, setModalPlantilla] = useState(false)
     const [view, setView] = useState<ViewItinerary>(window.innerWidth > window.innerHeight ? "table" : "cards")
     const [showEditTask, setShowEditTask] = useState<EditTastk>({ state: false })
+    const [selectTask, setSelectTask] = useState<string>()
+    const storage = getStorage();
 
     const optionsItineraryButtonBox: OptionsSelect[] = [
         {
@@ -89,7 +92,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
             value: "delete",
             icon: <MdOutlineDeleteOutline className="w-5 h-5" />,
             title: "borrar",
-            onClick: () => disable ? ht() : deleteTask()
+            onClick: (values: Task, itinerario: Itinerary) => { disable ? ht() : deleteTask(values, itinerario) }
         }
     ]
 
@@ -115,32 +118,52 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
         }
     }, [itinerario, event])
 
-    const deleteTask = async () => {
+    const deleteTask = async (values: Task, itinerario: Itinerary) => {
         try {
+            const storageFolderRef = ref(storage, `${values?._id}`)
+            listAll(storageFolderRef)
+                .then(listAllFiles => {
+                    listAllFiles.items.forEach(async (itemRef) => {
+                        await deleteObject(itemRef)
+                    });
+                })
             await fetchApiEventos({
                 query: queries.deleteTask,
                 variables: {
                     eventID: event._id,
                     itinerarioID: itinerario._id,
-                    taskID: "task._id",
+                    taskID: values._id,
                 },
                 domain: config.domain
             })
-            setEvent((old) => {
-                const f1 = old.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
-                const f2 = old.itinerarios_array[f1].tasks.findIndex(elem => elem._id === "task._id")
-                old.itinerarios_array[f1].tasks.splice(f2, 1)
-                return { ...old }
-            })
+            const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
+            const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === values._id)
+            event.itinerarios_array[f1].tasks.splice(f2, 1)
+            setEvent({ ...event })
             toast("success", t("activitydeleted"));
         } catch (error) {
-            console.log(error)
+            console.log(1000501, error)
         }
     }
 
-    useEffect(() => {
-        console.log(100031, showEditTask)
-    }, [showEditTask])
+    async function deleteFolder(folderPath) {
+        try {
+            // Crear una referencia a la carpeta
+            // const storageRef = ref(storage, `${task._id}//${elem.name}`)
+            // // const folderRef = storage.ref(folderPath);
+
+            // // Listar todos los objetos en la carpeta
+            // const listResult = await folderRef.listAll();
+            // listResult.items.forEach(async (itemRef) => {
+            //     // Eliminar cada objeto
+            //     await itemRef.delete();
+            // });
+
+            console.log('Carpeta eliminada exitosamente');
+        } catch (error) {
+            console.error('Error al eliminar la carpeta:', error);
+        }
+    }
 
     return (
         <>
@@ -171,6 +194,8 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
                                         ht={ht}
                                         view={view}
                                         optionsItineraryButtonBox={optionsItineraryButtonBox}
+                                        isSelect={selectTask === elem._id}
+                                        onClick={() => { setSelectTask(elem._id) }}
                                     />
                                 )
                             })}
@@ -190,11 +215,14 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
                                 showEditTask={showEditTask}
                                 setShowEditTask={setShowEditTask}
                                 optionsItineraryButtonBox={optionsItineraryButtonBox}
+                                selectTask={selectTask}
+                                setSelectTask={setSelectTask}
+                                itinerario={itinerario}
                             />
                         </div>
                     </div>
                 }
-                <AddEvent tasks={tasks} itinerario={itinerario} disable={disable} />
+                <AddEvent tasks={tasks} itinerario={itinerario} disable={disable} setSelectTask={setSelectTask} />
             </div>
             {modalStatus && <Modal set={setModalStatus} state={modalStatus} classe={"w-[95%] md:w-[450px] h-[370px]"}>
                 <WarningMessage setModal={setModalStatus} modal={modalStatus} title={t("visibility")} />

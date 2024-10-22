@@ -52,7 +52,7 @@ export const ResponsablesArry = [
 
 interface props extends InputHTMLAttributes<HTMLInputElement> {
     disable: boolean
-    handleChange: any
+    handleChange?: any
 }
 
 export const ResponsableSelector: FC<props> = ({ disable, handleChange, ...props }) => {

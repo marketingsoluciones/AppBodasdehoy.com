@@ -1,5 +1,5 @@
 import { Form, Formik } from "formik";
-import { FC } from "react";
+import { FC, HTMLAttributes } from "react";
 import { SelectIcon, ResponsablesArry } from ".";
 import { EventContextProvider } from "../../../context/EventContext";
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
@@ -14,17 +14,19 @@ import { getBytes, getMetadata, getStorage, ref } from "firebase/storage";
 import { Interweave, Markup } from "interweave";
 import { HashtagMatcher, UrlMatcher } from "interweave-autolink";
 import 'react-quill/dist/quill.snow.css'
+import { boolean } from "yup";
 
-interface props {
+interface props extends HTMLAttributes<HTMLDivElement> {
   itinerario: Itinerary
   task: Task
   disable: any
   ht: any
   view: ViewItinerary
   optionsItineraryButtonBox: OptionsSelect[]
+  isSelect: boolean
 }
 
-export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, optionsItineraryButtonBox }) => {
+export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, optionsItineraryButtonBox, isSelect, ...props }) => {
   const { config, geoInfo } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
   const toast = useToast()
@@ -95,7 +97,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, option
       {({ values }) => {
         return (
           <Form className="w-full">
-            <div className="*bg-purple-500 flex w-full justify-center 2xl:px-36 items-stretch text-gray-800" >
+            <div className="*bg-purple-500 flex w-full justify-center 2xl:px-36 items-stretch text-gray-800" {...props} >
               {view === "schema" &&
                 <>
                   <div className="*bg-violet-300 flex w-[55%] md:w-[45%] lg:w-[40%] p-2 items-start justify-start border-t-[1px] border-r-[1px] border-primary border-dotted relative">
@@ -134,7 +136,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, option
                   </div>
                 </>}
               {view === "cards" &&
-                <div className="bg-gray-100 w-full rounded-lg mx-2 my-1 flex p-2">
+                <div className={`${isSelect ? "border-gray-300" : "border-gray-100"} border-2 box-content bg-gray-100 w-full rounded-lg mx-2 my-1 flex p-2`}>
                   <div className="bg-white w-12 h-12 md:w-16 md:h-16 md:min-w-16 flex items-center justify-center rounded-full border-[1px] border-gray-300">
                     <SelectIcon name="icon" className="" handleChange={handleBlurData} disable={disable} ht={ht} />
                   </div>
@@ -177,7 +179,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, option
                         )}
                       </p>
                     </div>
-                    <ItineraryButtonBox optionsItineraryButtonBox={optionsItineraryButtonBox} values={values} />
+                    <ItineraryButtonBox optionsItineraryButtonBox={optionsItineraryButtonBox} values={values} itinerario={itinerario} />
                   </div>
                 </div>
               }
