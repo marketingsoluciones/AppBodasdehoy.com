@@ -34,6 +34,8 @@ interface guestsExt extends guests {
     tableNameRecepcion: Partial<table>
     tableNameCeremonia: Partial<table>
 }
+
+
 interface handleMoveGuest {
     event: Event
     setEvent: any
@@ -55,8 +57,8 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ Conditiona
     const [data, setData] = useState<{ titulo: string; data: guestsExt[] }[]>([]);
     const [modal, setModal] = useState({ state: false, title: null, handle: () => { } })
     const [showCards, setShowCards] = useState({})
-    const toast = useToast()
     const [isAllowed, ht] = useAllowed()
+
 
     const handleShowCards = (itemTitle) => {
         setShowCards((prevState) => ({
@@ -108,7 +110,6 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ Conditiona
         Data && setData(Object.values(Data));
     }, [allFilterGuests, event]);
 
-    console.log(88888, event?.invitados_array)
 
     return (
         <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full pt-2 pb-28 mb-32  relative" >
@@ -250,10 +251,9 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
     const router = useRouter();
     const toast = useToast()
     const [isAllowed] = useAllowed()
-    const GuestsByFather: guestsExt = event?.invitados_array?.filter((invitado) => invitado?.father === acompañanteID.id)
+    const GuestsByFather = event?.invitados_array?.filter((invitado) => invitado?.father === acompañanteID.id)
     const { t } = useTranslation()
     const link = `${window?.location?.origin}?pGuestEvent=${idGuest}${event._id?.slice(3, 9)}${event._id}`
-    console.log(">>>", guestData)
 
 
     useEffect(() => {
@@ -460,6 +460,7 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
         setLoading(true);
     }, [value3]);
 
+    console.log(4444, idGuest)
 
     return (
         <>
@@ -610,14 +611,7 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                                                                 {item?.title}
                                                                             </li>
                                                                         )
-                                                                    } else {
-                                                                        return (
-                                                                            <li className={`${(value2?._id === item._id || (!value2?._id && !item._id)) && "bg-gray-200"} cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize`}>
-                                                                                sin mesas disponibles
-                                                                            </li>
-                                                                        )
-                                                                    }
-
+                                                                    } 
                                                                 })}
                                                             <li
                                                                 className=" cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
@@ -783,7 +777,6 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                         setEvent={setEvent}
                                         idGuest={showModalAcompañante2.id}
                                         showModalAcompañante2={showModalAcompañante2}
-                                        father={item.nombre}
                                         idFather={item._id}
                                         passesQuantity={item?.passesQuantity}
 
@@ -800,18 +793,83 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
     )
 }
 
-export const AcompañantesCard = ({ passesQuantity, idFather, father, showModalAcompañante2, GuestsByFather, image, showModalAsistenci, setShowModalAsistenci, setValue3, ListaState, dicc, showModalMenu, setShowModalMenu, event, setValue, value, toggleVisibility, showModalRecepcion, setShowModalRecepcion, value2, setValue2, showModalCeremonia, setShowModalCeremonia, show, setShow, ListaOption, setModal, toast, setEvent, idGuest }) => {
+
+interface propsAcompañantesCard {
+    passesQuantity: any
+    idFather: any
+    showModalAcompañante2: any
+    image: any
+    showModalAsistenci: any
+    setShowModalAsistenci: any
+    setValue3: any
+    ListaState: any
+    dicc: any
+    showModalMenu: any
+    setShowModalMenu: any
+    event: any
+    setValue: any
+    value: any
+    toggleVisibility: any
+    showModalRecepcion: any
+    setShowModalRecepcion: any
+    value2: any
+    setValue2: any
+    showModalCeremonia: any
+    setShowModalCeremonia: any
+    show: any
+    setShow: any
+    ListaOption: any
+    setModal: any
+    toast: any
+    setEvent: any
+    idGuest: any
+    GuestsByFather: guestsExt[]
+}
+
+export const AcompañantesCard: FC<propsAcompañantesCard> = ({ passesQuantity, idFather, showModalAcompañante2, GuestsByFather, image, showModalAsistenci, setShowModalAsistenci, setValue3, ListaState, dicc, showModalMenu, setShowModalMenu, event, setValue, value, toggleVisibility, showModalRecepcion, setShowModalRecepcion, value2, setValue2, showModalCeremonia, setShowModalCeremonia, show, setShow, ListaOption, setModal, toast, setEvent, idGuest }) => {
+    const { allFilterGuests } = EventContextProvider();
     const [isAllowed, ht] = useAllowed()
     const router = useRouter();
     const { t } = useTranslation()
-    
+    const [data, setData] = useState<{ titulo: string; data: guestsExt[] }[]>([]);
+
+
+    useEffect(() => {
+        let asd = {}
+        for (let i = 0; i < event?.grupos_array?.length; i++) {
+            asd = { ...asd, [event?.grupos_array[i]]: { titulo: event?.grupos_array[i], data: [] } }
+        }
+        const tablesRecepcion = event?.planSpace.find(elem => elem?.title === "recepción")?.tables
+        const tablesCeremonia = event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables
+        const Data = GuestsByFather.reduce((acc, item: guestsExt) => {
+            const guestRecepcion = allFilterGuests[0]?.sentados.find(elem => elem._id === item._id)
+            const guestCeremonia = allFilterGuests[1]?.sentados.find(elem => elem._id === item._id)
+            const tableRecepcion = tablesRecepcion?.find(elem => elem._id === guestRecepcion?.tableID)
+            const tableCeremonia = tablesCeremonia?.find(elem => elem._id === guestCeremonia?.tableID)
+            item.chairs = [
+                { planSpaceName: "recepción", chair: guestRecepcion?.chair, table: tableRecepcion },
+                { planSpaceName: "ceremmonia", chair: guestCeremonia?.chair, table: tableCeremonia },
+            ]
+            item.tableNameRecepcion = tableRecepcion?.title ? tableRecepcion : { title: "no asignado" }
+            item.tableNameCeremonia = tableCeremonia?.title ? tableCeremonia : { title: "no asignado" }
+
+            if (event?.grupos_array?.includes(item?.rol)) {
+                acc[item.rol] = { titulo: item.rol, data: acc[item.rol]?.data ? [...acc[item.rol]?.data, item] : [item] }
+            } else {
+                acc["no asignado"] = { titulo: "no asignado", data: acc["no asignado"]?.data ? [...acc["no asignado"]?.data, item] : [item] }
+            }
+            return acc;
+        }, asd);
+        Data && setData(Object.values(Data));
+    }, [allFilterGuests, event]);
+
     return (
         <>
 
             {
                 showModalAcompañante2.state && GuestsByFather.length > 0 && <div className="border-l border-b border-dotted border-primary rounded-l-lg rounded-t-none ml-2 -mt-3 pl-1 py-2 space-y-1 ">
                     {
-                        GuestsByFather?.map((item, idx) => {
+                        GuestsByFather?.map((item: guestsExt, idx) => {
                             console.log("--------->", item)
                             return (
                                 <div key={idx}  >
@@ -918,7 +976,7 @@ export const AcompañantesCard = ({ passesQuantity, idFather, father, showModalA
                                             <div className="items-center col-span-2  grid grid-cols-2 py-1 relative">
                                                 <p className="font-semibold text-[12px] ">Mesa Recepción :</p>
                                                 <div onClick={() => !isAllowed() ? null : toggleVisibility("recepcion", item._id, item.tableNameRecepcion)} className="flex items-center justify-between">
-                                                    <p className=" font-body text-[12px] pl-2"> {item.nombre_mesa}</p>
+                                                    <p className=" font-body text-[12px] pl-2"> {item.tableNameRecepcion.title}</p>
                                                     <div className="pl-2">
                                                         <ArrowDown className="h-2 w-2" />
                                                     </div>
@@ -947,7 +1005,7 @@ export const AcompañantesCard = ({ passesQuantity, idFather, father, showModalA
                                                                                             if (value2?._id || item?._id) {
                                                                                                 if (value2?._id !== item?._id) {
                                                                                                     setValue2(item.title);
-                                                                                                    handleMoveGuest({ t, invitadoID: idGuest, previousTable: value2, lastTable: table, f1, event, setEvent, toast })
+                                                                                                    handleMoveGuest({ t, invitadoID:idGuest, previousTable: value2, lastTable: table, f1, event, setEvent, toast })
                                                                                                 }
                                                                                             }
                                                                                         }}
@@ -989,17 +1047,17 @@ export const AcompañantesCard = ({ passesQuantity, idFather, father, showModalA
                                                                     {[
                                                                         { _id: null, title: "No Asignado" },
                                                                         ...event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables]?.map((elem: any, index) => {
-                                                                            /* if (elem?.guests?.length < elem?.numberChair || value?._id === elem?._id || !elem?._id) { */
+                                                                            if (elem?.guests?.length < elem?.numberChair || value2?._id === elem?._id || !elem?._id) {
                                                                             return (
                                                                                 <li
                                                                                     key={index}
-                                                                                    className={`${(/* value._id === elem._id ||  */(/* !value._id && */ !elem._id)) && "bg-gray-200"} cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize`}
+                                                                                    className={`${(value2._id === elem._id || (!value2._id && !elem._id)) && "bg-gray-200"} cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize`}
                                                                                     onClick={() => {
                                                                                         const f1 = event?.planSpace.findIndex(elem => elem?.title === "ceremonia")
                                                                                         const table = event.planSpace[f1]?.tables.find(el => el._id === elem._id)
                                                                                         setShowModalCeremonia(false);
-                                                                                        if (/* value?._id || */ elem?._id) {
-                                                                                            if (/* value?._id !== */ elem?._id) {
+                                                                                        if (value2?._id || elem?._id) {
+                                                                                            if (value2?._id !== elem?._id) {
                                                                                                 setValue(elem.title);
                                                                                                 handleMoveGuest({ t, invitadoID: idGuest, previousTable: value2, lastTable: table, f1, event, setEvent, toast })
                                                                                             }
@@ -1009,7 +1067,7 @@ export const AcompañantesCard = ({ passesQuantity, idFather, father, showModalA
                                                                                     {elem?.title}
                                                                                 </li>
                                                                             )
-                                                                            /* } */
+                                                                            }
                                                                         })}
                                                                     <li
                                                                         className=" cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
