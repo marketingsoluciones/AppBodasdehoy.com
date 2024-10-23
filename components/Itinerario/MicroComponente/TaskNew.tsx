@@ -185,6 +185,18 @@ export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, option
                         )}
                       </p>
                     </div>
+                    <div className="mb-2">
+                      <span>
+                        Etiquetas:
+                      </span>
+                      <p className="bg-white p-2 text-gray-900 leading-[1] space-y-1">
+                        {values?.tags?.map((elem, idx) =>
+                          <span key={idx} onClick={() => { handleDownload(elem) }} className="inline-flex mr-2 md:mr-3 items-center border-[1px] border-gray-400 px-1 pt-[1px] pb-[2px] rounded-md">
+                            {elem}
+                          </span>
+                        )}
+                      </p>
+                    </div>
                     <ItineraryButtonBox optionsItineraryButtonBox={optionsItineraryButtonBox} values={values} itinerario={itinerario} />
                   </div>
                 </div>
