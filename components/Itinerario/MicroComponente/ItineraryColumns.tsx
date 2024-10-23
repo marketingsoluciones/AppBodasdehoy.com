@@ -20,6 +20,8 @@ import { useAllowed } from "../../../hooks/useAllowed";
 import { CgSoftwareDownload } from "react-icons/cg";
 import { getBytes, getMetadata, getStorage, ref } from "firebase/storage";
 import { Itinerary } from "../../../utils/Interfaces";
+import { event } from "../../../gtas";
+import { EventContextProvider } from "../../../context";
 
 interface props {
   data?: any[],
@@ -72,6 +74,7 @@ const resolveCell = ({ data, justifyCenter }: propsCell) => {
 }
 
 export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reenviar = true, activeFunction, setModalStatus, modalStatus, setModalWorkFlow, modalWorkFlow, setModalCompartirTask, modalCompartirTask, deleteTask, showEditTask, setShowEditTask, optionsItineraryButtonBox, selectTask, setSelectTask, itinerario }) => {
+  const { event } = EventContextProvider()
   const { t } = useTranslation();
   const [arrEnviarInvitaciones, setArrEnviatInvitaciones] = useState([])
   const [isAllowed, ht] = useAllowed()
@@ -130,26 +133,22 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
           </div>
         )
       },
-      // {
-      //   Header: t("hora"),
-      //   accessor: "hora",
-      //   id: "time",
-      //   Cell: (data) => (
-      //     <div className="flex w-full justify-center">
-      //       {data.cell.value}
-      //     </div>
-      //   )
-      // },
       {
         Header: t("responsables"),
         accessor: "responsable",
         id: "responsables",
-        Cell: (data) => (
+        Cell: (data) =>
           <div key={data.cell.row.id} className="w-full">
             {data?.cell?.value?.map((elem, idx) => {
               return (
                 <span key={idx} className="inline-flex items-center space-x-1">
-                  <img alt={elem} src={ResponsablesArry.find(el => el.title.toLowerCase() === elem?.toLowerCase())?.icon} className="w-6 h-6" />
+                  <img alt={elem} src={
+                    ResponsablesArry.find(el => {
+                      return el.title.toLowerCase() === elem?.toLowerCase()
+                    })?.icon ?? event.detalles_compartidos_array.find(el => {
+                      return el?.displayName.toLowerCase() === elem?.toLowerCase()
+                    }).photoURL
+                  } className="w-6 h-6 rounded-full border-[1px] border-gray-300" />
                   <span>
                     {elem}
                   </span>
@@ -157,7 +156,6 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
               )
             })}
           </div>
-        )
       },
       {
         Header: t("tips"),

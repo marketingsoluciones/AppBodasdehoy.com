@@ -1,30 +1,21 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useState } from "react";
 import { useRowSelect, useSortBy, useTable } from "react-table";
-import { IndeterminateCheckbox } from "../../Invitaciones/IndeterminateCheckbox";
-import { DataTableGroupContextProvider } from "../../../context/DataTableGroupContext";
 import { useTranslation } from 'react-i18next';
 
-export const ItineraryTable: FC<any> = ({ columns, data = [], multiSeled = false, setArrEnviatInvitaciones, reenviar, activeFunction, selectTask, setSelectTask }) => {
+export const ItineraryTable: FC<any> = ({ columns, data = [], selectTask, setSelectTask }) => {
   const { t } = useTranslation();
-  const [valir, setValir] = useState(false)
-  const [asd, setAsd] = useState({ arrIDs: undefined, getToggleAllRowsSelectedProps: undefined })
 
-
-  const { getTableProps, getTableBodyProps, headerGroups, prepareRow, allColumns, rows } =
+  const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows } =
     useTable({ columns, data }, useSortBy, useRowSelect, (hooks) => {
       hooks.visibleColumns.push((columns) => [
         ...columns,
-
       ]);
     });
-
-
 
   const colSpan = {
     description: 10,
     duration: 3,
     date: 5,
-    // time: 2,
     responsables: 6,
     tips: 8,
     attachments: 9,
@@ -32,19 +23,9 @@ export const ItineraryTable: FC<any> = ({ columns, data = [], multiSeled = false
     selection: 2
   };
 
-
   return (
     <div className="relative">
       <div className="col-span-2 col-span-3 col-span-4 col-span-5 col-span-6 col-span-7 col-span-8 col-span-9 col-span-10" />
-      {multiSeled &&
-        <div className=" flex justify-between py-3 ml-[52px] w-auto pr-5 relative">
-          {/* <button
-            disabled={!valir}
-            onClick={() => { setArrEnviatInvitaciones(asd?.arrIDs) }}
-            className={`focus:outline-none ${valir ? "hover:opacity-70 transition bg-primary" : "bg-gray-300"} text-white py-1 px-2 rounded-lg text-center text-[10px] md:text-sm capitalize`}>
-            {reenviar ? t("reenviar") : t("enviar")}
-          </button> */}
-        </div>}
       <table
         {...getTableProps()}
         className="table-auto border-collapse w-full rounded-lg relative p-4">
@@ -76,7 +57,6 @@ export const ItineraryTable: FC<any> = ({ columns, data = [], multiSeled = false
             )
           })}
         </thead>
-
         <tbody {...getTableBodyProps()} className="text-gray-700 text-xs">
           {rows.length >= 1 ? rows.map((row, i) => {
             prepareRow(row);
@@ -101,10 +81,9 @@ export const ItineraryTable: FC<any> = ({ columns, data = [], multiSeled = false
               </tr>
             );
           }) : <tr className="transition border-b border-base hover:bg-base cursor-pointer w-full grid place-items-center">
-            <td className="bg-redpy-5 font-display text-lg text-gray-500 uppercase ">{t("noguestsevent")}</td></tr>}
+            <td className="bg-redpy-5 font-display text-lg text-gray-500 uppercase "></td></tr>}
         </tbody>
       </table>
-
     </div>
   );
 };

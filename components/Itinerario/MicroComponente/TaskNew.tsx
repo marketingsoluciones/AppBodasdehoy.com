@@ -156,7 +156,13 @@ export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, option
                       <p className="text-gray-900 leading-[0.8]">
                         {values?.responsable?.map((elem, idx) =>
                           <span key={idx} className="inline-flex ml-2 items-center">
-                            <img alt={elem} src={ResponsablesArry.find(el => el.title.toLowerCase() === elem?.toLowerCase())?.icon} className="w-6 h-6" />
+                            <img alt={elem} src={
+                              ResponsablesArry.find(el => {
+                                return el.title.toLowerCase() === elem?.toLowerCase()
+                              })?.icon ?? event.detalles_compartidos_array.find(el => {
+                                return el?.displayName.toLowerCase() === elem?.toLowerCase()
+                              }).photoURL
+                            } className="w-6 h-6 rounded-full border-[1px] border-gray-300" />
                             <span>
                               {elem}
                             </span>

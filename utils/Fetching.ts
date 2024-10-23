@@ -268,6 +268,14 @@ export const queries = {
       tags
       tips
       estatus
+      attachments{
+            _id
+            name
+            url
+            size
+            createdAt
+            updatedAt
+          }
       fecha_creacion
     }
   }`,
@@ -311,6 +319,14 @@ export const queries = {
           tags
           tips
           estatus
+          attachments{
+            _id
+            name
+            url
+            size
+            createdAt
+            updatedAt
+          }
           fecha_creacion
         }
         estatus

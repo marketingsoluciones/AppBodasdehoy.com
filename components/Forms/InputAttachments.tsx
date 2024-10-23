@@ -35,14 +35,13 @@ const InputAttachments: FC<Partial<props>> = ({ label, task, itinerarioID, class
 
   const handleOnChange = (e: ChangeEvent<HTMLInputElement>) => {
     try {
-      console.log(100061, e.target.files)
       const files = [...Array.from(e.target.files)]
       let attachments: FileData[] = [...field.value, ...files.map((elem: File): FileData => { return { _id: undefined, name: elem.name, size: elem.size } })]
       helpers.setValue([...attachments])
       files.map((elem) => {
         const storageRef = ref(storage, `${task._id}//${elem.name}`)
         uploadBytesResumable(storageRef, elem)
-          .then(result => {
+          .then(() => {
             const f1a = attachments.findIndex((el: FileData) => el.name === elem.name)
             attachments[f1a]._id = customAlphabet('1234567890abcdef', 24)()
             fetchApiEventos({
@@ -51,8 +50,8 @@ const InputAttachments: FC<Partial<props>> = ({ label, task, itinerarioID, class
                 eventID: event._id,
                 itinerarioID,
                 taskID: task._id,
-                variable: "attachments",
-                valor: JSON.stringify(attachments)
+                variable: "all",
+                valor: JSON.stringify({ ...task, attachments })
               },
               domain: config.domain
             })
@@ -84,8 +83,8 @@ const InputAttachments: FC<Partial<props>> = ({ label, task, itinerarioID, class
         eventID: event._id,
         itinerarioID,
         taskID: task._id,
-        variable: "attachments",
-        valor: JSON.stringify(field.value)
+        variable: "all",
+        valor: JSON.stringify({ ...task, attachments: field.value })
       },
       domain: config.domain
     }).then(() => {
