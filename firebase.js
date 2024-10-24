@@ -6,6 +6,7 @@ const firebaseConfigBodas = {
   apiKey: "AIzaSyDVMoVLWWvolofYOcTYA0JZ0QHyng72LAM",
   authDomain: "bodasdehoy-1063.firebaseapp.com",
   projectId: "bodasdehoy-1063",
+  storageBucket: "bodasdehoy-1063.appspot.com",
   messagingSenderId: "593952495916",
   appId: "1:593952495916:web:c63cf15fd16a6796f6f489",
   measurementId: "G-GWQ17NF2YR",
@@ -31,6 +32,7 @@ const firebaseConfigVivetuboda = {
   apiKey: "AIzaSyCkj2D1mO-jdMUDwAQVL7tXCGuNusT5ubc",
   authDomain: "vivetuboda-l.firebaseapp.com",
   projectId: "vivetuboda-l",
+  storageBucket: "vivetuboda-l.appspot.com",
   messagingSenderId: "209046290590",
   appId: "1:209046290590:web:db0fbe47c3963ddd143b8f",
   measurementId: "G-PTQM1HELZC"
