@@ -154,7 +154,7 @@ const Navigation: FC = () => {
         <div className={`${urls.includes(url) ? "hidden" : "block"}`}>
           <div className={`w-full h-20 hidden md:flex bg-base justify-center items-start`}>
             <Tooltip label={t("Primero debes crear un evento")} icon={<IconLightBulb16 className="w-6 h-6" />} disabled={!!event?._id}>
-              <div style={{ width, height }} className="absolute z-50 px-16 flex justify-center">
+              <div style={{ width, height }} className="absolute *z-50 px-16 flex justify-center">
                 <div className="flex w-full h-full justify-center items-center">
                   <ul className="flex w-full h-max justify-between">
                     {Navbar.map((item, idx) => (
