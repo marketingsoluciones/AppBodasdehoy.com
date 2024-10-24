@@ -5,8 +5,10 @@ import { EventContextProvider, AuthContextProvider } from "../../context";
 import { getCurrency } from "../../utils/Funciones";
 import { capitalize } from '../../utils/Capitalize';
 import { useAllowed } from "../../hooks/useAllowed";
+import { useTranslation } from 'react-i18next';
 
 const CellEdit = (props) => {
+  const { t } = useTranslation();
   const { event, setEvent } = EventContextProvider()
   const [edit, setEdit] = useState(false);
   const [mask, setMask] = useState(0);

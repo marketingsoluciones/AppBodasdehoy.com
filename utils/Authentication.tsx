@@ -7,6 +7,7 @@ import { fetchApiBodas, queries } from "./Fetching";
 import { useToast } from "../hooks/useToast";
 import { PhoneNumberUtil } from 'google-libphonenumber';
 import { useActivity } from "../hooks/useActivity";
+import { useTranslation } from "react-i18next";
 
 export const phoneUtil = PhoneNumberUtil.getInstance();
 
@@ -29,6 +30,7 @@ export const useAuthentication = () => {
   const toast = useToast();
   const [updateActivity, updateActivityLink] = useActivity();
   const router = useRouter();
+  const { t } = useTranslation()
 
   const isPhoneValid = (phone: string) => {
     try {
@@ -75,7 +77,7 @@ export const useAuthentication = () => {
         setLoading(false);
         const er = error.toString().split(".")[0].split(": Error ")[1]
         if (er == "(auth/account-exists-with-different-credential)") {
-          toast("error", "El correo asociado a su provedor ya se encuentra registrado en bodasdehoy.com");
+          toast("error", `${"duplicateemail"} ${config?.domain}`);
         }
       }
     },
@@ -124,7 +126,7 @@ export const useAuthentication = () => {
               if (sessionCookie) { }
               // Actualizar estado con los dos datos
               setUser({ ...res.user, ...moreInfo })
-              toast("success", `Inicio sesión con éxito`)
+              toast("success", t("Inició sesión con éxito"))
               updateActivity("logged")
               updateActivityLink("logged")
               router.push("/")
@@ -140,7 +142,7 @@ export const useAuthentication = () => {
                 }).then(async () => {
                   await getSessionCookie(idToken)
                   setUser({ ...res.user, role: [whoYouAre] });
-                  toast("success", `Registro sesión con éxito`)
+                  toast("success", t("Registro realizado con éxito"))
                   updateActivity("registered")
                   updateActivityLink("registered")
                   router.push("/")
@@ -148,8 +150,6 @@ export const useAuthentication = () => {
                 })
               } else {
                 setStage("register")
-                /*  toast("error", `${res?.user?.email} no está registrado`)
-                 toast("success", `Haz click en Regístrate`) */
               }
             }
           })
@@ -158,20 +158,17 @@ export const useAuthentication = () => {
         const errorCode: string = error?.code ? error.code : error?.message
         switch (errorCode) {
           case "auth/too-many-requests":
-            toast("error", "usuario o contraseña inválida");
+            toast("error", t("usuario o contraseña inválida"));
             break;
           case "user does not exist into events bd":
-            toast("error", "debes estar invitado a un evento para poder ingresar");
-            break;
-          case "user does not exist into events bd":
-            toast("error", "debes estar invitado a un evento para poder ingresar");
+            toast("error", t("debes estar invitado a un evento para poder ingresar"));
             break;
           default:
             break;
         }
 
 
-        toast("error", "usuario o contraseña inválida");
+        toast("error", t("usuario o contraseña inválida"));
         console.log("error", error)
         console.log("errorCode", error?.code ? error.code : error?.message)
       }
@@ -192,13 +189,13 @@ export const useAuthentication = () => {
       try {
         await sendPasswordResetEmail(getAuth(), values?.identifier);
         setStage("login")
-        toast("success", "Se ha enviado un correo electrónico para restablecer tu contraseña")
+        toast("success", t("resetpassword"))
       } catch (error) {
-        toast("error", "Error, email no encontrado")
+        toast("error", t("Error, email no encontrado"))
         console.log(error);
       }
     } else {
-      toast("error", "introduce un correo")
+      toast("error", t("introduce un correo"))
     }
   };
 

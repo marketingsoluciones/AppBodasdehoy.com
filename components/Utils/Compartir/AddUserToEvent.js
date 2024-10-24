@@ -5,8 +5,10 @@ import { useEffect, useState } from "react"
 import { fetchApiBodas, fetchApiEventos, queries } from "../../../utils/Fetching"
 import { useToast } from "../../../hooks/useToast"
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../../context"
+import { useTranslation } from "react-i18next"
 
 export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
+    const { t } = useTranslation()
     const toast = useToast();
     const { config } = AuthContextProvider()
     const { setEvent } = EventContextProvider()
@@ -56,9 +58,9 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
             setEventsGroup([...eventsGroup])
             setEvent({ ...eventsGroup[f1] })
             // falta setear evento
-            toast("success", "Evento fue compartido con exito ");
+            toast("success", t("Evento fue compartido con éxito"));
         } catch (error) {
-            toast("error", "Ha ocurrido un error al compartir el evento");
+            toast("error", t("Ha ocurrido un error al compartir el evento"));
             console.log(error)
         }
     }
@@ -83,7 +85,7 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
                 <ClickAwayListener onClickAway={() => openModal && setOpenModal(false)} >
                     <div className="h-full py-5 flex flex-col">
                         <div className="flex justify-between border-b pb-1 text-[20px] mx-4">
-                            <div className="cursor-default font-semibold text-primary capitalize"> Compartir evento</div>
+                            <div className="cursor-default font-semibold text-primary capitalize"> {t("shareevent")}</div>
                             <div className="cursor-pointer font-semibold text-gray-600 -translate-y-3" onClick={() => setOpenModal(!openModal)}>x</div>
                         </div>
                         <div className="flex flex-col relative space-y-4 pt-3 flex-1 overflow-auto px-2 md:px-8">
@@ -99,8 +101,8 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
                                 <div className="flex">
                                     <div className="flex-1" />
                                     {users.length
-                                        ? <button onClick={() => users?.length && handleSubmit()} className={`bg-primary text-white rounded-lg px-5 py-2 h-10`}>Guardar</button>
-                                        : <button onClick={() => valir && setOpenModal(!openModal)} className={`${valir ? "bg-primary" : "bg-gray-300"} text-white rounded-lg px-5 py-2 h-10`}>Hecho</button>
+                                        ? <button onClick={() => users?.length && handleSubmit()} className={`bg-primary text-white rounded-lg px-5 py-2 h-10 capitalize`}>{t("save")}</button>
+                                        : <button onClick={() => valir && setOpenModal(!openModal)} className={`${valir ? "bg-primary" : "bg-gray-300"} text-white rounded-lg px-5 py-2 h-10 capitalize`}>{t("done")}</button>
 
                                     }
                                 </div>

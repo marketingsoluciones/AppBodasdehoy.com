@@ -10,6 +10,7 @@ import { fetchApiEventos, queries } from '../../utils/Fetching';
 import { EventContextProvider } from "../../context";
 import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
+import { useTranslation } from 'react-i18next';
 
 interface propsInsideBlock extends schemaItem {
   setSelected?: Dispatch<
@@ -28,6 +29,7 @@ const InsideBlockWithButtons: FC<propsInsideBlock> = ({
 }) => {
   const toast = useToast()
   const { event, setEvent } = EventContextProvider()
+  const { t } = useTranslation();
   return (
     <div className="w-full flex items-center gap-2 ">
       {list.map((item, idx) => (
@@ -43,10 +45,10 @@ const InsideBlockWithButtons: FC<propsInsideBlock> = ({
               setEvent({ ...event, [title]: item.title })
               setFieldValue(title, item)
               setEditing(false)
-              toast("success", "Guardado con exito")
+              toast("success", t("Guardado con éxito"))
             } catch (error) {
               console.log(error)
-              toast("error", "Ha ocurrido un error")
+              toast("error", t("Ha ocurrido un error"))
             }
           }}
         />
@@ -56,6 +58,7 @@ const InsideBlockWithButtons: FC<propsInsideBlock> = ({
 };
 
 const InsideBlockWithForm: FC<propsInsideBlock> = ({ setEditing, setFieldValue, title, values }) => {
+  const { t } = useTranslation();
   const { event, setEvent } = EventContextProvider()
   return (
     <div className="px-5">
@@ -80,8 +83,8 @@ const InsideBlockWithForm: FC<propsInsideBlock> = ({ setEditing, setFieldValue, 
         <Form className="w-full">
           <InputField
             name={"title"}
-            placeholder={"Escribe tu tematica"}
-            label={"Tématica del evento"}
+            placeholder={t("writeyourtheme")}
+            label={t("eventtheme")}
           />
         </Form>
       </Formik>
@@ -95,13 +98,14 @@ const ElementItemInsideBlock: FC<{
   onClick: MouseEventHandler<HTMLButtonElement>;
   icon: any;
 }> = ({ title, color, onClick, icon }) => {
+  const { t } = useTranslation()
   return (
     <button
       className="bg-white w-full h-full p-3 rounded-3xl flex flex-col items-center justify-center gap-1 transform transition hover:scale-105 focus:outline-none"
       onClick={onClick}
     >
       {icon && cloneElement(icon, { className: `${color} w-8 h-8` })}
-      <p className={`text-gray-500 font-display text-sm`}>{title}</p>
+      <p className={`text-gray-500 font-display text-sm`}>{t(title)}</p>
     </button>
   );
 };
@@ -110,7 +114,11 @@ interface schemaItem {
   title: string;
   list: { title: string; color: string; icon: any }[] | null;
 }
+/* 
+const { t } = useTranslation(); */
+
 const schema: schemaItem[] = [
+
   {
     title: "color",
     list: [
@@ -157,7 +165,7 @@ interface values {
   temporada: typeEvent,
   estilo: typeEvent,
   tarta: typeEvent,
-  tematica: typeEvent,
+  temática: typeEvent,
 }
 
 interface typeEvent {
@@ -167,6 +175,7 @@ interface typeEvent {
 }
 
 const BlockSobreMiEvento: FC = () => {
+  const { t } = useTranslation();
   const { event } = EventContextProvider()
   const [values, setValues] = useState<values | {}>({});
   const [isMounted, setIsMounted] = useState<boolean>(false);
@@ -237,8 +246,8 @@ const BlockSobreMiEvento: FC = () => {
             ))}
         </ModalBottom>
       )}
-      <h2 className="font-display text-xl font-semibold text-gray-500 pb-2 text-left">
-        Sobre mi evento
+      <h2 className="font-display text-xl font-semibold text-gray-500 pb-2 text-left first-letter:capitalize">
+        {t("aboutmyevent")}
       </h2>
       <Swiper
         pagination={{ clickable: true }}
@@ -272,6 +281,7 @@ interface propsElement extends schemaItem {
 }
 
 const AboutItem: FC<propsElement> = ({ title, value, toggleClick }) => {
+  const { t } = useTranslation();
   const [isAllowed, ht] = useAllowed()
 
 
@@ -290,10 +300,10 @@ const AboutItem: FC<propsElement> = ({ title, value, toggleClick }) => {
         )}
         <span className="leading-4 text-center">
           <p className="font-display font-light md:text-md text-gray-500">
-            {title && capitalize(title)}
+            {title && capitalize(t(title))}
           </p>
           <p className={'font-display font-base text-xs md:text-sm text-gray-700 font-semibold'}>
-            {value?.title && value.title.length > 10 ? value?.title && value.title.substring(0, 10) + "..." : value?.title && value.title}
+            {t(value?.title) && t(value.title).length > 10 ? t(value?.title) && t(value.title).substring(0, 10) + "..." : t(value?.title) && t(value.title)}
           </p>
         </span>
       </button>

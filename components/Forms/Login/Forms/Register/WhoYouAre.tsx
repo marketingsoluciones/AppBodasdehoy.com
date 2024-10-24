@@ -1,10 +1,11 @@
-
+import { useTranslation } from 'react-i18next';
 interface propsWhoYouAre {
   select: string
   setSelect: any
 }
 
 export const WhoYouAre = ({ select, setSelect }: propsWhoYouAre) => {
+  const { t } = useTranslation();
   type TypeOption = {
     title: string;
     icon: string;
@@ -28,7 +29,7 @@ export const WhoYouAre = ({ select, setSelect }: propsWhoYouAre) => {
           >
             <img src={item?.icon} alt={item?.title} className="object-contain" />
           </div>
-          <h2 className="text-gray-500 text-lg text-light">{item?.title}</h2>
+          <h2 className="text-gray-500 text-lg text-light">{t(item?.title)}</h2>
         </div>
       ))}
 

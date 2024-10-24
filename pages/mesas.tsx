@@ -28,11 +28,13 @@ import BlockPlantillas from "../components/Mesas/BlockPlantillas";
 import { useRouter } from "next/router";
 import BlockZonas from "../components/Mesas/BlockZonas";
 import { useAllowed } from "../hooks/useAllowed";
+import { useTranslation } from 'react-i18next';
 
 
 SwiperCore.use([Pagination]);
 
 const Mesas: FC = () => {
+  const { t } = useTranslation();
   const { forCms } = AuthContextProvider()
   const { event, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, setFilterGuests, allFilterGuests, setEditDefault } = EventContextProvider();
   const [values, setValues] = useState<any>({});
@@ -93,7 +95,7 @@ const Mesas: FC = () => {
           setCreaElement(false)
         })
       } catch (err) {
-        toast("error", "Ha ocurrido al añadir el objeto")
+        toast("error", t("Ha ocurrido un error al añadir el objeto"))
         console.log(err);
       }
     }
@@ -130,7 +132,7 @@ const Mesas: FC = () => {
       <>
         {/* formulario emergente para crear mesas */}
         {showFormCreateTable ? (
-          <ModalMesa set={setShowFormCreateTable} state={showFormCreateTable} title="Añadir mesa">
+          <ModalMesa set={setShowFormCreateTable} state={showFormCreateTable} title={t("addtable")}>
             <FormCrearMesa
               values={values}
               set={setShowFormCreateTable}
@@ -140,7 +142,7 @@ const Mesas: FC = () => {
         ) : null}
         {/* formulario emergente para editar mesas */}
         {showFormEditar.visible ? (
-          <ModalMesa set={setShowFormEditar} state={showFormEditar} title={`Mesa: "${showFormEditar.table.title}"`}>
+          <ModalMesa set={setShowFormEditar} state={showFormEditar} title={`${t("table")}: "${showFormEditar.table.title}"`}>
             <FormEditarMesa
               set={setShowFormEditar}
               state={showFormEditar}
@@ -223,9 +225,9 @@ const Mesas: FC = () => {
             <div className="w-full md:w-5/6">
               <div className="border-l-2 border-gray-100 pl-3 my-6 w-full ">
                 <h2 className="font-display text-2xl capitalize text-primary font-light">
-                  Editar <br />
+                  {t("edit")} <br />
                   <span className="font-display text-4xl capitalize text-gray-500 font-medium">
-                    Invitado
+                    {t("guest")}
                   </span>
                 </h2>
               </div>
@@ -243,7 +245,7 @@ const Mesas: FC = () => {
                 <div className="w-full h-96 grid place-items-center">
                   {" "}
                   <p className="font-display text-lg ">
-                    No hay invitado seleccionado
+                    {t("noguestselected")}
                   </p>
                 </div>
               )}

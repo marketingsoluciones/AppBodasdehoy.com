@@ -1,6 +1,8 @@
 import Banner from "./Banner"
+import { useTranslation } from 'react-i18next';
 
 export const FooterComponent = () => {
+  const { t } = useTranslation();
 
   return (
     <div className="w-full -translate-y-4">
@@ -10,7 +12,7 @@ export const FooterComponent = () => {
 
       <div className="w-full rounded-xl bg-secondary shadow-lg px-6">
         <p className=" font-display">
-          Encuentra a un diseñador para tu invitación
+          {t("findadesigner")}
         </p>
       </div>
 

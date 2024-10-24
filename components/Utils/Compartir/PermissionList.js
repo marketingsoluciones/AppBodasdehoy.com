@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { SelectPermissions } from "./SelectPermissions";
+import { useTranslation } from 'react-i18next';
 
-const DataModulos = ["resumen", "invitados", "mesas", "regalos", "presupuesto", "invitaciones","itinerario"]
+const DataModulos = ["resumen", "invitados", "mesas", "regalos", "presupuesto", "invitaciones", "itinerario"]
 
 export const PermissionList = ({ setPermissions, permissions, handleChange }) => {
+    const { t } = useTranslation();
     const [values, setValues] = useState(null)
 
     useEffect(() => {
@@ -20,7 +22,7 @@ export const PermissionList = ({ setPermissions, permissions, handleChange }) =>
 
     return (
         <div className="flex flex-col space-y-1 mb-5 md:mb-0 flex-1">
-            <p className="text-primary">Lista de Permisos</p>
+            <p className="text-primary">{t("permissionslist")}</p>
             <div className={`bg-gray-100 rounded-xl text-[15px] w-full border`}>
                 {permissions?.map((item, idx) => {
                     return (

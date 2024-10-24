@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { useAllowed } from "../../hooks/useAllowed";
 import { FaRegEye } from "react-icons/fa";
 import { useToast } from "../../hooks/useToast";
+import { useTranslation } from 'react-i18next';
 
 const DetallesPago = ({ set, ...props }) => {
+  const { t } = useTranslation();
   const [value, setValue] = useState();
   const [isAllowed, ht] = useAllowed()
   const toast = useToast()
@@ -20,7 +22,7 @@ const DetallesPago = ({ set, ...props }) => {
       props.row.toggleRowExpanded()
       return
     } else {
-      toast("error", "no tienes pago para visualizar ")
+      toast("error", t("paymenttoview"))
       return
     }
   }
@@ -29,7 +31,7 @@ const DetallesPago = ({ set, ...props }) => {
     <>
       <div className="flex items-center justify-center h-full">
         <p onClick={!isAllowed() ? null : handleClick} className=" rounded px-2 hover:text-gray-400 transition cursor-pointer">
-        <FaRegEye />
+          <FaRegEye />
         </p>
       </div>
     </>

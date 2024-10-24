@@ -3,8 +3,10 @@ import ClickAwayListener from "react-click-away-listener"
 import { ExclamacionIcon } from "../icons"
 import { IoSettingsOutline } from "react-icons/io5";
 import { useRouter } from "next/router";
+import { useTranslation } from 'react-i18next';
 
 export const Productos = ({ data, setProducts, products }) => {
+  const { t } = useTranslation();
   const router = useRouter()
   const options: object = {
     year: "2-digit",
@@ -12,89 +14,249 @@ export const Productos = ({ data, setProducts, products }) => {
     day: "2-digit",
   }
 
+  const MarcaBlancaData = data.find(producto => producto.name === "Marca Blanca Pro")
+  const ModulosData = data.filter(producto => producto.name.includes("Módulo"))
+  const productosFiltrados = data.filter(producto =>
+    !producto.name.includes('Módulo') && !producto.name.includes('Marca')
+  );
+
   return (
     <div className="space-y-5 pb-5">
-      {data?.map((item: any, idx: any) => {
-        const status = !!item?.subscriptionId
-          ? new Date().getTime() < new Date(item?.current_period_end).getTime()
-            ? "ACTIVO"
-            : "SUPENDIDO"
-          : "ACTIVO"
-        return (
-          <div key={idx} className="bg-white flex flex-col md:flex-row rounded-lg md:h-max md:p-3 p-10 gap-5 md:gap-0 md:space-x-3 items-center justify-center ">
-            <div className="bg-gray-200 flex items-center w-32 justify-center rounded-lg">
-              <img
-                src={item.images.length > 0 ? item?.images[0] : "/placeholder/image.png"}
-                alt={item.name}
-                className="rounded-lg object-contain w-[70px] h-[70px]"
-              />
-            </div>
-            <div className="flex-1 md:border-r-2 h-full capitalize flex flex-col justify-center">
-              <div className="text-[22px]">
-                {item.name}
+      <div>
+        <h1 className="text-primary text-[25px] font-medium">Full acceso a funcionalidades</h1>
+        {productosFiltrados?.map((item: any, idx: any) => {
+          const status = !!item?.subscriptionId
+            ? new Date().getTime() < new Date(item?.current_period_end).getTime()
+              ? "ACTIVO"
+              : "SUPENDIDO"
+            : "ACTIVO"
+          return (
+            <div key={idx} className="bg-white flex flex-col md:flex-row rounded-lg md:h-max md:p-3 p-10 gap-5 md:gap-0 md:space-x-3 items-center justify-center mb-5 ">
+              <div className=" flex items-center w-32 justify-center rounded-lg">
+                <img
+                  src={item.images.length > 0 ? item?.images[0] : "/placeholder/image.png"}
+                  alt={item.name}
+                  className="rounded-lg object-contain w-[70px] h-[70px]"
+                />
               </div>
-              <div className="text-[13px] text-gray-500">
-                {item.description}
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 mt-1">
-                {item?.metadata?.caracteristica?.split(", ").map((el: any, idx: any) => {
-                  return <InfoModulos key={idx} item={el} />
-                })}
-              </div>
-            </div>
-            <div className="flex flex-col w-36 md:h-full h-[75px] items-center justify-center capitalize">
-              {item.usage
-                ? <div className={`${status.toLowerCase() === "activo" ? "bg-green" : "bg-orange-300"} flex w-full h-11 rounded-lg items-center justify-center relative`}>
-                  {item?.name?.toLowerCase().includes("marca") &&
-                    <div onClick={() => {
-                      const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
-                      router?.query?.show === "iframe"
-                        ? window.parent.postMessage(JSON.stringify({ type: "route", path: `${path}/whitelabel/setup` }), '*')
-                        : router.push(`${path}/whitelabel/setup`)
-                    }} className="absolute -top-5 w-full h-4 flex justify-center items-center space-x-1 cursor-pointer hover:scale-105">
-                      <span className="text-sm text-gray-700">Configurar</span>
-                      <IoSettingsOutline className="w-5 h-5" />
-                    </div>
-                  }
-                  <span style={{ userSelect: "none" }} className="text-[16px] font-semibold text-white">
-                    {status}
-                  </span>
-                  {!!item?.subscriptionId && <span className="text-gray-600 text-xs absolute -bottom-4 ">
-                    {`${new Date(item?.current_period_start).toLocaleDateString(undefined, options)} - ${new Date(item?.current_period_end).toLocaleDateString(undefined, options)}`}
-                  </span>}
+              <div className="flex-1 md:border-r-2 h-full capitalize flex flex-col justify-center">
+                <div className="text-[22px]">
+                  {item.name}
                 </div>
-                : <>
-                  <div>
-                    {`${item?.prices[0]?.currency === "usd" ? "$" : "€"} ${(item?.prices[0]?.unit_amount / 100).toFixed(2)}`}
+                <div className="text-[13px] text-gray-500">
+                  {item.description}
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 mt-1">
+                  {item?.metadata?.caracteristica?.split(", ").map((el: any, idx: any) => {
+                    return <InfoModulos key={idx} item={el} />
+                  })}
+                </div>
+              </div>
+              <div className="flex flex-col w-36 md:h-full h-[75px] items-center justify-center capitalize">
+                {item.usage
+                  ? <div className={`${status.toLowerCase() === "activo" ? "bg-green" : "bg-orange-300"} flex w-full h-11 rounded-lg items-center justify-center relative`}>
+                    {item?.name?.toLowerCase().includes("marca") &&
+                      <div onClick={() => {
+                        const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
+                        router?.query?.show === "iframe"
+                          ? window.parent.postMessage(JSON.stringify({ type: "route", path: `${path}/whitelabel/setup` }), '*')
+                          : router.push(`${path}/whitelabel/setup`)
+                      }} className="absolute -top-5 w-full h-4 flex justify-center items-center space-x-1 cursor-pointer hover:scale-105">
+                        <span className="text-sm text-gray-700">Configurar</span>
+                        <IoSettingsOutline className="w-5 h-5" />
+                      </div>
+                    }
+                    <span style={{ userSelect: "none" }} className="text-[16px] font-semibold text-white">
+                      {status}
+                    </span>
+                    {!!item?.subscriptionId && <span className="text-gray-600 text-xs absolute -bottom-4 ">
+                      {`${new Date(item?.current_period_start).toLocaleDateString(undefined, options)} - ${new Date(item?.current_period_end).toLocaleDateString(undefined, options)}`}
+                    </span>}
                   </div>
-                  <div className="flex-1 flex items-center justify-center">
-                    <button
-                      disabled={!item?.prices[0]?.currency}
-                      onClick={() => {
-                        const f1 = products.findIndex(elem => elem?.id === item?.id)
-                        if (f1 > -1) {
-                          products.splice(f1, 1)
+                  : <>
+                    <div>
+                      {`${item?.prices[0]?.currency === "usd" ? "$" : "€"} ${(item?.prices[0]?.unit_amount / 100).toFixed(2)}`}
+                    </div>
+                    <div className="flex-1 flex items-center justify-center">
+                      <button
+                        disabled={!item?.prices[0]?.currency}
+                        onClick={() => {
+                          const f1 = products.findIndex(elem => elem?.id === item?.id)
+                          if (f1 > -1) {
+                            products.splice(f1, 1)
+                            setProducts([...products])
+                            return
+                          }
+                          products.push(item)
                           setProducts([...products])
-                          return
-                        }
-                        products.push(item)
-                        setProducts([...products])
-                      }}
-                      className={`bg-primary py-1 w-full text-[13px] rounded-lg capitalize hover:opacity-90 cursor-pointer ${products?.findIndex(elem => elem?.id === item?.id) > -1 ? "bg-white border border-primary text-primary" : "bg-primary text-white"} `}>
-                      {products?.findIndex(elem => elem?.id === item?.id) > -1 ? "- Quitar complemento" : "+ Añadir complemento"}
-                    </button>
-                  </div>
-                </>
-              }
+                        }}
+                        className={`bg-primary py-1 w-full text-[13px] rounded-lg capitalize hover:opacity-90 cursor-pointer ${products?.findIndex(elem => elem?.id === item?.id) > -1 ? "bg-white border border-primary text-primary" : "bg-primary text-white"} `}>
+                        {products?.findIndex(elem => elem?.id === item?.id) > -1 ? t("removeplugin") : t("addplugin")}
+                      </button>
+                    </div>
+                  </>
+                }
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      <div>
+        <h1 className="text-primary text-[25px] font-medium">Marca Blanca</h1>
+        <div className="bg-white flex flex-col md:flex-row rounded-lg md:h-max md:p-3 p-10 gap-5 md:gap-0 md:space-x-3 items-center justify-center ">
+          <div className=" flex items-center w-32 justify-center rounded-lg">
+            <img
+              src={MarcaBlancaData?.images?.length > 0 ? MarcaBlancaData?.images[0] : "/placeholder/image.png"}
+              alt={MarcaBlancaData?.name}
+              className="rounded-lg object-contain w-[70px] h-[70px]"
+            />
+          </div>
+          <div className="flex-1 md:border-r-2 h-full capitalize flex flex-col justify-center">
+            <div className="text-[22px]">
+              {MarcaBlancaData?.name}
+            </div>
+            <div className="text-[13px] text-gray-500">
+              {MarcaBlancaData?.description}
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 mt-1">
+              {MarcaBlancaData?.metadata?.caracteristica?.split(", ").map((el: any, idx: any) => {
+                return <InfoModulos key={idx} item={el} />
+              })}
             </div>
           </div>
-        )
-      })}
+          <div className="flex flex-col w-36 md:h-full h-[75px] items-center justify-center capitalize">
+            {MarcaBlancaData?.usage
+              ? <div className={`${status.toLowerCase() === "activo" ? "bg-green" : "bg-orange-300"} flex w-full h-11 rounded-lg items-center justify-center relative`}>
+                {MarcaBlancaData?.name?.toLowerCase().includes("marca") &&
+                  <div onClick={() => {
+                    const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
+                    router?.query?.show === "iframe"
+                      ? window.parent.postMessage(JSON.stringify({ type: "route", path: `${path}/whitelabel/setup` }), '*')
+                      : router.push(`${path}/whitelabel/setup`)
+                  }} className="absolute -top-5 w-full h-4 flex justify-center items-center space-x-1 cursor-pointer hover:scale-105">
+                    <span className="text-sm text-gray-700">Configurar</span>
+                    <IoSettingsOutline className="w-5 h-5" />
+                  </div>
+                }
+                <span style={{ userSelect: "none" }} className="text-[16px] font-semibold text-white">
+                  {status}
+                </span>
+                {!!MarcaBlancaData?.subscriptionId && <span className="text-gray-600 text-xs absolute -bottom-4 ">
+                  {`${new Date(MarcaBlancaData?.current_period_start).toLocaleDateString(undefined, options)} - ${new Date(MarcaBlancaData?.current_period_end).toLocaleDateString(undefined, options)}`}
+                </span>}
+              </div>
+              : <>
+                <div>
+                  {`${MarcaBlancaData?.prices[0]?.currency === "usd" ? "$" : "€"} ${(MarcaBlancaData?.prices[0]?.unit_amount / 100).toFixed(2)}`}
+                </div>
+                <div className="flex-1 flex items-center justify-center">
+                  <button
+                    disabled={!MarcaBlancaData?.prices[0]?.currency}
+                    onClick={() => {
+                      const f1 = products.findIndex(elem => elem?.id === MarcaBlancaData?.id)
+                      if (f1 > -1) {
+                        products.splice(f1, 1)
+                        setProducts([...products])
+                        return
+                      }
+                      products.push(MarcaBlancaData)
+                      setProducts([...products])
+                    }}
+                    className={`bg-primary py-1 w-full text-[13px] rounded-lg capitalize hover:opacity-90 cursor-pointer ${products?.findIndex(elem => elem?.id === MarcaBlancaData?.id) > -1 ? "bg-white border border-primary text-primary" : "bg-primary text-white"} `}>
+                    {products?.findIndex(elem => elem?.id === MarcaBlancaData?.id) > -1 ? t("removeplugin") : t("addplugin")}
+                  </button>
+                </div>
+              </>
+            }
+          </div>
+        </div>
+      </div>
+      <div>
+        <h1 className="text-primary text-[25px] font-medium">Módulos especiales</h1>
+        {ModulosData?.map((item: any, idx: any) => {
+          const status = !!item?.subscriptionId
+            ? new Date().getTime() < new Date(item?.current_period_end).getTime()
+              ? "ACTIVO"
+              : "SUPENDIDO"
+            : "ACTIVO"
+          return (
+            <div key={idx} className="bg-white flex flex-col md:flex-row rounded-lg md:h-max md:p-3 p-10 gap-5 md:gap-0 md:space-x-3 items-center justify-center mb-5 ">
+              <div className=" flex items-center w-32 justify-center rounded-lg">
+                <img
+                  src={item.images.length > 0 ? item?.images[0] : "/placeholder/image.png"}
+                  alt={item.name}
+                  className="rounded-lg object-contain w-[70px] h-[70px]"
+                />
+              </div>
+              <div className="flex-1 md:border-r-2 h-full capitalize flex flex-col justify-center">
+                <div className="text-[22px]">
+                  {item.name}
+                </div>
+                <div className="text-[13px] text-gray-500">
+                  {item.description}
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 mt-1">
+                  {item?.metadata?.caracteristica?.split(", ").map((el: any, idx: any) => {
+                    return <InfoModulos key={idx} item={el} />
+                  })}
+                </div>
+              </div>
+              <div className="flex flex-col w-36 md:h-full h-[75px] items-center justify-center capitalize">
+                {item.usage
+                  ? <div className={`${status.toLowerCase() === "activo" ? "bg-green" : "bg-orange-300"} flex w-full h-11 rounded-lg items-center justify-center relative`}>
+                    {item?.name?.toLowerCase().includes("marca") &&
+                      <div onClick={() => {
+                        const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
+                        router?.query?.show === "iframe"
+                          ? window.parent.postMessage(JSON.stringify({ type: "route", path: `${path}/whitelabel/setup` }), '*')
+                          : router.push(`${path}/whitelabel/setup`)
+                      }} className="absolute -top-5 w-full h-4 flex justify-center items-center space-x-1 cursor-pointer hover:scale-105">
+                        <span className="text-sm text-gray-700">Configurar</span>
+                        <IoSettingsOutline className="w-5 h-5" />
+                      </div>
+                    }
+                    <span style={{ userSelect: "none" }} className="text-[16px] font-semibold text-white">
+                      {status}
+                    </span>
+                    {!!item?.subscriptionId && <span className="text-gray-600 text-xs absolute -bottom-4 ">
+                      {`${new Date(item?.current_period_start).toLocaleDateString(undefined, options)} - ${new Date(item?.current_period_end).toLocaleDateString(undefined, options)}`}
+                    </span>}
+                  </div>
+                  : <>
+                    <div>
+                      {`${item?.prices[0]?.currency === "usd" ? "$" : "€"} ${(item?.prices[0]?.unit_amount / 100).toFixed(2)}`}
+                    </div>
+                    <div className="flex-1 flex items-center justify-center">
+                      <button
+                        disabled={!item?.prices[0]?.currency}
+                        onClick={() => {
+                          const f1 = products.findIndex(elem => elem?.id === item?.id)
+                          if (f1 > -1) {
+                            products.splice(f1, 1)
+                            setProducts([...products])
+                            return
+                          }
+                          products.push(item)
+                          setProducts([...products])
+                        }}
+                        className={`bg-primary py-1 w-full text-[13px] rounded-lg capitalize hover:opacity-90 cursor-pointer ${products?.findIndex(elem => elem?.id === item?.id) > -1 ? "bg-white border border-primary text-primary" : "bg-primary text-white"} `}>
+                        {products?.findIndex(elem => elem?.id === item?.id) > -1 ? t("removeplugin") : t("addplugin")}
+                      </button>
+                    </div>
+                  </>
+                }
+              </div>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
 
 const InfoModulos = ({ item }) => {
+  const { t } = useTranslation();
   const [showInfo, setShowInfo] = useState(false)
   return (
     < div className="text-azulCorporativo text-[13px] flex items-center  space-x-2 mb-0.5 cursor-default " >

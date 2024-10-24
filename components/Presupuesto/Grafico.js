@@ -2,8 +2,10 @@ import { Doughnut } from "react-chartjs-2";
 import { useEffect, useState } from "react";
 import { capitalize } from "../../utils/Capitalize";
 import { EventContextProvider } from "../../context";
+import { useTranslation } from 'react-i18next';
 
 const Grafico = ({ categorias }) => {
+  const { t } = useTranslation();
   const { event } = EventContextProvider()
   const [labels, setLabels] = useState()
   const [data, setData] = useState()

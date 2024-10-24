@@ -10,71 +10,60 @@ import SentarBlock from "./SentarBlock";
 // import { ModalPDF } from "../Utils/ModalPDF";
 import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
+import { useTranslation } from 'react-i18next';
+import { GoMultiSelect } from "react-icons/go";
+
 
 interface propsBlockListaInvitados {
-  state: boolean;
-  set: CallableFunction;
   menu?: any
   setGetMenu?: any
   createPDF?: any
   setCreatePDF?: any
+  ConditionalAction?: any
+  handleClick?: any
 }
 
-const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu, setGetMenu, createPDF, setCreatePDF }) => {
+const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ menu, setGetMenu, createPDF, setCreatePDF, ConditionalAction, handleClick, }) => {
   const { event } = EventContextProvider();
-  const { actionModals, setActionModals } = AuthContextProvider()
   const [isMounted, setIsMounted] = useState(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const [invitadoSelected, setSelected] = useState<string | null>(null);
   const toast = useToast()
   const [isAllowed, ht] = useAllowed()
-
-  const handleClick = (e, click) => {
-    e.preventDefault();
-    set({ state: !state, click: click });
-  };
-
-  const ConditionalAction = ({ e }) => {
-    if (event.invitados_array.length >= 300) {
-      setActionModals(!actionModals)
-    } else {
-      handleClick(e, "invitado")
-    }
-
-  }
-
+  const { t } = useTranslation();
 
   return (
     <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full md:px-6 pt-2 md:pt-6 pb-28 mb-32 md:mb-0 md:p-12 relative">
-      <div className="flex gap-2 md:gap-4 items-center mt-1 mb-3 md:mb-5 mx-2">
-        <button
-          onClick={(e) => !isAllowed() ? ht() : ConditionalAction({ e })}
-          className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary md:bg-primary md:text-white md:hover:bg-white md:hover:text-primary"
-        >
-          <PlusIcon />
-          Invitado
-        </button>
-        <button
-          onClick={(e) => !isAllowed() ? ht() : handleClick(e, "grupo")}
-          className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
-        >
-          <PlusIcon />
-          Grupo
-        </button>
-        <button
-          onClick={(e) => !isAllowed() ? ht() : handleClick(e, "menu")}
-          className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
-        >
-          <PlusIcon />
-          Menu
-        </button>
-        <button
+      <div className="flex  items-center justify-between relative">
+        <div className="flex gap-2 items-center mt-1 mb-3 md:mb-5 mx-2">
+          <button
+            onClick={(e) => !isAllowed() ? ht() : ConditionalAction({ e })}
+            className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary md:bg-primary md:text-white md:hover:bg-white md:hover:text-primary capitalize"
+          >
+            <PlusIcon />
+            {t("invitados")}
+          </button>
+          <button
+            onClick={(e) => !isAllowed() ? ht() : handleClick(e, "grupo")}
+            className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary capitalize"
+          >
+            <PlusIcon />
+            {t("grupo")}
+          </button>
+          <button
+            onClick={(e) => !isAllowed() ? ht() : handleClick(e, "menu")}
+            className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary capitalize"
+          >
+            <PlusIcon />
+            {t("menu")}
+          </button>
+          {/* <button
           onClick={() => !isAllowed() ? ht() : event?.invitados_array.length > 0 ? setCreatePDF(!createPDF) : toast("error", "Debes agregar invitados")}
           className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
-        >
-          {/* <PlusIcon /> */}
+          >
           Crear PDF
-        </button>
+          </button> */}
+        </div>
       </div>
       {shouldRenderChild && (
         <ModalBottom state={isMounted} set={setIsMounted}>
@@ -82,9 +71,9 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu, s
             <div className="w-full md:w-5/6">
               <div className="border-l-2 border-gray-100 pl-3 my-6 w-full ">
                 <h2 className="font-display text-2xl capitalize text-primary font-light">
-                  Editar <br />
+                  {t("edit")} <br />
                   <span className="font-display text-4xl capitalize text-gray-500 font-medium">
-                    Invitado
+                    {t("guest")}
                   </span>
                 </h2>
               </div>
@@ -102,7 +91,7 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ state, set, menu, s
                 <div className="w-full h-full grid place-items-center">
                   {" "}
                   <p className="font-display text-lg text-gray-100">
-                    No hay invitado seleccionado
+                    {t("noguestselected")}
                   </p>
                 </div>
               )}

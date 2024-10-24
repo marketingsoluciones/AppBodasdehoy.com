@@ -7,6 +7,7 @@ import { FC } from "react";
 import { guests, menu } from "../../utils/Interfaces";
 import { useRouter } from "next/router";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { useTranslation } from 'react-i18next';
 
 interface props {
     visible: boolean
@@ -18,6 +19,7 @@ interface props {
 
 
 export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestData, guestFather, menus_array }) => {
+    const { t } = useTranslation();
     const { geoInfo } = AuthContextProvider();
     const router = useRouter()
     const GuestAcompañantes = guestData.filter(e => e.father != null)
@@ -99,26 +101,26 @@ export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestD
                 <Form className="w-full">
                     <div className="flex flex-col space-y-4  ">
                         <div className="px-5 space-y-3">
-                            <div className="grid grid-cols-2 gap-5 ">
+                            <div className="grid md:grid-cols-2 gap-5 ">
                                 <InputField
                                     id="nombre"
                                     name="nombre"
-                                    label="Nombre del invitado"
+                                    label={t("guestname")}
                                     type="text"
                                     labelClass={false}
                                 />
                                 <InputField
                                     id="telefono"
                                     name="telefono"
-                                    label="Telefono"
+                                    label={t("phone")}
                                     type="telefono"
                                     labelClass={false}
                                 />
                             </div>
-                            <div className="grid md:grid-cols-2 md:gap-5">
+                            <div className="grid md:grid-cols-2 gap-2 md:gap-5">
                                 <InputField
                                     name={`correo`}
-                                    label="Correo electronico"
+                                    label={t("email")}
                                     type="email"
                                     labelClass={false}
                                 />
@@ -126,29 +128,30 @@ export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestD
                                     <SelectField
                                         options={["Hombre", "Mujer"]}
                                         name="sexo"
-                                        label="Sexo"
+                                        label={t("sex")}
                                         labelClass={false}
 
                                     />
                                     <SelectField
                                         options={["Adulto", "Niño"]}
                                         name={`grupo_edad`}
-                                        label="Edad"
+                                        label={t("age")}
                                         labelClass={false}
                                     />
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-5">
+                            <div className="grid md:grid-cols-2 gap-2 md:gap-5">
                                 <SelectField
                                     nullable
                                     options={["Confirmado", "Cancelado"]}
                                     name="confirmacion"
-                                    label="Confirmacion de asistencia"
+                                    label={t("confirmationattendance")}
                                     labelClass={false}
                                 />
                                 <SelectField
                                     name={`nombre_menu`}
-                                    label={"Menu"}
+                                    label={t("menu")}
+                                    labelClass={false}
                                     options={[...menus_array?.map(elem => elem.nombre_menu), "sin menú"]}
                                 />
                             </div>
@@ -159,8 +162,8 @@ export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestD
                                     return (
                                         <>
                                             <div className="bg-primary flex flex-col items-center justify-center py-5 space-y-1">
-                                                <p className="text-acento text-2xl md:text-3xl font-body ">Tines {GuetsArray.length} pases mas a este evento</p>
-                                                <p className="text-white md:text-xl font-body">Registra a tus acompañantes aqui</p>
+                                                <p className="text-acento text-2xl md:text-3xl font-body ">{t("have")}{GuetsArray.length}{t("morepasses")}</p>
+                                                <p className="text-white md:text-xl font-body">{t("registercompanions")}</p>
                                             </div>
                                         </>
                                     )
@@ -177,11 +180,11 @@ export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestD
                                             Pase {[i + 1]}
                                         </div>
                                         <div className=" space-y-3" >
-                                            <div className="grid grid-cols-2 gap-5 ">
+                                            <div className="grid md:grid-cols-2 gap-5 ">
                                                 <InputField
                                                     id={`nombre_${i}`}
                                                     name={`nombre_${i}`}
-                                                    label="Nombre del invitado"
+                                                    label={t("guestname")}
                                                     type="text"
                                                     labelClass={false}
                                                 />
@@ -189,17 +192,17 @@ export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestD
                                                     //placeholder="960 66 66 66"
                                                     id={`telefono_${i}`}
                                                     name={`telefono_${i}`}
-                                                    label="Telefono"
+                                                    label={t("phone")}
                                                     type="telefono"
                                                     labelClass={false}
                                                 />
 
                                             </div>
-                                            <div className="grid md:grid-cols-2 md:gap-5">
+                                            <div className="grid md:grid-cols-2 gap-2 md:gap-5">
                                                 <InputField
                                                     id={`correo_${i}`}
                                                     name={`correo_${i}`}
-                                                    label="Correo electronico"
+                                                    label={t("email")}
                                                     type="email"
                                                     labelClass={false}
                                                 />
@@ -207,31 +210,32 @@ export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestD
                                                     <SelectField
                                                         id={`sexo_${i}`}
                                                         name={`sexo_${i}`}
-                                                        label="Sexo"
+                                                        label={t("sex")}
                                                         options={["Hombre", "Mujer"]}
                                                         labelClass={false}
                                                     />
                                                     <SelectField
                                                         id={`grupo_edad_${i}`}
                                                         name={`grupo_edad_${i}`}
-                                                        label="Edad"
+                                                        label={t("ago")}
                                                         options={["Adulto", "Niño"]}
                                                         labelClass={false}
                                                     />
                                                 </div>
                                             </div>
-                                            <div className="grid grid-cols-2 gap-5">
+                                            <div className="grid md:grid-cols-2 gap-2 md:gap-5">
                                                 <SelectField
                                                     nullable
                                                     options={["Confirmado", "Cancelado"]}
                                                     name={`confirmacion_${i}`}
-                                                    label="Confirmacion de asistencia"
+                                                    label={t("confirmationattendance")}
                                                     labelClass={false}
                                                 />
                                                 <SelectField
                                                     id={`nombre_menu_${i}`}
                                                     name={`nombre_menu_${i}`}
-                                                    label={"Menu"}
+                                                    label={t("menu")}
+                                                    labelClass={false}
                                                     options={[...menus_array?.map(elem => elem.nombre_menu), "sin menú"]}
                                                 />
                                             </div>
@@ -243,7 +247,7 @@ export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestD
                         })}
                         <div className="flex items-center justify-center">
                             <button type="submit" className=" bg-primary md:w-[30%] px-5 md:px-0 py-2 rounded-2xl font-body text-white">
-                                Confirmar asistencia
+                                {t("rsvp")}
                             </button>
                         </div>
                     </div>

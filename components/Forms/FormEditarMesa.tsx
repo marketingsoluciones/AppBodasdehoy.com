@@ -14,6 +14,7 @@ import ClickAwayListener from "react-click-away-listener"
 import { moveGuest } from '../Mesas/FuntionsDragable';
 import { BsBoxArrowInDown, BsBoxArrowUp } from 'react-icons/bs'
 import { dicc } from './FormCrearMesa';
+import { useTranslation } from 'react-i18next';
 
 
 
@@ -31,6 +32,7 @@ type initialValues = {
 }
 
 const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
+  const { t } = useTranslation();
   // console.log(10041, state)
   const { event, setEvent, planSpaceActive, setPlanSpaceActive, setEditDefault, filterGuests } = EventContextProvider();
   const [selectInvitado, setSelectedInvitado] = useState(false);
@@ -89,9 +91,9 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
       setEditDefault(old => {
         return { ...old, item: table }
       })
-      toast("success", "La mesa fue actualizada")
+      toast("success", t("La mesa fue actualizada"))
     } catch (err) {
-      toast("error", "Ha ocurrido un error al actualizar la mesa")
+      toast("error", t("Ha ocurrido un error al actualizar la mesa"))
       console.log(err);
     } finally {
       actions.setSubmitting(false);
@@ -112,16 +114,16 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
     try {
       if (active) {
         moveGuest({ event, chair: NaN, invitadoID: item._id, tableID: state?.table?._id, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo: "dragS" })
-        toast("success", "El invitado fue levantado de la mesa")
+        toast("success", t("El invitado fue levantado de la mesa"))
         return
       }
       if (state?.table?.guests?.length === state?.table?.numberChair) {
-        toast("error", "La mesa tiene todos los puestos ocupados")
+        toast("error", t("La mesa tiene todos los puestos ocupados"))
       }
       for (let i = 0; i < state?.table?.numberChair; i++) {
         if (!state?.table?.guests?.map(el => el.chair).includes(i)) {
           moveGuest({ event, chair: i, invitadoID: item._id, tableID: state?.table?._id, setEvent, planSpaceActive, setPlanSpaceActive })
-          toast("success", "El invitado fue sentado en la mesa")
+          toast("success", t("El invitado fue sentado en la mesa"))
           break
         }
       }
@@ -146,8 +148,8 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
                   <span className="w-max col-span-1 m-auto inset-0">{dicc[state.table.tipo]?.icon}</span>
                   <div className="font-display hover:text-gray-300 transition text-lg absolute top-3 right-5 cursor-pointer hover:scale-125" onClick={() => set(!state)}>X</div>
                   <div className="col-span-2 flex flex-col gap-1">
-                    <InputField name="nombre_mesa" label="Nombre de la mesa" type="text" className='font-semibold' />
-                    <InputField name="cantidad_sillas" label="N° de sillas" type="number"
+                    <InputField name="nombre_mesa" label={t("nametable")} type="text" className='font-semibold' />
+                    <InputField name="cantidad_sillas" label={t("numberchairs")} type="number"
                       autoComplete="off"
                       className="font-semibold"
                       disabled={values.tipo == "cuadrada" ? true : false}
@@ -163,23 +165,17 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
                         className={`w-1/2 py-1 ${!active ? "bg-primary text-white" : "bg-white text-primary"
                           } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
                       >
-                        <p>Invitados no sentados</p>
+                        <p>{t("nonseatedguests")}</p>
                       </div>
                       <div
                         onClick={() => setActive(true)}
                         className={`w-1/2 py-1 ${active ? "bg-primary text-white" : "bg-white text-primary"
                           } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
                       >
-                        <p>Invitados sentados</p>
+                        <p>{t("seatedguests")}</p>
                       </div>
                     </div>
                   </div>
-                  {/* <p className='font-body text-primary '>Invitados asignados a esta mesa</p>
-                  <button type='button' onClick={() => { true ? setSelectedInvitado(!selectInvitado) : toast("error", "No hay invitados disponibles para sentar") }} className='border rounded-lg w-[100%] h-10 py-1 flex items-center justify-between px-2 font-body text-sm focus:outline-none'>
-                    Agregar invitado
-                    <ArrowDown className="text-gray-500" />
-                  </button> */}
-
                   {selectInvitado ? (
                     <ClickAwayListener onClickAway={() => selectInvitado && setSelectedInvitado(!selectInvitado)}>
                       <div className={`${selectInvitado ? "block " : "hidden"} overflow-y-scroll bg-white w-[100%] h-[190px] top-[64px] absolute rounded-lg drop-shadow-md`}>
@@ -210,7 +206,7 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
                         <div className='flex items-center hover:bg-gray-200 p-2 cursor-pointer'>
                           <PlusIcon className="w-4 h-7 text-primary mx-2" />
                           <div className='font-body text-sm ml-1'>
-                            Añadir Inivtado al evento
+                            {t("addguestevent")}
                           </div>
                         </div>
                       </div>
@@ -241,7 +237,7 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
                         })
                         : <div className='flex items-center justify-center space-x-4'>
                           <XpersonIcon className="text-gray-600 " />
-                          <p className='text-center font-body text-sm w-40'>{!active ? "Todos los invitados están sentados" : "No hay invitados sentados en esta mesa"}</p>
+                          <p className='text-center font-body text-sm w-40'>{!active ? t("allguestsseated") : t("noguestsseatedtable")}</p>
                         </div>
                     }
                   </div>
@@ -251,13 +247,13 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
                     type="submit"
                     className=" bg-primary w-full text-white  mx-auto inset-x-0 rounded-xl py-1 font-body focus:outline-none"
                   >
-                    Guardar
+                    {t("save")}
                   </button>
                   <button
                     className=" bg-gray-400 transition w-full text-white font-body mx-auto inset-x-0 rounded-xl py-1 focus:outline-none"
                     onClick={() => set(false)}
                   >
-                    Cancelar
+                    {t("cancel")}
                   </button>
                 </div>
               </Form>

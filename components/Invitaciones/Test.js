@@ -12,8 +12,10 @@ import { ActivatorPremium } from "../ActivatorPremium";
 import { Tooltip } from "../Utils/Tooltip";
 import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
+import { useTranslation } from 'react-i18next';
 
 export default function Test({ TitelComponent }) {
+  const { t } = useTranslation();
   const { geoInfo } = AuthContextProvider()
   const { event } = EventContextProvider()
   const { isPhoneValid } = useAuthentication()
@@ -85,7 +87,7 @@ export default function Test({ TitelComponent }) {
       // const { data } = await api.ApiApp(params)
       // console.log(data)
       setValirReset(true)
-      toast("success", "Invitación enviada")
+      toast("success", t("Invitación enviada"))
     } catch (error) {
       console.log(error)
     } finally {
@@ -106,24 +108,24 @@ export default function Test({ TitelComponent }) {
           <Form className="md:w-1/2 flex flex-col gap-2 mx-auto">
             <>
               <AutoSubmitToken TitelComponent={TitelComponent} valirReset={valirReset} setValirReset={setValirReset} />
-              <h3 className="font-medium text-gray-500 first-letter:uppercase">{TitelComponent} de prueba</h3>
+              <h3 className="font-medium text-gray-500 first-letter:uppercase">{`${TitelComponent} ${t("de prueba")}`}</h3>
               {TitelComponent === "email"
                 ? <InputField
                   name="email"
-                  label={"Correo electronico"}
+                  label={t("email")}
                   type="email"
                   icon={<EmailIcon className="absolute w-4 h-4 inset-y-0 left-4 m-auto text-gray-500" />}
                 />
                 : <InputField
                   name="phoneNumber"
-                  label={"Número de telefono"}
+                  label={t("phonenumber")}
                   type="telefono"
                   autoComplete="off"
                   icon={<PhoneMobile className="absolute w-4 h-4 inset-y-0 left-4 m-auto text-gray-500" />}
                 />
               }
               <Tooltip
-                label="Primero debes añadir la imagen de la invitación"
+                label={t("firstyoumust")}
                 icon={<IconLightBulb16 className="w-6 h-6" />}
                 disabled={TitelComponent !== "email" || event?.imgInvitacion}>
                 <button

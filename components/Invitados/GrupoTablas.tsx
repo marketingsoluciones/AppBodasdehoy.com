@@ -17,6 +17,7 @@ import { SubTabla } from "./SubTabla";
 import { IoIosArrowDown } from "react-icons/io";
 import { Modal } from "../Utils/Modal";
 import { DeleteConfirmation } from "../Itinerario/MicroComponente/DeleteConfirmation";
+import { useTranslation } from 'react-i18next';
 
 interface propsDatatableGroup {
   GruposArray: string[];
@@ -40,6 +41,7 @@ interface handleMoveGuest {
   previousTable: Partial<table>
   lastTable: Partial<table>
   f1: number
+  t: any
 }
 
 export const handleMoveGuest = (props: handleMoveGuest) => {
@@ -61,7 +63,7 @@ export const handleMoveGuest = (props: handleMoveGuest) => {
         },
       });
       if (!lastTable) {
-        toast("success", `El invitado no está sentado en ninguna mesa`,)
+        toast("success", props.t(`El invitado no está sentado en ninguna mesa`),)
       }
     }
     if (lastTable) {
@@ -81,7 +83,7 @@ export const handleMoveGuest = (props: handleMoveGuest) => {
                 valor: JSON.stringify([...event.planSpace[f1].tables[f2]?.guests])
               },
             });
-            toast("success", `El invitado fue sentado en la mesa; ${lastTable.title}, puesto: ${i + 1}`,)
+            toast("success", `${props.t("El invitado fue sentado en la mesa")}; ${lastTable.title}, ${props.t("puesto")}: ${i + 1}`,)
           }
           break
         }
@@ -93,6 +95,7 @@ export const handleMoveGuest = (props: handleMoveGuest) => {
 }
 
 const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIsMounted, menu = [] }) => {
+  const { t } = useTranslation()
   const toast = useToast()
   const { event, setEvent, invitadoCero, setInvitadoCero, allFilterGuests, planSpaceActive, setPlanSpaceActive, filterGuests } = EventContextProvider();
   const GuestsFathers = event?.invitados_array?.filter((invitado) => !invitado?.father)
@@ -197,7 +200,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         Header: () => {
           return (
             <h3 className=" text-gray-500 text-left truncate capitalize font-medium">
-              {title}
+              {t(title)}
             </h3>
           );
         },
@@ -216,7 +219,6 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
               alt: "Mujer",
             },
           };
-
           const handleClick = () => {
             setSelected(id);
             setIsMounted(!isMounted);
@@ -240,10 +242,10 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         },
       },
       {
-        Header: "Asistencia",
+        Header: t("Asistencia"),
         accessor: "asistencia",
         Cell: ({ value: initialValue, row, column: { id } }) => {
-          const [value, setValue] = useState(initialValue ?? "No asignado");
+          const [value, setValue] = useState(initialValue ?? "pendiente");
           const [show, setShow] = useState(false);
           const [loading, setLoading] = useState(false);
           useEffect(() => {
@@ -285,8 +287,8 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                   className="font-display text-gray-500 hover:text-gray-400 transition text-sm capitalize flex gap-2 items-center justify-center focus:outline-none"
                   onClick={() => !isAllowed() ? null : setShow(!show)}
                 >
-                  {cloneElement(dicc[value].icon, { className: "w-5 h-5" })}
-                  {value}
+                  {dicc[value]?.icon && cloneElement(dicc[value]?.icon, { className: "w-5 h-5" })}
+                  {t(value)}
                 </button>
                 <ul
                   className={`${show ? "block opacity-100" : "hidden opacity-0"
@@ -303,7 +305,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                         }}
                       >
                         {cloneElement(item.icon, { className: "w-5 h-5" })}
-                        {item.title}
+                        {t(item.title)}
                       </li>
                     );
                   })}
@@ -314,9 +316,10 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         },
       },
       {
-        Header: "Menu",
+        Header: t("Menu"),
         accessor: "nombre_menu",
         Cell: ({ value: initialValue, row, column: { id } }) => {
+
           const [value, setValue] = useState(row?.original?.nombre_menu ? row?.original?.nombre_menu : "sin menú");
           const [show, setShow] = useState(false);
           const [loading, setLoading] = useState(false);
@@ -340,7 +343,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                   className="font-display text-gray-500 hover:text-gray-400 transition text-sm capitalize flex gap-2 items-center justify-center focus:outline-none"
                   onClick={() => !isAllowed() ? null : setShow(!show)}
                 >
-                  {value}
+                  {t(value)}
                 </button>
                 <ul
                   className={`${show ? "block opacity-100" : "hidden opacity-0"
@@ -356,7 +359,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                           setShow(!show);
                         }}
                       >
-                        {item?.nombre_menu}
+                        {t(item?.nombre_menu)}
                       </li>
                     );
                   })}
@@ -367,7 +370,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                       setShow(!show);
                     }}
                   >
-                    {"sin menú"}
+                    {t("sin menú")}
                   </li>
                 </ul>
               </div>
@@ -376,12 +379,14 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         },
       },
       {
-        Header: "Mesa recepción",
+        Header: t("Mesa recepción"),
         accessor: "tableNameRecepcion",
         Cell: ({ value: initialValue, row, column: { id } }) => {
+          console.log(1111234,initialValue)
           const [value, setValue] = useState(initialValue);
           const [show, setShow] = useState(false);
           const router = useRouter();
+          const { t } = useTranslation();
           return (
             <ClickAwayListener onClickAway={() => setShow(false)}>
               <div className="relative w-full flex justify-center items-center">
@@ -420,7 +425,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                             if (value?._id || elem?._id) {
                               if (value?._id !== elem?._id) {
                                 setValue(elem.title);
-                                handleMoveGuest({ invitadoID: row.original._id, previousTable: value, lastTable: table, f1, event, setEvent, toast })
+                                handleMoveGuest({ t, invitadoID: row.original._id, previousTable: value, lastTable: table, f1, event, setEvent, toast })
                               }
                             }
                           }}
@@ -434,7 +439,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                     className="*bg-gray-300 cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
                     onClick={() => router.push("/mesas")}
                   >
-                    Añadir mesa
+                    {t("addtable")}
                   </li>
                 </ul>
               </div>
@@ -443,13 +448,13 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         },
       },
       {
-        Header: "Mesa Ceremonia",
+        Header: t("Mesa Ceremonia"),
         accessor: "tableNameCeremonia",
         Cell: ({ value: initialValue, row, column: { id } }) => {
           const [value, setValue] = useState(initialValue);
           const [show, setShow] = useState(false);
           const router = useRouter();
-
+          const { t } = useTranslation();
           return (
             <ClickAwayListener onClickAway={() => setShow(false)}>
               <div className="relative w-full flex justify-center items-center">
@@ -458,7 +463,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                     onClick={() => router.push("/mesas")}
                     className="bg-tertiary font-display text-sm font-medium px-2rounded hover:text-gray-500 px-3 rounded-lg focus:outline-none"
                   >
-                    Añadir mesa
+                    {t("addtable")}
                   </button>
                 ) : (
                   <button
@@ -489,7 +494,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                             if (value?._id || elem?._id) {
                               if (value?._id !== elem?._id) {
                                 setValue(elem.title);
-                                handleMoveGuest({ invitadoID: row.original._id, previousTable: value, lastTable: table, f1, event, setEvent, toast })
+                                handleMoveGuest({ t, invitadoID: row.original._id, previousTable: value, lastTable: table, f1, event, setEvent, toast })
                               }
                             }
                           }}
@@ -503,7 +508,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                     className=" cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
                     onClick={() => router.push("/mesas")}
                   >
-                    Añadir mesa
+                    {t("addtable")}
                   </li>
                 </ul>
               </div>
@@ -512,7 +517,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         },
       },
       {
-        Header: "Acompañantes",
+        Header: t("Acompañantes"),
         accessor: "passesQuantity",
         Cell: ({ value: initialValue, column: { id }, ...props }) => {
           if (event.showChildrenGuest === props.row.original._id && !props?.row?.isExpanded) {
@@ -626,7 +631,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                       onClick={() => DeleteGroup()}
                       className="font-display cursor-pointer border-base border block px-4 text-sm text-gray-500 hover:text-gray-500 hover:bg-base"
                     >
-                      {item}
+                      {t(item)}
                     </li>
                   ))}
                 </ul>
@@ -683,7 +688,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
 
           return (
             <>
-              {modal.state && <Modal classe={"w-[95%] md:w-[450px] h-[200px]"}>
+              {modal.state && <Modal set={setModal} state={modal} classe={"w-[95%] md:w-[450px] h-[200px]"}>
                 <DeleteConfirmation setModal={setModal} modal={modal} />
               </Modal>}
               <ClickAwayListener onClickAway={() => show && setShow(false)}>
@@ -724,7 +729,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                         }
                         className="font-display cursor-pointer border-base border block px-4 text-sm text-gray-500 hover:text-gray-500 hover:bg-base py-3"
                       >
-                        {item.title}
+                        {t(item.title)}
                       </li>
                     ))}
                   </ul>
@@ -768,6 +773,7 @@ const CheckBoxAll: FC<any> = ({ check, ...rest }) => {
   const toast = useToast();
   const refCheckbox: any = useRef();
   const [isAllowed, ht] = useAllowed()
+  const { t } = useTranslation();
 
   const getToggleAllRowsSelectedProps = () => {
     const totalGuests: number = event?.invitados_array?.length;
@@ -796,10 +802,10 @@ const CheckBoxAll: FC<any> = ({ check, ...rest }) => {
         invitados_array,
       }));
       dispatch({ type: "RESET_STATE" });
-      toast("success", "Invitado eliminado con exito");
+      toast("success", t("Invitado eliminado con exito"));
     } catch (error) {
       console.log(error);
-      toast("error", "Ha ocurrido un error");
+      toast("error", t("Ha ocurrido un error"));
     }
   };
 
@@ -828,7 +834,7 @@ const CheckBoxAll: FC<any> = ({ check, ...rest }) => {
       {arrIDs.length === 0 ? (
         <div className="col-span-11">
           <p className="font-display text-sm md:text-sm text-gray-500 translate-x-[-8px] md:translate-x-[-22px]">
-            Seleccionar todos
+            {t("selectall")}
           </p>
         </div>
       ) : (

@@ -11,6 +11,7 @@ import { ModalAddUserToEvent, UsuariosCompartidos } from "../Utils/Compartir";
 import { IoShareSocial } from "react-icons/io5";
 import { useAllowed } from "../../hooks/useAllowed"
 import { useToast } from "../../hooks/useToast";
+import { useTranslation } from 'react-i18next';
 
 interface propsBlockVista {
   children?: React.ReactNode;
@@ -20,6 +21,7 @@ interface propsBlockVista {
 const BlockVista: FC<propsBlockVista> = ({ children }) => {
   const [state, setState] = useState(0)
   const { event } = EventContextProvider();
+  const { t } = useTranslation();
 
   const seatedGuests: number = event?.invitados_array?.filter(
     (item) => item?.nombre_mesa?.toLowerCase() !== "no asignado"
@@ -77,9 +79,9 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
 
           <div className="w-full">
             <span className="w-full justify-between flex">
-              <p className="font-display text-xs text-gray-500">Estado</p>
+              <p className="font-display text-xs text-gray-500">{t("state")}</p>
               <p className="font-display text-xs text-gray-500">
-                ¡A celebrar! ¿Empezamos?
+                {t("letscelebratestarted")}
               </p>
             </span>
             {/* <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -92,10 +94,10 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
           <div className="w-full justify-between flex">
             <div className="w-1/3 grid place-items-center">
               <p className="font-display text-lg font-base text-gray-500">
-                {count} de 3
+                {count} {t("de 3")}
               </p>
-              <p className="font-display text-center text-xs font-base text-gray-500">
-                pasos para completar tu evento
+              <p className="font-display text-center text-xs font-base text-gray-500 first-letter:capitalize">
+                {t("stepstocompleteyourevent")}
               </p>
             </div>
 
@@ -103,8 +105,8 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
               <p className="font-display text-lg font-base text-gray-500">
                 {event?.invitados_array?.length}
               </p>
-              <p className="font-display text-xs font-base text-gray-500 pb-4">
-                invitado{event?.invitados_array?.length > 1 ? "s" : ""}
+              <p className="font-display text-xs font-base text-gray-500 pb-4  first-letter:capitalize">
+                {`${t("invitado")}${event?.invitados_array?.length > 1 ? "s" : ""}`}
               </p>
             </div>
 
@@ -112,8 +114,8 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
               <p className="font-display text-lg font-base text-gray-500">
                 {seatedGuests} de {event?.invitados_array?.length}
               </p>
-              <p className="font-display text-xs text-center font-base text-gray-500">
-                invitados sentados en tu evento
+              <p className="font-display text-xs text-center font-base text-gray-500 first-letter:capitalize">
+                {t("guestsseatedatyourevent")}
               </p>
             </div>
           </div>
@@ -130,6 +132,7 @@ const BlockPrincipal: FC = () => {
   const { user } = AuthContextProvider()
   const [openModal, setOpenModal] = useState(false)
   const [isAllowed, ht] = useAllowed()
+  const { t } = useTranslation();
 
 
 
@@ -170,17 +173,18 @@ export default BlockPrincipal;
 
 const BlockEditar = ({ set, state }) => {
   const { event } = EventContextProvider()
+  const { t } = useTranslation();
 
   return (
     <div className="w-full bg-white shadow rounded-xl overflow-hidden relative flex flex-col-reverse md:flex-row md:h-72 gap-12 md:gap-0 p-8">
       <div className="col-span-2 border-l-2 border-gray-100 pl-3 h-20 w-full ">
         <h2 className="font-display text-3xl capitalize text-primary font-light flex-col flex">
-          Editar{" "}
+          {t("edit")}{" "}
           <span className="font-display text-5xl capitalize text-gray-500 font-medium">
-            Evento
+            {t("event")}
           </span>
         </h2>
-        <button className="button-primary" onClick={set(!state)}>Cancelar</button>
+        <button className="button-primary" onClick={set(!state)}>{t("cancel")}</button>
       </div>
     </div >
   );
@@ -189,6 +193,7 @@ const BlockEditar = ({ set, state }) => {
 export const StateBar = () => {
   const [state, setState] = useState(0)
   const { event } = EventContextProvider();
+  const { t } = useTranslation();
   const seatedGuests: number = event?.invitados_array?.filter(
     (item) => item?.nombre_mesa?.toLowerCase() !== "no asignado"
   )?.length;

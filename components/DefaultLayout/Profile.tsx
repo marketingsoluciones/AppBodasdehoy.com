@@ -19,6 +19,8 @@ import { ObtenerFullAcceso } from "../InfoApp/ObtenerFullAcceso";
 import { useActivity } from "../../hooks/useActivity";
 import { GoChecklist } from "react-icons/go";
 import { useAllowed } from "../../hooks/useAllowed";
+import i18next from "i18next";
+import { useTranslation } from "react-i18next";
 
 const Profile = ({ user, state, set, ...rest }) => {
   const { config, setUser, setActionModals, actionModals } = AuthContextProvider()
@@ -26,12 +28,19 @@ const Profile = ({ user, state, set, ...rest }) => {
   const [dropdown, setDropwdon] = useState(false);
   const { event } = EventContextProvider()
   const [isAllowed, ht] = useAllowed()
+  const { t } = useTranslation()
 
 
   const { route } = useRouter()
   const toast = useToast()
   const [updateActivity, updateActivityLink] = useActivity()
   const cookieContent = JSON.parse(Cookies.get("guestbodas") ?? "{}")
+  const [language, setLanguage] = useState(i18next.language);
+
+  const handleChange = (event) => {
+    setLanguage(event.target.value);
+    i18next.changeLanguage(event.target.value);
+  };
 
   const optionsStart: Option[] = [
     {
@@ -70,7 +79,7 @@ const Profile = ({ user, state, set, ...rest }) => {
       onClick: async () => {
         const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
         const pathEnd = `${window.origin.includes("://test.") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}/InfoPage/publicaciones`
-        router.push((user?.displayName !== "guest") ? `${path}/InfoPage/publicaciones` ?? "" : config?.pathLogin ? `${config?.pathLogin}?d=app&end=${pathEnd}` : `/login?d=${route}`)
+        router.push((user?.displayName !== "guest") ? `${path}/InfoPage/publicaciones` : config?.pathLogin ? `${config?.pathLogin}?d=app&end=${pathEnd}` : `/login?d=${route}`)
       },
       icon: <Posts />,
       development: ["bodasdehoy"],
@@ -179,7 +188,7 @@ const Profile = ({ user, state, set, ...rest }) => {
             router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "/login")
             return
           }
-          toast("success", `Cerró sesión con éxito`)
+          toast("success", t("loggedoutsuccessfully"))
           router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "/")
         })
       },
@@ -220,24 +229,22 @@ const Profile = ({ user, state, set, ...rest }) => {
       <div className="text-gray-100 flex space-x-4  hover:text-gray-300 relative" {...rest} >
         <span className="flex items-center gap-2 relative">
         </span>
-
         <div className="items-center flex relative cursor-default ">
-          <div onClick={() => !event ? toast("error", `No tienes eventos creados`) : /* !isAllowed("itinerario") ? ht() : */ router.push("/itinerario")} className={`${!event ? "opacity-40" : ""} bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200 cursor-pointer`} >
+          <div onClick={() => !event ? toast("error", t("nohaveeventscreated")) : /* !isAllowed("itinerario") ? ht() : */ router.push("/servicios")} className={`${!event ? "opacity-40" : ""} bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200 cursor-pointer`} >
             <GoChecklist className="text-primary w-6 h-6 scale-x-90" />
           </div>
         </div>
         <Notifications />
         <ClickAwayListener onClickAway={() => dropdown && setDropwdon(false)}>
           <div
-            className="bg-white items-center gap-2 min-w-[200px] hidden md:flex relative"
-            onClick={() => setDropwdon(!dropdown)}
-          >
+            className="bg-white items-center gap-2 flex relative"
+            onClick={() => setDropwdon(!dropdown)}>
             {dropdown && (
-              <div className="bg-white rounded-lg w-80 h-max shadow-lg shadow-gray-400 absolute top-0 right-0 translate-y-[46px] overflow-hidden z-40 title-display">
+              <div className="bg-white rounded-lg w-80 h-max shadow-lg shadow-gray-400 absolute top-0 md:right-0 translate-y-[46px] -translate-x-[250px] md:-translate-x-[0px]  overflow-hidden z-40 title-display">
                 {/* < div className={`bg-red w-80 p-3 rounded-xl h-max shadow-md absolute bottom-0 right-0 inset-y-full translate-y-1 overflow-hidden z-50}`}> */}
                 <div className="w-full border-b border-gray-100 pb-2">
                   <p className="text-gray-500 font-extralight uppercase tracking-wider	text-xs text-center  cursor-default">
-                    {user?.role && user?.role?.length > 0 && user?.role[0]}
+                    {(user?.role && user?.role?.length > 0) && t(user?.role[0])}
                   </p>
                   <h3 className="text-primary font-medium w-full text-center cursor-default ">
                     {user?.displayName}
@@ -263,7 +270,7 @@ const Profile = ({ user, state, set, ...rest }) => {
                   {
                     true ?
                       <div onClick={() => setActionModals(!actionModals)} className="col-span-2 flex text-white gap-2 bg-primary hover:bg-slate-400 transition cursor-pointer rounded-lg py-1 px-2 items-center justify-center ">
-                        Obten full acceso
+                        {t("fullaccess")}
                       </div> :
                       null
                   }
@@ -281,10 +288,16 @@ const Profile = ({ user, state, set, ...rest }) => {
             </p>
           </div>
         </ClickAwayListener>
+        <div className="flex items-center ">
+          <select className="font-display text-sm text-gray-500 focus:ring-0 focus:border-none border-none -ml-6 -mr-3 " value={language} onChange={handleChange}>
+            <option value="en">En</option>
+            <option value="es">Sp</option>
+          </select>
+        </div>
       </div>
       {
         actionModals && (
-          <Modal classe={"w-[95%] md:w-[750px] h-[60%]"} >
+          <Modal classe={"w-[95%] md:w-[750px] h-[70%]"} >
             <ObtenerFullAcceso />
           </Modal>
         )

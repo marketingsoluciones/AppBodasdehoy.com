@@ -6,6 +6,7 @@ import { guests } from "../../utils/Interfaces";
 import { DataTableGroupContextProvider } from "../../context/DataTableGroupContext";
 import { TrExpand } from "./TrExpand";
 import { IndeterminateCheckbox } from "../Invitaciones/IndeterminateCheckbox";
+import { useTranslation } from 'react-i18next';
 
 
 interface propsDataTableFinal {
@@ -16,6 +17,7 @@ interface propsDataTableFinal {
 }
 
 const DataTableFinal: FC<propsDataTableFinal> = (props) => {
+  const { t } = useTranslation();
   const { children, data = [], columns = [], renderRowSubComponent } = props;
   const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows, state: { expanded } } = useTable({ columns, data }, useExpanded);
   const { event } = EventContextProvider();
@@ -141,7 +143,7 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
               <td className="pl-6 py-4 col-span-1 table-cell	">
               </td>
               <td className="py-4 w-max pl-5 text-gray-300">
-                No hay invitados
+                {t("noguests")}
               </td>
             </tr>
           )}

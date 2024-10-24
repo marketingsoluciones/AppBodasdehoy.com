@@ -20,10 +20,10 @@ const Resumen = () => {
   if (!event) return <></>
   return (
     <>
-      <section className="bg-base w-full py-10 px-2 md:px-0">
+      <section className="bg-base w-full md:py-10 px-2 md:px-0">
         <motion.div initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }} className="md:max-w-screen-lg mx-auto inset-x-0 flex-col flex gap-10 pb-20">
+          exit={{ opacity: 0 }} className="md:max-w-screen-lg mx-auto inset-x-0 flex-col flex gap-8 pb-20">
           <BlockPrincipal />
           <div className="w-full grid md:grid-cols-2 gap-4 md:gap-8">
             <BlockItinerario />

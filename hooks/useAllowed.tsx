@@ -1,6 +1,7 @@
 import { useRouter } from "next/router"
 import { EventContextProvider, ToastContextProvider } from "../context"
 import { useToast } from "./useToast";
+import { useTranslation } from "react-i18next";
 
 export const useAllowed = () => {
   try {
@@ -13,6 +14,7 @@ export const useAllowed = () => {
       invitaciones,
       itinerario
     }
+    const { t } = useTranslation()
 
     const { event } = EventContextProvider()
     const toast = useToast();
@@ -33,7 +35,7 @@ export const useAllowed = () => {
     }
 
     const ht = () => {
-      toast("warning", "No tienes permiso para editar")
+      toast("warning", t("No tienes permiso para editar"))
       return true
     }
     return [isAllowed, ht]
@@ -47,6 +49,7 @@ export const useAllowedRouter = () => {
     const { event } = EventContextProvider()
     const toast = useToast();
     const router = useRouter()
+    const { t } = useTranslation()
 
     const isAllowedRouter = (pathM?: any) => {
       let path = pathM ? pathM.split("/")[1].split("-")[0] : router.asPath.split("/")[1].split("-")[0]
@@ -62,7 +65,7 @@ export const useAllowedRouter = () => {
       return true
     }
     const ht = () => {
-      toast("warning", "No tienes permiso para este módulo")
+      toast("warning", t("No tienes permiso para este módulo"))
       return true
     }
     const hRoute = () => {

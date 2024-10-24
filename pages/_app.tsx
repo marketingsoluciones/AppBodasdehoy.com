@@ -9,17 +9,23 @@ import { AnimatePresence } from 'framer-motion';
 import { AuthContextProvider } from '../context';
 import { useEffect } from 'react';
 import { InfoDevelopment } from '../components/InfoDevelopment';
+import { I18nContext, I18nextProvider } from 'react-i18next';
+import i18n from "../utils/i18n"
+
 
 const MyApp = ({ Component, pageProps }) => {
 
   return (
     <>
       {/*<AnimatePresence exitBeforeEnter initial={false}>*/}
-      <DefaultLayout>
-        {/* <InfoDevelopment /> */}
-        <Load />
-        <Component {...pageProps} />
-      </DefaultLayout>
+      <I18nextProvider i18n={i18n}>
+        <DefaultLayout>
+          {/* <InfoDevelopment /> */}
+          <Load />
+          <Component {...pageProps} />
+        </DefaultLayout>
+      </I18nextProvider>
+
       {/*</AnimatePresence>*/}
       <style jsx global>
         {`

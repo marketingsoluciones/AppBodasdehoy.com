@@ -1,26 +1,28 @@
 import Link from "next/link"
+import { useTranslation } from 'react-i18next';
 
 export const Footer = () => {
+    const { t } = useTranslation();
 
     const DataLinks = [
         {
-            title: "Condiciones empresas",
+            title: t("ompanyconditions"),
             router: "/",
         },
         {
-            title: "Preguntas frecuentes",
+            title: t("frequentlyaskedquestions"),
             router: "/",
         },
         {
-            title: "Políticas de cookies",
+            title: t("cookiepolicies"),
             router: "/",
         },
         {
-            title: "¿Cómo funciona la lista de regalos",
+            title: t("Howwork"),
             router: "/",
         },
         {
-            title: "Privacidad",
+            title: t("privacy"),
             router: "/",
         },
     ]
@@ -43,13 +45,13 @@ export const Footer = () => {
                 </div>
                 <div className="hidden md:block">
                     <div className="flex items-center md:mr-5 space-x-2 ">
-                        <p className="text-white">Producto de</p>
+                        <p className="text-white">{t("productof")}</p>
                         <img src="/logoBodas.png" alt="Logo Bodasdehoy.com" />
                     </div>
                 </div>
             </div>
             <div className="flex items-center md:mr-5 space-x-2 pb-16 px-10 md:hidden  ">
-                <p className="text-white">Producto de</p>
+                <p className="text-white">{t("productof")}</p>
                 <img src="/logoBodas.png" alt="Logo Bodasdehoy.com" />
             </div>
 

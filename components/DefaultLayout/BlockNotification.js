@@ -2,8 +2,10 @@ import { useContext, useEffect, useState } from "react";
 import ClickAwayListener from "react-click-away-listener";
 import Link from 'next/link'
 import EventoContext from '../../context/EventContext'
+import { useTranslation } from 'react-i18next';
 
 const BlockNotification = ({ state, set, evento }) => {
+  const { t } = useTranslation();
   const [initial, setInitial] = useState("translate-x-full");
   const [notificaciones, setNotificaciones] = useState(evento.notificaciones_array)
 
@@ -26,11 +28,11 @@ const BlockNotification = ({ state, set, evento }) => {
     >
       {/* Cabecera */}
       <h2 className="text-2xl font-light text-center text-gray-500 pb-6">
-        Notificaciones
+        {t("notifications")}
       </h2>
       <div className="grid gap-2 min-w-full	px-6 ">
         {notificaciones?.length <= 0 
-        ? <h3 className="text-sm text-gray-500 py-4">No hay notificaciones</h3>
+        ? <h3 className="text-sm text-gray-500 py-4">{t("nonotifications")}</h3>
         : (
           notificaciones?.map((item, idx) => (
             <Notification data={item} key={idx} />
@@ -42,7 +44,7 @@ const BlockNotification = ({ state, set, evento }) => {
       <Link href="/bandeja-de-mensajes">
       <button className="bg-primary w-full h-10 absolute bottom-0 grid place-items-center focus:outline-none"  onClick={() => set(!state)}>
         <p className="font-display text-white text-sm hover:scale-105 transform transition">
-          Ver todas las notificaciones
+          {t("viewallnotifications")}
         </p>
       </button>
       </Link>

@@ -9,8 +9,10 @@ import { formatDistanceStrict } from "date-fns";
 import { es } from "date-fns/locale";
 import { Interweave, Node } from "interweave";
 import { HashtagMatcher, Link, Url, UrlMatcher, UrlProps } from "interweave-autolink";
+import { useTranslation } from "react-i18next";
 
 export const Notifications = () => {
+  const { t } = useTranslation()
   const { user, config } = AuthContextProvider()
   const { notifications, setNotifications } = SocketContextProvider()
   const [showNotifications, setShowNotifications] = useState(false);
@@ -18,7 +20,6 @@ export const Notifications = () => {
   // const [notifications, setNotifications] = useState<ResultNotifications>();
   const [countScroll, setCountScroll] = useState({ count: 1 })
   const [showLoad, setShowLoad] = useState<boolean>(false);
-
 
   const handleScroll = (e) => {
     if (e.target.scrollTop + e.target.offsetHeight === e.target.scrollHeight && notifications.results.length < notifications.total) {
@@ -164,10 +165,10 @@ export const Notifications = () => {
                 </li>
               ))}
               < li className="flex items-center justify-center">
-                <span className="text-xs">{
+                <span className="text-xs first-letter:capitalize">{
                   notifications?.results?.length === notifications?.total
-                    ? notifications?.results?.length ? "No hay más notificaciones" : "No hay notificaciones"
-                    : !showLoad ? "burcar más" : "cargando"
+                    ? notifications?.results?.length ? t("no hay más notificaciones") : t("no hay notificaciones")
+                    : !showLoad ? t("burcar más") : t("cargando")
                 }</span>
               </li>
             </ul>

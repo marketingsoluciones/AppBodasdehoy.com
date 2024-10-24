@@ -3,6 +3,7 @@ import Link from "next/link";
 import { EventContextProvider } from "../../context";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useRouter } from "next/router";
+import { useTranslation } from 'react-i18next';
 
 const BlockInvitaciones = () => {
   const { event } = EventContextProvider();
@@ -22,18 +23,19 @@ const BlockInvitaciones = () => {
     },
     { enviadas: 0, pendientes: 0, total: 0 }
   );
+  const { t } = useTranslation();
 
   const ListaBlockInvitaciones: { title: string, amount: number }[] = [
-    { title: "enviadas", amount: Invitaciones?.enviadas },
-    { title: "por enviar", amount: Invitaciones?.pendientes },
-    { title: "confirmadas", amount: 0 },
+    { title: t('send'), amount: Invitaciones?.enviadas },
+    { title: t('forsend'), amount: Invitaciones?.pendientes },
+    { title: t('confirmed'), amount: 0 },
   ];
 
   return (
     <div className="w-full bg-primary rounded-2xl h-16 flex shadow-md md:overflow-hidden relative">
       <div className="w-full md:w-4/5 flex items-center justify-between px-10 ">
-        <h3 className="font-display font-semibold hidden md:block text-2xl text-white">
-          Invitaciones
+        <h3 className="font-display font-semibold hidden md:block text-2xl text-white first-letter:capitalize">
+          {t("invitaciones")}
         </h3>
         <div className="flex gap-6 w-full justify-center md:justify-end ">
           {ListaBlockInvitaciones.map((item, idx) => (
@@ -47,8 +49,8 @@ const BlockInvitaciones = () => {
 
       <div className="w-1/2 md:w-1/5 h-1/2 md:h-full top-0 right-0 transform -translate-y-2/3 md:translate-y-0 absolute md:relative bg-white rounded-2xl md:rounded-l-2xl flex items-center justify-center shadow">
         <div onClick={() => !isAllowed("invitaciones") ? ht() : router.push("/invitaciones")}>
-          <p className="font-display font-ligth text-sm text-primary cursor-pointer hover:scale-105 transition transform ">
-            Ver mis <span className="font-bold">invitaciones</span>
+          <p className="font-display font-ligth text-sm text-primary cursor-pointer hover:scale-105 transition transform">
+            {t("seemy")} <span className="font-bold">{t("invitaciones")}</span>
           </p>
         </div>
       </div>

@@ -14,6 +14,7 @@ const firebaseConfigPlanificador = {
   apiKey: "AIzaSyA_BIthVz_uwQR7gObnKPjI2KincIvP5lo",
   authDomain: "eventosplanificador-74e59.firebaseapp.com",
   projectId: "eventosplanificador-74e59",
+  storageBucket: "eventosplanificador-74e59.appspot.com",
   messagingSenderId: "1087923505585",
   appId: "1:1087923505585:web:7573effc0a8663d5429590",
   measurementId: "G-BJK5EBV8H0"
@@ -33,6 +34,15 @@ const firebaseConfigVivetuboda = {
   messagingSenderId: "209046290590",
   appId: "1:209046290590:web:db0fbe47c3963ddd143b8f",
   measurementId: "G-PTQM1HELZC"
+};
+const firebaseConfigChampagneEvents = {
+  apiKey: "AIzaSyAhDpYfpElzfl-RNP9Tyz7GTaF5N_hHKlA",
+  authDomain: "champagne-events-mx.firebaseapp.com",
+  projectId: "champagne-events-mx",
+  storageBucket: "champagne-events-mx.appspot.com",
+  messagingSenderId: "70019683977",
+  appId: "1:70019683977:web:10648516be16afd5879858",
+  measurementId: "G-8X6QVM9165"
 };
 
 export const developments = [
@@ -130,6 +140,27 @@ export const developments = [
       tertiaryColor: "#F4C02F" /* "#b3dbb4" */,
       baseColor: "#F2F2F2",
       colorScroll: "#adb6ed"
+    },
+  },
+  {
+    name: "champagne-events",
+    development: "champagne-events",
+    fileConfig: firebaseConfigChampagneEvents,
+    cookie: "sessionChampagne-events",
+    domain: ".champagne-events.com.mx",
+    cookieGuest: "guestchampagne-events",
+    pathDomain: "http://champagne-events.com.mx",
+    pathLogin: "",
+    pathDirectory: "champagne-events.com.mx",
+    logoDirectory: <img className="hover:opacity-80 transition text-primary w-60 pt-8" src="http://www.champagne-events.com.mx/images/champagne.svg" />,
+    headTitle: "Champagne Event Planner",
+    favicon: "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://champagne-events.com.mx/en/destination-weddings&size=16",
+    theme: {
+      primaryColor: "#ecb290",
+      secondaryColor: "#d07a49",
+      tertiaryColor: "#dadbdb",
+      baseColor: "#fafae4",
+      colorScroll: "#f4d7c5"
     },
   },
 ]

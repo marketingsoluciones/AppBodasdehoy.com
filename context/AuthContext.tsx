@@ -202,9 +202,9 @@ const AuthProvider = ({ children }) => {
       const idx = c?.findIndex(el => el === "com")
       /* console.log("isProduction:", idx) */
       /*--------------------------------------------------------------------*/
-      const devDomain = ["bodasdehoy", "eventosplanificador", "eventosorganizador", "vivetuboda"]
+      const devDomain = ["bodasdehoy", "eventosplanificador", "eventosorganizador", "vivetuboda", "champagne-events"]
       const devSubdomain = [undefined, "invitado", "ticket"]
-      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[3] /*<<<<<<<<<*/
+      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[0] /*<<<<<<<<<*/
       const subdomainDevelop = idx === -1 && devSubdomain[0] /*<<<<<<<<<*/
       /*--------------------------------------------------------------------*/
       resp = developments.filter(elem => elem.name === domainDevelop)[0]
@@ -340,7 +340,7 @@ const AuthProvider = ({ children }) => {
         }
       }
 
-      if (!["vivetuboda"].includes(config?.development) && !sessionCookie) {
+      if (["bodasdehoy"].includes(config?.development) && !sessionCookie) {
         const cookieContent = JSON.parse(Cookies.get(config?.cookieGuest) ?? "{}")
         let guestUid = cookieContent?.guestUid
         if (!guestUid) {

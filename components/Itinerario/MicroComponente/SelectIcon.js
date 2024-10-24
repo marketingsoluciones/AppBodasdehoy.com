@@ -7,91 +7,90 @@ import { useEffect, useState } from "react";
 const IconArray = [
     {
         title: "Anillos",
-        icon: <Anillos />,
+        icon: <Anillos className={"w-full h-full"} />,
     },
     {
         title: "FuegosArtificiales",
-        icon: <FuegosArtificiales />,
+        icon: <FuegosArtificiales className={"w-full h-full"} />,
     },
     {
         title: "Baile",
-        icon: <Baile />,
+        icon: <Baile className={"w-full h-full"} />,
     },
     {
         title: "Baile2",
-        icon: <Baile2 />,
+        icon: <Baile2 className={"w-full h-full"} />,
     },
     {
         title: "Brindis",
-        icon: <Brindis />,
+        icon: <Brindis className={"w-full h-full"} />,
     },
     {
         title: "Carro",
-        icon: <Carro />,
+        icon: <Carro className={"w-full h-full"} />,
     },
     {
         title: "Cena",
-        icon: <Cena />
+        icon: <Cena className={"w-full h-full"} />
     },
     {
         title: "Cocteles",
-        icon: <Cocteles />,
+        icon: <Cocteles className={"w-full h-full"} />,
     },
     {
         title: "Comida",
-        icon: <Comida />,
+        icon: <Comida className={"w-full h-full"} />,
     },
     {
         title: "Fotografo",
-        icon: <Fotografo />,
+        icon: <Fotografo className={"w-full h-full"} />,
     },
     {
         title: "Iglesia",
-        icon: <Iglesia />,
+        icon: <Iglesia className={"w-full h-full"} />,
     },
     {
         title: "Maquillaje",
-        icon: <Maquillaje />,
+        icon: <Maquillaje className={"w-full h-full"} />,
     },
     {
         title: "Merienda",
-        icon: <Merienda />,
+        icon: <Merienda className={"w-full h-full"} />,
     },
     {
         title: "Novios",
-        icon: <Novios />,
+        icon: <Novios className={"w-full h-full"} />,
     },
     {
         title: "Salida",
-        icon: <Salida />,
+        icon: <Salida className={"w-full h-full"} />,
     },
     {
         title: "SesionFotos",
-        icon: <SesionFotos />,
+        icon: <SesionFotos className={"w-full h-full"} />,
     },
     {
         title: "Sol",
-        icon: <Sol />,
+        icon: <Sol className={"w-full h-full"} />,
     },
     {
         title: "Torta",
-        icon: <Torta />,
+        icon: <Torta className={"w-full h-full"} />,
     },
     {
         title: "Vestido",
-        icon: <Vestido />,
+        icon: <Vestido className={"w-full h-full"} />,
     },
     {
         title: "Dress",
-        icon: <Dress />,
+        icon: <Dress className={"w-full h-full"} />,
     },
 ]
 
-export const SelectIcon = ({ handleChange, disable,ht, ...props }) => {
+export const SelectIcon = ({ handleChange, disable, ht, ...props }) => {
     const [field] = useField({ name: props?.name });
     const [selectIcon, setSelectIcon] = useState()
     const [openIcon, setOpenIcon] = useState(false)
-    console.log(disable)
 
     useEffect(() => {
         if (selectIcon) {
@@ -103,7 +102,7 @@ export const SelectIcon = ({ handleChange, disable,ht, ...props }) => {
     return (
         <>
             {field?.value
-                ? <div className='w-full  h-full cursor-pointer flex justify-center '
+                ? <div className='w-full h-full cursor-pointer flex justify-center '
                     onClick={() => {
                         disable ? ht() :
                             setOpenIcon(!openIcon)

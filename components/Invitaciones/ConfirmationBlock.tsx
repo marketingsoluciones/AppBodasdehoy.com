@@ -6,9 +6,11 @@ import { EmailIcon, IconLightBulb16, SmsIcon, WhatsappIcon } from "../icons";
 import { optionArryOptions } from "../../pages/invitaciones";
 import { ActivatorPremium } from "../ActivatorPremium";
 import { useAllowed } from "../../hooks/useAllowed";
+import { useTranslation } from 'react-i18next';
 
 
 export const ConfirmationBlock: FC<any> = ({ arrEnviarInvitaciones, set }) => {
+  const { t } = useTranslation();
   const { event, setEvent } = EventContextProvider();
   const [optionSelect, setOptionSelect] = useState("email")
   const [isAllowed, ht] = useAllowed()
@@ -108,13 +110,13 @@ export const ConfirmationBlock: FC<any> = ({ arrEnviarInvitaciones, set }) => {
                 onClick={Cancelar}
                 className="font-display text-gray-500 hover:text-gray-300 transition cursor-pointer text-2xl absolute top-2 right-3">X</span>
               <IconLightBulb16 className="w-6 h-6" />
-              <span>Primero debes añadir la imagen de la invitación</span>
+              <span>{t("addimageinvitation")}</span>
             </div> :
             <>
-              <p className="font-semibold mb-2">
-                {`¿Desea enviar ${arrEnviarInvitaciones.length} ${arrEnviarInvitaciones.length > 1 ? "invitaciones" : "invitación"} de su evento?`}
+              <p className="font-semibold mb-2 first-letter:capitalize">
+                {`¿${t("desea enviar")} ${arrEnviarInvitaciones.length} ${arrEnviarInvitaciones.length > 1 ? t("invitaciones") : t("invitación")} ${t("de su evento")}?`}
               </p>
-              <span>Seleccione el medio</span>
+              <span>{t("selectmedia")}</span>
               <div className="grip grid-cols-3 -mt-2">
                 <OptionsMenu
                   arryOptions={arryOptions}
@@ -129,13 +131,13 @@ export const ConfirmationBlock: FC<any> = ({ arrEnviarInvitaciones, set }) => {
                     className={`rounded-md font-display w-28 focus:outline-none ${!event?.imgInvitacion ? "bg-gray-300" : "bg-green"} text-white hover:opacity-90 transition py-1`}
                     disabled={!event?.imgInvitacion}
                   >
-                    Aceptar
+                    {t("accept")}
                   </button>
                   <button
                     onClick={Cancelar}
                     className="rounded-md font-display w-28 focus:outline-none bg-gray-400 text-white hover:opacity-90 transition py-1"
                   >
-                    Cancelar
+                    {t("cancel")}
                   </button>
                 </div>
                 : <div className="text-yellow-500 flex items-center justify-center space-x-1 mt-7 text-sm cursor-default gap-4">

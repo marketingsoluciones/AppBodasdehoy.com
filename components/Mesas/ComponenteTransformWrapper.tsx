@@ -13,9 +13,11 @@ import ClickAwayListener from "react-click-away-listener";
 import { planSpace } from "../../utils/Interfaces";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useAllowed } from "../../hooks/useAllowed";
+import { useTranslation } from 'react-i18next';
 
 export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransform, resetTransform, centerView, state, setFullScreen, disableWrapper,
   setDisableWrapper, fullScreen, lienzo, setLienzo, scale, setScale, setShowFormEditar, scaleIni, ...rest }) => {
+  const { t } = useTranslation();
   const [reset, setReset] = useState(false)
   const [disableDrag, setDisableDrag] = useState(true)
   const toast = useToast()
@@ -79,9 +81,9 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
             <span className="text-sm pb-1">- </span>
           </ButtonConstrolsLienzo>
           <ButtonConstrolsLienzo onClick={() => { !isAllowed() ? ht() : handleSetDisableDrag() }} pulseButton={disableDrag}>
-            <span className="text-[10px] w-28 h-6 px-1 pt-[3px]">{disableDrag ? 'Desbloquear plano' : 'Bloquear plano'}</span>
+            <span className="text-[10px] w-28 h-6 px-1 pt-[3px]">{disableDrag ? t('unlockfloorplan') : t('lockflat')}</span>
           </ButtonConstrolsLienzo>
-          <span className={`${disableDrag ? "block" : "hidden"}  `} onClick={() => { toast("error", "Desbloquea el plano para poder mover las mesas ") }}>
+          <span className={`${disableDrag ? "block" : "hidden"}  `} onClick={() => { toast("error", t("unlocktables")) }}>
             <Lock className="text-primary md:block h-6 w-5" />
           </span>
         </div>
@@ -92,12 +94,12 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
               {showMiniMenu &&
                 <div className="bg-white flex flex-col absolute z-[50] top-8 right-18 rounded-b-md shadow-md *items-center text-[9px] px-3 pt-1 pb-3 text-gray-800 gap-y-2">
                   <div className="bg-white flex flex-col absolute z-[10] top-[0px] right-0 rounded-b-md shadow-md min-w-[140px] md:min-w-[120px] *items-center text-[10px] md:text-[12px] px-3 pt-1 pb-2 text-gray-800">
-                    <span className="w-full text-left font-bold transform -ml-2">Guardar como plantilla:</span>
+                    <span className="w-full text-left font-bold transform -ml-2">{t("savetemplate")}</span>
                     <span className="flex flex-col text-[9px] md:text-[11px]">
-                      <span className="capitalize">nombre:</span>
+                      <span className="capitalize">{t("names")}</span>
                       <div className="relative">
 
-                        {!valir && <p className="w-[75%] font-display absolute rounded-xl text-xs left-0 bottom-0 transform translate-y-full text-red flex gap-1"><WarningIcon className="w-4 h-4" />Existe una plantilla con este nombre si guarda la sustituye</p>}
+                        {!valir && <p className="w-[75%] font-display absolute rounded-xl text-xs left-0 bottom-0 transform translate-y-full text-red flex gap-1"><WarningIcon className="w-4 h-4" />{t("saveitreplaces")}</p>}
                       </div>
                       <div className="w-full flex justify-end mt-2 ">
                         <button onClick={async () => {
@@ -128,10 +130,10 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
                             }
                           }
                           setValue("")
-                          toast("success", "Se guardó la plantilla")
+                          toast("success", t("savedtemplate"))
 
                         }}
-                          className="bg-primary w-16 h-5 rounded-lg text-white capitalize">guardar</button>
+                          className="bg-primary w-16 h-5 rounded-lg text-white capitalize">{t("save")}</button>
                       </div>
                     </span>
                   </div>
@@ -146,11 +148,11 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
               <mdIcons.MdSettings className="w-6 h-6 cursor-pointer text-primary" onClick={() => setShowSetup(!showSetup)} />
               {showSetup &&
                 <div className="bg-white flex flex-col absolute z-[10] top-8 right-12 rounded-b-md shadow-md min-w-[95px] md:min-w-[120px] *items-center text-[10px] md:text-[12px] px-3 pt-1 pb-3 text-gray-800">
-                  <span className="w-full text-left font-bold transform -ml-2">Tamaño lienzo:</span>
-                  <InputMini label="ancho" lienzo={lienzo} setLienzo={setLienzo} centerView={centerView} resetTransform={resetTransform} />
-                  <InputMini label="alto" lienzo={lienzo} setLienzo={setLienzo} centerView={centerView} resetTransform={resetTransform} />
-                  <span className="w-full text-left font-bold transform -ml-2 mt-2">Espacio asiento:</span>
-                  <InputMini label="espacio" lienzo={lienzo} setLienzo={setLienzo} centerView={centerView} resetTransform={resetTransform} />
+                  <span className="w-full text-left font-bold transform -ml-2">{t("canvassize")}</span>
+                  <InputMini label={t("wide")} lienzo={lienzo} setLienzo={setLienzo} centerView={centerView} resetTransform={resetTransform} />
+                  <InputMini label={t("high")} lienzo={lienzo} setLienzo={setLienzo} centerView={centerView} resetTransform={resetTransform} />
+                  <span className="w-full text-left font-bold transform -ml-2 mt-2">{t("seatingspace")}</span>
+                  <InputMini label={t("space")} lienzo={lienzo} setLienzo={setLienzo} centerView={centerView} resetTransform={resetTransform} />
                 </div>
               }
             </div>
@@ -164,9 +166,9 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
 
 
       <div className="bg-gray-200 w-80 *h-5 grid grid-cols-3 absolute z-[10] top-0 left-2 md:left-8 rounded-b-md opacity-70 *items-center text-[9px] md:text-[10px] px-2 text-gray-800">
-        <span className="font-bold capitalize truncate">{`Plano: ${planSpaceActive?.title}`}</span>
-        <span>{`Tamaño: ${lienzo?.width / 100}x${lienzo?.height / 100}mts`}</span>
-        <span>{`Zoom: ${state.previousScale.toFixed(2)}X`}</span>
+        <span className="font-bold capitalize truncate">{`${t("plan")}: ${t(planSpaceActive?.title)}`}</span>
+        <span>{`${t("size")} ${lienzo?.width / 100}x${lienzo?.height / 100}mts`}</span>
+        <span>{`${t("zoom")} ${state.previousScale.toFixed(2)}X`}</span>
       </div>
 
       {/* <Cuadricula className="w-100 h-100 text-black" /> */}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { api } from "../../api";
 import { BorrarIcon, CompartirIcon, FlechaIcon, SubirImagenIcon } from "../icons";
+import { useTranslation } from 'react-i18next';
 
 
 const VistaPrevia = ({ event }) => {
@@ -74,6 +75,7 @@ const VistaPrevia = ({ event }) => {
 export default VistaPrevia;
 
 const HeaderEmail = () => {
+  const { t } = useTranslation();
   return (
     <div className="w-full h-max gap-6 bg-gray-100 rounded-t-xl p-6 flex flex-col justify-center">
       {/*  <div className=" hidden md:block flex gap-2 items-center">
@@ -94,7 +96,7 @@ const HeaderEmail = () => {
         </div> */}
         <div className="flex items-center justify-center">
           <div className="bg-base p-2 rounded flex gap-2 items-center md:px-16">
-            <h2 className=" text-gray-500 text-lg font-body">Vista previa de invitacion por email</h2>
+            <h2 className=" text-gray-500 text-lg font-body">{t("emailinvitationpreview")}</h2>
           </div>
         </div>
         {/* <div className=" hidden md:block flex items-center justify-center">

@@ -2,8 +2,10 @@ import { FC } from "react";
 import { InvitacionesIcon } from "../icons";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { EventContextProvider } from "../../context";
+import { useTranslation } from 'react-i18next';
 
 export const CounterInvitations: FC = () => {
+  const { t } = useTranslation();
   const { event } = EventContextProvider();
   const Invitaciones = event?.invitados_array?.reduce(
     (acc, invitado) => {
@@ -34,7 +36,7 @@ export const CounterInvitations: FC = () => {
                   {`${Invitaciones?.enviadas} de ${Invitaciones?.total}`}
                 </p>
                 <span className="capitalize font-display font-medium text-xs md:text-sm">
-                  invitaciones enviadas
+                  {t("invitationssent")}
                 </span>
               </div>
             </div>
@@ -47,7 +49,7 @@ export const CounterInvitations: FC = () => {
                   {`${Invitaciones?.pendientes} de ${Invitaciones?.total}`}
                 </p>
                 <span className="capitalize font-display font-medium text-xs md:text-sm">
-                  invitaciones pendientes
+                  {t("invitationspending")}
                 </span>
               </div>
             </div>

@@ -13,8 +13,10 @@ import { Event } from "../utils/Interfaces";
 import VistaSinCookie from "../pages/vista-sin-cookie"
 import { useRouter } from "next/router";
 import { useToast } from "../hooks/useToast";
+import { useTranslation } from 'react-i18next';
 
 const Home: NextPage = () => {
+
   const { user, verificationDone, config, setUser } = AuthContextProvider()
   const { eventsGroup, eventsGroupDone } = EventsGroupContextProvider()
   const { setEvent } = EventContextProvider()
@@ -26,6 +28,7 @@ const Home: NextPage = () => {
   const router = useRouter()
   const [isMounted, setIsMounted] = useState<boolean>(false)
   const toast = useToast()
+  const { t } = useTranslation()
 
   useEffect(() => {
     if (!isMounted) {
@@ -64,7 +67,7 @@ const Home: NextPage = () => {
       }
       const data = eventsGroup?.find(elem => elem?._id === router?.query?.pAccShas?.slice(-24))
       if (data) {
-        const resp = handleClickCard({ final: true, config, data, setEvent, user, setUser, router })
+        const resp = handleClickCard({ t, final: true, config, data, setEvent, user, setUser, router })
         if (resp) toast("warning", resp)
         return <></>
       }
@@ -121,6 +124,7 @@ interface propsBanner {
   set: Dispatch<SetStateAction<boolean>>;
 }
 const Banner: FC<propsBanner> = ({ set, state }) => {
+  const { t } = useTranslation();
   const { eventsGroup } = EventsGroupContextProvider();
   const { actionModals, setActionModals } = AuthContextProvider()
   const ConditionalAction = () => {
@@ -131,21 +135,24 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
     }
   }
   return (
-    <div className="banner bg-base w-full flex justify-center h-[60%] md:h-[calc(100%-200px-50px)] md:min-h-[300px] px-5 md:px-0 overflow-hidden relative">
-      <div className="md:max-w-screen-lg 2xl:max-w-screen-xl w-full grid md:grid-cols-2 h-full">
-        <div className="flex flex-col justify-center relative py-10 md:py-0">
-          <h2 className="font-display font-medium text-5xl md:text-6xl tracking-tight	text-gray-500">
-            ¡Hola!
+    <div className="banner bg-base w-full flex justify-center h-[60%] md:h-[calc(100%-200px-50px)] md:min-h-[300px] px-5 md:px-0 overflow-hidden relative mb-1">
+      <div className="md:max-w-screen-lg 2xl:max-w-screen-xl w-full grid md:grid-cols-5 h-full">
+        <div className="flex flex-col justify-center relative py-10 md:py-0 col-span-2">
+          <h2 className="font-display font-medium text-2xl md:text-5xl tracking-tight	text-primary mb-1.5">
+            {t("organizeyourevents")}
           </h2>
-          <h1 className="font-display font-base text-xl md:text-2xl tracking-tight text-primary">
-            empecemos a organizar tu evento
+          <h3 className="font-display font-medium text-1xl md:text-3xl tracking-tight	text-gray-500 mb-1.5">
+            {t("sharecollaborateinvite")}
+          </h3>
+          <h1 className="font-display font-base text-md tracking-tight text-primary">
+            {t("planyourcelebrations") + " "} <span className="font-semibold">{t("sin estres")}</span>
           </h1>
-          <span className="flex gap-2 justify-center items-end">
+          <span className="flex gap-2 justify-start items-end">
             <button
               onClick={() => ConditionalAction()}
-              className="mt-4 bg-primary font-display font-medium text-white px-24 py-3 rounded-lg  box-border hover:bg-gray-200 transition focus:outline-none z-20"
+              className="mt-4 bg-primary font-display font-medium text-white px-5 md:px-24 py-2 rounded-lg  box-border hover:bg-gray-200 transition focus:outline-none z-20"
             >
-              Crear un evento
+              {t("createanevent")}
             </button>
           </span>
           <LineaHome className="hidden md:flex md:-bottom-10 xl:-bottom-5 absolute z-10 left-0 w-max" />
@@ -153,12 +160,12 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="hidden md:block relative overflow-hidden"
+          className="hidden md:block relative overflow-hidden col-span-3"
         >
-          <CircleBanner className="w-full h-auto top-10 transform translate-y-1/6 absolute bottom-0 right-0 z-0" />
+          {/* <CircleBanner className="w-full h-auto top-12 transform translate-y-1/6 absolute bottom-0 right-0 left-2 z-0" /> */}
           <img
-            className="z-20 image mx-auto inset-x-0 relative"
-            src="/MujerPrincipal.webp"
+            className="z-20 image mx-auto inset-x-0 relative top-16"
+            src="/IndexImg2.png"
           />
         </motion.div>
       </div>
@@ -175,7 +182,8 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
 
           @media only screen and (min-width: 1536px) {
             .image {
-              height: 800px;
+              height: 500px;
+              
             }
           }
         `}
@@ -202,6 +210,7 @@ export const Lista = [
 ];
 
 const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
+  const { t } = useTranslation();
   const { eventsGroup } = EventsGroupContextProvider();
   const { idxGroupEvent, setIdxGroupEvent } = EventContextProvider()
   const [isActiveStateSwiper, setIsActiveStateSwiper] = useState<number>(idxGroupEvent?.isActiveStateSwiper)
@@ -268,10 +277,10 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
               className={`${isActiveStateSwiper == idx
                 ? `bg-${item.color} text-white`
                 : "bg-white text-gray-500"
-                } w-max md:mt-4 mb-3 md:mb-1 px-4 py-0.5 rounded-xl flex items-center justify-center cursor-pointer hover:bg-${item.color
+                } w-max md:mt-4 mb-3 md:mb-2 px-4 py-0.5 rounded-xl flex items-center justify-center cursor-pointer hover:bg-${item.color
                 } hover:text-gray-500 transition focus:outline-none text-sm font-display`}
             >
-              {item.nombre}
+              {t(item.nombre)}
             </button>
           ))}
         </div>
@@ -314,7 +323,7 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
                           className={`flex items-center justify-center my-3`}
                         >
                           <div className={`w-72 h-36 rounded-xl flex flex-col items-center justify-center shadow-lg bg-base border border-gray-100 transition `}>
-                            <p className="font-display font-base text-md">{`Ningún evento ${group.status}`}</p>
+                            <p className="font-display font-base text-md">{t(`Ningún evento ${group.status}`)}</p>
                           </div>
                         </SwiperSlide> :
                         <SwiperSlide
@@ -335,22 +344,3 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
   );
 };
 
-
-// interface propsSlideto {
-//   page: number
-//   setResultsContact: any
-//   contacts: any
-// }
-// const SlideTo: FC<propsSlideto> = ({ page, setResultsContact, contacts }) => {
-//   const swiper = useSwiper();
-//   swiper.on('slideChange', function (idx) {
-//     if (idx.activeIndex != 1) {
-//       setResultsContact(contacts?.results)
-//     }
-//   });
-//   useEffect(() => {
-//     swiper.slideTo(page)
-//   }, [page, swiper])
-//   return <>
-//   </>
-// }

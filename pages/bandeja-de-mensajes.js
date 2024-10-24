@@ -1,8 +1,10 @@
 import Breadcumbs from "../components/DefaultLayout/Breadcumb";
 import { PicoIcon } from "../components/icons";
 import BlockTitle from "../components/Utils/BlockTitle";
+import { useTranslation } from 'react-i18next';
 
 const BandejaDeMensajes = () => {
+  const { t } = useTranslation();
   const Lista = [
     { title: "Proveedores", route: "" },
     { title: "Mensajes Privados", route: "" },
@@ -18,15 +20,15 @@ const BandejaDeMensajes = () => {
           <div className="grid grid-cols-1 w-full md:grid-cols-4 gap-6 py-6">
             <div className="col-span-1 flex items-center md:items-start justify-between md:flex-col bg-white shadow-lg rounded-xl w-full py-4 px-4 h-max">
               <h2 className="hidden md:block font-display text-lg font-light text-gray-500 w-max text-left px-2 ">
-                Carpetas
+                {t("folders")}
               </h2>
               <div className="flex md:flex-col gap-2 md:px-2 md:py-4 justify-center w-full md:border-b border-gray-100 ">
                 <ul className="font-display text-gray-500 gap-5 flex items-center justify-between px-16 md:px-0 md:items-start md:flex-col w-full">
                   <li className="flex gap-1 items-center hover:text-gray-300 text-sm cursor-pointer">
-                    No leídos<span className="font-semibold">10</span>
+                    {t("unread")}<span className="font-semibold">10</span>
                   </li>
                   <li className="flex gap-2 items-center hover:text-gray-300 text-sm cursor-pointer">
-                    Bandeja de entrada<span className="font-semibold">7</span>
+                    {t("inbox")}<span className="font-semibold">7</span>
                   </li>
                 </ul>
               </div>
@@ -46,7 +48,7 @@ const BandejaDeMensajes = () => {
 
             <div className="col-span-1 md:col-span-3 bg-white shadow-lg rounded-xl w-full py-3 px-4 h-max">
               <h2 className="font-display font-semibold text-2xl text-gray-300 w-full px-4 border-b border-gray-100 py-2">
-                No leidos
+                {t("No leidos")}
               </h2>
               <div className="py-4 grid gap-4 md:px-4">
                 <Mensaje />
@@ -75,7 +77,7 @@ export const Mensaje = () => {
         <PicoIcon className="absolute inset-y-0 my-auto w-max h-max transform -translate-x-full left-px" />
         <p className="font-display font-semibold text-sm">¡Sí voy!</p>
         <p className="font-display font-light text-xs md:text-sm">
-          Ha confirmado su asistencia via email
+          {t("youconfirmedattendanceemail")}
         </p>
       </div>
     </div>

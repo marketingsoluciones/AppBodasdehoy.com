@@ -4,14 +4,16 @@ import { InvitacionesIcon } from "../../components/icons";
 import useHover from "../../hooks/useHover";
 import { ConfirmationBlock } from "../../components/Invitaciones/ConfirmationBlock"
 import { DataTable } from "../../components/Invitaciones/DataTable"
-import {  getRelativeTime } from "../../utils/FormatTime";
+import { getRelativeTime } from "../../utils/FormatTime";
+import { useTranslation } from 'react-i18next';
 
 export const GuestTable: FC<any> = ({ data, multiSeled, reenviar, activeFunction }) => {
+  const { t } = useTranslation();
   const [arrEnviarInvitaciones, setArrEnviatInvitaciones] = useState([]);
   const Columna = useMemo(
     () => [
       {
-        Header: "NOMBRE",
+        Header: t("name"),
         accessor: "nombre",
         id: "nombre",
         isVisible: false,
@@ -46,17 +48,17 @@ export const GuestTable: FC<any> = ({ data, multiSeled, reenviar, activeFunction
         },
       },
       {
-        Header: "CORREO",
+        Header: t("mail"),
         accessor: "correo",
         id: "correo",
       },
       {
-        Header: "TELEFONO",
+        Header: t("phone"),
         accessor: "telefono",
         id: "telefono",
       },
       {
-        Header: "INVITACION",
+        Header: t("invitation"),
         accessor: "invitacion",
         id: "invitacion",
         Cell: (props) => {
@@ -65,11 +67,6 @@ export const GuestTable: FC<any> = ({ data, multiSeled, reenviar, activeFunction
           useEffect(() => {
             setValue(props.value);
           }, [props.value]);
-
-          const mensaje = {
-            true: "Enviado",
-            false: "No enviado",
-          };
 
           const handleClick = () => {
             if (!value) {
@@ -87,14 +84,14 @@ export const GuestTable: FC<any> = ({ data, multiSeled, reenviar, activeFunction
                 onClick={handleClick}
               >
                 <InvitacionesIcon className="w-5 h-5 " />
-                <p className="font-display text-md text-black truncate  ">{mensaje[value]}</p>
+                <p className="font-display text-md text-black truncate first-letter:capitalize">{value ? t("enviado") : t("no enviado")}</p>
               </div>
             </>
           );
         },
       },
       {
-        Header: "ACOMPAÑANTES",
+        Header: t("companions"),
         accessor: "acompañantes",
         id: "acompañantes",
         Cell: (props) => {
@@ -114,7 +111,7 @@ export const GuestTable: FC<any> = ({ data, multiSeled, reenviar, activeFunction
         },
       },
       {
-        Header: "ENVIADO",
+        Header: t("envoy"),
         accessor: "date",
         id: "date",
         Cell: (props) => {
@@ -127,7 +124,9 @@ export const GuestTable: FC<any> = ({ data, multiSeled, reenviar, activeFunction
               <div
                 className={`group truncate relative w-full h-full flex items-center justify-center pl-3 gap-1 `}
               >
-                <p className="font-display text-md text-black truncate hidden md:block ">{value ? getRelativeTime(value) : "Sin enviar"}</p>
+                <p className="font-display text-md text-black truncate hidden md:block first-letter:capitalize">
+                  {value ? getRelativeTime(value) : t("sin enviar")}
+                </p>
               </div>
             </>
           );

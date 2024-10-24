@@ -8,6 +8,7 @@ import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
 import { Dispatch, FC, SetStateAction } from "react";
 import { table } from "../../utils/Interfaces";
+import { useTranslation } from 'react-i18next';
 
 
 interface propsFormCrearMesa {
@@ -65,18 +66,18 @@ export const dicc = {
 };
 
 const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
+  const { t } = useTranslation();
   const { modelo, offsetX, offsetY } = values
 
   const { event, setEvent, planSpaceActive, setPlanSpaceActive } = EventContextProvider();
   const toast = useToast()
 
   const validationSchema = yup.object().shape({
-    nombre_mesa: yup.string().required().test("Unico", "El nombre ya esta en uso", values => {
+    nombre_mesa: yup.string().required().test("Unico", t("nameused"), values => {
       return !event.mesas_array.map(item => item.nombre_mesa).includes(values)
-    }).required("El nombre es requerido"),
-    cantidad_sillas: yup.number().required("El Nº de sillas es requerido"),
+    }).required(t("requiredname")),
+    cantidad_sillas: yup.number().required(t("requiredquantity")),
   });
-
 
 
   const initialValues: initialValues = {
@@ -112,9 +113,9 @@ const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
       setPlanSpaceActive({ ...planSpaceActive })
       event.planSpace[event.planSpaceSelect] = planSpaceActive
       setEvent({ ...event })
-      toast("success", "Mesa creada con exito")
+      toast("success", t("Mesa creada con exito"))
     } catch (err) {
-      toast("error", "Ha ocurrido un error al crear la mesa")
+      toast("error", t("Ha ocurrido un error al crear la mesa"))
       console.log(err);
     } finally {
       actions.setSubmitting(false);
@@ -135,14 +136,14 @@ const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
               <div className="col-span-2 flex flex-col gap-4 ">
                 <InputField
                   name="nombre_mesa"
-                  label="Nombre de mesa"
+                  label={t("nametable")}
                   type="text"
                   autoFocus
                   className="font-semibold"
                 />
                 <InputField
                   name="cantidad_sillas"
-                  label="N° de sillas"
+                  label={t("numberchairs")}
                   type="number"
                   min={dicc[modelo].min}
                   max={dicc[modelo].max}
@@ -160,14 +161,14 @@ const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
                 type="submit"
                 className=" bg-primary w-full text-white font-semibold mx-auto inset-x-0 rounded-xl py-1  focus:outline-none"
               >
-                Crear mesa
+                {t("createtable")}
               </button>
 
               <button
                 className=" bg-gray-200 transition w-full text-white font-semibold mx-auto inset-x-0 rounded-xl py-1 focus:outline-none hover:opacity-80 "
                 onClick={() => set(false)}
               >
-                Cancelar
+                {t("cancel")}
               </button>
             </div>
           </Form>

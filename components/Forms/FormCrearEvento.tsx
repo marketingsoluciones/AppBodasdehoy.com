@@ -7,6 +7,7 @@ import { useToast } from "../../hooks/useToast";
 import * as yup from "yup";
 import { Dispatch, FC, SetStateAction, useEffect, useState } from "react";
 import Cookies from "js-cookie";
+import { useTranslation } from 'react-i18next';
 
 // formatear fecha
 const getDate = (f: Date): string => {
@@ -16,11 +17,6 @@ const getDate = (f: Date): string => {
   return `${y}-${m}-${d}`
 }
 
-const validationSchema = yup.object().shape({
-  nombre: yup.string().required("Nombre de evento requerido"),
-  tipo: yup.string().required("No has seleccionado un tipo de evento"),
-});
-
 interface propsFromCrearEvento {
   state: boolean
   set: Dispatch<SetStateAction<boolean>>
@@ -28,11 +24,32 @@ interface propsFromCrearEvento {
 }
 
 const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) => {
+  const { t } = useTranslation();
   const { event, setEvent } = EventContextProvider()
   const { user, config } = AuthContextProvider();
   const { setEventsGroup, eventsGroup } = EventsGroupContextProvider();
   const toast = useToast();
   const [valir, setValir] = useState(false)
+
+  const validationSchema = yup.object().shape({
+    nombre: yup.string().required(t("Nombre de evento requerido")),
+    tipo: yup.string()
+      .required(t("Seleciona el tipo de evento"))
+      .test("Unico", t("Seleciona el tipo de evento"), (value) => {
+        if (value === "Select") {
+          return false
+        }
+        return true
+      }),
+    fecha: yup.string()
+      .test("Unico", t("Selecciona una fecha válida"), (value) => {
+        const d = new Date(value).getTime()
+        if (new Date().getTime() > d) {
+          return false
+        }
+        return true
+      })
+  });
 
   type MyValues = {
     nombre: string
@@ -52,7 +69,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
     : {
       nombre: "",
       tipo: "",
-      fecha: new Date().toJSON(),
+      fecha: "",//new Date().toJSON(),
       pais: "",
       poblacion: "",
       usuario_id: user?.uid,
@@ -69,9 +86,9 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
         setEventsGroup({ type: "ADD_EVENT", payload: crearEvento });
 
       }
-      toast("success", "Evento creado con exito");
+      toast("success", t("successfullycreatedevent"));
     } catch (error) {
-      toast("error", "Ha ocurrido un error al crear el evento");
+      toast("error", t("Ha ocurrido un error al crear el evento"));
       console.log(error);
     } finally {
       set(!state);
@@ -92,7 +109,10 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
       values.fecha = new Date(values.fecha).getTime()
       await fetchApiEventos({
         query: queries.eventUpdate,
-        variables: { idEvento: values._id, variable: "nombre", value: values.nombre }, token: null
+        variables: {
+          idEvento: values._id, variable: "nombre",
+          value: values.nombre
+        }, token: null
       })
       await fetchApiEventos({
         query: queries.eventUpdate,
@@ -103,9 +123,9 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
         variables: { idEvento: values._id, variable: "fecha", value: values.fecha.toString() }, token: null
       })
       setEvent({ ...event, ...values })
-      toast("success", "Evento actualizado con exito")
+      toast("success", t("Evento actualizado con exito"))
     } catch (error) {
-      toast("error", "Ha ocurrido un error al modificar el evento");
+      toast("error", t("Ha ocurrido un error al modificar el evento"));
       console.log(error)
     } finally {
       set(!state);
@@ -133,7 +153,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
     "graduación",
     "bautizo",
     "comunión",
-    "desdepida de soltero",
+    "despedida de soltero",
     "otro",
   ];
 
@@ -148,10 +168,10 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
         <Form className="w-full">
           <div className="border-l-2 border-gray-100 pl-3 w-full ">
             <h2 className="font-display text-3xl capitalize text-primary font-light">
-              {EditEvent ? "Editar" : "Crear"}
+              {EditEvent ? t("edit") : t("create")}
             </h2>
             <h2 className="font-display text-5xl capitalize text-gray-500 font-medium">
-              Evento
+              {t("event")}
             </h2>
           </div>
           <div
@@ -160,23 +180,24 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
           >
             <div className="">
               <InputField
-                placeholder="Ej. Cumpleaños de Ana"
+                //placeholder="Ej. Cumpleaños de Ana"
                 name="nombre"
-                label="Nombre del evento"
+                label={t("nameevent")}
               />
             </div>
 
             <div>
               <SelectField
                 name="tipo"
-                label="Tipo de evento"
+                label={t("eventtype")}
                 options={ListaTipo}
+                nullable={true}
               />
             </div>
 
             <InputField
               name="fecha"
-              label="Fecha del evento"
+              label={t("eventdate")}
               type="date"
             />
 
@@ -202,7 +223,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
               className={`font-display rounded-full mt-4 py-2 px-6 text-white font-medium transition w-full hover:opacity-70 ${isSubmitting ? "bg-secondary" : "bg-primary"
                 }`}
             >
-              Guardar
+              {t("save")}
             </button>
           </div>
         </Form>

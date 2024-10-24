@@ -1,6 +1,5 @@
 import { useEffect, useState, } from "react";
-import Breadcumbs from "../components/DefaultLayout/BreadCumbs";
-import {  DiseñoIcon, EmailIcon,  SmsIcon,WhatsappIcon, } from "../components/icons";
+import { DiseñoIcon, EmailIcon, SmsIcon, WhatsappIcon, } from "../components/icons";
 import BlockTitle from "../components/Utils/BlockTitle";
 import useHover from "../hooks/useHover";
 import ModuloSubida from "../components/Invitaciones/ModuloSubida";
@@ -16,6 +15,7 @@ import { DiseñoComponent } from "../components/Invitaciones/DiseñoComponent";
 import Test from "../components/Invitaciones/Test";
 import { PlantillaTextos } from "../components/Invitaciones/PlantillaTextos";
 import { GoChevronDown } from "react-icons/go";
+import { useTranslation } from 'react-i18next';
 
 export type optionArryOptions = {
   title: string;
@@ -24,6 +24,7 @@ export type optionArryOptions = {
 }
 
 const Invitaciones = () => {
+  const { t } = useTranslation();
   const { user, verificationDone, forCms } = AuthContextProvider()
   const { event } = EventContextProvider();
   const [hoverRef, isHovered] = useHover();
@@ -31,6 +32,7 @@ const Invitaciones = () => {
   const [dataInvitationNotSent, setDataInvitationNotSent] = useState([]);
   const [optionSelect, setOptionSelect] = useState("email")
   const [stateConfi, setStateConfi] = useState(true)
+
   const arryOptions: optionArryOptions[] = [
     {
       title: "email",
@@ -71,8 +73,8 @@ const Invitaciones = () => {
       return acc;
     }, { sent: [], notSent: [] })
 
-    const InvitationSent = reduce?.sent?.filter((invitado:any) => !invitado?.father)
-    const InvitationNotSent = reduce?.notSent?.filter((invitado:any)=> !invitado?.father)
+    const InvitationSent = reduce?.sent?.filter((invitado: any) => !invitado?.father)
+    const InvitationNotSent = reduce?.notSent?.filter((invitado: any) => !invitado?.father)
 
     reduce?.sent?.length != dataInvitationSent?.length && setDataInvitationSent(InvitationSent);
     reduce?.notSent.length != dataInvitationNotSent?.length && setDataInvitationNotSent(InvitationNotSent);
@@ -97,8 +99,8 @@ const Invitaciones = () => {
             <BlockTitle title="Invitaciones" />
             <CounterInvitations />
             <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full md:px-6 pt-2 md:pt-6 pb-28 mb-32 md:mb-0 md:p-12 relative">
-              <button className="text-primary flex items-center text-[20px] capitalize ml-3 " onClick={() => setStateConfi(!stateConfi)}>
-                Configuracion de la invitacion
+              <button className="text-primary flex items-center text-[20px] first-letter:capitalize ml-3 " onClick={() => setStateConfi(!stateConfi)}>
+                {t("invitationsettings")}
                 <span> <GoChevronDown className={` h-6 w-6 text-azulCorporativo cursor-pointer transition-all ml-2 ${stateConfi && "rotate-180"}`} /></span>
               </button>
               <div className={`${stateConfi ? "" : "hidden"}`}>

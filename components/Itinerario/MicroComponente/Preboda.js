@@ -1,10 +1,13 @@
 
 import { useState } from "react";
-import { SubHeader, SelectIcon, IconList, Time, Description, Responsable, ResponsableList, Tips, Duration, AddEvent, GuardarButtom } from "../MicroComponente";
+import { SubHeader, SelectIcon, IconList, Time, Description, ResponsableSelector, ResponsableList, Tips, Duration, AddEvent, GuardarButtom } from "../MicroComponente";
 import { Modal } from "../../Utils/Modal";
 import { Form, Formik } from "formik";
 import { InputTime } from "../../Forms/inputs/InputTime"
+import { useTranslation } from 'react-i18next';
+
 export const Preboda = ({ event, IconArry }) => {
+    const { t } = useTranslation();
     const newDate = new Date(parseInt(event?.fecha));
     const options = { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" };
     const time = newDate.toLocaleDateString("es-VE", options)
@@ -16,19 +19,19 @@ export const Preboda = ({ event, IconArry }) => {
     const ResponsablesArry = [
         {
             icon: "/rol_novia.png",
-            title: "Novia",
+            title: "novia",
         },
         {
             icon: "/rol_novio.png",
-            title: "Novio",
+            title: "novio",
         },
         {
             icon: "/rol_invitados.png",
-            title: "Invitados",
+            title: "invitados",
         },
         {
             icon: "/rol_proveedor.png",
-            title: "Proveedor",
+            title: "proveedor",
         },
 
     ]
@@ -44,7 +47,7 @@ export const Preboda = ({ event, IconArry }) => {
 
     return (
         <>
-            <SubHeader date={time} title={"Preboda"} />
+            <SubHeader date={time} title={t("prewedding")} />
             <Formik initialValues={initialValues} >
                 <Form>
                     <div className="flex items-center justify-center border-b border-dashed pb-3 relative" >
@@ -56,7 +59,7 @@ export const Preboda = ({ event, IconArry }) => {
                         </div>
 
                         <Description />
-                        <Responsable openModal={openResponsableList} setOpenModal={setOpenResponsableList} />
+                        <ResponsableSelector openModal={openResponsableList} setOpenModal={setOpenResponsableList} />
                         <Tips />
                     </div>
                 </Form>

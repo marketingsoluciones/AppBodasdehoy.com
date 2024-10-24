@@ -1,9 +1,10 @@
 import { Form, Formik } from "formik";
 import { SubHeader } from "./SubHeader";
-import { AddEvent, Description, Duration, GuardarButtom, IconList, Responsable, ResponsableList, SelectIcon, Time, Tips } from "../MicroComponente";
+import { AddEvent, Description, Duration, GuardarButtom, IconList, ResponsableSelector, ResponsableList, SelectIcon, Time, Tips } from "../MicroComponente";
 import { Modal } from "../../Utils/Modal";
 import { useState } from "react";
 import { InputTime } from "../../Forms/inputs/InputTime";
+import { useTranslation } from 'react-i18next';
 
 export const ElGranDia = ({ event, IconArry }) => {
     const newDate = new Date(parseInt(event?.fecha));
@@ -55,7 +56,7 @@ export const ElGranDia = ({ event, IconArry }) => {
                             <Duration />
                         </div>
                         <Description />
-                        <Responsable openModal={openResponsableList} setOpenModal={setOpenResponsableList} />
+                        <ResponsableSelector openModal={openResponsableList} setOpenModal={setOpenResponsableList} />
                         <Tips />
                     </div>
                 </Form>

@@ -7,6 +7,7 @@ import { useRouter } from "next/router";
 import { table } from "../../utils/Interfaces";
 import { useToast } from "../../hooks/useToast";
 import { handleMoveGuest } from "./GrupoTablas";
+import { useTranslation } from 'react-i18next';
 
 interface props {
   initialValue: table
@@ -15,7 +16,7 @@ interface props {
 }
 
 export const RowObject: FC<props> = (props) => {
-
+  const { t } = useTranslation();
   const toast = useToast()
   const router = useRouter()
   const { event, setEvent } = EventContextProvider()
@@ -33,7 +34,7 @@ export const RowObject: FC<props> = (props) => {
             onClick={() => router.push("/mesas")}
             className="bg-tertiary font-display text-sm font-medium hover:text-gray-500 *px-3 rounded-lg focus:outline-none"
           >
-            Añadir mesa
+           {t("addtable")}
           </button>
         ) : (
           <button
@@ -63,7 +64,7 @@ export const RowObject: FC<props> = (props) => {
                     if (value?._id || elem?._id) {
                       if (value?._id !== elem?._id) {
                         setValue(elem.title);
-                        handleMoveGuest({ invitadoID: guestID, previousTable: value, lastTable: table, f1, event, setEvent, toast })
+                        handleMoveGuest({t, invitadoID: guestID, previousTable: value, lastTable: table, f1, event, setEvent, toast })
                       }
                     }
                   }}
@@ -77,7 +78,7 @@ export const RowObject: FC<props> = (props) => {
             className="*bg-gray-300 cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
             onClick={() => router.push("/mesas")}
           >
-            Añadir mesa
+            {t("addtable")}
           </li>
         </ul>
       </div>

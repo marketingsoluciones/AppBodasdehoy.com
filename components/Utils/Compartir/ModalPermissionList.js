@@ -3,8 +3,10 @@ import { PermissionList } from "./PermissionList";
 import { useState } from "react";
 import { EventContextProvider, EventsGroupContextProvider } from "../../../context";
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
+import { useTranslation } from "react-i18next";
 
 export const ModalPermissionList = ({ data, setOpenModal, event }) => {
+    const { t } = useTranslation()
     const { setEvent } = EventContextProvider()
     const [permissions, setPermissions] = useState([...data?.permissions])
 
@@ -41,7 +43,7 @@ export const ModalPermissionList = ({ data, setOpenModal, event }) => {
                 <PermissionList permissions={permissions} handleChange={handleChangePermision} />
                 <div className="flex">
                     <div className="flex-1" />
-                    <button onClick={() => setOpenModal(false)} className="bg-primary text-white rounded-lg px-5 py-2 h-10">Guardar</button>
+                    <button onClick={() => setOpenModal(false)} className="bg-primary text-white rounded-lg px-5 py-2 h-10 capitalize">{t("save")}</button>
                 </div>
             </div>
         </ClickAwayListener>

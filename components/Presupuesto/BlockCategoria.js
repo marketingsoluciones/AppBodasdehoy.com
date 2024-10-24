@@ -5,6 +5,7 @@ import { EventContextProvider, AuthContextProvider } from "../../context";
 import { getCurrency } from "../../utils/Funciones";
 import { capitalize } from '../../utils/Capitalize';
 import FormAddPago from "../Forms/FormAddPago";
+import { useTranslation } from 'react-i18next';
 import {
   BorrarIcon,
   MisEventosIcon,
@@ -20,6 +21,7 @@ import { array } from "yup";
 import AddPagado from "./AddPagado";
 
 const BlockCategoria = ({ cate, set, setGetId }) => {
+  const { t } = useTranslation();
   const { event, setEvent } = EventContextProvider()
   const [categoria, setCategoria] = useState({});
   const [data, setData] = useState([]);
@@ -197,7 +199,7 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
   )
 
   const porcentaje = (categoria?.coste_final / categoria?.coste_estimado) * 100
-
+  
   return (
     <>
       {GastoID.crear && (
@@ -225,7 +227,7 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
         <div className="md:justify-between w-4/6 gap-3 md:flex items-center font-display text-gray-500">
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-medium ">
-              Coste estimado:
+              {t("estimatedcost")}
               <span className="text-sm text-gray-500 pl-1">
                 {getCurrency(categoria?.coste_estimado, event?.presupuesto_objeto?.currency)}
               </span>
@@ -233,7 +235,7 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
           </div>
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-medium ">
-              Coste real:
+              {t("actualcost")}
               <span
                 className={`text-sm pl-1 text-${Math.abs(saldo) == saldo ? "green" : "red"
                   }`}
@@ -249,7 +251,7 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
           <div className="bg-gray-300 rounded-xl flex items-center overflow-hidden md:h-5 w-full relative">
             <p className="font-display text-xs text-white pl-2 z-10 relative p-3">
               {
-                Math.abs(saldo) == saldo ? `Saldo a favor ${getCurrency(saldo, event?.presupuesto_objeto?.currency)}` : `Saldo en contra de ${getCurrency(saldo, event?.presupuesto_objeto?.currency)}`
+                Math.abs(saldo) == saldo ? `Saldo a favor ${getCurrency(saldo, event?.presupuesto_objeto?.currency)}` : `${t("balanceagainst")} ${getCurrency(saldo, event?.presupuesto_objeto?.currency)}`
               }
 
             </p>
@@ -266,7 +268,7 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
         <DataTable AddGasto={AddGasto} columns={Columna} data={data ?? []} renderRowSubComponent={renderRowSubComponent} cate={categoria._id} gasto={GastoID.id} categoria={categoria} />
         <div className="bg-primary w-full grid grid-cols-10 absolute bottom-0 font-display text-white font-semibold py-1 text-sm">
           <div className="flex items-center justify-center col-span-3">
-            <p>Total</p>
+            <p>{t("total")}</p>
           </div>
           <div className="flex items-center justify-center col-span-2">
             <p>{getCurrency(categoria?.coste_estimado, event?.presupuesto_objeto?.currency)}</p>
@@ -293,6 +295,7 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
 export default BlockCategoria;
 
 export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate, gasto, categoria }) => {
+  const { t } = useTranslation();
   const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows, state: { expanded } } =
     useTable({ columns, data }, useExpanded);
   const [isAllowed, ht] = useAllowed()
@@ -367,7 +370,7 @@ export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate
             onClick={() => !isAllowed() ? ht() : AddGasto()}
             className="font-display text-sm text-primary w-full text-left py-3 flex gap-2 items-center justify-center hover:opacity-90 hover:translate-x-2 transition transform"
           >
-            <PlusIcon /> Añadir servicio
+            <PlusIcon /> {t("addservice")}
           </td>
         </tr>
       </tbody>

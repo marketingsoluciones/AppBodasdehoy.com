@@ -1,5 +1,6 @@
 import { FC, ReactNode } from "react";
 import { table } from "../../utils/Interfaces";
+import { useTranslation } from 'react-i18next';
 
 
 interface propsChair {
@@ -12,6 +13,7 @@ interface propsChair {
 }
 
 export const Chair: FC<propsChair> = ({ position = 0, children, table, index, className, radio }) => {
+  const { t } = useTranslation();
   const canDrop = true
   const isOver = false
   return (

@@ -1,6 +1,7 @@
 import { MesaCuadrada, MesaImperial, MesaPodio, MesaRedonda, PlusIcon, } from "../icons";
 import { Dispatch, ElementRef, FC, MutableRefObject, ReactNode, SetStateAction, useEffect, useRef, useState } from "react";
 import { useScreenSize } from "./FuntionsDragable";
+import { useTranslation } from 'react-i18next';
 
 interface propsBlockDefault {
   children: ReactNode
@@ -8,6 +9,7 @@ interface propsBlockDefault {
 }
 
 const BlockDefault: FC<propsBlockDefault> = ({ children, listaLength }) => {
+  const { t } = useTranslation();
   const refDiv: MutableRefObject<HTMLDivElement> = useRef(null)
 
   const handleResize = () => {

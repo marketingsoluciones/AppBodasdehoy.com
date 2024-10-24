@@ -7,9 +7,11 @@ import FormEditarPago from "../Forms/FormEditarPago";
 import { EditarIcon } from "../icons";
 import { capitalize } from '../../utils/Capitalize';
 import { useAllowed } from "../../hooks/useAllowed";
+import { useTranslation } from 'react-i18next';
 
 
-const BlockPagos = ({ estado, getId,  setGetId, cate }) => {
+const BlockPagos = ({ estado, getId, setGetId, cate }) => {
+  const { t } = useTranslation();
   const [active, setActive] = useState(0);
 
   return (
@@ -29,6 +31,7 @@ const BlockPagos = ({ estado, getId,  setGetId, cate }) => {
 export default BlockPagos;
 
 const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
+  const { t } = useTranslation();
   const { event } = EventContextProvider()
   const categorias = event?.presupuesto_objeto?.categorias_array;
   const [PagosOrFormAdd, setShowPagos] = useState(true)
@@ -39,7 +42,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
     () =>
       [
         {
-          Header: "Estado",
+          Header: "state",
           accessor: "estado",
           id: "estado",
           Cell: (props) => {
@@ -60,7 +63,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
           },
         },
         {
-          Header: "Proveedor",
+          Header: "supplier",
           accessor: "nombreGasto",
           id: "gasto",
           Cell: (props) => {
@@ -79,7 +82,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
           },
         },
         {
-          Header: "Fecha de pago",
+          Header: "paymentdate",
           accessor: "fecha_pago",
           id: "detalles",
           Cell: (props) => {
@@ -95,7 +98,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
           },
         },
         {
-          Header: "Importe",
+          Header: "amount",
           accessor: "importe",
           id: "importe",
           Cell: (props) => {
@@ -112,7 +115,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
           },
         },
         {
-          Header: "Modo de pago",
+          Header: "paymentmethod",
           accessor: "medio_pago",
           id: "medio_pago",
           Cell: (props) => {
@@ -128,7 +131,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
           },
         },
         {
-          Header: "Concepto",
+          Header: "concept",
           accessor: "concepto",
           id: "concepto",
           Cell: (props) => {
@@ -138,7 +141,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
             }, [props?.value])
             return (
               <div className="text-gray-500 grid place-items-center h-full ">
-                <p className="w-4/5">{value? value : "Sin concepto"}</p>
+                <p className="w-4/5">{value ? value : "Sin concepto"}</p>
               </div>
             );
           },
@@ -175,7 +178,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
     () =>
       [
         {
-          Header: "Estado",
+          Header: "state",
           accessor: "estado",
           id: "estado",
           Cell: (props) => {
@@ -196,7 +199,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
           },
         },
         {
-          Header: "Proveedor",
+          Header: "supplier",
           accessor: "nombreGasto",
           id: "gasto",
           Cell: (props) => {
@@ -215,7 +218,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
           },
         },
         {
-          Header: "Fecha de futuro pago",
+          Header: "futurepaymentdate",
           accessor: "fecha_pago",
           id: "detalles",
           Cell: (props) => {
@@ -231,7 +234,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
           },
         },
         {
-          Header: "Concepto",
+          Header: "concept",
           accessor: "concepto",
           id: "concepto",
           Cell: (props) => {
@@ -241,7 +244,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
             }, [props?.value])
             return (
               <div className="text-gray-500 grid place-items-center h-full ">
-                <p className="w-4/5">{value? value : "Sin concepto"}</p>
+                <p className="w-4/5">{value ? value : "Sin concepto"}</p>
               </div>
             );
           },
@@ -324,6 +327,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
 };
 
 const DataTable = ({ columns, data, estado }) => {
+  const { t } = useTranslation()
 
   const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows } =
     useTable({ columns, data });
@@ -380,7 +384,7 @@ const DataTable = ({ columns, data, estado }) => {
                   className={`font-display  font-light text-gray-500 text-sm col-span-${colSpanMovil[idx]} md:col-span-${stado[idx]} `}
                   key={id}
                 >
-                  {column.render("Header")}
+                  {t(column.render("Header"))}
                 </th>
               ))}
             </tr>
@@ -409,7 +413,7 @@ const DataTable = ({ columns, data, estado }) => {
               </tr>
             );
           }) : <tr className=" transition border-b border-base hover:bg-base cursor-pointer w-full grid place-items-center">
-            <td className="py-5 font-display text-lg text-gray-500 uppercase ">No hay pagos asociados</td></tr>}
+            <td className="py-5 font-display text-lg text-gray-500 uppercase ">{t("No hay pagos asociados")}</td></tr>}
         </tbody>
       </table>
     </div>

@@ -5,6 +5,7 @@ import FormResetPassword from "./Forms/FormResetPassword";
 import { FirstStep, SecondStep } from "./Forms/Register/Steps";
 import { AuthContextProvider } from "../../../context";
 import PageLogin from "../../../pages/login";
+import { useTranslation } from 'react-i18next';
 
 interface propsLogin {
   fStageRegister?: any
@@ -15,15 +16,16 @@ interface propsLogin {
   setWhoYouAre?: any
 }
 
-export const Login: FC<propsLogin> = ({ setStage, whoYouAre}) => {
+export const Login: FC<propsLogin> = ({ setStage, whoYouAre }) => {
+  const { t } = useTranslation();
   return (
     <>
       <h2 className={`font-light text-tertiary justify-center flex text-md mt-12`}>
-        Accede a tu cuenta
+        {t("toyouraccount")}
       </h2>
       <Providers setStage={setStage} whoYouAre={whoYouAre} />
       <h2 className={`font-light text-tertiary justify-center flex gap-2 text-md `}>
-        O accede con tu email
+        {t("withyouremail")}
       </h2>
       <FormLogin setStage={setStage} />
       <RegisterQuestion onClick={() => setStage("register")} />
@@ -33,6 +35,7 @@ export const Login: FC<propsLogin> = ({ setStage, whoYouAre}) => {
 };
 
 export const Register: FC<propsLogin> = ({ setStage, fStageRegister, stageRegister, setStageRegister, whoYouAre, setWhoYouAre }) => {
+  const { t } = useTranslation();
   const { linkMedia, preregister } = AuthContextProvider()
 
   useEffect(() => {
@@ -56,15 +59,14 @@ export const Register: FC<propsLogin> = ({ setStage, fStageRegister, stageRegist
       })()}
 
       {(linkMedia == null && !preregister) && <h2 className={`font-light text-tertiary flex gap-2 text-sm  *pt-3`}>
-        ¿Dispones de una cuenta?
+        {t("doyouhaveanaccount")}
         <span
           className="text-sm text-primary font-semibold cursor-pointer hover:text-tertiary transition"
           onClick={() => {
             setStageRegister(0)
             setStage("login")
           }}
-        >
-          Inicia Sesión
+        >       {t("log")}
         </span>
       </h2>}
     </>
@@ -72,6 +74,7 @@ export const Register: FC<propsLogin> = ({ setStage, fStageRegister, stageRegist
 };
 
 export const ResetPass: FC<propsLogin> = ({ setStage }) => {
+  const { t } = useTranslation();
   return (
     <>
       <div className="flex flex-col gap-2 items-center justify-center w-full">
@@ -81,12 +84,12 @@ export const ResetPass: FC<propsLogin> = ({ setStage }) => {
       <h2
         className={`font-light text-tertiary flex gap-2 items-center text-sm `}
       >
-        ¿Dispones de una cuenta1?
+        {t("doyouhaveanaccount")}
         <span
           className="text-sm text-primary font-semibold cursor-pointer hover:text-tertiary transition"
           onClick={() => setStage("login")}
         >
-          Inicia Sesión
+          {t("log")}
         </span>
       </h2>
       {/* <BusinessAccess /> */} {/* componente que no esta terminado */}

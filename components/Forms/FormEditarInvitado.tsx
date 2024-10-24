@@ -13,6 +13,7 @@ import { BooleanSwitch } from './FormInvitado';
 import * as yup from 'yup'
 import useHover from "../../hooks/useHover";
 import { handleMoveGuest } from '../Invitados/GrupoTablas';
+import { useTranslation } from 'react-i18next';
 
 interface InitialValues extends Partial<guests> {
   tableNameCeremonia: Partial<table>
@@ -28,6 +29,7 @@ const validationSchema = yup.object().shape({
 })
 
 const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
+  const { t } = useTranslation();
   const { event, setEvent } = EventContextProvider();
   const toast = useToast()
   const [hoverRef, isHovered] = useHover();
@@ -77,13 +79,13 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
       if (initialValues?.tableNameRecepcion?._id !== values?.tableNameRecepcion?._id) {
         const f1 = event?.planSpace.findIndex(elem => elem?.title === "recepción")
         const table = event.planSpace[f1]?.tables.find(el => el._id === values?.tableNameRecepcion?._id)
-        const sendValues = { invitadoID: values?._id, previousTable: initialValues?.tableNameRecepcion, lastTable: table, f1, event, setEvent, toast }
+        const sendValues = { t, invitadoID: values?._id, previousTable: initialValues?.tableNameRecepcion, lastTable: table, f1, event, setEvent, toast }
         handleMoveGuest(sendValues)
       }
       if (initialValues?.tableNameCeremonia?._id !== values?.tableNameCeremonia?._id) {
         const f1 = event?.planSpace.findIndex(elem => elem?.title === "ceremonia")
         const table = event.planSpace[f1]?.tables.find(el => el._id === values?.tableNameCeremonia?._id)
-        const sendValues = { invitadoID: values?._id, previousTable: initialValues?.tableNameCeremonia, lastTable: table, f1, event, setEvent, toast }
+        const sendValues = { t, invitadoID: values?._id, previousTable: initialValues?.tableNameCeremonia, lastTable: table, f1, event, setEvent, toast }
         handleMoveGuest(sendValues)
       }
     }
@@ -128,7 +130,7 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                   />
                   <InputField
                     name="nombre"
-                    label="Nombre"
+                    label={t("name")}
                     type="text"
                   />
                 </div>
@@ -137,7 +139,7 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                   <SelectField
                     options={["pendiente", "confirmado", "cancelado"]}
                     name="asistencia"
-                    label="Asistencia"
+                    label={t("attendance")}
                   />
                 </div>
               </div>
@@ -146,7 +148,7 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                   <div className='col-span-2'>
                     <InputField
                       name="passesQuantity"
-                      label="Acompañantes"
+                      label={t("companions")}
                       type="number"
                     />
                   </div>
@@ -158,7 +160,7 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                     colSpan={3}
                     options={event?.grupos_array}
                     name="rol"
-                    label="Rol o Grupo de invitados"
+                    label={t("roleguestgroup")}
                   />
                   <SelectField
                     colSpan={2}
@@ -172,7 +174,7 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                       }, [])
                     ]}
                     name="tableNameRecepcion"
-                    label="Mesa Recepción"
+                    label={t("receptiontable")}
                   />
                   <SelectField
                     colSpan={2}
@@ -186,24 +188,24 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                       }, [])
                     ]}
                     name="tableNameCeremonia"
-                    label="Mesa Ceremonia"
+                    label={t("ceremonytable")}
                   />
                   <SelectField
                     colSpan={2}
                     options={[...event?.menus_array?.map((item) => item?.nombre_menu), "sin menú"]}
                     name="nombre_menu"
-                    label="Menú"
+                    label={t("menu")}
                   />
                 </div>
               </div>
               <div className="grid grid-cols-2 w-full gap-6 relative">
                 <BooleanSwitch
-                  label="Sexo"
+                  label={t("sex")}
                   lista={["hombre", "mujer"]}
                   name="sexo"
                 />
                 <BooleanSwitch
-                  label="Edad"
+                  label={t("age")}
                   lista={["adulto", "niño"]}
                   name="grupo_edad"
                 />
@@ -212,7 +214,7 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                 <div ref={hoverRef} className='md:col-span-6'>
                   <InputField
                     name="correo"
-                    label="Correo"
+                    label={t("email")}
                     type="email"
                     disabled={true}
                   />
@@ -224,17 +226,17 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                 </div>
                 <InputField
                   name="telefono"
-                  label="Telefono"
+                  label={t("phone")}
                   type="telefono"
                 />
                 <InputField
                   name="poblacion"
-                  label="Población"
+                  label={t("population")}
                   type="text"
                 />
                 <InputField
                   name="pais"
-                  label="País"
+                  label={t("country")}
                   type="text"
                 />
               </div>
@@ -245,7 +247,7 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                   disabled={isSubmitting}
                   type="submit"
                 >
-                  Guardar
+                  {t("save")}
                 </button>
               </div>
             </Form>

@@ -1,8 +1,10 @@
 import { TagsInput } from "react-tag-input-component";
 import { AuthContextProvider } from "../../context";
 import { useEffect, useState } from "react";
+import { useTranslation } from 'react-i18next';
 
 export const FormAddUserToEvent = ({ users, setUsers, optionsExist, setValir }) => {
+    const { t } = useTranslation();
     const { user } = AuthContextProvider()
     const [error, setError] = useState(null)
     const [showInstruction, setShowInstruction] = useState(false)
@@ -35,9 +37,9 @@ export const FormAddUserToEvent = ({ users, setUsers, optionsExist, setValir }) 
     const beforeAddValidate = (tag) => {
         const validator = []
         const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        validator.push(regex.test(tag) ? true : errorValidator("Correo inválido"))
-        validator.push(optionsExist?.includes(tag) ? errorValidator("Ya está compartido con este correo") : true)
-        validator.push(user?.email === tag ? errorValidator("No puedes compartirlo contigo mismo") : true)
+        validator.push(regex.test(tag) ? true : errorValidator(t("invalidmail")))
+        validator.push(optionsExist?.includes(tag) ? errorValidator(t("sharedmail")) : true)
+        validator.push(user?.email === tag ? errorValidator(t("youdontshareyourself")) : true)
         return !validator.includes(false)
     }
 
@@ -48,14 +50,14 @@ export const FormAddUserToEvent = ({ users, setUsers, optionsExist, setValir }) 
 
     return (
         <div className={`flex flex-col space-y-1 mb-5 md:mb-0`}>
-            <label className="text-primary">Agregar nuevo usuario</label>
+            <label className="text-primary">{t("addperson")}</label>
             <div onKeyUp={(e) => { if (!separators.includes(e.key)) { error && setError(null) } }}>
                 <TagsInput
                     value={users}
                     onChange={handleSubmit}
                     onKeyUp={onBlur}
                     name="emails"
-                    placeHolder={!users.length ? "Ingresa un correo y presiona enter" : "Ingresa otro correo y presiona enter"}
+                    placeHolder={!users.length ? t("pressenter") : t("pressenter")}
                     beforeAddValidate={beforeAddValidate}
                     separators={separators}
                     classNames={{
@@ -66,9 +68,9 @@ export const FormAddUserToEvent = ({ users, setUsers, optionsExist, setValir }) 
             </div>
             <div className="h-4 -translate-y-2">
                 {(showInstruction && !error)
-                    ? <span className="ml-4 text-xs text-red h-1">Presiona enter o espacio para aceptar</span>
+                    ? <span className="ml-4 text-xs text-red h-1">{t("pressenteraccept")}</span>
                     : users.length
-                        ? <span className="ml-4 text-xs text-red h-1">o dale click a guardar para compartir</span>
+                        ? <span className="ml-4 text-xs text-red h-1">{t("savetoshare")}</span>
                         : <></>}
                 <span className="ml-4 text-xs text-red h-1">{error}</span>
             </div>
