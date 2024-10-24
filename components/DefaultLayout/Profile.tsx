@@ -79,7 +79,7 @@ const Profile = ({ user, state, set, ...rest }) => {
       onClick: async () => {
         const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
         const pathEnd = `${window.origin.includes("://test.") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}/InfoPage/publicaciones`
-        router.push((user?.displayName !== "guest") ? `${path}/InfoPage/publicaciones` ?? "" : config?.pathLogin ? `${config?.pathLogin}?d=app&end=${pathEnd}` : `/login?d=${route}`)
+        router.push((user?.displayName !== "guest") ? `${path}/InfoPage/publicaciones` : config?.pathLogin ? `${config?.pathLogin}?d=app&end=${pathEnd}` : `/login?d=${route}`)
       },
       icon: <Posts />,
       development: ["bodasdehoy"],
@@ -230,7 +230,7 @@ const Profile = ({ user, state, set, ...rest }) => {
         <span className="flex items-center gap-2 relative">
         </span>
         <div className="items-center flex relative cursor-default ">
-          <div onClick={() => !event ? toast("error", t("nohaveeventscreated")) : /* !isAllowed("itinerario") ? ht() : */ router.push("/itinerario")} className={`${!event ? "opacity-40" : ""} bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200 cursor-pointer`} >
+          <div onClick={() => !event ? toast("error", t("nohaveeventscreated")) : /* !isAllowed("itinerario") ? ht() : */ router.push("/servicios")} className={`${!event ? "opacity-40" : ""} bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200 cursor-pointer`} >
             <GoChecklist className="text-primary w-6 h-6 scale-x-90" />
           </div>
         </div>

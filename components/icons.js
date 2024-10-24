@@ -2060,8 +2060,8 @@ export const MensajeIcon = (props) => {
 export const Banner = (props) => {
     return (
         <svg
-            width={1072}
-            height={75}
+            width="100%"
+            height="100%"
             viewBox="0 0 1072 82"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"

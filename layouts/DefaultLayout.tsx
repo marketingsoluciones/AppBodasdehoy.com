@@ -35,7 +35,7 @@ const DefaultLayout = ({ children }) => {
   //   }
   // }, [])
   return (
-    <>
+    <div className="w-[100vw] h-[100vh]">
       {/* <Head>
         <title>Bodas de hoy - Organizador de Bodas</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -65,7 +65,7 @@ const DefaultLayout = ({ children }) => {
         </SocketProvider>
       </AuthProvider>
       {/*      }       */}
-    </>
+    </div>
   );
 };
 
