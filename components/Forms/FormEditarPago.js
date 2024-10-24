@@ -36,7 +36,7 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categor
   const { event, setEvent } = EventContextProvider()
   const [pago, setPago] = useState(ListaPagos?.find(item => item._id == IDPagoAModificar))
   const toast = useToast()
-  const {t}= useTranslation()
+  const { t } = useTranslation()
 
   useEffect(() => {
     setPago(ListaPagos?.find(item => item._id == IDPagoAModificar))

@@ -101,7 +101,7 @@ export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestD
                 <Form className="w-full">
                     <div className="flex flex-col space-y-4  ">
                         <div className="px-5 space-y-3">
-                            <div className="grid grid-cols-2 gap-5 ">
+                            <div className="grid md:grid-cols-2 gap-5 ">
                                 <InputField
                                     id="nombre"
                                     name="nombre"
@@ -117,7 +117,7 @@ export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestD
                                     labelClass={false}
                                 />
                             </div>
-                            <div className="grid md:grid-cols-2 md:gap-5">
+                            <div className="grid md:grid-cols-2 gap-2 md:gap-5">
                                 <InputField
                                     name={`correo`}
                                     label={t("email")}
@@ -140,7 +140,7 @@ export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestD
                                     />
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-5">
+                            <div className="grid md:grid-cols-2 gap-2 md:gap-5">
                                 <SelectField
                                     nullable
                                     options={["Confirmado", "Cancelado"]}
@@ -151,6 +151,7 @@ export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestD
                                 <SelectField
                                     name={`nombre_menu`}
                                     label={t("menu")}
+                                    labelClass={false}
                                     options={[...menus_array?.map(elem => elem.nombre_menu), "sin menú"]}
                                 />
                             </div>
@@ -179,7 +180,7 @@ export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestD
                                             Pase {[i + 1]}
                                         </div>
                                         <div className=" space-y-3" >
-                                            <div className="grid grid-cols-2 gap-5 ">
+                                            <div className="grid md:grid-cols-2 gap-5 ">
                                                 <InputField
                                                     id={`nombre_${i}`}
                                                     name={`nombre_${i}`}
@@ -197,7 +198,7 @@ export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestD
                                                 />
 
                                             </div>
-                                            <div className="grid md:grid-cols-2 md:gap-5">
+                                            <div className="grid md:grid-cols-2 gap-2 md:gap-5">
                                                 <InputField
                                                     id={`correo_${i}`}
                                                     name={`correo_${i}`}
@@ -222,7 +223,7 @@ export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestD
                                                     />
                                                 </div>
                                             </div>
-                                            <div className="grid grid-cols-2 gap-5">
+                                            <div className="grid md:grid-cols-2 gap-2 md:gap-5">
                                                 <SelectField
                                                     nullable
                                                     options={["Confirmado", "Cancelado"]}
@@ -234,6 +235,7 @@ export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestD
                                                     id={`nombre_menu_${i}`}
                                                     name={`nombre_menu_${i}`}
                                                     label={t("menu")}
+                                                    labelClass={false}
                                                     options={[...menus_array?.map(elem => elem.nombre_menu), "sin menú"]}
                                                 />
                                             </div>

@@ -107,17 +107,17 @@ export const Productos = ({ data, setProducts, products }) => {
         <div className="bg-white flex flex-col md:flex-row rounded-lg md:h-max md:p-3 p-10 gap-5 md:gap-0 md:space-x-3 items-center justify-center ">
           <div className=" flex items-center w-32 justify-center rounded-lg">
             <img
-              src={MarcaBlancaData.images.length > 0 ? MarcaBlancaData?.images[0] : "/placeholder/image.png"}
-              alt={MarcaBlancaData.name}
+              src={MarcaBlancaData?.images?.length > 0 ? MarcaBlancaData?.images[0] : "/placeholder/image.png"}
+              alt={MarcaBlancaData?.name}
               className="rounded-lg object-contain w-[70px] h-[70px]"
             />
           </div>
           <div className="flex-1 md:border-r-2 h-full capitalize flex flex-col justify-center">
             <div className="text-[22px]">
-              {MarcaBlancaData.name}
+              {MarcaBlancaData?.name}
             </div>
             <div className="text-[13px] text-gray-500">
-              {MarcaBlancaData.description}
+              {MarcaBlancaData?.description}
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 mt-1">
               {MarcaBlancaData?.metadata?.caracteristica?.split(", ").map((el: any, idx: any) => {
@@ -126,7 +126,7 @@ export const Productos = ({ data, setProducts, products }) => {
             </div>
           </div>
           <div className="flex flex-col w-36 md:h-full h-[75px] items-center justify-center capitalize">
-            {MarcaBlancaData.usage
+            {MarcaBlancaData?.usage
               ? <div className={`${status.toLowerCase() === "activo" ? "bg-green" : "bg-orange-300"} flex w-full h-11 rounded-lg items-center justify-center relative`}>
                 {MarcaBlancaData?.name?.toLowerCase().includes("marca") &&
                   <div onClick={() => {

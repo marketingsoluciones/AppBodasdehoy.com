@@ -146,6 +146,7 @@ export const BasicFormLogin = ({
 }) => {
   const { event } = EventContextProvider()
   const [showProOptions, setShowProOptions] = useState(false)
+  const { t } = useTranslation();
 
   useEffect(() => {
     values.pagado = ischecked

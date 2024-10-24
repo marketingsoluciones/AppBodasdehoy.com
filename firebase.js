@@ -14,6 +14,7 @@ const firebaseConfigPlanificador = {
   apiKey: "AIzaSyA_BIthVz_uwQR7gObnKPjI2KincIvP5lo",
   authDomain: "eventosplanificador-74e59.firebaseapp.com",
   projectId: "eventosplanificador-74e59",
+  storageBucket: "eventosplanificador-74e59.appspot.com",
   messagingSenderId: "1087923505585",
   appId: "1:1087923505585:web:7573effc0a8663d5429590",
   measurementId: "G-BJK5EBV8H0"

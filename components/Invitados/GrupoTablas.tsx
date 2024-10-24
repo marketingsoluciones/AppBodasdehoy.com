@@ -382,6 +382,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         Header: t("Mesa recepción"),
         accessor: "tableNameRecepcion",
         Cell: ({ value: initialValue, row, column: { id } }) => {
+          console.log(1111234,initialValue)
           const [value, setValue] = useState(initialValue);
           const [show, setShow] = useState(false);
           const router = useRouter();
@@ -687,7 +688,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
 
           return (
             <>
-              {modal.state && <Modal classe={"w-[95%] md:w-[450px] h-[200px]"}>
+              {modal.state && <Modal set={setModal} state={modal} classe={"w-[95%] md:w-[450px] h-[200px]"}>
                 <DeleteConfirmation setModal={setModal} modal={modal} />
               </Modal>}
               <ClickAwayListener onClickAway={() => show && setShow(false)}>

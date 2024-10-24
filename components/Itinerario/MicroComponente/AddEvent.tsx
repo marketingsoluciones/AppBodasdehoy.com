@@ -2,43 +2,42 @@ import { AuthContextProvider } from "../../../context"
 import { EventContextProvider } from "../../../context/EventContext"
 import { fetchApiEventos, queries } from "../../../utils/Fetching"
 import { useTranslation } from 'react-i18next';
+import { Task } from "../../../utils/Interfaces";
 
-export const AddEvent = ({ disable, itinerario, tasks }) => {
+export const AddEvent = ({ disable, itinerario, tasks, setSelectTask }) => {
     const { t } = useTranslation();
-    const { domain } = AuthContextProvider()
+    const { config } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
+
     const addTask = async () => {
         try {
-            const item = tasks[tasks?.length - 1]
-            const hora = item?.hora
-            const duracion = item.duracion
-            const hs = Math.trunc(duracion / 60)
-            const ms = duracion - hs * 60
-            let hNew = parseInt(hora.split(":")[0]) + hs
-            let mNew = parseInt(hora.split(":")[1]) + ms
-            if (mNew > 59) {
-                hNew = hNew + 1
-                mNew = mNew - 60
+            const f = new Date(parseInt(event.fecha))
+            const fy = f.getUTCFullYear()
+            const fm = f.getUTCMonth()
+            const fd = f.getUTCDate()
+            let newEpoch = new Date(fy, fm + 1, fd).getTime() + 7 * 60 * 60 * 1000
+            if (tasks?.length) {
+                const item = tasks[tasks?.length - 1]
+                const epoch = new Date(item.fecha).getTime()
+                newEpoch = epoch + item.duracion * 60 * 1000
             }
-            let horaNew = `${hNew < 10 ? `0${hNew}` : hNew}:${mNew < 10 ? `0${mNew}` : mNew}`
-            if (hNew > 23) {
-                horaNew = hora
-            }
+            const fecha = new Date(newEpoch)
             const addNewTask = await fetchApiEventos({
                 query: queries.createTask,
                 variables: {
                     eventID: event._id,
                     itinerarioID: itinerario._id,
-                    hora: horaNew,
+                    descripcion: "Tarea nueva",
+                    fecha,
                     duracion: 30
                 },
-                domain
+                domain: config.domain
             })
-            setEvent((old) => {
-                const f1 = old.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
-                old.itinerarios_array[f1].tasks.push(addNewTask)
-                return { ...old }
-            })
+            const task = addNewTask as Task
+            const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
+            event.itinerarios_array[f1].tasks.push(task as Task)
+            setEvent({ ...event })
+            setSelectTask(task._id)
         } catch (error) {
             console.log(error)
         }
