@@ -32,7 +32,7 @@ export const InputTags: FC<props> = ({ label, ...props }) => {
           className="flex-1 font-display text-sm text-gray-500 border-[1px] border-gray-200 focus:border-gray-400 w-full py-2 px-4 rounded-xl focus:ring-0 focus:outline-none transition"
           type="text"
         />
-        <button type="button" onClick={() => handleAddTags()} className="rounded-xl bg-primary px-2 h-8 text-white text-sm hover:font-bold">Añadir tiqueta</button>
+        <button type="button" onClick={() => handleAddTags()} className="rounded-xl bg-primary px-2 h-8 text-white text-sm hover:font-bold">Añadir etiqueta</button>
       </div>
       {!!field?.value?.length && <p className="border-[1px] space-y-1 p-1 text-gray-700 ">
         {field.value.map((elem, idx) =>

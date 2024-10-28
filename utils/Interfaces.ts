@@ -58,6 +58,7 @@ export interface Itinerary {
     _id: string
     title: string
     tasks: Task[]
+    tipo: string
     estatus: string //activo, borrado
     fecha_creacion: Date
     icon?: JSX.Element

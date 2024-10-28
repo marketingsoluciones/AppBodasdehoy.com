@@ -1,43 +1,48 @@
 import { FC, useEffect, useRef, useState } from "react"
-import { PlusIcon } from "../../icons"
+import { DotsOpcionesIcon, PlusIcon } from "../../icons"
 import { Itinerary } from "../../../utils/Interfaces"
 import { fetchApiEventos, queries } from "../../../utils/Fetching"
 import { AuthContextProvider, EventContextProvider } from "../../../context"
+import { ViewItinerary } from "../../../pages/invitados"
+import { SelectModeView } from "../../Utils/SelectModeView"
 
 interface props {
     itinerario: Itinerary
     setItinerario: any
     setEditTitle: any
+    view: ViewItinerary
+    setView: any
 }
-export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTitle }) => {
-    const [sizes, setSizes] = useState(null)
+export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTitle, view, setView }) => {
+    //const [sizes, setSizes] = useState(null)
     const { config } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
 
-    const adjustSize = () => {
-        const azul = document?.getElementById("azul")?.offsetWidth
-        const content = document?.getElementById("content")?.offsetWidth
-        if (azul >= content - (event?.itinerarios_array?.length - 1) * 4) {
-            setSizes(0)
-        }
-    }
+    // const adjustSize = () => {
+    //     const azul = document?.getElementById("azul")?.offsetWidth
+    //     const content = document?.getElementById("content")?.offsetWidth
+    //     if (azul >= content - (event?.itinerarios_array?.length - 1) * 4) {
+    //         setSizes(0)
+    //     }
+    // }
 
-    useEffect(() => {
-        adjustSize()
-    }, [])
+    // useEffect(() => {
+    //     adjustSize()
+    // }, [])
 
-    useEffect(() => {
-        if (sizes == 0) {
-            setTimeout(() => {
-                const content = document?.getElementById("content")?.offsetWidth
-                const elem = document?.getElementById(itinerario?._id)?.offsetWidth
-                const sizes = (content - elem) / (event?.itinerarios_array?.length - 1)
-                setSizes(sizes - 4)
-            }, 100);
-        }
-    }, [itinerario, sizes])
+    // useEffect(() => {
+    //     if (sizes == 0) {
+    //         setTimeout(() => {
+    //             const content = document?.getElementById("content")?.offsetWidth
+    //             const elem = document?.getElementById(itinerario?._id)?.offsetWidth
+    //             const sizes = (content - elem) / (event?.itinerarios_array?.length - 1)
+    //             setSizes(sizes - 4)
+    //         }, 100);
+    //     }
+    // }, [itinerario, sizes])
 
     const handleCreateItinerario = async () => {
+        console.log(window?.location?.pathname.slice(1))
         const f = new Date(parseInt(event?.fecha))
         const y = f.getUTCFullYear()
         const m = f.getUTCMonth()
@@ -47,7 +52,8 @@ export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTit
             variables: {
                 eventID: event._id,
                 title: "sin nombre",
-                dateTime: new Date(y, m, d, 8, 0)
+                dateTime: new Date(y, m, d, 8, 0),
+                tipo: window?.location?.pathname.slice(1)
             },
             domain: config.domain
         })
@@ -59,29 +65,35 @@ export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTit
 
     return (
         <div className="flex max-w-[100%] min-w-[100%] h-10 items-center justify-center border-b md:px-4 md:py-2">
-            <div id="content" className="flex-1 h-full bg-violet-400*">
+            <div id="content" className="flex-1 h-full bg-violet-400* flex justify-between">
+
                 <div className="inline-flex max-w-full h-full items-center bg-yellow-400*">
-                    <div id="azul" className="inline-flex max-w-[calc(100%-32px)] h-full items-center select-none bg-blue-600*">
-                        {event?.itinerarios_array?.map((item, idx) => {
+                    <div id="azul" className="bg-blue-500* inline-flex max-w-[calc(100%-32px)] h-full items-center select-none bg-blue-600*">
+                        {event?.itinerarios_array.filter(elem => elem.tipo === window?.location?.pathname.slice(1))?.slice(0, 5).map((item, idx) => {
                             return (
                                 <div id={item?._id} key={idx}
+                                    className={`justify-start items-center cursor-pointer h-full ${itinerario?._id === item?._id ? "bg-green* flex" : "inline-flex flex-1"} text-sm px-2 space-x-1`}
                                     onClick={() => {
                                         if (item?._id !== itinerario?._id) {
-                                            adjustSize()
+                                            // adjustSize()
                                             setItinerario(item)
                                         }
                                     }}
-                                    style={itinerario?._id === item?._id ? {} : { width: sizes }}
-                                    className={`flex justify-start items-center cursor-pointer h-full ${idx == 0 && "bg-yellow-300*"} ${idx == 1 && "bg-red*"} ${idx == 2 && "bg-green*"} text-blue-500 text-sm px-2 space-x-1`}
+                                //style={itinerario?._id === item?._id ? {} : { width: sizes }}
                                 >
 
-                                    {<div className={`${itinerario?._id === item?._id ? "border-primary text-primary" : "border-gray-600 text-gray-600"} border-b-2 inline-flex space-x-1 items-center`} >
-                                        {!!item?.icon && <div className="flex w-5 h-5 items-center justify-center">
-                                            {item?.icon}
-                                        </div>}
-                                        <div className="break-all line-clamp-1">
-                                            {item?.title}
+                                    {<div className={`inline-flex items-center`} >
+                                        <div className={`${itinerario?._id === item?._id ? "border-primary text-primary w-full" : "text-gray-600"} border-b-2 flex-1`}>
+                                            {!!item?.icon && <div className="flex w-5 h-5 mr-1 items-center justify-center">
+                                                {item?.icon}
+                                            </div>}
+                                            <div className={`${itinerario?._id !== item?._id && "break-all"} line-clamp-1 flex-1`}>
+                                                {item?.title}
+                                            </div>
                                         </div>
+                                        {(!["/itinerario"].includes(window?.location?.pathname) && itinerario?._id === item?._id) && <div onClick={() => console.log(item)} className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 flex justify-center items-center text-gray-600 hover:text-gray-900">
+                                            <DotsOpcionesIcon className={""} />
+                                        </div>}
                                     </div>}
                                 </div>
                             )
@@ -91,6 +103,7 @@ export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTit
                         <PlusIcon className="w-4 h-4 text-primary cursor-pointer" />
                     </div>
                 </div>
+                <SelectModeView value={view} setValue={setView} />
             </div>
         </div>
     )

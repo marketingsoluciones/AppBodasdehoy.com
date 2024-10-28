@@ -28,6 +28,8 @@ interface props {
     setItinerario: any
     editTitle: boolean
     setEditTitle: any
+    view: ViewItinerary
+    setView: any
 }
 
 export interface EditTastk {
@@ -40,7 +42,7 @@ interface TaskReduce {
     tasks?: Task[]
 }
 
-export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle, setEditTitle }) => {
+export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle, setEditTitle, view, setView }) => {
     const { t } = useTranslation();
     const { config, geoInfo } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
@@ -56,7 +58,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
     const [modalWorkFlow, setModalWorkFlow] = useState(false)
     const [modalCompartirTask, setModalCompartirTask] = useState(false)
     const [modalPlantilla, setModalPlantilla] = useState(false)
-    const [view, setView] = useState<ViewItinerary>(window.innerWidth > window.innerHeight ? "table" : "cards")
+
     const [showEditTask, setShowEditTask] = useState<EditTastk>({ state: false })
     const [selectTask, setSelectTask] = useState<string>()
     const storage = getStorage();
@@ -101,6 +103,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
             const tasks = [...itinerario?.tasks?.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime())]
             setTasks(tasks)
             const taskReduce: TaskReduce[] = tasks.reduce((acc: TaskReduce[], item: Task) => {
+                console.log(100048, item.fecha)
                 const f = new Date(item.fecha)
                 const y = f.getUTCFullYear()
                 const m = f.getUTCMonth()
@@ -108,7 +111,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
                 const date = new Date(y, m, d).getTime()
                 const f1 = acc.findIndex(elem => elem.fecha === date)
                 if (f1 < 0) {
-                    acc.push({ fecha: date, tasks: [item] })
+                    acc.push({ fecha: item.fecha ? date : null, tasks: [item] })
                 } else {
                     acc[f1].tasks.push(item)
                 }
@@ -140,7 +143,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
             const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === values._id)
             event.itinerarios_array[f1].tasks.splice(f2, 1)
             setEvent({ ...event })
-            toast("success", t("activitydeleted"));
+            toast("success", t(itinerario.tipo === "itinerario" ? "activitydeleted" : "servicedeleted"));
         } catch (error) {
             console.log(1000501, error)
         }
@@ -166,7 +169,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
     }
 
     return (
-        <>
+        <div className="w-full flex-1 flex flex-col overflow-y-scroll">
             {showEditTask?.state && (
                 <ModalLeft state={showEditTask} set={setShowEditTask} clickAwayListened={false}>
                     <div className="w-full flex flex-col items-start justify-start" >
@@ -174,16 +177,16 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
                     </div>
                 </ModalLeft>
             )}
-            <SubHeader itinerario={itinerario} disable={disable} ht={ht} setModalPlantilla={setModalPlantilla} modalPlantilla={modalPlantilla} view={view} setView={setView} setOptionSelect={setItinerario} editTitle={editTitle} setEditTitle={setEditTitle} setItinerario={setItinerario} />
-            <div className={`w-full h-full flex flex-col items-center md:px-2 lg:px-6`}>
+            {["/itinerario"].includes(window?.location?.pathname) && <SubHeader itinerario={itinerario} disable={disable} ht={ht} setModalPlantilla={setModalPlantilla} modalPlantilla={modalPlantilla} view={view} setView={setView} setOptionSelect={setItinerario} editTitle={editTitle} setEditTitle={setEditTitle} setItinerario={setItinerario} />}
+            <div className={`w-full flex-1 flex flex-col md:px-2 lg:px-6`}>
                 {view !== "table"
                     ? tasksReduce?.map((el, i) =>
-                        <div key={i} className="w-full mt-4">
-                            <div className={`w-full flex ${view === "schema" ? "justify-start" : "justify-center"}`}>
+                        <div key={i} className="w-full *h-[500px] mt-4">
+                            {["/itinerario"].includes(window?.location?.pathname) && <div className={`w-full flex ${view === "schema" ? "justify-start" : "justify-center"}`}>
                                 <span className={`${view === "schema" ? "border-primary border-dotted mb-1" : "border-gray-300 mb-1"} border-[1px] px-5 py-[1px] rounded-full text-[12px] font-semibold`}>
                                     {new Date(el?.fecha).toLocaleString(geoInfo?.acceptLanguage?.split(",")[0], { year: "numeric", month: "long", day: "2-digit" })}
                                 </span>
-                            </div>
+                            </div>}
                             {el?.tasks?.map((elem, idx) => {
                                 return (
                                     <TaskNew
@@ -240,7 +243,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
                 <WarningMessage setModal={setModalPlantilla} modal={modalPlantilla} title={t("template")} />
             </Modal>
             }
-        </>
+        </div>
     )
 }
 
