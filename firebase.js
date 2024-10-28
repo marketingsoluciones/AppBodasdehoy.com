@@ -151,10 +151,10 @@ export const developments = [
     cookie: "sessionChampagne-events",
     domain: ".champagne-events.com.mx",
     cookieGuest: "guestchampagne-events",
-    pathDomain: "http://champagne-events.com.mx",
+    pathDomain: "https://www.champagne-events.com.mx/",
     pathLogin: "",
     pathDirectory: "champagne-events.com.mx",
-    logoDirectory: <img className="hover:opacity-80 transition text-primary w-60 pt-8" src="http://www.champagne-events.com.mx/images/champagne.svg" />,
+    logoDirectory: <img className="hover:opacity-80 transition text-primary" src="https://i.ibb.co/Nsr8LgX/cropped-Logo-Gray-Champagne-1.png" />,
     headTitle: "Champagne Event Planner",
     favicon: "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://champagne-events.com.mx/en/destination-weddings&size=16",
     theme: {
