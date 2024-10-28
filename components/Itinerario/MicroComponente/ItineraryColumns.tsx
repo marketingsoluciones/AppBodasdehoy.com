@@ -114,22 +114,22 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         )
       },
       {
+        Header: t("fecha"),
+        accessor: "fecha",
+        id: "date",
+        Cell: (data) => (
+          <div key={data.cell.row.id} className="flex w-full justify-center">
+            {!!data.cell.value && new Date(data.cell.value).toLocaleString()}
+          </div>
+        )
+      },
+      {
         Header: `${t("duración")} min`,
         accessor: "duracion",
         id: "duration",
         Cell: (data) => (
           <div key={data.cell.row.id} className="flex w-full justify-center">
             {data.cell.value}
-          </div>
-        )
-      },
-      {
-        Header: t("fecha"),
-        accessor: "fecha",
-        id: "date",
-        Cell: (data) => (
-          <div key={data.cell.row.id} className="flex w-full justify-center">
-            {new Date(data.cell.value).toLocaleString()}
           </div>
         )
       },

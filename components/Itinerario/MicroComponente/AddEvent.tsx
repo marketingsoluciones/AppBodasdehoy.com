@@ -27,9 +27,9 @@ export const AddEvent = ({ disable, itinerario, tasks, setSelectTask }) => {
                 variables: {
                     eventID: event._id,
                     itinerarioID: itinerario._id,
-                    descripcion: "Tarea nueva",
-                    fecha,
-                    duracion: 30
+                    descripcion: itinerario.tipo === "itinerario" ? "Tarea nueva" : "Servicio nuevo",
+                    ...(itinerario.tipo === "itinerario" && fecha),
+                    ...(itinerario.tipo === "itinerario" && { duracion: 30 })
                 },
                 domain: config.domain
             })
@@ -44,13 +44,15 @@ export const AddEvent = ({ disable, itinerario, tasks, setSelectTask }) => {
     }
 
     return (
-        <div onClick={() => disable ? null : addTask()} className=" text-primary flex space-x-2 items-center justify-center my-3 cursor-pointer hover:text-pink-600">
-            <span>
-                +
-            </span>
-            <span >
-                {t("addactivity")}
-            </span>
+        <div className="flex items-center justify-center ">
+            <div onClick={() => disable ? null : addTask()} className="block text-primary space-x-2  my-3 cursor-pointer hover:opacity-80 mb-20">
+                <span>
+                    +
+                </span>
+                <span >
+                    {t("addactivity")}
+                </span>
+            </div>
         </div>
     )
 }

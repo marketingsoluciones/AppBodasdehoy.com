@@ -6,6 +6,7 @@ import { AuthContextProvider } from "../../context";
 import { IoIosArrowDown } from "react-icons/io";
 import ClickAwayListener from "react-click-away-listener"
 import { useTranslation } from 'react-i18next';
+import { MdClose } from "react-icons/md";
 
 
 interface propsInputField extends InputHTMLAttributes<HTMLInputElement> {
@@ -13,6 +14,7 @@ interface propsInputField extends InputHTMLAttributes<HTMLInputElement> {
   className?: string
   disabled?: boolean
   labelClass?: boolean
+  deleted?: boolean
 }
 
 interface Flag {
@@ -21,7 +23,7 @@ interface Flag {
   cod: number
 }
 
-const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled = false, labelClass = true, ...props }) => {
+const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled = false, labelClass = true, deleted = false, ...props }) => {
   const { t } = useTranslation();
   const { geoInfo } = AuthContextProvider()
   const [field, meta, helpers] = useField({ name: props.name })
@@ -86,7 +88,10 @@ const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled =
   return (
     <div className="w-full h-max relative">
       <label className={`font-display ${labelClass ? "text-primary" : "text-gray-500"} text-sm w-full`}>{label}</label>
-      <div className="w-full relative">
+      <div className="w-full relative flex items-center">
+        {deleted && <div className="absolute right-0">
+          <MdClose onClick={() => { helpers.setValue("") }} className="hover:text-gray-700 cursor-pointer mr-0.5" />
+        </div>}
         {props?.type === "telefono" &&
           <>
             {showFlags && <ClickAwayListener onClickAway={() => { setShowFlags(false) }}>

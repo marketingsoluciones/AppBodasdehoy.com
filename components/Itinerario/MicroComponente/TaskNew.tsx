@@ -32,13 +32,12 @@ export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, option
   const toast = useToast()
   const { t } = useTranslation();
   const storage = getStorage();
-
   const initialValues: Task = {
     _id: task._id,
     icon: !task?.icon ? "" : task?.icon,
-    fecha: !task?.fecha ? "" : task?.fecha,
+    fecha: !task?.fecha ? "" : new Date(task?.fecha).toLocaleString(geoInfo?.acceptLanguage?.split(",")[0], { year: 'numeric', month: '2-digit', day: '2-digit' }),
     hora: !task?.fecha ? "" : new Date(task?.fecha).toLocaleString(geoInfo?.acceptLanguage?.split(",")[0], { hour: 'numeric', minute: 'numeric' }),
-    duracion: !task?.duracion ? 30 : task?.duracion,
+    duracion: task?.duracion,
     tags: !task?.tags ? [] : task?.tags,
     descripcion: !task?.descripcion ? "" : task?.descripcion,
     responsable: !task?.responsable ? [] : task?.responsable,
@@ -140,9 +139,10 @@ export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, option
                   <div className="bg-white w-12 h-12 md:w-16 md:h-16 md:min-w-16 flex items-center justify-center rounded-full border-[1px] border-gray-300">
                     <SelectIcon name="icon" className="" handleChange={handleBlurData} disable={disable} ht={ht} />
                   </div>
-                  <div className="*bg-rose-600 flex-1 flex flex-col text-[12px]">
-                    <span className="text-[15px] font-bold">{values?.hora}</span>
-                    <span>Duración {values?.duracion} min</span>
+                  <div className="*bg-rose-600 flex-1 flex flex-col text-[12px] pl-1 md:pl-2">
+                    {!["/itinerario"].includes(window?.location?.pathname) && <span className="font-bold">{values?.fecha.toLocaleString()}</span>}
+                    <span className={`${["/itinerario"].includes(window?.location?.pathname) && "text-[15px]"} font-bold`}>{values?.hora}</span>
+                    {values?.duracion && <span>Duración {values?.duracion} min</span>}
                     <span className="text-[19px]">{values?.descripcion}</span>
                     {!!values?.tips && <Interweave
                       className="text-xs text-justify transition-all m-1 p-1 bg-white"

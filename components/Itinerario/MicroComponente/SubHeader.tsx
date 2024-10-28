@@ -97,11 +97,11 @@ export const SubHeader: FC<props> = ({ itinerario, disable, ht, setModalPlantill
     }
 
     return (
-        <div className="w-full px-4 md:px-10 py-4 space-y-2" >
-            {modal.state && <Modal classe={"w-[95%] md:w-[450px] h-[200px]"}>
+        <div className="w-full px-4 md:px-10 py-4" >
+            {modal.state && <Modal set={setModal} classe={"w-[95%] md:w-[450px] h-[200px]"}>
                 <DeleteConfirmation setModal={setModal} modal={modal} />
-            </Modal>
-            }            <div className="flex w-full justify-between items-start">
+            </Modal>}
+            <div className="flex w-full justify-between items-start">
                 <div className="w-1/2 flex flex-col text-xs md:text-[14px] text-azulCorporativo">
                     {/* <span className="text-primary cursor-pointer hover:text-pink-500" onClick={() => disable ? ht() : () => { }}>
                         {t("resetitinerary")}
@@ -122,7 +122,7 @@ export const SubHeader: FC<props> = ({ itinerario, disable, ht, setModalPlantill
                     <div className={"flex text-gray-700 space-x-2"}>
                         <PencilEdit onClick={() => setEditTitle(!editTitle)} className="w-5 h-5 cursor-pointer" />
                         <MdOutlineDeleteOutline onClick={() => handleDeleteItinerario()} className="w-5 h-5 curso cursor-pointer" />
-                        <SelectModeView value={view} setValue={setView} />
+                        {/* <SelectModeView value={view} setValue={setView} /> */}
                     </div>
                 </div>
             </div>

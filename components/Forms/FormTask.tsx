@@ -26,7 +26,7 @@ const FormTask: FC<propsFormTask> = ({ state, set, itinerarioID }) => {
   const { event, setEvent } = EventContextProvider();
   const toast = useToast()
   const [isAllowedRouter, ht] = useAllowedRouter()
-
+  console.log(100049, state.values.fecha, new Date(state?.values.fecha))
   const initialValues: Task = {
     ...state?.values,
     fecha: state?.values?.fecha ? new Date(state?.values.fecha).toISOString().split('T')[0] : undefined,
@@ -35,11 +35,12 @@ const FormTask: FC<propsFormTask> = ({ state, set, itinerarioID }) => {
 
   const handleSubmit = async (values: any, actions: any) => {
     try {
-      const d = values.fecha.split("-")
-      const h = values.hora.split(":")
-      let dataSend = {
+      let dataSend
+      const d = values?.fecha?.split("-")
+      const h = values?.hora?.split(":")
+      dataSend = {
         ...values,
-        fecha: new Date(d[0], d[1] - 1, d[2], h[0], h[1])
+        ...((values?.fecha && values?.hora) && { fecha: new Date(d[0], d[1] - 1, d[2], h[0], h[1]) })
       }
       delete dataSend.hora
       fetchApiEventos({
@@ -122,18 +123,21 @@ const FormTask: FC<propsFormTask> = ({ state, set, itinerarioID }) => {
                 name="fecha"
                 label={t("Fecha")}
                 type="date"
+                deleted={window?.location?.pathname === "/servicios"}
               />
               <div className="w-full flex space-x-2">
                 <InputField
                   name="hora"
                   label={t("Hora")}
                   type="time"
+                  deleted={window?.location?.pathname === "/servicios"}
                 />
                 <div className="flex items-end space-x-1 w-1/3">
                   <InputField
                     name="duracion"
                     label={t("duraction")}
                     type="number"
+                    deleted={window?.location?.pathname === "/servicios"}
                   />
                   <span className="-translate-y-2">min</span>
                 </div>

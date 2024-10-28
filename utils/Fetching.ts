@@ -283,8 +283,8 @@ export const queries = {
   mutation  ( $eventID:String, $itinerarioID:String, $taskID:String  ) {
     deleteTask ( eventID:$eventID  itinerarioID:$itinerarioID  taskID:$taskID)
   }`,
-  createItinerario: `mutation ($eventID:String, $title:String, $dateTime:String){
-    createItinerario(eventID:$eventID, title:$title, dateTime:$dateTime ){
+  createItinerario: `mutation ($eventID:String, $title:String, $dateTime:String, $tipo:String){
+    createItinerario(eventID:$eventID, title:$title, dateTime:$dateTime, tipo:$tipo ){
       _id
       title
       tasks{
@@ -294,6 +294,7 @@ export const queries = {
         hora
         duracion
       }
+      tipo
     }
   }`,
   editItinerario: `mutation ($eventID:String, $itinerarioID:String, $variable:String, $valor:String){
@@ -329,6 +330,7 @@ export const queries = {
           }
           fecha_creacion
         }
+        tipo
         estatus
         fecha_creacion
       }
@@ -775,6 +777,7 @@ export const queries = {
             updatedAt
           }
         }
+        tipo
         estatus
       }
       planSpaceSelect
