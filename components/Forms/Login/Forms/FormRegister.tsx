@@ -115,8 +115,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
   };
 
   const handleSubmit = async (values: initialValues, actions: any) => {
-    console.log(values)
-    let UserFirebase: any = user ?? {};
+    let UserFirebase: any = getAuth().currentUser ?? {};
     try {
       setIsStartingRegisterOrLogin(true)
       setLoading(true)
@@ -165,6 +164,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
         }
 
       } else {
+        console.log(450003, error)
         toast("error", t("gonewrong"))
         setLoading(false)
         return false
@@ -184,7 +184,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
             query: queries.createUser,
             variables: {
               role: values.role,
-              uid: values.uid,
+              uid: values.uid ?? UserFirebase.uid,
               email: UserFirebase?.email,
               phoneNumber: values?.phoneNumber
             },
@@ -205,7 +205,6 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
   }
 
   const handleSumitMedia = async (values: initialValues, actions: any) => {
-    console.log("aquiu")
     try {
       if (storage_id && link_id) {
         fetchApiEventos({
