@@ -118,6 +118,9 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
                 return acc
             }, [])
             setTasksReduce(taskReduce)
+        } else {
+            setTasks([])
+            setTasksReduce([])
         }
     }, [itinerario, event])
 

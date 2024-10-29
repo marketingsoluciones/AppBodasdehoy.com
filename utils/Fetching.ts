@@ -513,6 +513,32 @@ export const queries = {
         fecha_lectura
         mensaje
       }
+      itinerarios_array{
+        _id
+        title
+        tasks{
+          _id
+          fecha
+          hora
+          icon
+          descripcion
+          responsable
+          duracion
+          tags
+          tips
+          estatus
+          attachments{
+            _id
+            name
+            url
+            size
+            createdAt
+            updatedAt
+          }
+        }
+        tipo
+        estatus
+      }
       planSpaceSelect
       planSpace{
       _id
@@ -754,7 +780,7 @@ export const queries = {
         fecha_lectura
         mensaje
       }
-         itinerarios_array{
+      itinerarios_array{
         _id
         title
         tasks{
