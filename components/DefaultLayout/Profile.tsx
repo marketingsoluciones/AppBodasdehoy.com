@@ -191,6 +191,7 @@ const Profile = ({ user, state, set, ...rest }) => {
           toast("success", t("loggedoutsuccessfully"))
           router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "/")
         })
+        setUser(null)
       },
       development: ["bodasdehoy", "all"],
       rol: ["novio", "novia", "otro", "empresa"],
