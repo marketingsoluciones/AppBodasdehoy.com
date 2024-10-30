@@ -11,6 +11,7 @@ import { EventContextProvider } from "../../context";
 import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
+import { PiChurchLight } from "react-icons/pi";
 
 interface propsInsideBlock extends schemaItem {
   setSelected?: Dispatch<
@@ -114,8 +115,6 @@ interface schemaItem {
   title: string;
   list: { title: string; color: string; icon: any }[] | null;
 }
-/* 
-const { t } = useTranslation(); */
 
 const schema: schemaItem[] = [
 
@@ -124,12 +123,14 @@ const schema: schemaItem[] = [
     list: [
       { color: "text-yellow-300	", title: "Amarillo" },
       { color: "text-cyan-400	", title: "Celeste" },
-      { color: "text-primary", title: "Rosado" },
-      { color: "text-red-500", title: "Rojo" },
+      { color: "text-pink-400", title: "Rosado" },
+      { color: "text-red", title: "Rojo" },
       { color: "text-purple-600", title: "Morado" },
       { color: "text-amber-100	", title: "Beige" },
       { color: "text-yellow-500", title: "Dorado" },
       { color: "text-slate-400", title: "Plata" },
+      { color: "text-orange-400", title: "Naranja" },
+      { color: "text-lime-600", title: "verde" },
     ].map((item) => ({ ...item, icon: <IconColors /> })),
   },
   {
@@ -148,6 +149,7 @@ const schema: schemaItem[] = [
       { title: "Salón", icon: <LivingRoomIcon /> },
       { title: "Piscina", icon: <PoolIcon /> },
       { title: "En casa", icon: <HouseIcon /> },
+      { title: "Salon historico", icon: <PiChurchLight /> },
     ].map((item) => ({ ...item, color: "text-gray-500" })),
   },
   {
@@ -207,6 +209,7 @@ const BlockSobreMiEvento: FC = () => {
     spaceBetween: 50,
     loop: true,
     //navigation: true,
+    dots: true,
     autoplay: {
       delay: 2500,
       disableOnInteraction: false,
