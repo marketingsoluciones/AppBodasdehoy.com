@@ -5,41 +5,25 @@ import { fetchApiEventos, queries } from "../../../utils/Fetching"
 import { AuthContextProvider, EventContextProvider } from "../../../context"
 import { ViewItinerary } from "../../../pages/invitados"
 import { SelectModeView } from "../../Utils/SelectModeView"
+import ClickAwayListener from "react-click-away-listener"
+import { ItineraryTabsMenu } from "./ItineraryTabsMenu"
 
 interface props {
     itinerario: Itinerary
     setItinerario: any
+    editTitle: boolean
     setEditTitle: any
     view: ViewItinerary
     setView: any
+    handleDeleteItinerario: any
+    handleUpdateTitle: any
+    title: string
+    setTitle: any
 }
-export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTitle, view, setView }) => {
+export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTitle, view, setView, handleDeleteItinerario, handleUpdateTitle, title, setTitle, editTitle }) => {
     //const [sizes, setSizes] = useState(null)
     const { config } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
-
-    // const adjustSize = () => {
-    //     const azul = document?.getElementById("azul")?.offsetWidth
-    //     const content = document?.getElementById("content")?.offsetWidth
-    //     if (azul >= content - (event?.itinerarios_array?.length - 1) * 4) {
-    //         setSizes(0)
-    //     }
-    // }
-
-    // useEffect(() => {
-    //     adjustSize()
-    // }, [])
-
-    // useEffect(() => {
-    //     if (sizes == 0) {
-    //         setTimeout(() => {
-    //             const content = document?.getElementById("content")?.offsetWidth
-    //             const elem = document?.getElementById(itinerario?._id)?.offsetWidth
-    //             const sizes = (content - elem) / (event?.itinerarios_array?.length - 1)
-    //             setSizes(sizes - 4)
-    //         }, 100);
-    //     }
-    // }, [itinerario, sizes])
 
     const handleCreateItinerario = async () => {
         console.log(window?.location?.pathname.slice(1))
@@ -91,9 +75,7 @@ export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTit
                                                 {item?.title}
                                             </div>
                                         </div>
-                                        {(!["/itinerario"].includes(window?.location?.pathname) && itinerario?._id === item?._id) && <div onClick={() => console.log(item)} className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 flex justify-center items-center text-gray-600 hover:text-gray-900">
-                                            <DotsOpcionesIcon className={""} />
-                                        </div>}
+                                        <ItineraryTabsMenu item={item} itinerario={itinerario} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} setEditTitle={setEditTitle} editTitle={editTitle} />
                                     </div>}
                                 </div>
                             )

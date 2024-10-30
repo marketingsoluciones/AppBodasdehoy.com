@@ -16,11 +16,14 @@ export const AddEvent = ({ disable, itinerario, tasks, setSelectTask }) => {
             const fm = f.getUTCMonth()
             const fd = f.getUTCDate()
             let newEpoch = new Date(fy, fm + 1, fd).getTime() + 7 * 60 * 60 * 1000
+            console.log(45001, newEpoch, new Date(newEpoch))
             if (tasks?.length) {
+                console.log(45002, newEpoch, new Date(newEpoch))
                 const item = tasks[tasks?.length - 1]
                 const epoch = new Date(item.fecha).getTime()
                 newEpoch = epoch + item.duracion * 60 * 1000
             }
+            console.log(45003, newEpoch, new Date(newEpoch))
             const fecha = new Date(newEpoch)
             const addNewTask = await fetchApiEventos({
                 query: queries.createTask,
@@ -28,7 +31,7 @@ export const AddEvent = ({ disable, itinerario, tasks, setSelectTask }) => {
                     eventID: event._id,
                     itinerarioID: itinerario._id,
                     descripcion: itinerario.tipo === "itinerario" ? "Tarea nueva" : "Servicio nuevo",
-                    ...(itinerario.tipo === "itinerario" && fecha),
+                    ...(itinerario.tipo === "itinerario" && { fecha: fecha }),
                     ...(itinerario.tipo === "itinerario" && { duracion: 30 })
                 },
                 domain: config.domain

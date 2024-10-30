@@ -23,7 +23,7 @@ export const SelectModeView: FC<props> = ({ value, setValue }) => {
     {
       value: "cards",
       icon: <LiaIdCardSolid className="w-5 h-5" />,
-      title: "targetas"
+      title: "tarjetas"
     }
   ]
 
