@@ -146,7 +146,7 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
                     ResponsablesArry.find(el => {
                       return el.title.toLowerCase() === elem?.toLowerCase()
                     })?.icon ?? event.detalles_compartidos_array.find(el => {
-                      return el?.displayName.toLowerCase() === elem?.toLowerCase()
+                      return el?.displayName?.toLowerCase() === elem?.toLowerCase()
                     }).photoURL
                   } className="w-6 h-6 rounded-full border-[1px] border-gray-300" />
                   <span>
