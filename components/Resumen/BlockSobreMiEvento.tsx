@@ -12,6 +12,7 @@ import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
 import { PiChurchLight } from "react-icons/pi";
+import { FaCheck } from "react-icons/fa";
 
 interface propsInsideBlock extends schemaItem {
   setSelected?: Dispatch<
@@ -33,27 +34,33 @@ const InsideBlockWithButtons: FC<propsInsideBlock> = ({
   const { t } = useTranslation();
   return (
     <div className="w-full flex items-center gap-2 ">
-      {list.map((item, idx) => (
-        <ElementItemInsideBlock
-          key={idx}
-          {...item}
-          onClick={async () => {
-            try {
-              const result: any = await fetchApiEventos({ query: queries.eventUpdate, variables: { idEvento: event._id, variable: title, value: item.title }, token: null })
-              if (result.errors) {
-                throw new Error("Hubo un error")
+      {list.map((item, idx) => {
+        return (
+          <ElementItemInsideBlock
+            key={idx}
+            {...item}
+            onClick={async () => {
+              try {
+                const result: any = await fetchApiEventos({
+                  query: queries.eventUpdate,
+                  variables: { idEvento: event._id, variable: title, value: title === "color" ? JSON.stringify(item.title) : item.title },
+                  token: null
+                })
+                if (result.errors) {
+                  throw new Error("Hubo un error")
+                }
+                setEvent({ ...event, [title]: item.title })
+                setFieldValue(title, item)
+                setEditing(false)
+                toast("success", t("Guardado con éxito"))
+              } catch (error) {
+                console.log(error)
+                toast("error", t("Ha ocurrido un error"))
               }
-              setEvent({ ...event, [title]: item.title })
-              setFieldValue(title, item)
-              setEditing(false)
-              toast("success", t("Guardado con éxito"))
-            } catch (error) {
-              console.log(error)
-              toast("error", t("Ha ocurrido un error"))
-            }
-          }}
-        />
-      ))}
+            }}
+          />
+        )
+      })}
     </div>
   );
 };
@@ -61,10 +68,11 @@ const InsideBlockWithButtons: FC<propsInsideBlock> = ({
 const InsideBlockWithForm: FC<propsInsideBlock> = ({ setEditing, setFieldValue, title, values }) => {
   const { t } = useTranslation();
   const { event, setEvent } = EventContextProvider()
+  const toast = useToast()
+
   return (
     <div className="px-5">
       <Formik initialValues={values[title]} onSubmit={async (values) => {
-
         try {
           const result: any = await fetchApiEventos({
             query: queries.eventUpdate,
@@ -73,20 +81,26 @@ const InsideBlockWithForm: FC<propsInsideBlock> = ({ setEditing, setFieldValue, 
           if (result?.errors) {
             throw new Error("Hubo un error")
           }
+          console.log(111111, event)
+          console.log(222222, values)
+          setEvent({ ...event, [title]: values.title })
           setFieldValue(title, { ...values, icon: null })
-          setEvent({ ...event, ...values })
           setEditing(false)
+          toast("success", t("Guardado con éxito"))
         } catch (error) {
           console.log(error)
+          toast("error", t("Ha ocurrido un error"))
         }
-
       }}>
-        <Form className="w-full">
+        <Form className="w-full flex items-end space-x-2  ">
           <InputField
             name={"title"}
             placeholder={t("writeyourtheme")}
             label={t("eventtheme")}
           />
+          <button type="submit" className="border-primary border font-display focus:outline-none text-primary hover:text-white text-xs bg-white hover:bg-primary px-3 py-1 rounded-lg transition mb-[10px]">
+            <FaCheck />
+          </button>
         </Form>
       </Formik>
     </div>
