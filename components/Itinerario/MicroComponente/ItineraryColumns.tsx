@@ -234,7 +234,9 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
                         className={`${item.value === "edit" ? "flex md:hidden" : "flex"} p-2 text-gray-700 text-sm items-center gap-2 capitalize cursor-pointer hover:bg-gray-100 ${item.value === value && "bg-gray-200"}`}
                       >
                         {item.icon}
-                        {item.title}
+                        <span className="flex-1 leading-[1]">
+                          {item.title}
+                        </span>
                       </div>
                     )}
                   </div>}
