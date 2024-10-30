@@ -25,11 +25,13 @@ import { getStorage, ref, listAll, deleteObject } from "firebase/storage";
 
 interface props {
     itinerario: Itinerary
-    setItinerario: any
     editTitle: boolean
     setEditTitle: any
     view: ViewItinerary
-    setView: any
+    handleDeleteItinerario: any
+    handleUpdateTitle: any
+    title: string
+    setTitle: any
 }
 
 export interface EditTastk {
@@ -42,7 +44,7 @@ interface TaskReduce {
     tasks?: Task[]
 }
 
-export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle, setEditTitle, view, setView }) => {
+export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle, view, handleDeleteItinerario, handleUpdateTitle, title, setTitle }) => {
     const { t } = useTranslation();
     const { config, geoInfo } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
@@ -180,7 +182,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, setItinerario, editTitle
                     </div>
                 </ModalLeft>
             )}
-            {["/itinerario"].includes(window?.location?.pathname) && <SubHeader itinerario={itinerario} disable={disable} ht={ht} setModalPlantilla={setModalPlantilla} modalPlantilla={modalPlantilla} view={view} setView={setView} setOptionSelect={setItinerario} editTitle={editTitle} setEditTitle={setEditTitle} setItinerario={setItinerario} />}
+            {["/itinerario"].includes(window?.location?.pathname) && <SubHeader itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} title={title} setTitle={setTitle} />}
             <div className={`w-full flex-1 flex flex-col md:px-2 lg:px-6`}>
                 {view !== "table"
                     ? tasksReduce?.map((el, i) =>

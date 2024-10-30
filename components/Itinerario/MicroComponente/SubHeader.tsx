@@ -14,16 +14,12 @@ import { FaCheck } from "react-icons/fa";
 
 interface props {
     itinerario: Itinerary
-    disable: any
-    ht: any
-    setModalPlantilla: any
-    modalPlantilla: any
-    view: any
-    setView: any
-    setOptionSelect: any
     editTitle: boolean
     setEditTitle: any
-    setItinerario: any
+    handleDeleteItinerario: any
+    handleUpdateTitle: any
+    title: string
+    setTitle: any
 }
 interface Modal {
     state: boolean
@@ -31,70 +27,17 @@ interface Modal {
     handle?: () => void
 }
 
-export const SubHeader: FC<props> = ({ itinerario, disable, ht, setModalPlantilla, modalPlantilla, view, setView, setOptionSelect, editTitle, setEditTitle, setItinerario }) => {
+export const SubHeader: FC<props> = ({ itinerario, editTitle, setEditTitle, handleDeleteItinerario, handleUpdateTitle, title, setTitle }) => {
     const { event, setEvent } = EventContextProvider()
     const { config } = AuthContextProvider()
     const toast = useToast()
     const { t } = useTranslation();
     const [modal, setModal] = useState<Modal>({ state: false, title: null, handle: () => { } })
 
-    const [title, setTitle] = useState<string>()
 
     useEffect(() => {
         setTitle(itinerario?.title)
     }, [itinerario])
-
-
-    const handleDeleteItinerario = async () => {
-        setModal({
-            state: true,
-            title: <span className="flex flex-col">
-                <strong>{itinerario.title}</strong>
-                <strong>Si borras el itinerario no lo podrás recuperar.</strong> ¿Estás segugo de continuar?
-            </span>,
-            handle: async () => {
-                try {
-                    await fetchApiEventos({
-                        query: queries.deleteItinerario,
-                        variables: {
-                            eventID: event._id,
-                            itinerarioID: itinerario?._id,
-                        },
-                        domain: config.domain
-                    })
-                    const f1 = event.itinerarios_array?.findIndex(elem => elem._id === itinerario._id)
-                    event.itinerarios_array?.splice(f1, 1)
-                    setEvent({ ...event })
-                    toast("success", t("El itinerario fue eliminado"));
-                    setOptionSelect(event.itinerarios_array[0])
-                    setModal({ state: false })
-                    const idx = f1 > event.itinerarios_array.length - 1 ? f1 - 1 : f1
-                    setItinerario({ ...event.itinerarios_array[idx] })
-                    setEditTitle(false)
-                } catch (error) {
-                    console.log(error)
-                }
-            }
-        })
-    }
-
-    const handleUpdateTitle = async () => {
-
-        await fetchApiEventos({
-            query: queries.editItinerario,
-            variables: {
-                eventID: event._id,
-                itinerarioID: itinerario?._id,
-                variable: "title",
-                valor: title
-            },
-            domain: config.domain
-        })
-        const f1 = event.itinerarios_array?.findIndex(elem => elem._id === itinerario._id)
-        event.itinerarios_array[f1].title = title
-        setEvent({ ...event })
-        setEditTitle(false)
-    }
 
     return (
         <div className="w-full px-4 md:px-10 py-4" >

@@ -1,16 +1,94 @@
 import { useEffect, useState } from "react"
 import { ItineraryTabs } from "./MicroComponente/ItineraryTabs"
 import { ItineraryPanel } from "./MicroComponente/ItineraryPanel"
-import { EventContextProvider } from "../../context";
-import { Itinerary } from "../../utils/Interfaces"
+import { AuthContextProvider, EventContextProvider } from "../../context";
+import { Itinerary, OptionsSelect, Task } from "../../utils/Interfaces"
 import { ViewItinerary } from "../../pages/invitados";
+import { PencilEdit } from "../icons";
+import { GoEyeClosed, GoGitBranch } from "react-icons/go";
+import { LiaLinkSolid } from "react-icons/lia";
+import { MdOutlineDeleteOutline } from "react-icons/md";
+import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { config } from "react-transition-group";
+import { useToast } from "../../hooks/useToast";
+import { Modal } from "../Utils/Modal";
+import { DeleteConfirmation } from "./MicroComponente/DeleteConfirmation";
+import { useTranslation } from "react-i18next";
+
+interface Modal {
+    state: boolean
+    title?: string | JSX.Element
+    handle?: () => void
+}
 
 export const BoddyIter = () => {
-
-    const { event } = EventContextProvider()
+    const { config } = AuthContextProvider()
+    const { event, setEvent } = EventContextProvider()
     const [itinerario, setItinerario] = useState<Itinerary>()
     const [editTitle, setEditTitle] = useState<boolean>(false)
     const [view, setView] = useState<ViewItinerary>(window.innerWidth > window.innerHeight ? "table" : "cards")
+    const [modal, setModal] = useState<Modal>({ state: false, title: null, handle: () => { } })
+    const toast = useToast()
+    const { t } = useTranslation();
+    const [title, setTitle] = useState<string>()
+
+    useEffect(() => {
+        console.log(10041, itinerario)
+        setTitle(itinerario?.title)
+    }, [itinerario])
+
+    const handleDeleteItinerario = async () => {
+        setModal({
+            state: true,
+            title: <span className="flex flex-col">
+                <strong>{itinerario.title}</strong>
+                <strong>Si borras el itinerario no lo podrás recuperar.</strong> ¿Estás segugo de continuar?
+            </span>,
+            handle: async () => {
+                try {
+                    await fetchApiEventos({
+                        query: queries.deleteItinerario,
+                        variables: {
+                            eventID: event._id,
+                            itinerarioID: itinerario?._id,
+                        },
+                        domain: config.domain
+                    })
+                    const itinerarios = event.itinerarios_array.filter(elem => elem.tipo === window?.location?.pathname.slice(1))
+                    const f1idx = itinerarios?.findIndex(elem => elem._id === itinerario._id)
+                    const f1 = event.itinerarios_array?.findIndex(elem => elem._id === itinerario._id)
+                    event.itinerarios_array?.splice(f1, 1)
+                    setEvent({ ...event })
+                    toast("success", t("El itinerario fue eliminado"));
+                    setModal({ state: false })
+                    itinerarios.splice(f1idx, 1)
+                    const idx = f1idx > itinerarios.length - 1 ? f1idx - 1 : f1idx
+                    setItinerario({ ...itinerarios[idx] })
+                    setEditTitle(false)
+                } catch (error) {
+                    console.log(error)
+                }
+            }
+        })
+    }
+
+    const handleUpdateTitle = async () => {
+
+        await fetchApiEventos({
+            query: queries.editItinerario,
+            variables: {
+                eventID: event._id,
+                itinerarioID: itinerario?._id,
+                variable: "title",
+                valor: title
+            },
+            domain: config.domain
+        })
+        const f1 = event.itinerarios_array?.findIndex(elem => elem._id === itinerario._id)
+        event.itinerarios_array[f1].title = title
+        setEvent({ ...event })
+        setEditTitle(false)
+    }
 
     useEffect(() => {
         const itinerarios = event?.itinerarios_array.filter(elem => elem.tipo === window?.location?.pathname.slice(1))
@@ -27,8 +105,11 @@ export const BoddyIter = () => {
 
     return (
         <div className="w-full h-[calc(100vh-234px)] flex flex-col items-center bg-white rounded-lg mt-3">
-            <ItineraryTabs itinerario={itinerario} setItinerario={setItinerario} setEditTitle={setEditTitle} view={view} setView={setView} />
-            <ItineraryPanel itinerario={itinerario} setItinerario={setItinerario} editTitle={editTitle} setEditTitle={setEditTitle} view={view} setView={setView} />
+            {modal.state && <Modal set={setModal} classe={"w-[95%] md:w-[450px] h-[200px]"}>
+                <DeleteConfirmation setModal={setModal} modal={modal} />
+            </Modal>}
+            <ItineraryTabs itinerario={itinerario} setItinerario={setItinerario} setEditTitle={setEditTitle} title={title} setTitle={setTitle} view={view} setView={setView} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} editTitle={editTitle} />
+            <ItineraryPanel itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} title={title} setTitle={setTitle} view={view} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} />
         </div>
     )
 }
