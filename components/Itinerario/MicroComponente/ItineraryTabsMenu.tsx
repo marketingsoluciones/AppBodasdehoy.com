@@ -1,4 +1,4 @@
-import { FC, useEffect, useRef, useState } from "react"
+import { Dispatch, FC, SetStateAction, useEffect, useRef, useState } from "react"
 import { DotsOpcionesIcon, PlusIcon } from "../../icons"
 import { Itinerary } from "../../../utils/Interfaces"
 import { fetchApiEventos, queries } from "../../../utils/Fetching"
@@ -16,10 +16,12 @@ interface props {
     item: Itinerary
     handleDeleteItinerario: any
     handleUpdateTitle: any
+    title: string
+    setTitle: Dispatch<SetStateAction<string>>
     editTitle: boolean
     setEditTitle: any
 }
-export const ItineraryTabsMenu: FC<props> = ({ itinerario, item, handleDeleteItinerario, handleUpdateTitle, setEditTitle, editTitle }) => {
+export const ItineraryTabsMenu: FC<props> = ({ itinerario, item, handleDeleteItinerario, handleUpdateTitle, setEditTitle, title, editTitle, setTitle }) => {
     const [showMenu, setShowMenu] = useState<boolean>()
     const [value, setValue] = useState<string>()
     const { t } = useTranslation();
@@ -35,7 +37,8 @@ export const ItineraryTabsMenu: FC<props> = ({ itinerario, item, handleDeleteIti
             label: "Renombrar",
             value: "rename",
             onClick: () => {
-
+                setTitle(item.title)
+                setEditTitle(true)
             }
         },
         {
