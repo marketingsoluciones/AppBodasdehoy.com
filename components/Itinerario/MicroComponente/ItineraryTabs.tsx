@@ -72,18 +72,21 @@ export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTit
                                             {!!item?.icon && <div className="flex w-5 h-5 mr-1 items-center justify-center">
                                                 {item?.icon}
                                             </div>}
-                                            {(editTitle && itinerario?._id === item?._id && window?.location?.pathname !== "/itinerario") &&
-                                                <div className="fixed w-full h-16 z-20 translate-y-6 flex left-0 items-center justify-center">
-                                                    <div className="h-full bg-white space-x-2 rounded-md flex px-6 items-center justify-center shadow-md border-[1px]">
-                                                        <input type="text" onChange={(e) => setTitle(e.target.value)} value={title} className={` font-display text-sm text-gray-500 border-[1px] border-primary focus:border-gray-400 w-min py-1 px-2 rounded-xl focus:ring-0 focus:outline-none transition`} />
-                                                        <button type="button" onClick={() => handleUpdateTitle()} className="border-primary border font-display focus:outline-none text-primary hover:text-white text-xs bg-white hover:bg-primary px-3 py-1 rounded-lg transition">
-                                                            <FaCheck />
-                                                        </button>
-                                                    </div>
-                                                </div>}
                                             <div className={`${itinerario?._id !== item?._id && "break-all"} line-clamp-1 flex-1`}>
                                                 {item?.title}
                                             </div>
+                                            {(editTitle && itinerario?._id === item?._id && window?.location?.pathname !== "/itinerario") &&
+                                                <ClickAwayListener onClickAway={() => { setEditTitle(false) }}>
+                                                    <div className="fixed md:absolute w-full h-16 z-20 translate-y-6 flex left-0 items-center justify-center">
+                                                        <div className="h-full bg-white space-x-2 rounded-md flex px-6 items-center justify-center shadow-md border-[1px]">
+                                                            <input type="text" onChange={(e) => setTitle(e.target.value)} value={title} className={` font-display text-sm text-gray-500 border-[1px] border-primary focus:border-gray-400 w-min py-1 px-2 rounded-xl focus:ring-0 focus:outline-none transition`} />
+                                                            <button type="button" onClick={() => handleUpdateTitle()} className="border-primary border font-display focus:outline-none text-primary hover:text-white text-xs bg-white hover:bg-primary px-3 py-1 rounded-lg transition">
+                                                                <FaCheck />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </ClickAwayListener>
+                                            }
                                         </div>
                                         <ItineraryTabsMenu item={item} itinerario={itinerario} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} setEditTitle={setEditTitle} editTitle={editTitle} title={title} setTitle={setTitle} />
                                     </div>}

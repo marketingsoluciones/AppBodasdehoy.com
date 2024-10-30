@@ -66,7 +66,7 @@ export interface Itinerary {
 
 export interface OptionsSelect {
     value: string
-    icon: JSX.Element
+    icon?: JSX.Element
     title: string
     onClick: any
 }
