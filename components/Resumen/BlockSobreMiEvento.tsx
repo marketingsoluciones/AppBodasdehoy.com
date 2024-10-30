@@ -284,7 +284,6 @@ const AboutItem: FC<propsElement> = ({ title, value, toggleClick }) => {
   const { t } = useTranslation();
   const [isAllowed, ht] = useAllowed()
 
-
   return (
     <>
       <button
@@ -303,7 +302,10 @@ const AboutItem: FC<propsElement> = ({ title, value, toggleClick }) => {
             {title && capitalize(t(title))}
           </p>
           <p className={'font-display font-base text-xs md:text-sm text-gray-700 font-semibold'}>
-            {t(value?.title) && t(value.title).length > 10 ? t(value?.title) && t(value.title).substring(0, 10) + "..." : t(value?.title) && t(value.title)}
+            {typeof value?.title === "object"
+              ? "hacer algo"
+              : t(value?.title) && t(value.title).toString().length > 10 ? t(value?.title) && t(value.title).substring(0, 10) + "..." : t(value?.title) && t(value.title)
+            }
           </p>
         </span>
       </button>
