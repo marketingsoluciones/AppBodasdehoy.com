@@ -7,6 +7,7 @@ import { ViewItinerary } from "../../../pages/invitados"
 import { SelectModeView } from "../../Utils/SelectModeView"
 import ClickAwayListener from "react-click-away-listener"
 import { ItineraryTabsMenu } from "./ItineraryTabsMenu"
+import { FaCheck } from "react-icons/fa"
 
 interface props {
     itinerario: Itinerary
@@ -56,26 +57,35 @@ export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTit
                         {event?.itinerarios_array.filter(elem => elem.tipo === window?.location?.pathname.slice(1))?.slice(0, 5).map((item, idx) => {
                             return (
                                 <div id={item?._id} key={idx}
-                                    className={`justify-start items-center cursor-pointer h-full ${itinerario?._id === item?._id ? "bg-green* flex" : "inline-flex flex-1"} text-sm px-2 space-x-1`}
+                                    className={`justify-start items-center cursor-pointer h-full ${itinerario?._id === item?._id ? "bg-green* flex" : "inline-flex flex-1"} text-sm px-2 space-x-1 relative`}
                                     onClick={() => {
                                         if (item?._id !== itinerario?._id) {
                                             // adjustSize()
                                             setItinerario(item)
+                                            setEditTitle(false)
                                         }
                                     }}
                                 //style={itinerario?._id === item?._id ? {} : { width: sizes }}
                                 >
-
                                     {<div className={`inline-flex items-center`} >
-                                        <div className={`${itinerario?._id === item?._id ? "border-primary text-primary w-full" : "text-gray-600"} border-b-2 flex-1`}>
+                                        <div className={`${itinerario?._id === item?._id ? "border-primary text-primary w-full" : "text-gray-600"} border-b-2 flex-1 `}>
                                             {!!item?.icon && <div className="flex w-5 h-5 mr-1 items-center justify-center">
                                                 {item?.icon}
                                             </div>}
+                                            {(editTitle && itinerario?._id === item?._id && window?.location?.pathname !== "/itinerario") &&
+                                                <div className="fixed w-full h-16 z-20 translate-y-6 flex left-0 items-center justify-center">
+                                                    <div className="h-full bg-white space-x-2 rounded-md flex px-6 items-center justify-center shadow-md border-[1px]">
+                                                        <input type="text" onChange={(e) => setTitle(e.target.value)} value={title} className={` font-display text-sm text-gray-500 border-[1px] border-primary focus:border-gray-400 w-min py-1 px-2 rounded-xl focus:ring-0 focus:outline-none transition`} />
+                                                        <button type="button" onClick={() => handleUpdateTitle()} className="border-primary border font-display focus:outline-none text-primary hover:text-white text-xs bg-white hover:bg-primary px-3 py-1 rounded-lg transition">
+                                                            <FaCheck />
+                                                        </button>
+                                                    </div>
+                                                </div>}
                                             <div className={`${itinerario?._id !== item?._id && "break-all"} line-clamp-1 flex-1`}>
                                                 {item?.title}
                                             </div>
                                         </div>
-                                        <ItineraryTabsMenu item={item} itinerario={itinerario} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} setEditTitle={setEditTitle} editTitle={editTitle} />
+                                        <ItineraryTabsMenu item={item} itinerario={itinerario} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} setEditTitle={setEditTitle} editTitle={editTitle} title={title} setTitle={setTitle} />
                                     </div>}
                                 </div>
                             )
