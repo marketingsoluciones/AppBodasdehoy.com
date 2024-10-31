@@ -1,6 +1,6 @@
 import { Form, Formik } from "formik";
 import { FC, HTMLAttributes } from "react";
-import { SelectIcon, ResponsablesArry } from ".";
+import { SelectIcon, GruposResponsablesArry } from ".";
 import { EventContextProvider } from "../../../context/EventContext";
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
 import { AuthContextProvider } from "../../../context";
@@ -28,7 +28,7 @@ interface props extends HTMLAttributes<HTMLDivElement> {
 }
 
 export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, optionsItineraryButtonBox, isSelect, ...props }) => {
-  const { config, geoInfo } = AuthContextProvider()
+  const { config, geoInfo, user } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
   const toast = useToast()
   const { t } = useTranslation();
@@ -156,17 +156,17 @@ export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, option
                       </span>
                       <div className="text-gray-900">
                         {values?.responsable?.map((elem, idx) => {
-                          const user = ResponsablesArry.find(el => {
+                          const userSelect = GruposResponsablesArry.find(el => {
                             return el.title.toLowerCase() === elem?.toLowerCase()
-                          }) ?? event.detalles_compartidos_array.find(el => {
+                          }) ?? [user, ...event.detalles_compartidos_array].find(el => {
                             return el?.displayName?.toLowerCase() === elem?.toLowerCase()
                           })
                           return (
                             <span key={idx} className="inline-flex items-center space-x-0.5 mr-1.5">
                               <div className="w-6 h-6 rounded-full border-[1px] border-gray-400">
-                                <ImageAvatar user={user} />
+                                <ImageAvatar user={userSelect} />
                               </div>
-                              <span className={`flex-1 ${!user && "line-through"}`}>
+                              <span className={`flex-1 ${!userSelect && "line-through"}`}>
                                 {elem}
                               </span>
                             </span>
