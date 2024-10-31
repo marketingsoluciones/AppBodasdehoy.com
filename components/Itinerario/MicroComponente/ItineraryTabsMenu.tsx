@@ -1,6 +1,6 @@
 import { Dispatch, FC, SetStateAction, useEffect, useRef, useState } from "react"
-import { DotsOpcionesIcon, PlusIcon } from "../../icons"
-import { Itinerary } from "../../../utils/Interfaces"
+import { DotsOpcionesIcon, PencilEdit, PlusIcon } from "../../icons"
+import { Itinerary, OptionsSelect } from "../../../utils/Interfaces"
 import { fetchApiEventos, queries } from "../../../utils/Fetching"
 import { AuthContextProvider, EventContextProvider } from "../../../context"
 import { ViewItinerary } from "../../../pages/invitados"
@@ -10,6 +10,9 @@ import { useAllowed } from "../../../hooks/useAllowed"
 import { useTranslation } from "react-i18next"
 import { useToast } from "../../../hooks/useToast"
 import { getStorage } from "firebase/storage"
+import { IoShareSocial } from "react-icons/io5"
+import { MdOutlineDeleteOutline } from "react-icons/md"
+import { CgInfo } from "react-icons/cg"
 
 interface props {
     itinerario: Itinerary
@@ -32,26 +35,35 @@ export const ItineraryTabsMenu: FC<props> = ({ itinerario, item, handleDeleteIti
     const toast = useToast()
     const storage = getStorage()
 
-    const optionsSelect = [
+    const optionsSelect: OptionsSelect[] = [
         {
-            label: "Renombrar",
+            title: "Renombrar",
             value: "rename",
             onClick: () => {
                 setTitle(item.title)
                 setEditTitle(true)
-            }
+            },
+            icon: <PencilEdit className="w-5 h-5" />
         },
         {
-            label: "Compartir",
+            title: "Compartir",
             value: "share",
             onClick: () => {
 
-            }
+            },
+            icon: <IoShareSocial className="w-5 h-5" />
         },
         {
-            label: "Borrar",
+            title: "Borrar",
             value: "delete",
-            onClick: () => { handleDeleteItinerario() }
+            onClick: () => { handleDeleteItinerario() },
+            icon: <MdOutlineDeleteOutline className="w-5 h-5" />
+        },
+        {
+            title: "Detalles",
+            value: "details",
+            onClick: () => { },
+            icon: <CgInfo className="w-5 h-5" />
         }
     ]
 
@@ -73,7 +85,8 @@ export const ItineraryTabsMenu: FC<props> = ({ itinerario, item, handleDeleteIti
                                 }}
                                 className={`${elem.value === "edit" ? "flex md:hidden" : "flex"} p-2 text-gray-700 text-sm items-center gap-2 capitalize cursor-pointer hover:bg-gray-100`}
                             >
-                                {elem.label}
+                                {elem?.icon}
+                                {elem.title}
                             </div>
                         )}
                     </div>}

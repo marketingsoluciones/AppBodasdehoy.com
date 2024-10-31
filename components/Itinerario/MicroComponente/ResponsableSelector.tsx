@@ -133,7 +133,7 @@ export const ResponsableSelector: FC<props> = ({ disable, handleChange, ...props
                                                 ? event?.detalles_compartidos_array.find((elem) => elem?.displayName === item).photoURL
                                                 : "/placeholder/user.png"
                                     } className="w-6 rounded-full " />
-                                    <span className="text-sm flex-1">{item}</span>
+                                    <span className={`text-sm flex-1 ${event?.detalles_compartidos_array.findIndex((elem) => elem?.displayName === item) < 0 && "line-through"}`}>{item}</span>
                                     <div onClick={() => {
                                         field.value.splice(field.value.findIndex(el => el === item), 1)
                                         helpers.setValue([...field.value])

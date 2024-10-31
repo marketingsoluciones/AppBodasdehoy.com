@@ -89,7 +89,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         {
             value: "share",
             icon: <LiaLinkSolid className="w-5 h-5" />,
-            title: "compartir",
+            title: "Link calendario",
             onClick: () => setModalCompartirTask(!modalCompartirTask)
         },
         {
