@@ -3,11 +3,11 @@ import { AddUser, PlusIcon } from "../../icons"
 import { ResponsableList } from "./ResponsableList"
 import { FC, InputHTMLAttributes, useEffect, useState } from "react"
 import { useField } from "formik";
-import { EventContextProvider } from "../../../context";
+import { AuthContextProvider, EventContextProvider } from "../../../context";
 import { useAllowedRouter } from "../../../hooks/useAllowed";
 import { MdClose } from "react-icons/md";
 
-export const ResponsablesArry = [
+export const GruposResponsablesArry = [
     {
         icon: "/rol_Decorador.png",
         title: "Decorador",
@@ -56,6 +56,7 @@ interface props extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const ResponsableSelector: FC<props> = ({ disable, handleChange, ...props }) => {
+    const { user } = AuthContextProvider()
     const [isAllowedRouter, ht] = useAllowedRouter()
     const [field, meta, helpers] = useField({ name: props?.name });
     const [selectIcon, setSelectIcon] = useState(field?.value?.map((item) => {
@@ -68,6 +69,7 @@ export const ResponsableSelector: FC<props> = ({ disable, handleChange, ...props
     const [FieldArry, setFieldArry] = useState([])
     const { event } = EventContextProvider()
     const [showResposables, setShowResposables] = useState(false)
+    const [usersList, setUsersList] = useState([])
 
     useEffect(() => {
         helpers.setValue(selectIcon)
@@ -79,6 +81,12 @@ export const ResponsableSelector: FC<props> = ({ disable, handleChange, ...props
         }
         handleChange("responsable", selectIcon)
     }, [selectIcon, showResposables])
+
+    useEffect(() => {
+        setUsersList([user, ...event?.detalles_compartidos_array])
+    }, [event])
+
+
 
     return (
         <div className="flex w-full justify-start">
@@ -106,10 +114,10 @@ export const ResponsableSelector: FC<props> = ({ disable, handleChange, ...props
                                             {!showResposables && idx === 2 && selectIcon.length > 3
                                                 ? "+" + (selectIcon.length - 2)
                                                 : <img src={
-                                                    ResponsablesArry?.find((elem) => elem?.title === item)?.icon
-                                                        ? ResponsablesArry.find((elem) => elem?.title === item).icon
-                                                        : event?.detalles_compartidos_array.find((elem) => elem?.displayName === item)?.photoURL
-                                                            ? event?.detalles_compartidos_array.find((elem) => elem?.displayName === item).photoURL
+                                                    GruposResponsablesArry?.find((elem) => elem?.title === item)?.icon
+                                                        ? GruposResponsablesArry.find((elem) => elem?.title === item).icon
+                                                        : usersList.find((elem) => elem?.displayName === item)?.photoURL
+                                                            ? usersList.find((elem) => elem?.displayName === item).photoURL
                                                             : "/placeholder/user.png"
                                                 } className="h-10 rounded-full " />
                                             }
@@ -127,13 +135,13 @@ export const ResponsableSelector: FC<props> = ({ disable, handleChange, ...props
                             return (
                                 < div key={idx} className="flex space-x-1 px-1 py-2 md:py-1 hover:bg-gray-200">
                                     <img src={
-                                        ResponsablesArry?.find((elem) => elem?.title === item)?.icon
-                                            ? ResponsablesArry.find((elem) => elem?.title === item).icon
-                                            : event?.detalles_compartidos_array.find((elem) => elem?.displayName === item)?.photoURL
-                                                ? event?.detalles_compartidos_array.find((elem) => elem?.displayName === item).photoURL
+                                        GruposResponsablesArry?.find((elem) => elem?.title === item)?.icon
+                                            ? GruposResponsablesArry.find((elem) => elem?.title === item).icon
+                                            : usersList.find((elem) => elem?.displayName === item)?.photoURL
+                                                ? usersList.find((elem) => elem?.displayName === item).photoURL
                                                 : "/placeholder/user.png"
                                     } className="w-6 rounded-full " />
-                                    <span className={`text-sm flex-1 ${event?.detalles_compartidos_array.findIndex((elem) => elem?.displayName === item) < 0 && "line-through"}`}>{item}</span>
+                                    <span className={`text-sm flex-1 ${usersList.findIndex((elem) => elem?.displayName === item) < 0 && "line-through"}`}>{item}</span>
                                     <div onClick={() => {
                                         field.value.splice(field.value.findIndex(el => el === item), 1)
                                         helpers.setValue([...field.value])
@@ -160,7 +168,7 @@ export const ResponsableSelector: FC<props> = ({ disable, handleChange, ...props
             }
             {openResponsableList &&
                 <Modal set={setOpenResponsableList} classe={"w-[80%] md:w-[270px] h-3/4 md:h-[550px]"} >
-                    <ResponsableList DataArry={ResponsablesArry} openModal={openResponsableList} setOpenModal={setOpenResponsableList} setSelectIcon={setSelectIcon} value={field.value} />
+                    <ResponsableList DataArry={GruposResponsablesArry} openModal={openResponsableList} setOpenModal={setOpenResponsableList} setSelectIcon={setSelectIcon} value={field.value} />
                 </Modal>
             }
         </div >

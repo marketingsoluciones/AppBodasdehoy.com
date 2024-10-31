@@ -8,7 +8,7 @@ import { getRelativeTime } from "../../../utils/FormatTime";
 import { useTranslation } from 'react-i18next';
 import { boolean } from "yup";
 import { IoIosAttach } from "react-icons/io";
-import { ResponsablesArry } from "./ResponsableSelector";
+import { GruposResponsablesArry } from "./ResponsableSelector";
 import { ItineraryTable } from "./ItineraryTable";
 import ClickAwayListener from "react-click-away-listener";
 import { HiOutlineViewList } from "react-icons/hi";
@@ -21,7 +21,7 @@ import { CgSoftwareDownload } from "react-icons/cg";
 import { getBytes, getMetadata, getStorage, ref } from "firebase/storage";
 import { Itinerary } from "../../../utils/Interfaces";
 import { event } from "../../../gtas";
-import { EventContextProvider } from "../../../context";
+import { AuthContextProvider, EventContextProvider } from "../../../context";
 import { ImageAvatar } from "../../Utils/ImageAvatar";
 
 interface props {
@@ -76,6 +76,7 @@ const resolveCell = ({ data, justifyCenter }: propsCell) => {
 
 export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reenviar = true, activeFunction, setModalStatus, modalStatus, setModalWorkFlow, modalWorkFlow, setModalCompartirTask, modalCompartirTask, deleteTask, showEditTask, setShowEditTask, optionsItineraryButtonBox, selectTask, setSelectTask, itinerario }) => {
   const { event } = EventContextProvider()
+  const { user } = AuthContextProvider()
   const { t } = useTranslation();
   const [arrEnviarInvitaciones, setArrEnviatInvitaciones] = useState([])
   const [isAllowed, ht] = useAllowed()
@@ -141,17 +142,17 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         Cell: (data) =>
           <div key={data.cell.row.id} className="w-full">
             {data?.cell?.value?.map((elem, idx) => {
-              const user = ResponsablesArry.find(el => {
+              const userSelect = GruposResponsablesArry.find(el => {
                 return el.title.toLowerCase() === elem?.toLowerCase()
-              }) ?? event.detalles_compartidos_array.find(el => {
+              }) ?? [user, ...event.detalles_compartidos_array].find(el => {
                 return el?.displayName?.toLowerCase() === elem?.toLowerCase()
               })
               return (
                 <span key={idx} className="inline-flex items-center space-x-1">
                   <div className="w-6 h-6 rounded-full border-[1px] border-gray-300">
-                    <ImageAvatar user={user} />
+                    <ImageAvatar user={userSelect} />
                   </div>
-                  <span className={`flex-1 ${!user && "line-through"}`}>
+                  <span className={`flex-1 ${!userSelect && "line-through"}`}>
                     {elem}
                   </span>
                 </span>

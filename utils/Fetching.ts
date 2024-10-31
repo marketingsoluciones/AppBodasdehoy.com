@@ -67,14 +67,13 @@ export const fetchApiBodas = async ({ query = ``, variables = {}, type = "json",
         }
       });
 
-      const { data } = await api.graphql(
+      const { data } = await api.ApiApp(
         formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
           },
         },
-        token
       );
 
       if (data.errors) {

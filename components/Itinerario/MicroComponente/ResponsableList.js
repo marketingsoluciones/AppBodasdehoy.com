@@ -1,10 +1,11 @@
 import ClickAwayListener from "react-click-away-listener"
-import { EventContextProvider } from "../../../context"
+import { AuthContextProvider, EventContextProvider } from "../../../context"
 import { useState } from "react"
 import { useTranslation } from 'react-i18next';
 
 export const ResponsableList = ({ openModal, setOpenModal, DataArry, setSelectIcon, value }) => {
     const { t } = useTranslation();
+    const { user } = AuthContextProvider()
     const { event } = EventContextProvider()
     const [listReturn, setListReturn] = useState("personas")
 
@@ -55,29 +56,29 @@ export const ResponsableList = ({ openModal, setOpenModal, DataArry, setSelectIc
                                     </div>
                                 )
                             })
-                            : event?.detalles_compartidos_array?.length > 0
-                                ? event?.detalles_compartidos_array?.map((item, idx) => {
-                                    const title = item?.displayName != null ? item?.displayName : item.email
-                                    return (
-                                        <div key={idx} className={`w-full flex items-center cursor-pointer md:hover:bg-slate-200 p-1 space-x-1 ${value?.includes(title) ? "bg-slate-300" : "bg-none"}`}
-                                            onClick={() => { handleClick(item) }}>
-                                            <div className="w-10 h-10 border-[1px] border-gray-300 rounded-full flex justify-center items-center">
-                                                <img
-                                                    className="object-cover w-full h-full rounded-full"
-                                                    src={item?.photoURL != null ? item?.photoURL : "/placeholder/user.png"}
-                                                    alt={"userPhoto"}
-                                                />
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="break-all line-clamp-1">{item?.displayName ? item?.displayName : item?.email}</div>
-                                            </div>
-                                            {value?.includes(title) && <span className="w-4">x</span>}
+                            // : event?.detalles_compartidos_array?.length > 0                                ?
+                            : [user, ...event?.detalles_compartidos_array]?.map((item, idx) => {
+                                const title = item?.displayName != null ? item?.displayName : item.email
+                                return (
+                                    <div key={idx} className={`w-full flex items-center cursor-pointer md:hover:bg-slate-200 p-1 space-x-1 ${value?.includes(title) ? "bg-slate-300" : "bg-none"}`}
+                                        onClick={() => { handleClick(item) }}>
+                                        <div className="w-10 h-10 border-[1px] border-gray-300 rounded-full flex justify-center items-center">
+                                            <img
+                                                className="object-cover w-full h-full rounded-full"
+                                                src={item?.photoURL != null ? item?.photoURL : "/placeholder/user.png"}
+                                                alt={"userPhoto"}
+                                            />
                                         </div>
-                                    )
-                                })
-                                : <div className=" flex items-center justify-center h-full text-[13.6px] text-center">
-                                    {t("collaboratingguests")}
-                                </div>
+                                        <div className="flex-1">
+                                            <div className="break-all line-clamp-1">{item?.displayName ? item?.displayName : item?.email}</div>
+                                        </div>
+                                        {value?.includes(title) && <span className="w-4">x</span>}
+                                    </div>
+                                )
+                            })
+                            // : <div className=" flex items-center justify-center h-full text-[13.6px] text-center">
+                            //     {t("collaboratingguests")}
+                            // </div>
                         }
                     </div>
                 </div>
