@@ -8,7 +8,6 @@ import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { LoadingItem } from "../Loading";
 import { useTranslation } from 'react-i18next';
 
-
 export const PerfilFoto = () => {
     const { t } = useTranslation();
     const { user } = AuthContextProvider()
@@ -33,13 +32,11 @@ const ImageProfile: FC = () => {
     const [loading, setLoading] = useState<boolean>(false)
     const toast = useToast();
 
-
     const handleChange = async (e: any) => {
         setLoading(true)
         try {
             const file = e.target.files[0]
             const reader = new FileReader();
-
             reader.onloadend = async () => {
                 const result: Partial<image> = await fetchApiBodas(
                     {
@@ -70,7 +67,6 @@ const ImageProfile: FC = () => {
             toast("error", t("errorloadingimage"))
             console.log(error)
         }
-
     }
 
     return (
@@ -85,6 +81,5 @@ const ImageProfile: FC = () => {
             </label>
             <input type="file" id="photo" name="photo" className="hidden" onChange={handleChange} />
         </div>
-
     );
 }
