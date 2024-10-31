@@ -84,6 +84,7 @@ export const fetchApiBodas = async ({ query = ``, variables = {}, type = "json",
     }
   } catch (error) {
     console.log(error);
+    return error
   }
 };
 

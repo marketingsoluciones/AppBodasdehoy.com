@@ -6,13 +6,14 @@ import { Form, Formik } from "formik";
 import InputField from "../Forms/InputField";
 import { useDelayUnmount } from "../../utils/Funciones";
 import ModalBottom from "../Utils/ModalBottom";
-import { fetchApiEventos, queries } from '../../utils/Fetching';
-import { EventContextProvider } from "../../context";
+import { fetchApiBodas, fetchApiEventos, queries } from '../../utils/Fetching';
+import { AuthContextProvider, EventContextProvider } from "../../context";
 import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
 import { PiChurchLight } from "react-icons/pi";
 import { FaCheck } from "react-icons/fa";
+import { image } from "../../utils/Interfaces";
 
 interface propsInsideBlock extends schemaItem {
   setSelected?: Dispatch<
@@ -81,8 +82,6 @@ const InsideBlockWithForm: FC<propsInsideBlock> = ({ setEditing, setFieldValue, 
           if (result?.errors) {
             throw new Error("Hubo un error")
           }
-          console.log(111111, event)
-          console.log(222222, values)
           setEvent({ ...event, [title]: values.title })
           setFieldValue(title, { ...values, icon: null })
           setEditing(false)
@@ -273,7 +272,7 @@ const BlockSobreMiEvento: FC = () => {
       >
         {schema.map((item, idx) => (
           <SwiperSlide key={idx} className="py-2 pb-8 relative">
-            <AboutItem
+            {item.title != "tarta" && <AboutItem
               {...item}
               toggleClick={() => {
                 if (!isMounted) {
@@ -282,7 +281,20 @@ const BlockSobreMiEvento: FC = () => {
                 }
               }}
               value={values[item.title]}
-            />
+            />}
+            {
+              item.title === "tarta" && <TartaButton
+                {...item}
+                toggleClick={() => {
+                  if (!isMounted) {
+                    setItemSelected(item)
+                    setIsMounted(true)
+                  }
+                }}
+                value={values[item.title]}
+                setFieldValue={setFieldValue}
+              />
+            }
           </SwiperSlide>
         ))}
       </Swiper>
@@ -295,6 +307,7 @@ export default BlockSobreMiEvento;
 interface propsElement extends schemaItem {
   value: typeEvent
   toggleClick: any
+  setFieldValue?: any
 }
 
 const AboutItem: FC<propsElement> = ({ title, value, toggleClick }) => {
@@ -327,5 +340,90 @@ const AboutItem: FC<propsElement> = ({ title, value, toggleClick }) => {
         </span>
       </button>
     </>
+  );
+};
+
+const TartaButton: FC<propsElement> = ({ title, value, toggleClick, setFieldValue }) => {
+  const { t } = useTranslation();
+  const [isAllowed, ht] = useAllowed()
+  const { event, setEvent } = EventContextProvider()
+  const { config } = AuthContextProvider()
+
+  const [loading, setLoading] = useState<boolean>(false)
+
+  const toast = useToast()
+
+  const handleChange = async (e: any) => {
+    setLoading(true)
+    try {
+      const file = e.target.files[0]
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const result: Partial<image> = await fetchApiBodas(
+          {
+            query: queries.singleUpload,
+            variables: { file, use: "tarta" },
+            type: "formData",
+            development: config?.development
+          }
+        )
+        console.log(111111, result)
+        if (result?.i640) {
+          await fetchApiEventos({
+            query: queries.eventUpdate,
+            variables: { idEvento: event._id, variable: title, value: result.i640 },
+            token: null
+          })
+          setEvent({ ...event, "tarta": result.i640 })
+          toast("success", t("imagesuccessfully"))
+        }else {
+          toast("error", t("El tipo de imagen no es correcta"))
+        }
+      }
+      reader.readAsDataURL(file);
+      setTimeout(() => {
+        setLoading(false)
+      }, 500);
+    } catch (error) {
+      setTimeout(() => {
+        setLoading(false)
+      }, 500);
+      toast("error", t("errorloadingimage"))
+      console.log(error)
+    }
+  }
+
+  return (
+    <div className="relative bg-white rounded-full w-32 md:w-40 h-32 md:h-40 shadow-md gap-2 flex flex-col items-center justify-center focus:outline-none mx-auto inset-x-0">
+      <input
+        id="file"
+        type="file"
+        name="file"
+        accept="image/*"
+        required
+        onChange={(e) => handleChange(e)}
+        className="hidden"
+      />
+      <label
+        onClick={() => !isAllowed() ? ht() : null}
+        htmlFor={!isAllowed() ? "null" : "file"}
+        className="absolute"
+      >
+        {!value ? (
+          <InterrogacionIcon />
+        ) : (
+          value?.icon && cloneElement(value?.icon, {
+            className: `${value?.color} w-10 h-10`,
+          })
+        )}
+        <span className="leading-4 text-center">
+          <img src={`https://apiapp.bodasdehoy.com${event.tarta}`} alt={"tarta"} className={"border-none border-2 rounded-md  h-20 w-20 hover:opacity-50 cursor-pointer object-cover object-center mb-2"} />
+
+          <p className="font-display font-light md:text-md text-gray-500">
+            {title && capitalize(t(title))}
+          </p>
+        </span>
+      </label>
+    </div>
   );
 };
