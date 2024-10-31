@@ -52,12 +52,12 @@ export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTit
         <div className="flex max-w-[100%] min-w-[100%] h-10 items-center justify-center border-b md:px-4 md:py-2">
             <div id="content" className="flex-1 h-full bg-violet-400* flex justify-between">
 
-                <div className="inline-flex max-w-full h-full items-center bg-yellow-400*">
-                    <div id="azul" className="bg-blue-500* inline-flex max-w-[calc(100%-32px)] h-full items-center select-none bg-blue-600*">
+                <div className="inline-flex max-w-full h-full items-center bg-yellow-400* mr-2">
+                    <div id="azul" className="bg-blue-500* inline-flex max-w-[calc(100%-32px)] h-full items-center select-none bg-blue-600* mx-2">
                         {event?.itinerarios_array.filter(elem => elem.tipo === window?.location?.pathname.slice(1))?.slice(0, 5).map((item, idx) => {
                             return (
                                 <div id={item?._id} key={idx}
-                                    className={`justify-start items-center cursor-pointer h-full ${itinerario?._id === item?._id ? "bg-green* flex" : "inline-flex flex-1"} text-sm px-2 space-x-1 relative`}
+                                    className={`justify-start items-center cursor-pointer h-full ${itinerario?._id === item?._id ? "bg-green* flex" : "inline-flex"} text-sm space-x-1 relative md:mr-2`}
                                     onClick={() => {
                                         if (item?._id !== itinerario?._id) {
                                             // adjustSize()

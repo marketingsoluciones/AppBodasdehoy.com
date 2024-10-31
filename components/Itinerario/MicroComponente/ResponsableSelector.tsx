@@ -83,7 +83,7 @@ export const ResponsableSelector: FC<props> = ({ disable, handleChange, ...props
     }, [selectIcon, showResposables])
 
     useEffect(() => {
-        setUsersList([user, ...event?.detalles_compartidos_array])
+        setUsersList([user, event?.detalles_usuario_id, ...event?.detalles_compartidos_array])
     }, [event])
 
 

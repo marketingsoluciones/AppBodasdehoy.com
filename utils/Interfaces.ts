@@ -107,6 +107,7 @@ export interface detalle_compartidos_array {
     photoURL: string
     onLine: onLine
     permissions?: permission[]
+    owner?: boolean
 }
 
 interface estimate {
