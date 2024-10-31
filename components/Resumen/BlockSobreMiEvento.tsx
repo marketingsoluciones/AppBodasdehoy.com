@@ -44,7 +44,7 @@ const InsideBlockWithButtons: FC<propsInsideBlock> = ({
               try {
                 const result: any = await fetchApiEventos({
                   query: queries.eventUpdate,
-                  variables: { idEvento: event._id, variable: title, value: title === "color" ? JSON.stringify(item.title) : item.title },
+                  variables: { idEvento: event._id, variable: title, value: item.title },
                   token: null
                 })
                 if (result.errors) {
@@ -66,7 +66,68 @@ const InsideBlockWithButtons: FC<propsInsideBlock> = ({
   );
 };
 
-const InsideBlockWithForm: FC<propsInsideBlock> = ({ setEditing, setFieldValue, title, values }) => {
+const InsideBlockWithMultiSelected: FC<propsInsideBlock> = ({
+  list,
+  title,
+  setEditing,
+  setFieldValue
+}) => {
+  const toast = useToast()
+  const { event, setEvent } = EventContextProvider()
+  const { t } = useTranslation();
+  const [selectedItems, setSelectedItems] = useState(event.color)
+  console.log(selectedItems)
+
+  const handleItemClick = (item) => {
+    if (selectedItems.includes(item)) {
+      setSelectedItems(selectedItems.filter(i => i !== item));
+    } else {
+      setSelectedItems([...selectedItems, item]);
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      const result: any = await fetchApiEventos({
+        query: queries.eventUpdate,
+        variables: { idEvento: event._id, variable: title, value: JSON.stringify(selectedItems) },
+        token: null
+      })
+
+      setEvent({ ...event, [title]: selectedItems })
+      toast("success", t("Guardado con éxito"))
+    } catch (error) {
+      console.log(error)
+      toast("error", t("Ha ocurrido un error"))
+    }
+  }
+
+
+  return (
+    <div className="w-full flex items-center gap-2 ">
+      {list.map((item, idx) => {
+        return (
+          <ElementItemInsideBlockSelect
+            key={idx}
+            {...item}
+            onClick={() => {
+              handleItemClick(item.title)
+            }}
+            selectedItems={selectedItems}
+            setSelectedItems={setSelectedItems}
+            title={item.title}
+          />
+        )
+
+      })}
+      <button onClick={() => handleSave()} className="border-primary border font-display focus:outline-none text-primary hover:text-white text-xs bg-white hover:bg-primary px-3 py-1 rounded-lg transition mb-[10px]">
+        <FaCheck />
+      </button>
+    </div>
+  );
+};
+
+const InsideBlockWithForm: FC<propsInsideBlock> = ({ setEditing, setFieldValue, title, values, }) => {
   const { t } = useTranslation();
   const { event, setEvent } = EventContextProvider()
   const toast = useToast()
@@ -117,6 +178,29 @@ const ElementItemInsideBlock: FC<{
     <button
       className="bg-white w-full h-full p-3 rounded-3xl flex flex-col items-center justify-center gap-1 transform transition hover:scale-105 focus:outline-none"
       onClick={onClick}
+    >
+      {icon && cloneElement(icon, { className: `${color} w-8 h-8` })}
+      <p className={`text-gray-500 font-display text-sm`}>{t(title)}</p>
+    </button>
+  );
+};
+
+const ElementItemInsideBlockSelect: FC<{
+  color: string;
+  title: string;
+  onClick: MouseEventHandler<HTMLButtonElement>;
+  icon: any;
+  selectedItems: any
+  setSelectedItems: any
+}> = ({ title, color, onClick, icon, selectedItems }) => {
+  const { t } = useTranslation()
+  return (
+    <button
+      onClick={onClick}
+      className={`
+        w-full h-full p-3 rounded-3xl flex flex-col items-center justify-center gap-1 transform transition hover:scale-105 focus:outline-none
+        ${selectedItems.includes(title) ? 'bg-gray-200' : ''}
+      `}
     >
       {icon && cloneElement(icon, { className: `${color} w-8 h-8` })}
       <p className={`text-gray-500 font-display text-sm`}>{t(title)}</p>
@@ -240,26 +324,33 @@ const BlockSobreMiEvento: FC = () => {
   useEffect(() => {
     !shouldRenderChild && setItemSelected(null)
   }, [shouldRenderChild])
-
   return (
     <div className="w-full h-max">
       {shouldRenderChild && (
         <ModalBottom state={isMounted} set={setIsMounted}>
           {itemSelected &&
-            (itemSelected?.list ? (
+            (itemSelected?.list ? itemSelected?.title != "color" ? (
               <InsideBlockWithButtons
                 {...itemSelected}
                 setEditing={setIsMounted}
                 setFieldValue={setFieldValue}
               />
-            ) : (
-              <InsideBlockWithForm
-                {...itemSelected}
-                values={values}
-                setEditing={setIsMounted}
-                setFieldValue={setFieldValue}
-              />
-            ))}
+            ) :
+              (
+                <InsideBlockWithMultiSelected
+                  {...itemSelected}
+                  setEditing={setIsMounted}
+                  setFieldValue={setFieldValue}
+                />
+              )
+              : (
+                <InsideBlockWithForm
+                  {...itemSelected}
+                  values={values}
+                  setEditing={setIsMounted}
+                  setFieldValue={setFieldValue}
+                />
+              ))}
         </ModalBottom>
       )}
       <h2 className="font-display text-xl font-semibold text-gray-500 pb-2 text-left first-letter:capitalize">
@@ -313,6 +404,9 @@ interface propsElement extends schemaItem {
 const AboutItem: FC<propsElement> = ({ title, value, toggleClick }) => {
   const { t } = useTranslation();
   const [isAllowed, ht] = useAllowed()
+  const { event, setEvent } = EventContextProvider()
+  const length = event.color.length
+
 
   return (
     <>
@@ -331,12 +425,39 @@ const AboutItem: FC<propsElement> = ({ title, value, toggleClick }) => {
           <p className="font-display font-light md:text-md text-gray-500">
             {title && capitalize(t(title))}
           </p>
-          <p className={'font-display font-base text-xs md:text-sm text-gray-700 font-semibold'}>
-            {typeof value?.title === "object"
-              ? "hacer algo"
-              : t(value?.title) && t(value.title).toString().length > 10 ? t(value?.title) && t(value.title).substring(0, 10) + "..." : t(value?.title) && t(value.title)
-            }
-          </p>
+          {
+            typeof value?.title != "object" &&
+            <p className={'font-display font-base text-xs md:text-sm text-gray-700 font-semibold'}>
+              {
+                t(value?.title) && t(value.title).toString().length > 10 ? t(value?.title) && t(value.title).substring(0, 10) + "..." : t(value?.title) && t(value.title)
+              }
+            </p>
+          }
+          {
+
+            typeof value?.title === "object" &&
+            <div className="flex  items-center space-x-2">
+
+              <p className={`font-display font-base text-xs md:text-sm text-gray-700 font-semibold truncate overflow-hidden w-full* ${length > 1 ? "h-10" : "w-full"} `}>
+
+                {
+                  event?.color?.map((item, idx) => {
+                    return (
+                      <div key={idx}>
+                        {item}
+                      </div>
+                    )
+                  })
+                }
+              </p>
+              {
+                length > 2 &&
+                <p className="font-display font-base text-xs md:text-sm text-gray-700 font-semibold" >
+                  + {length - 2}
+                </p>
+              }
+            </div>
+          }
         </span>
       </button>
     </>
@@ -367,7 +488,6 @@ const TartaButton: FC<propsElement> = ({ title, value, toggleClick, setFieldValu
             development: config?.development
           }
         )
-        console.log(111111, result)
         if (result?.i640) {
           await fetchApiEventos({
             query: queries.eventUpdate,
@@ -376,7 +496,7 @@ const TartaButton: FC<propsElement> = ({ title, value, toggleClick, setFieldValu
           })
           setEvent({ ...event, "tarta": result.i640 })
           toast("success", t("imagesuccessfully"))
-        }else {
+        } else {
           toast("error", t("El tipo de imagen no es correcta"))
         }
       }

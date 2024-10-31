@@ -152,7 +152,7 @@ export const en = {
     "eventtheme": "Event theme",
     "color": "colour",
     "Amarillo": "Yellow",
-    "Celeste": "Sky blue",
+    "Celeste": "blue",
     "Rosado": "Pink",
     "Rojo": "Red",
     "Morado": "Purple",
