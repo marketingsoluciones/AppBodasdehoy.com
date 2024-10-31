@@ -144,7 +144,7 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
             {data?.cell?.value?.map((elem, idx) => {
               const userSelect = GruposResponsablesArry.find(el => {
                 return el.title.toLowerCase() === elem?.toLowerCase()
-              }) ?? [user, ...event.detalles_compartidos_array].find(el => {
+              }) ?? [user, event?.detalles_usuario_id, ...event.detalles_compartidos_array].find(el => {
                 return el?.displayName?.toLowerCase() === elem?.toLowerCase()
               })
               return (
