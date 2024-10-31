@@ -15,6 +15,7 @@ import { Interweave, Markup } from "interweave";
 import { HashtagMatcher, UrlMatcher } from "interweave-autolink";
 import 'react-quill/dist/quill.snow.css'
 import { boolean } from "yup";
+import { ImageAvatar } from "../../Utils/ImageAvatar";
 
 interface props extends HTMLAttributes<HTMLDivElement> {
   itinerario: Itinerary
@@ -153,22 +154,26 @@ export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, option
                       <span>
                         Responsables:
                       </span>
-                      <p className="text-gray-900 leading-[0.8]">
-                        {values?.responsable?.map((elem, idx) =>
-                          <span key={idx} className="inline-flex ml-2 items-center">
-                            <img alt={elem} src={
-                              ResponsablesArry.find(el => {
-                                return el.title.toLowerCase() === elem?.toLowerCase()
-                              })?.icon ?? event.detalles_compartidos_array.find(el => {
-                                return el?.displayName.toLowerCase() === elem?.toLowerCase()
-                              }).photoURL
-                            } className="w-6 h-6 rounded-full border-[1px] border-gray-300" />
-                            <span>
-                              {elem}
+                      <div className="text-gray-900">
+                        {values?.responsable?.map((elem, idx) => {
+                          const user = ResponsablesArry.find(el => {
+                            return el.title.toLowerCase() === elem?.toLowerCase()
+                          }) ?? event.detalles_compartidos_array.find(el => {
+                            return el?.displayName?.toLowerCase() === elem?.toLowerCase()
+                          })
+                          return (
+                            <span key={idx} className="inline-flex items-center space-x-0.5 mr-1.5">
+                              <div className="w-6 h-6 rounded-full border-[1px] border-gray-400">
+                                <ImageAvatar user={user} />
+                              </div>
+                              <span className={`flex-1 ${!user && "line-through"}`}>
+                                {elem}
+                              </span>
                             </span>
-                          </span>
+                          )
+                        }
                         )}
-                      </p>
+                      </div>
                     </div>
                     <div className="mb-2">
                       <span>

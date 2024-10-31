@@ -12,6 +12,7 @@ import { useToast } from "../../../hooks/useToast"
 import { getStorage } from "firebase/storage"
 import { IoShareSocial } from "react-icons/io5"
 import { MdOutlineDeleteOutline } from "react-icons/md"
+import { CgInfo } from "react-icons/cg"
 
 interface props {
     itinerario: Itinerary
@@ -57,6 +58,12 @@ export const ItineraryTabsMenu: FC<props> = ({ itinerario, item, handleDeleteIti
             value: "delete",
             onClick: () => { handleDeleteItinerario() },
             icon: <MdOutlineDeleteOutline className="w-5 h-5" />
+        },
+        {
+            title: "Detalles",
+            value: "details",
+            onClick: () => { },
+            icon: <CgInfo className="w-5 h-5" />
         }
     ]
 

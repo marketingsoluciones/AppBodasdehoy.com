@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AuthContextProvider } from "../../../context";
+import { ImageAvatar } from "../ImageAvatar"
 
 export const UsuariosCompartidos = ({ event }) => {
     const [sharedUser, setSharedUser] = useState([])
@@ -17,12 +18,6 @@ export const UsuariosCompartidos = ({ event }) => {
         }
     }, [event])
 
-    const h = (str) => {
-        str.slice(0, 2).charCodeAt(1).toString(16)
-        const s = "#" + str.slice(0, 4).charCodeAt(2).toString(16) + str.slice(2, 7).charCodeAt(2).toString(16) + str.slice(5, 10).charCodeAt(2).toString(16)
-        return s
-    }
-
     return (
         <>
             <div style={{ left: 11 }} className={`flex relative ${event?.usuario_id === user?.uid && "cursor-pointer"} ${sharedUser?.length > 5 ? "-translate-x-8" : "-translate-x-2"}`}>
@@ -36,17 +31,7 @@ export const UsuariosCompartidos = ({ event }) => {
                     return (
                         <div key={idx} style={{ right: 18 * idx }} className="absolute z-20">
                             <div className="bg-gray-300 rounded-full w-7 h-7 flex items-center justify-center  border relative">
-                                {item?.photoURL !== null
-                                    ? <img src={item?.photoURL} className="rounded-full" />
-                                    : <div
-                                        style={{ backgroundColor: h(item.uid.slice(-11)) }}
-                                        className={`${""} flex items-center justify-center text-white uppercase w-full h-full rounded-full text-sm`}>
-                                        {item?.displayName
-                                            ? (item?.displayName.split(" ").map(elem => elem.slice(0, 1).toUpperCase())).join("")
-                                            : item?.email?.slice(0, 1)}
-                                    </div>
-                                }
-                                {/* <img src={item?.photoURL != null ? item?.photoURL : "/placeholder/user.png"} className="rounded-full" /> */}
+                                <ImageAvatar user={item} />
                                 <div className={`h-2.5 w-2.5 ${item?.onLine?.status != false ? "bg-green" : "bg-none"} absolute rounded-full right-1 -bottom-1`} />
                             </div>
                         </div>

@@ -22,6 +22,7 @@ import { getBytes, getMetadata, getStorage, ref } from "firebase/storage";
 import { Itinerary } from "../../../utils/Interfaces";
 import { event } from "../../../gtas";
 import { EventContextProvider } from "../../../context";
+import { ImageAvatar } from "../../Utils/ImageAvatar";
 
 interface props {
   data?: any[],
@@ -140,16 +141,17 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         Cell: (data) =>
           <div key={data.cell.row.id} className="w-full">
             {data?.cell?.value?.map((elem, idx) => {
+              const user = ResponsablesArry.find(el => {
+                return el.title.toLowerCase() === elem?.toLowerCase()
+              }) ?? event.detalles_compartidos_array.find(el => {
+                return el?.displayName?.toLowerCase() === elem?.toLowerCase()
+              })
               return (
                 <span key={idx} className="inline-flex items-center space-x-1">
-                  <img alt={elem} src={
-                    ResponsablesArry.find(el => {
-                      return el.title.toLowerCase() === elem?.toLowerCase()
-                    })?.icon ?? event.detalles_compartidos_array.find(el => {
-                      return el?.displayName?.toLowerCase() === elem?.toLowerCase()
-                    }).photoURL
-                  } className="w-6 h-6 rounded-full border-[1px] border-gray-300" />
-                  <span>
+                  <div className="w-6 h-6 rounded-full border-[1px] border-gray-300">
+                    <ImageAvatar user={user} />
+                  </div>
+                  <span className={`flex-1 ${!user && "line-through"}`}>
                     {elem}
                   </span>
                 </span>
