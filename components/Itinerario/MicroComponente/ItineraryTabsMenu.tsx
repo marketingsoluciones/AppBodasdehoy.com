@@ -31,9 +31,9 @@ export const ItineraryTabsMenu: FC<props> = ({ itinerario, item, handleDeleteIti
     const { config, geoInfo } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
     const [isAllowed, ht] = useAllowed()
-    const disable = !isAllowed("itinerario")
     const toast = useToast()
     const storage = getStorage()
+
 
     const optionsSelect: OptionsSelect[] = [
         {
@@ -75,9 +75,9 @@ export const ItineraryTabsMenu: FC<props> = ({ itinerario, item, handleDeleteIti
             {(!["/itinerario"].includes(window?.location?.pathname) && itinerario?._id === item?._id)
                 ? <div onClick={() => setShowMenu(!showMenu)} className={`w-6 h-6 rounded-full bg-gray-100 flex justify-center items-center text-gray-600 hover:bg-gray-200 hover:text-gray-900 ${showMenu && "bg-gray-200 text-gray-900"} relative`}>
                     <DotsOpcionesIcon className={""} />
-                    {showMenu && <div className={`absolute right-6 top-3 bg-white z-50 rounded-md shadow-md`}>
+                    {showMenu && <div className={`absolute right-6 top-[22px] bg-white z-50 rounded-md shadow-md truncate`}>
                         {optionsSelect?.map((elem, idx) =>
-                            <div key={idx}
+                            (isAllowed() || elem.value === "details") && <div key={idx}
                                 onClick={() => {
                                     setValue(elem.value)
                                     setShowMenu(false)

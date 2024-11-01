@@ -162,6 +162,7 @@ const Navigation: FC = () => {
                         key={idx}
                         onClick={() => {
                           if (item.condicion) {
+                            console.log(item.route)
                             !isAllowedRouter(item.route) ? ht() : [router.push(item.route), setRoute(item.route)]
                           }
                         }}

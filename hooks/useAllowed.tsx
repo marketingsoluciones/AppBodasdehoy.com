@@ -12,7 +12,8 @@ export const useAllowed = () => {
       lista,
       presupuesto,
       invitaciones,
-      itinerario
+      itinerario,
+      servicios
     }
     const { t } = useTranslation()
 

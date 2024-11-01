@@ -18,7 +18,7 @@ import { Modal } from "../Utils/Modal";
 import { ObtenerFullAcceso } from "../InfoApp/ObtenerFullAcceso";
 import { useActivity } from "../../hooks/useActivity";
 import { GoChecklist } from "react-icons/go";
-import { useAllowed } from "../../hooks/useAllowed";
+import { useAllowed, useAllowedRouter } from "../../hooks/useAllowed";
 import i18next from "i18next";
 import { useTranslation } from "react-i18next";
 
@@ -27,7 +27,7 @@ const Profile = ({ user, state, set, ...rest }) => {
   const { setLoading } = LoadingContextProvider()
   const [dropdown, setDropwdon] = useState(false);
   const { event } = EventContextProvider()
-  const [isAllowed, ht] = useAllowed()
+  const [isAllowedRouter, ht] = useAllowedRouter()
   const { t } = useTranslation()
 
 
@@ -231,7 +231,10 @@ const Profile = ({ user, state, set, ...rest }) => {
         <span className="flex items-center gap-2 relative">
         </span>
         <div className="items-center flex relative cursor-default ">
-          <div onClick={() => !event ? toast("error", t("nohaveeventscreated")) : /* !isAllowed("itinerario") ? ht() : */ router.push("/servicios")} className={`${!event ? "opacity-40" : ""} bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200 cursor-pointer`} >
+          <div onClick={() => {
+            console.log("aui")
+            !event ? toast("error", t("nohaveeventscreated")) : !isAllowedRouter("/servicios") ? ht() : router.push("/servicios")
+          }} className={`${!event ? "opacity-40" : ""} bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200 cursor-pointer`} >
             <GoChecklist className="text-primary w-6 h-6 scale-x-90" />
           </div>
         </div>
