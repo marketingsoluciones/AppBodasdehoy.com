@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
 export const CopiarLink = ({ link }) => {
     const { t } = useTranslation()
     const [copied, setCopied] = useState(false)
-console.log(link)
+
     return (
         <div className="bb-red flex flex-col space-y-1 w-full">
             <input type="text"

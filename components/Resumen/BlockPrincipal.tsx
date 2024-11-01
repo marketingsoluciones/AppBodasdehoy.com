@@ -36,18 +36,14 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
     if (event.invitados_array.length) {
       if (seatedGuests !== 0) {
         count = state + 3
-        console.log("el state esta en: ", state + 3)
       } else {
         count = state + 2
-        console.log("el state esta en: ", state + 2)
       }
     } else {
       count = state + 1
-      console.log("el state esta en: ", state + 1)
     }
   } else {
     count = state + 0
-    console.log("no haz iniciado los preparativos del evento")
   }
 
   return (
@@ -203,17 +199,12 @@ export const StateBar = () => {
     if (event.invitados_array.length) {
       if (seatedGuests !== 0) {
         count = state + 3
-        console.log("el state esta en: ", state + 3)
       } else {
         count = state + 2
-        console.log("el state esta en: ", state + 2)
       }
     } else {
       count = state + 1
-      console.log("el state esta en: ", state + 1)
     }
-  } else {
-    console.log("no haz iniciado los preparativos del evento")
   }
 
   return (
