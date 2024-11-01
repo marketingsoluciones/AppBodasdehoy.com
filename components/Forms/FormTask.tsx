@@ -6,7 +6,7 @@ import * as yup from "yup";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
 import { useTranslation } from 'react-i18next';
-import { Task } from "../../utils/Interfaces";
+import { TaskDateTimeAsString } from "../../utils/Interfaces";
 import { ResponsableSelector } from "../Itinerario/MicroComponente";
 import { MyEditor } from "../Itinerario/MicroComponente/QuillText";
 import { EditTastk } from "../Itinerario/MicroComponente/ItineraryPanel";
@@ -15,22 +15,22 @@ import InputAttachments from "./InputAttachments";
 import { InputTags } from "./InputTags";
 
 interface propsFormTask {
-  state: EditTastk;
-  set: any;
+  showEditTask: EditTastk;
+  setShowEditTask: any;
   itinerarioID: string
 }
 
-const FormTask: FC<propsFormTask> = ({ state, set, itinerarioID }) => {
+const FormTask: FC<propsFormTask> = ({ showEditTask, setShowEditTask, itinerarioID }) => {
   const { t } = useTranslation();
   const { geoInfo, config } = AuthContextProvider();
   const { event, setEvent } = EventContextProvider();
   const toast = useToast()
   const [isAllowedRouter, ht] = useAllowedRouter()
-  console.log(100049, state.values.fecha, new Date(state?.values.fecha))
-  const initialValues: Task = {
-    ...state?.values,
-    fecha: state?.values?.fecha ? new Date(state?.values.fecha).toISOString().split('T')[0] : undefined,
-    hora: state?.values?.fecha ? new Date(state?.values.fecha).toTimeString().split(' ')[0] : undefined,
+  console.log(100049, showEditTask.values.fecha, new Date(showEditTask?.values.fecha))
+  const initialValues: TaskDateTimeAsString = {
+    ...showEditTask?.values,
+    fecha: showEditTask?.values?.fecha ? new Date(showEditTask?.values.fecha).toISOString().split('T')[0] : undefined,
+    hora: showEditTask?.values?.fecha ? new Date(showEditTask?.values.fecha).toTimeString().split(' ')[0] : undefined,
   }
 
   const handleSubmit = async (values: any, actions: any) => {
@@ -60,7 +60,7 @@ const FormTask: FC<propsFormTask> = ({ state, set, itinerarioID }) => {
           event.itinerarios_array[f1].tasks[f2] = dataSend
           setEvent({ ...event })
           toast("success", t("Item guardado con exito"))
-          set({ state: false })
+          setShowEditTask({ state: false })
         })
     } catch (error) {
       toast("error", `${t("Ha ocurrido un error")} ${error}`)
@@ -164,7 +164,7 @@ const FormTask: FC<propsFormTask> = ({ state, set, itinerarioID }) => {
                   name="attachments"
                   label="archivos adjuntos"
                   itinerarioID={itinerarioID}
-                  task={state?.values}
+                  task={showEditTask?.values}
                 />
               </div>
               <button
@@ -197,7 +197,7 @@ const AutoSubmitToken = () => {
   }, [errors]);
 
   useEffect(() => {
-    console.log(100030, values)
+    // console.log(100030, values)
   }, [values]);
 
   return null;
