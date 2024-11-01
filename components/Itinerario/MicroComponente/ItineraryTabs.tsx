@@ -23,7 +23,7 @@ interface props {
 }
 export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTitle, view, setView, handleDeleteItinerario, handleUpdateTitle, title, setTitle, editTitle }) => {
     //const [sizes, setSizes] = useState(null)
-    const { config } = AuthContextProvider()
+    const { config, user } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
 
     const handleCreateItinerario = async () => {
@@ -53,7 +53,7 @@ export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTit
             <div id="content" className="flex-1 h-full bg-violet-400* flex justify-between">
 
                 <div className="inline-flex max-w-full h-full items-center bg-yellow-400* mr-2">
-                    <div id="azul" className="bg-blue-500* inline-flex max-w-[calc(100%-32px)] h-full items-center select-none bg-blue-600* mx-2">
+                    <div id="azul" className={`bg-blue-500* ${event?.usuario_id === user?.uid && "max-w-[calc(100%-32px)]"} inline-flex  h-full items-center select-none bg-blue-600* mx-2`}>
                         {event?.itinerarios_array.filter(elem => elem.tipo === window?.location?.pathname.slice(1))?.slice(0, 5).map((item, idx) => {
                             return (
                                 <div id={item?._id} key={idx}
@@ -94,9 +94,9 @@ export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTit
                             )
                         })}
                     </div>
-                    <div id="plusIcon" onClick={() => handleCreateItinerario()} className="flex w-8 items-center justify-start bg-white">
+                    {event?.usuario_id === user?.uid && <div id="plusIcon" onClick={() => handleCreateItinerario()} className="flex w-8 items-center justify-start bg-white">
                         <PlusIcon className="w-4 h-4 text-primary cursor-pointer" />
-                    </div>
+                    </div>}
                 </div>
                 <SelectModeView value={view} setValue={setView} />
             </div>

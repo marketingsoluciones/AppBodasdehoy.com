@@ -30,6 +30,8 @@ export interface Event {
     valirRemote: boolean
     showChildrenGuest: string
     itinerarios_array: Itinerary[]
+    tarta:string
+    color:string[]
     //permission: boolean
 }
 

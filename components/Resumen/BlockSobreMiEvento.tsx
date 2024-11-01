@@ -6,13 +6,14 @@ import { Form, Formik } from "formik";
 import InputField from "../Forms/InputField";
 import { useDelayUnmount } from "../../utils/Funciones";
 import ModalBottom from "../Utils/ModalBottom";
-import { fetchApiEventos, queries } from '../../utils/Fetching';
-import { EventContextProvider } from "../../context";
+import { fetchApiBodas, fetchApiEventos, queries } from '../../utils/Fetching';
+import { AuthContextProvider, EventContextProvider } from "../../context";
 import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
 import { PiChurchLight } from "react-icons/pi";
 import { FaCheck } from "react-icons/fa";
+import { image } from "../../utils/Interfaces";
 
 interface propsInsideBlock extends schemaItem {
   setSelected?: Dispatch<
@@ -43,7 +44,7 @@ const InsideBlockWithButtons: FC<propsInsideBlock> = ({
               try {
                 const result: any = await fetchApiEventos({
                   query: queries.eventUpdate,
-                  variables: { idEvento: event._id, variable: title, value: title === "color" ? JSON.stringify(item.title) : item.title },
+                  variables: { idEvento: event._id, variable: title, value: item.title },
                   token: null
                 })
                 if (result.errors) {
@@ -65,7 +66,68 @@ const InsideBlockWithButtons: FC<propsInsideBlock> = ({
   );
 };
 
-const InsideBlockWithForm: FC<propsInsideBlock> = ({ setEditing, setFieldValue, title, values }) => {
+const InsideBlockWithMultiSelected: FC<propsInsideBlock> = ({
+  list,
+  title,
+  setEditing,
+  setFieldValue
+}) => {
+  const toast = useToast()
+  const { event, setEvent } = EventContextProvider()
+  const { t } = useTranslation();
+  const [selectedItems, setSelectedItems] = useState(event.color)
+  console.log(selectedItems)
+
+  const handleItemClick = (item) => {
+    if (selectedItems.includes(item)) {
+      setSelectedItems(selectedItems.filter(i => i !== item));
+    } else {
+      setSelectedItems([...selectedItems, item]);
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      const result: any = await fetchApiEventos({
+        query: queries.eventUpdate,
+        variables: { idEvento: event._id, variable: title, value: JSON.stringify(selectedItems) },
+        token: null
+      })
+
+      setEvent({ ...event, [title]: selectedItems })
+      toast("success", t("Guardado con éxito"))
+    } catch (error) {
+      console.log(error)
+      toast("error", t("Ha ocurrido un error"))
+    }
+  }
+
+
+  return (
+    <div className="w-full flex items-center gap-2 ">
+      {list.map((item, idx) => {
+        return (
+          <ElementItemInsideBlockSelect
+            key={idx}
+            {...item}
+            onClick={() => {
+              handleItemClick(item.title)
+            }}
+            selectedItems={selectedItems}
+            setSelectedItems={setSelectedItems}
+            title={item.title}
+          />
+        )
+
+      })}
+      <button onClick={() => handleSave()} className="border-primary border font-display focus:outline-none text-primary hover:text-white text-xs bg-white hover:bg-primary px-3 py-1 rounded-lg transition mb-[10px]">
+        <FaCheck />
+      </button>
+    </div>
+  );
+};
+
+const InsideBlockWithForm: FC<propsInsideBlock> = ({ setEditing, setFieldValue, title, values, }) => {
   const { t } = useTranslation();
   const { event, setEvent } = EventContextProvider()
   const toast = useToast()
@@ -81,8 +143,6 @@ const InsideBlockWithForm: FC<propsInsideBlock> = ({ setEditing, setFieldValue, 
           if (result?.errors) {
             throw new Error("Hubo un error")
           }
-          console.log(111111, event)
-          console.log(222222, values)
           setEvent({ ...event, [title]: values.title })
           setFieldValue(title, { ...values, icon: null })
           setEditing(false)
@@ -118,6 +178,29 @@ const ElementItemInsideBlock: FC<{
     <button
       className="bg-white w-full h-full p-3 rounded-3xl flex flex-col items-center justify-center gap-1 transform transition hover:scale-105 focus:outline-none"
       onClick={onClick}
+    >
+      {icon && cloneElement(icon, { className: `${color} w-8 h-8` })}
+      <p className={`text-gray-500 font-display text-sm`}>{t(title)}</p>
+    </button>
+  );
+};
+
+const ElementItemInsideBlockSelect: FC<{
+  color: string;
+  title: string;
+  onClick: MouseEventHandler<HTMLButtonElement>;
+  icon: any;
+  selectedItems: any
+  setSelectedItems: any
+}> = ({ title, color, onClick, icon, selectedItems }) => {
+  const { t } = useTranslation()
+  return (
+    <button
+      onClick={onClick}
+      className={`
+        w-full h-full p-3 rounded-3xl flex flex-col items-center justify-center gap-1 transform transition hover:scale-105 focus:outline-none
+        ${selectedItems.includes(title) ? 'bg-gray-200' : ''}
+      `}
     >
       {icon && cloneElement(icon, { className: `${color} w-8 h-8` })}
       <p className={`text-gray-500 font-display text-sm`}>{t(title)}</p>
@@ -241,26 +324,33 @@ const BlockSobreMiEvento: FC = () => {
   useEffect(() => {
     !shouldRenderChild && setItemSelected(null)
   }, [shouldRenderChild])
-
   return (
     <div className="w-full h-max">
       {shouldRenderChild && (
         <ModalBottom state={isMounted} set={setIsMounted}>
           {itemSelected &&
-            (itemSelected?.list ? (
+            (itemSelected?.list ? itemSelected?.title != "color" ? (
               <InsideBlockWithButtons
                 {...itemSelected}
                 setEditing={setIsMounted}
                 setFieldValue={setFieldValue}
               />
-            ) : (
-              <InsideBlockWithForm
-                {...itemSelected}
-                values={values}
-                setEditing={setIsMounted}
-                setFieldValue={setFieldValue}
-              />
-            ))}
+            ) :
+              (
+                <InsideBlockWithMultiSelected
+                  {...itemSelected}
+                  setEditing={setIsMounted}
+                  setFieldValue={setFieldValue}
+                />
+              )
+              : (
+                <InsideBlockWithForm
+                  {...itemSelected}
+                  values={values}
+                  setEditing={setIsMounted}
+                  setFieldValue={setFieldValue}
+                />
+              ))}
         </ModalBottom>
       )}
       <h2 className="font-display text-xl font-semibold text-gray-500 pb-2 text-left first-letter:capitalize">
@@ -273,7 +363,7 @@ const BlockSobreMiEvento: FC = () => {
       >
         {schema.map((item, idx) => (
           <SwiperSlide key={idx} className="py-2 pb-8 relative">
-            <AboutItem
+            {item.title != "tarta" && <AboutItem
               {...item}
               toggleClick={() => {
                 if (!isMounted) {
@@ -282,7 +372,20 @@ const BlockSobreMiEvento: FC = () => {
                 }
               }}
               value={values[item.title]}
-            />
+            />}
+            {
+              item.title === "tarta" && <TartaButton
+                {...item}
+                toggleClick={() => {
+                  if (!isMounted) {
+                    setItemSelected(item)
+                    setIsMounted(true)
+                  }
+                }}
+                value={values[item.title]}
+                setFieldValue={setFieldValue}
+              />
+            }
           </SwiperSlide>
         ))}
       </Swiper>
@@ -295,11 +398,15 @@ export default BlockSobreMiEvento;
 interface propsElement extends schemaItem {
   value: typeEvent
   toggleClick: any
+  setFieldValue?: any
 }
 
 const AboutItem: FC<propsElement> = ({ title, value, toggleClick }) => {
   const { t } = useTranslation();
   const [isAllowed, ht] = useAllowed()
+  const { event, setEvent } = EventContextProvider()
+  const length = event.color.length
+
 
   return (
     <>
@@ -318,14 +425,125 @@ const AboutItem: FC<propsElement> = ({ title, value, toggleClick }) => {
           <p className="font-display font-light md:text-md text-gray-500">
             {title && capitalize(t(title))}
           </p>
-          <p className={'font-display font-base text-xs md:text-sm text-gray-700 font-semibold'}>
-            {typeof value?.title === "object"
-              ? "hacer algo"
-              : t(value?.title) && t(value.title).toString().length > 10 ? t(value?.title) && t(value.title).substring(0, 10) + "..." : t(value?.title) && t(value.title)
-            }
-          </p>
+          {
+            typeof value?.title != "object" &&
+            <p className={'font-display font-base text-xs md:text-sm text-gray-700 font-semibold'}>
+              {
+                t(value?.title) && t(value.title).toString().length > 10 ? t(value?.title) && t(value.title).substring(0, 10) + "..." : t(value?.title) && t(value.title)
+              }
+            </p>
+          }
+          {
+
+            typeof value?.title === "object" &&
+            <div className="flex  items-center space-x-2">
+
+              <p className={`font-display font-base text-xs md:text-sm text-gray-700 font-semibold truncate overflow-hidden w-full* ${length > 1 ? "h-10" : "w-full"} `}>
+
+                {
+                  event?.color?.map((item, idx) => {
+                    return (
+                      <div key={idx}>
+                        {item}
+                      </div>
+                    )
+                  })
+                }
+              </p>
+              {
+                length > 2 &&
+                <p className="font-display font-base text-xs md:text-sm text-gray-700 font-semibold" >
+                  + {length - 2}
+                </p>
+              }
+            </div>
+          }
         </span>
       </button>
     </>
+  );
+};
+
+const TartaButton: FC<propsElement> = ({ title, value, toggleClick, setFieldValue }) => {
+  const { t } = useTranslation();
+  const [isAllowed, ht] = useAllowed()
+  const { event, setEvent } = EventContextProvider()
+  const { config } = AuthContextProvider()
+
+  const [loading, setLoading] = useState<boolean>(false)
+
+  const toast = useToast()
+
+  const handleChange = async (e: any) => {
+    setLoading(true)
+    try {
+      const file = e.target.files[0]
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const result: Partial<image> = await fetchApiBodas(
+          {
+            query: queries.singleUpload,
+            variables: { file, use: "tarta" },
+            type: "formData",
+            development: config?.development
+          }
+        )
+        if (result?.i640) {
+          await fetchApiEventos({
+            query: queries.eventUpdate,
+            variables: { idEvento: event._id, variable: title, value: result.i640 },
+            token: null
+          })
+          setEvent({ ...event, "tarta": result.i640 })
+          toast("success", t("imagesuccessfully"))
+        } else {
+          toast("error", t("El tipo de imagen no es correcta"))
+        }
+      }
+      reader.readAsDataURL(file);
+      setTimeout(() => {
+        setLoading(false)
+      }, 500);
+    } catch (error) {
+      setTimeout(() => {
+        setLoading(false)
+      }, 500);
+      toast("error", t("errorloadingimage"))
+      console.log(error)
+    }
+  }
+
+  return (
+    <div className="relative bg-white rounded-full w-32 md:w-40 h-32 md:h-40 shadow-md gap-2 flex flex-col items-center justify-center focus:outline-none mx-auto inset-x-0">
+      <input
+        id="file"
+        type="file"
+        name="file"
+        accept="image/*"
+        required
+        onChange={(e) => handleChange(e)}
+        className="hidden"
+      />
+      <label
+        onClick={() => !isAllowed() ? ht() : null}
+        htmlFor={!isAllowed() ? "null" : "file"}
+        className="absolute"
+      >
+        {!value ? (
+          <InterrogacionIcon />
+        ) : (
+          value?.icon && cloneElement(value?.icon, {
+            className: `${value?.color} w-10 h-10`,
+          })
+        )}
+        <span className="leading-4 text-center">
+          <img src={`https://apiapp.bodasdehoy.com${event.tarta}`} alt={"tarta"} className={"border-none border-2 rounded-md  h-20 w-20 hover:opacity-50 cursor-pointer object-cover object-center mb-2"} />
+
+          <p className="font-display font-light md:text-md text-gray-500">
+            {title && capitalize(t(title))}
+          </p>
+        </span>
+      </label>
+    </div>
   );
 };

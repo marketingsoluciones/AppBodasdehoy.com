@@ -92,7 +92,7 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
                             <div className=" flex flex-col flex-1">
                                 <FormAddUserToEvent setUsers={setUsers} users={users} setValir={setValir} optionsExist={event?.detalles_compartidos_array?.map(elem => elem.email)} />
                                 {users.length
-                                    ? <PermissionList permissions={permissions} setPermissions={setPermissions} handleChange={handleChangePermision} />
+                                    ? <PermissionList permissions={permissions} handleChange={handleChangePermision} />
                                     : <ListUserToEvent event={event} />
                                 }
                             </div>
