@@ -105,7 +105,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             const tasks = [...itinerario?.tasks?.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime())]
             setTasks(tasks)
             const taskReduce: TaskReduce[] = tasks.reduce((acc: TaskReduce[], item: Task) => {
-                console.log(100048, item.fecha)
                 const f = new Date(item.fecha)
                 const y = f.getUTCFullYear()
                 const m = f.getUTCMonth()

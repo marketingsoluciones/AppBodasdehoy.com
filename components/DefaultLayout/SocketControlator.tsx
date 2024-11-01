@@ -4,6 +4,8 @@ import { useRouter } from "next/router";
 import { handleClickCard } from "../Home/Card";
 import { useToast } from "../../hooks/useToast";
 import { useTranslation } from 'react-i18next';
+import { fetchApiBodas, queries } from "../../utils/Fetching";
+import { detalle_compartidos_array, Event } from "../../utils/Interfaces";
 
 export const SocketControlator = () => {
   const { t } = useTranslation();
@@ -42,15 +44,37 @@ export const SocketControlator = () => {
       //console.log(8745000, received.msg)
       if (received?.msg?.payload?.action === "setEvent") {
         const eventOld = {
-          compartido_array: event?.compartido_array,
-          detalles_compartidos_array: event?.detalles_compartidos_array,
-          detalles_usuario_id: event?.detalles_usuario_id,
-          permissions: event?.permissions,
           planSpaceSelect: event?.planSpaceSelect,
           updatedAt: new Date()
         }
-        const eventNew = { ...received.msg?.payload?.value, ...eventOld }
-        setEvent({ ...eventNew })
+        let eventNew: Event = received.msg?.payload?.value
+        eventNew.fecha = new Date(eventNew.fecha).getTime().toString()
+        if (eventNew?.compartido_array?.length) {
+          const fMyUid = eventNew?.compartido_array?.findIndex(elem => elem === user?.uid)
+          if (fMyUid > -1) {
+            eventNew.permissions = [...eventNew.detalles_compartidos_array[fMyUid].permissions]
+            eventNew.compartido_array.splice(fMyUid, 1)
+            eventNew.detalles_compartidos_array?.splice(fMyUid, 1)
+          }
+          fetchApiBodas({
+            query: queries?.getUsers,
+            variables: { uids: user?.uid === eventNew?.usuario_id ? eventNew?.compartido_array : [...eventNew?.compartido_array, eventNew?.usuario_id] },
+            development: config?.development
+          }).then((results) => {
+            results?.map((result: detalle_compartidos_array) => {
+              const f1 = eventNew.detalles_compartidos_array?.findIndex(elem => elem.uid === result.uid);
+              if (f1 > -1) {
+                eventNew.detalles_compartidos_array?.splice(f1, 1, { ...eventNew.detalles_compartidos_array[f1], ...result });
+              }
+              if (result.uid === eventNew?.usuario_id) {
+                eventNew.detalles_usuario_id = result
+              }
+            })
+            setEvent({ ...eventNew, ...eventOld })
+          })
+        } else {
+          setEvent({ ...eventNew, ...eventOld })
+        }
       }
       if (received?.msg?.payload?.action === "setPlanSpaceActive") {
         setPlanSpaceActive(received?.msg?.payload?.value)
@@ -70,7 +94,6 @@ export const SocketControlator = () => {
       }
     }
     if (received.channel === "notification") {
-      //console.log(8745001, received.msg)
       notifications.total = notifications.total + 1
       notifications.results.unshift(received.msg)
       setNotifications({ ...notifications })
@@ -108,7 +131,6 @@ export const SocketControlator = () => {
 
   useEffect(() => {
     if (!valirRemoteEvent && !valirRemotePlanSpaceActive) {
-      //console.log("------------------------////*******----->")
       socket?.emit(`app:message`, {
         event: event?._id,
         emit: user?.uid,

@@ -92,7 +92,6 @@ export const BoddyIter = () => {
 
     useEffect(() => {
         const itinerarios = event?.itinerarios_array.filter(elem => elem.tipo === window?.location?.pathname.slice(1))
-        console.log(100045, itinerarios)
         if (itinerarios.length) {
             const f1 = itinerarios.findIndex(elem => elem?._id === itinerario?._id)
             if (f1 < 0) {
