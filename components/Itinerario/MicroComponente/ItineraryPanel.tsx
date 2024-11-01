@@ -177,7 +177,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             {showEditTask?.state && (
                 <ModalLeft state={showEditTask} set={setShowEditTask} clickAwayListened={false}>
                     <div className="w-full flex flex-col items-start justify-start" >
-                        <FormTask state={showEditTask} set={setShowEditTask} itinerarioID={itinerario._id} />
+                        <FormTask showEditTask={showEditTask} setShowEditTask={setShowEditTask} itinerarioID={itinerario._id} />
                     </div>
                 </ModalLeft>
             )}

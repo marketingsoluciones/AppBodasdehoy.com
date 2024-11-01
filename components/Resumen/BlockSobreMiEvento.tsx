@@ -14,6 +14,8 @@ import { useTranslation } from 'react-i18next';
 import { PiChurchLight } from "react-icons/pi";
 import { FaCheck } from "react-icons/fa";
 import { image } from "../../utils/Interfaces";
+import { RiHotelLine } from "react-icons/ri";
+import { HiOutlineBuildingLibrary } from "react-icons/hi2";
 
 interface propsInsideBlock extends schemaItem {
   setSelected?: Dispatch<
@@ -69,21 +71,22 @@ const InsideBlockWithButtons: FC<propsInsideBlock> = ({
 const InsideBlockWithMultiSelected: FC<propsInsideBlock> = ({
   list,
   title,
-  setEditing,
-  setFieldValue
+  setEditing
 }) => {
   const toast = useToast()
   const { event, setEvent } = EventContextProvider()
   const { t } = useTranslation();
   const [selectedItems, setSelectedItems] = useState(event.color)
-  console.log(selectedItems)
 
   const handleItemClick = (item) => {
     if (selectedItems.includes(item)) {
       setSelectedItems(selectedItems.filter(i => i !== item));
-    } else {
+    } else if (selectedItems.length < 3) {
       setSelectedItems([...selectedItems, item]);
-    }
+    }else {
+      // Si se excede el límite, mostramos un mensaje o realizamos alguna otra acción
+      toast("error",'Ya has seleccionado el máximo número de colores');
+  }
   };
 
   const handleSave = async () => {
@@ -93,9 +96,9 @@ const InsideBlockWithMultiSelected: FC<propsInsideBlock> = ({
         variables: { idEvento: event._id, variable: title, value: JSON.stringify(selectedItems) },
         token: null
       })
-
       setEvent({ ...event, [title]: selectedItems })
       toast("success", t("Guardado con éxito"))
+      setEditing(false)
     } catch (error) {
       console.log(error)
       toast("error", t("Ha ocurrido un error"))
@@ -245,8 +248,8 @@ const schema: schemaItem[] = [
       { title: "Aire libre", icon: <ParkIcon /> },
       { title: "Salón", icon: <LivingRoomIcon /> },
       { title: "Piscina", icon: <PoolIcon /> },
-      { title: "En casa", icon: <HouseIcon /> },
-      { title: "Salon historico", icon: <PiChurchLight /> },
+      { title: "En casa", icon: <RiHotelLine /> },
+      { title: "Salon historico", icon: <HiOutlineBuildingLibrary /> },
     ].map((item) => ({ ...item, color: "text-gray-500" })),
   },
   {
@@ -464,7 +467,7 @@ const AboutItem: FC<propsElement> = ({ title, value, toggleClick }) => {
   );
 };
 
-const TartaButton: FC<propsElement> = ({ title, value, toggleClick, setFieldValue }) => {
+const TartaButton: FC<propsElement> = ({ title, value}) => {
   const { t } = useTranslation();
   const [isAllowed, ht] = useAllowed()
   const { event, setEvent } = EventContextProvider()
@@ -537,7 +540,10 @@ const TartaButton: FC<propsElement> = ({ title, value, toggleClick, setFieldValu
           })
         )}
         <span className="leading-4 text-center">
-          <img src={`https://apiapp.bodasdehoy.com${event.tarta}`} alt={"tarta"} className={"border-none border-2 rounded-md  h-20 w-20 hover:opacity-50 cursor-pointer object-cover object-center mb-2"} />
+          {
+            event.tarta &&
+            <img src={`https://apiapp.bodasdehoy.com${event.tarta}`} alt={"tarta"} className={"border-none border-2 rounded-md  h-20 w-20 hover:opacity-50 cursor-pointer object-cover object-center mb-2"} />
+          }
 
           <p className="font-display font-light md:text-md text-gray-500">
             {title && capitalize(t(title))}

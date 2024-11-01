@@ -30,8 +30,8 @@ export interface Event {
     valirRemote: boolean
     showChildrenGuest: string
     itinerarios_array: Itinerary[]
-    tarta:string
-    color:string[]
+    tarta: string
+    color: string[]
     //permission: boolean
 }
 
@@ -45,8 +45,8 @@ export interface FileData {
 
 export interface Task {
     _id: string
-    fecha: Date | string
-    hora: string
+    fecha: Date
+    //hora: string
     icon: string
     descripcion: string
     responsable: string[]
@@ -54,6 +54,11 @@ export interface Task {
     tags: string[]
     tips: string
     attachments: FileData[]
+}
+
+export interface TaskDateTimeAsString extends Omit<Task, 'fecha'> {
+    fecha: string
+    hora: string
 }
 
 export interface Itinerary {

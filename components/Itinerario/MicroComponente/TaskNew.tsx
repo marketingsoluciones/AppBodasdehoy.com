@@ -7,7 +7,7 @@ import { AuthContextProvider } from "../../../context";
 import { useToast } from "../../../hooks/useToast";
 import { useTranslation } from 'react-i18next';
 import { ItineraryButtonBox } from './ItineraryButtonBox'
-import { Itinerary, OptionsSelect, Task } from "../../../utils/Interfaces";
+import { Itinerary, OptionsSelect, Task, TaskDateTimeAsString } from "../../../utils/Interfaces";
 import { ViewItinerary } from "../../../pages/invitados";
 import { CgSoftwareDownload } from "react-icons/cg";
 import { getBytes, getMetadata, getStorage, ref } from "firebase/storage";
@@ -33,7 +33,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, option
   const toast = useToast()
   const { t } = useTranslation();
   const storage = getStorage();
-  const initialValues: Task = {
+  const initialValues: TaskDateTimeAsString = {
     _id: task._id,
     icon: !task?.icon ? "" : task?.icon,
     fecha: !task?.fecha ? "" : new Date(task?.fecha).toLocaleString(geoInfo?.acceptLanguage?.split(",")[0], { year: 'numeric', month: '2-digit', day: '2-digit' }),
@@ -202,7 +202,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, option
                         )}
                       </p>
                     </div>
-                    <ItineraryButtonBox optionsItineraryButtonBox={optionsItineraryButtonBox} values={values} itinerario={itinerario} />
+                    <ItineraryButtonBox optionsItineraryButtonBox={optionsItineraryButtonBox} values={task} itinerario={itinerario} />
                   </div>
                 </div>
               }

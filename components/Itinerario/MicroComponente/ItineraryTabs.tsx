@@ -8,6 +8,7 @@ import { SelectModeView } from "../../Utils/SelectModeView"
 import ClickAwayListener from "react-click-away-listener"
 import { ItineraryTabsMenu } from "./ItineraryTabsMenu"
 import { FaCheck } from "react-icons/fa"
+import { useAllowed } from "../../../hooks/useAllowed"
 
 interface props {
     itinerario: Itinerary
@@ -22,7 +23,7 @@ interface props {
     setTitle: any
 }
 export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTitle, view, setView, handleDeleteItinerario, handleUpdateTitle, title, setTitle, editTitle }) => {
-    //const [sizes, setSizes] = useState(null)
+    const [isAllowed, ht] = useAllowed()
     const { config, user } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
 
@@ -47,6 +48,7 @@ export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTit
         setEvent({ ...event })
         setEditTitle(true)
     }
+
 
     return (
         <div className="flex max-w-[100%] min-w-[100%] h-10 items-center justify-center border-b md:px-4 md:py-2">
