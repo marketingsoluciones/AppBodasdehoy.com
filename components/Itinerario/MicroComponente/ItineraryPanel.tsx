@@ -181,7 +181,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                     </div>
                 </ModalLeft>
             )}
-            {["/itinerario"].includes(window?.location?.pathname) && <SubHeader itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} title={title} setTitle={setTitle} />}
+            {["/itinerario"].includes(window?.location?.pathname) && <SubHeader view={view} itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} title={title} setTitle={setTitle} />}
             <div className={`w-full flex-1 flex flex-col md:px-2 lg:px-6`}>
                 {view !== "table"
                     ? tasksReduce?.map((el, i) =>
@@ -229,7 +229,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                         </div>
                     </div>
                 }
-                <AddEvent tasks={tasks} itinerario={itinerario} disable={disable} setSelectTask={setSelectTask} />
+                {view !== "schema" && <AddEvent tasks={tasks} itinerario={itinerario} setSelectTask={setSelectTask} />}
             </div>
             {modalStatus && <Modal set={setModalStatus} state={modalStatus} classe={"w-[95%] md:w-[450px] h-[370px]"}>
                 <WarningMessage setModal={setModalStatus} modal={modalStatus} title={t("visibility")} />

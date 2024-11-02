@@ -28,7 +28,6 @@ export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTit
     const { event, setEvent } = EventContextProvider()
 
     const handleCreateItinerario = async () => {
-        console.log(window?.location?.pathname.slice(1))
         const f = new Date(parseInt(event?.fecha))
         const y = f.getUTCFullYear()
         const m = f.getUTCMonth()
@@ -48,7 +47,6 @@ export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTit
         setEvent({ ...event })
         setEditTitle(true)
     }
-
 
     return (
         <div className="flex max-w-[100%] min-w-[100%] h-10 items-center justify-center border-b md:px-4 md:py-2">
@@ -96,7 +94,7 @@ export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTit
                             )
                         })}
                     </div>
-                    {event?.usuario_id === user?.uid && <div id="plusIcon" onClick={() => handleCreateItinerario()} className="flex w-8 items-center justify-start bg-white">
+                    {isAllowed() && <div id="plusIcon" onClick={() => handleCreateItinerario()} className="flex w-8 items-center justify-start bg-white">
                         <PlusIcon className="w-4 h-4 text-primary cursor-pointer" />
                     </div>}
                 </div>

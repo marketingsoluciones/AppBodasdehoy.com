@@ -11,6 +11,8 @@ import { Modal } from "../../Utils/Modal";
 import { DeleteConfirmation } from "./DeleteConfirmation";
 import { useToast } from "../../../hooks/useToast";
 import { FaCheck } from "react-icons/fa";
+import { useAllowed } from "../../../hooks/useAllowed";
+import { ViewItinerary } from "../../../pages/invitados";
 
 interface props {
     itinerario: Itinerary
@@ -20,6 +22,7 @@ interface props {
     handleUpdateTitle: any
     title: string
     setTitle: any
+    view: ViewItinerary
 }
 interface Modal {
     state: boolean
@@ -27,13 +30,13 @@ interface Modal {
     handle?: () => void
 }
 
-export const SubHeader: FC<props> = ({ itinerario, editTitle, setEditTitle, handleDeleteItinerario, handleUpdateTitle, title, setTitle }) => {
+export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle, handleDeleteItinerario, handleUpdateTitle, title, setTitle }) => {
     const { event, setEvent } = EventContextProvider()
     const { config } = AuthContextProvider()
     const toast = useToast()
     const { t } = useTranslation();
     const [modal, setModal] = useState<Modal>({ state: false, title: null, handle: () => { } })
-
+    const [isAllowed, ht] = useAllowed()
 
     useEffect(() => {
         setTitle(itinerario?.title)
@@ -61,13 +64,13 @@ export const SubHeader: FC<props> = ({ itinerario, editTitle, setEditTitle, hand
                         <span className="text-primary">{disable ? t("reading") : t("edition")}</span>
                     </div> */}
                 </div>
-                <div className="flex flex-col w-1/2 text-xs md:text-[14px] justify-end items-end space-y-1">
-                    <div className={"flex text-gray-700 space-x-2"}>
-                        <PencilEdit onClick={() => setEditTitle(!editTitle)} className="w-5 h-5 cursor-pointer" />
-                        <MdOutlineDeleteOutline onClick={() => handleDeleteItinerario()} className="w-5 h-5 curso cursor-pointer" />
+                {view !== "schema" && <div className="flex flex-col w-1/2 text-xs md:text-[14px] justify-end items-end space-y-1">
+                    <div className={`flex ${isAllowed() ? "text-gray-700" : "text-gray-300"} space-x-2`}>
+                        <PencilEdit onClick={() => !isAllowed() ? ht() : setEditTitle(!editTitle)} className="w-5 h-5 cursor-pointer" />
+                        <MdOutlineDeleteOutline onClick={() => !isAllowed() ? ht() : handleDeleteItinerario()} className="w-5 h-5 curso cursor-pointer" />
                         {/* <SelectModeView value={view} setValue={setView} /> */}
                     </div>
-                </div>
+                </div>}
             </div>
             <div className="flex flex-col justify-center items-center">
                 {!editTitle

@@ -76,6 +76,7 @@ export interface OptionsSelect {
     icon?: JSX.Element
     title: string
     onClick: any
+    disabled?: boolean
 }
 
 export interface Notification {
