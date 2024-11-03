@@ -12,11 +12,9 @@ export const ModalPermissionList = ({ data, setOpenModal, event }) => {
 
     const handleChangePermision = async (values) => {
         try {
-            setPermissions(old => {
-                const f1 = old.findIndex(elem => elem.title === values.title)
-                old.splice(f1, 1, { title: values.title, value: values.value })
-                return [...old]
-            })
+            const f1p = permissions.findIndex(elem => elem.title === values.title)
+            permissions.splice(f1p, 1, { title: values.title, value: values.value })
+            setPermissions([...permissions])
 
             const f1 = event.detalles_compartidos_array?.findIndex(elem => elem.uid === data?.uid)
             event.detalles_compartidos_array[f1].permissions = permissions
@@ -40,7 +38,7 @@ export const ModalPermissionList = ({ data, setOpenModal, event }) => {
     return (
         <ClickAwayListener onClickAway={() => setOpenModal(false)}>
             <div style={{ left: ["50%"], }} className={`fixed z-50 bg-gray-100 rounded-lg p-4 text-[15px] w-64 ml-[50%] -translate-x-[calc(50%+14px)] md:translate-x-36 space-y-4`}>
-                <PermissionList permissions={permissions} handleChange={handleChangePermision} />
+                <PermissionList permissions={permissions} handleChange={handleChangePermision} setPermission={setPermissions} />
                 <div className="flex">
                     <div className="flex-1" />
                     <button onClick={() => setOpenModal(false)} className="bg-primary text-white rounded-lg px-5 py-2 h-10 capitalize">{t("save")}</button>

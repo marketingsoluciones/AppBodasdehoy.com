@@ -20,14 +20,13 @@ import { ImageAvatar } from "../../Utils/ImageAvatar";
 interface props extends HTMLAttributes<HTMLDivElement> {
   itinerario: Itinerary
   task: Task
-  disable: any
   ht: any
   view: ViewItinerary
   optionsItineraryButtonBox: OptionsSelect[]
   isSelect: boolean
 }
 
-export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, optionsItineraryButtonBox, isSelect, ...props }) => {
+export const TaskNew: FC<props> = ({ itinerario, task, ht, view, optionsItineraryButtonBox, isSelect, ...props }) => {
   const { config, geoInfo, user } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
   const toast = useToast()
@@ -44,6 +43,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, option
     responsable: !task?.responsable ? [] : task?.responsable,
     tips: !task?.tips ? "" : task?.tips,
     attachments: !task?.attachments ? [] : task?.attachments,
+    spectatorView: task?.spectatorView,
   }
 
   const handleBlurData = async (variable, valor) => {
@@ -102,7 +102,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, option
                 <>
                   <div className="*bg-violet-300 flex w-[55%] md:w-[45%] lg:w-[40%] p-2 items-start justify-start border-t-[1px] border-r-[1px] border-primary border-dotted relative">
                     <div className="*bg-orange-500 w-12 h-12 md:w-16 md:h-16 md:min-w-16 flex items-center justify-center">
-                      <SelectIcon name="icon" className="*bg-white scale-[120%] -translate-y-1" handleChange={handleBlurData} disable={disable} ht={ht} />
+                      <SelectIcon name="icon" className="*bg-white scale-[120%] -translate-y-1" handleChange={handleBlurData} />
                     </div>
                     <div className="flex-1">
                       <div className="*bg-orange-300 inline-flex flex-col justify-start items-start">
@@ -138,7 +138,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, disable, ht, view, option
               {view === "cards" &&
                 <div className={`${isSelect ? "border-gray-300" : "border-gray-100"} border-2 box-content bg-gray-100 w-full rounded-lg mx-2 my-1 flex p-2`}>
                   <div className="bg-white w-12 h-12 md:w-16 md:h-16 md:min-w-16 flex items-center justify-center rounded-full border-[1px] border-gray-300">
-                    <SelectIcon name="icon" className="" handleChange={handleBlurData} disable={disable} ht={ht} />
+                    <SelectIcon name="icon" className="" handleChange={handleBlurData} />
                   </div>
                   <div className="*bg-rose-600 flex-1 flex flex-col text-[12px] pl-1 md:pl-2">
                     {!["/itinerario"].includes(window?.location?.pathname) && <span className="font-bold">{values?.fecha.toLocaleString()}</span>}

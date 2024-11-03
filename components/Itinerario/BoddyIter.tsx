@@ -14,6 +14,7 @@ import { useToast } from "../../hooks/useToast";
 import { Modal } from "../Utils/Modal";
 import { DeleteConfirmation } from "./MicroComponente/DeleteConfirmation";
 import { useTranslation } from "react-i18next";
+import { useAllowedViewer } from "../../hooks/useAllowed";
 
 interface Modal {
     state: boolean
@@ -31,6 +32,7 @@ export const BoddyIter = () => {
     const toast = useToast()
     const { t } = useTranslation();
     const [title, setTitle] = useState<string>()
+    const [isAllowedViewer] = useAllowedViewer()
 
     useEffect(() => {
         console.log(10041, itinerario)
@@ -108,7 +110,9 @@ export const BoddyIter = () => {
                 <DeleteConfirmation setModal={setModal} modal={modal} />
             </Modal>}
             <ItineraryTabs itinerario={itinerario} setItinerario={setItinerario} setEditTitle={setEditTitle} title={title} setTitle={setTitle} view={view} setView={setView} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} editTitle={editTitle} />
-            <ItineraryPanel itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} title={title} setTitle={setTitle} view={view} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} />
+            {(isAllowedViewer(itinerario?.viewers ?? []) || window?.location?.pathname === "/itinerario")
+                && <ItineraryPanel itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} title={title} setTitle={setTitle} view={view} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} />
+            }
         </div>
     )
 }

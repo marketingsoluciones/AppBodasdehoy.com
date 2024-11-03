@@ -7,7 +7,7 @@ import { AuthContextProvider } from "../../../context/AuthContext";
 import { EventContextProvider } from "../../../context/EventContext";
 import { Modal } from "../../Utils/Modal";
 import { useToast } from "../../../hooks/useToast";
-import { useAllowed } from "../../../hooks/useAllowed";
+import { useAllowed, useAllowedViewer } from "../../../hooks/useAllowed";
 import { WarningMessage } from "./WarningMessage";
 import { useTranslation } from 'react-i18next';
 import i18n from 'i18next';
@@ -46,10 +46,10 @@ interface TaskReduce {
 
 export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle, view, handleDeleteItinerario, handleUpdateTitle, title, setTitle }) => {
     const { t } = useTranslation();
-    const { config, geoInfo } = AuthContextProvider()
+    const { config, geoInfo, user } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
     const [isAllowed, ht] = useAllowed()
-    const disable = !isAllowed("itinerario")
+    const [isAllowedViewer] = useAllowedViewer()
     const toast = useToast()
     const newDate = new Date();
     const options = { year: "numeric", month: "long", day: "numeric" };
@@ -70,33 +70,31 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             value: "edit",
             icon: <PencilEdit className="w-5 h-5" />,
             title: "editar",
-            onClick: (values: Task) => {
-                setShowEditTask({ values, state: !showEditTask.state })
-            }
+            onClick: (values: Task) => !isAllowed() ? ht() : setShowEditTask({ values, state: !showEditTask.state })
         },
         {
             value: "status",
             icon: <GoEyeClosed className="w-5 h-5" />,
             title: "estado",
-            onClick: () => { setModalStatus(!modalStatus) }
+            onClick: () => !isAllowed() ? ht() : setModalStatus(!modalStatus)
         },
         {
             value: "flujo",
             icon: <GoGitBranch className="w-5 h-5" />,
             title: "flow",
-            onClick: () => setModalWorkFlow(!modalWorkFlow)
+            onClick: () => !isAllowed() ? ht() : setModalWorkFlow(!modalWorkFlow)
         },
         {
             value: "share",
             icon: <LiaLinkSolid className="w-5 h-5" />,
             title: "Link calendario",
-            onClick: () => setModalCompartirTask(!modalCompartirTask)
+            onClick: () => !isAllowed() ? ht() : setModalCompartirTask(!modalCompartirTask)
         },
         {
             value: "delete",
             icon: <MdOutlineDeleteOutline className="w-5 h-5" />,
             title: "borrar",
-            onClick: (values: Task, itinerario: Itinerary) => { disable ? ht() : deleteTask(values, itinerario) }
+            onClick: (values: Task, itinerario: Itinerary) => !isAllowed() ? ht() : deleteTask(values, itinerario)
         }
     ]
 
@@ -171,7 +169,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             console.error('Error al eliminar la carpeta:', error);
         }
     }
-
+    //
     return (
         <div className="w-full flex-1 flex flex-col overflow-y-scroll">
             {showEditTask?.state && (
@@ -193,11 +191,16 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                             </div>}
                             {el?.tasks?.map((elem, idx) => {
                                 return (
+                                    (
+                                        view === "schema"
+                                        || ["/itinerario"].includes(window?.location?.pathname)
+                                        || elem.spectatorView
+                                        || event.usuario_id === user.uid
+                                    ) &&
                                     <TaskNew
                                         key={idx}
                                         task={elem}
                                         itinerario={itinerario}
-                                        disable={disable}
                                         ht={ht}
                                         view={view}
                                         optionsItineraryButtonBox={optionsItineraryButtonBox}

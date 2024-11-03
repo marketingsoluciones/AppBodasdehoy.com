@@ -12,7 +12,8 @@ const Container = (props) => {
   const router = useRouter();
   const { setLoading } = LoadingContextProvider()
   useEffect(() => {
-    setLoading(false)
+    if (setLoading)
+      setLoading(false)
   }, [])
 
   const urls = ["/info-app", "/confirmar-asistencia", "/RelacionesPublicas", "/RelacionesPublicas/VentasEntradas", "/RelacionesPublicas/EntradasGratis", "/RelacionesPublicas/ReservaDatos", "/RelacionesPublicas/ReservaCantidad", "/RelacionesPublicas/RegistroEntradasUser", "/RelacionesPublicas/RecuperarCompra", "/RelacionesPublicas/ReciboEntradas", "/RelacionesPublicas/CancelarReserva", "/RelacionesPublicas/ComprasComp", "/RelacionesPublicas/PrincipalDE"]
