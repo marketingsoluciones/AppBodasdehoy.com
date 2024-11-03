@@ -57,7 +57,7 @@ export const ResponsableList = ({ openModal, setOpenModal, DataArry, setSelectIc
                                 )
                             })
                             // : event?.detalles_compartidos_array?.length > 0                                ?
-                            : [user, event?.detalles_usuario_id, ...event?.detalles_compartidos_array]?.map((item, idx) => {
+                            : [user, event?.detalles_usuario_id, ...event?.detalles_compartidos_array].filter(el => el !== undefined)?.map((item, idx) => {
                                 const title = item?.displayName != null ? item?.displayName : item?.email
                                 return (
                                     <div key={idx} className={`w-full flex items-center cursor-pointer md:hover:bg-slate-200 p-1 space-x-1 ${value?.includes(title) ? "bg-slate-300" : "bg-none"}`}

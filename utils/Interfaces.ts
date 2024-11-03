@@ -54,6 +54,7 @@ export interface Task {
     tags: string[]
     tips: string
     attachments: FileData[]
+    spectatorView: boolean
 }
 
 export interface TaskDateTimeAsString extends Omit<Task, 'fecha'> {
@@ -65,6 +66,7 @@ export interface Itinerary {
     _id: string
     title: string
     tasks: Task[]
+    viewers: string[]
     tipo: string
     estatus: string //activo, borrado
     fecha_creacion: Date
@@ -76,6 +78,7 @@ export interface OptionsSelect {
     icon?: JSX.Element
     title: string
     onClick: any
+    disabled?: boolean
 }
 
 export interface Notification {

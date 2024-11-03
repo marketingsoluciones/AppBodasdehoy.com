@@ -269,13 +269,14 @@ export const queries = {
       tips
       estatus
       attachments{
-            _id
-            name
-            url
-            size
-            createdAt
-            updatedAt
-          }
+        _id
+        name
+        url
+        size
+        createdAt
+        updatedAt
+      }
+      spectatorView
       fecha_creacion
     }
   }`,
@@ -328,8 +329,10 @@ export const queries = {
             createdAt
             updatedAt
           }
+          spectatorView
           fecha_creacion
         }
+        viewers
         tipo
         estatus
         fecha_creacion
@@ -535,7 +538,9 @@ export const queries = {
             createdAt
             updatedAt
           }
+          spectatorView
         }
+        viewers
         tipo
         estatus
       }
@@ -802,7 +807,9 @@ export const queries = {
             createdAt
             updatedAt
           }
+          spectatorView
         }
+        viewers
         tipo
         estatus
       }

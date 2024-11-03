@@ -3,6 +3,7 @@ import { AddIcon, Anillos, FuegosArtificiales, Baile, Baile2, Brindis, Carro, Ce
 import { Modal } from "../../Utils/Modal";
 import { IconList } from "./IconList";
 import { useEffect, useState } from "react";
+import { useAllowed } from "../../../hooks/useAllowed";
 
 const IconArray = [
     {
@@ -87,10 +88,11 @@ const IconArray = [
     },
 ]
 
-export const SelectIcon = ({ handleChange, disable, ht, ...props }) => {
+export const SelectIcon = ({ handleChange, ...props }) => {
     const [field] = useField({ name: props?.name });
     const [selectIcon, setSelectIcon] = useState()
     const [openIcon, setOpenIcon] = useState(false)
+    const [isAllowed, ht] = useAllowed()
 
     useEffect(() => {
         if (selectIcon) {
@@ -110,7 +112,7 @@ export const SelectIcon = ({ handleChange, disable, ht, ...props }) => {
                     }} {...props}>
                     {IconArray.find((elem) => elem?.title === field?.value).icon}
                 </div>
-                : <div className='w-full h-full cursor-pointer flex items-center justify-center text-gray-600 hover:text-gray-800' onClick={() => disable ? ht() :
+                : <div className='w-full h-full cursor-pointer flex items-center justify-center text-gray-600 hover:text-gray-800' onClick={() => isAllowed() ? ht() :
                     setOpenIcon(!openIcon)}>
                     <AddIcon />
                 </div>

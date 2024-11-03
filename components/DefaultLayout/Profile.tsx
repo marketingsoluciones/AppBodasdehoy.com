@@ -232,7 +232,6 @@ const Profile = ({ user, state, set, ...rest }) => {
         </span>
         <div className="items-center flex relative cursor-default ">
           <div onClick={() => {
-            console.log("aui")
             !event ? toast("error", t("nohaveeventscreated")) : !isAllowedRouter("/servicios") ? ht() : router.push("/servicios")
           }} className={`${!event ? "opacity-40" : ""} bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200 cursor-pointer`} >
             <GoChecklist className="text-primary w-6 h-6 scale-x-90" />

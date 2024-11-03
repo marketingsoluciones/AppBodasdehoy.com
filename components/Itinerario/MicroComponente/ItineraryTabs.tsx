@@ -8,7 +8,7 @@ import { SelectModeView } from "../../Utils/SelectModeView"
 import ClickAwayListener from "react-click-away-listener"
 import { ItineraryTabsMenu } from "./ItineraryTabsMenu"
 import { FaCheck } from "react-icons/fa"
-import { useAllowed } from "../../../hooks/useAllowed"
+import { useAllowed, useAllowedViewer } from "../../../hooks/useAllowed"
 
 interface props {
     itinerario: Itinerary
@@ -24,11 +24,11 @@ interface props {
 }
 export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTitle, view, setView, handleDeleteItinerario, handleUpdateTitle, title, setTitle, editTitle }) => {
     const [isAllowed, ht] = useAllowed()
+    const [isAllowedViewer] = useAllowedViewer()
     const { config, user } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
 
     const handleCreateItinerario = async () => {
-        console.log(window?.location?.pathname.slice(1))
         const f = new Date(parseInt(event?.fecha))
         const y = f.getUTCFullYear()
         const m = f.getUTCMonth()
@@ -49,16 +49,15 @@ export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTit
         setEditTitle(true)
     }
 
-
     return (
         <div className="flex max-w-[100%] min-w-[100%] h-10 items-center justify-center border-b md:px-4 md:py-2">
             <div id="content" className="flex-1 h-full bg-violet-400* flex justify-between">
 
                 <div className="inline-flex max-w-full h-full items-center bg-yellow-400* mr-2">
                     <div id="azul" className={`bg-blue-500* ${event?.usuario_id === user?.uid && "max-w-[calc(100%-32px)]"} inline-flex  h-full items-center select-none bg-blue-600* mx-2`}>
-                        {event?.itinerarios_array.filter(elem => elem.tipo === window?.location?.pathname.slice(1))?.slice(0, 5).map((item, idx) => {
+                        {event?.itinerarios_array.filter(elem => elem.tipo === window?.location?.pathname.slice(1))?.slice(0, 8).map((item, idx) => {
                             return (
-                                <div id={item?._id} key={idx}
+                                (isAllowedViewer(item.viewers) || window?.location?.pathname === "/itinerario") && <div id={item?._id} key={idx}
                                     className={`justify-start items-center cursor-pointer h-full ${itinerario?._id === item?._id ? "bg-green* flex" : "inline-flex"} text-sm space-x-1 relative md:mr-2`}
                                     onClick={() => {
                                         if (item?._id !== itinerario?._id) {
@@ -93,10 +92,11 @@ export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTit
                                         <ItineraryTabsMenu item={item} itinerario={itinerario} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} setEditTitle={setEditTitle} editTitle={editTitle} title={title} setTitle={setTitle} />
                                     </div>}
                                 </div>
+
                             )
                         })}
                     </div>
-                    {event?.usuario_id === user?.uid && <div id="plusIcon" onClick={() => handleCreateItinerario()} className="flex w-8 items-center justify-start bg-white">
+                    {isAllowed() && <div id="plusIcon" onClick={() => handleCreateItinerario()} className="flex w-8 items-center justify-start bg-white">
                         <PlusIcon className="w-4 h-4 text-primary cursor-pointer" />
                     </div>}
                 </div>
