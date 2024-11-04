@@ -24,7 +24,7 @@ export const en = {
     "sin enviar": "unsent",
     "diseño": "design",
 
-    "NOMBRE": "NAME",
+    "nombre": "NAME",
     "CORREO": "MAIL",
     "TELEFONO": "PHONE",
     "INVITACION": "INVITATION",
