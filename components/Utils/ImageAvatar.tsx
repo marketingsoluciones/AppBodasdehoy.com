@@ -13,8 +13,8 @@ export const ImageAvatar: FC<props> = ({ user }) => {
 
   return (
     user?.photoURL !== null
-      ? <div className={`flex items-center justify-center text-white uppercase w-full h-full rounded-full`}>
-        <img src={user?.photoURL} className="rounded-full" />
+      ? <div className={`flex items-center justify-center text-white uppercase w-full h-full rounded-full overflow-hidden`}>
+        <img src={user?.photoURL} className="rounded-full truncate overflow-hidden" />
       </div>
       : <div
         style={{ backgroundColor: h(user.uid.slice(-11)) }}
