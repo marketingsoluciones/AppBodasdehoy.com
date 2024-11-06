@@ -12,6 +12,8 @@ import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
 import { GoMultiSelect } from "react-icons/go";
+import { ExportarExcel } from "../Utils/ExportarExcel";
+import ClickAwayListener from "react-click-away-listener";
 
 
 interface propsBlockListaInvitados {
@@ -28,6 +30,7 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ menu, setGetMenu, c
   const [isMounted, setIsMounted] = useState(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const [invitadoSelected, setSelected] = useState<string | null>(null);
+  const [optionExportModal, setOptionExportModal] = useState(false)
   const toast = useToast()
   const [isAllowed, ht] = useAllowed()
   const { t } = useTranslation();
@@ -57,13 +60,23 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ menu, setGetMenu, c
             <PlusIcon />
             {t("menu")}
           </button>
-          {/* <button
-          onClick={() => !isAllowed() ? ht() : event?.invitados_array.length > 0 ? setCreatePDF(!createPDF) : toast("error", "Debes agregar invitados")}
-          className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
+          <button
+            onClick={() => setOptionExportModal(!optionExportModal)}
+            className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
           >
-          Crear PDF
-          </button> */}
+            Exportar
+          </button>
         </div>
+
+        {optionExportModal &&
+          <ClickAwayListener onClickAway={() => setOptionExportModal(false)}>
+            <div className="absolute left-[410px] top-[40px] shadow-md bg-white  p-5 z-50 rounded-md space-y-2">
+              <ExportarExcel />
+
+              <ExportarExcel />
+            </div>
+          </ClickAwayListener>
+        }
       </div>
       {shouldRenderChild && (
         <ModalBottom state={isMounted} set={setIsMounted}>
@@ -99,6 +112,7 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ menu, setGetMenu, c
           </div>
         </ModalBottom>
       )}
+
       <div className="relative overflow-x-auto md:overflow-x-visible">
         <DatatableGroup
           GruposArray={event?.grupos_array}

@@ -80,7 +80,7 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
       }
     }),
     rol: yup.string().required("Rol requerido").notOneOf(['Seleccionar'], "Seleccione un Rol valido"),
-    correo: yup.string().email("El formato del correo no es valido").required("Correo requerido").test("Unico", `Correo asignado a otro invitado`, (value) => {
+    correo: yup.string().email("El formato del correo no es valido")/* .required("Correo requerido") */.test("Unico", `Correo asignado a otro invitado`, (value) => {
       return !event.invitados_array.map(item => item?.correo).includes(value)
     }).email("Formato invalido")
 
@@ -122,6 +122,10 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
     }
   };
 
+  const titleInvitado = [
+    "Dr.", "Master.", "Miss.", "Mr.", "Mrs.", "Ms.", "Professor.", "SSG.", "Padre.", "lady.", "sir"
+  ]
+
   return (
     <Formik
       initialValues={initialValues}
@@ -143,7 +147,6 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
                 {t("guest")}
               </h2>
             </div>
-
             <div className="text-gray-500 font-body flex flex-col gap-4 w-full">
               <div className="input-name w-full flex items-center justify-center relative pt-4">
                 <div className="flex absolute z-[5] right-0 top-0 text-white cursor-pointer"
@@ -174,13 +177,24 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
                 />
                 {/* </div> */}
               </div>
-              <div className="w-full flex items-center justify-center">
-                <InputField
-                  //placeholder="Ej. Francisco Montilla"
-                  name="nombre"
-                  label={t("name")}
-                  type="text"
-                />
+              <div className="w-full md:grid md:grid-cols-4 items-center justify-center space-x-3">
+                <div className="col-span-1 hidden*">
+                  <SelectField
+                    name={"tituloInvitado"}
+                    label={t("titulo")}
+                    options={titleInvitado}
+                    nullable={true}
+                  />
+                </div>
+                <div className="col-span-3">
+
+                  <InputField
+                    //placeholder="Ej. Francisco Montilla"
+                    name="nombre"
+                    label={t("name")}
+                    type="text"
+                  />
+                </div>
               </div>
               <div className=" w-full h-full flex gap-6">
                 <div className="w-1/2 flex-col flex gap-2 relative">
@@ -206,7 +220,6 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
                   type="email"
                 />
               </div>
-
               <div className="w-full h-8 flex flex-col relative text-sm mb-7">
                 <SelectField
                   name={"rol"}
@@ -215,9 +228,7 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
                   nullable={true}
                 />
               </div>
-
               <div className="w-full h-full flex gap-6">
-
                 <div className="w-1/2   ">
                   <SelectField
                     name={"nombre_menu"}
@@ -225,7 +236,6 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
                     options={[...event?.menus_array?.map(elem => elem.nombre_menu), "sin menú"]}
                   />
                 </div>
-
                 <div className="w-1/2">
                   <InputField
                     name="passesQuantity"
@@ -233,9 +243,7 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
                     type="number"
                   />
                 </div>
-
               </div>
-
               <button
                 className={`font-display rounded-full py-2 px-6 text-white font-medium transition w-full hover:opacity-70  ${isSubmitting ? "bg-secondary" : "bg-primary"
                   }`}

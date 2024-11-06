@@ -50,7 +50,7 @@ export const FormAddUserToEvent = ({ users, setUsers, optionsExist, setValir }) 
 
     return (
         <div className={`flex flex-col space-y-1 mb-5 md:mb-0`}>
-            <label className="text-primary">{t("addperson")}</label>
+            {/* <label className="text-primary">{t("addperson")}</label> */}
             <div onKeyUp={(e) => { if (!separators.includes(e.key)) { error && setError(null) } }}>
                 <TagsInput
                     value={users}
@@ -66,14 +66,14 @@ export const FormAddUserToEvent = ({ users, setUsers, optionsExist, setValir }) 
                     }}
                 />
             </div>
-            <div className="h-4 -translate-y-2">
+            {/* <div className="h-4 -translate-y-2">
                 {(showInstruction && !error)
                     ? <span className="ml-4 text-xs text-red h-1">{t("pressenteraccept")}</span>
                     : users.length
                         ? <span className="ml-4 text-xs text-red h-1">{t("savetoshare")}</span>
                         : <></>}
                 <span className="ml-4 text-xs text-red h-1">{error}</span>
-            </div>
+            </div> */}
             <style>{`
                 .rti--container {
                     --rti-s: .2rem;
