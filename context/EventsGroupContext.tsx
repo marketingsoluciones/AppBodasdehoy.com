@@ -6,14 +6,14 @@ import { useRouter } from 'next/router';
 
 type Context = {
   eventsGroup: Event[],
-  setEventsGroup: Dispatch<SetStateAction<action>>
+  setEventsGroup: Dispatch<SetStateAction<any>>
   psTemplates: any,
   setPsTemplates: Dispatch<SetStateAction<any>>
   eventsGroupDone: boolean,
 }
 const EventsGroupContext = createContext<Context>({
   eventsGroup: null,
-  setEventsGroup: (action: action) => null,
+  setEventsGroup: () => { },
   psTemplates: [],
   setPsTemplates: () => { },
   eventsGroupDone: false,
