@@ -6,6 +6,7 @@ import { fetchApiBodas, fetchApiEventos, queries } from "../../../utils/Fetching
 import { useToast } from "../../../hooks/useToast"
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../../context"
 import { useTranslation } from "react-i18next"
+import { Event } from "../../../utils/Interfaces"
 
 export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
     const { t } = useTranslation()
@@ -39,7 +40,7 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
                         permissions
                     }
                 }
-            });
+            }) as Event
             const resultsUser = await fetchApiBodas({
                 query: queries?.getUsers,
                 variables: { uids: results?.compartido_array },

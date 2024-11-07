@@ -19,7 +19,6 @@ export const Modal: FC<propsModal> = ({ children, state, set, classe }) => {
                     className="font-display text-gray-500 hover:text-gray-300 transition cursor-pointer text-2xl absolute top-5 right-5">X</span>
                 {children}
             </div>
-
         </div>
     )
 }

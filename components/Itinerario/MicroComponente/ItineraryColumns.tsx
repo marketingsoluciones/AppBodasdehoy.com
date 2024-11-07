@@ -13,13 +13,13 @@ import { ItineraryTable } from "./ItineraryTable";
 import ClickAwayListener from "react-click-away-listener";
 import { HiOutlineViewList } from "react-icons/hi";
 import { LiaIdCardSolid, LiaLinkSolid } from "react-icons/lia";
-import { GoEyeClosed, GoGitBranch } from "react-icons/go";
+import { GoEye, GoEyeClosed, GoGitBranch } from "react-icons/go";
 import { MdOutlineDeleteOutline } from "react-icons/md";
 import { EditTastk } from "./ItineraryPanel";
 import { useAllowed } from "../../../hooks/useAllowed";
 import { CgSoftwareDownload } from "react-icons/cg";
 import { getBytes, getMetadata, getStorage, ref } from "firebase/storage";
-import { Itinerary } from "../../../utils/Interfaces";
+import { Itinerary, OptionsSelect } from "../../../utils/Interfaces";
 import { event } from "../../../gtas";
 import { AuthContextProvider, EventContextProvider } from "../../../context";
 import { ImageAvatar } from "../../Utils/ImageAvatar";
@@ -38,7 +38,7 @@ interface props {
   deleteTask: any
   showEditTask: EditTastk
   setShowEditTask: any
-  optionsItineraryButtonBox: any
+  optionsItineraryButtonBox: OptionsSelect[]
   selectTask: string
   setSelectTask: any
   itinerario: Itinerary
@@ -108,11 +108,17 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         Header: t("título"),
         accessor: "descripcion",
         id: "description",
-        Cell: (data) => (
-          <span key={data.cell.row.id} className="font-bold">
-            {data.cell.value}
-          </span>
-        )
+        Cell: (data) => {
+          console.log(data.cell.row.original)
+          return (
+            <div className="flex w-full">
+              <span key={data.cell.row.id} className="font-bold flex-1">
+                {data.cell.value}
+              </span>
+              {(isAllowed() && data.cell.row.original.spectatorView) && <GoEye className="w-5 h-5" />}
+            </div>
+          )
+        }
       },
       {
         Header: t("fecha"),

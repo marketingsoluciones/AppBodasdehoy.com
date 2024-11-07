@@ -25,6 +25,8 @@ export const es = {
     "diseño": "diseño",
 
     "NOMBRE": "NOMBRE",
+    "nombre": "nombre",
+
     "CORREO": "CORREO",
     "TELEFONO": "TELEFONO",
     "INVITACION": "INVITACION",
@@ -34,7 +36,6 @@ export const es = {
     "desea enviar": "desea enviar",
     "de su evento": "de su evento",
     "de prueba": "de prueba",
-
 
     hello: "¡Hola mundo!",
     saludo: "hola",

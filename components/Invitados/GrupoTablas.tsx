@@ -382,7 +382,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         Header: t("Mesa recepción"),
         accessor: "tableNameRecepcion",
         Cell: ({ value: initialValue, row, column: { id } }) => {
-          console.log(1111234,initialValue)
+          //console.log(1111234,initialValue)
           const [value, setValue] = useState(initialValue);
           const [show, setShow] = useState(false);
           const router = useRouter();

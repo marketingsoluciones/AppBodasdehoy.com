@@ -76,6 +76,7 @@ export interface Itinerary {
 export interface OptionsSelect {
     value: string
     icon?: JSX.Element
+    getIcon?: Function
     title: string
     onClick: any
     disabled?: boolean

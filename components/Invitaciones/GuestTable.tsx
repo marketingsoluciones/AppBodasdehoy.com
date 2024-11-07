@@ -6,10 +6,15 @@ import { ConfirmationBlock } from "../../components/Invitaciones/ConfirmationBlo
 import { DataTable } from "../../components/Invitaciones/DataTable"
 import { getRelativeTime } from "../../utils/FormatTime";
 import { useTranslation } from 'react-i18next';
+import { useRouter } from "next/router";
+import { useToast } from "../../hooks/useToast";
 
 export const GuestTable: FC<any> = ({ data, multiSeled, reenviar, activeFunction }) => {
   const { t } = useTranslation();
   const [arrEnviarInvitaciones, setArrEnviatInvitaciones] = useState([]);
+  const router = useRouter()
+  const toast = useToast()
+
   const Columna = useMemo(
     () => [
       {
@@ -51,6 +56,22 @@ export const GuestTable: FC<any> = ({ data, multiSeled, reenviar, activeFunction
         Header: t("mail"),
         accessor: "correo",
         id: "correo",
+        Cell: (props) => {
+          if (props.value != "") {
+            return (
+              <div>
+                {props.value}
+              </div>
+
+            )
+          } else {
+            return (
+              <button onClick={() => router.push("invitados")} >
+                Agregar Email
+              </button>
+            )
+          }
+        }
       },
       {
         Header: t("phone"),
@@ -62,17 +83,22 @@ export const GuestTable: FC<any> = ({ data, multiSeled, reenviar, activeFunction
         accessor: "invitacion",
         id: "invitacion",
         Cell: (props) => {
-          const [value, setValue] = useState(props.value);
+          const [value, setValue] = useState(props);
           const [hoverRef, isHovered] = useHover();
           useEffect(() => {
             setValue(props.value);
           }, [props.value]);
 
           const handleClick = () => {
-            if (!value) {
-              setArrEnviatInvitaciones([props?.row?.original?._id]);
+            if (props.row.original.correo != "") {
+              if (!value) {
+                setArrEnviatInvitaciones([props?.row?.original?._id]);
+              }
+            } else {
+              toast("error", "No tiene Correo asignado")
             }
           };
+
           return (
             <>
               <div

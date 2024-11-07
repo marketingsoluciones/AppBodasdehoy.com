@@ -14,7 +14,7 @@ import i18n from 'i18next';
 import { ItineraryColumns } from "./ItineraryColumns";
 import ModalLeft from "../../Utils/ModalLeft";
 import { PencilEdit } from "../../icons";
-import { GoEyeClosed, GoGitBranch } from "react-icons/go";
+import { GoEye, GoEyeClosed, GoGitBranch } from "react-icons/go";
 import { LiaLinkSolid } from "react-icons/lia";
 import { MdOutlineDeleteOutline } from "react-icons/md";
 import { OptionsSelect, Task, Itinerary } from "../../../utils/Interfaces"
@@ -75,8 +75,14 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         {
             value: "status",
             icon: <GoEyeClosed className="w-5 h-5" />,
+            getIcon: (value: boolean) => {
+                if (value) {
+                    return <GoEyeClosed className="w-5 h-5" />
+                }
+                return <GoEye className="w-5 h-5" />
+            },
             title: "estado",
-            onClick: () => !isAllowed() ? ht() : setModalStatus(!modalStatus)
+            onClick: (values: Task) => !isAllowed() ? ht() : handleAddSpectatorView(values)
         },
         {
             value: "flujo",
@@ -100,7 +106,15 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
 
     useEffect(() => {
         if (itinerario?.tasks?.length > 0) {
-            const tasks = [...itinerario?.tasks?.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime())]
+            const tasks = [...itinerario?.tasks?.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime())].filter(elem => {
+                return (
+                    view === "schema"
+                    || ["/itinerario"].includes(window?.location?.pathname)
+                    || elem.spectatorView
+                    || event.usuario_id === user.uid
+                ) &&
+                    true
+            })
             setTasks(tasks)
             const taskReduce: TaskReduce[] = tasks.reduce((acc: TaskReduce[], item: Task) => {
                 const f = new Date(item.fecha)
@@ -122,6 +136,34 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             setTasksReduce([])
         }
     }, [itinerario, event])
+
+
+    const handleAddSpectatorView = async (values: Task) => {
+        try {
+            fetchApiEventos({
+                query: queries.editTask,
+                variables: {
+                    eventID: event._id,
+                    itinerarioID: itinerario._id,
+                    taskID: values._id,
+                    variable: "spectatorView",
+                    valor: JSON.stringify(!values?.spectatorView)
+                },
+                domain: config.domain
+            })
+                .then(() => {
+                    const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
+                    const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === values._id)
+                    event.itinerarios_array[f1].tasks[f2].spectatorView = !values?.spectatorView
+                    setEvent({ ...event })
+                    toast("success", t("Item guardado con exito"))
+                    setShowEditTask({ state: false })
+                })
+        } catch (error) {
+            console.log(error)
+        }
+
+    }
 
     const deleteTask = async (values: Task, itinerario: Itinerary) => {
         try {
@@ -191,12 +233,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                             </div>}
                             {el?.tasks?.map((elem, idx) => {
                                 return (
-                                    (
-                                        view === "schema"
-                                        || ["/itinerario"].includes(window?.location?.pathname)
-                                        || elem.spectatorView
-                                        || event.usuario_id === user.uid
-                                    ) &&
                                     <TaskNew
                                         key={idx}
                                         task={elem}

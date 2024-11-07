@@ -86,7 +86,6 @@ const Home: NextPage = () => {
         <VistaSinCookie />
       )
     }
-    setLoading(false)
     return (
       <>
         {shouldRenderChild && (
