@@ -2,8 +2,6 @@ import { FC } from "react"
 import { Itinerary, OptionsSelect, Task } from "../../../utils/Interfaces"
 import { useAllowed } from "../../../hooks/useAllowed"
 
-
-
 interface props {
   optionsItineraryButtonBox: OptionsSelect[]
   values: Task

@@ -11,7 +11,7 @@ import { Itinerary, OptionsSelect, Task, TaskDateTimeAsString } from "../../../u
 import { ViewItinerary } from "../../../pages/invitados";
 import { CgSoftwareDownload } from "react-icons/cg";
 import { getBytes, getMetadata, getStorage, ref } from "firebase/storage";
-import { Interweave, Markup } from "interweave";
+import { Interweave } from "interweave";
 import { HashtagMatcher, UrlMatcher } from "interweave-autolink";
 import 'react-quill/dist/quill.snow.css'
 import { boolean } from "yup";
@@ -48,7 +48,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, ht, view, optionsItinerar
 
   const handleBlurData = async (variable, valor) => {
     try {
-      const result = await fetchApiEventos({
+      await fetchApiEventos({
         query: queries.editTask,
         variables: {
           eventID: event._id,

@@ -1,10 +1,8 @@
 import ClickAwayListener from "react-click-away-listener"
-import { FormAddUserToEvent } from "../../Forms/FormAddUserToEvent"
-import { CopiarLink, ListUserToEvent, PermissionList } from "."
-import { FC, useEffect, useState } from "react"
-import { fetchApiBodas, fetchApiEventos, queries } from "../../../utils/Fetching"
+import { FC } from "react"
+import { fetchApiEventos, queries } from "../../../utils/Fetching"
 import { useToast } from "../../../hooks/useToast"
-import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../../context"
+import { AuthContextProvider, EventContextProvider, } from "../../../context"
 import { useTranslation } from "react-i18next"
 import { GoEye, GoEyeClosed } from "react-icons/go"
 import { detalle_compartidos_array, Itinerary } from "../../../utils/Interfaces"
@@ -84,7 +82,6 @@ export const AddUserToServices: FC<props> = ({ openModal, setOpenModal, itinerar
                                                                 ? <GoEye className="w-5 h-5 text-gray-600" />
                                                                 : <GoEyeClosed className="w-5 h-5 text-gray-400" />
                                                             }
-
                                                         </div>
                                                     </div>
                                                 </div>

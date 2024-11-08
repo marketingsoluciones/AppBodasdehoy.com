@@ -2,19 +2,14 @@ import { useEffect, useState } from "react"
 import { ItineraryTabs } from "./MicroComponente/ItineraryTabs"
 import { ItineraryPanel } from "./MicroComponente/ItineraryPanel"
 import { AuthContextProvider, EventContextProvider } from "../../context";
-import { Itinerary, OptionsSelect, Task } from "../../utils/Interfaces"
+import { Itinerary } from "../../utils/Interfaces"
 import { ViewItinerary } from "../../pages/invitados";
-import { PencilEdit } from "../icons";
-import { GoEyeClosed, GoGitBranch } from "react-icons/go";
-import { LiaLinkSolid } from "react-icons/lia";
-import { MdOutlineDeleteOutline } from "react-icons/md";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
-import { config } from "react-transition-group";
 import { useToast } from "../../hooks/useToast";
 import { Modal } from "../Utils/Modal";
 import { DeleteConfirmation } from "./MicroComponente/DeleteConfirmation";
 import { useTranslation } from "react-i18next";
-import { useAllowedViewer } from "../../hooks/useAllowed";
+import { useAllowed, useAllowedViewer } from "../../hooks/useAllowed";
 
 interface Modal {
     state: boolean
@@ -27,15 +22,20 @@ export const BoddyIter = () => {
     const { event, setEvent } = EventContextProvider()
     const [itinerario, setItinerario] = useState<Itinerary>()
     const [editTitle, setEditTitle] = useState<boolean>(false)
-    const [view, setView] = useState<ViewItinerary>(window.innerWidth > window.innerHeight ? "table" : "cards")
+    const [isAllowedViewer] = useAllowedViewer()
+    const [isAllowed] = useAllowed()
+    const [view, setView] = useState<ViewItinerary>()
     const [modal, setModal] = useState<Modal>({ state: false, title: null, handle: () => { } })
     const toast = useToast()
     const { t } = useTranslation();
     const [title, setTitle] = useState<string>()
-    const [isAllowedViewer] = useAllowedViewer()
 
     useEffect(() => {
-        console.log(10041, itinerario)
+        setView(window.innerWidth > window.innerHeight && isAllowed() ? "table" : "cards")
+    }, [])
+
+
+    useEffect(() => {
         setTitle(itinerario?.title)
     }, [itinerario])
 

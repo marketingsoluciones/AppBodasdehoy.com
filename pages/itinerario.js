@@ -31,7 +31,6 @@ const Itinerario = () => {
                     className="max-w-screen-lg mx-auto inset-x-0 w-full pl-2 pr-[1px] md:px-0 gap-4 relative">
                     <BlockTitle title={"Itinerario"} />
                     <BoddyIter />
-
                     {/* {createPdf
                         ? <Modal openIcon={createPdf} setOpenIcon={setCreatePdf} classe={"h-[50%] w-[85%]"} >
                             <MyDocument IterArryst={IterArryst} />
