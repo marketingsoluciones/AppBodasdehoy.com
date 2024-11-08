@@ -9,7 +9,6 @@ import { useTranslation } from 'react-i18next'
 
 export const BlockTitle = ({ title }) => {
   const { t } = useTranslation()
-
   const { forCms, user } = AuthContextProvider()
   const { event } = EventContextProvider()
   const [openModal, setOpenModal] = useState(false)

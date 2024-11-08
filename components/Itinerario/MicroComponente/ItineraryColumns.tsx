@@ -109,7 +109,6 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         accessor: "descripcion",
         id: "description",
         Cell: (data) => {
-          console.log(data.cell.row.original)
           return (
             <div className="flex w-full">
               <span key={data.cell.row.id} className="font-bold flex-1">
