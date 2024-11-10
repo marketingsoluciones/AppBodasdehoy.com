@@ -19,23 +19,17 @@ interface props {
     itinerario: Itinerary
     item: Itinerary
     handleDeleteItinerario: any
-    handleUpdateTitle: any
-    title: string
     setTitle: Dispatch<SetStateAction<string>>
-    editTitle: boolean
     setEditTitle: any
 }
 
-export const ItineraryTabsMenu: FC<props> = ({ itinerario, item, handleDeleteItinerario, handleUpdateTitle, setEditTitle, title, editTitle, setTitle }) => {
+export const ItineraryTabsMenu: FC<props> = ({ itinerario, item, handleDeleteItinerario, setEditTitle, setTitle }) => {
     const [showMenu, setShowMenu] = useState<boolean>()
     const [showAddUsertoServices, setShowAddUsertoServices] = useState<boolean>()
     const [value, setValue] = useState<string>()
     const { t } = useTranslation();
-    const { config, geoInfo } = AuthContextProvider()
-    const { event, setEvent } = EventContextProvider()
     const [isAllowed, ht] = useAllowed()
     const toast = useToast()
-    const storage = getStorage()
 
     const optionsSelect: OptionsSelect[] = [
         {
@@ -68,9 +62,6 @@ export const ItineraryTabsMenu: FC<props> = ({ itinerario, item, handleDeleteIti
             icon: <CgInfo className="w-5 h-5" />
         }
     ]
-
-
-
 
     return (
         <>

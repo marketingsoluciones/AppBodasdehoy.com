@@ -5,6 +5,7 @@ import { LiaIdCardSolid } from "react-icons/lia";
 import { HiOutlineViewList } from "react-icons/hi";
 import { TbSchema } from "react-icons/tb";
 import { ArrowDownBodasIcon } from "../icons";
+import { useAllowed } from "../../hooks/useAllowed";
 
 interface props {
   value: any
@@ -13,20 +14,22 @@ interface props {
 
 export const SelectModeView: FC<props> = ({ value, setValue }) => {
   const [show, setShow] = useState<boolean>(false)
+  const [isAllowed, ht] = useAllowed()
 
   const options = [
-    {
-      value: "table",
-      icon: <HiOutlineViewList className="w-5 h-5" />,
-      title: "tabla"
-    },
     {
       value: "cards",
       icon: <LiaIdCardSolid className="w-5 h-5" />,
       title: "tarjetas"
     }
   ]
-
+  if (isAllowed()) {
+    options.push({
+      value: "table",
+      icon: <HiOutlineViewList className="w-5 h-5" />,
+      title: "tabla"
+    },)
+  }
   if (["/itinerario"].includes(window?.location?.pathname)) {
     options.push({
       value: "schema",

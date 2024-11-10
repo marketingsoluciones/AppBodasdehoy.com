@@ -120,7 +120,9 @@ export const Notifications = () => {
 
   const replacesLink: ComponentType<UrlProps> = (props) => {
     return (
-      <b><a className="text-xs break-all" href={props?.url} >{props?.children}</a></b>
+      <Link href={props?.url}>
+        <span className="text-xs break-all underline" >{props?.children}</span>
+      </Link>
     )
   };
 

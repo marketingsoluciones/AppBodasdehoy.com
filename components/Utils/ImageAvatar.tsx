@@ -1,29 +1,42 @@
-import { FC } from "react"
+import { FC, useState } from "react"
+import { detalle_compartidos_array } from "../../utils/Interfaces"
 
 interface props {
-  user: any
+  user: detalle_compartidos_array
 }
 
 export const ImageAvatar: FC<props> = ({ user }) => {
+  const [showName, setShowName] = useState<boolean>()
   const h = (str: string): string => {
-    str.slice(0, 2).charCodeAt(1).toString(16)
-    const s = "#" + str.slice(0, 4).charCodeAt(2).toString(16) + str.slice(2, 7).charCodeAt(2).toString(16) + str.slice(5, 10).charCodeAt(2).toString(16)
-    return s
+    if (str) {
+      str.slice(0, 2).charCodeAt(1).toString(16)
+      const s = "#" + str.slice(0, 4).charCodeAt(2).toString(16) + str.slice(2, 7).charCodeAt(2).toString(16) + str.slice(5, 10).charCodeAt(2).toString(16)
+      return s
+    }
   }
 
   return (
-    user?.photoURL !== null
-      ? <div className={`flex items-center justify-center text-white uppercase w-full h-full rounded-full overflow-hidden`}>
-        <img src={user?.photoURL} className="rounded-full truncate overflow-hidden" />
-      </div>
-      : <div
-        style={{ backgroundColor: h(user.uid.slice(-11)) }}
-        className={`flex items-center justify-center text-white uppercase w-full h-full rounded-full text-[10px]`}
-      >
-        {user?.displayName
-          ? (user?.displayName.split(" ").map(elem => elem.slice(0, 1).toUpperCase())).join("")
-          : user?.email?.slice(0, 1)
-        }
-      </div>
+    <div onMouseOver={() => {
+      setShowName(true)
+    }} onMouseOut={() => setShowName(false)} className="w-full h-full relative">
+      {!!user?.photoURL
+        ? <div className={`flex items-center justify-center text-white uppercase w-full h-full rounded-full overflow-hidden`}>
+          <img src={user?.photoURL} className="rounded-full truncate overflow-hidden" />
+        </div>
+        : <div
+          style={{ backgroundColor: h(user?.uid?.slice(-11)) }}
+          className={`flex items-center justify-center text-white uppercase w-full h-full rounded-full text-[14px]`}
+        >
+          {user?.displayName
+            ? (user?.displayName.split(" ").map(elem => elem.slice(0, 1).toUpperCase())).join("")
+            : user?.email?.slice(0, 1)
+          }
+        </div>}
+      {showName && <div style={{ right: 10, top: 30 }} className="absolute z-20 bg-black rounded-md flex items-center justify-center leading-[1.2] opacity-75">
+        <span className="text-white text-[10px] py-1 px-2">
+          {user?.displayName ? user?.displayName : user?.email}
+        </span>
+      </div>}
+    </div>
   )
 }

@@ -1,5 +1,5 @@
-import { FC, useEffect, useRef, useState } from "react"
-import { DotsOpcionesIcon, PlusIcon } from "../../icons"
+import { FC } from "react"
+import { PlusIcon } from "../../icons"
 import { Itinerary } from "../../../utils/Interfaces"
 import { fetchApiEventos, queries } from "../../../utils/Fetching"
 import { AuthContextProvider, EventContextProvider } from "../../../context"
@@ -89,7 +89,7 @@ export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTit
                                                 </ClickAwayListener>
                                             }
                                         </div>
-                                        <ItineraryTabsMenu item={item} itinerario={itinerario} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} setEditTitle={setEditTitle} editTitle={editTitle} title={title} setTitle={setTitle} />
+                                        <ItineraryTabsMenu item={item} itinerario={itinerario} handleDeleteItinerario={handleDeleteItinerario} setEditTitle={setEditTitle} setTitle={setTitle} />
                                     </div>}
                                 </div>
 
@@ -100,7 +100,7 @@ export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTit
                         <PlusIcon className="w-4 h-4 text-primary cursor-pointer" />
                     </div>}
                 </div>
-                <SelectModeView value={view} setValue={setView} />
+                {isAllowed() && <SelectModeView value={view} setValue={setView} />}
             </div>
         </div>
     )

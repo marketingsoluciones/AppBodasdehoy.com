@@ -43,6 +43,13 @@ export interface FileData {
     updatedAt?: Date
 }
 
+export interface Comment {
+    _id: string
+    comment: string
+    uid: string
+    createdAt: Date
+}
+
 export interface Task {
     _id: string
     fecha: Date
@@ -55,6 +62,8 @@ export interface Task {
     tips: string
     attachments: FileData[]
     spectatorView: boolean
+    comments: Comment[]
+    commentsViewers: string[]
 }
 
 export interface TaskDateTimeAsString extends Omit<Task, 'fecha'> {
@@ -119,6 +128,8 @@ export interface detalle_compartidos_array {
     onLine: onLine
     permissions?: permission[]
     owner?: boolean
+    createdAt?: Date
+    updatedAt?: Date
 }
 
 interface estimate {
