@@ -69,17 +69,16 @@ export const ListComments: FC<props> = ({ itinerario, task, item, setConfirmatio
           handleDelete()
           //setConfirmation({ state: true, handleDelete })
         }}
-        className="absolute w-5 h-5 cursor-pointer right-2 bottom-5" />}
+        className="absolute w-5 h-5 cursor-pointer right-2 bottom-5 text-gray-600" />}
       <div className='flex space-x-2 items-start flex-1'>
         <div
           onMouseOver={() => setShowUser(true)}
           onMouseOut={() => setShowUser(false)}
           className='bg-gray-300 w-8 h-8 rounded-full mt-1 flex items-center justify-center cursor-pointer'>
-          <ImageAvatar user={[...event?.detalles_compartidos_array, event?.detalles_usuario_id, user]?.find(elem => elem?.uid === item?.uid)
-          } />
+          <ImageAvatar user={[...event?.detalles_compartidos_array, event?.detalles_usuario_id, user]?.find(elem => elem?.uid === item?.uid)} />
         </div>
         <Interweave
-          className="text-sm"
+          className="text-xs flex-1 pr-4 break-words"
           content={item?.comment}
           matchers={[
             new UrlMatcher('url', {}, replacesLink),
@@ -88,7 +87,7 @@ export const ListComments: FC<props> = ({ itinerario, task, item, setConfirmatio
         />
         {/* <p className='bg-blue-100* p-2 flex-1 normal-case whitespace-pre-line'>{item?.comment}</p> */}
       </div>
-      <span className='justify-end text-[11px] -mt-2 font-medium flex-1 flex right-0 *-translate-x-full'>
+      <span className='justify-end text-[10px] -mt-2 font-medium flex-1 flex right-0 *-translate-x-full'>
         {new Date(item?.createdAt).toLocaleString()}
       </span>
     </div>

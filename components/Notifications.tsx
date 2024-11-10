@@ -134,25 +134,25 @@ export const Notifications = () => {
           {notifications?.results[0]?.state === "sent" && <div className={`absolute w-2.5 h-2.5 rounded-full bg-green translate-x-2.5 translate-y-1.5`} />}
         </div>
         {showNotifications && (
-          <div className="absolute bg-white rounded-lg w-80 h-max shadow-lg shadow-gray-400 top-0 right-0 md:translate-x-[224px] translate-y-[46px] overflow-hidden z-40 title-display">
+          <div className="absolute bg-white rounded-lg w-80 h-max shadow-lg shadow-gray-400 top-0 right-10 translate-x-1/2 translate-y-[46px] overflow-hidden z-40 title-display">
             <div className="w-full pb-2">
             </div>
-            <ul id="ul-notifications" className="bg-white flex flex-col gap-2 text-xs place-items-left p-2 text-black max-h-[365px] overflow-y-scroll break-words">
+            <ul id="ul-notifications" className="bg-white flex flex-col gap-2 text-xs place-items-left py-2 text-black max-h-[365px] overflow-y-scroll break-words">
               {notifications?.results?.map((item: Notification, idx: number) => (
-                <li key={idx} className="flex">
-                  <div className="w-full hover:bg-base rounded-lg text-gray-700 flex space-x-2 p-2">
-                    {(!item?.type || item?.type === "event") && <MisEventosIcon className="mt-1 text-gray-500 w-5 h-5" />}
-                    {(item?.type === "shop") && <TarjetaIcon className="mt-1 text-gray-500 w-5 h-5" />}
+                <li key={idx} className="flex w-full">
+                  <div className="w-full hover:bg-base rounded-lg text-gray-700 flex py-1">
+                    {(!item?.type || item?.type === "event") && <MisEventosIcon className="mt-1 mx-1.5 text-gray-500 w-5 h-5" />}
+                    {(item?.type === "shop") && <TarjetaIcon className="mt-1 mx-1.5 text-gray-500 w-5 h-5" />}
                     <div className="flex-1 flex flex-col">
                       <Interweave
-                        className="text-sm"
+                        className="text-xs break-words"
                         content={item?.message}
                         matchers={[
                           new UrlMatcher('url', {}, replacesLink),
                           new HashtagMatcher('hashtag')
                         ]}
                       />
-                      <span className="text-[11px]">
+                      <span className="text-[10px] flex-1 text-right italic">
                         Hace {formatDistanceStrict(
                           new Date(item.createdAt),
                           new Date(),
