@@ -6,6 +6,7 @@ import { Comment, Itinerary, Task } from "../../../utils/Interfaces"
 import { ImageAvatar } from "../../Utils/ImageAvatar"
 import { Interweave } from "interweave"
 import { HashtagMatcher, UrlMatcher, UrlProps } from "interweave-autolink"
+import Link from "next/link"
 
 interface props {
   itinerario: Itinerary
@@ -40,7 +41,9 @@ export const ListComments: FC<props> = ({ itinerario, task, item, setConfirmatio
 
   const replacesLink: ComponentType<UrlProps> = (props) => {
     return (
-      <b><a className="text-xs break-all underline" href={props?.url} target="_blank">{props?.children}</a></b>
+      <Link href={props?.url}>
+        <a className="text-xs break-all underline" target="_blank"  >{props?.children}</a>
+      </Link>
     )
   };
 
