@@ -277,6 +277,13 @@ export const queries = {
         updatedAt
       }
       spectatorView
+      comments{
+        _id
+        comment
+        uid
+        createdAt
+      }
+      commentsViewers
       fecha_creacion
     }
   }`,
@@ -284,16 +291,50 @@ export const queries = {
   mutation  ( $eventID:String, $itinerarioID:String, $taskID:String  ) {
     deleteTask ( eventID:$eventID  itinerarioID:$itinerarioID  taskID:$taskID)
   }`,
+  createComment: `
+  mutation  ( $eventID:String, $itinerarioID:String, $taskID:String, $comment:String  ) {
+    createComment ( eventID:$eventID  itinerarioID:$itinerarioID  taskID:$taskID, comment:$comment){
+      _id
+      comment
+      uid
+      createdAt
+    }
+  }`,
+  deleteComment: `
+  mutation  ( $eventID:String, $itinerarioID:String, $taskID:String, $commentID:String  ) {
+    deleteComment ( eventID:$eventID  itinerarioID:$itinerarioID  taskID:$taskID, commentID:$commentID)
+  }`,
   createItinerario: `mutation ($eventID:String, $title:String, $dateTime:String, $tipo:String){
     createItinerario(eventID:$eventID, title:$title, dateTime:$dateTime, tipo:$tipo ){
       _id
       title
       tasks{
         _id
-        descripcion
         fecha
         hora
+        icon
+        descripcion
+        responsable
         duracion
+        tags
+        tips
+        estatus
+        attachments{
+          _id
+          name
+          url
+          size
+          createdAt
+          updatedAt
+        }
+        spectatorView
+        comments{
+          _id
+          comment
+          uid
+          createdAt
+        }
+        commentsViewers
       }
       tipo
     }
@@ -330,6 +371,13 @@ export const queries = {
             updatedAt
           }
           spectatorView
+          comments{
+            _id
+            comment
+            uid
+            createdAt
+          }
+          commentsViewers
           fecha_creacion
         }
         viewers
@@ -485,6 +533,8 @@ export const queries = {
           title
           value
         }
+        createdAt
+        updatedAt
       }
       estatus
       color
@@ -539,6 +589,13 @@ export const queries = {
             updatedAt
           }
           spectatorView
+          comments{
+            _id
+            comment
+            uid
+            createdAt
+          }
+          commentsViewers
         }
         viewers
         tipo
@@ -732,6 +789,8 @@ export const queries = {
           title
           value
         }
+        createdAt
+        updatedAt
       }
     }
   }`,
@@ -754,6 +813,8 @@ export const queries = {
           title
           value
         }
+        createdAt
+        updatedAt
       }
       estatus
       color
@@ -808,6 +869,13 @@ export const queries = {
             updatedAt
           }
           spectatorView
+          comments{
+            _id
+            comment
+            uid
+            createdAt
+          }
+          commentsViewers
         }
         viewers
         tipo

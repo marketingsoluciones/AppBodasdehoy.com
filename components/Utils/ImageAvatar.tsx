@@ -17,9 +17,8 @@ export const ImageAvatar: FC<props> = ({ user }) => {
 
   return (
     <div onMouseOver={() => {
-      console.log(user)
       setShowName(true)
-    }} onMouseOut={() => setShowName(false)} className="w-full h-full static">
+    }} onMouseOut={() => setShowName(false)} className="w-full h-full relative">
       {!!user?.photoURL
         ? <div className={`flex items-center justify-center text-white uppercase w-full h-full rounded-full overflow-hidden`}>
           <img src={user?.photoURL} className="rounded-full truncate overflow-hidden" />
@@ -35,7 +34,7 @@ export const ImageAvatar: FC<props> = ({ user }) => {
         </div>}
       {showName && <div style={{ right: 10, top: 30 }} className="absolute z-20 bg-black rounded-md flex items-center justify-center leading-[1.2] opacity-75">
         <span className="text-white text-[10px] py-1 px-2">
-          {user?.displayName ?? user.email}
+          {user?.displayName ? user?.displayName : user?.email}
         </span>
       </div>}
     </div>
