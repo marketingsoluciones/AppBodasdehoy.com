@@ -206,7 +206,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, ht, view, optionsItinerar
                         )}
                       </p>
                     </div>
-                    <div className="mb-2">
+                    {!["/itinerario"].includes(window?.location?.pathname) && <div className="mb-2">
                       <span>
                         Comentarios:
                       </span>
@@ -220,7 +220,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, ht, view, optionsItinerar
                           })}
                         </div>
                       </div>
-                    </div>
+                    </div>}
 
                     <ItineraryButtonBox optionsItineraryButtonBox={optionsItineraryButtonBox} values={task} itinerario={itinerario} />
                   </div>
