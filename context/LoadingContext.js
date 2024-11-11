@@ -11,7 +11,7 @@ const initialContext = {
 const LoadingContext = createContext(initialContext);
 
 const LoadingProvider = ({ children }) => {
-  const [isAllowedRouter] = useAllowedRouter()
+  const [isAllowedRouter, ht] = useAllowedRouter()
   const [loading, setLoading] = useState(true);
   return (
     <LoadingContext.Provider value={{ loading, setLoading }}>
@@ -27,8 +27,8 @@ export { LoadingContextProvider, LoadingProvider };
 
 const Redirection = () => {
   const router = useRouter()
-  useEffect(() => {
+  /* useEffect(() => {
     router.push("/")
-  }, [])
+  }, []) */
   return null
 }

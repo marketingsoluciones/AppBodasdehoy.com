@@ -87,6 +87,7 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
   });
 
   const initialValues = {
+   /*  tituloInvitado:"", */
     nombre: "",
     sexo: "hombre",
     grupo_edad: "adulto",
@@ -178,14 +179,14 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
                 {/* </div> */}
               </div>
               <div className="w-full md:grid md:grid-cols-4 items-center justify-center space-x-3">
-                <div className="col-span-1 hidden*">
+                {/* <div className="col-span-1 hidden*">
                   <SelectField
                     name={"tituloInvitado"}
                     label={t("titulo")}
                     options={titleInvitado}
                     nullable={true}
                   />
-                </div>
+                </div> */}
                 <div className="col-span-3">
 
                   <InputField

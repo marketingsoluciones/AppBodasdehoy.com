@@ -29,8 +29,10 @@ const Home: NextPage = () => {
   const [isMounted, setIsMounted] = useState<boolean>(false)
   const toast = useToast()
   const { t } = useTranslation()
+  console.log(11111,router.query)
+  
 
-  useEffect(() => {
+/*   useEffect(() => {
     if (!isMounted) {
       setIsMounted(true)
     }
@@ -56,7 +58,7 @@ const Home: NextPage = () => {
       setShowEditEvent(false)
       setValir(false)
     }
-  }, [showEditEvent, valirQuery, valir])
+  }, [showEditEvent, valirQuery, valir]) */
 
   if (verificationDone && eventsGroupDone) {
 
@@ -72,8 +74,11 @@ const Home: NextPage = () => {
         return <></>
       }
     }
-    /* Redireccion para la confirmacion de la asistencia */
+
+   
+    console.log(22222,router.query)
     if (router?.query?.pGuestEvent) {
+    console.log("entro")
       router.push(`/confirmar-asistencia?pGuestEvent=${router?.query?.pGuestEvent}`)
     }
 
@@ -81,11 +86,13 @@ const Home: NextPage = () => {
       router?.push(`/login`)
       return <></>
     }
+
     if (!user) {
       return (
         <VistaSinCookie />
       )
     }
+
     return (
       <>
         {shouldRenderChild && (
