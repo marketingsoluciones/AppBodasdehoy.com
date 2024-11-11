@@ -35,7 +35,7 @@ export const useAllowed = () => {
           return event?.permissions[f1].value === "edit"
         }
       }
-      return false
+      return true
     }
 
     const ht = () => {
