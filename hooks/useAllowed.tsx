@@ -70,10 +70,9 @@ export const useAllowedRouter = () => {
           return event?.permissions[f1].value !== "none"
         }
         else {
-          return false
+          return true
         }
       }
-
       return true
     }
     const ht = () => {
