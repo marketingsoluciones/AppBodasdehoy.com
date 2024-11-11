@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { ComponentType, FC } from "react";
 import { useEffect, useMemo, useState, } from "react";
 import { DotsOpcionesIcon, InvitacionesIcon, PencilEdit } from "../../icons";
 import useHover from "../../../hooks/useHover";
@@ -23,6 +23,9 @@ import { Itinerary, OptionsSelect } from "../../../utils/Interfaces";
 import { event } from "../../../gtas";
 import { AuthContextProvider, EventContextProvider } from "../../../context";
 import { ImageAvatar } from "../../Utils/ImageAvatar";
+import { Interweave } from "interweave";
+import { HashtagMatcher, UrlMatcher, UrlProps } from "interweave-autolink";
+import Link from "next/link";
 
 interface props {
   data?: any[],
@@ -102,6 +105,14 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
     }
   }
 
+  const replacesLink: ComponentType<UrlProps> = (props) => {
+    return (
+      <Link href={props?.url}>
+        <a className="text-xs break-all underline" target="_blank"  >{props?.children}</a>
+      </Link>
+    )
+  };
+
   const Columna = useMemo(
     () => [
       {
@@ -171,7 +182,14 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         Cell: (data) => {
           return (
             <div key={data.cell.row.id} className="w-full">
-              <div dangerouslySetInnerHTML={{ __html: data?.cell?.value }} />
+              <Interweave
+                className="text-xs flex-1 pr-4 break-words"
+                content={data?.cell?.value}
+                matchers={[
+                  new UrlMatcher('url', {}, replacesLink),
+                  new HashtagMatcher('hashtag')
+                ]}
+              />
             </div>
           )
         }

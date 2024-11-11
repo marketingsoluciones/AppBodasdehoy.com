@@ -35,7 +35,7 @@ export const useAllowed = () => {
           return event?.permissions[f1].value === "edit"
         }
       }
-      return false
+      return true
     }
 
     const ht = () => {
@@ -70,10 +70,9 @@ export const useAllowedRouter = () => {
           return event?.permissions[f1].value !== "none"
         }
         else {
-          return false
+          return true
         }
       }
-
       return true
     }
     const ht = () => {
