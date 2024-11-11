@@ -16,6 +16,8 @@ import { HashtagMatcher, UrlMatcher } from "interweave-autolink";
 import 'react-quill/dist/quill.snow.css'
 import { boolean } from "yup";
 import { ImageAvatar } from "../../Utils/ImageAvatar";
+import { InputComments } from "./InputComments"
+import { ListComments } from "./ListComments"
 
 interface props extends HTMLAttributes<HTMLDivElement> {
   itinerario: Itinerary
@@ -44,6 +46,8 @@ export const TaskNew: FC<props> = ({ itinerario, task, ht, view, optionsItinerar
     tips: !task?.tips ? "" : task?.tips,
     attachments: !task?.attachments ? [] : task?.attachments,
     spectatorView: task?.spectatorView,
+    comments: task.comments,
+    commentsViewers: task.commentsViewers
   }
 
   const handleBlurData = async (variable, valor) => {
@@ -202,6 +206,22 @@ export const TaskNew: FC<props> = ({ itinerario, task, ht, view, optionsItinerar
                         )}
                       </p>
                     </div>
+                    {!["/itinerario"].includes(window?.location?.pathname) && <div className="mb-2">
+                      <span>
+                        Comentarios:
+                      </span>
+                      <div className='border-gray-300 border-[1px] rounded-lg py-2'>
+                        <InputComments itinerario={itinerario} task={task} />
+                        <div className='w-[calc(100%)] flex flex-col-reverse rounded-lg'>
+                          {task?.comments?.map((elem, idx) => {
+                            return (
+                              <ListComments key={idx} itinerario={itinerario} task={task} item={elem} setConfirmation={() => { }} />
+                            )
+                          })}
+                        </div>
+                      </div>
+                    </div>}
+
                     <ItineraryButtonBox optionsItineraryButtonBox={optionsItineraryButtonBox} values={task} itinerario={itinerario} />
                   </div>
                 </div>

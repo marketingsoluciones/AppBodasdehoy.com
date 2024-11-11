@@ -38,9 +38,10 @@ export const UsuariosCompartidos = ({ event }) => {
                         )
                     })}
                 </>
-                : <div className="absolute z-20">
+                : <div style={{ right: 0 }} className="absolute z-20">
                     <div className="bg-gray-300 rounded-full w-7 h-7 flex items-center justify-center border relative">
                         <ImageAvatar user={event?.detalles_usuario_id} />
+                        <div className={`h-2.5 w-2.5 ${event?.detalles_usuario_id?.onLine?.status != false ? "bg-green" : "bg-none"} absolute rounded-full right-1 -bottom-1`} />
                     </div>
                 </div>
             }
