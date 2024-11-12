@@ -177,12 +177,13 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
                 <span onMouseOver={handleMouseOver} onMouseOut={handleMouseOut} className="inline-flex items-center space-x-1 cursor-pointer ">
                   <div className="w-8 h-8 rounded-full border-[1px] border-gray-300 relative">
                     <ImageAvatar user={userSelect} />
-                    <div className="absolute top-4 left-4 bg-primary rounded-full h-5 w-5 text-center text-white text-[10px] flex items-center justify-center">
+                    {data.cell.value.length > 1 &&
+                      <div className="absolute top-4 left-4 bg-primary rounded-full h-5 w-5 text-center text-white text-[10px] flex items-center justify-center">
                         {data.cell.value.length - 1}+
-                    </div>
+                      </div>}
                   </div>
                 </span>
-                { showModal && (
+                {showModal && (
                   <div className="absolute bg-white p-2 rounded-md space-y-1 shadow-md top-16 transition-all delay-75 ">
                     {data?.cell?.value?.map((elem, idx) => {
                       const userSelect = GruposResponsablesArry.find(el => {

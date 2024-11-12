@@ -120,12 +120,12 @@ const FormTask: FC<propsFormTask> = ({ showEditTask, setShowEditTask, itinerario
                 type="text"
               />
               <div className="w-full flex space-x-2">
-              <InputField
-                name="fecha"
-                label={t("Fecha")}
-                type="date"
-                deleted={window?.location?.pathname === "/servicios"}
-              />
+                <InputField
+                  name="fecha"
+                  label={t("Fecha")}
+                  type="date"
+                  deleted={window?.location?.pathname === "/servicios"}
+                />
                 <InputField
                   name="hora"
                   label={t("Hora")}
