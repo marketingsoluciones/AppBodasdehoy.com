@@ -141,7 +141,7 @@ export const ResponsableSelector: FC<props> = ({ disable, handleChange, ...props
                                                 ? usersList.find((elem) => elem?.displayName === item).photoURL
                                                 : "/placeholder/user.png"
                                     } className=" w-6  h-6 rounded-full overflow-hidden truncate  " />
-                                    <span className={`text-sm flex-1 ${usersList.findIndex((elem) => elem?.displayName === item) < 0 && "line-through"}`}>{item}</span>
+                                    <span className={`text-sm flex-1 ${usersList.findIndex((elem) => elem?.displayName === item) < 0 && GruposResponsablesArry.findIndex((elem)=> elem?.title === item) < 0 && "line-through"}`}>{item}</span>
                                     <div onClick={() => {
                                         field.value.splice(field.value.findIndex(el => el === item), 1)
                                         helpers.setValue([...field.value])
