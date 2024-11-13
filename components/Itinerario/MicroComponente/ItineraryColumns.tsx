@@ -144,11 +144,13 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         Header: `${t("duración")}`,
         accessor: "duracion",
         id: "duration",
-        Cell: (data) => (
-          <div key={data.cell.row.id} className="flex w-full justify-center items-center">
-            {data.cell.value} min
-          </div>
-        )
+        Cell: (data) => {
+          return (
+            <div key={data.cell.row.id} className="flex w-full justify-center items-center">
+              {data.cell.value } { data.cell.value != null  && "min"}
+            </div>
+          )
+        }
       },
       {
         Header: t("responsables"),
