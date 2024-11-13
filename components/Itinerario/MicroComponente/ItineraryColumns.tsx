@@ -273,7 +273,7 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         }
       },
       {
-        Header: t("eqiquetas"),
+        Header: t("etiquetas"),
         accessor: "tags",
         id: "tags",
         Cell: (data) => (
