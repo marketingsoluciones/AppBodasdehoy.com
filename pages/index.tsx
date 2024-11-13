@@ -29,36 +29,34 @@ const Home: NextPage = () => {
   const [isMounted, setIsMounted] = useState<boolean>(false)
   const toast = useToast()
   const { t } = useTranslation()
-  console.log(11111,router.query)
-  
 
-/*   useEffect(() => {
-    if (!isMounted) {
-      setIsMounted(true)
-    }
-    return () => {
-      if (isMounted) {
-        setIsMounted(false)
+  /*   useEffect(() => {
+      if (!isMounted) {
+        setIsMounted(true)
       }
-    }
-  }, [isMounted])
-
-  useEffect(() => {
-    if (router.query?.c === "true") {
-      setValirQuery(true)
-    }
-  }, [router.query])
-
-  useEffect(() => {
-    if (showEditEvent && !valirQuery && !valir) {
-      setValirQuery(true)
-      setValir(true)
-    }
-    if (showEditEvent && !valirQuery && valir) {
-      setShowEditEvent(false)
-      setValir(false)
-    }
-  }, [showEditEvent, valirQuery, valir]) */
+      return () => {
+        if (isMounted) {
+          setIsMounted(false)
+        }
+      }
+    }, [isMounted])
+  
+    useEffect(() => {
+      if (router.query?.c === "true") {
+        setValirQuery(true)
+      }
+    }, [router.query])
+  
+    useEffect(() => {
+      if (showEditEvent && !valirQuery && !valir) {
+        setValirQuery(true)
+        setValir(true)
+      }
+      if (showEditEvent && !valirQuery && valir) {
+        setShowEditEvent(false)
+        setValir(false)
+      }
+    }, [showEditEvent, valirQuery, valir]) */
 
   if (verificationDone && eventsGroupDone) {
 
@@ -75,10 +73,8 @@ const Home: NextPage = () => {
       }
     }
 
-   
-    console.log(22222,router.query)
     if (router?.query?.pGuestEvent) {
-    console.log("entro")
+      console.log("entro")
       router.push(`/confirmar-asistencia?pGuestEvent=${router?.query?.pGuestEvent}`)
     }
 
@@ -92,7 +88,7 @@ const Home: NextPage = () => {
         <VistaSinCookie />
       )
     }
-
+    setLoading(false)
     return (
       <>
         {shouldRenderChild && (
