@@ -130,18 +130,18 @@ export const ResponsableSelector: FC<props> = ({ disable, handleChange, ...props
                         : <div onClick={() => disable ? ht() : setOpenResponsableList(!openResponsableList)} className="bg-violet-500 h-full rounded-full flex cursor-pointer text-gray-600 hover:text-gray-800 ">
                             <AddUser className="w-10 md:w-8 lg:w-10 h-10 md:h-8 lg:h-10 bg-white" />
                         </div>
-                    : <p className="text-gray-900 leading-[0.8] border-[1px] w-full">
+                    : <p className="text-gray-900 leading-[0.8] border-[1px] rounded-md w-full p-1">
                         {field?.value?.map((item, idx) => {
                             return (
-                                < div key={idx} className="flex space-x-1 px-1 py-2 md:py-1 hover:bg-gray-200">
+                                < div key={idx} className="flex items-center space-x-1 px-1 py-2 md:py-1 hover:bg-gray-200 overflow-hidden rounded-full truncate ">
                                     <img src={
                                         GruposResponsablesArry?.find((elem) => elem?.title === item)?.icon
                                             ? GruposResponsablesArry.find((elem) => elem?.title === item).icon
                                             : usersList.find((elem) => elem?.displayName === item)?.photoURL
                                                 ? usersList.find((elem) => elem?.displayName === item).photoURL
                                                 : "/placeholder/user.png"
-                                    } className="w-6 rounded-full " />
-                                    <span className={`text-sm flex-1 ${usersList.findIndex((elem) => elem?.displayName === item) < 0 && "line-through"}`}>{item}</span>
+                                    } className=" w-6  h-6 rounded-full overflow-hidden truncate  " />
+                                    <span className={`text-sm flex-1 ${usersList.findIndex((elem) => elem?.displayName === item) < 0 && GruposResponsablesArry.findIndex((elem)=> elem?.title === item) < 0 && "line-through"}`}>{item}</span>
                                     <div onClick={() => {
                                         field.value.splice(field.value.findIndex(el => el === item), 1)
                                         helpers.setValue([...field.value])
@@ -159,7 +159,7 @@ export const ResponsableSelector: FC<props> = ({ disable, handleChange, ...props
                                     : setOpenResponsableList(!openResponsableList)
                             }}
                             className="cursor-pointer">
-                            <div className="flex items-center gap-2 m-2 mt-3">
+                            <div className="flex items-center gap-2 m-2 mt-3*">
                                 <span className="text-sm select-none">Agregar resposable</span>
                                 <PlusIcon className="w-4 h-4 text-primary cursor-pointer" />
                             </div>

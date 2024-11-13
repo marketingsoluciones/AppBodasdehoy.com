@@ -460,7 +460,6 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
         setLoading(true);
     }, [value3]);
 
-    console.log(4444, idGuest)
 
     return (
         <>
@@ -472,7 +471,7 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                 guestData.length > 0 && guestData?.map((item, idx) => {
                     return (
                         <>
-                            <div key={idx} className={`hover:bg-gray-200 ${showModalAcompañante2.state && showModalAcompañante2.id === item._id ? "bg-gray-200" : ""}  bg-gray-100 my-2 mx-2 rounded-md grid grid-cols-6 relative `}>
+                            <div key={idx+1} className={`hover:bg-gray-200 ${showModalAcompañante2.state && showModalAcompañante2.id === item._id ? "bg-gray-200" : ""}  bg-gray-100 my-2 mx-2 rounded-md grid grid-cols-6 relative `}>
                                 <div className=" pt-2 pl-2 justify-self-center relative col-span-1 h-max ">
                                     <img
                                         className="block w-10 h-10 mr-2"

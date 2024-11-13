@@ -34,17 +34,17 @@ export const InputTags: FC<props> = ({ label, ...props }) => {
         />
         <button type="button" onClick={() => handleAddTags()} className="rounded-xl bg-primary px-2 h-8 text-white text-sm hover:font-bold">Añadir etiqueta</button>
       </div>
-      {!!field?.value?.length && <p className="border-[1px] space-y-1 p-1 text-gray-700 ">
+      {!!field?.value?.length && <p className="border-[1px] rounded-md space-y-1 p-1 text-gray-700 ">
         {field.value.map((elem, idx) =>
-          <div key={idx} className="inline-flex mx-1 bg-gray-200 px-2 py-1 md:py-0 rounded-sm space-x-2 items-center">
-            <span>
+          <div key={idx} className="inline-flex mx-1 bg-gray-200 px-2 py-1 md:py-0 rounded-[4px] space-x-2 items-center">
+            <span className="h-full">
               {elem}
             </span>
             <MdClose onClick={() => {
               const f1 = field.value.findIndex(el => el === elem)
               field.value.splice(f1, 1)
               helpers.setValue([...field.value])
-            }} className="hover:text-gray-500 cursor-pointer" />
+            }} className="hover:text-gray-500 cursor-pointer h-5" />
           </div>
         )}
       </p>}

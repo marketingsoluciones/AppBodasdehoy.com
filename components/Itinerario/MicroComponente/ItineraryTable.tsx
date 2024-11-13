@@ -14,11 +14,11 @@ export const ItineraryTable: FC<any> = ({ columns, data = [], selectTask, setSel
 
   const colSpan = {
     description: 10,
-    duration: 3,
-    date: 5,
-    responsables: 6,
-    tips: 8,
-    attachments: 9,
+    duration: 5,
+    date: 4,
+    responsables: 5,
+    tips: 9,
+    attachments: 8,
     tags: 5,
     selection: 2
   };
@@ -40,7 +40,7 @@ export const ItineraryTable: FC<any> = ({ columns, data = [], selectTask, setSel
                   return (
                     <th
                       {...column.getHeaderProps(column.getSortByToggleProps())}
-                      className={`leading-[1] px-6 py-1 md:py-2 text-center flex justify-center items-center text-xs font-light font-display col-span-${colSpan[column.id]
+                      className={`leading-[1] px-1 py-1 md:py-3 text-center flex justify-center items-center text-xs font-light font-display col-span-${colSpan[column.id]
                         }`}
                       key={id}
                     >
@@ -64,7 +64,7 @@ export const ItineraryTable: FC<any> = ({ columns, data = [], selectTask, setSel
               <tr
                 {...row.getRowProps()}
                 key={i}
-                className={`${selectTask === row.original._id ? "bg-gray-100" : "bg-white"} w-full border-b font-display grid grid-cols-48`}
+                className={`${selectTask === row.original._id ? "bg-slate-50" : "bg-white"} w-full border-b font-display grid grid-cols-48`}
                 onClick={() => setSelectTask(row.original?._id)}
               >
                 {row.cells.map((cell, i) => {

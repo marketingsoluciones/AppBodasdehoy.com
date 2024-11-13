@@ -99,11 +99,11 @@ const InputAttachments: FC<Partial<props>> = ({ label, task, itinerarioID, class
   return (
     <div className="w-full h-max relative">
       <label className={`capitalize font-display text-primary text-sm w-full inline-flex`}>{label} <IoIosAttach className="w-4 h-5 text-gray-600" /> </label>
-      <div className="w-full relative">
-        <div className={`border-[1px] border-gray-300 hover:scale-120 transform flex items-center gap-1`} >
+      <div className="w-full relative ">
+        <div className={`border-[1px] border-gray-300 flex items-center gap-1`} >
           <p className="bg-white w-full py-2 text-gray-900 p-1">
             {!!field?.value?.length && [...field?.value]?.map((elem, idx) =>
-              <div key={idx} className="flex ml-2 mt-1 px-2 py-1 md:py-0 items-center leading-[1.2] space-x-1 border-[1px] bg-gray-200 rounded-sm">
+              <div key={idx} className="flex ml-2 mt-1 px-2 py-1 md:py-0 items-center leading-[1.2] space-x-1 border-[1px] rounded-[4px] bg-gray-200 ">
                 <span className="flex-1 text-[13px] truncate">{elem?.name}</span>
                 <span className="text-[11px] font-semibold">({Math.trunc(elem.size / 1024)} K)</span>
                 {elem?._id

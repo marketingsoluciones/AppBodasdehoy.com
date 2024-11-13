@@ -130,6 +130,7 @@ export interface detalle_compartidos_array {
     owner?: boolean
     createdAt?: Date
     updatedAt?: Date
+    icon?:any
 }
 
 interface estimate {

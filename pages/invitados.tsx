@@ -34,7 +34,7 @@ const Invitados: FC = () => {
   }
 
   useEffect(() => {
-      setView(viewPreferUser)
+    setView(viewPreferUser)
 
   }, [viewPreferUser]);
 
@@ -87,9 +87,11 @@ const Invitados: FC = () => {
                 )
               }
             })()}
-            {/* {formShow == "invitado"
-              ? <FormInvitado state={isMounted} set={setIsMounted} />
-              : <FormCrearGrupo state={isMounted} set={setIsMounted} />} */}
+            {
+              /* {formShow == "invitado"
+                ? <FormInvitado state={isMounted} set={setIsMounted} />
+                : <FormCrearGrupo state={isMounted} set={setIsMounted} />} */
+            }
           </ModalLeft>
         )}
         {event &&

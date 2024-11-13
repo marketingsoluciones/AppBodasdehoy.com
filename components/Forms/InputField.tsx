@@ -127,7 +127,7 @@ const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled =
           </>
         }
         {props?.type != "tel"
-          ? <input id={props?.type} autoFocus={props?.type === "telefono"} disabled={!isAllowed() || disabled} className={`${props?.type === "telefono" && "pl-14"} font-display text-sm text-gray-500 border-[1px] ${(props?.type !== "tel" ? true : meta.touched) && meta.error ? "border-rose-300" : "border-gray-200"} focus:border-gray-400 w-full py-2 px-4 rounded-xl focus:ring-0 focus:outline-none transition ${className}`} {...field} {...props} type={props?.type === "telefono" ? "tel" : props?.type} />
+          ? <input id={props?.type} /* autoFocus={props?.type === "telefono"} */ disabled={!isAllowed() || disabled} className={`${props?.type === "telefono" && "pl-14"} font-display text-sm text-gray-500 border-[1px] ${(props?.type !== "tel" ? true : meta.touched) && meta.error ? "border-rose-300" : "border-gray-200"} focus:border-gray-400 w-full py-2 px-4 rounded-xl focus:ring-0 focus:outline-none transition ${className}`} {...field} {...props} type={props?.type === "telefono" ? "tel" : props?.type} />
           : <div onBlur={() => helpers.setTouched(true)} >
           </div>
         }
