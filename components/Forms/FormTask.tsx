@@ -26,11 +26,16 @@ const FormTask: FC<propsFormTask> = ({ showEditTask, setShowEditTask, itinerario
   const { event, setEvent } = EventContextProvider();
   const toast = useToast()
   const [isAllowedRouter, ht] = useAllowedRouter()
-  console.log(100049, showEditTask.values.fecha, new Date(showEditTask?.values.fecha))
+
+  const f = new Date(showEditTask?.values?.fecha)
+  const y = f.getFullYear()
+  const m = f.getMonth() + 1
+  const d = f.getDate()
+
   const initialValues: TaskDateTimeAsString = {
     ...showEditTask?.values,
-    fecha: showEditTask?.values?.fecha ? new Date(showEditTask?.values.fecha).toISOString().split('T')[0] : undefined,
-    hora: showEditTask?.values?.fecha ? new Date(showEditTask?.values.fecha).toTimeString().split(' ')[0] : undefined,
+    fecha: f ? `${y}-${m < 10 ? "0" : ""}${m}-${d < 10 ? "0" : ""}${d}` : undefined,
+    hora: f ? f.toTimeString().split(' ')[0] : undefined,
   }
 
   const handleSubmit = async (values: any, actions: any) => {
@@ -119,13 +124,13 @@ const FormTask: FC<propsFormTask> = ({ showEditTask, setShowEditTask, itinerario
                 label={t("name")}
                 type="text"
               />
+              <InputField
+                name="fecha"
+                label={t("Fecha")}
+                type="date"
+                deleted={window?.location?.pathname === "/servicios"}
+              />
               <div className="w-full flex space-x-2">
-                <InputField
-                  name="fecha"
-                  label={t("Fecha")}
-                  type="date"
-                  deleted={window?.location?.pathname === "/servicios"}
-                />
                 <InputField
                   name="hora"
                   label={t("Hora")}
