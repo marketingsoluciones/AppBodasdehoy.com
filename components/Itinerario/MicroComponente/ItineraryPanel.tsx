@@ -237,7 +237,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                                         key={idx}
                                         task={elem}
                                         itinerario={itinerario}
-                                        ht={ht}
                                         view={view}
                                         optionsItineraryButtonBox={optionsItineraryButtonBox}
                                         isSelect={selectTask === elem._id}

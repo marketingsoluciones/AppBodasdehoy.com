@@ -349,11 +349,13 @@ export const queries = {
   getItinerario: ` query($evento_id:String, $itinerario_id:String){
     getItinerario(evento_id:$evento_id, itinerario_id:$itinerario_id){
       nombre
+      tipo
       itinerarios_array{
         _id
         title
         tasks{
           _id
+          fecha
           hora
           icon
           descripcion
