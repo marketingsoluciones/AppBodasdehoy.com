@@ -339,6 +339,10 @@ export const queries = {
       tipo
     }
   }`,
+  generatePdf: `
+  mutation  ( $url:String, $nameFile:String, ) {
+    generatePdf ( url:$url,  nameFile:$nameFile)
+  }`,
   editItinerario: `mutation ($eventID:String, $itinerarioID:String, $variable:String, $valor:String){
     editItinerario(eventID:$eventID itinerarioID:$itinerarioID, variable:$variable, valor:$valor )
   }`,
@@ -349,11 +353,13 @@ export const queries = {
   getItinerario: ` query($evento_id:String, $itinerario_id:String){
     getItinerario(evento_id:$evento_id, itinerario_id:$itinerario_id){
       nombre
+      tipo
       itinerarios_array{
         _id
         title
         tasks{
           _id
+          fecha
           hora
           icon
           descripcion

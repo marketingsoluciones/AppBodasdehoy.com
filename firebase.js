@@ -151,6 +151,7 @@ export const developments = [
     cookie: "sessionChampagne-events",
     domain: ".champagne-events.com.mx",
     cookieGuest: "guestchampagne-events",
+    pathApp: "https://app.champagne-events.com.mx/",
     pathDomain: "https://www.champagne-events.com.mx/",
     pathLogin: "",
     pathDirectory: "champagne-events.com.mx",

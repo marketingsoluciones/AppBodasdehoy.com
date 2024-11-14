@@ -22,13 +22,12 @@ import { ListComments } from "./ListComments"
 interface props extends HTMLAttributes<HTMLDivElement> {
   itinerario: Itinerary
   task: Task
-  ht: any
   view: ViewItinerary
-  optionsItineraryButtonBox: OptionsSelect[]
-  isSelect: boolean
+  optionsItineraryButtonBox?: OptionsSelect[]
+  isSelect?: boolean
 }
 
-export const TaskNew: FC<props> = ({ itinerario, task, ht, view, optionsItineraryButtonBox, isSelect, ...props }) => {
+export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryButtonBox, isSelect, ...props }) => {
   const { config, geoInfo, user } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
   const toast = useToast()
