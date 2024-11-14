@@ -202,7 +202,7 @@ const AuthProvider = ({ children }) => {
       const idx = c?.findIndex(el => el === "com")
       /* console.log("isProduction:", idx) */
       /*--------------------------------------------------------------------*/
-      const devDomain = ["bodasdehoy", "eventosplanificador", "eventosorganizador", "vivetuboda", "champagne-events"]
+      const devDomain = ["bodasdehoy", "eventosplanificador", "eventosorganizador", "vivetuboda", "champagne-events", "annloevents"]
       const devSubdomain = [undefined, "invitado", "ticket"]
       const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[4] /*<<<<<<<<<*/
       const subdomainDevelop = idx === -1 && devSubdomain[0] /*<<<<<<<<<*/

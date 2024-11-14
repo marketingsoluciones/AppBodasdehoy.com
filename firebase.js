@@ -46,6 +46,15 @@ const firebaseConfigChampagneEvents = {
   appId: "1:70019683977:web:10648516be16afd5879858",
   measurementId: "G-8X6QVM9165"
 };
+const firebaseConfigAnnloevents = {
+  apiKey: "AIzaSyC9mUmQ_wiIu-itBfgSlVNLdzRcZbjI3MM",
+  authDomain: "annloevents-app.firebaseapp.com",
+  projectId: "annloevents-app",
+  storageBucket: "annloevents-app.firebasestorage.app",
+  messagingSenderId: "204540888172",
+  appId: "1:204540888172:web:2f174c646cb822116f0449",
+  measurementId: "G-4W4VHN7TVN"
+};
 
 export const developments = [
   {
@@ -155,7 +164,7 @@ export const developments = [
     pathLogin: "",
     pathDirectory: "champagne-events.com.mx",
     logoDirectory: <img className="hover:opacity-80 transition text-primary" src="https://i.ibb.co/Nsr8LgX/cropped-Logo-Gray-Champagne-1.png" />,
-    headTitle: "Champagne Event Planner",
+    headTitle: "App Champagne Event Planner",
     favicon: "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://champagne-events.com.mx/en/destination-weddings&size=16",
     theme: {
       primaryColor: "#ecb290",
@@ -163,6 +172,27 @@ export const developments = [
       tertiaryColor: "#dadbdb",
       baseColor: "#fafae4",
       colorScroll: "#f4d7c5"
+    },
+  },
+  {
+    name: "annloevents",
+    development: "annloevents",
+    fileConfig: firebaseConfigAnnloevents,
+    cookie: "sessionAnnloevents",
+    domain: ".annloevents.com",
+    cookieGuest: "guestannloevents",
+    pathDomain: "https://www.annloevents.com/",
+    pathLogin: "",
+    pathDirectory: "annloevents.com",
+    logoDirectory: <img className="hover:opacity-80 transition text-primary" src="https://i.ibb.co/R6by86b/logotipo-annlo-events.png" />,
+    headTitle: "Planificador Ann Lo Events",
+    favicon: "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://annloevents.com&size=16",
+    theme: {
+      primaryColor: "#DB8686",
+      secondaryColor: "#d07a49",
+      tertiaryColor: "#c8c4c2",
+      baseColor: "#fdf3ef",
+      colorScroll: "#f4cdc5"
     },
   },
 ]
