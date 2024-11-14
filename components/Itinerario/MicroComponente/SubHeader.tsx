@@ -38,6 +38,7 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
     const { t } = useTranslation();
     const [modal, setModal] = useState<Modal>({ state: false, title: null, handle: () => { } })
     const [isAllowed, ht] = useAllowed()
+    const [loading, setLoading] = useState<boolean>()
 
     useEffect(() => {
         setTitle(itinerario?.title)
@@ -45,15 +46,28 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
 
     const downloadPdf = async () => {
         try {
-            const result = fetchApiEventos({
+            console.log(`${window.location.origin}/event/itinerary-${event._id}-${itinerario._id}`)
+            setLoading(true)
+            const nameFile = `${event.nombre} ${itinerario.title}`.replace(/ /g, "_")
+            const result = await fetchApiEventos({
                 query: queries.generatePdf,
                 variables: {
-                    url: `${config.pathApp}event/itinerary-${event._id}-${itinerario._id}`,
-                    nameFile: `${event.nombre}-${itinerario.title}`
+                    url: `${window.location.origin}/event/itinerary-${event._id}-${itinerario._id}`,
+                    nameFile
                 },
                 domain: config.domain
             })
             console.log(result)
+            if (result) {
+                setLoading(false)
+                const link = document.createElement('a');
+                link.href = result as string;
+                link.download = nameFile;
+                link.target = '_blank';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
         } catch (error) {
             console.log(error)
         }
@@ -90,7 +104,12 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
                             {/* <SelectModeView value={view} setValue={setView} /> */}
                         </div>
                     </div>
-                    : <GrDocumentPdf onClick={() => downloadPdf()} className="w-5 h-5 text-gray-700 cursor-pointer" />
+                    : <div onClick={() => downloadPdf()} className="bg-gray-100 hover:bg-gray-200 w-10 h-10 rounded-full absolute flex justify-center items-center right-6 cursor-pointer">
+                        <GrDocumentPdf className="w-5 h-5 text-primary" />
+                        {loading && <div className="fixed top-0 left-0 w-[100vw] h-[100vh] flex items-center justify-center">
+                            < div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4" />
+                        </div>}
+                    </div>
                 }
             </div>
             <div className="flex flex-col justify-center items-center">
@@ -105,6 +124,33 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
                 }
                 <div className="w-[100px] bg-primary h-0.5 rounded-md mt-2" />
             </div>
+            <style jsx>
+                {`
+                    .loader {
+                        border-top-color:  ${config?.theme?.primaryColor};
+                        -webkit-animation: spinner 1.5s linear infinite;
+                        animation: spinner 1.5s linear infinite;
+                    }
+
+                    @-webkit-keyframes spinner {
+                        0% {
+                        -webkit-transform: rotate(0deg);
+                        }
+                        100% {
+                        -webkit-transform: rotate(360deg);
+                        }
+                    }
+
+                    @keyframes spinner {
+                        0% {
+                        transform: rotate(0deg);
+                        }
+                        100% {
+                        transform: rotate(360deg);
+                        }
+                    }
+                `}
+            </style>
         </div >
     )
 }

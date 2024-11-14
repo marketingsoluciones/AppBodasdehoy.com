@@ -23,10 +23,17 @@ interface TaskReduce {
 
 
 const Slug: FC<props> = (props) => {
-  console.log(1001112, props.evento)
   const { t } = useTranslation()
   const event = props.evento
   const { geoInfo } = AuthContextProvider()
+  const [end, setEnd] = useState(false)
+
+  useEffect(() => {
+    setTimeout(() => {
+      setEnd(true)
+    }, 2000);
+  }, [])
+
 
   const tasksReduce: TaskReduce[] = event?.itinerarios_array[0].tasks.reduce((acc: TaskReduce[], item: Task) => {
     const f = new Date(item.fecha)
@@ -104,12 +111,7 @@ const Slug: FC<props> = (props) => {
           </div>
         )
         }
-        {/* {createPdf
-                        ? <Modal openIcon={createPdf} setOpenIcon={setCreatePdf} classe={"h-[50%] w-[85%]"} >
-                            <MyDocument IterArryst={IterArryst} />
-                        </Modal>
-                        : null
-                    } */}
+        {end && <span id="elementControl" className="text-xs">~</span>}
       </motion.div>
     </section>
   )
@@ -120,12 +122,10 @@ export default Slug;
 
 export async function getServerSideProps({ params }) {
   try {
-    console.log(params)
     const p = params?.slug[0]?.split("-")
     const recurse = p[0]
     const evento_id = p[1]
     const itinerario_id = p[2]
-    console.log({ recurse, evento_id, itinerario_id })
 
     const evento = await fetchApiEventos({
       query: queries.getItinerario,
@@ -135,13 +135,10 @@ export async function getServerSideProps({ params }) {
       }
     })
 
-    console.log(1001110, evento)
-
     return {
       props: { ...params, evento },
     };
   } catch (error) {
-    console.log(1001111, error.response.data)
     return {
       props: params,
     };
