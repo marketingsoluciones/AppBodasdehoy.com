@@ -144,11 +144,13 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         Header: `${t("duración")}`,
         accessor: "duracion",
         id: "duration",
-        Cell: (data) => (
-          <div key={data.cell.row.id} className="flex w-full justify-center items-center">
-            {data.cell.value} min
-          </div>
-        )
+        Cell: (data) => {
+          return (
+            <div key={data.cell.row.id} className="flex w-full justify-center items-center">
+              {data.cell.value} {!!data.cell.value && "min"}
+            </div>
+          )
+        }
       },
       {
         Header: t("responsables"),
@@ -173,8 +175,8 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
 
           if (data.cell.value.length > 0) {
             return (
-              <div className="w-full relative flex items-center justify-center">
-                <span onMouseOver={handleMouseOver} onMouseOut={handleMouseOut} className="inline-flex items-center space-x-1 cursor-pointer ">
+              <div className="w-full relative flex flex-col items-start justify-center">
+                {/*  <span onMouseOver={handleMouseOver} onMouseOut={handleMouseOut} className="inline-flex items-center space-x-1 cursor-pointer ">
                   <div className="w-8 h-8 rounded-full border-[1px] border-gray-300 relative">
                     <ImageAvatar user={userSelect} />
                     {data.cell.value.length > 1 &&
@@ -204,25 +206,26 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
                       )
                     })}
                   </div>
-                )}
+                )} */}
 
-                {/* {data?.cell?.value?.map((elem, idx) => {
+                {data?.cell?.value?.map((elem, idx) => {
                   const userSelect = GruposResponsablesArry.find(el => {
                     return el.title.toLowerCase() === elem?.toLowerCase()
                   }) ?? [user, event?.detalles_usuario_id, ...event.detalles_compartidos_array].find(el => {
                     return el?.displayName?.toLowerCase() === elem?.toLowerCase()
                   })
+                  console.log(222, userSelect)
                   return (
-                    <span key={idx}  className="inline-flex items-center space-x-1">
+                    <span key={idx} className="inline-flex items-center space-x-1">
                       <div className="w-6 h-6 rounded-full border-[1px] border-gray-300">
                         <ImageAvatar user={userSelect} />
                       </div>
                       <span className={`flex-1 ${!userSelect && "line-through"}`}>
-                            {elem}
-                          </span>
+                        {!userSelect ? elem : userSelect.displayName ? userSelect.displayName : userSelect.email}
+                      </span>
                     </span>
                   )
-                })} */}
+                })}
 
               </div>
 
