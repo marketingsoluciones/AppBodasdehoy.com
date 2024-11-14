@@ -147,7 +147,7 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         Cell: (data) => {
           return (
             <div key={data.cell.row.id} className="flex w-full justify-center items-center">
-              {data.cell.value} {data.cell.value != null && "min"}
+              {data.cell.value} {!!data.cell.value && "min"}
             </div>
           )
         }
@@ -221,7 +221,7 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
                         <ImageAvatar user={userSelect} />
                       </div>
                       <span className={`flex-1 ${!userSelect && "line-through"}`}>
-                        {!userSelect ? elem : userSelect.displayName? userSelect.displayName : userSelect.email}
+                        {!userSelect ? elem : userSelect.displayName ? userSelect.displayName : userSelect.email}
                       </span>
                     </span>
                   )
