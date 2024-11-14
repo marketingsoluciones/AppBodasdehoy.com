@@ -13,6 +13,7 @@ import { useToast } from "../../../hooks/useToast";
 import { FaCheck } from "react-icons/fa";
 import { useAllowed } from "../../../hooks/useAllowed";
 import { ViewItinerary } from "../../../pages/invitados";
+import { GrDocumentPdf } from "react-icons/gr";
 
 interface props {
     itinerario: Itinerary
@@ -42,6 +43,22 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
         setTitle(itinerario?.title)
     }, [itinerario])
 
+    const downloadPdf = async () => {
+        try {
+            const result = fetchApiEventos({
+                query: queries.generatePdf,
+                variables: {
+                    url: `${config.pathApp}event/itinerary-${event._id}-${itinerario._id}`,
+                    nameFile: `${event.nombre}-${itinerario.title}`
+                },
+                domain: config.domain
+            })
+            console.log(result)
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
     return (
         <div className="w-full px-4 md:px-10 py-4" >
             {modal.state && <Modal set={setModal} classe={"w-[95%] md:w-[450px] h-[200px]"}>
@@ -64,13 +81,17 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
                         <span className="text-primary">{disable ? t("reading") : t("edition")}</span>
                     </div> */}
                 </div>
-                {view !== "schema" && <div className="flex flex-col w-1/2 text-xs md:text-[14px] justify-end items-end space-y-1">
-                    <div className={`flex ${isAllowed() ? "text-gray-700" : "text-gray-300"} space-x-2`}>
-                        <PencilEdit onClick={() => !isAllowed() ? ht() : setEditTitle(!editTitle)} className="w-5 h-5 cursor-pointer" />
-                        <MdOutlineDeleteOutline onClick={() => !isAllowed() ? ht() : handleDeleteItinerario()} className="w-5 h-5 curso cursor-pointer" />
-                        {/* <SelectModeView value={view} setValue={setView} /> */}
+
+                {view !== "schema"
+                    ? <div className="flex flex-col w-1/2 text-xs md:text-[14px] justify-end items-end space-y-1">
+                        <div className={`flex ${isAllowed() ? "text-gray-700" : "text-gray-300"} space-x-2`}>
+                            <PencilEdit onClick={() => !isAllowed() ? ht() : setEditTitle(!editTitle)} className="w-5 h-5 cursor-pointer" />
+                            <MdOutlineDeleteOutline onClick={() => !isAllowed() ? ht() : handleDeleteItinerario()} className="w-5 h-5 curso cursor-pointer" />
+                            {/* <SelectModeView value={view} setValue={setView} /> */}
+                        </div>
                     </div>
-                </div>}
+                    : <GrDocumentPdf onClick={() => downloadPdf()} className="w-5 h-5 text-gray-700 cursor-pointer" />
+                }
             </div>
             <div className="flex flex-col justify-center items-center">
                 {!editTitle

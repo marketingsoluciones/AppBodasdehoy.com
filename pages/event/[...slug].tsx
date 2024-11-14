@@ -104,8 +104,6 @@ const Slug: FC<props> = (props) => {
           </div>
         )
         }
-
-
         {/* {createPdf
                         ? <Modal openIcon={createPdf} setOpenIcon={setCreatePdf} classe={"h-[50%] w-[85%]"} >
                             <MyDocument IterArryst={IterArryst} />

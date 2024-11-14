@@ -339,6 +339,10 @@ export const queries = {
       tipo
     }
   }`,
+  generatePdf: `
+  mutation  ( $url:String, $nameFile:String, ) {
+    generatePdf ( url:$url,  nameFile:$nameFile)
+  }`,
   editItinerario: `mutation ($eventID:String, $itinerarioID:String, $variable:String, $valor:String){
     editItinerario(eventID:$eventID itinerarioID:$itinerarioID, variable:$variable, valor:$valor )
   }`,
