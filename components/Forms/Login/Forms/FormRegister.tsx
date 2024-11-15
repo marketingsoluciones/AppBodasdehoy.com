@@ -17,6 +17,7 @@ import * as yup from "yup";
 import { useActivity } from '../../../../hooks/useActivity';
 import InputField from '../../InputField';
 import { useTranslation } from 'react-i18next';
+import { displayName } from 'react-quill';
 
 interface initialValues {
   uid?: string
@@ -190,7 +191,8 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
             },
             development: config?.development
           }).then(async (moreInfo: any) => {
-            setUser({ ...UserFirebase, ...moreInfo });
+            console.log(100066, UserFirebase)
+            setUser({ ...UserFirebase, ...moreInfo, displayName: UserFirebase.reloadUserInfo.displayName });
             toast("success", t(`successfulsessionregistration`))
             updateActivity("registered")
             updateActivityLink("registered")
