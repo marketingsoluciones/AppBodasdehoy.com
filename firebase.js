@@ -56,6 +56,7 @@ const firebaseConfigAnnloevents = {
   measurementId: "G-4W4VHN7TVN"
 };
 
+
 export const developments = [
   {
     name: "bodasdehoy",
