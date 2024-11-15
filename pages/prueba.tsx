@@ -1,11 +1,11 @@
+import { InvitadosPDF } from "../components/Invitados/InvitadosPDF";
 
 const Prueba = () => {
 
 
   return (
     <>
-      hola
-      <input type="date" />
+     <InvitadosPDF/>
     </>
   );
 

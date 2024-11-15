@@ -11,6 +11,7 @@ import { AuthContextProvider, EventContextProvider } from "../../context";
 import { defaultImagenes } from "../../components/Home/Card";
 import { useTranslation } from "react-i18next";
 import { TaskNew } from "../../components/Itinerario/MicroComponente/TaskNew";
+import { ItinerarioPDF } from "../../components/Itinerario/MicroComponente/ItinerarioPDF";
 
 interface props {
   evento: Event
@@ -23,7 +24,14 @@ interface TaskReduce {
 
 
 const Slug: FC<props> = (props) => {
-  const { t } = useTranslation()
+
+/* return(
+
+  <ItinerarioPDF props={props} /> 
+  
+) */
+
+   const { t } = useTranslation()
   const event = props.evento
   const { geoInfo } = AuthContextProvider()
   const [end, setEnd] = useState(false)
@@ -56,6 +64,7 @@ const Slug: FC<props> = (props) => {
         Page not found error 404
       </div>
     )
+   
 
   return (
     <section className={"absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4"}>
@@ -114,7 +123,7 @@ const Slug: FC<props> = (props) => {
         {end && <span id="elementControl" className="text-xs">~</span>}
       </motion.div>
     </section>
-  )
+  ) 
 
 };
 
@@ -124,20 +133,35 @@ export async function getServerSideProps({ params }) {
   try {
     const p = params?.slug[0]?.split("-")
     const recurse = p[0]
-    const evento_id = p[1]
-    const itinerario_id = p[2]
+    if (recurse === "itinerary") {
+      const evento_id = p[1]
+      const itinerario_id = p[2]
 
-    const evento = await fetchApiEventos({
-      query: queries.getItinerario,
-      variables: {
-        evento_id,
-        itinerario_id
-      }
-    })
+      const evento = await fetchApiEventos({
+        query: queries.getItinerario,
+        variables: {
+          evento_id,
+          itinerario_id
+        }
+      })
+      return {
+        props: { ...params, evento },
+      };
+    }
+    if (recurse === "invitado") {
+      const evento_id = p[1]
 
-    return {
-      props: { ...params, evento },
-    };
+      const evento = await fetchApiEventos({
+        query: queries.getPGuestEvent,
+        variables: {
+          evento_id,
+        }
+      })
+
+      return {
+        props: { ...params, evento },
+      };
+    }
   } catch (error) {
     return {
       props: params,

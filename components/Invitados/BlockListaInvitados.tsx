@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { GoMultiSelect } from "react-icons/go";
 import { ExportarExcel } from "../Utils/ExportarExcel";
 import ClickAwayListener from "react-click-away-listener";
+import { fetchApiEventos, queries } from "../../utils/Fetching";
 
 
 interface propsBlockListaInvitados {
@@ -27,13 +28,43 @@ interface propsBlockListaInvitados {
 
 const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ menu, setGetMenu, createPDF, setCreatePDF, ConditionalAction, handleClick, }) => {
   const { event } = EventContextProvider();
+  const { config } = AuthContextProvider()
   const [isMounted, setIsMounted] = useState(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const [invitadoSelected, setSelected] = useState<string | null>(null);
   const [optionExportModal, setOptionExportModal] = useState(false)
+  const [loading, setLoading] = useState<boolean>()
   const toast = useToast()
   const [isAllowed, ht] = useAllowed()
   const { t } = useTranslation();
+
+  const downloadPdf = async () => {
+    try {
+      setLoading(true)
+      const nameFile = `Invitados de ${event.nombre}`.replace(/ /g, "_")
+      const result = await fetchApiEventos({
+        query: queries.generatePdf,
+        variables: {
+          url: `${window.location.origin}/event/invitados-${event._id}`,
+          nameFile
+        },
+        domain: config.domain
+      })
+      console.log(result)
+      if (result) {
+        setLoading(false)
+        const link = document.createElement('a');
+        link.href = result as string;
+        link.download = nameFile;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   return (
     <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full md:px-6 pt-2 md:pt-6 pb-28 mb-32 md:mb-0 md:p-12 relative">
@@ -73,7 +104,12 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ menu, setGetMenu, c
             <div className="absolute left-[410px] top-[40px] shadow-md bg-white  p-5 z-50 rounded-md space-y-2">
               <ExportarExcel />
 
-              <ExportarExcel />
+              {/* <button
+                onClick={() => downloadPdf()}
+                className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary w-full text-center"
+              >
+                PDF
+              </button> */}
             </div>
           </ClickAwayListener>
         }
