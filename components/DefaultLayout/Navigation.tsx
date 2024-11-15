@@ -103,7 +103,7 @@ const Navigation: FC = () => {
   return (
     <>
       <Head>
-        <link id="favicon" rel="icon" href="https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://champagne-events.com.mx/en/destination-weddings&size=16" />
+        <link id="favicon" rel="icon" href={config?.favicon} />
         <title>{config?.headTitle}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
         <meta name="description" content="¡Bodas de Hoy Organizador! Organiza tu boda en un sólo click., user-scalable=no, width=device-width, initial-scale=1" />
