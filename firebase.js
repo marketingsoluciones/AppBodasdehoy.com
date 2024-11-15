@@ -204,27 +204,27 @@ export const developments = [
       colorScroll: "#f4cdc5"
     },
   },
-  {
-    name: "miamorcitocorazon",
-    development: "miamorcitocorazon",
-    fileConfig: firebaseConfigMiamorcitocorazon,
-    cookie: "sessionMiamorcitocorazon",
-    domain: ".miamorcitocorazon.mx",
-    cookieGuest: "guestmiamorcitocorazon",
-    pathDomain: "https://miamorcitocorazon.mx/",
-    pathLogin: "",
-    pathDirectory: "miamorcitocorazon.mx",
-    logoDirectory: <img className="hover:opacity-80 transition text-primary" src="https://i.ibb.co/L8bTqBf/Amorcito-Corazon2.png" />,
-    headTitle: "Planificador Ann Lo Events",
-    favicon: "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://miamorcitocorazon.mx&size=16",
-    theme: {
-      primaryColor: "#DB8686",
-      secondaryColor: "#d07a49",
-      tertiaryColor: "#c8c4c2",
-      baseColor: "#fdf3ef",
-      colorScroll: "#f4cdc5"
-    },
-  },
+  // {
+  //   name: "miamorcitocorazon",
+  //   development: "miamorcitocorazon",
+  //   fileConfig: firebaseConfigMiamorcitocorazon,
+  //   cookie: "sessionMiamorcitocorazon",
+  //   domain: ".miamorcitocorazon.mx",
+  //   cookieGuest: "guestmiamorcitocorazon",
+  //   pathDomain: "https://miamorcitocorazon.mx/",
+  //   pathLogin: "",
+  //   pathDirectory: "miamorcitocorazon.mx",
+  //   logoDirectory: <img className="hover:opacity-80 transition text-primary" src="https://i.ibb.co/L8bTqBf/Amorcito-Corazon2.png" />,
+  //   headTitle: "Planificador Ann Lo Events",
+  //   favicon: "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://miamorcitocorazon.mx&size=16",
+  //   theme: {
+  //     primaryColor: "#DB8686",
+  //     secondaryColor: "#d07a49",
+  //     tertiaryColor: "#c8c4c2",
+  //     baseColor: "#fdf3ef",
+  //     colorScroll: "#f4cdc5"
+  //   },
+  // },
 ]
 
 const GoogleProvider = () => {
