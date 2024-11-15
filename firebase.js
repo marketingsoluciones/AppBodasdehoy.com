@@ -181,7 +181,7 @@ export const developments = [
     cookie: "sessionAnnloevents",
     domain: ".annloevents.com",
     cookieGuest: "guestannloevents",
-    pathDomain: "https://www.annloevents.com/",
+    pathDomain: "https://annloevents.com/",
     pathLogin: "",
     pathDirectory: "annloevents.com",
     logoDirectory: <img className="hover:opacity-80 transition text-primary" src="https://i.ibb.co/R6by86b/logotipo-annlo-events.png" />,
