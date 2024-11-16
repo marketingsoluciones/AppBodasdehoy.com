@@ -1,4 +1,3 @@
-import { useRouter } from "next/router";
 import { EventContextProvider, EventsGroupContextProvider } from "../../context";
 import { useTranslation } from "react-i18next";
 import { CanceladoIcon, ConfirmadosIcon, PendienteIcon } from "../icons";
@@ -10,14 +9,11 @@ interface guestsExt extends guests {
     tableNameCeremonia: Partial<table>
 }
 
-//6723a6ecec2393386595e335
-
 export const InvitadosPDF = (props) => {
     const { t } = useTranslation();
-    const router = useRouter()
     const { eventsGroup } = EventsGroupContextProvider()
     const { allFilterGuests } = EventContextProvider();
-    const eventFound = eventsGroup.find((elem) => elem._id === "6724e5efec2393386597469a")
+    const eventFound = eventsGroup.find((elem) => elem._id === props.props)
     const asd: guests[] = eventFound?.invitados_array
     const [data, setData] = useState<{ data: guestsExt[] }[]>([]);
 
@@ -57,7 +53,7 @@ export const InvitadosPDF = (props) => {
             alt: "Hombre",
         },
         mujer: {
-            image: "profile_woman.png",
+            image: "/profile_woman.png",
             alt: "Mujer",
         },
     };
@@ -144,66 +140,6 @@ export const InvitadosPDF = (props) => {
                     )
                 })
             }
-
-
-            {/*   <table
-                className="w-full text-sm text-left text-gray-500"
-            >
-                <thead className="relative text-xs text-gray-700 uppercase bg-gray-100 w-full">
-                    {
-                        // Loop over the header rows
-                        headerGroups.map((headerGroup, i) => (
-                            // Apply the header row props
-                            <tr
-                                {...headerGroup.getHeaderGroupProps()}
-                                key={i}
-                                className="grid grid-cols-24"
-                            >
-                                {
-                                    // Loop over the headers in each row
-                                    headerGroup.headers.map((column, i) => {
-                                        return (
-                                            // Apply the header cell props
-                                            <th
-                                                {...column.getHeaderProps()}
-                                                key={i}
-                                                className={`px-6 py-1 md:py-2 text-center flex justify-center items-center text-sm font-light font-display ${ColSpan(column.id, headerGroup.headers, 12)}`}
-                                            >
-                                                {
-                                                    // Render the header
-                                                    column.render("Header")
-                                                }
-                                            </th>
-                                        )
-                                    })
-                                }
-                            </tr>
-
-                        ))
-                    }
-                </thead>
-                <tbody {...getTableBodyProps()}>
-                    {rows?.length == 0 && (
-                        <tr className="bg-white border-b font-display text-sm w-full grid grid-cols-12">
-                            <td className="pl-6 py-4 col-span-1 table-cell	">
-                            </td>
-                            <td className="py-4 w-max pl-5 text-gray-300">
-                                {t("noguests")}
-                            </td>
-                        </tr>
-                    )}
-                    {
-                        // Loop over the table rows
-                        rows.map((row, i) => {
-                            // Prepare the row for display
-                            prepareRow(row);
-                            return (
-                                <TrExpand key={i} row={row} ColSpan={ColSpan} renderRowSubComponent={renderRowSubComponent} />
-                            );
-                        })
-                    }
-                </tbody>
-            </table> */}
         </div>
     )
 }

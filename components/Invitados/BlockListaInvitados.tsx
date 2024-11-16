@@ -103,7 +103,6 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ menu, setGetMenu, c
           <ClickAwayListener onClickAway={() => setOptionExportModal(false)}>
             <div className="absolute left-[410px] top-[40px] shadow-md bg-white  p-5 z-50 rounded-md space-y-2">
               <ExportarExcel />
-
               <button
                 onClick={() => downloadPdf()}
                 className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary w-full text-center"
@@ -148,7 +147,6 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ menu, setGetMenu, c
           </div>
         </ModalBottom>
       )}
-
       <div className="relative overflow-x-auto md:overflow-x-visible">
         <DatatableGroup
           GruposArray={event?.grupos_array}
