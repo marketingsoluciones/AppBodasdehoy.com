@@ -104,6 +104,8 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
   const [acompañanteID, setAcompañanteID] = useState({ id: "", crear: true })
   const [modal, setModal] = useState({ state: false, title: null, handle: () => { } })
 
+  console.log(88888, event.invitados_array)
+
   useEffect(() => {
     setAcompañanteID(old => ({ ...old, crear: false }))
   }, [acompañanteID.id])

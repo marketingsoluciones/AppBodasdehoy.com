@@ -12,9 +12,10 @@ interface TaskReduce {
 }
 
 
-export const ItinerarioPDF = (props: any) => {
+export const ItinerarioPDF = (props) => {
+  console.log(2,props)
     const { t } = useTranslation()
-    const event = props.evento
+    const event = props.props.evento
     const { geoInfo } = AuthContextProvider()
     const [end, setEnd] = useState(false)
   

@@ -104,12 +104,12 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ menu, setGetMenu, c
             <div className="absolute left-[410px] top-[40px] shadow-md bg-white  p-5 z-50 rounded-md space-y-2">
               <ExportarExcel />
 
-              {/* <button
+              <button
                 onClick={() => downloadPdf()}
                 className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary w-full text-center"
               >
                 PDF
-              </button> */}
+              </button>
             </div>
           </ClickAwayListener>
         }
@@ -160,9 +160,6 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ menu, setGetMenu, c
         />
       </div>
       <SentarBlock />
-      {createPDF ? (
-        <></>//<ModalPDF createPDF={createPDF} setCreatePDF={setCreatePDF} Data={event} />
-      ) : null}
     </div>
   );
 };

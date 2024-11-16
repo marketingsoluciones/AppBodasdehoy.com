@@ -266,6 +266,8 @@ export interface guests {
     pais: string
     father: string
     passesQuantity: number
+    tableNameRecepcion: Partial<table>
+    tableNameCeremonia: Partial<table>
 }
 
 export interface filterGuest extends guests {
