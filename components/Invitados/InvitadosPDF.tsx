@@ -13,14 +13,14 @@ export const InvitadosPDF = (props) => {
     const { t } = useTranslation();
     const { eventsGroup } = EventsGroupContextProvider()
     const { allFilterGuests } = EventContextProvider();
-    const eventFound = eventsGroup.find((elem) => elem._id === props.props)
-    const asd: guests[] = eventFound?.invitados_array
+    const eventFound = eventsGroup.find((elem) => elem?._id === props?.props)
+    const dataGuests: guests[] = eventFound?.invitados_array
     const [data, setData] = useState<{ data: guestsExt[] }[]>([]);
 
     useEffect(() => {
         let asd = {}
         for (let i = 0; i < eventFound?.grupos_array?.length; i++) {
-            asd = { ...asd, [eventFound?.grupos_array[i]]: {  data: [] } }
+            asd = { ...asd, [eventFound?.grupos_array[i]]: { data: [] } }
         }
         const tablesRecepcion = eventFound?.planSpace.find(elem => elem?.title === "recepción")?.tables
         const tablesCeremonia = eventFound?.planSpace.find(elem => elem?.title === "ceremonia")?.tables
@@ -46,7 +46,6 @@ export const InvitadosPDF = (props) => {
         Data && setData(Object.values(Data));
     }, [allFilterGuests]);
 
-  
     const image = {
         hombre: {
             image: "/profile_men.png",
@@ -72,15 +71,14 @@ export const InvitadosPDF = (props) => {
             icon: <CanceladoIcon />,
         },
     ];
-
+    console.log(dataGuests)
     const dicc = Lista.reduce((acc, el) => {
         acc[el.title] = { ...el };
         return acc;
     }, {});
 
-
     return (
-        <div className={`bg-transparent pb-4 mt-5 rounded-md  grid col-span-12 items-center w-full justify-items-center `}>
+        <div className={`bg-transparent pb-4 mt-5 rounded-md  grid col-span-12 items-center* w-full justify-items-center h-[100vh]`}>
             <div className="grid grid-cols-24 px-5 py-4 justify-between relative text-xs text-gray-700 uppercase bg-gray-200  w-[90%] rounded-sm">
                 <span className="items-center col-span-3 flex flex-col ">
                     <p className="font-body text-[15px] font-semibold">{t("name")}</p>
@@ -104,8 +102,13 @@ export const InvitadosPDF = (props) => {
                     <p className="font-body text-[15px] font-semibold">acompañantes </p>
                 </span>
             </div>
+            {dataGuests?.length < 1 &&
+                <span className=" bg-white items-center col-span-24 flex  justify-center  w-[90%] border-b h-20 text-gray-700 capitalize ">
+                    <p className="font-body ">sin invitados registrados</p>
+                </span>
+            }
             {
-                asd?.map((item, idx) => {
+                dataGuests?.map((item, idx) => {
                     const fatherGuest = item?.father != null && eventFound?.invitados_array?.find((elem) => elem?._id === item?.father)
                     return (
                         <div key={idx} className="grid grid-cols-24 px-5 py-4 justify-between relative text-xs text-gray-700 capitalize bg-white  border-b w-[90%]">

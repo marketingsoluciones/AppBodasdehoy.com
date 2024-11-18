@@ -45,7 +45,7 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ menu, setGetMenu, c
       const result = await fetchApiEventos({
         query: queries.generatePdf,
         variables: {
-          url: `${window.location.origin}/event/invitados-${event._id}`,
+          url: `${window.location.origin}/event/guest-${event._id}`,
           nameFile
         },
         domain: config.domain

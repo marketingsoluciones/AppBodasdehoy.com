@@ -10,6 +10,13 @@ export const ObtenerFullAcceso = () => {
     const { actionModals, setActionModals } = AuthContextProvider()
     const DataInfoModulos = [
         {
+            titulo: t("yourevents"),
+            descripcion: t("managementamongothers"),
+            img: "/FullAcceso/resumen.png",
+            alt: "/",
+            estado: true
+        },
+        {
             titulo: t("youritineraries"),
             descripcion: t("andvariousintegrations"),
             img: "/FullAcceso/invitaciones.png",
@@ -80,7 +87,9 @@ export const ObtenerFullAcceso = () => {
             <div className="flex  justify-center py-4">
                 {
                     objetoEncontrado?.estado ?
-                        <button onClick={() => router.push("/facturacion")} className="bg-primary text-white py-1 px-3 rounded-lg">{t("getaccess")}</button> :
+                        <button onClick={() => router.push("/facturacion")} className="bg-primary text-white py-1 px-3 rounded-lg">
+                            {t("getaccess")}
+                        </button> :
                         <button className="bg-primary text-white py-1 px-3 rounded-lg first-letter:capitalize">
                             <a target="blank" href="https://wa.me/34910603622">
                                 {t("contactanos")}

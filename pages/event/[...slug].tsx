@@ -13,7 +13,6 @@ interface props {
 const Slug: FC<props> = (props) => {
   const p = props?.slug[0]?.split("-")
   const recurse = p[0]
-  console.log(222222,p[1])
 
   if(recurse === "itinerary"){
     return (
@@ -21,7 +20,7 @@ const Slug: FC<props> = (props) => {
     )
   }
 
-  if(recurse === "invitados"){
+  if(recurse === "guest"){
     return (
       <InvitadosPDF props={p[1]} />
     )
@@ -49,7 +48,7 @@ export async function getServerSideProps({ params }) {
         props: { ...params, evento },
       };
     }
-    if (recurse === "invitados") {
+    if (recurse === "guest") {
       const evento_id = p[1]
       const itinerario_id = p[2]
       const evento = await fetchApiEventos({
