@@ -55,6 +55,15 @@ const firebaseConfigAnnloevents = {
   appId: "1:204540888172:web:2f174c646cb822116f0449",
   measurementId: "G-4W4VHN7TVN"
 };
+const firebaseConfigMiamorcitocorazon = {
+  apiKey: "AIzaSyABo01h3OYGUa-edeknZ2-F1b3ltGudbYo",
+  authDomain: "miamorcitocorazon-planificador.firebaseapp.com",
+  projectId: "miamorcitocorazon-planificador",
+  storageBucket: "miamorcitocorazon-planificador.firebasestorage.app",
+  messagingSenderId: "621496856930",
+  appId: "1:621496856930:web:87aa45e6977b3ea2813c3b",
+  measurementId: "G-ZRY28E6YPG"
+};;
 
 export const developments = [
   {
@@ -165,7 +174,7 @@ export const developments = [
     pathDirectory: "champagne-events.com.mx",
     logoDirectory: <img className="hover:opacity-80 transition text-primary" src="https://i.ibb.co/Nsr8LgX/cropped-Logo-Gray-Champagne-1.png" />,
     headTitle: "App Champagne Event Planner",
-    favicon: "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://champagne-events.com.mx/en/destination-weddings&size=16",
+    favicon: "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://champagne-events.com.mx/en/destination-weddings&size=16",
     theme: {
       primaryColor: "#ecb290",
       secondaryColor: "#d07a49",
@@ -181,12 +190,33 @@ export const developments = [
     cookie: "sessionAnnloevents",
     domain: ".annloevents.com",
     cookieGuest: "guestannloevents",
-    pathDomain: "https://www.annloevents.com/",
+    pathDomain: "https://annloevents.com/",
     pathLogin: "",
     pathDirectory: "annloevents.com",
     logoDirectory: <img className="hover:opacity-80 transition text-primary" src="https://i.ibb.co/R6by86b/logotipo-annlo-events.png" />,
     headTitle: "Planificador Ann Lo Events",
-    favicon: "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://annloevents.com&size=16",
+    favicon: "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://annloevents.com&size=16",
+    theme: {
+      primaryColor: "#DB8686",
+      secondaryColor: "#d07a49",
+      tertiaryColor: "#c8c4c2",
+      baseColor: "#fdf3ef",
+      colorScroll: "#f4cdc5"
+    },
+  },
+  {
+    name: "miamorcitocorazon",
+    development: "miamorcitocorazon",
+    fileConfig: firebaseConfigMiamorcitocorazon,
+    cookie: "sessionMiamorcitocorazon",
+    domain: ".miamorcitocorazon.mx",
+    cookieGuest: "guestmiamorcitocorazon",
+    pathDomain: "https://miamorcitocorazon.mx/",
+    pathLogin: "",
+    pathDirectory: "miamorcitocorazon.mx",
+    logoDirectory: <img className="hover:opacity-80 transition text-primary" src="https://i.ibb.co/L8bTqBf/Amorcito-Corazon2.png" />,
+    headTitle: "Planificador Ann Lo Events",
+    favicon: "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://miamorcitocorazon.mx&size=16",
     theme: {
       primaryColor: "#DB8686",
       secondaryColor: "#d07a49",
