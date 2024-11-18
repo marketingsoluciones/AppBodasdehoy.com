@@ -16,7 +16,7 @@ const CardEmpty: FC<propsCadEmpty> = ({ set, state }) => {
   const { actionModals, setActionModals } = AuthContextProvider()
 
   const ConditionalAction = () => {
-    if (eventsGroup.length >= 10) {
+    if (eventsGroup.length >= 100) {
       setActionModals(!actionModals)
     } else {
       set(!state)
