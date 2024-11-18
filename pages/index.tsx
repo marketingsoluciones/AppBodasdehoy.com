@@ -339,7 +339,7 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
                           </div>
                         </SwiperSlide> :
                         <SwiperSlide
-                          className={`flex items-center justify-center my-3`}
+                          className={`flex items-center justify-center my-3 `}
                         >
                           <CardEmpty state={state} set={setNewEvent} />
                         </SwiperSlide>
