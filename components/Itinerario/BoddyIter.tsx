@@ -31,7 +31,7 @@ export const BoddyIter = () => {
     const [title, setTitle] = useState<string>()
 
     useEffect(() => {
-        setView(window.innerWidth > window.innerHeight && isAllowed() ? "table" : "cards")
+        setView(window.innerWidth > window.innerHeight && isAllowed() ? "cards" : "cards")
     }, [])
 
 
