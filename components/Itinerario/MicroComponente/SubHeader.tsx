@@ -107,11 +107,20 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
                             <MdOutlineDeleteOutline onClick={() => !isAllowed() ? ht() : handleDeleteItinerario()} className="w-5 h-5 curso cursor-pointer" />
                         </div>
                     </div>
-                    : <div onClick={() => downloadPdf()} className="bg-gray-100 hover:bg-gray-200 w-10 h-10 rounded-full absolute flex justify-center items-center right-6 cursor-pointer">
-                        <GrDocumentPdf className="w-5 h-5 text-primary" />
-                        {loading && <div className="fixed top-0 left-0 w-[100vw] h-[100vh] flex items-center justify-center">
-                            < div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4" />
-                        </div>}
+
+                    :
+                    <div className="flex items-center absolute  right-6 space-x-1">
+                        <div onClick={() => downloadPdf()} className="bg-gray-100 hover:bg-gray-200 w-10 h-10 rounded-full absolute* flex justify-center items-center right-6* cursor-pointer">
+
+                            <GrDocumentPdf className="w-5 h-5 text-primary" />
+                            {loading && <div className="fixed top-0 left-0 w-[100vw] h-[100vh] flex items-center justify-center">
+                                < div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4" />
+                            </div>}
+                        </div>
+                        <div className="bg-gray-100 hover:bg-gray-200 w-10 h-10 rounded-full  flex justify-center items-center right-0* cursor-pointer">
+
+                            <LiaLinkSolid onClick={() => setShowModalCompartir(!showModalCompartir)} className="w-5 h-5 curso cursor-pointer" />
+                        </div>
                     </div>
                 }
                 {
