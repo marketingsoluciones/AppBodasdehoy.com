@@ -58,7 +58,7 @@ const Slug: FC<props> = (props) => {
     )
 
   return (
-    <section className={"absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4"}>
+    <section className={"absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4 bg-white"}>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
