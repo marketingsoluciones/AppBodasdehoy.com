@@ -5,7 +5,6 @@ import { fetchApiEventos, queries } from "../../../utils/Fetching"
 import { useTranslation } from 'react-i18next';
 import { PencilEdit } from "../../icons";
 import { MdOutlineDeleteOutline } from "react-icons/md";
-import { SelectModeView } from "../../Utils/SelectModeView";
 import { Itinerary } from "../../../utils/Interfaces";
 import { Modal } from "../../Utils/Modal";
 import { DeleteConfirmation } from "./DeleteConfirmation";
@@ -14,6 +13,9 @@ import { FaCheck } from "react-icons/fa";
 import { useAllowed } from "../../../hooks/useAllowed";
 import { ViewItinerary } from "../../../pages/invitados";
 import { GrDocumentPdf } from "react-icons/gr";
+import { LiaLinkSolid } from "react-icons/lia";
+import ClickAwayListener from "react-click-away-listener";
+import { CopiarLink } from "../../Utils/Compartir";
 
 interface props {
     itinerario: Itinerary
@@ -39,6 +41,11 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
     const [modal, setModal] = useState<Modal>({ state: false, title: null, handle: () => { } })
     const [isAllowed, ht] = useAllowed()
     const [loading, setLoading] = useState<boolean>()
+    const [showModalCompartir, setShowModalCompartir] = useState(false);
+
+    const link = `${window.location.origin}/event/itinerary-${event?._id}-${itinerario?._id}`
+
+    console.log(link)
 
     useEffect(() => {
         setTitle(itinerario?.title)
@@ -78,30 +85,19 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
             {modal.state && <Modal set={setModal} classe={"w-[95%] md:w-[450px] h-[200px]"}>
                 <DeleteConfirmation setModal={setModal} modal={modal} />
             </Modal>}
-            <div className="flex w-full justify-between items-start">
+            <div className="flex w-full justify-between items-start relative">
                 <div className="w-1/2 flex flex-col text-xs md:text-[14px] text-azulCorporativo">
-                    {/* <span className="text-primary cursor-pointer hover:text-pink-500" onClick={() => disable ? ht() : () => { }}>
-                        {t("resetitinerary")}
-                    </span> */}
                     <span className="text-primary* text-gray-300 *cursor-pointer *hover:text-pink-500" onClick={() => {/*disable ? ht() : setModalPlantilla(!modalPlantilla)*/ }} >
                         {t("loadtemplate")}
                     </span>
-                    {/* <div>
-                        <span className="text-[14px]">{t("weddingdate")}</span>
-                        <span className="text-primary">{date}</span>
-                    </div>
-                    <div className={` ${event?.usuario_id === user?.uid && user?.displayName !== "guest" ? "hidden" : "block"} `}>
-                        <span>{t("permissions")}</span>
-                        <span className="text-primary">{disable ? t("reading") : t("edition")}</span>
-                    </div> */}
                 </div>
 
                 {view !== "schema"
                     ? <div className="flex flex-col w-1/2 text-xs md:text-[14px] justify-end items-end space-y-1">
                         <div className={`flex ${isAllowed() ? "text-gray-700" : "text-gray-300"} space-x-2`}>
                             <PencilEdit onClick={() => !isAllowed() ? ht() : setEditTitle(!editTitle)} className="w-5 h-5 cursor-pointer" />
+                            <LiaLinkSolid onClick={()=> setShowModalCompartir(!showModalCompartir) } className="w-5 h-5 curso cursor-pointer" />
                             <MdOutlineDeleteOutline onClick={() => !isAllowed() ? ht() : handleDeleteItinerario()} className="w-5 h-5 curso cursor-pointer" />
-                            {/* <SelectModeView value={view} setValue={setView} /> */}
                         </div>
                     </div>
                     : <div onClick={() => downloadPdf()} className="bg-gray-100 hover:bg-gray-200 w-10 h-10 rounded-full absolute flex justify-center items-center right-6 cursor-pointer">
@@ -110,6 +106,20 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
                             < div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4" />
                         </div>}
                     </div>
+                }
+                {
+                    showModalCompartir && <ClickAwayListener onClickAway={() => showModalCompartir && setShowModalCompartir(false)}>
+                        <ul
+                            className={`${showModalCompartir ? "block opacity-100" : "hidden opacity-0"
+                                } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-[30px] right-5 w-[300px] z-50`}
+                        >
+                            <li
+                                className="flex items-center py-4 px-6 font-display text-sm text-gray-500 bg-base transition w-full capitalize"
+                            >
+                                <CopiarLink link={link} />
+                            </li>
+                        </ul>
+                    </ClickAwayListener>
                 }
             </div>
             <div className="flex flex-col justify-center items-center">
