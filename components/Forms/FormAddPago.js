@@ -66,10 +66,11 @@ const FormAddPago = ({ GastoID, cate }) => {
         pagado_por: "",
         medio_pago: "",
         concepto: "",
-
+        file: ""
       }}
 
       onSubmit={async (values) => {
+        console.log(values)
         let res;
         const params = {
           query: `mutation{
@@ -147,10 +148,15 @@ export const BasicFormLogin = ({
   const { event } = EventContextProvider()
   const [showProOptions, setShowProOptions] = useState(false)
   const { t } = useTranslation();
-
+  const [selectedFile, setSelectedFile] = useState(null);
   useEffect(() => {
     values.pagado = ischecked
   }, [ischecked])
+
+
+  const handleFileChange = (event) => {
+    setSelectedFile(event.target.files[0]);
+  };
 
 
   return (
@@ -323,13 +329,29 @@ export const BasicFormLogin = ({
             showProOptions ?
               <div className={`space-y-2 transition-all duration-200`}>
 
-                <div className="h-[200px] flex flex-col space-y-2 cursor-not-allowed">
+                <div className="h-[200px] flex flex-col space-y-2 ">
                   <h2 className="text-gray-800 text-[14px]"> {t("uploaddocument")}</h2>
-                  <div className=" self-center flex items-center justify-center bg-slate-200  border-dotted border-2 border-slate-600  h-full  w-[80%] rounded-md ">
-                    <GoFileDiff className="h-14 w-14 text-gray-400" />
-                  </div>
+                  <label htmlFor="file-upload" className="cursor-pointer self-center flex items-center justify-center bg-slate-200  border-dotted border-2 border-slate-600  h-full  w-[80%] rounded-md ">
+                    {
+                      selectedFile ? (
+                        <div className="flex flex-col items-center">
+                          {selectedFile.type.startsWith('image/') && (
+                            <img src={URL.createObjectURL(selectedFile)} alt="Vista previa" />
+                          )}
+                          <p className="text-sm text-gray-600">Archivo: {selectedFile.name}</p>
+                        </div>
+                      ) : <GoFileDiff className="h-14 w-14 text-gray-400" />
+                    }
+                  </label>
+                  <input
+                    type="file"
+                    onChange={handleFileChange}
+                    id="file-upload"
+                    name="file"
+                    className="hidden"
+                  />
                 </div>
-                <div className=" flex flex-col space-y-2  ">
+                {/* <div className=" flex flex-col space-y-2  ">
                   <h2 className="text-gray-800 text-[14px]">{t("documentnumber")}</h2>
                   <div className="w-[90%] self-center">
                     <InputField
@@ -340,8 +362,8 @@ export const BasicFormLogin = ({
                       type="text"
                       autoComplete="off" />
                   </div>
-                </div>
-                <div className="flex flex-col space-y-2  ">
+                </div> */}
+                {/* <div className="flex flex-col space-y-2  ">
                   <h2 className="text-gray-800 text-[14px]">{t("contact")}</h2>
                   <div className="w-[90%] self-center">
                     <InputField
@@ -352,7 +374,7 @@ export const BasicFormLogin = ({
                       type="text"
                       autoComplete="off" />
                   </div>
-                </div>
+                </div> */}
 
               </div> :
               null

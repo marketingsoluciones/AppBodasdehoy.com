@@ -78,7 +78,7 @@ export const InvitadosPDF = (props) => {
     }, {});
 
     return (
-        <div className={`bg-transparent pb-4 mt-5 rounded-md  grid col-span-12 items-center* w-full justify-items-center h-[100vh]`}>
+        <div className={`bg-transparent pb-4 mt-5 rounded-md  grid col-span-12 items-center* w-full justify-items-center h-[100vh]*`}>
             <div className="grid grid-cols-24 px-5 py-4 justify-between relative text-xs text-gray-700 uppercase bg-gray-200  w-[90%] rounded-sm">
                 <span className="items-center col-span-3 flex flex-col ">
                     <p className="font-body text-[15px] font-semibold">{t("name")}</p>

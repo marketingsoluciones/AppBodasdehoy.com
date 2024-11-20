@@ -7,12 +7,13 @@ import { EventContextProvider, AuthContextProvider } from "../../context";
 import FormEditarPago from "../Forms/FormEditarPago";
 import { GoPlusCircle } from "react-icons/go";
 import { useTranslation } from 'react-i18next';
+import { GrDocumentDownload } from "react-icons/gr";
 
-const SubComponentePagos = ({ row, cate, gasto, wantCreate,getId }) => {
+const SubComponentePagos = ({ row, cate, gasto, wantCreate, getId }) => {
   const { t } = useTranslation();
   const [show, setShow] = useState(true);
   const [PagoModificar, setPagoModificar] = useState("")
-  
+
 
   useEffect(() => {
     if (row.original.pagos_array.length <= 0) {
@@ -111,7 +112,7 @@ const ListadoComponent = ({ pagos_array, cate, gasto, wantCreate, idModificar, r
       });
     }
   };
- 
+
   return (
     <>
       <button
@@ -126,7 +127,7 @@ const ListadoComponent = ({ pagos_array, cate, gasto, wantCreate, idModificar, r
       {pagos_array.map((item, idx) => (
         <div
           key={idx}
-          className="grid grid-cols-10 px-5 justify-between border-b py-4 border-gray-100 hover:bg-base transition bg-white  "
+          className="grid grid-cols-11 px-5 justify-between border-b py-4 border-gray-100 hover:bg-base transition bg-white  "
         >
           <span className="items-center col-span-1 flex flex-col justify-center">
             <p className="font-display text-sm font-medium">{t("payment")}</p>
@@ -140,10 +141,7 @@ const ListadoComponent = ({ pagos_array, cate, gasto, wantCreate, idModificar, r
 
           <span className="items-center col-span-2 flex flex-col justify-center">
             <p className="font-display text-md font-medium">{t("details")}</p>
-            <p
-              className={`font-display text-md ${item.estado == "pagado" ? "text-green" : " text-red"
-                }`}
-            >
+            <p className={`font-display text-md ${item.estado == "pagado" ? "text-green" : " text-red"}`}>
               {capitalize(item.estado)}
             </p>
           </span>
@@ -151,6 +149,13 @@ const ListadoComponent = ({ pagos_array, cate, gasto, wantCreate, idModificar, r
           <span className="items-center col-span-3 flex flex-col justify-center">
             <p className="font-display text-md font-medium">{t("paymentdate")}</p>
             <p className={`font-display text-md`}>{item.fecha_pago}</p>
+          </span>
+
+          <span className="items-center col-span-1 flex flex-col justify-center">
+            <p className="font-display text-md font-medium">Adjuntos</p>
+            <p className={`font-display text-md`}>
+             { true ?  <GrDocumentDownload className="h-4 w-4 mt-0.5" />: "null"}
+            </p>
           </span>
 
           <span className="items-center col-span-2 flex gap-3 text-gray-500 justify-center">

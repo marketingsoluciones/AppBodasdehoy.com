@@ -8,6 +8,7 @@ import { EditarIcon } from "../icons";
 import { capitalize } from '../../utils/Capitalize';
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
+import { GrDocumentDownload } from "react-icons/gr";
 
 
 const BlockPagos = ({ estado, getId, setGetId, cate }) => {
@@ -102,7 +103,6 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
           accessor: "importe",
           id: "importe",
           Cell: (props) => {
-
             const [value, setValue] = useState(props?.value);
             useEffect(() => {
               setValue(props?.value)
@@ -124,8 +124,11 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
               setValue(props?.value)
             }, [props?.value])
             return (
-              <div className=" text-gray-500 grid place-items-center h-full ">
-                <p className="w-4/5">{value}</p>
+              <div className=" text-gray-500 grid place-items-center h-full truncate ">
+
+
+                <p className="">{value ? value : "sin medo de pago"}</p>
+
               </div>
             );
           },
@@ -136,12 +139,38 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
           id: "concepto",
           Cell: (props) => {
             const [value, setValue] = useState(props?.value);
+            const [showName, setShowName] = useState()
             useEffect(() => {
               setValue(props?.value)
             }, [props?.value])
             return (
-              <div className="text-gray-500 grid place-items-center h-full ">
-                <p className="w-4/5">{value ? value : "Sin concepto"}</p>
+              <div className="text-gray-500 grid place-items-center h-full  relative ">
+                <div>
+                  {value ? value : "Sin concepto"}
+                </div>
+              </div>
+            );
+          },
+        },
+        {
+          Header: "adjuntos",
+          accessor: "adjuntos",
+          id: "adjuntos",
+          Cell: (props) => {
+
+            const [showName, setShowName] = useState()
+            /* const [value, setValue] = useState(props?.value);
+            useEffect(() => {
+              setValue(props?.value)
+            }, [props?.value]) */
+            return (
+              <div className="text-gray-500 grid place-items-center h-full relative ">
+                <GrDocumentDownload onMouseOver={() => { setShowName(true) }} onMouseOut={() => setShowName(false)} className="w-6 h-6 cursor-pointer p-1 hover:shadow-md hover:bg-gray-300 rounded-md" />
+                {showName && <div style={{ right: 10, top: 25 }} className="absolute z-50 bg-black rounded-md flex items-center justify-center leading-[1.2] opacity-75">
+                  <span className="text-white text-[10px] py-1 px-2">
+                    hola
+                  </span>
+                </div>}
               </div>
             );
           },
@@ -164,8 +193,8 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
             }
 
             return (
-              <div onClick={() => !isAllowed() ? ht() : handleEdit()} className=" w-10 rounded-md hover:shadow-md hover:bg-gray-300 grid place-items-center h-full right-0 mx-auto">
-                <EditarIcon className="w-5 h-5" />
+              <div onClick={() => !isAllowed() ? ht() : handleEdit()} className="   flex items-center justify-center  h-full right-0  cursor-pointer ">
+                <EditarIcon className="w-8 h-8 p-0.5 hover:shadow-md hover:bg-gray-300 rounded-md" />
               </div>
             );
           },
@@ -335,13 +364,14 @@ const DataTable = ({ columns, data, estado }) => {
   const [stado, setStado] = useState({})
 
   const colSpan = {
-    0: 1,
-    1: 2,
-    2: 2,
-    3: 2,
-    4: 2,
-    5: 2,
-    6: 1
+    0: 2,
+    1: 4,
+    2: 3,
+    3: 4,
+    4: 3,
+    5: 4,
+    6: 3,
+    7: 1
   };
 
   const colSpan1 = {
@@ -375,7 +405,7 @@ const DataTable = ({ columns, data, estado }) => {
           {headerGroups.map((headerGroup, id) => (
             <tr
               {...headerGroup.getHeaderGroupProps()}
-              className={`w-full grid grid-cols-4 ${estado == "pagado" ? "md:grid-cols-12" : "md:grid-cols-9"} py-2 bg-base uppercase`}
+              className={`w-full grid grid-cols-4 ${estado == "pagado" ? "md:grid-cols-24" : "md:grid-cols-9"} py-2 bg-base uppercase`}
               key={id}
             >
               {headerGroup.headers.map((column, idx, id) => (
@@ -396,7 +426,7 @@ const DataTable = ({ columns, data, estado }) => {
             return (
               <tr
                 {...row.getRowProps()}
-                className={`transition border-b border-base hover:bg-base cursor-pointer w-full grid grid-cols-5* ${estado == "pagado" ? "md:grid-cols-12" : "md:grid-cols-9"}`}
+                className={`transition border-b border-base hover:bg-base cursor-default w-full grid  ${estado == "pagado" ? "md:grid-cols-24" : "md:grid-cols-9"}`}
                 key={id}
               >
                 {row.cells.map((cell, idx) => {
@@ -404,7 +434,7 @@ const DataTable = ({ columns, data, estado }) => {
                     <td
                       {...cell.getCellProps()}
                       key={idx}
-                      className={`font-display text-sm text-center  py-2 col-span-${colSpanMovil[idx]}  md:col-span-${stado[idx]}`}
+                      className={`font-display text-sm text-center truncate px-2  py-2 col-span-${colSpanMovil[idx]}  md:col-span-${stado[idx]} `}
                     >
                       {cell.render("Cell")}
                     </td>
@@ -412,7 +442,7 @@ const DataTable = ({ columns, data, estado }) => {
                 })}
               </tr>
             );
-          }) : <tr className=" transition border-b border-base hover:bg-base cursor-pointer w-full grid place-items-center">
+          }) : <tr className=" transition border-b border-base hover:bg-base  w-full grid place-items-center">
             <td className="py-5 font-display text-lg text-gray-500 uppercase ">{t("No hay pagos asociados")}</td></tr>}
         </tbody>
       </table>
