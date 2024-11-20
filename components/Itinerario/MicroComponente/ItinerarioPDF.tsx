@@ -49,8 +49,8 @@ export const ItinerarioPDF = (props) => {
       )
   
       console.log("ruduce componente", tasksReduce)
-    return (
-      <section className={"absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4"}>
+    return ( 
+      <section className={"absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4 bg-white"}>
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

@@ -130,9 +130,9 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                     </div>
                     <div className="bg-white w-3 h-3 rounded-full border-[1px] border-primary border-dotted absolute right-0 top-0 translate-x-1/2 -translate-y-1/2" />
                   </div>
-                  <div className="*bg-rose-400 flex-1 flex flex-col px-8 md:px-0 border-t-[1px] border-primary border-dotted">
+                  <div className=" flex-1 flex flex-col px-4 md:px-0 border-t-[1px] border-primary border-dotted w-[10%] md:w-[50%]">
                     {!!values?.tips && <Interweave
-                      className="text-xs text-justify transition-all m-1 p-1 bg-white"
+                      className="md:text-xs text-sm text-justify transition-all m-1 p-1 break-words"
                       content={values.tips}
                       matchers={[new UrlMatcher('url'), new HashtagMatcher('hashtag')]}
                     />}
