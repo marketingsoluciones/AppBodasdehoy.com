@@ -13,8 +13,9 @@ import { useAllowed, useAllowedViewer } from "../../hooks/useAllowed";
 
 interface Modal {
     state: boolean
-    title?: string | JSX.Element
+    title?: string 
     handle?: () => void
+    subTitle?: string | JSX.Element
 }
 
 export const BoddyIter = () => {
@@ -25,7 +26,7 @@ export const BoddyIter = () => {
     const [isAllowedViewer] = useAllowedViewer()
     const [isAllowed] = useAllowed()
     const [view, setView] = useState<ViewItinerary>()
-    const [modal, setModal] = useState<Modal>({ state: false, title: null, handle: () => { } })
+    const [modal, setModal] = useState<Modal>({ state: false, title: null, subTitle: null, handle: () => { } })
     const toast = useToast()
     const { t } = useTranslation();
     const [title, setTitle] = useState<string>()
@@ -40,11 +41,14 @@ export const BoddyIter = () => {
     }, [itinerario])
 
     const handleDeleteItinerario = async () => {
+
         setModal({
             state: true,
-            title: <span className="flex flex-col">
+            title: itinerario.title,
+            subTitle: <span className="flex flex-col">
                 <strong>{itinerario.title}</strong>
-                <strong>Si borras el itinerario no lo podrás recuperar.</strong> ¿Estás segugo de continuar?
+                <strong>Si borras el itinerario no lo podrás recuperar.</strong>
+                <p className=" text-xs"> Para confirmar, escribe <span className="font-semibold">{itinerario.title.replace(/\s+/g, '').toLocaleLowerCase()}</span> en el espacio de abajo </p>
             </span>,
             handle: async () => {
                 try {
@@ -106,7 +110,7 @@ export const BoddyIter = () => {
 
     return (
         <div className="w-full h-[calc(100vh-234px)] flex flex-col items-center bg-white rounded-lg mt-3">
-            {modal.state && <Modal set={setModal} classe={"w-[95%] md:w-[450px] h-[200px]"}>
+            {modal.state && <Modal set={setModal} classe={"w-[95%] md:w-[450px] h-[250px]"}>
                 <DeleteConfirmation setModal={setModal} modal={modal} />
             </Modal>}
             <ItineraryTabs itinerario={itinerario} setItinerario={setItinerario} setEditTitle={setEditTitle} title={title} setTitle={setTitle} view={view} setView={setView} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} editTitle={editTitle} />

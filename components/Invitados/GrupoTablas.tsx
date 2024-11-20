@@ -44,6 +44,8 @@ interface handleMoveGuest {
   t: any
 }
 
+
+
 export const handleMoveGuest = (props: handleMoveGuest) => {
   try {
     const { invitadoID, previousTable, lastTable, f1, event, setEvent, toast } = props
@@ -666,6 +668,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                 };
               });
               setShow(!show);
+              setModal({ state:false , title:null, handle:null } )
             }
           };
 

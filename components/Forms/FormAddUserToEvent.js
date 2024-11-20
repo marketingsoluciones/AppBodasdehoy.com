@@ -57,7 +57,7 @@ export const FormAddUserToEvent = ({ users, setUsers, optionsExist, setValir }) 
                     onChange={handleSubmit}
                     onKeyUp={onBlur}
                     name="emails"
-                    placeHolder={!users.length ? t("pressenter") : t("pressenter")}
+                   /*  placeHolder={!users.length ? t("pressenter") : t("pressenter")} */
                     beforeAddValidate={beforeAddValidate}
                     separators={separators}
                     classNames={{
@@ -66,14 +66,14 @@ export const FormAddUserToEvent = ({ users, setUsers, optionsExist, setValir }) 
                     }}
                 />
             </div>
-            {/* <div className="h-4 -translate-y-2">
+            <div className="h-4 -translate-y-2">
                 {(showInstruction && !error)
                     ? <span className="ml-4 text-xs text-red h-1">{t("pressenteraccept")}</span>
                     : users.length
                         ? <span className="ml-4 text-xs text-red h-1">{t("savetoshare")}</span>
                         : <></>}
                 <span className="ml-4 text-xs text-red h-1">{error}</span>
-            </div> */}
+            </div>
             <style>{`
                 .rti--container {
                     --rti-s: .2rem;
