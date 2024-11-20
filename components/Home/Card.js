@@ -67,19 +67,17 @@ export const handleClickCard = ({ t, final = true, data, user, setUser, config, 
 const Card = ({ data, grupoStatus, idx }) => {
   const { t } = useTranslation()
   const [hoverRef, isHovered] = useHover();
-  const [refArchivar, isArchivar] = useHover();
-  const [refBorrar, isBorrar] = useHover();
   const { user, setUser, config, actionModals, setActionModals } = AuthContextProvider()
   const { eventsGroup, setEventsGroup } = EventsGroupContextProvider();
   const { event, setEvent, idxGroupEvent, setIdxGroupEvent } = EventContextProvider();
   const router = useRouter();
   const [openModal, setOpenModal] = useState(false)
-  const [received, setReceived] = useState({ channel: "", msg: null, d: null })
+
 
   const toast = useToast()
 
   const handleArchivarEvent = () => {
-      setActionModals(!actionModals)
+    setActionModals(!actionModals)
   }
 
   const handleRemoveEvent = (grupoStatus) => {
@@ -152,9 +150,16 @@ const Card = ({ data, grupoStatus, idx }) => {
             className="object-cover w-full h-full absolute top-0 left-0 object-top "
           />
           <div className="relative w-full h-full z-10 p-4 pb-2 flex flex-col justify-between">
-            <span className="text-xs font-display text-white capitalize">
-              {data[idx]?.tipo == "otro" ? "mi evento especial" : t(data[idx]?.tipo)}
-            </span>
+            <div className="flex flex-col">
+              <span className="text-sm font-display text-white capitalize">
+                {data[idx]?.tipo == "otro" ? "mi evento especial" : t(data[idx]?.tipo)}
+              </span>
+              {
+                data[idx]?.usuario_id != user?.uid && <span className="text-xs font-display text-white capitalize">
+                  compartido contigo
+                </span>
+              }
+            </div>
             <div className="flex flex-col ">
               <span className="capitalize text-lg font-display text-white">
                 {data[idx]?.nombre}
