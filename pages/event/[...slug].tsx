@@ -27,6 +27,7 @@ const Slug: FC<props> = (props) => {
   const event = props.evento
   const { geoInfo } = AuthContextProvider()
   const [end, setEnd] = useState(false)
+  const [tasksReduce, setTasksReduce] = useState<TaskReduce[]>()
 
   useEffect(() => {
     setTimeout(() => {
@@ -34,20 +35,27 @@ const Slug: FC<props> = (props) => {
     }, 2000);
   }, [])
 
-
-  const tasksReduce: TaskReduce[] = event?.itinerarios_array[0].tasks.reduce((acc: TaskReduce[], item: Task) => {
-    const f = new Date(item.fecha)
-    const y = f.getUTCFullYear()
-    const m = f.getUTCMonth()
-    const d = f.getUTCDate()
-    const date = new Date(y, m, d).getTime()
-    const f1 = acc.findIndex(elem => elem.fecha === date)
-    if (f1 < 0) {
-      acc.push({ fecha: item.fecha ? date : null, tasks: [item] })
+  useEffect(() => {
+    if (event?.itinerarios_array[0].tasks.length > 0) {
+      const tasks = [event?.itinerarios_array[0]?.tasks?.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime())]
+      const taskReduce: TaskReduce[] = tasks[0].reduce((acc: TaskReduce[], item: Task) => {
+        const f = new Date(item.fecha)
+        const y = f.getUTCFullYear()
+        const m = f.getUTCMonth()
+        const d = f.getUTCDate()
+        const date = new Date(y, m, d).getTime()
+        const f1 = acc.findIndex(elem => elem.fecha === date)
+        if (f1 < 0) {
+          acc.push({ fecha: item.fecha ? date : null, tasks: [item] })
+        } else {
+          acc[f1].tasks.push(item)
+        }
+        return acc
+      }, [])
+      setTasksReduce(taskReduce)
     } else {
-      acc[f1].tasks.push(item)
+      setTasksReduce([])
     }
-    return acc
   }, [])
 
   if (!props.evento.itinerarios_array.length)
