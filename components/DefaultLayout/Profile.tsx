@@ -21,26 +21,37 @@ import { GoChecklist } from "react-icons/go";
 import { useAllowed, useAllowedRouter } from "../../hooks/useAllowed";
 import i18next from "i18next";
 import { useTranslation } from "react-i18next";
+import { flags } from "../../utils/flags.js"
+import { IoIosArrowDown } from "react-icons/io";
+
+interface Flag {
+  value: string
+  title: string
+  flag: string
+}
 
 const Profile = ({ user, state, set, ...rest }) => {
-  const { config, setUser, setActionModals, actionModals } = AuthContextProvider()
-  const { setLoading } = LoadingContextProvider()
-  const [dropdown, setDropwdon] = useState(false);
-  const { event } = EventContextProvider()
-  const [isAllowedRouter, ht] = useAllowedRouter()
   const { t } = useTranslation()
-
-
   const { route } = useRouter()
   const toast = useToast()
   const [updateActivity, updateActivityLink] = useActivity()
-  const cookieContent = JSON.parse(Cookies.get("guestbodas") ?? "{}")
+  const { config, setUser, setActionModals, actionModals } = AuthContextProvider()
+  const { setLoading } = LoadingContextProvider()
+  const { event } = EventContextProvider()
+  const [isAllowedRouter, ht] = useAllowedRouter()
+  const [dropdown, setDropwdon] = useState(false);
+  const [showFlags, setShowFlags] = useState(false)
   const [language, setLanguage] = useState(i18next.language);
+  const [options, setOptions] = useState(flags)
+  const [optionSelect, setOptionSelect] = useState<Flag>({value:"es",title:"es",flag:flags[68].pre})
 
-  const handleChange = (event) => {
-    setLanguage(event.target.value);
-    i18next.changeLanguage(event.target.value);
-  };
+  const cookieContent = JSON.parse(Cookies.get("guestbodas") ?? "{}")
+
+  useEffect(() => {
+    setLanguage(optionSelect.value);
+    i18next.changeLanguage(optionSelect.value);
+  }, [optionSelect])
+
 
   const optionsStart: Option[] = [
     {
@@ -225,15 +236,30 @@ const Profile = ({ user, state, set, ...rest }) => {
   const optionsReduceEnd = optionReduce(optionsEnd)
   const valirUser = user?.displayName == "guest" ? "guest" : "loged"
 
+  const idiomaArray = [
+    {
+      value: "en",
+      title: "en",
+      flag: flags[0].pre
+
+    },
+    {
+      value: "es",
+      title: "es",
+      flag: flags[68].pre
+
+    }
+  ]
+
   return (
     <>
-      <div className="text-gray-100 flex space-x-4  hover:text-gray-300 relative" {...rest} >
+      <div className="text-gray-100 flex space-x-4 relative" {...rest} >
         <span className="flex items-center gap-2 relative">
         </span>
         <div className="items-center flex relative cursor-default ">
           <div onClick={() => {
             !event ? toast("error", t("nohaveeventscreated")) : !isAllowedRouter("/servicios") ? ht() : router.push("/servicios")
-          }} className={`${!event ? "opacity-40" : ""} bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200 cursor-pointer`} >
+          }} className={`${!event ? "opacity-40" : ""} bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200* cursor-pointer`} >
             <GoChecklist className="text-primary w-6 h-6 scale-x-90" />
           </div>
         </div>
@@ -282,7 +308,7 @@ const Profile = ({ user, state, set, ...rest }) => {
             )}
             <img
               src={user?.photoURL ?? "/placeholder/user.png"}
-              className="object-cover w-11 h-11 rounded-full"
+              className="object-cover w-10 h-10 rounded-full"
               alt={user?.displayName}
             />
             <ArrowDownBodasIcon className="w-5 h-5 rotate-90 transform cursor-pointer text-black" />
@@ -291,12 +317,53 @@ const Profile = ({ user, state, set, ...rest }) => {
             </p>
           </div>
         </ClickAwayListener>
-        <div className="flex items-center ">
+        {/* <div className="flex items-center ">
           <select className="font-display text-sm text-gray-500 focus:ring-0 focus:border-none border-none -ml-6 -mr-3 " value={language} onChange={handleChange}>
-            <option value="en">En</option>
-            <option value="es">Sp</option>
+          
+          <option value="en">
+          
+          En</option>
+          <option value="es">ES</option>
           </select>
+          </div> */}
+        <div onClick={() => {
+          setShowFlags(!showFlags)
+          setOptions(flags)
+        }}
+          className=" flex items-center cursor-pointer "
+        >
+          {
+            optionSelect?.flag &&
+            <div className="space-x-1 flex items-center justify-center text-sm -ml-4">
+              <img src={`flags-svg/${optionSelect?.flag}.svg`.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')} width={22} className="border-[1px] border-gray-500" />
+              <span className="text-gray-600">{optionSelect.title}</span>
+            </div >
+          }
+          <IoIosArrowDown className="text-gray-500" />
         </div>
+        {showFlags && <ClickAwayListener onClickAway={() => { setShowFlags(false) }}>
+          <div className={`bg-white w-max h-max absolute translate-y-10 z-10 border-[1px] rounded-b-xl flex flex-col right-0 shadow-md`}>
+            <ul className="w-full  cursor-pointer text-gray-900 text-xs py-1  ">
+              {
+                idiomaArray.map((elem, idx) =>
+                  <li key={idx} onClick={() => {
+                    setOptionSelect(elem)
+                    setShowFlags(false)
+                    /* const elemInput = document.getElementById("telefono")
+                    elemInput.focus(); */
+                  }} className="flex space-x-1 items-center justify-center hover:bg-gray-200 px-4 py-1">
+                    <div className="border-[1px] border-gray-800">
+                      <img src={`flags-svg/${elem.flag}.svg`.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')} className="object-cover w-6 h-4" />
+                    </div>
+                    <div className="flex flex-1 truncate">
+                      <span className="flex-1 text-gray-700">{elem.title}</span>
+                    </div>
+                  </li>
+                )}
+            </ul>
+          </div>
+        </ClickAwayListener>
+        }
       </div>
       {
         actionModals && (
