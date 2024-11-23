@@ -13,6 +13,7 @@ import ClickAwayListener from "react-click-away-listener";
 import { useAllowedRouter } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
 import { BsCalendarHeartFill } from "react-icons/bs";
+import Image from "next/image";
 
 
 const Navigation: FC = () => {
@@ -137,7 +138,7 @@ const Navigation: FC = () => {
               router.push(config?.pathDirectory ? `${config?.pathDirectory}` : ``)
               setIsActiveStateSwiper(0)
             }}
-            className="cursor-pointer items-center flex justify-center max-w-[130px] md:max-w-[208px] max-h-[60px] md:max-h-[72px] translate-x-[-14px] md:translate-x-[-160px]">
+            className="cursor-pointer items-center flex justify-center w-[130px] md:w-[208px] h-[60px] md:h-[64px] translate-x-[-14px] md:translate-x-[-160px]">
             {config?.logoDirectory}
           </span>
           <NavbarDirectory />

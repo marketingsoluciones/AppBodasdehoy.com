@@ -33,9 +33,9 @@ const VistaSinCookie = () => {
               <div className="flex items-center justify-center h-[calc(100vh-300px)] w-[calc(100vw-10px)] cursor-pointer">
                 <div className="md:pb-6 md:w-1/2 mx-auto ">
                   <h2 className="w-full text-2xl font-bold font-display text-center pb-3">{t("iinviteyoutologinto")}</h2>
-                  <samp className="flex justify-center">
+                  <span className="bg-gray-400 flex justify-center">
                     {config?.logoDirectory}
-                  </samp>
+                  </span>
                   <p className="px-20 md:px-0 pt-3 md:text-sm  text-center">
                     {t("Tobeableyourdreams")}
                   </p>

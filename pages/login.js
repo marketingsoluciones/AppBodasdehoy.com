@@ -68,12 +68,12 @@ const PageLogin = () => {
             }} />
             <div className="bg-white w-full h-full col-span-3 relative flex items-center justify-center  ">
               {["bodasdehoy"].includes(config?.development) && < ButtonClose onClick={handleClose} />}
-              <div className="flex flex-col items-center gap-4 w-full h-[85%]  md:h-[60,l%] px-10 md:px-0 sm:w-3/4 md:w-2/3 relative">
+              <div className="flex flex-col items-center justify-center gap-4 w-full h-[85%]  md:h-[60,l%] px-10 md:px-0 sm:w-3/4 md:w-2/3 relative">
                 <div className="flex w-full md:w-2/3 h-[calc(100%-100px)] flex-col items-center">
-                  <div className={`bg-white flex flex-col items-center justify-center transform w-full`}>
+                  <div className={`flex flex-col items-center justify-center transform w-full max-h-[124px] px-4`}>
                     {config?.logoDirectory}
                   </div>
-                  <div className="flex flex-col items-center justify-center mt-14">
+                  <div className="flex flex-col items-center justify-center">
                     {Stages[stage]}
                   </div>
                 </div>
