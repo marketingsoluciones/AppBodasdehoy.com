@@ -354,13 +354,13 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
         <div
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
-          className="absolute top-4 right-0 cursor-pointer "
+          className="absolute top-4 right-0 cursor-pointer hidden md:block "
           onClick={()=> router.push("/lista-de-mis-eventos") }
         >
           <TbTableShare className="h-5 w-5" />
         </div>
         {isModalVisible && (
-          <div  className="modal absolute top-10 -right-10 text-[10px] px-[5px] bg-gray-500 text-white rounded-md ">
+          <div  className="modal absolute top-10 -right-10 text-[10px] px-[5px] bg-gray-500 text-white rounded-md  ">
            
             Ver tabla
           </div>
