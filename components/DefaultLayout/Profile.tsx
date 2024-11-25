@@ -23,6 +23,7 @@ import i18next from "i18next";
 import { useTranslation } from "react-i18next";
 import { flags } from "../../utils/flags.js"
 import { IoIosArrowDown } from "react-icons/io";
+import { GoTasklist } from "react-icons/go";
 
 interface Flag {
   value: string
@@ -260,7 +261,8 @@ const Profile = ({ user, state, set, ...rest }) => {
           <div onClick={() => {
             !event ? toast("error", t("nohaveeventscreated")) : !isAllowedRouter("/servicios") ? ht() : router.push("/servicios")
           }} className={`${!event ? "opacity-40" : ""} bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200* cursor-pointer`} >
-            <GoChecklist className="text-primary w-6 h-6 scale-x-90" />
+            {/* <GoChecklist className="text-primary w-6 h-6 scale-x-90" /> */}
+            <GoTasklist className="text-primary w-6 h-6 scale-x-90" />
           </div>
         </div>
         <Notifications />
