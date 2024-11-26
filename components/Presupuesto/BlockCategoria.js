@@ -198,8 +198,8 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
     [GastoID]
   )
 
-  const porcentaje = (categoria?.coste_final / categoria?.coste_estimado) * 100
-  
+  const porcentaje = categoria?.coste_estimado ? (categoria?.coste_final / categoria?.coste_estimado) * 100 : 0
+
   return (
     <>
       {GastoID.crear && (
@@ -336,25 +336,23 @@ export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate
         {rows.map((row, i) => {
           prepareRow(row);
           return (
-            <>
-              <tr
-                key={i}
-                {...row.getRowProps()}
-                className="w-full transition border-b border-base hover:bg-base grid grid-cols-11"
-              >
-                {row.cells.map((cell, i) => {
-                  return (
-                    <td
-                      key={i}
-                      {...cell.getCellProps()}
-                      className={`font-display text-sm w-full text-left py-2 col-span-${colSpan[cell.column.id]
-                        }`}
-                    >
-                      {cell.render("Cell")}
-                    </td>
-                  );
-                })}
-              </tr>
+            <tr
+              {...row.getRowProps()}
+              key={i}
+              className="w-full transition border-b border-base hover:bg-base grid grid-cols-11"
+            >
+              {row.cells.map((cell, i) => {
+                return (
+                  <td
+                    {...cell.getCellProps()}
+                    key={i}
+                    className={`font-display text-sm w-full text-left py-2 col-span-${colSpan[cell.column.id]
+                      }`}
+                  >
+                    {cell.render("Cell")}
+                  </td>
+                );
+              })}
               {row.isExpanded ? (
                 <tr key={i} className="h-40 w-full">
                   <td >
@@ -362,7 +360,7 @@ export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate
                   </td>
                 </tr>
               ) : null}
-            </>
+            </tr>
           );
         })}
         <tr className="w-full transition border-b border-base  cursor-pointer  grid grid-cols-4">
