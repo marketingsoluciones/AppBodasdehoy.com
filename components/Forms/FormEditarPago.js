@@ -1,6 +1,6 @@
 // importaciones librerias
 import { Formik } from "formik";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "../../api";
 import { GoFileDiff } from "react-icons/go";
 import { AuthContextProvider, EventContextProvider } from "../../context";
@@ -47,6 +47,10 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categor
       setPago(old => ({ ...old, ...IDs }))
     }
   }, [IDs])
+
+  useEffect(() => {
+    console.log(pago)
+  }, [pago])
 
   const checkbox = {
     true: "pagado",

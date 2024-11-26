@@ -405,14 +405,14 @@ const DataTable = ({ columns, data, estado }) => {
           {headerGroups.map((headerGroup, id) => (
             <tr
               {...headerGroup.getHeaderGroupProps()}
-              className={`w-full grid grid-cols-4 ${estado == "pagado" ? "md:grid-cols-24" : "md:grid-cols-9"} py-2 bg-base uppercase`}
               key={id}
+              className={`w-full grid grid-cols-4 ${estado == "pagado" ? "md:grid-cols-24" : "md:grid-cols-9"} py-2 bg-base uppercase`}
             >
-              {headerGroup.headers.map((column, idx, id) => (
+              {headerGroup.headers.map((column, idx) => (
                 <th
                   {...column.getHeaderProps()}
+                  key={idx}
                   className={`font-display  font-light text-gray-500 text-sm col-span-${colSpanMovil[idx]} md:col-span-${stado[idx]} `}
-                  key={id}
                 >
                   {t(column.render("Header"))}
                 </th>
@@ -426,8 +426,8 @@ const DataTable = ({ columns, data, estado }) => {
             return (
               <tr
                 {...row.getRowProps()}
-                className={`transition border-b border-base hover:bg-base cursor-default w-full grid  ${estado == "pagado" ? "md:grid-cols-24" : "md:grid-cols-9"}`}
                 key={id}
+                className={`transition border-b border-base hover:bg-base cursor-default w-full grid  ${estado == "pagado" ? "md:grid-cols-24" : "md:grid-cols-9"}`}
               >
                 {row.cells.map((cell, idx) => {
                   return (
