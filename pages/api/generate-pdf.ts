@@ -10,6 +10,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.send(pdfBuffer);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Error generating PDF' });
+    res.status(500).json({ message: error });
   }
 }
