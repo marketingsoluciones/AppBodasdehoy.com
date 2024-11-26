@@ -9,35 +9,67 @@ import { capitalize } from '../../utils/Capitalize';
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
 import { GrDocumentDownload } from "react-icons/gr";
+import { Modal } from "../Utils/Modal";
+
 
 
 const BlockPagos = ({ estado, getId, setGetId, cate }) => {
   const { t } = useTranslation();
   const [active, setActive] = useState(0);
+  const [showSoporte, setShowSoporte] = useState({ state: false, data: null })
+
+  console.log(showSoporte)
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="w-full max-w-screen-lg relative mx-auto inset-x-0   "
+      className="w-full max-w-screen-lg relative mx-auto inset-x-0    "
     >
       <div className="bg-white p-6 h-max shadow-md rounded-xl mt-10 overflow-x-auto*  ">
-        <TablaDatosPagos active={active} estado={estado} getId={getId} setGetId={setGetId} cate={cate} />
+        <TablaDatosPagos
+          active={active}
+          estado={estado}
+          getId={getId}
+          setGetId={setGetId}
+          cate={cate}
+          showSoporte={showSoporte}
+          setShowSoporte={setShowSoporte} />
       </div>
+
+      {
+        showSoporte.state &&
+        <Modal set={setShowSoporte} state={showSoporte.state} classe={"w-[95%] md:w-[450px] max-h-[600px] min-h-[100px]"}>
+          <div className="flex flex-col items-center h-full">
+            <div className="self-end pr-3 cursor-pointer" onClick={() => setShowSoporte({ state: false })}>
+              x
+            </div>
+            <div className="h-full flex items-center ">
+              <img src={showSoporte?.data} alt="Factura de soporte" className="" />
+            </div>
+
+          </div>
+        </Modal>
+      }
+
+
+
+
     </motion.div>
   );
 };
 
 export default BlockPagos;
 
-const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
+const TablaDatosPagos = ({ estado, getId, setGetId, cate, showSoporte, setShowSoporte }) => {
   const { t } = useTranslation();
   const { event } = EventContextProvider()
   const categorias = event?.presupuesto_objeto?.categorias_array;
   const [PagosOrFormAdd, setShowPagos] = useState(true)
   const [PagoID, setPagoID] = useState("")
   const [isAllowed, ht] = useAllowed()
+
 
   const Columna = useMemo(
     () =>
@@ -153,24 +185,16 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate }) => {
           },
         },
         {
-          Header: "adjuntos",
-          accessor: "adjuntos",
-          id: "adjuntos",
+          Header: "Soporte",
+          accessor: "soporte",
+          id: "soporte",
           Cell: (props) => {
-
-            const [showName, setShowName] = useState()
-            /* const [value, setValue] = useState(props?.value);
-            useEffect(() => {
-              setValue(props?.value)
-            }, [props?.value]) */
             return (
               <div className="text-gray-500 grid place-items-center h-full relative ">
-                <GrDocumentDownload onMouseOver={() => { setShowName(true) }} onMouseOut={() => setShowName(false)} className="w-6 h-6 cursor-pointer p-1 hover:shadow-md hover:bg-gray-300 rounded-md" />
-                {showName && <div style={{ right: 10, top: 25 }} className="absolute z-50 bg-black rounded-md flex items-center justify-center leading-[1.2] opacity-75">
-                  <span className="text-white text-[10px] py-1 px-2">
-                    hola
-                  </span>
-                </div>}
+                {
+                  props?.value?.image_url != null &&
+                  <GrDocumentDownload onClick={() => setShowSoporte({ state: true, data: props?.value?.image_url })} className="w-6 h-6 cursor-pointer p-1 hover:shadow-md hover:bg-gray-300 rounded-md" />
+                }
               </div>
             );
           },

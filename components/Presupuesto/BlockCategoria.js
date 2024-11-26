@@ -6,16 +6,11 @@ import { getCurrency } from "../../utils/Funciones";
 import { capitalize } from '../../utils/Capitalize';
 import FormAddPago from "../Forms/FormAddPago";
 import { useTranslation } from 'react-i18next';
-import {
-  BorrarIcon,
-  MisEventosIcon,
-  PlusIcon,
-} from "../icons";
+import { BorrarIcon, MisEventosIcon, PlusIcon} from "../icons";
 import CellEdit from "./CellEdit";
 import CellPagado from "./CellPagado";
 import SubComponentePagos from "./SubComponentePagos";
 import { useAllowed } from "../../hooks/useAllowed";
-
 import DetallesPago from "./DetallesPago";
 import { array } from "yup";
 import AddPagado from "./AddPagado";
@@ -198,8 +193,8 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
     [GastoID]
   )
 
-  const porcentaje = categoria?.coste_estimado ? (categoria?.coste_final / categoria?.coste_estimado) * 100 : 0
-
+  const porcentaje = (categoria?.coste_final / categoria?.coste_estimado) * 100
+  
   return (
     <>
       {GastoID.crear && (
@@ -306,13 +301,14 @@ export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate
     coste_final: 2,
     pagado: 2,
     options: 2,
+    soporte:1
   };
   return (
     <table
       {...getTableProps()}
       className="table w-full rounded-lg relative mt-6"
     >
-      <thead>
+       <thead>
         {headerGroups.map((headerGroup, id) => (
           <tr
             {...headerGroup.getHeaderGroupProps()}
@@ -336,23 +332,25 @@ export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate
         {rows.map((row, i) => {
           prepareRow(row);
           return (
-            <tr
-              {...row.getRowProps()}
-              key={i}
-              className="w-full transition border-b border-base hover:bg-base grid grid-cols-11"
-            >
-              {row.cells.map((cell, i) => {
-                return (
-                  <td
-                    {...cell.getCellProps()}
-                    key={i}
-                    className={`font-display text-sm w-full text-left py-2 col-span-${colSpan[cell.column.id]
-                      }`}
-                  >
-                    {cell.render("Cell")}
-                  </td>
-                );
-              })}
+            <>
+              <tr
+                key={i}
+                {...row.getRowProps()}
+                className="w-full transition border-b border-base hover:bg-base grid grid-cols-11"
+              >
+                {row.cells.map((cell, i) => {
+                  return (
+                    <td
+                      key={i}
+                      {...cell.getCellProps()}
+                      className={`font-display text-sm w-full text-left py-2 col-span-${colSpan[cell.column.id]
+                        }`}
+                    >
+                      {cell.render("Cell")}
+                    </td>
+                  );
+                })}
+              </tr>
               {row.isExpanded ? (
                 <tr key={i} className="h-40 w-full">
                   <td >
@@ -360,7 +358,7 @@ export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate
                   </td>
                 </tr>
               ) : null}
-            </tr>
+            </>
           );
         })}
         <tr className="w-full transition border-b border-base  cursor-pointer  grid grid-cols-4">
