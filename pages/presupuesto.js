@@ -210,7 +210,9 @@ const MontoPresupuesto = ({ estimado }) => {
   const handleChange = (e) => {
     e.preventDefault();
     const r = e.target.value?.split(".")
-    setValue(parseFloat(!!r[1] ? `${r[0]}.${r[1]?.slice(0, 2)}` : e.target.value));
+    if(r >=0 ) {
+      setValue(parseFloat(!!r[1] ? `${r[0]}.${r[1]?.slice(0, 2)}` : e.target.value));
+    }
   };
 
   const keyDown = (e) => {
