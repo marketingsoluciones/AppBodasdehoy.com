@@ -606,5 +606,17 @@ export const en = {
     'zipcode': "Zip code",
     'zonas': "areas",
     'Zoom': "Zoom:",
+
+    nombre: 'NAME',
+    invitados: 'guests',
+    invitaciones: 'invitations',
+    itinerario: 'itineraries',
+    'Salon Historico': 'Historic site',
+    Payments: 'Payment',
+    poblacion: "City",
+    task: "task",
+    Tasks: "Tasks",
+    itinerary: "itinerary",
+
   }
 }
