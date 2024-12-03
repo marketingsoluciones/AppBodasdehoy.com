@@ -15,6 +15,7 @@ export interface Event {
     fecha: string
     poblacion: string
     pais: string
+    lugar: Venue
     cant_invitados: number
     invitados_array: guests[]
     menus_array: menu[]
@@ -33,6 +34,12 @@ export interface Event {
     tarta: string
     color: string[]
     //permission: boolean
+}
+
+export interface Venue {
+    _id: string
+    title: string
+    slug: string
 }
 
 export interface FileData {
@@ -130,7 +137,7 @@ export interface detalle_compartidos_array {
     owner?: boolean
     createdAt?: Date
     updatedAt?: Date
-    icon?:any
+    icon?: any
 }
 
 interface estimate {

@@ -872,6 +872,11 @@ export const queries = {
       listaRegalos
       poblacion
       pais
+      lugar {
+        _id
+        title
+        slug
+      }
       imgInvitacion{
         _id
         i1024

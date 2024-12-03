@@ -27,7 +27,7 @@ const Resumen = () => {
           <BlockPrincipal />
           <div className="w-full grid md:grid-cols-2 gap-4 md:gap-8">
             <BlockItinerario />
-            <BlockLugarEvento/>
+            <BlockLugarEvento />
           </div>
           <div className="w-full flex md:flex-row flex-col justify-center gap-4 md:gap-8">
             <BlockPresupuesto />
