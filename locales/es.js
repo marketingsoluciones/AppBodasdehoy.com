@@ -606,5 +606,17 @@ export const es = {
     'zipcode': 'Código Postal',
     'zonas': 'zonas',
     'Zoom': 'Zoom:',
+
+    nombre: 'nombre',
+    invitados: 'invitados',
+    invitaciones: 'invitaciones',
+    itinerario: 'itinerario',
+    'Salon Historico': 'Salón Histórico',
+    Payments: 'Pagos',
+    poblacion: "Ciudad",
+    task: "tarea",
+    Tasks: "Tareas",
+    itinerary: "itinerario",
+
   }
 }

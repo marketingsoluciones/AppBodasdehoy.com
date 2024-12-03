@@ -230,8 +230,8 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                   type="telefono"
                 />
                 <InputField
-                  name="poblacion"
-                  label={t("population")}
+                  name="población"
+                  label={t("poblacion")}
                   type="text"
                 />
                 <InputField

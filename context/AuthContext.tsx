@@ -199,7 +199,7 @@ const AuthProvider = ({ children }) => {
       //  const path = "https://www.eventosplanificador.com"
       /*  console.log("hostname:", path) */
       const c = path?.split(".")
-      const idx = c?.findIndex(el => el === "com")
+      const idx = c?.findIndex(el => el === "com" || el === "mx")
       /* console.log("isProduction:", idx) */
       /*--------------------------------------------------------------------*/
       const devDomain = ["bodasdehoy", "eventosplanificador", "eventosorganizador", "vivetuboda", "champagne-events", "annloevents", "miamorcitocorazon", "eventosintegrados"]
