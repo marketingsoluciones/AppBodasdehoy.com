@@ -74,7 +74,6 @@ const Card = ({ data, grupoStatus, idx }) => {
   const [openModal, setOpenModal] = useState(false)
 
 
-   console.log("::::", grupoStatus)
   const toast = useToast()
 
   const handleArchivarEvent = () => {
