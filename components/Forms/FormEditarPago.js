@@ -1,6 +1,6 @@
 // importaciones librerias
 import { Formik } from "formik";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "../../api";
 import { GoFileDiff } from "react-icons/go";
 import { AuthContextProvider, EventContextProvider } from "../../context";
@@ -48,6 +48,10 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categor
     }
   }, [IDs])
 
+  useEffect(() => {
+    console.log(pago)
+  }, [pago])
+
   const checkbox = {
     true: "pagado",
     false: "pendiente",
@@ -64,10 +68,12 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categor
         fechaVencimiento: pago?.fecha_vencimiento,
         pagado_por: pago?.pagado_por,
         medio_pago: pago?.medio_pago,
-        concepto: pago?.concepto
+        concepto: pago?.concepto,
+        file: pago?.file
       }}
 
       onSubmit={async (values, actions) => {
+        console.log(values)
         const params = {
           query: `mutation{
                 editPago(evento_id:"${event?._id}", categoria_id:"${pago?.idCategoria}", gasto_id:"${pago?.idGasto}", pago_id:"${IDPagoAModificar}", pagos_array:{
@@ -85,7 +91,7 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categor
                   gastos_array{
                     pagado
                     pagos_array{
-                      _id
+                        _id
                         estado
                         fecha_creacion
                         fecha_pago
@@ -162,19 +168,18 @@ export const BasicFormLogin = ({
   const toast = useToast()
   const { currency } = AuthContextProvider()
   const [showProOptions, setShowProOptions] = useState(false)
-
-
-
-  useEffect(() => {
-    values.pagado = ischecked
-  }, [ischecked])
-
-
+  const [selectedFile, setSelectedFile] = useState(null);
   const Categoria = event?.presupuesto_objeto?.categorias_array?.find(item => item?._id == categorias)?.nombre
   const idxCate = event?.presupuesto_objeto?.categorias_array?.findIndex(item => item?._id == categorias)
   const Proveedor = event?.presupuesto_objeto?.categorias_array[idxCate]?.gastos_array?.find(item => item?._id == getId)
-
   const { t } = useTranslation();
+  useEffect(() => {
+    values.pagado = ischecked
+  }, [ischecked])
+  const handleFileChange = (event) => {
+    setSelectedFile(event.target.files[0]);
+  };
+
   return (
     <>
       <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6 pt-6 w-full " >
@@ -260,9 +265,6 @@ export const BasicFormLogin = ({
                 min="0"
                 step="0.10"
                 autoComplete="off" />
-
-
-
               <InputField
                 name="medio_pago"
                 label={t("paymentmethod")}
@@ -272,7 +274,6 @@ export const BasicFormLogin = ({
                 value={values.medio_pago}
                 type="text"
                 autoComplete="off" />
-
               <InputField
                 name="pagado_por"
                 label={t("paidby")}
@@ -282,9 +283,6 @@ export const BasicFormLogin = ({
                 className={`${ischecked ? "" : "bg-slate-200"}`}
                 type="text"
                 autoComplete="off" />
-
-
-
               <InputField
                 name="concepto"
                 label={t("paymentconcept")}
@@ -292,7 +290,6 @@ export const BasicFormLogin = ({
                 value={values.concepto}
                 type="text"
                 autoComplete="off" />
-
             </div>
           )
         }
@@ -344,13 +341,23 @@ export const BasicFormLogin = ({
             showProOptions ?
               <div className={`space-y-2 transition-all duration-200`}>
 
-                <div className="h-[200px] flex flex-col space-y-2 cursor-not-allowed">
+                <div className="h-[200px] flex flex-col space-y-2 ">
                   <h2 className="text-gray-800 text-[14px]"> {t("uploaddocument")}</h2>
-                  <div className=" self-center flex items-center justify-center bg-slate-200  border-dotted border-2 border-slate-600  h-full  w-[80%] rounded-md ">
-                    <GoFileDiff className="h-14 w-14 text-gray-400" />
-                  </div>
+                  <label htmlFor="file-upload" className="cursor-pointer self-center flex items-center justify-center bg-slate-200  border-dotted border-2 border-slate-600  h-full  w-[80%] rounded-md ">
+                    {
+                      selectedFile ? (
+                        <div className="flex flex-col items-center">
+                          {selectedFile.type.startsWith('image/') && (
+                            <img src={URL.createObjectURL(selectedFile)} alt="Vista previa" />
+                          )}
+                          <p className="text-sm text-gray-600">Archivo: {selectedFile.name}</p>
+                        </div>
+                      ) : <GoFileDiff className="h-14 w-14 text-gray-400" />
+                    }
+                  </label>
+                  <input type="file" onChange={handleFileChange} id="file-upload" name="file" className="hidden"></input>
                 </div>
-                <div className=" flex flex-col space-y-2  ">
+                {/* <div className=" flex flex-col space-y-2  ">
                   <h2 className="text-gray-800 text-[14px]">{t("documentnumber")}</h2>
                   <div className="w-[90%] self-center">
                     <InputField
@@ -373,7 +380,7 @@ export const BasicFormLogin = ({
                       type="text"
                       autoComplete="off" />
                   </div>
-                </div>
+                </div> */}
 
               </div> :
               null

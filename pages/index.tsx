@@ -14,6 +14,7 @@ import VistaSinCookie from "../pages/vista-sin-cookie"
 import { useRouter } from "next/router";
 import { useToast } from "../hooks/useToast";
 import { useTranslation } from 'react-i18next';
+import { TbTableShare } from "react-icons/tb";
 
 const Home: NextPage = () => {
 
@@ -218,7 +219,15 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
   const [isActiveStateSwiper, setIsActiveStateSwiper] = useState<number>(idxGroupEvent?.isActiveStateSwiper)
   const [tabsGroup, setTabsGroup] = useState<dataTab[]>([]);
   const [idxNew, setIdxNew] = useState<number>(-2)
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const handleMouseEnter = () => {
+    setIsModalVisible(true);
+  };
+  const router = useRouter()
 
+  const handleMouseLeave = () => {
+    setIsModalVisible(false);
+  };
   useEffect(() => {
     if (eventsGroup) {
       const arrNuevo = eventsGroup?.reduce((acc, event) => {
@@ -270,8 +279,8 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
 
   return (
     <>
-      <div className="bg-white w-full flex flex-col h-[40%] md:h-[200px] justify-center items-center max-w-screen-lg xl:max-w-screen-xl inset-x-0 mx-auto">
-        <div className="flex gap-4 mt-[100%]">
+      <div className="bg-white w-full flex flex-col h-[40%] md:h-[200px] justify-center items-center max-w-screen-lg xl:max-w-screen-xl inset-x-0 mx-auto relative">
+        <div className="flex gap-4 mt-[100%] relative">
           {Lista.map((item, idx) => (
             <button
               onClick={(e) => setIsActiveStateSwiper(idx)}
@@ -285,6 +294,7 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
               {t(item.nombre)}
             </button>
           ))}
+
         </div>
         <div className="w-full h-max mb-[100%] ">
           {tabsGroup.map((group, idx) => {
@@ -341,6 +351,20 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
             )
           })}
         </div>
+        <div
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          className="absolute top-4 right-0 cursor-pointer hidden md:block "
+          onClick={()=> router.push("/lista-de-mis-eventos") }
+        >
+          <TbTableShare className="h-5 w-5" />
+        </div>
+        {isModalVisible && (
+          <div  className="modal absolute top-10 -right-10 text-[10px] px-[5px] bg-gray-500 text-white rounded-md  ">
+           
+            Ver tabla
+          </div>
+        )}
       </div >
     </>
   );

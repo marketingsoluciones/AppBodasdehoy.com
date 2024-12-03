@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3001",
+    "dev": "next dev -p 4001",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -13,6 +13,7 @@
     "@fontsource/montserrat": "^4.5.0",
     "@fontsource/poppins": "^4.5.1",
     "@tailwindcss/forms": "^0.5.0",
+    "@types/puppeteer": "^7.0.4",
     "@types/react-dnd-multi-backend": "^6.0.1",
     "apollo-server-micro": "^2.20.0",
     "axios": "^0.21.1",
@@ -37,6 +38,7 @@
     "mongoose": "^5.11.15",
     "nanoid": "^4.0.2",
     "next": "^12.0.1",
+    "puppeteer": "^23.9.0",
     "quill": "^2.0.2",
     "react": "^18.1.0",
     "react-chartjs-2": "^3.0.3",

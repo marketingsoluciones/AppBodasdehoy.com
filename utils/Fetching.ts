@@ -767,6 +767,12 @@ export const queries = {
               medio_pago
               importe
               pagado_por
+              soporte{
+                image_url
+                medium_url
+                thumb_url
+                delete_url
+              }
             }
           }
           
@@ -775,6 +781,34 @@ export const queries = {
       showChildrenGuest
     }
   }`,
+  nuevoPago: `mutation($evento_id:String, $categoria_id:String, $gasto_id: String,$pagos_array:[pagos_arrayAinput]){
+                  nuevoPago(evento_id:$evento_id, categoria_id:$categoria_id, gasto_id:$gasto_id, pagos_array:$pagos_array){
+                    pagado
+                    categorias_array{
+                      pagado
+                      gastos_array{
+                        pagado
+                        pagos_array{
+                          _id
+                          estado
+                          fecha_creacion
+                          fecha_pago
+                          fecha_vencimiento
+                          medio_pago
+                          importe
+                          pagado_por
+                          concepto
+                          soporte{
+                            image_url
+                            medium_url
+                            thumb_url
+                            delete_url
+                          }
+                        }
+                      }
+                    }
+                  }
+                }`,
   guardarListaRegalos: `mutation($evento_id: String!, $variable_reemplazar: String, $valor_reemplazar: String){
     editEvento(
       evento_id:$evento_id
@@ -838,6 +872,11 @@ export const queries = {
       listaRegalos
       poblacion
       pais
+      lugar {
+        _id
+        title
+        slug
+      }
       imgInvitacion{
         _id
         i1024
@@ -1047,6 +1086,12 @@ export const queries = {
               medio_pago
               importe
               pagado_por
+              soporte{
+                image_url
+                medium_url
+                thumb_url
+                delete_url
+              }
             }
           }
         }

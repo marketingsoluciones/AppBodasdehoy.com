@@ -22,8 +22,8 @@ const Invitados: FC = () => {
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const { event } = EventContextProvider();
   const { actionModals, setActionModals } = AuthContextProvider()
-  const [viewPreferUser, setViewPreferUser] = useState<ViewItinerary>(window.innerWidth < 700 ? "cards" : "cards")
-  const [view, setView] = useState<ViewItinerary>("cards")
+  const [viewPreferUser, setViewPreferUser] = useState<ViewItinerary>(window.innerWidth < 700 ? "cards" : "table")
+  const [view, setView] = useState<ViewItinerary>()
   const [triggerResize, setTriggerResize] = useState<number>(new Date().getTime())
   const { user, verificationDone, forCms } = AuthContextProvider()
 

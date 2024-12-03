@@ -7,12 +7,16 @@ import { EventContextProvider, AuthContextProvider } from "../../context";
 import FormEditarPago from "../Forms/FormEditarPago";
 import { GoPlusCircle } from "react-icons/go";
 import { useTranslation } from 'react-i18next';
+import { GrDocumentDownload } from "react-icons/gr";
+import { Modal } from "../Utils/Modal";
 
-const SubComponentePagos = ({ row, cate, gasto, wantCreate,getId }) => {
+const SubComponentePagos = ({ row, cate, gasto, wantCreate, getId }) => {
   const { t } = useTranslation();
   const [show, setShow] = useState(true);
   const [PagoModificar, setPagoModificar] = useState("")
-  
+  const [showSoporte, setShowSoporte] = useState({ state: false, data: null })
+
+
 
   useEffect(() => {
     if (row.original.pagos_array.length <= 0) {
@@ -21,32 +25,50 @@ const SubComponentePagos = ({ row, cate, gasto, wantCreate,getId }) => {
   }, [row.original.pagos_array]);
 
   return (
-    <div className="grid bg-base px-10 pb-12 pt-6 relative">
-      {show ? (
-        <ListadoComponent
-          pagos_array={row?.original?.pagos_array}
-          cate={cate}
-          gasto={gasto}
-          wantCreate={wantCreate}
-          idModificar={id => {
-            setPagoModificar(id)
-            setShow(!show)
-          }}
-          row={row}
-        />
-      ) : (
-        <div className="w-full h-max p-6 bg-white relative">
-          <p onClick={() => setShow(!show)} className="absolute font-display text-xl transform transition top-5 right-5 text-gray-500 hover:scale-125 cursor-pointer">X</p>
-          <FormEditarPago getId={getId} categorias={cate} ListaPagos={row.original.pagos_array} IDPagoAModificar={PagoModificar} IDs={{ idGasto: gasto, idCategoria: cate }} set={act => setShow(act)} state={show} />
-        </div>
-      )}
-    </div>
+    <>
+      <div className="grid bg-base px-10 pb-12 pt-6 relative">
+        {show ? (
+          <ListadoComponent
+            pagos_array={row?.original?.pagos_array}
+            cate={cate}
+            gasto={gasto}
+            wantCreate={wantCreate}
+            showSoporte={showSoporte}
+            setShowSoporte={setShowSoporte}
+            idModificar={id => {
+              setPagoModificar(id)
+              setShow(!show)
+            }}
+            row={row}
+          />
+        ) : (
+          <div className="w-full h-max p-6 bg-white relative">
+            <p onClick={() => setShow(!show)} className="absolute font-display text-xl transform transition top-5 right-5 text-gray-500 hover:scale-125 cursor-pointer">X</p>
+            <FormEditarPago getId={getId} categorias={cate} ListaPagos={row.original.pagos_array} IDPagoAModificar={PagoModificar} IDs={{ idGasto: gasto, idCategoria: cate }} set={act => setShow(act)} state={show} />
+          </div>
+        )}
+      </div>
+      {
+        showSoporte.state &&
+        <Modal set={setShowSoporte} state={showSoporte.state} classe={"w-[95%] md:w-[450px] max-h-[600px] min-h-[100px]"}>
+          <div className="flex flex-col items-center h-full">
+            <div className="self-end pr-3 cursor-pointer" onClick={() => setShowSoporte({ state: false, data: null })}>
+              x
+            </div>
+            <div className="h-full flex items-center ">
+              <img src={showSoporte?.data} alt="Factura de soporte" className="" />
+            </div>
+
+          </div>
+        </Modal>
+      }
+    </>
   );
 };
 
 export default SubComponentePagos;
 
-const ListadoComponent = ({ pagos_array, cate, gasto, wantCreate, idModificar, row }) => {
+const ListadoComponent = ({ pagos_array, cate, gasto, wantCreate, idModificar, row, showSoporte, setShowSoporte }) => {
   const { t } = useTranslation();
   const { event, setEvent } = EventContextProvider();
   const BorrarPago = async (pagoID) => {
@@ -111,7 +133,7 @@ const ListadoComponent = ({ pagos_array, cate, gasto, wantCreate, idModificar, r
       });
     }
   };
- 
+  console.log("pagos", showSoporte)
   return (
     <>
       <button
@@ -154,7 +176,11 @@ const ListadoComponent = ({ pagos_array, cate, gasto, wantCreate, idModificar, r
           </span>
 
           <span className="items-center col-span-2 flex gap-3 text-gray-500 justify-center">
-            <EditarIcon onClick={() => idModificar(item._id)} className="w-4 h-4 cursor-pointer transform hover:scale-105 transition" />
+            {
+              item?.soporte?.image_url != null &&
+              <GrDocumentDownload onClick={() => setShowSoporte({ state: true, data: item?.soporte?.image_url })} className="w-6 h-6 cursor-pointer p-1 hover:shadow-md hover:bg-gray-300 rounded-md" />
+            }
+            <EditarIcon onClick={() => idModificar(item._id)} className="w-[20px] h-[20px] cursor-pointer transform hover:scale-105 transition" />
             <BorrarIcon
               onClick={() => BorrarPago(item._id)}
               className="w-4 h-4 cursor-pointer transform hover:scale-105 transition"

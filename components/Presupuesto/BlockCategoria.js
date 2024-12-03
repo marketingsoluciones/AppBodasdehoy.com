@@ -6,16 +6,11 @@ import { getCurrency } from "../../utils/Funciones";
 import { capitalize } from '../../utils/Capitalize';
 import FormAddPago from "../Forms/FormAddPago";
 import { useTranslation } from 'react-i18next';
-import {
-  BorrarIcon,
-  MisEventosIcon,
-  PlusIcon,
-} from "../icons";
+import { BorrarIcon, MisEventosIcon, PlusIcon} from "../icons";
 import CellEdit from "./CellEdit";
 import CellPagado from "./CellPagado";
 import SubComponentePagos from "./SubComponentePagos";
 import { useAllowed } from "../../hooks/useAllowed";
-
 import DetallesPago from "./DetallesPago";
 import { array } from "yup";
 import AddPagado from "./AddPagado";
@@ -306,13 +301,14 @@ export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate
     coste_final: 2,
     pagado: 2,
     options: 2,
+    soporte:1
   };
   return (
     <table
       {...getTableProps()}
       className="table w-full rounded-lg relative mt-6"
     >
-      <thead>
+       <thead>
         {headerGroups.map((headerGroup, id) => (
           <tr
             {...headerGroup.getHeaderGroupProps()}

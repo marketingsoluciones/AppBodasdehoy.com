@@ -136,13 +136,6 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ Conditiona
                         <PlusIcon />
                         {t("menu")}
                     </button>
-                    {/* <button
-                    onClick={() => !isAllowed() ? ht() : event?.invitados_array.length > 0 ? setCreatePDF(!createPDF) : toast("error", "Debes agregar invitados")}
-                    className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
-                    >
-                    
-                    Crear PDF
-                    </button> */}
                 </div>
             </div>
             {shouldRenderChild && (

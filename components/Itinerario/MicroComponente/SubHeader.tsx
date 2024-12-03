@@ -16,6 +16,8 @@ import { GrDocumentPdf } from "react-icons/gr";
 import { LiaLinkSolid } from "react-icons/lia";
 import ClickAwayListener from "react-click-away-listener";
 import { CopiarLink } from "../../Utils/Compartir";
+import { generatePdf, GeneratePdfOptions } from "../../../pages/api/services/pdfGenerator";
+import axios from "axios";
 
 interface props {
     itinerario: Itinerary
@@ -45,36 +47,41 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
 
     const link = `${window.location.origin}/event/itinerary-${event?._id}-${itinerario?._id}`
 
-    console.log(link)
-
     useEffect(() => {
         setTitle(itinerario?.title)
     }, [itinerario])
 
     const downloadPdf = async () => {
         try {
-            console.log(`${window.location.origin}/event/itinerary-${event._id}-${itinerario._id}`)
-            setLoading(true)
-            const nameFile = `${event.nombre} ${itinerario.title}`.replace(/ /g, "_")
-            const result = await fetchApiEventos({
-                query: queries.generatePdf,
-                variables: {
-                    url: `${window.location.origin}/event/itinerary-${event._id}-${itinerario._id}`,
-                    nameFile
-                },
-                domain: config.domain
-            })
-            console.log(result)
-            if (result) {
-                setLoading(false)
-                const link = document.createElement('a');
-                link.href = result as string;
-                link.download = nameFile;
-                link.target = '_blank';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+            console.log("aqui")
+            setLoading(true);
+            const pdfOptions: GeneratePdfOptions = {
+                html: `${window.location.origin}/event/itinerary-${event._id}-${itinerario._id}`,
+                filename: `${event.nombre} ${itinerario.title}`.replace(/ /g, "_"),
+                format: "letter"
             }
+            await axios.post('/api/generate-pdf', pdfOptions);
+            // console.log(response.data);
+            setLoading(false);
+            // setLoading(true)
+            // const result = await fetchApiEventos({
+            //     query: queries.generatePdf,
+            //     variables: {
+            //         url: `${window.location.origin}/event/itinerary-${event._id}-${itinerario._id}`,
+            //         nameFile
+            //     },
+            //     domain: config.domain
+            // })
+            // if (result) {
+            //     setLoading(false)
+            //     const link = document.createElement('a');
+            //     link.href = result as string;
+            //     link.download = pdfOptions.filename;
+            //     link.target = '_blank';
+            //     document.body.appendChild(link);
+            //     link.click();
+            //     document.body.removeChild(link);
+            // }
         } catch (error) {
             console.log(error)
         }
