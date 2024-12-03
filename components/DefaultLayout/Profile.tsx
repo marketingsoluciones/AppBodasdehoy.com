@@ -31,6 +31,21 @@ interface Flag {
   flag: string
 }
 
+const idiomaArray = [
+  {
+    value: "en",
+    title: "en",
+    flag: flags[0].pre
+
+  },
+  {
+    value: "es",
+    title: "es",
+    flag: flags[68].pre
+
+  }
+]
+
 const Profile = ({ user, state, set, ...rest }) => {
   const { t } = useTranslation()
   const { route } = useRouter()
@@ -44,13 +59,13 @@ const Profile = ({ user, state, set, ...rest }) => {
   const [showFlags, setShowFlags] = useState(false)
   const [language, setLanguage] = useState(i18next.language);
   const [options, setOptions] = useState(flags)
-  const [optionSelect, setOptionSelect] = useState<Flag>({value:"es",title:"es",flag:flags[68].pre})
+  const [optionSelect, setOptionSelect] = useState<Flag>(config.development === "champagne-events" ? idiomaArray[0] : idiomaArray[1])
 
   const cookieContent = JSON.parse(Cookies.get("guestbodas") ?? "{}")
 
   useEffect(() => {
-    setLanguage(optionSelect.value);
-    i18next.changeLanguage(optionSelect.value);
+    setLanguage(optionSelect?.value);
+    i18next.changeLanguage(optionSelect?.value);
   }, [optionSelect])
 
 
@@ -237,20 +252,7 @@ const Profile = ({ user, state, set, ...rest }) => {
   const optionsReduceEnd = optionReduce(optionsEnd)
   const valirUser = user?.displayName == "guest" ? "guest" : "loged"
 
-  const idiomaArray = [
-    {
-      value: "en",
-      title: "en",
-      flag: flags[0].pre
 
-    },
-    {
-      value: "es",
-      title: "es",
-      flag: flags[68].pre
-
-    }
-  ]
 
   return (
     <>
@@ -330,7 +332,6 @@ const Profile = ({ user, state, set, ...rest }) => {
           </div> */}
         <div onClick={() => {
           setShowFlags(!showFlags)
-          setOptions(flags)
         }}
           className=" flex items-center cursor-pointer "
         >
@@ -338,7 +339,7 @@ const Profile = ({ user, state, set, ...rest }) => {
             optionSelect?.flag &&
             <div className="space-x-1 flex items-center justify-center text-sm -ml-4">
               <img src={`flags-svg/${optionSelect?.flag}.svg`.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')} width={22} className="border-[1px] border-gray-500" />
-              <span className="text-gray-600">{optionSelect.title}</span>
+              <span className="text-gray-600">{optionSelect?.title}</span>
             </div >
           }
           <IoIosArrowDown className="text-gray-500" />
