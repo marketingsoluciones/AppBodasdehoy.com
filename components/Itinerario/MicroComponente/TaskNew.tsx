@@ -101,7 +101,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
       {({ values }) => {
         return (
           <Form className="w-full">
-            <div className="bg-purple-500* flex w-full justify-center 2xl:px-36 items-stretch text-gray-800" {...props} >
+            <div className="flex w-full justify-center 2xl:px-36 items-stretch text-gray-800" {...props} >
               {view === "schema" &&  values.spectatorView &&
                 <>
                   <div className={` *bg-violet-300 flex w-[55%] md:w-[45%] lg:w-[40%] p-2 items-start justify-start border-t-[1px] border-r-[1px] border-primary border-dotted relative`}>

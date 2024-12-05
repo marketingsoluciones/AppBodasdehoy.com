@@ -7,7 +7,7 @@ import { AuthContextProvider } from "../../../context/AuthContext";
 import { EventContextProvider } from "../../../context/EventContext";
 import { Modal } from "../../Utils/Modal";
 import { useToast } from "../../../hooks/useToast";
-import { useAllowed, useAllowedViewer } from "../../../hooks/useAllowed";
+import { useAllowed, } from "../../../hooks/useAllowed";
 import { WarningMessage } from "./WarningMessage";
 import { useTranslation } from 'react-i18next';
 import i18n from 'i18next';
@@ -22,6 +22,8 @@ import { SubHeader } from "./SubHeader";
 import { ViewItinerary } from "../../../pages/invitados";
 import FormTask from "../../Forms/FormTask";
 import { getStorage, ref, listAll, deleteObject } from "firebase/storage";
+import {  SimpleDeleteConfirmation } from "./DeleteConfirmation";
+
 
 interface props {
     itinerario: Itinerary
@@ -49,22 +51,17 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     const { config, geoInfo, user } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
     const [isAllowed, ht] = useAllowed()
-    const [isAllowedViewer] = useAllowedViewer()
     const toast = useToast()
-    const newDate = new Date();
-    const options = { year: "numeric", month: "long", day: "numeric" };
-    const date = newDate.toLocaleDateString(i18n?.language)
     const [tasks, setTasks] = useState<Task[]>()
     const [tasksReduce, setTasksReduce] = useState<TaskReduce[]>()
     const [modalStatus, setModalStatus] = useState(false)
     const [modalWorkFlow, setModalWorkFlow] = useState(false)
     const [modalCompartirTask, setModalCompartirTask] = useState(false)
     const [modalPlantilla, setModalPlantilla] = useState(false)
-
     const [showEditTask, setShowEditTask] = useState<EditTastk>({ state: false })
     const [selectTask, setSelectTask] = useState<string>()
     const storage = getStorage();
-
+    const [modal, setModal] = useState({ state: false, title: null, values: null, itinerario: null })
     const optionsItineraryButtonBox: OptionsSelect[] = [
         {
             value: "edit",
@@ -100,7 +97,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             value: "delete",
             icon: <MdOutlineDeleteOutline className="w-5 h-5" />,
             title: "borrar",
-            onClick: (values: Task, itinerario: Itinerary) => !isAllowed() ? ht() : deleteTask(values, itinerario)
+            onClick: (values: Task, itinerario: Itinerary) => !isAllowed() ? ht() : setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion })
         }
     ]
 
@@ -136,7 +133,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             setTasksReduce([])
         }
     }, [itinerario, event])
-
 
     const handleAddSpectatorView = async (values: Task) => {
         try {
@@ -187,31 +183,13 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === values._id)
             event.itinerarios_array[f1].tasks.splice(f2, 1)
             setEvent({ ...event })
+            setModal({state:false, title: null, values: null, itinerario: null})
             toast("success", t(itinerario.tipo === "itinerario" ? "activitydeleted" : "servicedeleted"));
         } catch (error) {
             console.log(1000501, error)
         }
     }
 
-    async function deleteFolder(folderPath) {
-        try {
-            // Crear una referencia a la carpeta
-            // const storageRef = ref(storage, `${task._id}//${elem.name}`)
-            // // const folderRef = storage.ref(folderPath);
-
-            // // Listar todos los objetos en la carpeta
-            // const listResult = await folderRef.listAll();
-            // listResult.items.forEach(async (itemRef) => {
-            //     // Eliminar cada objeto
-            //     await itemRef.delete();
-            // });
-
-            console.log('Carpeta eliminada exitosamente');
-        } catch (error) {
-            console.error('Error al eliminar la carpeta:', error);
-        }
-    }
-    //
     return (
         <div className="w-full flex-1 flex flex-col overflow-y-scroll">
             {showEditTask?.state && (
@@ -221,6 +199,9 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                     </div>
                 </ModalLeft>
             )}
+            {modal.state && <Modal set={setModal} classe={"w-[95%] md:w-[450px] h-[200px]"}>
+                <SimpleDeleteConfirmation setModal={setModal} modal={modal} deleteTask={deleteTask} />
+            </Modal>}
             {["/itinerario"].includes(window?.location?.pathname) && <SubHeader view={view} itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} title={title} setTitle={setTitle} />}
             <div className={`w-full flex-1 flex flex-col md:px-2 lg:px-6`}>
                 {view !== "table"
