@@ -409,7 +409,7 @@ export const es = {
     'paymenttoview': 'no tienes pago para visualizar',
     'pendiente': 'pendiente',
     'Pendientes': 'Pendientes',
-    'pendingpayments': 'Pagos pendientes',
+    'pendingpayments': 'Pagos programados',
     'people': 'Personas',
     'permissions': 'Permisos:',
     'permissionslist': 'Lista de Permisos',
