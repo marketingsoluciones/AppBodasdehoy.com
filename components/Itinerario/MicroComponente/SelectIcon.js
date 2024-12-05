@@ -106,7 +106,7 @@ export const SelectIcon = ({ handleChange, ...props }) => {
             {field?.value
                 ? <div className='w-full h-full cursor-pointer flex justify-center '
                     onClick={() => {
-                        disable ? ht() :
+                        !isAllowed() ? ht() :
                             setOpenIcon(!openIcon)
 
                     }} {...props}>

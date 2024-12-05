@@ -105,8 +105,8 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
               {view === "schema" &&  values.spectatorView &&
                 <>
                   <div className={` *bg-violet-300 flex w-[55%] md:w-[45%] lg:w-[40%] p-2 items-start justify-start border-t-[1px] border-r-[1px] border-primary border-dotted relative`}>
-                    <div className="*bg-orange-500 w-12 h-12 md:w-16 md:h-16 md:min-w-16 flex items-center justify-center">
-                      <SelectIcon name="icon" className="*bg-white scale-[120%] -translate-y-1" handleChange={handleBlurData} />
+                    <div className=" w-12 h-12 md:w-16 md:h-16 md:min-w-16 flex items-center justify-center cursor-pointer">
+                      <SelectIcon name="icon" className=" scale-[120%] -translate-y-1 cursor-pointer" handleChange={handleBlurData} />
                     </div>
                     <div className="flex-1">
                       <div className="*bg-orange-300 inline-flex flex-col justify-start items-start">
@@ -141,7 +141,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                 </>}
               {view === "cards" &&
                 <div className={`${isSelect ? "border-gray-300" : "border-gray-100"} border-2 box-content bg-gray-100 w-full rounded-lg mx-2 my-1 flex p-2`}>
-                  <div className="bg-white w-12 h-12 md:w-16 md:h-16 md:min-w-16 flex items-center justify-center rounded-full border-[1px] border-gray-300">
+                  <div className="bg-white cursor-pointer w-12 h-12 md:w-16 md:h-16 md:min-w-16 flex items-center justify-center rounded-full border-[1px] border-gray-300">
                     <SelectIcon name="icon" className="" handleChange={handleBlurData} />
                   </div>
                   <div className="*bg-rose-600 flex-1 flex flex-col text-[12px] pl-1 md:pl-2">
