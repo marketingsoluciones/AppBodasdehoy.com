@@ -112,7 +112,7 @@ export const SelectIcon = ({ handleChange, ...props }) => {
                     }} {...props}>
                     {IconArray.find((elem) => elem?.title === field?.value).icon}
                 </div>
-                : <div className='w-full h-full cursor-pointer flex items-center justify-center text-gray-600 hover:text-gray-800' onClick={() => isAllowed() ? ht() :
+                : <div className='w-full h-full cursor-pointer flex items-center justify-center text-gray-600 hover:text-gray-800' onClick={() => !isAllowed() ? ht() :
                     setOpenIcon(!openIcon)}>
                     <AddIcon />
                 </div>
