@@ -606,6 +606,8 @@ export const en = {
     'zipcode': "Zip code",
     'zonas': "areas",
     'Zoom': "Zoom:",
+    'Weareexcited': "¡We are excited to introduce you to this new functionality!",
+    'developing':"It is currently in development, but will be available very soon",
 
     nombre: 'NAME',
     invitados: 'guests',
