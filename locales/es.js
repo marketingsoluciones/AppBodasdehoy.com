@@ -409,7 +409,7 @@ export const es = {
     'paymenttoview': 'no tienes pago para visualizar',
     'pendiente': 'pendiente',
     'Pendientes': 'Pendientes',
-    'pendingpayments': 'Pagos pendientes',
+    'pendingpayments': 'Pagos programados',
     'people': 'Personas',
     'permissions': 'Permisos:',
     'permissionslist': 'Lista de Permisos',
@@ -606,6 +606,8 @@ export const es = {
     'zipcode': 'Código Postal',
     'zonas': 'zonas',
     'Zoom': 'Zoom:',
+    'Weareexcited':"¡Estamos emocionados de presentarte esta nueva funcionalidad!",
+    'developing':"Actualmente se encuentra en desarrollo, pero muy pronto estará disponible",
 
     nombre: 'nombre',
     invitados: 'invitados',

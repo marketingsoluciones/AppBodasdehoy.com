@@ -18,6 +18,7 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
     const [permissions, setPermissions] = useState([])
     const [isMounted, setIsMounted] = useState(false)
     const [valir, setValir] = useState(true)
+    const [saving, setSaving] = useState (false)
 
     useEffect(() => {
         if (!isMounted) {
@@ -30,6 +31,7 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
     }, [])
 
     const handleSubmit = async () => {
+        setSaving(true)
         try {
             const results = await fetchApiEventos({
                 query: queries.addCompartitions,
@@ -58,6 +60,7 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
             eventsGroup[f1].compartido_array.push(...results.compartido_array)
             setEventsGroup([...eventsGroup])
             setEvent({ ...eventsGroup[f1] })
+            setSaving(false)
             // falta setear evento
             toast("success", t("Evento fue compartido con éxito"));
         } catch (error) {
@@ -102,7 +105,7 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
                                 <div className="flex">
                                     <div className="flex-1" />
                                     {users.length
-                                        ? <button onClick={() => users?.length && handleSubmit()} className={`bg-primary text-white rounded-lg px-5 py-2 h-10 capitalize`}>{t("save")}</button>
+                                        ? <button onClick={() => users?.length && handleSubmit()} disabled={saving} className={`${saving && "opacity-15 cursor-wait"  } bg-primary text-white rounded-lg px-5 py-2 h-10 capitalize`}>{t("save")}</button>
                                         : <button onClick={() => valir && setOpenModal(!openModal)} className={`${valir ? "bg-primary" : "bg-gray-300"} text-white rounded-lg px-5 py-2 h-10 capitalize`}>{t("done")}</button>
 
                                     }
