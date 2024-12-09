@@ -5,9 +5,10 @@ import { GruposResponsablesArry } from "../Itinerario/MicroComponente"
 
 interface props {
   user: detalle_compartidos_array
+  disabledTooltip?: boolean
 }
 
-export const ImageAvatar: FC<props> = ({ user }) => {
+export const ImageAvatar: FC<props> = ({ user, disabledTooltip }) => {
   const [showName, setShowName] = useState<boolean>()
   const router = useRouter()
   const h = (str: string): string => {
@@ -46,7 +47,7 @@ export const ImageAvatar: FC<props> = ({ user }) => {
           </div>
       }
 
-      {router.pathname != "/itinerario" && showName && <div style={{ right: 10, top: 30 }} className="absolute z-20 bg-black rounded-md flex items-center justify-center leading-[1.2] opacity-75">
+      {(router.pathname != "/itinerario" && showName && !disabledTooltip) && <div style={{ right: 10, top: 30 }} className="absolute z-20 bg-black rounded-md flex items-center justify-center leading-[1.2] opacity-75">
         <span className="text-white text-[10px] py-1 px-2">
           {user?.displayName ? user?.displayName : user?.email}
         </span>

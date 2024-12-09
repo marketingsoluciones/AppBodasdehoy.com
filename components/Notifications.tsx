@@ -3,16 +3,18 @@ import ClickAwayListener from "react-click-away-listener"
 import { RiNotification2Fill } from "react-icons/ri";
 import { MisEventosIcon, TarjetaIcon } from "./icons";
 import { fetchApiBodas, queries } from "../utils/Fetching";
-import { AuthContextProvider, SocketContextProvider } from "../context";
+import { AuthContextProvider, EventContextProvider, SocketContextProvider } from "../context";
 import { Notification, ResultNotifications } from "../utils/Interfaces";
 import { formatDistanceStrict } from "date-fns";
 import { es } from "date-fns/locale";
 import { Interweave, Node } from "interweave";
 import { HashtagMatcher, Link, Url, UrlMatcher, UrlProps } from "interweave-autolink";
 import { useTranslation } from "react-i18next";
+import { ImageAvatar } from "./Utils/ImageAvatar";
 
 export const Notifications = () => {
   const { t } = useTranslation()
+  const { event } = EventContextProvider()
   const { user, config } = AuthContextProvider()
   const { notifications, setNotifications } = SocketContextProvider()
   const [showNotifications, setShowNotifications] = useState(false);
@@ -135,18 +137,28 @@ export const Notifications = () => {
         </div>
         {showNotifications && (
           <div className="absolute bg-white rounded-lg w-80 h-max shadow-lg shadow-gray-400 top-0 right-10 translate-x-1/2 translate-y-[46px] overflow-hidden z-40 title-display">
-            <div className="w-full pb-2">
+            <div className="w-full pb-2 flex justify-center text-gray-600 border-[1px] border-b-2 rounded-lg rounded-b-none  border-gray-300 py-2 text-sm">
+              {t("Mis notificaciones")}
             </div>
-            <ul id="ul-notifications" className="bg-white flex flex-col gap-2 text-xs place-items-left py-2 text-black max-h-[365px] overflow-y-scroll break-words">
+            <ul id="ul-notifications" className="bg-white flex flex-col text-xs place-items-left text-black max-h-[365px] overflow-y-scroll break-words">
               {notifications?.results?.map((item: Notification, idx: number) => (
                 <li key={idx} className="flex w-full">
-                  <div className="w-full hover:bg-base rounded-lg text-gray-700 flex py-1">
-                    {(!item?.type || item?.type === "event") && <MisEventosIcon className="mt-1 mx-1.5 text-gray-500 w-5 h-5" />}
-                    {(item?.type === "shop") && <TarjetaIcon className="mt-1 mx-1.5 text-gray-500 w-5 h-5" />}
+                  <div className="w-full hover:bg-base text-gray-700 flex py-2 ml-2">
+                    <div className="bg-white text-gray-500 w-7 h-7 rounded-full border-gray-200 border-[1px] flex justify-center items-center -translate-y-1 mx-1">
+                      {(!item?.type || item?.type === "event") && <MisEventosIcon className="w-5 h-5" />}
+                      {(item?.type === "shop") && <TarjetaIcon className="w-5 h-5" />}
+                      {(item?.type === "user") && <div className="w-5 h-5">
+                        <ImageAvatar user={[...event?.detalles_compartidos_array, event?.detalles_usuario_id, user]?.find(elem => elem?.uid === item?.uid)} disabledTooltip />
+                      </div>}
+                    </div>
                     <div className="flex-1 flex flex-col">
                       <Interweave
                         className="text-xs break-words"
-                        content={item?.message}
+                        content={
+                          item?.type === "user"
+                            ? `${[...event?.detalles_compartidos_array, event?.detalles_usuario_id, user]?.find(elem => elem?.uid === item?.uid).displayName} ${item?.message}`
+                            : item?.message
+                        }
                         matchers={[
                           new UrlMatcher('url', {}, replacesLink),
                           new HashtagMatcher('hashtag')
