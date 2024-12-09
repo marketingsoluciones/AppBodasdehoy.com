@@ -106,6 +106,7 @@ export interface Notification {
     message: string
     state: string
     type: string
+    fromUid: string
     createdAt: number
     updatedAt: number
 }
