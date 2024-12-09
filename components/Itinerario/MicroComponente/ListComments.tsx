@@ -64,7 +64,7 @@ export const ListComments: FC<props> = ({ itinerario, task, item, setConfirmatio
           </div>
         </div>
       </div>} */}
-      {user.uid === item?.uid && <MdOutlineDeleteOutline
+      {user && user.uid === item?.uid && <MdOutlineDeleteOutline
         onClick={() => {
           handleDelete()
           //setConfirmation({ state: true, handleDelete })
@@ -87,7 +87,7 @@ export const ListComments: FC<props> = ({ itinerario, task, item, setConfirmatio
         />
         {/* <p className='bg-blue-100* p-2 flex-1 normal-case whitespace-pre-line'>{item?.comment}</p> */}
       </div>
-      <span className='justify-end text-[10px] -mt-2 font-medium flex-1 flex right-0 *-translate-x-full'>
+      <span className='cursor-default justify-end text-[10px] -mt-2 font-medium flex-1 flex right-0 *-translate-x-full'>
         {new Date(item?.createdAt).toLocaleString()}
       </span>
     </div>

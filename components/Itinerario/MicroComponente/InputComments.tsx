@@ -29,16 +29,16 @@ export const InputComments: FC<props> = ({ itinerario, task }) => {
       fetchApiEventos({
         query: queries.createComment,
         variables: {
-          eventID: event._id,
-          itinerarioID: itinerario._id,
-          taskID: task._id,
+          eventID: event?._id,
+          itinerarioID: itinerario?._id,
+          taskID: task?._id,
           comment: value
         },
         domain: config.domain
       }).then((results: Comment) => {
-        const f1 = event.itinerarios_array.findIndex(elm => elm._id === itinerario._id)
-        const f2 = event.itinerarios_array[f1].tasks.findIndex(elm => elm._id === task._id)
-        event.itinerarios_array[f1].tasks[f2].comments.push(results)
+        const f1 = event?.itinerarios_array.findIndex(elm => elm?._id === itinerario?._id)
+        const f2 = event?.itinerarios_array[f1]?.tasks.findIndex(elm => elm?._id === task?._id)
+        event?.itinerarios_array[f1]?.tasks[f2]?.comments.push(results)
         setEvent({ ...event })
       })
       setValue("")
