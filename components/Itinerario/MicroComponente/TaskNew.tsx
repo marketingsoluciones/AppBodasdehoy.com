@@ -144,7 +144,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                   <div className="bg-white cursor-pointer w-12 h-12 md:w-16 md:h-16 md:min-w-16 flex items-center justify-center rounded-full border-[1px] border-gray-300">
                     <SelectIcon name="icon" className="" handleChange={handleBlurData} />
                   </div>
-                  <div className="*bg-rose-600 flex-1 flex flex-col text-[12px] pl-1 md:pl-2">
+                  <div className="flex-1 flex flex-col text-[12px] pl-1 md:pl-2">
                     {!["/itinerario"].includes(window?.location?.pathname) && <span className="font-bold">{values?.fecha.toLocaleString()}</span>}
                     <span className={`${["/itinerario"].includes(window?.location?.pathname) && "text-[15px]"} font-bold`}>{values?.hora}</span>
                     {values?.duracion && <span>Duración {values?.duracion} min</span>}

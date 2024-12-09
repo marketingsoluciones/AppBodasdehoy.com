@@ -67,7 +67,8 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             value: "edit",
             icon: <PencilEdit className="w-5 h-5" />,
             title: "editar",
-            onClick: (values: Task) => !isAllowed() ? ht() : setShowEditTask({ values, state: !showEditTask.state })
+            onClick: (values: Task) => !isAllowed() ? ht() : setShowEditTask({ values, state: !showEditTask.state }),
+            vew: "all"
         },
         {
             value: "status",
@@ -79,25 +80,29 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                 return <GoEye className="w-5 h-5" />
             },
             title: "estado",
-            onClick: (values: Task) => !isAllowed() ? ht() : handleAddSpectatorView(values)
+            onClick: (values: Task) => !isAllowed() ? ht() : handleAddSpectatorView(values),
+            vew: "all"
         },
         {
             value: "flujo",
             icon: <GoGitBranch className="w-5 h-5" />,
             title: "flow",
-            onClick: () => !isAllowed() ? ht() : setModalWorkFlow(!modalWorkFlow)
+            onClick: () => !isAllowed() ? ht() : setModalWorkFlow(!modalWorkFlow),
+            vew:"tasks"
         },
         {
             value: "share",
             icon: <LiaLinkSolid className="w-5 h-5" />,
             title: "Link calendario",
-            onClick: () => !isAllowed() ? ht() : setModalCompartirTask(!modalCompartirTask)
+            onClick: () => !isAllowed() ? ht() : setModalCompartirTask(!modalCompartirTask),
+            vew:"tasks"
         },
         {
             value: "delete",
             icon: <MdOutlineDeleteOutline className="w-5 h-5" />,
             title: "borrar",
-            onClick: (values: Task, itinerario: Itinerary) => !isAllowed() ? ht() : setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion })
+            onClick: (values: Task, itinerario: Itinerary) => !isAllowed() ? ht() : setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }),
+            vew:"all"
         }
     ]
 

@@ -96,6 +96,7 @@ export interface OptionsSelect {
     title: string
     onClick: any
     disabled?: boolean
+    vew?: string
 }
 
 export interface Notification {
