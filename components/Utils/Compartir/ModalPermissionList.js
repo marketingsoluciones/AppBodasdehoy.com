@@ -4,8 +4,10 @@ import { useState } from "react";
 import { EventContextProvider, EventsGroupContextProvider } from "../../../context";
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
 import { useTranslation } from "react-i18next";
+import { useNotification } from "../../../hooks/useNotification";
 
 export const ModalPermissionList = ({ data, setOpenModal, event }) => {
+    const notification = useNotification()
     const { t } = useTranslation()
     const { setEvent } = EventContextProvider()
     const [permissions, setPermissions] = useState([...data?.permissions])
@@ -30,6 +32,11 @@ export const ModalPermissionList = ({ data, setOpenModal, event }) => {
                     }
                 }
             });
+            notification({
+                type: "user",
+                message: "algo",
+                uids: [data?.uid]
+            })
         } catch (error) {
             console.log(error)
         }

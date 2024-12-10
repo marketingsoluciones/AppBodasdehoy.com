@@ -405,18 +405,11 @@ export const queries = {
   updateNotifications: `mutation ($args:inputNotification){
     updateNotifications(args:$args)
   }`,
-  createNotifications: `query ($args:inputNotifications, $sort:sortCriteriaNotification, $skip:Int, $limit:Int){
-    getNotifications(args:$args, sort:$sort, skip:$skip, limit:$limit){
+  createNotifications: `mutation ($args:inputNotifications){
+    createNotifications(args:$args){
       total
       results{
         _id
-        uid
-        message
-        state
-        type
-        fromUid
-        createdAt
-        updatedAt
       }
     }
   }`,
