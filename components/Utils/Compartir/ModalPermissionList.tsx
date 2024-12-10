@@ -1,12 +1,19 @@
 import ClickAwayListener from "react-click-away-listener";
 import { PermissionList } from "./PermissionList";
-import { useState } from "react";
+import { FC, useState } from "react";
 import { EventContextProvider, EventsGroupContextProvider } from "../../../context";
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
 import { useTranslation } from "react-i18next";
 import { useNotification } from "../../../hooks/useNotification";
+import { Event } from "../../../utils/Interfaces";
 
-export const ModalPermissionList = ({ data, setOpenModal, event }) => {
+interface props {
+    data: any
+    setOpenModal: any
+    event: Event
+}
+
+export const ModalPermissionList: FC<props> = ({ data, setOpenModal, event }) => {
     const notification = useNotification()
     const { t } = useTranslation()
     const { setEvent } = EventContextProvider()
@@ -34,7 +41,7 @@ export const ModalPermissionList = ({ data, setOpenModal, event }) => {
             });
             notification({
                 type: "user",
-                message: "algo",
+                message: `ha cambiado tu privilegios en el evento ${event?.tipo}: <strong>${event?.nombre.toUpperCase()}</strong>`,
                 uids: [data?.uid]
             })
         } catch (error) {
@@ -44,7 +51,7 @@ export const ModalPermissionList = ({ data, setOpenModal, event }) => {
 
     return (
         <ClickAwayListener onClickAway={() => setOpenModal(false)}>
-            <div style={{ left: ["50%"], }} className={`fixed z-50 bg-gray-100 rounded-lg p-4 text-[15px] w-64 ml-[50%] -translate-x-[calc(50%+14px)] md:translate-x-36 space-y-4`}>
+            <div style={{ left: "50%", }} className={`fixed z-50 bg-gray-100 rounded-lg p-4 text-[15px] w-64 ml-[50%] -translate-x-[calc(50%+14px)] md:translate-x-36 space-y-4`}>
                 <PermissionList permissions={permissions} handleChange={handleChangePermision} setPermission={setPermissions} />
                 <div className="flex">
                     <div className="flex-1" />
