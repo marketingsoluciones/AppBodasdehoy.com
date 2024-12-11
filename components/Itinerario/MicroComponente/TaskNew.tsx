@@ -36,7 +36,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
   const toast = useToast()
   const { t } = useTranslation();
   const storage = getStorage();
-  const link = `${window.location.origin}/event/servicios-${event?._id}-${itinerario?._id}-${task?._id}`
+  const link = `${window.location.origin}/services/servicios-${event?._id}-${itinerario?._id}-${task?._id}`
   const [viewComments, setViewComments] = useState(true)
   const initialValues: TaskDateTimeAsString = {
     _id: task?._id,
