@@ -1,17 +1,12 @@
 
-import { FC, useEffect, useReducer, useState } from "react";
-import dynamic from 'next/dynamic'
-import { useRouter } from "next/router";
+import { FC, useEffect, useState } from "react";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
-import { Event, Itinerary, Task } from "../../utils/Interfaces";
+import { Event, Task } from "../../utils/Interfaces";
 import { motion } from "framer-motion"
-import BlockTitle from "../../components/Utils/BlockTitle";
-import { BoddyIter } from "../../components/Itinerario/BoddyIter";
 import { AuthContextProvider, EventContextProvider } from "../../context";
 import { defaultImagenes } from "../../components/Home/Card";
 import { useTranslation } from "react-i18next";
 import { TaskNew } from "../../components/Itinerario/MicroComponente/TaskNew";
-import { tasks } from "googleapis/build/src/apis/tasks";
 
 interface props {
   evento: Event
@@ -69,14 +64,14 @@ const Slug: FC<props> = (props) => {
         Page not found error 404
       </div>
     )
-    
+
   if (recurse === "servicios") {
-    return(
-      <ServicesVew eventProps={event} end={end} p={p}/>
+    return (
+      <ServicesVew eventProps={event} end={end} p={p} />
     )
   }
 
-   return (
+  return (
     <section className={"absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4 bg-white"}>
       <motion.div
         initial={{ opacity: 0 }}
@@ -129,31 +124,35 @@ const Slug: FC<props> = (props) => {
             })}
           </div>
         )
-        } 
+        }
         {end && <span id="elementControl" className="text-xs">~</span>}
       </motion.div>
     </section>
-  ) 
+  )
 
 };
 
 export default Slug;
 
-const ServicesVew = ({eventProps, end, p}) => {
+const ServicesVew = ({ eventProps, end, p }) => {
   const { event } = EventContextProvider()
-  const f1 = event?.itinerarios_array?.findIndex(({_id})=> _id === p[2] )
-  const f2 = eventProps?.itinerarios_array[0]?.tasks?.findIndex(({_id})=> _id ===p[3])
+  const f1 = event?.itinerarios_array?.findIndex(({ _id }) => _id === p[2])
+  const f2 = eventProps?.itinerarios_array[0]?.tasks?.findIndex(({ _id }) => _id === p[3])
   const Task = event?.itinerarios_array[f1]?.tasks[f2]
-  const Task2 = eventProps?.itinerarios_array[0]?.tasks?.find(({_id})=> _id ===p[3])
+  const Task2 = eventProps?.itinerarios_array[0]?.tasks?.find(({ _id }) => _id === p[3])
 
   return (
-    <section className={"absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4 bg-white"}>
+    <section className={"absolute z-[50] w-[calc(100vw-20px)] overflow-x-hidden h-[100vh] top-0 left-4 bg-white"}>
+      <div className=" fixed right-0 bottom-0  ">
+        <img src="/MujerPrincipal.webp" alt="Imagen de fondo"/>
+      </div>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="max-w-screen-lg mx-auto inset-x-0 w-full pl-2 pr-[1px] md:px-0 gap-4 relative">
-        <div className={`w-full h-14 rounded-xl shadow-lg flex items-center justify-between`}>
+        className="max-w-screen-lg mx-auto inset-x-0 w-full pl-2- -pr-[1px] md:px-0 gap-4 relative">
+
+        <div className={`bg-white w-full h-14 rounded-xl shadow-lg flex items-center justify-between z-50`}>
           <div className='flex md:flex-1 flex-col px-2 md:px-6 font-display'>
             <div className='space-x-1'>
               <span className='md:hidden capitalize text-primary text-[12px] leading-[12px]'>{eventProps?.tipo}</span>
@@ -178,15 +177,15 @@ const ServicesVew = ({eventProps, end, p}) => {
             <div className="w-[100px] bg-primary h-0.5 rounded-md mt-2" />
           </div>
         </div >
-          <div  className="w-full *h-[500px] mt-4">
-                <TaskNew
-                  task={Task}
-                  itinerario={eventProps?.itinerarios_array[0]}
-                  view={"cards"}
-                  // isSelect={selectTask === elem._id}
-                  onClick={() => { }}
-                />
-          </div>
+        <div className="w-full *h-[500px] mt-4">
+          <TaskNew
+            task={Task}
+            itinerario={eventProps?.itinerarios_array[0]}
+            view={"cards"}
+            // isSelect={selectTask === elem._id}
+            onClick={() => { }}
+          />
+        </div>
         {end && <span id="elementControl" className="text-xs">~</span>}
       </motion.div>
     </section>

@@ -94,13 +94,13 @@ const Profile = ({ user, state, set, ...rest }) => {
       development: ["bodasdehoy"],
       rol: ["all"],
     },
-    {
+    /* {
       title: "Mis notificaciones",
-      onClick: async () => { /*setModal(!modal)*/ },
+      onClick: async () => { setModal(!modal) },
       icon: <BiBell />,
       development: ["bodasdehoy", "all"],
       rol: ["novio", "novia", "otro", "empresa", "all"],
-    },
+    }, */
     {
       title: "Mis publicaciones",
       onClick: async () => {
@@ -259,15 +259,21 @@ const Profile = ({ user, state, set, ...rest }) => {
       <div className="text-gray-100 flex space-x-4 relative" {...rest} >
         <span className="flex items-center gap-2 relative">
         </span>
-        <div className="items-center flex relative cursor-default ">
-          <div onClick={() => {
-            !event ? toast("error", t("nohaveeventscreated")) : !isAllowedRouter("/servicios") ? ht() : router.push("/servicios")
-          }} className={`${!event ? "opacity-40" : ""} bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200* cursor-pointer`} >
-            {/* <GoChecklist className="text-primary w-6 h-6 scale-x-90" /> */}
-            <GoTasklist className="text-primary w-6 h-6 scale-x-90" />
+        {
+          user && 
+          <div className="items-center flex relative cursor-default ">
+            <div onClick={() => {
+              !event ? toast("error", t("nohaveeventscreated")) : !isAllowedRouter("/servicios") ? ht() : router.push("/servicios")
+            }} className={`${!event ? "opacity-40" : ""} bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200* cursor-pointer`} >
+              {/* <GoChecklist className="text-primary w-6 h-6 scale-x-90" /> */}
+              <GoTasklist className="text-primary w-6 h-6 scale-x-90" />
+            </div>
           </div>
-        </div>
-        <Notifications />
+        }
+        {
+          user &&
+          <Notifications />
+        }
         <ClickAwayListener onClickAway={() => dropdown && setDropwdon(false)}>
           <div
             className="bg-white items-center gap-2 flex relative"
