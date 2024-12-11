@@ -316,6 +316,10 @@ const MontoPresupuesto = ({ estimado }) => {
             <option value={"usd"}>USD</option>
             <option value={"ves"}>VES</option>
             <option value={"mxn"}>MXN</option>
+            <option value={"cop"}>COL</option>
+            <option value={"ars"}>ARG</option>
+            <option value={"uyu"}>URU</option>
+            
           </select>
         </span>
       }
@@ -466,7 +470,7 @@ const ItemCategoria = ({ item, setVisible, set }) => {
         {item?.nombre?.toLowerCase()}
       </span>
       <span className="gap-4 flex items-center py-3 md:py-0" >
-        <div >
+        <div className="text-[13px]" >
           {getCurrency(DefinirCoste(item), event?.presupuesto_objeto?.currency)}
         </div>
         <div className="relative ">
