@@ -33,7 +33,7 @@ export const ItineraryTabsMenu: FC<props> = ({ itinerario, item, handleDeleteIti
 
     const optionsSelect: OptionsSelect[] = [
         {
-            title: "Renombrar",
+            title: t("rename"),
             value: "rename",
             onClick: () => {
                 setTitle(item.title)
@@ -42,7 +42,7 @@ export const ItineraryTabsMenu: FC<props> = ({ itinerario, item, handleDeleteIti
             icon: <PencilEdit className="w-5 h-5" />
         },
         {
-            title: "Compartir",
+            title: t("share"),
             value: "share",
             onClick: () => {
                 setShowAddUsertoServices(true)
@@ -50,13 +50,13 @@ export const ItineraryTabsMenu: FC<props> = ({ itinerario, item, handleDeleteIti
             icon: <IoShareSocial className="w-5 h-5" />
         },
         {
-            title: "Borrar",
+            title: t("Borrar"),
             value: "delete",
             onClick: () => { handleDeleteItinerario() },
             icon: <MdOutlineDeleteOutline className="w-5 h-5" />
         },
         {
-            title: "Detalles",
+            title: t("details"),
             value: "details",
             onClick: () => { },
             icon: <CgInfo className="w-5 h-5" />

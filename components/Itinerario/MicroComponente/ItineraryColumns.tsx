@@ -25,6 +25,7 @@ import { AuthContextProvider, EventContextProvider } from "../../../context";
 import { ImageAvatar } from "../../Utils/ImageAvatar";
 import { Interweave } from "interweave";
 import { HashtagMatcher, UrlMatcher, UrlProps } from "interweave-autolink";
+import i18next from "i18next";
 import Link from "next/link";
 
 interface props {
@@ -116,7 +117,7 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
   const Columna = useMemo(
     () => [
       {
-        Header: t("título"),
+        Header: t("title"),
         accessor: "descripcion",
         id: "description",
         Cell: (data) => {
@@ -131,7 +132,7 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         }
       },
       {
-        Header: t("fecha"),
+        Header: t("date"),
         accessor: "fecha",
         id: "date",
         Cell: (data) => (
@@ -141,7 +142,7 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         )
       },
       {
-        Header: `${t("duración")}`,
+        Header: t("duracion"),
         accessor: "duracion",
         id: "duration",
         Cell: (data) => {
@@ -153,7 +154,7 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         }
       },
       {
-        Header: t("responsables"),
+        Header: t("responsible"),
         accessor: "responsable",
         id: "responsables",
         Cell: (data) => {
@@ -253,7 +254,7 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         }
       },
       {
-        Header: t("archivos adjuntos"),
+        Header: t("attachments"),
         accessor: "attachments",
         id: "attachments",
         Cell: (data) => {
@@ -276,7 +277,7 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         }
       },
       {
-        Header: t("etiquetas"),
+        Header: t("labels"),
         accessor: "tags",
         id: "tags",
         Cell: (data) => (
@@ -314,8 +315,9 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
                           setShow(false)
                           item?.onClick(data.cell.row.original, itinerario)
                         }}
-                        className={`${item.value === "edit" ? "flex md:hidden" : "flex"} p-2 text-gray-700 text-sm items-center gap-2 capitalize cursor-pointer hover:bg-gray-100 ${item.value === value && "bg-gray-200"}`}
+                        className={`${item.value === "edit" ? "flex md:hidden" : "flex"}  ${["/itinerario"].includes(window?.location?.pathname) && item.vew != "all"? "hidden":""} p-2 text-gray-700 text-sm items-center gap-2 capitalize cursor-pointer hover:bg-gray-100 ${item.value === value && "bg-gray-200"}`}
                       >
+                        
                         {item.icon}
                         <span className="flex-1 leading-[1]">
                           {item.title}
@@ -330,7 +332,7 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         }
       },
     ],
-    [itinerario]
+    [itinerario,i18next.language]
   );
 
   return (

@@ -261,7 +261,6 @@ const MontoPresupuesto = ({ estimado }) => {
     try {
       const { data } = await api.ApiApp(params)
       datos = data.data.editPresupuesto
-      console.log("ZZZZZ",datos)
     } catch (error) {
       console.log(error)
     } finally {

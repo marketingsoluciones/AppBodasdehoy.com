@@ -109,14 +109,14 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
               <div className="flex w-full justify-center 2xl:px-36 items-stretch text-gray-800" {...props} >
                 {view === "schema" && values.spectatorView &&
                   <>
-                    <div className={` *bg-violet-300 flex w-[55%] md:w-[45%] lg:w-[40%] p-2 items-start justify-start border-t-[1px] border-r-[1px] border-primary border-dotted relative`}>
+                    <div className={`flex w-[55%] md:w-[45%] lg:w-[40%] p-2 items-start justify-start border-t-[1px] border-r-[1px] border-primary border-dotted relative`}>
                       <div className=" w-12 h-12 md:w-16 md:h-16 md:min-w-16 flex items-center justify-center cursor-pointer">
                         <SelectIcon name="icon" className=" scale-[120%] -translate-y-1 cursor-pointer" handleChange={handleBlurData} />
                       </div>
                       <div className="flex-1">
-                        <div className="*bg-orange-300 inline-flex flex-col justify-start items-start">
+                        <div className=" inline-flex flex-col justify-start items-start">
                           <span className="text-xl md:text-2xl text-gray-900">{values?.hora}</span>
-                          <div className="*bg-violet-400 w-full flex justify-end items-end text-xs -mt-1">
+                          <div className=" w-full flex justify-end items-end text-xs -mt-1">
                             <span> {t("duration")}</span>
                             <span className="text-[12px] md:text-[14px] lg:text-[16px] text-center bg-transparent px-1" >
                               {values?.duracion}
@@ -124,13 +124,13 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                             <span>min</span>
                           </div>
                         </div>
-                        <div className="bg-yellow-700* flex items-start space-x-2 font-title text-primary text-2xl">
+                        <div className=" flex items-start space-x-2 font-title text-primary text-2xl">
                           <div className="min-w-2 h-2 bg-primary rounded-full translate-y-2.5" />
                           <strong className="leading-[1] mt-1">{values?.descripcion}</strong>
                         </div>
-                        <div className="*bg-yellow-200 grid grid-flow-dense w-full space-x-2 text-[12px] mt-2">
+                        <div className=" grid grid-flow-dense w-full space-x-2 text-[12px] mt-2">
                           <p >
-                            Responsables: {values?.responsable.join(", ")}
+                            {t("responsible")}: {values?.responsable.join(", ")}
                           </p>
                         </div>
                       </div>
@@ -162,7 +162,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                     <div className="flex-1 flex flex-col text-[12px] pl-1 md:pl-2">
                       {!["/itinerario"].includes(window?.location?.pathname) && <span className="font-bold">{values?.fecha.toLocaleString()}</span>}
                       <span className={`${["/itinerario"].includes(window?.location?.pathname) && "text-[15px]"} font-bold`}>{values?.hora}</span>
-                      {values?.duracion && <span>Duración {values?.duracion} min</span>}
+                      {values?.duracion && <span>{t("duration")} {values?.duracion} min</span>}
                       <span className="text-[19px]">{values?.descripcion}</span>
                       {!!values?.tips && <Interweave
                         className="text-xs text-justify transition-all m-1 p-1 bg-white"
@@ -171,7 +171,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                       />}
                       <div>
                         <span>
-                          Responsables:
+                        {t("responsible")}:
                         </span>
                         <div className="text-gray-900">
                           {values?.responsable?.map((elem, idx) => {
@@ -196,7 +196,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                       </div>
                       <div className="mb-2">
                         <span>
-                          Archivos adjuntos:
+                          {t("addfile")}:
                         </span>
                         <p className="bg-white p-2 text-gray-900 leading-[1.3] space-y-3 md:space-y-2">
                           {values?.attachments?.map((elem, idx) =>
@@ -211,7 +211,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                       </div>
                       <div className="mb-2">
                         <span>
-                          Etiquetas:
+                          {t("labels")}:
                         </span>
                         <p className="bg-white p-2 text-gray-900 leading-[1] space-y-1">
                           {values?.tags?.map((elem, idx) =>
@@ -223,7 +223,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                       </div>
                       {!["/itinerario"].includes(window?.location?.pathname) && <div className="mb-2">
                         <span>
-                          Comentarios:
+                        {t("comments")}:
                         </span>
                         <div className='border-gray-300 border-[1px] rounded-lg py-2'>
                          
