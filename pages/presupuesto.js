@@ -227,6 +227,7 @@ const MontoPresupuesto = ({ estimado }) => {
           coste_final
           coste_estimado
           pagado
+          currency
           categorias_array {
             _id
             coste_proporcion
@@ -260,6 +261,7 @@ const MontoPresupuesto = ({ estimado }) => {
     try {
       const { data } = await api.ApiApp(params)
       datos = data.data.editPresupuesto
+      console.log("ZZZZZ",datos)
     } catch (error) {
       console.log(error)
     } finally {
@@ -284,6 +286,7 @@ const MontoPresupuesto = ({ estimado }) => {
         const currency = result.data.data.editCurrency
         setModificar(false)
         const presupuesto_objeto = { ...event.presupuesto_objeto, ...currency }
+        console.log("cambio en el monto", presupuesto_objeto)
         event.presupuesto_objeto = presupuesto_objeto
         setEvent({ ...event })
       })
