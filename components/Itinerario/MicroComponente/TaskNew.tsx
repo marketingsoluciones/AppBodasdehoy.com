@@ -33,7 +33,6 @@ interface props extends HTMLAttributes<HTMLDivElement> {
 export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryButtonBox, isSelect, showModalCompartir, setShowModalCompartir, ...props }) => {
   const { config, geoInfo, user } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
-  const toast = useToast()
   const { t } = useTranslation();
   const storage = getStorage();
   const link = `${window.location.origin}/services/servicios-${event?._id}-${itinerario?._id}-${task?._id}`
@@ -147,7 +146,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                 {view === "cards" &&
                   <div className={`${isSelect ? "border-gray-300" : "border-gray-100"} border-2 box-content bg-gray-100 w-full rounded-lg mx-2 my-1 flex p-2 relative`}>
                     {
-                      showModalCompartir?.state && showModalCompartir.id === values._id  && <ClickAwayListener onClickAway={() => setShowModalCompartir(false)}>
+                      showModalCompartir?.state && showModalCompartir.id === values._id && <ClickAwayListener onClickAway={() => setShowModalCompartir(false)}>
                         <ul className={` absolute transition shadow-lg rounded-lg duration-500 bottom-2 right-2 w-[300px] z-50 `}>
                           <li className="flex items-center py-4 px-6 font-display text-sm text-gray-500 bg-base transition w-full capitalize">
                             <CopiarLink link={link} />
@@ -171,7 +170,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                       />}
                       <div>
                         <span>
-                        {t("responsible")}:
+                          {t("responsible")}:
                         </span>
                         <div className="text-gray-900">
                           {values?.responsable?.map((elem, idx) => {
@@ -223,12 +222,12 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                       </div>
                       {!["/itinerario"].includes(window?.location?.pathname) && <div className="mb-2">
                         <span>
-                        {t("comments")}:
+                          {t("comments")}:
                         </span>
                         <div className='border-gray-300 border-[1px] rounded-lg py-2'>
-                         
-                            < InputComments itinerario={itinerario} task={task} />
-                          
+
+                          < InputComments itinerario={itinerario} task={task} />
+
                           <div className='w-[calc(100%)] flex flex-col-reverse rounded-lg'>
                             {task?.comments?.slice(viewComments ? -3 : 0).map((elem, idx) => {
                               return (
