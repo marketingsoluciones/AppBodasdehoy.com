@@ -2,8 +2,9 @@ import { FC, useEffect, useState } from "react"
 import { Textarea } from "./Textarea"
 import { AuthContextProvider, EventContextProvider } from "../../../context"
 import { fetchApiEventos, queries } from "../../../utils/Fetching"
-import { Comment, Itinerary, Task } from "../../../utils/Interfaces"
+import { Comment, detalle_compartidos_array, Itinerary, Task } from "../../../utils/Interfaces"
 import { ImageAvatar } from "../../Utils/ImageAvatar"
+import { useNotification } from "../../../hooks/useNotification"
 
 interface props {
   itinerario: Itinerary
@@ -15,6 +16,7 @@ export const InputComments: FC<props> = ({ itinerario, task }) => {
   const { event, setEvent } = EventContextProvider()
   const [value, setValue] = useState<string>()
   const [valir, setValir] = useState(false)
+  const notification = useNotification()
 
   useEffect(() => {
     if (value) {
@@ -43,6 +45,15 @@ export const InputComments: FC<props> = ({ itinerario, task }) => {
       })
       setValue("")
     }
+    const asd = event.detalles_compartidos_array.filter(elem => ["edit", "view"].includes(elem.permissions.find(el => el.title === "servicios").value)).map(elem => elem.uid)
+    let qwe = [...asd, event.usuario_id]
+    const f1 = qwe.findIndex(elem => elem === user?.uid)
+    qwe.splice(f1, 1)
+    notification({
+      type: "user",
+      message: `ha escrito un comentario en ${task.descripcion} del evento ${event?.tipo}: <strong>${event?.nombre.toUpperCase()}</strong>`,
+      uids: qwe
+    })
   }
 
   return (
