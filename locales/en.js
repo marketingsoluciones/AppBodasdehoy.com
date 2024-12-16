@@ -375,7 +375,7 @@ export const en = {
     'noguestsevent': "No guests are associated with this event",
     'noguestsseatedtable': "No guests are assigned to this table",
     'nohaveeventscreated': "No events created",
-    'NOMBRE': "NAME",
+    'name': "name",
     'Nombre de evento requerido': "Event name is required",
     'nonotifications': "No notifications",
     'nonseatedguests': "No assigned guests",
@@ -625,6 +625,12 @@ export const en = {
     'date': 'date',
     'duracion':"duration",
     'attachments':"attachments",
+    'owner': "owner",
+    'type':"type",
+    'eventdate':"event date",
+    'creationdate': "creation date",
+
+
 
 
 

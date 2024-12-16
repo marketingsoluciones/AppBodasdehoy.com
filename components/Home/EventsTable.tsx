@@ -1,211 +1,281 @@
 import { FC, useEffect, useMemo, useState } from "react";
 import { useRowSelect, useSortBy, useTable } from "react-table";
 import { useTranslation } from 'react-i18next';
-import { EventsGroupContextProvider } from "../../context";
+import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../context";
 import { getCurrency } from "../../utils/Funciones";
 import { LiaPaperclipSolid } from "react-icons/lia";
+import i18next from "i18next";
+import { fetchApiBodas, queries } from "../../utils/Fetching";
+import { useRouter } from "next/router";
+import { useToast } from "../../hooks/useToast";
+
 
 
 
 export const EventsTable: FC<any> = () => {
   const { t } = useTranslation();
   const { eventsGroup } = EventsGroupContextProvider();
+  const { user, setUser, config, actionModals, setActionModals } = AuthContextProvider()
+  const { event, setEvent, idxGroupEvent, setIdxGroupEvent } = EventContextProvider();
+  const router = useRouter();
+  const toast = useToast()
+
+
+
 
   const [data, setData] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [columns, setColumns] = useState([
-    {
-      Header: "propietario",
-      accessor: "usuario_nombre",
-      id: "usuario_nombre",
-      Cell: (data) => {
-        return (
-          <span className="flex items-center capitalize"> {data.value != null ? data.value : "null"}</span>
-        )
-      }
-    },
-    {
-      Header: "nombre",
-      accessor: "nombre",
-      id: "nombre",
-      Cell: (data) => {
-        return (
-          <span className="flex items-center capitalize"> {data.value != null ? data.value : "null"}</span>
-        )
-      }
-    },
-    {
-      Header: "tipo",
-      accessor: "tipo",
-      id: "tipo",
-      Cell: (data) => {
-        return (
-          <span className="flex items-center capitalize"> {data.value != null ? data.value : "null"}</span>
-        )
-      }
-    },
-    {
-      Header: "estilo",
-      accessor: "estilo",
-      id: "estilo",
-      Cell: (data) => {
-        return (
-          <span className="flex items-center capitalize"> {data.value != null ? data.value : "null"}</span>
-        )
-      }
-    },
-    {
-      Header: "color",
-      accessor: "color",
-      id: "color",
-      Cell: (data) => {
-        const list = [
-          { color: "bg-yellow-300	", title: "Amarillo" },
-          { color: "bg-cyan-400	", title: "Celeste" },
-          { color: "bg-pink-400", title: "Rosado" },
-          { color: "bg-red", title: "Rojo" },
-          { color: "bg-purple-600", title: "Morado" },
-          { color: "bg-amber-100	", title: "Beige" },
-          { color: "bg-yellow-500", title: "Dorado" },
-          { color: "bg-slate-400", title: "Plata" },
-          { color: "bg-orange-400", title: "Naranja" },
-          { color: "bg-lime-600", title: "verde" },
-        ]
-        const colorFind = list.find((elem) => elem.title === data.value[0])
-        return (
-          <div className={`flex w-full items-center justify-center capitalize capitalize `}>
-            {data.value.length > 0 ?
-              <span className={`${colorFind?.color} flex w-full* items-center capitalize text-white  p-1 rounded-md text-[10px] `}>
-                {colorFind.title + " +" + (data.value.length - 1)}
-              </span> :
-              <span className={`bg-gray-400 flex w-full* items-center capitalize text-white  p-1 rounded-md text-[10px]`}>
-                null
-              </span>}
-          </div>
-        )
-      }
-    },
-    {
-      Header: "tarta",
-      accessor: "tarta",
-      id: "tarta",
-      Cell: (data) => {
-        return (
-          <span className="flex items-center justify-center w-full capitalize"> {data.value != null ? <LiaPaperclipSolid className="h-5 w-5" /> : "null"} </span>
-        )
-      }
-    },
-    {
-      Header: "temporada",
-      accessor: "temporada",
-      id: "temporada",
-      Cell: (data) => {
-        return (
-          <span className="flex items-center justify-center w-full capitalize"> {data.value != null ? data.value : "null"} </span>
-        )
-      }
-    },
-    {
-      Header: "tematica",
-      accessor: "tematica",
-      id: "tematica",
-      Cell: (data) => {
-        return (
-          <span className="flex items-center justify-center w-full capitalize"> {data.value != null ? data.value : "null"} </span>
-        )
-      }
-    },
-    {
-      Header: "fecha del evento",
-      accessor: "fecha",
-      id: "fecha",
-      Cell: (data) => {
-        return (
-          <div className="flex w-full justify-center items-center capitalize">
-            {`${new Date(parseInt(data.value)).toLocaleDateString("es-VE", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" })}`}
-          </div>
-        )
-      }
-    },
-    {
-      Header: "fecha de creacion",
-      accessor: "fecha_creacion",
-      id: "fecha_creacion",
-      Cell: (data) => {
-        return (
-          <div className="flex w-full justify-center items-center capitalize">
-            {`${new Date(parseInt(data.value)).toLocaleDateString("es-VE", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" })}`}
-          </div>
-        )
-      }
-    },
-    {
-      Header: "invitados",
-      accessor: "invitados_array",
-      id: "invitados_array",
-      Cell: (data) => {
-        return (
-          <div className="flex w-full items-center justify-center capitalize">
-            {data.value.length > 0 ? data.value.length : "null"}
-          </div>
-        )
-      }
-    },
-    {
-      Header: "itinerarios",
-      accessor: "itinerarios_array",
-      id: "itinerarios_array",
-      Cell: (data) => {
-        return (
-          <div className="flex w-full items-center justify-center capitalize">
-            {data.value.length > 0 ? data.value.length : "null"}
-          </div>
-        )
-      }
-    },
-    {
-      Header: "menus",
-      accessor: "menus_array",
-      id: "menus_array",
-      Cell: (data) => {
-        return (
-          <div className="flex w-full items-center justify-center capitalize">
-            {data.value.length > 0 ? data.value.length : "null"}
-          </div>
-        )
-      }
-    },
-    {
-      Header: "mesas",
-      accessor: "mesas_array",
-      id: "mesas_array",
-      Cell: (data) => {
-        return (
-          <div className="flex w-full items-center justify-center capitalize">
-            {data.value.length > 0 ? data.value.length : "null"}
-          </div>
-        )
-      }
-    },
-    {
-      Header: "presupuesto",
-      accessor: "presupuesto_objeto",
-      id: "presupuesto_objeto",
-      Cell: (data) => {
-        return (
-          <div className="flex w-full items-center justify-end capitalize">
-            {getCurrency(
-              data.value.coste_estimado,
-              data.value.currency
-            )}
-            { }
-          </div>
-        )
-      }
-    },
 
-
-  ]);
+  const columns = useMemo(
+    () => [
+      {
+        Header: t("owner"),
+        accessor: "usuario_nombre",
+        id: "usuario_nombre",
+        Cell: (data) => {
+          return (
+            <span className="flex items-center capitalize"> {data.value != null ? data.value : "null"}</span>
+          )
+        }
+      },
+      {
+        Header: t("nameevent"),
+        accessor: "nombre",
+        id: "nombre",
+        Cell: (data) => {
+          const handleClickCard = ({ t, final = true, data, user, setUser, config, setEvent, router }) => {
+            try {
+              fetchApiBodas({
+                query: queries.updateUser,
+                variables: {
+                  uid: user?.uid,
+                  variable: "eventSelected",
+                  valor: data?._id
+                },
+                development: config?.development
+              })
+              user.eventSelected = data?._id
+              setUser(user)
+            } catch (error) {
+              console.log(error);
+            } finally {
+              if (final) {
+                if (data?.permissions) {
+                  const permissions = data?.permissions?.filter(elem => ["view", "edit"].includes(elem.value))
+                  if (permissions.length) {
+                    const f1 = permissions.findIndex(elem => elem.value === "resumen")
+                    if (f1 > -1) {
+                      setEvent(data);
+                      router.push("/resumen-evento");
+                    } else {
+                      setEvent(data);
+                      let p = permissions[0].title
+                      if (p === "regalos") p = "lista-regalos"
+                      if (p === "resumen") p = "resumen-evento"
+                      router.push("/" + p);
+                    }
+                  } else {
+                    return t("No tienes permiso, contactar al organizador del evento")
+                  }
+                } else {
+                  setEvent(data);
+                  router.push("/resumen-evento");
+                }
+              }
+            }
+          };
+          console.log(data)
+          return (
+            <span onClick={() => {
+              const resp = handleClickCard({ t, final: true, config, data: data.data[data.cell.row.id], setEvent, user, setUser, router })
+              if (resp) toast("warning", resp)
+            }} className="flex items-center capitalize cursor-pointer"> {data.value != null ? data.value : "null"}</span>
+          )
+        }
+      },
+      {
+        Header: t("type"),
+        accessor: "tipo",
+        id: "tipo",
+        Cell: (data) => {
+          return (
+            <span className="flex items-center capitalize"> {data.value != null ? data.value : "null"}</span>
+          )
+        }
+      },
+      {
+        Header: t("title"),
+        accessor: "estilo",
+        id: "estilo",
+        Cell: (data) => {
+          return (
+            <span className="flex items-center capitalize"> {data.value != null ? data.value : "null"}</span>
+          )
+        }
+      },
+      {
+        Header: "color",
+        accessor: "color",
+        id: "color",
+        Cell: (data) => {
+          const list = [
+            { color: "bg-yellow-300	", title: "Amarillo" },
+            { color: "bg-cyan-400	", title: "Celeste" },
+            { color: "bg-pink-400", title: "Rosado" },
+            { color: "bg-red", title: "Rojo" },
+            { color: "bg-purple-600", title: "Morado" },
+            { color: "bg-amber-100	", title: "Beige" },
+            { color: "bg-yellow-500", title: "Dorado" },
+            { color: "bg-slate-400", title: "Plata" },
+            { color: "bg-orange-400", title: "Naranja" },
+            { color: "bg-lime-600", title: "verde" },
+          ]
+          const colorFind = list.find((elem) => elem.title === data.value[0])
+          return (
+            <div className={`flex w-full items-center justify-center capitalize capitalize `}>
+              {data.value.length > 0 ?
+                <span className={`${colorFind?.color} flex w-full* items-center capitalize text-white  p-1 rounded-md text-[10px] `}>
+                  {colorFind.title + " +" + (data.value.length - 1)}
+                </span> :
+                <span className={`bg-gray-400 flex w-full* items-center capitalize text-white  p-1 rounded-md text-[10px]`}>
+                  null
+                </span>}
+            </div>
+          )
+        }
+      },
+      {
+        Header: "tarta",
+        accessor: "tarta",
+        id: "tarta",
+        Cell: (data) => {
+          return (
+            <span className="flex items-center justify-center w-full capitalize"> {data.value != null ? <LiaPaperclipSolid className="h-5 w-5" /> : "null"} </span>
+          )
+        }
+      },
+      {
+        Header: "temporada",
+        accessor: "temporada",
+        id: "temporada",
+        Cell: (data) => {
+          return (
+            <span className="flex items-center justify-center w-full capitalize"> {data.value != null ? data.value : "null"} </span>
+          )
+        }
+      },
+      {
+        Header: "tematica",
+        accessor: "tematica",
+        id: "tematica",
+        Cell: (data) => {
+          return (
+            <span className="flex items-center justify-center w-full capitalize"> {data.value != null ? data.value : "null"} </span>
+          )
+        }
+      },
+      {
+        Header: t("eventdate"),
+        accessor: "fecha",
+        id: "fecha",
+        Cell: (data) => {
+          return (
+            <div className="flex w-full justify-center items-center capitalize">
+              {`${new Date(parseInt(data.value)).toLocaleDateString("es-VE", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" })}`}
+            </div>
+          )
+        }
+      },
+      {
+        Header: t("creationdate"),
+        accessor: "fecha_creacion",
+        id: "fecha_creacion",
+        Cell: (data) => {
+          return (
+            <div className="flex w-full justify-center items-center capitalize">
+              {`${new Date(parseInt(data.value)).toLocaleDateString("es-VE", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" })}`}
+            </div>
+          )
+        }
+      },
+      {
+        Header: t("invitado"),
+        accessor: "invitados_array",
+        id: "invitados_array",
+        Cell: (data) => {
+          return (
+            <div className="flex w-full items-center justify-end capitalize">
+              {data.value.length > 0 ? data.value.length : "null"}
+            </div>
+          )
+        }
+      },
+      /* {
+        Header: t("compartidos"),
+        accessor: "detalles_compartidos_array",
+        id: "detalles_compartidos_array",
+        Cell: (data) => {
+          console.log(".-.-.-.-",data)
+          return (
+            <div className="flex w-full items-center justify-end capitalize">
+              {data.value.length > 0 ? data.value.length : "null"}
+            </div>
+          )
+        }
+      }, */
+      {
+        Header: t("Itinerary"),
+        accessor: "itinerarios_array",
+        id: "itinerarios_array",
+        Cell: (data) => {
+          return (
+            <div className="flex w-full items-center justify-end capitalize">
+              {data.value.length > 0 ? data.value.length : "null"}
+            </div>
+          )
+        }
+      },
+      {
+        Header: "menus",
+        accessor: "menus_array",
+        id: "menus_array",
+        Cell: (data) => {
+          return (
+            <div className="flex w-full items-center justify-end capitalize">
+              {data.value.length > 0 ? data.value.length : "null"}
+            </div>
+          )
+        }
+      },
+      /* {
+        Header: "mesas",
+        accessor: "mesas_array",
+        id: "mesas_array",
+        Cell: (data) => {
+          return (
+            <div className="flex w-full items-center justify-center capitalize">
+              {data.value.length > 0 ? data.value.length : "null"}
+            </div>
+          )
+        }
+      }, */
+      {
+        Header: "presupuesto",
+        accessor: "presupuesto_objeto",
+        id: "presupuesto_objeto",
+        Cell: (data) => {
+          return (
+            <div className="flex w-full items-center justify-end capitalize">
+              {getCurrency(
+                data.value.coste_estimado,
+                data.value.currency
+              )}
+              { }
+            </div>
+          )
+        }
+      },
+    ], [t]
+  )
 
   useEffect(() => {
     setData(eventsGroup)
@@ -240,66 +310,67 @@ export const EventsTable: FC<any> = () => {
 
   };
 
+
   return (
     <div className="relative px-3 flex  justify-center w-full">
-        <table
-          {...getTableProps()}
-          className="table-auto border-collapse rounded-lg relative p-4 ">
-          <thead className="relative text-xs text-gray-700 uppercase bg-gray-200 w-full truncate">
-            {headerGroups.map((headerGroup: any, id: any) => {
-              return (
-                <tr
-                  {...headerGroup.getHeaderGroupProps()}
-                  className="grid grid-cols-48 w-full truncate"
-                  key={id} >
-                  {headerGroup.headers.map((column: any, id: any) => {
-                    return (
-                      <th
-                        {...column.getHeaderProps(column.getSortByToggleProps())}
-                        className={`truncate w-full leading-[1] px-1 py-1 md:py-3 text-center flex justify-center items-center text-xs font-light font-display col-span-${colSpan[column.id]
-                          }`}
-                        key={id}
-                      >
-                        <>
-                          {typeof column.render("Header") == "string" && t(column.render("Header"))}
-                          <span>
-                            {column.isSorted ? (column.isSortedDesc ? " 🠻" : " 🠹") : ""}
-                          </span>
-                        </>
-                      </th>
-                    )
-                  })}
-                </tr>
-              )
-            })}
-          </thead>
-          <tbody {...getTableBodyProps()} className="text-gray-700 text-xs bg-white">
-            {rows.length >= 1 ? rows.map((row, i) => {
-              prepareRow(row);
-              return (
-                <tr
-                  {...row.getRowProps()}
-                  key={i}
-                  className={` w-full border-b font-display grid grid-cols-48 truncate`}
+      <table
+        {...getTableProps()}
+        className="table-auto border-collapse rounded-lg relative p-4 ">
+        <thead className="relative text-xs text-gray-700 uppercase bg-gray-200 w-full truncate">
+          {headerGroups.map((headerGroup: any, id: any) => {
+            return (
+              <tr
+                {...headerGroup.getHeaderGroupProps()}
+                className="grid grid-cols-48 w-full truncate"
+                key={id} >
+                {headerGroup.headers.map((column: any, id: any) => {
+                  return (
+                    <th
+                      {...column.getHeaderProps(column.getSortByToggleProps())}
+                      className={`truncate w-full leading-[1] px-1 py-1 md:py-3 text-center flex justify-center items-center text-xs font-light font-display col-span-${colSpan[column.id]
+                        }`}
+                      key={id}
+                    >
+                      <>
+                        {typeof column.render("Header") == "string" && t(column.render("Header"))}
+                        <span>
+                          {column.isSorted ? (column.isSortedDesc ? " 🠻" : " 🠹") : ""}
+                        </span>
+                      </>
+                    </th>
+                  )
+                })}
+              </tr>
+            )
+          })}
+        </thead>
+        <tbody {...getTableBodyProps()} className="text-gray-700 text-xs bg-white">
+          {rows.length >= 1 ? rows.map((row, i) => {
+            prepareRow(row);
+            return (
+              <tr
+                {...row.getRowProps()}
+                key={i}
+                className={` w-full border-b font-display grid grid-cols-48 truncate`}
 
-                >
-                  {row.cells.map((cell, i) => {
-                    return (
-                      <td
-                        {...cell.getCellProps()}
-                        key={i}
-                        className={`flex items-center* leading-[1.3] px-1 py-1 col-span-${colSpan[cell.column.id]} border-x-[1px] truncate`}
-                      >
-                        {cell.render("Cell")}
-                      </td>
-                    );
-                  })}
-                </tr>
-              );
-            }) : <tr className="transition border-b border-base hover:bg-base cursor-pointer w-full grid place-items-center">
-              <td className="bg-redpy-5 font-display text-lg text-gray-500 uppercase "></td></tr>}
-          </tbody>
-        </table>
+              >
+                {row.cells.map((cell, i) => {
+                  return (
+                    <td
+                      {...cell.getCellProps()}
+                      key={i}
+                      className={`flex items-center* leading-[1.3] px-1 py-1 col-span-${colSpan[cell.column.id]} border-x-[1px] truncate`}
+                    >
+                      {cell.render("Cell")}
+                    </td>
+                  );
+                })}
+              </tr>
+            );
+          }) : <tr className="transition border-b border-base hover:bg-base cursor-pointer w-full grid place-items-center">
+            <td className="bg-redpy-5 font-display text-lg text-gray-500 uppercase "></td></tr>}
+        </tbody>
+      </table>
     </div>
   );
 };
