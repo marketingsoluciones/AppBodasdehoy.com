@@ -34,8 +34,8 @@ const FormTask: FC<propsFormTask> = ({ showEditTask, setShowEditTask, itinerario
 
   const initialValues: TaskDateTimeAsString = {
     ...showEditTask?.values,
-    fecha: f ? `${y}-${m < 10 ? "0" : ""}${m}-${d < 10 ? "0" : ""}${d}` : undefined,
-    hora: f ? f.toTimeString().split(' ')[0] : undefined,
+    fecha: f ? `${y}-${m < 10 ? "0" : ""}${m}-${d < 10 ? "0" : ""}${d}` : "",
+    hora: f ? f.toTimeString().split(' ')[0] : "",
   }
 
   const handleSubmit = async (values: any, actions: any) => {
@@ -45,7 +45,7 @@ const FormTask: FC<propsFormTask> = ({ showEditTask, setShowEditTask, itinerario
       const h = values?.hora?.split(":")
       dataSend = {
         ...values,
-        ...((values?.fecha && values?.hora) && { fecha: new Date(d[0], d[1] - 1, d[2], h[0], h[1]) })
+        ...(new Date(d[0], d[1] - 1, d[2], h[0], h[1]).getTime() > 0 ? { fecha: new Date(d[0], d[1] - 1, d[2], h[0], h[1]) } : { fecha: "" })
       }
       delete dataSend.hora
       fetchApiEventos({

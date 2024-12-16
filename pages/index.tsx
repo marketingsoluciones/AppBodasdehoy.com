@@ -100,14 +100,14 @@ const Home: NextPage = () => {
             }
           </ModalLeft>
         )}
-        <section id="rootsection" className="section relative w-full">
+        <section id="rootsection" className="section relative w-full flex flex-col">
           <Banner state={valirQuery} set={setValirQuery} />
           <GridCards state={valirQuery} set={setValirQuery} />
         </section>
         <style jsx>
           {`
                 .section {
-                  height: calc(100vh - 190px);
+                  height: calc(100vh - 144px);
                 }
               `}
         </style>
@@ -138,7 +138,7 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
     }
   }
   return (
-    <div className="banner bg-base w-full flex justify-center h-[60%] md:h-[calc(100%-200px-50px)] md:min-h-[300px] px-5 md:px-0 overflow-hidden relative mb-1">
+    <div className="banner bg-base w-full flex justify-center h-[48%] md:h-[60%] *md:h-[calc(100%-200px-50px)] min-h-[48%] md:min-h-[400px] px-5 md:px-0 overflow-hidden relative mb-1">
       <div className="md:max-w-screen-lg 2xl:max-w-screen-xl w-full grid md:grid-cols-5 h-full">
         <div className="flex flex-col justify-center relative py-10 md:py-0 col-span-2">
           <h2 className="font-display font-medium text-2xl md:text-5xl tracking-tight	text-primary mb-1.5">
@@ -278,95 +278,71 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
   }, [idxNew])
 
   return (
-    <>
-      <div className="bg-white w-full flex flex-col h-[40%] md:h-[200px] justify-center items-center max-w-screen-lg xl:max-w-screen-xl inset-x-0 mx-auto relative">
-        <div className="flex gap-4 mt-[100%] relative">
+    <div className="flex flex-col max-h-[calc(52%-4px)]">
+      <div className="w-full h-10 flex">
+        <div className="flex-1" />
+        <div className="inline-flex gap-4 py-2">
           {Lista.map((item, idx) => (
             <button
               onClick={(e) => setIsActiveStateSwiper(idx)}
               key={idx}
-              className={`${isActiveStateSwiper == idx
-                ? `bg-${item.color} text-white`
-                : "bg-white text-gray-500"
-                } w-max md:mt-4 mb-3 md:mb-2 px-4 py-0.5 rounded-xl flex items-center justify-center cursor-pointer hover:bg-${item.color
-                } hover:text-gray-500 transition focus:outline-none text-sm font-display`}
+              className={`${isActiveStateSwiper == idx ? `bg-${item.color} text-white` : "bg-white text-gray-500"} w-max px-4 py-0.5 rounded-xl flex items-center justify-center cursor-pointer hover:bg-${item.color} hover:text-gray-500 transition focus:outline-none text-sm font-display`}
             >
               {t(item.nombre)}
             </button>
           ))}
-
         </div>
-        <div className="w-full h-max mb-[100%] ">
-          {tabsGroup.map((group, idx) => {
-
-            return (
-              <div key={idx}>
-                {isActiveStateSwiper == idx ? (
-                  <>
-                    {idxNew > -2 && <Swiper
-                      //slideToClickedSlide={true}
-                      initialSlide={idxNew < 0 ? idxGroupEvent?.idx - 2 : idxNew - 2}
-                      spaceBetween={50}
-                      pagination={{ clickable: true }}
-                      breakpoints={{
-                        0: {
-                          slidesPerView: 1,
-                          spaceBetween: 25,
-                        },
-                        768: {
-                          slidesPerView: 3,
-                          spaceBetween: 25,
-                        },
-                      }}
-                      id={group?.status}
-                      className={`${isActiveStateSwiper == idx ? "" : "hidden"}`}
-                    >
-                      {group?.data?.map((evento, idx) => (
-                        <SwiperSlide
-                          key={idx}
-                          className="flex items-center justify-center my-3"
-                          onClick={() => { setIdxGroupEvent({ idx, isActiveStateSwiper, event_id: evento._id }) }}
-                        >
-                          <Card data={group.data} grupoStatus={group.status} idx={idx} />
-                        </SwiperSlide>
-                      ))}
-                      {group.status !== "pendiente" ? group.data?.length === 0 &&
-                        <SwiperSlide
-                          className={`flex items-center justify-center my-3`}
-                        >
-                          <div className={`w-72 h-36 rounded-xl flex flex-col items-center justify-center shadow-lg bg-base border border-gray-100 transition `}>
-                            <p className="font-display font-base text-md">{t(`Ningún evento ${group.status}`)}</p>
-                          </div>
-                        </SwiperSlide> :
-                        <SwiperSlide
-                          className={`flex items-center justify-center my-3 `}
-                        >
-                          <CardEmpty state={state} set={setNewEvent} />
-                        </SwiperSlide>
-                      }
-                    </Swiper>}
-                  </>
-                ) : null}
+        <div className="flex-1 h-full flex justify-end items-center px-4 relative" >
+          <div
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            className="cursor-pointer hidden md:block "
+            onClick={() => router.push("/lista-de-mis-eventos")}
+          >
+            <TbTableShare className="h-5 w-5 text-gray-700 hover:text-gray-900" />
+            {isModalVisible && (
+              <div className="modal absolute w-36 z-50 text-[10px] px-[5px] bg-gray-500 text-white rounded-md -translate-x-full flex justify-center">
+                Cambiar a vista de tabla
               </div>
-            )
-          })}
-        </div>
-        <div
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-          className="absolute top-4 right-0 cursor-pointer hidden md:block "
-          onClick={()=> router.push("/lista-de-mis-eventos") }
-        >
-          <TbTableShare className="h-5 w-5" />
-        </div>
-        {isModalVisible && (
-          <div  className="modal absolute top-10 -right-10 text-[10px] px-[5px] bg-gray-500 text-white rounded-md  ">
-           
-            Ver tabla
+            )}
           </div>
-        )}
-      </div >
-    </>
+        </div>
+      </div>
+      <div className="flex flex-col md:flex-1 overflow-x-scroll md:overflow-clip">
+
+        {tabsGroup.map((group, idx) => {
+          return (
+            <div key={idx} className={`${isActiveStateSwiper !== idx && "hidden"} mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5`}>
+              {isActiveStateSwiper == idx ? (
+                <>
+                  {group?.data?.map((evento, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-center my-3"
+                      onClick={() => { setIdxGroupEvent({ idx, isActiveStateSwiper, event_id: evento._id }) }}
+                    >
+                      <Card data={group.data} grupoStatus={group.status} idx={idx} />
+                    </div>
+                  ))}
+                  {group.status !== "pendiente"
+                    ? group.data?.length === 0 && <div className={`flex items-center justify-center my-3`} >
+                      <div className={`w-72 h-36 rounded-xl flex flex-col items-center justify-center shadow-lg bg-base border border-gray-100 transition`}>
+                        <p className="font-display font-base text-md">{t(`Ningún evento ${group.status}`)}</p>
+                      </div>
+                    </div>
+                    : <div
+                      className={`flex items-center justify-center my-3 `}
+                    >
+                      <CardEmpty state={state} set={setNewEvent} />
+                    </div>
+                  }
+                </>
+              ) : null}
+            </div>
+          )
+        })}
+      </div>
+    </div >
   );
 };
 

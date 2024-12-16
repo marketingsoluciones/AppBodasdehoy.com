@@ -5,6 +5,7 @@ import { MdClose } from "react-icons/md";
 import { EventContextProvider, EventsGroupContextProvider } from "../../../context";
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
 import { useTranslation } from "react-i18next";
+import { ImageAvatar } from "../ImageAvatar";
 
 export const ListUserToEvent = ({ event }) => {
     const { t } = useTranslation()
@@ -56,15 +57,13 @@ const User = ({ data, event }) => {
     return (
         <div className={`${openModal && "bg-gray-100"} w-full flex items-center py-1 px-2 space-x-2 text-xs`}>
             <div className="flex-none w-8 md:w-10 h-8 md:h-10">
-                <img
-                    src={data?.photoURL != null ? data?.photoURL : "/placeholder/user.png"}
-                    className="object-cover w-8 md:w-10 h-8 md:h-10 rounded-full"
-                    alt={""}
-                />
+                <div className="w-8 md:w-10 h-8 md:h-10">
+                    <ImageAvatar user={data} disabledTooltip />
+                </div>
             </div>
             <div className="h-10 flex-1 flex items-center">
-                <div className="flex flex-col  cursor-default">
-                    <div className="break-all line-clamp-1">{data?.email}</div>
+                <div className="flex flex-col normal-case cursor-default">
+                    <div className="break-all  line-clamp-1">{data?.email}</div>
                     <div className="break-all line-clamp-1">{data?.displayName}</div>
                 </div>
             </div>

@@ -51,7 +51,7 @@ const BlockCabecera = () => {
             <p className="font-display font-semibold text-2xl md:text-4xl text-primary">
               {ObjInvitado?.total}
             </p>
-            <p className="font-display text-sm md:text-[16px] text-primary">{t("guests")}</p>
+            <p className="font-display text-sm md:text-[16px] text-primary">{t("Invitados")}</p>
           </div>
           <div className="flex flex-col md:gap-1 items-start justify-center h-full col-span-1">
             <p className="font-display font-semibold text-sm md:text-[16px] text-gray-500 flex gap-1">
@@ -82,7 +82,7 @@ const BlockCabecera = () => {
         <div className="hidden md:flex w-40 h-40 bg-primary rounded-full col-span-1 absolute right-0 flex-col items-center justify-center z-20">
           <MesaIcon className="text-white" />
           <p className="font-display text-md font-semibold text-white first-letter:capitalize">
-            {t("sit")} <span className="font-light">{t("guests")}</span>
+            {t("sit")} <span className="font-light">{t("Invitados")}</span>
           </p>
           <button
             onClick={() => !isAllowed("mesas") ? ht() : router.push("/mesas")}

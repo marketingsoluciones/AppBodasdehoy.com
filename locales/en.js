@@ -163,7 +163,7 @@ export const en = {
     'designandsendout': "Design and send out invitations. Confirm attendance and provide direct access to the gift list.",
     'designthelayout': "Design the layout of your event with",
     'despedida de soltero': "bachelor party",
-    'details': "DETAILS",
+    'details': "details",
     'developergraphic': "Frontend MERN Stack Developer | Graphic design",
     'discard': "Discard",
     'diseño': "design",
@@ -375,7 +375,7 @@ export const en = {
     'noguestsevent': "No guests are associated with this event",
     'noguestsseatedtable': "No guests are assigned to this table",
     'nohaveeventscreated': "No events created",
-    'NOMBRE': "NAME",
+    'name': "name",
     'Nombre de evento requerido': "Event name is required",
     'nonotifications': "No notifications",
     'nonseatedguests': "No assigned guests",
@@ -607,7 +607,32 @@ export const en = {
     'zonas': "areas",
     'Zoom': "Zoom:",
     'Weareexcited': "¡We are excited to introduce you to this new functionality!",
-    'developing':"It is currently in development, but will be available very soon",
+    'developing': "It is currently in development, but will be available very soon",
+    'warningdelete1': "If you delete the itinerary you will not be able to recover it.",
+    'textwarningdelete1': "in the space below",
+    'view': "view",
+    'board': "board",
+    'card': "card",
+    'schema': "schema",
+    'rename': "rename",
+    'share': "share",
+    'unnamed': "unnamed",
+    'responsible': "responsible",
+    'addfile': "attachments",
+    'labels': "labels",
+    'comments': "comments",
+    'title': "title",
+    'date': 'date',
+    'duracion': "duration",
+    'attachments': "attachments",
+    'owner': "owner",
+    'type': "type",
+    'eventdate': "event date",
+    'creationdate': "creation date",
+
+
+
+
 
     nombre: 'NAME',
     invitados: 'guests',
@@ -619,6 +644,7 @@ export const en = {
     task: "task",
     Tasks: "Tasks",
     itinerary: "itinerary",
+    'Esta persona no tiene permisos': 'This person does not have permissions',
 
   }
 }

@@ -47,8 +47,8 @@ export const BoddyIter = () => {
             title: itinerario.title,
             subTitle: <span className="flex flex-col">
                 <strong>{itinerario.title}</strong>
-                <strong>Si borras el itinerario no lo podrás recuperar.</strong>
-                <p className=" text-xs"> Para confirmar, escribe <span className="font-semibold">{itinerario.title.replace(/\s+/g, '').toLocaleLowerCase()}</span> en el espacio de abajo </p>
+                <strong>{t("warningdelete1")}</strong>
+                <p className=" text-xs"> {t("textwarningdelete1")} <span className="font-semibold">{itinerario.title.replace(/\s+/g, '').toLocaleLowerCase()}</span> {t("textwarningdelete2")} </p>
             </span>,
             handle: async () => {
                 try {

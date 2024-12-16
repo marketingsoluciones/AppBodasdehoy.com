@@ -86,7 +86,7 @@ const Navigation: FC = () => {
     },
   ], [event]);
 
-  const urls = ["/info-app", "/confirmar-asistencia"]
+  const urls = ["/info-app", "/confirmar-asistencia", "/services/[...slug]"]
 
   useEffect(() => {
     const handleResize = () => {
@@ -116,9 +116,9 @@ const Navigation: FC = () => {
           set={(accion) => setIsMounted(accion)}
         />
       )}
-      <header className="f-top relative w-full bg-white">
+      <header className="f-top relative w-full bg-white ">
         {/* primer menu superior con logo, redirecion al directiorio y opciones de perfil para la vista desktop  */}
-        <div className="max-w-screen-lg h-16 px-5 lg:px-0 w-full flex justify-between items-center mx-auto inset-x-0 ">
+        <div className="max-w-screen-lg h-16 px-5 lg:px-0 w-full flex justify-between items-center mx-auto inset-x-0  ">
           {/* <ClickAwayListener onClickAway={() => {
             setTimeout(() => {
               setShowSidebar(false)
@@ -152,7 +152,7 @@ const Navigation: FC = () => {
         </div>
 
         {/* segundo menu superior con las redirecciones funcionales de la app */}
-        <div className={`${urls.includes(url) ? "hidden" : "block"}`}>
+        <div className={`${urls.includes(url) && !user ? "hidden" : "block"}`}>
           <div className={`w-full h-20 hidden md:flex bg-base justify-center items-start`}>
             <Tooltip label={t("Primero debes crear un evento")} icon={<IconLightBulb16 className="w-6 h-6" />} disabled={!!event?._id}>
               <div style={{ width, height }} className="absolute *z-50 px-16 flex justify-center">

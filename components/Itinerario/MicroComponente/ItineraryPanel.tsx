@@ -10,7 +10,6 @@ import { useToast } from "../../../hooks/useToast";
 import { useAllowed, } from "../../../hooks/useAllowed";
 import { WarningMessage } from "./WarningMessage";
 import { useTranslation } from 'react-i18next';
-import i18n from 'i18next';
 import { ItineraryColumns } from "./ItineraryColumns";
 import ModalLeft from "../../Utils/ModalLeft";
 import { PencilEdit } from "../../icons";
@@ -22,8 +21,7 @@ import { SubHeader } from "./SubHeader";
 import { ViewItinerary } from "../../../pages/invitados";
 import FormTask from "../../Forms/FormTask";
 import { getStorage, ref, listAll, deleteObject } from "firebase/storage";
-import {  SimpleDeleteConfirmation } from "./DeleteConfirmation";
-
+import { SimpleDeleteConfirmation } from "./DeleteConfirmation";
 
 interface props {
     itinerario: Itinerary
@@ -62,12 +60,14 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     const [selectTask, setSelectTask] = useState<string>()
     const storage = getStorage();
     const [modal, setModal] = useState({ state: false, title: null, values: null, itinerario: null })
+    const [showModalCompartir, setShowModalCompartir] = useState({ state: false, id: null });
     const optionsItineraryButtonBox: OptionsSelect[] = [
         {
             value: "edit",
             icon: <PencilEdit className="w-5 h-5" />,
             title: "editar",
-            onClick: (values: Task) => !isAllowed() ? ht() : setShowEditTask({ values, state: !showEditTask.state })
+            onClick: (values: Task) => !isAllowed() ? ht() : setShowEditTask({ values, state: !showEditTask.state }),
+            vew: "all"
         },
         {
             value: "status",
@@ -79,25 +79,29 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                 return <GoEye className="w-5 h-5" />
             },
             title: "estado",
-            onClick: (values: Task) => !isAllowed() ? ht() : handleAddSpectatorView(values)
+            onClick: (values: Task) => !isAllowed() ? ht() : handleAddSpectatorView(values),
+            vew: "all"
         },
         {
             value: "flujo",
             icon: <GoGitBranch className="w-5 h-5" />,
             title: "flow",
-            onClick: () => !isAllowed() ? ht() : setModalWorkFlow(!modalWorkFlow)
+            onClick: () => !isAllowed() ? ht() : setModalWorkFlow(!modalWorkFlow),
+            vew: "tasks"
         },
         {
             value: "share",
             icon: <LiaLinkSolid className="w-5 h-5" />,
             title: "Link calendario",
-            onClick: () => !isAllowed() ? ht() : setModalCompartirTask(!modalCompartirTask)
+            onClick: (values: Task) => !isAllowed() ? ht() : setShowModalCompartir({ state: !showModalCompartir.state, id: values?._id }),
+            vew: "tasks"
         },
         {
             value: "delete",
             icon: <MdOutlineDeleteOutline className="w-5 h-5" />,
             title: "borrar",
-            onClick: (values: Task, itinerario: Itinerary) => !isAllowed() ? ht() : setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion })
+            onClick: (values: Task, itinerario: Itinerary) => !isAllowed() ? ht() : setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }),
+            vew: "all"
         }
     ]
 
@@ -183,7 +187,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === values._id)
             event.itinerarios_array[f1].tasks.splice(f2, 1)
             setEvent({ ...event })
-            setModal({state:false, title: null, values: null, itinerario: null})
+            setModal({ state: false, title: null, values: null, itinerario: null })
             toast("success", t(itinerario.tipo === "itinerario" ? "activitydeleted" : "servicedeleted"));
         } catch (error) {
             console.log(1000501, error)
@@ -202,11 +206,12 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             {modal.state && <Modal set={setModal} classe={"w-[95%] md:w-[450px] h-[200px]"}>
                 <SimpleDeleteConfirmation setModal={setModal} modal={modal} deleteTask={deleteTask} />
             </Modal>}
+
             {["/itinerario"].includes(window?.location?.pathname) && <SubHeader view={view} itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} title={title} setTitle={setTitle} />}
             <div className={`w-full flex-1 flex flex-col md:px-2 lg:px-6`}>
                 {view !== "table"
                     ? tasksReduce?.map((el, i) =>
-                        <div key={i} className="w-full *h-[500px] mt-4">
+                        <div key={i} className="w-full mt-4">
                             {["/itinerario"].includes(window?.location?.pathname) && <div className={`w-full flex ${view === "schema" ? "justify-start" : "justify-center"}`}>
                                 <span className={`${view === "schema" ? "border-primary border-dotted mb-1" : "border-gray-300 mb-1"} border-[1px] px-5 py-[1px] rounded-full text-[12px] font-semibold`}>
                                     {new Date(el?.fecha).toLocaleString(geoInfo?.acceptLanguage?.split(",")[0], { year: "numeric", month: "long", day: "2-digit" })}
@@ -221,6 +226,8 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                                         view={view}
                                         optionsItineraryButtonBox={optionsItineraryButtonBox}
                                         isSelect={selectTask === elem._id}
+                                        showModalCompartir={showModalCompartir}
+                                        setShowModalCompartir={setShowModalCompartir}
                                         onClick={() => { setSelectTask(elem._id) }}
                                     />
                                 )

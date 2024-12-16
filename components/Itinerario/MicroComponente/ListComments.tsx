@@ -1,4 +1,4 @@
-import { ComponentType, FC, useState } from "react"
+import { ComponentType, FC } from "react"
 import { fetchApiEventos, queries } from "../../../utils/Fetching"
 import { AuthContextProvider, EventContextProvider } from "../../../context"
 import { MdOutlineDeleteOutline } from "react-icons/md"
@@ -7,19 +7,20 @@ import { ImageAvatar } from "../../Utils/ImageAvatar"
 import { Interweave } from "interweave"
 import { HashtagMatcher, UrlMatcher, UrlProps } from "interweave-autolink"
 import Link from "next/link"
+import { detalle_compartidos_array } from "../../../utils/Interfaces"
+
 
 interface props {
   itinerario: Itinerary
   task: Task
   item: Comment
-  setConfirmation: any
+  identifierDisabled?: boolean
 }
 
-export const ListComments: FC<props> = ({ itinerario, task, item, setConfirmation }) => {
+export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisabled }) => {
   const { user } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
-  const [values, setValues] = useState({ value: "" })
-  const [showUser, setShowUser] = useState(false)
+  const userAsd = [...event?.detalles_compartidos_array, event?.detalles_usuario_id, user]?.find(elem => elem?.uid === item?.uid) as detalle_compartidos_array
 
   const handleDelete = () => {
     fetchApiEventos({
@@ -49,45 +50,31 @@ export const ListComments: FC<props> = ({ itinerario, task, item, setConfirmatio
 
   return (
     <div className={`flex flex-col w-full px-2 py-1 border-t-[1px] hover:bg-gray-100 relative`}>
-      {/* {showUser && <div className="absolute z-50 flex w-64 h-16 bg-white shadow-lg rounded-md border-2 px-2 space-x-2 items-center -translate-y-full">
-        <div className='bg-gray-300 w-10 h-10 rounded-full flex items-center justify-center text-2xl'>
-          <ImageAvatar user={event.usuario_id === item.uid
-            ? user
-            : event?.detalles_compartidos_array?.find(elem => elem.uid === item.uid)
-          } />
-        </div>
-        <div className="w-[calc(100%-50px)]">
-          <div className="flex w-full flex-col text-[11px] -space-y-1.5">
-            <span className="truncate">{item?.user?.name} </span>
-            <span className="truncate">{item?.user?.email}</span>
-            <span className="truncate">{item?.user?.position}</span>
-          </div>
-        </div>
-      </div>} */}
-      {user.uid === item?.uid && <MdOutlineDeleteOutline
+      {user && user.uid === item?.uid && <MdOutlineDeleteOutline
         onClick={() => {
           handleDelete()
-          //setConfirmation({ state: true, handleDelete })
         }}
         className="absolute w-5 h-5 cursor-pointer right-2 bottom-5 text-gray-600" />}
       <div className='flex space-x-2 items-start flex-1'>
-        <div
-          onMouseOver={() => setShowUser(true)}
-          onMouseOut={() => setShowUser(false)}
-          className='bg-gray-300 w-8 h-8 rounded-full mt-1 flex items-center justify-center cursor-pointer'>
-          <ImageAvatar user={[...event?.detalles_compartidos_array, event?.detalles_usuario_id, user]?.find(elem => elem?.uid === item?.uid)} />
+        {!identifierDisabled
+          ? <div
+            className='bg-gray-300 w-8 h-8 rounded-full mt-1 flex items-center justify-center cursor-pointer'>
+            <ImageAvatar user={userAsd} disabledTooltip />
+          </div>
+          : <div className="w-8 h-8" />}
+        <div className="flex flex-col">
+          <span className="text-[11px] my-2.5">{userAsd.displayName}</span>
+          <Interweave
+            className="text-xs flex-1 pr-4 break-words"
+            content={item?.comment}
+            matchers={[
+              new UrlMatcher('url', {}, replacesLink),
+              new HashtagMatcher('hashtag')
+            ]}
+          />
         </div>
-        <Interweave
-          className="text-xs flex-1 pr-4 break-words"
-          content={item?.comment}
-          matchers={[
-            new UrlMatcher('url', {}, replacesLink),
-            new HashtagMatcher('hashtag')
-          ]}
-        />
-        {/* <p className='bg-blue-100* p-2 flex-1 normal-case whitespace-pre-line'>{item?.comment}</p> */}
       </div>
-      <span className='justify-end text-[10px] -mt-2 font-medium flex-1 flex right-0 *-translate-x-full'>
+      <span className='cursor-default justify-end text-[9px] font-medium flex-1 flex right-0 *-translate-x-full'>
         {new Date(item?.createdAt).toLocaleString()}
       </span>
     </div>

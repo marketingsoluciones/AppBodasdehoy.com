@@ -9,6 +9,7 @@ import ClickAwayListener from "react-click-away-listener"
 import { ItineraryTabsMenu } from "./ItineraryTabsMenu"
 import { FaCheck } from "react-icons/fa"
 import { useAllowed, useAllowedViewer } from "../../../hooks/useAllowed"
+import { useTranslation } from "react-i18next"
 
 interface props {
     itinerario: Itinerary
@@ -27,6 +28,8 @@ export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTit
     const [isAllowedViewer] = useAllowedViewer()
     const { config, user } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
+    const { t } = useTranslation();
+
 
     const handleCreateItinerario = async () => {
         const f = new Date(parseInt(event?.fecha))
@@ -37,7 +40,7 @@ export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTit
             query: queries.createItinerario,
             variables: {
                 eventID: event._id,
-                title: "sin nombre",
+                title: t("unnamed"),
                 dateTime: new Date(y, m, d, 8, 0),
                 tipo: window?.location?.pathname.slice(1)
             },

@@ -71,6 +71,7 @@ export interface Task {
     spectatorView: boolean
     comments: Comment[]
     commentsViewers: string[]
+    
 }
 
 export interface TaskDateTimeAsString extends Omit<Task, 'fecha'> {
@@ -96,6 +97,7 @@ export interface OptionsSelect {
     title: string
     onClick: any
     disabled?: boolean
+    vew?: string
 }
 
 export interface Notification {
@@ -104,6 +106,7 @@ export interface Notification {
     message: string
     state: string
     type: string
+    fromUid: string
     createdAt: number
     updatedAt: number
 }

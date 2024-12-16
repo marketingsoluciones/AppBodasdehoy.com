@@ -6,6 +6,7 @@ import { HiOutlineViewList } from "react-icons/hi";
 import { TbSchema } from "react-icons/tb";
 import { ArrowDownBodasIcon } from "../icons";
 import { useAllowed } from "../../hooks/useAllowed";
+import { useTranslation } from "react-i18next";
 
 interface props {
   value: any
@@ -13,6 +14,7 @@ interface props {
 }
 
 export const SelectModeView: FC<props> = ({ value, setValue }) => {
+  const { t } = useTranslation();
   const [show, setShow] = useState<boolean>(false)
   const [isAllowed, ht] = useAllowed()
 
@@ -20,21 +22,21 @@ export const SelectModeView: FC<props> = ({ value, setValue }) => {
     {
       value: "cards",
       icon: <LiaIdCardSolid className="w-5 h-5" />,
-      title: "tarjetas"
+      title: t("card")
     }
   ]
   if (isAllowed()) {
     options.push({
       value: "table",
       icon: <HiOutlineViewList className="w-5 h-5" />,
-      title: "tabla"
+      title: t("board")
     },)
   }
   if (["/itinerario"].includes(window?.location?.pathname)) {
     options.push({
       value: "schema",
       icon: <TbSchema className="w-5 h-5" />,
-      title: "esquema"
+      title: t("schema")
     })
   }
 
@@ -43,7 +45,7 @@ export const SelectModeView: FC<props> = ({ value, setValue }) => {
       <div className="relative flex cursor-pointer">
         <div onClick={() => { setShow(!show) }} className="inline-flex text-sm gap-0.5 text-gray-700 items-center capitalize">
           {options.find(item => item.value === value)?.icon}
-          ver
+          {t("view")}
           <ArrowDownBodasIcon className="w-4 h-4 rotate-90" />
         </div>
         {show && <div className={`absolute right-0 bg-white top-8 z-50 rounded-md shadow-md`}>

@@ -167,7 +167,7 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
 
       <div className="bg-gray-200 w-80 *h-5 grid grid-cols-3 absolute z-[10] top-0 left-2 md:left-8 rounded-b-md opacity-70 *items-center text-[9px] md:text-[10px] px-2 text-gray-800">
         <span className="font-bold capitalize truncate">{`${t("plan")}: ${t(planSpaceActive?.title)}`}</span>
-        <span>{`${t("size")} ${lienzo?.width / 100}x${lienzo?.height / 100}mts`}</span>
+        <span>{`${t("Size")} ${lienzo?.width / 100}x${lienzo?.height / 100}mts`}</span>
         <span>{`${t("zoom")} ${state.previousScale.toFixed(2)}X`}</span>
       </div>
 
