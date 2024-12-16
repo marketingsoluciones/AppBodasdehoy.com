@@ -626,8 +626,8 @@ export const es = {
     'attachments': "archivo adjunto",
     'duracion': "duración",
     'owner': "propietario",
-    'type':"tipo",
-    'eventdate':"fecha del evento",
+    'type': "tipo",
+    'eventdate': "fecha del evento",
     'creationdate': "fecha de creacion",
 
 
@@ -643,6 +643,7 @@ export const es = {
     task: "tarea",
     Tasks: "Tareas",
     itinerary: "itinerario",
+    'Esta persona no tiene permisos': 'Esta persona no tiene permisos',
 
   }
 }

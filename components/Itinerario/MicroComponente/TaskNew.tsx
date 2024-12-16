@@ -177,7 +177,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                         <span>
                           {t("responsible")}:
                         </span>
-                        <div className="text-gray-900">
+                        <div className="text-gray-900 flex">
                           {values?.responsable?.map((elem, idx) => {
                             const userSelect = GruposResponsablesArry.find(el => {
                               return el.title.toLowerCase() === elem?.toLowerCase()
