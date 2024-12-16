@@ -10,6 +10,8 @@ import { useToast } from "../../hooks/useToast";
 import { UsuariosCompartidos } from "../Utils/Compartir";
 import { IoShareSocial } from "react-icons/io5";
 import { OpenModal } from "./OpenModal";
+import { TbLock } from "react-icons/tb";
+import { GoArrowUpRight } from "react-icons/go";
 
 export const EventsTable: FC<any> = () => {
   const { t } = useTranslation();
@@ -83,7 +85,10 @@ export const EventsTable: FC<any> = () => {
             <span onClick={() => {
               const resp = handleClickCard({ t, final: true, config, data: data.data[data.cell.row.id], setEvent, user, setUser, router })
               if (resp) toast("warning", resp)
-            }} className="flex items-center capitalize cursor-pointer"> {data.value != null ? data.value : "null"}</span>
+            }} className="flex items-center capitalize cursor-pointer justify-between w-full">
+              {data.value != null ? data.value : "null"}
+              <GoArrowUpRight />
+            </span>
           )
         }
       },
@@ -126,10 +131,10 @@ export const EventsTable: FC<any> = () => {
           ]
           const colorFind = list.find((elem) => elem.title === data.value[0])
           return (
-            <div className={`flex w-full items-center justify-center capitalize capitalize `}>
+            <div className={`flex w-full items-center justify-center capitalize  `}>
               {data.value.length > 0 ?
                 <span className={`${colorFind?.color} flex w-full* items-center capitalize text-white  p-1 rounded-md text-[10px] `}>
-                  {colorFind.title + " +" + (data.value.length - 1)}
+                  {colorFind?.title + " +" + (data.value.length - 1)}
                 </span> :
                 <span className={`bg-gray-400 flex w-full* items-center capitalize text-white  p-1 rounded-md text-[10px]`}>
                   null
@@ -209,16 +214,22 @@ export const EventsTable: FC<any> = () => {
         accessor: "detalles_compartidos_array",
         id: "detalles_compartidos_array",
         Cell: (data) => {
+          console.log(data)
           return (
             <div onClick={() => {
-              setOpenModal({ state: true, data: data.data[data.cell.row.id], idx: data.cell.row.id })
+              data[data.cell.row.id]?.usuario_id === user?.uid &&
+                setOpenModal({ state: true, data: data.data[data.cell.row.id], idx: data.cell.row.id })
             }} className=" w-full capitalize">
               {
                 data.value.length > 0 ?
                   <UsuariosCompartidos event={data.data[data.cell.row.id]} /> :
-                  <div className="flex items-center justify-center">
-                    <IoShareSocial className={`w-6 h-6 cursor-pointer text-gray-500 ${user?.displayName !== "guest" && "hover:text-gray-300"} `} />
-                  </div>
+                  data[data.cell.row.id]?.usuario_id != user?.uid ?
+                    <div className="flex items-center justify-center">
+                      <IoShareSocial className={`w-6 h-6 cursor-pointer text-gray-500 ${user?.displayName !== "guest" && "hover:text-gray-300"} `} />
+                    </div> :
+                    <div className="flex items-center justify-center">
+                      <TbLock className={`w-6 h-6 cursor-pointer text-gray-500  `} />
+                    </div>
 
               }
             </div>
