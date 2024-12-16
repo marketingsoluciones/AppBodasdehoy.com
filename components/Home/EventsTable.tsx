@@ -214,21 +214,21 @@ export const EventsTable: FC<any> = () => {
         accessor: "detalles_compartidos_array",
         id: "detalles_compartidos_array",
         Cell: (data) => {
-          console.log(data)
+          console.log(  data.data[data.cell.row.id].usuario_id === user?.uid)
           return (
             <div onClick={() => {
-              data[data.cell.row.id]?.usuario_id === user?.uid &&
+              data.data[data.cell.row.id]?.usuario_id === user?.uid &&
                 setOpenModal({ state: true, data: data.data[data.cell.row.id], idx: data.cell.row.id })
             }} className=" w-full capitalize">
               {
                 data.value.length > 0 ?
                   <UsuariosCompartidos event={data.data[data.cell.row.id]} /> :
-                  data[data.cell.row.id]?.usuario_id != user?.uid ?
+                  data.data[data.cell.row.id]?.usuario_id === user?.uid ?
                     <div className="flex items-center justify-center">
                       <IoShareSocial className={`w-6 h-6 cursor-pointer text-gray-500 ${user?.displayName !== "guest" && "hover:text-gray-300"} `} />
                     </div> :
-                    <div className="flex items-center justify-center">
-                      <TbLock className={`w-6 h-6 cursor-pointer text-gray-500  `} />
+                    <div className="flex items-center justify-center cursor-default">
+                      <TbLock className={`w-6 h-6  text-gray-500  `} />
                     </div>
 
               }
