@@ -237,13 +237,13 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                             {comments?.map((elem, idx) => {
                               return (
                                 <ListComments key={idx} itinerario={itinerario} task={task} item={elem}
-                                  identifierDisabled={
-                                    idx === 0//task?.comments?.slice(viewComments ? -3 : 0).length - 1
-                                      ? false
-                                      : comments[idx].uid !== comments[idx - 1].uid
-                                        ? false
-                                        : true
-                                  }
+                                // identifierDisabled={
+                                //   idx === 0
+                                //     ? false
+                                //     : comments[idx].uid !== comments[idx - 1].uid
+                                //       ? false
+                                //       : true
+                                // }
                                 />
                               )
                             })}

@@ -7,6 +7,8 @@ import { ImageAvatar } from "../../Utils/ImageAvatar"
 import { Interweave } from "interweave"
 import { HashtagMatcher, UrlMatcher, UrlProps } from "interweave-autolink"
 import Link from "next/link"
+import { detalle_compartidos_array } from "../../../utils/Interfaces"
+
 
 interface props {
   itinerario: Itinerary
@@ -18,6 +20,7 @@ interface props {
 export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisabled }) => {
   const { user } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
+  const userAsd = [...event?.detalles_compartidos_array, event?.detalles_usuario_id, user]?.find(elem => elem?.uid === item?.uid) as detalle_compartidos_array
 
   const handleDelete = () => {
     fetchApiEventos({
@@ -56,19 +59,22 @@ export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisa
         {!identifierDisabled
           ? <div
             className='bg-gray-300 w-8 h-8 rounded-full mt-1 flex items-center justify-center cursor-pointer'>
-            <ImageAvatar user={[...event?.detalles_compartidos_array, event?.detalles_usuario_id, user]?.find(elem => elem?.uid === item?.uid)} />
+            <ImageAvatar user={userAsd} disabledTooltip />
           </div>
           : <div className="w-8 h-8" />}
-        <Interweave
-          className="text-xs flex-1 pr-4 break-words"
-          content={item?.comment}
-          matchers={[
-            new UrlMatcher('url', {}, replacesLink),
-            new HashtagMatcher('hashtag')
-          ]}
-        />
+        <div className="flex flex-col">
+          <span className="text-[11px] my-2.5">{userAsd.displayName}</span>
+          <Interweave
+            className="text-xs flex-1 pr-4 break-words"
+            content={item?.comment}
+            matchers={[
+              new UrlMatcher('url', {}, replacesLink),
+              new HashtagMatcher('hashtag')
+            ]}
+          />
+        </div>
       </div>
-      <span className='cursor-default justify-end text-[9px] -mt-0.5 font-medium flex-1 flex right-0 *-translate-x-full'>
+      <span className='cursor-default justify-end text-[9px] font-medium flex-1 flex right-0 *-translate-x-full'>
         {new Date(item?.createdAt).toLocaleString()}
       </span>
     </div>
