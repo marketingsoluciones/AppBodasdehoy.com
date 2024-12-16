@@ -63,7 +63,7 @@ export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisa
           </div>
           : <div className="w-8 h-8" />}
         <div className="flex flex-col">
-          <span className="text-[11px] my-2.5">{userAsd.displayName}</span>
+          <span className="text-[11px] my-2.5">{userAsd?.displayName}</span>
           <Interweave
             className="text-xs flex-1 pr-4 break-words"
             content={item?.comment}

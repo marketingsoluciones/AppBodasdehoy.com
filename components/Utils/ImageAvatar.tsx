@@ -31,6 +31,7 @@ export const ImageAvatar: FC<props> = ({ user, disabledTooltip }) => {
             <img src={
               user?.photoURL ? user?.photoURL : user?.icon
             }
+            alt="Photo perfil"
               className="rounded-full truncate overflow-hidden"
             />
           </div>
