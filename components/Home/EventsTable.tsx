@@ -4,25 +4,22 @@ import { useTranslation } from 'react-i18next';
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../context";
 import { getCurrency } from "../../utils/Funciones";
 import { LiaPaperclipSolid } from "react-icons/lia";
-import i18next from "i18next";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { useRouter } from "next/router";
 import { useToast } from "../../hooks/useToast";
-import { ModalAddUserToEvent, UsuariosCompartidos } from "../Utils/Compartir";
+import { UsuariosCompartidos } from "../Utils/Compartir";
 import { IoShareSocial } from "react-icons/io5";
-
-
-
+import { OpenModal } from "./OpenModal";
 
 export const EventsTable: FC<any> = () => {
   const { t } = useTranslation();
   const { eventsGroup } = EventsGroupContextProvider();
-  const { user, setUser, config, actionModals, setActionModals } = AuthContextProvider()
-  const { event, setEvent, idxGroupEvent, setIdxGroupEvent } = EventContextProvider();
+  const { user, setUser, config } = AuthContextProvider()
+  const { setEvent } = EventContextProvider();
   const router = useRouter();
   const toast = useToast()
   const [data, setData] = useState([]);
-
+  const [openModal, setOpenModal] = useState({ state: false, data: {}, idx: null })
 
   const columns = useMemo(
     () => [
@@ -82,7 +79,6 @@ export const EventsTable: FC<any> = () => {
               }
             }
           };
-          console.log(data)
           return (
             <span onClick={() => {
               const resp = handleClickCard({ t, final: true, config, data: data.data[data.cell.row.id], setEvent, user, setUser, router })
@@ -213,12 +209,10 @@ export const EventsTable: FC<any> = () => {
         accessor: "detalles_compartidos_array",
         id: "detalles_compartidos_array",
         Cell: (data) => {
-          const [openModal, setOpenModal] = useState(false)
-          console.log(openModal)
-          console.log(".-.-.-.-", data)
           return (
-            <div onClick={() => !openModal && setOpenModal(!openModal)} className=" w-full capitalize relative ">
-              <ModalAddUserToEvent openModal={openModal} setOpenModal={setOpenModal} event={data.data[data.cell.row.id]} />
+            <div onClick={() => {
+              setOpenModal({ state: true, data: data.data[data.cell.row.id], idx: data.cell.row.id })
+            }} className=" w-full capitalize">
               {
                 data.value.length > 0 ?
                   <UsuariosCompartidos event={data.data[data.cell.row.id]} /> :
@@ -317,9 +311,9 @@ export const EventsTable: FC<any> = () => {
     detalles_compartidos_array: 4
   };
 
-
   return (
     <div className="relative px-3 flex  justify-center w-full">
+      {openModal?.state && <OpenModal openModal={openModal} setOpenModal={setOpenModal} />}
       <table
         {...getTableProps()}
         className="table-auto border-collapse rounded-lg relative p-4 ">
