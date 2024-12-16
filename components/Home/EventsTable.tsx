@@ -8,6 +8,8 @@ import i18next from "i18next";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { useRouter } from "next/router";
 import { useToast } from "../../hooks/useToast";
+import { ModalAddUserToEvent, UsuariosCompartidos } from "../Utils/Compartir";
+import { IoShareSocial } from "react-icons/io5";
 
 
 
@@ -19,11 +21,8 @@ export const EventsTable: FC<any> = () => {
   const { event, setEvent, idxGroupEvent, setIdxGroupEvent } = EventContextProvider();
   const router = useRouter();
   const toast = useToast()
-
-
-
-
   const [data, setData] = useState([]);
+
 
   const columns = useMemo(
     () => [
@@ -209,19 +208,29 @@ export const EventsTable: FC<any> = () => {
           )
         }
       },
-      /* {
+      {
         Header: t("compartidos"),
         accessor: "detalles_compartidos_array",
         id: "detalles_compartidos_array",
         Cell: (data) => {
-          console.log(".-.-.-.-",data)
+          const [openModal, setOpenModal] = useState(false)
+          console.log(openModal)
+          console.log(".-.-.-.-", data)
           return (
-            <div className="flex w-full items-center justify-end capitalize">
-              {data.value.length > 0 ? data.value.length : "null"}
+            <div onClick={() => !openModal && setOpenModal(!openModal)} className=" w-full capitalize relative ">
+              <ModalAddUserToEvent openModal={openModal} setOpenModal={setOpenModal} event={data.data[data.cell.row.id]} />
+              {
+                data.value.length > 0 ?
+                  <UsuariosCompartidos event={data.data[data.cell.row.id]} /> :
+                  <div className="flex items-center justify-center">
+                    <IoShareSocial className={`w-6 h-6 cursor-pointer text-gray-500 ${user?.displayName !== "guest" && "hover:text-gray-300"} `} />
+                  </div>
+
+              }
             </div>
           )
         }
-      }, */
+      },
       {
         Header: t("Itinerary"),
         accessor: "itinerarios_array",
@@ -297,17 +306,15 @@ export const EventsTable: FC<any> = () => {
     estilo: 3,
     fecha: 4,
     fecha_creacion: 4,
-    invitados_array: 3,
+    invitados_array: 2,
     tarta: 3,
     temporada: 2,
     tematica: 3,
-    itinerarios_array: 3,
+    itinerarios_array: 2,
     menus_array: 3,
     mesas_array: 2,
-    presupuesto_objeto: 4
-
-
-
+    presupuesto_objeto: 4,
+    detalles_compartidos_array: 4
   };
 
 
@@ -352,14 +359,13 @@ export const EventsTable: FC<any> = () => {
                 {...row.getRowProps()}
                 key={i}
                 className={` w-full border-b font-display grid grid-cols-48 truncate`}
-
               >
                 {row.cells.map((cell, i) => {
                   return (
                     <td
                       {...cell.getCellProps()}
                       key={i}
-                      className={`flex items-center* leading-[1.3] px-1 py-1 col-span-${colSpan[cell.column.id]} border-x-[1px] truncate`}
+                      className={`flex items-center* leading-[2] px-1 py-1 col-span-${colSpan[cell.column.id]} border-x-[1px] truncate`}
                     >
                       {cell.render("Cell")}
                     </td>

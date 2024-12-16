@@ -18,7 +18,7 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
     const [permissions, setPermissions] = useState([])
     const [isMounted, setIsMounted] = useState(false)
     const [valir, setValir] = useState(true)
-    const [saving, setSaving] = useState (false)
+    const [saving, setSaving] = useState(false)
 
     useEffect(() => {
         if (!isMounted) {
@@ -86,11 +86,11 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
             <div className="z-50 fixed top-0 left-0 w-screen h-screen" />
             <div className="backdrop-blur backdrop-filter bg-black opacity-40 z-50 fixed top-0 left-0 w-screen h-screen" />
             <div className={`w-[320px] md:w-[382px] h-[80%] md:h-[90%] bg-white shadow-lg fixed m-auto inset-0 z-50 rounded-xl`}>
-                <ClickAwayListener onClickAway={() => openModal && setOpenModal(false)} >
+                <ClickAwayListener onClickAway={() => openModal &&  setOpenModal( false)} >
                     <div className="h-full py-5 flex flex-col">
                         <div className="flex justify-between border-b pb-1 text-[20px] mx-4">
                             <div className="cursor-default font-semibold text-primary capitalize"> {t("shareevent")}</div>
-                            <div className="cursor-pointer font-semibold text-gray-600 -translate-y-3" onClick={() => setOpenModal(!openModal)}>x</div>
+                            <div className="cursor-pointer font-semibold text-gray-600 -translate-y-3" onClick={() => openModal && setOpenModal(!openModal)}>x</div>
                         </div>
                         <div className="flex flex-col relative space-y-4 pt-3 flex-1 overflow-auto px-2 md:px-8">
                             <div className=" flex flex-col flex-1">
@@ -105,7 +105,7 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
                                 <div className="flex">
                                     <div className="flex-1" />
                                     {users.length
-                                        ? <button onClick={() => users?.length && handleSubmit()} disabled={saving} className={`${saving && "opacity-15 cursor-wait"  } bg-primary text-white rounded-lg px-5 py-2 h-10 capitalize`}>{t("save")}</button>
+                                        ? <button onClick={() => users?.length && handleSubmit()} disabled={saving} className={`${saving && "opacity-15 cursor-wait"} bg-primary text-white rounded-lg px-5 py-2 h-10 capitalize`}>{t("save")}</button>
                                         : <button onClick={() => valir && setOpenModal(!openModal)} className={`${valir ? "bg-primary" : "bg-gray-300"} text-white rounded-lg px-5 py-2 h-10 capitalize`}>{t("done")}</button>
 
                                     }

@@ -47,7 +47,7 @@ export const ImageAvatar: FC<props> = ({ user, disabledTooltip }) => {
           </div>
       }
 
-      {(router.pathname != "/itinerario" && showName && !disabledTooltip) && <div style={{ right: 10, top: 30 }} className="absolute z-20 bg-black rounded-md flex items-center justify-center leading-[1.2] opacity-75">
+      {(!["/itinerario", "/lista-de-mis-eventos"].includes(window?.location?.pathname) && showName && !disabledTooltip) && <div style={{ right: 10, top: 30 }} className="absolute z-20 bg-black rounded-md flex items-center justify-center leading-[1.2] opacity-75">
         <span className="text-white text-[10px] py-1 px-2">
           {user?.displayName ? user?.displayName : user?.email}
         </span>

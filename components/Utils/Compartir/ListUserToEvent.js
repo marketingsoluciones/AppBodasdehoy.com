@@ -62,8 +62,8 @@ const User = ({ data, event }) => {
                 </div>
             </div>
             <div className="h-10 flex-1 flex items-center">
-                <div className="flex flex-col  cursor-default">
-                    <div className="break-all line-clamp-1">{data?.email}</div>
+                <div className="flex flex-col normal-case cursor-default">
+                    <div className="break-all  line-clamp-1">{data?.email}</div>
                     <div className="break-all line-clamp-1">{data?.displayName}</div>
                 </div>
             </div>
