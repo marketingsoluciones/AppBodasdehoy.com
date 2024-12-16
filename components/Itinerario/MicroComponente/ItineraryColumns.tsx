@@ -1,26 +1,17 @@
 import { ComponentType, FC } from "react";
-import { useEffect, useMemo, useState, } from "react";
-import { DotsOpcionesIcon, InvitacionesIcon, PencilEdit } from "../../icons";
-import useHover from "../../../hooks/useHover";
+import { useMemo, useState, } from "react";
+import { DotsOpcionesIcon, PencilEdit } from "../../icons";
 import { ConfirmationBlock } from "../../Invitaciones/ConfirmationBlock"
-import { DataTable } from "../../Invitaciones/DataTable"
-import { getRelativeTime } from "../../../utils/FormatTime";
 import { useTranslation } from 'react-i18next';
-import { boolean } from "yup";
-import { IoIosAttach } from "react-icons/io";
 import { GruposResponsablesArry } from "./ResponsableSelector";
 import { ItineraryTable } from "./ItineraryTable";
 import ClickAwayListener from "react-click-away-listener";
-import { HiOutlineViewList } from "react-icons/hi";
-import { LiaIdCardSolid, LiaLinkSolid } from "react-icons/lia";
-import { GoEye, GoEyeClosed, GoGitBranch } from "react-icons/go";
-import { MdOutlineDeleteOutline } from "react-icons/md";
+import { GoEye } from "react-icons/go";
 import { EditTastk } from "./ItineraryPanel";
 import { useAllowed } from "../../../hooks/useAllowed";
 import { CgSoftwareDownload } from "react-icons/cg";
 import { getBytes, getMetadata, getStorage, ref } from "firebase/storage";
 import { Itinerary, OptionsSelect } from "../../../utils/Interfaces";
-import { event } from "../../../gtas";
 import { AuthContextProvider, EventContextProvider } from "../../../context";
 import { ImageAvatar } from "../../Utils/ImageAvatar";
 import { Interweave } from "interweave";
@@ -53,30 +44,6 @@ interface propsCell {
   justifyCenter?: boolean
 }
 
-const resolveCell = ({ data, justifyCenter }: propsCell) => {
-  const value = data.cell.value
-  if (Array.isArray(value)) {
-    return (
-      <div className="w-full text-gray-900 bg-blue-400">
-        {value.map((elem, idx) => {
-          return (
-            <span key={idx} className="inline-flex ml-2 items-center">
-              <img alt={elem} src={[]?.find(el => el.title.toLowerCase() === elem.toLowerCase())?.icon} className="w-6 h-6" />
-              <span>
-                {elem}
-              </span>
-            </span>
-          )
-        })}
-      </div>
-    )
-  }
-  return (
-    <div className={`flex w-full ${justifyCenter && "justify-center"}`}>
-      {data.cell.value}
-    </div>
-  )
-}
 
 export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reenviar = true, activeFunction, setModalStatus, modalStatus, setModalWorkFlow, modalWorkFlow, setModalCompartirTask, modalCompartirTask, deleteTask, showEditTask, setShowEditTask, optionsItineraryButtonBox, selectTask, setSelectTask, itinerario }) => {
   const { event } = EventContextProvider()
@@ -215,7 +182,6 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
                   }) ?? [user, event?.detalles_usuario_id, ...event.detalles_compartidos_array].find(el => {
                     return el?.displayName?.toLowerCase() === elem?.toLowerCase()
                   })
-                  console.log(222, userSelect)
                   return (
                     <span key={idx} className="inline-flex items-center space-x-1">
                       <div className="w-6 h-6 rounded-full border-[1px] border-gray-300">
@@ -315,9 +281,8 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
                           setShow(false)
                           item?.onClick(data.cell.row.original, itinerario)
                         }}
-                        className={`${item.value === "edit" ? "flex md:hidden" : "flex"}  ${["/itinerario"].includes(window?.location?.pathname) && item.vew != "all"? "hidden":""} p-2 text-gray-700 text-sm items-center gap-2 capitalize cursor-pointer hover:bg-gray-100 ${item.value === value && "bg-gray-200"}`}
+                        className={`${item.value === "edit" ? "flex md:hidden" : "flex"}  ${["/itinerario"].includes(window?.location?.pathname) && item.vew != "all" ? "hidden" : ""} p-2 text-gray-700 text-sm items-center gap-2 capitalize cursor-pointer hover:bg-gray-100 ${item.value === value && "bg-gray-200"}`}
                       >
-                        
                         {item.icon}
                         <span className="flex-1 leading-[1]">
                           {item.title}
@@ -332,7 +297,7 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         }
       },
     ],
-    [itinerario,i18next.language]
+    [itinerario, i18next.language]
   );
 
   return (

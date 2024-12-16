@@ -1,4 +1,4 @@
-import { ComponentType, FC, useState } from "react"
+import { ComponentType, FC } from "react"
 import { fetchApiEventos, queries } from "../../../utils/Fetching"
 import { AuthContextProvider, EventContextProvider } from "../../../context"
 import { MdOutlineDeleteOutline } from "react-icons/md"
@@ -12,10 +12,10 @@ interface props {
   itinerario: Itinerary
   task: Task
   item: Comment
-  setConfirmation: any
+  identifierDisabled?: boolean
 }
 
-export const ListComments: FC<props> = ({ itinerario, task, item, setConfirmation }) => {
+export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisabled }) => {
   const { user } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
 
@@ -53,10 +53,12 @@ export const ListComments: FC<props> = ({ itinerario, task, item, setConfirmatio
         }}
         className="absolute w-5 h-5 cursor-pointer right-2 bottom-5 text-gray-600" />}
       <div className='flex space-x-2 items-start flex-1'>
-        <div
-          className='bg-gray-300 w-8 h-8 rounded-full mt-1 flex items-center justify-center cursor-pointer'>
-          <ImageAvatar user={[...event?.detalles_compartidos_array, event?.detalles_usuario_id, user]?.find(elem => elem?.uid === item?.uid)} />
-        </div>
+        {!identifierDisabled
+          ? <div
+            className='bg-gray-300 w-8 h-8 rounded-full mt-1 flex items-center justify-center cursor-pointer'>
+            <ImageAvatar user={[...event?.detalles_compartidos_array, event?.detalles_usuario_id, user]?.find(elem => elem?.uid === item?.uid)} />
+          </div>
+          : <div className="w-8 h-8" />}
         <Interweave
           className="text-xs flex-1 pr-4 break-words"
           content={item?.comment}
@@ -66,7 +68,7 @@ export const ListComments: FC<props> = ({ itinerario, task, item, setConfirmatio
           ]}
         />
       </div>
-      <span className='cursor-default justify-end text-[10px] -mt-2 font-medium flex-1 flex right-0 *-translate-x-full'>
+      <span className='cursor-default justify-end text-[9px] -mt-0.5 font-medium flex-1 flex right-0 *-translate-x-full'>
         {new Date(item?.createdAt).toLocaleString()}
       </span>
     </div>

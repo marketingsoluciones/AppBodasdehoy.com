@@ -1,13 +1,12 @@
 import { Form, Formik } from "formik";
-import { FC, HTMLAttributes, useState } from "react";
+import { FC, HTMLAttributes, useEffect, useState } from "react";
 import { SelectIcon, GruposResponsablesArry } from ".";
 import { EventContextProvider } from "../../../context/EventContext";
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
 import { AuthContextProvider } from "../../../context";
-import { useToast } from "../../../hooks/useToast";
 import { useTranslation } from 'react-i18next';
 import { ItineraryButtonBox } from './ItineraryButtonBox'
-import { Itinerary, OptionsSelect, Task, TaskDateTimeAsString } from "../../../utils/Interfaces";
+import { Comment, Itinerary, OptionsSelect, Task, TaskDateTimeAsString } from "../../../utils/Interfaces";
 import { ViewItinerary } from "../../../pages/invitados";
 import { CgSoftwareDownload } from "react-icons/cg";
 import { getBytes, getMetadata, getStorage, ref } from "firebase/storage";
@@ -37,6 +36,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
   const storage = getStorage();
   const link = `${window.location.origin}/services/servicios-${event?._id}-${itinerario?._id}-${task?._id}`
   const [viewComments, setViewComments] = useState(true)
+  const [comments, setComments] = useState<Comment[]>()
   const initialValues: TaskDateTimeAsString = {
     _id: task?._id,
     icon: !task?.icon ? "" : task?.icon,
@@ -52,6 +52,11 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
     comments: task?.comments,
     commentsViewers: task?.commentsViewers
   }
+
+  useEffect(() => {
+    const comments = task?.comments?.slice(viewComments ? -3 : 0).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    setComments(comments)
+  }, [viewComments, task.comments, event])
 
   const handleBlurData = async (variable, valor) => {
     try {
@@ -228,10 +233,18 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
 
                           < InputComments itinerario={itinerario} task={task} />
 
-                          <div className='w-[calc(100%)] flex flex-col-reverse rounded-lg'>
-                            {task?.comments?.slice(viewComments ? -3 : 0).map((elem, idx) => {
+                          <div className='w-[calc(100%)] flex flex-col rounded-lg'>
+                            {comments?.map((elem, idx) => {
                               return (
-                                <ListComments key={idx} itinerario={itinerario} task={task} item={elem} setConfirmation={() => { }} />
+                                <ListComments key={idx} itinerario={itinerario} task={task} item={elem}
+                                  identifierDisabled={
+                                    idx === 0//task?.comments?.slice(viewComments ? -3 : 0).length - 1
+                                      ? false
+                                      : comments[idx].uid !== comments[idx - 1].uid
+                                        ? false
+                                        : true
+                                  }
+                                />
                               )
                             })}
                           </div>
