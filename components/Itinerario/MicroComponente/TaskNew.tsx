@@ -56,7 +56,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
   useEffect(() => {
     const comments = task?.comments?.slice(viewComments ? -3 : 0).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     setComments(comments)
-  }, [viewComments, task.comments, event])
+  }, [viewComments, task?.comments, event])
 
   const handleBlurData = async (variable, valor) => {
     try {

@@ -22,6 +22,7 @@ import { ViewItinerary } from "../../../pages/invitados";
 import FormTask from "../../Forms/FormTask";
 import { getStorage, ref, listAll, deleteObject } from "firebase/storage";
 import { SimpleDeleteConfirmation } from "./DeleteConfirmation";
+import { PiCheckFatBold } from "react-icons/pi";
 
 interface props {
     itinerario: Itinerary
@@ -93,7 +94,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             value: "share",
             icon: <LiaLinkSolid className="w-5 h-5" />,
             title: "Link calendario",
-            onClick: (values: Task) => !isAllowed() ? ht() : setShowModalCompartir({ state: !showModalCompartir.state, id: values?._id }),
+            //onClick: (values: Task) => !isAllowed() ? ht() : setShowModalCompartir({ state: !showModalCompartir.state, id: values?._id }),
             vew: "tasks"
         },
         {

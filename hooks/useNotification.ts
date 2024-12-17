@@ -11,6 +11,7 @@ interface Notification {
   type: keyof typeof types
   message: string
   uids?: string[]
+  focused?: string
 }
 
 export const useNotification = () => {
@@ -20,7 +21,7 @@ export const useNotification = () => {
   const { t } = useTranslation()
 
 
-  const notification = ({ message, uids, type }: Notification) => {
+  const notification = ({ message, uids, type, focused }: Notification) => {
     fetchApiBodas({
       query: queries.createNotifications,
       variables: {
@@ -28,7 +29,8 @@ export const useNotification = () => {
           type,
           message,
           uids,
-          ...(type === "user" && { fromUid: user?.uid })
+          ...(type === "user" && { fromUid: user?.uid }),
+          focused
         }
       },
       development: config.development,

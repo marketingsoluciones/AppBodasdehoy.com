@@ -423,6 +423,7 @@ export const queries = {
         state
         type
         fromUid
+        focused
         createdAt
         updatedAt
       }
