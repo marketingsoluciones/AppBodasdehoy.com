@@ -91,12 +91,12 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             onClick: () => !isAllowed() ? ht() : setModalWorkFlow(!modalWorkFlow),
             vew: "tasks"
         },
-        {
-            value: "share",
-            icon: <LiaLinkSolid className="w-5 h-5" />,
-            title: "Link calendario",
-            vew: "tasks"
-        },
+        // {
+        //     value: "share",
+        //     icon: <LiaLinkSolid className="w-5 h-5" />,
+        //     title: "Link calendario",
+        //     vew: "tasks"
+        // },
         {
             value: "delete",
             icon: <MdOutlineDeleteOutline className="w-5 h-5" />,
