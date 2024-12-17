@@ -1,4 +1,4 @@
-import { ComponentType, FC } from "react"
+import { ComponentType, FC, HTMLAttributes, useEffect } from "react"
 import { fetchApiEventos, queries } from "../../../utils/Fetching"
 import { AuthContextProvider, EventContextProvider } from "../../../context"
 import { MdOutlineDeleteOutline } from "react-icons/md"
@@ -8,19 +8,30 @@ import { Interweave } from "interweave"
 import { HashtagMatcher, UrlMatcher, UrlProps } from "interweave-autolink"
 import Link from "next/link"
 import { detalle_compartidos_array } from "../../../utils/Interfaces"
+import { useRouter } from "next/router"
 
 
-interface props {
+interface props extends HTMLAttributes<HTMLDivElement> {
   itinerario: Itinerary
   task: Task
   item: Comment
   identifierDisabled?: boolean
 }
 
-export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisabled }) => {
+export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisabled, ...props }) => {
   const { user } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
+  const router = useRouter()
   const userAsd = [...event?.detalles_compartidos_array, event?.detalles_usuario_id, user]?.find(elem => elem?.uid === item?.uid) as detalle_compartidos_array
+
+  useEffect(() => {
+    if (router.query?.task) {
+      document.getElementById(`${router.query.task}`)?.scrollIntoView({ behavior: 'smooth' });
+    }
+    if (router.query?.comment) {
+      router.push(`${window.location.origin}${window.location.pathname}`)
+    }
+  }, [router])
 
   const handleDelete = () => {
     fetchApiEventos({
@@ -49,7 +60,7 @@ export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisa
   };
 
   return (
-    <div className={`flex flex-col w-full px-2 py-1 border-t-[1px] hover:bg-gray-100 relative`}>
+    <div className={`flex flex-col w-full px-2 py-1 border-t-[1px] hover:bg-gray-100 relative`} {...props}>
       {user && user.uid === item?.uid && <MdOutlineDeleteOutline
         onClick={() => {
           handleDelete()

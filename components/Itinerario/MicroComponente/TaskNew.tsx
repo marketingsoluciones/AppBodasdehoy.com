@@ -18,6 +18,7 @@ import { InputComments } from "./InputComments"
 import { ListComments } from "./ListComments"
 import ClickAwayListener from "react-click-away-listener";
 import { CopiarLink } from "../../Utils/Compartir";
+import { useRouter } from "next/router";
 
 interface props extends HTMLAttributes<HTMLDivElement> {
   itinerario: Itinerary
@@ -35,8 +36,10 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
   const { t } = useTranslation();
   const storage = getStorage();
   const link = `${window.location.origin}/services/servicios-${event?._id}-${itinerario?._id}-${task?._id}`
-  const [viewComments, setViewComments] = useState(true)
+  const [viewComments, setViewComments] = useState(false)
   const [comments, setComments] = useState<Comment[]>()
+  const router = useRouter()
+
   const initialValues: TaskDateTimeAsString = {
     _id: task?._id,
     icon: !task?.icon ? "" : task?.icon,
@@ -54,7 +57,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
   }
 
   useEffect(() => {
-    const comments = task?.comments?.slice(viewComments ? -3 : 0).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    const comments = task?.comments?.slice(!viewComments ? -3 : 0).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     setComments(comments)
   }, [viewComments, task?.comments, event])
 
@@ -105,7 +108,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
   }
 
   return (
-    <>
+    <div {...props}>
       <Formik enableReinitialize initialValues={initialValues} onSubmit={() => { }}  >
         {({ values }) => {
           return (
@@ -233,10 +236,10 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
 
                           < InputComments itinerario={itinerario} task={task} />
 
-                          <div className='w-[calc(100%)] flex flex-col rounded-lg'>
+                          <div className='w-[calc(100%)] flex flex-col rounded-lg overflow-auto'>
                             {comments?.map((elem, idx) => {
                               return (
-                                <ListComments key={idx} itinerario={itinerario} task={task} item={elem}
+                                <ListComments id={elem._id} key={idx} itinerario={itinerario} task={task} item={elem}
                                 // identifierDisabled={
                                 //   idx === 0
                                 //     ? false
@@ -254,7 +257,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                         {
                           task?.comments?.length > 3 &&
                           <div onClick={() => setViewComments(!viewComments)} className=" text-blue-400 capitalize cursor-pointer hover:underline decoration-1">
-                            {!viewComments ? "ver menos" : "ver mas"}
+                            {viewComments ? "ver menos" : "ver mas"}
                           </div>
                         }
                         <div className="flex-1">
@@ -269,6 +272,6 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
           )
         }}
       </Formik>
-    </>
+    </div>
   )
 }

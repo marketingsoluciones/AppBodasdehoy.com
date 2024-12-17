@@ -2,7 +2,7 @@ import { FC, useEffect, useState } from "react"
 import { Textarea } from "./Textarea"
 import { AuthContextProvider, EventContextProvider } from "../../../context"
 import { fetchApiEventos, queries } from "../../../utils/Fetching"
-import { Comment, detalle_compartidos_array, Itinerary, Task } from "../../../utils/Interfaces"
+import { Comment, Itinerary, Task } from "../../../utils/Interfaces"
 import { ImageAvatar } from "../../Utils/ImageAvatar"
 import { useNotification } from "../../../hooks/useNotification"
 
@@ -48,7 +48,7 @@ export const InputComments: FC<props> = ({ itinerario, task }) => {
         if (af1 > -1) {
           qwe.splice(af1, 1)
         }
-        const focused = `${window.location.pathname}?event=${event._id}&itinerario=${itinerario._id}&task=${task._id}&comment=${results._id}`
+        const focused = `${window.location.pathname}?event=${event._id}&itinerary=${itinerario._id}&task=${task._id}&comment=${results._id}`
         notification({
           type: "user",
           message: ` ha escrito un comentario: ${value.slice(0, 50)}${value.length > 50 ? "..." : ""} | Evento ${event?.tipo}: <strong>${event?.nombre.toUpperCase()}</strong>`,
@@ -64,7 +64,6 @@ export const InputComments: FC<props> = ({ itinerario, task }) => {
     <div className='flex space-x-2 px-2'>
       <div className='bg-gray-300 w-8 h-8 rounded-full mt-1 flex items-center justify-center'>
         <ImageAvatar user={user} />
-        {/* {user?.name?.split(" ").map(e => e.slice(0, 1)).join("")} */}
       </div>
       <div className='flex-1'>
         <Textarea value={value} setValue={setValue} />
