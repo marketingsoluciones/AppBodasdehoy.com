@@ -1,9 +1,10 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { BoddyIter } from "../components/Itinerario"
-import { AuthContextProvider, EventContextProvider, } from "../context"
+import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, } from "../context"
 import { BlockTitle } from "../components/Utils/BlockTitle"
 import VistaSinCookie from "./vista-sin-cookie"
 import { motion } from "framer-motion"
+import { useRouter } from "next/router"
 
 
 /* import { Modal } from "../modals/Modal" */
@@ -11,8 +12,22 @@ import { motion } from "framer-motion"
 
 const Itinerario = () => {
     const [createPdf, setCreatePdf] = useState(false)
-    const { event } = EventContextProvider()
-    const { user, verificationDone, forCms } = AuthContextProvider()
+    const { eventsGroup } = EventsGroupContextProvider()
+    const { event, setEvent } = EventContextProvider()
+    const { user, setUser, verificationDone, forCms } = AuthContextProvider()
+    const router = useRouter()
+
+    useEffect(() => {
+        if (router.query?.event && router.query?.event !== event?._id) {
+            const event = eventsGroup.find(elem => elem._id === router.query?.event)
+            if (event) {
+                setEvent({ ...event })
+                user.eventSelected = router.query?.event
+                setUser({ ...user })
+            }
+        }
+    }, [router])
+
 
     if (verificationDone) {
         if (!user) {

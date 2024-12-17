@@ -22,7 +22,7 @@ import { ViewItinerary } from "../../../pages/invitados";
 import FormTask from "../../Forms/FormTask";
 import { getStorage, ref, listAll, deleteObject } from "firebase/storage";
 import { SimpleDeleteConfirmation } from "./DeleteConfirmation";
-
+import { useRouter } from "next/router";
 interface props {
     itinerario: Itinerary
     editTitle: boolean
@@ -61,6 +61,8 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     const storage = getStorage();
     const [modal, setModal] = useState({ state: false, title: null, values: null, itinerario: null })
     const [showModalCompartir, setShowModalCompartir] = useState({ state: false, id: null });
+    const router = useRouter()
+
     const optionsItineraryButtonBox: OptionsSelect[] = [
         {
             value: "edit",
@@ -93,7 +95,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             value: "share",
             icon: <LiaLinkSolid className="w-5 h-5" />,
             title: "Link calendario",
-            onClick: (values: Task) => !isAllowed() ? ht() : setShowModalCompartir({ state: !showModalCompartir.state, id: values?._id }),
             vew: "tasks"
         },
         {
@@ -193,6 +194,12 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             console.log(1000501, error)
         }
     }
+    useEffect(() => {
+        if (router?.query?.task) {
+            setSelectTask(`${router.query.task}`)
+        }
+    }, [router])
+
 
     return (
         <div className="w-full flex-1 flex flex-col overflow-y-scroll">
@@ -220,6 +227,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                             {el?.tasks?.map((elem, idx) => {
                                 return (
                                     <TaskNew
+                                        id={elem._id}
                                         key={idx}
                                         task={elem}
                                         itinerario={itinerario}

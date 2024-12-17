@@ -58,18 +58,16 @@ export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTit
 
                 <div className="inline-flex max-w-full h-full items-center bg-yellow-400* mr-2">
                     <div id="azul" className={`bg-blue-500* ${event?.usuario_id === user?.uid && "max-w-[calc(100%-32px)]"} inline-flex  h-full items-center select-none bg-blue-600* mx-2`}>
-                        {event?.itinerarios_array.filter(elem => elem.tipo === window?.location?.pathname.slice(1))?.slice(0, 8).map((item, idx) => {
+                        {event?.itinerarios_array?.filter(elem => elem.tipo === window?.location?.pathname.slice(1))?.slice(0, 8).map((item, idx) => {
                             return (
                                 (isAllowedViewer(item.viewers) || window?.location?.pathname === "/itinerario") && <div id={item?._id} key={idx}
                                     className={`justify-start items-center cursor-pointer h-full ${itinerario?._id === item?._id ? "bg-green* flex" : "inline-flex"} text-sm space-x-1 relative md:mr-2`}
                                     onClick={() => {
                                         if (item?._id !== itinerario?._id) {
-                                            // adjustSize()
                                             setItinerario(item)
                                             setEditTitle(false)
                                         }
                                     }}
-                                //style={itinerario?._id === item?._id ? {} : { width: sizes }}
                                 >
                                     {<div className={`inline-flex items-center`} >
                                         <div className={`${itinerario?._id === item?._id ? "border-primary text-primary w-full" : "text-gray-600"} border-b-2 flex-1 `}>

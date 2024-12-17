@@ -11,6 +11,7 @@ import { Interweave, Node } from "interweave";
 import { HashtagMatcher, Link, Url, UrlMatcher, UrlProps } from "interweave-autolink";
 import { useTranslation } from "react-i18next";
 import { ImageAvatar } from "./Utils/ImageAvatar";
+import { useRouter } from "next/router";
 
 export const Notifications = () => {
   const { t } = useTranslation()
@@ -22,6 +23,7 @@ export const Notifications = () => {
   // const [notifications, setNotifications] = useState<ResultNotifications>();
   const [countScroll, setCountScroll] = useState({ count: 1 })
   const [showLoad, setShowLoad] = useState<boolean>(false);
+  const router = useRouter()
 
   const handleScroll = (e) => {
     if (e.target.scrollTop + e.target.offsetHeight === e.target.scrollHeight && notifications.results.length < notifications.total) {
@@ -142,7 +144,17 @@ export const Notifications = () => {
             </div>
             <ul id="ul-notifications" className="bg-white flex flex-col text-xs place-items-left text-black max-h-[365px] overflow-y-scroll break-words">
               {notifications?.results?.map((item: Notification, idx: number) => (
-                <li key={idx} className="flex w-full">
+                <li key={idx} onClick={() => {
+                  if (item?.focused) {
+                    router.push(`${window.location.origin}${item.focused}`)
+                    // window.location.href = `${window.location.origin}${item.focused}`
+                    // if (window.location.pathname !== item.focused.split("?")[0]) {
+                    //   router.push(`${window.location.origin}${item.focused}`)
+                    // } else {
+                    //   //ejecutar la funcion de la redireccion aqui
+                    // }
+                  }
+                }} className={`flex w-full ${item?.focused && "cursor-pointer"}`}>
                   <div className="w-full hover:bg-base text-gray-700 flex py-2 ml-2">
                     <div className="bg-white text-gray-500 w-7 h-7 rounded-full border-gray-200 border-[1px] flex justify-center items-center -translate-y-1 mx-1">
                       {(!item?.type || item?.type === "event") && <MisEventosIcon className="w-5 h-5" />}
@@ -153,16 +165,16 @@ export const Notifications = () => {
                     </div>
                     <div className="flex-1 flex flex-col">
                       <Interweave
-                        className="text-xs break-words"
+                        className="text-xs break-words w-[248px]"
                         content={
                           item?.type === "user"
                             ? `${[...event?.detalles_compartidos_array, event?.detalles_usuario_id, user]?.find(elem => elem?.uid === item?.uid).displayName} ${item?.message}`
                             : item?.message
                         }
-                        matchers={[
-                          new UrlMatcher('url', {}, replacesLink),
-                          new HashtagMatcher('hashtag')
-                        ]}
+                      // matchers={[
+                      //   new UrlMatcher('url', {}, replacesLink),
+                      //   new HashtagMatcher('hashtag')
+                      // ]}
                       />
                       <span className="text-[10px] flex-1 text-right italic">
                         Hace {formatDistanceStrict(

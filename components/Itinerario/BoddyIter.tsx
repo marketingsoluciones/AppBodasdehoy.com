@@ -10,10 +10,11 @@ import { Modal } from "../Utils/Modal";
 import { DeleteConfirmation } from "./MicroComponente/DeleteConfirmation";
 import { useTranslation } from "react-i18next";
 import { useAllowed, useAllowedViewer } from "../../hooks/useAllowed";
+import { useRouter } from "next/router";
 
 interface Modal {
     state: boolean
-    title?: string 
+    title?: string
     handle?: () => void
     subTitle?: string | JSX.Element
 }
@@ -30,6 +31,7 @@ export const BoddyIter = () => {
     const toast = useToast()
     const { t } = useTranslation();
     const [title, setTitle] = useState<string>()
+    const router = useRouter()
 
     useEffect(() => {
         setView(window.innerWidth > window.innerHeight && isAllowed() ? "cards" : "cards")
@@ -99,14 +101,17 @@ export const BoddyIter = () => {
     useEffect(() => {
         const itinerarios = event?.itinerarios_array.filter(elem => elem.tipo === window?.location?.pathname.slice(1))
         if (itinerarios.length) {
-            const f1 = itinerarios.findIndex(elem => elem?._id === itinerario?._id)
+            const f1 = itinerarios.findIndex(elem =>
+                !!router.query?.itinerary
+                    ? elem?._id === router.query?.itinerary
+                    : elem?._id === itinerario?._id)
             if (f1 < 0) {
                 setItinerario(itinerarios[0])
             } else {
                 setItinerario(itinerarios[f1])
             }
         }
-    }, [event])
+    }, [event, router])
 
     return (
         <div className="w-full h-[calc(100vh-234px)] flex flex-col items-center bg-white rounded-lg mt-3">

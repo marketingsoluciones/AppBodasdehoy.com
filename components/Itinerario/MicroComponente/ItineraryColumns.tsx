@@ -1,4 +1,4 @@
-import { ComponentType, FC } from "react";
+import { ComponentType, FC, useEffect } from "react";
 import { useMemo, useState, } from "react";
 import { DotsOpcionesIcon, PencilEdit } from "../../icons";
 import { ConfirmationBlock } from "../../Invitaciones/ConfirmationBlock"
@@ -18,6 +18,10 @@ import { Interweave } from "interweave";
 import { HashtagMatcher, UrlMatcher, UrlProps } from "interweave-autolink";
 import i18next from "i18next";
 import Link from "next/link";
+import { PiCheckFatBold } from "react-icons/pi";
+import { CopyToClipboard } from 'react-copy-to-clipboard';
+import { useToast } from "../../../hooks/useToast";
+
 
 interface props {
   data?: any[],
@@ -52,6 +56,7 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
   const [arrEnviarInvitaciones, setArrEnviatInvitaciones] = useState([])
   const [isAllowed, ht] = useAllowed()
   const storage = getStorage();
+  const toast = useToast()
 
   const handleDownload = async ({ elem, task }) => {
     try {
@@ -263,6 +268,16 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         Cell: (data) => {
           const [show, setShow] = useState(false)
           const [value, setValue] = useState("")
+          const [copied, setCopied] = useState(false)
+
+          useEffect(() => {
+            if (copied) {
+              setTimeout(() => {
+                setCopied(false)
+              }, 3000);
+            }
+          }, [copied])
+
           return (
             <div key={data.cell.row.id} className="relative w-full h-full flex justify-center items-center">
               <div onClick={() => { !isAllowed() ? ht() : setShowEditTask({ state: !showEditTask.state, values: data.cell.row.original }) }} className={`hidden md:flex ${isAllowed() ? "text-gray-700" : "text-gray-300"} cursor-pointer w-4 h-6 items-center justify-center *bg-blue-400`}>
@@ -277,16 +292,37 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
                     {optionsItineraryButtonBox?.map((item, idx) =>
                       <div key={idx}
                         onClick={() => {
+                          if (item.value === "share") {
+                            setCopied(true)
+                            toast("success", t(`copiedlink`))
+                            return
+                          }
                           setValue(item.value)
                           setShow(false)
                           item?.onClick(data.cell.row.original, itinerario)
                         }}
                         className={`${item.value === "edit" ? "flex md:hidden" : "flex"}  ${["/itinerario"].includes(window?.location?.pathname) && item.vew != "all" ? "hidden" : ""} p-2 text-gray-700 text-sm items-center gap-2 capitalize cursor-pointer hover:bg-gray-100 ${item.value === value && "bg-gray-200"}`}
                       >
-                        {item.icon}
-                        <span className="flex-1 leading-[1]">
-                          {item.title}
-                        </span>
+                        {item.value === "share"
+                          ? copied
+                            ? <div>
+                              <PiCheckFatBold className="w-5 h-5" />
+                            </div>
+                            : <CopyToClipboard text={"link"}>
+                              <div className="flex">
+                                {item.icon}
+                                <span className="flex-1 leading-[1]">
+                                  {item.title}
+                                </span>
+                              </div>
+                            </CopyToClipboard>
+                          : <>
+                            {item.icon}
+                            <span className="flex-1 leading-[1]">
+                              {item.title}
+                            </span>
+                          </>
+                        }
                       </div>
                     )}
                   </div>}
