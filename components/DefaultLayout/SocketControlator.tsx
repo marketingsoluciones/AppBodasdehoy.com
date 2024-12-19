@@ -30,18 +30,9 @@ export const SocketControlator = () => {
   }, [])
 
   useEffect(() => {
-    //console.log("valirRemoteEvent", valirRemoteEvent)
-  }, [valirRemoteEvent])
-
-  useEffect(() => {
-    //console.log("valirRemotePlanSpaceActive", valirRemotePlanSpaceActive)
-  }, [valirRemotePlanSpaceActive])
-
-  useEffect(() => {
     setValirRemoteEvent(true)
     setValirRemotePlanSpaceActive(true)
     if (received.channel === "app:message") {
-      //console.log(8745000, received.msg)
       if (received?.msg?.payload?.action === "setEvent") {
         const eventOld = {
           planSpaceSelect: event?.planSpaceSelect,
@@ -160,6 +151,7 @@ export const SocketControlator = () => {
         }
       })
     } else {
+      setValirRemoteEvent(false)
       setValirRemotePlanSpaceActive(false)
     }
   }, [planSpaceActive])
