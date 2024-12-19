@@ -114,6 +114,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                     || ["/itinerario"].includes(window?.location?.pathname)
                     || elem.spectatorView
                     || event.usuario_id === user.uid
+                    || isAllowed()
                 ) &&
                     true
             })
