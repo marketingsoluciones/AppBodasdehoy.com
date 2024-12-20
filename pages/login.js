@@ -1,4 +1,4 @@
-import { router, useRouter } from "next/router";
+import { useRouter } from "next/router";
 import { ButtonClose } from "../components/Forms/ButtonClose";
 import { Login, Register, ResetPass } from "../components/Forms/Login/Forms";
 import { useEffect, useState } from "react";
@@ -9,8 +9,8 @@ import { ArrowLeft } from "../components/icons";
 const PageLogin = () => {
   const { config, user, linkMedia, preregister } = AuthContextProvider()
   const { setLoading } = LoadingContextProvider()
-  const { query } = useRouter()
-  const [stage, setStage] = useState((linkMedia != null ? "register" : null) ?? query?.q ?? "login");
+  const router = useRouter()
+  const [stage, setStage] = useState((linkMedia != null ? "register" : null) ?? router.query?.q ?? "login");
   const [stageRegister, setStageRegister] = useState(0)
   const [whoYouAre, setWhoYouAre] = useState("");
   const [isMounted, setIsMounted] = useState(false)
@@ -45,11 +45,11 @@ const PageLogin = () => {
 
   const handleClose = () => {
     setTimeout(() => {
-      router.push(!query?.d ? "/" : query?.d)
+      router.push(!router.query?.d ? "/111" : router.query?.d)
     }, 100);
   }
   if (user && user?.displayName !== "guest") {
-    router.push("/")
+    router.push(!router.query?.d ? "/" : window.location.search.replace("?d=", ""))
   } else {
     return (
       config?.development !== "bodasdehoy" && (

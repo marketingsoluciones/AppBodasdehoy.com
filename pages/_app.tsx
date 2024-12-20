@@ -5,28 +5,28 @@ import "swiper/css/bundle"
 import "@fontsource/italiana";
 import "@fontsource/montserrat";
 import "@fontsource/poppins";
-import { AnimatePresence } from 'framer-motion';
-import { AuthContextProvider } from '../context';
-import { useEffect } from 'react';
-import { InfoDevelopment } from '../components/InfoDevelopment';
-import { I18nContext, I18nextProvider } from 'react-i18next';
+import { AuthContextProvider, EventContextProvider } from '../context';
+import { useEffect, useState } from 'react';
+import { I18nextProvider } from 'react-i18next';
 import i18n from "../utils/i18n"
-
+import { useAllowedRouter } from '../hooks/useAllowed';
+import { BlockRedirection } from '../components/Utils/BlockRedirection';
+import { useRouter } from 'next/router';
 
 const MyApp = ({ Component, pageProps }) => {
+  const [valirBlock, setValirBlock] = useState<boolean>()
 
   return (
     <>
-      {/*<AnimatePresence exitBeforeEnter initial={false}>*/}
       <I18nextProvider i18n={i18n}>
         <DefaultLayout>
-          {/* <InfoDevelopment /> */}
-          <Load />
-          <Component {...pageProps} />
+          <Load setValirBlock={setValirBlock} />
+          {valirBlock
+            ? <BlockRedirection />
+            : <Component {...pageProps} />
+          }
         </DefaultLayout>
       </I18nextProvider>
-
-      {/*</AnimatePresence>*/}
       <style jsx global>
         {`
         
@@ -39,8 +39,16 @@ const MyApp = ({ Component, pageProps }) => {
 
 export default MyApp
 
-const Load = () => {
+const Load = ({ setValirBlock }) => {
   const { config } = AuthContextProvider()
+  const [isAllowedRouter] = useAllowedRouter()
+  const { event } = EventContextProvider()
+  const { user } = AuthContextProvider()
+  const router = useRouter()
+
+  useEffect(() => {
+    setValirBlock(!isAllowedRouter())
+  }, [event, user, router])
 
   return (<>
     <style jsx global>

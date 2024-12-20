@@ -129,7 +129,6 @@ export const useAuthentication = () => {
               toast("success", t("Inició sesión con éxito"))
               updateActivity("logged")
               updateActivityLink("logged")
-              router.push("/")
             } else {
               if (whoYouAre && whoYouAre !== "") {
                 fetchApiBodas({
@@ -145,7 +144,6 @@ export const useAuthentication = () => {
                   toast("success", t("Registro realizado con éxito"))
                   updateActivity("registered")
                   updateActivityLink("registered")
-                  router.push("/")
 
                 })
               } else {

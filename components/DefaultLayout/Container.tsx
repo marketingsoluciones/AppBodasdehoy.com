@@ -5,7 +5,6 @@ import Navigation from "./Navigation";
 import { motion } from "framer-motion";
 import { useEffect } from "react";
 
-
 const Container = (props) => {
   const { children } = props;
   const { forCms } = AuthContextProvider();
@@ -16,7 +15,7 @@ const Container = (props) => {
       setLoading(false)
   }, [])
 
-  const urls = ["/info-app", "/confirmar-asistencia", "/RelacionesPublicas", "/RelacionesPublicas/VentasEntradas", "/RelacionesPublicas/EntradasGratis", "/RelacionesPublicas/ReservaDatos", "/RelacionesPublicas/ReservaCantidad", "/RelacionesPublicas/RegistroEntradasUser", "/RelacionesPublicas/RecuperarCompra", "/RelacionesPublicas/ReciboEntradas", "/RelacionesPublicas/CancelarReserva", "/RelacionesPublicas/ComprasComp", "/RelacionesPublicas/PrincipalDE", "/event/[...slug]","/services/[...slug]" ]
+  const urls = ["/info-app", "/confirmar-asistencia", "/RelacionesPublicas", "/RelacionesPublicas/VentasEntradas", "/RelacionesPublicas/EntradasGratis", "/RelacionesPublicas/ReservaDatos", "/RelacionesPublicas/ReservaCantidad", "/RelacionesPublicas/RegistroEntradasUser", "/RelacionesPublicas/RecuperarCompra", "/RelacionesPublicas/ReciboEntradas", "/RelacionesPublicas/CancelarReserva", "/RelacionesPublicas/ComprasComp", "/RelacionesPublicas/PrincipalDE", "/event/[...slug]", "/services/[...slug]"]
 
   return (
     <>
@@ -34,7 +33,7 @@ const Container = (props) => {
       }
 
       <div className={`w-[100%] ${router.pathname === "/" ? "" : "bg-base"} overflow-auto overflow-y-scroll ${urls.includes(router?.pathname) ? "" : forCms ? "h-[100vh]" : "h-[calc(100vh-144px)]"}`}>
-        <main>
+        <main className="w-full h-full">
           {children}
         </main>
       </div>

@@ -5,6 +5,7 @@ import { BlockTitle } from "../components/Utils/BlockTitle"
 import VistaSinCookie from "./vista-sin-cookie"
 import { motion } from "framer-motion"
 import { useRouter } from "next/router"
+import { useMounted } from "../hooks/useMounted"
 
 
 /* import { Modal } from "../modals/Modal" */
@@ -16,6 +17,7 @@ const Itinerario = () => {
     const { event, setEvent } = EventContextProvider()
     const { user, setUser, verificationDone, forCms } = AuthContextProvider()
     const router = useRouter()
+    useMounted()
 
     useEffect(() => {
         if (router.query?.event && router.query?.event !== event?._id) {

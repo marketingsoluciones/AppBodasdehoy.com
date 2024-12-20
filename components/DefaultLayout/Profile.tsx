@@ -205,11 +205,6 @@ const Profile = ({ user, state, set, ...rest }) => {
         Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
         Cookies.remove("idTokenV0.1.0", { domain: config?.domain ?? "" });
         signOut(getAuth()).then(() => {
-          if (["vivetuboda"].includes(config?.development)) {
-            setUser()
-            router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "/login")
-            return
-          }
           toast("success", t("loggedoutsuccessfully"))
           router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "/")
         })
