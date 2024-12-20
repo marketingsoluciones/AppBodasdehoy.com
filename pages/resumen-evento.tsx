@@ -1,6 +1,5 @@
 //@ts-check
 import { motion } from "framer-motion"
-import { useContext, useEffect, useState } from "react";
 import BlockInvitaciones from "../components/Resumen/BlockInvitaciones";
 import BlockInvitados from "../components/Resumen/BlockInvitados";
 import BlockListaRegalos from "../components/Resumen/BlockListaRegalos";
@@ -39,9 +38,6 @@ const Resumen = () => {
             <BlockListaRegalos />
           </div>
           <BlockSobreMiEvento />
-          {/* <span className="text-gray-500 text-xs gap-0">
-            ID: {event?._id}
-          </span> */}
         </motion.div>
       </section>
     </>

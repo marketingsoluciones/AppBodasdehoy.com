@@ -1,12 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { AuthContextProvider, EventContextProvider, LoadingContextProvider } from "../../context";
+import { AuthContextProvider, EventContextProvider } from "../../context";
 import Link from "next/link";
 import { InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, MesasIcon, MisEventosIcon, PresupuestoIcon, ResumenIcon } from "../icons";
-import router from "next/router";
 import { useToast } from "../../hooks/useToast";
-import Cookies from "js-cookie";
-import { getAuth, signOut } from "firebase/auth";
-import { useActivity } from "../../hooks/useActivity";
 import { useTranslation } from 'react-i18next';
 import { BsCalendarHeartFill } from "react-icons/bs";
 import { IoIosArrowDown } from "react-icons/io";
@@ -136,49 +132,6 @@ const NavigationMobile = () => {
       `}</style>
     </div >
   );
-};
-
-const ProfileMenu = () => {
-  const { t } = useTranslation();
-  const { user, setUser, config } = AuthContextProvider();
-  const { setLoading } = LoadingContextProvider();
-  const toast = useToast()
-  const [updateActivity, updateActivityLink] = useActivity()
-
-  return (
-    <div className={`bg-white w-40 rounded-md shadow-md overflow-hidden absolute transform translate-x-[calc(-122px)] -translate-y-[calc(100%+44px)]`}>
-      <ul className="w-full">
-        {!user && <li className="w-full pl-5 py-1 text-gray-500 transition  hover:bg-primary hover:text-white font-display text-sm">
-          <button onClick={async () => { router.push(`${process.env.NEXT_PUBLIC_DIRECTORY}/login?d=app` ?? "") }}>{t("login")}</button>
-        </li>}
-        {config?.pathDirectory && <Link href={config?.pathDirectory ?? ""} passHref>
-          <li
-            className="w-full pl-5 py-1 text-gray-500 transition  hover:bg-primary hover:text-white font-display text-sm"
-          >
-            <p>{t("gotodirectory")}</p>
-          </li>
-        </Link>}
-        {(user?.uid && user.displayName !== "guest") && <li className="w-full pl-5 py-1 text-gray-500 transition  hover:bg-primary hover:text-white font-display text-sm">
-          <button onClick={async () => {
-            setLoading(true)
-            Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
-            Cookies.remove("idTokenV0.1.0", { domain: config?.domain ?? "" });
-            signOut(getAuth()).then(() => {
-              if (["vivetuboda"].includes(config?.development)) {
-                setUser()
-                router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "/login")
-                return
-              }
-              toast("success", t(`loggedoutsuccessfully`))
-              updateActivity("logoutd")
-              updateActivityLink("logoutd")
-              router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "/")
-            })
-          }}>{t("logoff")}</button>
-        </li>}
-      </ul>
-    </div>
-  )
 };
 
 export default NavigationMobile;

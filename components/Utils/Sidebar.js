@@ -17,7 +17,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
     const { user, config, setUser } = AuthContextProvider()
     const { eventsGroup } = EventsGroupContextProvider()
     const [updateActivity, updateActivityLink] = useActivity()
-    const {t} = useTranslation()
+    const { t } = useTranslation()
     const { route } = useRouter()
     const toast = useToast()
 
@@ -80,72 +80,6 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             development: ["bodasdehoy"],
             user: config?.pathDirectory ? "all" : null
         },
-        /* {
-            title: "",
-            icon: <div className="flex flex-col justify-start items-start">
-                <div className="bg-primary h-[1px] w-[240px] flex" />
-                <span className="mt-2 -mb-2">Módulos</span>
-            </div>,
-            development: ["bodasdehoy"],
-            user: eventsGroup?.length > 0 ? "all" : null
-        },
-        {
-            title: "Lugares para bodas",
-            onClick: async () => {
-                const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
-                router.push(`${path}/lugaresBodas`)
-            },
-            icon: <LugaresBodas />,
-            development: ["bodasdehoy"],
-            user: "all",
-        },
-        {
-            title: "Catering de bodas",
-            onClick: async () => {
-                const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
-                router.push(`${path}/cateringBodas`)
-            },
-            icon: <Catering />,
-            development: ["bodasdehoy"],
-            user: "all",
-        },
-        {
-            title: "Wedding Planner",
-            onClick: async () => {
-                const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
-                router.push(`${path}/weddingPlanner`)
-            },
-            icon: <WeddingPlanner />,
-            development: ["bodasdehoy"],
-            user: "all",
-        },
-        {
-            title: "Fotografos",
-            icon: <FotografoMenu />,
-            onClick: async () => {
-                const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
-                router.push(`${path}/fotografo`)
-            },
-            development: ["bodasdehoy"],
-            user: "all",
-        },
-        {
-            title: "Mi Web Creador",
-            icon: <TbWorldWww className="w-5 h-5" />,
-            onClick: async () => {
-                const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
-                router.push(`${path}/webCreator`)
-            },
-            development: ["bodasdehoy"],
-            user: "all",
-        },*/
-        /* {
-            title: "Cerrar Sesión",
-            icon: <CorazonPaddinIcon className="w-6 h-6 text-primary" />,
-            onClick: async () => { router.push(config?.pathDirectory) },
-            development: ["bodasdehoy", "all"],
-            user: config?.pathDirectory ? "all" : null
-        }, */
     ]
     const valirUser = user?.displayName == "guest" ? "guest" : "loged"
     const ListaNavbarFilter = ListaNavbar.filter(elem => { return (elem?.user === valirUser || elem?.user === "all") && (elem.development.includes(config?.development) || elem.development.includes("all")) })
