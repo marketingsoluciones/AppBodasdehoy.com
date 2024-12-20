@@ -24,7 +24,7 @@ const VistaSinCookie = () => {
   if (isMounted) {
     setLoading(false)
     if (config?.development !== "bodasdehoy") {
-      router?.push(`/login`)
+      router?.push(`/login${router.asPath !== "/" ? `?d=${router.asPath}` : ""}`)
     } else {
       return (
         <>
