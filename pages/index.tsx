@@ -311,19 +311,28 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
       <div className="flex flex-col md:flex-1 overflow-x-scroll md:overflow-clip">
 
         {tabsGroup.map((group, idx) => {
+          const dataSort = group?.data?.sort((a, b) => {
+            const dateA = new Date(parseInt(a?.fecha)).getTime();
+            const dateB = new Date(parseInt(b?.fecha)).getTime();
+            return dateA - dateB;
+          });
+
+
           return (
             <div key={idx} className={`${isActiveStateSwiper !== idx && "hidden"} mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5`}>
               {isActiveStateSwiper == idx ? (
                 <>
-                  {group?.data?.map((evento, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-center my-3"
-                      onClick={() => { setIdxGroupEvent({ idx, isActiveStateSwiper, event_id: evento._id }) }}
-                    >
-                      <Card data={group.data} grupoStatus={group.status} idx={idx} />
-                    </div>
-                  ))}
+                  {dataSort.map((evento, idx) => {
+                    return (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-center my-3"
+                        onClick={() => { setIdxGroupEvent({ idx, isActiveStateSwiper, event_id: evento._id }) }}
+                      >
+                        <Card data={group.data} grupoStatus={group.status} idx={idx} />
+                      </div>
+                    )
+                  })}
                   {group.status !== "pendiente"
                     ? group.data?.length === 0 && <div className={`flex items-center justify-center my-3`} >
                       <div className={`w-72 h-36 rounded-xl flex flex-col items-center justify-center shadow-lg bg-base border border-gray-100 transition`}>
