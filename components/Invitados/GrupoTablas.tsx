@@ -382,7 +382,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         },
       },
       {
-        Header: t("Mesa recepción"),
+        Header: t("Asientos recepción"),
         accessor: "tableNameRecepcion",
         Cell: ({ value: initialValue, row, column: { id } }) => {
           //console.log(1111234,initialValue)
@@ -451,7 +451,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         },
       },
       {
-        Header: t("Mesa Ceremonia"),
+        Header: t("Asientos Ceremonia"),
         accessor: "tableNameCeremonia",
         Cell: ({ value: initialValue, row, column: { id } }) => {
           const [value, setValue] = useState(initialValue);

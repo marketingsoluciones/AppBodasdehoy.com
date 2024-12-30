@@ -73,16 +73,19 @@ export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisa
             <ImageAvatar user={userAsd} disabledTooltip />
           </div>
           : <div className="w-8 h-8" />}
-        <div className="flex flex-col">
+        <div className="flex flex-col break-words w-[225px]">
           <span className="text-[11px] my-2.5">{userAsd?.displayName}</span>
-          <Interweave
-            className="text-xs flex-1 pr-4 break-words"
-            content={item?.comment}
-            matchers={[
-              new UrlMatcher('url', {}, replacesLink),
-              new HashtagMatcher('hashtag')
-            ]}
-          />
+          <div>
+
+            <Interweave
+              className="text-xs transition-all break-words"
+              content={item?.comment}
+              matchers={[
+                new UrlMatcher('url', {}, replacesLink),
+                new HashtagMatcher('hashtag')
+              ]}
+            />
+          </div>
         </div>
       </div>
       <span className='cursor-default justify-end text-[9px] font-medium flex-1 flex right-0 *-translate-x-full'>

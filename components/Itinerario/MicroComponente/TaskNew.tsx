@@ -19,6 +19,15 @@ import { ListComments } from "./ListComments"
 import ClickAwayListener from "react-click-away-listener";
 import { CopiarLink } from "../../Utils/Compartir";
 import { useRouter } from "next/router";
+import { IoCalendarClearOutline } from "react-icons/io5";
+import { HiOutlineUserCircle } from "react-icons/hi2";
+import { LiaPaperclipSolid } from "react-icons/lia";
+import { MdOutlineLabel } from "react-icons/md";
+import { RiNotification2Fill } from "react-icons/ri";
+import { GoChevronDown } from "react-icons/go";
+
+
+
 
 interface props extends HTMLAttributes<HTMLDivElement> {
   itinerario: Itinerary
@@ -36,10 +45,11 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
   const { t } = useTranslation();
   const storage = getStorage();
   const link = `${window.location.origin}/services/servicios-${event?._id}-${itinerario?._id}-${task?._id}`
-  const [viewComments, setViewComments] = useState(false)
+  const [viewComments, setViewComments] = useState(true)
   const [comments, setComments] = useState<Comment[]>()
   const router = useRouter()
-
+  const [showModalAdjuntos, setShowModalAdjuntos] = useState({ state: false, id: "" })
+  const [showTagsModal, setShowTagsModal] = useState(false)
   const initialValues: TaskDateTimeAsString = {
     _id: task?._id,
     icon: !task?.icon ? "" : task?.icon,
@@ -152,7 +162,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                     </div>
                   </>}
                 {view === "cards" &&
-                  <div className={`${isSelect ? "border-gray-300" : "border-gray-100"} border-2 box-content bg-gray-100 w-full rounded-lg mx-2 my-1 flex p-2 relative`}>
+                  <div className={`${isSelect ? "border-gray-300" : "border-gray-100"} border-2 box-content bg-slate-50 w-full rounded-lg mx-2 my-1 flex p-2 relative  ${!["/itinerario"].includes(window?.location?.pathname) ? "grid md:grid-cols-2" : "grid grid-cols-1"} `}>
                     {
                       showModalCompartir?.state && showModalCompartir.id === values._id && <ClickAwayListener onClickAway={() => setShowModalCompartir(false)}>
                         <ul className={` absolute transition shadow-lg rounded-lg duration-500 bottom-2 right-2 w-[300px] z-50 `}>
@@ -162,107 +172,190 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                         </ul>
                       </ClickAwayListener>
                     }
+                    {/* lado izquierdo de la tarjeta */}
+                    <div className="space-y-2">
+                      {/* encabezado de la tarjeta */}
+                      <div className="flex items-center space-x-2">
+                        <div className="bg-white cursor-pointer w-12 h-12 md:w-16 md:h-16 md:min-w-16 flex items-center justify-center rounded-full border-[1px] border-gray-300">
+                          <SelectIcon name="icon" className="" handleChange={handleBlurData} />
+                        </div>
+                        <span className="text-[19px] capitalize">{values?.descripcion}</span>
+                      </div>
 
-                    <div className="bg-white cursor-pointer w-12 h-12 md:w-16 md:h-16 md:min-w-16 flex items-center justify-center rounded-full border-[1px] border-gray-300">
-                      <SelectIcon name="icon" className="" handleChange={handleBlurData} />
-                    </div>
-                    <div className="flex-1 flex flex-col text-[12px] pl-1 md:pl-2">
-                      {!["/itinerario"].includes(window?.location?.pathname) && <span className="font-bold">{values?.fecha.toLocaleString()}</span>}
-                      <span className={`${["/itinerario"].includes(window?.location?.pathname) && "text-[15px]"} font-bold`}>{values?.hora}</span>
-                      {values?.duracion && <span>{t("duration")} {values?.duracion} min</span>}
-                      <span className="text-[19px]">{values?.descripcion}</span>
-                      {!!values?.tips && <Interweave
-                        className="text-xs text-justify transition-all m-1 p-1 bg-white"
-                        content={values.tips}
-                        matchers={[new UrlMatcher('url'), new HashtagMatcher('hashtag')]}
-                      />}
-                      <div>
-                        <span>
-                          {t("responsible")}:
-                        </span>
-                        <div className="text-gray-900 flex">
-                          {values?.responsable?.map((elem, idx) => {
-                            const userSelect = GruposResponsablesArry.find(el => {
-                              return el.title.toLowerCase() === elem?.toLowerCase()
-                            }) ?? [user, event?.detalles_usuario_id, ...event.detalles_compartidos_array].find(el => {
-                              return el?.displayName?.toLowerCase() === elem?.toLowerCase()
-                            })
-                            return (
-                              <span key={idx} className="inline-flex items-center space-x-0.5 mr-1.5">
-                                <div className="w-6 h-6 rounded-full border-[1px] border-gray-400">
-                                  <ImageAvatar user={userSelect} />
+                      {/*Estado*/}
+                      {/* <div className="space-x-5 flex items-center">
+                        <div className="flex items-center space-x-1">
+                          <IoCalendarClearOutline className="pb-0.5" />
+                          <span className="text-[14px] capitalize">estado:</span>
+                        </div>
+                        <div className="flex items-center space-x-1 text-[13px]">
+                          Pendiente
+                        </div>
+                      </div> */}
+
+                      {/* Responsables */}
+                      <div className="flex items-center space-x-5" >
+                        <div className="flex items-center space-x-1" >
+                          <HiOutlineUserCircle />
+                          <span className="text-[14px] capitalize">asignado:</span>
+                        </div>
+                        {
+                          values?.responsable.length > 0 ?
+                            < div className="text-gray-900 flex">
+                              {values?.responsable?.map((elem, idx) => {
+                                const userSelect = GruposResponsablesArry.find(el => {
+                                  return el.title.toLowerCase() === elem?.toLowerCase()
+                                }) ?? [user, event?.detalles_usuario_id, ...event.detalles_compartidos_array].find(el => {
+                                  return el?.displayName?.toLowerCase() === elem?.toLowerCase()
+                                })
+                                return (
+                                  <span key={idx} className="inline-flex items-center space-x-0.5 mr-1.5">
+                                    <div className="w-6 h-6 rounded-full border-[1px] border-gray-400">
+                                      <ImageAvatar user={userSelect} />
+                                    </div>
+                                  </span>
+                                )
+                              })}
+                            </div> :
+                            <span className="text-[12px] text-gray-400 capitalize cursor-default">Sin asignados</span>
+                        }
+                      </div>
+
+                      {/* Adjuntos */}
+                      <div className="flex items-center space-x-5 relative" >
+                        <div className="flex items-center space-x-1" >
+                          <LiaPaperclipSolid />
+                          <span className="text-[14px] capitalize">adjuntos:</span>
+                        </div>
+                        <div className={`text-[14px] flex items-center space-x-1 ${values.attachments.length > 0 ? "cursor-pointer" : "cursor-default"} `} onClick={() => values.attachments.length > 0 ? setShowModalAdjuntos({ state: !showModalAdjuntos.state, id: values._id }) : setShowModalAdjuntos({ state: false, id: "" })}>
+                          {values.attachments.length > 0 ? "+" + values.attachments.length : <span className="text-[12px] text-gray-400 capitalize">Sin Adjuntos</span>}
+                          <GoChevronDown className={` w-[14px] h-auto transition-all  ${values.attachments.length === 0 && "hidden"}  ${showModalAdjuntos.state && "rotate-180"}  `} />
+                        </div>
+                        {showModalAdjuntos.state && <ClickAwayListener onClickAway={() => setShowModalAdjuntos({ state: false, id: "" })}>
+                          <div className="bg-white p-4 rounded-md shadow-md absolute top-5 left-24 z-50 w-max">
+                            <div className="flex justify-between items-center mb-4">
+                              <h2 className="text-lg font-semibold">Adjuntos</h2>
+                              <button onClick={() => setShowModalAdjuntos({ state: false, id: "" })} className="text-gray-500 hover:text-gray-700">
+                                &times;
+                              </button>
+                            </div>
+                            <div className={` grid md:grid-cols-2 gap-2 truncate `} >
+                              {values?.attachments?.map((elem, idx) =>
+                                !!elem._id && <div key={idx} onClick={() => { handleDownload(elem) }} className={`  flex justify-between hover:bg-gray-200 rounded-sm px-1 items-center   border-gray-500 cursor-pointer text-[12px] truncate`}>
+                                  <span className="capitalize">
+                                    {elem.name}
+                                  </span>
+                                  <CgSoftwareDownload className="w-4 h-auto" />
                                 </div>
-                                <span className={`flex-1 ${!userSelect && "line-through"}`}>
-                                  {elem}
-                                </span>
-                              </span>
-                            )
-                          }
+                              )}
+                            </div>
+                          </div>
+                        </ClickAwayListener>}
+                      </div>
+
+                      {/* Etiquetas */}
+                      <div className="flex items-center space-x-5 relative">
+                        <div className="flex items-center space-x-1" >
+                          <MdOutlineLabel />
+                          <span className="text-[14px] capitalize">{t("labels")}:</span>
+                        </div>
+                        <div className="flex items-center space-x-1 ">
+                          {values?.tags?.length > 0 ? (
+                            <span className="inline-flex items-center border-[0.5px] border-gray-400 px-1 py-0.5 rounded-md text-[12px]">
+                              {values.tags[0]}
+                            </span>
+                          ) : (<span className="text-[12px] text-gray-400 capitalize cursor-default">Sin etiquetas</span>)}
+                          {values?.tags?.length > 1 && (
+                            <span
+                              onClick={() => setShowTagsModal(true)}
+                              className="inline-flex items-center border-[0.5px] border-gray-400 px-1 py-0.5 rounded-md text-[12px] cursor-pointer"
+                            >
+                              +{values.tags.length - 1}
+                              <GoChevronDown className={` w-[14px] h-auto transition-all   ${showTagsModal && "rotate-180"}  `} />
+                            </span>
                           )}
+                          {showTagsModal && <ClickAwayListener onClickAway={() => setShowTagsModal(false)}>
+                            <div className="bg-white p-4 rounded-md shadow-md absolute top-5 left-24 z-50">
+                              <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-lg font-semibold">Etiquetas</h2>
+                                <button onClick={() => setShowTagsModal(false)} className="text-gray-500 hover:text-gray-700">
+                                  &times;
+                                </button>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                {values.tags.map((elem, idx) => (
+                                  <span key={idx} className="block border-[0.5px] border-gray-400 px-2 py-1 rounded-md text-[12px] truncate">
+                                    {elem}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          </ClickAwayListener>
+                          }
                         </div>
                       </div>
-                      <div className="mb-2">
-                        <span>
-                          {t("addfile")}:
-                        </span>
-                        <p className="bg-white p-2 text-gray-900 leading-[1.3] space-y-3 md:space-y-2">
-                          {values?.attachments?.map((elem, idx) =>
-                            !!elem._id && <span key={idx} onClick={() => { handleDownload(elem) }} className="inline-flex mr-2 md:mr-3 items-center border-b-[1px] hover:font-bold border-gray-500 cursor-pointer">
-                              <span>
-                                {elem.name}
-                              </span>
-                              <CgSoftwareDownload className="w-4 h-auto" />
-                            </span>
-                          )}
-                        </p>
+
+                      {/*Fecha y hora */}
+                      {["/servicios"].includes(window?.location?.pathname) && <div className="space-x-5 flex items-center">
+                        <div className="flex items-center space-x-1">
+                          <IoCalendarClearOutline className="pb-0.5" />
+                          <span className="text-[14px] capitalize">fechas:</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          {!["/itinerario"].includes(window?.location?.pathname) && <div className="text-[13px]">{values?.fecha && values?.fecha.toLocaleString() + ","}</div>}
+                          <span className={`${["/itinerario"].includes(window?.location?.pathname) && "text-[15px] "} text-[13px]`}>{values?.hora}</span>
+                        </div>
+                      </div>}
+
+                      {/* duración */}
+                      {
+                        !["/servicios"].includes(window?.location?.pathname) && <div className="space-x-5 flex items-center">
+                          <div className="flex items-center space-x-1">
+                            <IoCalendarClearOutline className="pb-0.5" />
+                            <span className="text-[14px] capitalize">Duracion:</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            {values?.duracion ? <span className="text-[13px]">{t("duration")} {values?.duracion} min</span> : <span className="text-[12px] text-gray-400 capitalize cursor-default">Sin duración</span>}
+                          </div>
+                        </div>
+                      }
+
+                      {/* block de texto */}
+                      <div className={`${["/itinerario"].includes(window?.location?.pathname) ? "h-[100px]" : "md:h-[183px] h-[100px]"} border-[1px] border-gray-300 rounded-lg pt-2 pb-3 px-2  overflow-auto  md:w-full `}>
+                        {!!values?.tips ?
+                          <Interweave
+                            className="text-xs transition-all break-words"
+                            content={values.tips}
+                            matchers={[new UrlMatcher('url'), new HashtagMatcher('hashtag')]}
+                          /> : <span className="text-[12px] text-gray-400 capitalize cursor-default">Sin descripción</span>
+                        }
                       </div>
-                      <div className="mb-2">
-                        <span>
-                          {t("labels")}:
-                        </span>
-                        <p className="bg-white p-2 text-gray-900 leading-[1] space-y-1">
-                          {values?.tags?.map((elem, idx) =>
-                            <span key={idx} onClick={() => { handleDownload(elem) }} className="inline-flex mr-2 md:mr-3 items-center border-[1px] border-gray-400 px-1 pt-[1px] pb-[2px] rounded-md">
-                              {elem}
-                            </span>
-                          )}
-                        </p>
-                      </div>
+                    </div>
+
+                    {/* lado derecho de la tarjeta */}
+                    <div className="flex-1 flex flex-col text-[12px] pl-1 md:pl-2 mt-1 md:mt-0">
                       {!["/itinerario"].includes(window?.location?.pathname) && <div className="mb-2">
-                        <span>
-                          {t("comments")}:
-                        </span>
+                        <div className="flex justify-between mb-1">
+                          <div className="capitalize">
+                            mensajes
+                          </div>
+                          <div>
+                            <RiNotification2Fill className="text-gray-500 w-4 h-4 scale-x-90" />
+                          </div>
+                        </div>
                         <div className='border-gray-300 border-[1px] rounded-lg py-2'>
-
-                          < InputComments itinerario={itinerario} task={task} />
-
-                          <div className='w-[calc(100%)] flex flex-col rounded-lg overflow-auto'>
+                          <div className='w-[calc(100%)] h-[260px] flex flex-col-reverse rounded-lg overflow-auto break-words'>
                             {comments?.map((elem, idx) => {
                               return (
-                                <ListComments id={elem._id} key={idx} itinerario={itinerario} task={task} item={elem}
-                                // identifierDisabled={
-                                //   idx === 0
-                                //     ? false
-                                //     : comments[idx].uid !== comments[idx - 1].uid
-                                //       ? false
-                                //       : true
-                                // }
-                                />
+                                <ListComments id={elem._id} key={idx} itinerario={itinerario} task={task} item={elem} />
                               )
                             })}
                           </div>
+                          < InputComments itinerario={itinerario} task={task} />
                         </div>
                       </div>}
-                      <div className="flex justify-between">
-                        {
-                          task?.comments?.length > 3 &&
-                          <div onClick={() => setViewComments(!viewComments)} className=" text-blue-400 capitalize cursor-pointer hover:underline decoration-1">
-                            {viewComments ? "ver menos" : "ver mas"}
-                          </div>
-                        }
-                        <div className="flex-1">
-                          <ItineraryButtonBox optionsItineraryButtonBox={optionsItineraryButtonBox} values={task} itinerario={itinerario} />
-                        </div>
+                      <div className={`${["/itinerario"].includes(window?.location?.pathname) && "pt-3"} flex justify-between`}>
+                        <ItineraryButtonBox optionsItineraryButtonBox={optionsItineraryButtonBox} values={task} itinerario={itinerario} />
                       </div>
                     </div>
                   </div>
@@ -272,6 +365,113 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
           )
         }}
       </Formik>
-    </div>
+    </div >
   )
 }
+
+/*  <div className={`${isSelect ? "border-gray-300" : "border-gray-100"} border-2 box-content bg-gray-100 w-full rounded-lg mx-2 my-1 flex p-2 relative`}>
+                     {
+                       showModalCompartir?.state && showModalCompartir.id === values._id && <ClickAwayListener onClickAway={() => setShowModalCompartir(false)}>
+                         <ul className={` absolute transition shadow-lg rounded-lg duration-500 bottom-2 right-2 w-[300px] z-50 `}>
+                           <li className="flex items-center py-4 px-6 font-display text-sm text-gray-500 bg-base transition w-full capitalize">
+                             <CopiarLink link={link} />
+                           </li>
+                         </ul>
+                       </ClickAwayListener>
+                     }
+ 
+                     <div className="bg-white cursor-pointer w-12 h-12 md:w-16 md:h-16 md:min-w-16 flex items-center justify-center rounded-full border-[1px] border-gray-300">
+                       <SelectIcon name="icon" className="" handleChange={handleBlurData} />
+                     </div>
+                     <div className="flex-1 flex flex-col text-[12px] pl-1 md:pl-2">
+                       {!["/itinerario"].includes(window?.location?.pathname) && <span className="font-bold">{values?.fecha.toLocaleString()}</span>}
+                       <span className={`${["/itinerario"].includes(window?.location?.pathname) && "text-[15px]"} font-bold`}>{values?.hora}</span>
+                       {values?.duracion && <span>{t("duration")} {values?.duracion} min</span>}
+                       <span className="text-[19px]">{values?.descripcion}</span>
+                       {!!values?.tips && <Interweave
+                         className="text-xs text-justify transition-all m-1 p-1 bg-white"
+                         content={values.tips}
+                         matchers={[new UrlMatcher('url'), new HashtagMatcher('hashtag')]}
+                       />}
+                       <div>
+                         <span>
+                           {t("responsible")}:
+                         </span>
+                         <div className="text-gray-900 flex">
+                           {values?.responsable?.map((elem, idx) => {
+                             const userSelect = GruposResponsablesArry.find(el => {
+                               return el.title.toLowerCase() === elem?.toLowerCase()
+                             }) ?? [user, event?.detalles_usuario_id, ...event.detalles_compartidos_array].find(el => {
+                               return el?.displayName?.toLowerCase() === elem?.toLowerCase()
+                             })
+                             return (
+                               <span key={idx} className="inline-flex items-center space-x-0.5 mr-1.5">
+                                 <div className="w-6 h-6 rounded-full border-[1px] border-gray-400">
+                                   <ImageAvatar user={userSelect} />
+                                 </div>
+                                 <span className={`flex-1 ${!userSelect && "line-through"}`}>
+                                   {elem}
+                                 </span>
+                               </span>
+                             )
+                           }
+                           )}
+                         </div>
+                       </div>
+                       <div className="mb-2">
+                         <span>
+                           {t("addfile")}:
+                         </span>
+                         <p className="bg-white p-2 text-gray-900 leading-[1.3] space-y-3 md:space-y-2">
+                           {values?.attachments?.map((elem, idx) =>
+                             !!elem._id && <span key={idx} onClick={() => { handleDownload(elem) }} className="inline-flex mr-2 md:mr-3 items-center border-b-[1px] hover:font-bold border-gray-500 cursor-pointer">
+                               <span>
+                                 {elem.name}
+                               </span>
+                               <CgSoftwareDownload className="w-4 h-auto" />
+                             </span>
+                           )}
+                         </p>
+                       </div>
+                       <div className="mb-2">
+                         <span>
+                           {t("labels")}:
+                         </span>
+                         <p className="bg-white p-2 text-gray-900 leading-[1] space-y-1">
+                           {values?.tags?.map((elem, idx) =>
+                             <span key={idx} onClick={() => { handleDownload(elem) }} className="inline-flex mr-2 md:mr-3 items-center border-[1px] border-gray-400 px-1 pt-[1px] pb-[2px] rounded-md">
+                               {elem}
+                             </span>
+                           )}
+                         </p>
+                       </div>
+                       {!["/itinerario"].includes(window?.location?.pathname) && <div className="mb-2">
+                         <span>
+                           {t("comments")}:
+                         </span>
+                         <div className='border-gray-300 border-[1px] rounded-lg py-2'>
+ 
+                           < InputComments itinerario={itinerario} task={task} />
+ 
+                           <div className='w-[calc(100%)] flex flex-col rounded-lg overflow-auto'>
+                             {comments?.map((elem, idx) => {
+                               return (
+                                 <ListComments id={elem._id} key={idx} itinerario={itinerario} task={task} item={elem} />
+                               )
+                             })}
+                           </div>
+                         </div>
+                       </div>}
+                       <div className="flex justify-between">
+                         {
+                           task?.comments?.length > 3 &&
+                           <div onClick={() => setViewComments(!viewComments)} className=" text-blue-400 capitalize cursor-pointer hover:underline decoration-1">
+                             {viewComments ? "ver menos" : "ver mas"}
+                           </div>
+                         }
+                         <div className="flex-1">
+                           <ItineraryButtonBox optionsItineraryButtonBox={optionsItineraryButtonBox} values={task} itinerario={itinerario} />
+                         </div>
+                       </div>
+                     </div>
+                   </div> */

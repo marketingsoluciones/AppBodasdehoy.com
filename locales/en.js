@@ -629,7 +629,8 @@ export const en = {
     'type': "type",
     'eventdate': "event date",
     'creationdate': "creation date",
-
+    'Asientos Ceremonia': "Ceremony Seats",
+    'Asientos recepción': "Reception Seats",
 
 
 

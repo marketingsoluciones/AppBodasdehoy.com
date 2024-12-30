@@ -39,6 +39,6 @@ export const Textarea: FC<props> = ({ value, setValue, }) => {
       ref={refInput}
       value={value}
       onChange={(e) => { handleChange(e) }}
-      className={`rounded-lg border-[1px] border-gray-300 text-xs w-[100%] overflow-y-scroll focus:ring-0 focus:outline-none focus:border-primary`} />
+      className={`rounded-lg border-[1px] border-gray-300 text-xs w-[100%] overflow-y-scroll focus:ring-0 focus:outline-none focus:border-primary h-10`} />
   )
 }
