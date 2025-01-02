@@ -14,7 +14,7 @@ import { Interweave } from "interweave";
 import { HashtagMatcher, UrlMatcher } from "interweave-autolink";
 import 'react-quill/dist/quill.snow.css'
 import { ImageAvatar } from "../../Utils/ImageAvatar";
-import { InputComments } from "./InputComments"
+import { InputComments, InputComments2 } from "./InputComments"
 import { ListComments } from "./ListComments"
 import ClickAwayListener from "react-click-away-listener";
 import { CopiarLink } from "../../Utils/Compartir";
@@ -123,7 +123,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
         {({ values }) => {
           return (
             <Form className="w-full ">
-              <div className="flex w-full justify-center 2xl:px-36 items-stretch text-gray-800" {...props} >
+              <div className={` flex w-full justify-center  items-stretch text-gray-800 ${["/servicios"].includes(window?.location?.pathname) ? "" : "2xl:px-36"} `} {...props} >
                 {view === "schema" && values.spectatorView &&
                   <>
                     <div className={`flex w-[55%] md:w-[45%] lg:w-[40%] p-2 items-start justify-start border-t-[1px] border-r-[1px] border-primary border-dotted relative`}>
@@ -162,7 +162,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                     </div>
                   </>}
                 {view === "cards" &&
-                  <div className={`${isSelect ? "border-gray-300" : "border-gray-100"} border-2 box-content bg-slate-50 w-full rounded-lg mx-2 my-1 flex p-2 relative  ${!["/itinerario"].includes(window?.location?.pathname) ? "grid md:grid-cols-2" : "grid grid-cols-1"} `}>
+                  <div className={`${isSelect ? "border-gray-300" : "border-gray-100"} border-2 box-content bg-slate-50 w-full rounded-lg mx-1 my-1 flex p-2 relative  ${!["/itinerario"].includes(window?.location?.pathname) ? "grid md:grid-cols-2" : "grid grid-cols-1"} `}>
                     {
                       showModalCompartir?.state && showModalCompartir.id === values._id && <ClickAwayListener onClickAway={() => setShowModalCompartir(false)}>
                         <ul className={` absolute transition shadow-lg rounded-lg duration-500 bottom-2 right-2 w-[300px] z-50 `}>
@@ -186,7 +186,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                       {/* <div className="space-x-5 flex items-center">
                         <div className="flex items-center space-x-1">
                           <IoCalendarClearOutline className="pb-0.5" />
-                          <span className="text-[14px] capitalize">estado:</span>
+                          <span className="text-[14px] capitalize">{t('state'):}</span>
                         </div>
                         <div className="flex items-center space-x-1 text-[13px]">
                           Pendiente
@@ -197,7 +197,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                       <div className="flex items-center space-x-5" >
                         <div className="flex items-center space-x-1" >
                           <HiOutlineUserCircle />
-                          <span className="text-[14px] capitalize">asignado:</span>
+                          <span className="text-[14px] capitalize">{t('assigned')}:</span>
                         </div>
                         {
                           values?.responsable.length > 0 ?
@@ -217,7 +217,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                                 )
                               })}
                             </div> :
-                            <span className="text-[12px] text-gray-400 capitalize cursor-default">Sin asignados</span>
+                            <span className="text-[12px] text-gray-400 capitalize cursor-default">{t('unassigned')}</span>
                         }
                       </div>
 
@@ -225,16 +225,16 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                       <div className="flex items-center space-x-5 relative" >
                         <div className="flex items-center space-x-1" >
                           <LiaPaperclipSolid />
-                          <span className="text-[14px] capitalize">adjuntos:</span>
+                          <span className="text-[14px] capitalize">{t('addfile')}:</span>
                         </div>
                         <div className={`text-[14px] flex items-center space-x-1 ${values.attachments.length > 0 ? "cursor-pointer" : "cursor-default"} `} onClick={() => values.attachments.length > 0 ? setShowModalAdjuntos({ state: !showModalAdjuntos.state, id: values._id }) : setShowModalAdjuntos({ state: false, id: "" })}>
-                          {values.attachments.length > 0 ? "+" + values.attachments.length : <span className="text-[12px] text-gray-400 capitalize">Sin Adjuntos</span>}
+                          {values.attachments.length > 0 ? "+" + values.attachments.length : <span className="text-[12px] text-gray-400 capitalize">{t('noAttachments')}</span>}
                           <GoChevronDown className={` w-[14px] h-auto transition-all  ${values.attachments.length === 0 && "hidden"}  ${showModalAdjuntos.state && "rotate-180"}  `} />
                         </div>
                         {showModalAdjuntos.state && <ClickAwayListener onClickAway={() => setShowModalAdjuntos({ state: false, id: "" })}>
                           <div className="bg-white p-4 rounded-md shadow-md absolute top-5 left-24 z-50 w-max">
                             <div className="flex justify-between items-center mb-4">
-                              <h2 className="text-lg font-semibold">Adjuntos</h2>
+                              <h2 className="text-lg font-semibold capitalize">{t('addfile')}</h2>
                               <button onClick={() => setShowModalAdjuntos({ state: false, id: "" })} className="text-gray-500 hover:text-gray-700">
                                 &times;
                               </button>
@@ -242,7 +242,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                             <div className={` grid md:grid-cols-2 gap-2 truncate `} >
                               {values?.attachments?.map((elem, idx) =>
                                 !!elem._id && <div key={idx} onClick={() => { handleDownload(elem) }} className={`  flex justify-between hover:bg-gray-200 rounded-sm px-1 items-center   border-gray-500 cursor-pointer text-[12px] truncate`}>
-                                  <span className="capitalize">
+                                  <span className="capitalize w-[150px] truncate">
                                     {elem.name}
                                   </span>
                                   <CgSoftwareDownload className="w-4 h-auto" />
@@ -264,7 +264,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                             <span className="inline-flex items-center border-[0.5px] border-gray-400 px-1 py-0.5 rounded-md text-[12px]">
                               {values.tags[0]}
                             </span>
-                          ) : (<span className="text-[12px] text-gray-400 capitalize cursor-default">Sin etiquetas</span>)}
+                          ) : (<span className="text-[12px] text-gray-400 capitalize cursor-default">{t('noLabels')}</span>)}
                           {values?.tags?.length > 1 && (
                             <span
                               onClick={() => setShowTagsModal(true)}
@@ -277,7 +277,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                           {showTagsModal && <ClickAwayListener onClickAway={() => setShowTagsModal(false)}>
                             <div className="bg-white p-4 rounded-md shadow-md absolute top-5 left-24 z-50">
                               <div className="flex justify-between items-center mb-4">
-                                <h2 className="text-lg font-semibold">Etiquetas</h2>
+                                <h2 className="text-lg font-semibold capitalize">{t("labels")}</h2>
                                 <button onClick={() => setShowTagsModal(false)} className="text-gray-500 hover:text-gray-700">
                                   &times;
                                 </button>
@@ -299,11 +299,20 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                       {["/servicios"].includes(window?.location?.pathname) && <div className="space-x-5 flex items-center">
                         <div className="flex items-center space-x-1">
                           <IoCalendarClearOutline className="pb-0.5" />
-                          <span className="text-[14px] capitalize">fechas:</span>
+                          <span className="text-[14px] capitalize">{t('date')}:</span>
                         </div>
                         <div className="flex items-center space-x-1">
-                          {!["/itinerario"].includes(window?.location?.pathname) && <div className="text-[13px]">{values?.fecha && values?.fecha.toLocaleString() + ","}</div>}
-                          <span className={`${["/itinerario"].includes(window?.location?.pathname) && "text-[15px] "} text-[13px]`}>{values?.hora}</span>
+                          {(values?.fecha && values?.hora) ? <>
+                            <div className="text-[13px]">
+                              {values?.fecha && values?.fecha.toLocaleString() + ","}
+                            </div>
+                            <span
+                              className={`${["/itinerario"].includes(window?.location?.pathname) && "text-[15px] "} text-[13px]`}>
+                              {values?.hora}
+                            </span>
+                          </>
+                            : <span className="text-[12px] text-gray-400 capitalize cursor-default">{t('undated')}</span>
+                          }
                         </div>
                       </div>}
 
@@ -327,7 +336,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                             className="text-xs transition-all break-words"
                             content={values.tips}
                             matchers={[new UrlMatcher('url'), new HashtagMatcher('hashtag')]}
-                          /> : <span className="text-[12px] text-gray-400 capitalize cursor-default">Sin descripción</span>
+                          /> : <span className="text-[12px] text-gray-400 capitalize cursor-default">{t('nodescription')}</span>
                         }
                       </div>
                     </div>
@@ -337,7 +346,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                       {!["/itinerario"].includes(window?.location?.pathname) && <div className="mb-2">
                         <div className="flex justify-between mb-1">
                           <div className="capitalize">
-                            mensajes
+                            {t('messages')}
                           </div>
                           <div>
                             <RiNotification2Fill className="text-gray-500 w-4 h-4 scale-x-90" />
@@ -351,7 +360,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                               )
                             })}
                           </div>
-                          < InputComments itinerario={itinerario} task={task} />
+                          < InputComments2 itinerario={itinerario} task={task} />
                         </div>
                       </div>}
                       <div className={`${["/itinerario"].includes(window?.location?.pathname) && "pt-3"} flex justify-between`}>

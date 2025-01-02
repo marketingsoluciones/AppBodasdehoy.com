@@ -73,7 +73,7 @@ export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisa
             <ImageAvatar user={userAsd} disabledTooltip />
           </div>
           : <div className="w-8 h-8" />}
-        <div className="flex flex-col break-words w-[225px]">
+        <div className="flex flex-col break-words w-[290px] md:w-[350px]">
           <span className="text-[11px] my-2.5">{userAsd?.displayName}</span>
           <div>
 
