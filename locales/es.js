@@ -631,6 +631,15 @@ export const es = {
     'creationdate': "fecha de creacion",
     'Asientos Ceremonia': 'Asientos Ceremonia',
     'Asientos recepción': 'Asientos recepción',
+    'assigned': 'asignado',
+    'unassigned': 'sin asignar',
+    'noAttachments': "sin adjuntos",
+    'noLabels': "sin etiquetas",
+    'undated': "sin fecha",
+    'nodescription': "sin descripción",
+    'messages': "mensajes",
+
+
 
 
 

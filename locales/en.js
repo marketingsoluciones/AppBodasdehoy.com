@@ -631,6 +631,15 @@ export const en = {
     'creationdate': "creation date",
     'Asientos Ceremonia': "Ceremony Seats",
     'Asientos recepción': "Reception Seats",
+    'assigned': "assigned",
+    'unassigned': "unassigned",
+    'noAttachments': "No attachments",
+    'noLabels': "No labels",
+    'undated': "undated",
+    'nodescription': "no description",
+    'messages': "messages",
+
+
 
 
 

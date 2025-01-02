@@ -9,6 +9,7 @@ export const Textarea: FC<props> = ({ value, setValue, }) => {
   const refInput: any = useRef()
 
   const handleChange = (e) => {
+    console.log(e.target)
     e.target.rows = 1
     let rowT = (refInput?.current.scrollHeight - 16) / 20
     if (rowT < 9) {
@@ -39,6 +40,6 @@ export const Textarea: FC<props> = ({ value, setValue, }) => {
       ref={refInput}
       value={value}
       onChange={(e) => { handleChange(e) }}
-      className={`rounded-lg border-[1px] border-gray-300 text-xs w-[100%] overflow-y-scroll focus:ring-0 focus:outline-none focus:border-primary h-10`} />
+      className={`rounded-lg border-[1px] border-gray-300 text-xs w-[100%] overflow-y-scroll focus:ring-0 focus:outline-none focus:border-primary pr-8`} />
   )
 }
