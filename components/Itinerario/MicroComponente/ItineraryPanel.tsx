@@ -14,7 +14,7 @@ import { ItineraryColumns } from "./ItineraryColumns";
 import ModalLeft from "../../Utils/ModalLeft";
 import { PencilEdit } from "../../icons";
 import { GoEye, GoEyeClosed, GoGitBranch } from "react-icons/go";
-import { LiaLinkSolid } from "react-icons/lia";
+import { LiaLinkSolid, LiaUserClockSolid } from "react-icons/lia";
 import { MdOutlineDeleteOutline } from "react-icons/md";
 import { OptionsSelect, Task, Itinerary } from "../../../utils/Interfaces"
 import { SubHeader } from "./SubHeader";
@@ -23,6 +23,8 @@ import FormTask from "../../Forms/FormTask";
 import { getStorage, ref, listAll, deleteObject } from "firebase/storage";
 import { SimpleDeleteConfirmation } from "./DeleteConfirmation";
 import { useRouter } from "next/router";
+import { VscFiles } from "react-icons/vsc";
+
 interface props {
     itinerario: Itinerary
     editTitle: boolean
@@ -202,6 +204,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     }, [router])
 
 
+
     return (
         <div className="w-full flex-1 flex flex-col overflow-y-scroll">
             {showEditTask?.state && (
@@ -217,52 +220,65 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
 
             {["/itinerario"].includes(window?.location?.pathname) && <SubHeader view={view} itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} title={title} setTitle={setTitle} />}
             <div className={`w-full flex-1 flex flex-col md:px-2 lg:px-6`}>
-                {view !== "table"
-                    ? tasksReduce?.map((el, i) =>
-                        <div key={i} className="w-full mt-4">
-                            {["/itinerario"].includes(window?.location?.pathname) && <div className={`w-full flex ${view === "schema" ? "justify-start" : "justify-center"}`}>
-                                <span className={`${view === "schema" ? "border-primary border-dotted mb-1" : "border-gray-300 mb-1"} border-[1px] px-5 py-[1px] rounded-full text-[12px] font-semibold`}>
-                                    {new Date(el?.fecha).toLocaleString(geoInfo?.acceptLanguage?.split(",")[0], { year: "numeric", month: "long", day: "2-digit" })}
-                                </span>
-                            </div>}
-                            {el?.tasks?.map((elem, idx) => {
-                                return (
-                                    <TaskNew
-                                        id={elem._id}
-                                        key={idx}
-                                        task={elem}
-                                        itinerario={itinerario}
-                                        view={view}
+                {
+                    tasksReduce?.length > 0 ?
+                        view !== "table"
+                            ? tasksReduce?.map((el, i) =>
+                                <div key={i} className="w-full mt-4">
+                                    {["/itinerario"].includes(window?.location?.pathname) && <div className={`w-full flex ${view === "schema" ? "justify-start" : "justify-center"}`}>
+                                        <span className={`${view === "schema" ? "border-primary border-dotted mb-1" : "border-gray-300 mb-1"} border-[1px] px-5 py-[1px] rounded-full text-[12px] font-semibold`}>
+                                            {new Date(el?.fecha).toLocaleString(geoInfo?.acceptLanguage?.split(",")[0], { year: "numeric", month: "long", day: "2-digit" })}
+                                        </span>
+                                    </div>}
+                                    {el?.tasks?.map((elem, idx) => {
+                                        return (
+                                            <TaskNew
+                                                id={elem._id}
+                                                key={idx}
+                                                task={elem}
+                                                itinerario={itinerario}
+                                                view={view}
+                                                optionsItineraryButtonBox={optionsItineraryButtonBox}
+                                                isSelect={selectTask === elem._id}
+                                                showModalCompartir={showModalCompartir}
+                                                setShowModalCompartir={setShowModalCompartir}
+                                                onClick={() => { setSelectTask(elem._id) }}
+                                            />
+                                        )
+                                    })}
+                                </div>
+                            )
+                            : <div className="relative overflow-x-auto md:overflow-x-visible">
+                                <div className="w-[250%] md:w-[100%]">
+                                    <ItineraryColumns
+                                        data={tasks}
+                                        setModalStatus={setModalStatus}
+                                        modalStatus={modalStatus}
+                                        setModalWorkFlow={setModalWorkFlow}
+                                        modalWorkFlow={modalWorkFlow}
+                                        setModalCompartirTask={setModalCompartirTask}
+                                        modalCompartirTask={modalCompartirTask}
+                                        deleteTask={deleteTask}
+                                        showEditTask={showEditTask}
+                                        setShowEditTask={setShowEditTask}
                                         optionsItineraryButtonBox={optionsItineraryButtonBox}
-                                        isSelect={selectTask === elem._id}
-                                        showModalCompartir={showModalCompartir}
-                                        setShowModalCompartir={setShowModalCompartir}
-                                        onClick={() => { setSelectTask(elem._id) }}
+                                        selectTask={selectTask}
+                                        setSelectTask={setSelectTask}
+                                        itinerario={itinerario}
                                     />
-                                )
-                            })}
+                                </div>
+                            </div>
+                        : <div className="capitalize w-full h-full flex flex-col justify-center items-center bg-white rounded-lg mt-3 text-gray-500 space-y-2">
+                            <div>
+                                sin datos visibles dentro de esta tarea
+                            </div>
+                            <div>
+                                Espera que el dueño del evento comparta una tarea contigo
+                            </div>
+                            <div>
+                                <VscFiles className="h-12 w-auto" />
+                            </div>
                         </div>
-                    )
-                    : <div className="relative overflow-x-auto md:overflow-x-visible">
-                        <div className="w-[250%] md:w-[100%]">
-                            <ItineraryColumns
-                                data={tasks}
-                                setModalStatus={setModalStatus}
-                                modalStatus={modalStatus}
-                                setModalWorkFlow={setModalWorkFlow}
-                                modalWorkFlow={modalWorkFlow}
-                                setModalCompartirTask={setModalCompartirTask}
-                                modalCompartirTask={modalCompartirTask}
-                                deleteTask={deleteTask}
-                                showEditTask={showEditTask}
-                                setShowEditTask={setShowEditTask}
-                                optionsItineraryButtonBox={optionsItineraryButtonBox}
-                                selectTask={selectTask}
-                                setSelectTask={setSelectTask}
-                                itinerario={itinerario}
-                            />
-                        </div>
-                    </div>
                 }
                 {view !== "schema" && <AddEvent tasks={tasks} itinerario={itinerario} setSelectTask={setSelectTask} />}
             </div>
