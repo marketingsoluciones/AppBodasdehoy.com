@@ -134,7 +134,6 @@ export const Notifications = () => {
     )
   };
 
-
   return (
     <ClickAwayListener onClickAway={() => { handleFalseShowNotifications() }}>
       <div onClick={() => { !showNotifications ? setShowNotifications(true) : handleFalseShowNotifications() }} className="bg-white items-center flex relative cursor-default">
@@ -149,58 +148,55 @@ export const Notifications = () => {
             </div>
             <ul id="ul-notifications" className="bg-white flex flex-col text-xs place-items-left text-black max-h-[365px] overflow-y-scroll break-words">
               {notifications?.results?.map((item: Notification, idx: number) => {
-                const userDetail = detallesUsuarioIds.find(elem => elem?.uid === item?.fromUid);
-                console.log("212", userDetail)
-                
-
-
-                return (
-                  <li key={idx} onClick={() => {
-                    if (item?.focused) {
-                      router.push(`${window.location.origin}${item.focused}`)
-                      // window.location.href = `${window.location.origin}${item.focused}`
-                      // if (window.location.pathname !== item.focused.split("?")[0]) {
-                      //   router.push(`${window.location.origin}${item.focused}`)
-                      // } else {
-                      //   //ejecutar la funcion de la redireccion aqui
-                      // }
-                    }
-                  }} className={`flex w-full ${item?.focused && "cursor-pointer"}`}>
-                    <div className="w-full hover:bg-base text-gray-700 flex py-2 ml-2">
-                      <div className="bg-white text-gray-500 w-7 h-7 rounded-full border-gray-200 border-[1px] flex justify-center items-center -translate-y-1 mx-1">
-                        {(!item?.type || item?.type === "event") && <MisEventosIcon className="w-5 h-5" />}
-                        {(item?.type === "shop") && <TarjetaIcon className="w-5 h-5" />}
-                        {(item?.type === "user") && <div className="w-5 h-5">
-                          <ImageAvatar user={detallesUsuarioIds.find(elem => elem?.uid === item?.fromUid)} disabledTooltip />
-                        </div>}
+                if (item.fromUid != null) {
+                  return (
+                    <li key={idx} onClick={() => {
+                      if (item?.focused) {
+                        router.push(`${window.location.origin}${item.focused}`)
+                        // window.location.href = `${window.location.origin}${item.focused}`
+                        // if (window.location.pathname !== item.focused.split("?")[0]) {
+                        //   router.push(`${window.location.origin}${item.focused}`)
+                        // } else {
+                        //   //ejecutar la funcion de la redireccion aqui
+                        // }
+                      }
+                    }} className={`flex w-full ${item?.focused && "cursor-pointer"}`}>
+                      <div className="w-full hover:bg-base text-gray-700 flex py-2 ml-2">
+                        <div className="bg-white text-gray-500 w-7 h-7 rounded-full border-gray-200 border-[1px] flex justify-center items-center -translate-y-1 mx-1">
+                          {(!item?.type || item?.type === "event") && <MisEventosIcon className="w-5 h-5" />}
+                          {(item?.type === "shop") && <TarjetaIcon className="w-5 h-5" />}
+                          {(item?.type === "user") && <div className="w-5 h-5">
+                            <ImageAvatar user={detallesUsuarioIds.find(elem => elem?.uid === item?.fromUid)} disabledTooltip />
+                          </div>}
+                        </div>
+                        <div className="flex-1 flex flex-col">
+                          <Interweave
+                            className="text-xs break-words w-[248px]"
+                            content={
+                              item?.type === "user"
+                                ? `${detallesUsuarioIds.find(elem => elem?.uid === item?.fromUid)?.displayName} ${item?.message}`
+                                : item?.message
+                            }
+                          // matchers={[
+                          //   new UrlMatcher('url', {}, replacesLink),
+                          //   new HashtagMatcher('hashtag')
+                          // ]}
+                          />
+                          <span className="text-[10px] flex-1 text-right italic">
+                            Hace {formatDistanceStrict(
+                              new Date(item.createdAt),
+                              new Date(),
+                              { locale: es }
+                            )}
+                          </span>
+                        </div>
+                        <div className="w-4 flex items-center justify-center">
+                          {item?.state !== "read" && <div className={`w-2.5 h-2.5 rounded-full bg-green`} />}
+                        </div>
                       </div>
-                      <div className="flex-1 flex flex-col">
-                        <Interweave
-                          className="text-xs break-words w-[248px]"
-                          content={
-                            item?.type === "user"
-                              ? `${detallesUsuarioIds.find(elem => elem?.uid === item?.fromUid)?.displayName} ${item?.message}`
-                              : item?.message
-                          }
-                        // matchers={[
-                        //   new UrlMatcher('url', {}, replacesLink),
-                        //   new HashtagMatcher('hashtag')
-                        // ]}
-                        />
-                        <span className="text-[10px] flex-1 text-right italic">
-                          Hace {formatDistanceStrict(
-                            new Date(item.createdAt),
-                            new Date(),
-                            { locale: es }
-                          )}
-                        </span>
-                      </div>
-                      <div className="w-4 flex items-center justify-center">
-                        {item?.state !== "read" && <div className={`w-2.5 h-2.5 rounded-full bg-green`} />}
-                      </div>
-                    </div>
-                  </li>
-                )
+                    </li>
+                  )
+                }
               })}
               < li className="flex items-center justify-center">
                 <span className="text-xs first-letter:capitalize">{
