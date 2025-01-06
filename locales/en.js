@@ -638,6 +638,13 @@ export const en = {
     'undated': "undated",
     'nodescription': "no description",
     'messages': "messages",
+    'noEvents': "You still do not have tasks created in this event",
+    'noData': "no data visible within this task",
+    'waitOwner':"Wait for the event owner to share a task with you",
+    'noData2':"No data available in this view",
+    'waitOwner2':"Wait for the event owner to share something with you",
+
+
 
 
 

@@ -78,7 +78,7 @@ export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTit
                                                 {item?.title}
                                             </div>
                                             {(editTitle && itinerario?._id === item?._id && window?.location?.pathname !== "/itinerario") &&
-                                                <ClickAwayListener onClickAway={() => { setEditTitle(false) }}>
+                                                /* <ClickAwayListener onClickAway={() => { setEditTitle(false) }}> */
                                                     <div className="fixed md:absolute w-full h-16 z-20 translate-y-6 flex left-0 items-center justify-center">
                                                         <div className="h-full bg-white space-x-2 rounded-md flex px-6 items-center justify-center shadow-md border-[1px]">
                                                             <input type="text" onChange={(e) => setTitle(e.target.value)} value={title} className={` font-display text-sm text-gray-500 border-[1px] border-primary focus:border-gray-400 w-min py-1 px-2 rounded-xl focus:ring-0 focus:outline-none transition`} />
@@ -87,7 +87,7 @@ export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTit
                                                             </button>
                                                         </div>
                                                     </div>
-                                                </ClickAwayListener>
+                                                 /* </ClickAwayListener>  */
                                             }
                                         </div>
                                         <ItineraryTabsMenu item={item} itinerario={itinerario} handleDeleteItinerario={handleDeleteItinerario} setEditTitle={setEditTitle} setTitle={setTitle} />

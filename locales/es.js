@@ -638,6 +638,11 @@ export const es = {
     'undated': "sin fecha",
     'nodescription': "sin descripción",
     'messages': "mensajes",
+    'noEvents': "Aun no tienes tasks creados en este evento",
+    'noData': " sin datos visibles dentro de esta tarea",
+    'waitOwner':"Espera que el dueño del evento comparta una tarea contigo",
+    'noData2':"No hay datos disponibles en esta vista",
+    'waitOwner2':"Espera que el dueño del evento comparta algo contigo",
 
 
 

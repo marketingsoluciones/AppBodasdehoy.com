@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import { useAllowed, useAllowedViewer } from "../../hooks/useAllowed";
 import { useRouter } from "next/router";
 import { LiaUserClockSolid } from "react-icons/lia";
+import { t } from "i18next";
 
 interface Modal {
     state: boolean
@@ -136,10 +137,10 @@ const ViewWihtoutData = () => {
     return (
         <div className=" capitalize w-full h-full flex flex-col justify-center items-center bg-white rounded-lg mt-3 text-gray-500">
             <div>
-                No hay datos disponibles en esta vista
+                {t("noData2")}
             </div>
             <div>
-                Espera que el dueño del evento comparta algo contigo
+                {t("waitOwner2")}
             </div>
             <div>
                 <LiaUserClockSolid className="h-12 w-auto" />

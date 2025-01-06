@@ -268,17 +268,25 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                                     />
                                 </div>
                             </div>
-                        : <div className="capitalize w-full h-full flex flex-col justify-center items-center bg-white rounded-lg mt-3 text-gray-500 space-y-2">
-                            <div>
-                                sin datos visibles dentro de esta tarea
+                        : !isAllowed() ?
+                            <div className="capitalize w-full h-full flex flex-col justify-center items-center bg-white rounded-lg mt-3 text-gray-500 space-y-2">
+                                <div>
+                                   {t("noEvents")}
+                                </div>
+                                <div>
+                                    <VscFiles className="h-12 w-auto" />
+                                </div>
+                            </div> : <div className="capitalize w-full h-full flex flex-col justify-center items-center bg-white rounded-lg mt-3 text-gray-500 space-y-2">
+                                <div>
+                                    {t("noData")}
+                                </div>
+                                <div>
+                                    {t("waitOwner")}
+                                </div>
+                                <div>
+                                    <VscFiles className="h-12 w-auto" />
+                                </div>
                             </div>
-                            <div>
-                                Espera que el dueño del evento comparta una tarea contigo
-                            </div>
-                            <div>
-                                <VscFiles className="h-12 w-auto" />
-                            </div>
-                        </div>
                 }
                 {view !== "schema" && <AddEvent tasks={tasks} itinerario={itinerario} setSelectTask={setSelectTask} />}
             </div>
