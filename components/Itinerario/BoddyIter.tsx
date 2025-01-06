@@ -11,6 +11,8 @@ import { DeleteConfirmation } from "./MicroComponente/DeleteConfirmation";
 import { useTranslation } from "react-i18next";
 import { useAllowed, useAllowedViewer } from "../../hooks/useAllowed";
 import { useRouter } from "next/router";
+import { LiaUserClockSolid } from "react-icons/lia";
+import { t } from "i18next";
 
 interface Modal {
     state: boolean
@@ -32,6 +34,7 @@ export const BoddyIter = () => {
     const { t } = useTranslation();
     const [title, setTitle] = useState<string>()
     const router = useRouter()
+
 
     useEffect(() => {
         setView(window.innerWidth > window.innerHeight && isAllowed() ? "cards" : "cards")
@@ -120,8 +123,28 @@ export const BoddyIter = () => {
             </Modal>}
             <ItineraryTabs itinerario={itinerario} setItinerario={setItinerario} setEditTitle={setEditTitle} title={title} setTitle={setTitle} view={view} setView={setView} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} editTitle={editTitle} />
             {(isAllowedViewer(itinerario?.viewers ?? []) || window?.location?.pathname === "/itinerario")
-                && <ItineraryPanel itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} title={title} setTitle={setTitle} view={view} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} />
+                ? <ItineraryPanel itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} title={title} setTitle={setTitle} view={view} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} /> :
+                <div className="h-full">
+                    <ViewWihtoutData />
+                </div>
             }
+        </div>
+    )
+}
+
+
+const ViewWihtoutData = () => {
+    return (
+        <div className=" capitalize w-full h-full flex flex-col justify-center items-center bg-white rounded-lg mt-3 text-gray-500">
+            <div>
+                {t("noData2")}
+            </div>
+            <div>
+                {t("waitOwner2")}
+            </div>
+            <div>
+                <LiaUserClockSolid className="h-12 w-auto" />
+            </div>
         </div>
     )
 }
