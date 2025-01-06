@@ -33,25 +33,29 @@ export const ItineraryButtonBox: FC<props> = ({ optionsItineraryButtonBox, value
     <div className=" flex justify-end flex-1">
       <div className=" inline-flex gap-1 items-end text-gray-500">
         {optionsItineraryButtonBox?.map((elem, idx) =>
-          <div key={idx} onClick={() => {
-            if (elem.value === "share") {
-              setCopied(true)
-              return
-            }
-            elem.onClick(values, itinerario)
-          }} className={` ${["/itinerario"].includes(window?.location?.pathname) && elem.vew != "all" ? "hidden" : ""}  bg-gray-200 w-10 h-10 rounded-full flex justify-center items-center cursor-pointer ${!isAllowed() ? "text-gray-400 hidden" : "hover:bg-gray-300 text-gray-600 hover:text-gray-700"} `}>
-            {elem.getIcon
-              ? elem.getIcon(!values.spectatorView)
-              : elem.value === "share"
-                ? copied
-                  ? <div>
-                    <div className="bg-black absolute rounded-full justify-center flex w-28 py-0.5 -translate-x-full -translate-y-full text-white">{t("copiedlink")}</div>
-                    <PiCheckFatBold className="w-5 h-5" />
-                  </div>
-                  : <CopyToClipboard text={`${window.location.origin}${link}`}>
-                    {elem.icon}
-                  </CopyToClipboard>
-                : elem.icon
+          <div
+            key={idx}
+            onClick={() => {
+              if (elem.value === "share") {
+                setCopied(true)
+                return
+              }
+              elem.onClick(values, itinerario)
+            }}
+            className={` ${["/itinerario"].includes(window?.location?.pathname) && elem.vew != "all" ? "hidden" : ""}  bg-gray-200 w-10 h-10 rounded-full flex justify-center items-center cursor-pointer ${!isAllowed() ? "text-gray-400 hidden" : "hover:bg-gray-300 text-gray-600 hover:text-gray-700"} `}>
+            {
+              elem.getIcon
+                ? elem.value === "status" && elem.getIcon(!values.spectatorView) || elem.value === "estatus" && elem.getIcon(values.estatus)
+                : elem.value === "share"
+                  ? copied
+                    ? <div>
+                      <div className="bg-black absolute rounded-full justify-center flex w-28 py-0.5 -translate-x-full -translate-y-full text-white">{t("copiedlink")}</div>
+                      <PiCheckFatBold className="w-5 h-5" />
+                    </div>
+                    : <CopyToClipboard text={`${window.location.origin}${link}`}>
+                      {elem.icon}
+                    </CopyToClipboard>
+                  : elem.icon
             }
           </div>
         )}

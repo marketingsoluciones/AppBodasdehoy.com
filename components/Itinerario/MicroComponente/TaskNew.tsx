@@ -63,7 +63,8 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
     attachments: !task?.attachments ? [] : task?.attachments,
     spectatorView: task?.spectatorView,
     comments: task?.comments,
-    commentsViewers: task?.commentsViewers
+    commentsViewers: task?.commentsViewers,
+    estatus: task?.estatus
   }
 
   useEffect(() => {
@@ -116,6 +117,8 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
       console.log(10003, error)
     }
   }
+
+  console.log("task", task)
 
   return (
     <div {...props}>
