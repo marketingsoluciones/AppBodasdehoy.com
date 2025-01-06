@@ -268,7 +268,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                                     />
                                 </div>
                             </div>
-                        : !isAllowed() ?
+                        : isAllowed() ?
                             <div className="capitalize w-full h-full flex flex-col justify-center items-center bg-white rounded-lg mt-3 text-gray-500 space-y-2">
                                 <div>
                                    {t("noEvents")}
