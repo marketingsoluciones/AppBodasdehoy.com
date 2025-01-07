@@ -40,7 +40,7 @@ interface props {
 
 export interface EditTastk {
     values?: Task
-    state: boolean
+    state: boolean | string
 }
 
 interface TaskReduce {
@@ -72,7 +72,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             value: "edit",
             icon: <PencilEdit className="w-5 h-5" />,
             title: "editar",
-            onClick: (values: Task) => !isAllowed() ? ht() : user.uid === event.usuario_id ? setShowEditTask({ values, state: !showEditTask.state }) : setShowEditTask({ values, state: !values.estatus ? !showEditTask.state : null }),
+            onClick: (values: Task) => !isAllowed() ? ht() : user.uid === event.usuario_id ? setShowEditTask({ values, state: !showEditTask.state }) : setShowEditTask({ values, state: values?.estatus === true || values?.estatus === "true"  ? !showEditTask.state : null }),
             vew: "all"
         },
         {
@@ -112,14 +112,15 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         {
             value: "estatus",
             icon: <TbLock className="w-5 h-5" />,
-            getIcon: (valor: boolean) => {
-                if (valor) {
+            getIcon: (valor: boolean | string) => {
+                console.log("valor", valor)
+                if (valor === false || valor === "false") {
                     return <TbLock className="w-5 h-5" />
                 }
                 return <TbLockOpen className="w-5 h-5" />
             },
             title: "estatus",
-            onClick: (values: Task) => !isAllowed() ? ht() : user.uid === event.usuario_id ? handleChangeStatus(values): null,
+            onClick: (values: Task) => !isAllowed() ? ht() : user.uid === event.usuario_id ? handleChangeStatus(values) : null,
             vew: "all"
         },
 
@@ -187,8 +188,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     }
 
     const handleChangeStatus = async (values: Task) => {
-        console.log("aaaa",values)
-
         try {
             fetchApiEventos({
                 query: queries.editTask,

@@ -4,7 +4,7 @@ import { useAllowed } from "../../../hooks/useAllowed"
 import { PiCheckFatBold } from "react-icons/pi"
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { useTranslation } from 'react-i18next';
-import { EventContextProvider } from "../../../context";
+import { AuthContextProvider, EventContextProvider } from "../../../context";
 
 
 interface props {
@@ -18,6 +18,8 @@ export const ItineraryButtonBox: FC<props> = ({ optionsItineraryButtonBox, value
   const [isAllowed, ht] = useAllowed()
   const [copied, setCopied] = useState(false)
   const { t } = useTranslation();
+  const { config, geoInfo, user } = AuthContextProvider()
+
 
   const link = `${window.location.pathname}?event=${event._id}&itinerary=${itinerario._id}&task=${values._id}`
 
@@ -42,7 +44,14 @@ export const ItineraryButtonBox: FC<props> = ({ optionsItineraryButtonBox, value
               }
               elem.onClick(values, itinerario)
             }}
-            className={` ${["/itinerario"].includes(window?.location?.pathname) && elem.vew != "all" ? "hidden" : ""} bg-gray-200 w-10 h-10 rounded-full flex justify-center items-center cursor-pointer ${!isAllowed() ? "text-gray-400 hidden" : "hover:bg-gray-300 text-gray-600 hover:text-gray-700"} `}>
+            className={` 
+              ${["/itinerario"].includes(window?.location?.pathname) && elem.vew === "tasks" ? "hidden" : ["/servicios"].includes(window?.location?.pathname) && elem.value === "estatus" ? "hidden" : ""} 
+              ${elem.value === "estatus" ? "bg-gray-200" : values.estatus === false || values.estatus === "false" ? "bg-gray-200 opacity-15" : "bg-gray-200 cursor-pointer"}  
+              ${!isAllowed() ? "text-gray-400 hidden" : user.uid === event.usuario_id ? "hover:bg-gray-300 text-gray-600 hover:text-gray-700":""}
+              w-10 h-10 rounded-full flex justify-center items-center  
+              `
+
+            }>
             {
               elem.getIcon
                 ? elem.value === "status" && elem.getIcon(!values.spectatorView) || elem.value === "estatus" && elem.getIcon(values.estatus)
@@ -60,6 +69,6 @@ export const ItineraryButtonBox: FC<props> = ({ optionsItineraryButtonBox, value
           </div>
         )}
       </div>
-    </div>
+    </div >
   )
 }

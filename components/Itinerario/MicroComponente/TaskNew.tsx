@@ -118,7 +118,6 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
     }
   }
 
-  console.log("task", task)
 
   return (
     <div {...props}>
