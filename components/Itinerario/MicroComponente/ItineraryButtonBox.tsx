@@ -42,7 +42,7 @@ export const ItineraryButtonBox: FC<props> = ({ optionsItineraryButtonBox, value
               }
               elem.onClick(values, itinerario)
             }}
-            className={` ${["/itinerario"].includes(window?.location?.pathname) && elem.vew != "all" ? "hidden" : ""}  bg-gray-200 w-10 h-10 rounded-full flex justify-center items-center cursor-pointer ${!isAllowed() ? "text-gray-400 hidden" : "hover:bg-gray-300 text-gray-600 hover:text-gray-700"} `}>
+            className={` ${["/itinerario"].includes(window?.location?.pathname) && elem.vew != "all" ? "hidden" : ""} bg-gray-200 w-10 h-10 rounded-full flex justify-center items-center cursor-pointer ${!isAllowed() ? "text-gray-400 hidden" : "hover:bg-gray-300 text-gray-600 hover:text-gray-700"} `}>
             {
               elem.getIcon
                 ? elem.value === "status" && elem.getIcon(!values.spectatorView) || elem.value === "estatus" && elem.getIcon(values.estatus)

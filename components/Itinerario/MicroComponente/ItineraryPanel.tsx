@@ -67,21 +67,18 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     const [showModalCompartir, setShowModalCompartir] = useState({ state: false, id: null });
     const router = useRouter()
 
-    console.log("event", event)
-    console.log("user", user)
     const optionsItineraryButtonBox: OptionsSelect[] = [
         {
             value: "edit",
             icon: <PencilEdit className="w-5 h-5" />,
             title: "editar",
-            onClick: (values: Task) => !isAllowed() ? ht() : user.uid === event.usuario_id? setShowEditTask({ values, state: !showEditTask.state}):setShowEditTask({ values, state: !values.estatus ? !showEditTask.state : null}),
+            onClick: (values: Task) => !isAllowed() ? ht() : user.uid === event.usuario_id ? setShowEditTask({ values, state: !showEditTask.state }) : setShowEditTask({ values, state: !values.estatus ? !showEditTask.state : null }),
             vew: "all"
         },
         {
             value: "status",
             icon: <GoEyeClosed className="w-5 h-5" />,
             getIcon: (value: boolean) => {
-                console.log("TETETETE", value)
 
                 if (value) {
                     return <GoEyeClosed className="w-5 h-5" />
@@ -90,20 +87,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             },
             title: "estado",
             onClick: (values: Task) => !isAllowed() ? ht() : handleAddSpectatorView(values),
-            vew: "all"
-        },
-        {
-            value: "estatus",
-            icon: <TbLock className="w-5 h-5" />,
-            getIcon: (valor: boolean) => {
-                console.log("PEPEPE", valor)
-                if (valor) {
-                    return <TbLock className="w-5 h-5" />
-                }
-                return <TbLockOpen className="w-5 h-5" />
-            },
-            title: "estatus",
-            onClick: (values: Task) => !isAllowed() ? ht() : handleChangeStatus(values),
             vew: "all"
         },
         {
@@ -124,6 +107,19 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             icon: <MdOutlineDeleteOutline className="w-5 h-5" />,
             title: "borrar",
             onClick: (values: Task, itinerario: Itinerary) => !isAllowed() ? ht() : setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }),
+            vew: "all"
+        },
+        {
+            value: "estatus",
+            icon: <TbLock className="w-5 h-5" />,
+            getIcon: (valor: boolean) => {
+                if (valor) {
+                    return <TbLock className="w-5 h-5" />
+                }
+                return <TbLockOpen className="w-5 h-5" />
+            },
+            title: "estatus",
+            onClick: (values: Task) => !isAllowed() ? ht() : user.uid === event.usuario_id ? handleChangeStatus(values): null,
             vew: "all"
         },
 
@@ -191,7 +187,8 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     }
 
     const handleChangeStatus = async (values: Task) => {
-        console.log("ZZZZ", values)
+        console.log("aaaa",values)
+
         try {
             fetchApiEventos({
                 query: queries.editTask,
