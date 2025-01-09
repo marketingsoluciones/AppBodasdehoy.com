@@ -14,7 +14,7 @@ import { ItineraryColumns } from "./ItineraryColumns";
 import ModalLeft from "../../Utils/ModalLeft";
 import { PencilEdit } from "../../icons";
 import { GoEye, GoEyeClosed, GoGitBranch } from "react-icons/go";
-import { LiaLinkSolid, LiaUserClockSolid } from "react-icons/lia";
+import { LiaLinkSolid } from "react-icons/lia";
 import { MdOutlineDeleteOutline } from "react-icons/md";
 import { OptionsSelect, Task, Itinerary } from "../../../utils/Interfaces"
 import { SubHeader } from "./SubHeader";
@@ -72,7 +72,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             value: "edit",
             icon: <PencilEdit className="w-5 h-5" />,
             title: "editar",
-            onClick: (values: Task) => !isAllowed() ? ht() : user.uid === event.usuario_id ? setShowEditTask({ values, state: !showEditTask.state }) : setShowEditTask({ values, state: values?.estatus === true || values?.estatus === "true"  ? !showEditTask.state : null }),
+            onClick: (values: Task) => !isAllowed() ? ht() : user.uid === event.usuario_id ? setShowEditTask({ values, state: !showEditTask.state }) : setShowEditTask({ values, state: values?.estatus === false || values?.estatus === null ? !showEditTask.state : null }),
             vew: "all"
         },
         {
@@ -112,9 +112,9 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         {
             value: "estatus",
             icon: <TbLock className="w-5 h-5" />,
-            getIcon: (valor: boolean | string) => {
+            getIcon: (valor: boolean) => {
                 console.log("valor", valor)
-                if (valor === false || valor === "false") {
+                if (valor) {
                     return <TbLock className="w-5 h-5" />
                 }
                 return <TbLockOpen className="w-5 h-5" />
@@ -184,7 +184,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         } catch (error) {
             console.log(error)
         }
-
     }
 
     const handleChangeStatus = async (values: Task) => {
@@ -247,8 +246,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             setSelectTask(`${router.query.task}`)
         }
     }, [router])
-
-
 
     return (
         <div className="w-full flex-1 flex flex-col overflow-y-scroll">
