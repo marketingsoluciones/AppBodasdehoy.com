@@ -72,7 +72,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             value: "edit",
             icon: <PencilEdit className="w-5 h-5" />,
             title: "editar",
-            onClick: (values: Task) => !isAllowed() ? ht() : user.uid === event.usuario_id ? setShowEditTask({ values, state: !showEditTask.state }) : setShowEditTask({ values, state: values?.estatus === false || values?.estatus === null ? !showEditTask.state : null }),
+            onClick: (values: Task) => !isAllowed() ? ht() : user.uid === event.usuario_id ? setShowEditTask({ values, state: !showEditTask.state }) : setShowEditTask({ values, state: ["/itinerario"].includes(window?.location?.pathname) ? values?.estatus === false || values?.estatus === null || values?.estatus === undefined ? !showEditTask.state : null : !showEditTask.state }),
             vew: "all"
         },
         {
@@ -86,7 +86,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                 return <GoEye className="w-5 h-5" />
             },
             title: "estado",
-            onClick: (values: Task) => !isAllowed() ? ht() : handleAddSpectatorView(values),
+            onClick: (values: Task) => !isAllowed() ? ht() : user.uid === event.usuario_id ? handleAddSpectatorView(values) : ["/itinerario"].includes(window?.location?.pathname) ? values?.estatus === false || values?.estatus === null || values?.estatus === undefined  ? handleAddSpectatorView(values) : null : handleAddSpectatorView(values),
             vew: "all"
         },
         {
@@ -106,7 +106,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             value: "delete",
             icon: <MdOutlineDeleteOutline className="w-5 h-5" />,
             title: "borrar",
-            onClick: (values: Task, itinerario: Itinerary) => !isAllowed() ? ht() : setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }),
+            onClick: (values: Task, itinerario: Itinerary) => !isAllowed() ? ht() : user.uid === event.usuario_id ? setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }) : ["/itinerario"].includes(window?.location?.pathname) ? values?.estatus === false || values?.estatus === null|| values?.estatus === undefined  ? setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }) : null : setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }),
             vew: "all"
         },
         {
