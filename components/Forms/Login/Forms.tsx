@@ -6,6 +6,7 @@ import { FirstStep, SecondStep } from "./Forms/Register/Steps";
 import { AuthContextProvider } from "../../../context";
 import PageLogin from "../../../pages/login";
 import { useTranslation } from 'react-i18next';
+import { getAuth, signOut } from "firebase/auth";
 
 interface propsLogin {
   fStageRegister?: any
@@ -18,6 +19,7 @@ interface propsLogin {
 
 export const Login: FC<propsLogin> = ({ setStage, whoYouAre }) => {
   const { t } = useTranslation();
+  const { SetWihtProvider } = AuthContextProvider()
   return (
     <>
       <h2 className={`font-light text-tertiary justify-center flex text-md mt-12`}>
@@ -28,7 +30,11 @@ export const Login: FC<propsLogin> = ({ setStage, whoYouAre }) => {
         {t("withyouremail")}
       </h2>
       <FormLogin setStage={setStage} />
-      <RegisterQuestion onClick={() => setStage("register")} />
+      <RegisterQuestion onClick={() => {
+        setStage("register")
+        SetWihtProvider(false)
+        signOut(getAuth())
+      }} />
       {/* <BusinessAccess /> */} {/* componente que no esta terminado */}
     </>
   );
@@ -36,7 +42,7 @@ export const Login: FC<propsLogin> = ({ setStage, whoYouAre }) => {
 
 export const Register: FC<propsLogin> = ({ setStage, fStageRegister, stageRegister, setStageRegister, whoYouAre, setWhoYouAre }) => {
   const { t } = useTranslation();
-  const { linkMedia, preregister } = AuthContextProvider()
+  const { linkMedia, preregister, SetWihtProvider } = AuthContextProvider()
 
   useEffect(() => {
     setWhoYouAre(fStageRegister == 1 ? "empresa" : "")
@@ -65,6 +71,8 @@ export const Register: FC<propsLogin> = ({ setStage, fStageRegister, stageRegist
           onClick={() => {
             setStageRegister(0)
             setStage("login")
+            SetWihtProvider(false)
+            signOut(getAuth())
           }}
         >       {t("log")}
         </span>
@@ -74,6 +82,7 @@ export const Register: FC<propsLogin> = ({ setStage, fStageRegister, stageRegist
 };
 
 export const ResetPass: FC<propsLogin> = ({ setStage }) => {
+  const { SetWihtProvider } = AuthContextProvider()
   const { t } = useTranslation();
   return (
     <>
@@ -87,7 +96,11 @@ export const ResetPass: FC<propsLogin> = ({ setStage }) => {
         {t("doyouhaveanaccount")}
         <span
           className="text-sm text-primary font-semibold cursor-pointer hover:text-tertiary transition"
-          onClick={() => setStage("login")}
+          onClick={() => {
+            setStage("login")
+            SetWihtProvider(false)
+            signOut(getAuth())
+          }}
         >
           {t("log")}
         </span>
