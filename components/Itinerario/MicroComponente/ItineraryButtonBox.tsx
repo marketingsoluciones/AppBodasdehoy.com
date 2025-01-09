@@ -46,8 +46,8 @@ export const ItineraryButtonBox: FC<props> = ({ optionsItineraryButtonBox, value
             }}
             className={` 
               ${["/itinerario"].includes(window?.location?.pathname) && elem.vew === "tasks" ? "hidden" : ["/servicios"].includes(window?.location?.pathname) && elem.value === "estatus" ? "hidden" : ""} 
-              ${!isAllowed() ? "hidden" : user.uid === event.usuario_id ? "hover:bg-gray-300 text-gray-600 hover:text-gray-700 cursor-pointer" : ""}
-              ${elem.value === "estatus" ? "bg-gray-200" : values.estatus === true ? "bg-gray-200 opacity-50" : "bg-gray-200 cursor-pointer"}  
+              ${!isAllowed() ? "hidden" : user.uid === event.usuario_id ? "hover:bg-gray-300 text-gray-600 hover:text-gray-700 cursor-pointer " : ""}
+              ${elem.value === "estatus" ? "bg-gray-200" : values.estatus === true ? user.uid != event.usuario_id ? "bg-gray-200 opacity-50" : "bg-gray-200 cursor-pointer" : "bg-gray-200 cursor-pointer hover:bg-gray-300 "}  
               w-10 h-10 rounded-full flex justify-center items-center  
               `
 

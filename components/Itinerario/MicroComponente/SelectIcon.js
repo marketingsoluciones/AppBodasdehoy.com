@@ -4,6 +4,7 @@ import { Modal } from "../../Utils/Modal";
 import { IconList } from "./IconList";
 import { useEffect, useState } from "react";
 import { useAllowed } from "../../../hooks/useAllowed";
+import { AuthContextProvider, EventContextProvider } from "../../../context";
 
 const IconArray = [
     {
@@ -89,11 +90,13 @@ const IconArray = [
 ]
 
 export const SelectIcon = ({ handleChange, ...props }) => {
+    const { config, geoInfo, user } = AuthContextProvider()
+    const { event, setEvent } = EventContextProvider()
     const [field] = useField({ name: props?.name });
     const [selectIcon, setSelectIcon] = useState()
     const [openIcon, setOpenIcon] = useState(false)
     const [isAllowed, ht] = useAllowed()
-
+    console.log("props", props?.data)
     useEffect(() => {
         if (selectIcon) {
             /* helpers?.setValue(selectIcon) */
@@ -104,24 +107,30 @@ export const SelectIcon = ({ handleChange, ...props }) => {
     return (
         <>
             {field?.value
-                ? <div className='w-full h-full cursor-pointer flex justify-center '
+                ? <div className='w-full h-full cursor-pointer. flex justify-center '
                     onClick={() => {
                         !isAllowed() ? ht() :
-                            setOpenIcon(!openIcon)
+                            ["/itinerario"].includes(window?.location?.pathname) ? user.uid === event.usuario_id ?
+                                setOpenIcon(!openIcon) : props?.data?.estatus === false || props?.data?.estatus === null || props?.data?.estatus === undefined ? setOpenIcon(!openIcon) : null : setOpenIcon(!openIcon)
 
                     }} {...props}>
                     {IconArray.find((elem) => elem?.title === field?.value).icon}
-                </div>
-                : <div className='w-full h-full cursor-pointer flex items-center justify-center text-gray-600 hover:text-gray-800' onClick={() => !isAllowed() ? ht() :
-                    setOpenIcon(!openIcon)}>
+                </div >
+                : <div className='w-full h-full cursor-pointer. flex items-center justify-center text-gray-600 hover:text-gray-800' onClick={() => {
+                    !isAllowed() ? ht() :
+                        ["/itinerario"].includes(window?.location?.pathname) ? user.uid === event.usuario_id ?
+                            setOpenIcon(!openIcon) : props?.data?.estatus === false || props?.data?.estatus === null || props?.data?.estatus === undefined ? setOpenIcon(!openIcon) : null : setOpenIcon(!openIcon)
+
+                }}>
                     <AddIcon />
                 </div>
             }
-            {openIcon
-                ? <Modal openIcon={openIcon} setOpenIcon={setOpenIcon} classe={"h-max md:w-[30%]"} >
-                    <IconList IterArry={IconArray} openIcon={openIcon} setOpenIcon={setOpenIcon} setSelectIcon={setSelectIcon} />
-                </Modal>
-                : null
+            {
+                openIcon
+                    ? <Modal openIcon={openIcon} setOpenIcon={setOpenIcon} classe={"h-max md:w-[30%]"} >
+                        <IconList IterArry={IconArray} openIcon={openIcon} setOpenIcon={setOpenIcon} setSelectIcon={setSelectIcon} />
+                    </Modal>
+                    : null
             }
         </>
     )
