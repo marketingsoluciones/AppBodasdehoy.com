@@ -13,16 +13,14 @@ interface propsButtonProvider {
 }
 
 export const ButtonProvider: FC<propsButtonProvider> = ({ provider, handle, icon, setStage, whoYouAre }) => {
-  const { setIsStartingRegisterOrLogin, SetWihtProvider } = AuthContextProvider()
+  const { setIsStartingRegisterOrLogin } = AuthContextProvider()
   const { signIn } = useAuthentication();
   const toast = useToast();
   const { t } = useTranslation()
 
   const handleClick = async (provider: any) => {
-    SetWihtProvider(true)
     try {
       signIn({ type: "provider", payload: provider, setStage, whoYouAre, setIsStartingRegisterOrLogin });
-
     } catch (error) {
       toast("error", JSON.stringify(error));
       console.log("este es un error en el onClick de los listProviders", error);
