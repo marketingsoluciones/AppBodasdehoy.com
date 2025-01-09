@@ -26,6 +26,7 @@ import { useRouter } from "next/router";
 import { VscFiles } from "react-icons/vsc";
 import { TbLock } from "react-icons/tb";
 import { TbLockOpen } from "react-icons/tb";
+import { useNotification } from "../../../hooks/useNotification";
 
 interface props {
     itinerario: Itinerary
@@ -66,6 +67,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     const [modal, setModal] = useState({ state: false, title: null, values: null, itinerario: null })
     const [showModalCompartir, setShowModalCompartir] = useState({ state: false, id: null });
     const router = useRouter()
+    const notification = useNotification()
 
     const optionsItineraryButtonBox: OptionsSelect[] = [
         {
@@ -86,7 +88,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                 return <GoEye className="w-5 h-5" />
             },
             title: "estado",
-            onClick: (values: Task) => !isAllowed() ? ht() : user.uid === event.usuario_id ? handleAddSpectatorView(values) : ["/itinerario"].includes(window?.location?.pathname) ? values?.estatus === false || values?.estatus === null || values?.estatus === undefined  ? handleAddSpectatorView(values) : null : handleAddSpectatorView(values),
+            onClick: (values: Task) => !isAllowed() ? ht() : user.uid === event.usuario_id ? handleAddSpectatorView(values) : ["/itinerario"].includes(window?.location?.pathname) ? values?.estatus === false || values?.estatus === null || values?.estatus === undefined ? handleAddSpectatorView(values) : null : handleAddSpectatorView(values),
             vew: "all"
         },
         {
@@ -106,7 +108,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             value: "delete",
             icon: <MdOutlineDeleteOutline className="w-5 h-5" />,
             title: "borrar",
-            onClick: (values: Task, itinerario: Itinerary) => !isAllowed() ? ht() : user.uid === event.usuario_id ? setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }) : ["/itinerario"].includes(window?.location?.pathname) ? values?.estatus === false || values?.estatus === null|| values?.estatus === undefined  ? setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }) : null : setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }),
+            onClick: (values: Task, itinerario: Itinerary) => !isAllowed() ? ht() : user.uid === event.usuario_id ? setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }) : ["/itinerario"].includes(window?.location?.pathname) ? values?.estatus === false || values?.estatus === null || values?.estatus === undefined ? setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }) : null : setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }),
             vew: "all"
         },
         {
@@ -206,6 +208,19 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                     setEvent({ ...event })
                     toast("success", t("Item guardado con exito"))
                     setShowEditTask({ state: false })
+                    const asd = event.detalles_compartidos_array.filter(elem => ["edit", "view"].includes(elem.permissions.find(el => el.title === "itinerari").value)).map(elem => elem.uid)
+                    let qwe = [...asd, event.usuario_id]
+                    const af1 = qwe.findIndex(elem => elem === user?.uid)
+                    if (af1 > -1) {
+                        qwe.splice(af1, 1)
+                    }
+                    const focused = `${window.location.pathname}?event=${event._id}&itinerary=${itinerario._id}&task=${values._id}`
+                    notification({
+                        type: "user",
+                        message: ` ha cambiado el estatus de la actividad a: ${values.estatus === false? "Desbloqueado":"Bloqueado" } | Evento ${event?.tipo}: <strong>${event?.nombre.toUpperCase()}</strong>`,
+                        uids: qwe,
+                        focused
+                    })
                 })
         } catch (error) {
             console.log(error)
@@ -241,6 +256,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             console.log(1000501, error)
         }
     }
+
     useEffect(() => {
         if (router?.query?.task) {
             setSelectTask(`${router.query.task}`)
