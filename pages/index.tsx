@@ -15,6 +15,7 @@ import { useRouter } from "next/router";
 import { useToast } from "../hooks/useToast";
 import { useTranslation } from 'react-i18next';
 import { TbTableShare } from "react-icons/tb";
+import { NextSeo } from 'next-seo';
 
 const Home: NextPage = () => {
 
@@ -92,6 +93,23 @@ const Home: NextPage = () => {
     setLoading(false)
     return (
       <>
+        <NextSeo
+          title="Evento organizador | Bodas de Hoy"
+          description="Encuentra toda la información sobre el evento, itinerario y tareas relacionadas."
+          canonical="https://testorganizador.bodasdehoy.com/servicios?event=65f1d8e1d295e0fee34a7043&itinerary=6778380112d09da1c3a6cfb0&task=6778380112d09da1c3a6cfb0"
+          openGraph={{
+            url: 'https://testorganizador.bodasdehoy.com/servicios?event=65f1d8e1d295e0fee34a7043&itinerary=6778380112d09da1c3a6cfb0',
+            title: 'Detalles del Evento en bodasdehoy.com',
+            description: 'Descubre todos los detalles de este evento especial.',
+            images: [
+              {
+                url: 'https://tuimagen.jpg', // Reemplaza con la URL de tu imagen
+                alt: 'Imagen del evento',
+              },
+            ],
+            site_name: 'Bodas de Hoy',
+          }}
+        />
         {shouldRenderChild && (
           <ModalLeft state={valirQuery} set={setValirQuery}>
             {showEditEvent ?
