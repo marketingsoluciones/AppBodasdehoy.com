@@ -137,21 +137,21 @@ export const useAuthentication = () => {
               console.log(100053)
               if (whoYouAre && whoYouAre !== "") {
                 console.log(100054)
-                fetchApiBodas({
-                  query: queries.createUser,
-                  variables: {
-                    uid: res?.user?.uid,
-                    role: whoYouAre
-                  },
-                  development: config.development
-                }).then(async () => {
-                  await getSessionCookie(idToken)
-                  setUser({ ...res.user, role: [whoYouAre] });
-                  toast("success", t("Registro realizado con éxito"))
-                  updateActivity("registered")
-                  updateActivityLink("registered")
+                // fetchApiBodas({
+                //   query: queries.createUser,
+                //   variables: {
+                //     uid: res?.user?.uid,
+                //     role: whoYouAre
+                //   },
+                //   development: config.development
+                // }).then(async () => {
+                //   await getSessionCookie(idToken)
+                //   setUser({ ...res.user, role: [whoYouAre] });
+                //   toast("success", t("Registro realizado con éxito"))
+                //   updateActivity("registered")
+                //   updateActivityLink("registered")
 
-                })
+                // })
               } else {
                 console.log(100055)
                 setStage("register")
