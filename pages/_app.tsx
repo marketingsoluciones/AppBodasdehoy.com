@@ -12,7 +12,23 @@ import i18n from "../utils/i18n"
 import { useAllowedRouter } from '../hooks/useAllowed';
 import { BlockRedirection } from '../components/Utils/BlockRedirection';
 import { useRouter } from 'next/router';
+import { DefaultSeo } from 'next-seo';
 
+const defaultSEOConfig = {
+  titleTemplate: '%s | Mi Sitio Web',
+  defaultTitle: 'Mi Sitio Web',
+  description: 'La descripción de mi sitio web',
+  openGraph: {
+    type: 'website',
+    locale: 'es_ES',
+    url: 'https://tu-sitio-web.com',
+    site_name: 'Mi Sitio Web'
+  },
+  twitter: {
+    handle: '@tu_cuenta_twitter',
+    site: '@tu_cuenta_twitter'
+  }
+};
 const MyApp = ({ Component, pageProps }) => {
   const [valirBlock, setValirBlock] = useState<boolean>()
 
@@ -20,6 +36,7 @@ const MyApp = ({ Component, pageProps }) => {
     <>
       <I18nextProvider i18n={i18n}>
         <DefaultLayout>
+          <DefaultSeo {...defaultSEOConfig} />
           <Load setValirBlock={setValirBlock} />
           {valirBlock
             ? <BlockRedirection />
