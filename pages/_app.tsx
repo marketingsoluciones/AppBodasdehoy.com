@@ -17,7 +17,6 @@ import { NextSeo } from 'next-seo';
 const MyApp = ({ Component, pageProps }) => {
   const [valirBlock, setValirBlock] = useState<boolean>()
   const [dataConfig, setDataConfig] = useState<any>()
-  console.log('dataConfig', dataConfig)
   return (
     <>
       <NextSeo
@@ -31,21 +30,21 @@ const MyApp = ({ Component, pageProps }) => {
           description: 'Descubre todos los detalles de este evento especial.',
           images: [       // Images must be in a 1.91:1 ratio.        
             {
-              url: '/Pantalla.png',
+              url: `${dataConfig?.logoDirectory.props.src}`,
               alt: 'Imagen del evento',
               type: 'image/png',
               width: 1200,
               height: 1200,
             },
             {
-              url: '/Pantalla.png',
+              url: `${dataConfig?.logoDirectory.props.src}`,
               alt: 'Imagen del evento',
               type: 'image/png',
               width: 1200,
               height: 620,
             },
             {
-              url: '/Pantalla.png',
+              url: `${dataConfig?.logoDirectory.props.src}`,
               alt: 'Imagen del evento',
               type: 'image/png',
               width: 1200,
