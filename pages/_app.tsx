@@ -29,25 +29,25 @@ const MyApp = ({ Component, pageProps }) => {
             openGraph={{
               url: 'https://testorganizador.bodasdehoy.com',
               siteName: 'Bodas de Hoy',
-              title: 'Detalles del Evento en bodasdehoy.com',
+              title: 'Tu planificador de eventos preferido organizador.bodasdehoy.com',
               description: 'Descubre todos los detalles de este evento especial.',
               images: [       // Images must be in a 1.91:1 ratio.            
                 {
-                  url: 'https://github.githubassets.com/assets/github-logo-55c5b9a1fe52.png',
+                  url: '/Pantalla.png',
                   alt: 'Imagen del evento',
                   type: 'image/png',
                   width: 1200,
                   height: 1200,
                 },
                 {
-                  url: 'https://github.githubassets.com/assets/github-mark-57519b92ca4e.png',
+                  url: '/Pantalla.png',
                   alt: 'Imagen del evento',
                   type: 'image/png',
                   width: 1200,
                   height: 620,
                 },
                 {
-                  url: 'https://github.githubassets.com/assets/github-octocat-13c86b8b336d.png',
+                  url: '/Pantalla.png',
                   alt: 'Imagen del evento',
                   type: 'image/png',
                   width: 1200,
