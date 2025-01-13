@@ -22,7 +22,6 @@ const MyApp = ({ Component, pageProps }) => {
     <>
 
       <I18nextProvider i18n={i18n}>
-        <DefaultLayout>
           <NextSeo
             title="Evento organizador | Bodas de Hoy"
             description="Encuentra toda la información sobre el evento, itinerario y tareas relacionadas."
@@ -59,6 +58,7 @@ const MyApp = ({ Component, pageProps }) => {
               site_name: 'Bodas de Hoy',
             }}
           />
+        <DefaultLayout>
 
           <Load setValirBlock={setValirBlock} />
           {valirBlock
