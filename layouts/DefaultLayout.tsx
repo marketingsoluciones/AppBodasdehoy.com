@@ -19,7 +19,7 @@ const DefaultLayout = ({ children }) => {
 
   return (
     <div className="w-[100vw] h-[100vh]">
-      {/* <NextSeo
+      <NextSeo
         title={` App organizador | Bodas de Hoyy `}
         description="Encuentra toda la información sobre el evento, itinerario y tareas relacionadas."
         canonical="https://testorganizador.bodasdehoy.com"
@@ -54,7 +54,7 @@ const DefaultLayout = ({ children }) => {
 
           site_name: 'Bodas de Hoy',
         }}
-      /> */}
+      />
 
       <AuthProvider>
         <SocketProvider>
