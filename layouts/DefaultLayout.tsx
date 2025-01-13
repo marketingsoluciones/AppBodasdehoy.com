@@ -1,50 +1,61 @@
-//@ts-check
-import Head from "next/head";
-
 import {
   LoadingProvider,
   AuthProvider,
   EventsGroupProvider,
   EventProvider,
   ChatProvider,
-  SocketProvider
+  SocketProvider,
+  AuthContextProvider,
+  SocketContextProvider
 } from "../context";
 import { SocketControlator } from "../components/DefaultLayout/SocketControlator";
 import Container from "../components/DefaultLayout/Container";
 import { ToastProvider } from "../context/ToastContext";
 import GoogleAnalytics from '../components/GoogleAnalitytcs';
-// import { useRouter } from "next/router";
-// import { useEffect, useState } from "react";
+import { NextSeo } from "next-seo";
+
 
 const DefaultLayout = ({ children }) => {
-  // const router = useRouter()
-  // const [isMounted, setIsMounted] = useState<boolean>(false)
-  // const [showPreview, setShowPreview] = useState<string | string[] | null>(null)
 
-  // useEffect(() => {
-  //   if (!isMounted) {
-  //     if (![].includes(router?.query?.m?.toString())) {
-  //       console.log(router?.query, { router })
-  //       router.push("/login")
-  //     }
-  //     setShowPreview(router?.query?.m)
-  //     setIsMounted(true)
-  //   }
-  //   return () => {
-  //     setIsMounted(false)
-  //   }
-  // }, [])
   return (
     <div className="w-[100vw] h-[100vh]">
-      {/* <Head>
-        <title>Bodas de hoy - Organizador de Bodas</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="description" content="¡Bodas de Hoy Organizador! Organiza tu boda en un sólo click., user-scalable=no, width=device-width, initial-scale=1" />
-      </Head> */}
-      {/* {isMounted &&
-        showPreview
-        ? <></>
-        : */}
+      {/* <NextSeo
+        title={` App organizador | Bodas de Hoyy `}
+        description="Encuentra toda la información sobre el evento, itinerario y tareas relacionadas."
+        canonical="https://testorganizador.bodasdehoy.com"
+        openGraph={{
+          url: 'https://testorganizador.bodasdehoy.com',
+          siteName: 'Bodas de Hoy',
+          title: 'Tu planificador de eventos preferido organizador.bodasdehoy.com',
+          description: 'Descubre todos los detalles de este evento especial.',
+          images: [       // Images must be in a 1.91:1 ratio.            
+            {
+              url: '/Pantalla.png',
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 1200,
+            },
+            {
+              url: '/Pantalla.png',
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 620,
+            },
+            {
+              url: '/Pantalla.png',
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 620,
+            },
+          ],
+
+          site_name: 'Bodas de Hoy',
+        }}
+      /> */}
+
       <AuthProvider>
         <SocketProvider>
           <EventsGroupProvider>
@@ -64,7 +75,6 @@ const DefaultLayout = ({ children }) => {
           </EventsGroupProvider>
         </SocketProvider>
       </AuthProvider>
-      {/*      }       */}
     </div>
   );
 };

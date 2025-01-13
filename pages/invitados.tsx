@@ -72,7 +72,7 @@ const Invitados: FC = () => {
     return (
       <>
         <NextSeo
-          title="Evento organizador | Bodas de Hoy"
+          title="Evento organizador | Bodas de Hoy | Invitados"
           description="Encuentra toda la información sobre el evento, itinerario y tareas relacionadas."
           canonical="https://testorganizador.bodasdehoy.com"
           openGraph={{

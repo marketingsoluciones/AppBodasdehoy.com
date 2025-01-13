@@ -22,44 +22,43 @@ const MyApp = ({ Component, pageProps }) => {
     <>
 
       <I18nextProvider i18n={i18n}>
-          <NextSeo
-            title="Evento organizador | Bodas de Hoy"
-            description="Encuentra toda la información sobre el evento, itinerario y tareas relacionadas."
-            canonical="https://testorganizador.bodasdehoy.com"
-            openGraph={{
-              url: 'https://testorganizador.bodasdehoy.com',
-              siteName: 'Bodas de Hoy',
-              title: 'Tu planificador de eventos preferido organizador.bodasdehoy.com',
-              description: 'Descubre todos los detalles de este evento especial.',
-              images: [       // Images must be in a 1.91:1 ratio.            
-                {
-                  url: '/Pantalla.png',
-                  alt: 'Imagen del evento',
-                  type: 'image/png',
-                  width: 1200,
-                  height: 1200,
-                },
-                {
-                  url: '/Pantalla.png',
-                  alt: 'Imagen del evento',
-                  type: 'image/png',
-                  width: 1200,
-                  height: 620,
-                },
-                {
-                  url: '/Pantalla.png',
-                  alt: 'Imagen del evento',
-                  type: 'image/png',
-                  width: 1200,
-                  height: 620,
-                },
-              ],
-            
-              site_name: 'Bodas de Hoy',
-            }}
-          />
-        <DefaultLayout>
+        {/* <NextSeo
+          title="App organizador | Bodas de Ho"
+          description="Encuentra toda la información sobre el evento, itinerario y tareas relacionadas."
+          canonical="https://testorganizador.bodasdehoy.com"
+          openGraph={{
+            url: 'https://testorganizador.bodasdehoy.com',
+            siteName: 'Bodas de Hoy',
+            title: 'Tu planificador de eventos preferido organizador.bodasdehoy.com',
+            description: 'Descubre todos los detalles de este evento especial.',
+            images: [       // Images must be in a 1.91:1 ratio.            
+              {
+                url: '/Pantalla.png',
+                alt: 'Imagen del evento',
+                type: 'image/png',
+                width: 1200,
+                height: 1200,
+              },
+              {
+                url: '/Pantalla.png',
+                alt: 'Imagen del evento',
+                type: 'image/png',
+                width: 1200,
+                height: 620,
+              },
+              {
+                url: '/Pantalla.png',
+                alt: 'Imagen del evento',
+                type: 'image/png',
+                width: 1200,
+                height: 620,
+              },
+            ],
 
+            site_name: 'Bodas de Hoy',
+          }}
+        /> */}
+        <DefaultLayout>
           <Load setValirBlock={setValirBlock} />
           {valirBlock
             ? <BlockRedirection />

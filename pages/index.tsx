@@ -26,9 +26,7 @@ const Home: NextPage = () => {
   const [valirQuery, setValirQuery] = useState<boolean>(false);
   const shouldRenderChild = useDelayUnmount(valirQuery, 500);
   const [showEditEvent, setShowEditEvent] = useState<boolean>(false);
-  const [valir, setValir] = useState<boolean>(false);
   const router = useRouter()
-  const [isMounted, setIsMounted] = useState<boolean>(false)
   const toast = useToast()
   const { t } = useTranslation()
 
@@ -93,23 +91,6 @@ const Home: NextPage = () => {
     setLoading(false)
     return (
       <>
-        {/* <NextSeo
-          title="Evento organizador | Bodas de Hoy"
-          description="Encuentra toda la información sobre el evento, itinerario y tareas relacionadas."
-          canonical="https://testorganizador.bodasdehoy.com"
-          openGraph={{
-            url: 'https://testorganizador.bodasdehoy.com',
-            title: 'Detalles del Evento en bodasdehoy.com',
-            description: 'Descubre todos los detalles de este evento especial.',
-            images: [       // Images must be in a 1.91:1 ratio.            
-              {
-                url: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxITEBUTEhIVFhUXFxoXFxgVFRUWFRYVGhgXFxgXFxUYHSggGBolHRgXITEhJSkrLi4uFx8zODMtNygtLisBCgoKDg0OGxAQGy0mICUtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLf/AABEIAK0BIwMBIgACEQEDEQH/xAAc, // Reemplaza con la URL de tu imagen',
-                alt: 'Imagen del evento',
-              },
-            ],
-            site_name: 'Bodas de Hoy',
-          }}
-        /> */}
         {shouldRenderChild && (
           <ModalLeft state={valirQuery} set={setValirQuery}>
             {showEditEvent ?
