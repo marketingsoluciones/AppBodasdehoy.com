@@ -105,10 +105,10 @@ const Home: NextPage = () => {
         </section>
         <style jsx>
           {`
-                .section {
-                  height: calc(100vh - 144px);
-                }
-              `}
+            .section {
+              height: calc(100vh - 144px);
+            }
+          `}
         </style>
       </>
     );
