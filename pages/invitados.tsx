@@ -78,7 +78,7 @@ const Invitados: FC = () => {
           openGraph={{
             url: 'https://testorganizador.bodasdehoy.com/invitados',
             siteName: 'Bodas de Hoy',
-            title: 'Tu planificador de eventos preferido organizador.bodasdehoy.com',
+            title: 'Tu planificador de eventos preferido organizador.bodasdehoy.com | Invitados',
             description: 'Haz todas las planificaciones de tu evento perfecto con nosotros.',
             images: [       // Images must be in a 1.91:1 ratio.            
               {
