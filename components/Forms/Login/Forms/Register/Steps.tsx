@@ -19,7 +19,6 @@ export const FirstStep: FC<propsFirstStep> = ({ value, setStageRegister }) => {
   const { t } = useTranslation();
   const [select, setSelect] = useState<string>("");
   const email = getAuth()?.currentUser?.email
-  console.log(100056, email)
 
   // Tipo de dato para definir opciones
 
@@ -115,6 +114,7 @@ interface propsSecondStep {
 }
 export const SecondStep: FC<propsSecondStep> = (props) => {
   const { linkMedia, preregister, WihtProvider } = AuthContextProvider()
+  const email = getAuth()?.currentUser?.email
   return (
     <div className="gap-1 flex flex-col justify-center items-center w-full ">
       {linkMedia == null &&
@@ -125,6 +125,9 @@ export const SecondStep: FC<propsSecondStep> = (props) => {
           </h2>
         </div>
       }
+      {!!email && <span className='bg-primary px-4 py-2 rounded-full text-sm translate-y-[76px] mb-8'>
+        {email}
+      </span>}
       <FormRegister {...props} />
     </div>
   );
