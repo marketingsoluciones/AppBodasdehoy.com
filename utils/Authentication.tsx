@@ -26,7 +26,7 @@ export const parseJwt = (token) => {
 
 export const useAuthentication = () => {
   const { setLoading } = LoadingContextProvider();
-  const { config, setUser, geoInfo } = AuthContextProvider();
+  const { config, setUser, geoInfo, SetWihtProvider } = AuthContextProvider();
   const toast = useToast();
   const [updateActivity, updateActivityLink] = useActivity();
   const router = useRouter();
@@ -71,7 +71,9 @@ export const useAuthentication = () => {
     provider: async (payload: any) => {
       try {
         const asdf = await signInWithPopup(getAuth(), payload)
-
+        if (asdf) {
+          SetWihtProvider(true)
+        }
         return asdf
       } catch (error: any) {
         setLoading(false);
@@ -108,6 +110,7 @@ export const useAuthentication = () => {
       try {
         const res: UserCredential | void = await types[type](payload);
         if (res) {
+          console.log(100051)
           setLoading(true)
           const idToken = await res?.user?.getIdToken()
           const dateExpire = new Date(parseJwt(idToken).exp * 1000)
@@ -120,6 +123,7 @@ export const useAuthentication = () => {
             development: config?.development
           }).then(async (moreInfo) => {
             if (moreInfo?.status && res?.user?.email) {
+              console.log(100052)
               const token = (await res?.user?.getIdTokenResult())?.token;
               const sessionCookie = await getSessionCookie(token)
               console.log(41001, parseJwt(sessionCookie))
@@ -130,23 +134,26 @@ export const useAuthentication = () => {
               updateActivity("logged")
               updateActivityLink("logged")
             } else {
+              console.log(100053)
               if (whoYouAre && whoYouAre !== "") {
-                fetchApiBodas({
-                  query: queries.createUser,
-                  variables: {
-                    uid: res?.user?.uid,
-                    role: whoYouAre
-                  },
-                  development: config.development
-                }).then(async () => {
-                  await getSessionCookie(idToken)
-                  setUser({ ...res.user, role: [whoYouAre] });
-                  toast("success", t("Registro realizado con éxito"))
-                  updateActivity("registered")
-                  updateActivityLink("registered")
+                console.log(100054)
+                // fetchApiBodas({
+                //   query: queries.createUser,
+                //   variables: {
+                //     uid: res?.user?.uid,
+                //     role: whoYouAre
+                //   },
+                //   development: config.development
+                // }).then(async () => {
+                //   await getSessionCookie(idToken)
+                //   setUser({ ...res.user, role: [whoYouAre] });
+                //   toast("success", t("Registro realizado con éxito"))
+                //   updateActivity("registered")
+                //   updateActivityLink("registered")
 
-                })
+                // })
               } else {
+                console.log(100055)
                 setStage("register")
               }
             }

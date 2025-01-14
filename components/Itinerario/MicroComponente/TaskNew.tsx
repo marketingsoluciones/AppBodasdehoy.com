@@ -63,7 +63,8 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
     attachments: !task?.attachments ? [] : task?.attachments,
     spectatorView: task?.spectatorView,
     comments: task?.comments,
-    commentsViewers: task?.commentsViewers
+    commentsViewers: task?.commentsViewers,
+    estatus: task?.estatus
   }
 
   useEffect(() => {
@@ -117,6 +118,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
     }
   }
 
+  console.log("task", task)
   return (
     <div {...props}>
       <Formik enableReinitialize initialValues={initialValues} onSubmit={() => { }}  >
@@ -176,10 +178,10 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                     <div className="space-y-2">
                       {/* encabezado de la tarjeta */}
                       <div className="flex items-center space-x-2">
-                        <div className="bg-white cursor-pointer w-12 h-12 md:w-16 md:h-16 md:min-w-16 flex items-center justify-center rounded-full border-[1px] border-gray-300">
-                          <SelectIcon name="icon" className="" handleChange={handleBlurData} />
+                        <div className={`${values?.estatus === true ? "" : "cursor-pointer"} bg-white  w-12 h-12 md:w-16 md:h-16 md:min-w-16 flex items-center justify-center rounded-full border-[1px] border-gray-300 `}>
+                          <SelectIcon name="icon" className="" handleChange={handleBlurData} data={values} />
                         </div>
-                        <span className="text-[19px] capitalize">{values?.descripcion}</span>
+                        <span className="text-[19px] capitalize cursor-default">{values?.descripcion}</span>
                       </div>
 
                       {/*Estado*/}
@@ -197,11 +199,11 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                       <div className="flex items-center space-x-5" >
                         <div className="flex items-center space-x-1" >
                           <HiOutlineUserCircle />
-                          <span className="text-[14px] capitalize">{t('assigned')}:</span>
+                          <span className="text-[14px] capitalize cursor-default">{t('assigned')}:</span>
                         </div>
                         {
                           values?.responsable.length > 0 ?
-                            < div className="text-gray-900 flex">
+                            < div className="text-gray-900 flex ">
                               {values?.responsable?.map((elem, idx) => {
                                 const userSelect = GruposResponsablesArry.find(el => {
                                   return el.title.toLowerCase() === elem?.toLowerCase()
@@ -217,7 +219,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                                 )
                               })}
                             </div> :
-                            <span className="text-[12px] text-gray-400 capitalize cursor-default">{t('unassigned')}</span>
+                            <span className="text-[12px] text-gray-400 capitalize cursor-default ">{t('unassigned')}</span>
                         }
                       </div>
 
@@ -225,7 +227,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                       <div className="flex items-center space-x-5 relative" >
                         <div className="flex items-center space-x-1" >
                           <LiaPaperclipSolid />
-                          <span className="text-[14px] capitalize">{t('addfile')}:</span>
+                          <span className="text-[14px] capitalize cursor-default">{t('addfile')}:</span>
                         </div>
                         <div className={`text-[14px] flex items-center space-x-1 ${values.attachments.length > 0 ? "cursor-pointer" : "cursor-default"} `} onClick={() => values.attachments.length > 0 ? setShowModalAdjuntos({ state: !showModalAdjuntos.state, id: values._id }) : setShowModalAdjuntos({ state: false, id: "" })}>
                           {values.attachments.length > 0 ? "+" + values.attachments.length : <span className="text-[12px] text-gray-400 capitalize">{t('noAttachments')}</span>}
@@ -257,7 +259,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                       <div className="flex items-center space-x-5 relative">
                         <div className="flex items-center space-x-1" >
                           <MdOutlineLabel />
-                          <span className="text-[14px] capitalize">{t("labels")}:</span>
+                          <span className="text-[14px] capitalize cursor-default">{t("labels")}:</span>
                         </div>
                         <div className="flex items-center space-x-1 ">
                           {values?.tags?.length > 0 ? (
@@ -299,7 +301,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                       {["/servicios"].includes(window?.location?.pathname) && <div className="space-x-5 flex items-center">
                         <div className="flex items-center space-x-1">
                           <IoCalendarClearOutline className="pb-0.5" />
-                          <span className="text-[14px] capitalize">{t('date')}:</span>
+                          <span className="text-[14px] capitalize cursor-default">{t('date')}:</span>
                         </div>
                         <div className="flex items-center space-x-1">
                           {(values?.fecha && values?.hora) ? <>
@@ -311,7 +313,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                               {values?.hora}
                             </span>
                           </>
-                            : <span className="text-[12px] text-gray-400 capitalize cursor-default">{t('undated')}</span>
+                            : <span className="text-[12px] text-gray-400 capitalize cursor-default ">{t('undated')}</span>
                           }
                         </div>
                       </div>}
@@ -321,9 +323,9 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                         !["/servicios"].includes(window?.location?.pathname) && <div className="space-x-5 flex items-center">
                           <div className="flex items-center space-x-1">
                             <IoCalendarClearOutline className="pb-0.5" />
-                            <span className="text-[14px] capitalize">Duracion:</span>
+                            <span className="text-[14px] capitalize cursor-default">{t("duracion")}:</span>
                           </div>
-                          <div className="flex items-center space-x-1">
+                          <div className="flex items-center space-x-1 cursor-default">
                             {values?.duracion ? <span className="text-[13px]">{t("duration")} {values?.duracion} min</span> : <span className="text-[12px] text-gray-400 capitalize cursor-default">Sin duración</span>}
                           </div>
                         </div>

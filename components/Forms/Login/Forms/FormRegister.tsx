@@ -173,7 +173,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
     }
 
     /// Actualizar displayName
-    if (UserFirebase) {
+    if (UserFirebase && values?.phoneNumber) {
       updateProfile(UserFirebase, { displayName: values?.fullName })
         .then(async () => {
           const idToken = await getAuth().currentUser?.getIdToken(true)
@@ -187,11 +187,10 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
               role: values.role,
               uid: values.uid ?? UserFirebase.uid,
               email: UserFirebase?.email,
-              phoneNumber: values?.phoneNumber
+              phoneNumber: values?.phoneNumber.length < 5 ? undefined : values?.phoneNumber
             },
             development: config?.development
           }).then(async (moreInfo: any) => {
-            console.log(100066, UserFirebase)
             setUser({ ...UserFirebase, ...moreInfo, displayName: UserFirebase.reloadUserInfo.displayName });
             toast("success", t(`successfulsessionregistration`))
             updateActivity("registered")
@@ -281,7 +280,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
               type="telefono"
               autoComplete="off"
               // icon={<PhoneMobile className="absolute w-4 h-4 inset-y-0 left-4 m-auto  text-gray-500" />}
-              label={t("phonenumber")}
+              label={t("phonenumberoptional")}
               labelClass={false}
             />
           </span>

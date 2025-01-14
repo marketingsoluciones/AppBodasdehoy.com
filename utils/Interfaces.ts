@@ -71,7 +71,7 @@ export interface Task {
     spectatorView: boolean
     comments: Comment[]
     commentsViewers: string[]
-
+    estatus: boolean
 }
 
 export interface TaskDateTimeAsString extends Omit<Task, 'fecha'> {
@@ -85,7 +85,7 @@ export interface Itinerary {
     tasks: Task[]
     viewers: string[]
     tipo: string
-    estatus: string //activo, borrado
+    estatus: boolean //activo, borrado
     fecha_creacion: Date
     icon?: JSX.Element
 }

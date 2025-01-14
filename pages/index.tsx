@@ -15,6 +15,7 @@ import { useRouter } from "next/router";
 import { useToast } from "../hooks/useToast";
 import { useTranslation } from 'react-i18next';
 import { TbTableShare } from "react-icons/tb";
+import { NextSeo } from 'next-seo';
 
 const Home: NextPage = () => {
 
@@ -25,9 +26,7 @@ const Home: NextPage = () => {
   const [valirQuery, setValirQuery] = useState<boolean>(false);
   const shouldRenderChild = useDelayUnmount(valirQuery, 500);
   const [showEditEvent, setShowEditEvent] = useState<boolean>(false);
-  const [valir, setValir] = useState<boolean>(false);
   const router = useRouter()
-  const [isMounted, setIsMounted] = useState<boolean>(false)
   const toast = useToast()
   const { t } = useTranslation()
 
@@ -106,10 +105,10 @@ const Home: NextPage = () => {
         </section>
         <style jsx>
           {`
-                .section {
-                  height: calc(100vh - 144px);
-                }
-              `}
+            .section {
+              height: calc(100vh - 144px);
+            }
+          `}
         </style>
       </>
     );

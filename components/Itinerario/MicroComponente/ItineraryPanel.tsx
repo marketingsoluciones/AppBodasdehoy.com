@@ -14,7 +14,7 @@ import { ItineraryColumns } from "./ItineraryColumns";
 import ModalLeft from "../../Utils/ModalLeft";
 import { PencilEdit } from "../../icons";
 import { GoEye, GoEyeClosed, GoGitBranch } from "react-icons/go";
-import { LiaLinkSolid, LiaUserClockSolid } from "react-icons/lia";
+import { LiaLinkSolid } from "react-icons/lia";
 import { MdOutlineDeleteOutline } from "react-icons/md";
 import { OptionsSelect, Task, Itinerary } from "../../../utils/Interfaces"
 import { SubHeader } from "./SubHeader";
@@ -24,6 +24,9 @@ import { getStorage, ref, listAll, deleteObject } from "firebase/storage";
 import { SimpleDeleteConfirmation } from "./DeleteConfirmation";
 import { useRouter } from "next/router";
 import { VscFiles } from "react-icons/vsc";
+import { TbLock } from "react-icons/tb";
+import { TbLockOpen } from "react-icons/tb";
+import { useNotification } from "../../../hooks/useNotification";
 
 interface props {
     itinerario: Itinerary
@@ -38,7 +41,7 @@ interface props {
 
 export interface EditTastk {
     values?: Task
-    state: boolean
+    state: boolean | string
 }
 
 interface TaskReduce {
@@ -64,26 +67,28 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     const [modal, setModal] = useState({ state: false, title: null, values: null, itinerario: null })
     const [showModalCompartir, setShowModalCompartir] = useState({ state: false, id: null });
     const router = useRouter()
+    const notification = useNotification()
 
     const optionsItineraryButtonBox: OptionsSelect[] = [
         {
             value: "edit",
             icon: <PencilEdit className="w-5 h-5" />,
             title: "editar",
-            onClick: (values: Task) => !isAllowed() ? ht() : setShowEditTask({ values, state: !showEditTask.state }),
+            onClick: (values: Task) => !isAllowed() ? ht() : user.uid === event.usuario_id ? setShowEditTask({ values, state: !showEditTask.state }) : setShowEditTask({ values, state: ["/itinerario"].includes(window?.location?.pathname) ? values?.estatus === false || values?.estatus === null || values?.estatus === undefined ? !showEditTask.state : null : !showEditTask.state }),
             vew: "all"
         },
         {
             value: "status",
             icon: <GoEyeClosed className="w-5 h-5" />,
             getIcon: (value: boolean) => {
+
                 if (value) {
                     return <GoEyeClosed className="w-5 h-5" />
                 }
                 return <GoEye className="w-5 h-5" />
             },
             title: "estado",
-            onClick: (values: Task) => !isAllowed() ? ht() : handleAddSpectatorView(values),
+            onClick: (values: Task) => !isAllowed() ? ht() : user.uid === event.usuario_id ? handleAddSpectatorView(values) : ["/itinerario"].includes(window?.location?.pathname) ? values?.estatus === false || values?.estatus === null || values?.estatus === undefined ? handleAddSpectatorView(values) : null : handleAddSpectatorView(values),
             vew: "all"
         },
         {
@@ -103,9 +108,24 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             value: "delete",
             icon: <MdOutlineDeleteOutline className="w-5 h-5" />,
             title: "borrar",
-            onClick: (values: Task, itinerario: Itinerary) => !isAllowed() ? ht() : setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }),
+            onClick: (values: Task, itinerario: Itinerary) => !isAllowed() ? ht() : user.uid === event.usuario_id ? setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }) : ["/itinerario"].includes(window?.location?.pathname) ? values?.estatus === false || values?.estatus === null || values?.estatus === undefined ? setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }) : null : setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }),
             vew: "all"
-        }
+        },
+        {
+            value: "estatus",
+            icon: <TbLock className="w-5 h-5" />,
+            getIcon: (valor: boolean) => {
+                console.log("valor", valor)
+                if (valor) {
+                    return <TbLock className="w-5 h-5" />
+                }
+                return <TbLockOpen className="w-5 h-5" />
+            },
+            title: "estatus",
+            onClick: (values: Task) => !isAllowed() ? ht() : user.uid === event.usuario_id ? handleChangeStatus(values) : null,
+            vew: "all"
+        },
+
     ]
 
     useEffect(() => {
@@ -166,6 +186,45 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         } catch (error) {
             console.log(error)
         }
+    }
+
+    const handleChangeStatus = async (values: Task) => {
+        try {
+            fetchApiEventos({
+                query: queries.editTask,
+                variables: {
+                    eventID: event._id,
+                    itinerarioID: itinerario._id,
+                    taskID: values._id,
+                    variable: "estatus",
+                    valor: JSON.stringify(!values?.estatus)
+                },
+                domain: config.domain
+            })
+                .then(() => {
+                    const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
+                    const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === values._id)
+                    event.itinerarios_array[f1].tasks[f2].estatus = !values?.estatus
+                    setEvent({ ...event })
+                    toast("success", t("Item guardado con exito"))
+                    setShowEditTask({ state: false })
+                    const asd = event.detalles_compartidos_array.filter(elem => ["edit", "view"].includes(elem.permissions.find(el => el.title === "itinerari").value)).map(elem => elem.uid)
+                    let qwe = [...asd, event.usuario_id]
+                    const af1 = qwe.findIndex(elem => elem === user?.uid)
+                    if (af1 > -1) {
+                        qwe.splice(af1, 1)
+                    }
+                    const focused = `${window.location.pathname}?event=${event._id}&itinerary=${itinerario._id}&task=${values._id}`
+                    notification({
+                        type: "user",
+                        message: ` ha cambiado el estatus de la actividad a: ${values.estatus === false? "Desbloqueado":"Bloqueado" } | Evento ${event?.tipo}: <strong>${event?.nombre.toUpperCase()}</strong>`,
+                        uids: qwe,
+                        focused
+                    })
+                })
+        } catch (error) {
+            console.log(error)
+        }
 
     }
 
@@ -197,13 +256,12 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             console.log(1000501, error)
         }
     }
+
     useEffect(() => {
         if (router?.query?.task) {
             setSelectTask(`${router.query.task}`)
         }
     }, [router])
-
-
 
     return (
         <div className="w-full flex-1 flex flex-col overflow-y-scroll">
@@ -271,7 +329,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                         : isAllowed() ?
                             <div className="capitalize w-full h-full flex flex-col justify-center items-center bg-white rounded-lg mt-3 text-gray-500 space-y-2">
                                 <div>
-                                   {t("noEvents")}
+                                    {t("noEvents")}
                                 </div>
                                 <div>
                                     <VscFiles className="h-12 w-auto" />

@@ -18,9 +18,11 @@ const PageLogin = () => {
   useEffect(() => {
     if (!isMounted) {
       setIsMounted(true)
-      setTimeout(() => {
-        setLoading(false)
-      }, 1000);
+      if (typeof setLoading === "function") {
+        setTimeout(() => {
+          setLoading(false)
+        }, 1000);
+      }
     }
     return () => {
       if (isMounted) {

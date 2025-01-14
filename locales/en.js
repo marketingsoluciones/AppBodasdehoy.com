@@ -416,6 +416,7 @@ export const en = {
     'personwithaccess': "Authorized People",
     'phone': "PHONE",
     'phonenumber': "Phone number",
+    'phonenumberoptional': "Phone number (optional)",
     'photographyandmocialmedia': "Photos and Social Media",
     'pink': "pink",
     'Piscina': "Swimming pool",
@@ -640,9 +641,9 @@ export const en = {
     'messages': "messages",
     'noEvents': "You still do not have tasks created in this event",
     'noData': "no data visible within this task",
-    'waitOwner':"Wait for the event owner to share a task with you",
-    'noData2':"No data available in this view",
-    'waitOwner2':"Wait for the event owner to share something with you",
+    'waitOwner': "Wait for the event owner to share a task with you",
+    'noData2': "No data available in this view",
+    'waitOwner2': "Wait for the event owner to share something with you",
 
 
 

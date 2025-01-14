@@ -12,39 +12,72 @@ import i18n from "../utils/i18n"
 import { useAllowedRouter } from '../hooks/useAllowed';
 import { BlockRedirection } from '../components/Utils/BlockRedirection';
 import { useRouter } from 'next/router';
+import { NextSeo } from 'next-seo';
 
 const MyApp = ({ Component, pageProps }) => {
   const [valirBlock, setValirBlock] = useState<boolean>()
-
+  const [dataConfig, setDataConfig] = useState<any>()
   return (
     <>
+      <NextSeo
+        title={` App organizador | ${dataConfig?.development}`}
+        description="Encuentra toda la información sobre el evento, itinerario y tareas relacionadas."
+        canonical={` ${dataConfig?.pathDomain}`}
+        openGraph={{
+          url: `${dataConfig?.pathDomain}`,
+          siteName: `${dataConfig?.name}`,
+          title: ` Tu planificador de eventos preferido  ${dataConfig?.name} `,
+          description: 'Descubre todos los detalles de este evento especial.',
+          images: [       // Images must be in a 1.91:1 ratio.        
+            {
+              url: `${dataConfig?.logoDirectory.props.src}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 1200,
+            },
+            {
+              url: `${dataConfig?.logoDirectory.props.src}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 620,
+            },
+            {
+              url: `${dataConfig?.logoDirectory.props.src}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 620,
+            },
+          ],
+
+          site_name: 'Bodas de Hoy',
+        }}
+      />
       <I18nextProvider i18n={i18n}>
         <DefaultLayout>
-          <Load setValirBlock={setValirBlock} />
+          <Load setValirBlock={setValirBlock} setDataConfig={setDataConfig} />
           {valirBlock
             ? <BlockRedirection />
             : <Component {...pageProps} />
           }
         </DefaultLayout>
       </I18nextProvider>
-      <style jsx global>
-        {`
-        
-        
-      `}
-      </style>
     </>
   )
 }
 
 export default MyApp
 
-const Load = ({ setValirBlock }) => {
+const Load = ({ setValirBlock, setDataConfig }) => {
   const { config } = AuthContextProvider()
   const [isAllowedRouter] = useAllowedRouter()
   const { event } = EventContextProvider()
   const { user } = AuthContextProvider()
   const router = useRouter()
+  useEffect(() => { setDataConfig(config) }, [config])
+  console.log('config', config)
 
   useEffect(() => {
     setValirBlock(!isAllowedRouter())

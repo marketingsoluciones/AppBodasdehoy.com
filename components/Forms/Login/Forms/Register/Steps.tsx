@@ -4,6 +4,7 @@ import FormRegister from '../FormRegister';
 import { AuthContextProvider } from '../../../../../context';
 import { WhoYouAre } from './WhoYouAre';
 import { useTranslation } from 'react-i18next';
+import { getAuth } from 'firebase/auth';
 
 /*
   ### Componente FirstStep ###
@@ -17,11 +18,15 @@ interface propsFirstStep {
 export const FirstStep: FC<propsFirstStep> = ({ value, setStageRegister }) => {
   const { t } = useTranslation();
   const [select, setSelect] = useState<string>("");
+  const email = getAuth()?.currentUser?.email
 
   // Tipo de dato para definir opciones
 
   return (
     <div className="flex flex-col items-center justify-center gap-8 mb-4 mt-16">
+      {!!email && <span className='bg-primary px-4 py-2 rounded-full text-sm translate-y-3'>
+        {email}
+      </span>}
       <h2 className="text-2xl text-primary ">{t("quien eres")}</h2>
       <WhoYouAre select={select} setSelect={setSelect} />
       <button
@@ -109,6 +114,7 @@ interface propsSecondStep {
 }
 export const SecondStep: FC<propsSecondStep> = (props) => {
   const { linkMedia, preregister, WihtProvider } = AuthContextProvider()
+  const email = getAuth()?.currentUser?.email
   return (
     <div className="gap-1 flex flex-col justify-center items-center w-full ">
       {linkMedia == null &&
@@ -119,6 +125,9 @@ export const SecondStep: FC<propsSecondStep> = (props) => {
           </h2>
         </div>
       }
+      {!!email && <span className='bg-primary px-4 py-2 rounded-full text-sm translate-y-[76px] mb-8'>
+        {email}
+      </span>}
       <FormRegister {...props} />
     </div>
   );
