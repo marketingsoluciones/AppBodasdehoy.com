@@ -13,51 +13,20 @@ import { useAllowedRouter } from '../hooks/useAllowed';
 import { BlockRedirection } from '../components/Utils/BlockRedirection';
 import { useRouter } from 'next/router';
 import { NextSeo } from 'next-seo';
+import { title } from 'process';
 
 const MyApp = ({ Component, pageProps }) => {
   const [valirBlock, setValirBlock] = useState<boolean>()
   const [dataConfig, setDataConfig] = useState<any>()
+  const router = useRouter()
+  console.log(dataConfig)
+  
   return (
     <>
-      <NextSeo
-        title={` App organizador | ${dataConfig?.development}`}
-        description="Encuentra toda la información sobre el evento, itinerario y tareas relacionadas."
-        canonical={` ${dataConfig?.pathDomain}`}
-        openGraph={{
-          url: `${dataConfig?.pathDomain}`,
-          siteName: `${dataConfig?.name}`,
-          title: ` Tu planificador de eventos preferido  ${dataConfig?.name} `,
-          description: 'Descubre todos los detalles de este evento especial.',
-          images: [       // Images must be in a 1.91:1 ratio.        
-            {
-              url: `${dataConfig?.logoDirectory.props.src}`,
-              alt: 'Imagen del evento',
-              type: 'image/png',
-              width: 1200,
-              height: 1200,
-            },
-            {
-              url: `${dataConfig?.logoDirectory.props.src}`,
-              alt: 'Imagen del evento',
-              type: 'image/png',
-              width: 1200,
-              height: 620,
-            },
-            {
-              url: `${dataConfig?.logoDirectory.props.src}`,
-              alt: 'Imagen del evento',
-              type: 'image/png',
-              width: 1200,
-              height: 620,
-            },
-          ],
 
-          site_name: 'Bodas de Hoy',
-        }}
-      />
       <I18nextProvider i18n={i18n}>
         <DefaultLayout>
-          <Load setValirBlock={setValirBlock} setDataConfig={setDataConfig} />
+          <Load setValirBlock={setValirBlock} /* setDataConfig={setDataConfig} */ />
           {valirBlock
             ? <BlockRedirection />
             : <Component {...pageProps} />
@@ -70,22 +39,327 @@ const MyApp = ({ Component, pageProps }) => {
 
 export default MyApp
 
-const Load = ({ setValirBlock, setDataConfig }) => {
+const Load = ({ setValirBlock/* , setDataConfig */ }) => {
   const { config } = AuthContextProvider()
   const [isAllowedRouter] = useAllowedRouter()
   const { event } = EventContextProvider()
   const { user } = AuthContextProvider()
+  const [dataConfig, setDataConfig] = useState<any>()
+
   const router = useRouter()
-  useEffect(() => { setDataConfig(config) }, [config])
-  console.log('config', config)
+  useEffect(() => { setDataConfig(config) }, [])
 
   useEffect(() => {
     setValirBlock(!isAllowedRouter())
   }, [event, user, router])
 
-  return (<>
-    <style jsx global>
-      {`
+  const dataMetaData = [
+    {
+      ruta: "/resumen-evento",
+      metaData: {
+        title: `Todos los detalles de tus eventos en un solo lugar | ${dataConfig?.development}`,
+        description: "Encuentra toda la información sobre tu evento en nuestro organizador de eventos.",
+        canonical: `${dataConfig?.pathDomain}/resumen-evento`,
+        openGraph: {
+          url: `${dataConfig?.pathDomain}/resumen-evento`,
+          siteName: `${dataConfig?.name}`,
+          title: `Resumen del evento | ${dataConfig?.name}`,
+          description: 'Descubre todos los detalles de este evento especial.',
+          images: [
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 1200,
+            },
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 620,
+            },
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 620,
+            },
+          ],
+        }
+      }
+    },
+    {
+      ruta: "/invitados",
+      metaData: {
+        title: `Lista de invitados | ${dataConfig?.development}`,
+        description: "Encuentra toda la información sobre tus invitados en nuestro organizador de eventos.",
+        canonical: `${dataConfig?.pathDomain}/invitados`,
+        openGraph: {
+          url: `${dataConfig?.pathDomain}/invitados`,
+          siteName: `${dataConfig?.name}`,
+          title: `Lista de invitados | ${dataConfig?.name}`,
+          description: 'Encuentra toda la información sobre tus invitados en nuestro organizador de eventos...',
+          images: [
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 1200,
+            },
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 620,
+            },
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 620,
+            },
+          ],
+        }
+      }
+    },
+    {
+      ruta: "/mesas",
+      metaData: {
+        title: `Mesas | ${dataConfig?.development}`,
+        description: "Organiza las mesas de tu evento con nuestro organizador de eventos.",
+        canonical: `${dataConfig?.pathDomain}/mesas`,
+        openGraph: {
+          url: `${dataConfig?.pathDomain}/mesas`,
+          siteName: `${dataConfig?.name}`,
+          title: `Mesas | ${dataConfig?.name}`,
+          description: 'Organiza las mesas de tu evento con nuestro organizador de eventos.',
+          images: [
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 1200,
+            },
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 620,
+            },
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 620,
+            },
+          ],
+        }
+      }
+    },
+    {
+      ruta: "/lista-regalos",
+      metaData: {
+        title: `Lista de regalos | ${dataConfig?.development}`,
+        description: "Crea tu lista de regalos en nuestro organizador de eventos.",
+        canonical: `${dataConfig?.pathDomain}/lista-regalos`,
+        openGraph: {
+          url: `${dataConfig?.pathDomain}/lista-regalos`,
+          siteName: `${dataConfig?.name}`,
+          title: `Lista de regalos | ${dataConfig?.name}`,
+          description: 'Crea tu lista de regalos en nuestro organizador de eventos.',
+          images: [
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 1200,
+            },
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 620,
+            },
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 620,
+            },
+          ],
+        }
+      }
+    },
+    {
+      ruta: "/presupuesto",
+      metaData: {
+        title: `Presupuesto | ${dataConfig?.development}`,
+        description: "Organiza tu presupuesto en nuestro organizador de eventos.",
+        canonical: `${dataConfig?.pathDomain}/presupuesto`,
+        openGraph: {
+          url: `${dataConfig?.pathDomain}/presupuesto`,
+          siteName: `${dataConfig?.name}`,
+          title: `Presupuesto | ${dataConfig?.name}`,
+          description: 'Organiza tu presupuesto en nuestro organizador de eventos.',
+          images: [
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 1200,
+            },
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 620,
+            },
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 620,
+            },
+          ],
+        }
+      }
+    },
+    {
+      ruta: "/invitaciones",
+      metaData: {
+        title: `Invitaciones | ${dataConfig?.development}`,
+        description: "Crea tus invitaciones en nuestro organizador de eventos.",
+        canonical: `${dataConfig?.pathDomain}/invitaciones`,
+        openGraph: {
+          url: `${dataConfig?.pathDomain}/invitaciones`,
+          siteName: `${dataConfig?.name}`,
+          title: `Invitaciones | ${dataConfig?.name}`,
+          description: 'Crea tus invitaciones en nuestro organizador de eventos.',
+          images: [
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 1200,
+            },
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 620,
+            },
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 620,
+            },
+          ],
+        }
+      }
+    },
+    {
+      ruta: "/itinerario",
+      metaData: {
+        title: `Itinerario | ${dataConfig?.development}`,
+        description: "Crea tu itinerario en nuestro organizador de eventos.",
+        canonical: `${dataConfig?.pathDomain}/itinerario`,
+        openGraph: {
+          url: `${dataConfig?.pathDomain}/itinerario`,
+          siteName: `${dataConfig?.name}`,
+          title: `Itinerario | ${dataConfig?.name}`,
+          description: 'Crea tu itinerario en nuestro organizador de eventos.',
+          images: [
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 1200,
+            },
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 620,
+            },
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 620,
+            },
+          ],
+        }
+      }
+    },
+    {
+      ruta: "/servicios",
+      metaData: {
+        title: `Servicios | ${dataConfig?.development}`,
+        description: "Encuentra los servicios para tu evento en nuestro organizador de eventos.",
+        canonical: `${dataConfig?.pathDomain}/servicios`,
+        openGraph: {
+          url: `${dataConfig?.pathDomain}/servicios`,
+          siteName: `${dataConfig?.name}`,
+          title: `Servicios | ${dataConfig?.name}`,
+          description: 'Encuentra los servicios para tu evento en nuestro organizador de eventos.',
+          images: [
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 1200,
+            },
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 620,
+            },
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 620,
+            },
+          ],
+        }
+      }
+    },
+  ]
+  const currentMetaData = dataMetaData.find(meta => meta.ruta === router.pathname)?.metaData
+
+  return (
+    <>
+      <NextSeo
+        {...currentMetaData}
+      />
+      <style jsx global>
+        {`
       :root {
         --color-primary: ${config?.theme?.primaryColor};
         --color-secondary: ${config?.theme?.secondaryColor};
@@ -110,6 +384,7 @@ const Load = ({ setValirBlock, setDataConfig }) => {
         height: 50%;
       }
       `}
-    </style>
-  </>)
+      </style>
+    </>
+  )
 }
