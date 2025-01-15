@@ -20,39 +20,6 @@ const MyApp = ({ Component, pageProps }) => {
   const [dataConfig, setDataConfig] = useState<any>()
   const router = useRouter()
   console.log(dataConfig)
-  
-  return (
-    <>
-
-      <I18nextProvider i18n={i18n}>
-        <DefaultLayout>
-          <Load setValirBlock={setValirBlock} /* setDataConfig={setDataConfig} */ />
-          {valirBlock
-            ? <BlockRedirection />
-            : <Component {...pageProps} />
-          }
-        </DefaultLayout>
-      </I18nextProvider>
-    </>
-  )
-}
-
-export default MyApp
-
-const Load = ({ setValirBlock/* , setDataConfig */ }) => {
-  const { config } = AuthContextProvider()
-  const [isAllowedRouter] = useAllowedRouter()
-  const { event } = EventContextProvider()
-  const { user } = AuthContextProvider()
-  const [dataConfig, setDataConfig] = useState<any>()
-
-  const router = useRouter()
-  useEffect(() => { setDataConfig(config) }, [])
-
-  useEffect(() => {
-    setValirBlock(!isAllowedRouter())
-  }, [event, user, router])
-
   const dataMetaData = [
     {
       ruta: "/resumen-evento",
@@ -352,12 +319,40 @@ const Load = ({ setValirBlock/* , setDataConfig */ }) => {
     },
   ]
   const currentMetaData = dataMetaData.find(meta => meta.ruta === router.pathname)?.metaData
-
   return (
     <>
       <NextSeo
         {...currentMetaData}
       />
+      <I18nextProvider i18n={i18n}>
+        <DefaultLayout>
+          <Load setValirBlock={setValirBlock} setDataConfig={setDataConfig} />
+          {valirBlock
+            ? <BlockRedirection />
+            : <Component {...pageProps} />
+          }
+        </DefaultLayout>
+      </I18nextProvider>
+    </>
+  )
+}
+
+export default MyApp
+
+const Load = ({ setValirBlock, setDataConfig }) => {
+  const { config } = AuthContextProvider()
+  const [isAllowedRouter] = useAllowedRouter()
+  const { event } = EventContextProvider()
+  const { user } = AuthContextProvider()
+  const router = useRouter()
+  useEffect(() => { setDataConfig(config) }, [])
+
+  useEffect(() => {
+    setValirBlock(!isAllowedRouter())
+  }, [event, user, router])
+
+  return (
+    <>
       <style jsx global>
         {`
       :root {
