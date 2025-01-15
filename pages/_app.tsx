@@ -19,12 +19,11 @@ const MyApp = ({ Component, pageProps }) => {
   const [valirBlock, setValirBlock] = useState<boolean>()
   const [dataConfig, setDataConfig] = useState<any>()
   const router = useRouter()
-  console.log(dataConfig)
   const dataMetaData = [
     {
       ruta: "/resumen-evento",
       metaData: {
-        title: `Todos los detalles de tus eventos en un solo lugar | ${dataConfig?.development}`,
+        title: `Todos los detalles de tus eventos en un solo lugar | ${dataConfig?.development != undefined ? dataConfig?.development : 'tu app planificador'}`,
         description: "Encuentra toda la información sobre tu evento en nuestro organizador de eventos.",
         canonical: `${dataConfig?.pathDomain}/resumen-evento`,
         openGraph: {
@@ -61,7 +60,7 @@ const MyApp = ({ Component, pageProps }) => {
     {
       ruta: "/invitados",
       metaData: {
-        title: `Lista de invitados | ${dataConfig?.development}`,
+        title: `Lista de invitados | ${dataConfig?.development != undefined ? dataConfig?.development : 'tu app planificador'}`,
         description: "Encuentra toda la información sobre tus invitados en nuestro organizador de eventos.",
         canonical: `${dataConfig?.pathDomain}/invitados`,
         openGraph: {
@@ -98,7 +97,7 @@ const MyApp = ({ Component, pageProps }) => {
     {
       ruta: "/mesas",
       metaData: {
-        title: `Mesas | ${dataConfig?.development}`,
+        title: `Mesas | ${dataConfig?.development != undefined ? dataConfig?.development : 'tu app planificador'}`,
         description: "Organiza las mesas de tu evento con nuestro organizador de eventos.",
         canonical: `${dataConfig?.pathDomain}/mesas`,
         openGraph: {
@@ -135,7 +134,7 @@ const MyApp = ({ Component, pageProps }) => {
     {
       ruta: "/lista-regalos",
       metaData: {
-        title: `Lista de regalos | ${dataConfig?.development}`,
+        title: `Lista de regalos | ${dataConfig?.development != undefined ? dataConfig?.development : 'tu app planificador'}`,
         description: "Crea tu lista de regalos en nuestro organizador de eventos.",
         canonical: `${dataConfig?.pathDomain}/lista-regalos`,
         openGraph: {
@@ -172,7 +171,7 @@ const MyApp = ({ Component, pageProps }) => {
     {
       ruta: "/presupuesto",
       metaData: {
-        title: `Presupuesto | ${dataConfig?.development}`,
+        title: `Presupuesto | ${dataConfig?.development != undefined ? dataConfig?.development : 'tu app planificador'}`,
         description: "Organiza tu presupuesto en nuestro organizador de eventos.",
         canonical: `${dataConfig?.pathDomain}/presupuesto`,
         openGraph: {
@@ -209,7 +208,7 @@ const MyApp = ({ Component, pageProps }) => {
     {
       ruta: "/invitaciones",
       metaData: {
-        title: `Invitaciones | ${dataConfig?.development}`,
+        title: `Invitaciones | ${dataConfig?.development != undefined ? dataConfig?.development : 'tu app planificador'}`,
         description: "Crea tus invitaciones en nuestro organizador de eventos.",
         canonical: `${dataConfig?.pathDomain}/invitaciones`,
         openGraph: {
@@ -246,7 +245,7 @@ const MyApp = ({ Component, pageProps }) => {
     {
       ruta: "/itinerario",
       metaData: {
-        title: `Itinerario | ${dataConfig?.development}`,
+        title: `Itinerario | ${dataConfig?.development != undefined ? dataConfig?.development : 'tu app planificador'}`,
         description: "Crea tu itinerario en nuestro organizador de eventos.",
         canonical: `${dataConfig?.pathDomain}/itinerario`,
         openGraph: {
@@ -283,7 +282,44 @@ const MyApp = ({ Component, pageProps }) => {
     {
       ruta: "/servicios",
       metaData: {
-        title: `Servicios | ${dataConfig?.development}`,
+        title: `Servicios | ${dataConfig?.development != undefined ? dataConfig?.development : 'tu app planificador'}`,
+        description: "Encuentra los servicios para tu evento en nuestro organizador de eventos.",
+        canonical: `${dataConfig?.pathDomain}/servicios`,
+        openGraph: {
+          url: `${dataConfig?.pathDomain}/servicios`,
+          siteName: `${dataConfig?.name}`,
+          title: `Servicios | ${dataConfig?.name}`,
+          description: 'Encuentra los servicios para tu evento en nuestro organizador de eventos.',
+          images: [
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 1200,
+            },
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 620,
+            },
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 620,
+            },
+          ],
+        }
+      }
+    },
+    {
+      ruta: "/",
+      metaData: {
+        title: `Tu organizador de eventos favoritos, todo en uno| ${dataConfig?.development != undefined ? dataConfig?.development : 'tu app planificador'}`,
         description: "Encuentra los servicios para tu evento en nuestro organizador de eventos.",
         canonical: `${dataConfig?.pathDomain}/servicios`,
         openGraph: {
