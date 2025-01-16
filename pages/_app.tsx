@@ -13,7 +13,6 @@ import { useAllowedRouter } from '../hooks/useAllowed';
 import { BlockRedirection } from '../components/Utils/BlockRedirection';
 import { useRouter } from 'next/router';
 import { NextSeo } from 'next-seo';
-import { title } from 'process';
 
 const MyApp = ({ Component, pageProps }) => {
   const [valirBlock, setValirBlock] = useState<boolean>()

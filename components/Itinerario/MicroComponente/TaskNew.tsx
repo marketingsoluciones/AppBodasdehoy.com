@@ -25,7 +25,7 @@ import { LiaPaperclipSolid } from "react-icons/lia";
 import { MdOutlineLabel } from "react-icons/md";
 import { RiNotification2Fill } from "react-icons/ri";
 import { GoChevronDown } from "react-icons/go";
-
+import { LuClock } from "react-icons/lu";
 
 
 
@@ -118,19 +118,19 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
     }
   }
 
-  console.log("task", task)
   return (
     <div {...props}>
       <Formik enableReinitialize initialValues={initialValues} onSubmit={() => { }}  >
         {({ values }) => {
+          console.log("sdasdasd",values)
           return (
             <Form className="w-full ">
               <div className={` flex w-full justify-center  items-stretch text-gray-800 ${["/servicios"].includes(window?.location?.pathname) ? "" : "2xl:px-36"} `} {...props} >
                 {view === "schema" && values.spectatorView &&
                   <>
                     <div className={`flex w-[55%] md:w-[45%] lg:w-[40%] p-2 items-start justify-start border-t-[1px] border-r-[1px] border-primary border-dotted relative`}>
-                      <div className=" w-12 h-12 md:w-16 md:h-16 md:min-w-16 flex items-center justify-center cursor-pointer">
-                        <SelectIcon name="icon" className=" scale-[120%] -translate-y-1 cursor-pointer" handleChange={handleBlurData} />
+                      <div className=" w-12 h-12 md:w-16 md:h-16 md:min-w-16 flex items-center justify-center ">
+                        <SelectIcon name="icon" className=" scale-[120%] -translate-y-1 " handleChange={handleBlurData} />
                       </div>
                       <div className="flex-1">
                         <div className=" inline-flex flex-col justify-start items-start">
@@ -261,16 +261,27 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                           <MdOutlineLabel />
                           <span className="text-[14px] capitalize cursor-default">{t("labels")}:</span>
                         </div>
-                        <div className="flex items-center space-x-1 ">
+                        <div className="flex items-center md:w-[350px]">
                           {values?.tags?.length > 0 ? (
-                            <span className="inline-flex items-center border-[0.5px] border-gray-400 px-1 py-0.5 rounded-md text-[12px]">
-                              {values.tags[0]}
-                            </span>
+                            <>
+                              <div className="hidden md:block space-x-1 ">
+                                {values.tags.map((elem, idx) => (
+                                  <span key={idx} className="inline-flex items-center border-[0.5px] border-gray-400 px-1 py-0.5 rounded-md text-[12px]">
+                                    {elem}
+                                  </span>
+                                ))}
+                              </div>
+                              <div className="md:hidden">
+                                <span className="inline-flex items-center border-[0.5px] border-gray-400 px-1 py-0.5 rounded-md text-[12px] cursor-pointer">
+                                  {values.tags[0]}
+                                </span>
+                              </div>
+                            </>
                           ) : (<span className="text-[12px] text-gray-400 capitalize cursor-default">{t('noLabels')}</span>)}
                           {values?.tags?.length > 1 && (
                             <span
                               onClick={() => setShowTagsModal(true)}
-                              className="inline-flex items-center border-[0.5px] border-gray-400 px-1 py-0.5 rounded-md text-[12px] cursor-pointer"
+                              className="inline-flex items-center border-[0.5px] border-gray-400 px-1 py-0.5 rounded-md text-[12px] cursor-pointer md:hidden"
                             >
                               +{values.tags.length - 1}
                               <GoChevronDown className={` w-[14px] h-auto transition-all   ${showTagsModal && "rotate-180"}  `} />
@@ -316,7 +327,21 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                             : <span className="text-[12px] text-gray-400 capitalize cursor-default ">{t('undated')}</span>
                           }
                         </div>
-                      </div>}
+                      </div>
+                      }
+
+                      {/* Hora */}
+                      {
+                        !["/servicios"].includes(window?.location?.pathname) && <div className="space-x-5 flex items-center">
+                          <div className="flex items-center space-x-1">
+                            <LuClock className="pb-0.5" />
+                            <span className="text-[14px] capitalize cursor-default">{t("hour")}:</span>
+                          </div>
+                          <div className="flex items-center space-x-1 cursor-default">
+                            {values?.hora ? <span className="text-[13px] capitalize">{t("activityTime")} {values?.hora}</span> : <span className="text-[12px] text-gray-400 capitalize cursor-default">Sin hora de la actividad</span>}
+                          </div>
+                        </div>
+                      }
 
                       {/* duración */}
                       {
@@ -326,10 +351,12 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                             <span className="text-[14px] capitalize cursor-default">{t("duracion")}:</span>
                           </div>
                           <div className="flex items-center space-x-1 cursor-default">
-                            {values?.duracion ? <span className="text-[13px]">{t("duration")} {values?.duracion} min</span> : <span className="text-[12px] text-gray-400 capitalize cursor-default">Sin duración</span>}
+                            {values?.duracion ? <span className="text-[13px] capitalize"> {values?.duracion} min</span> : <span className="text-[12px] text-gray-400 capitalize cursor-default">Sin duración</span>}
                           </div>
                         </div>
                       }
+
+
 
                       {/* block de texto */}
                       <div className={`${["/itinerario"].includes(window?.location?.pathname) ? "h-[100px]" : "md:h-[183px] h-[100px]"} border-[1px] border-gray-300 rounded-lg pt-2 pb-3 px-2  overflow-auto  md:w-full `}>

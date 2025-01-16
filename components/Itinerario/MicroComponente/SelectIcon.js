@@ -5,6 +5,7 @@ import { IconList } from "./IconList";
 import { useEffect, useState } from "react";
 import { useAllowed } from "../../../hooks/useAllowed";
 import { AuthContextProvider, EventContextProvider } from "../../../context";
+import { useRouter } from "next/router";
 
 const IconArray = [
     {
@@ -96,7 +97,8 @@ export const SelectIcon = ({ handleChange, ...props }) => {
     const [selectIcon, setSelectIcon] = useState()
     const [openIcon, setOpenIcon] = useState(false)
     const [isAllowed, ht] = useAllowed()
-    console.log("props", props?.data)
+    const r = useRouter()
+
     useEffect(() => {
         if (selectIcon) {
             /* helpers?.setValue(selectIcon) */
@@ -107,19 +109,21 @@ export const SelectIcon = ({ handleChange, ...props }) => {
     return (
         <>
             {field?.value
-                ? <div className='w-full h-full cursor-pointer. flex justify-center '
+                ? <div className={`${r.pathname.split('/').slice(0, 3)[1] === "event"?"":"cursor-pointer"} w-full h-full flex justify-center `}
                     onClick={() => {
-                        !isAllowed() ? ht() :
-                            ["/itinerario"].includes(window?.location?.pathname) ? user.uid === event.usuario_id ?
-                                setOpenIcon(!openIcon) : props?.data?.estatus === false || props?.data?.estatus === null || props?.data?.estatus === undefined ? setOpenIcon(!openIcon) : null : setOpenIcon(!openIcon)
+                        r.pathname.split('/').slice(0, 3)[1] === "event" ? null :
+                            !isAllowed() ? ht() :
+                                ["/itinerario"].includes(window?.location?.pathname) ? user.uid === event.usuario_id ?
+                                    setOpenIcon(!openIcon) : props?.data?.estatus === false || props?.data?.estatus === null || props?.data?.estatus === undefined ? setOpenIcon(!openIcon) : null : setOpenIcon(!openIcon)
 
                     }} {...props}>
                     {IconArray.find((elem) => elem?.title === field?.value).icon}
                 </div >
-                : <div className='w-full h-full cursor-pointer. flex items-center justify-center text-gray-600 hover:text-gray-800' onClick={() => {
-                    !isAllowed() ? ht() :
-                        ["/itinerario"].includes(window?.location?.pathname) ? user.uid === event.usuario_id ?
-                            setOpenIcon(!openIcon) : props?.data?.estatus === false || props?.data?.estatus === null || props?.data?.estatus === undefined ? setOpenIcon(!openIcon) : null : setOpenIcon(!openIcon)
+                : <div className={` ${r.pathname.split('/').slice(0, 3)[1] === "event"?"":"cursor-pointer"} w-full h-full flex items-center justify-center text-gray-600 hover:text-gray-800 `} onClick={() => {
+                    r.pathname.split('/').slice(0, 3)[1] === "event" ? null :
+                        !isAllowed() ? ht() :
+                            ["/itinerario"].includes(window?.location?.pathname) ? user.uid === event.usuario_id ?
+                                setOpenIcon(!openIcon) : props?.data?.estatus === false || props?.data?.estatus === null || props?.data?.estatus === undefined ? setOpenIcon(!openIcon) : null : setOpenIcon(!openIcon)
 
                 }}>
                     <AddIcon />
