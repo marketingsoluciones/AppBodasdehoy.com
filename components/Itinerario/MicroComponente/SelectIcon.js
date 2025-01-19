@@ -97,6 +97,7 @@ export const SelectIcon = ({ handleChange, ...props }) => {
     const [selectIcon, setSelectIcon] = useState()
     const [openIcon, setOpenIcon] = useState(false)
     const [isAllowed, ht] = useAllowed()
+    const r = useRouter()
 
     useEffect(() => {
         if (selectIcon) {
