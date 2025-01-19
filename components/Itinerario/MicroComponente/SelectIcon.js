@@ -97,7 +97,6 @@ export const SelectIcon = ({ handleChange, ...props }) => {
     const [selectIcon, setSelectIcon] = useState()
     const [openIcon, setOpenIcon] = useState(false)
     const [isAllowed, ht] = useAllowed()
-    const r = useRouter()
 
     useEffect(() => {
         if (selectIcon) {
@@ -109,7 +108,7 @@ export const SelectIcon = ({ handleChange, ...props }) => {
     return (
         <>
             {field?.value
-                ? <div className={`${r.pathname.split('/').slice(0, 3)[1] === "event"?"":"cursor-pointer"} w-full h-full flex justify-center `}
+                ? <div className={`${r.pathname.split('/').slice(0, 3)[1] === "event" ? "" : "cursor-pointer"} w-full h-full flex justify-center `}
                     onClick={() => {
                         r.pathname.split('/').slice(0, 3)[1] === "event" ? null :
                             !isAllowed() ? ht() :
@@ -119,7 +118,7 @@ export const SelectIcon = ({ handleChange, ...props }) => {
                     }} {...props}>
                     {IconArray.find((elem) => elem?.title === field?.value).icon}
                 </div >
-                : <div className={` ${r.pathname.split('/').slice(0, 3)[1] === "event"?"":"cursor-pointer"} w-full h-full flex items-center justify-center text-gray-600 hover:text-gray-800 `} onClick={() => {
+                : <div className={` ${r.pathname.split('/').slice(0, 3)[1] === "event" ? "" : "cursor-pointer"} w-full h-full flex items-center justify-center text-gray-600 hover:text-gray-800 `} onClick={() => {
                     r.pathname.split('/').slice(0, 3)[1] === "event" ? null :
                         !isAllowed() ? ht() :
                             ["/itinerario"].includes(window?.location?.pathname) ? user.uid === event.usuario_id ?

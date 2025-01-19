@@ -386,10 +386,10 @@ const Load = ({ setValirBlock, setDataConfig }) => {
     setValirBlock(!isAllowedRouter())
   }, [event, user, router])
 
-  return (
-    <>
-      <style jsx global>
-        {`
+  return (<>
+    <style jsx global>
+      {`
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap');
       :root {
         --color-primary: ${config?.theme?.primaryColor};
         --color-secondary: ${config?.theme?.secondaryColor};
@@ -413,8 +413,11 @@ const Load = ({ setValirBlock, setDataConfig }) => {
         border-radius: 6px;
         height: 50%;
       }
+      .my-emoji {
+        font-family: Montserrat, 'Noto Color Emoji';
+        }
       `}
-      </style>
-    </>
+    </style>
+  </>
   )
 }

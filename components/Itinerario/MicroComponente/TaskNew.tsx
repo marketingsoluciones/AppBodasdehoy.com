@@ -1,5 +1,5 @@
 import { Form, Formik } from "formik";
-import { FC, HTMLAttributes, useEffect, useState } from "react";
+import { FC, HTMLAttributes, useEffect, useRef, useState } from "react";
 import { SelectIcon, GruposResponsablesArry } from ".";
 import { EventContextProvider } from "../../../context/EventContext";
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
@@ -14,7 +14,7 @@ import { Interweave } from "interweave";
 import { HashtagMatcher, UrlMatcher } from "interweave-autolink";
 import 'react-quill/dist/quill.snow.css'
 import { ImageAvatar } from "../../Utils/ImageAvatar";
-import { InputComments, InputComments2 } from "./InputComments"
+import { InputComments } from "./InputComments"
 import { ListComments } from "./ListComments"
 import ClickAwayListener from "react-click-away-listener";
 import { CopiarLink } from "../../Utils/Compartir";
@@ -27,8 +27,6 @@ import { RiNotification2Fill } from "react-icons/ri";
 import { GoChevronDown } from "react-icons/go";
 import { LuClock } from "react-icons/lu";
 
-
-
 interface props extends HTMLAttributes<HTMLDivElement> {
   itinerario: Itinerary
   task: Task
@@ -40,6 +38,7 @@ interface props extends HTMLAttributes<HTMLDivElement> {
 }
 
 export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryButtonBox, isSelect, showModalCompartir, setShowModalCompartir, ...props }) => {
+  const divRef = useRef(null);
   const { config, geoInfo, user } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
   const { t } = useTranslation();
@@ -47,6 +46,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
   const link = `${window.location.origin}/services/servicios-${event?._id}-${itinerario?._id}-${task?._id}`
   const [viewComments, setViewComments] = useState(true)
   const [comments, setComments] = useState<Comment[]>()
+  const [previousCountComments, setPreviousCountComments] = useState<number>()
   const router = useRouter()
   const [showModalAdjuntos, setShowModalAdjuntos] = useState({ state: false, id: "" })
   const [showTagsModal, setShowTagsModal] = useState(false)
@@ -71,6 +71,16 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
     const comments = task?.comments?.slice(!viewComments ? -3 : 0).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     setComments(comments)
   }, [viewComments, task?.comments, event])
+
+  useEffect(() => {
+    // Realiza scroll al final del div cuando el componente se monta 
+    if (comments?.length > previousCountComments) {
+      if (divRef.current) {
+        divRef.current.scroll({ top: divRef.current.scrollHeight, behavior: 'smooth' });
+      }
+    }
+    setPreviousCountComments(comments?.length ?? 0)
+  }, [comments]);
 
   const handleBlurData = async (variable, valor) => {
     try {
@@ -382,14 +392,14 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                           </div>
                         </div>
                         <div className='border-gray-300 border-[1px] rounded-lg py-2'>
-                          <div className='w-[calc(100%)] h-[260px] flex flex-col-reverse rounded-lg overflow-auto break-words'>
+                          <div ref={divRef} className='w-[calc(100%)] h-[260px] flex flex-col-reverse rounded-lg overflow-auto break-words'>
                             {comments?.map((elem, idx) => {
                               return (
                                 <ListComments id={elem._id} key={idx} itinerario={itinerario} task={task} item={elem} />
                               )
                             })}
                           </div>
-                          < InputComments2 itinerario={itinerario} task={task} />
+                          < InputComments itinerario={itinerario} task={task} />
                         </div>
                       </div>}
                       <div className={`${["/itinerario"].includes(window?.location?.pathname) && "pt-3"} flex justify-between`}>
@@ -406,110 +416,3 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
     </div >
   )
 }
-
-/*  <div className={`${isSelect ? "border-gray-300" : "border-gray-100"} border-2 box-content bg-gray-100 w-full rounded-lg mx-2 my-1 flex p-2 relative`}>
-                     {
-                       showModalCompartir?.state && showModalCompartir.id === values._id && <ClickAwayListener onClickAway={() => setShowModalCompartir(false)}>
-                         <ul className={` absolute transition shadow-lg rounded-lg duration-500 bottom-2 right-2 w-[300px] z-50 `}>
-                           <li className="flex items-center py-4 px-6 font-display text-sm text-gray-500 bg-base transition w-full capitalize">
-                             <CopiarLink link={link} />
-                           </li>
-                         </ul>
-                       </ClickAwayListener>
-                     }
- 
-                     <div className="bg-white cursor-pointer w-12 h-12 md:w-16 md:h-16 md:min-w-16 flex items-center justify-center rounded-full border-[1px] border-gray-300">
-                       <SelectIcon name="icon" className="" handleChange={handleBlurData} />
-                     </div>
-                     <div className="flex-1 flex flex-col text-[12px] pl-1 md:pl-2">
-                       {!["/itinerario"].includes(window?.location?.pathname) && <span className="font-bold">{values?.fecha.toLocaleString()}</span>}
-                       <span className={`${["/itinerario"].includes(window?.location?.pathname) && "text-[15px]"} font-bold`}>{values?.hora}</span>
-                       {values?.duracion && <span>{t("duration")} {values?.duracion} min</span>}
-                       <span className="text-[19px]">{values?.descripcion}</span>
-                       {!!values?.tips && <Interweave
-                         className="text-xs text-justify transition-all m-1 p-1 bg-white"
-                         content={values.tips}
-                         matchers={[new UrlMatcher('url'), new HashtagMatcher('hashtag')]}
-                       />}
-                       <div>
-                         <span>
-                           {t("responsible")}:
-                         </span>
-                         <div className="text-gray-900 flex">
-                           {values?.responsable?.map((elem, idx) => {
-                             const userSelect = GruposResponsablesArry.find(el => {
-                               return el.title.toLowerCase() === elem?.toLowerCase()
-                             }) ?? [user, event?.detalles_usuario_id, ...event.detalles_compartidos_array].find(el => {
-                               return el?.displayName?.toLowerCase() === elem?.toLowerCase()
-                             })
-                             return (
-                               <span key={idx} className="inline-flex items-center space-x-0.5 mr-1.5">
-                                 <div className="w-6 h-6 rounded-full border-[1px] border-gray-400">
-                                   <ImageAvatar user={userSelect} />
-                                 </div>
-                                 <span className={`flex-1 ${!userSelect && "line-through"}`}>
-                                   {elem}
-                                 </span>
-                               </span>
-                             )
-                           }
-                           )}
-                         </div>
-                       </div>
-                       <div className="mb-2">
-                         <span>
-                           {t("addfile")}:
-                         </span>
-                         <p className="bg-white p-2 text-gray-900 leading-[1.3] space-y-3 md:space-y-2">
-                           {values?.attachments?.map((elem, idx) =>
-                             !!elem._id && <span key={idx} onClick={() => { handleDownload(elem) }} className="inline-flex mr-2 md:mr-3 items-center border-b-[1px] hover:font-bold border-gray-500 cursor-pointer">
-                               <span>
-                                 {elem.name}
-                               </span>
-                               <CgSoftwareDownload className="w-4 h-auto" />
-                             </span>
-                           )}
-                         </p>
-                       </div>
-                       <div className="mb-2">
-                         <span>
-                           {t("labels")}:
-                         </span>
-                         <p className="bg-white p-2 text-gray-900 leading-[1] space-y-1">
-                           {values?.tags?.map((elem, idx) =>
-                             <span key={idx} onClick={() => { handleDownload(elem) }} className="inline-flex mr-2 md:mr-3 items-center border-[1px] border-gray-400 px-1 pt-[1px] pb-[2px] rounded-md">
-                               {elem}
-                             </span>
-                           )}
-                         </p>
-                       </div>
-                       {!["/itinerario"].includes(window?.location?.pathname) && <div className="mb-2">
-                         <span>
-                           {t("comments")}:
-                         </span>
-                         <div className='border-gray-300 border-[1px] rounded-lg py-2'>
- 
-                           < InputComments itinerario={itinerario} task={task} />
- 
-                           <div className='w-[calc(100%)] flex flex-col rounded-lg overflow-auto'>
-                             {comments?.map((elem, idx) => {
-                               return (
-                                 <ListComments id={elem._id} key={idx} itinerario={itinerario} task={task} item={elem} />
-                               )
-                             })}
-                           </div>
-                         </div>
-                       </div>}
-                       <div className="flex justify-between">
-                         {
-                           task?.comments?.length > 3 &&
-                           <div onClick={() => setViewComments(!viewComments)} className=" text-blue-400 capitalize cursor-pointer hover:underline decoration-1">
-                             {viewComments ? "ver menos" : "ver mas"}
-                           </div>
-                         }
-                         <div className="flex-1">
-                           <ItineraryButtonBox optionsItineraryButtonBox={optionsItineraryButtonBox} values={task} itinerario={itinerario} />
-                         </div>
-                       </div>
-                     </div>
-                   </div> */
