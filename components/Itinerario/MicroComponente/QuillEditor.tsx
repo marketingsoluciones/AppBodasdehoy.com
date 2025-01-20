@@ -149,8 +149,6 @@ export const QuillEditor: FC<props> = ({ value, setValue }) => {
     }
     const newCP = cursorPosition + 2
     setCursorPosition(newCP)
-
-    setShowPicker(false);
   };
 
   useEffect(() => {
@@ -186,12 +184,12 @@ export const QuillEditor: FC<props> = ({ value, setValue }) => {
       </div>
 
       <div className='flex w-full items-center space-x-2'>
-        <div className='w-16 h-8 flex items-center justify-between  px-1'>
-          <div className='flex w-[22px] h-[22px] justify-center items-center'>
+        <div className='flex'>
+          <div className='flex justify-center items-center'>
             <input type="file" accept='image/*' onChange={handleFileChange} id="file-upload-img" className="hidden" multiple />
             <input type="file" onChange={handleFileChange} id="file-upload-doc" className="hidden" multiple />
             <ClickAwayListener onClickAway={() => { setAttachment(false) }}>
-              <div className='w-full'>
+              <div className='w-relative cursor-pointer w-10 h-10 flex justify-center items-center hover:bg-gray-100 rounded-full'>
                 <div className='relative -translate-y-[15px]'>
                   {attachment && (
                     <div className='bg-white w-40 absolute z-50 -translate-y-full -translate-x-4 border-gray-200 border-[1px] rounded-md'>
@@ -223,12 +221,14 @@ export const QuillEditor: FC<props> = ({ value, setValue }) => {
               </div>
             </ClickAwayListener>
           </div>
-          <div className='flex w-[22px] h-[22px] justify-center items-center'>
+          <div className='flex justify-center items-center'>
             <ClickAwayListener onClickAway={() => { setShowPicker(false) }}>
               <div className='w-full relative cursor-pointer'>
-                <GrEmoji onClick={() => {
-                  setShowPicker(!showPicker)
-                }} className='w-full h-full' />
+                <div className='w-10 h-10 flex justify-center items-center hover:bg-gray-100 rounded-full'>
+                  <GrEmoji onClick={() => {
+                    setShowPicker(!showPicker)
+                  }} className='w-6 h-6' />
+                </div>
                 {showPicker && (
                   <div className='absolute -translate-x-[110px] -translate-y-[418px] scale-[70%] z-50'>
                     <Picker
