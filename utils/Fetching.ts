@@ -339,6 +339,41 @@ export const queries = {
       tipo
     }
   }`,
+  duplicateItinerario: `mutation ($eventID:String, $itinerarioID:String, $eventDestinationID:String){
+    duplicateItinerario(eventID:$eventID, itinerarioID:$itinerarioID, eventDestinationID:$eventDestinationID){
+      _id
+      title
+      tasks{
+        _id
+        fecha
+        hora
+        icon
+        descripcion
+        responsable
+        duracion
+        tags
+        tips
+        estatus
+        attachments{
+          _id
+          name
+          url
+          size
+          createdAt
+          updatedAt
+        }
+        spectatorView
+        comments{
+          _id
+          comment
+          uid
+          createdAt
+        }
+        commentsViewers
+      }
+      tipo
+    }
+  }`,
   generatePdf: `
   mutation  ( $url:String, $nameFile:String, ) {
     generatePdf ( url:$url,  nameFile:$nameFile)

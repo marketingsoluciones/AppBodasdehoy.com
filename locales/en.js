@@ -646,8 +646,12 @@ export const en = {
     'waitOwner2': "Wait for the event owner to share something with you",
     'hour': "hour",
     'activityTime': "activity time",
-
-
+    'duplicar': "duplicate",
+    'duplicarServicio': "duplicate service",
+    'aDuplicar': "to duplicate",
+    'duplicarEn': "duplicate in",
+    'seleccionaOpcion': "select an option",
+    'successful': "successful",
 
 
 
