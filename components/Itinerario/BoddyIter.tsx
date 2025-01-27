@@ -171,7 +171,7 @@ const ModalDupliucate = ({ setModalDuplicate, modalDuplicate }) => {
     const router = useRouter()
     const cleanedPath = router.asPath.replace(/\//g, '');
     const { event, setEvent } = EventContextProvider()
-    const { eventsGroup } = EventsGroupContextProvider();
+    const { eventsGroup, setEventsGroup } = EventsGroupContextProvider();
     const { config, user } = AuthContextProvider()
     const [filteredEventsGroup, setFilteredEventsGroup] = useState([])
     const [selectedOption, setSelectedOption] = useState('');
@@ -186,7 +186,7 @@ const ModalDupliucate = ({ setModalDuplicate, modalDuplicate }) => {
         ))
     }, [eventsGroup])
 
-    const handleCreateItinerario = async () => {
+    const handleDuplicateItinerario = async () => {
         const result = await fetchApiEventos({
             query: queries.duplicateItinerario,
             variables: {
@@ -196,13 +196,19 @@ const ModalDupliucate = ({ setModalDuplicate, modalDuplicate }) => {
             },
             domain: config.domain
         })
-
+        if(evento._id === event._id){
+            setEvent(old => {
+                old.itinerarios_array.push(result as Itinerary)
+                return {...old}
+            })
+        }
+        if(evento._id !== event._id){
+            const f1 = eventsGroup.findIndex(elem => elem._id === evento._id)
+            eventsGroup[f1].itinerarios_array.push(result as Itinerary)
+            setEventsGroup([...eventsGroup])
+        }
         setModalDuplicate({ state: false })
         toast("success", t("successful"));
-        //event.itinerarios_array.push(result as Itinerary)
-        //setItinerario({ ...result as Itinerary })
-        //setEvent({ ...event })
-        //setEditTitle(true)
     }
 
     const options = filteredEventsGroup?.map((elem) => ({
@@ -240,13 +246,13 @@ const ModalDupliucate = ({ setModalDuplicate, modalDuplicate }) => {
                         options={options}
                         onChange={handleSelectChangee}
                         classNamePrefix="react-select"
-                        placeholder={t("seleccionaOpcion")+"..."}
+                        placeholder={t("seleccionaOpcion") + "..."}
                     />
                 </div>
             </div>
             <div className="flex justify-end gap-4">
                 <button onClick={() => { setModalDuplicate({ state: false }) }} className="bg-gray-400 text-white rounded-md py-2 px-4 mt-4">{t("cancel")}</button>
-                <button onClick={() => handleCreateItinerario()} className="bg-primary text-white rounded-md py-2 px-4 mt-4">{t("duplicar")}</button>
+                <button onClick={() => handleDuplicateItinerario()} className="bg-primary text-white rounded-md py-2 px-4 mt-4">{t("duplicar")}</button>
             </div>
         </div>
     )
