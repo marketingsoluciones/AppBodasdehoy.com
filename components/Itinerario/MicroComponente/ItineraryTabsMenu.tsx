@@ -1,19 +1,16 @@
-import { Dispatch, FC, SetStateAction, useEffect, useRef, useState } from "react"
-import { DotsOpcionesIcon, PencilEdit, PlusIcon } from "../../icons"
-import { Itinerary, OptionsSelect, Task } from "../../../utils/Interfaces"
-import { fetchApiEventos, queries } from "../../../utils/Fetching"
-import { AuthContextProvider, EventContextProvider } from "../../../context"
-import { ViewItinerary } from "../../../pages/invitados"
-import { SelectModeView } from "../../Utils/SelectModeView"
+import { Dispatch, FC, SetStateAction,useState } from "react"
+import { DotsOpcionesIcon, PencilEdit} from "../../icons"
+import { Itinerary, OptionsSelect } from "../../../utils/Interfaces"
 import ClickAwayListener from "react-click-away-listener"
 import { useAllowed } from "../../../hooks/useAllowed"
 import { useTranslation } from "react-i18next"
 import { useToast } from "../../../hooks/useToast"
-import { getStorage } from "firebase/storage"
 import { IoShareSocial } from "react-icons/io5"
 import { MdOutlineDeleteOutline } from "react-icons/md"
 import { CgInfo } from "react-icons/cg"
 import { AddUserToServices } from "../../Utils/Compartir/AddUserToServices"
+import { LuCopy } from "react-icons/lu";
+
 
 interface props {
     itinerario: Itinerary
@@ -21,9 +18,10 @@ interface props {
     handleDeleteItinerario: any
     setTitle: Dispatch<SetStateAction<string>>
     setEditTitle: any
+    setModalDuplicate: any
 }
 
-export const ItineraryTabsMenu: FC<props> = ({ itinerario, item, handleDeleteItinerario, setEditTitle, setTitle }) => {
+export const ItineraryTabsMenu: FC<props> = ({ setModalDuplicate, itinerario, item, handleDeleteItinerario, setEditTitle, setTitle }) => {
     const [showMenu, setShowMenu] = useState<boolean>()
     const [showAddUsertoServices, setShowAddUsertoServices] = useState<boolean>()
     const [value, setValue] = useState<string>()
@@ -48,6 +46,14 @@ export const ItineraryTabsMenu: FC<props> = ({ itinerario, item, handleDeleteIti
                 setShowAddUsertoServices(true)
             },
             icon: <IoShareSocial className="w-5 h-5" />
+        },
+        {
+            title: t("duplicar"),
+            value: "Diplicar",
+            onClick: () => {
+                setModalDuplicate({ state: true, data: item })
+            },
+            icon: <LuCopy className="w-5 h-5" />
         },
         {
             title: t("Borrar"),

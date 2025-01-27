@@ -644,9 +644,14 @@ export const en = {
     'waitOwner': "Wait for the event owner to share a task with you",
     'noData2': "No data available in this view",
     'waitOwner2': "Wait for the event owner to share something with you",
-
-
-
+    'hour': "hour",
+    'activityTime': "activity time",
+    'duplicar': "duplicate",
+    'duplicarServicio': "duplicate service",
+    'aDuplicar': "to duplicate",
+    'duplicarEn': "duplicate in",
+    'seleccionaOpcion': "select an option",
+    'successful': "successful",
 
 
 

@@ -115,7 +115,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             value: "estatus",
             icon: <TbLock className="w-5 h-5" />,
             getIcon: (valor: boolean) => {
-                console.log("valor", valor)
                 if (valor) {
                     return <TbLock className="w-5 h-5" />
                 }
@@ -217,7 +216,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                     const focused = `${window.location.pathname}?event=${event._id}&itinerary=${itinerario._id}&task=${values._id}`
                     notification({
                         type: "user",
-                        message: ` ha cambiado el estatus de la actividad a: ${values.estatus === false? "Desbloqueado":"Bloqueado" } | Evento ${event?.tipo}: <strong>${event?.nombre.toUpperCase()}</strong>`,
+                        message: ` ha cambiado el estatus de la actividad a: ${values.estatus === false ? "Desbloqueado" : "Bloqueado"} | Evento ${event?.tipo}: <strong>${event?.nombre.toUpperCase()}</strong>`,
                         uids: qwe,
                         focused
                     })

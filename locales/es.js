@@ -644,8 +644,14 @@ export const es = {
     'waitOwner': "Espera que el dueño del evento comparta una tarea contigo",
     'noData2': "No hay datos disponibles en esta vista",
     'waitOwner2': "Espera que el dueño del evento comparta algo contigo",
-
-
+    'hour': "hora",
+    'activityTime': 'hora de la actividad',
+    'duplicar': 'duplicar',
+    'duplicarServicio': 'Duplicar Servicio',
+    'aDuplicar': 'a duplicar',
+    'duplicateIn': 'duplicar en',
+    'seleccionaOpcion':"selecciona una opción",
+    'successful': 'con éxito',
 
 
 

@@ -22,8 +22,9 @@ interface props {
     handleUpdateTitle: any
     title: string
     setTitle: any
+    setModalDuplicate: any
 }
-export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTitle, view, setView, handleDeleteItinerario, handleUpdateTitle, title, setTitle, editTitle }) => {
+export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setItinerario, setEditTitle, view, setView, handleDeleteItinerario, handleUpdateTitle, title, setTitle, editTitle }) => {
     const [isAllowed, ht] = useAllowed()
     const [isAllowedViewer] = useAllowedViewer()
     const { config, user } = AuthContextProvider()
@@ -54,14 +55,13 @@ export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTit
 
     return (
         <div className="flex max-w-[100%] min-w-[100%] h-10 items-center justify-center border-b md:px-4 md:py-2">
-            <div id="content" className="flex-1 h-full bg-violet-400* flex justify-between">
-
-                <div className="inline-flex max-w-full h-full items-center bg-yellow-400* mr-2">
-                    <div id="azul" className={`bg-blue-500* ${event?.usuario_id === user?.uid && "max-w-[calc(100%-32px)]"} inline-flex  h-full items-center select-none bg-blue-600* mx-2`}>
+            <div id="content" className="flex-1 h-full  flex justify-between">
+                <div className="inline-flex max-w-full h-full items-center  mr-2">
+                    <div id="azul" className={` ${event?.usuario_id === user?.uid && "max-w-[calc(100%-32px)]"} inline-flex  h-full items-center select-none  mx-2`}>
                         {event?.itinerarios_array?.filter(elem => elem.tipo === window?.location?.pathname.slice(1))?.slice(0, 8).map((item, idx) => {
                             return (
                                 (isAllowedViewer(item.viewers) || window?.location?.pathname === "/itinerario") && <div id={item?._id} key={idx}
-                                    className={`justify-start items-center cursor-pointer h-full ${itinerario?._id === item?._id ? "bg-green* flex" : "inline-flex"} text-sm space-x-1 relative md:mr-2`}
+                                    className={`justify-start items-center cursor-pointer h-full ${itinerario?._id === item?._id ? " flex" : "inline-flex"} text-sm space-x-1 relative md:mr-2`}
                                     onClick={() => {
                                         if (item?._id !== itinerario?._id) {
                                             setItinerario(item)
@@ -77,20 +77,19 @@ export const ItineraryTabs: FC<props> = ({ itinerario, setItinerario, setEditTit
                                             <div className={`${itinerario?._id !== item?._id && "break-all"} line-clamp-1 flex-1`}>
                                                 {item?.title}
                                             </div>
-                                            {(editTitle && itinerario?._id === item?._id && window?.location?.pathname !== "/itinerario") &&
-                                                /* <ClickAwayListener onClickAway={() => { setEditTitle(false) }}> */
-                                                    <div className="fixed md:absolute w-full h-16 z-20 translate-y-6 flex left-0 items-center justify-center">
-                                                        <div className="h-full bg-white space-x-2 rounded-md flex px-6 items-center justify-center shadow-md border-[1px]">
-                                                            <input type="text" onChange={(e) => setTitle(e.target.value)} value={title} className={` font-display text-sm text-gray-500 border-[1px] border-primary focus:border-gray-400 w-min py-1 px-2 rounded-xl focus:ring-0 focus:outline-none transition`} />
-                                                            <button type="button" onClick={() => handleUpdateTitle()} className="border-primary border font-display focus:outline-none text-primary hover:text-white text-xs bg-white hover:bg-primary px-3 py-1 rounded-lg transition">
-                                                                <FaCheck />
-                                                            </button>
-                                                        </div>
+                                            {
+                                                (editTitle && itinerario?._id === item?._id && window?.location?.pathname !== "/itinerario") &&
+                                                <div className="fixed md:absolute w-full h-16 z-20 translate-y-6 flex left-0 items-center justify-center">
+                                                    <div className="h-full bg-white space-x-2 rounded-md flex px-6 items-center justify-center shadow-md border-[1px]">
+                                                        <input type="text" onChange={(e) => setTitle(e.target.value)} value={title} className={` font-display text-sm text-gray-500 border-[1px] border-primary focus:border-gray-400 w-min py-1 px-2 rounded-xl focus:ring-0 focus:outline-none transition`} />
+                                                        <button type="button" onClick={() => handleUpdateTitle()} className="border-primary border font-display focus:outline-none text-primary hover:text-white text-xs bg-white hover:bg-primary px-3 py-1 rounded-lg transition">
+                                                            <FaCheck />
+                                                        </button>
                                                     </div>
-                                                 /* </ClickAwayListener>  */
+                                                </div>
                                             }
                                         </div>
-                                        <ItineraryTabsMenu item={item} itinerario={itinerario} handleDeleteItinerario={handleDeleteItinerario} setEditTitle={setEditTitle} setTitle={setTitle} />
+                                        <ItineraryTabsMenu item={item} itinerario={itinerario} handleDeleteItinerario={handleDeleteItinerario} setEditTitle={setEditTitle} setTitle={setTitle}  setModalDuplicate={setModalDuplicate}/>
                                     </div>}
                                 </div>
 
