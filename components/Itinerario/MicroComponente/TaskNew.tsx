@@ -132,7 +132,6 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
     <div {...props}>
       <Formik enableReinitialize initialValues={initialValues} onSubmit={() => { }}  >
         {({ values }) => {
-          console.log("sdasdasd",values)
           return (
             <Form className="w-full ">
               <div className={` flex w-full justify-center  items-stretch text-gray-800 ${["/servicios"].includes(window?.location?.pathname) ? "" : "2xl:px-36"} `} {...props} >
