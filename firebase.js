@@ -171,6 +171,7 @@ export const developments = [
       baseColor: "#F2F2F2",
       colorScroll: "#adb6ed"
     },
+    metaPixel_id: "1104927187970356",
   },
   {
     name: "champagne-events",

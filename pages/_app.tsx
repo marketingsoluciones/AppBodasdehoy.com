@@ -1,3 +1,9 @@
+declare global {
+  interface Window {
+    fbq: any;
+  }
+}
+
 import '../styles/globals.css'
 import DefaultLayout from '../layouts/DefaultLayout'
 import 'swiper/css';
@@ -380,15 +386,37 @@ const Load = ({ setValirBlock, setDataConfig }) => {
   const { event } = EventContextProvider()
   const { user } = AuthContextProvider()
   const router = useRouter()
-  useEffect(() => { setDataConfig(config) }, [])
+
+  console.log(100051, config?.metaPixel_id)
+
+  useEffect(() => {
+    if (!!config?.metaPixel_id) {
+      window.fbq = window.fbq || function () {
+        (window.fbq.q = window.fbq.q || []).push(arguments);
+      };
+      window.fbq('init', config.metaPixel_id);
+      window.fbq('track', 'PageView');
+
+      const script = document.createElement('script');
+      script.src = 'https://connect.facebook.net/en_US/fbevents.js';
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    }
+  }, []);
+
+  useEffect(() => {
+    setDataConfig(config)
+  }, [])
 
   useEffect(() => {
     setValirBlock(!isAllowedRouter())
   }, [event, user, router])
 
-  return (<>
-    <style jsx global>
-      {`
+  return (
+    <>
+      <style jsx global>
+        {`
       @import url('https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap');
       :root {
         --color-primary: ${config?.theme?.primaryColor};
@@ -417,7 +445,7 @@ const Load = ({ setValirBlock, setDataConfig }) => {
         font-family: Montserrat, 'Noto Color Emoji';
         }
       `}
-    </style>
-  </>
+      </style>
+    </>
   )
 }
