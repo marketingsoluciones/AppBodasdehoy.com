@@ -46,6 +46,7 @@
     "react-click-away-listener": "^2.0.0",
     "react-copy-to-clipboard": "^5.1.0",
     "react-dom": "^18.1.0",
+    "react-facebook-pixel": "^1.0.4",
     "react-i18next": "^15.0.1",
     "react-icons": "^4.10.1",
     "react-image-file-resizer": "^0.4.8",

@@ -18,6 +18,7 @@ const MyApp = ({ Component, pageProps }) => {
   const [valirBlock, setValirBlock] = useState<boolean>()
   const [dataConfig, setDataConfig] = useState<any>()
   const router = useRouter()
+
   const dataMetaData = [
     {
       ruta: "/resumen-evento",
@@ -374,21 +375,33 @@ const MyApp = ({ Component, pageProps }) => {
 
 export default MyApp
 
+
+
+import dynamic from 'next/dynamic';
+const PixelTracker = dynamic(() => import("../components/PixelTracker") as any, {
+  ssr: false,
+});
+
 const Load = ({ setValirBlock, setDataConfig }) => {
   const { config } = AuthContextProvider()
   const [isAllowedRouter] = useAllowedRouter()
   const { event } = EventContextProvider()
   const { user } = AuthContextProvider()
   const router = useRouter()
-  useEffect(() => { setDataConfig(config) }, [])
+
+  useEffect(() => {
+    setDataConfig(config)
+  }, [])
 
   useEffect(() => {
     setValirBlock(!isAllowedRouter())
   }, [event, user, router])
 
-  return (<>
-    <style jsx global>
-      {`
+  return (
+    <>
+      <PixelTracker />
+      <style jsx global>
+        {`
       @import url('https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap');
       :root {
         --color-primary: ${config?.theme?.primaryColor};
@@ -417,7 +430,7 @@ const Load = ({ setValirBlock, setDataConfig }) => {
         font-family: Montserrat, 'Noto Color Emoji';
         }
       `}
-    </style>
-  </>
+      </style>
+    </>
   )
 }
