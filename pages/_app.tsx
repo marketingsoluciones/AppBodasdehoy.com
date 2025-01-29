@@ -1,9 +1,3 @@
-declare global {
-  interface Window {
-    fbq: any;
-  }
-}
-
 import '../styles/globals.css'
 import DefaultLayout from '../layouts/DefaultLayout'
 import 'swiper/css';
@@ -24,6 +18,7 @@ const MyApp = ({ Component, pageProps }) => {
   const [valirBlock, setValirBlock] = useState<boolean>()
   const [dataConfig, setDataConfig] = useState<any>()
   const router = useRouter()
+
   const dataMetaData = [
     {
       ruta: "/resumen-evento",
@@ -380,30 +375,19 @@ const MyApp = ({ Component, pageProps }) => {
 
 export default MyApp
 
+
+
+import dynamic from 'next/dynamic';
+const PixelTracker = dynamic(() => import("../components/PixelTracker") as any, {
+  ssr: false,
+});
+
 const Load = ({ setValirBlock, setDataConfig }) => {
   const { config } = AuthContextProvider()
   const [isAllowedRouter] = useAllowedRouter()
   const { event } = EventContextProvider()
   const { user } = AuthContextProvider()
   const router = useRouter()
-
-  console.log(100051, config?.metaPixel_id)
-
-  useEffect(() => {
-    if (!!config?.metaPixel_id) {
-      window.fbq = window.fbq || function () {
-        (window.fbq.q = window.fbq.q || []).push(arguments);
-      };
-      window.fbq('init', config.metaPixel_id);
-      window.fbq('track', 'PageView');
-
-      const script = document.createElement('script');
-      script.src = 'https://connect.facebook.net/en_US/fbevents.js';
-      script.async = true;
-      script.defer = true;
-      document.head.appendChild(script);
-    }
-  }, []);
 
   useEffect(() => {
     setDataConfig(config)
@@ -415,6 +399,7 @@ const Load = ({ setValirBlock, setDataConfig }) => {
 
   return (
     <>
+      <PixelTracker />
       <style jsx global>
         {`
       @import url('https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap');
