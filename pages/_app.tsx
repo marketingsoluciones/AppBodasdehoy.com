@@ -427,6 +427,7 @@ const Load = ({ setValirBlock, setDataConfig }) => {
         height: 50%;
       }
       .my-emoji {
+        white-space: pre-wrap;
         font-family: Montserrat, 'Noto Color Emoji';
         }
       `}

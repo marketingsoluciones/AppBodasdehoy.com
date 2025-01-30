@@ -69,11 +69,11 @@ export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisa
             </div>
             : <div className="w-8 h-8" />}
         </div>
-        <div className="flex flex-col flex-1 px-1.5">
+        <div className="flex flex-col flex-1 px-1.5 w-[85%]">
           <span className="text-[11px] mt-2.5 font-semibold my-emoji">{userAsd?.displayName}</span>
           <div>
             <Interweave
-              className="text-xs transition-all break-all my-emoji"
+              className="text-xs transition-all *whitespace-pre my-emoji"
               content={item?.comment}
               matchers={[
                 new UrlMatcher('url', {}, replacesLink),
@@ -93,6 +93,12 @@ export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisa
       <span className='cursor-default justify-end text-[9px] font-medium flex-1 flex right-0 *-translate-x-full'>
         {new Date(item?.createdAt).toLocaleString()}
       </span>
+      <style>{`
+      .whitespace-pre {
+        white-space: pre-wrap;
+      }
+      `}</style>
     </div>
   )
 }
+

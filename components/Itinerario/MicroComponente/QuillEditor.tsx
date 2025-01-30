@@ -21,11 +21,10 @@ interface props {
 
 export const QuillEditor: FC<props> = ({ value, setValue, setPastedImage, pastedImage, setValir }) => {
   const divEditableRef = useRef(null);
-  const inputRef = useRef(null);
-  const quillRef = useRef(null);
   const [showPicker, setShowPicker] = useState(false);
   const [cursorPosition, setCursorPosition] = useState(0)
-  const [dispachCursorPosition, dispachSetCursorPosition] = useState({ elem: undefined, d: new Date() })
+  const [dispachSel, setDispachSel] = useState(new Date())
+  const [dispachCursorPosition, setDispachCursorPosition] = useState({ elem: undefined, d: new Date() })
 
   const handlePaste = (event) => {
     setCursorPosition(0)
@@ -84,8 +83,20 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedImage, pasted
     if (!showPicker) {
       const elem = divEditableRef.current.getElementsByClassName("ql-editor")[0]
       if (elem) {
-        setFocus()
-        elem.focus()
+        const elementEnd = document.getElementById('seleccionado');
+        const position = elementEnd?.getAttribute("focusOffset")
+        if (elementEnd && elem.textContent) {
+          const range = document.createRange();
+          const sel = window.getSelection();
+          if (elementEnd.firstChild) {
+            range.setStart(elementEnd.firstChild, parseInt(position))
+            range.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(range);
+          }
+        } else {
+          elem.focus();
+        }
       }
     }
   }, [showPicker])
@@ -98,19 +109,23 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedImage, pasted
         elem.classList.add('my-emoji');
         elem.addEventListener('paste', handlePaste);
         elem.addEventListener('keyup', () => {
+          setDispachSel(new Date())
           const cursorPosition = getCursorPosition(elem);
           setCursorPosition(cursorPosition)
         });
         elem.addEventListener('input', () => {
+          setDispachSel(new Date())
           const cursorPosition = getCursorPosition(elem);
           setCursorPosition(cursorPosition)
         });
         elem.addEventListener('click', () => {
+          setDispachSel(new Date())
           const cursorPosition = getCursorPosition(elem);
           setCursorPosition(cursorPosition)
         });
         elem.addEventListener('focus', () => {
-          dispachSetCursorPosition({ elem, d: new Date() })
+          setDispachSel(new Date())
+          setDispachCursorPosition({ elem, d: new Date() })
         });
         return () => {
           elem.removeEventListener('paste', handlePaste);
@@ -118,10 +133,6 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedImage, pasted
       }
     }, 1000);
   }, [])
-
-  const handleClick = () => {
-    inputRef.current.focus();
-  };
 
   const modules = useMemo(
     () => ({
@@ -153,32 +164,55 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedImage, pasted
   );
 
   const handleEmojiClick = (emojiObject: any) => {
-    const elem = divEditableRef.current.getElementsByClassName("ql-editor")[0]
-    const content = elem.textContent
-    if (cursorPosition > 0) {
-      if (cursorPosition < content.length) {
-        const value = content.slice(0, cursorPosition) + emojiObject.emoji + content.slice(cursorPosition)
-        setValue(value)
-        elem.textContent = value
+    const elem = document.getElementById("seleccionado")
+    if (elem) {
+      const content = elem?.textContent
+      const cursorPosition = parseInt(elem.getAttribute("focusOffset"))
+      let value = ""
+      if (cursorPosition > 0) {
+        if (cursorPosition < content.length) {
+          value = content.slice(0, cursorPosition) + emojiObject.emoji + content.slice(cursorPosition)
+        } else {
+          value = content + emojiObject.emoji
+        }
       } else {
-        const value = content + emojiObject.emoji
-        setValue(value)
-        elem.textContent = value
+        if (content.length === 0) {
+          value = emojiObject.emoji
+        } else {
+          value = emojiObject.emoji + content
+        }
       }
-    } else {
-      if (content.length === 0) {
-        const value = emojiObject.emoji
-        setValue(value)
-        elem.textContent = value
-      } else {
-        const value = emojiObject.emoji + content
-        setValue(value)
-        elem.textContent = value
-      }
+      elem.textContent = value
+      const newCP = cursorPosition + 2
+      elem.setAttribute("focusOffset", newCP.toString())
     }
-    const newCP = cursorPosition + 2
-    setCursorPosition(newCP)
   };
+
+  let sel1 = undefined
+
+  useEffect(() => {
+    const sel = window.getSelection();
+    if (sel?.focusNode) {
+      const elemPre = document.getElementById("seleccionado")
+      if (elemPre) {
+        elemPre.removeAttribute("id")
+      }
+      setTimeout(() => {
+        const rango = sel.getRangeAt(0);
+        if (rango.startContainer["setAttribute"]) {
+          const element = rango.startContainer as HTMLElement
+          element.setAttribute("id", "seleccionado")
+          element.setAttribute("focusOffset", sel.focusOffset.toString())
+        } else {
+          if (rango.startContainer["parentElement"]) {
+            rango.startContainer.parentElement.setAttribute("id", "seleccionado")
+            rango.startContainer.parentElement.setAttribute("focusOffset", sel.focusOffset.toString())
+          }
+        }
+      }, 10);
+    }
+
+  }, [dispachSel])
 
   const getCursorPosition = (editableDiv: HTMLDivElement): number => {
     let caretPos = 0;
@@ -199,7 +233,7 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedImage, pasted
     <>
       <div className='flex w-full items-center space-x-2'>
         <div className='flex'>
-          <div className='flex justify-center items-center'>
+          <div className='flex justify-center items-center select-none'>
             <ClickAwayListener onClickAway={() => { setShowPicker(false) }}>
               <div className='w-full relative cursor-pointer'>
                 <div onClick={() => { setShowPicker(!showPicker) }} className='w-10 h-10 flex justify-center items-center hover:bg-gray-100 rounded-full'>
@@ -225,7 +259,7 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedImage, pasted
         <div ref={divEditableRef} className={`bg-white flex-1 border-[1px] border-gray-300 rounded-3xl ${!pastedImage && "pr-10"} py-0.5`}>
           <ReactQuill
             theme="bubble"
-            // value={value}
+            value={value}
             onChange={(value) => {
               setValue(value)
             }}

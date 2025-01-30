@@ -92,43 +92,46 @@ export const InputComments: FC<props> = ({ itinerario, task }) => {
     <div className='bg-white flex items-center space-x-2 pt-2 px-2'>
       <div className='flex flex-1 relative'>
         {pastedImage && (
-          <div className='bg-gray-50 absolute z-[20] -translate-y-[calc(100%-60px)] w-[85%] truncate border-gray-200 border-[1px] rounded-md shadow-md flex flex-col items-center justify-center'>
-            <div className='bg-gray-300 w-full h-8 flex justify-end items-center px-2'>
-              <div onClick={() => {
-                const contenedorElement = document.getElementById(`contenedorEditor0-${task._id}`)
-                const child = document.getElementById(`quillEditor-${task._id}`)
-                if (contenedorElement && child) {
-                  contenedorElement?.appendChild(child)
-                  const divEditable = child.getElementsByClassName("ql-editor")[0] as HTMLElement
-                  divEditable.focus()
-                  if (divEditable.textContent.length > 0) {
-                    setValir(true)
+          <>
+            <div className="bg-white fixed w-full h-full top-0 left-0 opacity-30 z-20"></div>
+            <div className='bg-gray-50 absolute z-[20] -translate-y-[calc(100%-90px)] w-[90%] border-gray-200 border-[1px] rounded-md shadow-md flex flex-col items-center justify-center'>
+              <div className='bg-gray-300 w-full h-8 flex justify-end items-center px-2'>
+                <div onClick={() => {
+                  const contenedorElement = document.getElementById(`contenedorEditor0-${task._id}`)
+                  const child = document.getElementById(`quillEditor-${task._id}`)
+                  if (contenedorElement && child) {
+                    contenedorElement?.appendChild(child)
+                    const divEditable = child.getElementsByClassName("ql-editor")[0] as HTMLElement
+                    divEditable.focus()
+                    if (divEditable.textContent.length > 0) {
+                      setValir(true)
+                    }
+                    setTimeout(() => {
+                      divEditable.scrollTop = divEditable.scrollHeight;
+                    }, 50);
                   }
-                  setTimeout(() => {
-                    divEditable.scrollTop = divEditable.scrollHeight;
-                  }, 50);
-                }
-                setPastedImage(false)
-              }} className="text-gray-700 cursor-pointer">
-                <IoClose className="w-6 h-6" />
-              </div>
-            </div>
-            <img src={pastedImage} alt="Imagen pegada" style={{ maxWidth: '100%', maxHeight: '260px', minHeight: '150px' }} />
-            <div id={`contenedorEditor1-${task._id}`} className='bg-gray-200 w-full min-h-[52px] flex items-center px-2'>
-              {/* <QuillEditor value={value} setValue={setValue} handlePaste={handlePaste} /> */}
-            </div>
-            <div className='bg-gray-100 flex w-full h-10'>
-              <div className="w-14 h-full flex justify-center items-center">
-                <div onClick={() => { setAttachment(!attachment) }} className='w-10 h-10 flex justify-center items-center hover:bg-gray-100 rounded-full'>
-                  <PlusIcon className="w-5 h-5 text-gray-700" />
+                  setPastedImage(false)
+                }} className="text-gray-700 cursor-pointer">
+                  <IoClose className="w-6 h-6" />
                 </div>
               </div>
-              <div className="flex-1 h-full"></div>
-              <span onClick={true ? handleCreateComment : () => { }} className={`${true ? "cursor-pointer font-semibold" : "text-gray-400"} w-10 flex justify-center items-center right-3 bottom-[10.5px]`} >
-                <IoIosSend className={`h-[23px] w-auto ${true ? "text-teal-500" : "text-gray-200"} select-none`} />
-              </span>
+              <img src={pastedImage} alt="Imagen pegada" style={{ maxWidth: '100%', maxHeight: '240px', minHeight: '150px' }} />
+              <div id={`contenedorEditor1-${task._id}`} className='bg-gray-200 w-full min-h-[52px] flex items-center px-2'>
+                {/* <QuillEditor value={value} setValue={setValue} handlePaste={handlePaste} /> */}
+              </div>
+              <div className='bg-gray-100 flex w-full h-10'>
+                <div className="w-14 h-full flex justify-center items-center">
+                  <div onClick={() => { setAttachment(!attachment) }} className='w-10 h-10 flex justify-center items-center hover:bg-gray-100 rounded-full'>
+                    <PlusIcon className="w-5 h-5 text-gray-700" />
+                  </div>
+                </div>
+                <div className="flex-1 h-full"></div>
+                <span onClick={true ? handleCreateComment : () => { }} className={`${true ? "cursor-pointer font-semibold" : "text-gray-400"} w-10 flex justify-center items-center right-3 bottom-[10.5px]`} >
+                  <IoIosSend className={`h-[23px] w-auto ${true ? "text-teal-500" : "text-gray-200"} select-none`} />
+                </span>
+              </div>
             </div>
-          </div>
+          </>
         )}
         <div className='flex justify-center items-center'>
           <input type="file" accept='image/*' onChange={handleFileChange} id="file-upload-img" className="hidden" multiple />
