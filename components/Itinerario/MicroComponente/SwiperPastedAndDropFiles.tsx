@@ -42,7 +42,7 @@ export const SwiperPastedAndDropFiles: FC<props> = ({ pastedAndDropFiles, slideS
               <div className="w-[40px] h-[40px] relative cursor-pointer flex flex-col items-center justify-start">
                 <div className="w-[87%] h-[87%] flex items-center justify-center">
                   {item.type === "image"
-                    ? <img src={typeof item.file === "string" ? item.file : ""} alt="Imagen" style={{ width: '100%', height: '100%', objectFit: "cover" }} className="rounded-md" />
+                    ? <img src={item.file as string} alt="Imagen" style={{ width: '100%', height: '100%', objectFit: "cover" }} className="rounded-md" />
                     :
                     <FileIconComponent extension={item.name.split(".").slice(-1)[0]} className="w-7 h-[33px] flex items-center border-[1px] border-gray-300 rounded-[3px]" />
                   }

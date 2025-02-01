@@ -172,7 +172,7 @@ export const InputComments: FC<props> = ({ itinerario, task }) => {
                 </div>
               </div>
               {pastedAndDropFiles[slideSelect].type === "image"
-                ? <img src={typeof pastedAndDropFiles[slideSelect].file === "string" ? pastedAndDropFiles[slideSelect].file : ""} alt="Imagen" style={{ maxWidth: '100%', maxHeight: '240px', minHeight: '150px' }} />
+                ? <img src={pastedAndDropFiles[slideSelect].file as string} alt="Imagen" style={{ maxWidth: '100%', maxHeight: '240px', minHeight: '150px' }} />
                 : <div className="w-full h-[150px] flex flex-col items-center justify-center">
                   <FileIconComponent extension={pastedAndDropFiles[slideSelect].name.split(".").slice(-1)[0]} className="w-10 h-10 mb-2 border-[1px] border-gray-300 rounded-[5px]" />
                   <p className="w-[150px] text-center">{pastedAndDropFiles[slideSelect].name}</p>
