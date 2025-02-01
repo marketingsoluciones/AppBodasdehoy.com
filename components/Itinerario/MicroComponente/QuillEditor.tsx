@@ -5,7 +5,7 @@ import 'react-quill/dist/quill.snow.css';
 import Picker, { EmojiStyle, SuggestionMode, } from 'emoji-picker-react';
 import ClickAwayListener from 'react-click-away-listener';
 import { GrEmoji } from "react-icons/gr";
-
+import { PastedAndDropFile } from './InputComments';
 
 const ReactQuill = dynamic(() => import('react-quill'), {
   ssr: false,
@@ -14,47 +14,96 @@ const ReactQuill = dynamic(() => import('react-quill'), {
 interface props {
   value: string
   setValue: any
-  setPastedImage: any
+  setPastedAndDropFiles: any
   setValir: any
-  pastedImage: boolean
+  pastedAndDropFiles: PastedAndDropFile[]
 }
 
-export const QuillEditor: FC<props> = ({ value, setValue, setPastedImage, pastedImage, setValir }) => {
+export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles, pastedAndDropFiles, setValir }) => {
   const divEditableRef = useRef(null);
   const [showPicker, setShowPicker] = useState(false);
   const [cursorPosition, setCursorPosition] = useState(0)
   const [dispachSel, setDispachSel] = useState(new Date())
   const [dispachCursorPosition, setDispachCursorPosition] = useState({ elem: undefined, d: new Date() })
+  const [dispachPasteAndDropFile, setDispachPasteAndDropFile] = useState<{ payload: PastedAndDropFile, d: Date }>()
 
-  const handlePaste = (event) => {
-    setCursorPosition(0)
+  const handlePaste = async (event) => {
+    event.preventDefault();
+    // setCursorPosition(0)
     setValir(false)
-    const items = (event.clipboardData).items;
-    for (const item of items) {
-      // Verifica si el elemento es un archivo de imagen
-      if (item.type.indexOf('image') === 0) {
-        const elem = divEditableRef.current.getElementsByClassName("ql-editor")[0]
-        const content = elem.textContent
-        setCursorPosition(content.length)
-        setTimeout(() => {
-          elem.scrollTop = elem.scrollHeight;
-        }, 50);
-        event.preventDefault();
-        const blob = item.getAsFile();
-        if (blob) {
-          const reader = new FileReader();
+    const files = (event.clipboardData).files;
+    for (const file of files) {
+      const reader = new FileReader();
+      const elem = divEditableRef.current.getElementsByClassName("ql-editor")[0]
+      const content = elem.textContent
+      setCursorPosition(content.length)
+      setTimeout(() => {
+        elem.scrollTop = elem.scrollHeight;
+      }, 50);
+      reader.onload = (event1) => {
+        setDispachPasteAndDropFile({
+          payload: {
+            type: file.type.indexOf('image') === 0 ? "image" : "file",
+            file: event1.target.result,
+            name: file.name,
+            size: file.size
+          },
+          d: new Date()
+        })
+      };
+      reader.readAsDataURL(file)
+      await new Promise(resolve => setTimeout(resolve, 10));
+    }
+    //  const items = (event.clipboardData).items;
+    // let i = 0
+    // for (const item of items) {
+    //   try {
+    //     if (item.kind === "file") {
+    //       const type = item.type
+    //       event.preventDefault();
+    //       const elem = divEditableRef.current.getElementsByClassName("ql-editor")[0]
+    //       const content = elem.textContent
+    //       setCursorPosition(content.length)
+    //       setTimeout(() => {
+    //         elem.scrollTop = elem.scrollHeight;
+    //       }, 50);
+    //       const blob = item.getAsFile();
+    //       if (blob) {
+    //         const reader = new FileReader();
+    //         reader.onload = (event1) => {
+    //           setDispachPasteAndDropFile({
+    //             payload: {
+    //               type: type.indexOf('image') === 0 ? "image" : "file",
+    //               file: event1.target.result,
+    //               name: blob.name,
+    //               size: blob.size
+    //             },
+    //             d: new Date()
+    //           })
+    //         };
+    //         reader.onerror = (error) => {
+    //           console.error('Error al leer el archivo:', error);
+    //         };
+    //         reader.readAsDataURL(blob)
+    //       }
+    //     }
+    //     i++
+    //   } catch (error) {
+    //     console.log(error)
+    //   }
+    // }
+  }
 
-          reader.onload = (event) => {
-            setPastedImage(event.target.result);
-          };
-
-          reader.readAsDataURL(blob);
-          break; // Sale del bucle después de encontrar la primera imagen
-        }
+  useEffect(() => {
+    if (dispachPasteAndDropFile?.payload) {
+      if (pastedAndDropFiles?.length) {
+        pastedAndDropFiles.push(dispachPasteAndDropFile.payload)
+        setPastedAndDropFiles([...pastedAndDropFiles]);
+      } else {
+        setPastedAndDropFiles([dispachPasteAndDropFile.payload])
       }
     }
-    // Evita el comportamiento por defecto (opcional)
-  }
+  }, [dispachPasteAndDropFile])
 
 
   const setFocus = () => {
@@ -256,7 +305,7 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedImage, pasted
             </ClickAwayListener>
           </div>
         </div>
-        <div ref={divEditableRef} className={`bg-white flex-1 border-[1px] border-gray-300 rounded-3xl ${!pastedImage && "pr-10"} py-0.5`}>
+        <div ref={divEditableRef} className={`bg-white flex-1 border-[1px] border-gray-300 rounded-3xl ${!pastedAndDropFiles && "pr-10"} py-0.5`}>
           <ReactQuill
             theme="bubble"
             value={value}
