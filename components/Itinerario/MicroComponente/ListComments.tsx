@@ -93,7 +93,7 @@ export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisa
       <span className='cursor-default justify-end text-[9px] font-medium flex-1 flex right-0 *-translate-x-full'>
         {new Date(item?.createdAt).toLocaleString()}
       </span>
-      <style>{`
+      <style jsx>{`
       .whitespace-pre {
         white-space: pre-wrap;
       }

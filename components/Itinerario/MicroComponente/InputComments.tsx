@@ -18,8 +18,6 @@ interface props {
   task: Task
 }
 
-// export type StringOrBufferArray = (string | ArrayBuffer)[]
-
 export type PastedAndDropFile = {
   type: string
   name: string
@@ -34,7 +32,6 @@ export const InputComments: FC<props> = ({ itinerario, task }) => {
   const [valir, setValir] = useState(false)
   const [pastedAndDropFiles, setPastedAndDropFiles] = useState<PastedAndDropFile[]>();
   const [slideSelect, setSlideSelect] = useState(0)
-  const [selectedFile, setSelectedFile] = useState(null);
   const [attachment, setAttachment] = useState(false);
   const notification = useNotification()
 
@@ -85,8 +82,27 @@ export const InputComments: FC<props> = ({ itinerario, task }) => {
     }
   }
 
-  const handleFileChange = (event) => {
-    setSelectedFile(event.target.files[0]);
+  const handleFileChange = async (event) => {
+    const files = event.target.files
+    for (const file of files) {
+      const reader = new FileReader();
+      reader.onload = (event1) => {
+        const payload = {
+          type: file.type.indexOf('image') === 0 ? "image" : "file",
+          file: event1.target.result,
+          name: file.name,
+          size: file.size
+        }
+        if (pastedAndDropFiles?.length) {
+          pastedAndDropFiles.push(payload)
+          setPastedAndDropFiles([...pastedAndDropFiles]);
+        } else {
+          setPastedAndDropFiles([payload])
+        }
+      };
+      reader.readAsDataURL(file)
+      await new Promise(resolve => setTimeout(resolve, 10));
+    }
   };
 
   const handleClosePasteImages = () => {
@@ -128,10 +144,6 @@ export const InputComments: FC<props> = ({ itinerario, task }) => {
       }
     }
   }, [pastedAndDropFiles])
-
-  useEffect(() => {
-    console.log(100061, attachment)
-  }, [attachment])
 
   return (
     <div className='bg-white flex items-center space-x-2 pt-2 px-2'>

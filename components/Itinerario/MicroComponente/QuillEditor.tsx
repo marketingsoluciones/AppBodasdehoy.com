@@ -29,69 +29,34 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
 
   const handlePaste = async (event) => {
     event.preventDefault();
-    // setCursorPosition(0)
     setValir(false)
-    const files = (event.clipboardData).files;
-    for (const file of files) {
-      const reader = new FileReader();
-      const elem = divEditableRef.current.getElementsByClassName("ql-editor")[0]
-      const content = elem.textContent
-      setCursorPosition(content.length)
-      setTimeout(() => {
-        elem.scrollTop = elem.scrollHeight;
-      }, 50);
-      reader.onload = (event1) => {
-        setDispachPasteAndDropFile({
-          payload: {
-            type: file.type.indexOf('image') === 0 ? "image" : "file",
-            file: event1.target.result,
-            name: file.name,
-            size: file.size
-          },
-          d: new Date()
-        })
-      };
-      reader.readAsDataURL(file)
-      await new Promise(resolve => setTimeout(resolve, 10));
+    const files = (event.clipboardData)?.files ?? (event.dataTransfer)?.files;
+    if (files?.length) {
+      for (const file of files) {
+        const reader = new FileReader();
+        const elem = divEditableRef.current.getElementsByClassName("ql-editor")[0]
+        const content = elem.textContent
+        setCursorPosition(content.length)
+        setTimeout(() => {
+          elem.scrollTop = elem.scrollHeight;
+        }, 50);
+        elem.style.boxShadow = '';
+        elem.style.borderRadius = '';
+        reader.onload = (event1) => {
+          setDispachPasteAndDropFile({
+            payload: {
+              type: file.type.indexOf('image') === 0 ? "image" : "file",
+              file: event1.target.result,
+              name: file.name,
+              size: file.size
+            },
+            d: new Date()
+          })
+        };
+        reader.readAsDataURL(file)
+        await new Promise(resolve => setTimeout(resolve, 10));
+      }
     }
-    //  const items = (event.clipboardData).items;
-    // let i = 0
-    // for (const item of items) {
-    //   try {
-    //     if (item.kind === "file") {
-    //       const type = item.type
-    //       event.preventDefault();
-    //       const elem = divEditableRef.current.getElementsByClassName("ql-editor")[0]
-    //       const content = elem.textContent
-    //       setCursorPosition(content.length)
-    //       setTimeout(() => {
-    //         elem.scrollTop = elem.scrollHeight;
-    //       }, 50);
-    //       const blob = item.getAsFile();
-    //       if (blob) {
-    //         const reader = new FileReader();
-    //         reader.onload = (event1) => {
-    //           setDispachPasteAndDropFile({
-    //             payload: {
-    //               type: type.indexOf('image') === 0 ? "image" : "file",
-    //               file: event1.target.result,
-    //               name: blob.name,
-    //               size: blob.size
-    //             },
-    //             d: new Date()
-    //           })
-    //         };
-    //         reader.onerror = (error) => {
-    //           console.error('Error al leer el archivo:', error);
-    //         };
-    //         reader.readAsDataURL(blob)
-    //       }
-    //     }
-    //     i++
-    //   } catch (error) {
-    //     console.log(error)
-    //   }
-    // }
   }
 
   useEffect(() => {
@@ -157,6 +122,16 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
         elem.classList.add('custom-style-editor');
         elem.classList.add('my-emoji');
         elem.addEventListener('paste', handlePaste);
+        elem.addEventListener('dragover', (event) => {
+          event.preventDefault(); // Necesario para permitir soltar
+          elem.style.boxShadow = 'inset 0 0 0 2px green';
+          elem.style.borderRadius = '20px';
+        });
+        elem.addEventListener('dragleave', (event) => {
+          elem.style.boxShadow = ''; // O cualquier otro estilo que tengas definido
+          elem.style.borderRadius = '';
+        });
+        elem.addEventListener('drop', handlePaste);
         elem.addEventListener('keyup', () => {
           setDispachSel(new Date())
           const cursorPosition = getCursorPosition(elem);
@@ -178,6 +153,7 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
         });
         return () => {
           elem.removeEventListener('paste', handlePaste);
+          elem.removeEventListener('drop', handlePaste);
         };
       }
     }, 1000);
@@ -266,7 +242,6 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
   const getCursorPosition = (editableDiv: HTMLDivElement): number => {
     let caretPos = 0;
     const sel = window.getSelection();
-
     if (sel?.rangeCount) {
       const range = sel.getRangeAt(0);
       const preCaretRange = range.cloneRange();
@@ -274,7 +249,6 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
       preCaretRange.setEnd(range.endContainer, range.endOffset);
       caretPos = preCaretRange.toString().length;
     }
-
     return caretPos;
   }
 
@@ -305,7 +279,7 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
             </ClickAwayListener>
           </div>
         </div>
-        <div ref={divEditableRef} className={`bg-white flex-1 border-[1px] border-gray-300 rounded-3xl ${!pastedAndDropFiles && "pr-10"} py-0.5`}>
+        <div ref={divEditableRef} className={`bg-white flex-1 border-[1px] border-gray-300 rounded-3xl ${!pastedAndDropFiles && "pr-10"}`}>
           <ReactQuill
             theme="bubble"
             value={value}
@@ -317,7 +291,7 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
           />
         </div>
       </div>
-      <style>{`
+      <style jsx>{`
       .custom-style-editor{
         #background: red !important;
         min-height: 16px !important;
