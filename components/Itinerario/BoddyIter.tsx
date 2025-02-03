@@ -221,8 +221,8 @@ const ModalDupliucate = ({ setModalDuplicate, modalDuplicate }) => {
     };
 
     return (
-        <div className="w-[650px] bg-white rounded-lg shadow-lg p-4">
-            <div className="flex items-center justify-between">
+        <div className="w-[650px] bg-white rounded-xl shadow-md">
+            <div className="flex items-center justify-between border-b border-gray-300 pb-2 p-4">
                 <h2 className="text-lg font-semibold capitalize">{t("duplicar")} {cleanedPath}</h2>
                 <button className="text-gray-500" onClick={() => { setModalDuplicate({ state: false }) }}>
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -230,7 +230,7 @@ const ModalDupliucate = ({ setModalDuplicate, modalDuplicate }) => {
                     </svg>
                 </button>
             </div>
-            <div className="grid grid-cols-11 gap-4 mt-2">
+            <div className="grid grid-cols-11 gap-4 px-3 py-6">
                 <div className="col-span-5">
                     <label className="text-sm text-gray-500 capitalize">{cleanedPath} {t("aDuplicar")}</label>
                     <div className="w-full border border-gray-300 cursor-default rounded-md p-[6.5px] text-azulCorporativo capitalize">
@@ -250,7 +250,7 @@ const ModalDupliucate = ({ setModalDuplicate, modalDuplicate }) => {
                     />
                 </div>
             </div>
-            <div className="flex justify-end gap-4">
+            <div className="flex justify-end gap-4 border-t border-gray-300 px-4 pb-4 bg-gray-100">
                 <button onClick={() => { setModalDuplicate({ state: false }) }} className="bg-gray-400 text-white rounded-md py-2 px-4 mt-4">{t("cancel")}</button>
                 <button onClick={() => handleDuplicateItinerario()} className="bg-primary text-white rounded-md py-2 px-4 mt-4">{t("duplicar")}</button>
             </div>
