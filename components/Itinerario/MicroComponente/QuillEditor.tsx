@@ -34,7 +34,7 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
     if (files?.length) {
       for (const file of files) {
         const reader = new FileReader();
-        const elem = divEditableRef.current.getElementsByClassName("ql-editor")[0]
+        const elem = divEditableRef?.current?.getElementsByClassName("ql-editor")[0]
         const content = elem.textContent
         setCursorPosition(content.length)
         setTimeout(() => {
@@ -95,7 +95,7 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
 
   useEffect(() => {
     if (!showPicker) {
-      const elem = divEditableRef.current.getElementsByClassName("ql-editor")[0]
+      const elem = divEditableRef?.current?.getElementsByClassName("ql-editor")[0]
       if (elem) {
         const elementEnd = document.getElementById('seleccionado');
         const position = elementEnd?.getAttribute("focusOffset")
@@ -117,7 +117,7 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
 
   useEffect(() => {
     setTimeout(() => {
-      const elem = divEditableRef.current.getElementsByClassName("ql-editor")[0]
+      const elem = divEditableRef?.current?.getElementsByClassName("ql-editor")[0]
       if (elem) {
         elem.classList.add('custom-style-editor');
         elem.classList.add('my-emoji');
@@ -156,7 +156,7 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
           elem.removeEventListener('drop', handlePaste);
         };
       }
-    }, 1000);
+    }, 500);
   }, [])
 
   const modules = useMemo(
@@ -291,7 +291,7 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
           />
         </div>
       </div>
-      <style jsx>{`
+      <style>{`
       .custom-style-editor{
         #background: red !important;
         min-height: 16px !important;
