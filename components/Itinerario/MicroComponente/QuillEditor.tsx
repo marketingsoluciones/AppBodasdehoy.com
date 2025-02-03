@@ -5,7 +5,7 @@ import 'react-quill/dist/quill.snow.css';
 import Picker, { EmojiStyle, SuggestionMode, } from 'emoji-picker-react';
 import ClickAwayListener from 'react-click-away-listener';
 import { GrEmoji } from "react-icons/gr";
-
+import { PastedAndDropFile } from './InputComments';
 
 const ReactQuill = dynamic(() => import('react-quill'), {
   ssr: false,
@@ -14,48 +14,61 @@ const ReactQuill = dynamic(() => import('react-quill'), {
 interface props {
   value: string
   setValue: any
-  setPastedImage: any
+  setPastedAndDropFiles: any
   setValir: any
-  pastedImage: boolean
+  pastedAndDropFiles: PastedAndDropFile[]
 }
 
-export const QuillEditor: FC<props> = ({ value, setValue, setPastedImage, pastedImage, setValir }) => {
+export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles, pastedAndDropFiles, setValir }) => {
   const divEditableRef = useRef(null);
-  const inputRef = useRef(null);
-  const quillRef = useRef(null);
   const [showPicker, setShowPicker] = useState(false);
   const [cursorPosition, setCursorPosition] = useState(0)
-  const [dispachCursorPosition, dispachSetCursorPosition] = useState({ elem: undefined, d: new Date() })
+  const [dispachSel, setDispachSel] = useState(new Date())
+  const [dispachCursorPosition, setDispachCursorPosition] = useState({ elem: undefined, d: new Date() })
+  const [dispachPasteAndDropFile, setDispachPasteAndDropFile] = useState<{ payload: PastedAndDropFile, d: Date }>()
 
-  const handlePaste = (event) => {
-    setCursorPosition(0)
+  const handlePaste = async (event) => {
+    event.preventDefault();
     setValir(false)
-    const items = (event.clipboardData).items;
-    for (const item of items) {
-      // Verifica si el elemento es un archivo de imagen
-      if (item.type.indexOf('image') === 0) {
-        const elem = divEditableRef.current.getElementsByClassName("ql-editor")[0]
+    const files = (event.clipboardData)?.files ?? (event.dataTransfer)?.files;
+    if (files?.length) {
+      for (const file of files) {
+        const reader = new FileReader();
+        const elem = divEditableRef?.current?.getElementsByClassName("ql-editor")[0]
         const content = elem.textContent
         setCursorPosition(content.length)
         setTimeout(() => {
           elem.scrollTop = elem.scrollHeight;
         }, 50);
-        event.preventDefault();
-        const blob = item.getAsFile();
-        if (blob) {
-          const reader = new FileReader();
-
-          reader.onload = (event) => {
-            setPastedImage(event.target.result);
-          };
-
-          reader.readAsDataURL(blob);
-          break; // Sale del bucle después de encontrar la primera imagen
-        }
+        elem.style.boxShadow = '';
+        elem.style.borderRadius = '';
+        reader.onload = (event1) => {
+          setDispachPasteAndDropFile({
+            payload: {
+              type: file.type.indexOf('image') === 0 ? "image" : "file",
+              file: event1.target.result,
+              name: file.name,
+              size: file.size
+            },
+            d: new Date()
+          })
+        };
+        reader.readAsDataURL(file)
+        await new Promise(resolve => setTimeout(resolve, 10));
       }
     }
-    // Evita el comportamiento por defecto (opcional)
   }
+
+  useEffect(() => {
+    if (dispachPasteAndDropFile?.payload) {
+      if (pastedAndDropFiles?.length) {
+        pastedAndDropFiles.push(dispachPasteAndDropFile.payload)
+        setPastedAndDropFiles([...pastedAndDropFiles]);
+      } else {
+        setPastedAndDropFiles([dispachPasteAndDropFile.payload])
+      }
+    }
+  }, [dispachPasteAndDropFile])
 
 
   const setFocus = () => {
@@ -82,46 +95,69 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedImage, pasted
 
   useEffect(() => {
     if (!showPicker) {
-      const elem = divEditableRef.current.getElementsByClassName("ql-editor")[0]
+      const elem = divEditableRef?.current?.getElementsByClassName("ql-editor")[0]
       if (elem) {
-        setFocus()
-        elem.focus()
+        const elementEnd = document.getElementById('seleccionado');
+        const position = elementEnd?.getAttribute("focusOffset")
+        if (elementEnd && elem.textContent) {
+          const range = document.createRange();
+          const sel = window.getSelection();
+          if (elementEnd.firstChild) {
+            range.setStart(elementEnd.firstChild, parseInt(position))
+            range.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(range);
+          }
+        } else {
+          elem.focus();
+        }
       }
     }
   }, [showPicker])
 
   useEffect(() => {
     setTimeout(() => {
-      const elem = divEditableRef.current.getElementsByClassName("ql-editor")[0]
+      const elem = divEditableRef?.current?.getElementsByClassName("ql-editor")[0]
       if (elem) {
         elem.classList.add('custom-style-editor');
         elem.classList.add('my-emoji');
         elem.addEventListener('paste', handlePaste);
+        elem.addEventListener('dragover', (event) => {
+          event.preventDefault(); // Necesario para permitir soltar
+          elem.style.boxShadow = 'inset 0 0 0 2px green';
+          elem.style.borderRadius = '20px';
+        });
+        elem.addEventListener('dragleave', (event) => {
+          elem.style.boxShadow = ''; // O cualquier otro estilo que tengas definido
+          elem.style.borderRadius = '';
+        });
+        elem.addEventListener('drop', handlePaste);
         elem.addEventListener('keyup', () => {
+          setDispachSel(new Date())
           const cursorPosition = getCursorPosition(elem);
           setCursorPosition(cursorPosition)
         });
         elem.addEventListener('input', () => {
+          setDispachSel(new Date())
           const cursorPosition = getCursorPosition(elem);
           setCursorPosition(cursorPosition)
         });
         elem.addEventListener('click', () => {
+          setDispachSel(new Date())
           const cursorPosition = getCursorPosition(elem);
           setCursorPosition(cursorPosition)
         });
         elem.addEventListener('focus', () => {
-          dispachSetCursorPosition({ elem, d: new Date() })
+          setDispachSel(new Date())
+          setDispachCursorPosition({ elem, d: new Date() })
         });
         return () => {
           elem.removeEventListener('paste', handlePaste);
+          elem.removeEventListener('drop', handlePaste);
         };
       }
-    }, 1000);
+    }, 500);
   }, [])
-
-  const handleClick = () => {
-    inputRef.current.focus();
-  };
 
   const modules = useMemo(
     () => ({
@@ -153,37 +189,59 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedImage, pasted
   );
 
   const handleEmojiClick = (emojiObject: any) => {
-    const elem = divEditableRef.current.getElementsByClassName("ql-editor")[0]
-    const content = elem.textContent
-    if (cursorPosition > 0) {
-      if (cursorPosition < content.length) {
-        const value = content.slice(0, cursorPosition) + emojiObject.emoji + content.slice(cursorPosition)
-        setValue(value)
-        elem.textContent = value
+    const elem = document.getElementById("seleccionado")
+    if (elem) {
+      const content = elem?.textContent
+      const cursorPosition = parseInt(elem.getAttribute("focusOffset"))
+      let value = ""
+      if (cursorPosition > 0) {
+        if (cursorPosition < content.length) {
+          value = content.slice(0, cursorPosition) + emojiObject.emoji + content.slice(cursorPosition)
+        } else {
+          value = content + emojiObject.emoji
+        }
       } else {
-        const value = content + emojiObject.emoji
-        setValue(value)
-        elem.textContent = value
+        if (content.length === 0) {
+          value = emojiObject.emoji
+        } else {
+          value = emojiObject.emoji + content
+        }
       }
-    } else {
-      if (content.length === 0) {
-        const value = emojiObject.emoji
-        setValue(value)
-        elem.textContent = value
-      } else {
-        const value = emojiObject.emoji + content
-        setValue(value)
-        elem.textContent = value
-      }
+      elem.textContent = value
+      const newCP = cursorPosition + 2
+      elem.setAttribute("focusOffset", newCP.toString())
     }
-    const newCP = cursorPosition + 2
-    setCursorPosition(newCP)
   };
+
+  let sel1 = undefined
+
+  useEffect(() => {
+    const sel = window.getSelection();
+    if (sel?.focusNode) {
+      const elemPre = document.getElementById("seleccionado")
+      if (elemPre) {
+        elemPre.removeAttribute("id")
+      }
+      setTimeout(() => {
+        const rango = sel.getRangeAt(0);
+        if (rango.startContainer["setAttribute"]) {
+          const element = rango.startContainer as HTMLElement
+          element.setAttribute("id", "seleccionado")
+          element.setAttribute("focusOffset", sel.focusOffset.toString())
+        } else {
+          if (rango.startContainer["parentElement"]) {
+            rango.startContainer.parentElement.setAttribute("id", "seleccionado")
+            rango.startContainer.parentElement.setAttribute("focusOffset", sel.focusOffset.toString())
+          }
+        }
+      }, 10);
+    }
+
+  }, [dispachSel])
 
   const getCursorPosition = (editableDiv: HTMLDivElement): number => {
     let caretPos = 0;
     const sel = window.getSelection();
-
     if (sel?.rangeCount) {
       const range = sel.getRangeAt(0);
       const preCaretRange = range.cloneRange();
@@ -191,7 +249,6 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedImage, pasted
       preCaretRange.setEnd(range.endContainer, range.endOffset);
       caretPos = preCaretRange.toString().length;
     }
-
     return caretPos;
   }
 
@@ -199,7 +256,7 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedImage, pasted
     <>
       <div className='flex w-full items-center space-x-2'>
         <div className='flex'>
-          <div className='flex justify-center items-center'>
+          <div className='flex justify-center items-center select-none'>
             <ClickAwayListener onClickAway={() => { setShowPicker(false) }}>
               <div className='w-full relative cursor-pointer'>
                 <div onClick={() => { setShowPicker(!showPicker) }} className='w-10 h-10 flex justify-center items-center hover:bg-gray-100 rounded-full'>
@@ -222,10 +279,10 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedImage, pasted
             </ClickAwayListener>
           </div>
         </div>
-        <div ref={divEditableRef} className={`bg-white flex-1 border-[1px] border-gray-300 rounded-3xl ${!pastedImage && "pr-10"} py-0.5`}>
+        <div ref={divEditableRef} className={`bg-white flex-1 border-[1px] border-gray-300 rounded-3xl ${!pastedAndDropFiles && "pr-10"}`}>
           <ReactQuill
             theme="bubble"
-            // value={value}
+            value={value}
             onChange={(value) => {
               setValue(value)
             }}
