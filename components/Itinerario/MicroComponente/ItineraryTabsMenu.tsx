@@ -1,5 +1,5 @@
-import { Dispatch, FC, SetStateAction,useState } from "react"
-import { DotsOpcionesIcon, PencilEdit} from "../../icons"
+import { Dispatch, FC, SetStateAction, useState } from "react"
+import { DotsOpcionesIcon, PencilEdit } from "../../icons"
 import { Itinerary, OptionsSelect } from "../../../utils/Interfaces"
 import ClickAwayListener from "react-click-away-listener"
 import { useAllowed } from "../../../hooks/useAllowed"
@@ -74,7 +74,10 @@ export const ItineraryTabsMenu: FC<props> = ({ setModalDuplicate, itinerario, it
             {showAddUsertoServices && <AddUserToServices openModal={showAddUsertoServices} setOpenModal={setShowAddUsertoServices} itinerario={itinerario} />}
             <ClickAwayListener onClickAway={() => { setShowMenu(false) }}>
                 {(!["/itinerario"].includes(window?.location?.pathname) && itinerario?._id === item?._id)
-                    ? <div onClick={() => setShowMenu(!showMenu)} className={`w-6 h-6 rounded-full bg-gray-100 flex justify-center items-center text-gray-600 hover:bg-gray-200 hover:text-gray-900 ${showMenu && "bg-gray-200 text-gray-900"} relative`}>
+                    ? <div
+                        onClick={() => setShowMenu(!showMenu)}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        className={`w-6 h-6 rounded-full bg-gray-100 flex justify-center items-center text-gray-600 hover:bg-gray-200 hover:text-gray-900 ${showMenu && "bg-gray-200 text-gray-900"} relative`}>
                         <DotsOpcionesIcon className={""} />
                         {showMenu && <div className={`absolute right-6 top-[22px] bg-white z-50 rounded-md shadow-md truncate`}>
                             {optionsSelect?.map((elem, idx) =>

@@ -88,6 +88,7 @@ export interface Itinerary {
     estatus: boolean //activo, borrado
     fecha_creacion: Date
     icon?: JSX.Element
+    index?: number
 }
 
 export interface OptionsSelect {
