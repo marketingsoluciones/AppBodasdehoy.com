@@ -128,7 +128,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
 
             const colition = elementColition?.getBoundingClientRect()[`${direction === "right" ? "right" : "left"}`]
             if (direction === "right") {
-                if (e.currentTarget.getBoundingClientRect().right > colition - 6) {
+                if (e.currentTarget.getBoundingClientRect().right > colition - 36) {
                     if (positionInTabs > -1 && positionInTabs < itinerariesInTabs.length - 1) {
                         const parentNode = e.currentTarget.parentNode as HTMLDivElement
                         const sixeX = parentNode.getBoundingClientRect().width
@@ -140,6 +140,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
 
                         } else {
                             elementColition.style.transform = `none`
+                            elementColition.style.transition = `transform 0.4s ease-in-out`
                             elementColition.style.transform = `translateX(-${sixeX}px)`
                             const newPos = positionInTabs + 1
                             setPositionInTabs(newPos)
@@ -150,7 +151,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                 }
             }
             if (direction === "left") {
-                if (e.currentTarget.getBoundingClientRect().left < colition + 6) {
+                if (e.currentTarget.getBoundingClientRect().left < colition + 36) {
                     if (positionInTabs > -1 && positionInTabs < itinerariesInTabs.length + 1) {
                         const parentNode = e.currentTarget.parentNode as HTMLDivElement
                         const sixeX = parentNode.getBoundingClientRect().width
