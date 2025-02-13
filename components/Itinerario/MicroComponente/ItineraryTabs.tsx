@@ -182,7 +182,6 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
     }
     const handleEnter = (e: MouseEvent<HTMLDivElement, globalThis.MouseEvent>, item: Itinerary) => {
         if (item?._id !== itinerario?._id && isClidked) {
-            console.log("entre")
             setShowTabs(false)
         }
     }

@@ -304,9 +304,10 @@ export const queries = {
   mutation  ( $eventID:String, $itinerarioID:String, $taskID:String, $commentID:String  ) {
     deleteComment ( eventID:$eventID  itinerarioID:$itinerarioID  taskID:$taskID, commentID:$commentID)
   }`,
-  createItinerario: `mutation ($eventID:String, $title:String, $dateTime:String, $tipo:String){
-    createItinerario(eventID:$eventID, title:$title, dateTime:$dateTime, tipo:$tipo ){
+  createItinerario: `mutation ($eventID:String, $title:String, $dateTime:String, $tipo:String, $index:Int){
+    createItinerario(eventID:$eventID, title:$title, dateTime:$dateTime, tipo:$tipo, index:$index ){
       _id
+      index
       title
       tasks{
         _id
@@ -339,9 +340,10 @@ export const queries = {
       tipo
     }
   }`,
-  duplicateItinerario: `mutation ($eventID:String, $itinerarioID:String, $eventDestinationID:String){
-    duplicateItinerario(eventID:$eventID, itinerarioID:$itinerarioID, eventDestinationID:$eventDestinationID){
+  duplicateItinerario: `mutation ($eventID:String, $itinerarioID:String, $eventDestinationID:String, $index:Int){
+    duplicateItinerario(eventID:$eventID, itinerarioID:$itinerarioID, eventDestinationID:$eventDestinationID, index:$index){
       _id
+      index
       title
       tasks{
         _id
@@ -378,8 +380,8 @@ export const queries = {
   mutation  ( $url:String, $nameFile:String, ) {
     generatePdf ( url:$url,  nameFile:$nameFile)
   }`,
-  editItinerario: `mutation ($eventID:String, $itinerarioID:String, $variable:String, $valor:String){
-    editItinerario(eventID:$eventID itinerarioID:$itinerarioID, variable:$variable, valor:$valor )
+  editItinerario: `mutation ($eventID:String, $itinerarioID:String, $variable:String, $valor:String, $index:Int){
+    editItinerario(eventID:$eventID itinerarioID:$itinerarioID, variable:$variable, valor:$valor, index:$index )
   }`,
   deleteItinerario: `
   mutation  ( $eventID:String, $itinerarioID:String ) {
@@ -391,6 +393,7 @@ export const queries = {
       tipo
       itinerarios_array{
         _id
+        index
         title
         tasks{
           _id
@@ -619,6 +622,7 @@ export const queries = {
       }
       itinerarios_array{
         _id
+        index
         title
         tasks{
           _id
@@ -938,6 +942,7 @@ export const queries = {
       }
       itinerarios_array{
         _id
+        index
         title
         tasks{
           _id

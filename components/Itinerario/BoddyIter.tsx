@@ -141,8 +141,8 @@ export const BoddyIter = () => {
                 setModalDuplicate={setModalDuplicate}
             />
             {(isAllowedViewer(itinerario?.viewers ?? []) || window?.location?.pathname === "/itinerario")
-                ? <ItineraryPanel itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} title={title} setTitle={setTitle} view={view} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} /> :
-                <div className="h-full">
+                ? <ItineraryPanel itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} title={title} setTitle={setTitle} view={view} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} />
+                : <div className="h-full">
                     <ViewWihtoutData />
                 </div>
             }
@@ -196,13 +196,13 @@ const ModalDupliucate = ({ setModalDuplicate, modalDuplicate }) => {
             },
             domain: config.domain
         })
-        if(evento._id === event._id){
+        if (evento._id === event._id) {
             setEvent(old => {
                 old.itinerarios_array.push(result as Itinerary)
-                return {...old}
+                return { ...old }
             })
         }
-        if(evento._id !== event._id){
+        if (evento._id !== event._id) {
             const f1 = eventsGroup.findIndex(elem => elem._id === evento._id)
             eventsGroup[f1].itinerarios_array.push(result as Itinerary)
             setEventsGroup([...eventsGroup])
