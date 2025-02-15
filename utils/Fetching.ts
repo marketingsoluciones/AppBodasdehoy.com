@@ -304,10 +304,10 @@ export const queries = {
   mutation  ( $eventID:String, $itinerarioID:String, $taskID:String, $commentID:String  ) {
     deleteComment ( eventID:$eventID  itinerarioID:$itinerarioID  taskID:$taskID, commentID:$commentID)
   }`,
-  createItinerario: `mutation ($eventID:String, $title:String, $dateTime:String, $tipo:String, $index:Int){
-    createItinerario(eventID:$eventID, title:$title, dateTime:$dateTime, tipo:$tipo, index:$index ){
+  createItinerario: `mutation ($eventID:String, $title:String, $dateTime:String, $tipo:String, $next_id:ID){
+    createItinerario(eventID:$eventID, title:$title, dateTime:$dateTime, tipo:$tipo, next_id:$next_id ){
       _id
-      index
+      next_id
       title
       tasks{
         _id
@@ -338,12 +338,13 @@ export const queries = {
         commentsViewers
       }
       tipo
+      fecha_creacion
     }
   }`,
-  duplicateItinerario: `mutation ($eventID:String, $itinerarioID:String, $eventDestinationID:String, $index:Int){
-    duplicateItinerario(eventID:$eventID, itinerarioID:$itinerarioID, eventDestinationID:$eventDestinationID, index:$index){
+  duplicateItinerario: `mutation ($eventID:String, $itinerarioID:String, $eventDestinationID:String, $next_Id:ID){
+    duplicateItinerario(eventID:$eventID, itinerarioID:$itinerarioID, eventDestinationID:$eventDestinationID, next_Id:$next_Id){
       _id
-      index
+      next_Id
       title
       tasks{
         _id
@@ -380,8 +381,8 @@ export const queries = {
   mutation  ( $url:String, $nameFile:String, ) {
     generatePdf ( url:$url,  nameFile:$nameFile)
   }`,
-  editItinerario: `mutation ($eventID:String, $itinerarioID:String, $variable:String, $valor:String, $index:Int){
-    editItinerario(eventID:$eventID itinerarioID:$itinerarioID, variable:$variable, valor:$valor, index:$index )
+  editItinerario: `mutation ($eventID:String, $itinerarioID:String, $variable:String, $valor:String, $next_id:ID){
+    editItinerario(eventID:$eventID itinerarioID:$itinerarioID, variable:$variable, valor:$valor, next_id:$next_id )
   }`,
   deleteItinerario: `
   mutation  ( $eventID:String, $itinerarioID:String ) {
@@ -393,7 +394,7 @@ export const queries = {
       tipo
       itinerarios_array{
         _id
-        index
+        next_id
         title
         tasks{
           _id
@@ -604,6 +605,11 @@ export const queries = {
       usuario_nombre
       fecha
       listaRegalos
+      listIdentifiers{
+        table
+        start_Id
+        end_Id
+      }
       poblacion
       pais
       imgInvitacion{
@@ -622,7 +628,7 @@ export const queries = {
       }
       itinerarios_array{
         _id
-        index
+        next_id
         title
         tasks{
           _id
@@ -655,6 +661,7 @@ export const queries = {
         viewers
         tipo
         estatus
+        fecha_creacion
       }
       planSpaceSelect
       planSpace{
@@ -919,6 +926,11 @@ export const queries = {
       usuario_nombre
       fecha
       listaRegalos
+      listIdentifiers{
+        table
+        start_Id
+        end_Id
+      }
       poblacion
       pais
       lugar {
@@ -942,7 +954,7 @@ export const queries = {
       }
       itinerarios_array{
         _id
-        index
+        next_id
         title
         tasks{
           _id
@@ -975,6 +987,7 @@ export const queries = {
         viewers
         tipo
         estatus
+        fecha_creacion
       }
       planSpaceSelect
       planSpace{

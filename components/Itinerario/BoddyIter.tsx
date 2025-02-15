@@ -102,7 +102,7 @@ export const BoddyIter = () => {
     }
 
     useEffect(() => {
-        const itinerarios = event?.itinerarios_array.filter(elem => elem.tipo === window?.location?.pathname.slice(1))
+        const itinerarios = event?.itinerarios_array.filter(elem => elem?.tipo === window?.location?.pathname.slice(1))
         if (itinerarios.length) {
             const f1 = itinerarios.findIndex(elem =>
                 !!router.query?.itinerary

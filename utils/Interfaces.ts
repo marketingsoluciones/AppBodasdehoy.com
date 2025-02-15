@@ -27,6 +27,7 @@ export interface Event {
     imgInvitacion: image
     presupuesto_objeto: estimate
     listaRegalos: string
+    listIdentifiers: ListIdentifiers[]
     permissions: permission[]
     valirRemote: boolean
     showChildrenGuest: string
@@ -34,6 +35,12 @@ export interface Event {
     tarta: string
     color: string[]
     //permission: boolean
+}
+
+export interface ListIdentifiers {
+    table: string
+    start_Id: string
+    end_Id: string
 }
 
 export interface Venue {
@@ -86,9 +93,10 @@ export interface Itinerary {
     viewers: string[]
     tipo: string
     estatus: boolean //activo, borrado
-    fecha_creacion: Date
+    fecha_creacion: number
     icon?: JSX.Element
     index?: number
+    next_id: string
 }
 
 export interface OptionsSelect {
