@@ -26,12 +26,31 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
   const [dispachSel, setDispachSel] = useState(new Date())
   const [dispachCursorPosition, setDispachCursorPosition] = useState({ elem: undefined, d: new Date() })
   const [dispachPasteAndDropFile, setDispachPasteAndDropFile] = useState<{ payload: PastedAndDropFile, d: Date }>()
+  const [enableEditor, setEnableEditor] = useState(false);
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    if (!isMounted) {
+      setIsMounted(true)
+    }
+    return () => {
+      setIsMounted(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (isMounted) {
+      setEnableEditor(true)
+    }
+  }, [isMounted])
+
 
   const handlePaste = async (event) => {
-    event.preventDefault();
-    setValir(false)
+    setDispachSel(new Date())
     const files = (event.clipboardData)?.files ?? (event.dataTransfer)?.files;
     if (files?.length) {
+      event.preventDefault();
+      setValir(false)
       for (const file of files) {
         const reader = new FileReader();
         const elem = divEditableRef?.current?.getElementsByClassName("ql-editor")[0]
@@ -70,48 +89,50 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
     }
   }, [dispachPasteAndDropFile])
 
-
-  const setFocus = () => {
-    const element = dispachCursorPosition?.elem?.childNodes[0];
-    if (element) {
-      const textNode = element.childNodes[0];
-      if (textNode.length > cursorPosition - 1) {
-        const range = document.createRange();
-        const sel = window.getSelection();
-        range.setStart(textNode, cursorPosition); // Posición 16
-        range.collapse(true);
-
-        sel.removeAllRanges();
-        sel.addRange(range);
-      }
-    }
-  }
-
   useEffect(() => {
-    if (cursorPosition) {
-      setFocus()
+    try {
+      // if (cursorPosition) {
+      const element = dispachCursorPosition?.elem?.childNodes[0];
+      if (element) {
+        const textNode = element.childNodes[0];
+        if (textNode.length > cursorPosition - 1) {
+          const range = document.createRange();
+          const sel = window.getSelection();
+          range.setStart(textNode, cursorPosition); // Posición 16
+          range.collapse(true);
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+      }
+      // }
+    } catch (error) {
+      console.log(error)
     }
   }, [dispachCursorPosition])
 
   useEffect(() => {
-    if (!showPicker) {
-      const elem = divEditableRef?.current?.getElementsByClassName("ql-editor")[0]
-      if (elem) {
-        const elementEnd = document.getElementById('seleccionado');
-        const position = elementEnd?.getAttribute("focusOffset")
-        if (elementEnd && elem.textContent) {
-          const range = document.createRange();
-          const sel = window.getSelection();
-          if (elementEnd.firstChild) {
-            range.setStart(elementEnd.firstChild, parseInt(position))
-            range.collapse(true);
-            sel.removeAllRanges();
-            sel.addRange(range);
+    try {
+      if (!showPicker) {
+        const elem = divEditableRef?.current?.getElementsByClassName("ql-editor")[0]
+        if (elem) {
+          const elementEnd = document.getElementById('seleccionado');
+          const position = elementEnd?.getAttribute("focusOffset")
+          if (elementEnd && elem.textContent) {
+            const range = document.createRange();
+            const sel = window.getSelection();
+            if (elementEnd.firstChild) {
+              range.setStart(elementEnd.firstChild, parseInt(position))
+              range.collapse(true);
+              sel.removeAllRanges();
+              sel.addRange(range);
+            }
+          } else {
+            elem.focus();
           }
-        } else {
-          elem.focus();
         }
       }
+    } catch (error) {
+      console.log(error)
     }
   }, [showPicker])
 
@@ -148,8 +169,8 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
           setCursorPosition(cursorPosition)
         });
         elem.addEventListener('focus', () => {
-          setDispachSel(new Date())
-          setDispachCursorPosition({ elem, d: new Date() })
+          // setDispachSel(new Date())
+          //setDispachCursorPosition({ elem, d: new Date() })
         });
         return () => {
           elem.removeEventListener('paste', handlePaste);
@@ -216,40 +237,47 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
   let sel1 = undefined
 
   useEffect(() => {
-    const sel = window.getSelection();
-    if (sel?.focusNode) {
-      const elemPre = document.getElementById("seleccionado")
-      if (elemPre) {
-        elemPre.removeAttribute("id")
-      }
-      setTimeout(() => {
-        const rango = sel.getRangeAt(0);
-        if (rango.startContainer["setAttribute"]) {
-          const element = rango.startContainer as HTMLElement
-          element.setAttribute("id", "seleccionado")
-          element.setAttribute("focusOffset", sel.focusOffset.toString())
-        } else {
-          if (rango.startContainer["parentElement"]) {
-            rango.startContainer.parentElement.setAttribute("id", "seleccionado")
-            rango.startContainer.parentElement.setAttribute("focusOffset", sel.focusOffset.toString())
-          }
+    try {
+      const sel = window.getSelection();
+      if (sel?.focusNode) {
+        const elemPre = document.getElementById("seleccionado")
+        if (elemPre) {
+          elemPre.removeAttribute("id")
         }
-      }, 10);
+        setTimeout(() => {
+          const rango = sel?.getRangeAt(0);
+          if (rango.startContainer["setAttribute"]) {
+            const element = rango.startContainer as HTMLElement
+            element.setAttribute("id", "seleccionado")
+            element.setAttribute("focusOffset", sel.focusOffset.toString())
+          } else {
+            if (rango.startContainer["parentElement"]) {
+              rango.startContainer.parentElement.setAttribute("id", "seleccionado")
+              rango.startContainer.parentElement.setAttribute("focusOffset", sel.focusOffset.toString())
+            }
+          }
+        }, 10);
+      }
+    } catch (error) {
+      console.log(error)
     }
-
   }, [dispachSel])
 
   const getCursorPosition = (editableDiv: HTMLDivElement): number => {
-    let caretPos = 0;
-    const sel = window.getSelection();
-    if (sel?.rangeCount) {
-      const range = sel.getRangeAt(0);
-      const preCaretRange = range.cloneRange();
-      preCaretRange.selectNodeContents(editableDiv);
-      preCaretRange.setEnd(range.endContainer, range.endOffset);
-      caretPos = preCaretRange.toString().length;
+    try {
+      let caretPos = 0;
+      const sel = window.getSelection();
+      if (sel?.rangeCount) {
+        const range = sel.getRangeAt(0);
+        const preCaretRange = range.cloneRange();
+        preCaretRange.selectNodeContents(editableDiv);
+        preCaretRange.setEnd(range.endContainer, range.endOffset);
+        caretPos = preCaretRange.toString().length;
+      }
+      return caretPos;
+    } catch (error) {
+      console.log(error)
     }
-    return caretPos;
   }
 
   return (
@@ -279,8 +307,8 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
             </ClickAwayListener>
           </div>
         </div>
-        <div ref={divEditableRef} className={`bg-white flex-1 border-[1px] border-gray-300 rounded-3xl ${!pastedAndDropFiles && "pr-10"}`}>
-          <ReactQuill
+        <div ref={divEditableRef} className={`bg-white min-h-[42.45px] flex-1 border-[1px] border-gray-300 rounded-3xl ${!pastedAndDropFiles && "pr-10"}`}>
+          {enableEditor && <ReactQuill
             theme="bubble"
             value={value}
             onChange={(value) => {
@@ -288,7 +316,7 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
             }}
             modules={modules}
             className=''
-          />
+          />}
         </div>
       </div>
       <style>{`

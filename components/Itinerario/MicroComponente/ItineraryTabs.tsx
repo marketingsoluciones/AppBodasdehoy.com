@@ -40,10 +40,62 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
     const [reverse, setReverse] = useState<{ direction: string, position: number }[]>([])
 
     useEffect(() => {
-        const itineraries = event?.itinerarios_array?.filter(elem => elem.tipo === window?.location?.pathname.slice(1))?.slice(0, 8)
-        setItineraries([...itineraries])
-    }, [event])
+        const itineraries = event?.itinerarios_array?.filter(elem => elem?.tipo === window?.location?.pathname.slice(1))?.slice(0, 8)
+        if (itineraries?.length) {
+            const fListIdentifiers = event?.listIdentifiers?.findIndex(elem => elem.table === window?.location?.pathname.slice(1))
+            const listIdentifiers = event?.listIdentifiers[fListIdentifiers]
+            if (!listIdentifiers?.start_Id) {
+                console.log("NO ORDENA")
+                const listIdentifier = {
+                    table: window?.location?.pathname.slice(1),
+                    start_Id: itineraries[0]?.title,
+                    end_Id: itineraries[itineraries.length - 1]?.title
+                }
+                event?.listIdentifiers?.push(listIdentifier)
+                if (itineraries.length > 1) {
+                    const itinerariesSlice = itineraries.slice(0, itineraries.length - 1)
+                    itinerariesSlice.map((elem, idx) => {
+                        const variables = {
+                            eventID: event._id,
+                            itinerarioID: elem?._id,
+                            variable: "next_id",
+                            valor: itineraries[idx + 1]._id
+                        }
+                        //         console.log(100012, variables)
+                        //         // await fetchApiEventos({
+                        //         //     query: queries.editItinerario,
+                        //         //     variables: {
+                        //         //         eventID: event._id,
+                        //         //         itinerarioID: elem?._id,
+                        //         //         variable: "next_id",
+                        //         //         valor: itineraries[idx + 1]._id
+                        //         //     },
+                        //         //     domain: config.domain
+                        //         // })
+                        elem.next_id = itineraries[idx + 1].title
+                    })
+                }
+                setEvent({ ...event })
+            } else {
+                console.log("ordena por next_id", itineraries)
+                let newItineraries = []
+                for (let i = 0; i < itineraries.length; i++) {
+                    newItineraries.push(itineraries.find(elem =>
+                        elem.title === (i === 0
+                            ? listIdentifiers.start_Id
+                            : i < itineraries.length - 1
+                                ? itineraries[i - 1].next_id
+                                : listIdentifiers.end_Id)
+                    ))
 
+                }
+                console.log(100031, newItineraries)
+                setItineraries([...newItineraries])
+                // const newEvent = { ...event, invitados_array: [...newItineraries] }
+                // setEvent({ ...newEvent })
+            }
+        }
+    }, [event])
 
     const handleCreateItinerario = async () => {
         const f = new Date(parseInt(event?.fecha))
@@ -104,10 +156,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
 
     const handleReleaseItinerario = (e: MouseEvent<HTMLDivElement, globalThis.MouseEvent>, item: Itinerary) => {
         if (parseInt(e.currentTarget.getAttribute("itemID")) !== positionInTabs) {
-            itineraries.splice(parseInt(e.currentTarget.getAttribute("itemID")), 1)
-            itineraries.splice(positionInTabs, 0, item)
-            setItineraries([...itineraries])
-            setShowTabs(false)
+            releaseAndLeave(e, item)
         } else {
             e.currentTarget.style.left = `${0}px`
         }
@@ -128,7 +177,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
 
             const colition = elementColition?.getBoundingClientRect()[`${direction === "right" ? "right" : "left"}`]
             if (direction === "right") {
-                if (e.currentTarget.getBoundingClientRect().right > colition - 6) {
+                if (e.currentTarget.getBoundingClientRect().right > colition - 36) {
                     if (positionInTabs > -1 && positionInTabs < itinerariesInTabs.length - 1) {
                         const parentNode = e.currentTarget.parentNode as HTMLDivElement
                         const sixeX = parentNode.getBoundingClientRect().width
@@ -140,6 +189,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
 
                         } else {
                             elementColition.style.transform = `none`
+                            elementColition.style.transition = `transform 0.4s ease-in-out`
                             elementColition.style.transform = `translateX(-${sixeX}px)`
                             const newPos = positionInTabs + 1
                             setPositionInTabs(newPos)
@@ -150,7 +200,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                 }
             }
             if (direction === "left") {
-                if (e.currentTarget.getBoundingClientRect().left < colition + 6) {
+                if (e.currentTarget.getBoundingClientRect().left < colition + 36) {
                     if (positionInTabs > -1 && positionInTabs < itinerariesInTabs.length + 1) {
                         const parentNode = e.currentTarget.parentNode as HTMLDivElement
                         const sixeX = parentNode.getBoundingClientRect().width
@@ -181,7 +231,6 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
     }
     const handleEnter = (e: MouseEvent<HTMLDivElement, globalThis.MouseEvent>, item: Itinerary) => {
         if (item?._id !== itinerario?._id && isClidked) {
-            console.log("entre")
             setShowTabs(false)
         }
     }
@@ -191,12 +240,103 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             if (parseInt(e.currentTarget.getAttribute("itemID")) === positionInTabs) {
                 e.currentTarget.style.left = `${0}px`
             } else {
-                itineraries.splice(parseInt(e.currentTarget.getAttribute("itemID")), 1)
-                itineraries.splice(positionInTabs, 0, item)
-                setItineraries([...itineraries])
-                setShowTabs(false)
+                releaseAndLeave(e, item)
             }
         }
+    }
+
+    const releaseAndLeave = (e: MouseEvent<HTMLDivElement, globalThis.MouseEvent>, item: Itinerary) => {
+        const itinerariesCopy = [...itineraries]
+        if (itineraries.length === 1) {
+            return
+        }
+        const direction = positionInTabs > parseInt(e.currentTarget.getAttribute("itemID")) ? "right" : "left"
+        let ubi = {
+            vecinoLast: parseInt(e.currentTarget.getAttribute("itemID")) - (direction === "right" ? 1 : 0),//ok
+            vecinoNew: positionInTabs - 1,//ok
+            movido: positionInTabs,
+            vecinoLastNextId: null,
+            vecinoNewNextId: null,
+            movidoNextId: null,
+        }
+        console.log(1000310, ubi, itineraries.length)
+
+        ///// moviemientos en el medio funciona /////
+
+        ///// moviemientos del medio al extremo derecho funciona /////
+        const fListIdentifiers = event?.listIdentifiers?.findIndex(elem => elem.table === window?.location?.pathname.slice(1))
+        if (ubi.movido === itineraries.length - 1 && ubi.vecinoLast !== -1) {
+            event.listIdentifiers[fListIdentifiers].end_Id = item.title
+            item.next_id = null
+        }
+
+        ///// moviemientos del medio al extremo izquierdo funciona /////
+        if (ubi.movido === 0) {
+            event.listIdentifiers[fListIdentifiers].start_Id = item.title
+        }
+
+        ///// moviemientos del extremo izquierdo al medio funciona /////
+        if (ubi.vecinoLast === -1 && ubi.movido !== itineraries.length - 1) {
+            event.listIdentifiers[fListIdentifiers].start_Id = item.next_id
+        }
+
+        ///// moviemientos del extremo izquierdo al extremo derecho funciona /////
+        if (ubi.vecinoLast === -1 && ubi.movido === itineraries.length - 1) {
+            event.listIdentifiers[fListIdentifiers].start_Id = item.next_id
+            event.listIdentifiers[fListIdentifiers].end_Id = item.title
+            item.next_id = null
+        }
+
+        ///// moviemientos del extremo derecho al medio funciona /////
+        if (ubi.vecinoLast === itineraries.length - 1 && ubi.movido !== 0) {
+            const previous = itineraries.find(elem => elem.next_id === item.title)
+            event.listIdentifiers[fListIdentifiers].end_Id = previous.title
+            previous.next_id = null
+        }
+
+        ///// moviemientos del extremo derecho al exttremo izquierdo funciona /////
+        if (ubi.movido === 0 && ubi.vecinoLast === itineraries.length - 1) {
+            const previous = itineraries.find(elem => elem.next_id === item.title)
+            event.listIdentifiers[fListIdentifiers].start_Id = item.title
+            event.listIdentifiers[fListIdentifiers].end_Id = previous.title
+            previous.next_id = null
+        }
+
+
+        itineraries.splice(parseInt(e.currentTarget.getAttribute("itemID")), 1)
+        itineraries.splice(positionInTabs, 0, item)
+        const vL = { ...itineraries[ubi.vecinoLast + 1] }
+        const vN = { ...itineraries[ubi.vecinoNew + 1] }
+        const mo = { ...itineraries[ubi.movido + 1] }
+
+
+        ubi.vecinoLastNextId = ubi.vecinoLast > -1 && ubi.vecinoLast < itineraries.length - 1 ? vL.title : null
+        ubi.vecinoNewNextId = ubi.vecinoNew > -1 && ubi.vecinoNew < itineraries.length - 1 ? vN.title : null
+        ubi.movidoNextId = ubi.movido > -1 && ubi.movido < itineraries.length - 1 ? mo.title : null
+
+        const vecinoLast_ = { ...itineraries[ubi.vecinoLast], next_id: ubi.vecinoLastNextId }
+        const vecinoNew_ = { ...itineraries[ubi.vecinoNew], next_id: ubi.vecinoNewNextId }
+        const movido_ = { ...itineraries[ubi.movido], next_id: ubi.movidoNextId }
+
+        if (ubi.vecinoLastNextId) {
+            console.log(1000701, vecinoLast_.title)
+            itineraries.splice(ubi.vecinoLast, 1, { ...vecinoLast_ })
+        }
+        if (ubi.vecinoNewNextId) {
+            console.log(1000702, vecinoNew_.title)
+            itineraries.splice(ubi.vecinoNew, 1, { ...vecinoNew_ })
+        }
+        if (ubi.movidoNextId) {
+            console.log(1000703, movido_.title)
+            itineraries.splice(ubi.movido, 1, { ...movido_ })
+        }
+
+        console.log(1000706, itinerariesCopy)
+        console.log(1000707, itineraries)
+        // setItineraries([...itineraries])
+        const eventNew = { ...event, itinerarios_array: [...itineraries] }
+        setEvent({ ...eventNew })
+        setShowTabs(false)
     }
 
     return (
@@ -207,7 +347,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                         <div ref={refTabs} id="azul" className={` ${event?.usuario_id === user?.uid && "max-w-[calc(100%-32px)]"} inline-flex  h-full items-center select-none  mx-2`}>
                             {itineraries?.map((item, idx) => {
                                 return (
-                                    (isAllowedViewer(item.viewers) || window?.location?.pathname === "/itinerario") &&
+                                    (isAllowedViewer(item?.viewers) || window?.location?.pathname === "/itinerario") &&
                                     <div key={idx} className="relative">
                                         <div id={item?._id} itemID={idx.toString()}
                                             className={`justify-start items-center cursor-pointer h-full ${itinerario?._id === item?._id ? `flex ${isClidked && "absolute py-20 z-20"}` : "inline-flex"} text-sm space-x-1 relative md:mr-2`}
