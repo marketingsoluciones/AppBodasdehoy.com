@@ -101,6 +101,17 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categor
                         pagado_por
                         concepto
                     }
+                    items_array{
+                      _id
+                      next_id
+                      unidad
+                      cantidad
+                      nombre
+                      valor_unitario
+                      total
+                      estatus
+                      fecha_creacion
+                    }
                   }
                 }
                 }

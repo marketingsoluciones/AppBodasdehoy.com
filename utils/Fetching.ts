@@ -803,6 +803,8 @@ export const queries = {
             coste_final
             pagado
             nombre
+            linkTask
+            estatus
             pagos_array {
               _id
               estado
@@ -819,8 +821,18 @@ export const queries = {
                 delete_url
               }
             }
+            items_array{
+              _id
+              next_id
+              unidad
+              cantidad
+              nombre
+              valor_unitario
+              total
+              estatus
+              fecha_creacion
+            }
           }
-          
         }
       }
       showChildrenGuest
@@ -832,7 +844,14 @@ export const queries = {
                     categorias_array{
                       pagado
                       gastos_array{
-                        pagado
+                        _id
+                        coste_proporcion
+                        coste_estimado
+                        coste_final
+                        pagado 
+                        nombre 
+                        linkTask 
+                        estatus 
                         pagos_array{
                           _id
                           estado
@@ -850,10 +869,171 @@ export const queries = {
                             delete_url
                           }
                         }
+                        items_array{
+                          _id
+                          next_id
+                          unidad
+                          cantidad
+                          nombre
+                          valor_unitario
+                          total
+                          estatus
+                          fecha_creacion
+                        }
                       }
                     }
                   }
                 }`,
+  nuevoGasto: `mutation($evento_id: String ,$categoria_id: String, $nombre: String){
+              nuevoGasto(evento_id:$evento_id, categoria_id:$categoria_id,nombre:$nombre){
+                _id
+                coste_proporcion
+                coste_estimado
+                coste_final
+                pagado
+                nombre
+                linkTask
+                estatus
+                pagos_array{
+                  _id
+                  estado
+                  fecha_creacion
+                  fecha_pago
+                  fecha_vencimiento
+                  medio_pago
+                  importe
+                  pagado_por
+                  concepto
+                  soporte{
+                    image_url
+                    medium_url
+                    thumb_url
+                    delete_url
+                  }
+                }
+                items_array{
+                  _id
+                  next_id
+                  unidad
+                  cantidad
+                  nombre
+                  valor_unitario
+                  total
+                  estatus
+                  fecha_creacion
+                }
+              }
+            }`,
+            
+  editItemGasto: `mutation($evento_id: ID ,$categoria_id: ID, $gasto_id: ID, $itemGasto_id: ID, $variable: String, $valor: StringIntBool){
+    nuevoGasto(evento_id:$evento_id, categoria_id: $categoria_id, gasto_id: $gasto_id, itemGasto_id: $itemGasto_id, variable: $variable, valor: $valor){
+      coste_estimado
+      coste_final
+      pagado
+      currency
+      categorias_array{
+        _id
+        coste_proporcion
+        coste_estimado
+        coste_final
+        pagado
+        nombre
+        gastos_array{
+          _id
+          coste_proporcion
+          coste_estimado
+          coste_final
+          pagado
+          nombre
+          linkTask
+          estatus
+          pagos_array{
+            _id
+            estado
+            fecha_creacion
+            fecha_pago
+            fecha_vencimiento
+            medio_pago
+            importe
+            pagado_por
+            concepto
+            soporte{
+              image_url
+              medium_url
+              thumb_url
+              delete_url
+            }
+          }
+          items_array{
+            _id
+            next_id
+            unidad
+            cantidad
+            nombre
+            valor_unitario
+            total
+            estatus
+            fecha_creacion
+          }
+        }
+      }
+    }
+  }`,
+
+  nuevoItemsGastos: `mutation($evento_id: ID, $categoria_id: ID, $gasto_id: ID, $itemsGastos:[itemGastoInput]){ 
+    nuevoItemsGastos(evento_id:$evento_id, categoria_id:$categoria_id, gasto_id:$gasto_id, itemsGastos:$itemsGastos){
+      coste_estimado
+      coste_final
+      pagado
+      currency
+      categorias_array{
+        _id
+        coste_proporcion
+        coste_estimado
+        coste_final
+        pagado
+        nombre
+        gastos_array{
+          _id
+          coste_proporcion
+          coste_estimado
+          coste_final
+          pagado 
+          nombre 
+          linkTask 
+          estatus 
+          pagos_array{
+            _id
+            estado
+            fecha_creacion
+            fecha_pago
+            fecha_vencimiento
+            medio_pago
+            importe
+            pagado_por
+            concepto
+            soporte{
+              image_url
+              medium_url
+              thumb_url
+              delete_url
+            }
+          }
+          items_array{
+            _id
+            next_id
+            unidad
+            cantidad
+            nombre
+            valor_unitario
+            total
+            estatus
+            fecha_creacion
+          }
+        }
+      }
+    }
+  }`,
   guardarListaRegalos: `mutation($evento_id: String!, $variable_reemplazar: String, $valor_reemplazar: String){
     editEvento(
       evento_id:$evento_id
@@ -1122,6 +1302,8 @@ export const queries = {
             coste_final
             pagado
             nombre
+            linkTask
+            estatus
             pagos_array {
               _id
               estado
@@ -1137,6 +1319,17 @@ export const queries = {
                 thumb_url
                 delete_url
               }
+            }
+            items_array{
+              _id
+              next_id
+              unidad
+              cantidad
+              nombre
+              valor_unitario
+              total
+              estatus
+              fecha_creacion
             }
           }
         }

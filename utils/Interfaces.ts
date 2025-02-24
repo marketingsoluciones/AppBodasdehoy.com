@@ -145,7 +145,7 @@ export interface detalle_compartidos_array {
     icon?: any
 }
 
-interface estimate {
+export interface estimate {
     coste_estimado: number
     coste_final: number
     pagado: number
@@ -153,7 +153,7 @@ interface estimate {
     categorias_array: estimateCategory[]
 }
 
-interface cost {
+export interface cost {
     _id: string
     coste_proporcion: number
     coste_estimado: number
@@ -161,12 +161,27 @@ interface cost {
     pagado: number
     nombre: string
 }
-interface estimateCategory extends cost {
+export interface estimateCategory extends cost {
     gastos_array: expenses[]
 }
 
-interface expenses extends cost {
+export interface expenses extends cost {
+    linkTicket: string
+    estatus: boolean
     pagos_array: pay[]
+    items_array: item[]
+}
+
+export interface item {
+    _id: string
+    next_id: string
+    unidad: string
+    cantidad: number
+    nombre: string
+    valor_unitario: number
+    total: number
+    estatus: boolean
+    fecha_creacion: number
 }
 
 interface pay {
@@ -178,6 +193,8 @@ interface pay {
     medio_pago: string
     importe: number
     pagado_por: string
+    concepto: string
+    soporte: string //preguntarle a jafet cual seria el tipo de dato para soporte
 }
 
 export interface image {
