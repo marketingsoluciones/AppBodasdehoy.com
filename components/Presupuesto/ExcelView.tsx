@@ -108,7 +108,7 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
                 showFormPago.state && (
                     <Modal classe={"w-[750px] h-[90%] p-4 "} >
                         <div className="font-display text-gray-500 hover:text-gray-300 transition text-lg absolute top-5 right-5 cursor-pointer hover:scale-125" onClick={() => setShowFormPago({ id: "", state: false })}>X</div>
-                        <FormAddPago GastoID={showFormPago?.id} cate={categoria?._id} setShowFormPago={setShowFormPago} />
+                        <FormAddPago GastoID={showFormPago?.id} cate={categoria?._id}  />
                     </Modal>
                 )
             }
