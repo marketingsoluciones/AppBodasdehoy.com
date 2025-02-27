@@ -22,6 +22,8 @@ import { item, expenses, estimate } from "../../utils/Interfaces";
 import { PiNewspaperClippingLight } from "react-icons/pi";
 import FormAddPago from '../Forms/FormAddPago';
 import { Modal } from '../Utils/Modal';
+import { PiTextColumns } from "react-icons/pi";
+import { set } from 'date-fns';
 
 
 interface Categoria {
@@ -35,6 +37,7 @@ interface Categoria {
 }
 
 export const ExcelView = ({ set, categorias_array, showCategoria }) => {
+    const toast = useToast()
     const { event, setEvent } = EventContextProvider()
     const [categoria, setCategoria] = useState<Categoria>(null);
     const [data, setData] = useState([]);
@@ -97,6 +100,7 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
                 old.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array = []
                 return { ...old };
             });
+            toast("success", t("Creado con exito"))
         } catch (error) {
             console.log(error);
         }
@@ -108,7 +112,7 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
                 showFormPago.state && (
                     <Modal classe={"w-[750px] h-[90%] p-4 "} >
                         <div className="font-display text-gray-500 hover:text-gray-300 transition text-lg absolute top-5 right-5 cursor-pointer hover:scale-125" onClick={() => setShowFormPago({ id: "", state: false })}>X</div>
-                        <FormAddPago GastoID={showFormPago?.id} cate={categoria?._id}  />
+                        <FormAddPago GastoID={showFormPago?.id} cate={categoria?._id} />
                     </Modal>
                 )
             }
@@ -169,16 +173,60 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
     );
 };
 
-const TablePorProveedor = ({ data, categoria, set }) => {
+const ColumnVisibilityModal = ({ columnVisibility, toggleColumnVisibility, closeModal }) => {
+    return (
+        <div className="absolute z-50 right-5 flex items-center justify-center text-azulCorporativo">
+            <div className="bg-white p-4 rounded shadow-lg">
+                <h2 className="text-lg  mb-1.5 border-b">Columnas Visibles</h2>
+                {Object.keys(columnVisibility).map((columnId) => {
+                    const column = columnVisibility[columnId];
+                    return (
+                        <div key={columnId} className="mb-2">
+                            <label className="flex items-center cursor-pointer text-sm">
+                                <input
+                                    type="checkbox"
+                                    checked={column.visible}
+                                    onChange={() => toggleColumnVisibility(column.accessor)}
+                                    className="mr-2 cursor-pointer text-primary"
+                                />
+                                {column.Header}
+                            </label>
+                        </div>
+                    )
+                })}
+                <div className='w-full border-t'>
+                    <button onClick={closeModal} className="mt-1.5 bg-primary text-white  py-1 rounded w-full text-sm ">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const TablePorProveedor = ({ data = [], categoria, set }) => {
     const { event, setEvent } = EventContextProvider()
     const toast = useToast()
-    const columnsWithItems = useMemo(
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [columnVisibility, setColumnVisibility] = useState({
+        nombre: { visible: true, Header: "Partida de Gasto", span: 2, accessor: "nombre" },
+        columna1: { visible: true, Header: "Unidad", span: 1, accessor: "columna1" },
+        columna2: { visible: true, Header: "Cantidad", span: 1, accessor: "columna2" },
+        columna3: { visible: true, Header: "Item", span: 3, accessor: "columna3" },
+        columna4: { visible: true, Header: "Valor Unitario", span: 1, accessor: "columna4" },
+        coste_final: { visible: true, Header: "Total", span: 2, accessor: "coste_final" },
+        coste_estimado: { visible: true, Header: "Coste Estimado", span: 2, accessor: "coste_estimado" },
+        pagado: { visible: true, Header: "Pagado", span: 2, accessor: "pagado" },
+        pendiente_pagar: { visible: true, Header: "Pendiente por Pagar", span: 2, accessor: "pendiente_pagar" },
+        options: { visible: true, Header: "Opciones", span: 2, accessor: "options" }
+    });
+    const columns = useMemo(
         () => [
             {
                 Header: "Part. de Gasto",
                 accessor: "nombre",
                 id: "nombre",
-                Cell: (props) => <CellEditCopy categoriaID={categoria?._id} type={"string"} {...props} />
+                Cell: (props) => <CellEditCopy categoriaID={categoria?._id} type={"string"} table={"principal"} {...props} />
             },
             {
                 Header: "Und.",
@@ -191,7 +239,6 @@ const TablePorProveedor = ({ data, categoria, set }) => {
             {
                 Header: "Item",
                 accessor: "columna3",
-
             },
             {
                 Header: "Val. Unitario",
@@ -202,18 +249,18 @@ const TablePorProveedor = ({ data, categoria, set }) => {
                 accessor: "coste_final",
                 Cell: (props) => {
                     const [value, setValue] = useState(props?.value);
-                    const data = props?.row.original.items_array
-                    const sumaTotal = data.reduce((total, item) => total + item.total, 0)
+                    const data = props?.row?.original?.items_array
+                    const sumaTotal = data?.reduce((total, item) => total + item.total, 0)
                     useEffect(() => {
                         setValue(props?.value)
                     }, [props?.value])
 
-                    if (data.length === 0) {
+                    if (data?.length === 0) {
                         return (
-                            <CellEditCopy categoriaID={categoria?._id} type={"number"} {...props} />
+                            <CellEditCopy categoriaID={categoria?._id} type={"number"} {...props} table={"principal"} />
                         )
                     }
-                    if (data.length > 0) {
+                    if (data?.length > 0) {
                         return (
                             <div className="font-display  text-gray-500 text-[15px] grid place-items-center h-full text-end ">
                                 <p className="w-full">{getCurrency(sumaTotal, event?.presupuesto_objeto?.currency)}</p>
@@ -226,7 +273,7 @@ const TablePorProveedor = ({ data, categoria, set }) => {
                 Header: "Coste Estimado",
                 accessor: "coste_estimado",
                 id: "coste_estimado",
-                Cell: (props) => <CellEditCopy categoriaID={categoria?._id} type={"number"} {...props} />
+                Cell: (props) => <CellEditCopy categoriaID={categoria?._id} type={"number"} table={"principal"} {...props} />
             },
             {
                 Header: "Pagado",
@@ -347,11 +394,9 @@ const TablePorProveedor = ({ data, categoria, set }) => {
                             console.log(error);
                         })
                     }
-
                     const handlePago = () => {
                         set({ id: props?.row?.original?._id, state: true })
                     }
-
                     const Lista = [
                         {
                             icon: <GrMoney className="w-4 h-4" />,
@@ -381,8 +426,6 @@ const TablePorProveedor = ({ data, categoria, set }) => {
 
 
                     ];
-
-
                     return (
                         <div className='w-full h-full flex items-center justify-end pr-2 relative  '>
                             {
@@ -405,196 +448,6 @@ const TablePorProveedor = ({ data, categoria, set }) => {
         ],
         [categoria, event?.presupuesto_objeto?.currency, event]
     );
-    const columnsWithoutItems = useMemo(
-        () => [
-            {
-                Header: "Part. de Gasto",
-                accessor: "nombre",
-                id: "nombre",
-                Cell: (props) => <CellEditCopy categoriaID={categoria?._id} type={"string"} {...props} />
-            },
-            {
-                Header: "Und.",
-                accessor: "columna1",
-            },
-            {
-                Header: "Can.",
-                accessor: "columna2",
-            },
-            {
-                Header: "Item",
-                accessor: "columna3",
-
-            },
-            {
-                Header: "Val. Unitario",
-                accessor: "columna4",
-            },
-            {
-                Header: "Total",
-                accessor: "columna5",
-                Cell: (props) => {
-                    const [value, setValue] = useState(props?.value);
-                    useEffect(() => {
-                        setValue(props?.value)
-                    }, [props?.value])
-                    return (
-                        <div className="font-display font-semibold text-gray-500 text-[15px] grid place-items-center h-full text-end ">
-                            <p className="w-full">{getCurrency(value, event?.presupuesto_objeto?.currency)}</p>
-                        </div>
-                    );
-                },
-            },
-            {
-                Header: "Coste Estimado",
-                accessor: "coste_estimado",
-                id: "coste_estimado",
-                Cell: (props) => {
-                    const [value, setValue] = useState(props?.value);
-                    useEffect(() => {
-                        setValue(props?.value)
-                    }, [props?.value])
-                    return (
-                        <div className="font-display font-semibold text-gray-500 text-[15px] grid place-items-center h-full text-end ">
-                            <p className="w-full">{getCurrency(value, event?.presupuesto_objeto?.currency)}</p>
-                        </div>
-                    );
-                },
-            },
-            {
-                Header: "Pagado",
-                accessor: "pagado",
-                id: "pagado",
-                Cell: (props) => {
-                    const [value, setValue] = useState(props?.value);
-                    useEffect(() => {
-                        setValue(props?.value)
-                    }, [props?.value])
-                    return (
-                        <div className="font-display font-semibold text-gray-500 text-[15px] grid place-items-center h-full text-end ">
-                            <p className="w-full">{getCurrency(value, event?.presupuesto_objeto?.currency)}</p>
-                        </div>
-                    );
-                },
-            },
-            {
-                Header: "Pnd. por Pagar",
-                accessor: "pendiente_pagar",
-                id: "pendiente_pagar",
-                Cell: (props) => {
-                    const [value, setValue] = useState(props?.value);
-                    useEffect(() => {
-                        setValue(props?.value)
-                    }, [props?.value])
-                    return (
-                        <div className="font-display font-semibold text-gray-500 text-[15px] grid place-items-center h-full text-end ">
-                            <p className="w-full">{getCurrency(value, event?.presupuesto_objeto?.currency)}</p>
-                        </div>
-                    );
-                },
-            },
-            {
-                Header: "",
-                accessor: "options",
-                id: "options",
-                Cell: (props) => {
-                    const [show, setShow] = useState(false);
-                    const handleRemove = async () => {
-                        let data
-                        try {
-                            const params = {
-                                query: `mutation{
-                                          borraGasto(evento_id:"${event?._id}", categoria_id: "${categoria._id}", gasto_id: "${props?.row?.original?._id}"){
-                                          coste_final
-                                          coste_estimado
-                                          pagado
-                                            categorias_array {
-                                              coste_estimado
-                                              coste_final
-                                              pagado
-                                            }
-                                          }
-                                        }`,
-                                variables: {},
-                            }
-                            const { data: res } = await api.ApiApp(params);
-                            data = res?.data?.borraGasto
-                        } catch (error) {
-                            console.log(error);
-                            toast("error", t("Agrega un monto a tu Presupuesto Estimado"))
-                        } finally {
-                            setEvent((old) => {
-                                // Encontrar posicion de la categoria en el array categorias
-                                const idxCategoria = old?.presupuesto_objeto?.categorias_array.findIndex((item) => item._id == categoria._id);
-                                // Sustraer el gasto a eliminar del array de gastos
-                                const filterGastos = old?.presupuesto_objeto?.categorias_array[idxCategoria].gastos_array?.filter((item) => item._id !== props?.row?.original?._id
-                                );
-                                //Actualizar estimado, final y pagado del evento
-                                old.presupuesto_objeto.coste_estimado = data?.coste_estimado
-                                old.presupuesto_objeto.coste_final = data?.coste_final
-                                old.presupuesto_objeto.pagado = data?.pagado
-                                //Actualizar estimado, final y pagado de la categoria
-                                old.presupuesto_objeto.categorias_array[idxCategoria].coste_estimado = data?.categorias_array[0]?.coste_estimado
-                                old.presupuesto_objeto.categorias_array[idxCategoria].coste_final = data?.categorias_array[0]?.coste_final
-                                old.presupuesto_objeto.categorias_array[idxCategoria].pagado = data?.categorias_array[0]?.pagado
-                                // Sobrescribir arr de gastos anterior por el nuevo
-                                old.presupuesto_objeto.categorias_array[idxCategoria].gastos_array = filterGastos;
-                                return { ...old };
-                            });
-                            toast("success", t("Borrado exitoso"))
-                        }
-                    };
-
-                    const Lista = [
-                        {
-                            icon: <GrMoney className="w-4 h-4" />,
-                            title: "Pago",
-                            //function: EditarCategoria
-                        },
-                        {
-                            icon: <GoEye className="w-4 h-4" />,
-                            title: "Estado",
-                            //function: BorrarCategoria
-                        },
-                        {
-                            icon: <GoTasklist className="w-4 h-4" />,
-                            title: "Task",
-                            //function: BorrarCategoria
-                        },
-                        {
-                            icon: <MdOutlineDeleteOutline className="w-4 h-4" />,
-                            title: "Borrar",
-                            function: () => handleRemove()
-                        },
-                    ];
-
-
-                    return (
-                        <div className='w-full h-full flex items-center justify-end pr-2 relative space-x-1 '>
-                            {
-                                Lista.map((item, idx) => {
-                                    return (
-                                        <div
-                                            key={idx}
-                                            className='cursor-pointer hover:bg-slate-50 rounded-full p-1'
-                                            onClick={item.function && item.function}
-                                        >
-                                            {item.icon}
-                                        </div>
-                                    )
-                                })
-                            }
-                        </div>
-                    );
-                },
-            },
-        ],
-        [categoria, event?.presupuesto_objeto?.currency, event]
-    );
-
-
-    const columns = data.length > 0 ? columnsWithItems : columnsWithoutItems;
-
     const colSpan = {
         nombre: 2,
         columna1: 1,
@@ -607,36 +460,61 @@ const TablePorProveedor = ({ data, categoria, set }) => {
         pendiente_pagar: 2,
         options: 2
     };
-
-    const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows, state: { expanded } } = useTable({ columns, data }, useExpanded);
-
+    const visibleColumns = useMemo(
+        () => columns.filter(column => columnVisibility[column.accessor].visible),
+        [columns, columnVisibility]
+    );
+    const toggleColumnVisibility = (accessor) => {
+        setColumnVisibility((prev) => ({
+            ...prev,
+            [accessor]: {
+                ...prev[accessor],
+                visible: !prev[accessor].visible,
+            },
+        }));
+    };
+    const totalSpan = useMemo(() => {
+        return Object.values(columnVisibility)
+            .filter(column => column.visible)
+            .reduce((sum, column) => sum + column.span, 0);
+    }, [columnVisibility]);
+    const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows } = useTable(
+        { columns: visibleColumns, data },
+        useExpanded
+    );
     const renderRowSubComponent = useCallback(({ row, categoria }) => {
         return (
-            <SubComponenteTable row={row} data={row.original.items_array} categoria={categoria} />
+            <SubComponenteTable row={row} data={row.original.items_array} categoria={categoria} visibleColumns={visibleColumns} />
         )
-    },
-        [categoria]
-    )
-
+    }, [categoria]);
     return (
         <table {...getTableProps()} className="w-full rounded-lg relative bg-slate-50">
+            {isModalOpen && (
+                <ColumnVisibilityModal
+                    columnVisibility={columnVisibility}
+                    toggleColumnVisibility={toggleColumnVisibility}
+                    closeModal={() => setIsModalOpen(false)}
+                />
+            )}
             <thead>
                 {headerGroups.map((headerGroup, id) => (
                     <tr
                         {...headerGroup.getHeaderGroupProps()}
-                        className="w-full grid grid-cols-18 py-2 bg-[#e6e6d7]"
+                        className={` w-full grid grid-cols-${totalSpan} py-2 bg-[#e6e6d7] relative `}
                         key={id}
                     >
                         {headerGroup.headers.map((column, id) => (
                             <th
                                 {...column.getHeaderProps()}
-                                className={`font-display font-semibold text-gray-500 text-[12.1px] flex items-center justify-center col-span-${colSpan[column.id]
-                                    }`}
+                                className={`font-display font-semibold text-gray-500 text-[12.1px] flex items-center justify-center col-span-${colSpan[column.id]}`}
                                 key={id}
                             >
                                 {column.render("Header")}
                             </th>
                         ))}
+                        <th className='absolute right-7 top-0 h-full w-10 flex items-center justify-center '>
+                            <PiTextColumns onClick={() => setIsModalOpen(!isModalOpen)} className='w-5 h-5 cursor-pointer' />
+                        </th>
                     </tr>
                 ))}
             </thead>
@@ -652,7 +530,7 @@ const TablePorProveedor = ({ data, categoria, set }) => {
                                             <tr
                                                 key={i}
                                                 {...row.getRowProps()}
-                                                className="w-full border-b border-base grid grid-cols-18 px-2 bg-[#eaecee] "
+                                                className={` w-full border-b border-base grid grid-cols-${totalSpan} px-2 bg-[#eaecee] `}
                                             >
                                                 {row.cells.map((cell, i) => {
                                                     return (
@@ -690,11 +568,12 @@ const TablePorProveedor = ({ data, categoria, set }) => {
     )
 }
 
-const SubComponenteTable = ({ row, data, categoria }) => {
+const SubComponenteTable = ({ row, data = [], categoria, visibleColumns }) => {
     const { user, config } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
     const [showMenu, setShowMenu] = useState(false);
     const [position, setPosition] = useState({ x: 0, y: 0 });
+    const toast = useToast()
     const menuRef = useRef(null);
     const options = [
         {
@@ -725,11 +604,13 @@ const SubComponenteTable = ({ row, data, categoria }) => {
             {
                 Header: "Part. de Gasto",
                 accessor: "columna1",
+                id: "columna1",
                 //Cell: (props) => <CellEditCopy categoriaID={categoria?._id} type={"string"} {...props} />
             },
             {
                 Header: "Und.",
                 accessor: "unidad",
+                id: "unidad",
                 Cell: (data) => {
                     const [show, setShow] = useState(false);
                     const Lista = [
@@ -771,28 +652,26 @@ const SubComponenteTable = ({ row, data, categoria }) => {
             {
                 Header: "Can.",
                 accessor: "cantidad",
-                Cell: /* (data) => {
-                    return (
-                        <span className="flex items-center justify-center capitalize text-right w-full"> {data.value}</span>
-                    )
-                }, */
-                    (props) => <CellEditCopy categoriaID={categoria?._id} type={"cantidad"} {...props} />
+                id: "cantidad",
+                Cell: (props) => <CellEditCopy categoriaID={categoria?._id} type={"cantidad"} table={"subtable"} {...props} />
             },
             {
                 Header: "Item",
                 accessor: "nombre",
-                Cell: (props) => <CellEditCopy categoriaID={categoria?._id} type={"string"} {...props} />
+                id: "nombre",
+                Cell: (props) => <CellEditCopy categoriaID={categoria?._id} type={"string"} table={"subtable"}  {...props} />
 
             },
             {
                 Header: "Velor Unitario",
                 accessor: "valor_unitario",
                 id: "valor_unitario",
-                Cell: (props) => <CellEditCopy categoriaID={categoria?._id} type={"number"} {...props} />
+                Cell: (props) => <CellEditCopy categoriaID={categoria?._id} type={"number"} table={"subtable"} {...props} />
             },
             {
                 Header: "Total",
                 accessor: "total",
+                id: "total",
                 Cell: (data) => {
                     const Total = data.row.original.cantidad * data.row.original.valor_unitario
                     return (
@@ -805,94 +684,95 @@ const SubComponenteTable = ({ row, data, categoria }) => {
             {
                 Header: "Coste Estimado",
                 accessor: "columna2",
+                id: "columna2",
             },
             {
                 Header: "Pagado",
                 accessor: "columna3",
+                id: "columna3",
             },
             {
                 Header: "Pnd. por Pagar",
                 accessor: "columna4",
+                id: "columna4",
             },
             {
                 Header: "",
                 accessor: "options",
                 id: "options",
                 Cell: (props) => {
-                    const [show, setShow] = useState(false);
+                    const [showItem, setShowItem] = useState(false);
                     const Lista = [
                         {
                             icon: <GoEye className="w-4 h-4" />,
                             title: "Estado",
-                            //function: BorrarCategoria
+                            //function: (e) => handleChangeState(e, showItem)
                         },
                         {
                             icon: <MdOutlineDeleteOutline className="w-4 h-4" />,
                             title: "Borrar",
-                            //function: BorrarCategoria
+                            function: () => handleBorrarItem()
                         },
                     ];
+                    const handleBorrarItem = () => {
+                        const data = categoria?.gastos_array.find((item) => item.items_array.some((item) => item._id == props.row.original._id));
+                        fetchApiEventos({
+                            query: queries.borrarItemsGastos,
+                            variables: {
+                                evento_id: event?._id,
+                                categoria_id: categoria?._id,
+                                gasto_id: data?._id,
+                                itemsGastos_ids: [props.row.original._id]
+                            }
+                        }).then((result: estimate) => {
+                            const f1 = result?.categorias_array.findIndex((item) => item._id == categoria?._id);
+                            const f2 = result?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == data?._id);
+                            const dataRelult = result?.categorias_array[f1]?.gastos_array[f2]?.items_array
+                            setEvent((old) => {
+                                const f1 = old?.presupuesto_objeto?.categorias_array.findIndex((item) => item._id == categoria?._id);
+                                const f2 = old?.presupuesto_objeto?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == data?._id);
+                                if (old?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.items_array) {
+                                    old.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array = dataRelult;
+                                }
+                                return { ...old, }
+                            });
+                            toast("success", t("Eliminado con exito"))
+                        }).catch((error) => {
+                            console.log(error);
+                        })
+                    }
+                    const handleChangeState = (e, showItem: boolean) => {
+                        console.log(1111111, showItem);
+                        const f1 = event?.presupuesto_objeto?.categorias_array.findIndex((item) => item._id == props?.categoriaID)
+                        const data = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array.find((item) => item.items_array.some((item) => item._id == props?.row?.original?._id))
+                        fetchApiEventos({
+                            query: queries.editItemGasto,
+                            variables: {
+                                evento_id: event?._id,
+                                categoria_id: props?.categoriaID,
+                                gasto_id: data?._id,
+                                itemGasto_id: props?.row?.original?._id,
+                                variable: props?.cell?.column?.id,
+                                valor: ""
+                            }
 
-                    /*  const handleRemove = async () => {
-                         let data
-                         try {
-                             const params = {
-                                 query: `mutation{
-                       borraGasto(evento_id:"${event?._id}", categoria_id: "${cate}", gasto_id: "${props?.row?.original?._id}"){
-                       coste_final
-                       coste_estimado
-                       pagado
-                         categorias_array {
-                           coste_estimado
-                           coste_final
-                           pagado
-                         }
-                       }
-                     }`,
-                                 variables: {},
-                             }
-                             const { data: res } = await api.ApiApp(params);
-                             data = res?.data?.borraGasto
-                         } catch (error) {
-                             console.log(error);
-                         } finally {
-                             setEvent((old) => {
-                                 // Encontrar posicion de la categoria en el array categorias
-                                 const idxCategoria =
-                                     old?.presupuesto_objeto?.categorias_array.findIndex(
-                                         (item) => item._id == cate
-                                     );
-                                 // Sustraer el gasto a eliminar del array de gastos
-                                 const filterGastos = old?.presupuesto_objeto?.categorias_array[
-                                     idxCategoria
-                                 ].gastos_array?.filter(
-                                     (item) => item._id !== props?.row?.original?._id
-                                 );
- 
-                                 //Actualizar estimado, final y pagado del evento
-                                 old.presupuesto_objeto.coste_estimado = data?.coste_estimado
-                                 old.presupuesto_objeto.coste_final = data?.coste_final
-                                 old.presupuesto_objeto.pagado = data?.pagado
- 
-                                 //Actualizar estimado, final y pagado de la categoria
-                                 old.presupuesto_objeto.categorias_array[idxCategoria].coste_estimado = data?.categorias_array[0]?.coste_estimado
-                                 old.presupuesto_objeto.categorias_array[idxCategoria].coste_final = data?.categorias_array[0]?.coste_final
-                                 old.presupuesto_objeto.categorias_array[idxCategoria].pagado = data?.categorias_array[0]?.pagado
- 
-                                 // Sobrescribir arr de gastos anterior por el nuevo
-                                 old.presupuesto_objeto.categorias_array[idxCategoria].gastos_array = filterGastos;
- 
-                                 return { ...old };
-                             });
-                         }
-                     }; */
+                        }).then((result) => {
+                            console.log(result);
+                        }).catch((error) => {
+                            console.log(error);
+                        })
+                    }
 
                     return (
                         <div className='w-full h-full flex items-center justify-end pr-2 relative '>
                             {
                                 Lista.map((item, idx) => {
                                     return (
-                                        <div key={idx} className='cursor-pointer hover:bg-slate-50 rounded-full p-1'>
+                                        <div
+                                            key={idx}
+                                            className='cursor-pointer hover:bg-slate-50 rounded-full p-1'
+                                            onClick={item.function && item.function}
+                                        >
                                             {item.icon}
                                         </div>
                                     )
@@ -902,7 +782,6 @@ const SubComponenteTable = ({ row, data, categoria }) => {
                     );
                 },
             },
-
         ],
         [categoria, event?.presupuesto_objeto?.currency, event]
     );
@@ -936,7 +815,6 @@ const SubComponenteTable = ({ row, data, categoria }) => {
                 }]
             },
         }).then((result: item) => {
-            console.log("result", result)
             setEvent((old) => {
                 const f1 = old?.presupuesto_objeto?.categorias_array.findIndex((item) => item._id == categoria?._id);
                 const f2 = old?.presupuesto_objeto?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == row.original._id);

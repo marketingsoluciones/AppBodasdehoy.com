@@ -40,8 +40,14 @@ module.exports = {
         '24': 'repeat(24, minmax(0, 1fr))',
         '48': 'repeat(48, minmax(0, 1fr))',
         '28': 'repeat(28, minmax(0, 1fr))',
+        '10': 'repeat(10, minmax(0, 1fr))',
+        '11': 'repeat(11, minmax(0, 1fr))',
+        '12': 'repeat(12, minmax(0, 1fr))',
         '13': 'repeat(13, minmax(0, 1fr))',
         '14': 'repeat(14, minmax(0, 1fr))',
+        '15': 'repeat(15, minmax(0, 1fr))',
+        '16': 'repeat(16, minmax(0, 1fr))',
+        '17': 'repeat(17, minmax(0, 1fr))',
         '18': 'repeat(18, minmax(0, 1fr))',
 
 

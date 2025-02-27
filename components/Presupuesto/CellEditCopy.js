@@ -6,6 +6,8 @@ import { getCurrency } from "../../utils/Funciones";
 import { capitalize } from '../../utils/Capitalize';
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
+import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { set } from "date-fns";
 
 const CellEditCopy = (props) => {
 
@@ -49,49 +51,78 @@ const CellEditCopy = (props) => {
     setEdit(false);
     let res;
     if (value !== props?.value) {
-      try {
-        const params = {
-          query: `mutation{
-              editGasto(evento_id:"${event?._id}", categoria_id: "${props?.categoriaID}", gasto_id: "${props?.row?.original?._id}", variable_reemplazar:"${props?.cell?.column?.id}", valor_reemplazar:"${!!value ? value : "sin datos"}")
-              {
-                coste_estimado
-                coste_final
-                pagado 
-                categorias_array{
-                  _id,
-                  nombre,
-                  coste_estimado,
-                  coste_final,
-                  pagado,
-                  gastos_array{
+      if (props?.table === "principal") {
+        try {
+          const params = {
+            query: `mutation{
+                editGasto(evento_id:"${event?._id}", categoria_id: "${props?.categoriaID}", gasto_id: "${props?.row?.original?._id}", variable_reemplazar:"${props?.cell?.column?.id}", valor_reemplazar:"${!!value ? value : "sin datos"}")
+                {
+                  coste_estimado
+                  coste_final
+                  pagado 
+                  categorias_array{
                     _id,
                     nombre,
                     coste_estimado,
                     coste_final,
                     pagado,
-                  }
+                    gastos_array{
+                      _id,
+                      nombre,
+                      coste_estimado,
+                      coste_final,
+                      pagado,
+                    }
+                }
               }
             }
+              `,
+            variables: {},
+          };
+          const { data } = await api.ApiApp(params);
+          res = data?.data?.editGasto
+        } catch (error) {
+          console.log(error);
+        } finally {
+          setEvent((old) => {
+            const index = old?.presupuesto_objeto?.categorias_array?.findIndex(
+              (item) => item._id == props.categoriaID
+            );
+            const idx = old?.presupuesto_objeto?.categorias_array[index]?.gastos_array.findIndex(item => item._id == props?.row?.original?._id)
+            old.presupuesto_objeto[props?.cell?.column?.id] = res[props?.cell?.column?.id]
+            old.presupuesto_objeto.categorias_array[index][props?.cell?.column?.id] = res?.categorias_array[0][props?.cell?.column?.id]
+            old.presupuesto_objeto.categorias_array[index].gastos_array[idx][props?.cell?.column?.id] = res?.categorias_array[0]?.gastos_array[0][props?.cell?.column?.id]
+            return { ...old }
           }
-            `,
-          variables: {},
-        };
-        const { data } = await api.ApiApp(params);
-        res = data?.data?.editGasto
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setEvent((old) => {
-          const index = old?.presupuesto_objeto?.categorias_array?.findIndex(
-            (item) => item._id == props.categoriaID
           );
-          const idx = old?.presupuesto_objeto?.categorias_array[index]?.gastos_array.findIndex(item => item._id == props?.row?.original?._id)
-          old.presupuesto_objeto[props?.cell?.column?.id] = res[props?.cell?.column?.id]
-          old.presupuesto_objeto.categorias_array[index][props?.cell?.column?.id] = res?.categorias_array[0][props?.cell?.column?.id]
-          old.presupuesto_objeto.categorias_array[index].gastos_array[idx][props?.cell?.column?.id] = res?.categorias_array[0]?.gastos_array[0][props?.cell?.column?.id]
-          return { ...old }
         }
-        );
+      }
+      if (props?.table === "subtable") {
+        const f1 = event?.presupuesto_objeto?.categorias_array.findIndex((item) => item._id == props?.categoriaID)
+        const data = event?.presupuesto_objeto?.categorias_array[f1].gastos_array.find((item) => item.items_array.some((item) => item._id == props?.row?.original?._id))
+        fetchApiEventos({
+          query: queries.editItemGasto,
+          variables: {
+            evento_id: event?._id,
+            categoria_id: props?.categoriaID,
+            gasto_id: data?._id,
+            itemGasto_id: props?.row?.original?._id,
+            variable: props?.cell?.column?.id,
+            valor: !!value ? value[0] : "sin datos"
+          }
+        }).then((res) => {
+          const f1 = res?.categorias_array?.findIndex((item) => item._id == props?.categoriaID)
+          const f2 = res?.categorias_array[f1]?.gastos_array.findIndex((item) => item.items_array.some((item) => item._id == props?.row?.original?._id))
+          const f3 = res?.categorias_array[f1]?.gastos_array[f2]?.items_array.findIndex((item) => item._id == props?.row?.original?._id)
+          const data = res?.categorias_array[f1]?.gastos_array[f2]?.items_array[f3][props?.cell?.column?.id]
+          setEvent((old) => {
+            const f1 = old?.presupuesto_objeto?.categorias_array.findIndex((item) => item._id == props?.categoriaID)
+            const f2 = old?.presupuesto_objeto?.categorias_array[f1]?.gastos_array.findIndex((item) => item.items_array.some((item) => item._id == props?.row?.original?._id))
+            const f3 = old?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.items_array.findIndex((item) => item._id == props?.row?.original?._id)
+            old.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array[f3][props?.cell?.column?.id] = data
+            return { ...old }
+          })
+        })
       }
     }
   };
