@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { ItineraryTabs } from "./MicroComponente/ItineraryTabs"
 import { ItineraryPanel } from "./MicroComponente/ItineraryPanel"
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../context";
-import { Itinerary } from "../../utils/Interfaces"
+import { Event, Itinerary } from "../../utils/Interfaces"
 import { ViewItinerary } from "../../pages/invitados";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
@@ -38,6 +38,30 @@ export const BoddyIter = () => {
     const router = useRouter()
     const [modalDuplicate, setModalDuplicate] = useState({ state: false, data: null })
 
+    async function updatedNextId(itinerary: Itinerary) {
+        return await fetchApiEventos({
+            query: queries.editItinerario,
+            variables: {
+                eventID: event._id,
+                itinerarioID: itinerary._id,
+                variable: "next_id",
+                valor: itinerary.next_id
+            },
+            domain: config.domain
+        })
+    }
+    async function updatedListIdentifiers(event: Event) {
+        console.log(100091)
+        return await fetchApiEventos({
+            query: queries.eventUpdate,
+            variables: {
+                idEvento: event._id,
+                variable: "listIdentifiers",
+                value: JSON.stringify(event.listIdentifiers)
+            }
+        })
+    }
+
     useEffect(() => {
         setView(window.innerWidth > window.innerHeight && isAllowed() ? "cards" : "cards")
     }, [])
@@ -65,23 +89,43 @@ export const BoddyIter = () => {
                         },
                         domain: config.domain
                     })
-                    const itinerarios = event.itinerarios_array.filter(elem => elem.tipo === window?.location?.pathname.slice(1))
-                    const f1idx = itinerarios?.findIndex(elem => elem._id === itinerario._id)
+
+                    const fListIdentifiers = event?.listIdentifiers?.findIndex(elem => elem.table === window?.location?.pathname.slice(1))
+                    const lastListIdentifiers = event.listIdentifiers[fListIdentifiers]
+
+                    // console.log(lastListIdentifiers.start_Id, itinerario.next_id)
+                    if (lastListIdentifiers.start_Id === itinerario._id) {
+                        console.log("**************")
+                        lastListIdentifiers.start_Id = itinerario.next_id
+                        updatedListIdentifiers(event)
+                    } else {
+                        if (lastListIdentifiers.end_Id === itinerario._id) {
+                            console.log("----------------")
+                            const f1next_id = event.itinerarios_array?.findIndex(elem => elem.next_id === itinerario._id)
+                            lastListIdentifiers.end_Id = event.itinerarios_array[f1next_id]._id
+                            updatedListIdentifiers(event)
+                            //                        event.listIdentifiers[fListIdentifiers] = lastListIdentifiers
+                        }
+                        const f1next_id = event.itinerarios_array?.findIndex(elem => elem.next_id === itinerario._id)
+                        event.itinerarios_array[f1next_id].next_id = itinerario?.next_id ?? null
+                        updatedNextId(event.itinerarios_array[f1next_id])
+                    }
                     const f1 = event.itinerarios_array?.findIndex(elem => elem._id === itinerario._id)
                     event.itinerarios_array?.splice(f1, 1)
                     setEvent({ ...event })
                     toast("success", t("El itinerario fue eliminado"));
                     setModal({ state: false })
-                    itinerarios.splice(f1idx, 1)
-                    const idx = f1idx > itinerarios.length - 1 ? f1idx - 1 : f1idx
-                    setItinerario({ ...itinerarios[idx] })
-                    setEditTitle(false)
                 } catch (error) {
                     console.log(error)
                 }
             }
         })
     }
+
+    useEffect(() => {
+        console.log(100045, editTitle)
+    }, [editTitle])
+
 
     const handleUpdateTitle = async () => {
 
