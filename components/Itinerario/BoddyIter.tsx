@@ -122,11 +122,6 @@ export const BoddyIter = () => {
         })
     }
 
-    useEffect(() => {
-        console.log(100045, editTitle)
-    }, [editTitle])
-
-
     const handleUpdateTitle = async () => {
 
         await fetchApiEventos({

@@ -35,6 +35,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
     const [itinerariesInTabs, setItinerariesInTabs] = useState<Itinerary[]>()
     const [positionInTabs, setPositionInTabs] = useState<number>(-1)
     const [showTabs, setShowTabs] = useState<boolean>(true)
+    const [valirOnMouse, setValirOnMouse] = useState<boolean>(true)
     const [iniX, setIiniX] = useState<{ left: number, right: number, cursor: number }>()
     const refTabs: LegacyRef<HTMLDivElement> = useRef()
     const [reverse, setReverse] = useState<{ direction: string, position: number }[]>([])
@@ -86,10 +87,14 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                 console.log("ordena por next_id", itineraries)
                 let newItineraries = []
                 const pushNextElem = ({ _id }) => {
-                    const itinerary = itineraries.find(elem => elem._id === _id)
-                    newItineraries.push(itinerary)
-                    if (!!itinerary?.next_id) {
-                        pushNextElem({ _id: itinerary.next_id })
+                    const f1 = itineraries.findIndex(elem => elem._id === _id)
+                    if (f1 > -1) {
+                        const itinerary = { ...itineraries[f1] }
+                        newItineraries.push(itinerary)
+                        itineraries.splice(f1, 1)
+                        if (!!itinerary?.next_id) {
+                            pushNextElem({ _id: itinerary.next_id })
+                        }
                     }
                 }
                 const firsItinerary = itineraries.find(elem => elem._id === listIdentifiers.start_Id)
@@ -160,15 +165,11 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
         })
     }
 
-
-    const handleSelectItinerarioCapture = (e: MouseEvent<HTMLDivElement, globalThis.MouseEvent>, item: Itinerary) => {
+    const handleSelectItinerario = (e: MouseEvent<HTMLDivElement, globalThis.MouseEvent>, item: Itinerary) => {
         if (item?._id !== itinerario?._id) {
             setItinerario(item)
             setEditTitle(false)
         }
-    }
-
-    const handleSelectItinerario = (e: MouseEvent<HTMLDivElement, globalThis.MouseEvent>, item: Itinerary) => {
         setReverse([])
         const cursor = e.clientX - e.currentTarget.getBoundingClientRect().left
         const iniX = {
@@ -431,16 +432,20 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                                     <div key={idx} className="relative">
                                         <div id={item?._id} itemID={idx.toString()}
                                             className={`justify-start items-center cursor-pointer h-full ${itinerario?._id === item?._id ? `flex ${isClidked && "absolute py-20 z-20"}` : "inline-flex"} text-sm space-x-1 relative md:mr-2`}
-                                            onMouseDownCapture={(e) => handleSelectItinerarioCapture(e, item)}
-                                            onMouseDown={(e) => handleSelectItinerario(e, item)}
-                                            onMouseUpCapture={(e) => handleReleaseItinerarioCapture(e, item)}
+                                            onMouseDown={(e) => valirOnMouse && handleSelectItinerario(e, item)}
+                                            onMouseUpCapture={(e) => valirOnMouse && handleReleaseItinerarioCapture(e, item)}
                                             onMouseUp={(e) => {
-                                                !editTitle && handleReleaseItinerario(e, item)
+                                                console.log("onMouseUp")
+                                                valirOnMouse
+                                                    ? !editTitle && handleReleaseItinerario(e, item)
+                                                    : setValirOnMouse(true)
                                             }}
-                                            onMouseMove={(e) => handleMoveItinerario(e, item)}
-                                            onMouseEnter={(e) => { handleEnter(e, item) }}
+                                            onMouseMove={(e) => valirOnMouse && handleMoveItinerario(e, item)}
+                                            onMouseEnter={(e) => { valirOnMouse && handleEnter(e, item) }}
                                             onMouseLeave={(e) => {
-                                                !editTitle && handleLeave(e, item)
+                                                valirOnMouse
+                                                    ? !editTitle && handleLeave(e, item)
+                                                    : [console.log("onMouseLeave")]
                                             }}
                                         >
                                             {<div className={`${"inline-flex"} items-center`} >
@@ -462,7 +467,12 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                                                         </div>
                                                     }
                                                 </div>
-                                                <ItineraryTabsMenu item={item} itinerario={itinerario} handleDeleteItinerario={handleDeleteItinerario} setEditTitle={setEditTitle} setTitle={setTitle} setModalDuplicate={setModalDuplicate} />
+                                                <div onMouseDownCapture={() => {
+                                                    console.log("onMouseDownCapture Children")
+                                                    setValirOnMouse(false)
+                                                }} >
+                                                    <ItineraryTabsMenu item={item} itinerario={itinerario} handleDeleteItinerario={handleDeleteItinerario} setEditTitle={setEditTitle} setTitle={setTitle} setModalDuplicate={setModalDuplicate} />
+                                                </div>
                                             </div>}
                                         </div>
                                     </div>
