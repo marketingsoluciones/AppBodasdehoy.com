@@ -341,10 +341,10 @@ export const queries = {
       fecha_creacion
     }
   }`,
-  duplicateItinerario: `mutation ($eventID:String, $itinerarioID:String, $eventDestinationID:String, $next_Id:ID){
-    duplicateItinerario(eventID:$eventID, itinerarioID:$itinerarioID, eventDestinationID:$eventDestinationID, next_Id:$next_Id){
+  duplicateItinerario: `mutation ($eventID:String, $itinerarioID:String, $eventDestinationID:String, $next_id:ID){
+    duplicateItinerario(eventID:$eventID, itinerarioID:$itinerarioID, eventDestinationID:$eventDestinationID, next_id:$next_id){
       _id
-      next_Id
+      next_id
       title
       tasks{
         _id
@@ -935,7 +935,7 @@ export const queries = {
                 }
               }
             }`,
-            
+
   editItemGasto: `mutation($evento_id: ID ,$categoria_id: ID, $gasto_id: ID, $itemGasto_id: ID, $variable: String, $valor: StringIntBool){
     editItemGasto(evento_id:$evento_id, categoria_id: $categoria_id, gasto_id: $gasto_id, itemGasto_id: $itemGasto_id, variable: $variable, valor: $valor){
       coste_estimado

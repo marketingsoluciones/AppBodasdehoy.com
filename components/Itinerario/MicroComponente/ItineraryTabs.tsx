@@ -9,6 +9,7 @@ import { ItineraryTabsMenu } from "./ItineraryTabsMenu"
 import { FaCheck } from "react-icons/fa"
 import { useAllowed, useAllowedViewer } from "../../../hooks/useAllowed"
 import { useTranslation } from "react-i18next"
+import { useToast } from "../../../hooks/useToast"
 
 interface props {
     itinerario: Itinerary
@@ -39,9 +40,14 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
     const [iniX, setIiniX] = useState<{ left: number, right: number, cursor: number }>()
     const refTabs: LegacyRef<HTMLDivElement> = useRef()
     const [reverse, setReverse] = useState<{ direction: string, position: number }[]>([])
+    const toast = useToast()
 
     useEffect(() => {
         const itineraries = event?.itinerarios_array?.filter(elem => elem?.tipo === window?.location?.pathname.slice(1))?.slice(0, 8)
+        if (!itineraries?.length) {
+            setItineraries([])
+        }
+
         if (itineraries?.length) {
             const fListIdentifiers = event?.listIdentifiers?.findIndex(elem => elem.table === window?.location?.pathname.slice(1))
             const listIdentifiers = event?.listIdentifiers[fListIdentifiers]
@@ -111,9 +117,9 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
         }
     }, [event])
 
-    const handleCreateItinerario = async (previewItinerary?: Itinerary) => {
-        if (event.itinerarios_array.filter(elem => elem.tipo === window?.location?.pathname.slice(1)).length > 7) {
-            console.log(100094, "no se puede crear más eventos")
+    const handleCreateItinerario = async () => {
+        if (event.itinerarios_array.filter(elem => elem.tipo === window?.location?.pathname.slice(1)).length > 9) {
+            toast("warning", t("maxLimitedItineraries"));
             return
         }
         console.log(100095, "handleCreateItinerario")
@@ -132,8 +138,8 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             domain: config.domain
         }).then((result: Itinerary) => {
             console.log(100096, result)
-            if (!previewItinerary) {
-                const fListIdentifiers = event?.listIdentifiers?.findIndex(elem => elem.table === window?.location?.pathname.slice(1))
+            const fListIdentifiers = event?.listIdentifiers?.findIndex(elem => elem.table === window?.location?.pathname.slice(1))
+            if (event.itinerarios_array?.filter(elem => elem.tipo === window?.location?.pathname.slice(1)).length) {
                 const lastListIdentifiers = { ...event.listIdentifiers[fListIdentifiers] }
                 const f1 = event.itinerarios_array.findIndex(elem => elem._id === lastListIdentifiers.end_Id)
                 if (f1 > -1) {
@@ -157,6 +163,25 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                         }
                     })
                 }
+            } else {
+                if (fListIdentifiers === -1) {
+                    event.listIdentifiers.push({
+                        start_Id: result._id,
+                        end_Id: result._id,
+                        table: window?.location?.pathname.slice(1)
+                    })
+                } else {
+                    event.listIdentifiers[fListIdentifiers].start_Id = result._id
+                    event.listIdentifiers[fListIdentifiers].end_Id = result._id
+                }
+                fetchApiEventos({
+                    query: queries.eventUpdate,
+                    variables: {
+                        idEvento: event._id,
+                        variable: "listIdentifiers",
+                        value: JSON.stringify(event.listIdentifiers)
+                    }
+                })
             }
             event.itinerarios_array.push(result)
             setEvent({ ...event })
@@ -414,7 +439,6 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
 
         console.log(1000706, itinerariesCopy)
         console.log(1000707, itineraries)
-        // setItineraries([...itineraries])
         const eventNew = { ...event, itinerarios_array: [...itineraries] }
         setEvent({ ...eventNew })
         setShowTabs(false)

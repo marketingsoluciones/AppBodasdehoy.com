@@ -652,7 +652,7 @@ export const en = {
     'duplicarEn': "duplicate in",
     'seleccionaOpcion': "select an option",
     'successful': "successful",
-
+    maxLimitedItineraries: "The maximum limit for creating or duplicating was reached",
 
 
 

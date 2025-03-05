@@ -72,49 +72,51 @@ export const ItineraryTabsMenu: FC<props> = ({ setModalDuplicate, itinerario, it
         <>
             {showAddUsertoServices && <AddUserToServices openModal={showAddUsertoServices} setOpenModal={setShowAddUsertoServices} itinerario={itinerario} />}
             <ClickAwayListener onClickAway={() => { setShowMenu(false) }}>
-                {(!["/itinerario"].includes(window?.location?.pathname) && itinerario?._id === item?._id)
-                    ? <div
-                        onMouseDown={(e) => {
-                            e.stopPropagation()
-                            if (!valirShowMenu) {
-                                setShowMenu(true)
-                            }
-                            setValirShowMenu(!valirShowMenu)
-                        }}
-                        onMouseEnter={() => {
-                            if (showMenu) {
-                                setValirShowMenu(true)
-                            }
-                        }}
-                        onMouseLeave={() => {
-                            if (showMenu) {
-                                setValirShowMenu(false)
-                            }
-                        }}
-                        onMouseUp={() => {
-                            if (!valirShowMenu) {
-                                setShowMenu(false)
-                            }
-                        }}
-                        className={`w-6 h-6 rounded-full bg-gray-100 flex justify-center items-center text-gray-600 hover:bg-gray-200 hover:text-gray-900 ${showMenu && "bg-gray-200 text-gray-900"} relative`}>
-                        <DotsOpcionesIcon className={""} />
-                        {showMenu && <div className={`absolute right-6 top-[22px] bg-white z-50 rounded-md shadow-md truncate`}>
-                            {optionsSelect?.map((elem, idx) =>
-                                (isAllowed() || elem.value === "details") && <div key={idx}
-                                    onClick={() => {
-                                        setValue(elem.value)
-                                        setShowMenu(false)
-                                        elem?.onClick()
-                                    }}
-                                    className={`${elem.value === "edit" ? "flex md:hidden" : "flex"} p-2 text-gray-700 text-sm items-center gap-2 capitalize cursor-pointer hover:bg-gray-100`}
-                                >
-                                    {elem?.icon}
-                                    {elem.title}
-                                </div>
-                            )}
-                        </div>}
-                    </div>
-                    : <></>}
+                <div className="relative">
+                    {(!["/itinerario"].includes(window?.location?.pathname) && itinerario?._id === item?._id)
+                        ? <div
+                            onMouseDown={(e) => {
+                                e.stopPropagation()
+                                if (!valirShowMenu) {
+                                    setShowMenu(true)
+                                }
+                                setValirShowMenu(!valirShowMenu)
+                            }}
+                            onMouseEnter={() => {
+                                if (showMenu) {
+                                    setValirShowMenu(true)
+                                }
+                            }}
+                            onMouseLeave={() => {
+                                if (showMenu) {
+                                    setValirShowMenu(false)
+                                }
+                            }}
+                            onMouseUp={() => {
+                                if (!valirShowMenu) {
+                                    setShowMenu(false)
+                                }
+                            }}
+                            className={`w-6 h-6 rounded-full bg-gray-100 flex justify-center items-center text-gray-600 hover:bg-gray-200 hover:text-gray-900 ${showMenu && "bg-gray-200 text-gray-900"}`}>
+                            <DotsOpcionesIcon className={""} />
+                        </div>
+                        : <></>}
+                    {showMenu && <div className={`absolute -right-6 top-[28px] bg-white z-50 rounded-md shadow-md truncate`}>
+                        {optionsSelect?.map((elem, idx) =>
+                            (isAllowed() || elem.value === "details") && <div key={idx}
+                                onClick={() => {
+                                    setValue(elem.value)
+                                    setShowMenu(false)
+                                    elem?.onClick()
+                                }}
+                                className={`${elem.value === "edit" ? "flex md:hidden" : "flex"} p-2 text-gray-700 text-sm items-center gap-2 capitalize cursor-pointer hover:bg-gray-100`}
+                            >
+                                {elem?.icon}
+                                {elem.title}
+                            </div>
+                        )}
+                    </div>}
+                </div>
             </ClickAwayListener>
         </>
     )
