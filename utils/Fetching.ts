@@ -935,6 +935,60 @@ export const queries = {
                 }
               }
             }`,
+  editGasto: `mutation($evento_id: String, $categoria_id: String, $gasto_id: String, $variable_reemplazar: String, $valor_reemplazar: String){
+                editGasto(evento_id:$evento_id, categoria_id:$categoria_id, gasto_id:$gasto_id, variable_reemplazar:$variable_reemplazar, valor_reemplazar:$valor_reemplazar){
+                coste_estimado
+                coste_final
+                pagado
+                currency
+                categorias_array{
+                  _id
+                  coste_proporcion
+                  coste_estimado
+                  coste_final
+                  pagado
+                  nombre
+                  gastos_array{
+                    _id
+                    coste_proporcion
+                    coste_estimado
+                    coste_final
+                    pagado
+                    nombre
+                    linkTask
+                    estatus
+                    pagos_array{
+                      _id
+                      estado
+                      fecha_creacion
+                      fecha_pago
+                      fecha_vencimiento
+                      medio_pago
+                      importe
+                      pagado_por
+                      concepto
+                      soporte{
+                        image_url
+                        medium_url
+                        thumb_url
+                        delete_url
+                      }
+                    }
+                    items_array{
+                      _id
+                      next_id
+                      unidad
+                      cantidad
+                      nombre
+                      valor_unitario
+                      total
+                      estatus
+                      fecha_creacion
+                    }
+                  }
+                }
+              }
+            }`,
 
   editItemGasto: `mutation($evento_id: ID ,$categoria_id: ID, $gasto_id: ID, $itemGasto_id: ID, $variable: String, $valor: StringIntBool){
     editItemGasto(evento_id:$evento_id, categoria_id: $categoria_id, gasto_id: $gasto_id, itemGasto_id: $itemGasto_id, variable: $variable, valor: $valor){

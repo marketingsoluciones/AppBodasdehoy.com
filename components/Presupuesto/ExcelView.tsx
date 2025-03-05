@@ -1,29 +1,27 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BlockListaCategorias } from '../../pages/presupuesto';
 import { AuthContextProvider, EventContextProvider } from '../../context';
-import { t } from 'i18next';
-import { CanceladoIcon, ConfirmadosIcon, DotsOpcionesIcon, PencilEdit, PendienteIcon, PlusIcon } from '../icons';
+import { t, use } from 'i18next';
+import { PlusIcon } from '../icons';
 import { getCurrency } from '../../utils/Funciones';
 import ClickAwayListener from 'react-click-away-listener';
 import { useToast } from '../../hooks/useToast';
-import { useAllowed } from '../../hooks/useAllowed';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../api';
 import { MdOutlineDeleteOutline } from 'react-icons/md';
-import { GoArrowRight, GoEye, GoTasklist } from 'react-icons/go';
-import { RiBillLine } from 'react-icons/ri';
+import { GoArrowRight, GoEye, GoTasklist, GoEyeClosed } from 'react-icons/go';
 import CellEditCopy from './CellEditCopy';
 import { useExpanded, useTable } from "react-table";
 import { GrMoney } from "react-icons/gr";
 import Grafico from './Grafico';
-import { config, title } from 'process';
-import { fetchApiBodas, fetchApiEventos, queries } from '../../utils/Fetching';
+import { fetchApiEventos, queries } from '../../utils/Fetching';
 import { item, expenses, estimate } from "../../utils/Interfaces";
 import { PiNewspaperClippingLight } from "react-icons/pi";
 import FormAddPago from '../Forms/FormAddPago';
 import { Modal } from '../Utils/Modal';
 import { PiTextColumns } from "react-icons/pi";
 import { set } from 'date-fns';
+
 
 
 interface Categoria {
@@ -71,8 +69,6 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
     const sumarCosteEstimado = (gastosArray) => {
         return gastosArray?.reduce((total, item) => total + item.coste_estimado, 0);
     };
-
-
     const totalCosteEstimado = sumarCosteEstimado(categoria?.gastos_array);
     const AddGasto = async () => {
         try {
@@ -254,7 +250,6 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
                     useEffect(() => {
                         setValue(props?.value)
                     }, [props?.value])
-
                     if (data?.length === 0) {
                         return (
                             <CellEditCopy categoriaID={categoria?._id} type={"number"} {...props} table={"principal"} />
@@ -319,6 +314,10 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
                 id: "options",
                 Cell: (props) => {
                     const [show, setShow] = useState(false);
+                    const [showItem, setShowItem] = useState(props?.row?.original.estatus === null ? false : props?.row?.original.estatus);
+                    const dataCategoria = categoria?.gastos_array.find((item) => item._id == props.row.original._id);
+                    
+
                     const handleRemove = async () => {
                         let data
                         try {
@@ -344,20 +343,15 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
                             toast("error", t("Agrega un monto a tu Presupuesto Estimado"))
                         } finally {
                             setEvent((old) => {
-                                // Encontrar posicion de la categoria en el array categorias
                                 const idxCategoria = old?.presupuesto_objeto?.categorias_array.findIndex((item) => item._id == categoria._id);
-                                // Sustraer el gasto a eliminar del array de gastos
                                 const filterGastos = old?.presupuesto_objeto?.categorias_array[idxCategoria].gastos_array?.filter((item) => item._id !== props?.row?.original?._id
                                 );
-                                //Actualizar estimado, final y pagado del evento
                                 old.presupuesto_objeto.coste_estimado = data?.coste_estimado
                                 old.presupuesto_objeto.coste_final = data?.coste_final
                                 old.presupuesto_objeto.pagado = data?.pagado
-                                //Actualizar estimado, final y pagado de la categoria
                                 old.presupuesto_objeto.categorias_array[idxCategoria].coste_estimado = data?.categorias_array[0]?.coste_estimado
                                 old.presupuesto_objeto.categorias_array[idxCategoria].coste_final = data?.categorias_array[0]?.coste_final
                                 old.presupuesto_objeto.categorias_array[idxCategoria].pagado = data?.categorias_array[0]?.pagado
-                                // Sobrescribir arr de gastos anterior por el nuevo
                                 old.presupuesto_objeto.categorias_array[idxCategoria].gastos_array = filterGastos;
                                 return { ...old };
                             });
@@ -376,7 +370,8 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
                                     cantidad: 1,
                                     valor_unitario: 0,
                                     total: 0,
-                                    unidad: "xUni."
+                                    unidad: "xUni.",
+                                    estatus: false
                                 }]
                             },
                         }).then((result: estimate) => {
@@ -397,6 +392,31 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
                     const handlePago = () => {
                         set({ id: props?.row?.original?._id, state: true })
                     }
+                    const handleChangeState = () => {
+                        fetchApiEventos({
+                            query: queries.editGasto,
+                            variables: {
+                                evento_id: event?._id,
+                                categoria_id: categoria?._id,
+                                gasto_id: props?.row?.original?._id,
+                                variable_reemplazar: "estatus",
+                                valor_reemplazar: !showItem
+                            }
+                        }).then((result: estimate) => {
+                            const f1 = result?.categorias_array.findIndex((item) => item._id == categoria?._id);
+                            const f2 = result?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == dataCategoria?._id);
+                            const dataRelult = result?.categorias_array[f1]?.gastos_array[f2]
+                            setEvent((old) => {
+                                const f1 = old?.presupuesto_objeto?.categorias_array.findIndex((item) => item._id == categoria?._id);
+                                const f2 = old?.presupuesto_objeto?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == dataCategoria?._id);
+                                old.presupuesto_objeto.categorias_array[f1].gastos_array[f2].estatus = dataRelult?.estatus
+                                return { ...old, }
+                            })
+                            toast("success", t("item actualizado con exito"))
+                        }).catch((error) => {
+                            console.log(error);
+                        })
+                    }
                     const Lista = [
                         {
                             icon: <GrMoney className="w-4 h-4" />,
@@ -404,9 +424,9 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
                             function: () => handlePago()
                         },
                         {
-                            icon: <GoEye className="w-4 h-4" />,
+                            icon: showItem ? <GoEye className="w-4 h-4" /> : <GoEyeClosed className="w-4 h-4" />,
                             title: "Estado",
-                            //function: BorrarCategoria
+                            function: () => handleChangeState()
                         },
                         {
                             icon: <GoTasklist className="w-4 h-4" />,
@@ -512,9 +532,6 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
                                 {column.render("Header")}
                             </th>
                         ))}
-                        <th className='absolute right-7 top-0 h-full w-10 flex items-center justify-center '>
-                            <PiTextColumns onClick={() => setIsModalOpen(!isModalOpen)} className='w-5 h-5 cursor-pointer' />
-                        </th>
                     </tr>
                 ))}
             </thead>
@@ -528,14 +545,14 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
                                     return (
                                         <>
                                             <tr
-                                                key={i}
+                                                key={i + 2}
                                                 {...row.getRowProps()}
                                                 className={` w-full border-b border-base grid grid-cols-${totalSpan} px-2 bg-[#eaecee] `}
                                             >
                                                 {row.cells.map((cell, i) => {
                                                     return (
                                                         <td
-                                                            key={i}
+                                                            key={i + 1}
                                                             {...cell.getCellProps()}
                                                             className={` pr-2 font-display text-sm w-full text-left py-2 col-span-${colSpan[cell.column.id]
                                                                 }`}
@@ -560,7 +577,6 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
                                 selecciona una categoria de la lista
                             </div>
                     }
-
                 </table>
             </div>
         </table>
@@ -612,13 +628,42 @@ const SubComponenteTable = ({ row, data = [], categoria, visibleColumns }) => {
                 accessor: "unidad",
                 id: "unidad",
                 Cell: (data) => {
+                    const dataCategoria = categoria?.gastos_array.find((item) => item.items_array.some((item) => item._id == data.row.original._id));
                     const [show, setShow] = useState(false);
                     const Lista = [
-                        { title: "x Uni." },
-                        { title: "x Inv." },
-                        { title: "x Adultos." },
-                        { title: "x Niños." },
+                        { title: "xUni." },
+                        { title: "xInv." },
+                        { title: "xAdultos." },
+                        { title: "xNiños." },
                     ]
+
+                    const handleChange = (value) => {
+                        fetchApiEventos({
+                            query: queries.editItemGasto,
+                            variables: {
+                                evento_id: event?._id,
+                                categoria_id: categoria?._id,
+                                gasto_id: dataCategoria?._id,
+                                itemGasto_id: data.row.original._id,
+                                variable: "unidad",
+                                valor: value
+                            }
+                        }).then((result: estimate) => {
+                            const f1 = result?.categorias_array.findIndex((item) => item._id == categoria?._id);
+                            const f2 = result?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == dataCategoria?._id);
+                            const dataRelult = result?.categorias_array[f1]?.gastos_array[f2]?.items_array.find((item) => item._id == data.row.original._id);
+                            setEvent((old) => {
+                                const f1 = old?.presupuesto_objeto?.categorias_array.findIndex((item) => item._id == categoria?._id);
+                                const f2 = old?.presupuesto_objeto?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == dataCategoria?._id);
+                                const f3 = old?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.items_array.findIndex((item) => item._id == data.row.original._id);
+                                old.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array[f3] = dataRelult
+                                return ({ ...old })
+                            })
+                            //toast("success", t("item actualizado con exito"))
+                        }).catch((error) => {
+                            console.log(error);
+                        })
+                    }
                     return (
                         <>
                             <ClickAwayListener onClickAway={() => show && setShow(false)}>
@@ -630,7 +675,7 @@ const SubComponenteTable = ({ row, data = [], categoria, visibleColumns }) => {
                                                 {Lista.map((item, idx) => (
                                                     <div
                                                         key={idx}
-                                                        //onClick={() => item.function()}
+                                                        onClick={() => handleChange(item.title)}
                                                         className="px-3 py-1.5 hover:bg-base transition flex gap-2 text-gray-600 cursor-pointer "
                                                     >
                                                         <p className=''>
@@ -673,7 +718,25 @@ const SubComponenteTable = ({ row, data = [], categoria, visibleColumns }) => {
                 accessor: "total",
                 id: "total",
                 Cell: (data) => {
+                    const dataCategoria = categoria?.gastos_array.find((item) => item.items_array.some((item) => item._id == data.row.original._id));
                     const Total = data.row.original.cantidad * data.row.original.valor_unitario
+                    /*  useEffect(() => {
+                         fetchApiEventos({
+                             query: queries.editItemGasto,
+                             variables: {
+                                 evento_id: event?._id,
+                                 categoria_id: categoria?._id,
+                                 gasto_id: dataCategoria?._id,
+                                 itemGasto_id: data.row.original._id,
+                                 variable: "total",
+                                 valor: Total
+                             }
+                         }).then((result) => {
+ 
+                         }).catch((error) => {
+                             console.log(error);
+                         })
+                     }, [Total]) */
                     return (
                         <span className="flex items-center justify-end capitalize text-right w-full">
                             {getCurrency(Total, event?.presupuesto_objeto?.currency)}
@@ -701,12 +764,14 @@ const SubComponenteTable = ({ row, data = [], categoria, visibleColumns }) => {
                 accessor: "options",
                 id: "options",
                 Cell: (props) => {
-                    const [showItem, setShowItem] = useState(false);
+                    const [showItem, setShowItem] = useState(props?.row?.original.estatus === null ? false : props?.row?.original.estatus);
+                    const dataCategoria = categoria?.gastos_array.find((item) => item.items_array.some((item) => item._id == props.row.original._id));
+
                     const Lista = [
                         {
-                            icon: <GoEye className="w-4 h-4" />,
+                            icon: showItem ? <GoEye className="w-4 h-4" /> : <GoEyeClosed className="w-4 h-4" />,
                             title: "Estado",
-                            //function: (e) => handleChangeState(e, showItem)
+                            function: () => handleChangeState()
                         },
                         {
                             icon: <MdOutlineDeleteOutline className="w-4 h-4" />,
@@ -715,22 +780,21 @@ const SubComponenteTable = ({ row, data = [], categoria, visibleColumns }) => {
                         },
                     ];
                     const handleBorrarItem = () => {
-                        const data = categoria?.gastos_array.find((item) => item.items_array.some((item) => item._id == props.row.original._id));
                         fetchApiEventos({
                             query: queries.borrarItemsGastos,
                             variables: {
                                 evento_id: event?._id,
                                 categoria_id: categoria?._id,
-                                gasto_id: data?._id,
+                                gasto_id: dataCategoria?._id,
                                 itemsGastos_ids: [props.row.original._id]
                             }
                         }).then((result: estimate) => {
                             const f1 = result?.categorias_array.findIndex((item) => item._id == categoria?._id);
-                            const f2 = result?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == data?._id);
+                            const f2 = result?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == dataCategoria?._id);
                             const dataRelult = result?.categorias_array[f1]?.gastos_array[f2]?.items_array
                             setEvent((old) => {
                                 const f1 = old?.presupuesto_objeto?.categorias_array.findIndex((item) => item._id == categoria?._id);
-                                const f2 = old?.presupuesto_objeto?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == data?._id);
+                                const f2 = old?.presupuesto_objeto?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == dataCategoria?._id);
                                 if (old?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.items_array) {
                                     old.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array = dataRelult;
                                 }
@@ -741,23 +805,29 @@ const SubComponenteTable = ({ row, data = [], categoria, visibleColumns }) => {
                             console.log(error);
                         })
                     }
-                    const handleChangeState = (e, showItem: boolean) => {
-                        console.log(1111111, showItem);
-                        const f1 = event?.presupuesto_objeto?.categorias_array.findIndex((item) => item._id == props?.categoriaID)
-                        const data = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array.find((item) => item.items_array.some((item) => item._id == props?.row?.original?._id))
+                    const handleChangeState = () => {
                         fetchApiEventos({
                             query: queries.editItemGasto,
                             variables: {
                                 evento_id: event?._id,
-                                categoria_id: props?.categoriaID,
-                                gasto_id: data?._id,
+                                categoria_id: categoria?._id,
+                                gasto_id: dataCategoria?._id,
                                 itemGasto_id: props?.row?.original?._id,
-                                variable: props?.cell?.column?.id,
-                                valor: ""
+                                variable: "estatus",
+                                valor: !showItem
                             }
-
-                        }).then((result) => {
-                            console.log(result);
+                        }).then((result: estimate) => {
+                            const f1 = result?.categorias_array.findIndex((item) => item._id == categoria?._id);
+                            const f2 = result?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == dataCategoria?._id);
+                            const dataRelult = result?.categorias_array[f1]?.gastos_array[f2]?.items_array.find((item) => item._id == props.row.original._id);
+                            setEvent((old) => {
+                                const f1 = old?.presupuesto_objeto?.categorias_array.findIndex((item) => item._id == categoria?._id);
+                                const f2 = old?.presupuesto_objeto?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == dataCategoria?._id);
+                                const f3 = old?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.items_array.findIndex((item) => item._id == props.row.original._id);
+                                old.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array[f3].estatus = dataRelult?.estatus
+                                return { ...old, }
+                            })
+                            toast("success", t("item actualizado con exito"))
                         }).catch((error) => {
                             console.log(error);
                         })
@@ -835,7 +905,7 @@ const SubComponenteTable = ({ row, data = [], categoria, visibleColumns }) => {
                         return (
                             <>
                                 <tr
-                                    onContextMenu={handleContextMenu}
+                                    //onContextMenu={handleContextMenu}
                                     key={i}
                                     {...row.getRowProps()}
                                     className="w-full  border-b border-base hover:bg-base grid grid-cols-18 px-2 relative "
@@ -894,29 +964,8 @@ const ResumenInvitados = ({ }) => {
     const ObjInvitado = {
         total: event?.invitados_array?.length,
     };
-    /* const TotalList = [
-        {
-            title: `${totalSegun("asistencia", "pendiente")?.length} de ${ObjInvitado?.total
-                }`,
-            subtitle: "por confirmar",
-            icon: <PendienteIcon />,
-        },
-        {
-            title: `${totalSegun("asistencia", "confirmado")?.length} de ${ObjInvitado?.total
-                }`,
-            subtitle: "confirmados",
-            icon: <ConfirmadosIcon />,
-        },
-        {
-            title: `${totalSegun("asistencia", "cancelado")?.length} de ${ObjInvitado?.total
-                }`,
-            subtitle: "cancelados",
-            icon: <CanceladoIcon />,
-        },
-    ]; */
     return (
         <div className='w-full'>
-
             <div className="flex gap-10 items-center justify-center h-full w-full md:col-span-2 md:p-4 rounded-md shadow-md bg-white">
                 <div className="flex gap-1 items-center justify-end ">
                     <p className="font-display font-semibold text-2xl md:text-4xl text-primary">
@@ -935,21 +984,6 @@ const ResumenInvitados = ({ }) => {
                     </p>
                 </div>
             </div>
-            {/* <div className="bg-white rounded-xl col-span-3 shadow-lg flex  md:items-center pb-1  w-full h-[88px] md:h-auto relative justify-between md:px-10">
-                {TotalList.map((item, idx) => (
-                    <div key={idx} className={`${idx == 0 ? "hidden md:flex" : "flex"} gap-2 items-center justify-center`}>
-                        {item?.icon}
-                        <span>
-                            <p className="font-display md:text-lg font-semibold text-gray-700 leading-5">
-                                {t(item?.title)}
-                            </p>
-                            <p className="font-display text-xs font-medium text-gray-500">
-                                {t(item?.subtitle)}
-                            </p>
-                        </span>
-                    </div>
-                ))}
-            </div> */}
         </div>
     )
 }

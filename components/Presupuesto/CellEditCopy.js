@@ -8,6 +8,7 @@ import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { set } from "date-fns";
+import { useToast } from "../../hooks/useToast";
 
 const CellEditCopy = (props) => {
 
@@ -17,6 +18,7 @@ const CellEditCopy = (props) => {
   const [mask, setMask] = useState(0);
   const [value, setValue] = useState();
   const [isAllowed, ht] = useAllowed()
+  const toast = useToast()
 
   useEffect(() => {
     setValue(typeof props?.value == "string" ? capitalize(props?.value) : props?.value)
@@ -75,8 +77,7 @@ const CellEditCopy = (props) => {
                     }
                 }
               }
-            }
-              `,
+            }`,
             variables: {},
           };
           const { data } = await api.ApiApp(params);
@@ -93,8 +94,8 @@ const CellEditCopy = (props) => {
             old.presupuesto_objeto.categorias_array[index][props?.cell?.column?.id] = res?.categorias_array[0][props?.cell?.column?.id]
             old.presupuesto_objeto.categorias_array[index].gastos_array[idx][props?.cell?.column?.id] = res?.categorias_array[0]?.gastos_array[0][props?.cell?.column?.id]
             return { ...old }
-          }
-          );
+          });
+          toast("success", t("Partida actualizada con exito"))
         }
       }
       if (props?.table === "subtable") {
@@ -122,6 +123,7 @@ const CellEditCopy = (props) => {
             old.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array[f3][props?.cell?.column?.id] = data
             return { ...old }
           })
+          toast("success", t("item actualizado con exito"))
         })
       }
     }
@@ -141,7 +143,7 @@ const CellEditCopy = (props) => {
             onChange={(e) => handleChange(e)}
             onKeyDown={(e) => keyDown(e)}
             autoFocus
-            className="focus:outline-none text-center w-full border-b border-gray-200 px-2 py-1 h-full"
+            className="focus:outline-none focus:ring-0 focus:border-none text-center w-full border-b border-gray-200 px-2 py-1- h-full"
           />
         ) : (
           <p className={` ${props.type == "number" && "text-right" || props.type == "string" && "text-left" || props.type === "cantidad" && "text-center" || props.type === "unidad" && "text-center"} cursor-pointer w-full truncate px-2 py-1 h-6 `} onClick={() => !isAllowed() ? null : setEdit(true)}>
@@ -163,13 +165,13 @@ const CellEditCopy = (props) => {
           {`
               input {
                 background: transparent;
+                input[type="number"]::-webkit-inner-spin-button,
+                input[type="number"]::-webkit-outer-spin-button {
+                  -webkit-appearance: none;
+                  margin: 0;
+                }
               }
-              input[type="number"]::-webkit-inner-spin-button,
-              input[type="number"]::-webkit-outer-spin-button {
-                -webkit-appearance: none;
-                margin: 0;
-              }
-            `}
+              `}
         </style>
       </div>
     </ClickAwayListener>
