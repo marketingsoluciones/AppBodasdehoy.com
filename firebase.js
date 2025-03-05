@@ -75,6 +75,16 @@ const firebaseConfigEventosintegrados = {
   measurementId: "G-4WVS9SGEY5"
 };
 
+const firebaseConfigOhmaratilano = {
+  apiKey: "AIzaSyDgog0QuV2ZAduEGYroBUoDp_COwgh-ePc",
+  authDomain: "ohmaratilano-app.firebaseapp.com",
+  projectId: "ohmaratilano-app",
+  storageBucket: "ohmaratilano-app.firebasestorage.app",
+  messagingSenderId: "834371259019",
+  appId: "1:834371259019:web:dd8d6a7bf21a4e4e56228e",
+  measurementId: "G-4XH8FBGR1R"
+};
+
 export const developments = [
   {
     name: "bodasdehoy",
@@ -255,6 +265,27 @@ export const developments = [
       tertiaryColor: "#c8c4c2",
       baseColor: "#fff6fa",
       colorScroll: "#f4c5ce"
+    },
+  },
+  {
+    name: "ohmaratilano",
+    development: "ohmaratilano",
+    fileConfig: firebaseConfigOhmaratilano,
+    cookie: "sessionOhmaratilano",
+    domain: ".ohmaratilano.com",
+    cookieGuest: "guestohmaratilano",
+    pathDomain: "https://ohmaratilano.com/",
+    pathLogin: "",
+    pathDirectory: "ohmaratilano.com",
+    logoDirectory: <img className="hover:opacity-80 transition text-primary h-full object-contain bg-primary p-1" src="https://apiapp.bodasdehoy.com/logos/Logo-OHMARATILANO-blanco.png" />,
+    headTitle: "App profesional que te ayudará a planear la boda de tus sueños con éxito",
+    favicon: "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://www.ohmaratilano.com&size=16",
+    theme: {
+      primaryColor: "#c1bba3",// c1bba3 8f867a
+      secondaryColor: "#deab38",
+      tertiaryColor: "#e0d6b2",
+      baseColor: "#fff6fa",//fff6fa
+      colorScroll: "#e0d6b2"
     },
   },
 ]
