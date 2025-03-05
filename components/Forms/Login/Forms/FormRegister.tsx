@@ -191,7 +191,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
             },
             development: config?.development
           }).then(async (moreInfo: any) => {
-            setUser({ ...UserFirebase, ...moreInfo, displayName: UserFirebase.reloadUserInfo.displayName });
+            setUser({ ...UserFirebase, ...moreInfo, displayName: UserFirebase.reloadUserInfo.displayName ?? values?.fullName });
             toast("success", t(`successfulsessionregistration`))
             updateActivity("registered")
             updateActivityLink("registered")
