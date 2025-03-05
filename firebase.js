@@ -277,7 +277,7 @@ export const developments = [
     pathDomain: "https://ohmaratilano.com/",
     pathLogin: "",
     pathDirectory: "ohmaratilano.com",
-    logoDirectory: <img className="hover:opacity-80 transition text-primary h-full object-contain bg-primary p-1" src="https://i.ibb.co/5Ws9TmTB/Logo-OHMARATILANO-blanco.png" />,
+    logoDirectory: <img className="hover:opacity-80 transition text-primary h-full object-contain bg-primary p-1" src="https://apiapp.bodasdehoy.com/logos/Logo-OHMARATILANO-blanco.png" />,
     headTitle: "App profesional que te ayudará a planear la boda de tus sueños con éxito",
     favicon: "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://www.ohmaratilano.com&size=16",
     theme: {
