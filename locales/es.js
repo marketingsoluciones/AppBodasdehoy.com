@@ -650,8 +650,9 @@ export const es = {
     'duplicarServicio': 'Duplicar Servicio',
     'aDuplicar': 'a duplicar',
     'duplicateIn': 'duplicar en',
-    'seleccionaOpcion':"selecciona una opción",
+    'seleccionaOpcion': "selecciona una opción",
     'successful': 'con éxito',
+    maxLimitedItineraries: "El límite máximo para crear o duplicar fue alcanzado",
 
 
 
