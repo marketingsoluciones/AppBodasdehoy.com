@@ -28,10 +28,11 @@ const FormCrearCategoria = ({ set, state }) => {
           query: `mutation {
             nuevoCategoria(evento_id:"${event?._id}",nombre:"${values?.nombre}"){
               _id
-              nombre
+              coste_proporcion
               coste_estimado
               coste_final
               pagado
+              nombre
               gastos_array {
                 _id
                 coste_estimado
@@ -47,10 +48,20 @@ const FormCrearCategoria = ({ set, state }) => {
                   medio_pago
                   importe
                 }
+                items_array{
+                  _id
+                  next_id
+                  unidad
+                  cantidad
+                  nombre
+                  valor_unitario
+                  total
+                  estatus
+                  fecha_creacion
+                }
             }
           }
-        }
-          `,
+        }`,
           variables: {},
         };
 
@@ -64,7 +75,8 @@ const FormCrearCategoria = ({ set, state }) => {
           set(!state);
           setEvent(old => {
             old?.presupuesto_objeto?.categorias_array?.push(nuevoCategoria);
-            return old
+            
+            return {...old}
           });
           actions.setSubmitting(false);
         }

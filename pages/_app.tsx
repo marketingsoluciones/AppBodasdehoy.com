@@ -378,6 +378,7 @@ export default MyApp
 
 
 import dynamic from 'next/dynamic';
+import Head from 'next/head';
 const PixelTracker = dynamic(() => import("../components/PixelTracker") as any, {
   ssr: false,
 });
@@ -399,6 +400,12 @@ const Load = ({ setValirBlock, setDataConfig }) => {
 
   return (
     <>
+      <Head>
+        <link id="favicon" rel="icon" href={config?.favicon} />
+        <title>{config?.headTitle}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <meta name="description" content="¡Bodas de Hoy Organizador! Organiza tu boda en un sólo click., user-scalable=no, width=device-width, initial-scale=1" />
+      </Head>
       <PixelTracker />
       <style jsx global>
         {`

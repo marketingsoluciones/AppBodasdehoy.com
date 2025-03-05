@@ -45,7 +45,7 @@ export const AddUserToServices: FC<props> = ({ openModal, setOpenModal, itinerar
     }
 
     return (
-        <>
+        <div onMouseDown={(e) => e.stopPropagation()} >
             <div className="z-50 fixed top-0 left-0 w-screen h-screen" />
             <div className="backdrop-blur backdrop-filter bg-black opacity-40 z-50 fixed top-0 left-0 w-screen h-screen" />
             <div className={`w-[320px] md:w-[382px] h-[80%] md:h-[90%] bg-white shadow-lg fixed m-auto inset-0 z-50 rounded-xl`}>
@@ -111,6 +111,6 @@ export const AddUserToServices: FC<props> = ({ openModal, setOpenModal, itinerar
                     </div>
                 </ClickAwayListener>
             </div>
-        </>
+        </div>
     )
 }

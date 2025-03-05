@@ -304,9 +304,10 @@ export const queries = {
   mutation  ( $eventID:String, $itinerarioID:String, $taskID:String, $commentID:String  ) {
     deleteComment ( eventID:$eventID  itinerarioID:$itinerarioID  taskID:$taskID, commentID:$commentID)
   }`,
-  createItinerario: `mutation ($eventID:String, $title:String, $dateTime:String, $tipo:String){
-    createItinerario(eventID:$eventID, title:$title, dateTime:$dateTime, tipo:$tipo ){
+  createItinerario: `mutation ($eventID:String, $title:String, $dateTime:String, $tipo:String, $next_id:ID){
+    createItinerario(eventID:$eventID, title:$title, dateTime:$dateTime, tipo:$tipo, next_id:$next_id ){
       _id
+      next_id
       title
       tasks{
         _id
@@ -337,11 +338,13 @@ export const queries = {
         commentsViewers
       }
       tipo
+      fecha_creacion
     }
   }`,
-  duplicateItinerario: `mutation ($eventID:String, $itinerarioID:String, $eventDestinationID:String){
-    duplicateItinerario(eventID:$eventID, itinerarioID:$itinerarioID, eventDestinationID:$eventDestinationID){
+  duplicateItinerario: `mutation ($eventID:String, $itinerarioID:String, $eventDestinationID:String, $next_id:ID){
+    duplicateItinerario(eventID:$eventID, itinerarioID:$itinerarioID, eventDestinationID:$eventDestinationID, next_id:$next_id){
       _id
+      next_id
       title
       tasks{
         _id
@@ -378,8 +381,8 @@ export const queries = {
   mutation  ( $url:String, $nameFile:String, ) {
     generatePdf ( url:$url,  nameFile:$nameFile)
   }`,
-  editItinerario: `mutation ($eventID:String, $itinerarioID:String, $variable:String, $valor:String){
-    editItinerario(eventID:$eventID itinerarioID:$itinerarioID, variable:$variable, valor:$valor )
+  editItinerario: `mutation ($eventID:String, $itinerarioID:String, $variable:String, $valor:String, $next_id:ID){
+    editItinerario(eventID:$eventID itinerarioID:$itinerarioID, variable:$variable, valor:$valor, next_id:$next_id )
   }`,
   deleteItinerario: `
   mutation  ( $eventID:String, $itinerarioID:String ) {
@@ -391,6 +394,7 @@ export const queries = {
       tipo
       itinerarios_array{
         _id
+        next_id
         title
         tasks{
           _id
@@ -601,6 +605,11 @@ export const queries = {
       usuario_nombre
       fecha
       listaRegalos
+      listIdentifiers{
+        table
+        start_Id
+        end_Id
+      }
       poblacion
       pais
       imgInvitacion{
@@ -619,6 +628,7 @@ export const queries = {
       }
       itinerarios_array{
         _id
+        next_id
         title
         tasks{
           _id
@@ -651,6 +661,7 @@ export const queries = {
         viewers
         tipo
         estatus
+        fecha_creacion
       }
       planSpaceSelect
       planSpace{
@@ -803,6 +814,8 @@ export const queries = {
             coste_final
             pagado
             nombre
+            linkTask
+            estatus
             pagos_array {
               _id
               estado
@@ -819,8 +832,18 @@ export const queries = {
                 delete_url
               }
             }
+            items_array{
+              _id
+              next_id
+              unidad
+              cantidad
+              nombre
+              valor_unitario
+              total
+              estatus
+              fecha_creacion
+            }
           }
-          
         }
       }
       showChildrenGuest
@@ -832,7 +855,14 @@ export const queries = {
                     categorias_array{
                       pagado
                       gastos_array{
-                        pagado
+                        _id
+                        coste_proporcion
+                        coste_estimado
+                        coste_final
+                        pagado 
+                        nombre 
+                        linkTask 
+                        estatus 
                         pagos_array{
                           _id
                           estado
@@ -850,10 +880,225 @@ export const queries = {
                             delete_url
                           }
                         }
+                        items_array{
+                          _id
+                          next_id
+                          unidad
+                          cantidad
+                          nombre
+                          valor_unitario
+                          total
+                          estatus
+                          fecha_creacion
+                        }
                       }
                     }
                   }
                 }`,
+  nuevoGasto: `mutation($evento_id: String ,$categoria_id: String, $nombre: String){
+              nuevoGasto(evento_id:$evento_id, categoria_id:$categoria_id,nombre:$nombre){
+                _id
+                coste_proporcion
+                coste_estimado
+                coste_final
+                pagado
+                nombre
+                linkTask
+                estatus
+                pagos_array{
+                  _id
+                  estado
+                  fecha_creacion
+                  fecha_pago
+                  fecha_vencimiento
+                  medio_pago
+                  importe
+                  pagado_por
+                  concepto
+                  soporte{
+                    image_url
+                    medium_url
+                    thumb_url
+                    delete_url
+                  }
+                }
+                items_array{
+                  _id
+                  next_id
+                  unidad
+                  cantidad
+                  nombre
+                  valor_unitario
+                  total
+                  estatus
+                  fecha_creacion
+                }
+              }
+            }`,
+
+  editItemGasto: `mutation($evento_id: ID ,$categoria_id: ID, $gasto_id: ID, $itemGasto_id: ID, $variable: String, $valor: StringIntBool){
+    editItemGasto(evento_id:$evento_id, categoria_id: $categoria_id, gasto_id: $gasto_id, itemGasto_id: $itemGasto_id, variable: $variable, valor: $valor){
+      coste_estimado
+      coste_final
+      pagado
+      currency
+      categorias_array{
+        _id
+        coste_proporcion
+        coste_estimado
+        coste_final
+        pagado
+        nombre
+        gastos_array{
+          _id
+          coste_proporcion
+          coste_estimado
+          coste_final
+          pagado
+          nombre
+          linkTask
+          estatus
+          pagos_array{
+            _id
+            estado
+            fecha_creacion
+            fecha_pago
+            fecha_vencimiento
+            medio_pago
+            importe
+            pagado_por
+            concepto
+            soporte{
+              image_url
+              medium_url
+              thumb_url
+              delete_url
+            }
+          }
+          items_array{
+            _id
+            next_id
+            unidad
+            cantidad
+            nombre
+            valor_unitario
+            total
+            estatus
+            fecha_creacion
+          }
+        }
+      }
+    }
+  }`,
+
+  nuevoItemsGastos: `mutation($evento_id: ID, $categoria_id: ID, $gasto_id: ID, $itemsGastos:[itemGastoInput]){ 
+    nuevoItemsGastos(evento_id:$evento_id, categoria_id:$categoria_id, gasto_id:$gasto_id, itemsGastos:$itemsGastos){
+      coste_estimado
+      coste_final
+      pagado
+      currency
+      categorias_array{
+        _id
+        coste_proporcion
+        coste_estimado
+        coste_final
+        pagado
+        nombre
+        gastos_array{
+          _id
+          coste_proporcion
+          coste_estimado
+          coste_final
+          pagado 
+          nombre 
+          linkTask 
+          estatus 
+          pagos_array{
+            _id
+            estado
+            fecha_creacion
+            fecha_pago
+            fecha_vencimiento
+            medio_pago
+            importe
+            pagado_por
+            concepto
+            soporte{
+              image_url
+              medium_url
+              thumb_url
+              delete_url
+            }
+          }
+          items_array{
+            _id
+            next_id
+            unidad
+            cantidad
+            nombre
+            valor_unitario
+            total
+            estatus
+            fecha_creacion
+          }
+        }
+      }
+    }
+  }`,
+  borrarItemsGastos: `mutation($evento_id: ID, $categoria_id: ID, $gasto_id: ID, $itemsGastos_ids: [ID]){ 
+    borraItemsGastos(evento_id:$evento_id, categoria_id:$categoria_id, gasto_id:$gasto_id, itemsGastos_ids:$itemsGastos_ids){
+      coste_estimado
+      coste_final
+      pagado
+      currency
+      categorias_array{
+        _id
+        coste_proporcion
+        coste_estimado
+        coste_final
+        pagado
+        nombre
+        gastos_array{
+          _id
+          coste_proporcion
+          coste_estimado
+          coste_final
+          pagado 
+          nombre 
+          linkTask 
+          estatus 
+          pagos_array{
+            _id
+            estado
+            fecha_creacion
+            fecha_pago
+            fecha_vencimiento
+            medio_pago
+            importe
+            pagado_por
+            concepto
+            soporte{
+              image_url
+              medium_url
+              thumb_url
+              delete_url
+            }
+          }
+          items_array{
+            _id
+            next_id
+            unidad
+            cantidad
+            nombre
+            valor_unitario
+            total
+            estatus
+            fecha_creacion
+          }
+        }
+      }
+    }
+  }`,
   guardarListaRegalos: `mutation($evento_id: String!, $variable_reemplazar: String, $valor_reemplazar: String){
     editEvento(
       evento_id:$evento_id
@@ -915,6 +1160,11 @@ export const queries = {
       usuario_nombre
       fecha
       listaRegalos
+      listIdentifiers{
+        table
+        start_Id
+        end_Id
+      }
       poblacion
       pais
       lugar {
@@ -938,6 +1188,7 @@ export const queries = {
       }
       itinerarios_array{
         _id
+        next_id
         title
         tasks{
           _id
@@ -970,6 +1221,7 @@ export const queries = {
         viewers
         tipo
         estatus
+        fecha_creacion
       }
       planSpaceSelect
       planSpace{
@@ -1122,6 +1374,8 @@ export const queries = {
             coste_final
             pagado
             nombre
+            linkTask
+            estatus
             pagos_array {
               _id
               estado
@@ -1137,6 +1391,17 @@ export const queries = {
                 thumb_url
                 delete_url
               }
+            }
+            items_array{
+              _id
+              next_id
+              unidad
+              cantidad
+              nombre
+              valor_unitario
+              total
+              estatus
+              fecha_creacion
             }
           }
         }

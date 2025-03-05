@@ -110,7 +110,6 @@ export const useAuthentication = () => {
       try {
         const res: UserCredential | void = await types[type](payload);
         if (res) {
-          console.log(100051)
           setLoading(true)
           const idToken = await res?.user?.getIdToken()
           const dateExpire = new Date(parseJwt(idToken).exp * 1000)

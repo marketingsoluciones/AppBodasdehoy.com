@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { ItineraryTabs } from "./MicroComponente/ItineraryTabs"
 import { ItineraryPanel } from "./MicroComponente/ItineraryPanel"
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../context";
-import { Itinerary } from "../../utils/Interfaces"
+import { Event, Itinerary } from "../../utils/Interfaces"
 import { ViewItinerary } from "../../pages/invitados";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
@@ -38,6 +38,30 @@ export const BoddyIter = () => {
     const router = useRouter()
     const [modalDuplicate, setModalDuplicate] = useState({ state: false, data: null })
 
+    async function updatedNextId(itinerary: Itinerary) {
+        return await fetchApiEventos({
+            query: queries.editItinerario,
+            variables: {
+                eventID: event._id,
+                itinerarioID: itinerary._id,
+                variable: "next_id",
+                valor: itinerary.next_id
+            },
+            domain: config.domain
+        })
+    }
+    async function updatedListIdentifiers(event: Event) {
+        console.log(100091)
+        return await fetchApiEventos({
+            query: queries.eventUpdate,
+            variables: {
+                idEvento: event._id,
+                variable: "listIdentifiers",
+                value: JSON.stringify(event.listIdentifiers)
+            }
+        })
+    }
+
     useEffect(() => {
         setView(window.innerWidth > window.innerHeight && isAllowed() ? "cards" : "cards")
     }, [])
@@ -65,17 +89,39 @@ export const BoddyIter = () => {
                         },
                         domain: config.domain
                     })
-                    const itinerarios = event.itinerarios_array.filter(elem => elem.tipo === window?.location?.pathname.slice(1))
-                    const f1idx = itinerarios?.findIndex(elem => elem._id === itinerario._id)
+
+                    const fListIdentifiers = event?.listIdentifiers?.findIndex(elem => elem.table === window?.location?.pathname.slice(1))
+                    const lastListIdentifiers = event.listIdentifiers[fListIdentifiers]
+
+                    // console.log(lastListIdentifiers.start_Id, itinerario.next_id)
+                    if (lastListIdentifiers.start_Id === itinerario._id) {
+                        console.log("Borrando extremo izquierdo")
+                        if (event.itinerarios_array?.filter(elem => elem.tipo === window?.location?.pathname.slice(1)).length > 1) {
+                            console.log("NO es el último")
+                            lastListIdentifiers.start_Id = itinerario.next_id
+                        } else {
+                            console.log("es es el último")
+                            lastListIdentifiers.start_Id = null
+                            lastListIdentifiers.end_Id = null
+                        }
+                        updatedListIdentifiers(event)
+                    } else {
+                        if (lastListIdentifiers.end_Id === itinerario._id) {
+                            console.log("Borrando extremo derecho")
+                            const f1next_id = event.itinerarios_array?.findIndex(elem => elem.next_id === itinerario._id)
+                            lastListIdentifiers.end_Id = event.itinerarios_array[f1next_id]._id
+                            updatedListIdentifiers(event)
+                            //                        event.listIdentifiers[fListIdentifiers] = lastListIdentifiers
+                        }
+                        const f1next_id = event.itinerarios_array?.findIndex(elem => elem.next_id === itinerario._id)
+                        event.itinerarios_array[f1next_id].next_id = itinerario?.next_id ?? null
+                        updatedNextId(event.itinerarios_array[f1next_id])
+                    }
                     const f1 = event.itinerarios_array?.findIndex(elem => elem._id === itinerario._id)
                     event.itinerarios_array?.splice(f1, 1)
                     setEvent({ ...event })
                     toast("success", t("El itinerario fue eliminado"));
                     setModal({ state: false })
-                    itinerarios.splice(f1idx, 1)
-                    const idx = f1idx > itinerarios.length - 1 ? f1idx - 1 : f1idx
-                    setItinerario({ ...itinerarios[idx] })
-                    setEditTitle(false)
                 } catch (error) {
                     console.log(error)
                 }
@@ -102,7 +148,7 @@ export const BoddyIter = () => {
     }
 
     useEffect(() => {
-        const itinerarios = event?.itinerarios_array.filter(elem => elem.tipo === window?.location?.pathname.slice(1))
+        const itinerarios = event?.itinerarios_array.filter(elem => elem?.tipo === window?.location?.pathname.slice(1))
         if (itinerarios.length) {
             const f1 = itinerarios.findIndex(elem =>
                 !!router.query?.itinerary
@@ -113,6 +159,8 @@ export const BoddyIter = () => {
             } else {
                 setItinerario(itinerarios[f1])
             }
+        } else {
+            setItinerario(null)
         }
     }, [event, router])
 
@@ -141,8 +189,8 @@ export const BoddyIter = () => {
                 setModalDuplicate={setModalDuplicate}
             />
             {(isAllowedViewer(itinerario?.viewers ?? []) || window?.location?.pathname === "/itinerario")
-                ? <ItineraryPanel itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} title={title} setTitle={setTitle} view={view} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} /> :
-                <div className="h-full">
+                ? <ItineraryPanel itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} title={title} setTitle={setTitle} view={view} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} />
+                : <div className="h-full">
                     <ViewWihtoutData />
                 </div>
             }
@@ -175,7 +223,7 @@ const ModalDupliucate = ({ setModalDuplicate, modalDuplicate }) => {
     const { config, user } = AuthContextProvider()
     const [filteredEventsGroup, setFilteredEventsGroup] = useState([])
     const [selectedOption, setSelectedOption] = useState('');
-    const evento = eventsGroup.find(elem => elem.nombre === selectedOption)
+
     const toast = useToast();
 
 
@@ -187,28 +235,108 @@ const ModalDupliucate = ({ setModalDuplicate, modalDuplicate }) => {
     }, [eventsGroup])
 
     const handleDuplicateItinerario = async () => {
-        const result = await fetchApiEventos({
-            query: queries.duplicateItinerario,
-            variables: {
-                eventID: event._id,
-                itinerarioID: modalDuplicate.data?._id,
-                eventDestinationID: evento._id,
-            },
-            domain: config.domain
-        })
-        if(evento._id === event._id){
-            setEvent(old => {
-                old.itinerarios_array.push(result as Itinerary)
-                return {...old}
-            })
+        try {
+            const eventDestination = eventsGroup.find(elem => elem.nombre === selectedOption)
+            if (eventDestination.itinerarios_array.filter(elem => elem.tipo === window?.location?.pathname.slice(1)).length > 9) {
+                toast("warning", t("maxLimitedItineraries"));
+                return
+            }
+
+            const itinerary: Itinerary = modalDuplicate.data
+            console.log(eventDestination.nombre)
+            const result = await fetchApiEventos({
+                query: queries.duplicateItinerario,
+                variables: {
+                    eventID: event._id,
+                    itinerarioID: itinerary._id,
+                    eventDestinationID: eventDestination._id,
+                },
+                domain: config.domain
+            }) as Itinerary
+            if (eventDestination._id === event._id) {
+                const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerary._id)
+                event.itinerarios_array[f1].next_id = result._id
+                event.itinerarios_array.push(result)
+                fetchApiEventos({
+                    query: queries.editItinerario,
+                    variables: {
+                        eventID: event._id,
+                        itinerarioID: itinerary._id,
+                        variable: "next_id",
+                        valor: result._id
+                    },
+                    domain: config.domain
+                })
+                const fListIdentifiers = event?.listIdentifiers?.findIndex(elem => elem.table === window?.location?.pathname.slice(1))
+                if (event.listIdentifiers[fListIdentifiers].end_Id === itinerary._id) {
+                    event.listIdentifiers[fListIdentifiers].end_Id = result._id
+                    fetchApiEventos({
+                        query: queries.eventUpdate,
+                        variables: {
+                            idEvento: event._id,
+                            variable: "listIdentifiers",
+                            value: JSON.stringify(event.listIdentifiers)
+                        }
+                    })
+                }
+                setEvent({ ...event })
+            }
+            if (eventDestination._id !== event._id) {
+                const event = eventDestination
+                const fListIdentifiers = event?.listIdentifiers?.findIndex(elem => elem.table === window?.location?.pathname.slice(1))
+                if (!event.itinerarios_array.length) {
+                    // pueder ser el primero, 
+                    console.log("es el primero")
+                    if (fListIdentifiers === -1) {
+                        event.listIdentifiers.push({
+                            start_Id: result._id,
+                            end_Id: result._id,
+                            table: window?.location?.pathname.slice(1)
+                        })
+                    } else {
+                        event.listIdentifiers[fListIdentifiers].start_Id = result._id
+                        event.listIdentifiers[fListIdentifiers].end_Id = result._id
+                    }
+                    fetchApiEventos({
+                        query: queries.eventUpdate,
+                        variables: {
+                            idEvento: event._id,
+                            variable: "listIdentifiers",
+                            value: JSON.stringify(event.listIdentifiers)
+                        }
+                    })
+                } else {
+                    console.log("NO es el primero")
+                    // sino es el primero siempre sera el ultimo
+                    fetchApiEventos({
+                        query: queries.editItinerario,
+                        variables: {
+                            eventID: event._id,
+                            itinerarioID: event.listIdentifiers[fListIdentifiers].end_Id,
+                            variable: "next_id",
+                            valor: result._id
+                        },
+                        domain: config.domain
+                    })
+                    event.listIdentifiers[fListIdentifiers].end_Id = result._id
+                    fetchApiEventos({
+                        query: queries.eventUpdate,
+                        variables: {
+                            idEvento: event._id,
+                            variable: "listIdentifiers",
+                            value: JSON.stringify(event.listIdentifiers)
+                        }
+                    })
+                }
+                const f1 = eventsGroup.findIndex(elem => elem._id === event._id)
+                eventsGroup[f1].itinerarios_array.push(result)
+                setEventsGroup([...eventsGroup])
+            }
+            setModalDuplicate({ state: false })
+            toast("success", t("successful"));
+        } catch (error) {
+            console.log(error)
         }
-        if(evento._id !== event._id){
-            const f1 = eventsGroup.findIndex(elem => elem._id === evento._id)
-            eventsGroup[f1].itinerarios_array.push(result as Itinerary)
-            setEventsGroup([...eventsGroup])
-        }
-        setModalDuplicate({ state: false })
-        toast("success", t("successful"));
     }
 
     const options = filteredEventsGroup?.map((elem) => ({
@@ -220,10 +348,15 @@ const ModalDupliucate = ({ setModalDuplicate, modalDuplicate }) => {
         setSelectedOption(selectedOption.value);
     };
 
+    useEffect(() => {
+        console.log(500042, selectedOption)
+    }, [selectedOption])
+
+
     return (
         <div className="w-[650px] bg-white rounded-xl shadow-md">
             <div className="flex items-center justify-between border-b border-gray-300 pb-2 p-4">
-                <h2 className="text-lg font-semibold capitalize">{t("duplicar")} {cleanedPath}</h2>
+                <h2 className="text-lg font-semibold capitalize text-gray-700">{t("duplicar")} {cleanedPath}</h2>
                 <button className="text-gray-500" onClick={() => { setModalDuplicate({ state: false }) }}>
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M3.707 3.293a1 1 0 0 1 1.414 0L10 8.586l5.293-5.293a1 1 0 1 1 1.414 1.414L11.414 10l5.293 5.293a1 1 0 1 1-1.414 1.414L10 11.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L8.586 10 3.293 4.707a1 1 0 0 1 0-1.414z" />
@@ -252,7 +385,7 @@ const ModalDupliucate = ({ setModalDuplicate, modalDuplicate }) => {
             </div>
             <div className="flex justify-end gap-4 border-t border-gray-300 px-4 pb-4 bg-gray-100">
                 <button onClick={() => { setModalDuplicate({ state: false }) }} className="bg-gray-400 text-white rounded-md py-2 px-4 mt-4">{t("cancel")}</button>
-                <button onClick={() => handleDuplicateItinerario()} className="bg-primary text-white rounded-md py-2 px-4 mt-4">{t("duplicar")}</button>
+                <button onClick={() => handleDuplicateItinerario()} disabled={!selectedOption} className={`${!selectedOption ? "bg-gray-300" : "bg-primary"} text-white rounded-md py-2 px-4 mt-4 capitalize`}>{t("duplicar")}</button>
             </div>
         </div>
     )

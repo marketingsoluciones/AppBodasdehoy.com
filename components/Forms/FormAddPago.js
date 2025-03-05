@@ -133,6 +133,7 @@ const FormAddPago = ({ GastoID, cate }) => {
               return
             }
             saveData(values)
+
           }
         } catch (error) {
           console.log(error)
@@ -177,7 +178,7 @@ export const BasicFormLogin = ({ ischecked, setCheck, handleChange, handleSubmit
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6 py-6 w-full h-full* " >
+      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6 py-6 w-full h-full* bg-white " >
         <div className="col-span-2 grid grid-cols-6 border-gray-100 pl-3 w-full ">
           <div className="col-span-6  md:col-span-4">
             <div className="flex items-center space-x-1 capitalize text-2xl text-gray-500">
