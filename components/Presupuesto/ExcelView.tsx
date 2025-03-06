@@ -19,7 +19,7 @@ import { item, expenses, estimate } from "../../utils/Interfaces";
 import { PiNewspaperClippingLight } from "react-icons/pi";
 import FormAddPago from '../Forms/FormAddPago';
 import { Modal } from '../Utils/Modal';
-import { PiTextColumns } from "react-icons/pi";
+import { ExportarExcelV2 } from '../Utils/ExportarExcelV2';
 import { set } from 'date-fns';
 
 
@@ -50,6 +50,21 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
     const totalCosteFinal = categoria?.gastos_array?.reduce((total, item) => total + item.coste_final, 0)
     const totalpagado = categoria?.gastos_array?.reduce((total, item) => total + item.pagado, 0)
     const totalPendientePagado = categoria?.gastos_array?.reduce((total, item) => total + item.pagado, 0)
+    const [loading, setLoading] = useState<boolean>()
+
+    const columnsToExcel = [
+        { column: "A", title: "Partida de Gasto", accessor: "nombre" },
+        { column: "B", title: "Unidad", accessor: "columna1" },
+        { column: "C", title: "Cantidad", accessor: "columna2" },
+        { column: "D", title: "Item", accessor: "columna3" },
+        { column: "E", title: "Valor Unitario", accessor: "columna4" },
+        { column: "F", title: "Total", accessor: "coste_final" },
+        { column: "G", title: "Coste Estimado", accessor: "coste_estimado" },
+        { column: "H", title: "Pagado", accessor: "pagado" },
+        { column: "I", title: "Pendiente por Pagar", accessor: "pendiente_pagar" },
+        { column: "J", title: "Opciones", accessor: "options" }
+    ];
+
 
 
     useEffect(() => {
@@ -133,6 +148,7 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
                 <div className="flex-1 flex flex-col items-center">
                     <div className=' rounded-t-md w-full text-center capitalize bg-primary text-white py-1 ' >
                         {categoria?.nombre ? categoria?.nombre : "Categoria"}
+                        {/* <ExportarExcelV2 data={event?.presupuesto_objeto} column={columnsToExcel} /> */}
                     </div>
                     <TablePorProveedor data={data} categoria={categoria} set={setShowFormPago} />
                     <div className="flex px-3 w-full bg-slate-200  justify-items-center py-1 rounded-b-md ">
@@ -292,14 +308,19 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
                 id: "pendiente_pagar",
                 Cell: (props) => {
                     const [value, setValue] = useState(0);
+                    const total = props.row.original.items_array.reduce((acumulador, objeto) => acumulador + objeto.total, 0);
                     useEffect(() => {
 
                         if (props.row.original.coste_final === 0) {
                             setValue(0)
                         }
-                        if (props.row.original.coste_final > 0) {
+                        if (props.row.original.items_array.length > 0) {
+                            setValue(total - props.row.original.pagado)
+                        } else (
                             setValue(props.row.original.coste_final - props.row.original.pagado)
-                        }
+                        )
+
+
                     }, [props?.row.original])
                     return (
                         <div className="font-display text-gray-500 text-[15px] grid place-items-center h-full text-end ">
@@ -316,7 +337,7 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
                     const [show, setShow] = useState(false);
                     const [showItem, setShowItem] = useState(props?.row?.original.estatus === null ? false : props?.row?.original.estatus);
                     const dataCategoria = categoria?.gastos_array.find((item) => item._id == props.row.original._id);
-                    
+
 
                     const handleRemove = async () => {
                         let data
@@ -615,6 +636,7 @@ const SubComponenteTable = ({ row, data = [], categoria, visibleColumns }) => {
         setPosition({ x: event.clientX, y: event.clientY });
         setShowMenu(true);
     };
+
     const columns = useMemo(
         () => [
             {
@@ -718,27 +740,41 @@ const SubComponenteTable = ({ row, data = [], categoria, visibleColumns }) => {
                 accessor: "total",
                 id: "total",
                 Cell: (data) => {
-                    const dataCategoria = categoria?.gastos_array.find((item) => item.items_array.some((item) => item._id == data.row.original._id));
+                    const dataGasto = categoria?.gastos_array.find((item) => item.items_array.some((item) => item._id == data.row.original._id));
                     const Total = data.row.original.cantidad * data.row.original.valor_unitario
-                    /*  useEffect(() => {
-                         fetchApiEventos({
-                             query: queries.editItemGasto,
-                             variables: {
-                                 evento_id: event?._id,
-                                 categoria_id: categoria?._id,
-                                 gasto_id: dataCategoria?._id,
-                                 itemGasto_id: data.row.original._id,
-                                 variable: "total",
-                                 valor: Total
-                             }
-                         }).then((result) => {
- 
-                         }).catch((error) => {
-                             console.log(error);
-                         })
-                     }, [Total]) */
+
+                    const handleChangeTotal = () => {
+                        fetchApiEventos({
+                            query: queries.editItemGasto,
+                            variables: {
+                                evento_id: event?._id,
+                                categoria_id: categoria?._id,
+                                gasto_id: dataGasto?._id,
+                                itemGasto_id: data.row.original._id,
+                                variable: "total",
+                                valor: Total
+                            }
+                        }).then((result: estimate) => {
+                            const f1 = result?.categorias_array.findIndex((item) => item._id == categoria?._id);
+                            const f2 = result?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == dataGasto?._id);
+                            const f3 = result?.categorias_array[f1]?.gastos_array[f2]?.items_array.findIndex((item) => item._id == data.row.original._id);
+                            const resultTotal = result?.categorias_array[f1]?.gastos_array[f2]?.items_array[f3]?.total
+
+                            setEvent((old) => {
+                                const f1 = old?.presupuesto_objeto?.categorias_array.findIndex((item) => item._id == categoria?._id);
+                                const f2 = old?.presupuesto_objeto?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == dataGasto?._id);
+                                const f3 = old?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.items_array.findIndex((item) => item._id == data.row.original._id);
+                                old.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array[f3].total = resultTotal
+                                return { ...old, }
+                            })
+
+                        }).catch((error) => {
+                            console.log(error);
+                        })
+                    }
+
                     return (
-                        <span className="flex items-center justify-end capitalize text-right w-full">
+                        <span onClick={() => handleChangeTotal()} className="flex items-center justify-end capitalize text-right w-full">
                             {getCurrency(Total, event?.presupuesto_objeto?.currency)}
                         </span>
                     )
