@@ -263,7 +263,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     }, [router])
 
     return (
-        <div className="w-full flex-1 flex flex-col overflow-y-scroll">
+        <div className="w-full flex-1 flex flex-col">
             {showEditTask?.state && (
                 <ModalLeft state={showEditTask} set={setShowEditTask} clickAwayListened={false}>
                     <div className="w-full flex flex-col items-start justify-start" >
@@ -305,7 +305,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                                     })}
                                 </div>
                             )
-                            : <div className="relative overflow-x-auto md:overflow-x-visible">
+                            : <div className="relative overflow-x-auto md:overflow-x-visible h-full">
                                 <div className="w-[250%] md:w-[100%]">
                                     <ItineraryColumns
                                         data={tasks}

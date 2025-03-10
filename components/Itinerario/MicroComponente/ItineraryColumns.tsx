@@ -21,6 +21,7 @@ import Link from "next/link";
 import { PiCheckFatBold } from "react-icons/pi";
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { useToast } from "../../../hooks/useToast";
+import { IniterarySelectionMenu } from "./InitinerarySelectionMenu"
 
 
 interface props {
@@ -92,13 +93,19 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         Header: t("title"),
         accessor: "descripcion",
         id: "description",
+        className: 'sticky *lg:static z-10 left-0 relative',
         Cell: (data) => {
           return (
-            <div className="flex w-full items-center">
-              <span key={data.cell.row.id} className="font-bold flex-1">
+            <div className="flex w-full items-center ">
+              <span key={data.cell.row.id} className="font-bold flex-1 pr-10">
                 {data.cell.value}
               </span>
-              {(isAllowed() && data.cell.row.original.spectatorView) && <GoEye className="w-5 h-5" />}
+              <div className="absolute right-0 z-20">
+                <IniterarySelectionMenu data={data} itinerario={itinerario} optionsItineraryButtonBox={optionsItineraryButtonBox} setShowEditTask={setShowEditTask} showEditTask={showEditTask} />
+              </div>
+              {(isAllowed() && data.cell.row.original.spectatorView) && <div className="absolute right-6">
+                <GoEye className="w-4 h-4" />
+              </div>}
             </div>
           )
         }
@@ -263,75 +270,10 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
           </p>
         )
       },
-      {
-        id: "selection",
-        Cell: (data) => {
-          const [show, setShow] = useState(false)
-          const [value, setValue] = useState("")
-          const [copied, setCopied] = useState(false)
-
-          useEffect(() => {
-            if (copied) {
-              setTimeout(() => {
-                setCopied(false)
-              }, 3000);
-            }
-          }, [copied])
-
-          return (
-            <div key={data.cell.row.id} className="relative w-full h-full flex justify-center items-center">
-              <div onClick={() => { !isAllowed() ? ht() : setShowEditTask({ state: !showEditTask.state, values: data.cell.row.original }) }} className={`hidden md:flex ${isAllowed() ? "text-gray-700" : "text-gray-300"} cursor-pointer w-4 h-6 items-center justify-center *bg-blue-400`}>
-                <PencilEdit className="w-5 h-5" />
-              </div>
-              <ClickAwayListener onClickAway={() => show && setShow(false)} >
-                <div onClick={() => !isAllowed() ? ht() : setShow(!show)} className="w-full h-4 flex justify-center" >
-                  <div className="cursor-pointer w-4 h-6 flex items-center justify-center *bg-blue-400">
-                    <DotsOpcionesIcon className={`${!show ? !isAllowed() ? "text-gray-300" : "text-gray-700" : "text-gray-900"} w-4 h-4`} />
-                  </div>
-                  {show && <div className={`absolute right-9 top-0 bg-white z-50 rounded-md shadow-md`}>
-                    {optionsItineraryButtonBox?.map((item, idx) =>
-                      <div key={idx}
-                        onClick={() => {
-                          if (item.value === "share") {
-                            setCopied(true)
-                            toast("success", t(`copiedlink`))
-                            return
-                          }
-                          setValue(item.value)
-                          setShow(false)
-                          item?.onClick(data.cell.row.original, itinerario)
-                        }}
-                        className={`${item.value === "edit" ? "flex md:hidden" : "flex"}  ${["/itinerario"].includes(window?.location?.pathname) && item.vew != "all" ? "hidden" : ""} p-2 text-gray-700 text-sm items-center gap-2 capitalize cursor-pointer hover:bg-gray-100 ${item.value === value && "bg-gray-200"}`}
-                      >
-                        {item.value === "share"
-                          ? copied
-                            ? <div>
-                              <PiCheckFatBold className="w-5 h-5" />
-                            </div>
-                            : <CopyToClipboard text={"link"}>
-                              <div className="flex">
-                                {item.icon}
-                                <span className="flex-1 leading-[1]">
-                                  {item.title}
-                                </span>
-                              </div>
-                            </CopyToClipboard>
-                          : <>
-                            {item.icon}
-                            <span className="flex-1 leading-[1]">
-                              {item.title}
-                            </span>
-                          </>
-                        }
-                      </div>
-                    )}
-                  </div>}
-                </div>
-              </ClickAwayListener>
-            </div>
-          )
-        }
-      },
+      // {
+      //   id: "selection",
+      //   Cell: <IniterarySelectionMenu data={data} itinerario={itinerario} optionsItineraryButtonBox={optionsItineraryButtonBox} setShowEditTask={setShowEditTask} showEditTask={showEditTask} />
+      // },
     ],
     [itinerario, i18next.language]
   );
