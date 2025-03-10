@@ -50,11 +50,11 @@ const CellEditCopy = (props) => {
     setValue(r)
   };
 
-  console.log("www", props)
-  const handleBlur = async () => {
+  const handleBlur = async (e) => {
+    console.log("blur", e)
     setEdit(false);
     let res;
-    if (value !== props?.value || mask !== props?.value) {
+    if (value !== props?.value) {
       if (props?.table === "principal") {
         try {
           const params = {
@@ -140,7 +140,7 @@ const CellEditCopy = (props) => {
           <input
             type={props.type}
             min={0}
-            onBlur={ handleBlur}
+            onBlur={(e) => handleBlur(e)}
             onChange={(e) => handleChange(e)}
             onKeyDown={(e) => keyDown(e)}
             autoFocus

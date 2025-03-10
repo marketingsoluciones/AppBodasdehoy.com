@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState , useId } from 'react';
 import { BlockListaCategorias } from '../../pages/presupuesto';
 import { AuthContextProvider, EventContextProvider } from '../../context';
 import { t, use } from 'i18next';
@@ -212,6 +212,7 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
     const { event, setEvent } = EventContextProvider()
     const toast = useToast()
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const idd = useId();
     const [columnVisibility, setColumnVisibility] = useState({
         nombre: { visible: true, Header: "Partida de Gasto", span: 2, accessor: "nombre" },
         columna1: { visible: true, Header: "Unidad", span: 1, accessor: "columna1" },
@@ -561,50 +562,48 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
                     </tr>
                 ))}
             </thead>
-            <div className="overflow-y-auto max-h-[500px] w-full">
-                <table className="w-full">
-                    {
-                        data.length > 0 ?
-                            <tbody {...getTableBodyProps()} className="text-gray-500 text-sm w-full">
-                                {rows.map((row, i) => {
-                                    prepareRow(row);
-                                    return (
-                                        <>
-                                            <tr
-                                                key={i + 2}
-                                                {...row.getRowProps()}
-                                                className={` w-full border-b border-base grid grid-cols-${totalSpan} px-2 bg-[#eaecee] `}
-                                            >
-                                                {row.cells.map((cell, i) => {
-                                                    return (
-                                                        <td
-                                                            key={i + 1}
-                                                            {...cell.getCellProps()}
-                                                            className={` pr-2 font-display text-sm w-full text-left py-2 col-span-${colSpan[cell.column.id]
-                                                                }`}
-                                                        >
-                                                            {cell.render("Cell")}
-                                                        </td>
-                                                    );
-                                                })}
-                                            </tr>
-                                            { /* row.isExpanded */ true ? (
-                                                <tr key={i} className="h-max w-full">
-                                                    <td >
-                                                        {renderRowSubComponent({ row, categoria })}
-                                                    </td>
-                                                </tr>
-                                            ) : null}
-                                        </>
-                                    );
-                                })}
-                            </tbody>
-                            : <div className='h-[500px] capitalize flex items-center justify-center text-azulCorporativo'>
-                                selecciona una categoria de la lista
-                            </div>
-                    }
-                </table>
-            </div>
+            {
+                data.length > 0 ?
+                    <tbody {...getTableBodyProps()} className="text-gray-500 text-sm w-full overflow-y-auto max-h-[500px]">
+                        {rows.map((row, id) => {
+                            prepareRow(row);
+                            return (
+                                <React.Fragment key={row.id}>
+                                    <tr
+                                        key={id}
+                                        {...row.getRowProps()}
+                                        className={` w-full border-b border-base grid grid-cols-${totalSpan} px-2 bg-[#eaecee] `}
+                                    >
+                                        {row.cells.map((cell, id) => {
+                                            return (
+                                                <td
+                                                    key={id}
+                                                    {...cell.getCellProps()}
+                                                    className={` pr-2 font-display text-sm w-full text-left py-2 col-span-${colSpan[cell.column.id]
+                                                        }`}
+                                                >
+                                                    {cell.render("Cell")}
+                                                </td>
+                                            );
+                                        })}
+                                    </tr>
+                                    { /* row.isExpanded */ false ? (
+                                        <tr key={idd} className="h-max w-full">
+                                            <td >
+                                                {renderRowSubComponent({ row, categoria })}
+                                            </td>
+                                        </tr>
+                                    ) : null}
+                                </React.Fragment>
+                            );
+                        })}
+                    </tbody>
+                    : <tbody className='h-[500px] capitalize flex items-center justify-center text-azulCorporativo'>
+                        <tr>
+                            <td colSpan={16}>No hay datos disponibles.</td>
+                        </tr>
+                    </tbody>
+            }
         </table>
 
     )
@@ -617,6 +616,8 @@ const SubComponenteTable = ({ row, data = [], categoria, visibleColumns }) => {
     const [position, setPosition] = useState({ x: 0, y: 0 });
     const toast = useToast()
     const menuRef = useRef(null);
+    const idd = useId();
+
     const options = [
         {
             title: "Insertar Item arriba"
@@ -725,7 +726,7 @@ const SubComponenteTable = ({ row, data = [], categoria, visibleColumns }) => {
                 Header: "Can.",
                 accessor: "cantidad",
                 id: "cantidad",
-                Cell: (props) => <CellEditCopy categoriaID={categoria?._id} type={"cantidad"} table={"subtable"} {...props}  />
+                Cell: (props) => <CellEditCopy categoriaID={categoria?._id} type={"cantidad"} table={"subtable"} {...props} />
             },
             {
                 Header: "Item",
@@ -937,7 +938,7 @@ const SubComponenteTable = ({ row, data = [], categoria, visibleColumns }) => {
                             <>
                                 <tr
                                     //onContextMenu={handleContextMenu}
-                                    key={i}
+                                    key={idd}
                                     {...row.getRowProps()}
                                     className="w-full  border-b border-base hover:bg-base grid grid-cols-18 px-2 relative "
                                 >
@@ -946,7 +947,7 @@ const SubComponenteTable = ({ row, data = [], categoria, visibleColumns }) => {
                                         row.cells.map((cell, i) => {
                                             return (
                                                 <td
-                                                    key={i}
+                                                    key={idd}
                                                     {...cell.getCellProps()}
                                                     className={` pr-2 font-display text-sm w-full text-left py-2 col-span-${colSpan[cell.column.id]}`}
                                                 >
@@ -969,7 +970,7 @@ const SubComponenteTable = ({ row, data = [], categoria, visibleColumns }) => {
                                         {
                                             options.map((item, idx) => {
                                                 return (
-                                                    <button className='cursor-pointer hover:bg-slate-100 p-2 ' key={idx}>
+                                                    <button className='cursor-pointer hover:bg-slate-100 p-2 ' key={idd}>
                                                         {item.title}
                                                     </button>
                                                 )
