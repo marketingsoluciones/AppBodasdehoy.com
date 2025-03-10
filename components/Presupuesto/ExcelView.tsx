@@ -20,9 +20,6 @@ import { PiNewspaperClippingLight } from "react-icons/pi";
 import FormAddPago from '../Forms/FormAddPago';
 import { Modal } from '../Utils/Modal';
 import { ExportarExcelV2 } from '../Utils/ExportarExcelV2';
-import { set } from 'date-fns';
-
-
 
 interface Categoria {
     _id: string;
@@ -64,8 +61,6 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
         { column: "I", title: "Pendiente por Pagar", accessor: "pendiente_pagar" },
         { column: "J", title: "Opciones", accessor: "options" }
     ];
-
-
 
     useEffect(() => {
         setCategoria(
@@ -127,7 +122,6 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
                     </Modal>
                 )
             }
-
             <div className="flex pl-3 h-[calc( 100vh-300px )] relative " >
                 <div className="bg-transparent absolute h-full py-3 -top-12 left-0-" >
                     <button onClick={() => setMenuIzquierdo(!menuIzquierdo)} className="bg-white border border-primary rounded-r-md w-7 h-7 flex items-center justify-center">
@@ -179,9 +173,7 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
                     <Grafico categorias={categorias_array} />
                 </div>
             </div>
-
         </>
-
     );
 };
 
@@ -260,12 +252,25 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
                 Header: "Total",
                 accessor: "coste_final",
                 Cell: (props) => {
-                    const [value, setValue] = useState(props?.value);
                     const data = props?.row?.original?.items_array
                     const sumaTotal = data?.reduce((total, item) => total + item.total, 0)
                     useEffect(() => {
-                        setValue(props?.value)
-                    }, [props?.value])
+                        fetchApiEventos({
+                            query: queries.editGasto,
+                            variables: {
+                                evento_id: event?._id,
+                                categoria_id: categoria?._id,
+                                gasto_id: props?.row?.original?._id,
+                                variable_reemplazar: "coste_final",
+                                valor_reemplazar: sumaTotal
+                            }
+                        }).then((result) => {
+
+                        }).catch((error) => {
+                            console.log(error);
+                        })
+                    }, [sumaTotal])
+
                     if (data?.length === 0) {
                         return (
                             <CellEditCopy categoriaID={categoria?._id} type={"number"} {...props} table={"principal"} />
@@ -720,7 +725,7 @@ const SubComponenteTable = ({ row, data = [], categoria, visibleColumns }) => {
                 Header: "Can.",
                 accessor: "cantidad",
                 id: "cantidad",
-                Cell: (props) => <CellEditCopy categoriaID={categoria?._id} type={"cantidad"} table={"subtable"} {...props} />
+                Cell: (props) => <CellEditCopy categoriaID={categoria?._id} type={"cantidad"} table={"subtable"} {...props}  />
             },
             {
                 Header: "Item",
@@ -740,42 +745,32 @@ const SubComponenteTable = ({ row, data = [], categoria, visibleColumns }) => {
                 accessor: "total",
                 id: "total",
                 Cell: (data) => {
-                    const dataGasto = categoria?.gastos_array.find((item) => item.items_array.some((item) => item._id == data.row.original._id));
-                    const Total = data.row.original.cantidad * data.row.original.valor_unitario
-
-                    const handleChangeTotal = () => {
+                    const dataCategoria = categoria?.gastos_array.find((item) => item.items_array.some((item) => item._id == data.row.original._id));
+                    const total = data.row.original.cantidad * data.row.original.valor_unitario
+                    const f1Event = event?.presupuesto_objeto?.categorias_array.findIndex((item) => item._id == categoria?._id);
+                    const f2Event = event?.presupuesto_objeto?.categorias_array[f1Event]?.gastos_array.findIndex((item) => item._id == dataCategoria?._id);
+                    const f3Event = event?.presupuesto_objeto?.categorias_array[f1Event]?.gastos_array[f2Event]?.items_array.findIndex((item) => item._id == data.row.original._id);
+                    event.presupuesto_objeto.categorias_array[f1Event].gastos_array[f2Event].items_array[f3Event].total = total
+                    useEffect(() => {
                         fetchApiEventos({
                             query: queries.editItemGasto,
                             variables: {
                                 evento_id: event?._id,
                                 categoria_id: categoria?._id,
-                                gasto_id: dataGasto?._id,
+                                gasto_id: dataCategoria?._id,
                                 itemGasto_id: data.row.original._id,
                                 variable: "total",
-                                valor: Total
+                                valor: total
                             }
-                        }).then((result: estimate) => {
-                            const f1 = result?.categorias_array.findIndex((item) => item._id == categoria?._id);
-                            const f2 = result?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == dataGasto?._id);
-                            const f3 = result?.categorias_array[f1]?.gastos_array[f2]?.items_array.findIndex((item) => item._id == data.row.original._id);
-                            const resultTotal = result?.categorias_array[f1]?.gastos_array[f2]?.items_array[f3]?.total
-
-                            setEvent((old) => {
-                                const f1 = old?.presupuesto_objeto?.categorias_array.findIndex((item) => item._id == categoria?._id);
-                                const f2 = old?.presupuesto_objeto?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == dataGasto?._id);
-                                const f3 = old?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.items_array.findIndex((item) => item._id == data.row.original._id);
-                                old.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array[f3].total = resultTotal
-                                return { ...old, }
-                            })
+                        }).then((result) => {
 
                         }).catch((error) => {
                             console.log(error);
                         })
-                    }
-
+                    }, [total])
                     return (
-                        <span onClick={() => handleChangeTotal()} className="flex items-center justify-end capitalize text-right w-full">
-                            {getCurrency(Total, event?.presupuesto_objeto?.currency)}
+                        <span className="flex items-center justify-end capitalize text-right w-full">
+                            {getCurrency(total, event?.presupuesto_objeto?.currency)}
                         </span>
                     )
                 },

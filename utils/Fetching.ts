@@ -935,7 +935,7 @@ export const queries = {
                 }
               }
             }`,
-  editGasto: `mutation($evento_id: String, $categoria_id: String, $gasto_id: String, $variable_reemplazar: String, $valor_reemplazar: String){
+  editGasto: `mutation($evento_id: ID, $categoria_id: ID, $gasto_id: ID, $variable_reemplazar: String, $valor_reemplazar: StringIntBool){
                 editGasto(evento_id:$evento_id, categoria_id:$categoria_id, gasto_id:$gasto_id, variable_reemplazar:$variable_reemplazar, valor_reemplazar:$valor_reemplazar){
                 coste_estimado
                 coste_final

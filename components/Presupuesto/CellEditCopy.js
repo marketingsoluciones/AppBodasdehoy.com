@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { set } from "date-fns";
 import { useToast } from "../../hooks/useToast";
+import { string } from "yup";
 
 const CellEditCopy = (props) => {
 
@@ -21,7 +22,7 @@ const CellEditCopy = (props) => {
   const toast = useToast()
 
   useEffect(() => {
-    setValue(typeof props?.value == "string" ? capitalize(props?.value) : props?.value)
+    setValue(typeof props?.value == "string" ? props?.value : props?.value)
   }, [props.value])
 
   useEffect(() => {
@@ -49,10 +50,11 @@ const CellEditCopy = (props) => {
     setValue(r)
   };
 
+  console.log("www", props)
   const handleBlur = async () => {
     setEdit(false);
     let res;
-    if (value !== props?.value) {
+    if (value !== props?.value || mask !== props?.value) {
       if (props?.table === "principal") {
         try {
           const params = {
@@ -138,18 +140,14 @@ const CellEditCopy = (props) => {
           <input
             type={props.type}
             min={0}
-            /*  value={!!value ? value : ""} */
-            onBlur={handleBlur}
+            onBlur={ handleBlur}
             onChange={(e) => handleChange(e)}
             onKeyDown={(e) => keyDown(e)}
             autoFocus
-            className="focus:outline-none focus:ring-0 focus:border-none text-center w-full border-b border-gray-200 px-2 py-1- h-full"
+            className="focus:outline-none focus:ring-0 focus:border-none text-center w-full px-2 h-6"
           />
         ) : (
-          <p className={` ${props.type == "number" && "text-right" || props.type == "string" && "text-left" || props.type === "cantidad" && "text-center" || props.type === "unidad" && "text-center"} cursor-pointer w-full truncate px-2 py-1 h-6 `} onClick={() => !isAllowed() ? null : setEdit(true)}>
-            {/* {
-              typeof value == "string" ? capitalize(value) : mask
-            } */}
+          <p className={` ${props.type == "number" && "text-right" || props.type == "string" && "text-left capitalize" || props.type === "cantidad" && "text-center" || props.type === "unidad" && "text-center"} cursor-pointer w-full truncate px-2 py-1 h-6 `} onClick={() => !isAllowed() ? null : setEdit(true)}>
             {
               props.type == "string" && value
             }
@@ -171,7 +169,7 @@ const CellEditCopy = (props) => {
                   margin: 0;
                 }
               }
-              `}
+          `}
         </style>
       </div>
     </ClickAwayListener>
