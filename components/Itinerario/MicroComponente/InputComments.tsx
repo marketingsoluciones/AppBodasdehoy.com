@@ -50,13 +50,14 @@ export const InputComments: FC<props> = ({ itinerario, task }) => {
 
   const handleCreateComment = () => {
     if (value) {
+      const valueSend = value.replace(/ id="selected"/g, "").replace(/ focusoffset="[^"]*"/g, '')
       fetchApiEventos({
         query: queries.createComment,
         variables: {
           eventID: event?._id,
           itinerarioID: itinerario?._id,
           taskID: task?._id,
-          comment: value
+          comment: valueSend
         },
         domain: config.domain
       }).then((results: Comment) => {
@@ -73,7 +74,7 @@ export const InputComments: FC<props> = ({ itinerario, task }) => {
         const focused = `${window.location.pathname}?event=${event._id}&itinerary=${itinerario._id}&task=${task._id}&comment=${results._id}`
         notification({
           type: "user",
-          message: ` ha escrito un comentario: ${value.slice(0, 50)}${value.length > 50 ? "..." : ""} | Evento ${event?.tipo}: <strong>${event?.nombre.toUpperCase()}</strong>`,
+          message: ` ha escrito un comentario: ${valueSend.slice(0, 50)}${valueSend.length > 50 ? "..." : ""} | Evento ${event?.tipo}: <strong>${event?.nombre.toUpperCase()}</strong>`,
           uids: qwe,
           focused
         })

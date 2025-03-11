@@ -115,7 +115,7 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
       if (!showPicker) {
         const elem = divEditableRef?.current?.getElementsByClassName("ql-editor")[0]
         if (elem) {
-          const elementEnd = document.getElementById('seleccionado');
+          const elementEnd = document.getElementById('selected');
           const position = elementEnd?.getAttribute("focusOffset")
           if (elementEnd && elem.textContent) {
             const range = document.createRange();
@@ -127,7 +127,7 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
               sel.addRange(range);
             }
           } else {
-            elem.focus();
+            elem.focus(); //focus cuando content vacio
           }
         }
       }
@@ -164,6 +164,9 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
           setCursorPosition(cursorPosition)
         });
         elem.addEventListener('click', () => {
+          setTimeout(() => {
+
+          }, 50);
           setDispachSel(new Date())
           const cursorPosition = getCursorPosition(elem);
           setCursorPosition(cursorPosition)
@@ -210,7 +213,7 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
   );
 
   const handleEmojiClick = (emojiObject: any) => {
-    const elem = document.getElementById("seleccionado")
+    const elem = document.getElementById("selected")
     if (elem) {
       const content = elem?.textContent
       const cursorPosition = parseInt(elem.getAttribute("focusOffset"))
@@ -240,7 +243,7 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
     try {
       const sel = window.getSelection();
       if (sel?.focusNode) {
-        const elemPre = document.getElementById("seleccionado")
+        const elemPre = document.getElementById("selected")
         if (elemPre) {
           elemPre.removeAttribute("id")
         }
@@ -248,11 +251,11 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
           const rango = sel?.getRangeAt(0);
           if (rango.startContainer["setAttribute"]) {
             const element = rango.startContainer as HTMLElement
-            element.setAttribute("id", "seleccionado")
+            element.setAttribute("id", "selected")
             element.setAttribute("focusOffset", sel.focusOffset.toString())
           } else {
             if (rango.startContainer["parentElement"]) {
-              rango.startContainer.parentElement.setAttribute("id", "seleccionado")
+              rango.startContainer.parentElement.setAttribute("id", "selected")
               rango.startContainer.parentElement.setAttribute("focusOffset", sel.focusOffset.toString())
             }
           }
@@ -287,7 +290,27 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
           <div className='flex justify-center items-center select-none'>
             <ClickAwayListener onClickAway={() => { setShowPicker(false) }}>
               <div className='w-full relative cursor-pointer'>
-                <div onClick={() => { setShowPicker(!showPicker) }} className='w-10 h-10 flex justify-center items-center hover:bg-gray-100 rounded-full'>
+                <div onClick={() => {
+                  const elemFather: HTMLElement = divEditableRef?.current?.getElementsByClassName("ql-editor")[0]
+                  const elem = elemFather.childNodes[elemFather.childNodes.length - 1] as HTMLElement
+                  const cPString = elem.getAttribute("focusOffset")
+                  const elemLats = document.getElementById("selected")
+                  !!elemLats && elemLats.setAttribute("id", "")
+                  !cPString && elem.setAttribute("focusOffset", "0")
+                  elem.setAttribute("id", "selected")
+                  setTimeout(() => {
+                    const position = elem?.getAttribute("focusOffset")
+                    const range = document.createRange();
+                    const sel = window.getSelection();
+                    if (elem.firstChild) {
+                      range.setStart(elem.firstChild, elem.textContent ? parseInt(position) : 0)
+                      range.collapse(true);
+                      sel.removeAllRanges();
+                      sel.addRange(range);
+                    }
+                    setShowPicker(!showPicker)
+                  }, 50);
+                }} className='w-10 h-10 flex justify-center items-center hover:bg-gray-100 rounded-full'>
                   <GrEmoji className='w-6 h-6' />
                 </div>
                 {showPicker && (
