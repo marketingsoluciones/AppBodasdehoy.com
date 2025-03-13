@@ -22,6 +22,8 @@ export const EventsTable: FC<any> = () => {
   const toast = useToast()
   const [data, setData] = useState([]);
   const [openModal, setOpenModal] = useState({ state: false, data: {}, idx: null })
+  const [activeHeader, setActiveHeader] = useState<string | null>(null);
+  const [filters, setFilters] = useState<{ [key: string]: string }>({});
 
   const columns = useMemo(
     () => [
@@ -291,6 +293,20 @@ export const EventsTable: FC<any> = () => {
     ], [t]
   )
 
+  // Modificar el useEffect para aplicar los filtros
+useEffect(() => {
+  let filteredData = eventsGroup;
+
+  Object.keys(filters).forEach((key) => {
+    if (filters[key]) {
+      filteredData = filteredData.filter((item) =>
+        item[key]?.toString().toLowerCase().includes(filters[key].toLowerCase())
+      );
+    }
+  });
+
+  setData(filteredData);
+}, [eventsGroup, filters]);
   useEffect(() => {
     setData(eventsGroup)
   }, [eventsGroup])
@@ -328,34 +344,46 @@ export const EventsTable: FC<any> = () => {
       <table
         {...getTableProps()}
         className="table-auto border-collapse rounded-lg relative p-4 ">
-        <thead className="relative text-xs text-gray-700 uppercase bg-gray-200 w-full truncate">
-          {headerGroups.map((headerGroup: any, id: any) => {
-            return (
-              <tr
-                {...headerGroup.getHeaderGroupProps()}
-                className="grid grid-cols-48 w-full truncate"
-                key={id} >
-                {headerGroup.headers.map((column: any, id: any) => {
-                  return (
-                    <th
-                      {...column.getHeaderProps(column.getSortByToggleProps())}
-                      className={`truncate w-full leading-[1] px-1 py-1 md:py-3 text-center flex justify-center items-center text-xs font-light font-display col-span-${colSpan[column.id]
-                        }`}
-                      key={id}
-                    >
-                      <>
-                        {typeof column.render("Header") == "string" && t(column.render("Header"))}
-                        <span>
-                          {column.isSorted ? (column.isSortedDesc ? " 🠻" : " 🠹") : ""}
-                        </span>
-                      </>
-                    </th>
-                  )
-                })}
-              </tr>
-            )
-          })}
-        </thead>
+<thead className="relative text-xs text-gray-700 uppercase bg-gray-200 w-full truncate">
+  {headerGroups.map((headerGroup: any, id: any) => {
+    return (
+      <tr
+        {...headerGroup.getHeaderGroupProps()}
+        className="grid grid-cols-48 w-full truncate"
+        key={id} >
+        {headerGroup.headers.map((column: any, id: any) => {
+          return (
+            <th
+              {...column.getHeaderProps(column.getSortByToggleProps())}
+              className={`truncate w-full leading-[1] px-1 py-1 md:py-3 text-center flex justify-center items-center text-xs font-light font-display col-span-${colSpan[column.id]
+                }`}
+              key={id}
+              onClick={() => setActiveHeader(column.id)}
+            >
+              {activeHeader === column.id ? (
+                <input
+                  type="text"
+                  className="w-full text-center"
+                  placeholder={t("Search...")}
+                  value={filters[column.id] || ""}
+                  onChange={(e) => setFilters({ ...filters, [column.id]: e.target.value })}
+                  onBlur={() => setActiveHeader(null)}
+                />
+              ) : (
+                <>
+                  {typeof column.render("Header") == "string" && t(column.render("Header"))}
+                  <span>
+                    {column.isSorted ? (column.isSortedDesc ? " 🠻" : " 🠹") : ""}
+                  </span>
+                </>
+              )}
+            </th>
+          )
+        })}
+      </tr>
+    )
+  })}
+</thead>
         <tbody {...getTableBodyProps()} className="text-gray-700 text-xs bg-white">
           {rows.length >= 1 ? rows.map((row, i) => {
             prepareRow(row);
