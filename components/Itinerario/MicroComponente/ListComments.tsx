@@ -13,6 +13,9 @@ import { TempPastedAndDropFiles } from "./ItineraryPanel"
 import { FileIconComponent } from "./FileIconComponent"
 import { CgSoftwareDownload } from "react-icons/cg"
 import { deleteObject, getStorage, listAll, ref } from "firebase/storage"
+import { downloadFile } from "../../Utils/storages"
+import { useTranslation } from "react-i18next"
+import { useToast } from "../../../hooks/useToast"
 
 interface props extends HTMLAttributes<HTMLDivElement> {
   itinerario: Itinerary
@@ -29,6 +32,8 @@ export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisa
   const userAsd = [...event?.detalles_compartidos_array, event?.detalles_usuario_id, user]?.find(elem => elem?.uid === item?.uid) as detalle_compartidos_array
   const temp = tempPastedAndDropFiles?.find(elem => elem?.commentID === item?._id)?.files
   const storage = getStorage();
+  const { t } = useTranslation();
+  const toast = useToast()
 
   useEffect(() => {
     if (router.query?.task) {
@@ -91,11 +96,15 @@ export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisa
         </div>
         <div className="flex flex-col flex-1 px-1.5 w-[85%]">
           <span className="text-[11px] mt-2.5 font-semibold my-emoji">{userAsd?.displayName}</span>
-          <div className="bg-blue-400* flex gap-3">
+          <div className="flex gap-3">
             {(temp ? temp : item?.attachments)?.map((elem: any, idx: number) => {
               return <div key={idx} className="bg-gray-300 flex flex-col items-center w-[130px] h-[80px] rounded-lg overflow-hidden" >
-                <div className="bg-yellow-400* flex-1 w-full flex justify-center items-center relative">
-                  {!elem?.loading && <div className="absolute z-20 right-3 top-2 text-gray-600 hover:text-gray-800 cursor-pointer">
+                <div className="flex-1 w-full flex justify-center items-center relative">
+                  {!elem?.loading && <div className="absolute z-20 right-3 top-2 text-gray-600 hover:text-gray-800 cursor-pointer"
+                    onClick={() => {
+                      downloadFile(storage, `event-${event._id}//itinerary-${itinerario._id}//task-${task._id}//comment-${item._id}//${elem.name}`)
+                        .catch((error) => toast("error", `${t("Ha ocurrido un error")}`))
+                    }} >
                     <CgSoftwareDownload className="w-6 h-6" />
                   </div>}
                   {elem?.loading &&
@@ -122,7 +131,7 @@ export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisa
           </div>
           <div >
             <Interweave
-              className="text-xs transition-all *whitespace-pre my-emoji"
+              className="text-xs transition-all my-emoji"
               content={item?.comment}
               matchers={[
                 new UrlMatcher('url', {}, replacesLink),
@@ -139,7 +148,7 @@ export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisa
             className="absolute w-5 h-5 cursor-pointer right-2 bottom-5 text-gray-600" />}
         </div>
       </div>
-      <span className='cursor-default justify-end text-[9px] font-medium flex-1 flex right-0 *-translate-x-full'>
+      <span className='cursor-default justify-end text-[9px] font-medium flex-1 flex right-0'>
         {new Date(item?.createdAt).toLocaleString()}
       </span>
       <style jsx>{`

@@ -27,6 +27,8 @@ import { RiNotification2Fill } from "react-icons/ri";
 import { GoChevronDown } from "react-icons/go";
 import { LuClock } from "react-icons/lu";
 import { TempPastedAndDropFiles } from "./ItineraryPanel";
+import { downloadFile } from "../../Utils/storages";
+import { useToast } from "../../../hooks/useToast";
 
 interface props extends HTMLAttributes<HTMLDivElement> {
   itinerario: Itinerary
@@ -53,6 +55,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
   const router = useRouter()
   const [showModalAdjuntos, setShowModalAdjuntos] = useState({ state: false, id: "" })
   const [showTagsModal, setShowTagsModal] = useState(false)
+  const toast = useToast()
   const initialValues: TaskDateTimeAsString = {
     _id: task?._id,
     icon: !task?.icon ? "" : task?.icon,
@@ -108,26 +111,6 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
       })
     } catch (error) {
       console.log(error)
-    }
-  }
-
-  const handleDownload = async (elem) => {
-    try {
-      const storageRef = ref(storage, `${task._id}//${elem.name}`)
-      const metaData = await getMetadata(storageRef)
-      getBytes(storageRef).then(buffer => {
-        const blob = new Blob([buffer], { type: metaData.contentType })
-        const file = new File([blob], elem.name, { type: metaData.contentType })
-        const url = window.URL.createObjectURL(file)
-        const link = document.createElement('a')
-        link.href = url
-        link.setAttribute('download', elem.name)
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-      })
-    } catch (error) {
-      console.log(10003, error)
     }
   }
 
@@ -255,8 +238,15 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                             </div>
                             <div className={` grid md:grid-cols-2 gap-2 truncate `} >
                               {values?.attachments?.map((elem, idx) =>
-                                !!elem._id && <div key={idx} onClick={() => { handleDownload(elem) }} className={`  flex justify-between hover:bg-gray-200 rounded-sm px-1 items-center   border-gray-500 cursor-pointer text-[12px] truncate`}>
-                                  <span className="capitalize w-[150px] truncate">
+                                !!elem._id &&
+                                <div
+                                  key={idx}
+                                  onClick={() => {
+                                    downloadFile(storage, `${task._id}//${elem.name}`)
+                                      .catch((error) => toast("error", `${t("Ha ocurrido un error")}`))
+                                  }}
+                                  className={`  flex justify-between hover:bg-gray-200 rounded-sm px-1 items-center   border-gray-500 cursor-pointer text-[12px] truncate`}>
+                                  <span className="w-[150px] truncate">
                                     {elem.name}
                                   </span>
                                   <CgSoftwareDownload className="w-4 h-auto" />
