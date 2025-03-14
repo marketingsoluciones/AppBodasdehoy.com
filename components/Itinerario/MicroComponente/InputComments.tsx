@@ -44,7 +44,13 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
   const storage = getStorage();
 
   useEffect(() => {
-    if (value && value !== "<p><br></p>") {
+    const valir = value?.replace(/ id="selected"/g, "")?.replace(/ focusoffset="[^"]*"/g, '').split("<p><br></p>").find(elem => elem !== "")
+
+    /* Falta Validar espacios en blancos y saltos de linea al principio y al final*/
+    // console.log(100011, !!valir, valir)
+    // console.log(100012, value?.replace(/ id="selected"/g, "")?.replace(/ focusoffset="[^"]*"/g, '').split("<p><br></p><p><br></p>").filter(elem => elem !== ""))
+
+    if (value && !!valir) {
       setValir(true)
     } else {
       setValir(false)
@@ -297,7 +303,7 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
             <QuillEditor value={value} setValue={setValue} setPastedAndDropFiles={setPastedAndDropFiles} pastedAndDropFiles={pastedAndDropFiles} setValir={setValir} />
           </div>
         </div>
-        {!pastedAndDropFiles && <span onClick={valir ? handleCreateComment : () => { }} className={`${valir ? "cursor-pointer font-semibold" : "text-gray-400"} absolute right-3 bottom-[10.5px]`} >
+        {!pastedAndDropFiles.length && <span onClick={valir ? handleCreateComment : () => { }} className={`${valir ? "cursor-pointer font-semibold" : "text-gray-400"} absolute right-3 bottom-[10.5px]`} >
           <IoIosSend className={`h-[23px] w-auto ${valir ? "text-teal-500" : "text-gray-200"} select-none`} />
         </span>}
       </div>
