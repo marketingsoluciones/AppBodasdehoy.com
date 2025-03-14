@@ -147,7 +147,7 @@ const CellEditCopy = (props) => {
             className="focus:outline-none focus:ring-0 focus:border-none text-center w-full px-2 h-6"
           />
         ) : (
-          <p className={` ${props.type == "number" && "text-right" || props.type == "string" && "text-left capitalize" || props.type === "cantidad" && "text-center" || props.type === "unidad" && "text-center"} cursor-pointer w-full truncate px-2 py-1 h-6 `} onClick={() => !isAllowed() ? null : setEdit(true)}>
+          <p className={` ${props.type == "number" && "text-end" || props.type == "string" && "text-left capitalize" || props.type === "cantidad" && "text-center" || props.type === "unidad" && "text-center"} cursor-pointer w-full truncate px-2 py-1 h-6 `} onClick={() => !isAllowed() ? null : setEdit(true)}>
             {
               props.type == "string" && value
             }

@@ -231,10 +231,11 @@ const MontoPresupuesto = ({ estimado }) => {
   }, [value, event?.presupuesto_objeto?.currency]);
 
   const handleChange = (e) => {
+    console.log("esto", e.target.value)
     e.preventDefault();
-    const r = e.target.value?.split(".")
+    const r = e.target.value
     if (r >= 0) {
-      setValue(parseFloat(!!r[1] ? `${r[0]}.${r[1]?.slice(0, 2)}` : e.target.value));
+      setValue(parseFloat( e.target.value));
     }
   };
 
@@ -304,7 +305,6 @@ const MontoPresupuesto = ({ estimado }) => {
   }
 
   const handleChangeS = (e) => {
-
     const params = {
       query: `mutation {
         editCurrency(evento_id:"${event._id}", currency:"${e.target.value}"  ){
