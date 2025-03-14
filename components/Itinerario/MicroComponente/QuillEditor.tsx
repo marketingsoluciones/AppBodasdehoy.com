@@ -67,7 +67,8 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
               type: file.type.indexOf('image') === 0 ? "image" : "file",
               file: event1.target.result,
               name: file.name,
-              size: file.size
+              size: file.size,
+              loading: false
             },
             d: new Date()
           })

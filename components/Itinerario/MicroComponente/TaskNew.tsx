@@ -26,6 +26,7 @@ import { MdOutlineLabel } from "react-icons/md";
 import { RiNotification2Fill } from "react-icons/ri";
 import { GoChevronDown } from "react-icons/go";
 import { LuClock } from "react-icons/lu";
+import { TempPastedAndDropFiles } from "./ItineraryPanel";
 
 interface props extends HTMLAttributes<HTMLDivElement> {
   itinerario: Itinerary
@@ -35,9 +36,11 @@ interface props extends HTMLAttributes<HTMLDivElement> {
   isSelect?: boolean
   showModalCompartir?: any
   setShowModalCompartir?: any
+  tempPastedAndDropFiles?: TempPastedAndDropFiles[]
+  setTempPastedAndDropFiles?: any
 }
 
-export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryButtonBox, isSelect, showModalCompartir, setShowModalCompartir, ...props }) => {
+export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryButtonBox, isSelect, showModalCompartir, setShowModalCompartir, tempPastedAndDropFiles, setTempPastedAndDropFiles, ...props }) => {
   const divRef = useRef(null);
   const { config, geoInfo, user } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
@@ -68,7 +71,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
   }
 
   useEffect(() => {
-    const comments = task?.comments?.slice(!viewComments ? -3 : 0).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    const comments = task?.comments?.slice(!viewComments ? -3 : 0).sort((a, b) => new Date(b?.createdAt)?.getTime() - new Date(a?.createdAt)?.getTime())
     setComments(comments)
   }, [viewComments, task?.comments, event])
 
@@ -394,11 +397,11 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                           <div ref={divRef} className='w-[calc(100%)] h-[260px] flex flex-col-reverse rounded-lg overflow-auto break-words'>
                             {comments?.map((elem, idx) => {
                               return (
-                                <ListComments id={elem._id} key={idx} itinerario={itinerario} task={task} item={elem} />
+                                <ListComments id={elem?._id} key={idx} itinerario={itinerario} task={task} item={elem} tempPastedAndDropFiles={tempPastedAndDropFiles} />
                               )
                             })}
                           </div>
-                          < InputComments itinerario={itinerario} task={task} />
+                          < InputComments itinerario={itinerario} task={task} tempPastedAndDropFiles={tempPastedAndDropFiles} setTempPastedAndDropFiles={setTempPastedAndDropFiles} />
                         </div>
                       </div>}
                       <div className={`${["/itinerario"].includes(window?.location?.pathname) && "pt-3"} flex justify-between`}>

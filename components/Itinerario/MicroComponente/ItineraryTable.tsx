@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC } from "react";
 import { useRowSelect, useSortBy, useTable } from "react-table";
 import { useTranslation } from 'react-i18next';
 

@@ -1,39 +1,47 @@
-import { FC, useEffect, useRef, useState } from "react"
+import { FC, useEffect, useState } from "react"
 import { QuillEditor } from "./QuillEditor"
 import { AuthContextProvider, EventContextProvider } from "../../../context"
 import { fetchApiEventos, queries } from "../../../utils/Fetching"
-import { Comment, Itinerary, Task } from "../../../utils/Interfaces"
+import { Comment, FileData, Itinerary, Task } from "../../../utils/Interfaces"
 import { useNotification } from "../../../hooks/useNotification"
 import { IoIosSend } from "react-icons/io";
 import { PlusIcon } from "../../icons"
 import ClickAwayListener from "react-click-away-listener"
-import { PiFileArrowUpThin, PiImageSquareThin } from "react-icons/pi"
+import { PiFileArrowUpThin } from "react-icons/pi"
 import { IoClose } from "react-icons/io5";
 import { SwiperPastedAndDropFiles } from "./SwiperPastedAndDropFiles"
 import { LiaTrashSolid } from "react-icons/lia";
 import { FileIconComponent } from "./FileIconComponent"
+import { getStorage, ref, uploadBytesResumable } from "firebase/storage"
+import { TempPastedAndDropFiles } from "./ItineraryPanel"
+import { customAlphabet } from "nanoid"
 
 interface props {
   itinerario: Itinerary
   task: Task
+  tempPastedAndDropFiles: TempPastedAndDropFiles[]
+  setTempPastedAndDropFiles: any
 }
 
 export type PastedAndDropFile = {
+  _id?: string
   type: string
   name: string
   size: number
   file: string | ArrayBuffer
+  loading: boolean
 }
 
-export const InputComments: FC<props> = ({ itinerario, task }) => {
+export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFiles, setTempPastedAndDropFiles }) => {
   const { user, config } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
   const [value, setValue] = useState<string>("<p><br></p>")
   const [valir, setValir] = useState(false)
-  const [pastedAndDropFiles, setPastedAndDropFiles] = useState<PastedAndDropFile[]>();
+  const [pastedAndDropFiles, setPastedAndDropFiles] = useState<PastedAndDropFile[]>([]);
   const [slideSelect, setSlideSelect] = useState(0)
   const [attachment, setAttachment] = useState(false);
   const notification = useNotification()
+  const storage = getStorage();
 
   useEffect(() => {
     if (value && value !== "<p><br></p>") {
@@ -48,16 +56,41 @@ export const InputComments: FC<props> = ({ itinerario, task }) => {
     setValir(false)
   }, [task._id])
 
+  useEffect(() => {
+    if (tempPastedAndDropFiles?.length) {
+      const f1 = tempPastedAndDropFiles.findIndex((elem) => !elem.uploaded)
+      if (tempPastedAndDropFiles[f1]?.files.length) {
+        tempPastedAndDropFiles[f1].uploaded = true
+        const promises = tempPastedAndDropFiles[f1]?.files.map(async (elem) => {
+          const storageRef = ref(storage, `event-${event?._id}//itinerary-${itinerario?._id}//task-${tempPastedAndDropFiles[f1].taskID}//comment-${tempPastedAndDropFiles[f1].commentID}//${elem.name}`)
+          const myBlob = new Blob([elem.file], { type: "text/plain" });
+          return uploadBytesResumable(storageRef, myBlob)
+            .then(() => {
+              elem.loading = false
+            })
+            .catch((error) => { console.log(error) })
+        })
+        Promise.all(promises).then(() => {
+          setTempPastedAndDropFiles([...tempPastedAndDropFiles])
+        });
+      }
+    }
+  }, [tempPastedAndDropFiles])
+
   const handleCreateComment = () => {
-    if (value) {
-      const valueSend = value.replace(/ id="selected"/g, "").replace(/ focusoffset="[^"]*"/g, '')
+    if (value || pastedAndDropFiles.length) {
+      const valueSend = value?.replace(/ id="selected"/g, "")?.replace(/ focusoffset="[^"]*"/g, '')
+      const attachments = pastedAndDropFiles?.map((elem): FileData => {
+        return { name: elem.name, size: elem.size }
+      })
       fetchApiEventos({
         query: queries.createComment,
         variables: {
           eventID: event?._id,
           itinerarioID: itinerario?._id,
           taskID: task?._id,
-          comment: valueSend
+          comment: valueSend,
+          attachments
         },
         domain: config.domain
       }).then((results: Comment) => {
@@ -71,7 +104,17 @@ export const InputComments: FC<props> = ({ itinerario, task }) => {
         if (af1 > -1) {
           qwe.splice(af1, 1)
         }
-        const focused = `${window.location.pathname}?event=${event._id}&itinerary=${itinerario._id}&task=${task._id}&comment=${results._id}`
+        if (pastedAndDropFiles?.length) {
+          tempPastedAndDropFiles.push({
+            taskID: task._id,
+            commentID: results?._id,
+            files: pastedAndDropFiles,
+            uploaded: false,
+          })
+          setTempPastedAndDropFiles([...tempPastedAndDropFiles])
+          handleClosePasteImages()
+        }
+        const focused = `${window.location.pathname}?event=${event._id}&itinerary=${itinerario._id}&task=${task._id}&comment=${results?._id}`
         notification({
           type: "user",
           message: ` ha escrito un comentario: ${valueSend.slice(0, 50)}${valueSend.length > 50 ? "..." : ""} | Evento ${event?.tipo}: <strong>${event?.nombre.toUpperCase()}</strong>`,
@@ -83,27 +126,31 @@ export const InputComments: FC<props> = ({ itinerario, task }) => {
     }
   }
 
-  const handleFileChange = async (event) => {
-    const files = event.target.files
-    for (const file of files) {
-      const reader = new FileReader();
-      reader.onload = (event1) => {
-        const payload = {
-          type: file.type.indexOf('image') === 0 ? "image" : "file",
-          file: event1.target.result,
-          name: file.name,
-          size: file.size
-        }
-        if (pastedAndDropFiles?.length) {
-          pastedAndDropFiles.push(payload)
-          setPastedAndDropFiles([...pastedAndDropFiles]);
-        } else {
-          setPastedAndDropFiles([payload])
-        }
-      };
-      reader.readAsDataURL(file)
-      await new Promise(resolve => setTimeout(resolve, 10));
-    }
+  const handleFileChange = async ({ event, type }) => {
+    const files: File[] = event.target.files;
+    // Creamos un array de promesas para procesar cada archivo
+    const filePromises = Array.from(files).map((file) => {
+      return new Promise<void>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (event1) => {
+          const payload = {
+            type,//: file.type.indexOf('image') === 0 ? "image" : "file",
+            file: event1.target.result,
+            name: file.name,
+            size: file.size,
+            _id: customAlphabet('1234567890abcdef', 24)(),
+            loading: true,
+          };
+          pastedAndDropFiles.push(payload); // Agregamos el archivo al array
+          resolve(); // Resolvemos la promesa cuando termina la lectura del archivo
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+    // Esperamos que todas las promesas se resuelvan antes de actualizar el estado
+    await Promise.all(filePromises).then((a) => {
+      setPastedAndDropFiles([...pastedAndDropFiles]);
+    })
   };
 
   const handleClosePasteImages = () => {
@@ -152,7 +199,7 @@ export const InputComments: FC<props> = ({ itinerario, task }) => {
         {!!pastedAndDropFiles?.length && (
           <>
             {/* <div className="bg-white fixed w-full h-full top-0 left-0 opacity-30 z-20"></div> */}
-            <div className='bg-gray-50 absolute z-[20] -translate-y-[calc(100%-90px)] w-[90%] border-gray-200 border-[1px] rounded-md shadow-md flex flex-col items-center justify-center'>
+            <div className='bg-gray-50 absolute z-[20] -translate-y-[calc(100%-90px)] w-full md:w-[90%] border-gray-200 border-[1px] rounded-md shadow-md flex flex-col items-center justify-center'>
               <div className='bg-gray-300 w-full h-8 flex justify-end items-center px-2'>
                 <div onClick={() => {
                   if (slideSelect === pastedAndDropFiles.length - 1 && pastedAndDropFiles.length > 1) {
@@ -202,8 +249,8 @@ export const InputComments: FC<props> = ({ itinerario, task }) => {
           </>
         )}
         <div className='flex justify-center items-center'>
-          <input type="file" accept='image/*' onChange={handleFileChange} id="file-upload-img" className="hidden" multiple />
-          <input type="file" onChange={handleFileChange} id="file-upload-doc" className="hidden" multiple />
+          <input type="file" accept='image/*' onChange={(event) => handleFileChange({ event, type: "image" })} id={`file-upload-img-${task._id}`} className="hidden" multiple />
+          <input type="file" onChange={(event) => handleFileChange({ event, type: "doc" })} id={`file-upload-doc-${task._id}`} className="hidden" multiple />
           <div id={`contenedorAttachment0-${task._id}`}>
             <div id={`attachment-${task._id}`}>
               <ClickAwayListener onClickAway={() => { setAttachment(false) }}>
@@ -212,21 +259,21 @@ export const InputComments: FC<props> = ({ itinerario, task }) => {
                     {attachment && (
                       <div className='bg-white w-40 absolute z-50 -translate-y-full -translate-x-4 border-gray-200 border-[1px] rounded-md shadow-md'>
                         <ul onClick={() => { }} className='py-2 px-1 text-[11px]'>
-                          <li className='cursor-pointer hover:bg-gray-100 rounded-md items-center'>
+                          {/* <li className='cursor-pointer hover:bg-gray-100 rounded-md items-center'>
 
-                            <label htmlFor="file-upload-img" className='font-semibold cursor-pointer flex items-center space-x-1 p-1'>
+                            <label htmlFor={`file-upload-img-${task._id}`} className='font-semibold cursor-pointer flex items-center space-x-1 p-1'>
                               <PiImageSquareThin className='w-6 h-6' />
                               <span>Fotos y videos</span>
                             </label>
-                          </li>
+                          </li> */}
                           {/* <li className='flex space-x-2 p-1 cursor-pointer hover:bg-gray-100 rounded-md items-center'>
                           <PiCameraThin className='w-6 h-6' />
                           <span className='font-semibold'>Cámara</span>
                         </li> */}
                           <li className='cursor-pointer hover:bg-gray-100 rounded-md items-center'>
-                            <label htmlFor="file-upload-doc" className='font-semibold cursor-pointer flex items-center space-x-1 p-1'>
+                            <label htmlFor={`file-upload-doc-${task._id}`} className='font-semibold cursor-pointer flex items-center space-x-1 p-1'>
                               <PiFileArrowUpThin className='w-6 h-6' />
-                              <span>Documentos</span>
+                              <span>Adjuntar archivo</span>
                             </label>
                           </li>
                         </ul>

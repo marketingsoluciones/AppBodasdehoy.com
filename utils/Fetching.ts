@@ -282,6 +282,11 @@ export const queries = {
         comment
         uid
         createdAt
+        attachments{
+          _id
+          name
+          size
+        }
       }
       commentsViewers
       fecha_creacion
@@ -292,12 +297,17 @@ export const queries = {
     deleteTask ( eventID:$eventID  itinerarioID:$itinerarioID  taskID:$taskID)
   }`,
   createComment: `
-  mutation  ( $eventID:String, $itinerarioID:String, $taskID:String, $comment:String  ) {
-    createComment ( eventID:$eventID  itinerarioID:$itinerarioID  taskID:$taskID, comment:$comment){
+  mutation  ( $eventID:String, $itinerarioID:String, $taskID:String, $comment:String, $attachments: [inputFileData]) {
+    createComment ( eventID:$eventID  itinerarioID:$itinerarioID  taskID:$taskID, comment:$comment, attachments: $attachments){
       _id
       comment
       uid
       createdAt
+      attachments{
+        _id
+        name
+        size
+      }
     }
   }`,
   deleteComment: `
@@ -334,6 +344,11 @@ export const queries = {
           comment
           uid
           createdAt
+          attachments{
+            _id
+            name
+            size
+          }
         }
         commentsViewers
       }
@@ -371,6 +386,11 @@ export const queries = {
           comment
           uid
           createdAt
+          attachments{
+            _id
+            name
+            size
+          }
         }
         commentsViewers
       }
@@ -421,6 +441,11 @@ export const queries = {
             comment
             uid
             createdAt
+            attachments{
+              _id
+              name
+              size
+            }
           }
           commentsViewers
           fecha_creacion
@@ -655,6 +680,11 @@ export const queries = {
             comment
             uid
             createdAt
+            attachments{
+              _id
+              name
+              size
+            }
           }
           commentsViewers
         }
@@ -1269,6 +1299,11 @@ export const queries = {
             comment
             uid
             createdAt
+            attachments{
+              _id
+              name
+              size
+            }
           }
           commentsViewers
         }

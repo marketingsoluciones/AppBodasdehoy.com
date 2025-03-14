@@ -15,6 +15,8 @@ import { LiaUserClockSolid } from "react-icons/lia";
 import { t } from "i18next";
 import { HiArrowSmallRight } from "react-icons/hi2";
 import Select from 'react-select';
+import { deleteAllFiles, deleteRecursive } from "../Utils/storages";
+import { getStorage } from "firebase/storage";
 
 interface Modal {
     state: boolean
@@ -37,6 +39,8 @@ export const BoddyIter = () => {
     const [title, setTitle] = useState<string>()
     const router = useRouter()
     const [modalDuplicate, setModalDuplicate] = useState({ state: false, data: null })
+    const [loadingModal, setLoadingModal] = useState<boolean>(false)
+    const storage = getStorage();
 
     async function updatedNextId(itinerary: Itinerary) {
         return await fetchApiEventos({
@@ -51,7 +55,6 @@ export const BoddyIter = () => {
         })
     }
     async function updatedListIdentifiers(event: Event) {
-        console.log(100091)
         return await fetchApiEventos({
             query: queries.eventUpdate,
             variables: {
@@ -81,47 +84,55 @@ export const BoddyIter = () => {
             </span>,
             handle: async () => {
                 try {
-                    await fetchApiEventos({
-                        query: queries.deleteItinerario,
-                        variables: {
-                            eventID: event._id,
-                            itinerarioID: itinerario?._id,
-                        },
-                        domain: config.domain
+                    setLoadingModal(true)
+                    const deletePromises = itinerario.tasks.map(async (task) => {
+                        deleteAllFiles(storage, `${task._id}`)
                     })
-
-                    const fListIdentifiers = event?.listIdentifiers?.findIndex(elem => elem.table === window?.location?.pathname.slice(1))
-                    const lastListIdentifiers = event.listIdentifiers[fListIdentifiers]
-
-                    // console.log(lastListIdentifiers.start_Id, itinerario.next_id)
-                    if (lastListIdentifiers.start_Id === itinerario._id) {
-                        console.log("Borrando extremo izquierdo")
-                        if (event.itinerarios_array?.filter(elem => elem.tipo === window?.location?.pathname.slice(1)).length > 1) {
-                            console.log("NO es el último")
-                            lastListIdentifiers.start_Id = itinerario.next_id
-                        } else {
-                            console.log("es es el último")
-                            lastListIdentifiers.start_Id = null
-                            lastListIdentifiers.end_Id = null
-                        }
-                        updatedListIdentifiers(event)
-                    } else {
-                        if (lastListIdentifiers.end_Id === itinerario._id) {
-                            console.log("Borrando extremo derecho")
-                            const f1next_id = event.itinerarios_array?.findIndex(elem => elem.next_id === itinerario._id)
-                            lastListIdentifiers.end_Id = event.itinerarios_array[f1next_id]._id
-                            updatedListIdentifiers(event)
-                            //                        event.listIdentifiers[fListIdentifiers] = lastListIdentifiers
-                        }
-                        const f1next_id = event.itinerarios_array?.findIndex(elem => elem.next_id === itinerario._id)
-                        event.itinerarios_array[f1next_id].next_id = itinerario?.next_id ?? null
-                        updatedNextId(event.itinerarios_array[f1next_id])
-                    }
-                    const f1 = event.itinerarios_array?.findIndex(elem => elem._id === itinerario._id)
-                    event.itinerarios_array?.splice(f1, 1)
-                    setEvent({ ...event })
-                    toast("success", t("El itinerario fue eliminado"));
-                    setModal({ state: false })
+                    Promise.all(deletePromises)
+                        .then(() => {
+                            deleteRecursive(storage, `event-${event?._id}//itinerary-${itinerario?._id}`)
+                                .then(() => {
+                                    fetchApiEventos({
+                                        query: queries.deleteItinerario,
+                                        variables: {
+                                            eventID: event._id,
+                                            itinerarioID: itinerario?._id,
+                                        },
+                                        domain: config.domain
+                                    })
+                                        .then(() => {
+                                            const fListIdentifiers = event?.listIdentifiers?.findIndex(elem => elem.table === window?.location?.pathname.slice(1))
+                                            const lastListIdentifiers = event.listIdentifiers[fListIdentifiers]
+                                            if (lastListIdentifiers.start_Id === itinerario._id) {
+                                                if (event.itinerarios_array?.filter(elem => elem.tipo === window?.location?.pathname.slice(1)).length > 1) {
+                                                    lastListIdentifiers.start_Id = itinerario.next_id
+                                                } else {
+                                                    lastListIdentifiers.start_Id = null
+                                                    lastListIdentifiers.end_Id = null
+                                                }
+                                                updatedListIdentifiers(event)
+                                            } else {
+                                                if (lastListIdentifiers.end_Id === itinerario._id) {
+                                                    const f1next_id = event.itinerarios_array?.findIndex(elem => elem.next_id === itinerario._id)
+                                                    lastListIdentifiers.end_Id = event.itinerarios_array[f1next_id]._id
+                                                    updatedListIdentifiers(event)
+                                                    // event.listIdentifiers[fListIdentifiers] = lastListIdentifiers
+                                                }
+                                                const f1next_id = event.itinerarios_array?.findIndex(elem => elem.next_id === itinerario._id)
+                                                event.itinerarios_array[f1next_id].next_id = itinerario?.next_id ?? null
+                                                updatedNextId(event.itinerarios_array[f1next_id])
+                                            }
+                                            const f1 = event.itinerarios_array?.findIndex(elem => elem._id === itinerario._id)
+                                            event.itinerarios_array?.splice(f1, 1)
+                                            setEvent({ ...event })
+                                            setModal({ state: false })
+                                            setTimeout(() => {
+                                                setLoadingModal(false)
+                                                toast("success", t("El itinerario fue eliminado"));
+                                            }, 1000);
+                                        })
+                                })
+                        })
                 } catch (error) {
                     console.log(error)
                 }
@@ -166,7 +177,7 @@ export const BoddyIter = () => {
 
     return (
         <div className="w-full h-[calc(100vh-234px)] flex flex-col items-center bg-white rounded-lg mt-3 relative">
-            {modal.state && <Modal set={setModal} classe={"w-[95%] md:w-[450px] h-[250px]"}>
+            {modal.state && <Modal set={setModal} classe={"w-[95%] md:w-[450px] h-[250px]"} loading={loadingModal} >
                 <DeleteConfirmation setModal={setModal} modal={modal} />
             </Modal>}
             {
@@ -243,7 +254,6 @@ const ModalDupliucate = ({ setModalDuplicate, modalDuplicate }) => {
             }
 
             const itinerary: Itinerary = modalDuplicate.data
-            console.log(eventDestination.nombre)
             const result = await fetchApiEventos({
                 query: queries.duplicateItinerario,
                 variables: {
@@ -285,8 +295,6 @@ const ModalDupliucate = ({ setModalDuplicate, modalDuplicate }) => {
                 const event = eventDestination
                 const fListIdentifiers = event?.listIdentifiers?.findIndex(elem => elem.table === window?.location?.pathname.slice(1))
                 if (!event.itinerarios_array.length) {
-                    // pueder ser el primero, 
-                    console.log("es el primero")
                     if (fListIdentifiers === -1) {
                         event.listIdentifiers.push({
                             start_Id: result._id,
@@ -306,7 +314,6 @@ const ModalDupliucate = ({ setModalDuplicate, modalDuplicate }) => {
                         }
                     })
                 } else {
-                    console.log("NO es el primero")
                     // sino es el primero siempre sera el ultimo
                     fetchApiEventos({
                         query: queries.editItinerario,
@@ -347,11 +354,6 @@ const ModalDupliucate = ({ setModalDuplicate, modalDuplicate }) => {
     const handleSelectChangee = (selectedOption) => {
         setSelectedOption(selectedOption.value);
     };
-
-    useEffect(() => {
-        console.log(500042, selectedOption)
-    }, [selectedOption])
-
 
     return (
         <div className="w-[650px] bg-white rounded-xl shadow-md">
