@@ -282,6 +282,11 @@ export const queries = {
         comment
         uid
         createdAt
+        attachments{
+          _id
+          name
+          size
+        }
       }
       commentsViewers
       fecha_creacion
@@ -292,12 +297,17 @@ export const queries = {
     deleteTask ( eventID:$eventID  itinerarioID:$itinerarioID  taskID:$taskID)
   }`,
   createComment: `
-  mutation  ( $eventID:String, $itinerarioID:String, $taskID:String, $comment:String  ) {
-    createComment ( eventID:$eventID  itinerarioID:$itinerarioID  taskID:$taskID, comment:$comment){
+  mutation  ( $eventID:String, $itinerarioID:String, $taskID:String, $comment:String, $attachments: [inputFileData]) {
+    createComment ( eventID:$eventID  itinerarioID:$itinerarioID  taskID:$taskID, comment:$comment, attachments: $attachments){
       _id
       comment
       uid
       createdAt
+      attachments{
+        _id
+        name
+        size
+      }
     }
   }`,
   deleteComment: `
@@ -334,6 +344,11 @@ export const queries = {
           comment
           uid
           createdAt
+          attachments{
+            _id
+            name
+            size
+          }
         }
         commentsViewers
       }
@@ -371,6 +386,11 @@ export const queries = {
           comment
           uid
           createdAt
+          attachments{
+            _id
+            name
+            size
+          }
         }
         commentsViewers
       }
@@ -421,6 +441,11 @@ export const queries = {
             comment
             uid
             createdAt
+            attachments{
+              _id
+              name
+              size
+            }
           }
           commentsViewers
           fecha_creacion
@@ -655,6 +680,11 @@ export const queries = {
             comment
             uid
             createdAt
+            attachments{
+              _id
+              name
+              size
+            }
           }
           commentsViewers
         }
@@ -935,7 +965,7 @@ export const queries = {
                 }
               }
             }`,
-  editGasto: `mutation($evento_id: String, $categoria_id: String, $gasto_id: String, $variable_reemplazar: String, $valor_reemplazar: String){
+  editGasto: `mutation($evento_id: ID, $categoria_id: ID, $gasto_id: ID, $variable_reemplazar: String, $valor_reemplazar: StringIntBool){
                 editGasto(evento_id:$evento_id, categoria_id:$categoria_id, gasto_id:$gasto_id, variable_reemplazar:$variable_reemplazar, valor_reemplazar:$valor_reemplazar){
                 coste_estimado
                 coste_final
@@ -1269,6 +1299,11 @@ export const queries = {
             comment
             uid
             createdAt
+            attachments{
+              _id
+              name
+              size
+            }
           }
           commentsViewers
         }

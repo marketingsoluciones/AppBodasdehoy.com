@@ -299,7 +299,7 @@ export const ItineraryGeneralTable = () => {
                         );
                     }) : <tr className="transition border-b border-base hover:bg-base cursor-pointer w-full grid place-items-center">
                         <td className="bg-redpy-5 font-display text-lg text-gray-500 uppercase "></td></tr>
-                        }
+                    }
                 </tbody>
             </table>
         </div>

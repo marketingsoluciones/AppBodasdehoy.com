@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState , useId } from 'react';
 import { BlockListaCategorias } from '../../pages/presupuesto';
 import { AuthContextProvider, EventContextProvider } from '../../context';
 import { t, use } from 'i18next';
@@ -19,10 +19,7 @@ import { item, expenses, estimate } from "../../utils/Interfaces";
 import { PiNewspaperClippingLight } from "react-icons/pi";
 import FormAddPago from '../Forms/FormAddPago';
 import { Modal } from '../Utils/Modal';
-import { PiTextColumns } from "react-icons/pi";
-import { set } from 'date-fns';
-
-
+import { ExportarExcelV2 } from '../Utils/ExportarExcelV2';
 
 interface Categoria {
     _id: string;
@@ -50,7 +47,20 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
     const totalCosteFinal = categoria?.gastos_array?.reduce((total, item) => total + item.coste_final, 0)
     const totalpagado = categoria?.gastos_array?.reduce((total, item) => total + item.pagado, 0)
     const totalPendientePagado = categoria?.gastos_array?.reduce((total, item) => total + item.pagado, 0)
+    const [loading, setLoading] = useState<boolean>()
 
+    const columnsToExcel = [
+        { column: "A", title: "Partida de Gasto", accessor: "nombre" },
+        { column: "B", title: "Unidad", accessor: "columna1" },
+        { column: "C", title: "Cantidad", accessor: "columna2" },
+        { column: "D", title: "Item", accessor: "columna3" },
+        { column: "E", title: "Valor Unitario", accessor: "columna4" },
+        { column: "F", title: "Total", accessor: "coste_final" },
+        { column: "G", title: "Coste Estimado", accessor: "coste_estimado" },
+        { column: "H", title: "Pagado", accessor: "pagado" },
+        { column: "I", title: "Pendiente por Pagar", accessor: "pendiente_pagar" },
+        { column: "J", title: "Opciones", accessor: "options" }
+    ];
 
     useEffect(() => {
         setCategoria(
@@ -112,7 +122,6 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
                     </Modal>
                 )
             }
-
             <div className="flex pl-3 h-[calc( 100vh-300px )] relative " >
                 <div className="bg-transparent absolute h-full py-3 -top-12 left-0-" >
                     <button onClick={() => setMenuIzquierdo(!menuIzquierdo)} className="bg-white border border-primary rounded-r-md w-7 h-7 flex items-center justify-center">
@@ -133,6 +142,7 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
                 <div className="flex-1 flex flex-col items-center">
                     <div className=' rounded-t-md w-full text-center capitalize bg-primary text-white py-1 ' >
                         {categoria?.nombre ? categoria?.nombre : "Categoria"}
+                        {/* <ExportarExcelV2 data={event?.presupuesto_objeto} column={columnsToExcel} /> */}
                     </div>
                     <TablePorProveedor data={data} categoria={categoria} set={setShowFormPago} />
                     <div className="flex px-3 w-full bg-slate-200  justify-items-center py-1 rounded-b-md ">
@@ -163,9 +173,7 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
                     <Grafico categorias={categorias_array} />
                 </div>
             </div>
-
         </>
-
     );
 };
 
@@ -204,6 +212,7 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
     const { event, setEvent } = EventContextProvider()
     const toast = useToast()
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const idd = useId();
     const [columnVisibility, setColumnVisibility] = useState({
         nombre: { visible: true, Header: "Partida de Gasto", span: 2, accessor: "nombre" },
         columna1: { visible: true, Header: "Unidad", span: 1, accessor: "columna1" },
@@ -244,12 +253,25 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
                 Header: "Total",
                 accessor: "coste_final",
                 Cell: (props) => {
-                    const [value, setValue] = useState(props?.value);
                     const data = props?.row?.original?.items_array
                     const sumaTotal = data?.reduce((total, item) => total + item.total, 0)
                     useEffect(() => {
-                        setValue(props?.value)
-                    }, [props?.value])
+                        fetchApiEventos({
+                            query: queries.editGasto,
+                            variables: {
+                                evento_id: event?._id,
+                                categoria_id: categoria?._id,
+                                gasto_id: props?.row?.original?._id,
+                                variable_reemplazar: "coste_final",
+                                valor_reemplazar: sumaTotal
+                            }
+                        }).then((result) => {
+
+                        }).catch((error) => {
+                            console.log(error);
+                        })
+                    }, [sumaTotal])
+
                     if (data?.length === 0) {
                         return (
                             <CellEditCopy categoriaID={categoria?._id} type={"number"} {...props} table={"principal"} />
@@ -292,14 +314,19 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
                 id: "pendiente_pagar",
                 Cell: (props) => {
                     const [value, setValue] = useState(0);
+                    const total = props.row.original.items_array.reduce((acumulador, objeto) => acumulador + objeto.total, 0);
                     useEffect(() => {
 
                         if (props.row.original.coste_final === 0) {
                             setValue(0)
                         }
-                        if (props.row.original.coste_final > 0) {
+                        if (props.row.original.items_array.length > 0) {
+                            setValue(total - props.row.original.pagado)
+                        } else (
                             setValue(props.row.original.coste_final - props.row.original.pagado)
-                        }
+                        )
+
+
                     }, [props?.row.original])
                     return (
                         <div className="font-display text-gray-500 text-[15px] grid place-items-center h-full text-end ">
@@ -316,7 +343,7 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
                     const [show, setShow] = useState(false);
                     const [showItem, setShowItem] = useState(props?.row?.original.estatus === null ? false : props?.row?.original.estatus);
                     const dataCategoria = categoria?.gastos_array.find((item) => item._id == props.row.original._id);
-                    
+
 
                     const handleRemove = async () => {
                         let data
@@ -535,50 +562,48 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
                     </tr>
                 ))}
             </thead>
-            <div className="overflow-y-auto max-h-[500px] w-full">
-                <table className="w-full">
-                    {
-                        data.length > 0 ?
-                            <tbody {...getTableBodyProps()} className="text-gray-500 text-sm w-full">
-                                {rows.map((row, i) => {
-                                    prepareRow(row);
-                                    return (
-                                        <>
-                                            <tr
-                                                key={i + 2}
-                                                {...row.getRowProps()}
-                                                className={` w-full border-b border-base grid grid-cols-${totalSpan} px-2 bg-[#eaecee] `}
-                                            >
-                                                {row.cells.map((cell, i) => {
-                                                    return (
-                                                        <td
-                                                            key={i + 1}
-                                                            {...cell.getCellProps()}
-                                                            className={` pr-2 font-display text-sm w-full text-left py-2 col-span-${colSpan[cell.column.id]
-                                                                }`}
-                                                        >
-                                                            {cell.render("Cell")}
-                                                        </td>
-                                                    );
-                                                })}
-                                            </tr>
-                                            { /* row.isExpanded */ true ? (
-                                                <tr key={i} className="h-max w-full">
-                                                    <td >
-                                                        {renderRowSubComponent({ row, categoria })}
-                                                    </td>
-                                                </tr>
-                                            ) : null}
-                                        </>
-                                    );
-                                })}
-                            </tbody>
-                            : <div className='h-[500px] capitalize flex items-center justify-center text-azulCorporativo'>
-                                selecciona una categoria de la lista
-                            </div>
-                    }
-                </table>
-            </div>
+            {
+                data.length > 0 ?
+                    <tbody {...getTableBodyProps()} className="text-gray-500 text-sm w-full overflow-y-auto max-h-[500px]">
+                        {rows.map((row, id) => {
+                            prepareRow(row);
+                            return (
+                                <React.Fragment key={row.id}>
+                                    <tr
+                                        key={id}
+                                        {...row.getRowProps()}
+                                        className={` w-full border-b border-base grid grid-cols-${totalSpan} px-2 bg-[#eaecee] `}
+                                    >
+                                        {row.cells.map((cell, id) => {
+                                            return (
+                                                <td
+                                                    key={id}
+                                                    {...cell.getCellProps()}
+                                                    className={` pr-2 font-display text-sm w-full text-left py-2 col-span-${colSpan[cell.column.id]
+                                                        }`}
+                                                >
+                                                    {cell.render("Cell")}
+                                                </td>
+                                            );
+                                        })}
+                                    </tr>
+                                    { /* row.isExpanded */ false ? (
+                                        <tr key={idd} className="h-max w-full">
+                                            <td >
+                                                {renderRowSubComponent({ row, categoria })}
+                                            </td>
+                                        </tr>
+                                    ) : null}
+                                </React.Fragment>
+                            );
+                        })}
+                    </tbody>
+                    : <tbody className='h-[500px] capitalize flex items-center justify-center text-azulCorporativo'>
+                        <tr>
+                            <td colSpan={16}>No hay datos disponibles.</td>
+                        </tr>
+                    </tbody>
+            }
         </table>
 
     )
@@ -591,6 +616,8 @@ const SubComponenteTable = ({ row, data = [], categoria, visibleColumns }) => {
     const [position, setPosition] = useState({ x: 0, y: 0 });
     const toast = useToast()
     const menuRef = useRef(null);
+    const idd = useId();
+
     const options = [
         {
             title: "Insertar Item arriba"
@@ -615,6 +642,7 @@ const SubComponenteTable = ({ row, data = [], categoria, visibleColumns }) => {
         setPosition({ x: event.clientX, y: event.clientY });
         setShowMenu(true);
     };
+
     const columns = useMemo(
         () => [
             {
@@ -719,27 +747,31 @@ const SubComponenteTable = ({ row, data = [], categoria, visibleColumns }) => {
                 id: "total",
                 Cell: (data) => {
                     const dataCategoria = categoria?.gastos_array.find((item) => item.items_array.some((item) => item._id == data.row.original._id));
-                    const Total = data.row.original.cantidad * data.row.original.valor_unitario
-                    /*  useEffect(() => {
-                         fetchApiEventos({
-                             query: queries.editItemGasto,
-                             variables: {
-                                 evento_id: event?._id,
-                                 categoria_id: categoria?._id,
-                                 gasto_id: dataCategoria?._id,
-                                 itemGasto_id: data.row.original._id,
-                                 variable: "total",
-                                 valor: Total
-                             }
-                         }).then((result) => {
- 
-                         }).catch((error) => {
-                             console.log(error);
-                         })
-                     }, [Total]) */
+                    const total = data.row.original.cantidad * data.row.original.valor_unitario
+                    const f1Event = event?.presupuesto_objeto?.categorias_array.findIndex((item) => item._id == categoria?._id);
+                    const f2Event = event?.presupuesto_objeto?.categorias_array[f1Event]?.gastos_array.findIndex((item) => item._id == dataCategoria?._id);
+                    const f3Event = event?.presupuesto_objeto?.categorias_array[f1Event]?.gastos_array[f2Event]?.items_array.findIndex((item) => item._id == data.row.original._id);
+                    event.presupuesto_objeto.categorias_array[f1Event].gastos_array[f2Event].items_array[f3Event].total = total
+                    useEffect(() => {
+                        fetchApiEventos({
+                            query: queries.editItemGasto,
+                            variables: {
+                                evento_id: event?._id,
+                                categoria_id: categoria?._id,
+                                gasto_id: dataCategoria?._id,
+                                itemGasto_id: data.row.original._id,
+                                variable: "total",
+                                valor: total
+                            }
+                        }).then((result) => {
+
+                        }).catch((error) => {
+                            console.log(error);
+                        })
+                    }, [total])
                     return (
                         <span className="flex items-center justify-end capitalize text-right w-full">
-                            {getCurrency(Total, event?.presupuesto_objeto?.currency)}
+                            {getCurrency(total, event?.presupuesto_objeto?.currency)}
                         </span>
                     )
                 },
@@ -906,7 +938,7 @@ const SubComponenteTable = ({ row, data = [], categoria, visibleColumns }) => {
                             <>
                                 <tr
                                     //onContextMenu={handleContextMenu}
-                                    key={i}
+                                    key={idd}
                                     {...row.getRowProps()}
                                     className="w-full  border-b border-base hover:bg-base grid grid-cols-18 px-2 relative "
                                 >
@@ -915,7 +947,7 @@ const SubComponenteTable = ({ row, data = [], categoria, visibleColumns }) => {
                                         row.cells.map((cell, i) => {
                                             return (
                                                 <td
-                                                    key={i}
+                                                    key={idd}
                                                     {...cell.getCellProps()}
                                                     className={` pr-2 font-display text-sm w-full text-left py-2 col-span-${colSpan[cell.column.id]}`}
                                                 >
@@ -938,7 +970,7 @@ const SubComponenteTable = ({ row, data = [], categoria, visibleColumns }) => {
                                         {
                                             options.map((item, idx) => {
                                                 return (
-                                                    <button className='cursor-pointer hover:bg-slate-100 p-2 ' key={idx}>
+                                                    <button className='cursor-pointer hover:bg-slate-100 p-2 ' key={idd}>
                                                         {item.title}
                                                     </button>
                                                 )

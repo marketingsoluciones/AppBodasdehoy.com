@@ -52,7 +52,6 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             const fListIdentifiers = event?.listIdentifiers?.findIndex(elem => elem.table === window?.location?.pathname.slice(1))
             const listIdentifiers = event?.listIdentifiers[fListIdentifiers]
             if (!listIdentifiers?.start_Id) {
-                console.log("NO ORDENA")
                 const listIdentifier = {
                     table: window?.location?.pathname.slice(1),
                     start_Id: itineraries[0]?._id,
@@ -67,7 +66,6 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                         value: JSON.stringify(event.listIdentifiers)
                     }
                 })
-                console.log(100091, "updated listIdentifiers")
                 if (itineraries.length > 1) {
                     const itinerariesSlice = itineraries.slice(0, itineraries.length - 1)
                     itinerariesSlice.map((elem, idx) => {
@@ -90,7 +88,6 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                 })
                 setEvent({ ...event })
             } else {
-                console.log("ordena por next_id", itineraries)
                 let newItineraries = []
                 const pushNextElem = ({ _id }) => {
                     const f1 = itineraries.findIndex(elem => elem._id === _id)
@@ -122,7 +119,6 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             toast("warning", t("maxLimitedItineraries"));
             return
         }
-        console.log(100095, "handleCreateItinerario")
         const f = new Date(parseInt(event?.fecha))
         const y = f.getUTCFullYear()
         const m = f.getUTCMonth()
@@ -137,7 +133,6 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             },
             domain: config.domain
         }).then((result: Itinerary) => {
-            console.log(100096, result)
             const fListIdentifiers = event?.listIdentifiers?.findIndex(elem => elem.table === window?.location?.pathname.slice(1))
             if (event.itinerarios_array?.filter(elem => elem.tipo === window?.location?.pathname.slice(1)).length) {
                 const lastListIdentifiers = { ...event.listIdentifiers[fListIdentifiers] }
@@ -146,7 +141,6 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                     event.itinerarios_array[f1].next_id = result._id
                     updatedNextId(event.itinerarios_array[f1])
                     event.listIdentifiers[fListIdentifiers].end_Id = result._id
-                    console.log(100097, lastListIdentifiers, f1, event.listIdentifiers)
                     updatedListIdentifiers(event)
                 } else {
                     event.listIdentifiers.push({
@@ -326,7 +320,6 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
         })
     }
     async function updatedListIdentifiers(event: Event) {
-        console.log(100091)
         return await fetchApiEventos({
             query: queries.eventUpdate,
             variables: {
@@ -422,23 +415,18 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
         const movido_ = { ...itineraries[ubi.movido], next_id: ubi.movidoNextId }
 
         if (ubi.vecinoLastNextId) {
-            console.log(1000701, vecinoLast_._id)
             itineraries.splice(ubi.vecinoLast, 1, { ...vecinoLast_ })
             updatedNextId(vecinoLast_)
         }
         if (ubi.vecinoNewNextId) {
-            console.log(1000702, vecinoNew_._id)
             itineraries.splice(ubi.vecinoNew, 1, { ...vecinoNew_ })
             updatedNextId(vecinoNew_)
         }
         if (ubi.movidoNextId) {
-            console.log(1000703, movido_._id)
             itineraries.splice(ubi.movido, 1, { ...movido_ })
             updatedNextId(movido_)
         }
 
-        console.log(1000706, itinerariesCopy)
-        console.log(1000707, itineraries)
         const eventNew = { ...event, itinerarios_array: [...itineraries] }
         setEvent({ ...eventNew })
         setShowTabs(false)
@@ -459,7 +447,6 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                                             onMouseDown={(e) => valirOnMouse && handleSelectItinerario(e, item)}
                                             onMouseUpCapture={(e) => valirOnMouse && handleReleaseItinerarioCapture(e, item)}
                                             onMouseUp={(e) => {
-                                                console.log("onMouseUp")
                                                 valirOnMouse
                                                     ? !editTitle && handleReleaseItinerario(e, item)
                                                     : setValirOnMouse(true)
@@ -469,7 +456,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                                             onMouseLeave={(e) => {
                                                 valirOnMouse
                                                     ? !editTitle && handleLeave(e, item)
-                                                    : [console.log("onMouseLeave")]
+                                                    : null
                                             }}
                                         >
                                             {<div className={`${"inline-flex"} items-center`} >
@@ -492,7 +479,6 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                                                     }
                                                 </div>
                                                 <div onMouseDownCapture={() => {
-                                                    console.log("onMouseDownCapture Children")
                                                     setValirOnMouse(false)
                                                 }} >
                                                     <ItineraryTabsMenu item={item} itinerario={itinerario} handleDeleteItinerario={handleDeleteItinerario} setEditTitle={setEditTitle} setTitle={setTitle} setModalDuplicate={setModalDuplicate} />

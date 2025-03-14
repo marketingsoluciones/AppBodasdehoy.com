@@ -20,13 +20,15 @@ import { OptionsSelect, Task, Itinerary } from "../../../utils/Interfaces"
 import { SubHeader } from "./SubHeader";
 import { ViewItinerary } from "../../../pages/invitados";
 import FormTask from "../../Forms/FormTask";
-import { getStorage, ref, listAll, deleteObject } from "firebase/storage";
+import { getStorage } from "firebase/storage";
 import { SimpleDeleteConfirmation } from "./DeleteConfirmation";
 import { useRouter } from "next/router";
 import { VscFiles } from "react-icons/vsc";
 import { TbLock } from "react-icons/tb";
 import { TbLockOpen } from "react-icons/tb";
 import { useNotification } from "../../../hooks/useNotification";
+import { PastedAndDropFile } from "./InputComments";
+import { deleteAllFiles, deleteRecursive } from "../../Utils/storages";
 
 interface props {
     itinerario: Itinerary
@@ -49,6 +51,13 @@ interface TaskReduce {
     tasks?: Task[]
 }
 
+export type TempPastedAndDropFiles = {
+    taskID: string,
+    commentID: string,
+    files: PastedAndDropFile[],
+    uploaded: boolean
+}
+
 export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle, view, handleDeleteItinerario, handleUpdateTitle, title, setTitle }) => {
     const { t } = useTranslation();
     const { config, geoInfo, user } = AuthContextProvider()
@@ -68,6 +77,8 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     const [showModalCompartir, setShowModalCompartir] = useState({ state: false, id: null });
     const router = useRouter()
     const notification = useNotification()
+    const [tempPastedAndDropFiles, setTempPastedAndDropFiles] = useState<TempPastedAndDropFiles[]>([]);
+    const [loadingModal, setLoadingModal] = useState<boolean>(false)
 
     const optionsItineraryButtonBox: OptionsSelect[] = [
         {
@@ -227,30 +238,34 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
 
     }
 
-    const deleteTask = async (values: Task, itinerario: Itinerary) => {
+    const deleteTask = (values: Task, itinerario: Itinerary) => {
         try {
-            const storageFolderRef = ref(storage, `${values?._id}`)
-            listAll(storageFolderRef)
-                .then(listAllFiles => {
-                    listAllFiles.items.forEach(async (itemRef) => {
-                        await deleteObject(itemRef)
-                    });
-                })
-            await fetchApiEventos({
-                query: queries.deleteTask,
-                variables: {
-                    eventID: event._id,
-                    itinerarioID: itinerario._id,
-                    taskID: values._id,
-                },
-                domain: config.domain
-            })
-            const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
-            const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === values._id)
-            event.itinerarios_array[f1].tasks.splice(f2, 1)
-            setEvent({ ...event })
-            setModal({ state: false, title: null, values: null, itinerario: null })
-            toast("success", t(itinerario.tipo === "itinerario" ? "activitydeleted" : "servicedeleted"));
+            setLoadingModal(true)
+            deleteAllFiles(storage, `${values?._id}`)
+                .then(() => deleteRecursive(storage, `event-${event?._id}//itinerary-${itinerario?._id}//task-${values._id}`)
+                    .then(() => {
+                        fetchApiEventos({
+                            query: queries.deleteTask,
+                            variables: {
+                                eventID: event._id,
+                                itinerarioID: itinerario._id,
+                                taskID: values._id,
+                            },
+                            domain: config.domain
+                        }).then(() => {
+                            const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
+                            const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === values._id)
+                            event.itinerarios_array[f1].tasks.splice(f2, 1)
+                            setEvent({ ...event })
+                            setTimeout(() => {
+                                setModal({ state: false, title: null, values: null, itinerario: null })
+                                setLoadingModal(false)
+                            }, 500);
+                            toast("success", t(itinerario.tipo === "itinerario" ? "activitydeleted" : "servicedeleted"));
+                        })
+                    })
+                )
+
         } catch (error) {
             console.log(1000501, error)
         }
@@ -263,7 +278,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     }, [router])
 
     return (
-        <div className="w-full flex-1 flex flex-col overflow-y-scroll">
+        <div className="w-full flex-1 flex flex-col">
             {showEditTask?.state && (
                 <ModalLeft state={showEditTask} set={setShowEditTask} clickAwayListened={false}>
                     <div className="w-full flex flex-col items-start justify-start" >
@@ -271,7 +286,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                     </div>
                 </ModalLeft>
             )}
-            {modal.state && <Modal set={setModal} classe={"w-[95%] md:w-[450px] h-[200px]"}>
+            {modal.state && <Modal set={setModal} loading={loadingModal} classe={"w-[95%] md:w-[450px] h-[200px]"}>
                 <SimpleDeleteConfirmation setModal={setModal} modal={modal} deleteTask={deleteTask} />
             </Modal>}
 
@@ -300,12 +315,14 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                                                 showModalCompartir={showModalCompartir}
                                                 setShowModalCompartir={setShowModalCompartir}
                                                 onClick={() => { setSelectTask(elem._id) }}
+                                                tempPastedAndDropFiles={tempPastedAndDropFiles}
+                                                setTempPastedAndDropFiles={setTempPastedAndDropFiles}
                                             />
                                         )
                                     })}
                                 </div>
                             )
-                            : <div className="relative overflow-x-auto md:overflow-x-visible">
+                            : <div className="relative overflow-x-auto md:overflow-x-visible h-full">
                                 <div className="w-[250%] md:w-[100%]">
                                     <ItineraryColumns
                                         data={tasks}
