@@ -84,6 +84,7 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
   }, [tempPastedAndDropFiles])
 
   const handleCreateComment = () => {
+    setValir(false)
     if (value || pastedAndDropFiles.length) {
       const valueSend = value?.replace(/ id="selected"/g, "")?.replace(/ focusoffset="[^"]*"/g, '')
       const attachments = pastedAndDropFiles?.map((elem): FileData => {
