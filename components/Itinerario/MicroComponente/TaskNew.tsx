@@ -26,6 +26,9 @@ import { MdOutlineLabel } from "react-icons/md";
 import { RiNotification2Fill } from "react-icons/ri";
 import { GoChevronDown } from "react-icons/go";
 import { LuClock } from "react-icons/lu";
+import { TempPastedAndDropFiles } from "./ItineraryPanel";
+import { downloadFile } from "../../Utils/storages";
+import { useToast } from "../../../hooks/useToast";
 
 interface props extends HTMLAttributes<HTMLDivElement> {
   itinerario: Itinerary
@@ -35,9 +38,11 @@ interface props extends HTMLAttributes<HTMLDivElement> {
   isSelect?: boolean
   showModalCompartir?: any
   setShowModalCompartir?: any
+  tempPastedAndDropFiles?: TempPastedAndDropFiles[]
+  setTempPastedAndDropFiles?: any
 }
 
-export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryButtonBox, isSelect, showModalCompartir, setShowModalCompartir, ...props }) => {
+export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryButtonBox, isSelect, showModalCompartir, setShowModalCompartir, tempPastedAndDropFiles, setTempPastedAndDropFiles, ...props }) => {
   const divRef = useRef(null);
   const { config, geoInfo, user } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
@@ -50,6 +55,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
   const router = useRouter()
   const [showModalAdjuntos, setShowModalAdjuntos] = useState({ state: false, id: "" })
   const [showTagsModal, setShowTagsModal] = useState(false)
+  const toast = useToast()
   const initialValues: TaskDateTimeAsString = {
     _id: task?._id,
     icon: !task?.icon ? "" : task?.icon,
@@ -68,7 +74,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
   }
 
   useEffect(() => {
-    const comments = task?.comments?.slice(!viewComments ? -3 : 0).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    const comments = task?.comments?.slice(!viewComments ? -3 : 0).sort((a, b) => new Date(b?.createdAt)?.getTime() - new Date(a?.createdAt)?.getTime())
     setComments(comments)
   }, [viewComments, task?.comments, event])
 
@@ -105,26 +111,6 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
       })
     } catch (error) {
       console.log(error)
-    }
-  }
-
-  const handleDownload = async (elem) => {
-    try {
-      const storageRef = ref(storage, `${task._id}//${elem.name}`)
-      const metaData = await getMetadata(storageRef)
-      getBytes(storageRef).then(buffer => {
-        const blob = new Blob([buffer], { type: metaData.contentType })
-        const file = new File([blob], elem.name, { type: metaData.contentType })
-        const url = window.URL.createObjectURL(file)
-        const link = document.createElement('a')
-        link.href = url
-        link.setAttribute('download', elem.name)
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-      })
-    } catch (error) {
-      console.log(10003, error)
     }
   }
 
@@ -252,8 +238,15 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                             </div>
                             <div className={` grid md:grid-cols-2 gap-2 truncate `} >
                               {values?.attachments?.map((elem, idx) =>
-                                !!elem._id && <div key={idx} onClick={() => { handleDownload(elem) }} className={`  flex justify-between hover:bg-gray-200 rounded-sm px-1 items-center   border-gray-500 cursor-pointer text-[12px] truncate`}>
-                                  <span className="capitalize w-[150px] truncate">
+                                !!elem._id &&
+                                <div
+                                  key={idx}
+                                  onClick={() => {
+                                    downloadFile(storage, `${task._id}//${elem.name}`)
+                                      .catch((error) => toast("error", `${t("Ha ocurrido un error")}`))
+                                  }}
+                                  className={`  flex justify-between hover:bg-gray-200 rounded-sm px-1 items-center   border-gray-500 cursor-pointer text-[12px] truncate`}>
+                                  <span className="w-[150px] truncate">
                                     {elem.name}
                                   </span>
                                   <CgSoftwareDownload className="w-4 h-auto" />
@@ -394,11 +387,11 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                           <div ref={divRef} className='w-[calc(100%)] h-[260px] flex flex-col-reverse rounded-lg overflow-auto break-words'>
                             {comments?.map((elem, idx) => {
                               return (
-                                <ListComments id={elem._id} key={idx} itinerario={itinerario} task={task} item={elem} />
+                                <ListComments id={elem?._id} key={idx} itinerario={itinerario} task={task} item={elem} tempPastedAndDropFiles={tempPastedAndDropFiles} />
                               )
                             })}
                           </div>
-                          < InputComments itinerario={itinerario} task={task} />
+                          < InputComments itinerario={itinerario} task={task} tempPastedAndDropFiles={tempPastedAndDropFiles} setTempPastedAndDropFiles={setTempPastedAndDropFiles} />
                         </div>
                       </div>}
                       <div className={`${["/itinerario"].includes(window?.location?.pathname) && "pt-3"} flex justify-between`}>

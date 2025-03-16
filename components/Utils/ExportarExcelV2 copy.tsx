@@ -8,17 +8,16 @@ export const ExportarExcelV2 = ({ data, column }) => {
     const { event } = EventContextProvider();
     const { config } = AuthContextProvider();
     const titulo = [
-        { A: "NOVIOS FELICES", B: "", C: "", D: "", E: "Cotizacion No." },
-        { A: "Novios", B: ``, C: "", D: "", E: "Direccion" },
-        { A: "Celular", B: ``, C: "", D: "", E: "Fecha del Evento" },
-        { A: "Mail", B: ``, C: "", D: "", E: "Hora" },
-        { A: "Lugar", B: ``, C: "", D: "", E: "Tipo de Boda" },
-        { A: "Invitados", B: ``, C: "Niños", D: "", E: "Adultos", F: "" },
+        { A: "NOVIOS FELICES", B: "", C: "", D: "", E: "Cotizacion No.",F:"",  G:"gola" },
+        { A: "Novios", B: ``, C: "", D: "", E: "Direccion" ,F:"",  G:"gola" },
+        { A: "Celular", B: ``, C: "", D: "", E: "Fecha del Evento",F:"",  G:"gola" },
+        { A: "Mail", B: ``, C: "", D: "", E: "Hora",F:"",  G:"gola" },
+        { A: "Lugar", B: ``, C: "", D: "", E: "Tipo de Boda",F:"", G:"gola" },
+        { A: "Invitados", B: ``, C: "Niños", D: "", E: "Adultos",F:"",  G: "gola" },
     ];
     //const informacionAdicional = [{ A: `${config.development}` }, {}];
     const longitudes = [15];
     const Data = data.categorias_array.flatMap((objeto) => objeto.gastos_array)
-    console.log()
 
     const handleDownload = () => {
         let tabla = [
@@ -57,10 +56,10 @@ export const ExportarExcelV2 = ({ data, column }) => {
         ]; // Array para almacenar las fusiones de celdas
         let rowIndex = tabla.length + 6; // Comenzar después de la fila del encabezado
         Data.forEach((data) => {
-            console.log(22222, data)
+            console.log(6666, data)
             // Agregar el nombre del gasto como título
             tabla.push({
-                A: data.nombre ,
+                A: data.nombre,
                 B: "",
                 E: "",
                 G: "",
@@ -183,30 +182,3 @@ export const ExportarExcelV2 = ({ data, column }) => {
         </button>
     )
 }
-
-const merges = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } },
-    { s: { r: 0, c: 4 }, e: { r: 0, c: 5 } },
-    { s: { r: 0, c: 6 }, e: { r: 0, c: 7 } },
-
-    { s: { r: 1, c: 1 }, e: { r: 1, c: 3 } },
-    { s: { r: 2, c: 1 }, e: { r: 2, c: 3 } },
-    { s: { r: 3, c: 1 }, e: { r: 3, c: 3 } },
-    { s: { r: 4, c: 1 }, e: { r: 4, c: 3 } },
-
-    { s: { r: 1, c: 4 }, e: { r: 1, c: 5 } },
-    { s: { r: 2, c: 4 }, e: { r: 2, c: 5 } },
-    { s: { r: 3, c: 4 }, e: { r: 3, c: 5 } },
-    { s: { r: 4, c: 4 }, e: { r: 4, c: 5 } },
-    { s: { r: 5, c: 4 }, e: { r: 5, c: 5 } },
-
-    { s: { r: 1, c: 6 }, e: { r: 1, c: 7 } },
-    { s: { r: 2, c: 6 }, e: { r: 2, c: 7 } },
-    { s: { r: 3, c: 6 }, e: { r: 3, c: 7 } },
-    { s: { r: 4, c: 6 }, e: { r: 4, c: 7 } },
-    { s: { r: 5, c: 6 }, e: { r: 5, c: 7 } },
-
-    { s: { r: 6, c: 1 }, e: { r: 6, c: 3 } },
-    { s: { r: 6, c: 4 }, e: { r: 6, c: 5 } },
-    { s: { r: 6, c: 6 }, e: { r: 6, c: 7 } },
-]

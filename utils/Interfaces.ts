@@ -50,7 +50,7 @@ export interface Venue {
 }
 
 export interface FileData {
-    _id: string | undefined | null
+    _id?: string | undefined | null
     name: string
     size: number
     createdAt?: Date
@@ -61,6 +61,7 @@ export interface Comment {
     _id: string
     comment: string
     uid: string
+    attachments: FileData[]
     createdAt: Date
 }
 

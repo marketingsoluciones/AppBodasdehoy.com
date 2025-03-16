@@ -1,11 +1,9 @@
-import { ComponentType, FC, useEffect } from "react";
+import { ComponentType, FC } from "react";
 import { useMemo, useState, } from "react";
-import { DotsOpcionesIcon, PencilEdit } from "../../icons";
 import { ConfirmationBlock } from "../../Invitaciones/ConfirmationBlock"
 import { useTranslation } from 'react-i18next';
 import { GruposResponsablesArry } from "./ResponsableSelector";
 import { ItineraryTable } from "./ItineraryTable";
-import ClickAwayListener from "react-click-away-listener";
 import { GoEye } from "react-icons/go";
 import { EditTastk } from "./ItineraryPanel";
 import { useAllowed } from "../../../hooks/useAllowed";
@@ -18,8 +16,6 @@ import { Interweave } from "interweave";
 import { HashtagMatcher, UrlMatcher, UrlProps } from "interweave-autolink";
 import i18next from "i18next";
 import Link from "next/link";
-import { PiCheckFatBold } from "react-icons/pi";
-import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { useToast } from "../../../hooks/useToast";
 import { IniterarySelectionMenu } from "./InitinerarySelectionMenu"
 
@@ -43,12 +39,6 @@ interface props {
   setSelectTask: any
   itinerario: Itinerary
 }
-
-interface propsCell {
-  data: any
-  justifyCenter?: boolean
-}
-
 
 export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reenviar = true, activeFunction, setModalStatus, modalStatus, setModalWorkFlow, modalWorkFlow, setModalCompartirTask, modalCompartirTask, deleteTask, showEditTask, setShowEditTask, optionsItineraryButtonBox, selectTask, setSelectTask, itinerario }) => {
   const { event } = EventContextProvider()
