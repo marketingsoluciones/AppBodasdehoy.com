@@ -388,43 +388,45 @@ export const EventsTable: FC<any> = () => {
       <table
         {...getTableProps()}
         className="table-auto border-collapse rounded-lg relative p-4 w-full">
-        <thead className="relative text-xs text-gray-700 uppercase bg-gray-200 w-full truncate">
-          {headerGroups.map((headerGroup: any, id: any) => {
-            return (
-              <tr
-                {...headerGroup.getHeaderGroupProps()}
-                className="grid grid-cols-48 w-full truncate"
-                key={id} >
-                {headerGroup.headers.map((column: any, id: any) => {
-                  const searchableColumns = ["usuario_nombre", "nombre", "tipo", "fecha", "fecha_creacion", "presupuesto_objeto"];
-                  if (!visibleColumns.includes(column.id)) return null;
-                  return (
-                    <th
-                      {...column.getHeaderProps(column.getSortByToggleProps())}
-                      className={`truncate w-full leading-[1] px-1 py-1 md:py-3 text-center flex justify-center items-center text-xs font-light font-display col-span-${colSpan[column.id]
-                        }`}
-                      key={id}
-                    >
-                      {typeof column.render("Header") == "string" && t(column.render("Header"))}
-                      <span>
-                        {column.isSorted ? (column.isSortedDesc ? " 🠻" : " 🠹") : ""}
-                      </span>
-                      {searchableColumns.includes(column.id) && (
-                        <FaSearch
-                          className="ml-2 cursor-pointer"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setActiveHeader(column.id);
-                          }}
-                        />
-                      )}
-                    </th>
-                  )
-                })}
-              </tr>
-            )
-          })}
-        </thead>
+<thead className="relative text-xs text-gray-700 uppercase bg-gray-200 w-full truncate">
+  {headerGroups.map((headerGroup: any, id: any) => {
+    return (
+      <tr
+        {...headerGroup.getHeaderGroupProps()}
+        className="grid grid-cols-48 w-full truncate"
+        key={id} >
+        {headerGroup.headers.map((column: any, id: any) => {
+          const searchableColumns = ["usuario_nombre", "nombre", "tipo", "fecha", "fecha_creacion", "presupuesto_objeto"];
+          if (!visibleColumns.includes(column.id)) return null;
+          return (
+            <th
+              {...column.getHeaderProps(column.getSortByToggleProps())}
+              className={`truncate w-full leading-[1] px-1 py-1 md:py-3 text-center flex justify-center items-center text-xs font-light font-display col-span-${colSpan[column.id]
+                }`}
+              key={id}
+            >
+              <div className="truncate w-full text-center">
+                {typeof column.render("Header") == "string" && t(column.render("Header"))}
+              </div>
+              <span>
+                {column.isSorted ? (column.isSortedDesc ? " 🠻" : " 🠹") : ""}
+              </span>
+              {searchableColumns.includes(column.id) && (
+                <FaSearch
+                  className="ml-2 cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveHeader(column.id);
+                  }}
+                />
+              )}
+            </th>
+          )
+        })}
+      </tr>
+    )
+  })}
+</thead>
         <tbody {...getTableBodyProps()} className="text-gray-700 text-xs bg-white">
           {rows.length >= 1 ? rows.map((row, i) => {
             prepareRow(row);
