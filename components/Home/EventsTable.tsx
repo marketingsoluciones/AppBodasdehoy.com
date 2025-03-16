@@ -365,13 +365,13 @@ export const EventsTable: FC<any> = () => {
   return (
     <div className="relative px-3 flex flex-col justify-center w-full">
       <div className="relative mb-4 self-end">
-        <button onClick={toggleDropdown} className="bg-blue-500 text-white px-4 py-2 rounded">
+        <button onClick={toggleDropdown} className="bg-primaryOrg text-white px-4 py-2 rounded">
           Filtrar Columnas
         </button>
         {dropdownOpen && (
           <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-y-auto z-10">
             {columns.map((column) => (
-              <div key={column.id} className="flex items-center px-4 py-2">
+              <div key={column.id} className="flex hover:bg-basePage items-center px-4 py-2">
                 <input
                   type="checkbox"
                   checked={visibleColumns.includes(column.id)}
