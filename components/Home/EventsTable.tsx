@@ -365,7 +365,7 @@ export const EventsTable: FC<any> = () => {
   return (
     <div className="relative px-3 flex flex-col justify-center w-full">
       <div className="relative mb-4 self-end">
-        <button onClick={toggleDropdown} className="bg-primaryOrg text-white px-4 py-2 rounded">
+        <button onClick={toggleDropdown} className="bg-primary text-white px-4 py-2 rounded">
           Filtrar Columnas
         </button>
         {dropdownOpen && (
