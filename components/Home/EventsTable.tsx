@@ -12,6 +12,7 @@ import { IoShareSocial } from "react-icons/io5";
 import { OpenModal } from "./OpenModal";
 import { TbLock } from "react-icons/tb";
 import { GoArrowUpRight } from "react-icons/go";
+import { FaSearch } from "react-icons/fa"; // Importa el ícono de lupa
 
 export const EventsTable: FC<any> = () => {
   const { t } = useTranslation();
@@ -24,6 +25,20 @@ export const EventsTable: FC<any> = () => {
   const [openModal, setOpenModal] = useState({ state: false, data: {}, idx: null })
   const [activeHeader, setActiveHeader] = useState<string | null>(null);
   const [filters, setFilters] = useState<{ [key: string]: string }>({});
+  const [visibleColumns, setVisibleColumns] = useState<string[]>([
+    "usuario_nombre", "nombre", "tipo", "estilo", "color", "tarta", "temporada", "tematica", "fecha", "fecha_creacion", "invitados_array", "detalles_compartidos_array", "itinerarios_array", "menus_array", "presupuesto_objeto"
+  ]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
+
+  const handleColumnToggle = (columnId: string) => {
+    setVisibleColumns((prev) =>
+      prev.includes(columnId)
+        ? prev.filter((id) => id !== columnId)
+        : [...prev, columnId]
+    );
+  };
 
   const columns = useMemo(
     () => [
@@ -293,20 +308,29 @@ export const EventsTable: FC<any> = () => {
     ], [t]
   )
 
-  // Modificar el useEffect para aplicar los filtros
-useEffect(() => {
-  let filteredData = eventsGroup;
+  useEffect(() => {
+    let filteredData = eventsGroup;
 
-  Object.keys(filters).forEach((key) => {
-    if (filters[key]) {
-      filteredData = filteredData.filter((item) =>
-        item[key]?.toString().toLowerCase().includes(filters[key].toLowerCase())
-      );
-    }
-  });
+    Object.keys(filters).forEach((key) => {
+      if (filters[key]) {
+        filteredData = filteredData.filter((item) => {
+          const value = item[key];
+          if (key === "fecha" || key === "fecha_creacion") {
+            // Convertir fechas a cadenas de texto
+            return new Date(parseInt(value)).toLocaleDateString("es-VE", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" }).toLowerCase().includes(filters[key].toLowerCase());
+          } else if (key === "presupuesto_objeto") {
+            // Convertir montos de dinero a cadenas de texto
+            return getCurrency(value.coste_estimado, value.currency).toLowerCase().includes(filters[key].toLowerCase());
+          } else {
+            return value?.toString().toLowerCase().includes(filters[key].toLowerCase());
+          }
+        });
+      }
+    });
 
-  setData(filteredData);
-}, [eventsGroup, filters]);
+    setData(filteredData);
+  }, [eventsGroup, filters]);
+
   useEffect(() => {
     setData(eventsGroup)
   }, [eventsGroup])
@@ -339,51 +363,68 @@ useEffect(() => {
   };
 
   return (
-    <div className="relative px-3 flex  justify-center w-full">
+    <div className="relative px-3 flex flex-col justify-center w-full">
+      <div className="relative mb-4 self-end">
+        <button onClick={toggleDropdown} className="bg-blue-500 text-white px-4 py-2 rounded">
+          Filtrar Columnas
+        </button>
+        {dropdownOpen && (
+          <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-y-auto z-10">
+            {columns.map((column) => (
+              <div key={column.id} className="flex items-center px-4 py-2">
+                <input
+                  type="checkbox"
+                  checked={visibleColumns.includes(column.id)}
+                  onChange={() => handleColumnToggle(column.id)}
+                  className="mr-2"
+                />
+                {t(column.Header)}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
       {openModal?.state && <OpenModal openModal={openModal} setOpenModal={setOpenModal} />}
       <table
         {...getTableProps()}
-        className="table-auto border-collapse rounded-lg relative p-4 ">
-<thead className="relative text-xs text-gray-700 uppercase bg-gray-200 w-full truncate">
-  {headerGroups.map((headerGroup: any, id: any) => {
-    return (
-      <tr
-        {...headerGroup.getHeaderGroupProps()}
-        className="grid grid-cols-48 w-full truncate"
-        key={id} >
-        {headerGroup.headers.map((column: any, id: any) => {
-          return (
-            <th
-              {...column.getHeaderProps(column.getSortByToggleProps())}
-              className={`truncate w-full leading-[1] px-1 py-1 md:py-3 text-center flex justify-center items-center text-xs font-light font-display col-span-${colSpan[column.id]
-                }`}
-              key={id}
-              onClick={() => setActiveHeader(column.id)}
-            >
-              {activeHeader === column.id ? (
-                <input
-                  type="text"
-                  className="w-full text-center"
-                  placeholder={t("Search...")}
-                  value={filters[column.id] || ""}
-                  onChange={(e) => setFilters({ ...filters, [column.id]: e.target.value })}
-                  onBlur={() => setActiveHeader(null)}
-                />
-              ) : (
-                <>
-                  {typeof column.render("Header") == "string" && t(column.render("Header"))}
-                  <span>
-                    {column.isSorted ? (column.isSortedDesc ? " 🠻" : " 🠹") : ""}
-                  </span>
-                </>
-              )}
-            </th>
-          )
-        })}
-      </tr>
-    )
-  })}
-</thead>
+        className="table-auto border-collapse rounded-lg relative p-4 w-full">
+        <thead className="relative text-xs text-gray-700 uppercase bg-gray-200 w-full truncate">
+          {headerGroups.map((headerGroup: any, id: any) => {
+            return (
+              <tr
+                {...headerGroup.getHeaderGroupProps()}
+                className="grid grid-cols-48 w-full truncate"
+                key={id} >
+                {headerGroup.headers.map((column: any, id: any) => {
+                  const searchableColumns = ["usuario_nombre", "nombre", "tipo", "fecha", "fecha_creacion", "presupuesto_objeto"];
+                  if (!visibleColumns.includes(column.id)) return null;
+                  return (
+                    <th
+                      {...column.getHeaderProps(column.getSortByToggleProps())}
+                      className={`truncate w-full leading-[1] px-1 py-1 md:py-3 text-center flex justify-center items-center text-xs font-light font-display col-span-${colSpan[column.id]
+                        }`}
+                      key={id}
+                    >
+                      {typeof column.render("Header") == "string" && t(column.render("Header"))}
+                      <span>
+                        {column.isSorted ? (column.isSortedDesc ? " 🠻" : " 🠹") : ""}
+                      </span>
+                      {searchableColumns.includes(column.id) && (
+                        <FaSearch
+                          className="ml-2 cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveHeader(column.id);
+                          }}
+                        />
+                      )}
+                    </th>
+                  )
+                })}
+              </tr>
+            )
+          })}
+        </thead>
         <tbody {...getTableBodyProps()} className="text-gray-700 text-xs bg-white">
           {rows.length >= 1 ? rows.map((row, i) => {
             prepareRow(row);
@@ -394,6 +435,7 @@ useEffect(() => {
                 className={` w-full border-b font-display grid grid-cols-48 truncate`}
               >
                 {row.cells.map((cell, i) => {
+                  if (!visibleColumns.includes(cell.column.id)) return null;
                   return (
                     <td
                       {...cell.getCellProps()}
