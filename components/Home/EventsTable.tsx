@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo, useState } from "react";
+import { FC, useEffect, useMemo, useState, useRef } from "react";
 import { useRowSelect, useSortBy, useTable } from "react-table";
 import { useTranslation } from 'react-i18next';
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../context";
@@ -26,7 +26,7 @@ export const EventsTable: FC<any> = () => {
   const [activeHeader, setActiveHeader] = useState<string | null>(null);
   const [filters, setFilters] = useState<{ [key: string]: string }>({});
   const [visibleColumns, setVisibleColumns] = useState<string[]>([
-    "usuario_nombre", "nombre", "tipo", "estilo", "color", "tarta", "temporada", "tematica", "fecha", "fecha_creacion", "invitados_array", "detalles_compartidos_array", "itinerarios_array", "menus_array", "presupuesto_objeto"
+    "usuario_nombre", "estatus", "nombre", "tipo", "estilo", "color", "tarta", "temporada", "tematica", "fecha", "fecha_creacion", "invitados_array", "detalles_compartidos_array", "itinerarios_array", "menus_array", "presupuesto_objeto"
   ]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -40,15 +40,40 @@ export const EventsTable: FC<any> = () => {
     );
   };
 
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (inputRef.current && !inputRef.current.contains(event.target as Node)) {
+        setActiveHeader(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [inputRef]);
+
   const columns = useMemo(
     () => [
+      {
+        Header: t("estado"),
+        accessor: "estatus",
+        id: "estatus",
+        Cell: (data) => {
+          return (
+            <span className="flex items-center capitalize"> {data.value != null ? data.value : ""}</span>
+          )
+        }
+      },
       {
         Header: t("owner"),
         accessor: "usuario_nombre",
         id: "usuario_nombre",
         Cell: (data) => {
           return (
-            <span className="flex items-center capitalize"> {data.value != null ? data.value : "null"}</span>
+            <span className="flex items-center capitalize"> {data.value != null ? data.value : ""}</span>
           )
         }
       },
@@ -115,7 +140,7 @@ export const EventsTable: FC<any> = () => {
         id: "tipo",
         Cell: (data) => {
           return (
-            <span className="flex items-center capitalize"> {data.value != null ? data.value : "null"}</span>
+            <span className="flex items-center capitalize"> {data.value != null ? data.value : ""}</span>
           )
         }
       },
@@ -125,7 +150,7 @@ export const EventsTable: FC<any> = () => {
         id: "estilo",
         Cell: (data) => {
           return (
-            <span className="flex items-center capitalize"> {data.value != null ? data.value : "null"}</span>
+            <span className="flex items-center capitalize"> {data.value != null ? data.value : ""}</span>
           )
         }
       },
@@ -166,7 +191,7 @@ export const EventsTable: FC<any> = () => {
         id: "tarta",
         Cell: (data) => {
           return (
-            <span className="flex items-center justify-center w-full capitalize"> {data.value != null ? <LiaPaperclipSolid className="h-5 w-5" /> : "null"} </span>
+            <span className="flex items-center justify-center w-full capitalize"> {data.value != null ? <LiaPaperclipSolid className="h-5 w-5" /> : ""} </span>
           )
         }
       },
@@ -176,7 +201,7 @@ export const EventsTable: FC<any> = () => {
         id: "temporada",
         Cell: (data) => {
           return (
-            <span className="flex items-center justify-center w-full capitalize"> {data.value != null ? data.value : "null"} </span>
+            <span className="flex items-center justify-center w-full capitalize"> {data.value != null ? data.value : ""} </span>
           )
         }
       },
@@ -186,7 +211,7 @@ export const EventsTable: FC<any> = () => {
         id: "tematica",
         Cell: (data) => {
           return (
-            <span className="flex items-center justify-center w-full capitalize"> {data.value != null ? data.value : "null"} </span>
+            <span className="flex items-center justify-center w-full capitalize"> {data.value != null ? data.value : ""} </span>
           )
         }
       },
@@ -197,7 +222,7 @@ export const EventsTable: FC<any> = () => {
         Cell: (data) => {
           return (
             <div className="flex w-full justify-center items-center capitalize">
-              {`${new Date(parseInt(data.value)).toLocaleDateString("es-VE", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" })}`}
+              {data.value != null ? `${new Date(parseInt(data.value)).toLocaleDateString("es-VE", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" })}` : ""}
             </div>
           )
         }
@@ -209,7 +234,7 @@ export const EventsTable: FC<any> = () => {
         Cell: (data) => {
           return (
             <div className="flex w-full justify-center items-center capitalize">
-              {`${new Date(parseInt(data.value)).toLocaleDateString("es-VE", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" })}`}
+              {data.value != null ? `${new Date(parseInt(data.value)).toLocaleDateString("es-VE", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" })}` : ""}
             </div>
           )
         }
@@ -221,7 +246,7 @@ export const EventsTable: FC<any> = () => {
         Cell: (data) => {
           return (
             <div className="flex w-full items-center justify-end capitalize">
-              {data.value.length > 0 ? data.value.length : "null"}
+              {data.value.length > 0 ? data.value.length : ""}
             </div>
           )
         }
@@ -260,7 +285,7 @@ export const EventsTable: FC<any> = () => {
         Cell: (data) => {
           return (
             <div className="flex w-full items-center justify-end capitalize">
-              {data.value.length > 0 ? data.value.length : "null"}
+              {data.value.length > 0 ? data.value.length : ""}
             </div>
           )
         }
@@ -272,7 +297,7 @@ export const EventsTable: FC<any> = () => {
         Cell: (data) => {
           return (
             <div className="flex w-full items-center justify-end capitalize">
-              {data.value.length > 0 ? data.value.length : "null"}
+              {data.value.length > 0 ? data.value.length : ""}
             </div>
           )
         }
@@ -296,11 +321,7 @@ export const EventsTable: FC<any> = () => {
         Cell: (data) => {
           return (
             <div className="flex w-full items-center justify-end capitalize">
-              {getCurrency(
-                data.value.coste_estimado,
-                data.value.currency
-              )}
-              { }
+              {data.value != null ? getCurrency(data.value.coste_estimado, data.value.currency) : ""}
             </div>
           )
         }
@@ -344,13 +365,14 @@ export const EventsTable: FC<any> = () => {
   } = useTable({ columns, data }, useSortBy, useRowSelect);
 
   const colSpan = {
+    estatus: 2,
     usuario_nombre: 4,
     color: 3,
     nombre: 4,
     tipo: 3,
     estilo: 3,
-    fecha: 4,
-    fecha_creacion: 4,
+    fecha: 3,
+    fecha_creacion: 3,
     invitados_array: 2,
     tarta: 3,
     temporada: 2,
@@ -396,7 +418,7 @@ export const EventsTable: FC<any> = () => {
         className="grid grid-cols-48 w-full truncate"
         key={id} >
         {headerGroup.headers.map((column: any, id: any) => {
-          const searchableColumns = ["usuario_nombre", "nombre", "tipo", "fecha", "fecha_creacion", "presupuesto_objeto"];
+          const searchableColumns = ["usuario_nombre", "nombre", "tipo", "fecha", "fecha_creacion", "presupuesto_objeto", "estatus"];
           if (!visibleColumns.includes(column.id)) return null;
           return (
             <th
@@ -416,10 +438,21 @@ export const EventsTable: FC<any> = () => {
                   className="ml-2 cursor-pointer"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setActiveHeader(column.id);
+                    setActiveHeader(activeHeader === column.id ? null : column.id);
                   }}
                 />
               )}
+{activeHeader === column.id && (
+  <input
+    ref={inputRef}
+    type="text"
+    value={filters[column.id] || ""}
+    onChange={(e) => setFilters({ ...filters, [column.id]: e.target.value })}
+    className="ml-2 p-1 border rounded w-full"
+    placeholder={`Buscar ${t(column.render("Header"))}`}
+    style={{ maxWidth: '100%' }}
+  />
+)}
             </th>
           )
         })}
