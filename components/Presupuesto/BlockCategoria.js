@@ -23,6 +23,7 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
   const [GastoID, setGastoID] = useState({ id: "", crear: false })
   const [isAllowed, ht] = useAllowed()
 
+  console.log("ÑLÑLÑLÑLÑ",categoria)
 
   useEffect(() => {
     setCategoria(
@@ -40,7 +41,17 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
 
   const saldo = categoria?.coste_estimado - categoria?.coste_final;
 
+  const totalCosteFinal = categoria?.gastos_array?.reduce((total, item) => total + item.coste_final, 0)
 
+  useEffect(() => {
+    const f1 = event?.presupuesto_objeto?.categorias_array?.findIndex((item) => item?._id === categoria?._id)
+    if (event?.presupuesto_objeto?.categorias_array[f1] != totalCosteFinal) {
+        setEvent((old) => {
+            old.presupuesto_objeto.categorias_array[f1].coste_final = totalCosteFinal
+            return { ...old }
+        })
+    }
+}, [totalCosteFinal])
 
   const Columna = useMemo(
     () => [

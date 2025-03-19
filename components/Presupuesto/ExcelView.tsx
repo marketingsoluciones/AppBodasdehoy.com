@@ -21,6 +21,7 @@ import FormAddPago from '../Forms/FormAddPago';
 import { Modal } from '../Utils/Modal';
 import { ExportarExcelV2 } from '../Utils/ExportarExcelV2';
 import { PresupuestoSelectionMenuTable } from './PresupuestoSelectionMenuTable';
+import { DuplicatePresupuesto } from './DuplicatePesupuesto';
 
 interface Categoria {
     _id: string;
@@ -44,6 +45,8 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
     const [menuDerecho, setMenuDerecho] = useState(false)
     const cate = showCategoria?.id
     const [showFormPago, setShowFormPago] = useState({ id: "", state: false })
+    const [showModalDuplicate, setShowModalDuplicate] = useState({ id: "", state: false })
+
     const totalCosteFinal = categoria?.gastos_array?.reduce((total, item) => total + item.coste_final, 0)
     const totalpagado = categoria?.gastos_array?.reduce((total, item) => total + item.pagado, 0)
 
@@ -51,9 +54,6 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
         const nuevoAncho = window.innerWidth;
         setWindowsWidth(nuevoAncho);
     })
-
-    console.log("sdasda", windowsWidth)
-
 
 
     const columnsToExcel = [
@@ -119,6 +119,16 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
         }
     };
 
+    useEffect(() => {
+        const f1 = event?.presupuesto_objeto?.categorias_array?.findIndex((item) => item?._id === categoria?._id)
+        if (event?.presupuesto_objeto?.categorias_array[f1] != totalCosteFinal) {
+            setEvent((old) => {
+                old.presupuesto_objeto.categorias_array[f1].coste_final = totalCosteFinal
+                return { ...old }
+            })
+        }
+    }, [totalCosteFinal])
+
     return (
         <>
             {
@@ -126,6 +136,13 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
                     <Modal classe={"w-[500px] h-[90%] p-4 "} >
                         <div className="font-display text-gray-500 hover:text-gray-300 transition text-lg absolute top-5 right-5 cursor-pointer hover:scale-125" onClick={() => setShowFormPago({ id: "", state: false })}>X</div>
                         <FormAddPago GastoID={showFormPago?.id} cate={categoria?._id} />
+                    </Modal>
+                )
+            }
+            {
+                showFormPago.state && (
+                    <Modal classe={"w-[500px] h-[90%] p-4 "} >
+                        <DuplicatePresupuesto />
                     </Modal>
                 )
             }
@@ -150,6 +167,9 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
                     <div className=' rounded-t-md w-full text-center capitalize bg-primary text-white py-1 ' >
                         {categoria?.nombre ? categoria?.nombre : "Categoria"}
                         {/* <ExportarExcelV2 data={event?.presupuesto_objeto} column={columnsToExcel} /> */}
+                        {/* <button onClick={() => setShowModalDuplicate(!showModalDuplicate.state)}>
+                            importar presupuesto
+                        </button> */}
                     </div>
                     <TablePorProveedor data={data} categoria={categoria} set={setShowFormPago} />
                     <div className="flex px-3 w-full bg-slate-200  justify-items-center py-1 rounded-b-md text-xs ">
@@ -284,21 +304,25 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
                 Cell: (props) => {
                     const data = props?.row?.original?.items_array
                     const sumaTotal = data?.reduce((total, item) => total + item.total, 0)
-                    useEffect(() => {
-                        fetchApiEventos({
-                            query: queries.editGasto,
-                            variables: {
-                                evento_id: event?._id,
-                                categoria_id: categoria?._id,
-                                gasto_id: props?.row?.original?._id,
-                                variable_reemplazar: "coste_final",
-                                valor_reemplazar: sumaTotal
-                            }
-                        }).then((result) => {
 
-                        }).catch((error) => {
-                            console.log(error);
-                        })
+                    useEffect(() => {
+                        if (data.length > 0) {
+                            console.log("entro")
+                            fetchApiEventos({
+                                query: queries.editGasto,
+                                variables: {
+                                    evento_id: event?._id,
+                                    categoria_id: categoria?._id,
+                                    gasto_id: props?.row?.original?._id,
+                                    variable_reemplazar: "coste_final",
+                                    valor_reemplazar: sumaTotal
+                                }
+                            }).then((result) => {
+
+                            }).catch((error) => {
+                                console.log(error);
+                            })
+                        }
                     }, [sumaTotal])
 
                     if (data?.length === 0) {
