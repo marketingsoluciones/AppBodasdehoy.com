@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo, useState } from "react";
+import { FC, useEffect, useMemo, useState, useRef } from "react";
 import { useRowSelect, useSortBy, useTable } from "react-table";
 import { useTranslation } from 'react-i18next';
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../context";
@@ -12,6 +12,7 @@ import { IoShareSocial } from "react-icons/io5";
 import { OpenModal } from "./OpenModal";
 import { TbLock } from "react-icons/tb";
 import { GoArrowUpRight } from "react-icons/go";
+import { FaSearch } from "react-icons/fa"; // Importa el ícono de lupa
 
 export const EventsTable: FC<any> = () => {
   const { t } = useTranslation();
@@ -24,16 +25,55 @@ export const EventsTable: FC<any> = () => {
   const [openModal, setOpenModal] = useState({ state: false, data: {}, idx: null })
   const [activeHeader, setActiveHeader] = useState<string | null>(null);
   const [filters, setFilters] = useState<{ [key: string]: string }>({});
+  const [visibleColumns, setVisibleColumns] = useState<string[]>([
+    "usuario_nombre", "estatus", "nombre", "tipo", "estilo", "color", "tarta", "temporada", "tematica", "fecha", "fecha_creacion", "invitados_array", "detalles_compartidos_array", "itinerarios_array", "menus_array", "presupuesto_objeto"
+  ]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
+
+  const handleColumnToggle = (columnId: string) => {
+    setVisibleColumns((prev) =>
+      prev.includes(columnId)
+        ? prev.filter((id) => id !== columnId)
+        : [...prev, columnId]
+    );
+  };
+
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (inputRef.current && !inputRef.current.contains(event.target as Node)) {
+        setActiveHeader(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [inputRef]);
 
   const columns = useMemo(
     () => [
+      {
+        Header: t("estado"),
+        accessor: "estatus",
+        id: "estatus",
+        Cell: (data) => {
+          return (
+            <span className="flex items-center capitalize"> {data.value != null ? data.value : ""}</span>
+          )
+        }
+      },
       {
         Header: t("owner"),
         accessor: "usuario_nombre",
         id: "usuario_nombre",
         Cell: (data) => {
           return (
-            <span className="flex items-center capitalize"> {data.value != null ? data.value : "null"}</span>
+            <span className="flex items-center capitalize"> {data.value != null ? data.value : ""}</span>
           )
         }
       },
@@ -100,7 +140,7 @@ export const EventsTable: FC<any> = () => {
         id: "tipo",
         Cell: (data) => {
           return (
-            <span className="flex items-center capitalize"> {data.value != null ? data.value : "null"}</span>
+            <span className="flex items-center capitalize"> {data.value != null ? data.value : ""}</span>
           )
         }
       },
@@ -110,7 +150,7 @@ export const EventsTable: FC<any> = () => {
         id: "estilo",
         Cell: (data) => {
           return (
-            <span className="flex items-center capitalize"> {data.value != null ? data.value : "null"}</span>
+            <span className="flex items-center capitalize"> {data.value != null ? data.value : ""}</span>
           )
         }
       },
@@ -151,7 +191,7 @@ export const EventsTable: FC<any> = () => {
         id: "tarta",
         Cell: (data) => {
           return (
-            <span className="flex items-center justify-center w-full capitalize"> {data.value != null ? <LiaPaperclipSolid className="h-5 w-5" /> : "null"} </span>
+            <span className="flex items-center justify-center w-full capitalize"> {data.value != null ? <LiaPaperclipSolid className="h-5 w-5" /> : ""} </span>
           )
         }
       },
@@ -161,7 +201,7 @@ export const EventsTable: FC<any> = () => {
         id: "temporada",
         Cell: (data) => {
           return (
-            <span className="flex items-center justify-center w-full capitalize"> {data.value != null ? data.value : "null"} </span>
+            <span className="flex items-center justify-center w-full capitalize"> {data.value != null ? data.value : ""} </span>
           )
         }
       },
@@ -171,7 +211,7 @@ export const EventsTable: FC<any> = () => {
         id: "tematica",
         Cell: (data) => {
           return (
-            <span className="flex items-center justify-center w-full capitalize"> {data.value != null ? data.value : "null"} </span>
+            <span className="flex items-center justify-center w-full capitalize"> {data.value != null ? data.value : ""} </span>
           )
         }
       },
@@ -182,7 +222,7 @@ export const EventsTable: FC<any> = () => {
         Cell: (data) => {
           return (
             <div className="flex w-full justify-center items-center capitalize">
-              {`${new Date(parseInt(data.value)).toLocaleDateString("es-VE", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" })}`}
+              {data.value != null ? `${new Date(parseInt(data.value)).toLocaleDateString("es-VE", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" })}` : ""}
             </div>
           )
         }
@@ -194,7 +234,7 @@ export const EventsTable: FC<any> = () => {
         Cell: (data) => {
           return (
             <div className="flex w-full justify-center items-center capitalize">
-              {`${new Date(parseInt(data.value)).toLocaleDateString("es-VE", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" })}`}
+              {data.value != null ? `${new Date(parseInt(data.value)).toLocaleDateString("es-VE", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" })}` : ""}
             </div>
           )
         }
@@ -206,7 +246,7 @@ export const EventsTable: FC<any> = () => {
         Cell: (data) => {
           return (
             <div className="flex w-full items-center justify-end capitalize">
-              {data.value.length > 0 ? data.value.length : "null"}
+              {data.value.length > 0 ? data.value.length : ""}
             </div>
           )
         }
@@ -245,7 +285,7 @@ export const EventsTable: FC<any> = () => {
         Cell: (data) => {
           return (
             <div className="flex w-full items-center justify-end capitalize">
-              {data.value.length > 0 ? data.value.length : "null"}
+              {data.value.length > 0 ? data.value.length : ""}
             </div>
           )
         }
@@ -257,7 +297,7 @@ export const EventsTable: FC<any> = () => {
         Cell: (data) => {
           return (
             <div className="flex w-full items-center justify-end capitalize">
-              {data.value.length > 0 ? data.value.length : "null"}
+              {data.value.length > 0 ? data.value.length : ""}
             </div>
           )
         }
@@ -281,11 +321,7 @@ export const EventsTable: FC<any> = () => {
         Cell: (data) => {
           return (
             <div className="flex w-full items-center justify-end capitalize">
-              {getCurrency(
-                data.value.coste_estimado,
-                data.value.currency
-              )}
-              { }
+              {data.value != null ? getCurrency(data.value.coste_estimado, data.value.currency) : ""}
             </div>
           )
         }
@@ -293,20 +329,29 @@ export const EventsTable: FC<any> = () => {
     ], [t]
   )
 
-  // Modificar el useEffect para aplicar los filtros
-useEffect(() => {
-  let filteredData = eventsGroup;
+  useEffect(() => {
+    let filteredData = eventsGroup;
 
-  Object.keys(filters).forEach((key) => {
-    if (filters[key]) {
-      filteredData = filteredData.filter((item) =>
-        item[key]?.toString().toLowerCase().includes(filters[key].toLowerCase())
-      );
-    }
-  });
+    Object.keys(filters).forEach((key) => {
+      if (filters[key]) {
+        filteredData = filteredData.filter((item) => {
+          const value = item[key];
+          if (key === "fecha" || key === "fecha_creacion") {
+            // Convertir fechas a cadenas de texto
+            return new Date(parseInt(value)).toLocaleDateString("es-VE", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" }).toLowerCase().includes(filters[key].toLowerCase());
+          } else if (key === "presupuesto_objeto") {
+            // Convertir montos de dinero a cadenas de texto
+            return getCurrency(value.coste_estimado, value.currency).toLowerCase().includes(filters[key].toLowerCase());
+          } else {
+            return value?.toString().toLowerCase().includes(filters[key].toLowerCase());
+          }
+        });
+      }
+    });
 
-  setData(filteredData);
-}, [eventsGroup, filters]);
+    setData(filteredData);
+  }, [eventsGroup, filters]);
+
   useEffect(() => {
     setData(eventsGroup)
   }, [eventsGroup])
@@ -320,13 +365,14 @@ useEffect(() => {
   } = useTable({ columns, data }, useSortBy, useRowSelect);
 
   const colSpan = {
+    estatus: 2,
     usuario_nombre: 4,
     color: 3,
     nombre: 4,
     tipo: 3,
     estilo: 3,
-    fecha: 4,
-    fecha_creacion: 4,
+    fecha: 3,
+    fecha_creacion: 3,
     invitados_array: 2,
     tarta: 3,
     temporada: 2,
@@ -339,11 +385,31 @@ useEffect(() => {
   };
 
   return (
-    <div className="relative px-3 flex  justify-center w-full">
+    <div className="relative px-3 flex flex-col justify-center w-full">
+      <div className="relative mb-4 self-end">
+        <button onClick={toggleDropdown} className="bg-primary text-white px-4 py-2 rounded">
+          Filtrar Columnas
+        </button>
+        {dropdownOpen && (
+          <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-y-auto z-10">
+            {columns.map((column) => (
+              <div key={column.id} className="flex hover:bg-basePage items-center px-4 py-2">
+                <input
+                  type="checkbox"
+                  checked={visibleColumns.includes(column.id)}
+                  onChange={() => handleColumnToggle(column.id)}
+                  className="mr-2"
+                />
+                {t(column.Header)}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
       {openModal?.state && <OpenModal openModal={openModal} setOpenModal={setOpenModal} />}
       <table
         {...getTableProps()}
-        className="table-auto border-collapse rounded-lg relative p-4 ">
+        className="table-auto border-collapse rounded-lg relative p-4 w-full">
 <thead className="relative text-xs text-gray-700 uppercase bg-gray-200 w-full truncate">
   {headerGroups.map((headerGroup: any, id: any) => {
     return (
@@ -352,31 +418,41 @@ useEffect(() => {
         className="grid grid-cols-48 w-full truncate"
         key={id} >
         {headerGroup.headers.map((column: any, id: any) => {
+          const searchableColumns = ["usuario_nombre", "nombre", "tipo", "fecha", "fecha_creacion", "presupuesto_objeto", "estatus"];
+          if (!visibleColumns.includes(column.id)) return null;
           return (
             <th
               {...column.getHeaderProps(column.getSortByToggleProps())}
               className={`truncate w-full leading-[1] px-1 py-1 md:py-3 text-center flex justify-center items-center text-xs font-light font-display col-span-${colSpan[column.id]
                 }`}
               key={id}
-              onClick={() => setActiveHeader(column.id)}
             >
-              {activeHeader === column.id ? (
-                <input
-                  type="text"
-                  className="w-full text-center"
-                  placeholder={t("Search...")}
-                  value={filters[column.id] || ""}
-                  onChange={(e) => setFilters({ ...filters, [column.id]: e.target.value })}
-                  onBlur={() => setActiveHeader(null)}
+              <div className="truncate w-full text-center">
+                {typeof column.render("Header") == "string" && t(column.render("Header"))}
+              </div>
+              <span>
+                {column.isSorted ? (column.isSortedDesc ? " 🠻" : " 🠹") : ""}
+              </span>
+              {searchableColumns.includes(column.id) && (
+                <FaSearch
+                  className="ml-2 cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveHeader(activeHeader === column.id ? null : column.id);
+                  }}
                 />
-              ) : (
-                <>
-                  {typeof column.render("Header") == "string" && t(column.render("Header"))}
-                  <span>
-                    {column.isSorted ? (column.isSortedDesc ? " 🠻" : " 🠹") : ""}
-                  </span>
-                </>
               )}
+{activeHeader === column.id && (
+  <input
+    ref={inputRef}
+    type="text"
+    value={filters[column.id] || ""}
+    onChange={(e) => setFilters({ ...filters, [column.id]: e.target.value })}
+    className="ml-2 p-1 border rounded w-full"
+    placeholder={`Buscar ${t(column.render("Header"))}`}
+    style={{ maxWidth: '100%' }}
+  />
+)}
             </th>
           )
         })}
@@ -394,6 +470,7 @@ useEffect(() => {
                 className={` w-full border-b font-display grid grid-cols-48 truncate`}
               >
                 {row.cells.map((cell, i) => {
+                  if (!visibleColumns.includes(cell.column.id)) return null;
                   return (
                     <td
                       {...cell.getCellProps()}

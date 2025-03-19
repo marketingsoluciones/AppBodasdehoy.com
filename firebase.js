@@ -85,6 +85,16 @@ const firebaseConfigOhmaratilano = {
   measurementId: "G-4XH8FBGR1R"
 };
 
+const firebaseConfigCorporativozr = {
+  apiKey: "AIzaSyCyNPFSVkh7u7JkiYYI2oHzSSnIKok5JpE",
+  authDomain: "corporativozr-app.firebaseapp.com",
+  projectId: "corporativozr-app",
+  storageBucket: "corporativozr-app.firebasestorage.app",
+  messagingSenderId: "798723721379",
+  appId: "1:798723721379:web:3c13e3999ab357f1fad716",
+  measurementId: "G-M58YVQJ0LS"
+};
+
 export const developments = [
   {
     name: "bodasdehoy",
@@ -280,6 +290,27 @@ export const developments = [
     logoDirectory: <img className="hover:opacity-80 transition text-primary h-full object-contain bg-primary p-1" src="https://apiapp.bodasdehoy.com/logos/Logo-OHMARATILANO-blanco.png" />,
     headTitle: "App profesional que te ayudará a planear la boda de tus sueños con éxito",
     favicon: "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://www.ohmaratilano.com&size=16",
+    theme: {
+      primaryColor: "#c1bba3",// c1bba3 8f867a
+      secondaryColor: "#deab38",
+      tertiaryColor: "#e0d6b2",
+      baseColor: "#fff6fa",//fff6fa
+      colorScroll: "#e0d6b2"
+    },
+  },
+  {
+    name: "corporativozr",
+    development: "corporativozr",
+    fileConfig: firebaseConfigCorporativozr,
+    cookie: "sessionCorporativozr",
+    domain: ".corporativozr.com",
+    cookieGuest: "guestcorporativozr",
+    pathDomain: "https://corporativozr.com/2024/",
+    pathLogin: "",
+    pathDirectory: "corporativozr.com",
+    logoDirectory: <img className="hover:opacity-80 transition text-primary h-full object-contain bg-primary p-1" src="https://apiapp.bodasdehoy.com/logos/Logo-CORPORATIVOZR-gris.png" />,
+    headTitle: "App profesional que te ayudará a planear la boda de tus sueños con éxito",
+    favicon: "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://corporativozr.com/2024/&size=16",
     theme: {
       primaryColor: "#c1bba3",// c1bba3 8f867a
       secondaryColor: "#deab38",

@@ -41,6 +41,8 @@ export const BoddyIter = () => {
     const [modalDuplicate, setModalDuplicate] = useState({ state: false, data: null })
     const [loadingModal, setLoadingModal] = useState<boolean>(false)
     const storage = getStorage();
+    const [selectTask, setSelectTask] = useState<string>()
+
 
     async function updatedNextId(itinerary: Itinerary) {
         return await fetchApiEventos({
@@ -176,7 +178,7 @@ export const BoddyIter = () => {
     }, [event, router])
 
     return (
-        <div className="w-full h-[calc(100vh-234px)] flex flex-col items-center bg-white rounded-lg mt-3 relative">
+        <div className="bg-white w-full h-[calc(100vh-212px)] flex flex-col items-center rounded-t-lg mt-3 relative overflow-hidden">
             {modal.state && <Modal set={setModal} classe={"w-[95%] md:w-[450px] h-[250px]"} loading={loadingModal} >
                 <DeleteConfirmation setModal={setModal} modal={modal} />
             </Modal>}
@@ -198,9 +200,11 @@ export const BoddyIter = () => {
                 handleUpdateTitle={handleUpdateTitle}
                 editTitle={editTitle}
                 setModalDuplicate={setModalDuplicate}
+                selectTask={selectTask}
+                setSelectTask={setSelectTask}
             />
             {(isAllowedViewer(itinerario?.viewers ?? []) || window?.location?.pathname === "/itinerario")
-                ? <ItineraryPanel itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} title={title} setTitle={setTitle} view={view} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} />
+                ? <ItineraryPanel itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} title={title} setTitle={setTitle} view={view} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} selectTask={selectTask} setSelectTask={setSelectTask} />
                 : <div className="h-full">
                     <ViewWihtoutData />
                 </div>
