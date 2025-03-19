@@ -1,6 +1,6 @@
 import { FC, LegacyRef, MouseEvent, useEffect, useRef, useState } from "react"
 import { PlusIcon } from "../../icons"
-import { Event, Itinerary } from "../../../utils/Interfaces"
+import { Event, Info, Itinerary } from "../../../utils/Interfaces"
 import { fetchApiEventos, queries } from "../../../utils/Fetching"
 import { AuthContextProvider, EventContextProvider } from "../../../context"
 import { ViewItinerary } from "../../../pages/invitados"
@@ -23,9 +23,11 @@ interface props {
     title: string
     setTitle: any
     setModalDuplicate: any
+    selectTask: string
+    setSelectTask: any
 }
 
-export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setItinerario, setEditTitle, view, setView, handleDeleteItinerario, handleUpdateTitle, title, setTitle, editTitle }) => {
+export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setItinerario, setEditTitle, view, setView, handleDeleteItinerario, handleUpdateTitle, title, setTitle, editTitle, selectTask, setSelectTask }) => {
     const [isAllowed, ht] = useAllowed()
     const [isAllowedViewer] = useAllowedViewer()
     const { config, user } = AuthContextProvider()
@@ -432,8 +434,10 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
         setShowTabs(false)
     }
 
+
     return (
-        <div className="flex max-w-[100%] min-w-[100%] h-10 items-center justify-center border-b md:px-4 md:py-2">
+        <div className="flex max-w-[100%] min-w-[100%] h-10 items-center justify-center border-b md:px-4 md:py-2 shadow-md z-10">
+
             <div id="content" className="flex-1 h-full  flex justify-between">
                 <div className="inline-flex max-w-full h-full items-center  mr-2">
                     {showTabs && <>
@@ -481,7 +485,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                                                 <div onMouseDownCapture={() => {
                                                     setValirOnMouse(false)
                                                 }} >
-                                                    <ItineraryTabsMenu item={item} itinerario={itinerario} handleDeleteItinerario={handleDeleteItinerario} setEditTitle={setEditTitle} setTitle={setTitle} setModalDuplicate={setModalDuplicate} />
+                                                    <ItineraryTabsMenu item={item} itinerario={itinerario} handleDeleteItinerario={handleDeleteItinerario} setEditTitle={setEditTitle} setTitle={setTitle} setModalDuplicate={setModalDuplicate} selectTask={selectTask} setSelectTask={setSelectTask} />
                                                 </div>
                                             </div>}
                                         </div>

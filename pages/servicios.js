@@ -8,9 +8,6 @@ import { useRouter } from "next/router"
 import { useMounted } from "../hooks/useMounted"
 
 
-/* import { Modal } from "../modals/Modal" */
-/* import { MyDocument } from "../CreatePDF" */
-
 const Itinerario = () => {
     const [createPdf, setCreatePdf] = useState(false)
     const { eventsGroup } = EventsGroupContextProvider()
@@ -40,7 +37,7 @@ const Itinerario = () => {
         if (!event) return <></>
         return (
             event &&
-            <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4" : "bg-base w-full pt-2 md:py-0"}>
+            <section className={`${forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4" : "bg-base  w-full pt-2 md:py-0"} flex`}>
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
