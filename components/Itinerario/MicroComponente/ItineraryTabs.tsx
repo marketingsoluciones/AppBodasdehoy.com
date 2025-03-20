@@ -45,7 +45,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
     const toast = useToast()
 
     useEffect(() => {
-        const itineraries = event?.itinerarios_array?.filter(elem => elem?.tipo === window?.location?.pathname.slice(1))?.slice(0, 8)
+        const itineraries = event?.itinerarios_array?.filter(elem => elem?.tipo === window?.location?.pathname.slice(1))
         if (!itineraries?.length) {
             setItineraries([])
         }
