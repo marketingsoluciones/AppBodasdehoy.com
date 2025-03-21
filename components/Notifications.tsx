@@ -25,7 +25,7 @@ export const Notifications = () => {
   const [countScroll, setCountScroll] = useState({ count: 1 })
   const [showLoad, setShowLoad] = useState<boolean>(false);
   const router = useRouter()
-  const detallesUsuarioIds = eventsGroup.flatMap(event => [...event.detalles_compartidos_array, event.detalles_usuario_id]).filter(id => id !== undefined);
+  const detallesUsuarioIds = eventsGroup?.flatMap(event => [...event.detalles_compartidos_array, event.detalles_usuario_id])?.filter(id => id !== undefined);
 
 
 
