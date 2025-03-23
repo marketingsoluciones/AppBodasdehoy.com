@@ -102,7 +102,7 @@ export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisa
                 <div className="flex-1 w-full flex justify-center items-center relative">
                   {!elem?.loading && <div className="absolute z-20 right-3 top-2 text-gray-600 hover:text-gray-800 cursor-pointer"
                     onClick={() => {
-                      downloadFile(storage, `event-${event._id}//itinerary-${itinerario._id}//task-${task._id}//comment-${item._id}//${elem.name}`)
+                      downloadFile(storage, `event-${event._id}//itinerary-${itinerario._id}//task-${task._id}//comment-${item._id}//${elem?.name ?? elem?.file?.name}`)
                         .catch((error) => toast("error", `${t("Ha ocurrido un error")}`))
                     }} >
                     <CgSoftwareDownload className="w-6 h-6" />
@@ -117,13 +117,13 @@ export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisa
                     ? <img src={elem?.file as string} alt="Imagen" style={{ maxWidth: '100%', maxHeight: '54px', minHeight: '30px' }} />
                     : */
                     <div className="w-full h-[54px] flex flex-col items-center justify-center">
-                      <FileIconComponent extension={elem?.name?.split(".")?.slice(-1)[0]} className="w-10 h-10 mb-2 border-[1px] border-gray-300 rounded-[5px]" />
+                      <FileIconComponent extension={(elem?.name ?? elem?.file?.name)?.split(".")?.slice(-1)[0]} className="w-10 h-10 mb-2 border-[1px] border-gray-300 rounded-[5px]" />
                     </div>
                   }
                 </div>
                 <div className="w-full flex flex-col items-center px-2 cursor-default">
-                  <span className="w-full text-[10px] truncate text-center">{elem?.name}</span>
-                  <span className="text-gray-800 text-[9px] select-none">{Math.trunc(elem?.size / 1024)} K</span>
+                  <span className="w-full text-[10px] truncate text-center">{elem?.name ?? elem?.file?.name}</span>
+                  <span className="text-gray-800 text-[9px] select-none">{Math.trunc((elem?.size ?? elem?.file?.size) / 1024)} K</span>
                 </div>
               </div>
             }
