@@ -654,8 +654,13 @@ export const es = {
     'successful': 'con éxito',
     maxLimitedItineraries: "El límite máximo para crear o duplicar fue alcanzado",
 
-
-
+    importCorrect: "invitados importados correctamente",
+    fileErrors: "El archivo contiene errores",
+    contactTemplateFileName: "Plantilla%20de%20Contactos",
+    uploadExcel: "subir excel",
+    downloadTemplate: "descargar plantilla",
+    importar: "importar",
+    exportar: "exportar",
     nombre: 'nombre',
     invitados: 'invitados',
     invitaciones: 'invitaciones',
