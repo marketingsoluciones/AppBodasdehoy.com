@@ -19,13 +19,10 @@ import { LiaLinkSolid } from "react-icons/lia";
 import { CopiarLink } from "../Utils/Compartir";
 import { handleMoveGuest } from "./GrupoTablas";
 import { guest } from "../../utils/Interfaces";
+import { OptionsSubMenu } from "./OptionsSubMenu";
 
 
 interface propsBlockListaInvitados {
-    menu?: any
-    setGetMenu?: any
-    createPDF?: any
-    setCreatePDF?: any
     ConditionalAction?: any
     handleClick?: any
 }
@@ -34,7 +31,6 @@ interface guestsExt extends guests {
     tableNameRecepcion: Partial<table>
     tableNameCeremonia: Partial<table>
 }
-
 
 interface handleMoveGuest {
     event: Event
@@ -58,7 +54,6 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ Conditiona
     const [modal, setModal] = useState({ state: false, title: null, handle: () => { } })
     const [showCards, setShowCards] = useState({})
     const [isAllowed, ht] = useAllowed()
-
 
     const handleShowCards = (itemTitle) => {
         setShowCards((prevState) => ({
@@ -110,34 +105,9 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ Conditiona
         Data && setData(Object.values(Data));
     }, [allFilterGuests, event]);
 
-
     return (
-        <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full pt-2 pb-28 mb-32  relative" >
-            <div className="flex  items-center justify-between relative">
-                <div className="flex gap-2 items-center mt-1 mb-3 md:mb-5 mx-2">
-                    <button
-                        onClick={(e) => !isAllowed() ? ht() : ConditionalAction({ e })}
-                        className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary md:bg-primary md:text-white md:hover:bg-white md:hover:text-primary capitalize"
-                    >
-                        <PlusIcon />
-                        {t("invitados")}
-                    </button>
-                    <button
-                        onClick={(e) => !isAllowed() ? ht() : handleClick(e, "grupo")}
-                        className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary capitalize"
-                    >
-                        <PlusIcon />
-                        {t("grupo")}
-                    </button>
-                    <button
-                        onClick={(e) => !isAllowed() ? ht() : handleClick(e, "menu")}
-                        className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary capitalize"
-                    >
-                        <PlusIcon />
-                        {t("menu")}
-                    </button>
-                </div>
-            </div>
+        <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full pt-2 pb-28 mb-32 relative" >
+            <OptionsSubMenu ConditionalAction={ConditionalAction} handleClick={handleClick} />
             {shouldRenderChild && (
                 <ModalBottom state={isMounted} set={setIsMounted}>
                     <div className="flex justify-center w-full gap-6">
@@ -247,7 +217,6 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
     const GuestsByFather = event?.invitados_array?.filter((invitado) => invitado?.father === acompañanteID.id)
     const { t } = useTranslation()
     const link = `${window?.location?.origin}?pGuestEvent=${idGuest}${event._id?.slice(3, 9)}${event._id}`
-
 
     useEffect(() => {
         setAcompañanteID({ id: showModalAcompañante2.id, crear: false })
@@ -464,7 +433,7 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                 guestData.length > 0 && guestData?.map((item, idx) => {
                     return (
                         <>
-                            <div key={idx+1} className={`hover:bg-gray-200 ${showModalAcompañante2.state && showModalAcompañante2.id === item._id ? "bg-gray-200" : ""}  bg-gray-100 my-2 mx-2 rounded-md grid grid-cols-6 relative `}>
+                            <div key={idx + 1} className={`hover:bg-gray-200 ${showModalAcompañante2.state && showModalAcompañante2.id === item._id ? "bg-gray-200" : ""}  bg-gray-100 my-2 mx-2 rounded-md grid grid-cols-6 relative `}>
                                 <div className=" pt-2 pl-2 justify-self-center relative col-span-1 h-max ">
                                     <img
                                         className="block w-10 h-10 mr-2"
@@ -603,7 +572,7 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                                                                 {item?.title}
                                                                             </li>
                                                                         )
-                                                                    } 
+                                                                    }
                                                                 })}
                                                             <li
                                                                 className=" cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
@@ -997,7 +966,7 @@ export const AcompañantesCard: FC<propsAcompañantesCard> = ({ passesQuantity, 
                                                                                             if (value2?._id || item?._id) {
                                                                                                 if (value2?._id !== item?._id) {
                                                                                                     setValue2(item.title);
-                                                                                                    handleMoveGuest({ t, invitadoID:idGuest, previousTable: value2, lastTable: table, f1, event, setEvent, toast })
+                                                                                                    handleMoveGuest({ t, invitadoID: idGuest, previousTable: value2, lastTable: table, f1, event, setEvent, toast })
                                                                                                 }
                                                                                             }
                                                                                         }}
@@ -1040,25 +1009,25 @@ export const AcompañantesCard: FC<propsAcompañantesCard> = ({ passesQuantity, 
                                                                         { _id: null, title: "No Asignado" },
                                                                         ...event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables]?.map((elem: any, index) => {
                                                                             if (elem?.guests?.length < elem?.numberChair || value2?._id === elem?._id || !elem?._id) {
-                                                                            return (
-                                                                                <li
-                                                                                    key={index}
-                                                                                    className={`${(value2._id === elem._id || (!value2._id && !elem._id)) && "bg-gray-200"} cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize`}
-                                                                                    onClick={() => {
-                                                                                        const f1 = event?.planSpace.findIndex(elem => elem?.title === "ceremonia")
-                                                                                        const table = event.planSpace[f1]?.tables.find(el => el._id === elem._id)
-                                                                                        setShowModalCeremonia(false);
-                                                                                        if (value2?._id || elem?._id) {
-                                                                                            if (value2?._id !== elem?._id) {
-                                                                                                setValue(elem.title);
-                                                                                                handleMoveGuest({ t, invitadoID: idGuest, previousTable: value2, lastTable: table, f1, event, setEvent, toast })
+                                                                                return (
+                                                                                    <li
+                                                                                        key={index}
+                                                                                        className={`${(value2._id === elem._id || (!value2._id && !elem._id)) && "bg-gray-200"} cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize`}
+                                                                                        onClick={() => {
+                                                                                            const f1 = event?.planSpace.findIndex(elem => elem?.title === "ceremonia")
+                                                                                            const table = event.planSpace[f1]?.tables.find(el => el._id === elem._id)
+                                                                                            setShowModalCeremonia(false);
+                                                                                            if (value2?._id || elem?._id) {
+                                                                                                if (value2?._id !== elem?._id) {
+                                                                                                    setValue(elem.title);
+                                                                                                    handleMoveGuest({ t, invitadoID: idGuest, previousTable: value2, lastTable: table, f1, event, setEvent, toast })
+                                                                                                }
                                                                                             }
-                                                                                        }
-                                                                                    }}
-                                                                                >
-                                                                                    {elem?.title}
-                                                                                </li>
-                                                                            )
+                                                                                        }}
+                                                                                    >
+                                                                                        {elem?.title}
+                                                                                    </li>
+                                                                                )
                                                                             }
                                                                         })}
                                                                     <li

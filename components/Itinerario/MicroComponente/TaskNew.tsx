@@ -119,8 +119,8 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
       <Formik enableReinitialize initialValues={initialValues} onSubmit={() => { }}  >
         {({ values }) => {
           return (
-            <Form className="w-full ">
-              <div className={` flex w-full justify-center  items-stretch text-gray-800 ${["/servicios"].includes(window?.location?.pathname) ? "" : "2xl:px-36"} `} {...props} >
+            <Form className="w-full">
+              <div className={`flex w-full justify-center items-stretch text-gray-800 ${["/servicios"].includes(window?.location?.pathname) ? "" : "2xl:px-36"} `} {...props} >
                 {view === "schema" && values.spectatorView &&
                   <>
                     <div className={`flex w-[55%] md:w-[45%] lg:w-[40%] p-2 items-start justify-start border-t-[1px] border-r-[1px] border-primary border-dotted relative`}>
@@ -373,8 +373,8 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                     </div>
 
                     {/* lado derecho de la tarjeta */}
-                    <div className="flex-1 flex flex-col text-[12px] pl-1 md:pl-2 mt-1 md:mt-0">
-                      {!["/itinerario"].includes(window?.location?.pathname) && <div className="mb-2">
+                    <div className="flex-1 flex flex-col text-[12px] pl-1 md:pl-2 mt-1 md:mt-0 w-full">
+                      {!["/itinerario"].includes(window?.location?.pathname) && <div className="mb-2 w-full">
                         <div className="flex justify-between mb-1">
                           <div className="capitalize">
                             {t('messages')}
@@ -383,8 +383,8 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                             <RiNotification2Fill className="text-gray-500 w-4 h-4 scale-x-90" />
                           </div>
                         </div>
-                        <div className='border-gray-300 border-[1px] rounded-lg py-2'>
-                          <div ref={divRef} className='w-[calc(100%)] h-[260px] flex flex-col-reverse rounded-lg overflow-auto break-words'>
+                        <div className='border-gray-300 border-[1px] rounded-lg py-2 w-full'>
+                          <div ref={divRef} className='w-full h-[260px] flex flex-col-reverse rounded-lg overflow-auto break-words'>
                             {comments?.map((elem, idx) => {
                               return (
                                 <ListComments id={elem?._id} key={idx} itinerario={itinerario} task={task} item={elem} tempPastedAndDropFiles={tempPastedAndDropFiles} />

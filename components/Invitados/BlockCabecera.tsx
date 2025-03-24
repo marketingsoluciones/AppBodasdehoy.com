@@ -64,7 +64,7 @@ const BlockCabecera = () => {
             </p>
           </div>
         </div>
-        <div className="bg-white rounded-xl col-span-3 shadow-lg flex *items-end md:items-center pb-1 md:pb-0 w-full h-[88px] md:h-auto relative justify-between px-8 md:px-4">
+        <div className="bg-white rounded-xl col-span-3 shadow-lg flex *items-end md:items-center pb-1 md:pb-0 w-3/4 md:w-full h-[88px] md:h-auto relative md: justify-between px-8 md:px-4">
           {TotalList.map((item, idx) => (
             <div key={idx} className={`${idx == 0 ? "hidden md:flex" : "flex"} gap-2 items-center justify-center`}>
               {item?.icon}

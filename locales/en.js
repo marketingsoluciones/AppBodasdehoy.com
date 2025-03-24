@@ -654,9 +654,13 @@ export const en = {
     'successful': "successful",
     maxLimitedItineraries: "The maximum limit for creating or duplicating was reached",
 
-
-
-
+    importCorrect: "guests imported successfully",
+    fileErrors: "The file contains errors",
+    contactTemplateFileName: "Contact%20Template",
+    uploadExcel: "upload excel",
+    downloadTemplate: "download template",
+    importar: "import",
+    exportar: "export",
     nombre: 'NAME',
     invitados: 'guests',
     invitaciones: 'invitations',

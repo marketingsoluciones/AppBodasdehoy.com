@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from "react"
+import { ChangeEvent, FC, useEffect, useState } from "react"
 import { QuillEditor } from "./QuillEditor"
 import { AuthContextProvider, EventContextProvider } from "../../../context"
 import { fetchApiEventos, queries } from "../../../utils/Fetching"
@@ -25,10 +25,8 @@ interface props {
 
 export type PastedAndDropFile = {
   _id?: string
-  type: string
-  name: string
-  size: number
-  file: string | ArrayBuffer
+  saveType: string
+  file: File
   loading: boolean
 }
 
@@ -42,6 +40,7 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
   const [attachment, setAttachment] = useState(false);
   const notification = useNotification()
   const storage = getStorage();
+  const [enabledInput, setEnabledInput] = useState(false);
 
   useEffect(() => {
     const valir = value?.replace(/ id="selected"/g, "")?.replace(/ focusoffset="[^"]*"/g, '').split("<p><br></p>").find(elem => elem !== "")
@@ -68,9 +67,8 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
       if (tempPastedAndDropFiles[f1]?.files.length) {
         tempPastedAndDropFiles[f1].uploaded = true
         const promises = tempPastedAndDropFiles[f1]?.files.map(async (elem) => {
-          const storageRef = ref(storage, `event-${event?._id}//itinerary-${itinerario?._id}//task-${tempPastedAndDropFiles[f1].taskID}//comment-${tempPastedAndDropFiles[f1].commentID}//${elem.name}`)
-          const myBlob = new Blob([elem.file], { type: "text/plain" });
-          return uploadBytesResumable(storageRef, myBlob)
+          const storageRef = ref(storage, `event-${event?._id}//itinerary-${itinerario?._id}//task-${tempPastedAndDropFiles[f1].taskID}//comment-${tempPastedAndDropFiles[f1].commentID}//${elem.file.name}`)
+          return uploadBytesResumable(storageRef, elem.file)
             .then(() => {
               elem.loading = false
             })
@@ -88,7 +86,7 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
     if (value || pastedAndDropFiles.length) {
       const valueSend = value?.replace(/ id="selected"/g, "")?.replace(/ focusoffset="[^"]*"/g, '')
       const attachments = pastedAndDropFiles?.map((elem): FileData => {
-        return { name: elem.name, size: elem.size }
+        return { name: elem.file.name, size: elem.file.size }
       })
       fetchApiEventos({
         query: queries.createComment,
@@ -124,7 +122,7 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
         const focused = `${window.location.pathname}?event=${event._id}&itinerary=${itinerario._id}&task=${task._id}&comment=${results?._id}`
         notification({
           type: "user",
-          message: ` ha escrito un comentario: ${valueSend.slice(0, 50)}${valueSend.length > 50 ? "..." : ""} | Evento ${event?.tipo}: <strong>${event?.nombre.toUpperCase()}</strong>`,
+          message: ` ha escrito un comentario: ${valueSend?.slice(0, 50)}${valueSend?.length > 50 ? "..." : ""} | Evento ${event?.tipo}: <strong>${event?.nombre?.toUpperCase()}</strong>`,
           uids: qwe,
           focused
         })
@@ -133,31 +131,23 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
     }
   }
 
-  const handleFileChange = async ({ event, type }) => {
-    const files: File[] = event.target.files;
-    // Creamos un array de promesas para procesar cada archivo
-    const filePromises = Array.from(files).map((file) => {
-      return new Promise<void>((resolve) => {
-        const reader = new FileReader();
-        reader.onload = (event1) => {
-          const payload = {
-            type,//: file.type.indexOf('image') === 0 ? "image" : "file",
-            file: event1.target.result,
-            name: file.name,
-            size: file.size,
-            _id: customAlphabet('1234567890abcdef', 24)(),
-            loading: true,
-          };
-          pastedAndDropFiles.push(payload); // Agregamos el archivo al array
-          resolve(); // Resolvemos la promesa cuando termina la lectura del archivo
-        };
-        reader.readAsDataURL(file);
-      });
-    });
-    // Esperamos que todas las promesas se resuelvan antes de actualizar el estado
-    await Promise.all(filePromises).then((a) => {
-      setPastedAndDropFiles([...pastedAndDropFiles]);
+  type asd = {
+    event: ChangeEvent<HTMLInputElement>
+    saveType: string
+  }
+
+  const handleFileChange = async ({ event, saveType }: asd) => {
+    //setEnabledInput(false)
+    const files = [...Array.from(event.currentTarget.files)]
+    const pastedAndDropFiles = files.map(elem => {
+      return {
+        saveType,//: file.type.indexOf('image') === 0 ? "image" : "file",
+        _id: customAlphabet('1234567890abcdef', 24)(),
+        loading: true,
+        file: elem
+      }
     })
+    setPastedAndDropFiles([...pastedAndDropFiles]);
   };
 
   const handleClosePasteImages = () => {
@@ -226,12 +216,13 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
                   <IoClose className="w-6 h-6" />
                 </div>
               </div>
-              {pastedAndDropFiles[slideSelect].type === "image"
-                ? <img src={pastedAndDropFiles[slideSelect].file as string} alt="Imagen" style={{ maxWidth: '100%', maxHeight: '240px', minHeight: '150px' }} />
+
+              {pastedAndDropFiles[slideSelect].saveType === "image"
+                ? <img src={pastedAndDropFiles[slideSelect].file.name as string} alt="Imagen" style={{ maxWidth: '100%', maxHeight: '240px', minHeight: '150px' }} />
                 : <div className="w-full h-[150px] flex flex-col items-center justify-center">
-                  <FileIconComponent extension={pastedAndDropFiles[slideSelect].name.split(".").slice(-1)[0]} className="w-10 h-10 mb-2 border-[1px] border-gray-300 rounded-[5px]" />
-                  <p className="w-[150px] text-center">{pastedAndDropFiles[slideSelect].name}</p>
-                  <span className="text-gray-600">{Math.trunc(pastedAndDropFiles[slideSelect].size / 1024)} K</span>
+                  <FileIconComponent extension={pastedAndDropFiles[slideSelect].file.name.split(".").slice(-1)[0]} className="w-10 h-10 mb-2 border-[1px] border-gray-300 rounded-[5px]" />
+                  <p className="w-[150px] text-center">{pastedAndDropFiles[slideSelect].file.name}</p>
+                  <span className="text-gray-600">{Math.trunc(pastedAndDropFiles[slideSelect].file.size / 1024)} K</span>
                 </div>
               }
               <div id={`contenedorEditor1-${task._id}`} className='bg-gray-200 w-full min-h-[52px] flex items-center px-2'>
@@ -256,8 +247,10 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
           </>
         )}
         <div className='flex justify-center items-center'>
-          <input type="file" accept='image/*' onChange={(event) => handleFileChange({ event, type: "image" })} id={`file-upload-img-${task._id}`} className="hidden" multiple />
-          <input type="file" onChange={(event) => handleFileChange({ event, type: "doc" })} id={`file-upload-doc-${task._id}`} className="hidden" multiple />
+          {enabledInput && <>
+            <input type="file" accept='image/*' onChange={(event) => handleFileChange({ event, saveType: "image" })} id={`file-upload-img-${task._id}`} className="hidden" multiple />
+            <input type="file" onChange={(event) => handleFileChange({ event, saveType: "doc" })} id={`file-upload-doc-${task._id}`} className="hidden" multiple />
+          </>}
           <div id={`contenedorAttachment0-${task._id}`}>
             <div id={`attachment-${task._id}`}>
               <ClickAwayListener onClickAway={() => { setAttachment(false) }}>
@@ -277,7 +270,7 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
                           <PiCameraThin className='w-6 h-6' />
                           <span className='font-semibold'>Cámara</span>
                         </li> */}
-                          <li className='cursor-pointer hover:bg-gray-100 rounded-md items-center'>
+                          <li onClickCapture={() => setEnabledInput(true)} className='cursor-pointer hover:bg-gray-100 rounded-md items-center'>
                             <label htmlFor={`file-upload-doc-${task._id}`} className='font-semibold cursor-pointer flex items-center space-x-1 p-1'>
                               <PiFileArrowUpThin className='w-6 h-6' />
                               <span>Adjuntar archivo</span>
@@ -301,7 +294,7 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
         </div>
         <div id={`contenedorEditor0-${task._id}`} className='w-full min-h-[52px] flex items-center'>
           <div id={`quillEditor-${task._id}`} className="w-full">
-            <QuillEditor value={value} setValue={setValue} setPastedAndDropFiles={setPastedAndDropFiles} pastedAndDropFiles={pastedAndDropFiles} setValir={setValir} />
+            <QuillEditor value={value} setValue={setValue} setPastedAndDropFiles={setPastedAndDropFiles} pastedAndDropFiles={pastedAndDropFiles} />
           </div>
         </div>
         {!pastedAndDropFiles.length && <span onClick={valir ? handleCreateComment : () => { }} className={`${valir ? "cursor-pointer font-semibold" : "text-gray-400"} absolute right-3 bottom-[10.5px]`} >

@@ -246,7 +246,7 @@ export const developments = [
     pathLogin: "",
     pathDirectory: "miamorcitocorazon.mx",
     logoDirectory: <img className="hover:opacity-80 transition text-primary w-full h-full object-contain" src="https://i.ibb.co/L8bTqBf/Amorcito-Corazon2.png" />,
-    headTitle: "Planificador Ann Lo Events",
+    headTitle: "Planificador de Eventos",
     favicon: "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://miamorcitocorazon.mx&size=16",
     theme: {
       primaryColor: "#DB8686",

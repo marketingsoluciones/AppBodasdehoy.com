@@ -1,118 +1,33 @@
-import { FC, useEffect, useMemo, useState } from "react";
+import { FC, useState } from "react";
 import { useTable } from "react-table";
-import { AuthContextProvider, EventContextProvider } from "../../context";
-import { ImageProfile, useDelayUnmount } from "../../utils/Funciones";
+import { EventContextProvider } from "../../context";
+import { useDelayUnmount } from "../../utils/Funciones";
 import FormEditarInvitado from "../Forms/FormEditarInvitado";
-import { InvitacionesIcon, PlusIcon } from "../icons";
 import ModalBottom from "../Utils/ModalBottom";
 import DatatableGroup from "./GrupoTablas";
 import SentarBlock from "./SentarBlock";
-// import { ModalPDF } from "../Utils/ModalPDF";
-import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
-import { GoMultiSelect } from "react-icons/go";
-import { ExportarExcel } from "../Utils/ExportarExcel";
-import ClickAwayListener from "react-click-away-listener";
-import { fetchApiEventos, queries } from "../../utils/Fetching";
-
+import { OptionsSubMenu } from "./OptionsSubMenu";
 
 interface propsBlockListaInvitados {
   menu?: any
   setGetMenu?: any
-  createPDF?: any
-  setCreatePDF?: any
   ConditionalAction?: any
   handleClick?: any
 }
 
-const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ menu, setGetMenu, createPDF, setCreatePDF, ConditionalAction, handleClick, }) => {
-  const { event } = EventContextProvider();
-  const { config } = AuthContextProvider()
+const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ menu, setGetMenu, ConditionalAction, handleClick, }) => {
+  const { event, setEvent } = EventContextProvider();
   const [isMounted, setIsMounted] = useState(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const [invitadoSelected, setSelected] = useState<string | null>(null);
-  const [optionExportModal, setOptionExportModal] = useState(false)
-  const [loading, setLoading] = useState<boolean>()
-  const toast = useToast()
   const [isAllowed, ht] = useAllowed()
   const { t } = useTranslation();
 
-  const downloadPdf = async () => {
-    try {
-      setLoading(true)
-      const nameFile = `Invitados de ${event.nombre}`.replace(/ /g, "_")
-      const result = await fetchApiEventos({
-        query: queries.generatePdf,
-        variables: {
-          url: `${window.location.origin}/event/guest-${event._id}`,
-          nameFile
-        },
-        domain: config.domain
-      })
-      console.log(result)
-      if (result) {
-        setLoading(false)
-        const link = document.createElement('a');
-        link.href = result as string;
-        link.download = nameFile;
-        link.target = '_blank';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
-    } catch (error) {
-      console.log(error)
-    }
-  }
-
   return (
-    <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full md:px-6 pt-2 md:pt-6 pb-28 mb-32 md:mb-0 md:p-12 relative">
-      <div className="flex  items-center justify-between relative">
-        <div className="flex gap-2 items-center mt-1 mb-3 md:mb-5 mx-2">
-          <button
-            onClick={(e) => !isAllowed() ? ht() : ConditionalAction({ e })}
-            className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary md:bg-primary md:text-white md:hover:bg-white md:hover:text-primary capitalize"
-          >
-            <PlusIcon />
-            {t("invitados")}
-          </button>
-          <button
-            onClick={(e) => !isAllowed() ? ht() : handleClick(e, "grupo")}
-            className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary capitalize"
-          >
-            <PlusIcon />
-            {t("grupo")}
-          </button>
-          <button
-            onClick={(e) => !isAllowed() ? ht() : handleClick(e, "menu")}
-            className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary capitalize"
-          >
-            <PlusIcon />
-            {t("menu")}
-          </button>
-          <button
-            onClick={() => setOptionExportModal(!optionExportModal)}
-            className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary"
-          >
-            Exportar
-          </button>
-        </div>
-
-        {optionExportModal &&
-          <ClickAwayListener onClickAway={() => setOptionExportModal(false)}>
-            <div className="absolute left-[410px] top-[40px] shadow-md bg-white  p-5 z-50 rounded-md space-y-2">
-              <ExportarExcel />
-              <button
-                onClick={() => downloadPdf()}
-                className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary w-full text-center"
-              >
-                PDF
-              </button>
-            </div>
-          </ClickAwayListener>
-        }
-      </div>
+    <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full pt-2 pb-28 mb-32 relative">
+      <OptionsSubMenu ConditionalAction={ConditionalAction} handleClick={handleClick} />
       {shouldRenderChild && (
         <ModalBottom state={isMounted} set={setIsMounted}>
           <div className="flex justify-center w-full gap-6">
@@ -127,7 +42,6 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ menu, setGetMenu, c
               </div>
               {invitadoSelected !== "" ? (
                 <FormEditarInvitado
-                  //ListaGrupos={event?.grupos_array}
                   invitado={event.invitados_array.find(
                     (guest) => guest._id === invitadoSelected
                   )}
@@ -163,68 +77,6 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ menu, setGetMenu, c
 };
 
 export default BlockListaInvitados;
-
-const TabladeInvitados = ({ evento, idInvitado }) => {
-  const Columna = useMemo(
-    () => [
-      {
-        Header: () => {
-          return (
-            <h3 className="font-display truncate md:text-xl  text-gray-500 text-center capitalize font-semibold">
-              Mis Invitados1
-            </h3>
-          );
-        },
-        accessor: "nombre", // accessor es la "key" en la data(invitados)
-        id: "nombre",
-        Cell: (props) => {
-          const value = props?.cell?.value;
-          const { sexo } = props?.row?.original;
-
-          return (
-            <div
-              className="flex justify-between items-center w-full py-2 pr-3"
-              onClick={(ac) => idInvitado(props?.row?.original?._id)}
-            >
-              <div className="flex gap-1 items-center">
-                <img
-                  className="hidden md:block w-10 h-10 mr-2 object-cover"
-                  src={ImageProfile[sexo]?.image}
-                  alt={ImageProfile[sexo]?.alt}
-                />
-                <p className="font-display text-sm capitalize overflow-ellipsis text-gray-500">
-                  {value}
-                </p>
-              </div>
-              <div
-                className={
-                  props?.row?.original?.invitacion
-                    ? "text-green"
-                    : "text-primary"
-                }
-              >
-                <InvitacionesIcon className="w-4 h-4" />
-              </div>
-            </div>
-          );
-        },
-      },
-    ],
-    [evento]
-  );
-
-  const Data = useMemo(() => {
-    const invitados = evento?.invitados_array;
-    return invitados;
-  }, [evento]);
-
-  useEffect(() => { }, []);
-  return (
-    <div className="bg-blue-500 w-full h-20">
-      {/* <DataTable data={Data} columns={Columna} /> */}
-    </div>
-  );
-};
 
 export const DataTable = ({ data, columns }) => {
   let { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows } = useTable({ columns, data });
