@@ -294,7 +294,7 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
         </div>
         <div id={`contenedorEditor0-${task._id}`} className='w-full min-h-[52px] flex items-center'>
           <div id={`quillEditor-${task._id}`} className="w-full">
-            <QuillEditor value={value} setValue={setValue} setPastedAndDropFiles={setPastedAndDropFiles} pastedAndDropFiles={pastedAndDropFiles} setValir={setValir} />
+            <QuillEditor value={value} setValue={setValue} setPastedAndDropFiles={setPastedAndDropFiles} pastedAndDropFiles={pastedAndDropFiles} />
           </div>
         </div>
         {!pastedAndDropFiles.length && <span onClick={valir ? handleCreateComment : () => { }} className={`${valir ? "cursor-pointer font-semibold" : "text-gray-400"} absolute right-3 bottom-[10.5px]`} >

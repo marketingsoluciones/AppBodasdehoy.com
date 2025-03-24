@@ -85,7 +85,7 @@ export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisa
 
   return (
     <div className={`flex flex-col w-full px-2 py-1 border-t-[1px] hover:bg-gray-100 relative`} {...props}>
-      <div className='flex flex-1 items-start'>
+      <div className='flex flex-1 items-start w-full'>
         <div className="w-8 h-8">
           {!identifierDisabled
             ? <div
@@ -96,9 +96,9 @@ export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisa
         </div>
         <div className="flex flex-col flex-1 px-1.5 w-[85%]">
           <span className="text-[11px] mt-2.5 font-semibold my-emoji">{userAsd?.displayName}</span>
-          <div className="flex gap-3">
+          <div className="grid grid-cols-2 gap-3 max-w-[280px] ">
             {(temp ? temp : item?.attachments)?.map((elem: any, idx: number) => {
-              return <div key={idx} className="bg-gray-300 flex flex-col items-center w-[130px] h-[80px] rounded-lg overflow-hidden" >
+              return <div key={idx} className="bg-gray-300 col-span-1 flex flex-col items-center w-[130px] h-[80px] rounded-lg overflow-hidden" >
                 <div className="flex-1 w-full flex justify-center items-center relative">
                   {!elem?.loading && <div className="absolute z-20 right-3 top-2 text-gray-600 hover:text-gray-800 cursor-pointer"
                     onClick={() => {
@@ -129,7 +129,7 @@ export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisa
             }
             )}
           </div>
-          <div >
+          <div className="w-[65vw] md:w-full overflow-hidden text-ellipsis whitespace-nowrap" >
             <Interweave
               className="text-xs transition-all my-emoji"
               content={item?.comment}
