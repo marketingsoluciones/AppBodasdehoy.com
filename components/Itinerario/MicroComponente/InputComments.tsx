@@ -216,6 +216,7 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
                   <IoClose className="w-6 h-6" />
                 </div>
               </div>
+
               {pastedAndDropFiles[slideSelect].saveType === "image"
                 ? <img src={pastedAndDropFiles[slideSelect].file.name as string} alt="Imagen" style={{ maxWidth: '100%', maxHeight: '240px', minHeight: '150px' }} />
                 : <div className="w-full h-[150px] flex flex-col items-center justify-center">

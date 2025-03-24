@@ -6,6 +6,7 @@ import Picker, { EmojiStyle, SuggestionMode, } from 'emoji-picker-react';
 import ClickAwayListener from 'react-click-away-listener';
 import { GrEmoji } from "react-icons/gr";
 import { PastedAndDropFile } from './InputComments';
+import { customAlphabet } from 'nanoid';
 
 const ReactQuill = dynamic(() => import('react-quill'), {
   ssr: false,
@@ -48,11 +49,11 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
   const handlePaste = async (event) => {
     setDispachSel(new Date())
     const files = (event.clipboardData)?.files ?? (event.dataTransfer)?.files;
+    const files1 = [...Array.from((event.clipboardData)?.files ?? (event.dataTransfer)?.files)] as File[]
     if (files?.length) {
       event.preventDefault();
-      setValir(false)
-      for (const file of files) {
-        const reader = new FileReader();
+      console.log(files1)
+      files1.map(elemento => {
         const elem = divEditableRef?.current?.getElementsByClassName("ql-editor")[0]
         const content = elem.textContent
         setCursorPosition(content.length)
@@ -61,21 +62,17 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
         }, 50);
         elem.style.boxShadow = '';
         elem.style.borderRadius = '';
-        reader.onload = (event1) => {
-          setDispachPasteAndDropFile({
-            payload: {
-              type: file.type.indexOf('image') === 0 ? "image" : "file",
-              file: event1.target.result,
-              name: file.name,
-              size: file.size,
-              loading: false
-            },
-            d: new Date()
-          })
-        };
-        reader.readAsDataURL(file)
-        await new Promise(resolve => setTimeout(resolve, 10));
-      }
+        const asd = {
+          payload: {
+            saveType: "doc",//elem?.type.indexOf('image') === 0 ? "image" : "file",
+            _id: customAlphabet('1234567890abcdef', 24)(),
+            loading: false,
+            file: elemento
+          },
+          d: new Date()
+        }
+        setDispachPasteAndDropFile(asd)
+      })
     }
   }
 
