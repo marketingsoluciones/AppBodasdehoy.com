@@ -40,7 +40,6 @@ const Prueba: FC<propsPrueba> = ({ setShowFormEditar, fullScreen, setFullScreen 
     const sX = contenedor.current.offsetWidth * 100 / lienzo?.width
     const sY = contenedor.current.offsetHeight * 100 / lienzo?.height
     const asd = Math.min(sX, sY) / 100
-    console.log(100020, asd)
     return asd
   }
 
