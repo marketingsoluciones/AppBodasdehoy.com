@@ -60,21 +60,27 @@ export const BlockLugarEvento = () => {
                     <GoSearch className={`w-6 h-6 ${!isAllowed() ? "text-gray-300" : "text-primaryOrg"}`} />
                 </div>
             </div>
-            {openList &&
-                <ClickAwayListener onClickAway={() => { openList && setOpenList(!openList) }}>
-                    <div className={`${openList ? "" : "hidden"}  bg-white rounded-lg py-2 px-3 space-y-1 absolute z-10 h-[290px] overflow-y-auto right-0 top-12 `}>
-                        {
-                            placesList && placesList?.map((item, idx) => {
-                                return (
-                                    <div key={idx} onClick={() => handleClick(item)} className="hover:bg-slate-100 cursor-pointer rounded-md px-3 py-1">
-                                        {item.businessName}
-                                    </div>
-                                )
-                            })
-                        }
+            {openList && (
+    <ClickAwayListener onClickAway={() => { openList && setOpenList(!openList) }}>
+        <div className="bg-white rounded-lg py-2 px-3 space-y-1 absolute z-10 h-[290px] overflow-y-auto right-0 top-12 w-[300px]">
+            {placesList && placesList.length > 0 ? (
+                placesList.map((item, idx) => (
+                    <div
+                        key={idx}
+                        onClick={() => handleClick(item)}
+                        className="hover:bg-slate-100 cursor-pointer rounded-md px-3 py-1"
+                    >
+                        {item.businessName}
                     </div>
-                </ClickAwayListener>
-            }
+                ))
+            ) : (
+                <div className="flex justify-center items-center h-full">
+                    <div className="loader border-t-2 border-primaryOrg rounded-full w-6 h-6 animate-spin"></div>
+                </div>
+            )}
+        </div>
+    </ClickAwayListener>
+)}
         </div>
     )
 }

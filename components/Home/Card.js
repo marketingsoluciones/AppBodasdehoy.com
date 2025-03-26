@@ -193,6 +193,7 @@ const Card = ({ data, grupoStatus, idx }) => {
           />
           <div className="relative w-full h-full z-10 p-4 pb-2 flex flex-col justify-between">
             <div className="flex flex-col">
+              
               <span className="text-sm font-display text-white capitalize">
                 {data[idx]?.tipo == "otro" ? "mi evento especial" : t(data[idx]?.tipo)}
               </span>
@@ -203,9 +204,9 @@ const Card = ({ data, grupoStatus, idx }) => {
               }
             </div>
             <div className="flex flex-col ">
-              <span className="capitalize text-lg font-display text-white">
-                {data[idx]?.nombre}
-              </span>
+            <span className="mt-[-4px] uppercase text-xs font-display text-white truncate">
+  {data[idx]?.nombre?.length > 20 ? `${data[idx]?.nombre.substring(0, 20)}...` : data[idx]?.nombre}
+</span>
               <span className="mt-[-4px] uppercase text-xs font-display text-white">
                 {`${new Date(parseInt(data[idx]?.fecha)).toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}`}
               </span>
