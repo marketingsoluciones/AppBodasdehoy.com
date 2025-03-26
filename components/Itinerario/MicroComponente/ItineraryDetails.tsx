@@ -20,6 +20,8 @@ export const ItineraryDetails: FC<props> = ({ itinerario, selectTask, view }) =>
   const [task, setTask] = useState<Task>()
   const [tasks, setTasks] = useState<Task[]>()
   const [isAllowed, ht] = useAllowed()
+  const [editUsers, setEditUsers] = useState<any[]>()
+  const [viewUsers, setViewUsers] = useState<any[]>([])
 
   useEffect(() => {
     if (itinerario?.tasks?.length > 0) {
@@ -41,7 +43,15 @@ export const ItineraryDetails: FC<props> = ({ itinerario, selectTask, view }) =>
 
   useEffect(() => {
     setTask(tasks?.find(elem => elem._id === selectTask))
-    console.log(task)
+    let editUsers = []
+    event?.usuario_id === user?.uid && editUsers.push(user)
+    event?.usuario_id !== user?.uid && editUsers.push(event.detalles_usuario_id)
+    event?.permissions?.find(elem => elem.title === window?.location?.pathname.slice(1))?.value === "edit" && editUsers.push(user)
+    editUsers = [...editUsers, ...event.detalles_compartidos_array.filter(elem => elem.permissions.find(el => el.title === window?.location?.pathname.slice(1)).value === "edit")]
+    setEditUsers(editUsers)
+    let viewUsers = []
+    event?.usuario_id !== user?.uid && event?.permissions?.find(elem => elem.title === window?.location?.pathname.slice(1))?.value === "view" && viewUsers.push(user)
+    setViewUsers(viewUsers)
 
   }, [selectTask, tasks, event.detalles_compartidos_array])
 
@@ -54,7 +64,7 @@ export const ItineraryDetails: FC<props> = ({ itinerario, selectTask, view }) =>
           <span className="text-[13px]">Total de Tasks Visibles: {itinerario?.tasks.filter(elem => elem.spectatorView).length}</span>
           <div className="flex flex-col space-y-0.5 pl-2 border-b-[1px] border-l-[1px] border-primary pb-2">
             <span>Quienes pueden VER Y EDITAR {itinerario?.title}, y VER, EDITAR Y COMENTAR en todos los taks aunque no estén visibles:    </span>
-            {[user, ...event.detalles_compartidos_array.filter(elem => elem.permissions.find(el => el.title === "servicios").value === "edit")].map((elem, idx) => {
+            {editUsers?.map((elem, idx) => {
               return <span key={idx} className="inline-flex items-center space-x-1 pl-2">
                 <div className="w-6 h-6 rounded-full border-[1px] border-gray-300">
                   <ImageAvatar user={elem} disabledTooltip />
@@ -70,9 +80,9 @@ export const ItineraryDetails: FC<props> = ({ itinerario, selectTask, view }) =>
           <span className="text-[13px]">Task seleccionado: {task?.descripcion}</span>
           <div className="flex flex-col space-y-0.5 pl-2">
             <span>Pueden VER Y COMENTAR este task:</span>
-            {task.spectatorView
-              ? event.detalles_compartidos_array.filter(elem => elem.permissions.find(el => el.title === "servicios").value === "view").length
-                ? event.detalles_compartidos_array.filter(elem => itinerario?.viewers.includes(elem.uid) && elem.permissions.find(el => el.title === "servicios").value === "view").map((elem, idx) => {
+            {task?.spectatorView
+              ? event?.detalles_compartidos_array.filter(elem => elem?.permissions?.find(el => el.title === window?.location?.pathname.slice(1)).value === "view")?.length
+                ? [...viewUsers, ...event?.detalles_compartidos_array?.filter(elem => itinerario?.viewers?.includes(elem.uid) && elem?.permissions?.find(el => el.title === window?.location?.pathname.slice(1)).value === "view")].map((elem, idx) => {
                   return <span key={idx} className="inline-flex items-center space-x-1 pl-2">
                     <div className="w-6 h-6 rounded-full border-[1px] border-gray-300">
                       <ImageAvatar user={elem} disabledTooltip />
