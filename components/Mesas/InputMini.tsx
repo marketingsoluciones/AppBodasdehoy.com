@@ -3,6 +3,7 @@ import { size } from "../../utils/Interfaces"
 import { EventContextProvider } from "../../context"
 import { fetchApiEventos, queries } from "../../utils/Fetching"
 import { useAllowed } from "../../hooks/useAllowed"
+import { useTranslation } from "react-i18next"
 
 interface propsInputMini {
   label: string
@@ -21,6 +22,7 @@ export const InputMini: FC<propsInputMini> = ({ label, lienzo, setLienzo, center
       ? `${lienzo[`${label == "alto" ? "height" : "width"}`] / 100}`
       : `${planSpaceActive.spaceChairs / 100}`
   )
+  const { t } = useTranslation();
 
   const handleOnChange = (e) => {
     try {
@@ -48,7 +50,7 @@ export const InputMini: FC<propsInputMini> = ({ label, lienzo, setLienzo, center
   return (
     <>
       <span className="flex flex-col text-[9px] md:text-[11px]">
-        {label && <span className="capitalize">{label}:</span>}
+        {label && <span className="capitalize">{`${t(label)}`}:</span>}
         <div>
           <input disabled={!isAllowed()} type="number" step={0.01} name="scala" className="w-10 h-4 text-[9px] md:text-[11px]"
             value={`${value}`}

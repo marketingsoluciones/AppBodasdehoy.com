@@ -98,7 +98,7 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
 
   return (
     // apply the table props
-    <div className={`bg-transparent pb-4 mt-5 rounded-md w-full grid col-span-12`}>
+    <div className={`bg-transparent pb-4 rounded-md w-full grid col-span-12`}>
       {children}
       <table
         {...getTableProps()}

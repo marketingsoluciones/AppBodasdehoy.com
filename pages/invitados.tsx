@@ -143,8 +143,8 @@ const Invitados: FC = () => {
                 <SelectModeView value={viewPreferUser} setValue={setViewPreferUser} />
               </div>
               {view === "cards"
-                ? <BlockTableroInvitados createPDF={createPDF} setCreatePDF={setCreatePDF} ConditionalAction={ConditionalAction} handleClick={handleClick} />
-                : <BlockListaInvitados createPDF={createPDF} setCreatePDF={setCreatePDF} ConditionalAction={ConditionalAction} handleClick={handleClick} />
+                ? <BlockTableroInvitados ConditionalAction={ConditionalAction} handleClick={handleClick} />
+                : <BlockListaInvitados ConditionalAction={ConditionalAction} handleClick={handleClick} />
               }
             </motion.div>
           </section >}

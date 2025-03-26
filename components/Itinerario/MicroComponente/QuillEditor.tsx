@@ -6,6 +6,7 @@ import Picker, { EmojiStyle, SuggestionMode, } from 'emoji-picker-react';
 import ClickAwayListener from 'react-click-away-listener';
 import { GrEmoji } from "react-icons/gr";
 import { PastedAndDropFile } from './InputComments';
+import { customAlphabet } from 'nanoid';
 
 const ReactQuill = dynamic(() => import('react-quill'), {
   ssr: false,
@@ -15,17 +16,15 @@ interface props {
   value: string
   setValue: any
   setPastedAndDropFiles: any
-  setValir: any
   pastedAndDropFiles: PastedAndDropFile[]
 }
 
-export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles, pastedAndDropFiles, setValir }) => {
+export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles, pastedAndDropFiles }) => {
   const divEditableRef = useRef(null);
   const [showPicker, setShowPicker] = useState(false);
   const [cursorPosition, setCursorPosition] = useState(0)
   const [dispachSel, setDispachSel] = useState(new Date())
   const [dispachCursorPosition, setDispachCursorPosition] = useState({ elem: undefined, d: new Date() })
-  const [dispachPasteAndDropFile, setDispachPasteAndDropFile] = useState<{ payload: PastedAndDropFile, d: Date }>()
   const [enableEditor, setEnableEditor] = useState(false);
   const [isMounted, setIsMounted] = useState(false)
 
@@ -47,48 +46,29 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
 
   const handlePaste = async (event) => {
     setDispachSel(new Date())
-    const files = (event.clipboardData)?.files ?? (event.dataTransfer)?.files;
+    const files = [...Array.from((event.clipboardData)?.files ?? (event.dataTransfer)?.files)] as File[]
     if (files?.length) {
       event.preventDefault();
-      setValir(false)
-      for (const file of files) {
-        const reader = new FileReader();
-        const elem = divEditableRef?.current?.getElementsByClassName("ql-editor")[0]
-        const content = elem.textContent
-        setCursorPosition(content.length)
-        setTimeout(() => {
-          elem.scrollTop = elem.scrollHeight;
-        }, 50);
-        elem.style.boxShadow = '';
-        elem.style.borderRadius = '';
-        reader.onload = (event1) => {
-          setDispachPasteAndDropFile({
-            payload: {
-              type: file.type.indexOf('image') === 0 ? "image" : "file",
-              file: event1.target.result,
-              name: file.name,
-              size: file.size,
-              loading: false
-            },
-            d: new Date()
-          })
-        };
-        reader.readAsDataURL(file)
-        await new Promise(resolve => setTimeout(resolve, 10));
-      }
+      const elem = divEditableRef?.current?.getElementsByClassName("ql-editor")[0]
+      const content = elem.textContent
+      setCursorPosition(content.length)
+      setTimeout(() => {
+        elem.scrollTop = elem.scrollHeight;
+      }, 50);
+      elem.style.boxShadow = '';
+      elem.style.borderRadius = '';
+      console.log(files)
+      const pastedAndDropFiles = files.map(elem => {
+        return {
+          saveType: "doc",//: file.type.indexOf('image') === 0 ? "image" : "file",
+          _id: customAlphabet('1234567890abcdef', 24)(),
+          loading: true,
+          file: elem
+        }
+      })
+      setPastedAndDropFiles([...pastedAndDropFiles]);
     }
   }
-
-  useEffect(() => {
-    if (dispachPasteAndDropFile?.payload) {
-      if (pastedAndDropFiles?.length) {
-        pastedAndDropFiles.push(dispachPasteAndDropFile.payload)
-        setPastedAndDropFiles([...pastedAndDropFiles]);
-      } else {
-        setPastedAndDropFiles([dispachPasteAndDropFile.payload])
-      }
-    }
-  }, [dispachPasteAndDropFile])
 
   useEffect(() => {
     try {

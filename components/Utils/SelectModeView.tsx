@@ -42,7 +42,7 @@ export const SelectModeView: FC<props> = ({ value, setValue }) => {
 
   return (
     <ClickAwayListener onClickAway={() => setShow(false)} >
-      <div className="relative flex cursor-pointer">
+      <div className="relative flex cursor-pointer -translate-y-10 md:translate-y-0">
         <div onClick={() => { setShow(!show) }} className="inline-flex text-sm gap-0.5 text-gray-700 items-center capitalize">
           {options.find(item => item.value === value)?.icon}
           {t("view")}

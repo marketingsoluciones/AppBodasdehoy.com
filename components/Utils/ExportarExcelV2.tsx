@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 //import * as XLSX from "xlsx";
-import * as XLSX from 'xlsx-js-style';
+import * as XLSX from 'xlsx';
 import { AuthContextProvider, EventContextProvider } from "../../context";
 
 export const ExportarExcelV2 = ({ data, column }) => {
@@ -60,7 +60,7 @@ export const ExportarExcelV2 = ({ data, column }) => {
             console.log(22222, data)
             // Agregar el nombre del gasto como título
             tabla.push({
-                A: data.nombre ,
+                A: data.nombre,
                 B: "",
                 E: "",
                 G: "",

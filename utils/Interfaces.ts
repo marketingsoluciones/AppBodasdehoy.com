@@ -65,6 +65,12 @@ export interface Comment {
     createdAt: Date
 }
 
+export type Info = {
+    title: string,
+    icon: JSX.Element,
+    info: JSX.Element | null,
+}
+
 export interface Task {
     _id: string
     fecha: Date

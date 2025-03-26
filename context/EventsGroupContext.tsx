@@ -33,7 +33,7 @@ type action = {
   payload: any;
 };
 
-const reducer = (state: Event[], action: action) => {
+const reducerAction = (state: Event[], action: action) => {
   switch (action.type) {
     case "EDIT_EVENT":
       return state.reduce((acc: Event[], item: Event) => {
@@ -61,7 +61,7 @@ const reducer = (state: Event[], action: action) => {
 
 const EventsGroupProvider = ({ children }) => {
   const router = useRouter();
-  const [eventsGroup, setEventsGroup] = useReducer<Reducer<Event[], action>>(reducer, []);
+  const [eventsGroup, setEventsGroup] = useReducer<Reducer<Event[], action>>(reducerAction, []);
   const [psTemplates, setPsTemplates] = useState<any>([]);
   const { user, config, verificationDone } = AuthContextProvider();
   const [reload, setReload] = useState<number>(0);
@@ -85,7 +85,7 @@ const EventsGroupProvider = ({ children }) => {
           variables: { variable: "usuario_id", valor: user?.uid, development: config?.development },
         })
           .then((events: Event[]) => {
-            if (!["RelacionesPublicas", "facturacion","event"].includes(router?.route.split("/")[1])) {
+            if (!["RelacionesPublicas", "facturacion", "event"].includes(router?.route.split("/")[1])) {
               setTimeout(() => {
                 if (events.length === 0) router.push("/")
               }, 100);

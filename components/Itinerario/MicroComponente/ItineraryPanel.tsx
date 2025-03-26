@@ -16,7 +16,7 @@ import { PencilEdit } from "../../icons";
 import { GoEye, GoEyeClosed, GoGitBranch } from "react-icons/go";
 import { LiaLinkSolid } from "react-icons/lia";
 import { MdOutlineDeleteOutline } from "react-icons/md";
-import { OptionsSelect, Task, Itinerary } from "../../../utils/Interfaces"
+import { OptionsSelect, Task, Itinerary, Info } from "../../../utils/Interfaces"
 import { SubHeader } from "./SubHeader";
 import { ViewItinerary } from "../../../pages/invitados";
 import FormTask from "../../Forms/FormTask";
@@ -29,6 +29,10 @@ import { TbLockOpen } from "react-icons/tb";
 import { useNotification } from "../../../hooks/useNotification";
 import { PastedAndDropFile } from "./InputComments";
 import { deleteAllFiles, deleteRecursive } from "../../Utils/storages";
+import { InfoLateral } from "./InfoLateral";
+import { CgInfo } from "react-icons/cg";
+import { ImageAvatar } from "../../Utils/ImageAvatar";
+import { ItineraryDetails } from "../MicroComponente/ItineraryDetails"
 
 interface props {
     itinerario: Itinerary
@@ -39,6 +43,8 @@ interface props {
     handleUpdateTitle: any
     title: string
     setTitle: any
+    selectTask: string
+    setSelectTask: any
 }
 
 export interface EditTastk {
@@ -58,7 +64,9 @@ export type TempPastedAndDropFiles = {
     uploaded: boolean
 }
 
-export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle, view, handleDeleteItinerario, handleUpdateTitle, title, setTitle }) => {
+export const Details = undefined
+
+export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle, view, handleDeleteItinerario, handleUpdateTitle, title, setTitle, selectTask, setSelectTask }) => {
     const { t } = useTranslation();
     const { config, geoInfo, user } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
@@ -71,7 +79,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     const [modalCompartirTask, setModalCompartirTask] = useState(false)
     const [modalPlantilla, setModalPlantilla] = useState(false)
     const [showEditTask, setShowEditTask] = useState<EditTastk>({ state: false })
-    const [selectTask, setSelectTask] = useState<string>()
     const storage = getStorage();
     const [modal, setModal] = useState({ state: false, title: null, values: null, itinerario: null })
     const [showModalCompartir, setShowModalCompartir] = useState({ state: false, id: null });
@@ -79,6 +86,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     const notification = useNotification()
     const [tempPastedAndDropFiles, setTempPastedAndDropFiles] = useState<TempPastedAndDropFiles[]>([]);
     const [loadingModal, setLoadingModal] = useState<boolean>(false)
+    const [task, setTask] = useState<Task>()
 
     const optionsItineraryButtonBox: OptionsSelect[] = [
         {
@@ -277,8 +285,18 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         }
     }, [router])
 
+    const infoLeftOptions: Info[] = [
+        {
+            title: "primero",
+            icon: <CgInfo className="w-5 h-5" />,
+            info: <ItineraryDetails itinerario={itinerario} selectTask={selectTask} view={view} />
+        },
+    ]
+
     return (
-        <div className="w-full flex-1 flex flex-col">
+        <div className="w-full flex-1 flex flex-col overflow-auto">
+            <InfoLateral ubication="left" infoOptions={infoLeftOptions} />
+            <InfoLateral ubication="right" infoOptions={[]} />
             {showEditTask?.state && (
                 <ModalLeft state={showEditTask} set={setShowEditTask} clickAwayListened={false}>
                     <div className="w-full flex flex-col items-start justify-start" >
@@ -289,9 +307,8 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             {modal.state && <Modal set={setModal} loading={loadingModal} classe={"w-[95%] md:w-[450px] h-[200px]"}>
                 <SimpleDeleteConfirmation setModal={setModal} modal={modal} deleteTask={deleteTask} />
             </Modal>}
-
             {["/itinerario"].includes(window?.location?.pathname) && <SubHeader view={view} itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} title={title} setTitle={setTitle} />}
-            <div className={`w-full flex-1 flex flex-col md:px-2 lg:px-6`}>
+            <div className={`*!hidden w-full flex-1 flex flex-col md:px-2 lg:px-6`}>
                 {
                     tasksReduce?.length > 0 ?
                         view !== "table"

@@ -27,6 +27,16 @@ export const SwiperPastedAndDropFiles: FC<props> = ({ pastedAndDropFiles, slideS
     mousewheel: true,
   };
 
+  const viewFile = (file: File, callback: (result: string | ArrayBuffer | null) => void) => {
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        callback(reader.result); // Llama al callback con el resultado
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <div className="w-full h-full flex justify-center">
       <Swiper
@@ -41,10 +51,10 @@ export const SwiperPastedAndDropFiles: FC<props> = ({ pastedAndDropFiles, slideS
             }} >
               <div className="w-[40px] h-[40px] relative cursor-pointer flex flex-col items-center justify-start">
                 <div className="w-[87%] h-[87%] flex items-center justify-center">
-                  {item.type === "image"
-                    ? <img src={item.file as string} alt="Imagen" style={{ width: '100%', height: '100%', objectFit: "cover" }} className="rounded-md" />
+                  {item.file.type === "image"
+                    ? <img src={"data"} alt="Imagen" style={{ width: '100%', height: '100%', objectFit: "cover" }} className="rounded-md" />
                     :
-                    <FileIconComponent extension={item.name.split(".").slice(-1)[0]} className="w-7 h-[33px] flex items-center border-[1px] border-gray-300 rounded-[3px]" />
+                    <FileIconComponent extension={item.file.name.split(".").slice(-1)[0]} className="w-7 h-[33px] flex items-center border-[1px] border-gray-300 rounded-[3px]" />
                   }
                 </div>
                 {slideSelect === idx && <div className="bg-primary w-[36px] flex-1 my-[1px]" />}

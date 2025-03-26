@@ -18,6 +18,8 @@ interface props {
     setTitle: Dispatch<SetStateAction<string>>
     setEditTitle: any
     setModalDuplicate: any
+    selectTask: string
+    setSelectTask: any
 }
 
 export const ItineraryTabsMenu: FC<props> = ({ setModalDuplicate, itinerario, item, handleDeleteItinerario, setEditTitle, setTitle }) => {
