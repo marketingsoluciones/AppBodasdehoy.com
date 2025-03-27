@@ -7,6 +7,7 @@ import { fetchApiEventos, queries } from "../../../utils/Fetching";
 import { HiArrowSmallRight } from "react-icons/hi2";
 import Select from 'react-select';
 import { useTranslation } from "react-i18next";
+import { LoadingSpinner } from "../../Utils/LoadingSpinner";
 
 
 export const ModalDuplicate = ({ setModalDuplicate, modalDuplicate }) => {
@@ -18,6 +19,8 @@ export const ModalDuplicate = ({ setModalDuplicate, modalDuplicate }) => {
   const [filteredEventsGroup, setFilteredEventsGroup] = useState([])
   const [selectedOption, setSelectedOption] = useState('');
   const { t } = useTranslation();
+  const [loading, setloading] = useState<boolean>(false);
+
 
   const toast = useToast();
 
@@ -31,6 +34,7 @@ export const ModalDuplicate = ({ setModalDuplicate, modalDuplicate }) => {
 
   const handleDuplicateItinerario = async () => {
     try {
+      setloading(true)
       const eventDestination = eventsGroup.find(elem => elem.nombre === selectedOption)
       if (eventDestination.itinerarios_array.filter(elem => elem.tipo === window?.location?.pathname.slice(1)).length > 9) {
         toast("warning", t("maxLimitedItineraries"));
@@ -44,6 +48,7 @@ export const ModalDuplicate = ({ setModalDuplicate, modalDuplicate }) => {
           eventID: event._id,
           itinerarioID: itinerary._id,
           eventDestinationID: eventDestination._id,
+          storageBucket: config.fileConfig.storageBucket
         },
         domain: config.domain
       }) as Itinerary
@@ -127,6 +132,7 @@ export const ModalDuplicate = ({ setModalDuplicate, modalDuplicate }) => {
         eventDestination.itinerarios_array.push(result)
         setEventsGroup({ type: "INITIAL_STATE", payload: [...eventsGroup] })
       }
+      setloading(false)
       setModalDuplicate({ state: false })
       toast("success", t("successful"));
     } catch (error) {
@@ -144,9 +150,10 @@ export const ModalDuplicate = ({ setModalDuplicate, modalDuplicate }) => {
   };
 
   return (
-    <div className="w-[650px] bg-white rounded-xl shadow-md">
+    <div className="bg-white rounded-xl shadow-md md:w-[600px] text-xs md:text-sm translate-y-10">
+      <LoadingSpinner loading={loading} />
       <div className="flex items-center justify-between border-b border-gray-300 pb-2 p-4">
-        <h2 className="text-lg font-semibold capitalize text-gray-700">{t("duplicar")} {cleanedPath}</h2>
+        <span className="font-semibold capitalize text-gray-700 md:text-lg">{t("duplicar")} {cleanedPath}</span>
         <button className="text-gray-500" onClick={() => { setModalDuplicate({ state: false }) }}>
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M3.707 3.293a1 1 0 0 1 1.414 0L10 8.586l5.293-5.293a1 1 0 1 1 1.414 1.414L11.414 10l5.293 5.293a1 1 0 1 1-1.414 1.414L10 11.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L8.586 10 3.293 4.707a1 1 0 0 1 0-1.414z" />
@@ -155,7 +162,7 @@ export const ModalDuplicate = ({ setModalDuplicate, modalDuplicate }) => {
       </div>
       <div className="grid grid-cols-11 gap-4 px-3 py-6">
         <div className="col-span-5">
-          <label className="text-sm text-gray-500 capitalize">{cleanedPath} {t("aDuplicar")}</label>
+          <label className="md:text-sm text-gray-500 capitalize">{cleanedPath} {t("aDuplicar")}</label>
           <div className="w-full border border-gray-300 cursor-default rounded-md p-[6.5px] text-azulCorporativo capitalize">
             {modalDuplicate.data?.title}
           </div>
@@ -164,7 +171,7 @@ export const ModalDuplicate = ({ setModalDuplicate, modalDuplicate }) => {
           <HiArrowSmallRight className="w-5 h-5" />
         </div>
         <div className="col-span-5">
-          <label className="text-sm text-gray-500 capitalize">{t("duplicateIn")}</label>
+          <label className="md:text-sm text-gray-500 capitalize">{t("duplicateIn")}</label>
           <Select
             options={options}
             onChange={handleSelectChangee}
