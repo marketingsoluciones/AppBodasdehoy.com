@@ -356,8 +356,8 @@ export const queries = {
       fecha_creacion
     }
   }`,
-  duplicateItinerario: `mutation ($eventID:String, $itinerarioID:String, $eventDestinationID:String, $next_id:ID){
-    duplicateItinerario(eventID:$eventID, itinerarioID:$itinerarioID, eventDestinationID:$eventDestinationID, next_id:$next_id){
+  duplicateItinerario: `mutation ($eventID:String, $itinerarioID:String, $eventDestinationID:String, $next_id:ID, $storageBucket:String){
+    duplicateItinerario(eventID:$eventID, itinerarioID:$itinerarioID, eventDestinationID:$eventDestinationID, next_id:$next_id, storageBucket:$storageBucket){
       _id
       next_id
       title

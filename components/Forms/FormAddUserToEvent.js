@@ -26,7 +26,7 @@ export const FormAddUserToEvent = ({ users, setUsers, optionsExist, setValir }) 
     }, [])
 
     const handleSubmit = (selectedOption) => {
-        setUsers(selectedOption)
+        setUsers(selectedOption.map(elem => elem.toLowerCase()))
     }
 
     const errorValidator = (message) => {
@@ -57,7 +57,7 @@ export const FormAddUserToEvent = ({ users, setUsers, optionsExist, setValir }) 
                     onChange={handleSubmit}
                     onKeyUp={onBlur}
                     name="emails"
-                   /*  placeHolder={!users.length ? t("pressenter") : t("pressenter")} */
+                    /*  placeHolder={!users.length ? t("pressenter") : t("pressenter")} */
                     beforeAddValidate={beforeAddValidate}
                     separators={separators}
                     classNames={{
