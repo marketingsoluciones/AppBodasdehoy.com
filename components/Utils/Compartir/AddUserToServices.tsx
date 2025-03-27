@@ -87,7 +87,7 @@ export const AddUserToServices: FC<props> = ({ openModal, setOpenModal, itinerar
                                                                         : <span>{t("ver y editar")}</span>}
                                                             </div>
                                                         </div>
-                                                        <div className={`bg-gray-200* w-9 h-9 rounded-full* flex items-center justify-center ${item.permissions.find(el => el.title === "servicios").value !== "view" && "cursor-not-allowed"}`}
+                                                        <div className={`bg-gray-200* w-9 h-9 rounded-full* flex items-center justify-center ${item.permissions.find(el => el.title === "servicios").value !== "view" && "hidden cursor-not-allowed"}`}
                                                             onClick={() => { item.permissions.find(el => el.title === "servicios").value === "view" && handleAddUser(item) }} >
                                                             {itinerario.viewers.includes(item.uid) || item.permissions.find(el => el.title === "servicios").value === "edit"
                                                                 ? <GoEye className={`w-5 h-5 ${item.permissions.find(el => el.title === "servicios").value === "edit" ? "text-gray-400" : "text-gray-600"}`} />

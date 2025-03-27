@@ -59,11 +59,11 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
 
         {children}
         <div className="md:w-1/2 h-full flex flex-col items-center justify-center px-8 gap-6 relative">
-          <div className="w-max mx-auto inset-x-0 text-center">
-
-            <h1 className="font-display font-semibold text-3xl text-gray-500">
-              {event?.nombre}
-            </h1>
+          <div className="w-auto mx-auto inset-x-0 text-center">
+          
+          <h1 className="mt-[-4px] font-display font-semibold text-3xl text-gray-500 truncate overflow-hidden text-ellipsis max-w-full">
+  {event?.nombre?.length > 20 ? `${event?.nombre.substring(0, 20)}...` : event?.nombre}
+</h1>
             <span className="font-display font-base text-sm flex gap-2 mx-auto w-max inset-x-0">
               <p className="text-gray-500">
                 {/* @ts-ignore */}
