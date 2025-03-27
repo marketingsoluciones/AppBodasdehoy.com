@@ -22,6 +22,10 @@ import { Modal } from '../Utils/Modal';
 import { ExportarExcelV2 } from '../Utils/ExportarExcelV2';
 import { PresupuestoSelectionMenuTable } from './PresupuestoSelectionMenuTable';
 import { DuplicatePresupuesto } from './DuplicatePesupuesto';
+import { RiSettings4Fill } from "react-icons/ri";
+import { ResumenInvitados } from './ResumenDeInvitadosPresupuesto';
+import { ModalTaskList } from './ModalTaskList';
+import { useAllowed } from '../../hooks/useAllowed';
 
 interface Categoria {
     _id: string;
@@ -34,7 +38,6 @@ interface Categoria {
 }
 
 export const ExcelView = ({ set, categorias_array, showCategoria }) => {
-
     const toast = useToast()
     const [windowsWidth, setWindowsWidth] = useState<number>()
     const { event, setEvent } = EventContextProvider()
@@ -45,16 +48,16 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
     const [menuDerecho, setMenuDerecho] = useState(false)
     const cate = showCategoria?.id
     const [showFormPago, setShowFormPago] = useState({ id: "", state: false })
-    const [showModalDuplicate, setShowModalDuplicate] = useState({ id: "", state: false })
-
+    const [showModalDuplicate, setShowModalDuplicate] = useState(false)
     const totalCosteFinal = categoria?.gastos_array?.reduce((total, item) => total + item.coste_final, 0)
     const totalpagado = categoria?.gastos_array?.reduce((total, item) => total + item.pagado, 0)
+    const [showSettings, setShowSettings] = useState(false)
+    const [isAllowed, ht] = useAllowed()
 
     window.addEventListener("resize", () => {
         const nuevoAncho = window.innerWidth;
         setWindowsWidth(nuevoAncho);
     })
-
 
     const columnsToExcel = [
         { column: "A", title: "Partida de Gasto", accessor: "nombre" },
@@ -89,31 +92,36 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
     const totalCosteEstimado = sumarCosteEstimado(categoria?.gastos_array);
     const AddGasto = async () => {
         try {
-            const rest: any = await fetchApiEventos({
-                query: queries.nuevoGasto,
-                variables: {
-                    evento_id: event?._id,
-                    categoria_id: categoria?._id,
-                    nombre: "Nueva part. de gasto",
-                }
-            });
-            setEvent((old) => {
-                const f1 = old?.presupuesto_objeto?.categorias_array?.findIndex(
-                    (item) => item._id == categoria._id
-                );
-                if (old.presupuesto_objeto.categorias_array[f1].gastos_array === null) {
-                    old.presupuesto_objeto.categorias_array[f1].gastos_array = [];
-                }
-                old.presupuesto_objeto.categorias_array[f1].gastos_array = [
-                    ...old.presupuesto_objeto.categorias_array[f1].gastos_array,
-                    rest,
-                ];
-                const f2 = old.presupuesto_objeto.categorias_array[f1].gastos_array.findIndex((elemt) => elemt._id == rest._id)
-                old.presupuesto_objeto.categorias_array[f1].gastos_array[f2].pagos_array = []
-                old.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array = []
-                return { ...old };
-            });
-            toast("success", t("Creado con exito"))
+
+            if (isAllowed()) {
+                const rest: any = await fetchApiEventos({
+                    query: queries.nuevoGasto,
+                    variables: {
+                        evento_id: event?._id,
+                        categoria_id: categoria?._id,
+                        nombre: "Nueva part. de gasto",
+                    }
+                });
+                setEvent((old) => {
+                    const f1 = old?.presupuesto_objeto?.categorias_array?.findIndex(
+                        (item) => item._id == categoria._id
+                    );
+                    if (old.presupuesto_objeto.categorias_array[f1].gastos_array === null) {
+                        old.presupuesto_objeto.categorias_array[f1].gastos_array = [];
+                    }
+                    old.presupuesto_objeto.categorias_array[f1].gastos_array = [
+                        ...old.presupuesto_objeto.categorias_array[f1].gastos_array,
+                        rest,
+                    ];
+                    const f2 = old.presupuesto_objeto.categorias_array[f1].gastos_array.findIndex((elemt) => elemt._id == rest._id)
+                    old.presupuesto_objeto.categorias_array[f1].gastos_array[f2].pagos_array = []
+                    old.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array = []
+                    return { ...old };
+                });
+                toast("success", t("Creado con exito"))
+            }else{
+                ht()
+            }
         } catch (error) {
             console.log(error);
         }
@@ -129,76 +137,106 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
         }
     }, [totalCosteFinal])
 
+    const OptionsSettings = [
+        {
+            title: "Importar Presupuesto",
+            onclick: () => setShowModalDuplicate(true),
+            isAllowed: true
+        }
+    ]
+
     return (
         <>
+            {/* MODALES*/}
             {
                 showFormPago.state && (
-                    <Modal classe={"w-[500px] h-[90%] p-4 "} >
-                        <div className="font-display text-gray-500 hover:text-gray-300 transition text-lg absolute top-5 right-5 cursor-pointer hover:scale-125" onClick={() => setShowFormPago({ id: "", state: false })}>X</div>
-                        <FormAddPago GastoID={showFormPago?.id} cate={categoria?._id} />
-                    </Modal>
+                    <div className="fixed inset-0 z-50 flex items-center justify-center">
+                        <div className="relative bg-white rounded-md shadow-md w-full max-w-3xl mx-4 md:mx-0 h-[90%] overflow-y-auto p-4 ">
+                            <div
+                                className="font-display text-gray-500 hover:text-gray-300 transition text-lg absolute top-1 right-2 cursor-pointer hover:scale-125"
+                                onClick={() => setShowFormPago({ id: "", state: false })}>
+                                X
+                            </div>
+                            <FormAddPago GastoID={showFormPago?.id} cate={categoria?._id} />
+                        </div>
+                    </div>
                 )
             }
             {
-                showFormPago.state && (
-                    <Modal classe={"w-[500px] h-[90%] p-4 "} >
-                        <DuplicatePresupuesto />
-                    </Modal>
+                showModalDuplicate && (
+                    <div className={"absolute z-50 flex justify-center  w-full"} >
+                        <DuplicatePresupuesto setModal={setShowModalDuplicate} />
+                    </div>
                 )
             }
-            <div className="flex pl-3 h-[calc( 100vh-300px )] relative " >
+            {/*COMPONENTE*/}
+            <div className="flex flex-col  md:flex-row pl-3 h-[calc( 100vh-300px )] relative " >
+                {/* COLUMNA IZQUIERDA, LISTA DE CATEGORIAS Y BOTON PARA OCULTAR */}
                 <div className="bg-transparent absolute h-full py-3 -top-12 left-0-" >
-                    <button onClick={() => setMenuIzquierdo(!menuIzquierdo)} className="bg-white border border-primary rounded-r-md w-7 h-7 flex items-center justify-center">
+                    <button onClick={() => setMenuIzquierdo(!menuIzquierdo)} className="bg-white border border-primary rounded-r-md w-7 h-7 md:flex items-center justify-center hidden ">
                         <GoArrowRight className={` ${menuIzquierdo === true ? "" : "rotate-180"} h-5 w-5 transition-all`} />
                     </button>
                 </div>
-                <div className={`${windowsWidth < 1200 ? "hidden" : "bg-transparent absolute h-full py-3 -top-12 right-0"}  `}>
-                    <button onClick={() => setMenuDerecho(!menuDerecho)} className="bg-white border border-primary rounded-l-md w-7 h-7 flex items-center justify-center">
-                        <GoArrowRight className={` ${menuDerecho != true ? "" : "rotate-180"} h-5 w-5 transition-all`} />
-                    </button>
-                </div>
-                <div className={`${menuIzquierdo ? "hidden " : " w-[15%] flex  items-center flex-col pr-4"} transition-all`}>
+                <div className={`${menuIzquierdo ? "hidden " : " md:w-[15%] flex  items-center flex-col md:pr-4 mb-3 md:mb-0"} transition-all`}>
                     <div className=" mb-2 w-full">
                         <ResumenInvitados />
                     </div>
                     <BlockListaCategorias set={set} categorias_array={categorias_array} cate={showCategoria} />
                 </div>
-                <div className="flex-1 flex flex-col items-center pb-5">
-                    <div className=' rounded-t-md w-full text-center capitalize bg-primary text-white py-1 ' >
-                        {categoria?.nombre ? categoria?.nombre : "Categoria"}
+                {/* TABLA */}
+                <div className="flex-1  flex flex-col items-center relative">
+                    {/* HEADER */}
+                    <div className=' flex justify-center items-center rounded-t-md w-full text-center capitalize bg-primary text-white py-1 ' >
+                        <div className='flex-1'>
+                            {categoria?.nombre ? categoria?.nombre : "Categoria"}
+                        </div>
                         {/* <ExportarExcelV2 data={event?.presupuesto_objeto} column={columnsToExcel} /> */}
-                        {/* <button onClick={() => setShowModalDuplicate(!showModalDuplicate.state)}>
-                            importar presupuesto
-                        </button> */}
+
+                        <ClickAwayListener onClickAway={() => showSettings && setShowSettings(false)} >
+                            <div onClick={() => setShowSettings(!showSettings)} className='flex-none mr-3  '>
+                                <RiSettings4Fill className='h-5 w-5 transition-all hover:rotate-180 cursor-pointer' />
+                                {
+                                    showSettings && (
+                                        <div className="absolute right-4 md:top-7 bg-white z-50 rounded-md shadow-md overflow-hidden">
+                                            {OptionsSettings.map((item, idx) => (
+                                                <div
+                                                    key={idx}
+                                                    onClick={() => item.isAllowed ? isAllowed() ? item.onclick() : ht() : null}
+                                                    className="px-3 py-1.5 hover:bg-base transition flex gap-2 text-gray-600 cursor-pointer text-xs  "
+                                                >
+                                                    <p className=''>
+                                                        {item.title}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )
+                                }
+                            </div>
+                        </ClickAwayListener>
                     </div>
-                    <TablePorProveedor data={data} categoria={categoria} set={setShowFormPago} />
+                    {/* BODY */}
+                    <div className=" w-[100%] md:w-full  overflow-x-auto md:overflow-visible ">
+
+                        <TablePorProveedor data={data} categoria={categoria} set={setShowFormPago} />
+                    </div>
+                    {/* FOOTER */}
                     <div className="flex px-3 w-full bg-slate-200  justify-items-center py-1 rounded-b-md text-xs ">
                         <div
-                            onClick={() => AddGasto()}
-                            className="font-display text-sm- text-primary w-full  flex gap-2 items-center cursor-pointer  col-span-2 "
+                            onClick={() => categoria != null || undefined ? AddGasto() : null}
+                            className={` ${  categoria != null || undefined ? "text-primary cursor-pointer " : "text-gray-500 cursor-default"} font-display text-xs  w-full  flex gap-2 items-center  col-span-2  `}
                         >
-                            <PlusIcon /> Añadir Part. de Gasto
+                            <PlusIcon /><span className='hidden md:block'> Añadir Part. de Gasto</span>
                         </div>
                         <div className="w-full flex  items-center justify-end" >
-                            <label className='mr-2'>Valor Total:</label> {getCurrency(totalCosteFinal, event?.presupuesto_objeto?.currency)}
-                        </div>
-                        <div className=" w-full flex  items-center justify-end" >
-                            <label className='mr-2'> Valor Total Estimado:</label> {getCurrency(totalCosteEstimado, event?.presupuesto_objeto?.currency)}
-                        </div>
-                        <div className=" w-full flex  items-center justify-end  " >
-                            <label className='mr-2'>Total Pagado:</label> {getCurrency(totalpagado, event?.presupuesto_objeto?.currency)}
-                        </div>
-                        <div className=" w-full flex  items-center justify-end " >
-                            <label className='mr-2'>Total Pendiente:</label> {getCurrency(totalCosteFinal - totalpagado, event?.presupuesto_objeto?.currency)}
+                            <label className='w-max mr-4 '> Valor Total: {getCurrency(totalCosteFinal, event?.presupuesto_objeto?.currency)}</label>
+                            <label className='w-max mr-4 hidden md:block '> Valor Total Estimado: {getCurrency(totalCosteEstimado, event?.presupuesto_objeto?.currency)}</label>
+                            <label className='w-max mr-4'>Total Pagado: {getCurrency(totalpagado, event?.presupuesto_objeto?.currency)}</label>
+                            <label className='w-max hidden md:block'>Total Pendiente: {getCurrency(totalCosteFinal - totalpagado, event?.presupuesto_objeto?.currency)}</label>
                         </div>
                     </div>
                 </div>
-                <div className={`${menuDerecho || windowsWidth < 1200 ? "hidden " : " w-[15%] flex  items-center flex-col pl-4"} transition-all`}>
-                    <h2 className="font-display pb-2 text-xl text-gray-500 font-semibold text-center w-full">
-                        {t("howost")}
-                    </h2>
-                    <Grafico categorias={categorias_array} />
-                </div>
+
                 <style jsx>
                     {`
                     .CuadroInvitados {
@@ -212,7 +250,7 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
                     }
                     `}
                 </style>
-            </div>
+            </div >
         </>
     );
 };
@@ -248,10 +286,12 @@ const ColumnVisibilityModal = ({ columnVisibility, toggleColumnVisibility, close
     );
 };
 
+/* TABLA DONDE ESTAN LAS PARTIDAS DE GASTOS, PRIMER NIVEL */
+
 const TablePorProveedor = ({ data = [], categoria, set }) => {
+    const [isAllowed, ht] = useAllowed()
     const { event, setEvent } = EventContextProvider()
     const toast = useToast()
-    const [isModalOpen, setIsModalOpen] = useState(false);
     const idd = useId();
     const [columnVisibility, setColumnVisibility] = useState({
         nombre: { visible: true, Header: "Partida de Gasto", span: 2, accessor: "nombre" },
@@ -302,12 +342,15 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
                 Header: "Total",
                 accessor: "coste_final",
                 Cell: (props) => {
-                    const data = props?.row?.original?.items_array
+                    const f1 = event?.presupuesto_objeto?.categorias_array.findIndex((item) => item._id == categoria?._id)
+                    const f2 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == props?.row?.original?._id)
+                    const data = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.items_array
                     const sumaTotal = data?.reduce((total, item) => total + item.total, 0)
-
+                    if (data?.length > 0) {
+                        event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].coste_final = sumaTotal
+                    }
                     useEffect(() => {
-                        if (data.length > 0) {
-                            console.log("entro")
+                        if (data?.length > 0) {
                             fetchApiEventos({
                                 query: queries.editGasto,
                                 variables: {
@@ -317,8 +360,7 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
                                     variable_reemplazar: "coste_final",
                                     valor_reemplazar: sumaTotal
                                 }
-                            }).then((result) => {
-
+                            }).then(() => {
                             }).catch((error) => {
                                 console.log(error);
                             })
@@ -327,7 +369,10 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
 
                     if (data?.length === 0) {
                         return (
-                            <CellEditCopy categoriaID={categoria?._id} type={"number"} {...props} table={"principal"} />
+                            <div className='w-full'>
+
+                                <CellEditCopy categoriaID={categoria?._id} type={"number"} {...props} table={"principal"} />
+                            </div>
                         )
                     }
                     if (data?.length > 0) {
@@ -374,16 +419,16 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
                 id: "pendiente_pagar",
                 Cell: (props) => {
                     const [value, setValue] = useState(0);
-                    const total = props.row.original.items_array.reduce((acumulador, objeto) => acumulador + objeto.total, 0);
+                    const total = props?.row?.original?.items_array?.reduce((acumulador, objeto) => acumulador + objeto?.total, 0);
                     useEffect(() => {
 
-                        if (props.row.original.coste_final === 0) {
+                        if (props?.row?.original?.coste_final === 0) {
                             setValue(0)
                         }
-                        if (props.row.original.items_array.length > 0) {
-                            setValue(total - props.row.original.pagado)
+                        if (props?.row?.original?.items_array?.length > 0) {
+                            setValue(total - props?.row?.original?.pagado)
                         } else (
-                            setValue(props.row.original.coste_final - props.row.original.pagado)
+                            setValue(props?.row?.original?.coste_final - props?.row?.original?.pagado)
                         )
 
 
@@ -402,8 +447,8 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
                 className: 'relative',
                 Cell: (props) => {
                     const [show, setShow] = useState(false);
-                    const [showItem, setShowItem] = useState(props?.row?.original.estatus === null ? false : props?.row?.original.estatus);
-                    const dataCategoria = categoria?.gastos_array.find((item) => item._id == props.row.original._id);
+                    const [showItem, setShowItem] = useState(props?.row?.original?.estatus === null ? false : props?.row?.original?.estatus);
+                    const dataCategoria = categoria?.gastos_array?.find((item) => item?._id == props?.row?.original?._id);
                     const handleRemove = async () => {
                         let data
                         try {
@@ -468,6 +513,9 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
                                 const f1 = old?.presupuesto_objeto?.categorias_array.findIndex((item) => item._id == categoria?._id);
                                 const f2 = old?.presupuesto_objeto?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == props.row.original._id);
                                 old?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.items_array?.push(data)
+                                if (old?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.items_array.length > 0) {
+                                    old.presupuesto_objeto.categorias_array[f1].gastos_array[f2].coste_final = 0
+                                }
                                 return ({ ...old, })
                             })
                             toast("success", t("Creado con exito"))
@@ -517,7 +565,7 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
                         {
                             icon: <GoTasklist className="w-4 h-4" />,
                             title: "Task",
-                            //function: BorrarCategoria
+                            onClick: () => setShow(true)
                         },
                         {
                             icon: <MdOutlineDeleteOutline className="w-4 h-4" />,
@@ -533,12 +581,18 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
 
                     ];
                     return (
-                        <div className="absolute right-0 z-20 flex items-center ">
-
-                            {showItem ?
-                                <GoEye className="w-5 h-5" />
-                                : null}
+                        <div className="relative  w-full z-50 flex items-center justify-end ">
+                            {
+                                showItem ?
+                                    <GoEye className="w-4 h-4" /> :
+                                    null
+                            }
                             <PresupuestoSelectionMenuTable data={props} categoria={categoria} OptionList={Lista} /* setShowEditTask={setShowEditTask} showEditTask={showEditTask} */ />
+                            {
+                                show && (
+                                    < ModalTaskList setModal={setShow} event={event} categoria={categoria} gasto={props?.row?.original} setEvent={setEvent} />
+                                )
+                            }
                         </div>
                     );
                 },
@@ -582,84 +636,10 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
         )
     }, [categoria]);
     return (
-        /* <table {...getTableProps()} className=" bg-slate-50  border-collapse w-full relative p-4 ">
-            {isModalOpen && (
-                <ColumnVisibilityModal
-                    columnVisibility={columnVisibility}
-                    toggleColumnVisibility={toggleColumnVisibility}
-                    closeModal={() => setIsModalOpen(false)}
-                />
-            )}
-            <thead className="relative text-xs text-gray-700 uppercase w-full bg-[#e6e6d7] ">
-                {headerGroups.map((headerGroup, id) => (
-                    <tr
-                        {...headerGroup.getHeaderGroupProps()}
-                        className={` grid grid-cols-18 py-2  `}
-                        key={id}
-                    >
-                        {headerGroup.headers.map((column: any, id: any) => (
-                            <th
-                                {...column.getHeaderProps(column.getSortByToggleProps())}
-                                className={`leading-[1]-  text-center flex justify-center items-center text-xs font-light font-display col-span-${colSpan[column.id]} ${column?.className}`}
-                                key={id}
-                            >
-                                {typeof column.render("Header") == "string" && t(column.render("Header"))}
-                                <span>
-                                    {column.isSorted ? (column.isSortedDesc ? " 🠻" : " 🠹") : ""}
-                                </span>
-                            </th>
-                        ))}
-                    </tr>
-                ))}
-            </thead>
-            {
-                data.length > 0 ?
-                    <tbody {...getTableBodyProps()} className="text-gray-500 text-sm w-full overflow-y-auto ">
-                        {rows.map((row, id) => {
-                            prepareRow(row);
-                            return (
-                                <React.Fragment key={row.id}>
-                                    <tr
-                                        key={id}
-                                        {...row.getRowProps()}
-                                        className={` w-full border-b border-base grid grid-cols-18 px-2 bg-[#eaecee] `}
-                                    >
-                                        {row.cells.map((cell, id) => {
-                                            return (
-                                                <td
-                                                    key={id}
-                                                    {...cell.getCellProps()}
-                                                    className={` pr-2 font-display text-sm w-full text-left py-2 col-span-${colSpan[cell.column.id]
-                                                        }`}
-                                                >
-                                                    {cell.render("Cell")}
-                                                </td>
-                                            );
-                                        })}
-                                    </tr>
-                                    { /* row.isExpanded  true ? (
-                                        <tr key={idd} className="h-max w-full">
-                                            <td >
-                                                {renderRowSubComponent({ row, categoria })}
-                                            </td>
-                                        </tr>
-                                    ) : null}
-                                </React.Fragment>
-                            );
-                        })}
-                    </tbody>
-                    : <tbody className='h-[500px] capitalize flex items-center justify-center text-azulCorporativo'>
-                        <tr>
-                            <td colSpan={16}>No hay datos disponibles.</td>
-                        </tr>
-                    </tbody>
-            }
-        </table> */
-        //< div className = "relative" >
-        //<div className="col-span-2 col-span-3 col-span-4 col-span-5 col-span-6 col-span-7 col-span-8 col-span-9 col-span-10" />
+
         <table
             {...getTableProps()}
-            className="table-auto border-collapse w-full rounded-lg relative p-4">
+            className="table-auto border-collapse md:w-full rounded-lg relative p-4 overflow-x-auto w-[900px]">
             <thead className="relative text-xs text-gray-700 uppercase w-full ">
                 {headerGroups.map((headerGroup: any, id: any) => {
                     return (
@@ -735,6 +715,8 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
     )
 }
 
+
+/* TABLA DONDE ESTAN LOS ITEMS DE LAS PARTIDAS DE GASTOS, SEGUNDON NIVEL */
 const SubComponenteTable = ({ row, data = [], categoria, visibleColumns }) => {
     const { user, config } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
@@ -872,12 +854,14 @@ const SubComponenteTable = ({ row, data = [], categoria, visibleColumns }) => {
                     const f1Event = event?.presupuesto_objeto?.categorias_array.findIndex((item) => item._id == categoria?._id);
                     const f2Event = event?.presupuesto_objeto?.categorias_array[f1Event]?.gastos_array.findIndex((item) => item._id == dataCategoria?._id);
                     const f3Event = event?.presupuesto_objeto?.categorias_array[f1Event]?.gastos_array[f2Event]?.items_array.findIndex((item) => item._id == data.row.original._id);
-                    if (event.presupuesto_objeto.categorias_array[f1Event].gastos_array[f2Event] === undefined) {
+                    if (event?.presupuesto_objeto?.categorias_array[f1Event]?.gastos_array[f2Event] === undefined) {
                         null
                     } else {
                         event.presupuesto_objeto.categorias_array[f1Event].gastos_array[f2Event].items_array[f3Event].total = total
                     }
 
+                    console.log("data de la celda", data.row.original.valor_unitario)
+                    console.log("total", total)
                     useEffect(() => {
                         fetchApiEventos({
                             query: queries.editItemGasto,
@@ -896,7 +880,7 @@ const SubComponenteTable = ({ row, data = [], categoria, visibleColumns }) => {
                         })
                     }, [total])
                     return (
-                        <span className="flex items-center justify-end capitalize text-right w-full">
+                        <span className="flex items-center justify-end capitalize text-right w-full h-full">
                             {getCurrency(total, event?.presupuesto_objeto?.currency)}
                         </span>
                     )
@@ -1077,48 +1061,3 @@ const SubComponenteTable = ({ row, data = [], categoria, visibleColumns }) => {
     )
 }
 
-const ResumenInvitados = ({ }) => {
-    const { event, setEvent } = EventContextProvider()
-    const { t } = useTranslation();
-    const totalSegun = (prop, param) => {
-        return event?.invitados_array?.filter((item) => item[prop] == param);
-    };
-    const ObjInvitado = {
-        total: event?.invitados_array?.length,
-    };
-    return (
-
-        <div style={{ minWidth: '100px' }} className="  gap-4 CuadroInvitados flex  items-center justify-center h-full w-full  md:p-4 mt-1  rounded-md shadow-md bg-white">
-            <div className="flex gap-1 items-center justify-end ">
-                <p className="font-display font-semibold text-2xl md:text-4xl text-primary">
-                    {ObjInvitado?.total}
-                </p>
-                <p className="font-display text-sm md:text-[16px] text-primary">{t("Invitados")}</p>
-            </div>
-            <div className="flex flex-col items-start justify-center gap-1 ">
-                <p className="font-display font-semibold text-xs text-gray-500 flex gap-1">
-                    {totalSegun("grupo_edad", "adulto")?.length}{" "}
-                    <span className="text-xs font-light">{t("adults")}</span>
-                </p>
-                <p className="font-display font-semibold text-xs text-gray-500 flex gap-1">
-                    {totalSegun("grupo_edad", "niño")?.length}{" "}
-                    <span className="text-xs font-light">{t("childrenandbabies")}</span>
-                </p>
-            </div>
-            <style jsx>
-                {`
-                    .CuadroInvitados {
-                        width: full;
-                    }
-                    @media only screen and (max-width: 1650px) {
-                        .CuadroInvitados {
-                        flex-direction: column;
-                        
-                        }
-                    }
-                    `}
-            </style>
-        </div>
-
-    )
-}

@@ -879,6 +879,40 @@ export const queries = {
       showChildrenGuest
     }
   }`,
+
+  duplicatePresupuesto: `mutation ($eventID:String, $eventDestinationID:String){
+    duplicatePresupuesto(eventID:$eventID,  eventDestinationID:$eventDestinationID ){
+    coste_estimado
+    coste_final
+    pagado
+    currency
+    categorias_array{
+      _id
+      coste_proporcion
+      coste_estimado
+      coste_final
+      pagado
+      nombre
+      gastos_array{
+        _id
+        coste_proporcion
+        coste_estimado
+        coste_final
+        pagado
+        nombre
+        linkTask
+        estatus
+        pagos_array{
+          _id
+        }
+        items_array{
+          _id
+         }
+     }
+  }
+  }
+  }`,
+
   nuevoPago: `mutation($evento_id:String, $categoria_id:String, $gasto_id: String,$pagos_array:[pagos_arrayAinput]){
                   nuevoPago(evento_id:$evento_id, categoria_id:$categoria_id, gasto_id:$gasto_id, pagos_array:$pagos_array){
                     pagado
@@ -1019,6 +1053,8 @@ export const queries = {
                 }
               }
             }`,
+
+
 
   editItemGasto: `mutation($evento_id: ID ,$categoria_id: ID, $gasto_id: ID, $itemGasto_id: ID, $variable: String, $valor: StringIntBool){
     editItemGasto(evento_id:$evento_id, categoria_id: $categoria_id, gasto_id: $gasto_id, itemGasto_id: $itemGasto_id, variable: $variable, valor: $valor){

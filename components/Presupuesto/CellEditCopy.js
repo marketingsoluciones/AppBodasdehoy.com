@@ -51,11 +51,11 @@ const CellEditCopy = (props) => {
   };
 
   const handleBlur = async (e) => {
-    console.log("blur", e)
     setEdit(false);
     let res;
     if (value !== props?.value) {
       if (props?.table === "principal") {
+
         try {
           const params = {
             query: `mutation{
@@ -144,7 +144,7 @@ const CellEditCopy = (props) => {
             onChange={(e) => handleChange(e)}
             onKeyDown={(e) => keyDown(e)}
             autoFocus
-            className="focus:outline-none focus:ring-0 focus:border-none text-center w-full px-2 h-6"
+            className="focus:outline-none focus:ring-0 focus:border-none text-center w-full px-2 h-6 text-xs"
           />
         ) : (
           <p className={` ${props.type == "number" && "text-end" || props.type == "string" && "text-left capitalize" || props.type === "cantidad" && "text-center" || props.type === "unidad" && "text-center"} cursor-pointer w-full truncate px-2 py-1 h-6 `} onClick={() => !isAllowed() ? null : setEdit(true)}>

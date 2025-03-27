@@ -181,7 +181,7 @@ export interface estimateCategory extends cost {
 }
 
 export interface expenses extends cost {
-    linkTicket: string
+    linkTask: string[]
     estatus: boolean
     pagos_array: pay[]
     items_array: item[]

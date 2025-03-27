@@ -350,50 +350,55 @@ export const BasicFormLogin = ({
           </div>
           {
             showProOptions ?
-              <div className={`space-y-2 transition-all duration-200`}>
+            <div className={`space-y-2 transition-all duration-200`}>
+            <div className="h-[200px] flex flex-col space-y-2 ">
+              <h2 className="text-primary text-[14px]"> {t("uploaddocument")}</h2>
+              <label htmlFor="file-upload" className="cursor-pointer self-center flex items-center justify-center bg-slate-200  border-dotted border-2 border-slate-600  h-full  w-[80%] rounded-md ">
+                {
+                  selectedFile ? (
+                    <div className="w-full h-full">
+                      {selectedFile.type.startsWith('image/') && (
+                        <img src={URL.createObjectURL(selectedFile)} alt="Vista previa" className="w-full h-full object-contain" />
+                      )}
+                      <p className="text-gray-600 pt-1 text-xs">Archivo: {selectedFile.name}</p>
+                    </div>
+                  ) : <GoFileDiff className="h-14 w-14 text-gray-400" />
+                }
+              </label>
+              <input
+                type="file"
+                onChange={handleFileChange}
+                id="file-upload"
+                name="file"
+                className="hidden"
+              />
+            </div>
+            {/* <div className=" flex flex-col space-y-2  ">
+              <h2 className="text-gray-800 text-[14px]">{t("documentnumber")}</h2>
+              <div className="w-[90%] self-center">
+                <InputField
+                  name="a"
+                  onChange={handleChange}
+                  disabled={true}
+                  className={`${false ? "" : "bg-slate-200"}`}
+                  type="text"
+                  autoComplete="off" />
+              </div>
+            </div> */}
+            {/* <div className="flex flex-col space-y-2  ">
+              <h2 className="text-gray-800 text-[14px]">{t("contact")}</h2>
+              <div className="w-[90%] self-center">
+                <InputField
+                  name="b"
+                  onChange={handleChange}
+                  disabled={true}
+                  className={`${false ? "" : "bg-slate-200"}`}
+                  type="text"
+                  autoComplete="off" />
+              </div>
+            </div> */}
 
-                <div className="h-[200px] flex flex-col space-y-2 ">
-                  <h2 className="text-gray-800 text-[14px]"> {t("uploaddocument")}</h2>
-                  <label htmlFor="file-upload" className="cursor-pointer self-center flex items-center justify-center bg-slate-200  border-dotted border-2 border-slate-600  h-full  w-[80%] rounded-md ">
-                    {
-                      selectedFile ? (
-                        <div className="flex flex-col items-center">
-                          {selectedFile.type.startsWith('image/') && (
-                            <img src={URL.createObjectURL(selectedFile)} alt="Vista previa" />
-                          )}
-                          <p className="text-sm text-gray-600">Archivo: {selectedFile.name}</p>
-                        </div>
-                      ) : <GoFileDiff className="h-14 w-14 text-gray-400" />
-                    }
-                  </label>
-                  <input type="file" onChange={handleFileChange} id="file-upload" name="file" className="hidden"></input>
-                </div>
-                {/* <div className=" flex flex-col space-y-2  ">
-                  <h2 className="text-gray-800 text-[14px]">{t("documentnumber")}</h2>
-                  <div className="w-[90%] self-center">
-                    <InputField
-                      name="a"
-                      onChange={handleChange}
-                      disabled={true}
-                      className={`${false ? "" : "bg-slate-200"}`}
-                      type="text"
-                      autoComplete="off" />
-                  </div>
-                </div>
-                <div className="flex flex-col space-y-2  ">
-                  <h2 className="text-gray-800 text-[14px]">{t("contact")}</h2>
-                  <div className="w-[90%] self-center">
-                    <InputField
-                      name="b"
-                      onChange={handleChange}
-                      disabled={true}
-                      className={`${false ? "" : "bg-slate-200"}`}
-                      type="text"
-                      autoComplete="off" />
-                  </div>
-                </div> */}
-
-              </div> :
+          </div>  :
               null
           }
         </div>

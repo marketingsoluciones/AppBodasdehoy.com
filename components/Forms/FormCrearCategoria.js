@@ -99,7 +99,7 @@ export const BasicForm = ({
 }) => {
   const { t } = useTranslation();
   return (
-    <>
+    <div className="flex flex-col w-full" >
       <div className="border-l-2 border-gray-100 pl-3 w-full ">
         <h2 className="font-display text-3xl capitalize text-primary font-light">
           {t("create")} <br />
@@ -108,14 +108,14 @@ export const BasicForm = ({
           </span>
         </h2>
       </div>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5 py-6 w-full">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5 py-6 md:w-[70%]  fustify-center">
         <div className="grid grid-cols-1 gap-4">
           <div className="flex items-center box-content">
-            <img
+            {/* <img
               src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y"
               alt="imagen-invitados"
               className="w-12 h-12 rounded-full mr-6 "
-            />
+            /> */}
             <InputField
               name="nombre"
               label={t("categoryname")}
@@ -135,6 +135,6 @@ export const BasicForm = ({
           {t("createcategory")}
         </button>
       </form>
-    </>
+    </div >
   );
 };

@@ -73,9 +73,9 @@ const Presupuesto = () => {
                 <div
                   onClick={() => setActive("excelView")}
                   className={` w-[40%] md:w-full py-1  ${active == "excelView" ? "bg-primary text-white" : "bg-white text-primary"
-                    } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
+                    } h-full flex  justify-center items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
                 >
-                  <p>Presupuesto Detallado</p>
+                  <p className="hidden md:block pr-1">Presupuesto </p> Detallado
                 </div>
 
                 <div
@@ -180,7 +180,7 @@ const Presupuesto = () => {
                     exit={{ opacity: 0 }}
                     className=" w-full gap-6 pt-2 md:pr-0 pb-4 h-[100vh]"
                   >
-                    <BlockPagos cate={showCategoria?.id} setGetId={setGetId} getId={getId} categorias_array={categorias} estado={"pagado"} />
+                    <BlockPagos cate={showCategoria?.id} setGetId={setGetId} getId={getId} categorias_array={categorias} /* estado={"pagado"} */ />
                   </motion.div>
                 )
               }
@@ -204,7 +204,7 @@ const Presupuesto = () => {
                     exit={{ opacity: 0 }}
                     className=" w-full gap-6 pt-2 md:pr-0  "
                   >
-                    <ExcelView set={(act) => setShowCategoria(act)} categorias_array={categorias} showCategoria={showCategoria}/>
+                    <ExcelView set={(act) => setShowCategoria(act)} categorias_array={categorias} showCategoria={showCategoria} />
                   </motion.div>
                 )
               }
@@ -235,7 +235,7 @@ const MontoPresupuesto = ({ estimado }) => {
     e.preventDefault();
     const r = e.target.value
     if (r >= 0) {
-      setValue(parseFloat( e.target.value));
+      setValue(parseFloat(e.target.value));
     }
   };
 
@@ -497,8 +497,13 @@ const ItemCategoria = ({ item, setVisible, set, cate }) => {
     { title: "Borrar", function: BorrarCategoria }
   ];
 
+
   return (
-    <li onClick={() => Presu != 0 ? setVisible({ isVisible: true, id: item._id }) : toast("error", t("Agrega un monto a tu Presupuesto Estimado"))} className={`w-full justify-between items-center flex   px-5  transition ${Presu == 0 ? "" : "hover:bg-base"} ${cate?.id == item._id ? "bg-slate-200" : ""}`}>
+    <li
+
+      onClick={() => Presu != 0 ? setVisible({ isVisible: true, id: item._id }) : toast("error", t("Agrega un monto a tu Presupuesto Estimado"))}
+      className={` text-xs w-full justify-between items-center flex px-5  transition ${Presu == 0 ? "" : "hover:bg-base"} ${cate?.id == item._id ? "bg-slate-200" : ""}`}
+    >
       <span
         className="gap-2 py-3 flex items-center capitalize"
       >
@@ -531,6 +536,19 @@ const ItemCategoria = ({ item, setVisible, set, cate }) => {
           )}
         </div>
       </span>
+      <style jsx>
+        {`
+                    .itemList {
+                        width: full;
+                    }
+                    @media only screen and (max-width: 1250px) {
+                        .itemList {
+                        flex-direction: column;
+                        
+                        }
+                    }
+                    `}
+      </style>
     </li>
   );
 };

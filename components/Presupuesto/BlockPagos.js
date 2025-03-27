@@ -10,15 +10,18 @@ import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
 import { GrDocumentDownload } from "react-icons/gr";
 import { Modal } from "../Utils/Modal";
+import { PiXBold } from "react-icons/pi";
 
 
 
-const BlockPagos = ({ estado, getId, setGetId, cate }) => {
+const BlockPagos = ({ getId, setGetId, cate }) => {
   const { t } = useTranslation();
   const [active, setActive] = useState(0);
   const [showSoporte, setShowSoporte] = useState({ state: false, data: null })
+  const [estado, setEstado] = useState("pagado");
 
-  console.log(showSoporte)
+
+  console.log(estado)
 
   return (
     <motion.div
@@ -27,7 +30,30 @@ const BlockPagos = ({ estado, getId, setGetId, cate }) => {
       exit={{ opacity: 0 }}
       className="w-full max-w-screen-lg relative mx-auto inset-x-0    "
     >
-      <div className="bg-white p-6 h-max shadow-md rounded-xl mt-10 overflow-x-auto*  ">
+
+
+      <div className="w-max  flex my-2 mt-4. rounded-2xl overflow-hidden">
+        <div
+          onClick={() => setEstado("pagado")}
+          className={`w-[150px] py-1   ${estado == "pagado" ? "bg-primary text-white" : "bg-white text-primary"
+            } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90 capitalize`}
+        >
+          <p> pagado</p>
+        </div>
+
+        <div
+          onClick={() => setEstado("pendiente")}
+          className={`w-[150px] py-1 ${estado == "pendiente" ? "bg-primary text-white" : "bg-white text-primary"
+            } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90 border-x-2 capitalize`}
+        >
+          <p> Pendientes</p>
+        </div>
+      </div>
+
+
+
+
+      <div className="bg-white p-6 h-max shadow-md rounded-xl    ">
         <TablaDatosPagos
           active={active}
           estado={estado}
@@ -41,12 +67,12 @@ const BlockPagos = ({ estado, getId, setGetId, cate }) => {
       {
         showSoporte.state &&
         <Modal set={setShowSoporte} state={showSoporte.state} classe={"w-[95%] md:w-[450px] max-h-[600px] min-h-[100px]"}>
-          <div className="flex flex-col items-center h-full">
-            <div className="self-end pr-3 cursor-pointer" onClick={() => setShowSoporte({ state: false })}>
-              x
+          <div className="flex flex-col items-center h-full w-full relative">
+            <div className="absolute right-3 top-2 cursor-pointer" onClick={() => setShowSoporte({ state: false })}>
+              <PiXBold className="w-5 h-5" />
             </div>
             <div className="h-full flex items-center ">
-              <img src={showSoporte?.data} alt="Factura de soporte" className="" />
+              <img src={showSoporte?.data} alt="Factura de soporte" className="h-[90%] " />
             </div>
 
           </div>
