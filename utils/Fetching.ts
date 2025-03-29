@@ -927,9 +927,9 @@ export const queries = {
     coste_final
     pagado
     currency
-    totalStimatedGuests {
-      children: Int
-      adults: Int
+    totalStimatedGuests{
+      children
+      adults
     }
     categorias_array{
       _id
@@ -1050,7 +1050,7 @@ export const queries = {
                 coste_final
                 pagado
                 currency
-                totalStimatedGuests {
+                totalStimatedGuests{
                   children
                   adults
                 }
@@ -1108,7 +1108,7 @@ export const queries = {
       coste_final
       pagado
       currency
-      totalStimatedGuests {
+      totalStimatedGuests{
         children
         adults
       }
@@ -1166,7 +1166,7 @@ export const queries = {
       coste_final
       pagado
       currency
-      totalStimatedGuests {
+      totalStimatedGuests{
         children
         adults
       }
@@ -1224,7 +1224,7 @@ export const queries = {
       coste_final
       pagado
       currency
-      totalStimatedGuests {
+      totalStimatedGuests{
         children
         adults
       }
@@ -1540,14 +1540,14 @@ export const queries = {
         tipo
       }
       presupuesto_objeto{
-       coste_final
-       pagado
-       coste_estimado
-       currency
-       totalStimatedGuests{
-        children
-        adults
-       }
+        coste_final
+        pagado
+        coste_estimado
+        currency
+        totalStimatedGuests{
+          children
+          adults
+        }
         categorias_array{
           _id
           nombre

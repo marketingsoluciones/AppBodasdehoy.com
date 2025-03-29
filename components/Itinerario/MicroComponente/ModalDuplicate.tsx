@@ -39,7 +39,7 @@ export const ModalDuplicate = ({ setModalDuplicate, modalDuplicate }) => {
         toast("warning", t("maxLimitedItineraries"));
         setTimeout(() => {
           setModalDuplicate({ state: false })
-        }, 4000);
+        }, 2000);
         return
       }
       setloading(true)

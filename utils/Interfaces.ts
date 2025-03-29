@@ -160,16 +160,21 @@ export interface detalle_compartidos_array {
     icon?: any
 }
 
+interface TotalStimatedGuests {
+    children: number
+    adults: number
+}
+
 export interface estimate {
     coste_estimado: number
     coste_final: number
     pagado: number
     currency: string
-    totalStimatedGuests: StimatedGuests
+    totalStimatedGuests: TotalStimatedGuests
     categorias_array: estimateCategory[]
 }
 
-export interface StimatedGuests{
+export interface StimatedGuests {
     children: number
     adults: number
 }
