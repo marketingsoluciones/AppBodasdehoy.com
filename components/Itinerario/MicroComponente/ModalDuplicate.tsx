@@ -34,13 +34,15 @@ export const ModalDuplicate = ({ setModalDuplicate, modalDuplicate }) => {
 
   const handleDuplicateItinerario = async () => {
     try {
-      setloading(true)
       const eventDestination = eventsGroup.find(elem => elem.nombre === selectedOption)
       if (eventDestination.itinerarios_array.filter(elem => elem.tipo === window?.location?.pathname.slice(1)).length > 9) {
         toast("warning", t("maxLimitedItineraries"));
+        setTimeout(() => {
+          setModalDuplicate({ state: false })
+        }, 4000);
         return
       }
-
+      setloading(true)
       const itinerary: Itinerary = modalDuplicate.data
       const result = await fetchApiEventos({
         query: queries.duplicateItinerario,
