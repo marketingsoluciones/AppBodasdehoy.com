@@ -92,7 +92,6 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
     const totalCosteEstimado = sumarCosteEstimado(categoria?.gastos_array);
     const AddGasto = async () => {
         try {
-
             if (isAllowed()) {
                 const rest: any = await fetchApiEventos({
                     query: queries.nuevoGasto,
@@ -119,7 +118,7 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
                     return { ...old };
                 });
                 toast("success", t("Creado con exito"))
-            }else{
+            } else {
                 ht()
             }
         } catch (error) {
@@ -224,7 +223,7 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
                     <div className="flex px-3 w-full bg-slate-200  justify-items-center py-1 rounded-b-md text-xs ">
                         <div
                             onClick={() => categoria != null || undefined ? AddGasto() : null}
-                            className={` ${  categoria != null || undefined ? "text-primary cursor-pointer " : "text-gray-500 cursor-default"} font-display text-xs  w-full  flex gap-2 items-center  col-span-2  `}
+                            className={` ${categoria != null || undefined ? "text-primary cursor-pointer " : "text-gray-500 cursor-default"} font-display text-xs  w-full  flex gap-2 items-center  col-span-2  `}
                         >
                             <PlusIcon /><span className='hidden md:block'> Añadir Part. de Gasto</span>
                         </div>
@@ -311,12 +310,12 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
                 Header: "Part. de Gasto",
                 accessor: "nombre",
                 id: "nombre",
-                className: 'sticky *lg:static z-10 left-0 relative',
+                className: 'sticky z-10 left-0 relative',
                 Cell: (props) => {
                     return (
                         <div className="flex w-full items-center overflow-hidden truncate  ">
                             <span key={props.cell.row.id} className=" flex flex-1 items-center pr-10  text-xs ">
-                                <CellEditCopy categoriaID={categoria?._id} type={"string"} table={"principal"} {...props} />
+                                <CellEditCopy categoriaID={categoria?._id} type="string" table="principal" {...props} />
                             </span>
                         </div>
                     )
@@ -630,16 +629,20 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
     const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows } = useTable(
         { columns: visibleColumns, data }, useSortBy, useExpanded,
     );
-    const renderRowSubComponent = useCallback(({ row, categoria }) => {
+    const renderRowSubComponent = useCallback(({ row }) => {
         return (
-            <SubComponenteTable row={row} data={row.original.items_array} categoria={categoria} visibleColumns={visibleColumns} />
+            <SubComponenteTable
+                row={row}
+                data={row.original.items_array}
+                categoria={categoria}
+                visibleColumns={visibleColumns}
+            />
         )
-    }, [categoria]);
+    }, [categoria, visibleColumns]);
+
     return (
 
-        <table
-            {...getTableProps()}
-            className="table-auto border-collapse md:w-full rounded-lg relative p-4 overflow-x-auto w-[900px]">
+        <table {...getTableProps()} className="table-auto border-collapse md:w-full rounded-lg relative p-4 overflow-x-auto w-[900px]">
             <thead className="relative text-xs text-gray-700 uppercase w-full ">
                 {headerGroups.map((headerGroup: any, id: any) => {
                     return (
@@ -669,7 +672,7 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
                 })}
             </thead>
             <tbody {...getTableBodyProps()} className="text-gray-700 text-xs">
-                {rows.length >= 1 ? rows.map((row, i) => {
+                {rows.length >= 1 ? rows.map((row,i) => {
                     prepareRow(row);
                     return (
                         <>
@@ -696,7 +699,7 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
                                 /* row.isExpanded */  true ? (
                                     <tr key={idd} className="h-max w-full">
                                         <td >
-                                            {renderRowSubComponent({ row, categoria })}
+                                            {renderRowSubComponent({ row })}
                                         </td>
                                     </tr>
                                 ) : null
@@ -711,13 +714,16 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
                 </tbody>}
             </tbody>
         </table>
-        //</div >
+        
     )
 }
 
 
 /* TABLA DONDE ESTAN LOS ITEMS DE LAS PARTIDAS DE GASTOS, SEGUNDON NIVEL */
 const SubComponenteTable = ({ row, data = [], categoria, visibleColumns }) => {
+
+
+
     const { user, config } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
     const [showMenu, setShowMenu] = useState(false);
@@ -859,9 +865,6 @@ const SubComponenteTable = ({ row, data = [], categoria, visibleColumns }) => {
                     } else {
                         event.presupuesto_objeto.categorias_array[f1Event].gastos_array[f2Event].items_array[f3Event].total = total
                     }
-
-                    console.log("data de la celda", data.row.original.valor_unitario)
-                    console.log("total", total)
                     useEffect(() => {
                         fetchApiEventos({
                             query: queries.editItemGasto,
@@ -1031,27 +1034,6 @@ const SubComponenteTable = ({ row, data = [], categoria, visibleColumns }) => {
                                         })
                                     }
                                 </tr>
-                                {/* {showMenu && (
-                                    <div
-                                        ref={menuRef}
-                                        style={{
-                                            top: (position.y - 290),
-                                            left: (position.x - 290),
-                                            backgroundColor: 'white',
-                                        }}
-                                        className='flex flex-col shadow-sm rounded-md truncate z-50 absolute '
-                                    >
-                                        {
-                                            options.map((item, idx) => {
-                                                return (
-                                                    <button className='cursor-pointer hover:bg-slate-100 p-2 ' key={idd}>
-                                                        {item.title}
-                                                    </button>
-                                                )
-                                            })
-                                        }
-                                    </div>
-                                )} */}
                             </>
                         );
                     })}
