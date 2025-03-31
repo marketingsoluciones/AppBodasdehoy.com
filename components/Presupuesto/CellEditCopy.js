@@ -10,6 +10,7 @@ import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { set } from "date-fns";
 import { useToast } from "../../hooks/useToast";
 import { string } from "yup";
+import { InputUpdateInBlur } from "../Forms/inputs/InputUpdateInBlur";
 
 const CellEditCopy = (props) => {
 
@@ -137,14 +138,12 @@ const CellEditCopy = (props) => {
     >
       <div >
         {edit ? (
-          <input
+          <InputUpdateInBlur
             type={props.type}
-            min={0}
-            onBlur={(e) => handleBlur(e)}
-            onChange={(e) => handleChange(e)}
-            onKeyDown={(e) => keyDown(e)}
-            autoFocus
-            className="focus:outline-none focus:ring-0 focus:border-none text-center w-full px-2 h-6 text-xs"
+            onChange={handleChange}
+            onBlur={handleBlur}
+            keyDown={keyDown}
+            value={value}
           />
         ) : (
           <p className={` ${props.type == "number" && "text-end" || props.type == "string" && "text-left capitalize" || props.type === "cantidad" && "text-center" || props.type === "unidad" && "text-center"} cursor-pointer w-full truncate px-2 py-1 h-6 `} onClick={() => !isAllowed() ? null : setEdit(true)}>

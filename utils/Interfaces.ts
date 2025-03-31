@@ -165,7 +165,13 @@ export interface estimate {
     coste_final: number
     pagado: number
     currency: string
+    totalStimatedGuests: StimatedGuests
     categorias_array: estimateCategory[]
+}
+
+export interface StimatedGuests{
+    children: number
+    adults: number
 }
 
 export interface cost {

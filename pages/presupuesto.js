@@ -20,6 +20,7 @@ import { useTranslation } from 'react-i18next';
 import { ExcelView } from "../components/Presupuesto/ExcelView";
 
 const Presupuesto = () => {
+
   const { t } = useTranslation();
   const { user, verificationDone, forCms } = AuthContextProvider()
   useMounted()
@@ -32,7 +33,6 @@ const Presupuesto = () => {
   const [categorias, setCategorias] = useState([]);
   const [getId, setGetId] = useState()
 
-
   useEffect(() => {
     setCategorias(event?.presupuesto_objeto?.categorias_array)
   }, [event])
@@ -41,6 +41,8 @@ const Presupuesto = () => {
     const condicion = event?.presupuesto_objeto?.categorias_array?.findIndex(item => item._id == showCategoria.id)
     condicion == -1 && setShowCategoria({ isVisible: false, id: "" })
   }, [event?.presupuesto_objeto?.categorias_array, showCategoria?.id])
+
+
 
   if (verificationDone) {
     if (!user) {
