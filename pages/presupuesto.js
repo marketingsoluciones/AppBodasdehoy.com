@@ -103,15 +103,14 @@ const Presupuesto = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="grid md:grid-cols-3 w-full gap-6 pt-2 md:pr-0 pb-4"
+                    className="grid md:grid-cols-4 w-full gap-6 pt-2 md:pr-0 pb-4"
                   >
-                    <>
                       <BlockListaCategorias
                         set={(act) => setShowCategoria(act)}
                         categorias_array={categorias}
                         cate={showCategoria}
                       />
-                      <div className="md:col-span-2 w-full flex flex-col relative">
+                      <div className="md:col-span-3 w-full flex flex-col relative">
                         {showCategoria?.isVisible ?
                           (
                             <BlockCategoria
@@ -170,7 +169,6 @@ const Presupuesto = () => {
                             </>
                           )}
                       </div>
-                    </>
                   </motion.div>
                 )
               }

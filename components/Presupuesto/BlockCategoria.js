@@ -6,7 +6,7 @@ import { getCurrency } from "../../utils/Funciones";
 import { capitalize } from '../../utils/Capitalize';
 import FormAddPago from "../Forms/FormAddPago";
 import { useTranslation } from 'react-i18next';
-import { BorrarIcon, MisEventosIcon, PlusIcon} from "../icons";
+import { BorrarIcon, MisEventosIcon, PlusIcon } from "../icons";
 import CellEdit from "./CellEdit";
 import CellPagado from "./CellPagado";
 import SubComponentePagos from "./SubComponentePagos";
@@ -22,8 +22,6 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
   const [data, setData] = useState([]);
   const [GastoID, setGastoID] = useState({ id: "", crear: false })
   const [isAllowed, ht] = useAllowed()
-
-  console.log("ÑLÑLÑLÑLÑ",categoria)
 
   useEffect(() => {
     setCategoria(
@@ -46,12 +44,12 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
   useEffect(() => {
     const f1 = event?.presupuesto_objeto?.categorias_array?.findIndex((item) => item?._id === categoria?._id)
     if (event?.presupuesto_objeto?.categorias_array[f1] != totalCosteFinal) {
-        setEvent((old) => {
-            old.presupuesto_objeto.categorias_array[f1].coste_final = totalCosteFinal
-            return { ...old }
-        })
+      setEvent((old) => {
+        old.presupuesto_objeto.categorias_array[f1].coste_final = totalCosteFinal
+        return { ...old }
+      })
     }
-}, [totalCosteFinal])
+  }, [totalCosteFinal])
 
   const Columna = useMemo(
     () => [
@@ -78,6 +76,28 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
         accessor: "pagado",
         id: "pagado",
         Cell: (props) => <CellPagado {...props} set={act => setGastoID(act)} />,
+      },
+      {
+        Header: <p >por Pagar </p>,
+        accessor: "pendiente_pagar",
+        id: "pendiente_pagar",
+        Cell: (props) => {
+          const [value, setValue] = useState(0);
+          const total = props?.row?.original?.pagos_array?.reduce((acumulador, objeto) => acumulador + objeto?.total, 0);
+          useEffect(() => {
+            if (props?.row?.original?.coste_final === 0) {
+              setValue(0)
+            } else {
+              setValue(total - props?.row?.original?.pagado)
+            }
+          }, [props?.row.original])
+
+          return (
+            <div className="font-displaytext-xs grid place-items-center h-full text-center w-full ">
+              <p className="w-full">{getCurrency(value, event?.presupuesto_objeto?.currency)}</p>
+            </div>
+          );
+        },
       },
       {
         Header: "",
@@ -205,7 +225,7 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
   )
 
   const porcentaje = (categoria?.coste_final / categoria?.coste_estimado) * 100
-  
+
   return (
     <>
       {GastoID.crear && (
@@ -272,7 +292,7 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
 
         {/* Tabla de datos */}
         <DataTable AddGasto={AddGasto} columns={Columna} data={data ?? []} renderRowSubComponent={renderRowSubComponent} cate={categoria._id} gasto={GastoID.id} categoria={categoria} />
-        <div className="bg-primary w-full grid grid-cols-10 absolute bottom-0 font-display text-white font-semibold py-1 text-sm">
+        <div className="bg-primary w-full grid grid-cols-13 absolute bottom-0 font-display text-white font-semibold py-1 text-sm">
           <div className="flex items-center justify-center col-span-3">
             <p>{t("total")}</p>
           </div>
@@ -311,19 +331,20 @@ export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate
     coste_estimado: 2,
     coste_final: 2,
     pagado: 2,
+    pendiente_pagar: 2,
     options: 2,
-    soporte:1
+    soporte: 1
   };
   return (
     <table
       {...getTableProps()}
       className="table w-full rounded-lg relative mt-6"
     >
-       <thead>
+      <thead>
         {headerGroups.map((headerGroup, id) => (
           <tr
             {...headerGroup.getHeaderGroupProps()}
-            className="w-full grid grid-cols-11 py-2 bg-base"
+            className="w-full grid grid-cols-13 py-2 bg-base"
             key={id}
           >
             {headerGroup.headers.map((column, id) => (
@@ -347,7 +368,7 @@ export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate
               <tr
                 key={i}
                 {...row.getRowProps()}
-                className="w-full transition border-b border-base hover:bg-base grid grid-cols-11"
+                className="w-full transition border-b border-base hover:bg-base grid grid-cols-13"
               >
                 {row.cells.map((cell, i) => {
                   return (
