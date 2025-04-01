@@ -59,7 +59,7 @@ const Presupuesto = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className={`${active === "excelView" ? "" : "max-w-screen-lg"}  mx-auto inset-x-0 px-2 md:px-0 w-full  "`}
+              className={`${active === "excelView" ? "" : "max-w-screen-lg"} flex flex-col mx-auto inset-x-0 px-2 md:px-0 w-full h-full border-2 border-green`}
             >
               <BlockTitle title={"Presupuesto"} />
               <div className="md:w-96 mx-auto inset-x-0 flex my-2 mt-4 rounded-2xl overflow-hidden">
@@ -202,7 +202,7 @@ const Presupuesto = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className=" w-full gap-6 pt-2 md:pr-0  "
+                    className="w-full h-full gap-6 pt-2 md:pr-0 border-2 border-red"
                   >
                     <ExcelView set={(act) => setShowCategoria(act)} categorias_array={categorias} showCategoria={showCategoria} />
                   </motion.div>
@@ -419,7 +419,7 @@ export const BlockListaCategorias = ({ categorias_array, set, cate }) => {
           {Forms[isMounted[1]]}
         </ModalLeft>
       )}
-      <div className="bg-white w-full shadow-md rounded-xl h-max ">
+      <div className="bg-white w-full shadow-md rounded-xl h-max">
         <button
           onClick={() => !isAllowed() ? ht() : setIsMounted([true, "crear"])}
           className="focus:outline-none bg-primary rounded-xl font-display font-light text-md flex gap-2 w-full py-1 items-center justify-center text-white hover:scale-105 transition transform"
@@ -500,9 +500,8 @@ const ItemCategoria = ({ item, setVisible, set, cate }) => {
 
   return (
     <li
-
       onClick={() => Presu != 0 ? setVisible({ isVisible: true, id: item._id }) : toast("error", t("Agrega un monto a tu Presupuesto Estimado"))}
-      className={` text-xs w-full justify-between items-center flex px-5  transition ${Presu == 0 ? "" : "hover:bg-base"} ${cate?.id == item._id ? "bg-slate-200" : ""}`}
+      className={` text-xs w-full justify-between items-center flex px-5 md:pl-2 md:pr-3 transition ${Presu == 0 ? "" : "hover:bg-base"} ${cate?.id == item._id ? "bg-slate-200" : ""}`}
     >
       <span
         className="gap-2 py-3 flex items-center capitalize"
@@ -521,12 +520,12 @@ const ItemCategoria = ({ item, setVisible, set, cate }) => {
           />
           {show && (
             <ClickAwayListener onClickAway={() => show && setShow(false)}>
-              <ul className="w-max z-20 bg-white shadow-md rounded absolute top-0 right-0 font-display text-sm divide-y ">
+              <ul className="w-max z-20 bg-white shadow-md rounded absolute top-5 right-0 font-display text-sm divide-y overflow-hidden border-[1px] border-gray-200 select-none">
                 {Lista.map((item, idx) => (
                   <li
                     key={idx}
                     onClick={() => item.function()}
-                    className="px-2 py-1 hover:bg-base transition "
+                    className="px-4 py-1 hover:bg-base transition "
                   >
                     {item.title}
                   </li>

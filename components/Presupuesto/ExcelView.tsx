@@ -15,7 +15,7 @@ import { useExpanded, useTable, useRowSelect, useSortBy } from "react-table";
 import { GrMoney } from "react-icons/gr";
 import Grafico from './Grafico';
 import { fetchApiEventos, queries } from '../../utils/Fetching';
-import { item, expenses, estimate } from "../../utils/Interfaces";
+import { item, expenses, estimate, estimateCategory } from "../../utils/Interfaces";
 import { PiNewspaperClippingLight } from "react-icons/pi";
 import FormAddPago from '../Forms/FormAddPago';
 import { Modal } from '../Utils/Modal';
@@ -26,6 +26,7 @@ import { RiSettings4Fill } from "react-icons/ri";
 import { ResumenInvitados } from './ResumenDeInvitadosPresupuesto';
 import { ModalTaskList } from './ModalTaskList';
 import { useAllowed } from '../../hooks/useAllowed';
+import { TableBudgetV8 } from '../TablesComponents/TableBudgetV8';
 
 interface Categoria {
     _id: string;
@@ -145,97 +146,113 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
     ]
 
     return (
-        <>
-            {/* MODALES*/}
-            {
-                showFormPago.state && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center">
-                        <div className="relative bg-white rounded-md shadow-md w-full max-w-3xl mx-4 md:mx-0 h-[90%] overflow-y-auto p-4 ">
-                            <div
-                                className="font-display text-gray-500 hover:text-gray-300 transition text-lg absolute top-1 right-2 cursor-pointer hover:scale-125"
-                                onClick={() => setShowFormPago({ id: "", state: false })}>
-                                X
-                            </div>
-                            <FormAddPago GastoID={showFormPago?.id} cate={categoria?._id} />
+        <div className='w-full h-full border-2 border-violet-600'>
+            {showFormPago.state && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    <div className="relative bg-white rounded-md shadow-md w-full max-w-3xl mx-4 md:mx-0 h-[90%] overflow-y-auto p-4 ">
+                        <div
+                            className="font-display text-gray-500 hover:text-gray-300 transition text-lg absolute top-1 right-2 cursor-pointer hover:scale-125"
+                            onClick={() => setShowFormPago({ id: "", state: false })}>
+                            X
                         </div>
+                        <FormAddPago GastoID={showFormPago?.id} cate={categoria?._id} />
                     </div>
-                )
-            }
-            {
-                showModalDuplicate && (
-                    <div className={"absolute z-50 flex justify-center  w-full"} >
-                        <DuplicatePresupuesto setModal={setShowModalDuplicate} />
-                    </div>
-                )
-            }
-            {/*COMPONENTE*/}
-            <div className="flex flex-col  md:flex-row pl-3 h-[calc( 100vh-300px )] relative " >
-                {/* COLUMNA IZQUIERDA, LISTA DE CATEGORIAS Y BOTON PARA OCULTAR */}
-                <div className="bg-transparent absolute h-full py-3 -top-12 left-0-" >
+                </div>
+            )}
+            {showModalDuplicate && (
+                <div className={"absolute z-20 flex justify-center w-full"} >
+                    <DuplicatePresupuesto setModal={setShowModalDuplicate} />
+                </div>
+            )}
+            <div className="flex flex-col md:flex-row pl-3 w-full h-[calc(100vh-300px)] relative bg-orange-400 border-2 border-orange-500" >
+                <div className="bg-red absolute h-full py-3 -top-12 left-0" >
                     <button onClick={() => setMenuIzquierdo(!menuIzquierdo)} className="bg-white border border-primary rounded-r-md w-7 h-7 md:flex items-center justify-center hidden ">
                         <GoArrowRight className={` ${menuIzquierdo === true ? "" : "rotate-180"} h-5 w-5 transition-all`} />
                     </button>
                 </div>
-                <div className={`${menuIzquierdo ? "hidden " : " md:w-[15%] flex  items-center flex-col md:pr-4 mb-3 md:mb-0"} transition-all`}>
-                    <div className=" mb-2 w-full">
+                <div className={`${menuIzquierdo ? "hidden" : "md:w-[300px] flex items-center flex-col mb-3 md:mb-0"} transition-all duration-300 ease-in-out bg-red -translate-x-3`}>
+                    <div className="mb-2 w-full">
                         <ResumenInvitados />
                     </div>
                     <BlockListaCategorias set={set} categorias_array={categorias_array} cate={showCategoria} />
                 </div>
-                {/* TABLA */}
-                <div className="flex-1  flex flex-col items-center relative">
-                    {/* HEADER */}
-                    <div className=' flex justify-center items-center rounded-t-md w-full text-center capitalize bg-primary text-white py-1 ' >
-                        <div className='flex-1'>
-                            {categoria?.nombre ? categoria?.nombre : "Categoria"}
+                <div className="flex-1 flex flex-col items-center relative bg-green">
+                    {true ?
+                        <div className='bg-blue-500 w-full h-full '>
+                            <TableBudgetV8 data={event.presupuesto_objeto.categorias_array.reduce((acc, item) => {
+                                item.gastos_array.map((elem, idxElem) => {
+                                    let valirFirtsChild = true
+                                    elem.items_array.map((el, idxEl) => {
+                                        valirFirtsChild = false
+                                        acc.push({
+                                            ...el,
+                                            categoria: item.nombre,
+                                            gasto: elem.nombre,
+                                            ...(idxEl === 0 && { firstChildItem: true }),
+                                            ...((idxElem === 0 && idxEl === 0) && { firstChildGasto: true }),
+                                        })
+                                    })
+                                    acc.push({
+                                        ...elem,
+                                        categoria: item.nombre,
+                                        gasto: elem.nombre,
+                                        ...((valirFirtsChild) && { firstChildItem: true }),
+                                        ...((idxElem === 0 && valirFirtsChild) && { firstChildGasto: true }),
+                                        fatherGasto: true
+                                    })
+                                })
+                                acc.push({
+                                    ...item,
+                                    categoria: item.nombre,
+                                    fatherCategoria: true
+                                })
+                                return acc
+                            }, [])} />
                         </div>
-                        {/* <ExportarExcelV2 data={event?.presupuesto_objeto} column={columnsToExcel} /> */}
-
-                        <ClickAwayListener onClickAway={() => showSettings && setShowSettings(false)} >
-                            <div onClick={() => setShowSettings(!showSettings)} className='flex-none mr-3  '>
-                                <RiSettings4Fill className='h-5 w-5 transition-all hover:rotate-180 cursor-pointer' />
-                                {
-                                    showSettings && (
-                                        <div className="absolute right-4 md:top-7 bg-white z-50 rounded-md shadow-md overflow-hidden">
-                                            {OptionsSettings.map((item, idx) => (
-                                                <div
-                                                    key={idx}
-                                                    onClick={() => item.isAllowed ? isAllowed() ? item.onclick() : ht() : null}
-                                                    className="px-3 py-1.5 hover:bg-base transition flex gap-2 text-gray-600 cursor-pointer text-xs  "
-                                                >
-                                                    <p className=''>
-                                                        {item.title}
-                                                    </p>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )
-                                }
+                        : <div className='w-full h-full'>
+                            <div className=' flex justify-center items-center rounded-t-md w-full text-center capitalize bg-primary text-white py-1' >
+                                <div className='flex-1'>
+                                    {categoria?.nombre ? categoria?.nombre : "Categoria"}
+                                </div>
+                                <ClickAwayListener onClickAway={() => showSettings && setShowSettings(false)} >
+                                    <div onClick={() => setShowSettings(!showSettings)} className='flex-none mr-3  '>
+                                        <RiSettings4Fill className='h-5 w-5 transition-all hover:rotate-180 cursor-pointer' />
+                                        {showSettings && (
+                                            <div className="absolute right-4 md:top-7 bg-white z-50 rounded-md shadow-md overflow-hidden">
+                                                {OptionsSettings.map((item, idx) => (
+                                                    <div
+                                                        key={idx}
+                                                        onClick={() => item.isAllowed ? isAllowed() ? item.onclick() : ht() : null}
+                                                        className="px-3 py-1.5 hover:bg-base transition flex gap-2 text-gray-600 cursor-pointer text-xs  "
+                                                    >
+                                                        <p className=''>
+                                                            {item.title}
+                                                        </p>
+                                                    </div>
+                                                ))}
+                                            </div>)}
+                                    </div>
+                                </ClickAwayListener>
                             </div>
-                        </ClickAwayListener>
-                    </div>
-                    {/* BODY */}
-                    <div className=" w-[100%] md:w-full  overflow-x-auto md:overflow-visible ">
-
-                        <TablePorProveedor data={data} categoria={categoria} set={setShowFormPago} />
-                    </div>
-                    {/* FOOTER */}
-                    <div className="flex px-3 w-full bg-slate-200  justify-items-center py-1 rounded-b-md text-xs ">
-                        <div
-                            onClick={() => categoria != null || undefined ? AddGasto() : null}
-                            className={` ${categoria != null || undefined ? "text-primary cursor-pointer " : "text-gray-500 cursor-default"} font-display text-xs  w-full  flex gap-2 items-center  col-span-2  `}
-                        >
-                            <PlusIcon /><span className='hidden md:block'> Añadir Part. de Gasto</span>
-                        </div>
-                        <div className="w-full flex  items-center justify-end" >
-                            <label className='w-max mr-4 '> Valor Total: {getCurrency(totalCosteFinal, event?.presupuesto_objeto?.currency)}</label>
-                            <label className='w-max mr-4 hidden md:block '> Valor Total Estimado: {getCurrency(totalCosteEstimado, event?.presupuesto_objeto?.currency)}</label>
-                            <label className='w-max mr-4'>Total Pagado: {getCurrency(totalpagado, event?.presupuesto_objeto?.currency)}</label>
-                            <label className='w-max hidden md:block'>Total Pendiente: {getCurrency(totalCosteFinal - totalpagado, event?.presupuesto_objeto?.currency)}</label>
-                        </div>
-                    </div>
+                            <div className=" w-[100%] md:w-full  overflow-x-auto md:overflow-visible ">
+                                <TablePorProveedor data={data} categoria={categoria} set={setShowFormPago} />
+                            </div>
+                            <div className="flex px-3 w-full bg-slate-200 justify-items-center py-1 rounded-b-md text-xs">
+                                <div
+                                    onClick={() => categoria != null || undefined ? AddGasto() : null}
+                                    className={` ${categoria != null || undefined ? "text-primary cursor-pointer " : "text-gray-500 cursor-default"} font-display text-xs  w-full flex gap-2 items-center  col-span-2`}
+                                >
+                                    <PlusIcon /><span className='hidden md:block'> Añadir Part. de Gasto</span>
+                                </div>
+                                <div className="w-full flex items-center justify-end" >
+                                    <label className='mr-4 '> Valor Total: {getCurrency(totalCosteFinal, event?.presupuesto_objeto?.currency)}</label>
+                                    <label className='mr-4 hidden md:block '> Valor Total Estimado: {getCurrency(totalCosteEstimado, event?.presupuesto_objeto?.currency)}</label>
+                                    <label className='mr-4'>Total Pagado: {getCurrency(totalpagado, event?.presupuesto_objeto?.currency)}</label>
+                                    <label className='hidden md:block'>Total Pendiente: {getCurrency(totalCosteFinal - totalpagado, event?.presupuesto_objeto?.currency)}</label>
+                                </div>
+                            </div>
+                        </div>}
                 </div>
-
                 <style jsx>
                     {`
                     .CuadroInvitados {
@@ -250,7 +267,7 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
                     `}
                 </style>
             </div >
-        </>
+        </div>
     );
 };
 
@@ -672,7 +689,7 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
                 })}
             </thead>
             <tbody {...getTableBodyProps()} className="text-gray-700 text-xs">
-                {rows.length >= 1 ? rows.map((row,i) => {
+                {rows.length >= 1 ? rows.map((row, i) => {
                     prepareRow(row);
                     return (
                         <>
@@ -714,7 +731,7 @@ const TablePorProveedor = ({ data = [], categoria, set }) => {
                 </tbody>}
             </tbody>
         </table>
-        
+
     )
 }
 
