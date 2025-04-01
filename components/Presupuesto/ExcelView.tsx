@@ -146,7 +146,7 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
     ]
 
     return (
-        <div className='w-full h-full border-2 border-violet-600'>
+        <div className='w-full h-full border-2 border-violet-600 relative'>
             {showFormPago.state && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                     <div className="relative bg-white rounded-md shadow-md w-full max-w-3xl mx-4 md:mx-0 h-[90%] overflow-y-auto p-4 ">
@@ -164,13 +164,13 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
                     <DuplicatePresupuesto setModal={setShowModalDuplicate} />
                 </div>
             )}
-            <div className="flex flex-col md:flex-row pl-3 w-full h-[calc(100vh-300px)] relative bg-orange-400 border-2 border-orange-500" >
-                <div className="bg-red absolute h-full py-3 -top-12 left-0" >
+            <div className="flex flex-col md:flex-row w-full h-[calc(100vh-300px)]  bg-orange-400 border-2 border-orange-500" >
+                <div className="bg-red. absolute h-full py-3 -top-12 left-0" >
                     <button onClick={() => setMenuIzquierdo(!menuIzquierdo)} className="bg-white border border-primary rounded-r-md w-7 h-7 md:flex items-center justify-center hidden ">
                         <GoArrowRight className={` ${menuIzquierdo === true ? "" : "rotate-180"} h-5 w-5 transition-all`} />
                     </button>
                 </div>
-                <div className={`${menuIzquierdo ? "hidden" : "md:w-[300px] flex items-center flex-col mb-3 md:mb-0"} transition-all duration-300 ease-in-out bg-red -translate-x-3`}>
+                <div className={`${menuIzquierdo ? "hidden" : "md:w-[300px] flex items-center flex-col mb-3 md:mb-0"} transition-all duration-300 ease-in-out bg-red`}>
                     <div className="mb-2 w-full">
                         <ResumenInvitados />
                     </div>
