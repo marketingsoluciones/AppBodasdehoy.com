@@ -146,7 +146,7 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
     ]
 
     return (
-        <div className='w-full h-full border-2 border-violet-600 relative'>
+        <div className='w-full h-full relative'>
             {showFormPago.state && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                     <div className="relative bg-white rounded-md shadow-md w-full max-w-3xl mx-4 md:mx-0 h-[90%] overflow-y-auto p-4 ">
@@ -164,22 +164,22 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
                     <DuplicatePresupuesto setModal={setShowModalDuplicate} />
                 </div>
             )}
-            <div className="flex flex-col md:flex-row w-full h-[calc(100vh-300px)]  bg-orange-400 border-2 border-orange-500" >
+            <div className="flex flex-col md:flex-row w-full h-[calc(100vh-300px)] md:h-[calc(100vh-266px)]" >
                 <div className="bg-red. absolute h-full py-3 -top-12 left-0" >
-                    <button onClick={() => setMenuIzquierdo(!menuIzquierdo)} className="bg-white border border-primary rounded-r-md w-7 h-7 md:flex items-center justify-center hidden ">
+                    <button onClick={() => setMenuIzquierdo(!menuIzquierdo)} className="bg-white rounded-r-md w-7 h-7 md:flex items-center justify-center hidden ">
                         <GoArrowRight className={` ${menuIzquierdo === true ? "" : "rotate-180"} h-5 w-5 transition-all`} />
                     </button>
                 </div>
-                <div className={`${menuIzquierdo ? "hidden" : "md:w-[300px] flex items-center flex-col mb-3 md:mb-0"} transition-all duration-300 ease-in-out bg-red`}>
+                <div className={`${menuIzquierdo ? "hidden" : "md:w-[300px] flex items-center flex-col mb-3 md:mb-0"} transition-all duration-300 ease-in-out`}>
                     <div className="mb-2 w-full">
                         <ResumenInvitados />
                     </div>
                     <BlockListaCategorias set={set} categorias_array={categorias_array} cate={showCategoria} />
                 </div>
-                <div className="bg-green flex-1 overflow-auto">
+                {true && <div className={`flex ${menuIzquierdo ? "w-full" : "md:w-[calc(100%-300px)]"} h-full`}>
                     {true ?
-                        <div className='bg-blue-500 w-full h-full overflow-auto'>
-                            {true && <TableBudgetV8 data={event.presupuesto_objeto.categorias_array.reduce((acc, item) => {
+                        <div className='bg-blue-50 w-full h-full flex'>
+                            <TableBudgetV8 data={event.presupuesto_objeto.categorias_array.reduce((acc, item) => {
                                 let valirFirtsChild = true
                                 item.gastos_array?.map((elem, idxElem) => {
                                     let valirFirtsChildGasto = true
@@ -219,7 +219,7 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
                                     ...((valirFirtsChild) && { firstChild: true }),
                                 })
                                 return acc
-                            }, [])} />}
+                            }, [])} />
                         </div>
                         : <div className='w-full h-full'>
                             <div className=' flex justify-center items-center rounded-t-md w-full text-center capitalize bg-primary text-white py-1' >
@@ -264,7 +264,7 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
                                 </div>
                             </div>
                         </div>}
-                </div>
+                </div>}
                 <style jsx>
                     {`
                     .CuadroInvitados {
