@@ -16,10 +16,16 @@ export const ResumenInvitados = ({ }) => {
 
     const handleOnBlur = ({ value, accessor }: asd) => {
         try {
+            const values = {
+                adults: 10,
+                children: 5
+            }
             fetchApiEventos({
                 query: queries.editTotalStimatedGuests,
                 variables: {
                     evento_id: event._id,
+                    adults: event.presupuesto_objeto.totalStimatedGuests.adults,
+                    children: event.presupuesto_objeto.totalStimatedGuests.children,
                     [accessor]: value,
                 }
             }).then(() => {
@@ -41,8 +47,8 @@ export const ResumenInvitados = ({ }) => {
                 <p className="font-display text-sm md:text-[16px] text-primary capitalize">{t("Invitados")} estimados</p>
             </div>
             <div className="flex flex-col justify-center w-28">
-                <EditableLabelWithInput value={event.presupuesto_objeto.totalStimatedGuests.adults} type="number" handleOnBlur={handleOnBlur} accessor="adults" />
-                <EditableLabelWithInput value={event.presupuesto_objeto.totalStimatedGuests.children} type="number" handleOnBlur={handleOnBlur} accessor="children" />
+                <EditableLabelWithInput value={event.presupuesto_objeto.totalStimatedGuests.adults} type="int" handleOnBlur={handleOnBlur} accessor="adults" />
+                <EditableLabelWithInput value={event.presupuesto_objeto.totalStimatedGuests.children} type="int" handleOnBlur={handleOnBlur} accessor="children" />
             </div>
         </div>
     )

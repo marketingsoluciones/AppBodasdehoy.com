@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 interface props {
   accessor: string
   value: string | number
-  type: "number" | "text"
+  type: "int" | "float" | "text"
   handleOnBlur: any
 }
 
@@ -21,6 +21,11 @@ export const EditableLabelWithInput: FC<props> = ({ value, type, handleOnBlur, a
 
   const keyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     let tecla = e.key.toLowerCase();
+
+    if (tecla === "escape") {
+      setEdit(false)
+      setNewValue(value)
+    }
     if (tecla === "+") {
       e.preventDefault()
     }
@@ -28,7 +33,8 @@ export const EditableLabelWithInput: FC<props> = ({ value, type, handleOnBlur, a
       e.preventDefault()
     }
     if (tecla == "enter") {
-      newValue !== value && handleOnBlur({ value: type === "number" && typeof newValue === "string" ? newValue !== "" ? parseFloat(newValue) : 0 : newValue, accessor })
+      (["int", "float"].includes(type) && typeof newValue === "string" ? newValue !== "" ? parseFloat(newValue) : 0 : newValue) !== value && handleOnBlur({ value: ["int", "float"].includes(type) && typeof newValue === "string" ? newValue !== "" ? type === "float" ? parseFloat(newValue) : parseInt(newValue) : 0 : newValue, accessor })
+      setNewValue(value)
       setEdit(false);
     }
   };
@@ -41,7 +47,10 @@ export const EditableLabelWithInput: FC<props> = ({ value, type, handleOnBlur, a
             type={type}
             min={0}
             max={1000}
-            onBlur={() => { (type === "number" && typeof newValue === "string" ? newValue !== "" ? parseFloat(newValue) : 0 : newValue) !== value && handleOnBlur({ value: type === "number" && typeof newValue === "string" ? newValue !== "" ? parseFloat(newValue) : 0 : newValue, accessor }) }}
+            onBlur={() => {
+              (["int", "float"].includes(type) && typeof newValue === "string" ? newValue !== "" ? parseFloat(newValue) : 0 : newValue) !== value && handleOnBlur({ value: ["int", "float"].includes(type) && typeof newValue === "string" ? newValue !== "" ? type === "float" ? parseFloat(newValue) : parseInt(newValue) : 0 : newValue, accessor })
+              setNewValue(value)
+            }}
             onChange={(e) => {
               setNewValue(e.target.value.replace(/^0+$/, "0").replace(/^0+(?=\d)/, ""))
             }}
@@ -58,7 +67,7 @@ export const EditableLabelWithInput: FC<props> = ({ value, type, handleOnBlur, a
           onClick={() => isAllowed() ? setEdit(true) : ht()}
           className="font-display font-semibold text-xs text-gray-500 flex items-center justify-center gap-1 cursor-pointer capitalize relative py-[4px]"
         >
-          {type === "number" && typeof newValue === "string" ? newValue !== "" ? parseFloat(newValue) : 0 : newValue}
+          {["int", "float"].includes(type) && typeof newValue === "string" ? newValue !== "" ? type === "float" ? parseFloat(newValue) : parseInt(newValue) : 0 : newValue}
           <span className="text-xs font-light">{t(accessor)}</span>
           {hovered && <FaPencilAlt className="text-gray-400 absolute right-0" />}
         </p>}
