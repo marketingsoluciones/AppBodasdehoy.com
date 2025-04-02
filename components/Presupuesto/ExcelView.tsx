@@ -176,38 +176,50 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
                     </div>
                     <BlockListaCategorias set={set} categorias_array={categorias_array} cate={showCategoria} />
                 </div>
-                <div className="flex-1 flex flex-col items-center relative bg-green">
+                <div className="bg-green flex-1 overflow-auto">
                     {true ?
-                        <div className='bg-blue-500 w-full h-full '>
-                            <TableBudgetV8 data={event.presupuesto_objeto.categorias_array.reduce((acc, item) => {
-                                item.gastos_array.map((elem, idxElem) => {
-                                    let valirFirtsChild = true
+                        <div className='bg-blue-500 w-full h-full overflow-auto'>
+                            {true && <TableBudgetV8 data={event.presupuesto_objeto.categorias_array.reduce((acc, item) => {
+                                let valirFirtsChild = true
+                                item.gastos_array?.map((elem, idxElem) => {
+                                    let valirFirtsChildGasto = true
                                     elem.items_array.map((el, idxEl) => {
+                                        valirFirtsChildGasto = false
                                         valirFirtsChild = false
                                         acc.push({
                                             ...el,
                                             categoria: item.nombre,
                                             gasto: elem.nombre,
+                                            coste_final: el.total,
                                             ...(idxEl === 0 && { firstChildItem: true }),
                                             ...((idxElem === 0 && idxEl === 0) && { firstChildGasto: true }),
+                                            ...((idxElem === 0 && idxEl === 0) && { firstChild: true }),
+                                            ...((idxEl === elem.items_array.length - 1) && { lastChildGasto: true }),
+                                            idxElem,
+                                            idxEl
                                         })
                                     })
                                     acc.push({
                                         ...elem,
                                         categoria: item.nombre,
                                         gasto: elem.nombre,
-                                        ...((valirFirtsChild) && { firstChildItem: true }),
-                                        ...((idxElem === 0 && valirFirtsChild) && { firstChildGasto: true }),
-                                        fatherGasto: true
+                                        ...((valirFirtsChildGasto) && { firstChildItem: true }),
+                                        ...((idxElem === 0 && valirFirtsChildGasto) && { firstChildGasto: true }),
+                                        ...((idxElem === 0 && valirFirtsChild) && { firstChild: true }),
+                                        fatherGasto: true,
+                                        pendiente_pagar: elem.coste_final - elem.pagado,
                                     })
+                                    valirFirtsChild = false
                                 })
                                 acc.push({
                                     ...item,
                                     categoria: item.nombre,
-                                    fatherCategoria: true
+                                    fatherCategoria: true,
+                                    pendiente_pagar: item.coste_final - item.pagado,
+                                    ...((valirFirtsChild) && { firstChild: true }),
                                 })
                                 return acc
-                            }, [])} />
+                            }, [])} />}
                         </div>
                         : <div className='w-full h-full'>
                             <div className=' flex justify-center items-center rounded-t-md w-full text-center capitalize bg-primary text-white py-1' >
