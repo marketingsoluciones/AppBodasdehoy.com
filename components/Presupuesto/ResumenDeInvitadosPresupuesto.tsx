@@ -47,8 +47,8 @@ export const ResumenInvitados = ({ }) => {
                 <p className="font-display text-sm md:text-[16px] text-primary capitalize">{t("Invitados")} estimados</p>
             </div>
             <div className="flex flex-col justify-center w-28">
-                <EditableLabelWithInput value={event.presupuesto_objeto.totalStimatedGuests.adults} type="int" handleOnBlur={handleOnBlur} accessor="adults" />
-                <EditableLabelWithInput value={event.presupuesto_objeto.totalStimatedGuests.children} type="int" handleOnBlur={handleOnBlur} accessor="children" />
+                <EditableLabelWithInput value={event.presupuesto_objeto?.totalStimatedGuests?.adults} type="int" handleOnBlur={handleOnBlur} accessor="adults" textAlign="center" />
+                <EditableLabelWithInput value={event.presupuesto_objeto?.totalStimatedGuests?.children} type="int" handleOnBlur={handleOnBlur} accessor="children" textAlign="center" />
             </div>
         </div>
     )

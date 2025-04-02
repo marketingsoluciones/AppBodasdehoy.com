@@ -1,6 +1,7 @@
 import { FC, useEffect, useReducer, useState } from 'react';
 import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import { t } from 'i18next';
+import { EditableLabelWithInput } from '../Forms/EditableLabelWithInput';
 
 interface props {
   data: any
@@ -13,7 +14,8 @@ interface ColumnVisibility {
   isHidden?: boolean
   isEdited?: boolean
   isSelected?: boolean
-  className?: string
+  verticalAlignment?: "start" | "center" | "end"
+  horizontalAlignment?: "start" | "center" | "end"
   type?: "string" | "int" | "float"
 }
 
@@ -28,13 +30,13 @@ export const TableBudgetV8: FC<props> = ({ data }) => {
     { accessor: "categoria", header: t("categoria") },
     { accessor: "gasto", header: t("partida de gasto") },
     { accessor: "unidad", header: t("unidad"), size: defaultSize.int, },
-    { accessor: "cantidad", header: t("cantidad"), size: defaultSize.int, className: "justify-center", },
+    { accessor: "cantidad", header: t("cantidad"), size: defaultSize.int, horizontalAlignment: "center", type: "int" },
     { accessor: "nombre", header: t("item") },
-    { accessor: "valor_unitario", header: t("valor unitario"), size: 100, className: "justify-end", type: "float" },
-    { accessor: "coste_final", header: t("coste total"), size: defaultSize.float, className: "justify-end", type: "float" },
-    { accessor: "coste_estimado", header: t("coste estimado"), size: defaultSize.float, className: "justify-end", type: "float" },
-    { accessor: "pagado", header: t("pagado"), size: defaultSize.float, className: "justify-end", type: "float" },
-    { accessor: "pendiente_pagar", header: t("pendiente por pagar"), size: defaultSize.float, className: "justify-end", type: "float" },
+    { accessor: "valor_unitario", header: t("valor unitario"), size: 100, horizontalAlignment: "end", type: "float" },
+    { accessor: "coste_final", header: t("coste total"), size: defaultSize.float, horizontalAlignment: "end", type: "float" },
+    { accessor: "coste_estimado", header: t("coste estimado"), size: defaultSize.float, horizontalAlignment: "end", type: "float" },
+    { accessor: "pagado", header: t("pagado"), size: defaultSize.float, horizontalAlignment: "end", type: "float" },
+    { accessor: "pendiente_pagar", header: t("pendiente por pagar"), size: defaultSize.float, horizontalAlignment: "end", type: "float" },
   ]
   const rerender = useReducer(() => ({}), {})[1]
   const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility[]>(initialColumnVisibility);
@@ -52,13 +54,22 @@ export const TableBudgetV8: FC<props> = ({ data }) => {
         id: elem?.accessor ?? idx.toString(),
         header: info => elem?.header ?? info.column.id,
         cell: info => {
+          let value = null
           if (elem.type === "float") {
             const asd = info.getValue()
             if (typeof asd === "number") {
-              return asd.toFixed(2)
+              value = asd.toFixed(2)
             }
           }
-          return info.getValue()
+          value = info.getValue()
+          return <EditableLabelWithInput
+            key={idx}
+            accessor={elem?.accessor}
+            handleOnBlur={() => console.log("aqui")}
+            type={elem?.type}
+            value={value as string | number}
+            textAlign={elem?.horizontalAlignment}
+            isLabelDisabled />
         },
         footer: info => info.column.id,
         size: elem?.size,
@@ -85,7 +96,7 @@ export const TableBudgetV8: FC<props> = ({ data }) => {
     <div className="text-xs w-full h-full">
       <div className='w-full h-full p-2'>
         <table className='bg-gray-200 w-full h-full flex flex-col !rounded-xl overflow-auto' >
-          <thead className='flex w-full min-h-8 bg-red sticky top-0 z-20'
+          <thead className='flex w-full min-h-8 sticky top-0 z-20'
             style={{
               minWidth: table.getTotalSize(),
             }}
@@ -130,8 +141,27 @@ export const TableBudgetV8: FC<props> = ({ data }) => {
                 <tr key={row.id} className={`flex ${row.original?.fatherCategoria ? "border-b-[1px] border-gray-300" : ""}`.replace(/\s+/g, ' ').replace(/\n+/g, ' ')}>
                   {row.getVisibleCells().map(cell => {
                     // console.log(100091, cell.getContext())
-                    const className = initialColumnVisibility.find(elem => elem.accessor === cell.getContext().column.columnDef.id).className
-                    // console.log(100072, cell.column.id, cell.getContext().column.columnDef.size)
+                    const verticalAlignment = initialColumnVisibility.find(elem => elem.accessor === cell.getContext().column.columnDef.id)?.verticalAlignment
+                    const horizontalAlignment = initialColumnVisibility.find(elem => elem.accessor === cell.getContext().column.columnDef.id)?.horizontalAlignment
+                    const className = `
+                      ${horizontalAlignment === "start" ? "justify-start" : horizontalAlignment === "center" ? "justify-center" : horizontalAlignment === "end" ? "justify-end" : ""}
+                      ${verticalAlignment === "start" ? "items-start" : verticalAlignment === "center" ? "items-center" : verticalAlignment === "end" ? "items-end" : ""}
+                    `.replace(/\s+/g, ' ').replace(/\n+/g, ' ')
+
+                    console.log(100072, cell.getValue(), cell.getContext().column.columnDef)
+                    const value = cell.column.id === "categoria"
+                      ? row.original.firstChildGasto || row.original.firstChild
+                        ? cell.getValue()
+                        : ""
+                      : cell.column.id === "gasto"
+                        ? !row.original?.fatherCategoria
+                          ? row.original?.firstChildItem && cell.getValue()
+                          : ""
+                        : (cell.column.id === "nombre" && row.original?.fatherCategoria) || (cell.column.id === "nombre" && row.original?.fatherGasto)
+                          ? ""
+                          : cell.getValue()
+
+
                     return (
                       <td
                         key={cell.id}
@@ -145,7 +175,7 @@ export const TableBudgetV8: FC<props> = ({ data }) => {
                         ${cell.column.id === "categoria" || row.original?.fatherCategoria
                             ? `Ca bg-[#e6e6d7] ${!["gasto", "unidad", "cantidad", "nombre", "valor_unitario"].includes(cell.column.id) && "Cc border-l-[1px] border-gray-300"}`
                             : `Cb ${cell.column.id === "gasto" && "Cd bg-[#eaeeee] border-l-[1px] border-gray-300"} 
-                             ${row.original?.fatherGasto ? `Ce bg-[#eaeeee] border-b-[1px] border-gray-300 ${!["unidad", "cantidad", "nombre", "valor_unitario",].includes(cell.column.id) && "Cf border-l-[1px] border-gray-300"}` : `Cg ${["unidad", "cantidad", "nombre", "valor_unitario", "coste_final", "coste_estimado",].includes(cell.column.id) ? "Ch border-l-[1px] border-gray-300 bg-white" : ""} Ci ${["unidad", "cantidad", "nombre", "valor_unitario", "coste_final",].includes(cell.column.id) || (row.original?.lastChildGasto && cell.column.id !== "gasto") ? "border-b-[1px] border-gray-300" : ""}`}`} capitalize ${className ? className : ""} ${cell.column.id === "coste_estimado" ? "text-primary" : ""}`.replace(/\s+/g, ' ').replace(/\n+/g, ' ')}
+                             ${row.original?.fatherGasto ? `Ce bg-[#eaeeee] border-b-[1px] border-gray-300 ${!["unidad", "cantidad", "nombre", "valor_unitario",].includes(cell.column.id) && "Cf border-l-[1px] border-gray-300"}` : `Cg ${["unidad", "cantidad", "nombre", "valor_unitario", "coste_final", "coste_estimado",].includes(cell.column.id) ? "Ch border-l-[1px] border-gray-300 bg-white" : ""} Ci ${["unidad", "cantidad", "nombre", "valor_unitario", "coste_final",].includes(cell.column.id) || (row.original?.lastChildGasto && cell.column.id !== "gasto") ? "border-b-[1px] border-gray-300" : ""}`}`} ${className ? className : ""} ${cell.column.id === "coste_estimado" ? "text-primary" : ""}`.replace(/\s+/g, ' ').replace(/\n+/g, ' ')}
                       >
                         {cell.column.id === "categoria"
                           ? row.original.firstChildGasto || row.original.firstChild
