@@ -957,7 +957,14 @@ export const queries = {
   }
   }
   }`,
-
+  editCategoria: `mutation( $evento_id:String $categoria_id:String $nombre:String){
+    editCategoria(evento_id:$evento_id, categoria_id: $categoria_id, nombre: $nombre){
+      coste_estimado
+      coste_final
+      pagado
+      currency
+    }
+  }`,
   nuevoPago: `mutation($evento_id:String, $categoria_id:String, $gasto_id: String,$pagos_array:[pagos_arrayAinput]){
                   nuevoPago(evento_id:$evento_id, categoria_id:$categoria_id, gasto_id:$gasto_id, pagos_array:$pagos_array){
                     pagado

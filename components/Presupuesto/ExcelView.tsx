@@ -129,12 +129,12 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
 
     useEffect(() => {
         const f1 = event?.presupuesto_objeto?.categorias_array?.findIndex((item) => item?._id === categoria?._id)
-        if (event?.presupuesto_objeto?.categorias_array[f1] != totalCosteFinal) {
-            setEvent((old) => {
-                old.presupuesto_objeto.categorias_array[f1].coste_final = totalCosteFinal
-                return { ...old }
-            })
-        }
+        // if (event?.presupuesto_objeto?.categorias_array[f1] != totalCosteFinal) {
+        //     setEvent((old) => {
+        //         old.presupuesto_objeto.categorias_array[f1].coste_final = totalCosteFinal
+        //         return { ...old }
+        //     })
+        // }
     }, [totalCosteFinal])
 
     const OptionsSettings = [
@@ -181,9 +181,9 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
                         <div className='bg-blue-50 w-full h-full flex'>
                             <TableBudgetV8 data={event.presupuesto_objeto.categorias_array.reduce((acc, item) => {
                                 let valirFirtsChild = true
-                                item.gastos_array?.map((elem, idxElem) => {
+                                item?.gastos_array?.map((elem, idxElem) => {
                                     let valirFirtsChildGasto = true
-                                    elem.items_array.map((el, idxEl) => {
+                                    elem?.items_array?.map((el, idxEl) => {
                                         valirFirtsChildGasto = false
                                         valirFirtsChild = false
                                         acc.push({
@@ -216,6 +216,7 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
                                         ...((idxElem === 0 && valirFirtsChild) && { firstChild: true }),
                                         fatherGasto: true,
                                         pendiente_pagar: elem.coste_final - elem.pagado,
+                                        accessorEditables: ["coste_final", "coste_estimado", "pagado"]
                                     })
                                     valirFirtsChild = false
                                 })

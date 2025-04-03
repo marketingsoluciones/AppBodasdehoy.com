@@ -18,10 +18,11 @@ interface ColumnVisibility {
   header?: string
   size?: number
   isHidden?: boolean
-  isEdited?: boolean
+  isEditabled?: boolean
   isSelected?: boolean
   verticalAlignment?: "start" | "center" | "end"
   horizontalAlignment?: "start" | "center" | "end"
+  className?: string
   type?: "string" | "int" | "float" | "select"
 }
 
@@ -40,16 +41,15 @@ const optionsSelect = [
 
 export const TableBudgetV8: FC<props> = ({ data }) => {
   const { event, setEvent } = EventContextProvider()
-  const toast = useToast()
   const initialColumnVisibility: ColumnVisibility[] = [
-    { accessor: "categoria", header: t("categoria") },
-    { accessor: "gasto", header: t("partida de gasto") },
-    { accessor: "unidad", header: t("unidad"), size: defaultSize.int, type: "select" },
-    { accessor: "cantidad", header: t("cantidad"), size: defaultSize.int, horizontalAlignment: "center", type: "int" },
-    { accessor: "nombre", header: t("item") },
-    { accessor: "valor_unitario", header: t("valor unitario"), size: 100, horizontalAlignment: "end", type: "float" },
+    { accessor: "categoria", header: t("categoria"), isEditabled: true },
+    { accessor: "gasto", header: t("partida de gasto"), isEditabled: true },
+    { accessor: "unidad", header: t("unidad"), size: defaultSize.int, type: "select", isEditabled: true },
+    { accessor: "cantidad", header: t("cantidad"), size: defaultSize.int, horizontalAlignment: "center", type: "int", isEditabled: true },
+    { accessor: "nombre", header: t("item"), isEditabled: true },
+    { accessor: "valor_unitario", header: t("valor unitario"), size: 100, horizontalAlignment: "end", type: "float", isEditabled: true },
     { accessor: "coste_final", header: t("coste total"), size: defaultSize.float, horizontalAlignment: "end", type: "float" },
-    { accessor: "coste_estimado", header: t("coste estimado"), size: defaultSize.float, horizontalAlignment: "end", type: "float" },
+    { accessor: "coste_estimado", header: t("coste estimado"), size: defaultSize.float, horizontalAlignment: "end", type: "float", className: "text-primary" },
     { accessor: "pagado", header: t("pagado"), size: defaultSize.float, horizontalAlignment: "end", type: "float" },
     { accessor: "pendiente_pagar", header: t("pendiente por pagar"), size: defaultSize.float, horizontalAlignment: "end", type: "float" },
   ]
@@ -64,28 +64,63 @@ export const TableBudgetV8: FC<props> = ({ data }) => {
   }, [data])
 
   const handleChange: any = ({ values, info }) => {
-    const original = info.row.original
-    if (original.object === "item") {
-      console.log("input change", values, original)
-      fetchApiEventos({
-        query: queries.editItemGasto,
-        variables: {
-          evento_id: event?._id,
-          categoria_id: original?.categoriaID,
-          gasto_id: original?.gastoID,
-          itemGasto_id: original?.itemID,
-          variable: values.accessor,
-          valor: values.value
-        }
-      }).then((result: estimate) => {
-        console.log(100071, result)
-        event.presupuesto_objeto = result
-        setEvent({ ...event })
-        toast("success", t("item actualizado con exito"))
-      }).catch((error) => {
-        console.log(error);
-      })
-
+    try {
+      const original = info.row.original
+      if (original.object === "item" && (!["categoria", "gasto"].includes(values.accessor))) {
+        fetchApiEventos({
+          query: queries.editItemGasto,
+          variables: {
+            evento_id: event?._id,
+            categoria_id: original?.categoriaID,
+            gasto_id: original?.gastoID,
+            itemGasto_id: original?.itemID,
+            variable: values.accessor,
+            valor: values.value
+          }
+        }).then((result: any) => {
+          event.presupuesto_objeto = result
+          setEvent({ ...event })
+          return
+        }).catch((error) => {
+          console.log(error);
+        })
+      }
+      if ((original.object === "gasto" && (!["categoria"].includes(values.accessor)) || (original.object === "item" && values.accessor === "gasto"))) {
+        fetchApiEventos({
+          query: queries.editGasto,
+          variables: {
+            evento_id: event?._id,
+            categoria_id: original?.categoriaID,
+            gasto_id: original?.gastoID,
+            variable_reemplazar: values.accessor === "gasto" ? "nombre" : values.accessor,
+            valor_reemplazar: values.value
+          }
+        }).then((result: any) => {
+          event.presupuesto_objeto = result
+          setEvent({ ...event })
+          return
+        }).catch((error) => {
+          console.log(error);
+        })
+      }
+      if (original.object === "categoria" || (original.object === "gasto" && values.accessor === "categoria") || (original.object === "item" && values.accessor === "categoria")) {
+        fetchApiEventos({
+          query: queries.editCategoria,
+          variables: {
+            evento_id: event?._id,
+            categoria_id: original?.categoriaID,
+            nombre: values.value
+          }
+        }).then((result: any) => {
+          // event.presupuesto_objeto = result
+          // setEvent({ ...event })
+          return
+        }).catch((error) => {
+          console.log(error);
+        })
+      }
+    } catch (error) {
+      console.log(error)
     }
   }
 
@@ -95,37 +130,34 @@ export const TableBudgetV8: FC<props> = ({ data }) => {
         id: elem?.accessor ?? idx.toString(),
         header: info => elem?.header ?? info.column.id,
         cell: info => {
-          let value = null
-          if (elem.type === "float") {
-            const asd = info.getValue()
-            if (typeof asd === "number") {
-              value = asd.toFixed(2)
-            }
-          }
 
-          value = info.getValue()
-          return elem?.type !== "select"
-            ? <EditableLabelWithInput
-              key={idx}
-              accessor={elem?.accessor}
-              handleChange={(values: any) => { handleChange({ values, info }) }}
-              type={elem?.type}
-              value={value as string | number}
-              textAlign={elem?.horizontalAlignment}
-              isLabelDisabled />
-            : <EditableSelect
-              accessor={elem?.accessor}
-              value={value}
-              optionsSelect={optionsSelect}
-              size={elem?.size}
-              handleChange={(values: any) => { handleChange({ values, info }) }}
-            />
-
+          let value = info.getValue()
+          return elem.isEditabled || info?.row?.original?.accessorEditables?.includes(elem.accessor)
+            ? elem?.type !== "select"
+              ? <EditableLabelWithInput
+                key={idx}
+                accessor={elem?.accessor}
+                handleChange={(values: any) => { handleChange({ values, info }) }}
+                type={elem?.type}
+                value={value as string | number}
+                textAlign={elem?.horizontalAlignment}
+                isLabelDisabled />
+              : <EditableSelect
+                accessor={elem?.accessor}
+                value={value}
+                optionsSelect={optionsSelect}
+                size={elem?.size}
+                handleChange={(values: any) => { handleChange({ values, info }) }}
+              />
+            : elem.type === "float"
+              ? typeof info.getValue() === "number"
+                ? info.getValue().toFixed(2)
+                : null
+              : info.getValue()
         },
         footer: info => info.column.id,
         size: elem?.size,
       })
-
     return elemtOut
   })
 
