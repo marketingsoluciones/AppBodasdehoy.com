@@ -9,12 +9,12 @@ interface props {
   accessor: string
   value: string | number
   type: "int" | "float" | "string"
-  handleOnBlur: any
+  handleChange: any
   isLabelDisabled?: boolean
   textAlign?: "left" | "center" | "right" | "start" | "end"
 }
 
-export const EditableLabelWithInput: FC<props> = ({ value, type, handleOnBlur, accessor, isLabelDisabled, textAlign }) => {
+export const EditableLabelWithInput: FC<props> = ({ value, type, handleChange, accessor, isLabelDisabled, textAlign }) => {
   const [edit, setEdit] = useState(false)
   const [newValue, setNewValue] = useState<string | number>(value)
   const [hovered, setHovered] = useState(false)
@@ -36,8 +36,7 @@ export const EditableLabelWithInput: FC<props> = ({ value, type, handleOnBlur, a
       e.preventDefault()
     }
     if (tecla == "enter") {
-      (["int", "float"].includes(type) && typeof newValue === "string" ? newValue !== "" ? parseFloat(newValue) : 0 : newValue) !== value && handleOnBlur({ value: ["int", "float"].includes(type) && typeof newValue === "string" ? newValue !== "" ? type === "float" ? parseFloat(newValue) : parseInt(newValue) : 0 : newValue, accessor })
-      setNewValue(value)
+      (["int", "float"].includes(type) && typeof newValue === "string" ? newValue !== "" ? parseFloat(newValue) : 0 : newValue) !== value && handleChange({ value: ["int", "float"].includes(type) && typeof newValue === "string" ? newValue !== "" ? type === "float" ? parseFloat(newValue) : parseInt(newValue) : 0 : newValue, accessor })
       setEdit(false);
     }
   };
@@ -52,8 +51,7 @@ export const EditableLabelWithInput: FC<props> = ({ value, type, handleOnBlur, a
             min={0}
             max={1000}
             onBlur={() => {
-              (["int", "float"].includes(type) && typeof newValue === "string" ? newValue !== "" ? parseFloat(newValue) : 0 : newValue) !== value && handleOnBlur({ value: ["int", "float"].includes(type) && typeof newValue === "string" ? newValue !== "" ? type === "float" ? parseFloat(newValue) : parseInt(newValue) : 0 : newValue, accessor })
-              setNewValue(value)
+              (["int", "float"].includes(type) && typeof newValue === "string" ? newValue !== "" ? parseFloat(newValue) : 0 : newValue) !== value && handleChange({ value: ["int", "float"].includes(type) && typeof newValue === "string" ? newValue !== "" ? type === "float" ? parseFloat(newValue) : parseInt(newValue) : 0 : newValue, accessor })
               setHovered(false)
             }}
             onChange={(e) => {
@@ -66,7 +64,7 @@ export const EditableLabelWithInput: FC<props> = ({ value, type, handleOnBlur, a
           />
 
         </ClickAwayListener>
-        : <p
+        : <span
           onMouseEnter={() => {
             clearTimeout(timeoutId)
             setHovered(true)
@@ -79,13 +77,23 @@ export const EditableLabelWithInput: FC<props> = ({ value, type, handleOnBlur, a
           onClick={() => isAllowed() ? setEdit(true) : ht()}
           className="font-display font-semibold text-xs text-gray-500 flex items-center justify-center gap-1 cursor-pointer relative"
         >
-          {["int", "float"].includes(type) && typeof newValue === "string" ? newValue !== "" ? type === "float" ? parseFloat(newValue) : parseInt(newValue) : 0 : newValue}
+          {["int", "float"].includes(type) && typeof newValue === "string"
+            ? newValue !== ""
+              ? type === "float"
+                ? parseFloat(newValue).toFixed(2)
+                : parseInt(newValue)
+              : 0
+            : typeof newValue === "number"
+              ? type === "float"
+                ? newValue.toFixed(2)
+                : newValue
+              : newValue}
           {!isLabelDisabled && <span className="text-xs font-light">{t(accessor)}</span>}
           {hovered && <div className="absolute right-0 w-6 h-full flex translate-x-full justify-end">
             <FaPencilAlt className="text-gray-400 hover:scale-105" />
           </div>
           }
-        </p >}
+        </span >}
       <style jsx>
         {
           `input {

@@ -2,6 +2,12 @@ import { FC, useEffect, useReducer, useState } from 'react';
 import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import { t } from 'i18next';
 import { EditableLabelWithInput } from '../Forms/EditableLabelWithInput';
+import ClickAwayListener from 'react-click-away-listener';
+import { EditableSelect } from '../Forms/EditableSelect';
+import { fetchApiEventos, queries } from '../../utils/Fetching';
+import { EventContextProvider } from '../../context';
+import { estimate } from '../../utils/Interfaces';
+import { useToast } from '../../hooks/useToast';
 
 interface props {
   data: any
@@ -16,7 +22,7 @@ interface ColumnVisibility {
   isSelected?: boolean
   verticalAlignment?: "start" | "center" | "end"
   horizontalAlignment?: "start" | "center" | "end"
-  type?: "string" | "int" | "float"
+  type?: "string" | "int" | "float" | "select"
 }
 
 const defaultSize = {
@@ -25,11 +31,20 @@ const defaultSize = {
   string: 200
 }
 
+const optionsSelect = [
+  { title: "xUni", value: "xUni." },
+  { title: "xInv", value: "xInv." },
+  { title: "xAdultos", value: "xAdultos." },
+  { title: "xNiños", value: "xNiños." },
+]
+
 export const TableBudgetV8: FC<props> = ({ data }) => {
+  const { event, setEvent } = EventContextProvider()
+  const toast = useToast()
   const initialColumnVisibility: ColumnVisibility[] = [
     { accessor: "categoria", header: t("categoria") },
     { accessor: "gasto", header: t("partida de gasto") },
-    { accessor: "unidad", header: t("unidad"), size: defaultSize.int, },
+    { accessor: "unidad", header: t("unidad"), size: defaultSize.int, type: "select" },
     { accessor: "cantidad", header: t("cantidad"), size: defaultSize.int, horizontalAlignment: "center", type: "int" },
     { accessor: "nombre", header: t("item") },
     { accessor: "valor_unitario", header: t("valor unitario"), size: 100, horizontalAlignment: "end", type: "float" },
@@ -48,6 +63,32 @@ export const TableBudgetV8: FC<props> = ({ data }) => {
     }
   }, [data])
 
+  const handleChange: any = ({ values, info }) => {
+    const original = info.row.original
+    if (original.object === "item") {
+      console.log("input change", values, original)
+      fetchApiEventos({
+        query: queries.editItemGasto,
+        variables: {
+          evento_id: event?._id,
+          categoria_id: original?.categoriaID,
+          gasto_id: original?.gastoID,
+          itemGasto_id: original?.itemID,
+          variable: values.accessor,
+          valor: values.value
+        }
+      }).then((result: estimate) => {
+        console.log(100071, result)
+        event.presupuesto_objeto = result
+        setEvent({ ...event })
+        toast("success", t("item actualizado con exito"))
+      }).catch((error) => {
+        console.log(error);
+      })
+
+    }
+  }
+
   const columns = initialColumnVisibility.map((elem, idx) => {
     const elemtOut = columnHelper.accessor(elem?.accessor ?? elem?.header,
       {
@@ -61,15 +102,25 @@ export const TableBudgetV8: FC<props> = ({ data }) => {
               value = asd.toFixed(2)
             }
           }
+
           value = info.getValue()
-          return <EditableLabelWithInput
-            key={idx}
-            accessor={elem?.accessor}
-            handleOnBlur={() => console.log("aqui")}
-            type={elem?.type}
-            value={value as string | number}
-            textAlign={elem?.horizontalAlignment}
-            isLabelDisabled />
+          return elem?.type !== "select"
+            ? <EditableLabelWithInput
+              key={idx}
+              accessor={elem?.accessor}
+              handleChange={(values: any) => { handleChange({ values, info }) }}
+              type={elem?.type}
+              value={value as string | number}
+              textAlign={elem?.horizontalAlignment}
+              isLabelDisabled />
+            : <EditableSelect
+              accessor={elem?.accessor}
+              value={value}
+              optionsSelect={optionsSelect}
+              size={elem?.size}
+              handleChange={(values: any) => { handleChange({ values, info }) }}
+            />
+
         },
         footer: info => info.column.id,
         size: elem?.size,
@@ -105,7 +156,7 @@ export const TableBudgetV8: FC<props> = ({ data }) => {
               return (
                 <tr key={headerGroup.id} className='bg-primary w-full flex border-b-[1px] border-gray-200'>
                   {headerGroup.headers.map(header => {
-                    console.log(100071, header.column.id, header.getContext().column.columnDef.size)
+                    // console.log(100071, header.column.id, header.getContext().column.columnDef.size)
                     return (
                       <th
                         key={header.id}
@@ -148,7 +199,7 @@ export const TableBudgetV8: FC<props> = ({ data }) => {
                       ${verticalAlignment === "start" ? "items-start" : verticalAlignment === "center" ? "items-center" : verticalAlignment === "end" ? "items-end" : ""}
                     `.replace(/\s+/g, ' ').replace(/\n+/g, ' ')
 
-                    console.log(100072, cell.getValue(), cell.getContext().column.columnDef)
+                    // console.log(100072, cell.getValue(), cell.getContext().column.columnDef)
                     const value = cell.column.id === "categoria"
                       ? row.original.firstChildGasto || row.original.firstChild
                         ? cell.getValue()
@@ -175,7 +226,7 @@ export const TableBudgetV8: FC<props> = ({ data }) => {
                         ${cell.column.id === "categoria" || row.original?.fatherCategoria
                             ? `Ca bg-[#e6e6d7] ${!["gasto", "unidad", "cantidad", "nombre", "valor_unitario"].includes(cell.column.id) && "Cc border-l-[1px] border-gray-300"}`
                             : `Cb ${cell.column.id === "gasto" && "Cd bg-[#eaeeee] border-l-[1px] border-gray-300"} 
-                             ${row.original?.fatherGasto ? `Ce bg-[#eaeeee] border-b-[1px] border-gray-300 ${!["unidad", "cantidad", "nombre", "valor_unitario",].includes(cell.column.id) && "Cf border-l-[1px] border-gray-300"}` : `Cg ${["unidad", "cantidad", "nombre", "valor_unitario", "coste_final", "coste_estimado",].includes(cell.column.id) ? "Ch border-l-[1px] border-gray-300 bg-white" : ""} Ci ${["unidad", "cantidad", "nombre", "valor_unitario", "coste_final",].includes(cell.column.id) || (row.original?.lastChildGasto && cell.column.id !== "gasto") ? "border-b-[1px] border-gray-300" : ""}`}`} ${className ? className : ""} ${cell.column.id === "coste_estimado" ? "text-primary" : ""}`.replace(/\s+/g, ' ').replace(/\n+/g, ' ')}
+                             ${row.original?.fatherGasto ? `Ce bg-[#eaeeee] border-b-[1px] border-gray-300 ${!["unidad", "cantidad", "nombre", "valor_unitario",].includes(cell.column.id) && "Cf border-l-[1px] border-gray-300"}` : `Cg ${["unidad", "cantidad", "nombre", "valor_unitario", "coste_final", "coste_estimado", "pagado", "pendiente_pagar"].includes(cell.column.id) ? `Ch bg-white ${["unidad", "cantidad", "nombre", "valor_unitario", "coste_final", "coste_estimado"].includes(cell.column.id) ? "border-l-[1px] border-gray-300" : ""}` : ""} Ci ${["unidad", "cantidad", "nombre", "valor_unitario", "coste_final", "coste_estimado", "pagado", "pendiente_pagar"].includes(cell.column.id) || (row.original?.lastChildGasto && cell.column.id !== "gasto") ? "border-b-[1px] border-gray-300" : ""}`}`} ${className ? className : ""} ${cell.column.id === "coste_estimado" ? "text-primary" : ""}`.replace(/\s+/g, ' ').replace(/\n+/g, ' ')}
                       >
                         {cell.column.id === "categoria"
                           ? row.original.firstChildGasto || row.original.firstChild

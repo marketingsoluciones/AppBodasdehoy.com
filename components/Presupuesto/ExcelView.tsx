@@ -188,8 +188,13 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
                                         valirFirtsChild = false
                                         acc.push({
                                             ...el,
+                                            object: "item",
                                             categoria: item.nombre,
+                                            categoriaID: item._id,
                                             gasto: elem.nombre,
+                                            gastoID: elem._id,
+                                            item: el.nombre,
+                                            itemID: el._id,
                                             coste_final: el.total,
                                             ...(idxEl === 0 && { firstChildItem: true }),
                                             ...((idxElem === 0 && idxEl === 0) && { firstChildGasto: true }),
@@ -201,8 +206,11 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
                                     })
                                     acc.push({
                                         ...elem,
+                                        object: "gasto",
                                         categoria: item.nombre,
+                                        categoriaID: item._id,
                                         gasto: elem.nombre,
+                                        gastoID: elem._id,
                                         ...((valirFirtsChildGasto) && { firstChildItem: true }),
                                         ...((idxElem === 0 && valirFirtsChildGasto) && { firstChildGasto: true }),
                                         ...((idxElem === 0 && valirFirtsChild) && { firstChild: true }),
@@ -213,7 +221,9 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
                                 })
                                 acc.push({
                                     ...item,
+                                    object: "categoria",
                                     categoria: item.nombre,
+                                    categoriaID: item._id,
                                     fatherCategoria: true,
                                     pendiente_pagar: item.coste_final - item.pagado,
                                     ...((valirFirtsChild) && { firstChild: true }),
