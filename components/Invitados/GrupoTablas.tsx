@@ -16,7 +16,7 @@ import { CopiarLink } from "../Utils/Compartir";
 import { SubTabla } from "./SubTabla";
 import { IoIosArrowDown } from "react-icons/io";
 import { Modal } from "../Utils/Modal";
-import { DeleteConfirmation } from "../Itinerario/MicroComponente/DeleteConfirmation";
+import { DeleteConfirmation } from "../Utils/DeleteConfirmation";
 import { useTranslation } from 'react-i18next';
 
 interface propsDatatableGroup {
@@ -668,7 +668,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                 };
               });
               setShow(!show);
-              setModal({ state:false , title:null, handle:null } )
+              setModal({ state: false, title: null, handle: null })
             }
           };
 

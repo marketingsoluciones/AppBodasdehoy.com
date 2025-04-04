@@ -7,7 +7,7 @@ import { PencilEdit } from "../../icons";
 import { MdOutlineDeleteOutline } from "react-icons/md";
 import { Itinerary } from "../../../utils/Interfaces";
 import { Modal } from "../../Utils/Modal";
-import { DeleteConfirmation } from "./DeleteConfirmation";
+import { DeleteConfirmation } from "../../Utils/DeleteConfirmation";
 import { useToast } from "../../../hooks/useToast";
 import { FaCheck } from "react-icons/fa";
 import { useAllowed } from "../../../hooks/useAllowed";

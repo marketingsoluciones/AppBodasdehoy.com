@@ -29,30 +29,52 @@ const Grafico = ({ categorias }) => {
     setLabels(categorias?.map(item => capitalize(item.nombre)))
   }, [categorias])
 
+  const options = {
+    plugins: {
+      // datalabels: {
+      //   font: {
+      //     size: 16, // Define el tamaño de la fuente aquí (en píxeles)
+      //   },
+      //   color: '#fff', // Opcional: Cambiar el color del texto
+      //   formatter: (value, context) => {
+      //     // Opcional: Formatear el texto de la etiqueta
+      //     const total = context.dataset.data.reduce((a, b) => a + b, 0);
+      //     return `${((value / total) * 100).toFixed(1)}%`;
+      //   },
+      // },
+      legend: {
+        position: 'bottom',
+        labels: {
+          font: {
+            size: 10, // Opcional: Cambiar el tamaño de la fuente de la leyenda
+          },
+        },
+      },
+      labels: {
+        font: {
+          size: 12,
+          family: "Poppins"
+        }
+      },
+      // title: {
+      //   display: true,
+      //   text: 'Gráfico de Donut',
+      //   font: {
+      //     size: 18, // Opcional: Cambiar el tamaño de la fuente del título
+      //   },
+      // },
+    },
+  };
+
   return (
     <>
-      <div className="w-full h-full md:mb-2 md:h-max bg-white rounded-xl shadow-md flex justify-center  md:py-6 pt-6  ">
-        <div className="md:w-3/5 h-full  ">
+      <div className="w-full flex-1 md:mb-2 md:h-max bg-white rounded-xl shadow-md flex justify-center md:py-6 pt-6">
+        <div className="w-[350px]">
           <Doughnut
             type="Doughnut"
             className="chart"
-            options={{
-              plugins: {
-                legend: {
-                  position: "bottom",
-                  align: "start",
-
-                  labels: {
-                    font: {
-                      size: 12,
-                      family: "Poppins"
-                    }
-                  }
-                },
-              },
-            }}
             data={{
-              className: "data",
+              className: "data ",
               labels: labels,
               datasets: [
                 {
@@ -63,6 +85,7 @@ const Grafico = ({ categorias }) => {
                 },
               ],
             }}
+            options={options}
           />
         </div>
       </div>

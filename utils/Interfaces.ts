@@ -1,3 +1,4 @@
+import { ReactNode } from "react"
 
 export interface Event {
     _id: string
@@ -136,6 +137,12 @@ export interface ResultNotifications {
 export interface menu {
     nombre_menu: string
     tipo: string
+}
+
+export interface ModalInterface {
+    state: boolean
+    title?: ReactNode | string
+    values?: any
 }
 
 interface permission {

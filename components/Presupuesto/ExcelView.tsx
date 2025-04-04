@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState, useId } from 'react';
-import { BlockListaCategorias } from '../../pages/presupuesto';
 import { AuthContextProvider, EventContextProvider } from '../../context';
 import { t, use } from 'i18next';
 import { PlusIcon } from '../icons';
@@ -27,6 +26,7 @@ import { ResumenInvitados } from './ResumenDeInvitadosPresupuesto';
 import { ModalTaskList } from './ModalTaskList';
 import { useAllowed } from '../../hooks/useAllowed';
 import { TableBudgetV8 } from '../TablesComponents/TableBudgetV8';
+import { BlockListaCategorias } from './BlockListaCategorias';
 
 interface Categoria {
     _id: string;
@@ -174,7 +174,7 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
                     <div className="mb-2 w-full">
                         <ResumenInvitados />
                     </div>
-                    <BlockListaCategorias set={set} categorias_array={categorias_array} cate={showCategoria} />
+                    <BlockListaCategorias set={set} categorias_array={categorias_array} categorie={showCategoria} />
                 </div>
                 {true && <div className={`flex ${menuIzquierdo ? "w-full" : "md:w-[calc(100%-300px)]"} h-full`}>
                     {true ?

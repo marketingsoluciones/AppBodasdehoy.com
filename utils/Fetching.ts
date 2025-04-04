@@ -957,6 +957,11 @@ export const queries = {
   }
   }
   }`,
+  borraCategoria: `mutation( $evento_id:String $categoria_id:String){
+    borraCategoria(evento_id:$evento_id, categoria_id: $categoria_id){
+      coste_final
+    }
+  }`,
   editCategoria: `mutation( $evento_id:String $categoria_id:String $nombre:String){
     editCategoria(evento_id:$evento_id, categoria_id: $categoria_id, nombre: $nombre){
       coste_estimado

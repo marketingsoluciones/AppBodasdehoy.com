@@ -13,7 +13,7 @@ import ClickAwayListener from "react-click-away-listener";
 import { useRouter } from "next/router";
 import { BorrarInvitado } from "../../hooks/EditarInvitado";
 import { Modal } from "../Utils/Modal";
-import { DeleteConfirmation } from "../Itinerario/MicroComponente/DeleteConfirmation";
+import { DeleteConfirmation } from "../Utils/DeleteConfirmation";
 import { useTranslation } from "react-i18next";
 import { LiaLinkSolid } from "react-icons/lia";
 import { CopiarLink } from "../Utils/Compartir";
