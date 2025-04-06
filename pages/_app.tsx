@@ -41,7 +41,6 @@ MyApp.getInitialProps = async ({ Component, ctx }) => {
   const { req, pathname } = ctx;
   let pageProps = {};
 
-  // Obtén el dominio desde las cabeceras de la petición
   const host = req ? req.headers.host : window.location.hostname;
   const arr = host?.split(".")
   const f1 = arr?.findIndex(elem => ["com", "mx"].includes(elem))
@@ -50,7 +49,6 @@ MyApp.getInitialProps = async ({ Component, ctx }) => {
   const path = "/" + pathname.split("/")[1]
   const openGraphData = dataMetaData.find(elem => elem.ruta === path).metaData(development)
 
-  // Llama a getInitialProps de los componentes de página si existen
   if (Component.getInitialProps) {
     pageProps = await Component.getInitialProps(ctx);
   }
