@@ -15,23 +15,17 @@ import { useRouter } from 'next/router';
 import { NextSeo } from 'next-seo';
 import { dataMetaData } from "../utils/SeoRecurses"
 
-const MyApp = ({ Component, pageProps }) => {
+const MyApp = ({ Component, pageProps, openGraphData }) => {
   const [valirBlock, setValirBlock] = useState<boolean>()
-  const [dataConfig, setDataConfig] = useState<any>()
-
-  useEffect(() => {
-    console.log(100021, dataConfig)
-  }, [dataConfig])
-
 
   return (
     <>
       <NextSeo
-        {...dataConfig}
+        {...openGraphData}
       />
       <I18nextProvider i18n={i18n}>
         <DefaultLayout>
-          <Load setValirBlock={setValirBlock} setDataConfig={setDataConfig} />
+          <Load setValirBlock={setValirBlock} />
           {valirBlock
             ? <BlockRedirection />
             : <Component {...pageProps} />
@@ -42,27 +36,44 @@ const MyApp = ({ Component, pageProps }) => {
   )
 }
 
+// Esta función se ejecuta en el servidor en cada petición
+MyApp.getInitialProps = async ({ Component, ctx }) => {
+  const { req, pathname } = ctx;
+  let pageProps = {};
+
+  // Obtén el dominio desde las cabeceras de la petición
+  const host = req ? req.headers.host : window.location.hostname;
+  const arr = host?.split(".")
+  const f1 = arr?.findIndex(elem => ["com", "mx"].includes(elem))
+  const nameDomain = arr[f1 - 1]
+  const development = developments.find(elem => elem.name === nameDomain)
+  const path = "/" + pathname.split("/")[1]
+  const openGraphData = dataMetaData.find(elem => elem.ruta === path).metaData(development)
+
+  // Llama a getInitialProps de los componentes de página si existen
+  if (Component.getInitialProps) {
+    pageProps = await Component.getInitialProps(ctx);
+  }
+  return { pageProps, openGraphData };
+};
+
 export default MyApp
 
 
 
 import dynamic from 'next/dynamic';
 import Head from 'next/head';
+import { developments } from '../firebase';
 const PixelTracker = dynamic(() => import("../components/PixelTracker") as any, {
   ssr: false,
 });
 
-const Load = ({ setValirBlock, setDataConfig }) => {
+const Load = ({ setValirBlock }) => {
   const { config } = AuthContextProvider()
   const [isAllowedRouter] = useAllowedRouter()
   const { event } = EventContextProvider()
   const { user } = AuthContextProvider()
   const router = useRouter()
-
-  useEffect(() => {
-    const currentMetaData = dataMetaData.find(meta => meta.ruta === router.pathname)?.metaData(config)
-    setDataConfig({ ...currentMetaData })
-  }, [])
 
   useEffect(() => {
     setValirBlock(!isAllowedRouter())
