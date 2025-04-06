@@ -47,7 +47,7 @@ MyApp.getInitialProps = async ({ Component, ctx }) => {
   const nameDomain = arr[f1 - 1]
   const development = developments.find(elem => elem.name === nameDomain)
   const path = "/" + pathname.split("/")[1]
-  const openGraphData = dataMetaData.find(elem => elem.ruta === path).metaData(development)
+  const openGraphData = dataMetaData.find(elem => elem.ruta === path)?.metaData(development) ?? {}
 
   if (Component.getInitialProps) {
     pageProps = await Component.getInitialProps(ctx);
