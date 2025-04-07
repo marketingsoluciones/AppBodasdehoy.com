@@ -14,11 +14,10 @@ import { LoadingSpinner } from "../Utils/LoadingSpinner";
 import { ModalInterface } from "../../utils/Interfaces";
 import { SimpleDeleteConfirmation } from "../Utils/SimpleDeleteConfirmation";
 
-export const ItemCategoria = ({ item, setVisible }) => {
-  const { config } = AuthContextProvider()
+export const ItemCategoria = ({ item, setShowCategoria }) => {
   const { event, setEvent } = EventContextProvider()
-  const [showMenu, setShowMenu] = useState(false);
-  const [showEditCategorie, setShowEditCategorie] = useState(false);
+  // const [showMenu, setShowMenu] = useState(false);
+  // const [showEditCategorie, setShowEditCategorie] = useState(false);
   const toast = useToast()
   const costeEstimado = event?.presupuesto_objeto?.coste_estimado
   const [isAllowed, ht] = useAllowed()
@@ -29,7 +28,6 @@ export const ItemCategoria = ({ item, setVisible }) => {
   const borrarCategoria = async (item) => {
     console.log(item)
     try {
-      setShowMenu(!showMenu)
       fetchApiEventos({
         query: queries.borraCategoria,
         variables: {
@@ -58,29 +56,39 @@ export const ItemCategoria = ({ item, setVisible }) => {
     }
   }
 
-  const Lista = [
-    { title: "Editar", action: () => setShowEditCategorie(true) },
-    { title: "Borrar", action: (item) => setModal({ state: true, values: item, title: item.nombre }) }
-  ];
+  // const Lista = [
+  //   { title: "Editar", action: () => setShowEditCategorie(true) },
+  //   { title: "Borrar", action: (item) => setModal({ state: true, values: item, title: item.nombre }) }
+  // ];
 
   return (
     <li
-      onClick={() => costeEstimado != 0 ? setVisible({ isVisible: true, id: item._id }) : toast("error", t("Agrega un monto a tu Presupuesto Estimado"))}
-      className={`bg-white text-xs w-full justify-between items-center flex px-5 md:pl-2 md:pr-3 transition ${costeEstimado == 0 ? "" : "hover:bg-base"} ${item?.id == item._id ? "bg-slate-200" : ""}`}
+      onClick={() => costeEstimado != 0 ? setShowCategoria({ state: true, id: item._id }) : toast("error", t("Agrega un monto a tu Presupuesto Estimado"))}
+      className={`bg-white text-xs w-full h-10 justify-center items-center flex flex-col px-5 md:px-2 transition ${costeEstimado == 0 ? "" : "hover:bg-base"} ${item?.id == item._id ? "bg-slate-200" : ""}`}
     >
-      {showEditCategorie && (
+      {/* {showEditCategorie && (
         <ModalLeft state={showEditCategorie} set={setShowEditCategorie}>
           <FormEditarCategoria categoria={item} state={showEditCategorie} set={setShowEditCategorie} />
         </ModalLeft>
-      )}
-      <span className="gap-2 py-3 flex items-center capitalize" >
-        {item?.icon}
+      )} */}
+      <span className="flex w-full justify-start items-center font-semibold text-[13px]" >
         {item?.nombre?.toLowerCase()}
       </span>
-      <span className="gap-4 flex items-center py-3 md:py-0" >
-        {/* <div className="text-[13px]" >
+      <span className="flex justify-end w-full text-[10px]" >
+        <div className="flex w-[70%] space-x-3">
+          <div className=" w-1/2 flex justify-end items-end">
+            <span className="text-xs"> 1000,00</span>
+          </div>
+          <div className="w-1/2 flex justify-end items-end">
+            <span className="text-xs"> 1000,00</span>
+          </div>
+
+        </div>
+      </span>
+      {/* <span className="gap-4 flex items-center h-full md:py-0" >
+        <div className="text-[13px]" >
           {getCurrency(DefinirCoste(item), event?.presupuesto_objeto?.currency)}
-        </div> */}
+        </div>
         <div className="relative ">
           <DotsOpcionesIcon
             onClick={() => !isAllowed() ? null : costeEstimado != 0 ? setShowMenu(!showMenu) : null}
@@ -106,7 +114,7 @@ export const ItemCategoria = ({ item, setVisible }) => {
             </ClickAwayListener>
           )}
         </div>
-      </span>
+      </span> */}
       {modal.state && <SimpleDeleteConfirmation
         loading={loading}
         setModal={setModal}

@@ -18,7 +18,7 @@ const Presupuesto = () => {
   useMounted()
   const { t } = useTranslation();
   const { user, verificationDone, forCms } = AuthContextProvider()
-  const [showCategoria, setShowCategoria] = useState({ isVisible: false, id: "" });
+  const [showCategoria, setShowCategoria] = useState({ state: false, id: "" });
   const [active, setActive] = useState("resumen");
   const { event } = EventContextProvider();
   const [categorias, setCategorias] = useState([]);
@@ -29,9 +29,13 @@ const Presupuesto = () => {
   }, [event])
 
   useEffect(() => {
-    const condicion = event?.presupuesto_objeto?.categorias_array?.findIndex(item => item._id == showCategoria.id)
-    condicion == -1 && setShowCategoria({ isVisible: false, id: "" })
-  }, [event?.presupuesto_objeto?.categorias_array, showCategoria?.id])
+    console.log(100072, showCategoria)
+  }, [showCategoria])
+
+  // useEffect(() => {
+  //   const condicion = event?.presupuesto_objeto?.categorias_array?.findIndex(item => item._id == showCategoria.id)
+  //   condicion == -1 && setShowCategoria({ state: false, id: "" })
+  // }, [event?.presupuesto_objeto?.categorias_array, showCategoria?.id])
 
   if (verificationDone) {
     if (!user) {
@@ -48,7 +52,7 @@ const Presupuesto = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className={`${active === "excelView" ? "max-w-screen-2xl" : "max-w-screen-lg"} flex flex-col mx-auto inset-x-0 px-2 md:px-0 w-full h-full`}
+              className={`${active === "excelView" ? "max-w-screen-[1920px]" : "max-w-screen-lg"} flex flex-col mx-auto inset-x-0 px-2 md:px-0 w-full h-full relative`}
             >
               <BlockTitle title={"Presupuesto"} />
               <div className="w-[90%] md:w-96 mx-auto inset-x-0 flex my-2 mt-4 rounded-2xl overflow-hidden text-xs md:text-sm">
@@ -85,7 +89,7 @@ const Presupuesto = () => {
                 </div> */}
 
               </div>
-              <div className="w-full h-[calc(100vh-260px)] overflow-auto">
+              <div className="w-full h-[calc(100vh-260px)]">
 
                 {
                   active == "resumen" && (
@@ -93,14 +97,16 @@ const Presupuesto = () => {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="grid md:grid-cols-4 w-full h-full gap-6 pt-2 md:pr-0"
+                      className="flex w-full h-full gap-6 pt-2 md:pr-0"
                     >
-                      <BlockListaCategorias
-                        set={(action) => setShowCategoria(action)}
-                        categorias_array={categorias}
-                        cate={showCategoria}
-                      />
-                      <div className="md:col-span-3 w-full h-full flex flex-col relative">
+                      <div className="w-[280px]">
+                        <BlockListaCategorias
+                          setShowCategoria={setShowCategoria}
+                          categorias_array={categorias}
+                          showCategoria={showCategoria}
+                        />
+                      </div>
+                      <div className="md:flex-1 w-full h-full flex flex-col relative">
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                           <div className=" bg-white shadow-md rounded-xl grid place-items-center p-4">
                             <MontoPresupuesto
@@ -181,7 +187,7 @@ const Presupuesto = () => {
                       exit={{ opacity: 0 }}
                       className="w-full h-full gap-6 pt-2 md:pr-0"
                     >
-                      <ExcelView set={(action) => setShowCategoria(action)} categorias_array={categorias} showCategoria={showCategoria} />
+                      <ExcelView setShowCategoria={setShowCategoria} categorias_array={categorias} showCategoria={showCategoria} />
                     </motion.div>
                   )
                 }

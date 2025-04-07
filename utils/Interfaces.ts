@@ -1,4 +1,4 @@
-import { ReactNode } from "react"
+import { MouseEvent, ReactNode } from "react"
 
 export interface Event {
     _id: string
@@ -113,8 +113,22 @@ export interface OptionsSelect {
     getIcon?: Function
     title: string
     onClick?: any
-    disabled?: boolean
+    idDisabled?: boolean
     vew?: string
+}
+
+export interface DotsMenu {
+    info: any
+    aling?: "top" | "botton"
+    justify?: "start" | "end"
+    options?: OptionsMenu[]
+}
+
+export interface OptionsMenu {
+    icon?: JSX.Element
+    title: string
+    onClick?: any
+    isDisabled?: boolean
 }
 
 export interface Notification {

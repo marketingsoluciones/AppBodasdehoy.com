@@ -7,7 +7,7 @@ import ModalLeft from "../Utils/ModalLeft";
 import { PlusIcon } from "../icons";
 import { ItemCategoria } from "./ItemCategoria";
 
-export const BlockListaCategorias = ({ categorias_array, set, categorie }) => {
+export const BlockListaCategorias = ({ categorias_array, setShowCategoria, categorie }) => {
   const { t } = useTranslation();
   const [showCreateCategorie, setShowCreateCategorie] = useState(false);
   const [categorias, setCategorias] = useState([]);
@@ -43,7 +43,7 @@ export const BlockListaCategorias = ({ categorias_array, set, categorie }) => {
         </button>
         <ul className={`w-full flex flex-col font-display text-sm h-44 overflow-y-auto md:h-[400px] divide-y ${colorText} ${costeEstimado == 0 ? "cursor-not-allowed*" : "cursor-pointer"}`}>
           {categorias?.map((item, idx) => (
-            <ItemCategoria key={idx} item={item} setVisible={action => set(action)}
+            <ItemCategoria key={idx} item={item} setShowCategoria={setShowCategoria}
             />
           ))}
         </ul>

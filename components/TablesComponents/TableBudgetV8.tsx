@@ -2,12 +2,17 @@ import { FC, useEffect, useReducer, useState } from 'react';
 import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import { t } from 'i18next';
 import { EditableLabelWithInput } from '../Forms/EditableLabelWithInput';
-import ClickAwayListener from 'react-click-away-listener';
 import { EditableSelect } from '../Forms/EditableSelect';
 import { fetchApiEventos, queries } from '../../utils/Fetching';
 import { EventContextProvider } from '../../context';
-import { estimate } from '../../utils/Interfaces';
-import { useToast } from '../../hooks/useToast';
+import { DotsMenu } from '../../utils/Interfaces';
+import { DotsOpcionesIcon } from '../icons';
+import { useAllowed } from '../../hooks/useAllowed';
+import { DotsOptionsMenu } from '../Utils/DotsOptionsMenu';
+import { GrMoney } from 'react-icons/gr';
+import { GoEye, GoEyeClosed, GoTasklist } from 'react-icons/go';
+import { PiNewspaperClippingLight } from 'react-icons/pi';
+import { MdOutlineDeleteOutline } from 'react-icons/md';
 
 interface props {
   data: any
@@ -41,6 +46,8 @@ const optionsSelect = [
 
 export const TableBudgetV8: FC<props> = ({ data }) => {
   const { event, setEvent } = EventContextProvider()
+  const [isAllowed, ht] = useAllowed()
+
   const initialColumnVisibility: ColumnVisibility[] = [
     { accessor: "categoria", header: t("categoria"), isEditabled: true },
     { accessor: "gasto", header: t("partida de gasto"), isEditabled: true },
@@ -56,6 +63,8 @@ export const TableBudgetV8: FC<props> = ({ data }) => {
   const rerender = useReducer(() => ({}), {})[1]
   const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility[]>(initialColumnVisibility);
   const columnHelper = createColumnHelper<any>()
+  const [showDotsOptionsMenu, setShowDotsOptionsMenu] = useState<{ state: boolean, values: DotsMenu }>()
+
 
   useEffect(() => {
     if (data) {
@@ -124,6 +133,95 @@ export const TableBudgetV8: FC<props> = ({ data }) => {
     }
   }
 
+  const determinatedPositionMenu = ({ e, height = 0, width = 0 }): { aling: "top" | "botton", justify: "start" | "end" } => {
+    const trElement = e.currentTarget.offsetParent as HTMLElement
+    const tableElement = trElement.offsetParent
+    // const tableElementWidth = tableElementHeight.offsetParent
+    const aling = trElement.offsetTop + height + 30 > tableElement.scrollTop + tableElement.clientHeight
+      ? "botton"
+      : "top"
+    const justify = trElement.offsetLeft - width - 20 < 0
+      ? "start" : "end"
+    return { justify, aling }
+  }
+
+  const options = [
+    {
+      icon: <PiNewspaperClippingLight className="w-4 h-4" />,
+      title: "Agregar:",
+      //onClick: () => { console.log("Agregar categoría") }
+    },
+    {
+      // icon: <GrMoney className="w-4 h-4" />,
+      title: "Categoría",
+      onClick: () => { console.log("Categoría") }
+    },
+    {
+      // icon: <GrMoney className="w-4 h-4" />,
+      title: "Partida",
+      onClick: () => { console.log("Partida") }
+    },
+    {
+      // icon: <GrMoney className="w-4 h-4" />,
+      title: "Item",
+      onClick: () => { console.log("Item") }// handleCreateItem()
+    },
+    {
+      icon: <GrMoney className="w-4 h-4" />,
+      title: "Relacionar Pago",
+      onClick: () => { console.log("Relacionar Pago") }//handlePago()
+    },
+    {
+      icon: true ? <GoEye className="w-4 h-4" /> : <GoEyeClosed className="w-4 h-4" />,
+      title: "Estado",
+      onClick: () => { console.log("Estado") }//handleChangeState()
+    },
+    {
+      icon: <GoTasklist className="w-4 h-4" />,
+      title: "Task",
+      onClick: () => { console.log("Task") }//setShow(true)
+    },
+    {
+      icon: <MdOutlineDeleteOutline className="w-4 h-4" />,
+      title: "Borrar",
+      onClick: () => { console.log("Borrar") }//handleRemove()
+    },
+  ];
+
+  const columnOptions = columnHelper.accessor("options", {
+    id: "options",
+    header: "",
+    cell: info => {
+      return <div id='TR' className='w-full h-full relative'>
+        {(showDotsOptionsMenu?.state && showDotsOptionsMenu.values.info.row.original._id === info.row.original._id) && <DotsOptionsMenu showDotsOptionsMenu={showDotsOptionsMenu} setShowDotsOptionsMenu={setShowDotsOptionsMenu} />
+        }
+        <div
+          onClick={(e) => {
+            if (isAllowed()) {
+              const position = determinatedPositionMenu({ e, height: options.length * 32, width: 150 })
+              setShowDotsOptionsMenu({
+                state: showDotsOptionsMenu?.values?.info?.row?.original?._id === info.row.original._id ? !showDotsOptionsMenu.state : true,
+                values: {
+                  info,
+                  aling: position.aling,
+                  justify: position.justify,
+                  options
+                }
+              })
+            }
+          }}
+          className='w-full h-full flex justify-center items-center cursor-pointer'
+        >
+          <DotsOpcionesIcon className={`w-3 h-3`} />
+
+
+        </div>
+      </div>
+    },
+    footer: "",
+    size: 45,
+  })
+
   const columns = initialColumnVisibility.map((elem, idx) => {
     const elemtOut = columnHelper.accessor(elem?.accessor ?? elem?.header,
       {
@@ -161,6 +259,8 @@ export const TableBudgetV8: FC<props> = ({ data }) => {
     return elemtOut
   })
 
+
+  columns.push(columnOptions)
   const table = useReactTable({
     data,
     columns,
@@ -213,7 +313,7 @@ export const TableBudgetV8: FC<props> = ({ data }) => {
               )
             })}
           </thead>
-          <tbody className='bg-[#eaeeee]'
+          <tbody className='bg-[#eaeeee] relative'
             style={{
               minWidth: table.getTotalSize(),
             }}
@@ -221,7 +321,12 @@ export const TableBudgetV8: FC<props> = ({ data }) => {
             {table.getRowModel().rows.map((row, idx) => {
               // console.log(100084, row.original?.fatherCategoria)
               return (
-                <tr key={row.id} className={`flex ${row.original?.fatherCategoria ? "border-b-[1px] border-gray-300" : ""}`.replace(/\s+/g, ' ').replace(/\n+/g, ' ')}>
+                <tr
+                  key={row.id}
+                  onMouseDown={() => { }}
+                  onContextMenuCapture={(e) => { e.preventDefault() }}
+                  className={`flex ${row.original?.fatherCategoria ? "border-b-[1px] border-gray-300" : ""}`.replace(/\s+/g, ' ').replace(/\n+/g, ' ')}
+                >
                   {row.getVisibleCells().map(cell => {
                     // console.log(100091, cell.getContext())
                     const verticalAlignment = initialColumnVisibility.find(elem => elem.accessor === cell.getContext().column.columnDef.id)?.verticalAlignment

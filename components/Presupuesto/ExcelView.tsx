@@ -35,10 +35,9 @@ interface Categoria {
     pagado: number;
     coste_estimado: number;
     coste_final: number;
-
 }
 
-export const ExcelView = ({ set, categorias_array, showCategoria }) => {
+export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria }) => {
     const toast = useToast()
     const [windowsWidth, setWindowsWidth] = useState<number>()
     const { event, setEvent } = EventContextProvider()
@@ -47,7 +46,6 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
     const [GastoID, setGastoID] = useState({ id: "", crear: false })
     const [menuIzquierdo, setMenuIzquierdo] = useState(false)
     const [menuDerecho, setMenuDerecho] = useState(false)
-    const cate = showCategoria?.id
     const [showFormPago, setShowFormPago] = useState({ id: "", state: false })
     const [showModalDuplicate, setShowModalDuplicate] = useState(false)
     const totalCosteFinal = categoria?.gastos_array?.reduce((total, item) => total + item.coste_final, 0)
@@ -76,16 +74,16 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
     useEffect(() => {
         setCategoria(
             event?.presupuesto_objeto?.categorias_array.find(
-                (item) => item._id == cate
+                (item) => item._id == showCategoria?._id
             )
         );
         setData(
             event?.presupuesto_objeto?.categorias_array?.find(
-                (item) => item._id == cate
+                (item) => item._id == showCategoria?._id
             )?.gastos_array || []
         );
         setGastoID(old => ({ ...old, crear: false }))
-    }, [cate, event, event?.presupuesto_objeto?.currency]);
+    }, [showCategoria?._id, event, event?.presupuesto_objeto?.currency]);
 
     const sumarCosteEstimado = (gastosArray) => {
         return gastosArray?.reduce((total, item) => total + item.coste_estimado, 0);
@@ -146,7 +144,12 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
     ]
 
     return (
-        <div className='w-full h-full relative'>
+        <div className='w-full h-full'>
+            <div className="absolute left-0" >
+                <button onClick={() => setMenuIzquierdo(!menuIzquierdo)} className="bg-white rounded-r-md w-7 h-7 md:flex items-center justify-center -translate-y-full">
+                    <GoArrowRight className={` ${menuIzquierdo === true ? "" : "rotate-180"} h-5 w-5 transition-all`} />
+                </button>
+            </div>
             {showFormPago.state && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                     <div className="relative bg-white rounded-md shadow-md w-full max-w-3xl mx-4 md:mx-0 h-[90%] overflow-y-auto p-4 ">
@@ -165,16 +168,11 @@ export const ExcelView = ({ set, categorias_array, showCategoria }) => {
                 </div>
             )}
             <div className="flex flex-col md:flex-row w-full h-[calc(100vh-300px)] md:h-[calc(100vh-266px)]" >
-                <div className="bg-red. absolute h-full py-3 -top-12 left-0" >
-                    <button onClick={() => setMenuIzquierdo(!menuIzquierdo)} className="bg-white rounded-r-md w-7 h-7 md:flex items-center justify-center hidden ">
-                        <GoArrowRight className={` ${menuIzquierdo === true ? "" : "rotate-180"} h-5 w-5 transition-all`} />
-                    </button>
-                </div>
                 <div className={`${menuIzquierdo ? "hidden" : "md:w-[300px] flex items-center flex-col mb-3 md:mb-0"} transition-all duration-300 ease-in-out`}>
                     <div className="mb-2 w-full">
                         <ResumenInvitados />
                     </div>
-                    <BlockListaCategorias set={set} categorias_array={categorias_array} categorie={showCategoria} />
+                    <BlockListaCategorias setShowCategoria={setShowCategoria} categorias_array={categorias_array} categorie={showCategoria} />
                 </div>
                 {true && <div className={`flex ${menuIzquierdo ? "w-full" : "md:w-[calc(100%-300px)]"} h-full`}>
                     {true ?
