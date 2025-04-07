@@ -195,25 +195,17 @@ export const dataMetaData = [
     }
   },
   {
-    ruta: "/invitaciones",
-    metaData: (dataConfig) => {
-      return {
-
-      }
-    }
-  },
-  {
     ruta: "/itinerario",
     metaData: (dataConfig) => {
       return {
-        title: `Invitaciones | ${dataConfig?.development != undefined ? dataConfig?.development : 'tu app planificador'}`,
-        description: "Crea tus invitaciones en nuestro organizador de eventos.",
-        canonical: `${dataConfig?.pathDomain}/invitaciones`,
+        title: `itinerario | ${dataConfig?.development != undefined ? dataConfig?.development : 'tu app planificador'}`,
+        description: "Crea tus itinerarios en nuestro organizador de eventos.",
+        canonical: `${dataConfig?.pathDomain}/itinerario`,
         openGraph: {
-          url: `${dataConfig?.pathDomain}/invitaciones`,
+          url: `${dataConfig?.pathDomain}/itinerario`,
           siteName: `${dataConfig?.name}`,
-          title: `Invitaciones | ${dataConfig?.name}`,
-          description: 'Crea tus invitaciones en nuestro organizador de eventos.',
+          title: `itinerario | ${dataConfig?.name}`,
+          description: 'Crea tus itinerarios en nuestro organizador de eventos.',
           images: [
             {
               url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
@@ -292,6 +284,84 @@ export const dataMetaData = [
           siteName: `${dataConfig?.name}`,
           title: `Servicios | ${dataConfig?.name}`,
           description: 'Encuentra los servicios para tu evento en nuestro organizador de eventos.',
+          images: [
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 1200,
+            },
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 620,
+            },
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 620,
+            },
+          ],
+        }
+      }
+    }
+  },
+  {
+    ruta: "/public-itinerary",
+    metaData: (dataConfig) => {
+      return {
+        title: `Tu organizador de eventos favoritos, todo en uno| ${dataConfig?.development != undefined ? dataConfig?.development : 'tu app planificador'}`,
+        description: "El itinerario hecho a la medida de tu evento.",
+        canonical: `${dataConfig?.pathDomain}/itinerary`,
+        openGraph: {
+          url: `${dataConfig?.pathDomain}/itinerary`,
+          siteName: `${dataConfig?.name}`,
+          title: `Itinerario | ${dataConfig?.name}`,
+          description: 'El itinerario hecho a la medida de tu evento.',
+          images: [
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 1200,
+            },
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 620,
+            },
+            {
+              url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,
+              alt: 'Imagen del evento',
+              type: 'image/png',
+              width: 1200,
+              height: 620,
+            },
+          ],
+        }
+      }
+    }
+  },
+  {
+    ruta: "/public-card",
+    metaData: (dataConfig) => {
+      return {
+        title: `Tu organizador de eventos favoritos, todo en uno| ${dataConfig?.development != undefined ? dataConfig?.development : 'tu app planificador'}`,
+        description: "Comunicate con tus proveedores facil y rapido.",
+        canonical: `${dataConfig?.pathDomain}/servicios`,
+        openGraph: {
+          url: `${dataConfig?.pathDomain}/servicios`,
+          siteName: `${dataConfig?.name}`,
+          title: `Itinerario | ${dataConfig?.name}`,
+          description: 'Comunicate con tus proveedores facil y rapido.',
           images: [
             {
               url: `${dataConfig?.logoDirectory.props.src != undefined ? dataConfig?.logoDirectory.props.src : '/Pantalla.png'}`,

@@ -40,9 +40,10 @@ interface props extends HTMLAttributes<HTMLDivElement> {
   setShowModalCompartir?: any
   tempPastedAndDropFiles?: TempPastedAndDropFiles[]
   setTempPastedAndDropFiles?: any
+  isTaskPublic?: boolean
 }
 
-export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryButtonBox, isSelect, showModalCompartir, setShowModalCompartir, tempPastedAndDropFiles, setTempPastedAndDropFiles, ...props }) => {
+export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryButtonBox, isSelect, showModalCompartir, setShowModalCompartir, tempPastedAndDropFiles, setTempPastedAndDropFiles, isTaskPublic, ...props }) => {
   const divRef = useRef(null);
   const { config, geoInfo, user } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
@@ -120,7 +121,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
         {({ values }) => {
           return (
             <Form className="w-full">
-              <div className={`flex w-full justify-center items-stretch text-gray-800 ${["/servicios"].includes(window?.location?.pathname) ? "" : "2xl:px-36"} `} {...props} >
+              <div className={`flex w-full justify-center items-stretch text-gray-800 ${["/servicios", "/public-card/servicios"].includes(window?.location?.pathname) ? "" : "2xl:px-36"} `} {...props} >
                 {view === "schema" && values.spectatorView &&
                   <>
                     <div className={`flex w-[55%] md:w-[45%] lg:w-[40%] p-2 items-start justify-start border-t-[1px] border-r-[1px] border-primary border-dotted relative`}>
@@ -173,7 +174,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                     <div className="space-y-2">
                       {/* encabezado de la tarjeta */}
                       <div className="flex items-center space-x-2">
-                        <div className={`${values?.estatus === true ? "" : "cursor-pointer"} bg-white  w-12 h-12 md:w-16 md:h-16 md:min-w-16 flex items-center justify-center rounded-full border-[1px] border-gray-300 `}>
+                        <div className={` bg-white  w-12 h-12 md:w-16 md:h-16 md:min-w-16 flex items-center justify-center rounded-full border-[1px] border-gray-300 `}>
                           <SelectIcon name="icon" className="" handleChange={handleBlurData} data={values} />
                         </div>
                         <span className="text-[19px] capitalize cursor-default">{values?.descripcion}</span>
@@ -191,32 +192,36 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                       </div> */}
 
                       {/* Responsables */}
-                      <div className="flex items-center space-x-5" >
-                        <div className="flex items-center space-x-1" >
-                          <HiOutlineUserCircle />
-                          <span className="text-[14px] capitalize cursor-default">{t('assigned')}:</span>
+
+                      {
+                        !isTaskPublic &&
+                        <div className="flex items-center space-x-5" >
+                          <div className="flex items-center space-x-1" >
+                            <HiOutlineUserCircle />
+                            <span className="text-[14px] capitalize cursor-default">{t('assigned')}:</span>
+                          </div>
+                          {
+                            values?.responsable.length > 0 ?
+                              < div className="text-gray-900 flex ">
+                                {values?.responsable?.map((elem, idx) => {
+                                  const userSelect = GruposResponsablesArry.find(el => {
+                                    return el.title.toLowerCase() === elem?.toLowerCase()
+                                  }) ?? [user, event?.detalles_usuario_id, ...event.detalles_compartidos_array].find(el => {
+                                    return el?.displayName?.toLowerCase() === elem?.toLowerCase()
+                                  })
+                                  return (
+                                    <span key={idx} className="inline-flex items-center space-x-0.5 mr-1.5">
+                                      <div className="w-6 h-6 rounded-full border-[1px] border-gray-400">
+                                        <ImageAvatar user={userSelect} />
+                                      </div>
+                                    </span>
+                                  )
+                                })}
+                              </div> :
+                              <span className="text-[12px] text-gray-400 capitalize cursor-default ">{t('unassigned')}</span>
+                          }
                         </div>
-                        {
-                          values?.responsable.length > 0 ?
-                            < div className="text-gray-900 flex ">
-                              {values?.responsable?.map((elem, idx) => {
-                                const userSelect = GruposResponsablesArry.find(el => {
-                                  return el.title.toLowerCase() === elem?.toLowerCase()
-                                }) ?? [user, event?.detalles_usuario_id, ...event.detalles_compartidos_array].find(el => {
-                                  return el?.displayName?.toLowerCase() === elem?.toLowerCase()
-                                })
-                                return (
-                                  <span key={idx} className="inline-flex items-center space-x-0.5 mr-1.5">
-                                    <div className="w-6 h-6 rounded-full border-[1px] border-gray-400">
-                                      <ImageAvatar user={userSelect} />
-                                    </div>
-                                  </span>
-                                )
-                              })}
-                            </div> :
-                            <span className="text-[12px] text-gray-400 capitalize cursor-default ">{t('unassigned')}</span>
-                        }
-                      </div>
+                      }
 
                       {/* Adjuntos */}
                       <div className="flex items-center space-x-5 relative" >
@@ -311,30 +316,31 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                       </div>
 
                       {/*Fecha y hora */}
-                      {["/servicios"].includes(window?.location?.pathname) && <div className="space-x-5 flex items-center">
-                        <div className="flex items-center space-x-1">
-                          <IoCalendarClearOutline className="pb-0.5" />
-                          <span className="text-[14px] capitalize cursor-default">{t('date')}:</span>
+                      {["/servicios", "/public-card/servicios"].includes(window?.location?.pathname) &&
+                        <div className="space-x-5 flex items-center">
+                          <div className="flex items-center space-x-1">
+                            <IoCalendarClearOutline className="pb-0.5" />
+                            <span className="text-[14px] capitalize cursor-default">{t('date')}:</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            {(values?.fecha && values?.hora) ? <>
+                              <div className="text-[13px]">
+                                {values?.fecha && values?.fecha.toLocaleString() + ","}
+                              </div>
+                              <span
+                                className={`${["/itinerario"].includes(window?.location?.pathname) && "text-[15px] "} text-[13px]`}>
+                                {values?.hora}
+                              </span>
+                            </>
+                              : <span className="text-[12px] text-gray-400 capitalize cursor-default ">{t('undated')}</span>
+                            }
+                          </div>
                         </div>
-                        <div className="flex items-center space-x-1">
-                          {(values?.fecha && values?.hora) ? <>
-                            <div className="text-[13px]">
-                              {values?.fecha && values?.fecha.toLocaleString() + ","}
-                            </div>
-                            <span
-                              className={`${["/itinerario"].includes(window?.location?.pathname) && "text-[15px] "} text-[13px]`}>
-                              {values?.hora}
-                            </span>
-                          </>
-                            : <span className="text-[12px] text-gray-400 capitalize cursor-default ">{t('undated')}</span>
-                          }
-                        </div>
-                      </div>
                       }
 
                       {/* Hora */}
                       {
-                        !["/servicios"].includes(window?.location?.pathname) && <div className="space-x-5 flex items-center">
+                        !["/servicios", "/public-card/servicios"].includes(window?.location?.pathname) && <div className="space-x-5 flex items-center">
                           <div className="flex items-center space-x-1">
                             <LuClock className="pb-0.5" />
                             <span className="text-[14px] capitalize cursor-default">{t("hour")}:</span>
@@ -347,7 +353,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
 
                       {/* duración */}
                       {
-                        !["/servicios"].includes(window?.location?.pathname) && <div className="space-x-5 flex items-center">
+                        !["/servicios", "/public-card/servicios"].includes(window?.location?.pathname) && <div className="space-x-5 flex items-center">
                           <div className="flex items-center space-x-1">
                             <IoCalendarClearOutline className="pb-0.5" />
                             <span className="text-[14px] capitalize cursor-default">{t("duracion")}:</span>
@@ -357,9 +363,6 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                           </div>
                         </div>
                       }
-
-
-
                       {/* block de texto */}
                       <div className={`${["/itinerario"].includes(window?.location?.pathname) ? "h-[100px]" : "md:h-[183px] h-[100px]"} border-[1px] border-gray-300 rounded-lg pt-2 pb-3 px-2  overflow-auto  md:w-full `}>
                         {!!values?.tips ?
@@ -385,7 +388,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                         </div>
                         <div className='border-gray-300 border-[1px] rounded-lg py-2 w-full'>
                           <div ref={divRef} className='w-full h-[260px] flex flex-col-reverse rounded-lg overflow-auto break-words'>
-                            {comments?.map((elem, idx) => {
+                            {!["/public-card/servicios"].includes(window?.location?.pathname) && comments?.map((elem, idx) => {
                               return (
                                 <ListComments id={elem?._id} key={idx} itinerario={itinerario} task={task} item={elem} tempPastedAndDropFiles={tempPastedAndDropFiles} />
                               )

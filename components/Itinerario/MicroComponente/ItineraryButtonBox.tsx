@@ -21,7 +21,7 @@ export const ItineraryButtonBox: FC<props> = ({ optionsItineraryButtonBox, value
   const { user } = AuthContextProvider()
 
 
-  const link = `${window.location.pathname}?event=${event._id}&itinerary=${itinerario?._id}&task=${values._id}`
+  const link = `${window?.location?.pathname}?event=${event?._id}&itinerary=${itinerario?._id}&task=${values?._id}`
 
   useEffect(() => {
     if (copied) {
