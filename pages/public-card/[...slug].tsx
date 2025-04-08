@@ -35,7 +35,7 @@ const ServicesVew = ({ eventProps, querySlug }) => {
   const f2 = eventProps?.itinerarios_array[0]?.tasks?.findIndex(({ _id }) => _id === querySlug?.task)
   const Task = eventProps?.itinerarios_array[0]?.tasks[f2]
   return (
-    <section className={` absolute z-[50] w-[calc(100vw)] h-[100vh] top-0 left-4. bg-white`}>
+    <section className={` absolute z-[50] w-[calc(100vw)] h-[calc(100vh-63px)] top-[63px] left-4. bg-white`}>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
