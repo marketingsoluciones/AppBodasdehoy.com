@@ -139,13 +139,14 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                   state: false,
                 })
               } else {
+                info.row.original?.object === "categoria" && options.splice(3, 1)
                 setShowDotsOptionsMenu({
                   state: true,
                   values: {
                     info,
                     aling: position.aling,
                     justify: position.justify,
-                    options
+                    options: options
                   }
                 })
               }
@@ -219,6 +220,11 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
   //   setColumnVisibility(columnVisibility)
   // }, [columns])
 
+  useEffect(() => {
+
+    console.log(100011, showDotsOptionsMenu?.values?.info.row.original)
+  }, [showDotsOptionsMenu])
+
   return (
     <div className="text-sm w-full h-full font-calibri">
       <div className='w-full h-full p-2'>
@@ -270,6 +276,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                   onMouseDown={() => { }}
                   onContextMenuCapture={(e) => { e.preventDefault() }}
                   className={`flex ${row.original?.fatherCategoria ? "border-b-[1px] border-gray-300" : ""}`.replace(/\s+/g, ' ').replace(/\n+/g, ' ')}
+                //${row.id === showDotsOptionsMenu?.values?.info?.row?.id && "border-red border-[1px]"}
                 >
                   {row.getVisibleCells().map(cell => {
                     // console.log(100091, cell.getContext())
@@ -306,11 +313,32 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                             ? { maxWidth: cell.getContext().column.columnDef.size, width: cell.getContext().column.columnDef.size }
                             : { flex: 1 })
                         }}
-                        className={`p-2 flex justify-start items-center text-left ${cell.column.getIndex() < 2 ? "sticky z-10 left-0" : ""}
+                        className={`p-2 flex justify-start items-center text-left ${cell.column.getIndex() < 2
+                          ? "sticky z-10 left-0"
+                          : ""}
                         ${cell.column.id === "categoria" || row.original?.fatherCategoria
-                            ? `Ca bg-[#e6e6d7] ${!["gasto", "unidad", "cantidad", "nombre", "valor_unitario"].includes(cell.column.id) && "Cc border-l-[1px] border-gray-300"}`
-                            : `Cb ${cell.column.id === "gasto" && "Cd bg-[#eaeeee] border-l-[1px] border-gray-300"} 
-                             ${row.original?.fatherGasto ? `Ce bg-[#eaeeee] border-b-[1px] border-gray-300 ${!["unidad", "cantidad", "nombre", "valor_unitario",].includes(cell.column.id) && "Cf border-l-[1px] border-gray-300"}` : `Cg ${["unidad", "cantidad", "nombre", "valor_unitario", "coste_final", "coste_estimado", "pagado", "pendiente_pagar"].includes(cell.column.id) ? `Ch bg-white ${["unidad", "cantidad", "nombre", "valor_unitario", "coste_final", "coste_estimado"].includes(cell.column.id) ? "border-l-[1px] border-gray-300" : ""}` : ""} Ci ${["unidad", "cantidad", "nombre", "valor_unitario", "coste_final", "coste_estimado", "pagado", "pendiente_pagar"].includes(cell.column.id) || (row.original?.lastChildGasto && cell.column.id !== "gasto") ? "border-b-[1px] border-gray-300" : ""}`}`} ${className ? className : ""} ${cell.column.id === "coste_estimado" ? "text-primary" : ""}`.replace(/\s+/g, ' ').replace(/\n+/g, ' ')}
+                            ? `Ca ${row.original?.categoriaID !== showDotsOptionsMenu?.values?.info.row.original._id
+                              ? "bg-[#e6e6d7]"
+                              : "bg-[#d1dae3]"} ${!["gasto", "unidad", "cantidad", "nombre", "valor_unitario"].includes(cell.column.id) && "Cc border-l-[1px] border-gray-300"}`
+                            : `Cb ${cell.column.id === "gasto" && `Cd ${row.original?.gastoID !== showDotsOptionsMenu?.values?.info.row.original._id
+                              ? "bg-[#eaeeee]"
+                              : "!bg-[#d8dcde]"} border-l-[1px] border-gray-300`} ${row.original?.fatherGasto
+                                ? `Ce ${row.original?.gastoID !== showDotsOptionsMenu?.values?.info.row.original._id
+                                  ? "bg-[#eaeeee]"
+                                  : "!bg-[#d8dcde]"} border-b-[1px] border-gray-300 ${!["unidad", "cantidad", "nombre", "valor_unitario",].includes(cell.column.id)
+                                  && "Cf border-l-[1px] border-gray-300"}`
+                                : `Cg ${["unidad", "cantidad", "nombre", "valor_unitario", "coste_final", "coste_estimado", "pagado", "pendiente_pagar", "options"].includes(cell.column.id)
+                                  ? `Ch ${row.original?.itemID !== showDotsOptionsMenu?.values?.info.row.original._id
+                                    ? "bg-white" : "!bg-[#f5f2ea]"} CI ${["unidad", "cantidad", "nombre", "valor_unitario", "coste_final", "coste_estimado", "options"].includes(cell.column.id)
+                                      ? "border-l-[1px] border-gray-300"
+                                      : ""}` : ""} CJ ${["unidad", "cantidad", "nombre", "valor_unitario", "coste_final", "coste_estimado", "pagado", "pendiente_pagar", "options"].includes(cell.column.id) || (row.original?.lastChildGasto && cell.column.id !== "gasto")
+                                        ? "border-b-[1px] border-gray-300"
+                                        : ""}`}`} CK ${className
+                                          ? className
+                                          : ""} ${cell.column.id === "coste_estimado"
+                                            ? "text-primary"
+                                            : ""}`
+                          .replace(/\s+/g, ' ').replace(/\n+/g, ' ')}
                       >
                         {cell.column.id === "categoria"
                           ? row.original.firstChildGasto || row.original.firstChild
