@@ -448,11 +448,11 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                         </p>
                                     </div>
                                     <div className="items-center col-span-2  grid grid-cols-2 py-1 relative">
-                                        <div className="font-semibold text-[12px] ">asistencia :</div>
+                                        <div className="font-semibold text-[12px]  text-gray-700">asistencia :</div>
                                         <div onClick={() => !isAllowed() ? null : toggleVisibility("asistencia", item._id, null)} className="flex items-center justify-between font-body col-span-1">
                                             <div className="flex items-center text-[14px] space-x-1 -ml-[13px]">
                                                 {dicc[item.asistencia]?.icon && cloneElement(dicc[item.asistencia].icon, { className: "w-4 h-4" })}
-                                                <div>
+                                                <div className="text-gray-700">
                                                     {item.asistencia}
                                                 </div>
                                             </div>
@@ -491,9 +491,9 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                         }
                                     </div>
                                     <div className="items-center col-span-2  grid grid-cols-2 py-1 relative">
-                                        <p className="font-semibold text-[12px] ">Menu :</p>
+                                        <p className="font-semibold text-[12px] text-gray-700">Menu :</p>
                                         <div onClick={() => !isAllowed() ? null : toggleVisibility("menu", item._id, null)} className=" flex items-center justify-between ">
-                                            <p className=" font-body text-[12px] pl-2"> {item.nombre_menu == null ? "sin menu" : item.nombre_menu}</p>
+                                            <p className=" font-body text-[12px] pl-2 text-gray-700"> {item.nombre_menu == null ? "sin menu" : item.nombre_menu}</p>
                                             <div className="pl-2">
                                                 <ArrowDown className="h-2 w-2" />
                                             </div>
@@ -534,9 +534,9 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                         }
                                     </div>
                                     <div className="items-center col-span-2  grid grid-cols-2 py-1 relative">
-                                        <p className="font-semibold text-[12px] ">Mesa Recepción :</p>
+                                        <p className="font-semibold text-[12px] text-gray-700">Mesa Recepción :</p>
                                         <div onClick={() => !isAllowed() ? null : toggleVisibility("recepcion", item._id, item.tableNameRecepcion)} className="flex items-center justify-between">
-                                            <p className=" font-body text-[12px] pl-2"> {item.tableNameRecepcion.title}</p>
+                                            <p className=" font-body text-[12px] pl-2 text-gray-700"> {item.tableNameRecepcion.title}</p>
                                             <div className="pl-2">
                                                 <ArrowDown className="h-2 w-2" />
                                             </div>
@@ -587,9 +587,9 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                         }
                                     </div>
                                     <div className="items-center col-span-2  grid grid-cols-2 py-1 relative">
-                                        <p className="font-semibold text-[12px] ">Mesa  Ceremonia :</p>
+                                        <p className="font-semibold text-[12px] text-gray-700">Mesa  Ceremonia :</p>
                                         <div onClick={() => !isAllowed() ? null : toggleVisibility("ceremonia", item._id, item.tableNameCeremonia)} className="flex items-center justify-between">
-                                            <p className=" font-body text-[12px] pl-2"> {item.tableNameCeremonia.title}</p>
+                                            <p className=" font-body text-[12px] pl-2 text-gray-700"> {item.tableNameCeremonia.title}</p>
                                             <div className="pl-2">
                                                 <ArrowDown className="h-2 w-2" />
                                             </div>
@@ -640,7 +640,7 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                         }
                                     </div>
                                     <div className="items-center col-span-2  grid grid-cols-2 py-1 relative">
-                                        <div className="font-semibold text-[12px] ">
+                                        <div className="font-semibold text-[12px] text-gray-700">
                                             Acompañantes :
                                         </div>
                                         <div onClick={() => {
@@ -853,7 +853,7 @@ export const AcompañantesCard: FC<propsAcompañantesCard> = ({ passesQuantity, 
                                                 <div onClick={() => !isAllowed() ? null : toggleVisibility("asistencia", item._id)} className="flex items-center justify-between font-body col-span-1">
                                                     <div className="flex items-center -translate-x-3">
                                                         {dicc[item.asistencia]?.icon && cloneElement(dicc[item.asistencia].icon, { className: "w-4 h-4" })}
-                                                        <span className="translate-x-1">{item.asistencia}</span>
+                                                        <span className="translate-x-1 text-gray-700">{item.asistencia}</span>
                                                     </div>
 
                                                     <div className="pl-2 ">
@@ -893,7 +893,7 @@ export const AcompañantesCard: FC<propsAcompañantesCard> = ({ passesQuantity, 
                                             <div className="items-center col-span-2  grid grid-cols-2 py-1 relative">
                                                 <p className="font-semibold text-[12px] ">Menu :</p>
                                                 <div onClick={() => !isAllowed() ? null : toggleVisibility("menu", item._id)} className=" flex items-center justify-between ">
-                                                    <p className=" font-body text-[12px] pl-2"> {item.nombre_menu == null ? "sin menu" : item.nombre_menu}</p>
+                                                    <p className=" font-body text-[12px] pl-2 text-gray-700"> {item.nombre_menu == null ? "sin menu" : item.nombre_menu}</p>
                                                     <div className="pl-2">
                                                         <ArrowDown className="h-2 w-2" />
                                                     </div>
@@ -937,7 +937,7 @@ export const AcompañantesCard: FC<propsAcompañantesCard> = ({ passesQuantity, 
                                             <div className="items-center col-span-2  grid grid-cols-2 py-1 relative">
                                                 <p className="font-semibold text-[12px] ">Mesa Recepción :</p>
                                                 <div onClick={() => !isAllowed() ? null : toggleVisibility("recepcion", item._id, item.tableNameRecepcion)} className="flex items-center justify-between">
-                                                    <p className=" font-body text-[12px] pl-2"> {item.tableNameRecepcion.title}</p>
+                                                    <p className=" font-body text-[12px] pl-2 text-gray-700"> {item.tableNameRecepcion.title}</p>
                                                     <div className="pl-2">
                                                         <ArrowDown className="h-2 w-2" />
                                                     </div>
@@ -963,8 +963,8 @@ export const AcompañantesCard: FC<propsAcompañantesCard> = ({ passesQuantity, 
                                                                                             const f1 = event?.planSpace.findIndex(elem => elem?.title === "recepción")
                                                                                             const table = event.planSpace[f1]?.tables.find(el => el._id === item._id)
                                                                                             setShowModalRecepcion(!showModalRecepcion);
-                                                                                            if (value2?._id || item?._id) {
-                                                                                                if (value2?._id !== item?._id) {
+                                                                                            if (item?.tableNameRecepcion?._id || item?._id) {
+                                                                                                if (item?.tableNameRecepcion?._id !== item?._id) {
                                                                                                     setValue2(item.title);
                                                                                                     handleMoveGuest({ t, invitadoID: idGuest, previousTable: value2, lastTable: table, f1, event, setEvent, toast })
                                                                                                 }
@@ -991,7 +991,7 @@ export const AcompañantesCard: FC<propsAcompañantesCard> = ({ passesQuantity, 
                                             <div className="items-center col-span-2  grid grid-cols-2 py-1 relative">
                                                 <p className="font-semibold text-[12px] ">Mesa  Ceremonia :</p>
                                                 <div onClick={() => !isAllowed() ? null : toggleVisibility("ceremonia", item._id)} className="flex items-center justify-between">
-                                                    <p className=" font-body text-[12px] pl-2"> {item.puesto}</p>
+                                                    <p className=" font-body text-[12px] pl-2 text-gray-700"> {item.puesto}</p>
                                                     <div className="pl-2">
                                                         <ArrowDown className="h-2 w-2" />
                                                     </div>

@@ -29,6 +29,9 @@ import { LuClock } from "react-icons/lu";
 import { TempPastedAndDropFiles } from "./ItineraryPanel";
 import { downloadFile } from "../../Utils/storages";
 import { useToast } from "../../../hooks/useToast";
+import { FaPencilAlt } from "react-icons/fa"; // Ícono de lápiz
+import InputField from "../../Forms/InputField";
+import { InputTags } from "../../Forms/InputTags";
 
 interface props extends HTMLAttributes<HTMLDivElement> {
   itinerario: Itinerary
@@ -40,6 +43,7 @@ interface props extends HTMLAttributes<HTMLDivElement> {
   setShowModalCompartir?: any
   tempPastedAndDropFiles?: TempPastedAndDropFiles[]
   setTempPastedAndDropFiles?: any
+  
 }
 
 export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryButtonBox, isSelect, showModalCompartir, setShowModalCompartir, tempPastedAndDropFiles, setTempPastedAndDropFiles, ...props }) => {
@@ -56,22 +60,25 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
   const [showModalAdjuntos, setShowModalAdjuntos] = useState({ state: false, id: "" })
   const [showTagsModal, setShowTagsModal] = useState(false)
   const toast = useToast()
+  const [editingField, setEditingField] = useState<string | null>(null); // Estado para manejar qué campo está en edición
+  const [tempValue, setTempValue] = useState<string>(""); // Valor temporal para edición
+
   const initialValues: TaskDateTimeAsString = {
     _id: task?._id,
-    icon: !task?.icon ? "" : task?.icon,
-    fecha: !task?.fecha ? "" : new Date(task?.fecha).toLocaleString(geoInfo?.acceptLanguage?.split(",")[0], { year: 'numeric', month: '2-digit', day: '2-digit' }),
-    hora: !task?.fecha ? "" : new Date(task?.fecha).toLocaleString(geoInfo?.acceptLanguage?.split(",")[0], { hour: 'numeric', minute: 'numeric' }),
-    duracion: task?.duracion,
-    tags: !task?.tags ? [] : task?.tags,
-    descripcion: !task?.descripcion ? "" : task?.descripcion,
-    responsable: !task?.responsable ? [] : task?.responsable,
-    tips: !task?.tips ? "" : task?.tips,
-    attachments: !task?.attachments ? [] : task?.attachments,
-    spectatorView: task?.spectatorView,
-    comments: task?.comments,
-    commentsViewers: task?.commentsViewers,
-    estatus: task?.estatus
-  }
+    icon: task?.icon || "",
+    fecha: task?.fecha || "",
+    hora: task?.hora || "",
+    duracion: task?.duracion || "",
+    tags: task?.tags || [],
+    descripcion: task?.descripcion || "",
+    responsable: task?.responsable || [],
+    tips: task?.tips || "",
+    attachments: task?.attachments || [],
+    spectatorView: task?.spectatorView || false,
+    comments: task?.comments || [],
+    commentsViewers: task?.commentsViewers || [],
+    estatus: task?.estatus || false,
+  };
 
   useEffect(() => {
     const comments = task?.comments?.slice(!viewComments ? -3 : 0).sort((a, b) => new Date(b?.createdAt)?.getTime() - new Date(a?.createdAt)?.getTime())
@@ -90,6 +97,7 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
 
   const handleBlurData = async (variable, valor) => {
     try {
+      console.log("Guardando datos:", { variable, valor }); // Agrega un log para verificar los datos enviados
       await fetchApiEventos({
         query: queries.editTask,
         variables: {
@@ -97,22 +105,67 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
           itinerarioID: itinerario._id,
           taskID: task._id,
           variable,
-          valor: variable == "responsable" ? JSON.stringify(valor) : valor
+          valor: variable === "responsable" ? JSON.stringify(valor) : valor, // Asegúrate de que el formato sea correcto
         },
-        domain: config.domain
-      })
+        domain: config.domain,
+      });
+  
+      // Actualiza el estado del evento
       setEvent((old) => {
-        const f1 = old.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
+        const f1 = old.itinerarios_array.findIndex((elem) => elem._id === itinerario._id);
         if (f1 > -1) {
-          const f2 = old.itinerarios_array[f1].tasks.findIndex(elem => elem._id === task._id)
-          old.itinerarios_array[f1].tasks[f2][`${variable}`] = valor
+          const f2 = old.itinerarios_array[f1].tasks.findIndex((elem) => elem._id === task._id);
+          old.itinerarios_array[f1].tasks[f2][`${variable}`] = valor;
         }
-        return { ...old }
-      })
+        return { ...old };
+      });
     } catch (error) {
-      console.log(error)
+      console.error("Error al guardar los datos:", error); // Agrega un log para capturar errores
     }
-  }
+  };
+
+  const handleEdit = (field: string, currentValue: string) => {
+    setEditingField(field);
+    setTempValue(currentValue || ""); // Inicializa con el valor actual o vacío
+  };
+
+  const handleSave = async (field: string) => {
+    console.log("Guardando campo:", field, "con valor:", tempValue); // Log para verificar el campo y valor
+    await handleBlurData(field, tempValue); // Llama a handleBlurData con el campo y valor
+    setEditingField(null); // Salir del modo de edición
+  };
+
+  const renderEditableField = (field: string, label: string, content: JSX.Element, value: string | string[], placeholder: string) => {
+    const displayValue = Array.isArray(value) ? value.join(", ") : value || placeholder;
+  
+    return (
+      <div className="relative group">
+        {/* Campo de texto o input */}
+        {editingField === field ? (
+          <input
+            type="text"
+            value={tempValue}
+            onChange={(e) => setTempValue(e.target.value)} // Actualiza tempValue
+            onBlur={() => handleSave(field)} // Guarda al perder el foco
+            onKeyDown={(e) => e.key === "Enter" && handleSave(field)} // Guarda al presionar Enter
+            className="border border-gray-300 rounded px-2 py-1 w-full"
+            autoFocus
+          />
+        ) : (
+          <div className="flex items-center space-x-2">
+            <span className="text-[14px] capitalize">{label}:</span>
+            {content}
+          </div>
+        )}
+  
+        {/* Ícono de lápiz */}
+        <FaPencilAlt
+          onClick={() => handleEdit(field, Array.isArray(value) ? value.join(", ") : value)}
+          className="absolute top-1/2 right-2 transform -translate-y-1/2 w-4 h-4 text-gray-400 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+        />
+      </div>
+    );
+  };
 
   return (
     <div {...props}>
@@ -179,197 +232,173 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                         <span className="text-[19px] capitalize cursor-default">{values?.descripcion}</span>
                       </div>
 
-                      {/*Estado*/}
-                      {/* <div className="space-x-5 flex items-center">
-                        <div className="flex items-center space-x-1">
-                          <IoCalendarClearOutline className="pb-0.5" />
-                          <span className="text-[14px] capitalize">{t('state'):}</span>
-                        </div>
-                        <div className="flex items-center space-x-1 text-[13px]">
-                          Pendiente
-                        </div>
-                      </div> */}
-
                       {/* Responsables */}
-                      <div className="flex items-center space-x-5" >
-                        <div className="flex items-center space-x-1" >
-                          <HiOutlineUserCircle />
-                          <span className="text-[14px] capitalize cursor-default">{t('assigned')}:</span>
-                        </div>
-                        {
-                          values?.responsable.length > 0 ?
-                            < div className="text-gray-900 flex ">
-                              {values?.responsable?.map((elem, idx) => {
-                                const userSelect = GruposResponsablesArry.find(el => {
-                                  return el.title.toLowerCase() === elem?.toLowerCase()
-                                }) ?? [user, event?.detalles_usuario_id, ...event.detalles_compartidos_array].find(el => {
-                                  return el?.displayName?.toLowerCase() === elem?.toLowerCase()
-                                })
-                                return (
-                                  <span key={idx} className="inline-flex items-center space-x-0.5 mr-1.5">
-                                    <div className="w-6 h-6 rounded-full border-[1px] border-gray-400">
-                                      <ImageAvatar user={userSelect} />
-                                    </div>
-                                  </span>
-                                )
-                              })}
-                            </div> :
-                            <span className="text-[12px] text-gray-400 capitalize cursor-default ">{t('unassigned')}</span>
-                        }
-                      </div>
-
-                      {/* Adjuntos */}
-                      <div className="flex items-center space-x-5 relative" >
-                        <div className="flex items-center space-x-1" >
-                          <LiaPaperclipSolid />
-                          <span className="text-[14px] capitalize cursor-default">{t('addfile')}:</span>
-                        </div>
-                        <div className={`text-[14px] flex items-center space-x-1 ${values.attachments.length > 0 ? "cursor-pointer" : "cursor-default"} `} onClick={() => values.attachments.length > 0 ? setShowModalAdjuntos({ state: !showModalAdjuntos.state, id: values._id }) : setShowModalAdjuntos({ state: false, id: "" })}>
-                          {values.attachments.length > 0 ? "+" + values.attachments.length : <span className="text-[12px] text-gray-400 capitalize">{t('noAttachments')}</span>}
-                          <GoChevronDown className={` w-[14px] h-auto transition-all  ${values.attachments.length === 0 && "hidden"}  ${showModalAdjuntos.state && "rotate-180"}  `} />
-                        </div>
-                        {showModalAdjuntos.state && <ClickAwayListener onClickAway={() => setShowModalAdjuntos({ state: false, id: "" })}>
-                          <div className="bg-white p-4 rounded-md shadow-md absolute top-5 left-24 z-50 w-max">
-                            <div className="flex justify-between items-center mb-4">
-                              <h2 className="text-lg font-semibold capitalize">{t('addfile')}</h2>
-                              <button onClick={() => setShowModalAdjuntos({ state: false, id: "" })} className="text-gray-500 hover:text-gray-700">
-                                &times;
-                              </button>
-                            </div>
-                            <div className={` grid md:grid-cols-2 gap-2 truncate `} >
-                              {values?.attachments?.map((elem, idx) =>
-                                !!elem._id &&
-                                <div
-                                  key={idx}
-                                  onClick={() => {
-                                    downloadFile(storage, `${task._id}//${elem.name}`)
-                                      .catch((error) => toast("error", `${t("Ha ocurrido un error")}`))
-                                  }}
-                                  className={`  flex justify-between hover:bg-gray-200 rounded-sm px-1 items-center   border-gray-500 cursor-pointer text-[12px] truncate`}>
-                                  <span className="w-[150px] truncate">
-                                    {elem.name}
-                                  </span>
-                                  <CgSoftwareDownload className="w-4 h-auto" />
-                                </div>
-                              )}
-                            </div>
+                      {renderEditableField(
+                        "responsable",
+                        t("assigned"),
+                        values?.responsable.length > 0 ? (
+                          <div className="text-gray-900 flex">
+{values?.responsable?.map((elem, idx) => {
+  const userObject = { id: elem, name: elem }; // Crea un objeto compatible con `detalle_compartidos_array`
+  return (
+    <span key={idx} className="inline-flex items-center space-x-0.5 mr-1.5">
+      <div className="w-6 h-6 rounded-full border-[1px] border-gray-400">
+        <ImageAvatar user={userObject} />
+      </div>
+    </span>
+  );
+})}
                           </div>
-                        </ClickAwayListener>}
-                      </div>
+                        ) : (
+                          <span className="text-[12px] text-gray-400 capitalize cursor-default">{t("unassigned")}</span>
+                        ),
+                        values?.responsable,
+                        t("unassigned")
+                      )}
 
-                      {/* Etiquetas */}
-                      <div className="flex items-center space-x-5 relative">
-                        <div className="flex items-center space-x-1" >
-                          <MdOutlineLabel />
-                          <span className="text-[14px] capitalize cursor-default">{t("labels")}:</span>
-                        </div>
-                        <div className="flex items-center md:w-[350px]">
-                          {values?.tags?.length > 0 ? (
-                            <>
-                              <div className="hidden md:block space-x-1 ">
-                                {values.tags.map((elem, idx) => (
-                                  <span key={idx} className="inline-flex items-center border-[0.5px] border-gray-400 px-1 py-0.5 rounded-md text-[12px]">
-                                    {elem}
-                                  </span>
-                                ))}
-                              </div>
-                              <div className="md:hidden">
-                                <span className="inline-flex items-center border-[0.5px] border-gray-400 px-1 py-0.5 rounded-md text-[12px] cursor-pointer">
-                                  {values.tags[0]}
-                                </span>
-                              </div>
-                            </>
-                          ) : (<span className="text-[12px] text-gray-400 capitalize cursor-default">{t('noLabels')}</span>)}
-                          {values?.tags?.length > 1 && (
-                            <span
-                              onClick={() => setShowTagsModal(true)}
-                              className="inline-flex items-center border-[0.5px] border-gray-400 px-1 py-0.5 rounded-md text-[12px] cursor-pointer md:hidden"
-                            >
-                              +{values.tags.length - 1}
-                              <GoChevronDown className={` w-[14px] h-auto transition-all   ${showTagsModal && "rotate-180"}  `} />
-                            </span>
-                          )}
-                          {showTagsModal && <ClickAwayListener onClickAway={() => setShowTagsModal(false)}>
-                            <div className="bg-white p-4 rounded-md shadow-md absolute top-5 left-24 z-50">
-                              <div className="flex justify-between items-center mb-4">
-                                <h2 className="text-lg font-semibold capitalize">{t("labels")}</h2>
-                                <button onClick={() => setShowTagsModal(false)} className="text-gray-500 hover:text-gray-700">
-                                  &times;
-                                </button>
-                              </div>
-                              <div className="grid grid-cols-2 gap-2">
-                                {values.tags.map((elem, idx) => (
-                                  <span key={idx} className="block border-[0.5px] border-gray-400 px-2 py-1 rounded-md text-[12px] truncate">
-                                    {elem}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          </ClickAwayListener>
-                          }
-                        </div>
-                      </div>
+{/* Adjuntos */}
+{renderEditableField(
+  "attachments",
+  t("addfile"),
+  <div
+    className={`text-[14px] flex items-center space-x-1 ${
+      values.attachments.length > 0 ? "cursor-pointer" : "cursor-default"
+    }`}
+    onClick={() =>
+      values.attachments.length > 0
+        ? setShowModalAdjuntos({ state: !showModalAdjuntos.state, id: values._id })
+        : setShowModalAdjuntos({ state: false, id: "" })
+    }
+  >
+    {values.attachments.length > 0 ? (
+      "+" + values.attachments.length
+    ) : (
+      <span className="text-[12px] text-gray-400 capitalize">{t("noAttachments")}</span>
+    )}
+    <GoChevronDown
+      className={`w-[14px] h-auto transition-all ${
+        values.attachments.length === 0 && "hidden"
+      } ${showModalAdjuntos.state && "rotate-180"}`}
+    />
+  </div>,
+  // Convierte el arreglo de FileData[] a string[] usando map
+  values?.attachments.map((file) => file.name || file.url || "Archivo sin nombre"),
+  t("noAttachments")
+)}
 
-                      {/*Fecha y hora */}
-                      {["/servicios"].includes(window?.location?.pathname) && <div className="space-x-5 flex items-center">
-                        <div className="flex items-center space-x-1">
-                          <IoCalendarClearOutline className="pb-0.5" />
-                          <span className="text-[14px] capitalize cursor-default">{t('date')}:</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          {(values?.fecha && values?.hora) ? <>
-                            <div className="text-[13px]">
-                              {values?.fecha && values?.fecha.toLocaleString() + ","}
-                            </div>
-                            <span
-                              className={`${["/itinerario"].includes(window?.location?.pathname) && "text-[15px] "} text-[13px]`}>
-                              {values?.hora}
-                            </span>
-                          </>
-                            : <span className="text-[12px] text-gray-400 capitalize cursor-default ">{t('undated')}</span>
-                          }
-                        </div>
-                      </div>
-                      }
+{/* Etiquetas */}
+{renderEditableField(
+  "tags",
+  t("labels"),
+  editingField === "tags" ? (
+    <InputTags
+      name="tags"
+      label={t("etiquetas")}
+      value={values?.tags || []}
+      onChange={(newTags) => setTempValue(newTags)}
+    />
+  ) : (
+    <div className="hidden md:block space-x-1">
+      {values?.tags?.length > 0 ? (
+        values.tags.map((elem, idx) => (
+          <span
+            key={idx}
+            className="inline-flex items-center border-[0.5px] border-gray-400 px-1 py-0.5 rounded-md text-[12px]"
+          >
+            {elem}
+          </span>
+        ))
+      ) : (
+        <span className="text-[12px] text-gray-400 capitalize cursor-default">
+          {t("noLabels")}
+        </span>
+      )}
+    </div>
+  ),
+  values?.tags,
+  t("noLabels")
+)}
 
-                      {/* Hora */}
-                      {
-                        !["/servicios"].includes(window?.location?.pathname) && <div className="space-x-5 flex items-center">
-                          <div className="flex items-center space-x-1">
-                            <LuClock className="pb-0.5" />
-                            <span className="text-[14px] capitalize cursor-default">{t("hour")}:</span>
-                          </div>
-                          <div className="flex items-center space-x-1 cursor-default">
-                            {values?.hora ? <span className="text-[13px] capitalize">{t("activityTime")} {values?.hora}</span> : <span className="text-[12px] text-gray-400 capitalize cursor-default">Sin hora de la actividad</span>}
-                          </div>
-                        </div>
-                      }
+{/* Fecha, Hora y Duración */}
+{renderEditableField(
+  "fecha",
+  t(""),
+  editingField === "fecha" ? (
+    <div className="flex flex-col space-y-2">
+      {/* Fecha */}
+      <InputField
+        name="fecha"
+        label={t("Fecha")}
+        type="date"
+        value={values?.fecha || ""}
+        onChange={(e) => setTempValue({ ...tempValue, fecha: e.target.value })}
+      />
 
-                      {/* duración */}
-                      {
-                        !["/servicios"].includes(window?.location?.pathname) && <div className="space-x-5 flex items-center">
-                          <div className="flex items-center space-x-1">
-                            <IoCalendarClearOutline className="pb-0.5" />
-                            <span className="text-[14px] capitalize cursor-default">{t("duracion")}:</span>
-                          </div>
-                          <div className="flex items-center space-x-1 cursor-default">
-                            {values?.duracion ? <span className="text-[13px] capitalize"> {values?.duracion} min</span> : <span className="text-[12px] text-gray-400 capitalize cursor-default">Sin duración</span>}
-                          </div>
-                        </div>
-                      }
+      {/* Hora */}
+      <InputField
+        name="hora"
+        label={t("Hora")}
+        type="time"
+        value={values?.hora || ""}
+        onChange={(e) => setTempValue({ ...tempValue, hora: e.target.value })}
+      />
 
+      {/* Duración */}
+      <InputField
+        name="duracion"
+        label={t("Duración")}
+        type="number"
+        value={values?.duracion || ""}
+        onChange={(e) => setTempValue({ ...tempValue, duracion: e.target.value })}
+      />
+    </div>
+  ) : (
+    <div className="flex flex-col space-y-2">
+      {/* Fecha */}
+      <div className="flex items-center space-x-2">
+        <span className="text-[14px] capitalize">{t("date")}:</span>
+        <span className="text-[13px] text-gray-700">{values?.fecha || t("undated")}</span>
+      </div>
 
+      {/* Hora */}
+      <div className="flex items-center space-x-2">
+        <span className="text-[14px] capitalize">{t("hour")}:</span>
+        <span className="text-[13px] text-gray-700">{values?.hora || t("noHour")}</span>
+      </div>
+
+      {/* Duración */}
+      <div className="flex items-center space-x-2">
+        <span className="text-[14px] capitalize">{t("duration")}:</span>
+        <span className="text-[13px] text-gray-700">
+          {values?.duracion ? `${values?.duracion} min` : t("noDuration")}
+        </span>
+      </div>
+    </div>
+  ),
+  values?.fecha,
+  t("undated")
+)}
 
                       {/* block de texto */}
-                      <div className={`${["/itinerario"].includes(window?.location?.pathname) ? "h-[100px]" : "md:h-[183px] h-[100px]"} border-[1px] border-gray-300 rounded-lg pt-2 pb-3 px-2  overflow-auto  md:w-full `}>
-                        {!!values?.tips ?
-                          <Interweave
-                            className="text-xs transition-all break-words"
-                            content={values.tips}
-                            matchers={[new UrlMatcher('url'), new HashtagMatcher('hashtag')]}
-                          /> : <span className="text-[12px] text-gray-400 capitalize cursor-default">{t('nodescription')}</span>
-                        }
-                      </div>
+                      {renderEditableField(
+                        "tips",
+                        t(""),
+                        <div
+                          className={`${["/itinerario"].includes(window?.location?.pathname) ? "h-[100px]" : "md:h-[183px] h-[100px]"} border-[1px] border-gray-300 rounded-lg pt-2 pb-3 px-2 overflow-auto md:w-full`}
+                        >
+                          {!!values?.tips ? (
+                            <Interweave
+                              className="text-xs transition-all break-words"
+                              content={values.tips}
+                              matchers={[new UrlMatcher("url"), new HashtagMatcher("hashtag")]}
+                            />
+                          ) : (
+                            <span className="text-[12px] text-gray-400 capitalize cursor-default">{t("nodescription")}</span>
+                          )}
+                        </div>,
+                        values?.tips,
+                        t("nodescription")
+                      )}
                     </div>
 
                     {/* lado derecho de la tarjeta */}
