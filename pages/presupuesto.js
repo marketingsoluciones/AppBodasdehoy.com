@@ -18,7 +18,7 @@ const Presupuesto = () => {
   useMounted()
   const { t } = useTranslation();
   const { user, verificationDone, forCms } = AuthContextProvider()
-  const [showCategoria, setShowCategoria] = useState({ state: false, id: "" });
+  const [showCategoria, setShowCategoria] = useState({ state: false, _id: "" });
   const [active, setActive] = useState("resumen");
   const { event } = EventContextProvider();
   const [categorias, setCategorias] = useState([]);
@@ -29,13 +29,8 @@ const Presupuesto = () => {
   }, [event])
 
   useEffect(() => {
-    console.log(100072, showCategoria)
+    console.log(1000721, "showCategoria", showCategoria)
   }, [showCategoria])
-
-  // useEffect(() => {
-  //   const condicion = event?.presupuesto_objeto?.categorias_array?.findIndex(item => item._id == showCategoria.id)
-  //   condicion == -1 && setShowCategoria({ state: false, id: "" })
-  // }, [event?.presupuesto_objeto?.categorias_array, showCategoria?.id])
 
   if (verificationDone) {
     if (!user) {
@@ -163,7 +158,7 @@ const Presupuesto = () => {
                       exit={{ opacity: 0 }}
                       className=" w-full gap-6 pt-2 md:pr-0 pb-4 h-[100vh]"
                     >
-                      <BlockPagos cate={showCategoria?.id} setGetId={setGetId} getId={getId} categorias_array={categorias} /* estado={"pagado"} */ />
+                      <BlockPagos cate={showCategoria?._id} setGetId={setGetId} getId={getId} categorias_array={categorias} /* estado={"pagado"} */ />
                     </motion.div>
                   )
                 }
@@ -175,7 +170,7 @@ const Presupuesto = () => {
                     exit={{ opacity: 0 }}
                     className=" w-full gap-6 pt-2 md:pr-0 pb-4 h-[100vh]"
                   >
-                    <BlockPagos cate={showCategoria?.id} setGetId={setGetId} getId={getId} categorias_array={categorias} estado={"pendiente"} />
+                    <BlockPagos cate={showCategoria?._id} setGetId={setGetId} getId={getId} categorias_array={categorias} estado={"pendiente"} />
                   </motion.div>
                 )
               } */}

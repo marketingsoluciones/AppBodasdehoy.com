@@ -1,4 +1,4 @@
-import { FC, useState } from "react"
+import { FC, useEffect, useState } from "react"
 import ClickAwayListener from "react-click-away-listener"
 import { FaPencilAlt } from "react-icons/fa"
 import { useAllowed } from "../../hooks/useAllowed"
@@ -21,9 +21,8 @@ export const EditableSelect: FC<props> = ({ value, optionsSelect, size, handleCh
   const [isAllowed, ht] = useAllowed()
   let timeoutId = null
 
-
   return (
-    <div className={`text-xs 3 relative w-full ${edit && "bg-[#d1dae3] select-none"}`}>
+    <div className={`relative w-full ${edit && "bg-[#d1dae3] select-none"}`}>
       <div></div>
       <span
         onMouseEnter={() => {
@@ -36,11 +35,11 @@ export const EditableSelect: FC<props> = ({ value, optionsSelect, size, handleCh
           }, 100);
         }}
         onClick={() => isAllowed() ? setEdit(true) : ht()}
-        className={`font-semibold text-xs text-gray-500 cursor-pointer relative`}
+        className={`cursor-pointer relative`}
       >
         {optionsSelect.find((elem) => elem.value === newValue)?.title}
         {(hovered && !edit) && <div className="absolute top-0 right-0 w-6 h-full flex translate-x-full justify-end">
-          <FaPencilAlt className="text-gray-400 hover:scale-105" />
+          <FaPencilAlt className="hover:scale-105" />
         </div>
         }
       </span >
@@ -48,18 +47,17 @@ export const EditableSelect: FC<props> = ({ value, optionsSelect, size, handleCh
         <ClickAwayListener onClickAway={() => edit && setEdit(false)}>
           <ul
             style={{ width: size }}
-            className="z-10 bg-white shadow-md absolute top-5 overflow-hidden border-[1px] border-gray-200 select-none -translate-x-2 cursor-pointer">
-            {optionsSelect.filter(elem => elem.value !== newValue).map((elem, idx) => (
+            className={`bg-white z-10 shadow-md absolute top-5 overflow-hidden border-[1px] border-gray-400 select-none -translate-x-1 cursor-pointer`}>
+            {optionsSelect./*filter(elem => elem.value !== newValue).*/map((elem, idx) => (
               <li
                 key={idx}
                 onClick={() => {
                   if (elem.value !== value) {
-                    setNewValue(elem.value)
                     handleChange({ value: elem.value, accessor })
-                    setEdit(false)
                   }
+                  setEdit(false)
                 }}
-                className="hover:bg-base transition p-2"
+                className={`hover:bg-base transition p-2 ${elem.value === newValue && "bg-gray-200"}`}
               >
                 {elem.title}
               </li>

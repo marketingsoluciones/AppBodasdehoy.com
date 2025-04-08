@@ -1,6 +1,5 @@
 import { FC, KeyboardEvent, useEffect, useState } from "react";
 import ClickAwayListener from "react-click-away-listener";
-import { InputUpdateInBlur } from "./inputs/InputUpdateInBlur";
 import { useAllowed } from "../../hooks/useAllowed";
 import { FaPencilAlt } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
@@ -46,7 +45,6 @@ export const EditableLabelWithInput: FC<props> = ({ value, type, handleChange, a
       {edit ?
         <ClickAwayListener onClickAway={() => setEdit(false)}>
           <input
-
             type={["int", "float"].includes(type) ? "number" : "text"}
             min={0}
             max={1000}
@@ -60,7 +58,7 @@ export const EditableLabelWithInput: FC<props> = ({ value, type, handleChange, a
             onKeyDown={(e) => keyDown(e)}
             value={`${newValue}`.replace(/\+/g, "").replace(/\-/g, "")}
             autoFocus
-            className={`outline-none ring-0 border-none focus:outline-none focus:ring-0 focus:border-none w-full text-xs ${["start", "left"].includes(textAlign) ? "text-left" : ["center"].includes(textAlign) ? "text-center" : ["right", "end"].includes(textAlign) ? "text-right" : ``}`}
+            className={`text-sm outline-none ring-0 border-none focus:outline-none focus:ring-0 focus:border-none w-full ${["start", "left"].includes(textAlign) ? "text-left" : ["center"].includes(textAlign) ? "text-center" : ["right", "end"].includes(textAlign) ? "text-right" : ``}`}
           />
 
         </ClickAwayListener>
@@ -75,22 +73,28 @@ export const EditableLabelWithInput: FC<props> = ({ value, type, handleChange, a
             }, 100);
           }}
           onClick={() => isAllowed() ? setEdit(true) : ht()}
-          className="font-display font-semibold text-xs text-gray-500 flex items-center justify-center gap-1 cursor-pointer relative"
+          className="flex items-center justify-center gap-1 cursor-pointer relative"
         >
           {["int", "float"].includes(type) && typeof newValue === "string"
             ? newValue !== ""
               ? type === "float"
-                ? parseFloat(newValue).toFixed(2)
-                : parseInt(newValue)
+                ? new Intl.NumberFormat(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }).format(parseInt(newValue))
+                : new Intl.NumberFormat().format(parseInt(newValue))
               : 0
             : typeof newValue === "number"
               ? type === "float"
-                ? newValue.toFixed(2)
-                : newValue
+                ? new Intl.NumberFormat(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }).format(newValue)
+                : new Intl.NumberFormat().format(newValue)
               : newValue}
-          {!isLabelDisabled && <span className="text-xs font-light">{t(accessor)}</span>}
+          {!isLabelDisabled && <span className="">{t(accessor)}</span>}
           {hovered && <div className="absolute right-0 w-6 h-full flex translate-x-full justify-end">
-            <FaPencilAlt className="text-gray-400 hover:scale-105" />
+            <FaPencilAlt className="hover:scale-105" />
           </div>
           }
         </span >}

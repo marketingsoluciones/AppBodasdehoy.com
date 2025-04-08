@@ -1016,6 +1016,19 @@ export const queries = {
                     }
                   }
                 }`,
+  borrarGasto: `mutation($evento_id: String, $categoria_id: String, $gasto_id: String){
+                borraGasto(evento_id:$evento_id, categoria_id:$categoria_id,gasto_id:$gasto_id){
+                  coste_final
+                  coste_estimado
+                  pagado
+                  categorias_array {
+                    coste_estimado
+                    coste_final
+                    pagado
+                  }
+                }
+              }`,
+
   nuevoGasto: `mutation($evento_id: String ,$categoria_id: String, $nombre: String){
               nuevoGasto(evento_id:$evento_id, categoria_id:$categoria_id,nombre:$nombre){
                 _id

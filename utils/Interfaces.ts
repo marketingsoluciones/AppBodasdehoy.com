@@ -1,4 +1,4 @@
-import { MouseEvent, ReactNode } from "react"
+import { Dispatch, MouseEvent, ReactNode, SetStateAction } from "react"
 
 export interface Event {
     _id: string
@@ -124,6 +124,12 @@ export interface DotsMenu {
     options?: OptionsMenu[]
 }
 
+export interface DotsOptionsMenuInterface {
+    state: boolean
+    values?: DotsMenu
+    select?: string
+}
+
 export interface OptionsMenu {
     icon?: JSX.Element
     title: string
@@ -157,6 +163,7 @@ export interface ModalInterface {
     state: boolean
     title?: ReactNode | string
     values?: any
+    setShowDotsOptionsMenu?: Dispatch<SetStateAction<DotsOptionsMenuInterface>>
 }
 
 interface permission {

@@ -13,6 +13,7 @@ import { fetchApiBodas, fetchApiEventos, queries } from "../../utils/Fetching";
 import { LoadingSpinner } from "../Utils/LoadingSpinner";
 import { ModalInterface } from "../../utils/Interfaces";
 import { SimpleDeleteConfirmation } from "../Utils/SimpleDeleteConfirmation";
+import { handleDelete } from "../TablesComponents/tableBudgetV8.handles";
 
 export const ItemCategoria = ({ item, setShowCategoria }) => {
   const { event, setEvent } = EventContextProvider()
@@ -24,28 +25,6 @@ export const ItemCategoria = ({ item, setShowCategoria }) => {
   const { t } = useTranslation()
   const [loading, setLoading] = useState<boolean>(false);
   const [modal, setModal] = useState<ModalInterface>({ state: false, title: null, values: null })
-
-  const borrarCategoria = async (item) => {
-    console.log(item)
-    try {
-      fetchApiEventos({
-        query: queries.borraCategoria,
-        variables: {
-          evento_id: event?._id,
-          categoria_id: item._id,
-        },
-      }).then(result => {
-        console.log(result)
-        const f1 = event.presupuesto_objeto.categorias_array.findIndex(elem => elem._id === item._id)
-        event.presupuesto_objeto.categorias_array.splice(f1, 1)
-        setEvent({ ...event })
-        setLoading(false)
-      })
-    } catch (error) {
-      console.log(error)
-
-    }
-  }
 
 
   const DefinirCoste = (item) => {
@@ -62,8 +41,9 @@ export const ItemCategoria = ({ item, setShowCategoria }) => {
   // ];
 
   return (
+    //aqui
     <li
-      onClick={() => costeEstimado != 0 ? setShowCategoria({ state: true, id: item._id }) : toast("error", t("Agrega un monto a tu Presupuesto Estimado"))}
+      onClick={() => costeEstimado != 0 ? setShowCategoria({ state: true, _id: item._id }) : toast("error", t("Agrega un monto a tu Presupuesto Estimado"))}
       className={`bg-white text-xs w-full h-10 justify-center items-center flex flex-col px-5 md:px-2 transition ${costeEstimado == 0 ? "" : "hover:bg-base"} ${item?.id == item._id ? "bg-slate-200" : ""}`}
     >
       {/* {showEditCategorie && (
@@ -115,12 +95,7 @@ export const ItemCategoria = ({ item, setShowCategoria }) => {
           )}
         </div>
       </span> */}
-      {modal.state && <SimpleDeleteConfirmation
-        loading={loading}
-        setModal={setModal}
-        handleDelete={() => borrarCategoria(modal.values)}
-        message={<p className="text-azulCorporativo mx-8 text-center" >Estas seguro de borrar categoria <span className='font-semibold capitalize'>{modal.title}</span></p>}
-      />}
+
       <style jsx>
         {`
           .itemList {
