@@ -130,7 +130,6 @@ const FormTask: FC<propsFormTask> = ({ showEditTask, setShowEditTask, itinerario
                 type="date"
                 deleted={window?.location?.pathname === "/servicios"}
               />
-              
               <div className="w-full flex space-x-2">
                 <InputField
                   name="hora"
@@ -148,14 +147,12 @@ const FormTask: FC<propsFormTask> = ({ showEditTask, setShowEditTask, itinerario
                   <span className="-translate-y-2">min</span>
                 </div>
               </div>
-
               <div className="w-full h-max relative">
                 <label className={` font-display text-primary text-sm w-full capitalize`}>responsables</label>
                 <div className="w-full relative">
                   <ResponsableSelector name="responsable" handleChange={handleBlurData} disable={false} />
                 </div>
               </div>
-
               <div className="w-full h-max relative">
                 <label className={` font-display text-primary text-sm w-full capitalize`}>items</label>
                 <MyEditor name="tips" />
@@ -167,7 +164,6 @@ const FormTask: FC<propsFormTask> = ({ showEditTask, setShowEditTask, itinerario
                   label={t("etiquetas")}
                 />
               </div>
-
               <div className="w-full flex pb-0">
                 <InputAttachments
                   name="attachments"
@@ -176,7 +172,6 @@ const FormTask: FC<propsFormTask> = ({ showEditTask, setShowEditTask, itinerario
                   task={showEditTask?.values}
                 />
               </div>
-
               <button
                 className={`font-display rounded-full py-2 px-6 text-white font-medium transition w-full hover:opacity-70  ${isSubmitting ? "bg-secondary" : "bg-primary"
                   }`}
@@ -190,7 +185,6 @@ const FormTask: FC<propsFormTask> = ({ showEditTask, setShowEditTask, itinerario
               >
                 {t("save")}
               </button>
-
             </div>
           </Form>
         )
