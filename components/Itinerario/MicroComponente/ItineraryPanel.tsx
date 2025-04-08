@@ -16,12 +16,11 @@ import { PencilEdit } from "../../icons";
 import { GoEye, GoEyeClosed, GoGitBranch } from "react-icons/go";
 import { LiaLinkSolid } from "react-icons/lia";
 import { MdOutlineDeleteOutline } from "react-icons/md";
-import { OptionsSelect, Task, Itinerary, Info } from "../../../utils/Interfaces"
+import { OptionsSelect, Task, Itinerary, Info, ModalInterface } from "../../../utils/Interfaces"
 import { SubHeader } from "./SubHeader";
 import { ViewItinerary } from "../../../pages/invitados";
 import FormTask from "../../Forms/FormTask";
 import { getStorage } from "firebase/storage";
-import { SimpleDeleteConfirmation } from "./DeleteConfirmation";
 import { useRouter } from "next/router";
 import { VscFiles } from "react-icons/vsc";
 import { TbLock } from "react-icons/tb";
@@ -33,6 +32,7 @@ import { InfoLateral } from "./InfoLateral";
 import { CgInfo } from "react-icons/cg";
 import { ImageAvatar } from "../../Utils/ImageAvatar";
 import { ItineraryDetails } from "../MicroComponente/ItineraryDetails"
+import { SimpleDeleteConfirmation } from "../../Utils/SimpleDeleteConfirmation";
 
 interface props {
     itinerario: Itinerary
@@ -55,6 +55,10 @@ export interface EditTastk {
 interface TaskReduce {
     fecha: number
     tasks?: Task[]
+}
+
+interface ModalItinerario extends ModalInterface {
+    itinerario?: Itinerary
 }
 
 export type TempPastedAndDropFiles = {
@@ -80,12 +84,12 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     const [modalPlantilla, setModalPlantilla] = useState(false)
     const [showEditTask, setShowEditTask] = useState<EditTastk>({ state: false })
     const storage = getStorage();
-    const [modal, setModal] = useState({ state: false, title: null, values: null, itinerario: null })
+    const [modal, setModal] = useState<ModalItinerario>({ state: false, title: null, values: null, itinerario: null })
     const [showModalCompartir, setShowModalCompartir] = useState({ state: false, id: null });
     const router = useRouter()
     const notification = useNotification()
     const [tempPastedAndDropFiles, setTempPastedAndDropFiles] = useState<TempPastedAndDropFiles[]>([]);
-    const [loadingModal, setLoadingModal] = useState<boolean>(false)
+    const [loading, setLoading] = useState<boolean>(false)
     const [task, setTask] = useState<Task>()
 
     const optionsItineraryButtonBox: OptionsSelect[] = [
@@ -248,7 +252,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
 
     const deleteTask = (values: Task, itinerario: Itinerary) => {
         try {
-            setLoadingModal(true)
+            setLoading(true)
             deleteAllFiles(storage, `${values?._id}`)
                 .then(() => deleteRecursive(storage, `event-${event?._id}//itinerary-${itinerario?._id}//task-${values._id}`)
                     .then(() => {
@@ -267,7 +271,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                             setEvent({ ...event })
                             setTimeout(() => {
                                 setModal({ state: false, title: null, values: null, itinerario: null })
-                                setLoadingModal(false)
+                                setLoading(false)
                             }, 500);
                             toast("success", t(itinerario.tipo === "itinerario" ? "activitydeleted" : "servicedeleted"));
                         })
@@ -304,9 +308,12 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                     </div>
                 </ModalLeft>
             )}
-            {modal.state && <Modal set={setModal} loading={loadingModal} classe={"w-[95%] md:w-[450px] h-[200px]"}>
-                <SimpleDeleteConfirmation setModal={setModal} modal={modal} deleteTask={deleteTask} />
-            </Modal>}
+            {modal.state && <SimpleDeleteConfirmation
+                loading={loading}
+                setModal={setModal}
+                handleDelete={() => deleteTask(modal.values, modal.itinerario)}
+                message={<p className="text-azulCorporativo mx-8 text-center capitalize" > Estas seguro de borrar <span className='font-semibold'>{modal.title}</span></p>}
+            />}
             {["/itinerario"].includes(window?.location?.pathname) && <SubHeader view={view} itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} title={title} setTitle={setTitle} />}
             <div className={`*!hidden w-full flex-1 flex flex-col md:px-2 lg:px-6`}>
                 {

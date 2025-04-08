@@ -109,23 +109,34 @@ export const SelectIcon = ({ handleChange, ...props }) => {
     return (
         <>
             {field?.value
-                ? <div className={`${r.pathname.split('/').slice(0, 3)[1] === "event" ? "" : "cursor-pointer"} w-full h-full flex justify-center `}
+                ? <div className={`${["/public-card/servicios", "/public-Itinerary"].includes(window?.location?.pathname) ? "" : "cursor-pointer hover:text-gray-800"} w-full h-full flex items-center justify-center text-gray-600 `}
                     onClick={() => {
-                        r.pathname.split('/').slice(0, 3)[1] === "event" ? null :
+                        ["/public-card/servicios", "/public-Itinerary"].includes(window?.location?.pathname) ?
+                            null :
                             !isAllowed() ? ht() :
-                                ["/itinerario"].includes(window?.location?.pathname) ? user.uid === event.usuario_id ?
-                                    setOpenIcon(!openIcon) : props?.data?.estatus === false || props?.data?.estatus === null || props?.data?.estatus === undefined ? setOpenIcon(!openIcon) : null : setOpenIcon(!openIcon)
+                                ["/itinerario"].includes(window?.location?.pathname) ?
+                                    user?.uid === event?.usuario_id ?
+                                        setOpenIcon(!openIcon) :
+                                        props?.data?.estatus === false || props?.data?.estatus === null || props?.data?.estatus === undefined ? setOpenIcon(!openIcon) :
+                                            null :
+                                    setOpenIcon(!openIcon)
 
                     }} {...props}>
                     {IconArray.find((elem) => elem?.title === field?.value).icon}
                 </div >
-                : <div className={` ${r.pathname.split('/').slice(0, 3)[1] === "event" ? "" : "cursor-pointer"} w-full h-full flex items-center justify-center text-gray-600 hover:text-gray-800 `} onClick={() => {
-                    r.pathname.split('/').slice(0, 3)[1] === "event" ? null :
-                        !isAllowed() ? ht() :
-                            ["/itinerario"].includes(window?.location?.pathname) ? user.uid === event.usuario_id ?
-                                setOpenIcon(!openIcon) : props?.data?.estatus === false || props?.data?.estatus === null || props?.data?.estatus === undefined ? setOpenIcon(!openIcon) : null : setOpenIcon(!openIcon)
+                : <div className={` ${ ["/public-card/servicios", "/public-Itinerary"].includes(window?.location?.pathname) ? "" : "cursor-pointer hover:text-gray-800"} w-full h-full flex items-center justify-center text-gray-600  `}
+                    onClick={() => {
+                        ["/public-card/servicios", "/public-Itinerary"].includes(window?.location?.pathname) ?
+                            null :
+                            !isAllowed() ? ht() :
+                                ["/itinerario"].includes(window?.location?.pathname) ?
+                                    user?.uid === event?.usuario_id ?
+                                        setOpenIcon(!openIcon) :
+                                        props?.data?.estatus === false || props?.data?.estatus === null || props?.data?.estatus === undefined ? setOpenIcon(!openIcon) :
+                                            null :
+                                    setOpenIcon(!openIcon)
 
-                }}>
+                    }}>
                     <AddIcon />
                 </div>
             }

@@ -9,6 +9,7 @@ module.exports = {
       "title": ['Italiana', ...defaultTheme.fontFamily.sans],
       "playfair": ['playfair Display', ...defaultTheme.fontFamily.sans],
       "Clicker": ['Clicker Script', ...defaultTheme.fontFamily.sans],
+      'calibri': ['calibri', 'sans-serif'],
     },
     extend: {
       colors: {

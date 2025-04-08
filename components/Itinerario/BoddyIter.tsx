@@ -7,7 +7,7 @@ import { ViewItinerary } from "../../pages/invitados";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
 import { Modal } from "../Utils/Modal";
-import { DeleteConfirmation } from "./MicroComponente/DeleteConfirmation";
+import { DeleteConfirmation } from "../Utils/DeleteConfirmation";
 import { useTranslation } from "react-i18next";
 import { useAllowed, useAllowedViewer } from "../../hooks/useAllowed";
 import { useRouter } from "next/router";
@@ -81,7 +81,13 @@ export const BoddyIter = () => {
             subTitle: <span className="flex flex-col">
                 <strong>{itinerario.title}</strong>
                 <strong>{t("warningdelete1")}</strong>
-                <p className=" text-xs"> {t("textwarningdelete1")} <span className="font-semibold">{itinerario.title.replace(/\s+/g, '').toLocaleLowerCase()}</span> {t("textwarningdelete2")} </p>
+                <p className="text-xs gap-2 flex justify-center">
+                    {t("textwarningdelete1")}
+                    <span className="font-semibold">
+                        {itinerario.title.replace(/\s+/g, '').toLocaleLowerCase()}
+                    </span>
+                    {t("textwarningdelete2")}
+                </p>
             </span>,
             handle: async () => {
                 try {

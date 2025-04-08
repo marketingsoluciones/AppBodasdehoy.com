@@ -177,8 +177,7 @@ export const BasicFormLogin = ({ ischecked, setCheck, handleChange, handleSubmit
   };
 
   return (
-    <>
-      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6 py-6 w-full h-full* bg-white " >
+      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6 py-6 w-full  bg-white " >
         <div className="col-span-2 grid grid-cols-6 border-gray-100 pl-3 w-full ">
           <div className="col-span-6  md:col-span-4">
             <div className="flex items-center space-x-1 capitalize text-2xl text-gray-500">
@@ -381,6 +380,5 @@ export const BasicFormLogin = ({ ischecked, setCheck, handleChange, handleSubmit
         <button disabled={isSubmitting} type="submit" className={`col-span-2 font-display rounded-full mt-8 py-2 px-6 text-white font-medium transition w-full hover:opacity-70 ${isSubmitting ? "bg-secondary" : "bg-primary"
           }`} >{t("addpayment")}</button>
       </form>
-    </>
   )
 }

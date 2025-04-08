@@ -1,5 +1,12 @@
-import { useState } from 'react';
+import { Dispatch, ReactNode, SetStateAction, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ModalInterface } from '../../utils/Interfaces';
+
+interface props {
+    setModal: Dispatch<SetStateAction<ModalInterface>>
+    handleDelete: any
+    message: ReactNode | string
+}
 
 export const DeleteConfirmation = ({ modal, setModal }) => {
     const { t } = useTranslation();
@@ -27,30 +34,6 @@ export const DeleteConfirmation = ({ modal, setModal }) => {
                         <button onClick={() => modal?.handle()} className={`${"hover:opacity-80 bg-primary transition-all  "} h-10 w-24 rounded-lg text-white font-body`}>
                             {t("eliminate")}
                         </button>
-                }
-            </div>
-        </div>
-    )
-}
-
-export const SimpleDeleteConfirmation = ({ modal, setModal, deleteTask }) => {
-    const { t } = useTranslation();
-    const [validationText, setValidationText] = useState("")
-    
-
-    return (
-        <div className="flex flex-col items-center justify-center h-full space-y-8">
-            <div className='flex flex-col items-center space-y-2'>
-                <p className="text-azulCorporativo mx-8 text-center capitalize" > Estas seguro de borrar <span className='font-semibold'>{modal.title}</span></p>
-            </div>
-            <div className="space-x-5">
-                <button onClick={() => setModal({ state: false })} className=" bg-gray-400 h-10 w-24 rounded-lg text-white font-body hover:opacity-80">
-                    {t("discard")}
-                </button>
-                {
-                        <button onClick={() =>  deleteTask(modal.values, modal.itinerario) } className={` "hover:opacity-80 bg-primary transition-all   h-10 w-24 rounded-lg text-white font-body`}>
-                            {t("eliminate")}
-                        </button> 
                 }
             </div>
         </div>

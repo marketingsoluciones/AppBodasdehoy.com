@@ -356,8 +356,8 @@ export const queries = {
       fecha_creacion
     }
   }`,
-  duplicateItinerario: `mutation ($eventID:String, $itinerarioID:String, $eventDestinationID:String, $next_id:ID){
-    duplicateItinerario(eventID:$eventID, itinerarioID:$itinerarioID, eventDestinationID:$eventDestinationID, next_id:$next_id){
+  duplicateItinerario: `mutation ($eventID:String, $itinerarioID:String, $eventDestinationID:String, $next_id:ID, $storageBucket:String){
+    duplicateItinerario(eventID:$eventID, itinerarioID:$itinerarioID, eventDestinationID:$eventDestinationID, next_id:$next_id, storageBucket:$storageBucket){
       _id
       next_id
       title
@@ -832,6 +832,10 @@ export const queries = {
         pagado
         coste_estimado
         currency
+        totalStimatedGuests{
+          children
+          adults
+        }
         categorias_array{
           _id
           nombre
@@ -877,6 +881,93 @@ export const queries = {
         }
       }
       showChildrenGuest
+    }
+  }`,
+
+  editTotalStimatedGuests: `mutation ($evento_id:String, $children:Int, $adults:Int){
+    editTotalStimatedGuests(evento_id:$evento_id,  children:$children, adults:$adults ){
+    coste_estimado
+    coste_final
+    pagado
+    currency
+    totalStimatedGuests {
+      children
+      adults
+    }
+    categorias_array{
+      _id
+      coste_proporcion
+      coste_estimado
+      coste_final
+      pagado
+      nombre
+      gastos_array{
+        _id
+        coste_proporcion
+        coste_estimado
+        coste_final
+        pagado
+        nombre
+        linkTask
+        estatus
+        pagos_array{
+          _id
+        }
+        items_array{
+          _id
+         }
+     }
+  }
+  }
+  }`,
+
+  duplicatePresupuesto: `mutation ($eventID:String, $eventDestinationID:String){
+    duplicatePresupuesto(eventID:$eventID,  eventDestinationID:$eventDestinationID ){
+    coste_estimado
+    coste_final
+    pagado
+    currency
+    totalStimatedGuests{
+      children
+      adults
+    }
+    categorias_array{
+      _id
+      coste_proporcion
+      coste_estimado
+      coste_final
+      pagado
+      nombre
+      gastos_array{
+        _id
+        coste_proporcion
+        coste_estimado
+        coste_final
+        pagado
+        nombre
+        linkTask
+        estatus
+        pagos_array{
+          _id
+        }
+        items_array{
+          _id
+         }
+     }
+  }
+  }
+  }`,
+  borraCategoria: `mutation( $evento_id:String $categoria_id:String){
+    borraCategoria(evento_id:$evento_id, categoria_id: $categoria_id){
+      coste_final
+    }
+  }`,
+  editCategoria: `mutation( $evento_id:String $categoria_id:String $nombre:String){
+    editCategoria(evento_id:$evento_id, categoria_id: $categoria_id, nombre: $nombre){
+      coste_estimado
+      coste_final
+      pagado
+      currency
     }
   }`,
   nuevoPago: `mutation($evento_id:String, $categoria_id:String, $gasto_id: String,$pagos_array:[pagos_arrayAinput]){
@@ -925,6 +1016,19 @@ export const queries = {
                     }
                   }
                 }`,
+  borrarGasto: `mutation($evento_id: String, $categoria_id: String, $gasto_id: String){
+                borraGasto(evento_id:$evento_id, categoria_id:$categoria_id,gasto_id:$gasto_id){
+                  coste_final
+                  coste_estimado
+                  pagado
+                  categorias_array {
+                    coste_estimado
+                    coste_final
+                    pagado
+                  }
+                }
+              }`,
+
   nuevoGasto: `mutation($evento_id: String ,$categoria_id: String, $nombre: String){
               nuevoGasto(evento_id:$evento_id, categoria_id:$categoria_id,nombre:$nombre){
                 _id
@@ -971,6 +1075,10 @@ export const queries = {
                 coste_final
                 pagado
                 currency
+                totalStimatedGuests{
+                  children
+                  adults
+                }
                 categorias_array{
                   _id
                   coste_proporcion
@@ -1019,13 +1127,16 @@ export const queries = {
                 }
               }
             }`,
-
   editItemGasto: `mutation($evento_id: ID ,$categoria_id: ID, $gasto_id: ID, $itemGasto_id: ID, $variable: String, $valor: StringIntBool){
     editItemGasto(evento_id:$evento_id, categoria_id: $categoria_id, gasto_id: $gasto_id, itemGasto_id: $itemGasto_id, variable: $variable, valor: $valor){
       coste_estimado
       coste_final
       pagado
       currency
+      totalStimatedGuests{
+        children
+        adults
+      }
       categorias_array{
         _id
         coste_proporcion
@@ -1074,13 +1185,16 @@ export const queries = {
       }
     }
   }`,
-
   nuevoItemsGastos: `mutation($evento_id: ID, $categoria_id: ID, $gasto_id: ID, $itemsGastos:[itemGastoInput]){ 
     nuevoItemsGastos(evento_id:$evento_id, categoria_id:$categoria_id, gasto_id:$gasto_id, itemsGastos:$itemsGastos){
       coste_estimado
       coste_final
       pagado
       currency
+      totalStimatedGuests{
+        children
+        adults
+      }
       categorias_array{
         _id
         coste_proporcion
@@ -1135,6 +1249,10 @@ export const queries = {
       coste_final
       pagado
       currency
+      totalStimatedGuests{
+        children
+        adults
+      }
       categorias_array{
         _id
         coste_proporcion
@@ -1447,10 +1565,14 @@ export const queries = {
         tipo
       }
       presupuesto_objeto{
-       coste_final
-       pagado
-       coste_estimado
-       currency
+        coste_final
+        pagado
+        coste_estimado
+        currency
+        totalStimatedGuests{
+          children
+          adults
+        }
         categorias_array{
           _id
           nombre
