@@ -35,7 +35,7 @@ export const EditableSelect: FC<props> = ({ value, optionsSelect, size, handleCh
           }, 100);
         }}
         onClick={() => isAllowed() ? setEdit(true) : ht()}
-        className={`cursor-pointer relative`}
+        className={` cursor-context-menu relative`}
       >
         {optionsSelect.find((elem) => elem.value === newValue)?.title}
         {(hovered && !edit) && <div className="absolute top-0 right-0 w-6 h-full flex translate-x-full justify-end">

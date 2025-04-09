@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import React, { useEffect, useState } from "react";
 import { DineroIcon } from "../components/icons";
-import BlockCategoria from "../components/Presupuesto/BlockCategoria";
 import BlockPagos from "../components/Presupuesto/BlockPagos";
 import Grafico from "../components/Presupuesto/Grafico";
 import { AuthContextProvider, EventContextProvider } from "../context";
@@ -27,10 +26,6 @@ const Presupuesto = () => {
   useEffect(() => {
     setCategorias(event?.presupuesto_objeto?.categorias_array)
   }, [event])
-
-  useEffect(() => {
-    console.log(1000721, "showCategoria", showCategoria)
-  }, [showCategoria])
 
   if (verificationDone) {
     if (!user) {

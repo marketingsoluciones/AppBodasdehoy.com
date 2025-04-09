@@ -46,7 +46,6 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
     const valir = value?.replace(/ id="selected"/g, "")?.replace(/ focusoffset="[^"]*"/g, '').split("<p><br></p>").find(elem => elem !== "")
 
     /* Falta Validar espacios en blancos y saltos de linea al principio y al final*/
-    // console.log(100011, !!valir, valir)
     // console.log(100012, value?.replace(/ id="selected"/g, "")?.replace(/ focusoffset="[^"]*"/g, '').split("<p><br></p><p><br></p>").filter(elem => elem !== ""))
 
     if (value && !!valir) {

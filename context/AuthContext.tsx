@@ -116,11 +116,6 @@ const AuthProvider = ({ children }) => {
   const [usuariosTickets, setUsuariosTickets] = useState([])
 
   useEffect(() => {
-    console.log(100011, WihtProvider)
-  }, [WihtProvider])
-
-
-  useEffect(() => {
     const storage_id = localStorage.getItem("_id")
     if (!storage_id) {
       const _id = customAlphabet('1234567890abcdef', 24)()

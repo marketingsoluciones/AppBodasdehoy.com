@@ -957,6 +957,43 @@ export const queries = {
   }
   }
   }`,
+  nuevoCategoria: `mutation ($evento_id: String, $nombre: String){
+    nuevoCategoria(evento_id:$evento_id, nombre:$nombre){
+      _id
+      coste_proporcion
+      coste_estimado
+      coste_final
+      pagado
+      nombre
+      gastos_array {
+        _id
+        coste_estimado
+        coste_final
+        pagado
+        nombre
+        pagos_array {
+          _id
+          estado
+          fecha_creacion
+          fecha_pago
+          fecha_vencimiento
+          medio_pago
+          importe
+        }
+        items_array{
+          _id
+          next_id
+          unidad
+          cantidad
+          nombre
+          valor_unitario
+          total
+          estatus
+          fecha_creacion
+        }
+    }
+  }
+}`,
   borraCategoria: `mutation( $evento_id:String $categoria_id:String){
     borraCategoria(evento_id:$evento_id, categoria_id: $categoria_id){
       coste_final
@@ -1028,7 +1065,6 @@ export const queries = {
                   }
                 }
               }`,
-
   nuevoGasto: `mutation($evento_id: String ,$categoria_id: String, $nombre: String){
               nuevoGasto(evento_id:$evento_id, categoria_id:$categoria_id,nombre:$nombre){
                 _id
@@ -1185,62 +1221,17 @@ export const queries = {
       }
     }
   }`,
-  nuevoItemsGastos: `mutation($evento_id: ID, $categoria_id: ID, $gasto_id: ID, $itemsGastos:[itemGastoInput]){ 
-    nuevoItemsGastos(evento_id:$evento_id, categoria_id:$categoria_id, gasto_id:$gasto_id, itemsGastos:$itemsGastos){
-      coste_estimado
-      coste_final
-      pagado
-      currency
-      totalStimatedGuests{
-        children
-        adults
-      }
-      categorias_array{
-        _id
-        coste_proporcion
-        coste_estimado
-        coste_final
-        pagado
-        nombre
-        gastos_array{
-          _id
-          coste_proporcion
-          coste_estimado
-          coste_final
-          pagado 
-          nombre 
-          linkTask 
-          estatus 
-          pagos_array{
-            _id
-            estado
-            fecha_creacion
-            fecha_pago
-            fecha_vencimiento
-            medio_pago
-            importe
-            pagado_por
-            concepto
-            soporte{
-              image_url
-              medium_url
-              thumb_url
-              delete_url
-            }
-          }
-          items_array{
-            _id
-            next_id
-            unidad
-            cantidad
-            nombre
-            valor_unitario
-            total
-            estatus
-            fecha_creacion
-          }
-        }
-      }
+  nuevoItemGasto: `mutation($evento_id: ID, $categoria_id: ID, $gasto_id: ID, $itemGasto:itemGastoInput){ 
+    nuevoItemGasto(evento_id:$evento_id, categoria_id:$categoria_id, gasto_id:$gasto_id, itemGasto:$itemGasto){
+      _id
+      next_id
+      unidad
+      cantidad
+      nombre
+      valor_unitario
+      total
+      estatus
+      fecha_creacion
     }
   }`,
   borrarItemsGastos: `mutation($evento_id: ID, $categoria_id: ID, $gasto_id: ID, $itemsGastos_ids: [ID]){ 

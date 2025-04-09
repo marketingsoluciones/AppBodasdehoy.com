@@ -88,11 +88,6 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
         // setGastoID(old => ({ ...old, crear: false }))
     }, [showCategoria, event, event?.presupuesto_objeto?.currency]);
 
-    useEffect(() => {
-        console.log("aqui1111")
-    }, [data])
-
-
     const sumarCosteEstimado = (gastosArray) => {
         return gastosArray?.reduce((total, item) => total + item.coste_estimado, 0);
     };
