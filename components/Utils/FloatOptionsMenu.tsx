@@ -9,7 +9,7 @@ interface props {
 
 export const FloatOptionsMenu: FC<props> = ({ showOptionsMenu, setShowOptionsMenu }) => {
   let { info, aling, justify, options, position } = showOptionsMenu.values
-  console.log(100099, aling, justify, position)
+  console.log(100099, aling, justify, position, info)
 
   return (
     <ClickAwayListener onClickAway={() => { setShowOptionsMenu({ state: false }) }}>

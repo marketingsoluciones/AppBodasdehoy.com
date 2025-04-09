@@ -14,6 +14,8 @@ import { GoEye, GoEyeClosed, GoTasklist } from 'react-icons/go';
 import { PiNewspaperClippingLight } from 'react-icons/pi';
 import { MdOutlineDeleteOutline } from 'react-icons/md';
 import { handleChange, determinatedPositionMenu, handleDelete, handleCreateItem, handleCreateGasto, handleCreateCategoria } from "./tableBudgetV8.handles"
+import { error } from 'console';
+import { useToast } from '../../hooks/useToast';
 
 interface props {
   data: any
@@ -52,6 +54,7 @@ const optionsSelect = [
 export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDelete, setLoading }) => {
   const { event, setEvent } = EventContextProvider()
   const [isAllowed, ht] = useAllowed()
+  const toast = useToast()
 
   const initialColumnVisibility: ColumnVisibility[] = [
     { accessor: "categoria", header: t("categoria"), isEditabled: true },
@@ -72,11 +75,11 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
   const [showFloatOptionsMenu, setShowFloatOptionsMenu] = useState<FloatOptionsMenuInterface>()
 
 
-  useEffect(() => {
-    if (data) {
-      console.log(100080, data)
-    }
-  }, [data])
+  // useEffect(() => {
+  //   if (data) {
+  //     console.log(100080, data)
+  //   }
+  // }, [data])
 
   const options = [
     {
@@ -85,15 +88,24 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     },
     {
       title: "Categoría",
-      onClick: (info) => { handleCreateCategoria({ info, event, setEvent, setShowDotsOptionsMenu }) }
+      onClick: (info) => {
+        handleCreateCategoria({ info, event, setEvent, setShowDotsOptionsMenu })
+          .catch(error => toast("error", "ha ocurrido un error"))
+      }
     },
     {
       title: "Partida",
-      onClick: (info) => { handleCreateGasto({ info, event, setEvent, setShowDotsOptionsMenu }) }
+      onClick: (info) => {
+        handleCreateGasto({ info, event, setEvent, setShowDotsOptionsMenu })
+        .catch(error => toast("error", "ha ocurrido un error"))
+      }
     },
     {
       title: "Item",
-      onClick: (info) => { handleCreateItem({ info, event, setEvent, setShowDotsOptionsMenu }) }
+      onClick: (info) => {
+        handleCreateItem({ info, event, setEvent, setShowDotsOptionsMenu })
+        .catch(error => toast("error", "ha ocurrido un error"))
+      }
     },
     {
       icon: <GrMoney className="w-4 h-4" />,
@@ -225,10 +237,10 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
 
   useEffect(() => {
     console.log(showFloatOptionsMenu?.state, showDotsOptionsMenu?.state)
-    if (showFloatOptionsMenu?.select === "ok" && showDotsOptionsMenu?.select === "ok") {
+    if (showFloatOptionsMenu?.control === "ok" && showDotsOptionsMenu?.control === "ok") {
       const showFloatOptionsMenuNew: FloatOptionsMenuInterface = {
         state: true,
-        values: { ...showDotsOptionsMenu.values, ...showFloatOptionsMenu.values }
+        values: { ...showFloatOptionsMenu.values, ...showDotsOptionsMenu.values }
       }
       setShowFloatOptionsMenu({ ...showFloatOptionsMenuNew })
     }
@@ -247,7 +259,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
             console.log("click derecho padre")
             if (!element) {
               const position = { x: e.clientX - 8, y: e.clientY - 144 - 124 }
-              setShowFloatOptionsMenu({ state: false, values: { info: undefined, aling: undefined, justify: undefined, position, options }, select: "ok" })
+              setShowFloatOptionsMenu({ state: false, values: { info: undefined, position, options }, control: "ok" })
             }
           }}
         >
@@ -290,6 +302,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
               minWidth: table.getTotalSize(),
             }}
           >
+            {/* --------------------------------------------------------------------------------------------------------------------------------------------*/}
             {table.getRowModel().rows.map((row, idx) => {
               // console.log(100084, row.original?.fatherCategoria)
               return (
@@ -326,15 +339,21 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                         onContextMenuCapture={(e) => {
                           const element = document.getElementById("ElementEditable")
                           console.log("click derecho hijo")
+                          let infoAsd = cell.getContext()
+                          let info = cell.column.id === "categoria"
+                            ? table.getRowModel().rows.find(elem => elem.original._id === infoAsd.row.original.categoriaID).getVisibleCells().find(elem => elem.column.id === cell.column.id)
+                            : cell.column.id === "gasto"
+                              ? table.getRowModel().rows.find(elem => elem.original._id === infoAsd.row.original.gastoID)?.getVisibleCells().find(elem => elem.column.id === cell.column.id)
+                              : cell.getContext()
                           if (!element) {
                             const positionAsd = determinatedPositionMenu({ e, height: options.length * 32, width: 200 })
                             setShowDotsOptionsMenu({
                               state: false, values: {
-                                info: cell.getContext(),
+                                info: info ?? infoAsd,
                                 aling: positionAsd.aling,
                                 justify: positionAsd.justify,
                                 options
-                              }, select: "ok"
+                              }, control: "ok"
                             })
                             e.preventDefault()
                           }
@@ -395,6 +414,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                 </tr>
               )
             })}
+            {/* --------------------------------------------------------------------------------------------------------------------------------------------*/}
           </tbody>
           <tfoot
             style={{

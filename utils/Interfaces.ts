@@ -129,6 +129,7 @@ export interface FloatOptionsMenuInterface {
     state: boolean
     values?: FloatMenu
     select?: string
+    control?: string
 }
 
 export interface OptionsMenu {
