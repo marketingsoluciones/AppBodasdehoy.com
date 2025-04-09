@@ -19,7 +19,7 @@ const ModalLeft = ({ children, state, set, clickAwayListened = true, ...rest }) 
       <div className={`z-40 fixed top-0 left-0 w-full h-screen backdrop-filter backdrop-blur backlayout ${state ? "" : "hidden"} `} />
       <ClickAwayListener onClickAway={() => (state && clickAwayListened) && set(false)} >
         <div
-          className={`bg-white w-full sm:w-1/3 lg:w-1/3 z-[60] fixed top-0 left-0 h-full md:rounded-r-2xl shadow-lg flex flex-col items-center justify-center transform transition duration-300 ${state ? initial : "-translate-x-full"} `} {...rest} >
+          className={`bg-white w-full md:w-[400px] z-[60] fixed top-0 left-0 h-full md:rounded-r-2xl shadow-lg flex flex-col items-center justify-center transform transition duration-300 ${state ? initial : "-translate-x-full"} `} {...rest} >
           <span
             id='close'
             onClick={() => set(!state)}

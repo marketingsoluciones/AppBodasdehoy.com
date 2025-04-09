@@ -148,7 +148,7 @@ export const handleDelete = ({ showModalDelete, event, setEvent, setLoading, set
       }
     }).then((result) => {
       setEvent({ ...event })
-      showModalDelete?.setShowDotsOptionsMenu({ state: false })
+      showModalDelete["setShowDotsOptionsMenu"] && showModalDelete?.setShowDotsOptionsMenu({ state: false })
       setShowModalDelete({ state: false })
       setLoading(false)
     })

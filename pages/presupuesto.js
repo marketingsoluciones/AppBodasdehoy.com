@@ -87,16 +87,16 @@ const Presupuesto = () => {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="flex w-full h-full gap-6 pt-2 md:pr-0"
+                      className="flex flex-col md:flex-row w-full h-full gap-6 pt-2 md:pr-0"
                     >
-                      <div className="w-[280px]">
+                      <div className="w-full md:w-[350px]">
                         <BlockListaCategorias
                           setShowCategoria={setShowCategoria}
                           categorias_array={categorias}
                           showCategoria={showCategoria}
                         />
                       </div>
-                      <div className="md:flex-1 w-full h-full flex flex-col relative">
+                      <div className="w-full md:flex-1 h-full flex flex-col relative bg-green">
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                           <div className=" bg-white shadow-md rounded-xl grid place-items-center p-4">
                             <MontoPresupuesto

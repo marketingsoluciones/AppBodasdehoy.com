@@ -193,7 +193,7 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
                     <div className="mb-2 w-full">
                         <ResumenInvitados />
                     </div>
-                    <BlockListaCategorias setShowCategoria={setShowCategoria} categorias_array={categorias_array} categorie={showCategoria} />
+                    <BlockListaCategorias setShowCategoria={setShowCategoria} categorias_array={categorias_array} showCategoria={showCategoria} />
                 </div>
                 {true && <div className={`flex ${menuIzquierdo ? "w-full" : "md:w-[calc(100%-300px)]"} h-full`}>
                     {true ?
