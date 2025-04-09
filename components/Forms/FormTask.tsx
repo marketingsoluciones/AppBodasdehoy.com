@@ -108,7 +108,7 @@ const FormTask: FC<propsFormTask> = ({ showEditTask, setShowEditTask, itinerario
     >
       {({ isSubmitting, values }) => {
         return (
-          <Form className="w-full">
+          <Form className="w-full flex flex-col">
             <AutoSubmitToken />
             <div className="border-l-2 border-gray-100 my-2 w-full ">
               <h2 className="font-display text-3xl capitalize text-primary font-light">

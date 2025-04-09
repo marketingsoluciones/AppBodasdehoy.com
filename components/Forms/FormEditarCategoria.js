@@ -66,7 +66,7 @@ export const BasicForm = ({
 }) => {
   const { t } = useTranslation();
   return (
-    <>
+    <div className="w-full flex flex-col">
       <div className="border-l-2 border-gray-100 pl-3 w-full ">
         <h2 className="font-display text-3xl capitalize text-primary font-light">
           {t("edit")} <br />
@@ -103,6 +103,6 @@ export const BasicForm = ({
           {t("editcategory")}
         </button>
       </form>
-    </>
+    </div>
   );
 };

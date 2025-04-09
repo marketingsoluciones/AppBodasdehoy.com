@@ -76,7 +76,7 @@ const FormCrearMenu = ({ set, state }) => {
           validationSchema={validationSchema}
         >
           {({ isSubmitting }) => (
-            <Form className="w-full">
+            <Form className="w-full flex flex-col">
               <div className="border-l-2 border-gray-100 pl-3 w-full ">
                 <h2 className="font-display text-3xl capitalize text-primary font-light">
                   {t("create")} <br />{" "}
