@@ -11,10 +11,9 @@ interface props {
   handleChange: any
   isLabelDisabled?: boolean
   textAlign?: "left" | "center" | "right" | "start" | "end"
-  id: string
 }
 
-export const EditableLabelWithInput: FC<props> = ({ value, type, handleChange, accessor, isLabelDisabled, textAlign, id }) => {
+export const EditableLabelWithInput: FC<props> = ({ value, type, handleChange, accessor, isLabelDisabled, textAlign }) => {
   const [edit, setEdit] = useState(false)
   const [newValue, setNewValue] = useState<string | number>(value)
   const [hovered, setHovered] = useState(false)

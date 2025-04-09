@@ -97,14 +97,14 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
       title: "Partida",
       onClick: (info) => {
         handleCreateGasto({ info, event, setEvent, setShowDotsOptionsMenu })
-        .catch(error => toast("error", "ha ocurrido un error"))
+          .catch(error => toast("error", "ha ocurrido un error"))
       }
     },
     {
       title: "Item",
       onClick: (info) => {
         handleCreateItem({ info, event, setEvent, setShowDotsOptionsMenu })
-        .catch(error => toast("error", "ha ocurrido un error"))
+          .catch(error => toast("error", "ha ocurrido un error"))
       }
     },
     {
@@ -187,7 +187,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
             ? elem?.type !== "select"
               ? <EditableLabelWithInput
                 key={idx}
-                id={info.cell.id}
                 accessor={elem?.accessor}
                 handleChange={(values: any) => {
                   handleChange({ values, info, event, setEvent })

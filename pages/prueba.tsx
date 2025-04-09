@@ -60,8 +60,8 @@ const Prueba = () => {
 
   return (<>
     <div className="max-w-screen-lg grid grid-cols-8 mx-auto">
-      {cursors.map(elem =>
-        <div className={`bg-emerald-400 col-span-1 m-1 h-12 text-xs flex items-center justify-center text-center ${elem}`}>{elem}</div>
+      {cursors.map((elem, idx) =>
+        <div key={idx} className={`bg-emerald-400 col-span-1 m-1 h-12 text-xs flex items-center justify-center text-center ${elem}`}>{elem}</div>
       )}
     </div>
     <div
