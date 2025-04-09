@@ -15,6 +15,7 @@ import { FileIconComponent } from "./FileIconComponent"
 import { getStorage, ref, uploadBytesResumable } from "firebase/storage"
 import { TempPastedAndDropFiles } from "./ItineraryPanel"
 import { customAlphabet } from "nanoid"
+import { SetNickname } from "./SetNickName"
 
 interface props {
   itinerario: Itinerary
@@ -41,6 +42,7 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
   const notification = useNotification()
   const storage = getStorage();
   const [enabledInput, setEnabledInput] = useState(false);
+  const [showModalNickname, setShowModalNickname] = useState(false)
 
   useEffect(() => {
     const valir = value?.replace(/ id="selected"/g, "")?.replace(/ focusoffset="[^"]*"/g, '').split("<p><br></p>").find(elem => elem !== "")
@@ -82,7 +84,10 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
 
   const handleCreateComment = () => {
     setValir(false)
-    if (value || pastedAndDropFiles.length) {
+    if (!user) {
+      setShowModalNickname(true)
+    }
+    if (user && value || pastedAndDropFiles.length) {
       const valueSend = value?.replace(/ id="selected"/g, "")?.replace(/ focusoffset="[^"]*"/g, '')
       const attachments = pastedAndDropFiles?.map((elem): FileData => {
         return { name: elem.file.name, size: elem.file.size }
@@ -190,7 +195,20 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
   }, [pastedAndDropFiles])
 
   return (
-    <div className='bg-white flex items-center space-x-2 pt-2 px-2'>
+    <div className='bg-white flex items-center pt-2 px-2 relative'>
+      {
+        showModalNickname && <ClickAwayListener onClickAway={() => showModalNickname && setShowModalNickname(false)}>
+          <ul
+            className={`${showModalNickname ? "block opacity-100" : "hidden opacity-0"} absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-[-150px] right-20 w-[300px] z-50`}
+          >
+            <li
+              className="flex items-center py-4 px-6 font-display text-sm text-gray-500 bg-base transition w-full capitalize"
+            >
+              <SetNickname setShowModalNickname={setShowModalNickname}  />
+            </li>
+          </ul>
+        </ClickAwayListener>
+      }
       <div className='flex flex-1 relative'>
         {!!pastedAndDropFiles?.length && (
           <>
