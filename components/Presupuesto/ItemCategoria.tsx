@@ -1,4 +1,4 @@
-import { Dispatch, FC, SetStateAction, useState } from "react";
+import { Dispatch, FC, SetStateAction, useEffect, useState } from "react";
 import { AuthContextProvider, EventContextProvider } from "../../context";
 import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
@@ -17,7 +17,7 @@ import { handleDelete } from "../TablesComponents/tableBudgetV8.handles";
 
 interface props {
   item: estimateCategory
-  setShowCategoria: Dispatch<SetStateAction<{ state: boolean, _id: string }>>
+  setShowCategoria: Dispatch<SetStateAction<{ state: boolean, _id?: string }>>
   showCategoria: { state: boolean, _id: string }
 }
 
@@ -49,7 +49,9 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
   return (
     //aqui
     <li
-      onClick={() => costeEstimado != 0 ? setShowCategoria({ state: true, _id: item._id }) : toast("error", t("Agrega un monto a tu Presupuesto Estimado"))}
+      onClick={() => {
+        costeEstimado != 0 ? setShowCategoria(item._id === showCategoria._id ? { state: false } : { state: true, _id: item._id }) : toast("error", t("Agrega un monto a tu Presupuesto Estimado"))
+      }}
       className={`text-xs w-full py-0.5 md:py-0 md:h-11 justify-center items-center flex pl-5 md:pl-2 transition ${costeEstimado == 0 ? "" : "hover:bg-base"} ${showCategoria?._id == item._id ? "bg-slate-200" : "bg-white"}`}
     >
       {showModalDelete.state && <SimpleDeleteConfirmation

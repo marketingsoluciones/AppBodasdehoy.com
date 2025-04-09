@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { ExcelView } from "../components/Presupuesto/ExcelView";
 import { BlockListaCategorias } from "../components/Presupuesto/BlockListaCategorias";
 import { MontoPresupuesto } from "../components/Presupuesto/MontoPresupuesto";
+import BlockCategoria from "../components/Presupuesto/BlockCategoria";
 
 const Presupuesto = () => {
   useMounted()
@@ -51,7 +52,7 @@ const Presupuesto = () => {
                   className={`w-[40%] md:w-[270px] py-1   ${active == "resumen" ? "bg-primary text-white" : "bg-white text-primary"
                     } h-full grid place-items-center font-display font-medium cursor-pointer hover:opacity-90 capitalize`}
                 >
-                  <p className="capitalize">{t("resumen")}</p>
+                  <p className="capitalize">{t("budget")}</p>
                 </div>
 
                 <div
@@ -59,7 +60,7 @@ const Presupuesto = () => {
                   className={` w-[40%] md:w-full py-1  ${active == "excelView" ? "bg-primary text-white" : "bg-white text-primary"
                     } h-full flex  justify-center items-center font-display font-medium cursor-pointer hover:opacity-90`}
                 >
-                  <p className="capitalize">{t("budget")}</p>
+                  <p className="capitalize">{t("budgetdetails")}</p>
                 </div>
 
                 <div
@@ -89,59 +90,65 @@ const Presupuesto = () => {
                       exit={{ opacity: 0 }}
                       className="flex flex-col md:flex-row w-full h-full gap-6 pt-2 md:pr-0"
                     >
-                      <div className="w-full md:w-[350px]">
+                      <div className="w-full md:w-[310px]">
                         <BlockListaCategorias
                           setShowCategoria={setShowCategoria}
                           categorias_array={categorias}
                           showCategoria={showCategoria}
                         />
                       </div>
-                      <div className="w-full md:flex-1 h-full flex flex-col relative bg-green">
-                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                          <div className=" bg-white shadow-md rounded-xl grid place-items-center p-4">
-                            <MontoPresupuesto
-                              estimado={
-                                event?.presupuesto_objeto?.coste_estimado
-                              }
-                            />
-                          </div>
-                          <div className=" bg-white shadow-md rounded-xl grid place-items-center p-4">
-                            <DineroIcon className="w-12 h-12 text-primary " />
-                            <p className="font-display text-gray-500 font-light text-md grid place-items-center">
-                              {t("finalcost")} <br />
-                              <span className="font-semibold text-lg text-center">
-                                {getCurrency(
-                                  event?.presupuesto_objeto?.coste_final,
-                                  event?.presupuesto_objeto?.currency
-                                )}
-                              </span>
-                            </p>
-                            <div className=" w-full rounded-xl overflow-hidden flex my-2">
-                              <div className="w-1/2 bg-primary py-1 px-3">
-                                <p className="text-xs font-display text-white">
-                                  {t("paid")} {
-                                    getCurrency(
-                                      event?.presupuesto_objeto?.pagado,
-                                      event?.presupuesto_objeto?.currency
-                                    )
-                                  }
-                                </p>
-                              </div>
-                              <div className="w-1/2 bg-tertiary py-1 px-3">
-                                <p className="text-xs font-display text-primary">
-                                  {t("payable")} {getCurrency(event?.presupuesto_objeto?.coste_final - event?.presupuesto_objeto?.pagado, event?.presupuesto_objeto?.currency)}
-                                </p>
+                      {showCategoria?.state
+                        ? <BlockCategoria
+                          setShowCategoria={setShowCategoria}
+                          showCategoria={showCategoria}
+                          setGetId={setGetId}
+                        />
+                        : <div className="w-full md:flex-1 h-full flex flex-col relative">
+                          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                            <div className=" bg-white shadow-md rounded-xl grid place-items-center p-4">
+                              <MontoPresupuesto
+                                estimado={
+                                  event?.presupuesto_objeto?.coste_estimado
+                                }
+                              />
+                            </div>
+                            <div className=" bg-white shadow-md rounded-xl grid place-items-center p-4">
+                              <DineroIcon className="w-12 h-12 text-primary " />
+                              <p className="font-display text-gray-500 font-light text-md grid place-items-center">
+                                {t("finalcost")} <br />
+                                <span className="font-semibold text-lg text-center">
+                                  {getCurrency(
+                                    event?.presupuesto_objeto?.coste_final,
+                                    event?.presupuesto_objeto?.currency
+                                  )}
+                                </span>
+                              </p>
+                              <div className=" w-full rounded-xl overflow-hidden flex my-2">
+                                <div className="w-1/2 bg-primary py-1 px-3">
+                                  <p className="text-xs font-display text-white">
+                                    {t("paid")} {
+                                      getCurrency(
+                                        event?.presupuesto_objeto?.pagado,
+                                        event?.presupuesto_objeto?.currency
+                                      )
+                                    }
+                                  </p>
+                                </div>
+                                <div className="w-1/2 bg-tertiary py-1 px-3">
+                                  <p className="text-xs font-display text-primary">
+                                    {t("payable")} {getCurrency(event?.presupuesto_objeto?.coste_final - event?.presupuesto_objeto?.pagado, event?.presupuesto_objeto?.currency)}
+                                  </p>
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                        <div className="flex-1 flex flex-col pt-2">
-                          <h2 className="font-display pb-2 text-xl text-gray-500 font-semibold text-center w-full">
-                            {t("howost")}
-                          </h2>
-                          <Grafico categorias={categorias} />
-                        </div>
-                      </div>
+                          <div className="flex-1 flex flex-col pt-2">
+                            <h2 className="font-display pb-2 text-xl text-gray-500 font-semibold text-center w-full">
+                              {t("howost")}
+                            </h2>
+                            <Grafico categorias={categorias} />
+                          </div>
+                        </div>}
                     </motion.div>
                   )
                 }

@@ -10,7 +10,7 @@ import { estimateCategory } from "../../utils/Interfaces";
 
 interface props {
   categorias_array: estimateCategory[]
-  setShowCategoria: Dispatch<SetStateAction<{ state: boolean, _id: string }>>
+  setShowCategoria: Dispatch<SetStateAction<{ state: boolean, _id?: string }>>
   showCategoria: { state: boolean, _id: string }
 }
 

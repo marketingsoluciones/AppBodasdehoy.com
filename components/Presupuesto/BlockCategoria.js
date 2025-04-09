@@ -15,7 +15,7 @@ import DetallesPago from "./DetallesPago";
 import { array } from "yup";
 import AddPagado from "./AddPagado";
 
-const BlockCategoria = ({ cate, set, setGetId }) => {
+const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
   const { t } = useTranslation();
   const { event, setEvent } = EventContextProvider()
   const [categoria, setCategoria] = useState({});
@@ -26,16 +26,16 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
   useEffect(() => {
     setCategoria(
       event?.presupuesto_objeto?.categorias_array.find(
-        (item) => item._id == cate
+        (item) => item._id == showCategoria?._id
       )
     );
     setData(
       event?.presupuesto_objeto?.categorias_array?.find(
-        (item) => item._id == cate
+        (item) => item._id == showCategoria?._id
       )?.gastos_array
     );
     setGastoID(old => ({ ...old, crear: false }))
-  }, [cate, event, event?.presupuesto_objeto?.currency]);
+  }, [showCategoria, event, event?.presupuesto_objeto?.currency]);
 
   const saldo = categoria?.coste_estimado - categoria?.coste_final;
 
@@ -109,7 +109,7 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
             try {
               const params = {
                 query: `mutation{
-                  borraGasto(evento_id:"${event?._id}", categoria_id: "${cate}", gasto_id: "${props?.row?.original?._id}"){
+                  borraGasto(evento_id:"${event?._id}", categoria_id: "${showCategoria?._id}", gasto_id: "${props?.row?.original?._id}"){
                   coste_final
                   coste_estimado
                   pagado
@@ -131,7 +131,7 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
                 // Encontrar posicion de la categoria en el array categorias
                 const idxCategoria =
                   old?.presupuesto_objeto?.categorias_array.findIndex(
-                    (item) => item._id == cate
+                    (item) => item._id == showCategoria?._id
                   );
                 // Sustraer el gasto a eliminar del array de gastos
                 const filterGastos = old?.presupuesto_objeto?.categorias_array[
@@ -227,16 +227,16 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
   const porcentaje = (categoria?.coste_final / categoria?.coste_estimado) * 100
 
   return (
-    <>
+    <div className="flex-1">
       {GastoID.crear && (
         <div className="absolute* bg-white w-full  h-max grid place-items-center z-20 rounded-xl white shadow-lg top-0 left-0 p-8 ">
           <div className="font-display text-gray-500 hover:text-gray-300 transition text-lg absolute top-5 right-5 cursor-pointer hover:scale-125" onClick={() => setGastoID("")}>X</div>
           <FormAddPago GastoID={GastoID?.id} cate={categoria?._id} />
         </div>
       )}
-      <div className={`bg-white block-categoria h-max py-10 w-full rounded-xl shadow-lg overflow-hidden flex flex-col items-center relative ${GastoID.crear ? "hidden" : "block"}`}>
+      <div className={`bg-white w-full block-categoria h-max py-10 rounded-xl shadow-lg overflow-hidden flex flex-col items-center relative ${GastoID.crear ? "hidden" : "block"}`}>
         <div
-          onClick={() => set({ isVisible: false, id: "" })}
+          onClick={() => setShowCategoria({ state: false })}
           className="cursor-pointer absolute top-5 right-5 font-display hover:scale-125 transition transform text-gray-500 hover:text-gray-500 font-semibold text-lg "
         >
           X
@@ -291,7 +291,7 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
 
 
         {/* Tabla de datos */}
-        <DataTable AddGasto={AddGasto} columns={Columna} data={data ?? []} renderRowSubComponent={renderRowSubComponent} cate={categoria._id} gasto={GastoID.id} categoria={categoria} />
+        <DataTable AddGasto={AddGasto} columns={Columna} data={data ?? []} renderRowSubComponent={renderRowSubComponent} cate={categoria?._id} gasto={GastoID?.id} categoria={categoria} />
         <div className="bg-primary w-full grid grid-cols-13 absolute bottom-0 font-display text-white font-semibold py-1 text-sm">
           <div className="flex items-center justify-center col-span-3">
             <p>{t("total")}</p>
@@ -314,7 +314,7 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
           }
         `}
       </style>
-    </>
+    </div>
   );
 };
 
