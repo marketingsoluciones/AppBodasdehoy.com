@@ -3,8 +3,10 @@ import { fetchApiEventos, queries } from "../../utils/Fetching"
 import { error } from "console"
 
 export const handleChange: any = ({ values, info, event, setEvent }) => {
+
   try {
     const original = info.row.original
+
     if (original.object === "item" && (!["categoria", "gasto"].includes(values.accessor))) {
       console.log("aqui", original, values?.accessor, original.object === "item", !["categoria", "gasto"].includes(values.accessor))
       const f1 = event.presupuesto_objeto.categorias_array.findIndex(elem => elem._id === original?.categoriaID)
@@ -43,6 +45,7 @@ export const handleChange: any = ({ values, info, event, setEvent }) => {
       })
     }
     if ((original.object === "gasto" && (!["categoria"].includes(values.accessor)) || (original.object === "item" && values.accessor === "gasto"))) {
+     console.log("entrando")
       const f1 = event.presupuesto_objeto.categorias_array.findIndex(elem => elem._id === original?.categoriaID)
       const f2 = event.presupuesto_objeto.categorias_array[f1].gastos_array.findIndex(elem => elem._id === original?.gastoID)
       event.presupuesto_objeto.categorias_array[f1].gastos_array[f2][values.accessor === "gasto" ? "nombre" : values.accessor] = values.value

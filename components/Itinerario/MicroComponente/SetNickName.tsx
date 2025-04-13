@@ -5,7 +5,7 @@ export const SetNickname = ({ setShowModalNickname }) => {
     return (
         <div className="flex flex-col space-y-2 w-full">
             <div>
-                <h1 className="text-sm font-bold text-gray-700 capitalize">tu podo</h1>
+                <h1 className="text-sm font-bold text-gray-700 capitalize">tu apodo</h1>
                 <p className="text-xs text-gray-500 capitalize">Escribe un apodo para identificarte</p>
             </div>
             <input type="text"

@@ -1,9 +1,8 @@
 
-import { FC, useEffect, useState } from "react";
+import { FC} from "react";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
-import { Event, Task } from "../../utils/Interfaces";
+import { Event } from "../../utils/Interfaces";
 import { motion } from "framer-motion"
-import { AuthContextProvider, EventContextProvider } from "../../context";
 import { defaultImagenes } from "../../components/Home/Card";
 import { TaskNew } from "../../components/Itinerario/MicroComponente/TaskNew";
 
@@ -31,7 +30,7 @@ const Slug: FC<props> = (props) => {
 export default Slug;
 
 const ServicesVew = ({ eventProps, querySlug }) => {
-  const { user } = AuthContextProvider();
+
   const f2 = eventProps?.itinerarios_array[0]?.tasks?.findIndex(({ _id }) => _id === querySlug?.task)
   const Task = eventProps?.itinerarios_array[0]?.tasks[f2]
   return (
