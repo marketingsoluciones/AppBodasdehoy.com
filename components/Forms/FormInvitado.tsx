@@ -87,7 +87,7 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
   });
 
   const initialValues = {
-   /*  tituloInvitado:"", */
+    /*  tituloInvitado:"", */
     nombre: "",
     sexo: "hombre",
     grupo_edad: "adulto",
@@ -136,7 +136,7 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
       {({ isSubmitting, values, setFieldValue, resetForm }) => {
 
         return (
-          <Form>
+          <Form className="w-full flex flex-col">
             <ResetForm setFieldValue={setFieldValue} resetForm={resetForm} contact={contact} />
             {showForApiGoogle.state && <ForApiPeople setContact={setContact} showForApiGoogle={showForApiGoogle} setShowForApiGoogle={setShowForApiGoogle} />}
             {showMedioSelectImport && <ImportGuest setShowMedioSelectImport={setShowMedioSelectImport} setContact={setContact} setShowForApiGoogle={setShowForApiGoogle} />}

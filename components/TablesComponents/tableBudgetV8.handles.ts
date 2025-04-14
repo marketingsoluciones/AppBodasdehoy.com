@@ -1,8 +1,12 @@
+import { tr } from "date-fns/locale"
 import { fetchApiEventos, queries } from "../../utils/Fetching"
+import { error } from "console"
 
 export const handleChange: any = ({ values, info, event, setEvent }) => {
+
   try {
     const original = info.row.original
+
     if (original.object === "item" && (!["categoria", "gasto"].includes(values.accessor))) {
       console.log("aqui", original, values?.accessor, original.object === "item", !["categoria", "gasto"].includes(values.accessor))
       const f1 = event.presupuesto_objeto.categorias_array.findIndex(elem => elem._id === original?.categoriaID)
@@ -41,6 +45,7 @@ export const handleChange: any = ({ values, info, event, setEvent }) => {
       })
     }
     if ((original.object === "gasto" && (!["categoria"].includes(values.accessor)) || (original.object === "item" && values.accessor === "gasto"))) {
+     console.log("entrando")
       const f1 = event.presupuesto_objeto.categorias_array.findIndex(elem => elem._id === original?.categoriaID)
       const f2 = event.presupuesto_objeto.categorias_array[f1].gastos_array.findIndex(elem => elem._id === original?.gastoID)
       event.presupuesto_objeto.categorias_array[f1].gastos_array[f2][values.accessor === "gasto" ? "nombre" : values.accessor] = values.value
@@ -82,14 +87,15 @@ export const handleChange: any = ({ values, info, event, setEvent }) => {
   }
 }
 
-export const determinatedPositionMenu = ({ e, element, height = 0, width = 0 }): { aling: "top" | "botton", justify: "start" | "end" } => {
-  const trElement = element//e.currentTarget.offsetParent as HTMLElement
-  const tableElement = element.offsetParent
+export const determinatedPositionMenu = ({ e, element = undefined, height = 0, width = 0 }): { aling: "top" | "botton", justify: "start" | "end" } => {
+  const trElement = element as HTMLElement ?? e.currentTarget as HTMLElement//e.currentTarget.offsetParent as HTMLElement 
+  const tableElement = trElement.offsetParent as HTMLElement
   const aling = trElement.offsetTop + height + 30 > tableElement.scrollTop + tableElement.clientHeight
     ? "botton"
     : "top"
-  const justify = trElement.offsetLeft - width - 20 < 0
-    ? "start" : "end"
+  const justify = trElement.offsetLeft + width > tableElement.clientWidth - 20
+    ? "end" : "start"
+
   return { justify, aling }
 }
 
@@ -145,7 +151,7 @@ export const handleDelete = ({ showModalDelete, event, setEvent, setLoading, set
       }
     }).then((result) => {
       setEvent({ ...event })
-      showModalDelete?.setShowDotsOptionsMenu({ state: false })
+      showModalDelete["setShowDotsOptionsMenu"] && showModalDelete?.setShowDotsOptionsMenu({ state: false })
       setShowModalDelete({ state: false })
       setLoading(false)
     })
@@ -154,3 +160,74 @@ export const handleDelete = ({ showModalDelete, event, setEvent, setLoading, set
   }
 }
 
+export const handleCreateItem = async ({ info, event, setEvent, setShowDotsOptionsMenu }) => {
+  try {
+    fetchApiEventos({
+      query: queries.nuevoItemGasto,
+      variables: {
+        evento_id: event?._id,
+        categoria_id: info?.row?.original?.categoriaID,
+        gasto_id: info?.row?.original?.gastoID,
+        itemGasto: {
+          nombre: "Nuevo Item",
+          cantidad: 1,
+          valor_unitario: 0,
+          total: 0,
+          unidad: "xUni.",
+          estatus: false
+        }
+      },
+    }).then((result) => {
+      setShowDotsOptionsMenu({ state: false })
+      const f1 = event.presupuesto_objeto.categorias_array.findIndex((elem) => elem._id === info?.row?.original?.categoriaID)
+      const f2 = event.presupuesto_objeto.categorias_array[f1].gastos_array.findIndex((elem) => elem._id == info?.row?.original?.gastoID)
+      event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array.push(result)
+      setEvent({ ...event })
+    })
+  } catch (error) {
+    console.log(220045, error);
+    throw new Error(error)
+  }
+}
+
+export const handleCreateGasto = async ({ info, event, setEvent, setShowDotsOptionsMenu }) => {
+  try {
+    fetchApiEventos({
+      query: queries.nuevoGasto,
+      variables: {
+        evento_id: event?._id,
+        categoria_id: info?.row?.original?.categoriaID,
+        nombre: "Nueva part. de gasto",
+      }
+    }).then((result) => {
+      console.log(result)
+      setShowDotsOptionsMenu({ state: false })
+      const f1 = event.presupuesto_objeto.categorias_array.findIndex((elem) => elem._id === info?.row?.original?.categoriaID)
+      event.presupuesto_objeto.categorias_array[f1].gastos_array.push(result)
+      setEvent({ ...event })
+    })
+  } catch (error) {
+    console.log(220046, error);
+    throw new Error(error)
+  }
+}
+
+export const handleCreateCategoria = async ({ info, event, setEvent, setShowDotsOptionsMenu }) => {
+  try {
+    fetchApiEventos({
+      query: queries.nuevoCategoria,
+      variables: {
+        evento_id: event?._id,
+        nombre: "Nueva categoría",
+      }
+    }).then((result) => {
+      console.log(100062, result)
+      setShowDotsOptionsMenu({ state: false })
+      event.presupuesto_objeto.categorias_array.push(result)
+      setEvent({ ...event })
+    })
+  } catch (error) {
+    console.log(220047, error);
+    throw new Error(error)
+  }
+}

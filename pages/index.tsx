@@ -79,7 +79,7 @@ const Home: NextPage = () => {
     }
 
     if ((!user || user.displayName === "guest") && ["vivetuboda"].includes(config?.development)) {
-      router?.push(`/login`)
+        router?.push(`/login`)
       return <></>
     }
 

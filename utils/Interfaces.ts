@@ -117,17 +117,19 @@ export interface OptionsSelect {
     vew?: string
 }
 
-export interface DotsMenu {
+export interface FloatMenu {
     info: any
     aling?: "top" | "botton"
     justify?: "start" | "end"
     options?: OptionsMenu[]
+    position?: position
 }
 
-export interface DotsOptionsMenuInterface {
+export interface FloatOptionsMenuInterface {
     state: boolean
-    values?: DotsMenu
+    values?: FloatMenu
     select?: string
+    control?: string
 }
 
 export interface OptionsMenu {
@@ -163,7 +165,7 @@ export interface ModalInterface {
     state: boolean
     title?: ReactNode | string
     values?: any
-    setShowDotsOptionsMenu?: Dispatch<SetStateAction<DotsOptionsMenuInterface>>
+    setShowDotsOptionsMenu?: Dispatch<SetStateAction<FloatOptionsMenuInterface>>
 }
 
 interface permission {

@@ -14,8 +14,11 @@ import { useAllowed } from "../../hooks/useAllowed";
 import DetallesPago from "./DetallesPago";
 import { array } from "yup";
 import AddPagado from "./AddPagado";
+import { EditableLabelWithInput } from "../Forms/EditableLabelWithInput";
+import { handleChange } from "../TablesComponents/tableBudgetV8.handles";
+import { fetchApiEventos, queries } from "../../utils/Fetching";
 
-const BlockCategoria = ({ cate, set, setGetId }) => {
+const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
   const { t } = useTranslation();
   const { event, setEvent } = EventContextProvider()
   const [categoria, setCategoria] = useState({});
@@ -26,16 +29,16 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
   useEffect(() => {
     setCategoria(
       event?.presupuesto_objeto?.categorias_array.find(
-        (item) => item._id == cate
+        (item) => item._id == showCategoria?._id
       )
     );
     setData(
       event?.presupuesto_objeto?.categorias_array?.find(
-        (item) => item._id == cate
+        (item) => item._id == showCategoria?._id
       )?.gastos_array
     );
     setGastoID(old => ({ ...old, crear: false }))
-  }, [cate, event, event?.presupuesto_objeto?.currency]);
+  }, [showCategoria, event, event?.presupuesto_objeto?.currency]);
 
   const saldo = categoria?.coste_estimado - categoria?.coste_final;
 
@@ -54,22 +57,73 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
   const Columna = useMemo(
     () => [
       {
-        Header: "Proveedor",
-        accessor: "nombre",
-        id: "nombre",
-        Cell: (props) => <CellEdit categoriaID={categoria?._id} type={"text"} autofocus {...props} />
+        Header: t("partida de gasto"),
+        accessor: "gasto",
+        id: "gasto",
+        Cell: props => {
+          props.row.original.object = props.column.id;
+          props.row.original.categoriaID = categoria?._id;
+          props.row.original.gastoID = props.row.original._id;
+          let value = props.row.original.nombre;
+          return (
+            <EditableLabelWithInput
+              accessor="gasto"
+              handleChange={(values) => {
+                handleChange({ values, info: props, event, setEvent })
+              }}
+              type={null}
+              value={value}
+              textAlign={"center"}
+              isLabelDisabled
+            />
+          )
+        }
       },
       {
         Header: <p> Estimado <br /> {getCurrency(categoria?.coste_estimado, event?.presupuesto_objeto?.currency)}</p>,
         accessor: "coste_estimado",
         id: "coste_estimado",
-        Cell: (props) => <CellEdit categoriaID={categoria?._id} type={"number"} {...props} />
+        Cell: props => {
+          props.row.original.object = 'gasto';
+          props.row.original.categoriaID = categoria?._id;
+          props.row.original.gastoID = props.row.original._id;
+          let value = props.row.original.coste_estimado;
+          return (
+            <EditableLabelWithInput
+              accessor="coste_estimado"
+              handleChange={(values) => {
+                handleChange({ values, info: props, event, setEvent })
+              }}
+              type={"float"}
+              value={value}
+              textAlign={"center"}
+              isLabelDisabled
+            />
+          )
+        }
       },
       {
-        Header: <p>Coste final <br /> {getCurrency(categoria?.coste_final, event?.presupuesto_objeto?.currency)}</p>,
+        Header: <p>{t("coste total")} <br /> {getCurrency(categoria?.coste_final, event?.presupuesto_objeto?.currency)}</p>,
         accessor: "coste_final",
         id: "coste_final",
-        Cell: (props) => <CellEdit categoriaID={categoria?._id} type={"number"} {...props} />
+        Cell: props => {
+          props.row.original.object = 'gasto';
+          props.row.original.categoriaID = categoria?._id;
+          props.row.original.gastoID = props.row.original._id;
+          let value = props.row.original.coste_final;
+          return (
+            <EditableLabelWithInput
+              accessor="coste_final"
+              handleChange={(values) => {
+                handleChange({ values, info: props, event, setEvent })
+              }}
+              type={"float"}
+              value={value}
+              textAlign={"center"}
+              isLabelDisabled
+            />
+          )
+        }
       },
       {
         Header: <p >Pagado <br /> {getCurrency(categoria?.pagado, event?.presupuesto_objeto?.currency)} </p>,
@@ -83,12 +137,16 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
         id: "pendiente_pagar",
         Cell: (props) => {
           const [value, setValue] = useState(0);
-          const total = props?.row?.original?.pagos_array?.reduce((acumulador, objeto) => acumulador + objeto?.total, 0);
+          const total = props?.row?.values?.pagado - props?.row?.values?.coste_final
+          console.log(15, props?.row?.values?.pagado)
+          console.log(16, props?.row?.values?.coste_final)
+          console.log(17, total)
+
           useEffect(() => {
-            if (props?.row?.original?.coste_final === 0) {
+            if (props?.row?.values?.coste_final === 0) {
               setValue(0)
             } else {
-              setValue(total - props?.row?.original?.pagado)
+              setValue(total)
             }
           }, [props?.row.original])
 
@@ -104,72 +162,42 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
         accessor: "options",
         id: "options",
         Cell: (props) => {
+
           const handleRemove = async () => {
             let data
+
             try {
-              const params = {
-                query: `mutation{
-                  borraGasto(evento_id:"${event?._id}", categoria_id: "${cate}", gasto_id: "${props?.row?.original?._id}"){
-                  coste_final
-                  coste_estimado
-                  pagado
-                    categorias_array {
-                      coste_estimado
-                      coste_final
-                      pagado
-                    }
-                  }
-                }`,
-                variables: {},
-              }
-              const { data: res } = await api.ApiApp(params);
-              data = res?.data?.borraGasto
+              new Promise(resolve => {
+                fetchApiEventos({
+                  query: queries.borrarGasto,
+                  variables: {
+                    evento_id: event?._id,
+                    categoria_id: categoria?._id,
+                    gasto_id: props?.row?.original?._id,
+                  },
+                }).then(result => {
+                  const f1 = event.presupuesto_objeto.categorias_array.findIndex(elem => elem._id === categoria?._id)
+                  const f2 = event.presupuesto_objeto.categorias_array[f1].gastos_array.findIndex(elem => elem._id === props?.row?.original?._id)
+                  event.presupuesto_objeto.categorias_array[f1].gastos_array.splice(f2, 1)
+                  resolve(event)
+                })
+              }).then((result) => {
+                setEvent({ ...event })
+              })
             } catch (error) {
-              console.log(error);
-            } finally {
-              setEvent((old) => {
-                // Encontrar posicion de la categoria en el array categorias
-                const idxCategoria =
-                  old?.presupuesto_objeto?.categorias_array.findIndex(
-                    (item) => item._id == cate
-                  );
-                // Sustraer el gasto a eliminar del array de gastos
-                const filterGastos = old?.presupuesto_objeto?.categorias_array[
-                  idxCategoria
-                ].gastos_array?.filter(
-                  (item) => item._id !== props?.row?.original?._id
-                );
-
-                //Actualizar estimado, final y pagado del evento
-                old.presupuesto_objeto.coste_estimado = data?.coste_estimado
-                old.presupuesto_objeto.coste_final = data?.coste_final
-                old.presupuesto_objeto.pagado = data?.pagado
-
-                //Actualizar estimado, final y pagado de la categoria
-                old.presupuesto_objeto.categorias_array[idxCategoria].coste_estimado = data?.categorias_array[0]?.coste_estimado
-                old.presupuesto_objeto.categorias_array[idxCategoria].coste_final = data?.categorias_array[0]?.coste_final
-                old.presupuesto_objeto.categorias_array[idxCategoria].pagado = data?.categorias_array[0]?.pagado
-
-                // Sobrescribir arr de gastos anterior por el nuevo
-                old.presupuesto_objeto.categorias_array[idxCategoria].gastos_array = filterGastos;
-
-                return { ...old };
-              });
+              console.log(error)
             }
           };
 
           return (
-            <>
-
-              <div className="w-full h-full flex items-center justify-center cursor-pointer relative space-x-1">
-                <AddPagado {...props} set={act => setGastoID(act)} />
-                <DetallesPago {...props} set={act => setGastoID(act)} />
-                <BorrarIcon
-                  onClick={!isAllowed() ? null : handleRemove}
-                  className="hover:text-gray-300 text-gray-500 transition w-3"
-                />
-              </div>
-            </>
+            <div className="w-full h-full flex items-center justify-center cursor-pointer relative space-x-1">
+              <AddPagado {...props} set={act => setGastoID(act)} />
+              <DetallesPago {...props} set={act => setGastoID(act)} />
+              <BorrarIcon
+                onClick={!isAllowed() ? null : handleRemove}
+                className="hover:text-gray-300 text-gray-500 transition w-3"
+              />
+            </div>
           );
         },
       },
@@ -179,7 +207,7 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
   );
 
   const AddGasto = async () => {
-    let res;
+    /* let res;
     try {
       const params = {
         query: `mutation{
@@ -213,6 +241,24 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
         old.presupuesto_objeto.categorias_array[index].gastos_array[f2].pagos_array = []
         return { ...old };
       });
+    } */
+
+    try {
+      fetchApiEventos({
+        query: queries.nuevoGasto,
+        variables: {
+          evento_id: event?._id,
+          categoria_id: categoria?._id,
+          nombre: "Nueva part. de gasto",
+        }
+      }).then((result) => {
+        const f1 = event.presupuesto_objeto.categorias_array.findIndex((elem) => elem._id === categoria?._id)
+        event.presupuesto_objeto.categorias_array[f1].gastos_array.push(result)
+        setEvent({ ...event })
+      })
+    } catch (error) {
+      console.log(220046, error);
+      throw new Error(error)
     }
   };
 
@@ -227,16 +273,18 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
   const porcentaje = (categoria?.coste_final / categoria?.coste_estimado) * 100
 
   return (
-    <>
+    <div className="flex-1">
       {GastoID.crear && (
-        <div className="absolute* bg-white w-full  h-max grid place-items-center z-20 rounded-xl white shadow-lg top-0 left-0 p-8 ">
+        <div className="relative bg-white w-full  h-max grid place-items-center z-20 rounded-xl white shadow-lg top-0 left-0 p-8 ">
           <div className="font-display text-gray-500 hover:text-gray-300 transition text-lg absolute top-5 right-5 cursor-pointer hover:scale-125" onClick={() => setGastoID("")}>X</div>
+
           <FormAddPago GastoID={GastoID?.id} cate={categoria?._id} />
+
         </div>
       )}
-      <div className={`bg-white block-categoria h-max py-10 w-full rounded-xl shadow-lg overflow-hidden flex flex-col items-center relative ${GastoID.crear ? "hidden" : "block"}`}>
+      <div className={`bg-white w-full block-categoria h-max py-10 rounded-xl shadow-lg overflow-hidden flex flex-col items-center relative ${GastoID.crear ? "hidden" : "block"}`}>
         <div
-          onClick={() => set({ isVisible: false, id: "" })}
+          onClick={() => setShowCategoria({ state: false })}
           className="cursor-pointer absolute top-5 right-5 font-display hover:scale-125 transition transform text-gray-500 hover:text-gray-500 font-semibold text-lg "
         >
           X
@@ -291,7 +339,7 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
 
 
         {/* Tabla de datos */}
-        <DataTable AddGasto={AddGasto} columns={Columna} data={data ?? []} renderRowSubComponent={renderRowSubComponent} cate={categoria._id} gasto={GastoID.id} categoria={categoria} />
+        <DataTable AddGasto={AddGasto} columns={Columna} data={data ?? []} renderRowSubComponent={renderRowSubComponent} cate={categoria?._id} gasto={GastoID?.id} categoria={categoria} />
         <div className="bg-primary w-full grid grid-cols-13 absolute bottom-0 font-display text-white font-semibold py-1 text-sm">
           <div className="flex items-center justify-center col-span-3">
             <p>{t("total")}</p>
@@ -314,7 +362,7 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
           }
         `}
       </style>
-    </>
+    </div>
   );
 };
 
@@ -327,7 +375,7 @@ export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate
   const [isAllowed, ht] = useAllowed()
 
   const colSpan = {
-    nombre: 3,
+    gasto: 3,
     coste_estimado: 2,
     coste_final: 2,
     pagado: 2,

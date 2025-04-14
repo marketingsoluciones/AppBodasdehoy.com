@@ -45,6 +45,7 @@ export const EditableLabelWithInput: FC<props> = ({ value, type, handleChange, a
       {edit ?
         <ClickAwayListener onClickAway={() => setEdit(false)}>
           <input
+            id={"ElementEditable"}
             type={["int", "float"].includes(type) ? "number" : "text"}
             min={0}
             max={1000}
@@ -73,7 +74,7 @@ export const EditableLabelWithInput: FC<props> = ({ value, type, handleChange, a
             }, 100);
           }}
           onClick={() => isAllowed() ? setEdit(true) : ht()}
-          className="flex items-center justify-center gap-1 cursor-pointer relative"
+          className="flex items-center justify-center gap-1 cursor-context-menu relative"
         >
           {["int", "float"].includes(type) && typeof newValue === "string"
             ? newValue !== ""

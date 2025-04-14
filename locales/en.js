@@ -69,6 +69,7 @@ export const en = {
     'Borrar': "Delete",
     'borrar grupo': "delete group",
     'budget': "budget",
+    'budgetdetails': "detailed budget",
     'buildyourgiftlist': "Build your gift list",
     'burcar más': "search more",
     'cake': "cake",

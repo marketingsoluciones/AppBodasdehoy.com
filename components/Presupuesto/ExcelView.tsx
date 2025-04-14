@@ -88,11 +88,6 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
         // setGastoID(old => ({ ...old, crear: false }))
     }, [showCategoria, event, event?.presupuesto_objeto?.currency]);
 
-    useEffect(() => {
-        console.log("aqui1111")
-    }, [data])
-
-
     const sumarCosteEstimado = (gastosArray) => {
         return gastosArray?.reduce((total, item) => total + item.coste_estimado, 0);
     };
@@ -198,7 +193,7 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
                     <div className="mb-2 w-full">
                         <ResumenInvitados />
                     </div>
-                    <BlockListaCategorias setShowCategoria={setShowCategoria} categorias_array={categorias_array} categorie={showCategoria} />
+                    <BlockListaCategorias setShowCategoria={setShowCategoria} categorias_array={categorias_array} showCategoria={showCategoria} />
                 </div>
                 {true && <div className={`flex ${menuIzquierdo ? "w-full" : "md:w-[calc(100%-300px)]"} h-full`}>
                     {true ?
@@ -231,10 +226,13 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
                                                 object: "item",
                                                 categoria: item.nombre,
                                                 categoriaID: item._id,
+                                                categoriaOriginal: { ...item },
                                                 gasto: elem.nombre,
                                                 gastoID: elem._id,
+                                                gastoOriginal: { ...elem },
                                                 item: el.nombre,
                                                 itemID: el._id,
+                                                itemOriginal: { ...el },
                                                 coste_final: coste_final_item,
                                                 cantidad,
                                                 ...(idxEl === 0 && { firstChildItem: true }),
@@ -252,8 +250,10 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
                                             object: "gasto",
                                             categoria: item.nombre,
                                             categoriaID: item._id,
+                                            categoriaOriginal: { ...item },
                                             gasto: elem.nombre,
                                             gastoID: elem._id,
+                                            gastoOriginal: { ...elem },
                                             ...((valirFirtsChildGasto) && { firstChildItem: true }),
                                             ...((idxElem === 0 && valirFirtsChildGasto) && { firstChildGasto: true }),
                                             ...((idxElem === 0 && valirFirtsChild) && { firstChild: true }),
@@ -269,6 +269,7 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
                                         object: "categoria",
                                         categoria: item.nombre,
                                         categoriaID: item._id,
+                                        categoriaOriginal: { ...item },
                                         fatherCategoria: true,
                                         coste_final: coste_final_categoria,
                                         pendiente_pagar: coste_final_categoria - item.pagado,
