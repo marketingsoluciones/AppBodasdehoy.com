@@ -74,30 +74,32 @@ export const EditableLabelWithInput: FC<props> = ({ value, type, handleChange, a
             }, 100);
           }}
           onClick={() => isAllowed() ? setEdit(true) : ht()}
-          className="flex items-center justify-center gap-1 cursor-context-menu relative"
+          className="flex items-center justify-center gap-1 cursor-context-menu"
         >
-          {["int", "float"].includes(type) && typeof newValue === "string"
-            ? newValue !== ""
-              ? type === "float"
-                ? new Intl.NumberFormat(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                }).format(parseInt(newValue))
-                : new Intl.NumberFormat().format(parseInt(newValue))
-              : 0
-            : typeof newValue === "number"
-              ? type === "float"
-                ? new Intl.NumberFormat(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                }).format(newValue)
-                : new Intl.NumberFormat().format(newValue)
-              : newValue}
-          {!isLabelDisabled && <span className="">{t(accessor)}</span>}
-          {hovered && <div className="absolute right-0 w-6 h-full flex translate-x-full justify-end">
-            <FaPencilAlt className="hover:scale-105" />
+          <div className="relative">
+            {["int", "float"].includes(type) && typeof newValue === "string"
+              ? newValue !== ""
+                ? type === "float"
+                  ? new Intl.NumberFormat(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  }).format(parseInt(newValue))
+                  : new Intl.NumberFormat().format(parseInt(newValue))
+                : 0
+              : typeof newValue === "number"
+                ? type === "float"
+                  ? new Intl.NumberFormat(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  }).format(newValue)
+                  : new Intl.NumberFormat().format(newValue)
+                : newValue}
+            {!isLabelDisabled && <span className="ml-1">{t(accessor)}</span>}
+            {hovered && <div className="absolute right-0 w-6 h-full flex translate-x-[calc(100%+6px)] -translate-y-[calc(100%+4px)]">
+              <FaPencilAlt className="hover:scale-105" />
+            </div>
+            }
           </div>
-          }
         </span >}
       <style jsx>
         {
