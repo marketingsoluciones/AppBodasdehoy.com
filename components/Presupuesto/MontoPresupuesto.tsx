@@ -11,7 +11,7 @@ import { estimate } from "../../utils/Interfaces";
 export const MontoPresupuesto = ({ estimado }) => {
   const { t } = useTranslation();
   const [modificar, setModificar] = useState(false);
-  const [value, setValue] = useState(estimado.toFixed(2));
+  const [value, setValue] = useState(estimado?.toFixed(2));
   const [mask, setMask] = useState();
   const { event, setEvent } = EventContextProvider()
   const [isAllowed, ht] = useAllowed()

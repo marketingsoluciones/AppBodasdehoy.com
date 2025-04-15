@@ -18,6 +18,7 @@ import { error } from 'console';
 import { useToast } from '../../hooks/useToast';
 import FormAddPago from '../Forms/FormAddPago';
 import ClickAwayListener from 'react-click-away-listener';
+import { SelectVisiblesColumns } from './SelectVisiblesColumns';
 
 interface props {
   data: any
@@ -66,22 +67,22 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     { accessor: "nombre", header: t("item"), isEditabled: true },
     { accessor: "valor_unitario", header: t("valor unitario"), size: 100, horizontalAlignment: "end", type: "float", isEditabled: true },
     { accessor: "coste_final", header: t("coste total"), size: defaultSize.float, horizontalAlignment: "end", type: "float" },
-    { accessor: "coste_estimado", header: t("coste estimado"), size: defaultSize.float, horizontalAlignment: "end", type: "float", className: "text-primary" },
+    { accessor: "coste_estimado", header: t("coste estimado"), size: defaultSize.float, horizontalAlignment: "end", type: "float", className: "text-primary", isHidden: !event?.presupuesto_objeto?.viewEstimates },
     { accessor: "pagado", header: t("pagado"), size: defaultSize.float, horizontalAlignment: "end", type: "float", onClick: (context) => { console.log(context) } },
     { accessor: "pendiente_pagar", header: t("pendiente por pagar"), size: defaultSize.float, horizontalAlignment: "end", type: "float" },
   ]
   const rerender = useReducer(() => ({}), {})[1]
-  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility[]>(initialColumnVisibility);
+  const [columnVisibility, setColumnVisibility] = useState({});
   const columnHelper = createColumnHelper<any>()
   const [showDotsOptionsMenu, setShowDotsOptionsMenu] = useState<FloatOptionsMenuInterface>()
   const [showFloatOptionsMenu, setShowFloatOptionsMenu] = useState<FloatOptionsMenuInterface>()
   const [RelacionarPagoModal, setRelacionarPagoModal] = useState({ id: "", crear: false, categoriaID: "" })
 
-  // useEffect(() => {
-  //   if (data) {
-  //     console.log(100080, data)
-  //   }
-  // }, [data])
+  useEffect(() => {
+    if (data) {
+      console.log(100080, data)
+    }
+  }, [data])
 
   const options = [
     {
@@ -141,9 +142,12 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     },
   ];
 
+
+
+
   const columnOptions = columnHelper.accessor("options", {
     id: "options",
-    header: "",
+    header: info => <SelectVisiblesColumns columns={initialColumnVisibility} />,
     cell: info => {
       return <div className='w-full h-full sticky z-10'>
         {(showDotsOptionsMenu?.state && showDotsOptionsMenu?.values?.info?.row?.original?._id === info.row.original._id) && <FloatOptionsMenu showOptionsMenu={showDotsOptionsMenu} setShowOptionsMenu={setShowDotsOptionsMenu} />}
@@ -182,50 +186,55 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
   })
 
   const columns = initialColumnVisibility.map((elem, idx) => {
-    const elemtOut = columnHelper.accessor(elem?.accessor ?? elem?.header,
-      {
-        id: elem?.accessor ?? idx.toString(),
-        header: info => elem?.header ?? info.column.id,
-        cell: info => {
-          let value = info.getValue()
-          return elem.isEditabled || info?.row?.original?.accessorEditables?.includes(elem.accessor)
-            ? elem?.type !== "select"
-              ? <EditableLabelWithInput
-                key={idx}
-                accessor={elem?.accessor}
-                handleChange={(values: any) => {
-                  handleChange({ values, info, event, setEvent })
-                }}
-                type={elem?.type}
-                value={value as string | number}
-                textAlign={elem?.horizontalAlignment}
-                isLabelDisabled />
-              : <EditableSelect
-                accessor={elem?.accessor}
-                value={value}
-                optionsSelect={optionsSelect}
-                size={elem?.size}
-                handleChange={(values: any) => {
-                  handleChange({ values, info, event, setEvent })
-                }}
-              />
-            : elem.type === "float"
-              ? typeof info.getValue() === "number"
-                ? new Intl.NumberFormat(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                }).format(info.getValue())
-                : null
-              : info.getValue()
-        },
-        footer: info => info.column.id,
-        size: elem?.size,
-      })
-    return elemtOut
-  })
+    if (!elem.isHidden) {
+      const elemtOut = columnHelper.accessor(elem?.accessor ?? elem?.header,
+        {
+          id: elem?.accessor ?? idx.toString(),
+          header: info => elem?.header ?? info.column.id,
+          cell: info => {
+            let value = info.getValue()
+            return elem.isEditabled || info?.row?.original?.accessorEditables?.includes(elem.accessor)
+              ? elem?.type !== "select"
+                ? <EditableLabelWithInput
+                  key={idx}
+                  accessor={elem?.accessor}
+                  handleChange={(values: any) => {
+                    handleChange({ values, info, event, setEvent })
+                  }}
+                  type={elem?.type}
+                  value={value as string | number}
+                  textAlign={elem?.horizontalAlignment}
+                  isLabelDisabled />
+                : <EditableSelect
+                  accessor={elem?.accessor}
+                  value={value}
+                  optionsSelect={optionsSelect}
+                  size={elem?.size}
+                  handleChange={(values: any) => {
+                    handleChange({ values, info, event, setEvent })
+                  }}
+                />
+              : elem.type === "float"
+                ? typeof info.getValue() === "number"
+                  ? new Intl.NumberFormat(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  }).format(info.getValue())
+                  : null
+                : info.getValue()
+          },
+          footer: info => info.column.id,
+          size: elem?.size,
+        })
+      return elemtOut
+    }
+  }).filter(Boolean)
+
+  console.log(columns)
 
   columns.push(columnOptions)
   const table = useReactTable({
+    onColumnVisibilityChange: setColumnVisibility,
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),

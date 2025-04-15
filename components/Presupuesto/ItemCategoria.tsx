@@ -74,14 +74,14 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
             {item?.nombre}
           </p>
         </span>
-        <span className={`flex justify-end w-full ${event.presupuesto_objeto.coste_estimado.toString().length < 9 ? "text-[11px]" : "text-[10px]"}`} >
+        <span className={`flex justify-end w-full ${event.presupuesto_objeto?.coste_estimado?.toString()?.length < 9 ? "text-[11px]" : "text-[10px]"}`} >
           <div className="flex w-[97%] space-x-3">
             <div className="w-1/2 flex justify-end space-x-1">
               {event?.presupuesto_objeto?.viewEstimates && <>
                 <span >
-                  {getCurrency(item.coste_estimado, event?.presupuesto_objeto?.currency)}
+                  {getCurrency(item?.coste_estimado, event?.presupuesto_objeto?.currency)}
                 </span>
-                <span className={`text-[10px] ${event.presupuesto_objeto.coste_estimado.toString().length < 9 ? "translate-y-[1.3px]" : ""}`}>
+                <span className={`text-[10px] ${event.presupuesto_objeto?.coste_estimado?.toString().length < 9 ? "translate-y-[1.3px]" : ""}`}>
                   Estimado
                 </span>
               </>
@@ -91,7 +91,7 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
               <span >
                 {getCurrency(item.coste_final, event?.presupuesto_objeto?.currency)}
               </span>
-              <span className={`text-[10px] ${event.presupuesto_objeto.coste_estimado.toString().length < 9 ? "translate-y-[1.3px]" : ""}`}>
+              <span className={`text-[10px] ${event.presupuesto_objeto?.coste_estimado?.toString().length < 9 ? "translate-y-[1.3px]" : ""}`}>
                 Total
               </span>
             </div>
