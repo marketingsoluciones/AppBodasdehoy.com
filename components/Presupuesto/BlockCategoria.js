@@ -54,10 +54,11 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
     }
   }, [totalCosteFinal])
 
-  const Columna = useMemo(
-    () => [
+
+  const Columna = useMemo(() => {
+    const columns = [
       {
-        Header: t("partida de gasto"),
+        Header: <p className="flex h-full">{t("partida de gasto")} </p>,
         accessor: "gasto",
         id: "gasto",
         Cell: props => {
@@ -69,22 +70,22 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
             <EditableLabelWithInput
               accessor="gasto"
               handleChange={(values) => {
-                handleChange({ values, info: props, event, setEvent })
+                handleChange({ values, info: props, event, setEvent });
               }}
               type={null}
               value={value}
               textAlign={"center"}
               isLabelDisabled
             />
-          )
-        }
+          );
+        },
       },
-      {
+      event?.presupuesto_objeto?.viewEstimates && {
         Header: <p> Estimado <br /> {getCurrency(categoria?.coste_estimado, event?.presupuesto_objeto?.currency)}</p>,
         accessor: "coste_estimado",
         id: "coste_estimado",
         Cell: props => {
-          props.row.original.object = 'gasto';
+          props.row.original.object = "gasto";
           props.row.original.categoriaID = categoria?._id;
           props.row.original.gastoID = props.row.original._id;
           let value = props.row.original.coste_estimado;
@@ -92,22 +93,22 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
             <EditableLabelWithInput
               accessor="coste_estimado"
               handleChange={(values) => {
-                handleChange({ values, info: props, event, setEvent })
+                handleChange({ values, info: props, event, setEvent });
               }}
               type={"float"}
               value={value}
               textAlign={"center"}
               isLabelDisabled
             />
-          )
-        }
+          );
+        },
       },
       {
         Header: <p>{t("coste total")} <br /> {getCurrency(categoria?.coste_final, event?.presupuesto_objeto?.currency)}</p>,
         accessor: "coste_final",
         id: "coste_final",
         Cell: props => {
-          props.row.original.object = 'gasto';
+          props.row.original.object = "gasto";
           props.row.original.categoriaID = categoria?._id;
           props.row.original.gastoID = props.row.original._id;
           let value = props.row.original.coste_final;
@@ -115,15 +116,15 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
             <EditableLabelWithInput
               accessor="coste_final"
               handleChange={(values) => {
-                handleChange({ values, info: props, event, setEvent })
+                handleChange({ values, info: props, event, setEvent });
               }}
               type={"float"}
               value={value}
               textAlign={"center"}
               isLabelDisabled
             />
-          )
-        }
+          );
+        },
       },
       {
         Header: <p >Pagado <br /> {getCurrency(categoria?.pagado, event?.presupuesto_objeto?.currency)} </p>,
@@ -132,7 +133,7 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
         Cell: (props) => <CellPagado {...props} set={act => setGastoID(act)} />,
       },
       {
-        Header: <p >por Pagar </p>,
+        Header: <p className="flex h-full">por Pagar </p>,
         accessor: "pendiente_pagar",
         id: "pendiente_pagar",
         Cell: (props) => {
@@ -200,11 +201,12 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
             </div>
           );
         },
-      },
+      }
+    ];
 
-    ],
-    [categoria, event?.presupuesto_objeto?.currency, event]
-  );
+    // Filtrar columnas nulas (en caso de que `viewEstimates` sea falso)
+    return columns.filter(Boolean);
+  }, [categoria, event?.presupuesto_objeto?.currency, event])
 
   const AddGasto = async () => {
     /* let res;
@@ -298,30 +300,32 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
             {capitalize(categoria?.nombre)}
           </h2>
         </div>
-        <div className="md:justify-between w-4/6 gap-3 md:flex items-center font-display text-gray-500">
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm font-medium ">
-              {t("estimatedcost")}
-              <span className="text-sm text-gray-500 pl-1">
-                {getCurrency(categoria?.coste_estimado, event?.presupuesto_objeto?.currency)}
-              </span>
-            </h3>
-          </div>
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm font-medium ">
-              {t("actualcost")}
-              <span
-                className={`text-sm pl-1 text-${Math.abs(saldo) == saldo ? "green" : "red"
-                  }`}
-              >
-                {getCurrency(categoria?.coste_final, event?.presupuesto_objeto?.currency)}
-              </span>
-            </h3>
-          </div>
-        </div>
+        {
+          event?.presupuesto_objeto?.viewEstimates &&
+          <div className="md:justify-between w-4/6 gap-3 md:flex items-center font-display text-gray-500">
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-medium ">
+                {t("estimatedcost")}
+                <span className="text-sm text-gray-500 pl-1">
+                  {getCurrency(categoria?.coste_estimado, event?.presupuesto_objeto?.currency)}
+                </span>
+              </h3>
+            </div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-medium ">
+                {t("actualcost")}
+                <span
+                  className={`text-sm pl-1 text-${Math.abs(saldo) == saldo ? "green" : "red"
+                    }`}
+                >
+                  {getCurrency(categoria?.coste_final, event?.presupuesto_objeto?.currency)}
+                </span>
+              </h3>
+            </div>
+          </div>}
 
         {/* Barra de estado */}
-        <div className=" w-4/6 mx-auto flex gap-1 items-center py-2 inset-x-0">
+        {event?.presupuesto_objeto?.viewEstimates && <div className=" w-4/6 mx-auto flex gap-1 items-center py-2 inset-x-0">
           <div className="bg-gray-300 rounded-xl flex items-center overflow-hidden md:h-5 w-full relative">
             <p className="font-display text-xs text-white pl-2 z-10 relative p-3">
               {
@@ -335,18 +339,20 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
               width={`${porcentaje}%`}
             ></svg>
           </div>
-        </div>
+        </div>}
 
 
         {/* Tabla de datos */}
         <DataTable AddGasto={AddGasto} columns={Columna} data={data ?? []} renderRowSubComponent={renderRowSubComponent} cate={categoria?._id} gasto={GastoID?.id} categoria={categoria} />
-        <div className="bg-primary w-full grid grid-cols-13 absolute bottom-0 font-display text-white font-semibold py-1 text-sm">
+        <div className={`bg-primary w-full grid ${!event?.presupuesto_objeto?.viewEstimates ? "grid-cols-9" : "grid-cols-13"} absolute bottom-0 font-display text-white font-semibold py-1 text-sm`}>
           <div className="flex items-center justify-center col-span-3">
             <p>{t("total")}</p>
           </div>
-          <div className="flex items-center justify-center col-span-2">
-            <p>{getCurrency(categoria?.coste_estimado, event?.presupuesto_objeto?.currency)}</p>
-          </div>
+          {event?.presupuesto_objeto?.viewEstimates &&
+            <div className="flex items-center justify-center col-span-2">
+              <p>{getCurrency(categoria?.coste_estimado, event?.presupuesto_objeto?.currency)}</p>
+            </div>
+          }
           <div className="flex items-center justify-center col-span-2">
             <p>{getCurrency(categoria?.coste_final, event?.presupuesto_objeto?.currency)}</p>
           </div>
@@ -373,9 +379,11 @@ export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate
   const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows, state: { expanded } } =
     useTable({ columns, data }, useExpanded);
   const [isAllowed, ht] = useAllowed()
+  const { event, setEvent } = EventContextProvider()
+
 
   const colSpan = {
-    gasto: 3,
+    gasto: event?.presupuesto_objeto?.viewEstimates ? 3 : 5,
     coste_estimado: 2,
     coste_final: 2,
     pagado: 2,
