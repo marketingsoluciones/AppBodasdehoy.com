@@ -46,38 +46,38 @@ const Presupuesto = () => {
               className={`${active === "excelView" ? "max-w-screen-[1920px]" : "max-w-screen-lg"} flex flex-col mx-auto inset-x-0 px-2 md:px-0 w-full h-full relative`}
             >
               <BlockTitle title={"Presupuesto"} />
-              <div className="w-[90%] md:w-96 mx-auto inset-x-0 flex my-2 mt-4 rounded-2xl overflow-hidden text-xs md:text-sm">
+              <div className="w-full flex justify-center my-2 mt-4 rounded-2xl text-xs md:text-sm">
                 <div
                   onClick={() => setActive("resumen")}
-                  className={`w-[40%] md:w-[270px] py-1   ${active == "resumen" ? "bg-primary text-white" : "bg-white text-primary"
-                    } h-full grid place-items-center font-display font-medium cursor-pointer hover:opacity-90 capitalize`}
+                  className={`w-[40%]. md:w-[150px]  ${active == "resumen" ? "bg-primary text-white" : "bg-white text-primary"
+                    } h-full flex justify-center items-center cursor-pointer capitalize rounded-l-2xl `}
                 >
-                  <p className="capitalize">{t("budget")}</p>
+                  <p >{t("budget")}</p>
                 </div>
 
                 <div
                   onClick={() => setActive("excelView")}
-                  className={` w-[40%] md:w-full py-1  ${active == "excelView" ? "bg-primary text-white" : "bg-white text-primary"
-                    } h-full flex  justify-center items-center font-display font-medium cursor-pointer hover:opacity-90`}
+                  className={` w-[40%]. md:w-[200px] ${active == "excelView" ? "bg-primary text-white" : "bg-white text-primary"
+                    } h-full flex  justify-center items-center cursor-pointer capitalize `}
                 >
-                  <p className="capitalize">{t("budgetdetails")}</p>
+                  <p >{t("budgetdetails")}</p>
                 </div>
 
                 <div
                   onClick={() => setActive("pagos")}
-                  className={`w-[25%] md:w-1/2 py-1 ${active == "pagos" ? "bg-primary text-white" : "bg-white text-primary"
-                    } h-full grid place-items-center font-display font-medium cursor-pointer hover:opacity-90 border-x-2 capitalize`}
+                  className={`w-[25%]. md:w-[100px] py-1 ${active == "pagos" ? "bg-primary text-white" : "bg-white text-primary"
+                    } h-full flex  justify-center items-center cursor-pointer capitalize `}
                 >
-                  <p className="capitalize">{t("payments")}</p>
+                  <p >{t("payments")}</p>
                 </div>
 
-                {/* <div
-                  onClick={() => setActive("futuro")}
-                  className={` w-[40%] md:w-[320px] py-1  ${active == "futuro" ? "bg-primary text-white" : "bg-white text-primary"
-                    } h-full grid place-items-center font-display font-medium cursor-pointer hover:opacity-90`}
+                <div
+                  onClick={() => setActive("pendiente")}
+                  className={` w-[40%]. md:w-[180px] py-1  ${active == "pendiente" ? "bg-primary text-white" : "bg-white text-primary"
+                    } h-full flex  justify-center items-center  cursor-pointer rounded-r-2xl`}
                 >
                   <p>{t("pendingpayments")}</p>
-                </div> */}
+                </div>
 
               </div>
               <div className="w-full h-[calc(100vh-260px)]">
@@ -160,22 +160,22 @@ const Presupuesto = () => {
                       exit={{ opacity: 0 }}
                       className=" w-full gap-6 pt-2 md:pr-0 pb-4 h-[100vh]"
                     >
-                      <BlockPagos cate={showCategoria?._id} setGetId={setGetId} getId={getId} categorias_array={categorias} /* estado={"pagado"} */ />
+                      <BlockPagos cate={showCategoria?._id} setGetId={setGetId} getId={getId} categorias_array={categorias} estado={"pagado"} />
                     </motion.div>
                   )
                 }
-                {/* {
-                active == "futuro" && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className=" w-full gap-6 pt-2 md:pr-0 pb-4 h-[100vh]"
-                  >
-                    <BlockPagos cate={showCategoria?._id} setGetId={setGetId} getId={getId} categorias_array={categorias} estado={"pendiente"} />
-                  </motion.div>
-                )
-              } */}
+                {
+                  active == "pendiente" && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className=" w-full gap-6 pt-2 md:pr-0 pb-4 h-[100vh]"
+                    >
+                      <BlockPagos cate={showCategoria?._id} setGetId={setGetId} getId={getId} categorias_array={categorias} estado={"pendiente"} />
+                    </motion.div>
+                  )
+                }
                 {
                   active == "excelView" && (
                     <motion.div

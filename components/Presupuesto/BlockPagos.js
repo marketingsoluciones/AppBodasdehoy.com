@@ -14,14 +14,10 @@ import { PiXBold } from "react-icons/pi";
 
 
 
-const BlockPagos = ({ getId, setGetId, cate }) => {
+const BlockPagos = ({ getId, setGetId, cate, estado }) => {
   const { t } = useTranslation();
   const [active, setActive] = useState(0);
   const [showSoporte, setShowSoporte] = useState({ state: false, data: null })
-  const [estado, setEstado] = useState("pagado");
-
-
-  console.log(estado)
 
   return (
     <motion.div
@@ -30,29 +26,6 @@ const BlockPagos = ({ getId, setGetId, cate }) => {
       exit={{ opacity: 0 }}
       className="w-full max-w-screen-lg relative mx-auto inset-x-0    "
     >
-
-
-      <div className="w-max  flex my-2 mt-4. rounded-2xl overflow-hidden">
-        <div
-          onClick={() => setEstado("pagado")}
-          className={`w-[150px] py-1   ${estado == "pagado" ? "bg-primary text-white" : "bg-white text-primary"
-            } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90 capitalize`}
-        >
-          <p> pagado</p>
-        </div>
-
-        <div
-          onClick={() => setEstado("pendiente")}
-          className={`w-[150px] py-1 ${estado == "pendiente" ? "bg-primary text-white" : "bg-white text-primary"
-            } h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90 border-x-2 capitalize`}
-        >
-          <p> Pendientes</p>
-        </div>
-      </div>
-
-
-
-
       <div className="bg-white p-6 h-max shadow-md rounded-xl    ">
         <TablaDatosPagos
           active={active}
@@ -63,7 +36,6 @@ const BlockPagos = ({ getId, setGetId, cate }) => {
           showSoporte={showSoporte}
           setShowSoporte={setShowSoporte} />
       </div>
-
       {
         showSoporte.state &&
         <Modal set={setShowSoporte} state={showSoporte.state} classe={"w-[95%] md:w-[450px] max-h-[600px] min-h-[100px]"}>
@@ -78,10 +50,6 @@ const BlockPagos = ({ getId, setGetId, cate }) => {
           </div>
         </Modal>
       }
-
-
-
-
     </motion.div>
   );
 };

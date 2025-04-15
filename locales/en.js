@@ -405,7 +405,7 @@ export const en = {
     'paymentdate': "Payment date",
     'paymentdetails': "Payment details",
     'paymentmethod': "Payment method",
-    'payments': "Payment",
+    'payments': "Payments",
     'payments_error': "The final product cost must be greater than 0 to add payments",
     'paymenttoview': "you have no payment to view",
     'pendiente': "pending",
