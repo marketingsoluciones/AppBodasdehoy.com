@@ -16,6 +16,7 @@ import { MdOutlineDeleteOutline } from 'react-icons/md';
 import { handleChange, determinatedPositionMenu, handleDelete, handleCreateItem, handleCreateGasto, handleCreateCategoria } from "./tableBudgetV8.handles"
 import { error } from 'console';
 import { useToast } from '../../hooks/useToast';
+import FormAddPago from '../Forms/FormAddPago';
 
 interface props {
   data: any
@@ -73,7 +74,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
   const columnHelper = createColumnHelper<any>()
   const [showDotsOptionsMenu, setShowDotsOptionsMenu] = useState<FloatOptionsMenuInterface>()
   const [showFloatOptionsMenu, setShowFloatOptionsMenu] = useState<FloatOptionsMenuInterface>()
-
+  const [RelacionarPagoModal, setRelacionarPagoModal] = useState({ id: "", crear: false, categoriaID: "" })
 
   // useEffect(() => {
   //   if (data) {
@@ -110,7 +111,10 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     {
       icon: <GrMoney className="w-4 h-4" />,
       title: "Relacionar Pago",
-      onClick: () => { console.log("Relacionar Pago") }//handlePago()
+      onClick: (info) => {
+        setShowFloatOptionsMenu({ state: false })
+        setRelacionarPagoModal({ id: info.row.original._id, crear: true, categoriaID: info.row.original.categoriaID })
+      }//handlePago()
     },
     {
       icon: true ? <GoEye className="w-4 h-4" /> : <GoEyeClosed className="w-4 h-4" />,
@@ -248,8 +252,24 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
 
 
   return (
-    <div className="text-sm w-full h-full font-calibri">
-      {showFloatOptionsMenu?.state && <FloatOptionsMenu showOptionsMenu={showFloatOptionsMenu} setShowOptionsMenu={setShowFloatOptionsMenu} />}
+    < div className="text-sm w-full h-full font-calibri relative." >
+      {
+        RelacionarPagoModal.crear && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="relative bg-white rounded-xl shadow-lg p-8 w-full max-w-xl h-[90%] overflow-auto">
+              <button
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition transform hover:scale-110"
+                onClick={() => setRelacionarPagoModal({ id: "", crear: false, categoriaID: "" })}
+              >
+                X
+              </button>
+              <FormAddPago GastoID={RelacionarPagoModal?.id} cate={RelacionarPagoModal?.categoriaID} />
+            </div>
+          </div>
+        )
+      }
+      {showFloatOptionsMenu?.state && <FloatOptionsMenu showOptionsMenu={showFloatOptionsMenu} setShowOptionsMenu={setShowFloatOptionsMenu} />
+      }
       <div className='w-full h-full p-2 ' >
         <table
           className='bg-gray-200 w-full h-full flex flex-col !rounded-xl overflow-auto relative'
