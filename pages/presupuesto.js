@@ -24,6 +24,12 @@ const Presupuesto = () => {
   const [categorias, setCategorias] = useState([]);
   const [getId, setGetId] = useState()
 
+  const totalCosteFinal = categorias?.reduce((sum, categoria) => {
+    return sum + (categoria.coste_final || 0);
+  }, 0);
+
+  console.log("Total coste", totalCosteFinal)
+
   useEffect(() => {
     setCategorias(event?.presupuesto_objeto?.categorias_array)
   }, [event])
@@ -118,7 +124,7 @@ const Presupuesto = () => {
                                 {t("finalcost")} <br />
                                 <span className="font-semibold text-lg text-center">
                                   {getCurrency(
-                                    event?.presupuesto_objeto?.coste_final,
+                                    totalCosteFinal,
                                     event?.presupuesto_objeto?.currency
                                   )}
                                 </span>
