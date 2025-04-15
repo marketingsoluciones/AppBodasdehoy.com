@@ -46,9 +46,10 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
   return (
     <li
       onClick={() => {
-        costeEstimado != 0 ? setShowCategoria(item._id === showCategoria._id ? { state: false } : { state: true, _id: item._id }) : toast("error", t("Agrega un monto a tu Presupuesto Estimado"))
+        setShowCategoria(item._id === showCategoria._id ? { state: false } : { state: true, _id: item._id })
+        // costeEstimado != 0 ? setShowCategoria(item._id === showCategoria._id ? { state: false } : { state: true, _id: item._id }) : toast("error", t("Agrega un monto a tu Presupuesto Estimado"))
       }}
-      className={`text-xs w-full py-0.5 md:py-0 md:h-11 justify-center items-center flex pl-5 md:pl-2 transition ${costeEstimado == 0 ? "" : "hover:bg-base"} ${showCategoria?._id == item._id ? "bg-slate-200" : "bg-white"}`}
+      className={`text-xs w-full py-0.5 md:py-0 md:h-11 justify-center items-center flex pl-5 md:pl-2 transition hover:bg-base ${showCategoria?._id == item._id ? "bg-slate-200" : "bg-white"}`}
     >
       {showModalDelete.state && <SimpleDeleteConfirmation
         loading={loading}
@@ -100,8 +101,8 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
       <span className="gap-4 flex items-center h-full md:py-0" >
         <div className="relative w-8 h-8 flex justify-center items-center">
           <DotsOpcionesIcon
-            onClick={() => !isAllowed() ? null : costeEstimado != 0 ? setShowMenu(!showMenu) : null}
-            className={`w-3 h-3 ${costeEstimado != 0 ? "cursor-pointer" : ""} `}
+            onClick={() => !isAllowed() ? null : setShowMenu(!showMenu)}
+            className={`w-3 h-3 cursor-pointer`}
           />
           {showMenu && (
             <ClickAwayListener onClickAway={() => showMenu && setShowMenu(false)}>

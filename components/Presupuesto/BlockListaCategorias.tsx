@@ -17,17 +17,7 @@ interface props {
 export const BlockListaCategorias: FC<props> = ({ categorias_array, setShowCategoria, showCategoria }) => {
   const { t } = useTranslation();
   const [showCreateCategorie, setShowCreateCategorie] = useState(false);
-  const [categorias, setCategorias] = useState([]);
-  const { event, setEvent } = EventContextProvider()
-  const [colorText, setColorText] = useState(event?.presupuesto_objeto?.coste_estimado == 0 ? "text-gray-300" : "text-gray-500");
-  const costeEstimado = event?.presupuesto_objeto?.coste_estimado
   const [isAllowed, ht] = useAllowed()
-
-  useEffect(() => {
-    if (event?.presupuesto_objeto?.coste_estimado != 0) {
-      setColorText("text-gray-500")
-    }
-  }, [event?.presupuesto_objeto?.coste_estimado])
 
   return (
     <>
@@ -44,7 +34,7 @@ export const BlockListaCategorias: FC<props> = ({ categorias_array, setShowCateg
           <PlusIcon className="text-white w-4 h-4" />
           {t("newcategory")}
         </button>
-        <ul className={`w-full flex flex-col text-sm h-44 overflow-y-auto md:h-[400px] divide-y ${colorText} ${costeEstimado == 0 ? "cursor-not-allowed*" : "cursor-pointer"}`}>
+        <ul className={`w-full flex flex-col text-sm h-44 overflow-y-auto md:h-[400px] divide-y text-gray-600 cursor-pointer`}>
           {categorias_array?.map((item, idx) => (
             <ItemCategoria key={idx} item={item} setShowCategoria={setShowCategoria} showCategoria={showCategoria} />
           ))}
