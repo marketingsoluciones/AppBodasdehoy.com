@@ -17,6 +17,7 @@ import { handleChange, determinatedPositionMenu, handleDelete, handleCreateItem,
 import { error } from 'console';
 import { useToast } from '../../hooks/useToast';
 import FormAddPago from '../Forms/FormAddPago';
+import ClickAwayListener from 'react-click-away-listener';
 
 interface props {
   data: any
@@ -254,8 +255,9 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
   return (
     < div className="text-sm w-full h-full font-calibri relative." >
       {
-        RelacionarPagoModal.crear && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        RelacionarPagoModal.crear &&
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <ClickAwayListener onClickAway={() => RelacionarPagoModal.crear && setRelacionarPagoModal({ id: "", crear: false, categoriaID: "" })}>
             <div className="relative bg-white rounded-xl shadow-lg p-8 w-full max-w-xl h-[90%] overflow-auto">
               <button
                 className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition transform hover:scale-110"
@@ -265,8 +267,8 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
               </button>
               <FormAddPago GastoID={RelacionarPagoModal?.id} cate={RelacionarPagoModal?.categoriaID} />
             </div>
-          </div>
-        )
+          </ClickAwayListener>
+        </div>
       }
       {showFloatOptionsMenu?.state && <FloatOptionsMenu showOptionsMenu={showFloatOptionsMenu} setShowOptionsMenu={setShowFloatOptionsMenu} />
       }
