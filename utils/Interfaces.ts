@@ -196,6 +196,7 @@ interface TotalStimatedGuests {
 }
 
 export interface estimate {
+    viewEstimates: boolean
     coste_estimado: number
     coste_final: number
     pagado: number

@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AuthContextProvider, EventContextProvider } from "../../context";
+import { EventContextProvider } from "../../context";
 import { useAllowed } from "../../hooks/useAllowed";
 import { api } from "../../api";
 import { CochinoIcon } from "../icons";
+import { Switch } from "../../components/Forms/Switch";
+import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { estimate } from "../../utils/Interfaces";
 
 export const MontoPresupuesto = ({ estimado }) => {
   const { t } = useTranslation();
@@ -15,10 +18,9 @@ export const MontoPresupuesto = ({ estimado }) => {
 
   useEffect(() => {
     setMask(!!value ? value : 0);
-  }, [value, event?.presupuesto_objeto?.currency]);
+  }, [value, event?.presupuesto_objeto]);
 
   const handleChange = (e) => {
-    console.log("esto", e.target.value)
     e.preventDefault();
     const r = e.target.value
     if (r >= 0) {
@@ -32,62 +34,36 @@ export const MontoPresupuesto = ({ estimado }) => {
   };
 
   const handleBlur = async () => {
-    const params = {
-      query: `mutation {
-        editPresupuesto(evento_id:"${event._id}", coste_estimado:${!!value ? value : 0}  ){
-          coste_final
-          coste_estimado
-          pagado
-          currency
-          categorias_array {
-            _id
-            coste_proporcion
-            coste_estimado
-            coste_final
-            pagado
-            nombre
-            gastos_array{
-              _id
-              coste_proporcion
-              coste_estimado
-              coste_final
-              pagado
-              nombre
-              pagos_array {
-                _id
-                estado
-                fecha_creacion
-                fecha_pago
-                fecha_vencimiento
-                medio_pago
-                importe
-              }
-              items_array{
-                _id
-                next_id
-                unidad
-                cantidad
-                nombre
-                valor_unitario
-                total
-                estatus
-                fecha_creacion
-              }
-            }
-          }
-        }
-      }`,
-      variables: {},
-    }
-    let datos;
     try {
-      const { data } = await api.ApiApp(params)
-      datos = data.data.editPresupuesto
+      const result = await fetchApiEventos({
+        query: queries.editPresupuesto,
+        variables: {
+          evento_id: event?._id,
+          coste_estimado: !!value ? value : 0
+        }
+      })
+      setModificar(false)
+      event.presupuesto_objeto = result as estimate
+      setEvent({ ...event })
     } catch (error) {
       console.log(error)
-    } finally {
-      setModificar(false)
-      setEvent(old => ({ ...old, presupuesto_objeto: datos }))
+    }
+
+  }
+
+  const handleChangeViewEstimates = async (value: boolean) => {
+    try {
+      const result = await fetchApiEventos({
+        query: queries.editPresupuesto,
+        variables: {
+          evento_id: event?._id,
+          viewEstimates: value
+        }
+      })
+      event.presupuesto_objeto = result as estimate
+      setEvent({ ...event })
+    } catch (error) {
+      console.log(error)
     }
   }
 
@@ -100,13 +76,11 @@ export const MontoPresupuesto = ({ estimado }) => {
       }`,
       variables: {},
     }
-    let datos;
     try {
       api.ApiApp(params).then(result => {
         const currency = result.data.data.editCurrency
         setModificar(false)
         const presupuesto_objeto = { ...event.presupuesto_objeto, ...currency }
-        console.log("cambio en el monto", presupuesto_objeto)
         event.presupuesto_objeto = presupuesto_objeto
         setEvent({ ...event })
       })
@@ -115,43 +89,52 @@ export const MontoPresupuesto = ({ estimado }) => {
     }
   }
 
-
   return (
-    <>
-      <CochinoIcon className="w-12 h-12 text-gray-500 " />
-      <p className="font-display text-gray-500 font-light text-md grid place-items-center">
-        {t("estimatedbudget")} <br />
-      </p>
-      {modificar
-        ? <input
-          type="number"
-          min={0}
-          value={!!value ? value : ""}
-          onBlur={handleBlur}
-          onChange={(e) => handleChange(e)}
-          onKeyDown={(e) => keyDown(e)}
-          className="font-display appearance-none text-gray-500 font-semibold text-lg text-center border-b w-1/2 focus:outline-none border-gray-200"
-        />
-        : <span className="font-display text-gray-500 font-semibold text-lg text-center">
-          {mask}
-          <select value={event?.presupuesto_objeto?.currency} className="border-none focus:ring-0 cursor-pointer" onChange={(e) => handleChangeS(e)}  >
-            <option value={"eur"}>EUR</option>
-            <option value={"usd"}>USD</option>
-            <option value={"ves"}>VES</option>
-            <option value={"mxn"}>MXN</option>
-            <option value={"cop"}>COL</option>
-            <option value={"ars"}>ARG</option>
-            <option value={"uyu"}>URU</option>
-
-          </select>
-        </span>
-      }
-      <button
-        onClick={() => !isAllowed() ? ht() : setModificar(!modificar)}
-        className="border-primary border font-display focus:outline-none text-primary text-xs bg-white px-3 py-1 rounded-lg my-2 hover:bg-primary hover:text-white transition"
-      >
-        {modificar ? "Aceptar" : "Modificar presupuesto"}
-      </button>
+    <div className="flex flex-col w-full items-center relative">
+      <Switch isOn={event?.presupuesto_objeto?.viewEstimates} onToggle={(value) => handleChangeViewEstimates(value)} />
+      <div className="flex flex-col w-full items-center relative">
+        {!event?.presupuesto_objeto?.viewEstimates && <div className="bg-white opacity-50 absolute w-full h-full" />}
+        <CochinoIcon className="w-12 h-12 text-gray-500 " />
+        <p className="font-display text-gray-500 font-light text-md grid place-items-center">
+          {t("estimatedbudget")} <br />
+        </p>
+        {modificar
+          ? <input
+            type="number"
+            min={0}
+            value={!!value ? value : ""}
+            onBlur={handleBlur}
+            onChange={(e) => handleChange(e)}
+            onKeyDown={(e) => keyDown(e)}
+            className="font-display appearance-none text-gray-500 font-semibold text-lg text-center border-b w-1/2 focus:ring-0 focus:outline-none border-gray-200"
+          />
+          : <div className="font-display flex justify-center text-gray-500 font-semibold text-lg text-center">
+            <span className="flex justify-end items-center min-w-36">
+              {event?.presupuesto_objeto?.viewEstimates && new Intl.NumberFormat(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }).format(parseInt(mask))}
+            </span>
+            <div className="z-10">
+              <select value={event?.presupuesto_objeto?.currency} className="border-none focus:ring-0 cursor-pointer" onChange={(e) => handleChangeS(e)}  >
+                <option value={"eur"}>EUR</option>
+                <option value={"usd"}>USD</option>
+                <option value={"ves"}>VES</option>
+                <option value={"mxn"}>MXN</option>
+                <option value={"cop"}>COL</option>
+                <option value={"ars"}>ARG</option>
+                <option value={"uyu"}>URU</option>
+              </select>
+            </div>
+          </div>
+        }
+        <button
+          onClick={() => !isAllowed() ? ht() : setModificar(!modificar)}
+          className="border-primary border font-display focus:outline-none text-primary text-xs bg-white px-3 py-1 rounded-lg my-2 hover:bg-primary hover:text-white transition"
+        >
+          {modificar ? "Aceptar" : "Modificar presupuesto"}
+        </button>
+      </div>
       <style jsx>
         {`
           input[type="number"]::-webkit-inner-spin-button,
@@ -161,6 +144,6 @@ export const MontoPresupuesto = ({ estimado }) => {
           }
         `}
       </style>
-    </>
+    </div>
   );
 };

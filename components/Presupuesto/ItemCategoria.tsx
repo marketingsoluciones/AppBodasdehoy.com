@@ -1,16 +1,13 @@
 import { Dispatch, FC, SetStateAction, useEffect, useState } from "react";
-import { AuthContextProvider, EventContextProvider } from "../../context";
+import { EventContextProvider } from "../../context";
 import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from "react-i18next";
-import { api } from "../../api";
 import { getCurrency } from "../../utils/Funciones";
 import { DotsOpcionesIcon } from "../icons";
 import ClickAwayListener from "react-click-away-listener";
 import FormEditarCategoria from "../Forms/FormEditarCategoria";
 import ModalLeft from "../Utils/ModalLeft";
-import { fetchApiBodas, fetchApiEventos, queries } from "../../utils/Fetching";
-import { LoadingSpinner } from "../Utils/LoadingSpinner";
 import { estimateCategory, ModalInterface } from "../../utils/Interfaces";
 import { SimpleDeleteConfirmation } from "../Utils/SimpleDeleteConfirmation";
 import { handleDelete } from "../TablesComponents/tableBudgetV8.handles";
@@ -47,7 +44,6 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
   ];
 
   return (
-    //aqui
     <li
       onClick={() => {
         costeEstimado != 0 ? setShowCategoria(item._id === showCategoria._id ? { state: false } : { state: true, _id: item._id }) : toast("error", t("Agrega un monto a tu Presupuesto Estimado"))
@@ -77,21 +73,24 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
             {item?.nombre}
           </p>
         </span>
-        <span className="flex justify-end w-full text-[10px]" >
+        <span className={`flex justify-end w-full ${event.presupuesto_objeto.coste_estimado.toString().length < 9 ? "text-[11px]" : "text-[10px]"}`} >
           <div className="flex w-[97%] space-x-3">
             <div className="w-1/2 flex justify-end space-x-1">
-              <span className="text-[11px]">
-                {getCurrency(item.coste_estimado, event?.presupuesto_objeto?.currency)}
-              </span>
-              <span className="text-[10px] translate-y-[1.3px]">
-                Estimado
-              </span>
+              {event?.presupuesto_objeto?.viewEstimates && <>
+                <span >
+                  {getCurrency(item.coste_estimado, event?.presupuesto_objeto?.currency)}
+                </span>
+                <span className={`text-[10px] ${event.presupuesto_objeto.coste_estimado.toString().length < 9 ? "translate-y-[1.3px]" : ""}`}>
+                  Estimado
+                </span>
+              </>
+              }
             </div>
             <div className="w-1/2 flex justify-end space-x-1">
-              <span className="text-[11px]">
+              <span >
                 {getCurrency(item.coste_final, event?.presupuesto_objeto?.currency)}
               </span>
-              <span className="text-[10px] translate-y-[1.3px]">
+              <span className={`text-[10px] ${event.presupuesto_objeto.coste_estimado.toString().length < 9 ? "translate-y-[1.3px]" : ""}`}>
                 Total
               </span>
             </div>
@@ -112,7 +111,6 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
                     key={idx}
                     onClick={() => {
                       setShowMenu(!showMenu)
-                      console.log(100041, item)
                       elem.action(item)
                     }}
                     className="px-4 py-1 hover:bg-base transition"
