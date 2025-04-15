@@ -1,13 +1,13 @@
 import { Formik } from "formik";
 import { useContext, useState } from "react";
 import { api } from "../../api";
-import {EventContextProvider} from "../../context";
+import { EventContextProvider } from "../../context";
 import InputField from "./InputField";
 import { useTranslation } from 'react-i18next';
 
 const validacion = (values) => {
   let errors = {};
-  
+
 
   return errors;
 };
@@ -20,7 +20,7 @@ const FormPresupuesto = ({ set, state }) => {
         nombre: "",
       }}
       onSubmit={async (values, actions) => {
-        
+
       }}
       validate={validacion}
     >
@@ -40,7 +40,7 @@ export const BasicForm = ({
 }) => {
   const { t } = useTranslation();
   return (
-    <>
+    <div className="w-full flex flex-col">
       <div className="border-l-2 border-gray-100 pl-3 w-full ">
         <h2 className="font-display text-3xl capitalize text-primary font-light">
           {t("edit")} <br />
@@ -68,15 +68,14 @@ export const BasicForm = ({
           </div>
         </div>
         <button
-          className={`font-display rounded-full mt-4 py-2 px-6 text-white font-medium transition w-full hover:opacity-70 ${
-            isSubmitting ? "bg-secondary" : "bg-primary"
-          }`}
+          className={`font-display rounded-full mt-4 py-2 px-6 text-white font-medium transition w-full hover:opacity-70 ${isSubmitting ? "bg-secondary" : "bg-primary"
+            }`}
           disabled={isSubmitting}
           type="submit"
         >
           {t("creategroup")}
         </button>
       </form>
-    </>
+    </div>
   );
 };

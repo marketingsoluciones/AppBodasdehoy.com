@@ -3,6 +3,7 @@ import { useAllowed } from "../../hooks/useAllowed";
 import { FaRegEye } from "react-icons/fa";
 import { useToast } from "../../hooks/useToast";
 import { useTranslation } from 'react-i18next';
+import { MdOutlineExpandMore } from "react-icons/md";
 
 const DetallesPago = ({ set, ...props }) => {
   const { t } = useTranslation();
@@ -30,8 +31,8 @@ const DetallesPago = ({ set, ...props }) => {
   return (
     <>
       <div className="flex items-center justify-center h-full">
-        <p onClick={!isAllowed() ? null : handleClick} className=" rounded px-2 hover:text-gray-400 transition cursor-pointer">
-          <FaRegEye />
+        <p onClick={!isAllowed() ? null : handleClick} className=" rounded hover:text-gray-400 transition cursor-pointer">
+        <MdOutlineExpandMore className="w-4 h-4" />
         </p>
       </div>
     </>

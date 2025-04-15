@@ -6,7 +6,7 @@ import { getCurrency } from "../../utils/Funciones";
 import { capitalize } from '../../utils/Capitalize';
 import FormAddPago from "../Forms/FormAddPago";
 import { useTranslation } from 'react-i18next';
-import { BorrarIcon, MisEventosIcon, PlusIcon} from "../icons";
+import { BorrarIcon, MisEventosIcon, PlusIcon } from "../icons";
 import CellEdit from "./CellEdit";
 import CellPagado from "./CellPagado";
 import SubComponentePagos from "./SubComponentePagos";
@@ -14,8 +14,11 @@ import { useAllowed } from "../../hooks/useAllowed";
 import DetallesPago from "./DetallesPago";
 import { array } from "yup";
 import AddPagado from "./AddPagado";
+import { EditableLabelWithInput } from "../Forms/EditableLabelWithInput";
+import { handleChange } from "../TablesComponents/tableBudgetV8.handles";
+import { fetchApiEventos, queries } from "../../utils/Fetching";
 
-const BlockCategoria = ({ cate, set, setGetId }) => {
+const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
   const { t } = useTranslation();
   const { event, setEvent } = EventContextProvider()
   const [categoria, setCategoria] = useState({});
@@ -23,21 +26,19 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
   const [GastoID, setGastoID] = useState({ id: "", crear: false })
   const [isAllowed, ht] = useAllowed()
 
-  console.log("ÑLÑLÑLÑLÑ",categoria)
-
   useEffect(() => {
     setCategoria(
       event?.presupuesto_objeto?.categorias_array.find(
-        (item) => item._id == cate
+        (item) => item._id == showCategoria?._id
       )
     );
     setData(
       event?.presupuesto_objeto?.categorias_array?.find(
-        (item) => item._id == cate
+        (item) => item._id == showCategoria?._id
       )?.gastos_array
     );
     setGastoID(old => ({ ...old, crear: false }))
-  }, [cate, event, event?.presupuesto_objeto?.currency]);
+  }, [showCategoria, event, event?.presupuesto_objeto?.currency]);
 
   const saldo = categoria?.coste_estimado - categoria?.coste_final;
 
@@ -46,32 +47,84 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
   useEffect(() => {
     const f1 = event?.presupuesto_objeto?.categorias_array?.findIndex((item) => item?._id === categoria?._id)
     if (event?.presupuesto_objeto?.categorias_array[f1] != totalCosteFinal) {
-        setEvent((old) => {
-            old.presupuesto_objeto.categorias_array[f1].coste_final = totalCosteFinal
-            return { ...old }
-        })
+      setEvent((old) => {
+        old.presupuesto_objeto.categorias_array[f1].coste_final = totalCosteFinal
+        return { ...old }
+      })
     }
-}, [totalCosteFinal])
+  }, [totalCosteFinal])
 
-  const Columna = useMemo(
-    () => [
+
+  const Columna = useMemo(() => {
+    const columns = [
       {
-        Header: "Proveedor",
-        accessor: "nombre",
-        id: "nombre",
-        Cell: (props) => <CellEdit categoriaID={categoria?._id} type={"text"} autofocus {...props} />
+        Header: <p className="flex h-full">{t("partida de gasto")} </p>,
+        accessor: "gasto",
+        id: "gasto",
+        Cell: props => {
+          props.row.original.object = props.column.id;
+          props.row.original.categoriaID = categoria?._id;
+          props.row.original.gastoID = props.row.original._id;
+          let value = props.row.original.nombre;
+          return (
+            <EditableLabelWithInput
+              accessor="gasto"
+              handleChange={(values) => {
+                handleChange({ values, info: props, event, setEvent });
+              }}
+              type={null}
+              value={value}
+              textAlign={"center"}
+              isLabelDisabled
+            />
+          );
+        },
       },
-      {
+      event?.presupuesto_objeto?.viewEstimates && {
         Header: <p> Estimado <br /> {getCurrency(categoria?.coste_estimado, event?.presupuesto_objeto?.currency)}</p>,
         accessor: "coste_estimado",
         id: "coste_estimado",
-        Cell: (props) => <CellEdit categoriaID={categoria?._id} type={"number"} {...props} />
+        Cell: props => {
+          props.row.original.object = "gasto";
+          props.row.original.categoriaID = categoria?._id;
+          props.row.original.gastoID = props.row.original._id;
+          let value = props.row.original.coste_estimado;
+          return (
+            <EditableLabelWithInput
+              accessor="coste_estimado"
+              handleChange={(values) => {
+                handleChange({ values, info: props, event, setEvent });
+              }}
+              type={"float"}
+              value={value}
+              textAlign={"center"}
+              isLabelDisabled
+            />
+          );
+        },
       },
       {
-        Header: <p>Coste final <br /> {getCurrency(categoria?.coste_final, event?.presupuesto_objeto?.currency)}</p>,
+        Header: <p>{t("coste total")} <br /> {getCurrency(categoria?.coste_final, event?.presupuesto_objeto?.currency)}</p>,
         accessor: "coste_final",
         id: "coste_final",
-        Cell: (props) => <CellEdit categoriaID={categoria?._id} type={"number"} {...props} />
+        Cell: props => {
+          props.row.original.object = "gasto";
+          props.row.original.categoriaID = categoria?._id;
+          props.row.original.gastoID = props.row.original._id;
+          let value = props.row.original.coste_final;
+          return (
+            <EditableLabelWithInput
+              accessor="coste_final"
+              handleChange={(values) => {
+                handleChange({ values, info: props, event, setEvent });
+              }}
+              type={"float"}
+              value={value}
+              textAlign={"center"}
+              isLabelDisabled
+            />
+          );
+        },
       },
       {
         Header: <p >Pagado <br /> {getCurrency(categoria?.pagado, event?.presupuesto_objeto?.currency)} </p>,
@@ -80,86 +133,83 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
         Cell: (props) => <CellPagado {...props} set={act => setGastoID(act)} />,
       },
       {
+        Header: <p className="flex h-full">por Pagar </p>,
+        accessor: "pendiente_pagar",
+        id: "pendiente_pagar",
+        Cell: (props) => {
+          const [value, setValue] = useState(0);
+          const total = props?.row?.values?.pagado - props?.row?.values?.coste_final
+          console.log(15, props?.row?.values?.pagado)
+          console.log(16, props?.row?.values?.coste_final)
+          console.log(17, total)
+
+          useEffect(() => {
+            if (props?.row?.values?.coste_final === 0) {
+              setValue(0)
+            } else {
+              setValue(total)
+            }
+          }, [props?.row.original])
+
+          return (
+            <div className="font-displaytext-xs grid place-items-center h-full text-center w-full ">
+              <p className="w-full">{getCurrency(value, event?.presupuesto_objeto?.currency)}</p>
+            </div>
+          );
+        },
+      },
+      {
         Header: "",
         accessor: "options",
         id: "options",
         Cell: (props) => {
+
           const handleRemove = async () => {
             let data
+
             try {
-              const params = {
-                query: `mutation{
-                  borraGasto(evento_id:"${event?._id}", categoria_id: "${cate}", gasto_id: "${props?.row?.original?._id}"){
-                  coste_final
-                  coste_estimado
-                  pagado
-                    categorias_array {
-                      coste_estimado
-                      coste_final
-                      pagado
-                    }
-                  }
-                }`,
-                variables: {},
-              }
-              const { data: res } = await api.ApiApp(params);
-              data = res?.data?.borraGasto
+              new Promise(resolve => {
+                fetchApiEventos({
+                  query: queries.borrarGasto,
+                  variables: {
+                    evento_id: event?._id,
+                    categoria_id: categoria?._id,
+                    gasto_id: props?.row?.original?._id,
+                  },
+                }).then(result => {
+                  const f1 = event.presupuesto_objeto.categorias_array.findIndex(elem => elem._id === categoria?._id)
+                  const f2 = event.presupuesto_objeto.categorias_array[f1].gastos_array.findIndex(elem => elem._id === props?.row?.original?._id)
+                  event.presupuesto_objeto.categorias_array[f1].gastos_array.splice(f2, 1)
+                  resolve(event)
+                })
+              }).then((result) => {
+                setEvent({ ...event })
+              })
             } catch (error) {
-              console.log(error);
-            } finally {
-              setEvent((old) => {
-                // Encontrar posicion de la categoria en el array categorias
-                const idxCategoria =
-                  old?.presupuesto_objeto?.categorias_array.findIndex(
-                    (item) => item._id == cate
-                  );
-                // Sustraer el gasto a eliminar del array de gastos
-                const filterGastos = old?.presupuesto_objeto?.categorias_array[
-                  idxCategoria
-                ].gastos_array?.filter(
-                  (item) => item._id !== props?.row?.original?._id
-                );
-
-                //Actualizar estimado, final y pagado del evento
-                old.presupuesto_objeto.coste_estimado = data?.coste_estimado
-                old.presupuesto_objeto.coste_final = data?.coste_final
-                old.presupuesto_objeto.pagado = data?.pagado
-
-                //Actualizar estimado, final y pagado de la categoria
-                old.presupuesto_objeto.categorias_array[idxCategoria].coste_estimado = data?.categorias_array[0]?.coste_estimado
-                old.presupuesto_objeto.categorias_array[idxCategoria].coste_final = data?.categorias_array[0]?.coste_final
-                old.presupuesto_objeto.categorias_array[idxCategoria].pagado = data?.categorias_array[0]?.pagado
-
-                // Sobrescribir arr de gastos anterior por el nuevo
-                old.presupuesto_objeto.categorias_array[idxCategoria].gastos_array = filterGastos;
-
-                return { ...old };
-              });
+              console.log(error)
             }
           };
 
           return (
-            <>
-
-              <div className="w-full h-full flex items-center justify-center cursor-pointer relative space-x-1">
-                <AddPagado {...props} set={act => setGastoID(act)} />
-                <DetallesPago {...props} set={act => setGastoID(act)} />
-                <BorrarIcon
-                  onClick={!isAllowed() ? null : handleRemove}
-                  className="hover:text-gray-300 text-gray-500 transition w-3"
-                />
-              </div>
-            </>
+            <div className="w-full h-full flex items-center justify-center cursor-pointer relative space-x-1">
+              <DetallesPago {...props} set={act => setGastoID(act)} />
+              <AddPagado {...props} set={act => setGastoID(act)} />
+              <BorrarIcon
+                onClick={!isAllowed() ? null : handleRemove}
+                className="hover:text-gray-300 text-gray-500 transition w-3"
+              />
+            </div>
           );
         },
-      },
+      }
+    ];
 
-    ],
-    [categoria, event?.presupuesto_objeto?.currency, event]
-  );
+    // Filtrar columnas nulas (en caso de que `viewEstimates` sea falso)
+    return columns.filter(Boolean);
+  }, [categoria, event?.presupuesto_objeto?.currency, event])
 
   const AddGasto = async () => {
-    let res;
+    /* let res;
     try {
       const params = {
         query: `mutation{
@@ -193,6 +243,24 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
         old.presupuesto_objeto.categorias_array[index].gastos_array[f2].pagos_array = []
         return { ...old };
       });
+    } */
+
+    try {
+      fetchApiEventos({
+        query: queries.nuevoGasto,
+        variables: {
+          evento_id: event?._id,
+          categoria_id: categoria?._id,
+          nombre: "Nueva part. de gasto",
+        }
+      }).then((result) => {
+        const f1 = event.presupuesto_objeto.categorias_array.findIndex((elem) => elem._id === categoria?._id)
+        event.presupuesto_objeto.categorias_array[f1].gastos_array.push(result)
+        setEvent({ ...event })
+      })
+    } catch (error) {
+      console.log(220046, error);
+      throw new Error(error)
     }
   };
 
@@ -205,18 +273,20 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
   )
 
   const porcentaje = (categoria?.coste_final / categoria?.coste_estimado) * 100
-  
+
   return (
-    <>
+    <div className="flex-1">
       {GastoID.crear && (
-        <div className="absolute* bg-white w-full  h-max grid place-items-center z-20 rounded-xl white shadow-lg top-0 left-0 p-8 ">
+        <div className="relative bg-white w-full  h-max grid place-items-center z-20 rounded-xl white shadow-lg top-0 left-0 p-8 ">
           <div className="font-display text-gray-500 hover:text-gray-300 transition text-lg absolute top-5 right-5 cursor-pointer hover:scale-125" onClick={() => setGastoID("")}>X</div>
+
           <FormAddPago GastoID={GastoID?.id} cate={categoria?._id} />
+
         </div>
       )}
-      <div className={`bg-white block-categoria h-max py-10 w-full rounded-xl shadow-lg overflow-hidden flex flex-col items-center relative ${GastoID.crear ? "hidden" : "block"}`}>
+      <div className={`bg-white w-full block-categoria h-max py-10 rounded-xl shadow-lg overflow-hidden flex flex-col items-center relative ${GastoID.crear ? "hidden" : "block"}`}>
         <div
-          onClick={() => set({ isVisible: false, id: "" })}
+          onClick={() => setShowCategoria({ state: false })}
           className="cursor-pointer absolute top-5 right-5 font-display hover:scale-125 transition transform text-gray-500 hover:text-gray-500 font-semibold text-lg "
         >
           X
@@ -230,30 +300,32 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
             {capitalize(categoria?.nombre)}
           </h2>
         </div>
-        <div className="md:justify-between w-4/6 gap-3 md:flex items-center font-display text-gray-500">
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm font-medium ">
-              {t("estimatedcost")}
-              <span className="text-sm text-gray-500 pl-1">
-                {getCurrency(categoria?.coste_estimado, event?.presupuesto_objeto?.currency)}
-              </span>
-            </h3>
-          </div>
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm font-medium ">
-              {t("actualcost")}
-              <span
-                className={`text-sm pl-1 text-${Math.abs(saldo) == saldo ? "green" : "red"
-                  }`}
-              >
-                {getCurrency(categoria?.coste_final, event?.presupuesto_objeto?.currency)}
-              </span>
-            </h3>
-          </div>
-        </div>
+        {
+          event?.presupuesto_objeto?.viewEstimates &&
+          <div className="md:justify-between w-4/6 gap-3 md:flex items-center font-display text-gray-500">
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-medium ">
+                {t("estimatedcost")}
+                <span className="text-sm text-gray-500 pl-1">
+                  {getCurrency(categoria?.coste_estimado, event?.presupuesto_objeto?.currency)}
+                </span>
+              </h3>
+            </div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-medium ">
+                {t("actualcost")}
+                <span
+                  className={`text-sm pl-1 text-${Math.abs(saldo) == saldo ? "green" : "red"
+                    }`}
+                >
+                  {getCurrency(categoria?.coste_final, event?.presupuesto_objeto?.currency)}
+                </span>
+              </h3>
+            </div>
+          </div>}
 
         {/* Barra de estado */}
-        <div className=" w-4/6 mx-auto flex gap-1 items-center py-2 inset-x-0">
+        {event?.presupuesto_objeto?.viewEstimates && <div className=" w-4/6 mx-auto flex gap-1 items-center py-2 inset-x-0">
           <div className="bg-gray-300 rounded-xl flex items-center overflow-hidden md:h-5 w-full relative">
             <p className="font-display text-xs text-white pl-2 z-10 relative p-3">
               {
@@ -267,18 +339,20 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
               width={`${porcentaje}%`}
             ></svg>
           </div>
-        </div>
+        </div>}
 
 
         {/* Tabla de datos */}
-        <DataTable AddGasto={AddGasto} columns={Columna} data={data ?? []} renderRowSubComponent={renderRowSubComponent} cate={categoria._id} gasto={GastoID.id} categoria={categoria} />
-        <div className="bg-primary w-full grid grid-cols-10 absolute bottom-0 font-display text-white font-semibold py-1 text-sm">
+        <DataTable AddGasto={AddGasto} columns={Columna} data={data ?? []} renderRowSubComponent={renderRowSubComponent} cate={categoria?._id} gasto={GastoID?.id} categoria={categoria} />
+        <div className={`bg-primary w-full grid ${!event?.presupuesto_objeto?.viewEstimates ? "grid-cols-9" : "grid-cols-13"} absolute bottom-0 font-display text-white font-semibold py-1 text-sm`}>
           <div className="flex items-center justify-center col-span-3">
             <p>{t("total")}</p>
           </div>
-          <div className="flex items-center justify-center col-span-2">
-            <p>{getCurrency(categoria?.coste_estimado, event?.presupuesto_objeto?.currency)}</p>
-          </div>
+          {event?.presupuesto_objeto?.viewEstimates &&
+            <div className="flex items-center justify-center col-span-2">
+              <p>{getCurrency(categoria?.coste_estimado, event?.presupuesto_objeto?.currency)}</p>
+            </div>
+          }
           <div className="flex items-center justify-center col-span-2">
             <p>{getCurrency(categoria?.coste_final, event?.presupuesto_objeto?.currency)}</p>
           </div>
@@ -294,7 +368,7 @@ const BlockCategoria = ({ cate, set, setGetId }) => {
           }
         `}
       </style>
-    </>
+    </div>
   );
 };
 
@@ -305,25 +379,28 @@ export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate
   const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows, state: { expanded } } =
     useTable({ columns, data }, useExpanded);
   const [isAllowed, ht] = useAllowed()
+  const { event, setEvent } = EventContextProvider()
+
 
   const colSpan = {
-    nombre: 3,
+    gasto: event?.presupuesto_objeto?.viewEstimates ? 3 : 5,
     coste_estimado: 2,
     coste_final: 2,
     pagado: 2,
+    pendiente_pagar: 2,
     options: 2,
-    soporte:1
+    soporte: 1
   };
   return (
     <table
       {...getTableProps()}
       className="table w-full rounded-lg relative mt-6"
     >
-       <thead>
+      <thead>
         {headerGroups.map((headerGroup, id) => (
           <tr
             {...headerGroup.getHeaderGroupProps()}
-            className="w-full grid grid-cols-11 py-2 bg-base"
+            className="w-full grid grid-cols-13 py-2 bg-base"
             key={id}
           >
             {headerGroup.headers.map((column, id) => (
@@ -347,7 +424,7 @@ export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate
               <tr
                 key={i}
                 {...row.getRowProps()}
-                className="w-full transition border-b border-base hover:bg-base grid grid-cols-11"
+                className="w-full transition border-b border-base hover:bg-base grid grid-cols-13"
               >
                 {row.cells.map((cell, i) => {
                   return (

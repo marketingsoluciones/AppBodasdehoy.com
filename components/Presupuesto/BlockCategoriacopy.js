@@ -198,7 +198,7 @@ const BlockCategoriaCopy = ({ cate, set, setGetId }) => {
     //<SubComponentePagos getId={GastoID?.id} row={row} cate={cate} gasto={gasto} wantCreate={act => setGastoID(old => ({ ...old, crear: act }))} />
 
   },
-    [GastoID,expandedClick ]
+    [GastoID, expandedClick]
   )
 
   const porcentaje = (categoria?.coste_final / categoria?.coste_estimado) * 100

@@ -15,6 +15,7 @@ import { FileIconComponent } from "./FileIconComponent"
 import { getStorage, ref, uploadBytesResumable } from "firebase/storage"
 import { TempPastedAndDropFiles } from "./ItineraryPanel"
 import { customAlphabet } from "nanoid"
+import { SetNickname } from "./SetNickName"
 
 interface props {
   itinerario: Itinerary
@@ -41,12 +42,12 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
   const notification = useNotification()
   const storage = getStorage();
   const [enabledInput, setEnabledInput] = useState(false);
+  const [showModalNickname, setShowModalNickname] = useState(false)
 
   useEffect(() => {
     const valir = value?.replace(/ id="selected"/g, "")?.replace(/ focusoffset="[^"]*"/g, '').split("<p><br></p>").find(elem => elem !== "")
 
     /* Falta Validar espacios en blancos y saltos de linea al principio y al final*/
-    // console.log(100011, !!valir, valir)
     // console.log(100012, value?.replace(/ id="selected"/g, "")?.replace(/ focusoffset="[^"]*"/g, '').split("<p><br></p><p><br></p>").filter(elem => elem !== ""))
 
     if (value && !!valir) {
@@ -59,7 +60,7 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
   useEffect(() => {
     setValue(undefined)
     setValir(false)
-  }, [task._id])
+  }, [task?._id])
 
   useEffect(() => {
     if (tempPastedAndDropFiles?.length) {
@@ -83,7 +84,10 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
 
   const handleCreateComment = () => {
     setValir(false)
-    if (value || pastedAndDropFiles.length) {
+    if (!user) {
+      setShowModalNickname(true)
+    }
+    if (user && value || pastedAndDropFiles.length) {
       const valueSend = value?.replace(/ id="selected"/g, "")?.replace(/ focusoffset="[^"]*"/g, '')
       const attachments = pastedAndDropFiles?.map((elem): FileData => {
         return { name: elem.file.name, size: elem.file.size }
@@ -111,7 +115,7 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
         }
         if (pastedAndDropFiles?.length) {
           tempPastedAndDropFiles.push({
-            taskID: task._id,
+            taskID: task?._id,
             commentID: results?._id,
             files: pastedAndDropFiles,
             uploaded: false,
@@ -119,7 +123,7 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
           setTempPastedAndDropFiles([...tempPastedAndDropFiles])
           handleClosePasteImages()
         }
-        const focused = `${window.location.pathname}?event=${event._id}&itinerary=${itinerario._id}&task=${task._id}&comment=${results?._id}`
+        const focused = `${window.location.pathname}?event=${event._id}&itinerary=${itinerario._id}&task=${task?._id}&comment=${results?._id}`
         notification({
           type: "user",
           message: ` ha escrito un comentario: ${valueSend?.slice(0, 50)}${valueSend?.length > 50 ? "..." : ""} | Evento ${event?.tipo}: <strong>${event?.nombre?.toUpperCase()}</strong>`,
@@ -151,8 +155,8 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
   };
 
   const handleClosePasteImages = () => {
-    let contenedorElement = document.getElementById(`contenedorEditor0-${task._id}`)
-    let child = document.getElementById(`quillEditor-${task._id}`)
+    let contenedorElement = document.getElementById(`contenedorEditor0-${task?._id}`)
+    let child = document.getElementById(`quillEditor-${task?._id}`)
     if (contenedorElement && child) {
       contenedorElement?.appendChild(child)
       const divEditable = child.getElementsByClassName("ql-editor")[0] as HTMLElement
@@ -166,8 +170,8 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
     }
     setSlideSelect(0)
     setPastedAndDropFiles([])
-    contenedorElement = document.getElementById(`contenedorAttachment0-${task._id}`)
-    child = document.getElementById(`attachment-${task._id}`)
+    contenedorElement = document.getElementById(`contenedorAttachment0-${task?._id}`)
+    child = document.getElementById(`attachment-${task?._id}`)
     if (contenedorElement && child) {
       contenedorElement?.appendChild(child)
     }
@@ -175,15 +179,15 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
 
   useEffect(() => {
     if (pastedAndDropFiles?.length) {
-      let contenedorElement = document.getElementById(`contenedorEditor1-${task._id}`)
-      let child = document.getElementById(`quillEditor-${task._id}`)
+      let contenedorElement = document.getElementById(`contenedorEditor1-${task?._id}`)
+      let child = document.getElementById(`quillEditor-${task?._id}`)
       if (contenedorElement && child) {
         contenedorElement?.appendChild(child)
         const divEditable = child.getElementsByClassName("ql-editor")[0] as any
         divEditable.focus()
       }
-      contenedorElement = document.getElementById(`contenedorAttachment1-${task._id}`)
-      child = document.getElementById(`attachment-${task._id}`)
+      contenedorElement = document.getElementById(`contenedorAttachment1-${task?._id}`)
+      child = document.getElementById(`attachment-${task?._id}`)
       if (contenedorElement && child) {
         contenedorElement?.appendChild(child)
       }
@@ -191,7 +195,20 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
   }, [pastedAndDropFiles])
 
   return (
-    <div className='bg-white flex items-center space-x-2 pt-2 px-2'>
+    <div className='bg-white flex items-center pt-2 px-2 relative'>
+      {
+        showModalNickname && <ClickAwayListener onClickAway={() => showModalNickname && setShowModalNickname(false)}>
+          <ul
+            className={`${showModalNickname ? "block opacity-100" : "hidden opacity-0"} absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-[-150px] right-20 w-[300px] z-50`}
+          >
+            <li
+              className="flex items-center py-4 px-6 font-display text-sm text-gray-500 bg-base transition w-full capitalize"
+            >
+              <SetNickname setShowModalNickname={setShowModalNickname}  />
+            </li>
+          </ul>
+        </ClickAwayListener>
+      }
       <div className='flex flex-1 relative'>
         {!!pastedAndDropFiles?.length && (
           <>
@@ -225,12 +242,12 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
                   <span className="text-gray-600">{Math.trunc(pastedAndDropFiles[slideSelect].file.size / 1024)} K</span>
                 </div>
               }
-              <div id={`contenedorEditor1-${task._id}`} className='bg-gray-200 w-full min-h-[52px] flex items-center px-2'>
+              <div id={`contenedorEditor1-${task?._id}`} className='bg-gray-200 w-full min-h-[52px] flex items-center px-2'>
                 {/* <QuillEditor value={value} setValue={setValue} handlePaste={handlePaste} /> */}
               </div>
               <div className='bg-gray-100 flex w-full h-10'>
                 <div className="w-14 h-full flex justify-center items-center">
-                  <div id={`contenedorAttachment1-${task._id}`}>
+                  <div id={`contenedorAttachment1-${task?._id}`}>
                     {/* <div onClick={() => { setAttachment(!attachment) }} className='w-10 h-10 flex justify-center items-center hover:bg-white rounded-full cursor-pointer'>
                     <PlusIcon className="w-5 h-5 text-gray-700" />
                   </div> */}
@@ -248,11 +265,11 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
         )}
         <div className='flex justify-center items-center'>
           {enabledInput && <>
-            <input type="file" accept='image/*' onChange={(event) => handleFileChange({ event, saveType: "image" })} id={`file-upload-img-${task._id}`} className="hidden" multiple />
-            <input type="file" onChange={(event) => handleFileChange({ event, saveType: "doc" })} id={`file-upload-doc-${task._id}`} className="hidden" multiple />
+            <input type="file" accept='image/*' onChange={(event) => handleFileChange({ event, saveType: "image" })} id={`file-upload-img-${task?._id}`} className="hidden" multiple />
+            <input type="file" onChange={(event) => handleFileChange({ event, saveType: "doc" })} id={`file-upload-doc-${task?._id}`} className="hidden" multiple />
           </>}
-          <div id={`contenedorAttachment0-${task._id}`}>
-            <div id={`attachment-${task._id}`}>
+          <div id={`contenedorAttachment0-${task?._id}`}>
+            <div id={`attachment-${task?._id}`}>
               <ClickAwayListener onClickAway={() => { setAttachment(false) }}>
                 <div className='cursor-pointer select-none'>
                   <div className='translate-y-[4px]'>
@@ -271,7 +288,7 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
                           <span className='font-semibold'>Cámara</span>
                         </li> */}
                           <li onClickCapture={() => setEnabledInput(true)} className='cursor-pointer hover:bg-gray-100 rounded-md items-center'>
-                            <label htmlFor={`file-upload-doc-${task._id}`} className='font-semibold cursor-pointer flex items-center space-x-1 p-1'>
+                            <label htmlFor={`file-upload-doc-${task?._id}`} className='font-semibold cursor-pointer flex items-center space-x-1 p-1'>
                               <PiFileArrowUpThin className='w-6 h-6' />
                               <span>Adjuntar archivo</span>
                             </label>
@@ -292,8 +309,8 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
             </div>
           </div>
         </div>
-        <div id={`contenedorEditor0-${task._id}`} className='w-full min-h-[52px] flex items-center'>
-          <div id={`quillEditor-${task._id}`} className="w-full">
+        <div id={`contenedorEditor0-${task?._id}`} className='w-full min-h-[52px] flex items-center'>
+          <div id={`quillEditor-${task?._id}`} className="w-full">
             <QuillEditor value={value} setValue={setValue} setPastedAndDropFiles={setPastedAndDropFiles} pastedAndDropFiles={pastedAndDropFiles} />
           </div>
         </div>

@@ -69,6 +69,7 @@ export const es = {
     'Borrar': 'Borrar',
     'borrar grupo': 'borrar grupo',
     'budget': 'presupuesto',
+    'budgetdetails': "presupuesto detallado",
     'buildyourgiftlist': 'Construye vuestra lista de regalos',
     'burcar más': 'burcar más',
     'cake': 'tarta',

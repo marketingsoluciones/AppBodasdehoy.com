@@ -4,6 +4,7 @@ import { api } from "../../api";
 import { EventContextProvider } from "../../context";
 import InputField from "./InputField";
 import { useTranslation } from 'react-i18next';
+import { fetchApiEventos, queries } from "../../utils/Fetching";
 
 const validacion = (values) => {
   let errors = {};
@@ -15,7 +16,7 @@ const validacion = (values) => {
 };
 
 const FormCrearCategoria = ({ set, state }) => {
-  
+
   const { event, setEvent } = EventContextProvider()
   return (
     <Formik
@@ -23,63 +24,20 @@ const FormCrearCategoria = ({ set, state }) => {
         nombre: "",
       }}
       onSubmit={async (values, actions) => {
-        let nuevoCategoria;
-        const params = {
-          query: `mutation {
-            nuevoCategoria(evento_id:"${event?._id}",nombre:"${values?.nombre}"){
-              _id
-              coste_proporcion
-              coste_estimado
-              coste_final
-              pagado
-              nombre
-              gastos_array {
-                _id
-                coste_estimado
-                coste_final
-                pagado
-                nombre
-                pagos_array {
-                  _id
-                  estado
-                  fecha_creacion
-                  fecha_pago
-                  fecha_vencimiento
-                  medio_pago
-                  importe
-                }
-                items_array{
-                  _id
-                  next_id
-                  unidad
-                  cantidad
-                  nombre
-                  valor_unitario
-                  total
-                  estatus
-                  fecha_creacion
-                }
-            }
+        fetchApiEventos({
+          query: queries.nuevoCategoria,
+          variables: {
+            evento_id: event?._id,
+            nombre: values?.nombre,
           }
-        }`,
-          variables: {},
-        };
-
-        try {
-          actions.setSubmitting(true);
-          const { data } = await api.ApiApp(params);
-          nuevoCategoria = data.data.nuevoCategoria;
-        } catch (error) {
-          console.log(error);
-        } finally {
+        }).then((result) => {
+          event.presupuesto_objeto.categorias_array.push(result)
+          setEvent({ ...event })
           set(!state);
-          setEvent(old => {
-            old?.presupuesto_objeto?.categorias_array?.push(nuevoCategoria);
-            
-            return {...old}
-          });
           actions.setSubmitting(false);
-        }
+        }).catch((error) => {
+          console.log(error);
+        })
       }}
       validate={validacion}
     >
@@ -99,7 +57,7 @@ export const BasicForm = ({
 }) => {
   const { t } = useTranslation();
   return (
-    <>
+    <div className="flex flex-col w-full" >
       <div className="border-l-2 border-gray-100 pl-3 w-full ">
         <h2 className="font-display text-3xl capitalize text-primary font-light">
           {t("create")} <br />
@@ -108,14 +66,14 @@ export const BasicForm = ({
           </span>
         </h2>
       </div>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5 py-6 w-full">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5 py-6 md:w-[70%]  fustify-center">
         <div className="grid grid-cols-1 gap-4">
           <div className="flex items-center box-content">
-            <img
+            {/* <img
               src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y"
               alt="imagen-invitados"
               className="w-12 h-12 rounded-full mr-6 "
-            />
+            /> */}
             <InputField
               name="nombre"
               label={t("categoryname")}
@@ -135,6 +93,6 @@ export const BasicForm = ({
           {t("createcategory")}
         </button>
       </form>
-    </>
+    </div >
   );
 };

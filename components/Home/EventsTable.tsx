@@ -13,6 +13,7 @@ import { OpenModal } from "./OpenModal";
 import { TbLock } from "react-icons/tb";
 import { GoArrowUpRight } from "react-icons/go";
 import { FaSearch } from "react-icons/fa"; // Importa el ícono de lupa
+import { FaArrowDown, FaArrowUp } from "react-icons/fa";
 
 export const EventsTable: FC<any> = () => {
   const { t } = useTranslation();
@@ -35,8 +36,8 @@ export const EventsTable: FC<any> = () => {
   const handleColumnToggle = (columnId: string) => {
     setVisibleColumns((prev) =>
       prev.includes(columnId)
-        ? prev.filter((id) => id !== columnId)
-        : [...prev, columnId]
+        ? prev.filter((id) => id !== columnId) // Oculta la columna
+        : [...prev, columnId] // Muestra la columna
     );
   };
 
@@ -256,7 +257,7 @@ export const EventsTable: FC<any> = () => {
         accessor: "detalles_compartidos_array",
         id: "detalles_compartidos_array",
         Cell: (data) => {
-          console.log(  data.data[data.cell.row.id].usuario_id === user?.uid)
+          console.log(data.data[data.cell.row.id].usuario_id === user?.uid)
           return (
             <div onClick={() => {
               data.data[data.cell.row.id]?.usuario_id === user?.uid &&
@@ -386,80 +387,122 @@ export const EventsTable: FC<any> = () => {
 
   return (
     <div className="relative px-3 flex flex-col justify-center w-full">
-      <div className="relative mb-4 self-end">
-        <button onClick={toggleDropdown} className="bg-primary text-white px-4 py-2 rounded">
-          Filtrar Columnas
-        </button>
-        {dropdownOpen && (
-          <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-y-auto z-10">
-            {columns.map((column) => (
-              <div key={column.id} className="flex hover:bg-basePage items-center px-4 py-2">
-                <input
-                  type="checkbox"
-                  checked={visibleColumns.includes(column.id)}
-                  onChange={() => handleColumnToggle(column.id)}
-                  className="mr-2"
-                />
-                {t(column.Header)}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+
+
       {openModal?.state && <OpenModal openModal={openModal} setOpenModal={setOpenModal} />}
       <table
         {...getTableProps()}
         className="table-auto border-collapse rounded-lg relative p-4 w-full">
-<thead className="relative text-xs text-gray-700 uppercase bg-gray-200 w-full truncate">
-  {headerGroups.map((headerGroup: any, id: any) => {
-    return (
-      <tr
-        {...headerGroup.getHeaderGroupProps()}
-        className="grid grid-cols-48 w-full truncate"
-        key={id} >
-        {headerGroup.headers.map((column: any, id: any) => {
-          const searchableColumns = ["usuario_nombre", "nombre", "tipo", "fecha", "fecha_creacion", "presupuesto_objeto", "estatus"];
-          if (!visibleColumns.includes(column.id)) return null;
-          return (
-            <th
-              {...column.getHeaderProps(column.getSortByToggleProps())}
-              className={`truncate w-full leading-[1] px-1 py-1 md:py-3 text-center flex justify-center items-center text-xs font-light font-display col-span-${colSpan[column.id]
-                }`}
-              key={id}
-            >
-              <div className="truncate w-full text-center">
-                {typeof column.render("Header") == "string" && t(column.render("Header"))}
-              </div>
-              <span>
-                {column.isSorted ? (column.isSortedDesc ? " 🠻" : " 🠹") : ""}
-              </span>
-              {searchableColumns.includes(column.id) && (
-                <FaSearch
-                  className="ml-2 cursor-pointer"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActiveHeader(activeHeader === column.id ? null : column.id);
-                  }}
-                />
-              )}
-{activeHeader === column.id && (
-  <input
-    ref={inputRef}
-    type="text"
-    value={filters[column.id] || ""}
-    onChange={(e) => setFilters({ ...filters, [column.id]: e.target.value })}
-    className="ml-2 p-1 border rounded w-full"
-    placeholder={`Buscar ${t(column.render("Header"))}`}
-    style={{ maxWidth: '100%' }}
-  />
-)}
-            </th>
-          )
-        })}
-      </tr>
-    )
-  })}
-</thead>
+        <thead className="relative text-xs text-gray-700 uppercase bg-gray-200 w-full truncate">
+          {headerGroups.map((headerGroup: any, id: any) => {
+            return (
+              <tr
+                {...headerGroup.getHeaderGroupProps()}
+                className="grid grid-cols-48 w-full truncate"
+                key={id}
+              >
+                {headerGroup.headers.map((column: any, id: any) => {
+                  const searchableColumns = ["usuario_nombre", "nombre", "tipo", "fecha", "fecha_creacion", "presupuesto_objeto", "estatus"];
+                  if (!visibleColumns.includes(column.id)) return null;
+                  return (
+                    <th
+                      {...column.getHeaderProps(column.getSortByToggleProps())}
+                      className={`truncate w-full leading-[1] px-1 py-1 md:py-3 text-center flex justify-center items-center text-xs font-light font-display col-span-${colSpan[column.id]
+                        }`}
+                      key={id}
+                    >
+                      <div className="truncate w-full text-center">
+                        {typeof column.render("Header") == "string" && t(column.render("Header"))}
+                      </div>
+                      <span>
+                        {column.isSorted ? (column.isSortedDesc ? <FaArrowDown /> : <FaArrowUp />) : ""}
+                      </span>
+                      {searchableColumns.includes(column.id) && (
+                        <FaSearch
+                          className="ml-2 cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveHeader(activeHeader === column.id ? null : column.id);
+                          }}
+                        />
+                      )}
+                      {activeHeader === column.id && (
+                        <div className="absolute top-full w-auto bg-white shadow-lg border rounded mt-1 z-50">
+                          <input
+                            ref={inputRef}
+                            type="text"
+                            value={filters[column.id] || ""}
+                            onChange={(e) => setFilters({ ...filters, [column.id]: e.target.value })}
+                            className="p-2 border rounded w-full"
+                            placeholder={`Buscar ${t(column.render("Header"))}`}
+                          />
+                        </div>
+                      )}
+                      {/* Botón de filtro de columnas, solo en el último header */}
+                      {id === headerGroup.headers.length - 1 && (
+                        <div className="absolute right-0 top-0">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDropdownOpen(!dropdownOpen);
+                            }}
+                            className="bg-gray-200 p-2 rounded-full hover:bg-gray-300"
+                          >
+
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                              className="w-5 h-5 text-gray-700"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M8.34 1.804A1 1 0 0 1 9.32 1h1.36a1 1 0 0 1 .98.804l.295 1.473c.497.144.971.342 1.416.587l1.25-.834a1 1 0 0 1 1.262.125l.962.962a1 1 0 0 1 .125 1.262l-.834 1.25c.245.445.443.919.587 1.416l1.473.294a1 1 0 0 1 .804.98v1.361a1 1 0 0 1-.804.98l-1.473.295a6.95 6.95 0 0 1-.587 1.416l.834 1.25a1 1 0 0 1-.125 1.262l-.962.962a1 1 0 0 1-1.262.125l-1.25-.834a6.953 6.953 0 0 1-1.416.587l-.294 1.473a1 1 0 0 1-.98.804H9.32a1 1 0 0 1-.98-.804l-.295-1.473a6.957 6.957 0 0 1-1.416-.587l-1.25.834a1 1 0 0 1-1.262-.125l-.962-.962a1 1 0 0 1-.125-1.262l.834-1.25a6.957 6.957 0 0 1-.587-1.416l-1.473-.294A1 1 0 0 1 1 10.68V9.32a1 1 0 0 1 .804-.98l1.473-.295c.144-.497.342-.971.587-1.416l-.834-1.25a1 1 0 0 1 .125-1.262l.962-.962A1 1 0 0 1 5.38 3.03l1.25.834a6.957 6.957 0 0 1 1.416-.587l.294-1.473ZM13 10a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" clipRule="evenodd" />
+                            </svg>
+
+                            {/*       <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={1.5}
+        stroke="currentColor"
+        className="w-5 h-5 text-gray-700"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M12 6.75v10.5m5.25-5.25H6.75"
+        />
+      </svg> */}
+                          </button>
+                          {dropdownOpen && id === headerGroup.headers.length - 1 && ( // Dropdown solo para el último header
+                            <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-y-auto z-10">
+                              {columns.map((column) => (
+                                <div
+                                  key={column.id}
+                                  className="flex hover:bg-basePage items-center px-4 py-2"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={visibleColumns.includes(column.id)}
+                                    onChange={() => handleColumnToggle(column.id)}
+                                    className="mr-2"
+                                  />
+                                  {t(column.Header)}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </th>
+                  );
+                })}
+
+
+              </tr>
+            );
+          })}
+        </thead>
         <tbody {...getTableBodyProps()} className="text-gray-700 text-xs bg-white">
           {rows.length >= 1 ? rows.map((row, i) => {
             prepareRow(row);

@@ -116,11 +116,6 @@ const AuthProvider = ({ children }) => {
   const [usuariosTickets, setUsuariosTickets] = useState([])
 
   useEffect(() => {
-    console.log(100011, WihtProvider)
-  }, [WihtProvider])
-
-
-  useEffect(() => {
     const storage_id = localStorage.getItem("_id")
     if (!storage_id) {
       const _id = customAlphabet('1234567890abcdef', 24)()
@@ -209,8 +204,9 @@ const AuthProvider = ({ children }) => {
       /*--------------------------------------------------------------------*/
       const devDomain = ["bodasdehoy", "eventosplanificador", "eventosorganizador", "vivetuboda", "champagne-events", "annloevents", "miamorcitocorazon", "eventosintegrados", "ohmaratilano", "corporativozr"]
       const devSubdomain = [undefined, "invitado", "ticket"]
-      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[9] /*<<<<<<<<<*/
-      const subdomainDevelop = idx === -1 && devSubdomain[0] /*<<<<<<<<<*/
+
+      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[0] 
+      const subdomainDevelop = idx === -1 && devSubdomain[0]
       /*--------------------------------------------------------------------*/
       resp = developments.filter(elem => elem.name === domainDevelop)[0]
       resp.subdomain = ["ticket", "testticket", "invitado", "testinvitado", "dev"].includes(c[0]) ? c[0] : subdomainDevelop

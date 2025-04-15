@@ -1,3 +1,4 @@
+import { Dispatch, MouseEvent, ReactNode, SetStateAction } from "react"
 
 export interface Event {
     _id: string
@@ -112,8 +113,30 @@ export interface OptionsSelect {
     getIcon?: Function
     title: string
     onClick?: any
-    disabled?: boolean
+    idDisabled?: boolean
     vew?: string
+}
+
+export interface FloatMenu {
+    info: any
+    aling?: "top" | "botton"
+    justify?: "start" | "end"
+    options?: OptionsMenu[]
+    position?: position
+}
+
+export interface FloatOptionsMenuInterface {
+    state: boolean
+    values?: FloatMenu
+    select?: string
+    control?: string
+}
+
+export interface OptionsMenu {
+    icon?: JSX.Element
+    title: string
+    onClick?: any
+    isDisabled?: boolean
 }
 
 export interface Notification {
@@ -138,6 +161,13 @@ export interface menu {
     tipo: string
 }
 
+export interface ModalInterface {
+    state: boolean
+    title?: ReactNode | string
+    values?: any
+    setShowDotsOptionsMenu?: Dispatch<SetStateAction<FloatOptionsMenuInterface>>
+}
+
 interface permission {
     title: string
     value: string
@@ -160,12 +190,24 @@ export interface detalle_compartidos_array {
     icon?: any
 }
 
+interface TotalStimatedGuests {
+    children: number
+    adults: number
+}
+
 export interface estimate {
+    viewEstimates: boolean
     coste_estimado: number
     coste_final: number
     pagado: number
     currency: string
+    totalStimatedGuests: TotalStimatedGuests
     categorias_array: estimateCategory[]
+}
+
+export interface StimatedGuests {
+    children: number
+    adults: number
 }
 
 export interface cost {
@@ -181,7 +223,7 @@ export interface estimateCategory extends cost {
 }
 
 export interface expenses extends cost {
-    linkTicket: string
+    linkTask: string[]
     estatus: boolean
     pagos_array: pay[]
     items_array: item[]

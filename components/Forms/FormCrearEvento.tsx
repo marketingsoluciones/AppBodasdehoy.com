@@ -165,7 +165,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
     >
       {({ isSubmitting }) => (
 
-        <Form className="w-full">
+        <Form className="w-full flex flex-col">
           <div className="border-l-2 border-gray-100 pl-3 w-full ">
             <h2 className="font-display text-3xl capitalize text-primary font-light">
               {EditEvent ? t("edit") : t("create")}

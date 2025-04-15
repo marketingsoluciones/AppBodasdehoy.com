@@ -7,7 +7,7 @@ import { PencilEdit } from "../../icons";
 import { MdOutlineDeleteOutline } from "react-icons/md";
 import { Itinerary } from "../../../utils/Interfaces";
 import { Modal } from "../../Utils/Modal";
-import { DeleteConfirmation } from "./DeleteConfirmation";
+import { DeleteConfirmation } from "../../Utils/DeleteConfirmation";
 import { useToast } from "../../../hooks/useToast";
 import { FaCheck } from "react-icons/fa";
 import { useAllowed } from "../../../hooks/useAllowed";
@@ -45,7 +45,7 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
     const [loading, setLoading] = useState<boolean>()
     const [showModalCompartir, setShowModalCompartir] = useState(false);
 
-    const link = `${window.location.origin}/event/itinerary-${event?._id}-${itinerario?._id}`
+    const link = `${window.location.origin}/public-itinerary/itinerary-${event?._id}-${itinerario?._id}`
 
     useEffect(() => {
         setTitle(itinerario?.title)
@@ -56,7 +56,7 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
             console.log("aqui")
             setLoading(true);
             const pdfOptions: GeneratePdfOptions = {
-                html: `${window.location.origin}/event/itinerary-${event._id}-${itinerario._id}`,
+                html: `${window.location.origin}/public-itinerary/itinerary-${event._id}-${itinerario._id}`,
                 filename: `${event.nombre} ${itinerario.title}`.replace(/ /g, "_"),
                 format: "letter"
             }
