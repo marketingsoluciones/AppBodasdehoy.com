@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import { getCurrency } from "../../utils/Funciones";
 import { useAllowed } from "../../hooks/useAllowed";
-import { AuthContextProvider } from "../../context";
 import { useToast } from "../../hooks/useToast";
-import { GoPlus } from "react-icons/go";
 import { useTranslation } from 'react-i18next';
+import { GrMoney } from "react-icons/gr";
 
 
 const AddPagado = ({ set, ...props }) => {
@@ -31,9 +30,9 @@ const AddPagado = ({ set, ...props }) => {
 
   return (
     <>
-      <div className="flex items-center justify-center h-full">
+      <div className="flex items-center justify-center h-full px-2">
         <p onClick={() => costeFional != 0 ? !isAllowed() ? null : handleClick() : toast("error", t("payments_error"))} className=" hover:text-gray-400 transition cursor-pointer">
-          <GoPlus />
+          <GrMoney className="w-4 h-4" />
         </p>
       </div>
     </>

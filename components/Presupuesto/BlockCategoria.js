@@ -191,8 +191,8 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
 
           return (
             <div className="w-full h-full flex items-center justify-center cursor-pointer relative space-x-1">
-              <AddPagado {...props} set={act => setGastoID(act)} />
               <DetallesPago {...props} set={act => setGastoID(act)} />
+              <AddPagado {...props} set={act => setGastoID(act)} />
               <BorrarIcon
                 onClick={!isAllowed() ? null : handleRemove}
                 className="hover:text-gray-300 text-gray-500 transition w-3"
