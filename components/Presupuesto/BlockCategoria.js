@@ -81,7 +81,7 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
         },
       },
       event?.presupuesto_objeto?.viewEstimates && {
-        Header: <p> Estimado <br /> {getCurrency(categoria?.coste_estimado, event?.presupuesto_objeto?.currency)}</p>,
+        Header: <p> Estimado <br /> {getCurrency(categoria?.coste_estimado)}</p>,
         accessor: "coste_estimado",
         id: "coste_estimado",
         Cell: props => {
@@ -104,7 +104,7 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
         },
       },
       {
-        Header: <p>{t("coste total")} <br /> {getCurrency(categoria?.coste_final, event?.presupuesto_objeto?.currency)}</p>,
+        Header: <p>{t("coste total")} <br /> {getCurrency(categoria?.coste_final)}</p>,
         accessor: "coste_final",
         id: "coste_final",
         Cell: props => {
@@ -127,7 +127,7 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
         },
       },
       {
-        Header: <p >Pagado <br /> {getCurrency(categoria?.pagado, event?.presupuesto_objeto?.currency)} </p>,
+        Header: <p >Pagado <br /> {getCurrency(categoria?.pagado)} </p>,
         accessor: "pagado",
         id: "pagado",
         Cell: (props) => <CellPagado {...props} set={act => setGastoID(act)} />,
@@ -153,7 +153,7 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
 
           return (
             <div className="font-displaytext-xs grid place-items-center h-full text-center w-full ">
-              <p className="w-full">{getCurrency(value, event?.presupuesto_objeto?.currency)}</p>
+              <p className="w-full">{getCurrency(value)}</p>
             </div>
           );
         },
@@ -206,7 +206,7 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
 
     // Filtrar columnas nulas (en caso de que `viewEstimates` sea falso)
     return columns.filter(Boolean);
-  }, [categoria, event?.presupuesto_objeto?.currency, event])
+  }, [categoria, event])
 
   const AddGasto = async () => {
     /* let res;
@@ -350,14 +350,14 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
           </div>
           {event?.presupuesto_objeto?.viewEstimates &&
             <div className="flex items-center justify-center col-span-2">
-              <p>{getCurrency(categoria?.coste_estimado, event?.presupuesto_objeto?.currency)}</p>
+              <p>{getCurrency(categoria?.coste_estimado)}</p>
             </div>
           }
           <div className="flex items-center justify-center col-span-2">
-            <p>{getCurrency(categoria?.coste_final, event?.presupuesto_objeto?.currency)}</p>
+            <p>{getCurrency(categoria?.coste_final)}</p>
           </div>
           <div className="flex items-center justify-center col-span-2">
-            <p>{getCurrency(categoria?.pagado, event?.presupuesto_objeto?.currency)}</p>
+            <p>{getCurrency(categoria?.pagado)}</p>
           </div>
         </div>
       </div>

@@ -135,7 +135,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate, showSoporte, setShowSo
             }, [props?.value])
             return (
               <div className="font-display font-semibold text-gray-500 text-[15px] grid place-items-center h-full ">
-                <p className="w-4/5">{getCurrency(value, event?.presupuesto_objeto?.currency)}</p>
+                <p className="w-4/5">{getCurrency(value)}</p>
               </div>
             );
           },

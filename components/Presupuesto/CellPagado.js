@@ -14,7 +14,7 @@ const CellPagado = ({ set, ...props }) => {
   const toast = useToast()
 
   useEffect(() => {
-    setMask(getCurrency(value, event?.presupuesto_objeto?.currency))
+    setMask(getCurrency(value))
   }, [value, event?.presupuesto_objeto?.currency])
 
   useEffect(() => {
