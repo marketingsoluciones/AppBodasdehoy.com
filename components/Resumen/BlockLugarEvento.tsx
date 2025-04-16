@@ -78,16 +78,16 @@ export const BlockLugarEvento = () => {
                 >
                     {/* Input de búsqueda */}
                     <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={handleSearch}
-                        placeholder={lugarEvento?.title || t("search")}
-                        className="flex-1 font-display font-base text-sm text-gray-700 leading-3  focus:outline-none focus:ring-2 focus:ring-primaryOrg"
-                        onClick={(e) => {
-                            e.stopPropagation(); // Evita que el clic cierre el modal
-                            setOpenList(true); // Abre la lista al hacer clic en el input
-                        }}
-                    />
+  type="text"
+  value={searchQuery}
+  onChange={handleSearch}
+  placeholder={lugarEvento?.title || t("search")}
+  className="flex-1 font-display font-base text-sm text-gray-700 leading-3 border-none focus:ring-0 focus:outline-none"
+  onClick={(e) => {
+    e.stopPropagation(); // Evita que el clic cierre el modal
+    setOpenList(true); // Abre la lista al hacer clic en el input
+  }}
+/>
                     <GoSearch
                         className={`w-6 h-6 ${
                             !isAllowed() ? "text-gray-300" : "text-primaryOrg"
