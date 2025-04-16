@@ -230,8 +230,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     }
   }).filter(Boolean)
 
-  console.log(columns)
-
   columns.push(columnOptions)
 
   const table = useReactTable({
@@ -253,7 +251,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
   // }, [columns])
 
   useEffect(() => {
-    console.log(showFloatOptionsMenu?.state, showDotsOptionsMenu?.state)
     if (showFloatOptionsMenu?.control === "ok" && showDotsOptionsMenu?.control === "ok") {
       const showFloatOptionsMenuNew: FloatOptionsMenuInterface = {
         state: true,
@@ -286,14 +283,14 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
           </ClickAwayListener>
         </div>
       }
-      {showFloatOptionsMenu?.state && <FloatOptionsMenu showOptionsMenu={showFloatOptionsMenu} setShowOptionsMenu={setShowFloatOptionsMenu} />
+      {
+        showFloatOptionsMenu?.state && <FloatOptionsMenu showOptionsMenu={showFloatOptionsMenu} setShowOptionsMenu={setShowFloatOptionsMenu} />
       }
       <div className='w-full h-full p-2 ' >
         <table
           className='bg-gray-200 w-full h-full flex flex-col !rounded-xl overflow-auto relative'
           onContextMenuCapture={(e) => {
             const element = document.getElementById("ElementEditable")
-            console.log("click derecho padre")
             if (!element) {
               const position = { x: e.clientX - 8, y: e.clientY - 144 - 124 }
               setShowFloatOptionsMenu({ state: false, values: { info: undefined, position, options }, control: "ok" })
@@ -309,7 +306,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
               return (
                 <tr key={headerGroup.id} className='bg-primary w-full flex border-b-[1px] border-gray-200'>
                   {headerGroup.headers.map(header => {
-                    // console.log(100071, header.column.id, header.getContext().column.columnDef.size)
                     return (
                       <th
                         key={header.id}
@@ -483,9 +479,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
           </tfoot>
         </table>
       </div>
-      <button onClick={() => rerender()} className="border p-2 fixed top-0 left-0 bg-teal-600">
-        Rerender
-      </button>
     </div >
   )
 }

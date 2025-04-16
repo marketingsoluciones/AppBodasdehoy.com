@@ -13,6 +13,8 @@ import { ExcelView } from "../components/Presupuesto/ExcelView";
 import { BlockListaCategorias } from "../components/Presupuesto/BlockListaCategorias";
 import { MontoPresupuesto } from "../components/Presupuesto/MontoPresupuesto";
 import BlockCategoria from "../components/Presupuesto/BlockCategoria";
+import { DuplicatePresupuesto } from "../components/Presupuesto/DuplicatePesupuesto";
+import ClickAwayListener from "react-click-away-listener";
 
 const Presupuesto = () => {
   useMounted()
@@ -23,6 +25,8 @@ const Presupuesto = () => {
   const { event } = EventContextProvider();
   const [categorias, setCategorias] = useState([]);
   const [getId, setGetId] = useState()
+  const [showModalDuplicate, setShowModalDuplicate] = useState(false)
+
 
   const totalCosteFinal = categorias?.reduce((sum, categoria) => {
     return sum + (categoria.coste_final || 0);
@@ -66,6 +70,12 @@ const Presupuesto = () => {
       <>
         {event &&
           <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4 " : "bg-base w-full pb-6 pt-2 md:py-0 h-full"}>
+            {showModalDuplicate && (
+              <div className={"absolute z-50 flex justify-center w-full"} >
+                <DuplicatePresupuesto showModalDuplicate={showModalDuplicate} setModal={setShowModalDuplicate} />
+
+              </div>
+            )}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -106,6 +116,7 @@ const Presupuesto = () => {
                 >
                   <p>{t("pendingpayments")}</p>
                 </div>
+
                 <div className="relative">
                   <div className="absolute z-10 -right-40 -top-2 rounded-full overflow-hidden h-10">
                     <select value={event?.presupuesto_objeto?.currency} className="border-none focus:ring-0 cursor-pointer text-sm text-gray-700 h-10" onChange={(e) => handleChangeS(e)}  >
@@ -119,10 +130,9 @@ const Presupuesto = () => {
                     </select>
                   </div>
                 </div>
-
               </div>
-              <div className="w-full h-[calc(100vh-260px)]">
 
+              <div className="w-full h-[calc(100vh-260px)]">
                 {
                   active == "resumen" && (
                     <motion.div
@@ -180,6 +190,14 @@ const Presupuesto = () => {
                                   <p className="text-xs font-display text-white w-full text-right">
                                     {getCurrency(event?.presupuesto_objeto?.coste_final - event?.presupuesto_objeto?.pagado)}
                                   </p>
+                                </div>
+                              </div>
+                              <div className="flex  justify-between w-full text-sm">
+                                <div onClick={() => setShowModalDuplicate(true)} className=" capitalize text-gray-500 cursor-pointer flex justify-center items-center hover:text-gray-900">
+                                  {t("import")}
+                                </div>
+                                <div className=" text-gray-200 cursor-default flex justify-center items-center">
+                                  {t("export")}
                                 </div>
                               </div>
                             </div>
