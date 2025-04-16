@@ -12,9 +12,9 @@ interface idxGroupEvent {
 }
 
 interface filterGuests {
-  sentados: filterGuest[]
-  noSentados: filterGuest[]
-  update: number
+  sentados?: filterGuest[]
+  noSentados?: filterGuest[]
+  update?: number
 }
 
 interface clicked {
@@ -38,8 +38,8 @@ type Context = {
   setPlanSpaceActive: Dispatch<SetStateAction<planSpace>>
   filterGuests: filterGuests
   setFilterGuests: Dispatch<SetStateAction<filterGuests>>
-  allFilterGuests: filterGuests[]
-  setAllFilterGuests: Dispatch<SetStateAction<filterGuests[]>>
+  allFilterGuests: filterGuests
+  setAllFilterGuests: Dispatch<SetStateAction<filterGuests>>
   editDefault: EditDefaultTableAndElement | null
   setEditDefault: Dispatch<SetStateAction<EditDefaultTableAndElement>>
 }
@@ -55,7 +55,7 @@ const EventContext = createContext<Context>({
   setPlanSpaceActive: () => { },
   filterGuests: { sentados: [], noSentados: [], update: 0 },
   setFilterGuests: () => { },
-  allFilterGuests: [{ sentados: [], noSentados: [], update: 0 }],
+  allFilterGuests: { sentados: [], noSentados: [], update: 0 },
   setAllFilterGuests: () => { },
   editDefault: null,
   setEditDefault: () => { }
@@ -72,7 +72,7 @@ const EventProvider = ({ children }) => {
   const { eventsGroup, setEventsGroup } = EventsGroupContextProvider()
   const [planSpaceActive, setPlanSpaceActive] = useState<planSpace | null>(null);
   const [filterGuests, setFilterGuests] = useState<filterGuests>({ sentados: [], noSentados: [], update: 0 })
-  const [allFilterGuests, setAllFilterGuests] = useState<filterGuests[]>([{ sentados: [], noSentados: [], update: 0 }])
+  const [allFilterGuests, setAllFilterGuests] = useState<filterGuests>({ sentados: [], noSentados: [], update: 0 })
   const [editDefault, setEditDefault] = useState<EditDefaultTableAndElement>()
   const { user } = AuthContextProvider()
 

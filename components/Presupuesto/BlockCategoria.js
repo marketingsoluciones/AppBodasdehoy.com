@@ -177,9 +177,9 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
                     gasto_id: props?.row?.original?._id,
                   },
                 }).then(result => {
-                  const f1 = event.presupuesto_objeto.categorias_array.findIndex(elem => elem._id === categoria?._id)
-                  const f2 = event.presupuesto_objeto.categorias_array[f1].gastos_array.findIndex(elem => elem._id === props?.row?.original?._id)
-                  event.presupuesto_objeto.categorias_array[f1].gastos_array.splice(f2, 1)
+                  const f1 = event?.presupuesto_objeto?.categorias_array.findIndex(elem => elem._id === categoria?._id)
+                  const f2 = event?.presupuesto_objeto?.categorias_array[f1].gastos_array.findIndex(elem => elem._id === props?.row?.original?._id)
+                  event?.presupuesto_objeto?.categorias_array[f1].gastos_array.splice(f2, 1)
                   resolve(event)
                 })
               }).then((result) => {
@@ -254,8 +254,8 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
           nombre: "Nueva part. de gasto",
         }
       }).then((result) => {
-        const f1 = event.presupuesto_objeto.categorias_array.findIndex((elem) => elem._id === categoria?._id)
-        event.presupuesto_objeto.categorias_array[f1].gastos_array.push(result)
+        const f1 = event?.presupuesto_objeto?.categorias_array.findIndex((elem) => elem._id === categoria?._id)
+        event?.presupuesto_objeto?.categorias_array[f1].gastos_array.push(result)
         setEvent({ ...event })
       })
     } catch (error) {

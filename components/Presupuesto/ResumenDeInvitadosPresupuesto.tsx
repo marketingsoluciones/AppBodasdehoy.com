@@ -20,8 +20,8 @@ export const ResumenInvitados = ({ }) => {
                 query: queries.editTotalStimatedGuests,
                 variables: {
                     evento_id: event._id,
-                    adults: event.presupuesto_objeto.totalStimatedGuests.adults,
-                    children: event.presupuesto_objeto.totalStimatedGuests.children,
+                    adults: event?.presupuesto_objeto?.totalStimatedGuests.adults,
+                    children: event?.presupuesto_objeto?.totalStimatedGuests.children,
                     [accessor]: value,
                 }
             }).then(() => {
@@ -43,8 +43,8 @@ export const ResumenInvitados = ({ }) => {
                 <p className="font-display text-sm md:text-[16px] text-primary capitalize">{t("Invitados")} estimados</p>
             </div>
             <div className="flex flex-col justify-center w-28">
-                <EditableLabelWithInput value={event.presupuesto_objeto?.totalStimatedGuests?.adults} type="int" handleChange={handleOnBlur} accessor="adults" textAlign="center" />
-                <EditableLabelWithInput value={event.presupuesto_objeto?.totalStimatedGuests?.children} type="int" handleChange={handleOnBlur} accessor="children" textAlign="center" />
+                <EditableLabelWithInput value={event?.presupuesto_objeto?.totalStimatedGuests?.adults} type="int" handleChange={handleOnBlur} accessor="adults" textAlign="center" />
+                <EditableLabelWithInput value={event?.presupuesto_objeto?.totalStimatedGuests?.children} type="int" handleChange={handleOnBlur} accessor="children" textAlign="center" />
             </div>
         </div>
     )

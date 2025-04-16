@@ -32,18 +32,18 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
   const [showModalDelete, setShowModalDelete] = useState<ModalInterface>({ state: false, title: null, values: null })
 
 
- /*  const DefinirCoste = (item) => {
-    if (item.coste_final >= item.coste_estimado) {
-      return item.coste_final
-    } else {
-      return item.coste_estimado
-    }
-  } */
+  /*  const DefinirCoste = (item) => {
+     if (item.coste_final >= item.coste_estimado) {
+       return item.coste_final
+     } else {
+       return item.coste_estimado
+     }
+   } */
 
- /*  const Lista = [
-    { title: "Editar", action: () => setShowEditCategorie(true) },
-    { title: "Borrar", action: (item) => setShowModalDelete({ state: true, values: { object: "categoria", _id: item._id }, title: item.nombre }) }
-  ]; */
+  /*  const Lista = [
+     { title: "Editar", action: () => setShowEditCategorie(true) },
+     { title: "Borrar", action: (item) => setShowModalDelete({ state: true, values: { object: "categoria", _id: item._id }, title: item.nombre }) }
+   ]; */
 
   const handleOnBlur = ({ value, accessor }) => {
     try {
@@ -88,7 +88,7 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
         }}
         className={`text-xs w-full py-0.5 md:py-0 md:h-11 justify-center items-center flex pl-5 md:pl-2 transition hover:bg-base ${showCategoria?._id == item._id ? "bg-slate-200" : "bg-white"}`}
       >
-       {/*  {showEditCategorie && (
+        {/*  {showEditCategorie && (
           <ModalLeft state={showEditCategorie} set={setShowEditCategorie}>
             <FormEditarCategoria categoria={item} state={showEditCategorie} set={setShowEditCategorie} />
           </ModalLeft>
@@ -104,14 +104,14 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
               accessor={null}
               textAlign="left" />
           </span>
-          <span className={`flex justify-end w-full ${event.presupuesto_objeto?.coste_estimado?.toString()?.length < 9 ? "text-[11px]" : "text-[10px]"}`} >
+          <span className={`flex justify-end w-full ${event?.presupuesto_objeto?.coste_estimado?.toString()?.length < 9 ? "text-[11px]" : "text-[10px]"}`} >
             <div className="flex w-[97%] space-x-3">
               <div className="w-1/2 flex justify-end space-x-1">
                 {event?.presupuesto_objeto?.viewEstimates && <>
                   <span >
                     {getCurrency(item?.coste_estimado)}
                   </span>
-                  <span className={`text-[10px] ${event.presupuesto_objeto?.coste_estimado?.toString().length < 9 ? "translate-y-[1.3px]" : ""}`}>
+                  <span className={`text-[10px] ${event?.presupuesto_objeto?.coste_estimado?.toString().length < 9 ? "translate-y-[1.3px]" : ""}`}>
                     Estimado
                   </span>
                 </>
@@ -121,7 +121,7 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
                 <span >
                   {getCurrency(item.coste_final)}
                 </span>
-                <span className={`text-[10px] ${event.presupuesto_objeto?.coste_estimado?.toString().length < 9 ? "translate-y-[1.3px]" : ""}`}>
+                <span className={`text-[10px] ${event?.presupuesto_objeto?.coste_estimado?.toString().length < 9 ? "translate-y-[1.3px]" : ""}`}>
                   Total
                 </span>
               </div>

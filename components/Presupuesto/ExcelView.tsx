@@ -184,10 +184,10 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
                                             const cantidad = el.unidad === "xUni."
                                                 ? el.cantidad
                                                 : el.unidad === "xNiños."
-                                                    ? event.presupuesto_objeto?.totalStimatedGuests?.children
+                                                    ? event?.presupuesto_objeto?.totalStimatedGuests?.children
                                                     : el.unidad === "xAdultos."
-                                                        ? event.presupuesto_objeto?.totalStimatedGuests?.adults
-                                                        : event.presupuesto_objeto?.totalStimatedGuests?.children + event.presupuesto_objeto?.totalStimatedGuests?.adults
+                                                        ? event?.presupuesto_objeto?.totalStimatedGuests?.adults
+                                                        : event?.presupuesto_objeto?.totalStimatedGuests?.children + event?.presupuesto_objeto?.totalStimatedGuests?.adults
                                             let coste_final_item = cantidad * el.valor_unitario
                                             coste_final_gasto = coste_final_gasto + coste_final_item
                                             valirFirtsChildGasto = false
