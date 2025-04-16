@@ -34,6 +34,28 @@ const Presupuesto = () => {
     setCategorias(event?.presupuesto_objeto?.categorias_array)
   }, [event])
 
+  const handleChangeS = (e) => {
+    const params = {
+      query: `mutation {
+          editCurrency(evento_id:"${event._id}", currency:"${e.target.value}"  ){
+            currency
+          }
+        }`,
+      variables: {},
+    }
+    try {
+      api.ApiApp(params).then(result => {
+        const currency = result.data.data.editCurrency
+        setModificar(false)
+        const presupuesto_objeto = { ...event.presupuesto_objeto, ...currency }
+        event.presupuesto_objeto = presupuesto_objeto
+        setEvent({ ...event })
+      })
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   if (verificationDone) {
     if (!user) {
       return (
@@ -51,6 +73,7 @@ const Presupuesto = () => {
               exit={{ opacity: 0 }}
               className={`${active === "excelView" ? "max-w-screen-[1920px]" : "max-w-screen-lg"} flex flex-col mx-auto inset-x-0 px-2 md:px-0 w-full h-full relative`}
             >
+
               <BlockTitle title={"Presupuesto"} />
               <div className="w-full flex justify-center my-2 mt-4 rounded-2xl text-xs md:text-sm">
                 <div
@@ -83,6 +106,19 @@ const Presupuesto = () => {
                     } h-full flex  justify-center items-center  cursor-pointer rounded-r-2xl`}
                 >
                   <p>{t("pendingpayments")}</p>
+                </div>
+                <div className="relative">
+                  <div className="absolute z-10 -right-40 -top-2 rounded-full overflow-hidden h-10">
+                    <select value={event?.presupuesto_objeto?.currency} className="border-none focus:ring-0 cursor-pointer text-sm text-gray-700 h-10" onChange={(e) => handleChangeS(e)}  >
+                      <option value={"eur"}>EUR</option>
+                      <option value={"usd"}>USD</option>
+                      <option value={"ves"}>VES</option>
+                      <option value={"mxn"}>MXN</option>
+                      <option value={"cop"}>COL</option>
+                      <option value={"ars"}>ARG</option>
+                      <option value={"uyu"}>URU</option>
+                    </select>
+                  </div>
                 </div>
 
               </div>
@@ -132,17 +168,18 @@ const Presupuesto = () => {
                               <div className=" w-full rounded-xl overflow-hidden flex my-2">
                                 <div className="w-1/2 bg-primary py-1 px-3">
                                   <p className="text-xs font-display text-white">
-                                    {t("paid")} {
-                                      getCurrency(
-                                        event?.presupuesto_objeto?.pagado,
-                                        event?.presupuesto_objeto?.currency
-                                      )
-                                    }
+                                    {t("paid")}
+                                  </p>
+                                  <p className="text-xs font-display text-white w-full text-right">
+                                    {getCurrency(event?.presupuesto_objeto?.pagado)}
                                   </p>
                                 </div>
                                 <div className="w-1/2 bg-tertiary py-1 px-3">
                                   <p className="text-xs font-display text-primary">
-                                    {t("payable")} {getCurrency(event?.presupuesto_objeto?.coste_final - event?.presupuesto_objeto?.pagado, event?.presupuesto_objeto?.currency)}
+                                    {t("payable")}
+                                  </p>
+                                  <p className="text-xs font-display text-white w-full text-right">
+                                    {getCurrency(event?.presupuesto_objeto?.coste_final - event?.presupuesto_objeto?.pagado)}
                                   </p>
                                 </div>
                               </div>

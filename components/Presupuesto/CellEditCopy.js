@@ -31,7 +31,7 @@ const CellEditCopy = (props) => {
       setMask(value)
     }
     if (props?.type == "number") {
-      setMask(getCurrency(value, event?.presupuesto_objeto?.currency));
+      setMask(getCurrency(value));
     }
     if (props?.type == "cantidad") {
       value

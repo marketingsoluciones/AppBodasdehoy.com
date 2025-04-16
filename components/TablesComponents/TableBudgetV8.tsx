@@ -27,7 +27,7 @@ interface props {
   setLoading: any
 }
 
-interface ColumnVisibility {
+export interface InitialColumn {
   accessor: string
   header?: string
   size?: number
@@ -59,7 +59,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
   const [isAllowed, ht] = useAllowed()
   const toast = useToast()
 
-  const initialColumnVisibility: ColumnVisibility[] = [
+  const initialColumn: InitialColumn[] = [
     { accessor: "categoria", header: t("categoria"), isEditabled: true },
     { accessor: "gasto", header: t("partida de gasto"), isEditabled: true },
     { accessor: "unidad", header: t("unidad"), size: defaultSize.int, type: "select", isEditabled: true },
@@ -147,7 +147,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
 
   const columnOptions = columnHelper.accessor("options", {
     id: "options",
-    header: info => <SelectVisiblesColumns columns={initialColumnVisibility} />,
+    header: null,
     cell: info => {
       return <div className='w-full h-full sticky z-10'>
         {(showDotsOptionsMenu?.state && showDotsOptionsMenu?.values?.info?.row?.original?._id === info.row.original._id) && <FloatOptionsMenu showOptionsMenu={showDotsOptionsMenu} setShowOptionsMenu={setShowDotsOptionsMenu} />}
@@ -185,7 +185,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     size: 45,
   })
 
-  const columns = initialColumnVisibility.map((elem, idx) => {
+  const columns = initialColumn.map((elem, idx) => {
     if (!elem.isHidden) {
       const elemtOut = columnHelper.accessor(elem?.accessor ?? elem?.header,
         {
@@ -233,7 +233,11 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
   console.log(columns)
 
   columns.push(columnOptions)
+
   const table = useReactTable({
+    state: {
+      columnVisibility,
+    },
     onColumnVisibilityChange: setColumnVisibility,
     data,
     columns,
@@ -263,6 +267,9 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
 
   return (
     < div className="text-sm w-full h-full font-calibri relative." >
+      <div className='absolute z-30 right-4 -translate-y-10'>
+        <SelectVisiblesColumns columns={initialColumn} table={table} />
+      </div>
       {
         RelacionarPagoModal.crear &&
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -344,8 +351,8 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                 >
                   {row.getVisibleCells().map(cell => {
                     // console.log(100091, cell.getContext())
-                    const verticalAlignment = initialColumnVisibility.find(elem => elem.accessor === cell.getContext().column.columnDef.id)?.verticalAlignment
-                    const horizontalAlignment = initialColumnVisibility.find(elem => elem.accessor === cell.getContext().column.columnDef.id)?.horizontalAlignment
+                    const verticalAlignment = initialColumn.find(elem => elem.accessor === cell.getContext().column.columnDef.id)?.verticalAlignment
+                    const horizontalAlignment = initialColumn.find(elem => elem.accessor === cell.getContext().column.columnDef.id)?.horizontalAlignment
                     const className = `
                       ${horizontalAlignment === "start" ? "justify-start" : horizontalAlignment === "center" ? "justify-center" : horizontalAlignment === "end" ? "justify-end" : ""}
                       ${verticalAlignment === "start" ? "items-start" : verticalAlignment === "center" ? "items-center" : verticalAlignment === "end" ? "items-end" : ""}
@@ -391,7 +398,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                         key={cell.id}
                         onDoubleClick={() => console.log(row.original)}
                         onClick={() => {
-                          const initialValue = initialColumnVisibility.find(elem => elem.accessor === cell.getContext().column.columnDef.id)
+                          const initialValue = initialColumn.find(elem => elem.accessor === cell.getContext().column.columnDef.id)
                           !!initialValue && !!initialValue["onClick"] && initialValue.onClick(cell.getContext())
                         }}
                         style={{
