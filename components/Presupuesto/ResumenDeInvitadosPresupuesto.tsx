@@ -16,10 +16,6 @@ export const ResumenInvitados = ({ }) => {
 
     const handleOnBlur = ({ value, accessor }: asd) => {
         try {
-            const values = {
-                adults: 10,
-                children: 5
-            }
             fetchApiEventos({
                 query: queries.editTotalStimatedGuests,
                 variables: {

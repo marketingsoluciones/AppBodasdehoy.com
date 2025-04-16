@@ -28,7 +28,6 @@ const Presupuesto = () => {
     return sum + (categoria.coste_final || 0);
   }, 0);
 
-  console.log("Total coste", totalCosteFinal)
 
   useEffect(() => {
     setCategorias(event?.presupuesto_objeto?.categorias_array)
