@@ -94,7 +94,7 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
           </ModalLeft>
         )} */}
         <div className="flex-1 flex flex-col space-y-1 md:space-y-0">
-          <span className="flex justify-start items-center text-sm"
+          <span className="flex justify-start items-center text-sm w-max"
             onClick={(e) => e.stopPropagation()}
           >
             <EditableLabelWithInput
