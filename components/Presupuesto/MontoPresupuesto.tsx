@@ -67,73 +67,42 @@ export const MontoPresupuesto = ({ estimado }) => {
     }
   }
 
-  const handleChangeS = (e) => {
-    const params = {
-      query: `mutation {
-        editCurrency(evento_id:"${event._id}", currency:"${e.target.value}"  ){
-          currency
-        }
-      }`,
-      variables: {},
-    }
-    try {
-      api.ApiApp(params).then(result => {
-        const currency = result.data.data.editCurrency
-        setModificar(false)
-        const presupuesto_objeto = { ...event.presupuesto_objeto, ...currency }
-        event.presupuesto_objeto = presupuesto_objeto
-        setEvent({ ...event })
-      })
-    } catch (error) {
-      console.log(error)
-    }
-  }
-
   return (
-    <div className="flex flex-col w-full items-center relative">
-      <Switch isOn={event?.presupuesto_objeto?.viewEstimates} onToggle={(value) => handleChangeViewEstimates(value)} />
+    <>
       <div className="flex flex-col w-full items-center relative">
-        {!event?.presupuesto_objeto?.viewEstimates && <div className="bg-white opacity-50 absolute w-full h-full" />}
-        <CochinoIcon className="w-12 h-12 text-gray-500 " />
-        <p className="font-display text-gray-500 font-light text-md grid place-items-center">
-          {t("estimatedbudget")} <br />
-        </p>
-        {modificar
-          ? <input
-            type="number"
-            min={0}
-            value={!!value ? value : ""}
-            onBlur={handleBlur}
-            onChange={(e) => handleChange(e)}
-            onKeyDown={(e) => keyDown(e)}
-            className="font-display appearance-none text-gray-500 font-semibold text-lg text-center border-b w-1/2 focus:ring-0 focus:outline-none border-gray-200"
-          />
-          : <div className="font-display flex justify-center text-gray-500 font-semibold text-lg text-center">
-            <span className="flex justify-end items-center min-w-36">
-              {event?.presupuesto_objeto?.viewEstimates && new Intl.NumberFormat(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              }).format(parseInt(mask))}
-            </span>
-            <div className="z-10">
-              <select value={event?.presupuesto_objeto?.currency} className="border-none focus:ring-0 cursor-pointer" onChange={(e) => handleChangeS(e)}  >
-                <option value={"eur"}>EUR</option>
-                <option value={"usd"}>USD</option>
-                <option value={"ves"}>VES</option>
-                <option value={"mxn"}>MXN</option>
-                <option value={"cop"}>COL</option>
-                <option value={"ars"}>ARG</option>
-                <option value={"uyu"}>URU</option>
-              </select>
+        <Switch isOn={event?.presupuesto_objeto?.viewEstimates} onToggle={(value) => handleChangeViewEstimates(value)} />
+        <div className="flex flex-col w-full items-center relative">
+          {!event?.presupuesto_objeto?.viewEstimates && <div className="bg-white opacity-50 absolute w-full h-full" />}
+          <CochinoIcon className="w-12 h-12 text-gray-500 " />
+          <p className="font-display text-gray-500 font-light text-md grid place-items-center">
+            {t("estimatedbudget")} <br />
+          </p>
+          {modificar
+            ? <input
+              type="number"
+              min={0}
+              value={!!value ? value : ""}
+              onBlur={handleBlur}
+              onChange={(e) => handleChange(e)}
+              onKeyDown={(e) => keyDown(e)}
+              className="font-display appearance-none text-gray-500 font-semibold text-lg text-center border-b w-1/2 focus:ring-0 focus:outline-none border-gray-200"
+            />
+            : <div className="font-display flex justify-center text-gray-500 font-semibold text-lg text-center">
+              <span className="flex justify-end items-center min-w-36 h-10">
+                {event?.presupuesto_objeto?.viewEstimates && new Intl.NumberFormat(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }).format(parseInt(mask))}
+              </span>
             </div>
-          </div>
-        }
-        <button
-          onClick={() => !isAllowed() ? ht() : setModificar(!modificar)}
-          className="border-primary border font-display focus:outline-none text-primary text-xs bg-white px-3 py-1 rounded-lg my-2 hover:bg-primary hover:text-white transition"
-        >
-          {modificar ? "Aceptar" : "Modificar presupuesto"}
-        </button>
+          }
+          <button
+            onClick={() => !isAllowed() ? ht() : setModificar(!modificar)}
+            className="border-primary border font-display focus:outline-none text-primary text-xs bg-white px-3 py-1 rounded-lg my-2 hover:bg-primary hover:text-white transition"
+          >
+            {modificar ? "Aceptar" : "Modificar presupuesto"}
+          </button>
+        </div>
       </div>
       <style jsx>
         {`
@@ -144,6 +113,6 @@ export const MontoPresupuesto = ({ estimado }) => {
           }
         `}
       </style>
-    </div>
+    </>
   );
 };

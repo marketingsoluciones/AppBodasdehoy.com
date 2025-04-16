@@ -28,10 +28,11 @@ export function useDelayUnmount(isMounted, delayTime) {
   return shouldRender;
 }
 
-export const getCurrency = (value, currency = "EUR") => {
+export const getCurrency = (value, currency) => {
+  console.log(navigator.language)
   const v = parseFloat(!!value ? value : 0)
   return v.toLocaleString(navigator.language, {
-    style: "currency",
+    style: currency ? "currency" : "decimal",
     currency: currency,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,

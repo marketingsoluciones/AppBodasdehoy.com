@@ -1304,6 +1304,10 @@ export const queries = {
       coste_estimado
       pagado
       currency
+      totalStimatedGuests{
+        children
+        adults
+      }
       categorias_array {
         _id
         coste_proporcion

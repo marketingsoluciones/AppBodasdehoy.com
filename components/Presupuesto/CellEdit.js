@@ -24,7 +24,7 @@ const CellEdit = (props) => {
       setMask(value)
     }
     if (props?.type == "number") {
-      setMask(getCurrency(value, event?.presupuesto_objeto?.currency));
+      setMask(getCurrency(value));
     }
   }, [value, event?.presupuesto_objeto?.currency]);
 
