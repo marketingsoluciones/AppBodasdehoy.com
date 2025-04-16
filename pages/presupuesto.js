@@ -15,6 +15,7 @@ import { MontoPresupuesto } from "../components/Presupuesto/MontoPresupuesto";
 import BlockCategoria from "../components/Presupuesto/BlockCategoria";
 import { DuplicatePresupuesto } from "../components/Presupuesto/DuplicatePesupuesto";
 import ClickAwayListener from "react-click-away-listener";
+import { api } from "../api";
 
 const Presupuesto = () => {
   useMounted()
@@ -22,7 +23,7 @@ const Presupuesto = () => {
   const { user, verificationDone, forCms } = AuthContextProvider()
   const [showCategoria, setShowCategoria] = useState({ state: false, _id: "" });
   const [active, setActive] = useState("resumen");
-  const { event } = EventContextProvider();
+  const { event, setEvent } = EventContextProvider();
   const [categorias, setCategorias] = useState([]);
   const [getId, setGetId] = useState()
   const [showModalDuplicate, setShowModalDuplicate] = useState(false)
@@ -48,10 +49,8 @@ const Presupuesto = () => {
     }
     try {
       api.ApiApp(params).then(result => {
-        const currency = result.data.data.editCurrency
-        setModificar(false)
-        const presupuesto_objeto = { ...event.presupuesto_objeto, ...currency }
-        event.presupuesto_objeto = presupuesto_objeto
+        const currency = result?.data?.data?.editCurrency?.currency
+        event.presupuesto_objeto.currency = currency
         setEvent({ ...event })
       })
     } catch (error) {

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { GlobalCurrency } from "../context/EventContext"
 
 export const Loading = (set) => {
   set(true)
@@ -29,13 +30,14 @@ export function useDelayUnmount(isMounted, delayTime) {
 }
 
 export const getCurrency = (value, currency) => {
-  console.log(navigator.language)
+
+  console.log(navigator.language, currency, { GlobalCurrency }, value)
   const v = parseFloat(!!value ? value : 0)
-  return v.toLocaleString(navigator.language, {
+  return v.toLocaleString(currency ? navigator.language : undefined, {
     style: currency ? "currency" : "decimal",
     currency: currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: !["cop"].includes(GlobalCurrency) ? 2 : 0,
+    maximumFractionDigits: !["cop"].includes(GlobalCurrency) ? 2 : 0,
   })
 }
 

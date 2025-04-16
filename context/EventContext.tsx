@@ -61,6 +61,9 @@ const EventContext = createContext<Context>({
   setEditDefault: () => { }
 })
 
+export let GlobalCurrency = ""
+
+
 const EventProvider = ({ children }) => {
   const [event, setEvent] = useState<Event | null>(null);
   const [invitadoCero, setInvitadoCero] = useState<string | null>(null);
@@ -100,6 +103,7 @@ const EventProvider = ({ children }) => {
 
   useEffect(() => {
     if (event) {
+      GlobalCurrency = event?.presupuesto_objeto?.currency
       console.log("seteado event", event)
       const f1 = eventsGroup.findIndex(elem => elem?._id === event?._id)
       eventsGroup.splice(f1, 1, event)

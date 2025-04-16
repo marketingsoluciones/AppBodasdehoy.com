@@ -3,6 +3,7 @@ import ClickAwayListener from "react-click-away-listener";
 import { useAllowed } from "../../hooks/useAllowed";
 import { FaPencilAlt } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
+import { getCurrency } from "../../utils/Funciones";
 
 interface props {
   accessor: string
@@ -80,18 +81,12 @@ export const EditableLabelWithInput: FC<props> = ({ value, type, handleChange, a
             {["int", "float"].includes(type) && typeof newValue === "string"
               ? newValue !== ""
                 ? type === "float"
-                  ? new Intl.NumberFormat(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  }).format(parseInt(newValue))
+                  ? getCurrency(parseFloat(newValue))
                   : new Intl.NumberFormat().format(parseInt(newValue))
                 : 0
               : typeof newValue === "number"
                 ? type === "float"
-                  ? new Intl.NumberFormat(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  }).format(newValue)
+                  ? getCurrency(newValue)
                   : new Intl.NumberFormat().format(newValue)
                 : newValue}
             {!isLabelDisabled && <span className="ml-1">{t(accessor)}</span>}

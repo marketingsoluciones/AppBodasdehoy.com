@@ -19,6 +19,7 @@ import { useToast } from '../../hooks/useToast';
 import FormAddPago from '../Forms/FormAddPago';
 import ClickAwayListener from 'react-click-away-listener';
 import { SelectVisiblesColumns } from './SelectVisiblesColumns';
+import { getCurrency } from '../../utils/Funciones';
 
 interface props {
   data: any
@@ -216,10 +217,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                 />
               : elem.type === "float"
                 ? typeof info.getValue() === "number"
-                  ? new Intl.NumberFormat(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  }).format(info.getValue())
+                  ? getCurrency(info.getValue())
                   : null
                 : info.getValue()
           },

@@ -7,6 +7,7 @@ import { CochinoIcon } from "../icons";
 import { Switch } from "../../components/Forms/Switch";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { estimate } from "../../utils/Interfaces";
+import { getCurrency } from "../../utils/Funciones";
 
 export const MontoPresupuesto = ({ estimado }) => {
   const { t } = useTranslation();
@@ -89,10 +90,7 @@ export const MontoPresupuesto = ({ estimado }) => {
             />
             : <div className="font-display flex justify-center text-gray-500 font-semibold text-lg text-center">
               <span className="flex justify-end items-center min-w-36 h-10">
-                {event?.presupuesto_objeto?.viewEstimates && new Intl.NumberFormat(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                }).format(parseInt(mask))}
+                {event?.presupuesto_objeto?.viewEstimates && getCurrency(parseFloat(mask))}
               </span>
             </div>
           }
