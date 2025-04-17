@@ -96,7 +96,7 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
                 handleChange({ values, info: props, event, setEvent });
               }}
               type={"float"}
-              value={value}
+              value={value.toFixed(2)}
               textAlign={"center"}
               isLabelDisabled
             />
