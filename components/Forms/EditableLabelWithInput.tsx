@@ -57,7 +57,7 @@ export const EditableLabelWithInput: FC<props> = ({ value, type, handleChange, a
               setNewValue(e.target.value.replace(/^0+$/, "0").replace(/^0+(?=\d)/, ""))
             }}
             onKeyDown={(e) => keyDown(e)}
-            value={`${newValue}`.replace(/\+/g, "").replace(/\-/g, "")}
+            value={typeof newValue === "number" ? newValue.toFixed(2) : `${newValue}`.replace(/\+/g, "").replace(/\-/g, "")}
             autoFocus
             className={`text-sm outline-none ring-0 border-none focus:outline-none focus:ring-0 focus:border-none w-full ${["start", "left"].includes(textAlign) ? "text-left" : ["center"].includes(textAlign) ? "text-center" : ["right", "end"].includes(textAlign) ? "text-right" : ``}`}
           />
