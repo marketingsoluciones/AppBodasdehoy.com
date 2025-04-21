@@ -55,9 +55,9 @@ export const DuplicatePresupuesto = ({ setModal, showModalDuplicate }) => {
 
         < ClickAwayListener onClickAway={() => showModalDuplicate && setModal(false)}>
 
-            <div className=" md:w-[650px] bg-white rounded-xl shadow-md">
+            <div className=" md:w-[650px] bg-white rounded-xl shadow-md capitalize">
                 <div className="flex items-center justify-between border-b border-gray-300 pb-2 p-4">
-                    <h2 className="text-lg font-semibold capitalize text-gray-700">Importar presupuesto </h2>
+                    <h2 className="text-lg font-semibold capitalize text-gray-700">{t("importBudget")} </h2>
                     <button className="text-gray-500" onClick={() => { setModal(false) }}>
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M3.707 3.293a1 1 0 0 1 1.414 0L10 8.586l5.293-5.293a1 1 0 1 1 1.414 1.414L11.414 10l5.293 5.293a1 1 0 1 1-1.414 1.414L10 11.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L8.586 10 3.293 4.707a1 1 0 0 1 0-1.414z" />
@@ -66,7 +66,7 @@ export const DuplicatePresupuesto = ({ setModal, showModalDuplicate }) => {
                 </div>
                 <div className="grid md:grid-cols-11 md:gap-4 px-3 py-6">
                     <div className="col-span-5 md:w-[270px] w-[313px]">
-                        <label className="text-sm text-gray-500 capitalize"> Importar en</label>
+                        <label className="text-sm text-gray-500 capitalize">{t("importInto")}</label>
                         <div className="w-full border border-gray-300 cursor-default rounded-md p-[6.5px] text-azulCorporativo capitalize truncate">
                             {event.nombre}
                         </div>
@@ -75,7 +75,7 @@ export const DuplicatePresupuesto = ({ setModal, showModalDuplicate }) => {
                         <GoArrowLeft className="w-5 h-5 " />
                     </div>
                     <div className="col-span-5 ">
-                        <label className="text-sm text-gray-500 capitalize">desde</label>
+                        <label className="text-sm text-gray-500 capitalize">{t("from")}</label>
                         <Select
                             options={EventsNombre}
                             onChange={handleSelectChangee}
@@ -87,7 +87,7 @@ export const DuplicatePresupuesto = ({ setModal, showModalDuplicate }) => {
                 </div>
                 <div className=" text-xs flex justify-end gap-4 border-t border-gray-300 px-4 pb-4 bg-gray-100">
                     <button onClick={() => { setModal(false) }} className="bg-gray-400 text-white rounded-md py-2 px-4 mt-4">{t("cancel")}</button>
-                    <button onClick={() => handleDuplicate()} disabled={!selectedOption} className={`${!selectedOption ? "bg-gray-300" : "bg-primary"} text-white rounded-md py-2 px-4 mt-4 capitalize`}>Importar</button>
+                    <button onClick={() => handleDuplicate()} disabled={!selectedOption} className={`${!selectedOption ? "bg-gray-300" : "bg-primary"} text-white rounded-md py-2 px-4 mt-4 capitalize`}>{t("import")}</button>
                 </div>
             </div>
         </ClickAwayListener >

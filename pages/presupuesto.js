@@ -16,6 +16,7 @@ import BlockCategoria from "../components/Presupuesto/BlockCategoria";
 import { DuplicatePresupuesto } from "../components/Presupuesto/DuplicatePesupuesto";
 import ClickAwayListener from "react-click-away-listener";
 import { api } from "../api";
+import { useAllowed } from "../hooks/useAllowed";
 
 const Presupuesto = () => {
   useMounted()
@@ -27,7 +28,7 @@ const Presupuesto = () => {
   const [categorias, setCategorias] = useState([]);
   const [getId, setGetId] = useState()
   const [showModalDuplicate, setShowModalDuplicate] = useState(false)
-
+  const [isAllowed, ht] = useAllowed()
 
   const totalCosteFinal = categorias?.reduce((sum, categoria) => {
     return sum + (categoria.coste_final || 0);
@@ -39,6 +40,7 @@ const Presupuesto = () => {
   }, [event])
 
   const handleChangeS = (e) => {
+
     const params = {
       query: `mutation {
           editCurrency(evento_id:"${event._id}", currency:"${e.target.value}"  ){
@@ -72,7 +74,6 @@ const Presupuesto = () => {
             {showModalDuplicate && (
               <div className={"absolute z-50 flex justify-center w-full"} >
                 <DuplicatePresupuesto showModalDuplicate={showModalDuplicate} setModal={setShowModalDuplicate} />
-
               </div>
             )}
             <motion.div
@@ -118,7 +119,7 @@ const Presupuesto = () => {
 
                 <div className="relative">
                   <div className="absolute z-10 -right-40 -top-2 rounded-full overflow-hidden h-10">
-                    <select value={event?.presupuesto_objeto?.currency} className="border-none focus:ring-0 cursor-pointer text-sm text-gray-700 h-10" onChange={(e) => handleChangeS(e)}  >
+                    <select disabled={!isAllowed()} value={event?.presupuesto_objeto?.currency} className={`border-none focus:ring-0 ${isAllowed() ? "cursor-pointer" : "cursor-default"} text-sm text-gray-700 h-10`} onChange={(e) => isAllowed() ? handleChangeS(e) : ht()}  >
                       <option value={"eur"}>EUR</option>
                       <option value={"usd"}>USD</option>
                       <option value={"ves"}>VES</option>
@@ -127,6 +128,8 @@ const Presupuesto = () => {
                       <option value={"ars"}>ARG</option>
                       <option value={"uyu"}>URU</option>
                     </select>
+
+
                   </div>
                 </div>
               </div>
@@ -192,7 +195,7 @@ const Presupuesto = () => {
                                 </div>
                               </div>
                               <div className="flex  justify-between w-full text-sm">
-                                <div onClick={() => setShowModalDuplicate(true)} className=" capitalize text-gray-500 cursor-pointer flex justify-center items-center hover:text-gray-900">
+                                <div onClick={() => isAllowed() ? setShowModalDuplicate(true) : ht()} className=" capitalize text-gray-500 cursor-pointer flex justify-center items-center hover:text-gray-900">
                                   {t("import")}
                                 </div>
                                 <div className=" text-gray-200 cursor-default flex justify-center items-center">
@@ -249,7 +252,7 @@ const Presupuesto = () => {
                 }
               </div>
             </motion.div>
-          </section>}
+          </section >}
       </>
     );
   }

@@ -269,36 +269,6 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
     );
 };
 
-const ColumnVisibilityModal = ({ columnVisibility, toggleColumnVisibility, closeModal }) => {
-    return (
-        <div className="absolute z-50 right-5 flex items-center justify-center text-azulCorporativo">
-            <div className="bg-white p-4 rounded shadow-lg">
-                <h2 className="text-lg  mb-1.5 border-b">Columnas Visibles</h2>
-                {Object.keys(columnVisibility).map((columnId) => {
-                    const column = columnVisibility[columnId];
-                    return (
-                        <div key={columnId} className="mb-2">
-                            <label className="flex items-center cursor-pointer text-sm">
-                                <input
-                                    type="checkbox"
-                                    checked={column.visible}
-                                    onChange={() => toggleColumnVisibility(column.accessor)}
-                                    className="mr-2 cursor-pointer text-primary"
-                                />
-                                {column.Header}
-                            </label>
-                        </div>
-                    )
-                })}
-                <div className='w-full border-t'>
-                    <button onClick={closeModal} className="mt-1.5 bg-primary text-white  py-1 rounded w-full text-sm ">
-                        Cerrar
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-};
 
 
 

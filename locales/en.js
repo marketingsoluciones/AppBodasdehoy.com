@@ -656,6 +656,9 @@ export const en = {
     'successful': "successful",
     'import': 'import',
     'export': 'export',
+    'importBudget': "import budget",
+    'importInto': "import into",
+    'from': "from", 
 
     maxLimitedItineraries: "The maximum limit for creating or duplicating was reached",
     importCorrect: "guests imported successfully",

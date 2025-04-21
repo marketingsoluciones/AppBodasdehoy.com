@@ -655,6 +655,9 @@ export const es = {
     'successful': 'con éxito',
     'import': 'importar',
     'export': 'exportar',
+    'importBudget': "importar presupuesto",
+    'importInto': "importar en",
+    'from':"desde",
 
     maxLimitedItineraries: "El límite máximo para crear o duplicar fue alcanzado",
 

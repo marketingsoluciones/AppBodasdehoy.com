@@ -174,6 +174,8 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                   }
                 })
               }
+            }else{
+              ht()
             }
           }}
           className='w-full h-full flex justify-center items-center cursor-pointer'
@@ -289,9 +291,11 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
           className='bg-gray-200 w-full h-full flex flex-col !rounded-xl overflow-auto relative'
           onContextMenuCapture={(e) => {
             const element = document.getElementById("ElementEditable")
-            if (!element) {
-              const position = { x: e.clientX - 8, y: e.clientY - 144 - 124 }
-              setShowFloatOptionsMenu({ state: false, values: { info: undefined, position, options }, control: "ok" })
+            if (isAllowed()) {
+              if (!element) {
+                const position = { x: e.clientX - 8, y: e.clientY - 144 - 124 }
+                setShowFloatOptionsMenu({ state: false, values: { info: undefined, position, options }, control: "ok" })
+              }
             }
           }}
         >
@@ -447,7 +451,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
             })}
             {/* --------------------------------------------------------------------------------------------------------------------------------------------*/}
           </tbody>
-          <tfoot
+          {/*  <tfoot
             style={{
               minWidth: table.getTotalSize(),
             }}
@@ -474,7 +478,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                 ))}
               </tr>
             ))}
-          </tfoot>
+          </tfoot> */}
         </table>
       </div>
     </div >

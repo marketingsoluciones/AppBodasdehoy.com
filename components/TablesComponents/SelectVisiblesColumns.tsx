@@ -1,8 +1,8 @@
 import { Table } from "@tanstack/react-table";
 import { FC, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { PiGearFill } from "react-icons/pi";
 import { InitialColumn } from "./TableBudgetV8";
+import { useAllowed } from "../../hooks/useAllowed";
 
 interface props {
   columns: InitialColumn[]
@@ -11,15 +11,21 @@ interface props {
 
 export const SelectVisiblesColumns: FC<props> = ({ columns, table }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
   const tableAllColumns = table.getAllLeafColumns()
+  const [isAllowed, ht] = useAllowed()
+
 
   return (
     <div className="relative">
       <button
         onClick={(e) => {
-          e.stopPropagation();
-          setDropdownOpen(!dropdownOpen);
+          if(isAllowed()){
+            e.stopPropagation();
+            setDropdownOpen(!dropdownOpen);
+          }else{
+            e.stopPropagation();
+            ht()
+          }
         }}
         className="bg-primary w-8 h-8 rounded-full flex items-center justify-center"
       >
@@ -42,7 +48,6 @@ export const SelectVisiblesColumns: FC<props> = ({ columns, table }) => {
           </label>
         </div>
         {columns.map((elem, idx) => {
-          console.log(100041, elem)
           if (!elem?.isHidden) {
             return (
               <div

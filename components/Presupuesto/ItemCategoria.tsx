@@ -31,20 +31,6 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
   const [loading, setLoading] = useState<boolean>(false);
   const [showModalDelete, setShowModalDelete] = useState<ModalInterface>({ state: false, title: null, values: null })
 
-
-  /*  const DefinirCoste = (item) => {
-     if (item.coste_final >= item.coste_estimado) {
-       return item.coste_final
-     } else {
-       return item.coste_estimado
-     }
-   } */
-
-  /*  const Lista = [
-     { title: "Editar", action: () => setShowEditCategorie(true) },
-     { title: "Borrar", action: (item) => setShowModalDelete({ state: true, values: { object: "categoria", _id: item._id }, title: item.nombre }) }
-   ]; */
-
   const handleOnBlur = ({ value, accessor }) => {
     try {
       fetchApiEventos({
@@ -88,11 +74,6 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
         }}
         className={`text-xs w-full py-0.5 md:py-0 md:h-11 justify-center items-center flex pl-5 md:pl-2 transition hover:bg-base ${showCategoria?._id == item._id ? "bg-slate-200" : "bg-white"}`}
       >
-        {/*  {showEditCategorie && (
-          <ModalLeft state={showEditCategorie} set={setShowEditCategorie}>
-            <FormEditarCategoria categoria={item} state={showEditCategorie} set={setShowEditCategorie} />
-          </ModalLeft>
-        )} */}
         <div className="flex-1 flex flex-col space-y-1 md:space-y-0">
           <span className="flex justify-start items-center text-sm w-max"
             onClick={(e) => e.stopPropagation()}
@@ -129,31 +110,8 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
           </span>
         </div>
         <span onClick={(e) => e.stopPropagation()} className="gap-4 flex items-center h-full md:py-0" >
-          <div onClick={() => setShowModalDelete({ state: true, values: { object: "categoria", _id: item._id }, title: item.nombre })} className="relative w-8 h-8 flex justify-center items-center">
+          <div onClick={() => isAllowed() ? setShowModalDelete({ state: true, values: { object: "categoria", _id: item._id }, title: item.nombre }):ht()} className="relative w-8 h-8 flex justify-center items-center">
             <MdOutlineDeleteOutline className="w-4 h-4" />
-            {/* <DotsOpcionesIcon
-            onClick={() => !isAllowed() ? null : setShowMenu(!showMenu)}
-            className={`w-3 h-3 cursor-pointer`}
-            />
-            
-            {showMenu && (
-              <ClickAwayListener onClickAway={() => showMenu && setShowMenu(false)}>
-              <ul className="w-max z-20 bg-white shadow-md rounded absolute top-5 right-0 font-display text-sm divide-y overflow-hidden border-[1px] border-gray-200 select-none">
-              {Lista.map((elem, idx) => (
-                <li
-                key={idx}
-                onClick={() => {
-                  setShowMenu(!showMenu)
-                  elem.action(item)
-                  }}
-                  className="px-4 py-1 hover:bg-base transition"
-                  >
-                  {elem.title}
-                  </li>
-                  ))}
-                  </ul>
-                  </ClickAwayListener>
-                  )} */}
           </div>
         </span>
       </li>
