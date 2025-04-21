@@ -15,27 +15,25 @@ export const ModalTaskList = ({ setModal, event, categoria, gasto, setEvent }) =
     const initialValues = {
         url: "",
     };
-    const f1 = event?.presupuesto_objeto?.categorias_array?.findIndex((item) => item._id == categoria?._id);
-    const f2 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == gasto?._id);
-    const arrayTask = event?.presupuesto_objeto?.categorias_array[f1].gastos_array[f2].linkTask
+    const f1 = event?.presupuesto_objeto?.categorias_array?.findIndex((item) => item._id == categoria);
+    const f2 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == gasto);
+    const arrayTask = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.linkTask
+
     const handleSubmit = async (values) => {
         try {
-            const f1 = event?.presupuesto_objeto?.categorias_array?.findIndex((item) => item._id == categoria?._id);
-            const f2 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == gasto?._id);
             event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2].linkTask.push(values.url)
-
             await fetchApiEventos({
                 query: queries.editGasto,
                 variables: {
                     evento_id: event?._id,
-                    categoria_id: categoria?._id,
-                    gasto_id: gasto?._id,
+                    categoria_id: categoria,
+                    gasto_id: gasto,
                     variable_reemplazar: "linkTask",
                     valor_reemplazar: JSON.stringify(arrayTask)
                 }
             })
             setEvent({ ...event })
-            toast("success", t("success"))
+            toast("success", t("successful"))
         } catch (error) {
             console.log(error)
         }
@@ -43,44 +41,24 @@ export const ModalTaskList = ({ setModal, event, categoria, gasto, setEvent }) =
 
     const handleDeleteLink = async (values) => {
         try {
-            const f1 = event?.presupuesto_objeto?.categorias_array?.findIndex((item) => item._id == categoria?._id);
-            const f2 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == gasto?._id);
             event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2].linkTask.splice(values, 1)
 
             await fetchApiEventos({
                 query: queries.editGasto,
                 variables: {
                     evento_id: event?._id,
-                    categoria_id: categoria?._id,
-                    gasto_id: gasto?._id,
+                    categoria_id: categoria,
+                    gasto_id: gasto,
                     variable_reemplazar: "linkTask",
                     valor_reemplazar: JSON.stringify(arrayTask)
                 }
             })
             setEvent({ ...event })
-            toast("success", t("success"))
+            toast("success", t("successful"))
         } catch (error) {
             console.log(error)
         }
-
-        /*  .then((result: estimate) => {
-             const f1 = result?.categorias_array.findIndex((item) => item._id == categoria?._id);
-             const f2 = result?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == gasto?._id);
-             const dataRelult = result?.categorias_array[f1]?.gastos_array[f2]
-             setEvent((old) => {
-                 const f1 = old?.presupuesto_objeto?.categorias_array.findIndex((item) => item._id == categoria?._id);
-                 const f2 = old?.presupuesto_objeto?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == gasto?._id);
-                 old.presupuesto_objeto.categorias_array[f1].gastos_array[f2].linkTask = dataRelult?.linkTask
-                 return { ...old, }
-             })
-           
-         }).catch((error) => {
-             console.log(error);
-         }) */
     };
-
-    console.log("arraytask", arrayTask)
-
 
     return (
         <div className="w-[400px] bg-white rounded-xl shadow-md absolute z-50 right-6 ">

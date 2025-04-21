@@ -20,6 +20,7 @@ import FormAddPago from '../Forms/FormAddPago';
 import ClickAwayListener from 'react-click-away-listener';
 import { SelectVisiblesColumns } from './SelectVisiblesColumns';
 import { getCurrency } from '../../utils/Funciones';
+import { ModalTaskList } from '../Presupuesto/ModalTaskList';
 
 interface props {
   data: any
@@ -78,6 +79,9 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
   const [showDotsOptionsMenu, setShowDotsOptionsMenu] = useState<FloatOptionsMenuInterface>()
   const [showFloatOptionsMenu, setShowFloatOptionsMenu] = useState<FloatOptionsMenuInterface>()
   const [RelacionarPagoModal, setRelacionarPagoModal] = useState({ id: "", crear: false, categoriaID: "" })
+  const [ServisiosListModal, setServisiosListModal] = useState({ id: "", crear: false, categoriaID: "" })
+
+  console.log(232321111,ServisiosListModal )
 
   useEffect(() => {
     if (data) {
@@ -127,7 +131,10 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     {
       icon: <GoTasklist className="w-4 h-4" />,
       title: "Task",
-      onClick: () => { console.log("Task") }//setShow(true)
+      onClick: (info) => {
+        setShowFloatOptionsMenu({ state: false })
+        setServisiosListModal({ id: info.row.original._id, crear: true, categoriaID: info.row.original.categoriaID })
+      }//setShow(true)
     },
     {
       icon: <MdOutlineDeleteOutline className="w-4 h-4" />,
@@ -142,9 +149,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
       }
     },
   ];
-
-
-
 
   const columnOptions = columnHelper.accessor("options", {
     id: "options",
@@ -174,7 +178,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                   }
                 })
               }
-            }else{
+            } else {
               ht()
             }
           }}
@@ -242,14 +246,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     getCoreRowModel: getCoreRowModel(),
   })
 
-  // useEffect(() => {
-  //   const columnVisibility = columns.reduce((acc, item) => {
-  //     acc[item.Header] = { visible: true }
-  //     return acc
-  //   }, {})
-  //   setColumnVisibility(columnVisibility)
-  // }, [columns])
-
   useEffect(() => {
     if (showFloatOptionsMenu?.control === "ok" && showDotsOptionsMenu?.control === "ok") {
       const showFloatOptionsMenuNew: FloatOptionsMenuInterface = {
@@ -284,8 +280,26 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
         </div>
       }
       {
-        showFloatOptionsMenu?.state && <FloatOptionsMenu showOptionsMenu={showFloatOptionsMenu} setShowOptionsMenu={setShowFloatOptionsMenu} />
+         ServisiosListModal.crear  &&
+
+          <ClickAwayListener onClickAway={() => ServisiosListModal.crear && setServisiosListModal({ id: "", crear: false, categoriaID: "" })}>
+            <div >
+              <ModalTaskList
+                setModal={setServisiosListModal}
+                categoria={ServisiosListModal?.categoriaID}
+                gasto={ServisiosListModal?.id}
+                event={event}
+                setEvent={setEvent}
+              />
+            </div>
+          </ClickAwayListener>
+        
       }
+      {
+        showFloatOptionsMenu?.state &&
+        <FloatOptionsMenu showOptionsMenu={showFloatOptionsMenu} setShowOptionsMenu={setShowFloatOptionsMenu} />
+      }
+
       <div className='w-full h-full p-2 ' >
         <table
           className='bg-gray-200 w-full h-full flex flex-col !rounded-xl overflow-auto relative'

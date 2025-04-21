@@ -41,7 +41,6 @@ interface Categoria {
 }
 
 export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria }) => {
-    const toast = useToast()
     const [windowsWidth, setWindowsWidth] = useState<number>()
     const { event, setEvent } = EventContextProvider()
     const [categoria, setCategoria] = useState<Categoria>(null);
@@ -49,8 +48,6 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
     const [menuIzquierdo, setMenuIzquierdo] = useState(false)
     const [loading, setLoading] = useState(false)
     const [showModalDelete, setShowModalDelete] = useState<ModalInterface>({ state: false })
-    const totalCosteFinal = categoria?.gastos_array?.reduce((total, item) => total + item.coste_final, 0)
-    const [isAllowed, ht] = useAllowed()
 
     window.addEventListener("resize", () => {
         const nuevoAncho = window.innerWidth;
@@ -71,7 +68,6 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
     ];
 
     useEffect(() => {
-
         setCategoria(
             event?.presupuesto_objeto?.categorias_array?.find(
                 (item) => item._id == showCategoria?._id
@@ -79,58 +75,9 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
         );
         const data = event?.presupuesto_objeto?.categorias_array?.filter(elem => !!showCategoria?._id ? showCategoria?._id === elem._id : true)
         setData([...data]);
-        // setGastoID(old => ({ ...old, crear: false }))
     }, [showCategoria, event, event?.presupuesto_objeto?.currency]);
 
-    const sumarCosteEstimado = (gastosArray) => {
-        return gastosArray?.reduce((total, item) => total + item.coste_estimado, 0);
-    };
-    const totalCosteEstimado = sumarCosteEstimado(categoria?.gastos_array);
-    const AddGasto = async () => {
-        try {
-            if (isAllowed()) {
-                const rest: any = await fetchApiEventos({
-                    query: queries.nuevoGasto,
-                    variables: {
-                        evento_id: event?._id,
-                        categoria_id: categoria?._id,
-                        nombre: "Nueva part. de gasto",
-                    }
-                });
-                setEvent((old) => {
-                    const f1 = old?.presupuesto_objeto?.categorias_array?.findIndex(
-                        (item) => item._id == categoria._id
-                    );
-                    if (old.presupuesto_objeto.categorias_array[f1].gastos_array === null) {
-                        old.presupuesto_objeto.categorias_array[f1].gastos_array = [];
-                    }
-                    old.presupuesto_objeto.categorias_array[f1].gastos_array = [
-                        ...old.presupuesto_objeto.categorias_array[f1].gastos_array,
-                        rest,
-                    ];
-                    const f2 = old.presupuesto_objeto.categorias_array[f1].gastos_array.findIndex((elemt) => elemt._id == rest._id)
-                    old.presupuesto_objeto.categorias_array[f1].gastos_array[f2].pagos_array = []
-                    old.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array = []
-                    return { ...old };
-                });
-                toast("success", t("Creado con exito"))
-            } else {
-                ht()
-            }
-        } catch (error) {
-            console.log(error);
-        }
-    };
 
-    useEffect(() => {
-        const f1 = event?.presupuesto_objeto?.categorias_array?.findIndex((item) => item?._id === categoria?._id)
-        // if (event?.presupuesto_objeto?.categorias_array[f1] != totalCosteFinal) {
-        //     setEvent((old) => {
-        //         old.presupuesto_objeto.categorias_array[f1].coste_final = totalCosteFinal
-        //         return { ...old }
-        //     })
-        // }
-    }, [totalCosteFinal])
 
     return (
         <div className='w-full h-full'>
@@ -140,22 +87,25 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
                 </button>
             </div>
 
-            {showModalDelete.state && <SimpleDeleteConfirmation
-                loading={loading}
-                setModal={setShowModalDelete}
-                handleDelete={() => handleDelete({ showModalDelete, event, setEvent, setLoading, setShowModalDelete })}
-                message={
-                    <p className="text-azulCorporativo mx-8 text-center" >
-                        {`Estas seguro de borrar ${showModalDelete.values?.object === "categoria"
-                            ? "Categoria"
-                            : showModalDelete.values?.object === "gasto"
-                                ? "Partida de gasto" :
-                                "Item"}: `}
-                        <span className='font-semibold capitalize'>
-                            {showModalDelete.title}
-                        </span>
-                    </p>}
-            />}
+
+            {
+                showModalDelete.state && <SimpleDeleteConfirmation
+                    loading={loading}
+                    setModal={setShowModalDelete}
+                    handleDelete={() => handleDelete({ showModalDelete, event, setEvent, setLoading, setShowModalDelete })}
+                    message={
+                        <p className="text-azulCorporativo mx-8 text-center" >
+                            {`Estas seguro de borrar ${showModalDelete.values?.object === "categoria"
+                                ? "Categoria"
+                                : showModalDelete.values?.object === "gasto"
+                                    ? "Partida de gasto" :
+                                    "Item"}: `}
+                            <span className='font-semibold capitalize'>
+                                {showModalDelete.title}
+                            </span>
+                        </p>}
+                />
+            }
             {/* <LoadingSpinner loading={loading} /> */}
 
             <div className="flex flex-col md:flex-row w-full h-[calc(100vh-300px)] md:h-[calc(100vh-266px)]" >
