@@ -269,7 +269,7 @@ const initialValues = useMemo(() => ({
         domain: config.domain,
       });
   
-      // Actualizar el estado global
+      // Actualizar el estado global de todo
       setEvent((old) => {
         const f1 = old.itinerarios_array.findIndex((elem) => elem._id === itinerario._id);
         if (f1 > -1) {
