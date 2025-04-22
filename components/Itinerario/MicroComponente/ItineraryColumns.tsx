@@ -1,5 +1,5 @@
 import { ComponentType, FC } from "react";
-import { useMemo, useState, } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { ConfirmationBlock } from "../../Invitaciones/ConfirmationBlock"
 import { useTranslation } from 'react-i18next';
 import { GruposResponsablesArry } from "./ResponsableSelector";
@@ -85,31 +85,76 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         id: "description",
         className: 'sticky *lg:static z-10 left-0 relative',
         Cell: (data) => {
+          // Filtrar las opciones para eliminar "estatus"
+          const filteredOptions = optionsItineraryButtonBox.filter(option => option.value !== "estatus");
+      
           return (
-            <div className="flex w-full items-center ">
+            <div className="flex w-full items-center">
               <span key={data.cell.row.id} className="font-bold flex-1 pr-10">
                 {data.cell.value}
               </span>
               <div className="absolute right-0 z-20">
-                <IniterarySelectionMenu data={data} itinerario={itinerario} optionsItineraryButtonBox={optionsItineraryButtonBox} setShowEditTask={setShowEditTask} showEditTask={showEditTask} />
+                <IniterarySelectionMenu
+                  data={data}
+                  itinerario={itinerario}
+                  optionsItineraryButtonBox={filteredOptions} // Pasar las opciones filtradas
+                  setShowEditTask={setShowEditTask}
+                  showEditTask={showEditTask}
+                />
               </div>
-              {(isAllowed() && data.cell.row.original.spectatorView) && <div className="absolute right-6">
-                <GoEye className="w-4 h-4" />
-              </div>}
+              {(isAllowed() && data.cell.row.original.spectatorView) && (
+                <div className="absolute right-6">
+                  <GoEye className="w-4 h-4" />
+                </div>
+              )}
             </div>
-          )
-        }
+          );
+        },
       },
+
+      
       {
         Header: t("date"),
         accessor: "fecha",
         id: "date",
-        Cell: (data) => (
-          <div key={data.cell.row.id} className="flex w-full justify-center items-center">
-            {!!data.cell.value && new Date(data.cell.value).toLocaleString()}
-          </div>
-        )
+        Cell: (data) => {
+          const [isExpanded, setIsExpanded] = useState(false);
+      
+          if (!data.cell.value) return null; // Si no hay información, no mostrar nada
+      
+          return (
+            <div
+              className={`relative group flex items-center ${
+                isExpanded ? "whitespace-normal" : "truncate"
+              }`}
+              style={{
+                maxWidth: isExpanded ? "100%" : "150px",
+                overflow: isExpanded ? "visible" : "hidden",
+              }}
+              title={!isExpanded && data.cell.value.length > 10 ? new Date(data.cell.value).toLocaleString() : ""}
+            >
+              <span className="cursor-pointer">
+                {isExpanded
+                  ? new Date(data.cell.value).toLocaleString()
+                  : new Date(data.cell.value).toLocaleString().slice(0, 10)}
+              </span>
+              <svg
+                onClick={() => setIsExpanded(!isExpanded)}
+                xmlns="http://www.w3.org/2000/svg"
+                className={`w-4 h-4 ml-2 cursor-pointer transition-transform ${
+                  isExpanded ? "rotate-180" : "rotate-0"
+                }`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          );
+        },
       },
+
       {
         Header: t("duracion"),
         accessor: "duracion",
@@ -128,62 +173,40 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         id: "responsables",
         Cell: (data) => {
           const userSelect = GruposResponsablesArry.find(el => {
-            return el.title.toLowerCase() === data.cell.value[0]?.toLowerCase()
+            return el.title.toLowerCase() === data.cell.value[0]?.toLowerCase();
           }) ?? [user, event?.detalles_usuario_id, ...event.detalles_compartidos_array].find(el => {
-            return el?.displayName?.toLowerCase() === data.cell.value[0]?.toLowerCase()
-          })
-
-          const [showModal, setShowModal] = useState(false);
-
-          const handleMouseOver = () => {
-            setShowModal(true);
-          };
-
-          const handleMouseOut = () => {
-            setShowModal(false);
-          };
-
+            return el?.displayName?.toLowerCase() === data.cell.value[0]?.toLowerCase();
+          });
+      
+          const [isExpanded, setIsExpanded] = useState(false);
+          const [isOverflowing, setIsOverflowing] = useState(false);
+          const cellRef = useRef(null);
+      
+          useEffect(() => {
+            if (cellRef.current) {
+              setIsOverflowing(cellRef.current.scrollHeight > cellRef.current.clientHeight);
+            }
+          }, [data.cell.value]);
+      
           if (data.cell.value.length > 0) {
             return (
-              <div className="w-full relative flex flex-col items-start justify-center">
-                {/*  <span onMouseOver={handleMouseOver} onMouseOut={handleMouseOut} className="inline-flex items-center space-x-1 cursor-pointer ">
-                  <div className="w-8 h-8 rounded-full border-[1px] border-gray-300 relative">
-                    <ImageAvatar user={userSelect} />
-                    {data.cell.value.length > 1 &&
-                      <div className="absolute top-4 left-4 bg-primary rounded-full h-5 w-5 text-center text-white text-[10px] flex items-center justify-center">
-                        {data.cell.value.length - 1}+
-                      </div>}
-                  </div>
-                </span>
-                {showModal && (
-                  <div className="absolute bg-white p-2 rounded-md space-y-1 shadow-md top-16 transition-all delay-75 ">
-                    {data?.cell?.value?.map((elem, idx) => {
-                      const userSelect = GruposResponsablesArry.find(el => {
-                        return el.title.toLowerCase() === elem?.toLowerCase()
-                      }) ?? [user, event?.detalles_usuario_id, ...event.detalles_compartidos_array].find(el => {
-                        return el?.displayName?.toLowerCase() === elem?.toLowerCase()
-                      })
-
-                      return (
-                        <span key={idx} onMouseOver={handleMouseOver} onMouseOut={handleMouseOut} className="flex items-center space-x-1">
-                          <div className="w-6 h-6 rounded-full border-[1px] border-gray-300">
-                            <ImageAvatar user={userSelect} />
-                          </div>
-                          <span className={`flex-1 ${!userSelect && "line-through"}`}>
-                            {elem}
-                          </span>
-                        </span>
-                      )
-                    })}
-                  </div>
-                )} */}
-
+              <div
+                ref={cellRef}
+                className={`w-full relative flex flex-col items-start justify-center ${
+                  isExpanded ? "whitespace-normal" : "truncate"
+                }`}
+                style={{
+                  maxWidth: "100%", // Mantener el ancho del contenedor
+                  overflow: isExpanded ? "visible" : "hidden",
+                  maxHeight: isExpanded ? "none" : "2.5rem", // Limitar la altura cuando no está expandido
+                }}
+              >
                 {data?.cell?.value?.map((elem, idx) => {
                   const userSelect = GruposResponsablesArry.find(el => {
-                    return el.title.toLowerCase() === elem?.toLowerCase()
+                    return el.title.toLowerCase() === elem?.toLowerCase();
                   }) ?? [user, event?.detalles_usuario_id, ...event.detalles_compartidos_array].find(el => {
-                    return el?.displayName?.toLowerCase() === elem?.toLowerCase()
-                  })
+                    return el?.displayName?.toLowerCase() === elem?.toLowerCase();
+                  });
                   return (
                     <span key={idx} className="inline-flex items-center space-x-1">
                       <div className="w-6 h-6 rounded-full border-[1px] border-gray-300">
@@ -193,77 +216,202 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
                         {!userSelect ? elem : userSelect.displayName ? userSelect.displayName : userSelect.email}
                       </span>
                     </span>
-                  )
+                  );
                 })}
-
+                {isOverflowing && (
+                  <svg
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={`w-4 h-4 mt-2 cursor-pointer transition-transform ${
+                      isExpanded ? "rotate-180" : "rotate-0"
+                    }`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                )}
               </div>
-
-            )
+            );
           }
-        }
+        },
       },
+
       {
         Header: t("tips"),
         accessor: "tips",
         id: "tips",
         Cell: (data) => {
+          const [isExpanded, setIsExpanded] = useState(false);
+      
+          // Función para eliminar etiquetas HTML
+          const stripHtml = (html) => {
+            const doc = new DOMParser().parseFromString(html, "text/html");
+            return doc.body.textContent || "";
+          };
+      
+          const plainText = stripHtml(data.cell.value || ""); // Convertir el contenido a texto plano
+      
+          if (!plainText) return null; // Si no hay información, no mostrar nada
+      
           return (
-            <div key={data.cell.row.id} className="w-full pt-3">
-              <Interweave
-                className="text-xs flex-1 pr-4 break-words"
-                content={data?.cell?.value}
-                matchers={[
-                  new UrlMatcher('url', {}, replacesLink),
-                  new HashtagMatcher('hashtag')
-                ]}
-              />
+            <div
+              className={`relative group flex items-center ${
+                isExpanded ? "whitespace-normal" : "truncate"
+              }`}
+              style={{
+                maxWidth: isExpanded ? "100%" : "150px",
+                overflow: isExpanded ? "visible" : "hidden",
+              }}
+              title={!isExpanded && plainText.length > 10 ? plainText : ""}
+            >
+              <span className="cursor-pointer">
+                {isExpanded ? plainText : `${plainText.slice(0, 10)}...`}
+              </span>
+              <svg
+                onClick={() => setIsExpanded(!isExpanded)}
+                xmlns="http://www.w3.org/2000/svg"
+                className={`w-4 h-4 ml-2 cursor-pointer transition-transform ${
+                  isExpanded ? "rotate-180" : "rotate-0"
+                }`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
             </div>
-          )
-        }
+          );
+        },
       },
       {
         Header: t("attachments"),
         accessor: "attachments",
         id: "attachments",
         Cell: (data) => {
+          const [isExpanded, setIsExpanded] = useState(false);
+      
+          if (!data.cell.value || data.cell.value.length === 0) return null; // Si no hay información, no mostrar nada
+      
           return (
-            <div key={data.cell.row.id} className="w-full space-y-2 md:space-y-1.5" >
-              {data?.cell?.value?.map((elem, idx) => {
-                return (
-                  !!elem._id && <span key={idx} onClick={() => {
-                    handleDownload({ elem, task: data.cell.row.original })
-                  }} className="inline-flex items-center max-w-[90%] border-b-[1px] hover:font-bold border-gray-500 cursor-pointer mr-2">
-                    <span className="flex-1 truncate">
-                      {elem.name}
-                    </span>
-                    <CgSoftwareDownload className="w-4 h-auto" />
-                  </span>
-                )
-              })}
+            <div
+              className={`relative group flex items-center ${
+                isExpanded ? "whitespace-normal" : "truncate"
+              }`}
+              style={{
+                maxWidth: isExpanded ? "100%" : "150px",
+                overflow: isExpanded ? "visible" : "hidden",
+              }}
+              title={
+                !isExpanded && data.cell.value.length > 1
+                  ? data.cell.value.map((elem) => elem.name).join(", ")
+                  : ""
+              }
+            >
+              <div className="flex flex-wrap gap-2">
+                {isExpanded
+                  ? data.cell.value.map((elem, idx) => (
+                      <span
+                        key={idx}
+                        onClick={() => {
+                          handleDownload({ elem, task: data.cell.row.original });
+                        }}
+                        className="inline-flex items-center max-w-[90%] border-b-[1px] hover:font-bold border-gray-500 cursor-pointer mr-2"
+                      >
+                        <span className="flex-1 truncate">{elem.name}</span>
+                        <CgSoftwareDownload className="w-4 h-auto" />
+                      </span>
+                    ))
+                  : `${data.cell.value[0]?.name.slice(0, 10)}...`}
+              </div>
+              <svg
+                onClick={() => setIsExpanded(!isExpanded)}
+                xmlns="http://www.w3.org/2000/svg"
+                className={`w-4 h-4 ml-2 cursor-pointer transition-transform ${
+                  isExpanded ? "rotate-180" : "rotate-0"
+                }`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
             </div>
-          )
-        }
+          );
+        },
       },
       {
         Header: t("labels"),
         accessor: "tags",
         id: "tags",
-        Cell: (data) => (
-          <p key={data.cell.row.id} className="space-y-1 -mr-1 pt-1">
-            {data?.cell?.value?.map((elem, idx) => {
-              return (
-                <span key={idx} className="inline-flex w-max-full space-x-1 border-[1px] border-gray-400 px-1 pt-[1px] pb-[2px] rounded-md break-all mr-1 leading-[1]">
-                  {elem}
-                </span>
-              )
-            })}
-          </p>
-        )
+        Cell: (data) => {
+          const [isExpanded, setIsExpanded] = useState(false);
+      
+          if (!data.cell.value || data.cell.value.length === 0) return null; // Si no hay información, no mostrar nada
+      
+          // Función para obtener colores en armonía
+          const getColor = (label) => {
+            const colors = {
+              "Urgent": { border: "#FF6347", background: "rgba(255, 99, 71, 0.2)" }, // Rojo
+              "Important": { border: "#FFA500", background: "rgba(255, 165, 0, 0.2)" }, // Naranja
+              "Optional": { border: "#3CB371", background: "rgba(60, 179, 113, 0.2)" }, // Verde
+              "Default": { border: "#87CEFA", background: "rgba(135, 206, 250, 0.2)" }, // Azul
+            };
+            return colors[label] || colors["Default"];
+          };
+      
+          return (
+            <div
+              className={`relative group flex items-center ${
+                isExpanded ? "whitespace-normal" : "truncate"
+              }`}
+              style={{
+                maxWidth: isExpanded ? "100%" : "150px",
+                overflow: isExpanded ? "visible" : "hidden",
+              }}
+              title={!isExpanded && data.cell.value.length > 1 ? data.cell.value.join(", ") : ""}
+            >
+              <div className="flex flex-wrap gap-1">
+                {data.cell.value.slice(0, isExpanded ? data.cell.value.length : 1).map((label, index) => {
+                  const { border, background } = getColor(label);
+                  return (
+                    <span
+                      key={index}
+                      className="px-2 py-1 text-xs font-medium rounded border"
+                      style={{
+                        borderColor: border, // Color del borde
+                        backgroundColor: background, // Color de relleno
+                      }}
+                    >
+                      {label}
+                    </span>
+                  );
+                })}
+              </div>
+              {data.cell.value.length > 1 && (
+                <svg
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={`w-4 h-4 ml-2 cursor-pointer transition-transform ${
+                    isExpanded ? "rotate-180" : "rotate-0"
+                  }`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              )}
+            </div>
+          );
+        },
       },
-      // {
-      //   id: "selection",
-      //   Cell: <IniterarySelectionMenu data={data} itinerario={itinerario} optionsItineraryButtonBox={optionsItineraryButtonBox} setShowEditTask={setShowEditTask} showEditTask={showEditTask} />
-      // },
     ],
     [itinerario, i18next.language]
   );
