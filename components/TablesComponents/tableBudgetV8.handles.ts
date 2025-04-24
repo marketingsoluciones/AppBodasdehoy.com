@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction } from "react"
+import { Dispatch, SetStateAction, useState } from "react"
 import { fetchApiEventos, queries } from "../../utils/Fetching"
 import { Event, item, expenses, estimateCategory } from "../../utils/Interfaces"
 
@@ -248,4 +248,30 @@ export const handleCreateCategoria = async ({ info, event, setEvent, setShowDots
     console.log(220047, error);
     throw new Error(error)
   }
+}
+
+export const handleChangeEstatus = async ({ event, categoriaID, gastoId, setEvent }) => {
+  const f1 = event?.presupuesto_objeto?.categorias_array.findIndex(elem => elem._id === categoriaID)
+  const f2 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == gastoId);
+  const gastoEstatus = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.estatus
+  try {
+    fetchApiEventos({
+      query: queries.editGasto,
+      variables: {
+        evento_id: event?._id,
+        categoria_id: categoriaID,
+        gasto_id: gastoId,
+        variable_reemplazar: "estatus",
+        valor_reemplazar: gastoEstatus === null ? false : !gastoEstatus
+      }
+    }).then((result: any) => {
+      event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].estatus = result.categorias_array[f1].gastos_array[f2].estatus
+      setEvent({ ...event })
+    })
+  } catch (error) {
+    console.log(220046, error);
+    throw new Error(error)
+  }
+
+
 }

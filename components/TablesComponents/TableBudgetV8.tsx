@@ -13,7 +13,7 @@ import { GrMoney } from 'react-icons/gr';
 import { GoEye, GoEyeClosed, GoTasklist } from 'react-icons/go';
 import { PiNewspaperClippingLight } from 'react-icons/pi';
 import { MdOutlineDeleteOutline } from 'react-icons/md';
-import { handleChange, determinatedPositionMenu, handleDelete, handleCreateItem, handleCreateGasto, handleCreateCategoria } from "./tableBudgetV8.handles"
+import { handleChange, determinatedPositionMenu, handleDelete, handleCreateItem, handleCreateGasto, handleCreateCategoria, handleChangeEstatus } from "./tableBudgetV8.handles"
 import { error } from 'console';
 import { useToast } from '../../hooks/useToast';
 import FormAddPago from '../Forms/FormAddPago';
@@ -21,6 +21,7 @@ import ClickAwayListener from 'react-click-away-listener';
 import { SelectVisiblesColumns } from './SelectVisiblesColumns';
 import { getCurrency } from '../../utils/Funciones';
 import { ModalTaskList } from '../Presupuesto/ModalTaskList';
+import { object } from 'yup';
 
 interface props {
   data: any
@@ -81,7 +82,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
   const [RelacionarPagoModal, setRelacionarPagoModal] = useState({ id: "", crear: false, categoriaID: "" })
   const [ServisiosListModal, setServisiosListModal] = useState({ id: "", crear: false, categoriaID: "" })
 
-  console.log(232321111,ServisiosListModal )
+
 
   useEffect(() => {
     if (data) {
@@ -93,27 +94,31 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     {
       icon: <PiNewspaperClippingLight className="w-4 h-4" />,
       title: "Agregar:",
+      object: ["categoria", "gasto", "item"]
     },
     {
       title: "Categoría",
       onClick: (info) => {
         handleCreateCategoria({ info, event, setEvent, setShowDotsOptionsMenu })
           .catch(error => toast("error", "ha ocurrido un error"))
-      }
+      },
+      object: ["categoria", "gasto", "item"]
     },
     {
       title: "Partida",
       onClick: (info) => {
         handleCreateGasto({ info, event, setEvent, setShowDotsOptionsMenu })
           .catch(error => toast("error", "ha ocurrido un error"))
-      }
+      },
+      object: ["categoria", "gasto", "item"]
     },
     {
       title: "Item",
       onClick: (info) => {
         handleCreateItem({ info, event, setEvent, setShowDotsOptionsMenu })
           .catch(error => toast("error", "ha ocurrido un error"))
-      }
+      },
+      object: [ "gasto", "item"]
     },
     {
       icon: <GrMoney className="w-4 h-4" />,
@@ -121,12 +126,17 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
       onClick: (info) => {
         setShowFloatOptionsMenu({ state: false })
         setRelacionarPagoModal({ id: info.row.original._id, crear: true, categoriaID: info.row.original.categoriaID })
-      }//handlePago()
+      },
+      object: ["gasto"]
     },
     {
       icon: true ? <GoEye className="w-4 h-4" /> : <GoEyeClosed className="w-4 h-4" />,
       title: "Estado",
-      onClick: () => { console.log("Estado") }//handleChangeState()
+      onClick: (info) => {
+        handleChangeEstatus({ event, categoriaID: info.row.original.categoriaID, gastoId: info.row.original.gastoID, setEvent })
+          .catch(error => toast("error", "ha ocurrido un error"))
+      },
+      object: ["gasto"]
     },
     {
       icon: <GoTasklist className="w-4 h-4" />,
@@ -134,7 +144,9 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
       onClick: (info) => {
         setShowFloatOptionsMenu({ state: false })
         setServisiosListModal({ id: info.row.original._id, crear: true, categoriaID: info.row.original.categoriaID })
-      }//setShow(true)
+      },
+      object:["gasto"]
+
     },
     {
       icon: <MdOutlineDeleteOutline className="w-4 h-4" />,
@@ -146,7 +158,8 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
         // setTimeout(() => {
         //   setShowDotsOptionsMenu({ state: false })
         // }, 3000);
-      }
+      },
+      object: ["categoria", "gasto", "item"]
     },
   ];
 
@@ -202,16 +215,23 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
             let value = info.getValue()
             return elem.isEditabled || info?.row?.original?.accessorEditables?.includes(elem.accessor)
               ? elem?.type !== "select"
-                ? <EditableLabelWithInput
-                  key={idx}
-                  accessor={elem?.accessor}
-                  handleChange={(values: any) => {
-                    handleChange({ values, info, event, setEvent })
-                  }}
-                  type={elem?.type}
-                  value={value as string | number}
-                  textAlign={elem?.horizontalAlignment}
-                  isLabelDisabled />
+                ?
+                <>
+                  {
+                    elem?.accessor === "gasto" && info?.row?.original?.gastoOriginal?.estatus === false &&
+                    <GoEyeClosed className="w-4 h-4 mr-1 " />
+                  }
+                  <EditableLabelWithInput
+                    key={idx}
+                    accessor={elem?.accessor}
+                    handleChange={(values: any) => {
+                      handleChange({ values, info, event, setEvent })
+                    }}
+                    type={elem?.type}
+                    value={value as string | number}
+                    textAlign={elem?.horizontalAlignment}
+                    isLabelDisabled />
+                </>
                 : <EditableSelect
                   accessor={elem?.accessor}
                   value={value}
@@ -280,20 +300,18 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
         </div>
       }
       {
-         ServisiosListModal.crear  &&
-
-          <ClickAwayListener onClickAway={() => ServisiosListModal.crear && setServisiosListModal({ id: "", crear: false, categoriaID: "" })}>
-            <div >
-              <ModalTaskList
-                setModal={setServisiosListModal}
-                categoria={ServisiosListModal?.categoriaID}
-                gasto={ServisiosListModal?.id}
-                event={event}
-                setEvent={setEvent}
-              />
-            </div>
-          </ClickAwayListener>
-        
+        ServisiosListModal.crear &&
+        <ClickAwayListener onClickAway={() => ServisiosListModal.crear && setServisiosListModal({ id: "", crear: false, categoriaID: "" })}>
+          <div >
+            <ModalTaskList
+              setModal={setServisiosListModal}
+              categoria={ServisiosListModal?.categoriaID}
+              gasto={ServisiosListModal?.id}
+              event={event}
+              setEvent={setEvent}
+            />
+          </div>
+        </ClickAwayListener>
       }
       {
         showFloatOptionsMenu?.state &&

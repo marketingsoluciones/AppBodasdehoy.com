@@ -137,6 +137,7 @@ export interface OptionsMenu {
     title: string
     onClick?: any
     isDisabled?: boolean
+    object?: any
 }
 
 export interface Notification {
