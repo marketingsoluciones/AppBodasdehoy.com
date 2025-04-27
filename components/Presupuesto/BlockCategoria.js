@@ -209,41 +209,6 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
   }, [categoria, event])
 
   const AddGasto = async () => {
-    /* let res;
-    try {
-      const params = {
-        query: `mutation{
-          nuevoGasto(evento_id:"${event?._id}",
-          categoria_id:"${categoria?._id}",nombre:""){
-            _id,
-            nombre,
-            coste_estimado,
-            coste_final,
-            pagado,
-          }
-        }
-        `,
-        variables: {},
-      };
-
-      const { data } = await api.ApiApp(params);
-      res = data.data.nuevoGasto;
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setEvent((old) => {
-        const index = old?.presupuesto_objeto?.categorias_array?.findIndex(
-          (item) => item._id == categoria._id
-        );
-        old.presupuesto_objeto.categorias_array[index].gastos_array = [
-          ...old.presupuesto_objeto.categorias_array[index].gastos_array,
-          res,
-        ];
-        const f2 = old.presupuesto_objeto.categorias_array[index].gastos_array.findIndex((elemt) => elemt._id == res._id)
-        old.presupuesto_objeto.categorias_array[index].gastos_array[f2].pagos_array = []
-        return { ...old };
-      });
-    } */
 
     try {
       fetchApiEventos({

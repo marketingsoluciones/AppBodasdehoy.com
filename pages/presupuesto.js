@@ -14,9 +14,9 @@ import { BlockListaCategorias } from "../components/Presupuesto/BlockListaCatego
 import { MontoPresupuesto } from "../components/Presupuesto/MontoPresupuesto";
 import BlockCategoria from "../components/Presupuesto/BlockCategoria";
 import { DuplicatePresupuesto } from "../components/Presupuesto/DuplicatePesupuesto";
-import ClickAwayListener from "react-click-away-listener";
 import { api } from "../api";
 import { useAllowed } from "../hooks/useAllowed";
+import { ResumenPresupuestoModal } from "../components/Presupuesto/ResumenPresupuestoModal"
 
 const Presupuesto = () => {
   useMounted()
@@ -29,11 +29,11 @@ const Presupuesto = () => {
   const [getId, setGetId] = useState()
   const [showModalDuplicate, setShowModalDuplicate] = useState(false)
   const [isAllowed, ht] = useAllowed()
+  const [showModalPresupuesto, setShowModalPresupuesto] = useState(false)
 
   const totalCosteFinal = categorias?.reduce((sum, categoria) => {
     return sum + (categoria.coste_final || 0);
   }, 0);
-
 
   useEffect(() => {
     setCategorias(event?.presupuesto_objeto?.categorias_array)
@@ -76,6 +76,21 @@ const Presupuesto = () => {
                 <DuplicatePresupuesto showModalDuplicate={showModalDuplicate} setModal={setShowModalDuplicate} />
               </div>
             )}
+            {
+              showModalPresupuesto && (
+                <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex justify-center items-center">
+                  <div className="bg-white w-[90%] h-[90%] rounded-lg overflow-auto shadow-lg relative">
+                    <button
+                      onClick={() => setShowModalPresupuesto(false)}
+                      className="absolute top-4 right-4 text-gray-500 hover:text-gray-800"
+                    >
+                      ✕
+                    </button>
+                    <ResumenPresupuestoModal categorias={categorias} presupuesto={event.presupuesto_objeto} estimadoState={event?.presupuesto_objeto?.viewEstimates} />
+                  </div>
+                </div>
+              )
+            }
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
