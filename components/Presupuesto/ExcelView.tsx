@@ -42,6 +42,7 @@ interface Categoria {
 
 export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria }) => {
     const [windowsWidth, setWindowsWidth] = useState<number>()
+    const { user } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
     const [categoria, setCategoria] = useState<Categoria>(null);
     const [data, setData] = useState([]);
@@ -73,8 +74,17 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
                 (item) => item._id == showCategoria?._id
             )
         );
-        const data = event?.presupuesto_objeto?.categorias_array?.filter(elem => !!showCategoria?._id ? showCategoria?._id === elem._id : true)
-        setData([...data]);
+        if (event?.usuario_id === user?.uid || event?.permissions?.find(elem => elem?.title === "presupuesto").value === "edit") {
+            const data = event?.presupuesto_objeto?.categorias_array?.filter(elem => !!showCategoria?._id ? showCategoria?._id === elem._id : true)
+            setData([...data]);
+        } else {
+            const data = event?.presupuesto_objeto?.categorias_array?.filter(elem => !!showCategoria?._id ? showCategoria?._id === elem._id : true)
+            const dataView = data.map(elem => {
+                elem.gastos_array = elem.gastos_array.filter(el => el?.estatus !== false)
+                return elem
+            })
+            setData([...dataView]);
+        }
     }, [showCategoria, event, event?.presupuesto_objeto?.currency]);
 
 
