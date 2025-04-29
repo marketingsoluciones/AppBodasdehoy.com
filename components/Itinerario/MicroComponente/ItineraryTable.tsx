@@ -73,9 +73,11 @@ export const ItineraryTable: FC<any> = ({ columns, data = [], selectTask, setSel
                     <td
                       {...cell.getCellProps()}
                       key={i}
-                      className={`${selectTask === row.original._id ? "bg-gray-100" : "bg-white"} flex items-center* leading-[1.3] px-1 py-1 col-span-${colSpan[cell.column.id]} ${cell.column?.className} border-b border-r ${cell.column.totalLeft == 0 && "border-l"}`}
+                      className={`${selectTask === row.original._id ? "bg-gray-100" : "bg-white"} flex items-center justify-center leading-[1.3] px-1 py-1 col-span-${colSpan[cell.column.id]} ${cell.column?.className} border-b border-r ${cell.column.totalLeft == 0 && "border-l"}`}
                     >
-                      {cell.render("Cell")}
+                      <div className="w-full h-full flex items-center justify-center">
+                        {cell.render("Cell")}
+                      </div>
                     </td>
                   );
                 })}

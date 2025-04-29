@@ -36,6 +36,8 @@ import { InputTags } from "../../Forms/InputTags";
 import { MyEditor } from "./QuillText";
 import { FaPencilAlt, FaCheck, FaTimes } from "react-icons/fa";
 import { useMemo } from "react";
+import { Modal } from "../../Utils/ModalServicios"; // Asegúrate de tener un componente Modal o crea uno.
+
 
 const stripHtml = (html: string): string => {
   const doc = new DOMParser().parseFromString(html, "text/html");
@@ -52,6 +54,7 @@ interface TaskDateTimeAsString {
   attachments?: any[];
   [key: string]: any; // Permitir propiedades adicionales
 }
+
 
 interface props extends HTMLAttributes<HTMLDivElement> {
   itinerario: Itinerary;
@@ -103,6 +106,19 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
   const [selectedStatus, setSelectedStatus] = useState(statusOptions[0]);
   const [showDropdownLeft, setShowDropdownLeft] = useState(false);
   const [showDropdownRight, setShowDropdownRight] = useState(false);
+  const [showDateModal, setShowDateModal] = useState(false); // Estado para mostrar/ocultar el modal
+
+
+
+  // Función para manejar la apertura del modal
+const handleOpenDateModal = () => {
+  setShowDateModal(true);
+};
+
+// Función para manejar el cierre del modal
+const handleCloseDateModal = () => {
+  setShowDateModal(false);
+};
 
   // Función para manejar la selección de un estado
   const handleStatusChange = (status) => {
@@ -348,6 +364,7 @@ const initialValues = useMemo(() => ({
                             </button>
                           )}
                         </div>
+                        
                         <div className=" grid grid-flow-dense w-full space-x-2 text-[12px] mt-2">
                           <p >
                             {t("responsible")}: {values?.responsable.join(", ")}
@@ -408,7 +425,13 @@ const initialValues = useMemo(() => ({
       className="cursor-pointer flex items-center group"
       onClick={() => handleEdit("descripcion", tempValues.descripcion || "")}
     >
-      <span className="text-[19px] capitalize cursor-default">{tempValues?.descripcion || t("noDescription")}</span>
+      <span className="text-[19px] capitalize cursor-default">
+        {tempValues?.descripcion
+          ? tempValues.descripcion.length > 20
+            ? `${tempValues.descripcion.slice(0, 20)}...` // Limita a 20 caracteres
+            : tempValues.descripcion
+          : t("noDescription")}
+      </span>
       <FaPencilAlt className="text-gray-400 ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
     </div>
   )}
@@ -596,26 +619,26 @@ const initialValues = useMemo(() => ({
   )}
 </div>
 
-                      {/* Etiquetas */}
-                      <div className="flex items-center space-x-5 relative group">
+{/* Etiquetas */}
+<div className="flex items-center space-x-5 relative group">
   <div className="flex items-center space-x-1">
     <MdOutlineLabel />
     <span className="text-[14px] capitalize cursor-default">{t("labels")}:</span>
   </div>
   {editingField === "tags" || isGlobalEdit ? (
     <div className="w-full relative flex items-center">
-<InputTags
-  name="tags"
-  value={Array.isArray(tempValues.tags) ? tempValues.tags : []}
-  onChange={(newTags) => {
-    // Verificar si newTags es un arreglo
-    if (Array.isArray(newTags)) {
-      setTempValues({ ...tempValues, tags: newTags });
-    } else {
-      console.error("El valor de newTags no es un arreglo:", newTags);
-    }
-  }}
-/>
+      <InputTags
+        name="tags"
+        value={Array.isArray(tempValues.tags) ? tempValues.tags : []}
+        onChange={(newTags) => {
+          // Verificar si newTags es un arreglo
+          if (Array.isArray(newTags)) {
+            setTempValues({ ...tempValues, tags: newTags });
+          } else {
+            console.error("El valor de newTags no es un arreglo:", newTags);
+          }
+        }}
+      />
       {!isGlobalEdit && (
         <div className="flex space-x-2 ml-2">
           <FaCheck
@@ -634,130 +657,119 @@ const initialValues = useMemo(() => ({
       className="cursor-pointer flex items-center group"
       onClick={() => handleEdit("tags", tempValues.tags || [])}
     >
-      {Array.isArray(tempValues?.tags) && tempValues.tags.length > 0
-        ? tempValues.tags.join(", ")
-        : t("noLabels")}
+      {Array.isArray(tempValues?.tags) && tempValues.tags.length > 0 ? (
+        tempValues.tags.join(", ")
+      ) : (
+        <span className="text-[12px] text-gray-400 capitalize">{t("noLabels")}</span>
+      )}
       <FaPencilAlt className="text-gray-400 ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
     </div>
   )}
 </div>
 
-                      {/* Fecha */}
-                      <div className="space-x-5 flex items-center group">
+                {/* Fecha, Duracion y Hora */}
+                <div className="space-y-2">
+{/* Fecha combinada */}
+<div className="space-x-5 flex items-center group">
   <div className="flex items-center space-x-1">
     <IoCalendarClearOutline className="pb-0.5" />
-    <span className="text-[14px] capitalize cursor-default">{t("date")}:</span>
+    <span className="text-[14px] capitalize cursor-default">{t("Fecha")}:</span>
   </div>
-  {editingField === "fecha" || isGlobalEdit ? (
-    <div className="w-full relative flex items-center">
-<InputField
-  name="fecha"
-  type="date"
-  value={tempValues.fecha || ""}
-  onChange={(e) => setTempValues({ ...tempValues, fecha: e.target.value })}
-/>
-      {!isGlobalEdit && (
-        <div className="flex space-x-2 ml-2">
-          <FaCheck
-            className="text-green-500 cursor-pointer"
-            onClick={() => handleSave("fecha")} // Guardar cambios
-          />
-          <FaTimes
-            className="text-red-500 cursor-pointer"
-            onClick={() => handleCancel("fecha", values)} // Cancelar edición
-          />
-        </div>
-      )}
-    </div>
-  ) : (
-    <div
-      className="cursor-pointer flex items-center group"
-      onClick={() => handleEdit("fecha", tempValues.fecha || "")}
-    >
-      {tempValues?.fecha || t("undated")}
-      <FaPencilAlt className="text-gray-400 ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-    </div>
-  )}
+  <div
+    className="cursor-pointer flex items-center group"
+    onClick={handleOpenDateModal}
+  >
+    {tempValues?.fecha && tempValues?.hora && tempValues?.duracion
+      ? `${tempValues.fecha} ${tempValues.hora} (${tempValues.duracion} min)`
+      : <span className="text-[12px] text-gray-400 capitalize">{t("Sin Informacion")}</span>}
+    <FaPencilAlt className="text-gray-400 ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+  </div>
 </div>
 
-                      {/* Hora */}
-                      <div className="space-x-5 flex items-center group">
-  <div className="flex items-center space-x-1">
-    <LuClock className="pb-0.5" />
-    <span className="text-[14px] capitalize cursor-default">{t("hour")}:</span>
-  </div>
-  {editingField === "hora" || isGlobalEdit ? (
-    <div className="w-full relative flex items-center">
-<InputField
-  name="hora"
-  type="time"
-  value={tempValues.hora || ""}
-  onChange={(e) => setTempValues({ ...tempValues, hora: e.target.value })}
-/>
-      {!isGlobalEdit && (
-        <div className="flex space-x-2 ml-2">
-          <FaCheck
-            className="text-green-500 cursor-pointer"
-            onClick={() => handleSave("hora")} // Guardar cambios
-          />
-          <FaTimes
-            className="text-red-500 cursor-pointer"
-            onClick={() => handleCancel("hora", values)} // Cancelar edición
+{/* Modal para editar Fecha, Hora y Duración */}
+{showDateModal && (
+  <Modal
+    state={showDateModal}
+    set={setShowDateModal}
+    style={{
+      position: "absolute",
+      top: "100%", // Aparece justo debajo del contenedor
+      left: 0,
+      width: "auto", // Ajustar al contenido
+      maxWidth: "400px", // Limitar el ancho máximo
+    }}
+  >
+    <div className="p-4">
+      <h2 className="text-lg font-semibold mb-4">{t("Editar Fecha")}</h2>
+      <div className="space-y-4">
+        {/* Componente para editar Fecha */}
+        <div className="space-x-5 flex items-center">
+          <span className="text-[14px] capitalize">{t("Fecha")}:</span>
+          <InputField
+            name="fecha"
+            type="date"
+            value={tempValues.fecha || ""}
+            onChange={(e) => setTempValues({ ...tempValues, fecha: e.target.value })}
           />
         </div>
-      )}
-    </div>
-  ) : (
-    <div
-      className="cursor-pointer flex items-center group"
-      onClick={() => handleEdit("hora", tempValues.hora || "")}
-    >
-      {tempValues?.hora || t("noHour")}
-      <FaPencilAlt className="text-gray-400 ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-    </div>
-  )}
-</div>
 
-                      {/* Duración */}
-                      <div className="space-x-5 flex items-center group">
-  <div className="flex items-center space-x-1">
-    <LuClock className="pb-0.5" />
-    <span className="text-[14px] capitalize cursor-default">{t("duration")}:</span>
-  </div>
-  {editingField === "duracion" || isGlobalEdit ? (
-    <div className="w-full relative flex items-center">
-<InputField
-  name="duracion"
-  type="number"
-  value={tempValues.duracion?.toString() || ""}
-  onChange={(e) => setTempValues({ ...tempValues, duracion: e.target.value })}
-/>
-      {!isGlobalEdit && (
-        <div className="flex space-x-2 ml-2">
-          <FaCheck
-            className="text-green-500 cursor-pointer"
-            onClick={() => handleSave("duracion")} // Guardar cambios
-          />
-          <FaTimes
-            className="text-red-500 cursor-pointer"
-            onClick={() => handleCancel("duracion", values)} // Cancelar edición
+        {/* Componente para editar Hora */}
+        <div className="space-x-5 flex items-center">
+          <span className="text-[14px] capitalize">{t("Hora")}:</span>
+          <InputField
+            name="hora"
+            type="time"
+            value={tempValues.hora || ""}
+            onChange={(e) => setTempValues({ ...tempValues, hora: e.target.value })}
           />
         </div>
-      )}
+
+        {/* Componente para editar Duración */}
+        <div className="space-x-5 flex items-center">
+          <span className="text-[14px] capitalize">{t("Duración")}:</span>
+          <InputField
+            name="duracion"
+            type="number"
+            value={tempValues.duracion?.toString() || ""}
+            onChange={(e) => setTempValues({ ...tempValues, duracion: e.target.value })}
+          />
+        </div>
+      </div>
+
+      {/* Botones de Guardar y Cancelar */}
+      <div className="flex justify-end space-x-4 mt-6">
+        <button
+          type="button"
+          className="px-4 py-2 bg-green-500 text-white rounded"
+          onClick={() => {
+            handleSave("fecha");
+            handleSave("hora");
+            handleSave("duracion");
+            setShowDateModal(false);
+          }}
+        >
+          {t("Guardar")}
+        </button>
+        <button
+          type="button"
+          className="px-4 py-2 bg-red-500 text-white rounded"
+          onClick={() => {
+            handleCancel("fecha", values);
+            handleCancel("hora", values);
+            handleCancel("duracion", values);
+            setShowDateModal(false);
+          }}
+        >
+          {t("Cancelar")}
+        </button>
+      </div>
     </div>
-  ) : (
-    <div
-      className="cursor-pointer flex items-center group"
-      onClick={() => handleEdit("duracion", tempValues.duracion || 0)}
-    >
-      {tempValues?.duracion ? `${tempValues.duracion} min` : t("noDuration")}
-      <FaPencilAlt className="text-gray-400 ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-    </div>
-  )}
+  </Modal>
+)}
 </div>
 
 {/* Block de Texto */}
-<div className={`${["/itinerario"].includes(window?.location?.pathname) ? "h-[100px]" : "md:h-[183px] h-[100px]"} border-[1px] border-gray-300 rounded-lg pt-2 pb-3 px-2 overflow-auto md:w-full group`}>
+<div className={`${["/itinerario"].includes(window?.location?.pathname) ? "h-[100px]" : "md:h-[183px] h-[100px]"} border-[1px] border-gray-300 rounded-lg pt-2 pb-3 px-2 overflow-auto md:w/full group`}>
   {editingField === "tips" || isGlobalEdit ? (
     <div className="w-full relative flex items-center">
       <div className="flex-1">
@@ -843,8 +855,8 @@ const initialValues = useMemo(() => ({
                             <RiNotification2Fill className="text-gray-500 w-4 h-4 scale-x-90" />
                           </div>
                         </div>
-                        <div className='border-gray-300 border-[1px] rounded-lg py-2 w-full'>
-                          <div ref={divRef} className='w-full h-[260px] flex flex-col-reverse rounded-lg overflow-auto break-words'>
+                        <div className='border-gray-300 border-[1px] rounded-lg py-2 w/full'>
+                          <div ref={divRef} className='w/full h-[260px] flex flex-col-reverse rounded-lg overflow-auto break-words'>
                             {comments?.map((elem, idx) => {
                               return (
                                 <ListComments id={elem?._id} key={idx} itinerario={itinerario} task={task} item={elem} tempPastedAndDropFiles={tempPastedAndDropFiles} />
