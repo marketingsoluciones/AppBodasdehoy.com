@@ -886,6 +886,7 @@ export const queries = {
 
   editTotalStimatedGuests: `mutation ($evento_id:String, $children:Int, $adults:Int){
     editTotalStimatedGuests(evento_id:$evento_id,  children:$children, adults:$adults ){
+    presupuesto_total
     viewEstimates
     coste_estimado
     coste_final
@@ -924,6 +925,7 @@ export const queries = {
 
   duplicatePresupuesto: `mutation ($eventID:String, $eventDestinationID:String){
     duplicatePresupuesto(eventID:$eventID,  eventDestinationID:$eventDestinationID ){
+    presupuesto_total
     viewEstimates
     coste_estimado
     coste_final
@@ -1109,6 +1111,7 @@ export const queries = {
             }`,
   editGasto: `mutation($evento_id: ID, $categoria_id: ID, $gasto_id: ID, $variable_reemplazar: String, $valor_reemplazar: StringIntBool){
                 editGasto(evento_id:$evento_id, categoria_id:$categoria_id, gasto_id:$gasto_id, variable_reemplazar:$variable_reemplazar, valor_reemplazar:$valor_reemplazar){
+                presupuesto_total
                 viewEstimates
                 coste_estimado
                 coste_final
@@ -1168,6 +1171,7 @@ export const queries = {
             }`,
   editItemGasto: `mutation($evento_id: ID ,$categoria_id: ID, $gasto_id: ID, $itemGasto_id: ID, $variable: String, $valor: StringIntBool){
     editItemGasto(evento_id:$evento_id, categoria_id: $categoria_id, gasto_id: $gasto_id, itemGasto_id: $itemGasto_id, variable: $variable, valor: $valor){
+      presupuesto_total
       viewEstimates
       coste_estimado
       coste_final
@@ -1240,6 +1244,7 @@ export const queries = {
   }`,
   borrarItemsGastos: `mutation($evento_id: ID, $categoria_id: ID, $gasto_id: ID, $itemsGastos_ids: [ID]){ 
     borraItemsGastos(evento_id:$evento_id, categoria_id:$categoria_id, gasto_id:$gasto_id, itemsGastos_ids:$itemsGastos_ids){
+      presupuesto_total
       viewEstimates
       coste_estimado
       coste_final
@@ -1297,8 +1302,9 @@ export const queries = {
       }
     }
   }`,
-  editPresupuesto: `mutation($evento_id:String, $coste_estimado:Float, $viewEstimates:Boolean ){
-    editPresupuesto( evento_id:$evento_id, coste_estimado:$coste_estimado, viewEstimates:$viewEstimates ){
+  editPresupuesto: `mutation($evento_id:String, $coste_estimado:Float, $viewEstimates:Boolean, $presupuesto_total:Float ){
+    editPresupuesto( evento_id:$evento_id, coste_estimado:$coste_estimado, viewEstimates:$viewEstimates,  presupuesto_total:$presupuesto_total){
+      presupuesto_total
       viewEstimates
       coste_final
       coste_estimado
@@ -1610,6 +1616,7 @@ export const queries = {
         tipo
       }
       presupuesto_objeto{
+        presupuesto_total
         viewEstimates
         coste_final
         pagado

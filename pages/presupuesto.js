@@ -173,14 +173,10 @@ const Presupuesto = () => {
                         />
                         : <div className="w-full md:flex-1 h-full flex flex-col relative">
                           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                            <div className=" bg-white shadow-md rounded-xl grid place-items-center p-4">
-                              <MontoPresupuesto
-                                estimado={
-                                  event?.presupuesto_objeto?.coste_estimado
-                                }
-                              />
+                            <div className="w-full bg-white shadow-md rounded-xl flex py-4 px-2">
+                              <MontoPresupuesto />
                             </div>
-                            <div className=" bg-white shadow-md rounded-xl grid place-items-center p-4">
+                            <div className=" bg-white shadow-md rounded-xl grid place-items-center py-4 px-2">
                               <DineroIcon className="w-12 h-12 text-primary " />
                               <p className="font-display text-gray-500 font-light text-md grid place-items-center">
                                 {t("finalcost")} <br />
