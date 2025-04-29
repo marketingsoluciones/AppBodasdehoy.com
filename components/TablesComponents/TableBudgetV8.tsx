@@ -28,6 +28,8 @@ interface props {
   showModalDelete: ModalInterface
   setShowModalDelete: Dispatch<SetStateAction<ModalInterface>>
   setLoading: any
+  showDataState:any
+  setShowDataState: any
 }
 
 export interface InitialColumn {
@@ -57,7 +59,7 @@ const optionsSelect = [
   { title: "xNiños", value: "xNiños." },
 ]
 
-export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDelete, setLoading }) => {
+export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDelete, setLoading, showDataState, setShowDataState }) => {
   const { event, setEvent } = EventContextProvider()
   const [isAllowed, ht] = useAllowed()
   const toast = useToast()
@@ -71,7 +73,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     { accessor: "valor_unitario", header: t("valor unitario"), size: 100, horizontalAlignment: "end", type: "float", isEditabled: true },
     { accessor: "coste_final", header: t("coste total"), size: defaultSize.float, horizontalAlignment: "end", type: "float" },
     { accessor: "coste_estimado", header: t("coste estimado"), size: defaultSize.float, horizontalAlignment: "end", type: "float", className: "text-primary", isHidden: !event?.presupuesto_objeto?.viewEstimates },
-    { accessor: "pagado", header: t("pagado"), size: defaultSize.float, horizontalAlignment: "end", type: "float", onClick: (context) => { console.log(context) } },
+    { accessor: "pagado", header: t("pagado"), size: defaultSize.float, horizontalAlignment: "end", type: "float" },
     { accessor: "pendiente_pagar", header: t("pendiente por pagar"), size: defaultSize.float, horizontalAlignment: "end", type: "float" },
   ]
   const rerender = useReducer(() => ({}), {})[1]
@@ -84,11 +86,11 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
 
 
 
-  useEffect(() => {
-    if (data) {
-      console.log(100080, data)
-    }
-  }, [data])
+   useEffect(() => {
+     if (data) {
+       console.log(100080, data)
+     }
+   }, [data])
 
   const options = [
     {
@@ -152,12 +154,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
       icon: <MdOutlineDeleteOutline className="w-4 h-4" />,
       title: "Borrar",
       onClick: (info) => {
-        console.log(info?.row?.original?._id)
         setShowModalDelete({ state: true, title: info?.row?.original.nombre, values: info?.row?.original, setShowDotsOptionsMenu })
-        // handleDeleteCategorie({ showModalDelete, event, setEvent, setLoading, setShowModalDelete })
-        // setTimeout(() => {
-        //   setShowDotsOptionsMenu({ state: false })
-        // }, 3000);
       },
       object: ["categoria", "gasto", "item"]
     },
@@ -281,7 +278,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
   return (
     < div className="text-sm w-full h-full font-calibri relative." >
       <div className={`${isAllowed() ? "" : "hidden"} absolute z-30 right-4 -translate-y-10`}>
-        <SelectVisiblesColumns columns={initialColumn} table={table} />
+        <SelectVisiblesColumns columns={initialColumn} table={table} showDataState={showDataState} setShowDataState={setShowDataState}  />
       </div>
       {
         RelacionarPagoModal.crear &&
@@ -343,7 +340,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                     return (
                       <th
                         key={header.id}
-                        onDoubleClick={() => console.log(header.column.getIndex())}
+                        //onDoubleClick={() => console.log(header.column.getIndex())}
                         style={{
                           ...(header.getContext().column.columnDef.size
                             ? { width: header.getContext().column.columnDef.size }
@@ -371,7 +368,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
           >
             {/* --------------------------------------------------------------------------------------------------------------------------------------------*/}
             {table.getRowModel().rows.map((row, idx) => {
-              // console.log(100084, row.original?.fatherCategoria)
               return (
                 <tr
                   key={row.id}
@@ -380,15 +376,12 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                 //${row.id === showDotsOptionsMenu?.values?.info?.row?.id && "border-red border-[1px]"}
                 >
                   {row.getVisibleCells().map(cell => {
-                    // console.log(100091, cell.getContext())
                     const verticalAlignment = initialColumn.find(elem => elem.accessor === cell.getContext().column.columnDef.id)?.verticalAlignment
                     const horizontalAlignment = initialColumn.find(elem => elem.accessor === cell.getContext().column.columnDef.id)?.horizontalAlignment
                     const className = `
                       ${horizontalAlignment === "start" ? "justify-start" : horizontalAlignment === "center" ? "justify-center" : horizontalAlignment === "end" ? "justify-end" : ""}
                       ${verticalAlignment === "start" ? "items-start" : verticalAlignment === "center" ? "items-center" : verticalAlignment === "end" ? "items-end" : ""}
                     `.replace(/\s+/g, ' ').replace(/\n+/g, ' ')
-
-                    // console.log(100072, cell.getValue(), cell.getContext().column.columnDef)
                     const value = cell.column.id === "categoria"
                       ? row.original.firstChildGasto || row.original.firstChild
                         ? cell.getValue()
@@ -405,7 +398,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                         id={`${cell.column.id}-${row.original._id}`}
                         onContextMenuCapture={(e) => {
                           const element = document.getElementById("ElementEditable")
-                          console.log("click derecho hijo")
                           let infoAsd = cell.getContext()
                           let info = cell.column.id === "categoria"
                             ? table.getRowModel().rows.find(elem => elem.original._id === infoAsd.row.original.categoriaID).getVisibleCells().find(elem => elem.column.id === cell.column.id)
@@ -426,7 +418,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                           }
                         }}
                         key={cell.id}
-                        onDoubleClick={() => console.log(row.original)}
+                        //onDoubleClick={() => console.log(row.original)}
                         onClick={() => {
                           const initialValue = initialColumn.find(elem => elem.accessor === cell.getContext().column.columnDef.id)
                           !!initialValue && !!initialValue["onClick"] && initialValue.onClick(cell.getContext())

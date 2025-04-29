@@ -49,13 +49,14 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
     const [menuIzquierdo, setMenuIzquierdo] = useState(false)
     const [loading, setLoading] = useState(false)
     const [showModalDelete, setShowModalDelete] = useState<ModalInterface>({ state: false })
+    const [showDataState, setShowDataState] = useState(true)
 
     window.addEventListener("resize", () => {
         const nuevoAncho = window.innerWidth;
         setWindowsWidth(nuevoAncho);
     })
 
-    const columnsToExcel = [
+    /* const columnsToExcel = [
         { column: "A", title: "Partida de Gasto", accessor: "nombre" },
         { column: "B", title: "Unidad", accessor: "columna1" },
         { column: "C", title: "Cantidad", accessor: "columna2" },
@@ -66,7 +67,7 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
         { column: "H", title: "Pagado", accessor: "pagado" },
         { column: "I", title: "Pendiente por Pagar", accessor: "pendiente_pagar" },
         { column: "J", title: "Opciones", accessor: "options" }
-    ];
+    ]; */
 
     useEffect(() => {
         setCategoria(
@@ -85,7 +86,18 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
             })
             setData([...dataView]);
         }
-    }, [showCategoria, event, event?.presupuesto_objeto?.currency]);
+        if (showDataState) {
+            const data = event?.presupuesto_objeto?.categorias_array?.filter(elem => !!showCategoria?._id ? showCategoria?._id === elem._id : true)
+            setData([...data]);
+        } else {
+            const data = event?.presupuesto_objeto?.categorias_array?.filter(elem => !!showCategoria?._id ? showCategoria?._id === elem._id : true)
+            const dataView = data.map(elem => ({
+                ...elem,
+                gastos_array: elem.gastos_array.filter(gasto => gasto?.estatus !== false)
+            }))
+            setData([...dataView]);
+        }
+    }, [showCategoria, event, event?.presupuesto_objeto?.currency, showDataState]);
 
 
 
@@ -116,9 +128,8 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
                         </p>}
                 />
             }
-            {/* <LoadingSpinner loading={loading} /> */}
-
             <div className="flex flex-col md:flex-row w-full h-[calc(100vh-300px)] md:h-[calc(100vh-266px)]" >
+
                 <div className={`${menuIzquierdo ? "hidden" : "md:w-[300px] flex items-center flex-col mb-3 md:mb-0"} transition-all duration-300 ease-in-out`}>
                     <div className="mb-2 w-full">
                         <ResumenInvitados />
@@ -129,7 +140,7 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
                     true &&
                     <div className={`flex ${menuIzquierdo ? "w-full" : "md:w-[calc(100%-300px)]"} h-full`}>
                         <div className='bg-blue-50 w-full h-full flex'>
-                            <TableBudgetV8 showModalDelete={showModalDelete} setShowModalDelete={setShowModalDelete} setLoading={setLoading}
+                            <TableBudgetV8 showDataState={showDataState} setShowDataState={setShowDataState} showModalDelete={showModalDelete} setShowModalDelete={setShowModalDelete} setLoading={setLoading}
                                 data={data.reduce((acc, item) => {
                                     let coste_final_categoria = 0
                                     let valirFirtsChild = true
