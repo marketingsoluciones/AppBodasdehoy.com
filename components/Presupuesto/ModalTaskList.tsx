@@ -1,12 +1,11 @@
 import { t } from "i18next";
-import { useEffect, useState } from "react";
 import { Form, Formik } from "formik";
 import InputField from "../Forms/InputField";
 import { useRouter } from "next/router";
 import { PiXBold } from "react-icons/pi";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
-import { estimate } from "../../utils/Interfaces";
 import { useToast } from "../../hooks/useToast";
+import * as Yup from "yup";
 
 
 export const ModalTaskList = ({ setModal, event, categoria, gasto, setEvent }) => {
@@ -18,10 +17,19 @@ export const ModalTaskList = ({ setModal, event, categoria, gasto, setEvent }) =
     const f1 = event?.presupuesto_objeto?.categorias_array?.findIndex((item) => item._id == categoria);
     const f2 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == gasto);
     const arrayTask = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.linkTask
-
-    const handleSubmit = async (values) => {
+    const validationSchema = Yup.object({
+        url: Yup.string().url("Por favor, ingresa una URL válida").matches(/^https?:\/\/.+\..+/, "La URL debe comenzar con http:// o https:// y contener un dominio").required("Requerido"),
+    });
+    const handleSubmit = async (values, { resetForm }) => {
+        console.log('dentro', event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2])
         try {
-            event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2].linkTask.push(values.url)
+            if (!event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.linkTask) {
+                event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].linkTask = []
+                event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2].linkTask.push(values.url)
+            }else(
+                event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2].linkTask.push(values.url)
+
+            )
             await fetchApiEventos({
                 query: queries.editGasto,
                 variables: {
@@ -34,6 +42,8 @@ export const ModalTaskList = ({ setModal, event, categoria, gasto, setEvent }) =
             })
             setEvent({ ...event })
             toast("success", t("successful"))
+            resetForm()
+
         } catch (error) {
             console.log(error)
         }
@@ -71,7 +81,7 @@ export const ModalTaskList = ({ setModal, event, categoria, gasto, setEvent }) =
                 </button>
             </div>
             <div className=" px-3 py-2">
-                <Formik initialValues={initialValues} onSubmit={handleSubmit}>
+                <Formik initialValues={initialValues} onSubmit={handleSubmit} validationSchema={validationSchema}>
                     <Form className="text-gray-200 flex  items-center justify-center gap-4 w-full ">
                         <span className="w-full text-black  ">
                             <InputField
@@ -80,13 +90,13 @@ export const ModalTaskList = ({ setModal, event, categoria, gasto, setEvent }) =
                                 type="string"
                             />
                         </span>
-                        <button className="bg-primary text-white rounded-md py-2 px-2 mt-[20px]">
+                        <button type="submit" className="bg-primary text-white rounded-md py-2 px-2 mt-[20px]">
                             Agregar
                         </button>
                     </Form>
                 </Formik>
             </div>
-            <div className=" mx-2 ">
+            <div className=" mx-2 mt-1 ">
                 Lista de Links
                 <div className="bg-gray-100 mx-3 my-2 p-2 rounded-md h-20 md:h-36 overflow-y-auto flex flex-col items-center ">
 
