@@ -118,7 +118,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
         handleCreateItem({ info, event, setEvent, setShowDotsOptionsMenu })
           .catch(error => toast("error", "ha ocurrido un error"))
       },
-      object: [ "gasto", "item"]
+      object: ["gasto", "item"]
     },
     {
       icon: <GrMoney className="w-4 h-4" />,
@@ -145,7 +145,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
         setShowFloatOptionsMenu({ state: false })
         setServisiosListModal({ id: info.row.original._id, crear: true, categoriaID: info.row.original.categoriaID })
       },
-      object:["gasto"]
+      object: ["gasto"]
 
     },
     {
@@ -280,7 +280,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
 
   return (
     < div className="text-sm w-full h-full font-calibri relative." >
-      <div className='absolute z-30 right-4 -translate-y-10'>
+      <div className={`${isAllowed() ? "" : "hidden"} absolute z-30 right-4 -translate-y-10`}>
         <SelectVisiblesColumns columns={initialColumn} table={table} />
       </div>
       {

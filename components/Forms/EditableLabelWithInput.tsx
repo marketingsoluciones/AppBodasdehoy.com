@@ -90,7 +90,7 @@ export const EditableLabelWithInput: FC<props> = ({ value, type, handleChange, a
                   : new Intl.NumberFormat().format(newValue)
                 : newValue}
             {!isLabelDisabled && <span className="ml-1">{t(accessor)}</span>}
-            {hovered && <div className="absolute right-0 w-6 h-full flex translate-x-[calc(100%+6px)] -translate-y-[calc(100%+4px)]">
+            {hovered && isAllowed() && <div className="absolute right-0 w-6 h-full flex translate-x-[calc(100%+6px)] -translate-y-[calc(100%+4px)]">
               <FaPencilAlt className="hover:scale-105" />
             </div>
             }
