@@ -1,21 +1,22 @@
 import { Table } from "@tanstack/react-table";
-import { FC, useState } from "react";
+import { Dispatch, FC, SetStateAction, useState } from "react";
 import { PiGearFill } from "react-icons/pi";
 import { InitialColumn } from "./TableBudgetV8";
 import { useAllowed } from "../../hooks/useAllowed";
+import { VisibleColumn } from "../../utils/Interfaces";
 
 interface props {
   columns: InitialColumn[]
   table: Table<any>
-  showDataState: any
-  setShowDataState: any
+  handleChangeColumnVisible: ({ accessor, show }?: VisibleColumn) => void
+  showDataState: boolean
+  setShowDataState: Dispatch<SetStateAction<boolean>>
 }
 
-export const SelectVisiblesColumns: FC<props> = ({ columns, table, showDataState, setShowDataState }) => {
+export const SelectVisiblesColumns: FC<props> = ({ columns, table, handleChangeColumnVisible, showDataState, setShowDataState }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const tableAllColumns = table.getAllLeafColumns()
   const [isAllowed, ht] = useAllowed()
-
 
   return (
     <div className="relative">
@@ -56,6 +57,7 @@ export const SelectVisiblesColumns: FC<props> = ({ columns, table, showDataState
             id={`checkbox-U`}
             type="checkbox"
             checked={table.getIsAllColumnsVisible()}
+            onChangeCapture={!table.getIsAllColumnsVisible() ? () => handleChangeColumnVisible() : () => { }}
             onChange={!table.getIsAllColumnsVisible() ? table.getToggleAllColumnsVisibilityHandler() : () => { }}
             className="rounded-full text-primary focus:ring-0 border-gray-400 cursor-pointer"
           />
@@ -74,6 +76,7 @@ export const SelectVisiblesColumns: FC<props> = ({ columns, table, showDataState
                   id={`checkbox-${idx}`}
                   type="checkbox"
                   checked={tableAllColumns.find(el => el.id === elem.accessor)?.getIsVisible()}
+                  onChangeCapture={(e) => handleChangeColumnVisible({ accessor: elem.accessor, show: e.currentTarget.checked })}
                   onChange={tableAllColumns.find(el => el.id === elem.accessor)?.getToggleVisibilityHandler()}
                   className="rounded-full text-primary focus:ring-0 border-gray-400 cursor-pointer"
                 />

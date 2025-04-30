@@ -5,7 +5,7 @@ import { EditableLabelWithInput } from '../Forms/EditableLabelWithInput';
 import { EditableSelect } from '../Forms/EditableSelect';
 import { fetchApiEventos, queries } from '../../utils/Fetching';
 import { EventContextProvider } from '../../context';
-import { FloatMenu, FloatOptionsMenuInterface, ModalInterface } from '../../utils/Interfaces';
+import { FloatOptionsMenuInterface, ModalInterface, VisibleColumn } from '../../utils/Interfaces';
 import { DotsOpcionesIcon } from '../icons';
 import { useAllowed } from '../../hooks/useAllowed';
 import { FloatOptionsMenu } from '../Utils/FloatOptionsMenu';
@@ -13,22 +13,20 @@ import { GrMoney } from 'react-icons/gr';
 import { GoEye, GoEyeClosed, GoTasklist } from 'react-icons/go';
 import { PiNewspaperClippingLight } from 'react-icons/pi';
 import { MdOutlineDeleteOutline } from 'react-icons/md';
-import { handleChange, determinatedPositionMenu, handleDelete, handleCreateItem, handleCreateGasto, handleCreateCategoria, handleChangeEstatus } from "./tableBudgetV8.handles"
-import { error } from 'console';
+import { handleChange, determinatedPositionMenu, handleCreateItem, handleCreateGasto, handleCreateCategoria, handleChangeEstatus } from "./tableBudgetV8.handles"
 import { useToast } from '../../hooks/useToast';
 import FormAddPago from '../Forms/FormAddPago';
 import ClickAwayListener from 'react-click-away-listener';
 import { SelectVisiblesColumns } from './SelectVisiblesColumns';
 import { getCurrency } from '../../utils/Funciones';
 import { ModalTaskList } from '../Presupuesto/ModalTaskList';
-import { object } from 'yup';
 
 interface props {
   data: any
   showModalDelete: ModalInterface
   setShowModalDelete: Dispatch<SetStateAction<ModalInterface>>
   setLoading: any
-  showDataState:any
+  showDataState: any
   setShowDataState: any
 }
 
@@ -60,9 +58,16 @@ const optionsSelect = [
 ]
 
 export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDelete, setLoading, showDataState, setShowDataState }) => {
+  const rerender = useReducer(() => ({}), {})[1]
   const { event, setEvent } = EventContextProvider()
   const [isAllowed, ht] = useAllowed()
   const toast = useToast()
+  const [columnsVisibility, setColumnVisibility] = useState({});
+  const columnHelper = createColumnHelper<any>()
+  const [showDotsOptionsMenu, setShowDotsOptionsMenu] = useState<FloatOptionsMenuInterface>()
+  const [showFloatOptionsMenu, setShowFloatOptionsMenu] = useState<FloatOptionsMenuInterface>()
+  const [RelacionarPagoModal, setRelacionarPagoModal] = useState({ id: "", crear: false, categoriaID: "" })
+  const [ServisiosListModal, setServisiosListModal] = useState({ id: "", crear: false, categoriaID: "" })
 
   const initialColumn: InitialColumn[] = [
     { accessor: "categoria", header: t("categoria"), isEditabled: true },
@@ -76,21 +81,23 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     { accessor: "pagado", header: t("pagado"), size: defaultSize.float, horizontalAlignment: "end", type: "float" },
     { accessor: "pendiente_pagar", header: t("pendiente por pagar"), size: defaultSize.float, horizontalAlignment: "end", type: "float" },
   ]
-  const rerender = useReducer(() => ({}), {})[1]
-  const [columnVisibility, setColumnVisibility] = useState({});
-  const columnHelper = createColumnHelper<any>()
-  const [showDotsOptionsMenu, setShowDotsOptionsMenu] = useState<FloatOptionsMenuInterface>()
-  const [showFloatOptionsMenu, setShowFloatOptionsMenu] = useState<FloatOptionsMenuInterface>()
-  const [RelacionarPagoModal, setRelacionarPagoModal] = useState({ id: "", crear: false, categoriaID: "" })
-  const [ServisiosListModal, setServisiosListModal] = useState({ id: "", crear: false, categoriaID: "" })
 
+  useEffect(() => {
+    const columnsVisibility = event?.presupuesto_objeto?.visibleColumns?.reduce((acc, item) => {
+      acc = {
+        ...acc,
+        [item.accessor]: item.show
+      }
+      return acc
+    }, {})
+    setColumnVisibility({ ...columnsVisibility })
+  }, [event])
 
-
-   useEffect(() => {
-     if (data) {
-       console.log(100080, data)
-     }
-   }, [data])
+  useEffect(() => {
+    if (data) {
+      console.log(100080, data)
+    }
+  }, [data])
 
   const options = [
     {
@@ -255,7 +262,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
 
   const table = useReactTable({
     state: {
-      columnVisibility,
+      columnVisibility: columnsVisibility,
     },
     onColumnVisibilityChange: setColumnVisibility,
     data,
@@ -274,11 +281,31 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
 
   }, [showFloatOptionsMenu, showDotsOptionsMenu])
 
+  const handleChangeColumnVisible = (props?: VisibleColumn) => {
+    if (props) {
+      const f1 = event.presupuesto_objeto.visibleColumns.findIndex(elem => elem.accessor === props.accessor)
+      if (f1 > -1) {
+        event.presupuesto_objeto.visibleColumns[f1].show = props.show
+      } else {
+        event.presupuesto_objeto.visibleColumns.push({ accessor: props.accessor, show: props.show })
+      }
+    } else {
+      event.presupuesto_objeto.visibleColumns = []
+    }
+    fetchApiEventos({
+      query: queries.editVisibleColumns,
+      variables: {
+        evento_id: event?._id,
+        visibleColumns: event.presupuesto_objeto.visibleColumns
+      },
+    })
+    setEvent({ ...event })
+  }
 
   return (
     < div className="text-sm w-full h-full font-calibri relative." >
-      <div className={`${isAllowed() ? "" : "hidden"} absolute z-30 right-4 -translate-y-10`}>
-        <SelectVisiblesColumns columns={initialColumn} table={table} showDataState={showDataState} setShowDataState={setShowDataState}  />
+      <div className='absolute z-30 right-4 -translate-y-10'>
+        <SelectVisiblesColumns columns={initialColumn} table={table} handleChangeColumnVisible={handleChangeColumnVisible} showDataState={showDataState} setShowDataState={setShowDataState} />
       </div>
       {
         RelacionarPagoModal.crear &&
@@ -373,7 +400,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                   key={row.id}
                   onMouseDown={() => { }}
                   className={`flex ${row.original?.fatherCategoria ? "border-b-[1px] border-gray-300" : ""}`.replace(/\s+/g, ' ').replace(/\n+/g, ' ')}
-                //${row.id === showDotsOptionsMenu?.values?.info?.row?.id && "border-red border-[1px]"}
                 >
                   {row.getVisibleCells().map(cell => {
                     const verticalAlignment = initialColumn.find(elem => elem.accessor === cell.getContext().column.columnDef.id)?.verticalAlignment
@@ -382,17 +408,17 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                       ${horizontalAlignment === "start" ? "justify-start" : horizontalAlignment === "center" ? "justify-center" : horizontalAlignment === "end" ? "justify-end" : ""}
                       ${verticalAlignment === "start" ? "items-start" : verticalAlignment === "center" ? "items-center" : verticalAlignment === "end" ? "items-end" : ""}
                     `.replace(/\s+/g, ' ').replace(/\n+/g, ' ')
-                    const value = cell.column.id === "categoria"
-                      ? row.original.firstChildGasto || row.original.firstChild
-                        ? cell.getValue()
-                        : ""
-                      : cell.column.id === "gasto"
-                        ? !row.original?.fatherCategoria
-                          ? row.original?.firstChildItem && cell.getValue()
-                          : ""
-                        : (cell.column.id === "nombre" && row.original?.fatherCategoria) || (cell.column.id === "nombre" && row.original?.fatherGasto)
-                          ? ""
-                          : cell.getValue()
+                    // const value = cell.column.id === "categoria"
+                    //   ? row.original.firstChildGasto || row.original.firstChild
+                    //     ? cell.getValue()
+                    //     : ""
+                    //   : cell.column.id === "gasto"
+                    //     ? !row.original?.fatherCategoria
+                    //       ? row.original?.firstChildItem && cell.getValue()
+                    //       : ""
+                    //     : (cell.column.id === "nombre" && row.original?.fatherCategoria) || (cell.column.id === "nombre" && row.original?.fatherGasto)
+                    //       ? ""
+                    //       : cell.getValue()
                     return (
                       <td
                         id={`${cell.column.id}-${row.original._id}`}

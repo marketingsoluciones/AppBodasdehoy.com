@@ -1,18 +1,15 @@
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useExpanded, useTable } from "react-table";
-import { api } from "../../api";
 import { EventContextProvider, AuthContextProvider } from "../../context";
 import { getCurrency } from "../../utils/Funciones";
 import { capitalize } from '../../utils/Capitalize';
 import FormAddPago from "../Forms/FormAddPago";
 import { useTranslation } from 'react-i18next';
 import { BorrarIcon, MisEventosIcon, PlusIcon } from "../icons";
-import CellEdit from "./CellEdit";
 import CellPagado from "./CellPagado";
 import SubComponentePagos from "./SubComponentePagos";
 import { useAllowed } from "../../hooks/useAllowed";
 import DetallesPago from "./DetallesPago";
-import { array } from "yup";
 import AddPagado from "./AddPagado";
 import { EditableLabelWithInput } from "../Forms/EditableLabelWithInput";
 import { handleChange } from "../TablesComponents/tableBudgetV8.handles";
@@ -56,7 +53,6 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
       })
     }
   }, [totalCosteFinal])
-
 
   const Columna = useMemo(() => {
     const columns = [
@@ -231,7 +227,6 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
       throw new Error(error)
     }
   };
-
 
 
   const renderRowSubComponent = useCallback(({ row, cate, gasto }) => (

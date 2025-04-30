@@ -832,6 +832,10 @@ export const queries = {
         pagado
         coste_estimado
         currency
+        visibleColumns {
+          accessor
+          show
+        }
         totalStimatedGuests{
           children
           adults
@@ -884,6 +888,49 @@ export const queries = {
     }
   }`,
 
+  editVisibleColumns: `mutation ($evento_id:String, $visibleColumns:[inputVisibleColumn]){
+    editVisibleColumns(evento_id:$evento_id, visibleColumns:$visibleColumns ){
+      presupuesto_total
+      viewEstimates
+      coste_estimado
+      coste_final
+      pagado
+      currency
+      visibleColumns {
+        accessor
+        show
+      }
+      totalStimatedGuests {
+        children
+        adults
+      }
+      categorias_array{
+        _id
+        coste_proporcion
+        coste_estimado
+        coste_final
+        pagado
+        nombre
+        gastos_array{
+          _id
+          coste_proporcion
+          coste_estimado
+          coste_final
+          pagado
+          nombre
+          linkTask
+          estatus
+          pagos_array{
+            _id
+          }
+          items_array{
+            _id
+          }
+        }
+      }
+    }
+  }`,
+
   editTotalStimatedGuests: `mutation ($evento_id:String, $children:Int, $adults:Int){
     editTotalStimatedGuests(evento_id:$evento_id,  children:$children, adults:$adults ){
     presupuesto_total
@@ -892,6 +939,10 @@ export const queries = {
     coste_final
     pagado
     currency
+    visibleColumns {
+      accessor
+      show
+    }
     totalStimatedGuests {
       children
       adults
@@ -931,6 +982,10 @@ export const queries = {
     coste_final
     pagado
     currency
+    visibleColumns {
+      accessor
+      show
+    }
     totalStimatedGuests{
       children
       adults
@@ -1117,6 +1172,10 @@ export const queries = {
                 coste_final
                 pagado
                 currency
+                visibleColumns {
+                  accessor
+                  show
+                }
                 totalStimatedGuests{
                   children
                   adults
@@ -1177,6 +1236,10 @@ export const queries = {
       coste_final
       pagado
       currency
+      visibleColumns {
+        accessor
+        show
+      }
       totalStimatedGuests{
         children
         adults
@@ -1250,6 +1313,10 @@ export const queries = {
       coste_final
       pagado
       currency
+      visibleColumns {
+        accessor
+        show
+      }
       totalStimatedGuests{
         children
         adults
@@ -1310,6 +1377,10 @@ export const queries = {
       coste_estimado
       pagado
       currency
+      visibleColumns {
+        accessor
+        show
+      }
       totalStimatedGuests{
         children
         adults
@@ -1622,6 +1693,10 @@ export const queries = {
         pagado
         coste_estimado
         currency
+        visibleColumns {
+          accessor
+          show
+        }
         totalStimatedGuests{
           children
           adults
