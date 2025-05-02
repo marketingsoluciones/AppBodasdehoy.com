@@ -118,7 +118,7 @@ export async function getServerSideProps({ params, query }) {
     }) as any
     if (evento) {
       openGraphData.openGraph.title = `${evento.itinerarios_array[0].tasks[0].descripcion}`
-      openGraphData.openGraph.description = " |", evento.itinerarios_array[0].tasks[0].tips.replace(/<[^>]*>/g, "")
+      openGraphData.openGraph.description = evento.itinerarios_array[0].tasks[0].tips.replace(/<[^>]*>/g, "").replace(".", ". ")
     }
     return {
       props: { ...params, query, evento },
