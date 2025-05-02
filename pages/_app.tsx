@@ -36,6 +36,7 @@ const MyApp = ({ Component, pageProps, openGraphData }) => {
   )
 }
 
+export let openGraphData = {} as any
 // Esta función se ejecuta en el servidor en cada petición
 MyApp.getInitialProps = async ({ Component, ctx }) => {
   const { req, pathname } = ctx;
@@ -47,7 +48,7 @@ MyApp.getInitialProps = async ({ Component, ctx }) => {
   const nameDomain = arr[f1 - 1]
   const development = developments.find(elem => elem.name === nameDomain)
   const path = "/" + pathname.split("/")[1]
-  const openGraphData = dataMetaData.find(elem => elem.ruta === path)?.metaData(development) ?? {}
+  openGraphData = dataMetaData.find(elem => elem.ruta === path)?.metaData(development) ?? {}
 
   if (Component.getInitialProps) {
     pageProps = await Component.getInitialProps(ctx);
