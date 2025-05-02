@@ -6,9 +6,11 @@ import VistaSinCookie from "./vista-sin-cookie"
 import { motion } from "framer-motion"
 import { useRouter } from "next/router"
 import { useMounted } from "../hooks/useMounted"
+import { fetchApiEventos, queries } from "../utils/Fetching"
+import { openGraphData } from "./_app"
 
 
-const Itinerario = () => {
+const Itinerario = (props) => {
     const [createPdf, setCreatePdf] = useState(false)
     const { eventsGroup } = EventsGroupContextProvider()
     const { event, setEvent } = EventContextProvider()
@@ -59,3 +61,31 @@ const Itinerario = () => {
 }
 
 export default Itinerario
+
+export async function getServerSideProps({ params, query }) {
+    try {
+        const p = params?.slug[0]?.split("-")
+        const evento_id = p?.[1] || query?.event;
+        const itinerario_id = p?.[2] || query?.itinerary;
+
+        const evento = await fetchApiEventos({
+            query: queries.getItinerario,
+            variables: {
+                evento_id,
+                itinerario_id
+            }
+        }) as any
+        if (evento) {
+            openGraphData.openGraph.title = `${evento.itinerarios_array[0].tasks[0].descripcion}`
+            openGraphData.openGraph.description = evento.itinerarios_array[0].tasks[0].tips.replace(/<[^>]*>/g, "").replace(".", ". ")
+        }
+        return {
+            props: { ...params, query, evento },
+        };
+    } catch (error) {
+        return {
+            props: params,
+        };
+
+    }
+}
