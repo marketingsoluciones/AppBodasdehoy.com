@@ -1,4 +1,3 @@
-
 import { TaskNew } from "./TaskNew"
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
 import { AddEvent } from "./AddEvent";
@@ -33,6 +32,7 @@ import { CgInfo } from "react-icons/cg";
 import { ImageAvatar } from "../../Utils/ImageAvatar";
 import { ItineraryDetails } from "../MicroComponente/ItineraryDetails"
 import { SimpleDeleteConfirmation } from "../../Utils/SimpleDeleteConfirmation";
+import { ExtraTableView } from "./ExtraTableView"; // Importar el nuevo componente
 
 interface props {
     itinerario: Itinerary
@@ -318,7 +318,24 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             <div className={`*!hidden w-full flex-1 flex flex-col pt-2 md:px-2 lg:px-6`}>
                 {
                     tasksReduce?.length > 0 ?
-                        view !== "table"
+                    view === "extraTable" ? (
+                        <ExtraTableView
+                          data={tasks} // Pasar las tareas como datos
+                          setModalStatus={setModalStatus}
+                          modalStatus={modalStatus}
+                          setModalWorkFlow={setModalWorkFlow}
+                          modalWorkFlow={modalWorkFlow}
+                          setModalCompartirTask={setModalCompartirTask}
+                          modalCompartirTask={modalCompartirTask}
+                          deleteTask={deleteTask}
+                          showEditTask={showEditTask}
+                          setShowEditTask={setShowEditTask}
+                          optionsItineraryButtonBox={optionsItineraryButtonBox}
+                          selectTask={selectTask}
+                          setSelectTask={setSelectTask}
+                          itinerario={itinerario}
+                        />
+                      ) : view !== "table"
                             ? tasksReduce?.map((el, i) =>
                                 <div key={i} className="w-full mt-4">
                                     {["/itinerario"].includes(window?.location?.pathname) && <div className={`w-full flex ${view === "schema" ? "justify-start" : "justify-center"}`}>

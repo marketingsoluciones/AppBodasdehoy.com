@@ -7,6 +7,9 @@ import { TbSchema } from "react-icons/tb";
 import { ArrowDownBodasIcon } from "../icons";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from "react-i18next";
+import { ExtraTableView } from "../Itinerario/MicroComponente/ExtraTableView"; // Importar el nuevo componente
+
+
 
 interface props {
   value: any
@@ -23,24 +26,32 @@ export const SelectModeView: FC<props> = ({ value, setValue }) => {
       value: "cards",
       icon: <LiaIdCardSolid className="w-5 h-5" />,
       title: t("card")
+    },
+    {
+      value: "extraTable", // Nueva opción para otra vista de tabla
+      icon: <HiOutlineViewList className="w-5 h-5" />,
+      title: t("NuevaTabla") // Traducción para la nueva opción
     }
-  ]
+  ];
+  
   if (isAllowed()) {
     options.push({
       value: "table",
       icon: <HiOutlineViewList className="w-5 h-5" />,
       title: t("board")
-    },)
+    });
   }
+  
   if (["/itinerario"].includes(window?.location?.pathname)) {
     options.push({
       value: "schema",
       icon: <TbSchema className="w-5 h-5" />,
       title: t("schema")
-    })
+    });
   }
-
+  
   return (
+    
     <ClickAwayListener onClickAway={() => setShow(false)} >
       <div className="relative flex cursor-pointer -translate-y-10 md:translate-y-0">
         <div onClick={() => { setShow(!show) }} className="inline-flex text-sm gap-0.5 text-gray-700 items-center capitalize">

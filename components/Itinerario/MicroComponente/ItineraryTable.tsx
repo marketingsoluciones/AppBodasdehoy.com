@@ -1,16 +1,15 @@
-import { FC } from "react";
+import { FC, useMemo } from "react";
 import { useRowSelect, useSortBy, useTable } from "react-table";
 import { useTranslation } from 'react-i18next';
 
 export const ItineraryTable: FC<any> = ({ columns, data = [], selectTask, setSelectTask }) => {
   const { t } = useTranslation();
 
+  // Filtrar columnas visibles
+  const visibleColumns = useMemo(() => columns.filter((col) => !col.isHidden), [columns]);
+
   const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows } =
-    useTable({ columns, data }, useSortBy, useRowSelect, (hooks) => {
-      hooks.visibleColumns.push((columns) => [
-        ...columns,
-      ]);
-    });
+  useTable({ columns: visibleColumns, data }, useSortBy, useRowSelect);
 
   const colSpan = {
     description: 7,
@@ -20,7 +19,6 @@ export const ItineraryTable: FC<any> = ({ columns, data = [], selectTask, setSel
     tips: 12,
     attachments: 8,
     tags: 5,
-    //selection: 2
   };
 
   return (
