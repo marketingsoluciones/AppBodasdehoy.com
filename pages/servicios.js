@@ -42,7 +42,7 @@ const Itinerario = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="mx-auto w-full pl-2 px-[1px] md:px20 gap-4 relative">
+                    className="mx-auto w-full pl-2 px-[1px] md:px-10 gap-4 relative">
                     <BlockTitle title={"Tasks"} />{/*task planning o task management*/} {/* Flujo de tareas */}
                     <BoddyIter />
 
