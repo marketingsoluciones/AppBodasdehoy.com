@@ -77,7 +77,10 @@ export async function getServerSideProps({ params, query }) {
         }) as any
         if (evento) {
             openGraphData.openGraph.title = `${evento.itinerarios_array[0].tasks[0].descripcion}`
-            openGraphData.openGraph.description = evento.itinerarios_array[0].tasks[0].tips.replace(/<[^>]*>/g, "").replace(".", ". ")
+            openGraphData.openGraph.description = `Evento = ${evento.nombre} 
+            Tipo = ${evento.tipo}
+            Fecha = ${new Date(parseInt(evento?.itinerarios_array[0].fecha_creacion)).toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}
+            ${evento.itinerarios_array[0].tasks[0].tips.replace(/<[^>]*>/g, "").replace(".", ". ")}`
         }
         return {
             props: { ...params, query, evento },
