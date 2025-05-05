@@ -26,7 +26,7 @@ export const BlockListaCategorias: FC<props> = ({ categorias_array, setShowCateg
           <FormCrearCategoria state={showCreateCategorie} set={setShowCreateCategorie} />
         </ModalLeft>
       )}
-      <div className="bg-gray-50 w-full shadow-md rounded-xl h-max*">
+      <div className="bg-gray-50 w-full shadow-md rounded-xl">
         <button
           onClick={() => !isAllowed() ? ht() : setShowCreateCategorie(true)}
           className="focus:outline-none bg-primary rounded-xl font-display font-light text-md flex gap-2 w-full py-1 items-center justify-center text-white hover:scale-105 transition transform"

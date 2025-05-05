@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { GlobalCurrency } from "../context/EventContext"
+import { Event } from "../utils/Interfaces"
 
 export const Loading = (set) => {
   set(true)
@@ -8,7 +10,7 @@ export const Loading = (set) => {
 }
 
 
-export function useDelayUnmount(isMounted, delayTime) {
+export function useDelayUnmount(isMounted: boolean, delayTime: number) {
   const [shouldRender, setShouldRender] = useState(false);
 
   useEffect(() => {
@@ -28,18 +30,17 @@ export function useDelayUnmount(isMounted, delayTime) {
   return shouldRender;
 }
 
-export const getCurrency = (value, currency) => {
-  console.log(navigator.language)
-  const v = parseFloat(!!value ? value : 0)
-  return v.toLocaleString(navigator.language, {
+export const getCurrency = (value: number | string, currency?: string) => {
+  const v = typeof value === "string" ? parseFloat(value) : value
+  return v?.toLocaleString(currency ? navigator.language : undefined, {
     style: currency ? "currency" : "decimal",
     currency: currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: !["cop"].includes(GlobalCurrency) ? 2 : 0,
+    maximumFractionDigits: !["cop"].includes(GlobalCurrency) ? 2 : 0,
   })
 }
 
-export const getAllFilterGuest = (event) => {
+export const getAllFilterGuest = (event: Event) => {
   if (event) {
     return event.planSpace.map((planSpace) => {
       const guestsSections = planSpace?.sections?.reduce((sections, section) => {

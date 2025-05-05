@@ -1,18 +1,15 @@
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useExpanded, useTable } from "react-table";
-import { api } from "../../api";
 import { EventContextProvider, AuthContextProvider } from "../../context";
 import { getCurrency } from "../../utils/Funciones";
 import { capitalize } from '../../utils/Capitalize';
 import FormAddPago from "../Forms/FormAddPago";
 import { useTranslation } from 'react-i18next';
 import { BorrarIcon, MisEventosIcon, PlusIcon } from "../icons";
-import CellEdit from "./CellEdit";
 import CellPagado from "./CellPagado";
 import SubComponentePagos from "./SubComponentePagos";
 import { useAllowed } from "../../hooks/useAllowed";
 import DetallesPago from "./DetallesPago";
-import { array } from "yup";
 import AddPagado from "./AddPagado";
 import { EditableLabelWithInput } from "../Forms/EditableLabelWithInput";
 import { handleChange } from "../TablesComponents/tableBudgetV8.handles";
@@ -20,6 +17,7 @@ import { fetchApiEventos, queries } from "../../utils/Fetching";
 
 const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
   const { t } = useTranslation();
+  const { user } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
   const [categoria, setCategoria] = useState({});
   const [data, setData] = useState([]);
@@ -32,11 +30,13 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
         (item) => item._id == showCategoria?._id
       )
     );
-    setData(
-      event?.presupuesto_objeto?.categorias_array?.find(
-        (item) => item._id == showCategoria?._id
-      )?.gastos_array
-    );
+    if (event?.usuario_id === user?.uid || event?.permissions?.find(elem => elem?.title === "presupuesto").value === "edit") {
+      const data = event?.presupuesto_objeto?.categorias_array?.find((item) => item._id == showCategoria?._id)?.gastos_array
+      setData([...data]);
+    } else {
+      const data = event?.presupuesto_objeto?.categorias_array?.find((item) => item._id == showCategoria?._id)?.gastos_array.filter(el => el?.estatus !== false)
+      setData([...data]);
+    }
     setGastoID(old => ({ ...old, crear: false }))
   }, [showCategoria, event, event?.presupuesto_objeto?.currency]);
 
@@ -53,7 +53,6 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
       })
     }
   }, [totalCosteFinal])
-
 
   const Columna = useMemo(() => {
     const columns = [
@@ -177,9 +176,9 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
                     gasto_id: props?.row?.original?._id,
                   },
                 }).then(result => {
-                  const f1 = event.presupuesto_objeto.categorias_array.findIndex(elem => elem._id === categoria?._id)
-                  const f2 = event.presupuesto_objeto.categorias_array[f1].gastos_array.findIndex(elem => elem._id === props?.row?.original?._id)
-                  event.presupuesto_objeto.categorias_array[f1].gastos_array.splice(f2, 1)
+                  const f1 = event?.presupuesto_objeto?.categorias_array.findIndex(elem => elem._id === categoria?._id)
+                  const f2 = event?.presupuesto_objeto?.categorias_array[f1].gastos_array.findIndex(elem => elem._id === props?.row?.original?._id)
+                  event?.presupuesto_objeto?.categorias_array[f1].gastos_array.splice(f2, 1)
                   resolve(event)
                 })
               }).then((result) => {
@@ -209,41 +208,6 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
   }, [categoria, event])
 
   const AddGasto = async () => {
-    /* let res;
-    try {
-      const params = {
-        query: `mutation{
-          nuevoGasto(evento_id:"${event?._id}",
-          categoria_id:"${categoria?._id}",nombre:""){
-            _id,
-            nombre,
-            coste_estimado,
-            coste_final,
-            pagado,
-          }
-        }
-        `,
-        variables: {},
-      };
-
-      const { data } = await api.ApiApp(params);
-      res = data.data.nuevoGasto;
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setEvent((old) => {
-        const index = old?.presupuesto_objeto?.categorias_array?.findIndex(
-          (item) => item._id == categoria._id
-        );
-        old.presupuesto_objeto.categorias_array[index].gastos_array = [
-          ...old.presupuesto_objeto.categorias_array[index].gastos_array,
-          res,
-        ];
-        const f2 = old.presupuesto_objeto.categorias_array[index].gastos_array.findIndex((elemt) => elemt._id == res._id)
-        old.presupuesto_objeto.categorias_array[index].gastos_array[f2].pagos_array = []
-        return { ...old };
-      });
-    } */
 
     try {
       fetchApiEventos({
@@ -254,8 +218,8 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
           nombre: "Nueva part. de gasto",
         }
       }).then((result) => {
-        const f1 = event.presupuesto_objeto.categorias_array.findIndex((elem) => elem._id === categoria?._id)
-        event.presupuesto_objeto.categorias_array[f1].gastos_array.push(result)
+        const f1 = event?.presupuesto_objeto?.categorias_array.findIndex((elem) => elem._id === categoria?._id)
+        event?.presupuesto_objeto?.categorias_array[f1].gastos_array.push(result)
         setEvent({ ...event })
       })
     } catch (error) {
@@ -263,7 +227,6 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
       throw new Error(error)
     }
   };
-
 
 
   const renderRowSubComponent = useCallback(({ row, cate, gasto }) => (

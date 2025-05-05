@@ -5,7 +5,7 @@ import { EditableLabelWithInput } from '../Forms/EditableLabelWithInput';
 import { EditableSelect } from '../Forms/EditableSelect';
 import { fetchApiEventos, queries } from '../../utils/Fetching';
 import { EventContextProvider } from '../../context';
-import { FloatMenu, FloatOptionsMenuInterface, ModalInterface } from '../../utils/Interfaces';
+import { FloatOptionsMenuInterface, ModalInterface, VisibleColumn } from '../../utils/Interfaces';
 import { DotsOpcionesIcon } from '../icons';
 import { useAllowed } from '../../hooks/useAllowed';
 import { FloatOptionsMenu } from '../Utils/FloatOptionsMenu';
@@ -13,18 +13,21 @@ import { GrMoney } from 'react-icons/gr';
 import { GoEye, GoEyeClosed, GoTasklist } from 'react-icons/go';
 import { PiNewspaperClippingLight } from 'react-icons/pi';
 import { MdOutlineDeleteOutline } from 'react-icons/md';
-import { handleChange, determinatedPositionMenu, handleDelete, handleCreateItem, handleCreateGasto, handleCreateCategoria } from "./tableBudgetV8.handles"
-import { error } from 'console';
+import { handleChange, determinatedPositionMenu, handleCreateItem, handleCreateGasto, handleCreateCategoria, handleChangeEstatus } from "./tableBudgetV8.handles"
 import { useToast } from '../../hooks/useToast';
 import FormAddPago from '../Forms/FormAddPago';
 import ClickAwayListener from 'react-click-away-listener';
 import { SelectVisiblesColumns } from './SelectVisiblesColumns';
+import { getCurrency } from '../../utils/Funciones';
+import { ModalTaskList } from '../Presupuesto/ModalTaskList';
 
 interface props {
   data: any
   showModalDelete: ModalInterface
   setShowModalDelete: Dispatch<SetStateAction<ModalInterface>>
   setLoading: any
+  showDataState: any
+  setShowDataState: any
 }
 
 export interface InitialColumn {
@@ -54,10 +57,17 @@ const optionsSelect = [
   { title: "xNiños", value: "xNiños." },
 ]
 
-export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDelete, setLoading }) => {
+export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDelete, setLoading, showDataState, setShowDataState }) => {
+  const rerender = useReducer(() => ({}), {})[1]
   const { event, setEvent } = EventContextProvider()
   const [isAllowed, ht] = useAllowed()
   const toast = useToast()
+  const [columnsVisibility, setColumnVisibility] = useState({});
+  const columnHelper = createColumnHelper<any>()
+  const [showDotsOptionsMenu, setShowDotsOptionsMenu] = useState<FloatOptionsMenuInterface>()
+  const [showFloatOptionsMenu, setShowFloatOptionsMenu] = useState<FloatOptionsMenuInterface>()
+  const [RelacionarPagoModal, setRelacionarPagoModal] = useState({ id: "", crear: false, categoriaID: "" })
+  const [ServisiosListModal, setServisiosListModal] = useState({ id: "", crear: false, categoriaID: "" })
 
   const initialColumn: InitialColumn[] = [
     { accessor: "categoria", header: t("categoria"), isEditabled: true },
@@ -68,15 +78,20 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     { accessor: "valor_unitario", header: t("valor unitario"), size: 100, horizontalAlignment: "end", type: "float", isEditabled: true },
     { accessor: "coste_final", header: t("coste total"), size: defaultSize.float, horizontalAlignment: "end", type: "float" },
     { accessor: "coste_estimado", header: t("coste estimado"), size: defaultSize.float, horizontalAlignment: "end", type: "float", className: "text-primary", isHidden: !event?.presupuesto_objeto?.viewEstimates },
-    { accessor: "pagado", header: t("pagado"), size: defaultSize.float, horizontalAlignment: "end", type: "float", onClick: (context) => { console.log(context) } },
+    { accessor: "pagado", header: t("pagado"), size: defaultSize.float, horizontalAlignment: "end", type: "float" },
     { accessor: "pendiente_pagar", header: t("pendiente por pagar"), size: defaultSize.float, horizontalAlignment: "end", type: "float" },
   ]
-  const rerender = useReducer(() => ({}), {})[1]
-  const [columnVisibility, setColumnVisibility] = useState({});
-  const columnHelper = createColumnHelper<any>()
-  const [showDotsOptionsMenu, setShowDotsOptionsMenu] = useState<FloatOptionsMenuInterface>()
-  const [showFloatOptionsMenu, setShowFloatOptionsMenu] = useState<FloatOptionsMenuInterface>()
-  const [RelacionarPagoModal, setRelacionarPagoModal] = useState({ id: "", crear: false, categoriaID: "" })
+
+  useEffect(() => {
+    const columnsVisibility = event?.presupuesto_objeto?.visibleColumns?.reduce((acc, item) => {
+      acc = {
+        ...acc,
+        [item.accessor]: item.show
+      }
+      return acc
+    }, {})
+    setColumnVisibility({ ...columnsVisibility })
+  }, [event])
 
   useEffect(() => {
     if (data) {
@@ -88,27 +103,31 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     {
       icon: <PiNewspaperClippingLight className="w-4 h-4" />,
       title: "Agregar:",
+      object: ["categoria", "gasto", "item"]
     },
     {
       title: "Categoría",
       onClick: (info) => {
         handleCreateCategoria({ info, event, setEvent, setShowDotsOptionsMenu })
           .catch(error => toast("error", "ha ocurrido un error"))
-      }
+      },
+      object: ["categoria", "gasto", "item"]
     },
     {
       title: "Partida",
       onClick: (info) => {
         handleCreateGasto({ info, event, setEvent, setShowDotsOptionsMenu })
           .catch(error => toast("error", "ha ocurrido un error"))
-      }
+      },
+      object: ["categoria", "gasto", "item"]
     },
     {
       title: "Item",
       onClick: (info) => {
         handleCreateItem({ info, event, setEvent, setShowDotsOptionsMenu })
           .catch(error => toast("error", "ha ocurrido un error"))
-      }
+      },
+      object: ["gasto", "item"]
     },
     {
       icon: <GrMoney className="w-4 h-4" />,
@@ -116,34 +135,37 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
       onClick: (info) => {
         setShowFloatOptionsMenu({ state: false })
         setRelacionarPagoModal({ id: info.row.original._id, crear: true, categoriaID: info.row.original.categoriaID })
-      }//handlePago()
+      },
+      object: ["gasto"]
     },
     {
       icon: true ? <GoEye className="w-4 h-4" /> : <GoEyeClosed className="w-4 h-4" />,
       title: "Estado",
-      onClick: () => { console.log("Estado") }//handleChangeState()
+      onClick: (info) => {
+        handleChangeEstatus({ event, categoriaID: info.row.original.categoriaID, gastoId: info.row.original.gastoID, setEvent })
+          .catch(error => toast("error", "ha ocurrido un error"))
+      },
+      object: ["gasto"]
     },
     {
       icon: <GoTasklist className="w-4 h-4" />,
       title: "Task",
-      onClick: () => { console.log("Task") }//setShow(true)
+      onClick: (info) => {
+        setShowFloatOptionsMenu({ state: false })
+        setServisiosListModal({ id: info.row.original._id, crear: true, categoriaID: info.row.original.categoriaID })
+      },
+      object: ["gasto"]
+
     },
     {
       icon: <MdOutlineDeleteOutline className="w-4 h-4" />,
       title: "Borrar",
       onClick: (info) => {
-        console.log(info?.row?.original?._id)
         setShowModalDelete({ state: true, title: info?.row?.original.nombre, values: info?.row?.original, setShowDotsOptionsMenu })
-        // handleDeleteCategorie({ showModalDelete, event, setEvent, setLoading, setShowModalDelete })
-        // setTimeout(() => {
-        //   setShowDotsOptionsMenu({ state: false })
-        // }, 3000);
-      }
+      },
+      object: ["categoria", "gasto", "item"]
     },
   ];
-
-
-
 
   const columnOptions = columnHelper.accessor("options", {
     id: "options",
@@ -173,6 +195,8 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                   }
                 })
               }
+            } else {
+              ht()
             }
           }}
           className='w-full h-full flex justify-center items-center cursor-pointer'
@@ -195,16 +219,23 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
             let value = info.getValue()
             return elem.isEditabled || info?.row?.original?.accessorEditables?.includes(elem.accessor)
               ? elem?.type !== "select"
-                ? <EditableLabelWithInput
-                  key={idx}
-                  accessor={elem?.accessor}
-                  handleChange={(values: any) => {
-                    handleChange({ values, info, event, setEvent })
-                  }}
-                  type={elem?.type}
-                  value={value as string | number}
-                  textAlign={elem?.horizontalAlignment}
-                  isLabelDisabled />
+                ?
+                <>
+                  {
+                    elem?.accessor === "gasto" && info?.row?.original?.gastoOriginal?.estatus === false &&
+                    <GoEyeClosed className="w-4 h-4 mr-1 " />
+                  }
+                  <EditableLabelWithInput
+                    key={idx}
+                    accessor={elem?.accessor}
+                    handleChange={(values: any) => {
+                      handleChange({ values, info, event, setEvent })
+                    }}
+                    type={elem?.type}
+                    value={value as string | number}
+                    textAlign={elem?.horizontalAlignment}
+                    isLabelDisabled />
+                </>
                 : <EditableSelect
                   accessor={elem?.accessor}
                   value={value}
@@ -216,10 +247,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                 />
               : elem.type === "float"
                 ? typeof info.getValue() === "number"
-                  ? new Intl.NumberFormat(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  }).format(info.getValue())
+                  ? getCurrency(info.getValue())
                   : null
                 : info.getValue()
           },
@@ -230,13 +258,11 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     }
   }).filter(Boolean)
 
-  console.log(columns)
-
   columns.push(columnOptions)
 
   const table = useReactTable({
     state: {
-      columnVisibility,
+      columnVisibility: columnsVisibility,
     },
     onColumnVisibilityChange: setColumnVisibility,
     data,
@@ -244,16 +270,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     getCoreRowModel: getCoreRowModel(),
   })
 
-  // useEffect(() => {
-  //   const columnVisibility = columns.reduce((acc, item) => {
-  //     acc[item.Header] = { visible: true }
-  //     return acc
-  //   }, {})
-  //   setColumnVisibility(columnVisibility)
-  // }, [columns])
-
   useEffect(() => {
-    console.log(showFloatOptionsMenu?.state, showDotsOptionsMenu?.state)
     if (showFloatOptionsMenu?.control === "ok" && showDotsOptionsMenu?.control === "ok") {
       const showFloatOptionsMenuNew: FloatOptionsMenuInterface = {
         state: true,
@@ -264,11 +281,31 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
 
   }, [showFloatOptionsMenu, showDotsOptionsMenu])
 
+  const handleChangeColumnVisible = (props?: VisibleColumn) => {
+    if (props) {
+      const f1 = event.presupuesto_objeto.visibleColumns.findIndex(elem => elem.accessor === props.accessor)
+      if (f1 > -1) {
+        event.presupuesto_objeto.visibleColumns[f1].show = props.show
+      } else {
+        event.presupuesto_objeto.visibleColumns.push({ accessor: props.accessor, show: props.show })
+      }
+    } else {
+      event.presupuesto_objeto.visibleColumns = []
+    }
+    fetchApiEventos({
+      query: queries.editVisibleColumns,
+      variables: {
+        evento_id: event?._id,
+        visibleColumns: event.presupuesto_objeto.visibleColumns
+      },
+    })
+    setEvent({ ...event })
+  }
 
   return (
     < div className="text-sm w-full h-full font-calibri relative." >
       <div className='absolute z-30 right-4 -translate-y-10'>
-        <SelectVisiblesColumns columns={initialColumn} table={table} />
+        <SelectVisiblesColumns columns={initialColumn} table={table} handleChangeColumnVisible={handleChangeColumnVisible} showDataState={showDataState} setShowDataState={setShowDataState} />
       </div>
       {
         RelacionarPagoModal.crear &&
@@ -286,17 +323,35 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
           </ClickAwayListener>
         </div>
       }
-      {showFloatOptionsMenu?.state && <FloatOptionsMenu showOptionsMenu={showFloatOptionsMenu} setShowOptionsMenu={setShowFloatOptionsMenu} />
+      {
+        ServisiosListModal.crear &&
+        <ClickAwayListener onClickAway={() => ServisiosListModal.crear && setServisiosListModal({ id: "", crear: false, categoriaID: "" })}>
+          <div >
+            <ModalTaskList
+              setModal={setServisiosListModal}
+              categoria={ServisiosListModal?.categoriaID}
+              gasto={ServisiosListModal?.id}
+              event={event}
+              setEvent={setEvent}
+            />
+          </div>
+        </ClickAwayListener>
       }
+      {
+        showFloatOptionsMenu?.state &&
+        <FloatOptionsMenu showOptionsMenu={showFloatOptionsMenu} setShowOptionsMenu={setShowFloatOptionsMenu} />
+      }
+
       <div className='w-full h-full p-2 ' >
         <table
           className='bg-gray-200 w-full h-full flex flex-col !rounded-xl overflow-auto relative'
           onContextMenuCapture={(e) => {
             const element = document.getElementById("ElementEditable")
-            console.log("click derecho padre")
-            if (!element) {
-              const position = { x: e.clientX - 8, y: e.clientY - 144 - 124 }
-              setShowFloatOptionsMenu({ state: false, values: { info: undefined, position, options }, control: "ok" })
+            if (isAllowed()) {
+              if (!element) {
+                const position = { x: e.clientX - 8, y: e.clientY - 144 - 124 }
+                setShowFloatOptionsMenu({ state: false, values: { info: undefined, position, options }, control: "ok" })
+              }
             }
           }}
         >
@@ -309,11 +364,10 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
               return (
                 <tr key={headerGroup.id} className='bg-primary w-full flex border-b-[1px] border-gray-200'>
                   {headerGroup.headers.map(header => {
-                    // console.log(100071, header.column.id, header.getContext().column.columnDef.size)
                     return (
                       <th
                         key={header.id}
-                        onDoubleClick={() => console.log(header.column.getIndex())}
+                        //onDoubleClick={() => console.log(header.column.getIndex())}
                         style={{
                           ...(header.getContext().column.columnDef.size
                             ? { width: header.getContext().column.columnDef.size }
@@ -341,41 +395,35 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
           >
             {/* --------------------------------------------------------------------------------------------------------------------------------------------*/}
             {table.getRowModel().rows.map((row, idx) => {
-              // console.log(100084, row.original?.fatherCategoria)
               return (
                 <tr
                   key={row.id}
                   onMouseDown={() => { }}
                   className={`flex ${row.original?.fatherCategoria ? "border-b-[1px] border-gray-300" : ""}`.replace(/\s+/g, ' ').replace(/\n+/g, ' ')}
-                //${row.id === showDotsOptionsMenu?.values?.info?.row?.id && "border-red border-[1px]"}
                 >
                   {row.getVisibleCells().map(cell => {
-                    // console.log(100091, cell.getContext())
                     const verticalAlignment = initialColumn.find(elem => elem.accessor === cell.getContext().column.columnDef.id)?.verticalAlignment
                     const horizontalAlignment = initialColumn.find(elem => elem.accessor === cell.getContext().column.columnDef.id)?.horizontalAlignment
                     const className = `
                       ${horizontalAlignment === "start" ? "justify-start" : horizontalAlignment === "center" ? "justify-center" : horizontalAlignment === "end" ? "justify-end" : ""}
                       ${verticalAlignment === "start" ? "items-start" : verticalAlignment === "center" ? "items-center" : verticalAlignment === "end" ? "items-end" : ""}
                     `.replace(/\s+/g, ' ').replace(/\n+/g, ' ')
-
-                    // console.log(100072, cell.getValue(), cell.getContext().column.columnDef)
-                    const value = cell.column.id === "categoria"
-                      ? row.original.firstChildGasto || row.original.firstChild
-                        ? cell.getValue()
-                        : ""
-                      : cell.column.id === "gasto"
-                        ? !row.original?.fatherCategoria
-                          ? row.original?.firstChildItem && cell.getValue()
-                          : ""
-                        : (cell.column.id === "nombre" && row.original?.fatherCategoria) || (cell.column.id === "nombre" && row.original?.fatherGasto)
-                          ? ""
-                          : cell.getValue()
+                    // const value = cell.column.id === "categoria"
+                    //   ? row.original.firstChildGasto || row.original.firstChild
+                    //     ? cell.getValue()
+                    //     : ""
+                    //   : cell.column.id === "gasto"
+                    //     ? !row.original?.fatherCategoria
+                    //       ? row.original?.firstChildItem && cell.getValue()
+                    //       : ""
+                    //     : (cell.column.id === "nombre" && row.original?.fatherCategoria) || (cell.column.id === "nombre" && row.original?.fatherGasto)
+                    //       ? ""
+                    //       : cell.getValue()
                     return (
                       <td
                         id={`${cell.column.id}-${row.original._id}`}
                         onContextMenuCapture={(e) => {
                           const element = document.getElementById("ElementEditable")
-                          console.log("click derecho hijo")
                           let infoAsd = cell.getContext()
                           let info = cell.column.id === "categoria"
                             ? table.getRowModel().rows.find(elem => elem.original._id === infoAsd.row.original.categoriaID).getVisibleCells().find(elem => elem.column.id === cell.column.id)
@@ -396,7 +444,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                           }
                         }}
                         key={cell.id}
-                        onDoubleClick={() => console.log(row.original)}
+                        //onDoubleClick={() => console.log(row.original)}
                         onClick={() => {
                           const initialValue = initialColumn.find(elem => elem.accessor === cell.getContext().column.columnDef.id)
                           !!initialValue && !!initialValue["onClick"] && initialValue.onClick(cell.getContext())
@@ -453,7 +501,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
             })}
             {/* --------------------------------------------------------------------------------------------------------------------------------------------*/}
           </tbody>
-          <tfoot
+          {/*  <tfoot
             style={{
               minWidth: table.getTotalSize(),
             }}
@@ -480,12 +528,9 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                 ))}
               </tr>
             ))}
-          </tfoot>
+          </tfoot> */}
         </table>
       </div>
-      <button onClick={() => rerender()} className="border p-2 fixed top-0 left-0 bg-teal-600">
-        Rerender
-      </button>
     </div >
   )
 }

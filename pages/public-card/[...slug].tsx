@@ -1,10 +1,11 @@
 
-import { FC} from "react";
+import { FC } from "react";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { Event } from "../../utils/Interfaces";
 import { motion } from "framer-motion"
 import { defaultImagenes } from "../../components/Home/Card";
 import { TaskNew } from "../../components/Itinerario/MicroComponente/TaskNew";
+import { openGraphData } from "../_app";
 
 interface props {
   evento: Event
@@ -114,8 +115,11 @@ export async function getServerSideProps({ params, query }) {
         evento_id,
         itinerario_id
       }
-    })
-
+    }) as any
+    if (evento) {
+      openGraphData.openGraph.title = `${evento.itinerarios_array[0].tasks[0].descripcion}`
+      openGraphData.openGraph.description = evento.itinerarios_array[0].tasks[0].tips.replace(/<[^>]*>/g, "").replace(".", ". ")
+    }
     return {
       props: { ...params, query, evento },
     };

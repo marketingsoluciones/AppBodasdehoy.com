@@ -3,6 +3,7 @@ import ClickAwayListener from "react-click-away-listener";
 import { useAllowed } from "../../hooks/useAllowed";
 import { FaPencilAlt } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
+import { getCurrency } from "../../utils/Funciones";
 
 interface props {
   accessor: string
@@ -57,7 +58,7 @@ export const EditableLabelWithInput: FC<props> = ({ value, type, handleChange, a
               setNewValue(e.target.value.replace(/^0+$/, "0").replace(/^0+(?=\d)/, ""))
             }}
             onKeyDown={(e) => keyDown(e)}
-            value={`${newValue}`.replace(/\+/g, "").replace(/\-/g, "")}
+            value={typeof newValue === "number" ? newValue.toFixed(2) : `${newValue}`.replace(/\+/g, "").replace(/\-/g, "")}
             autoFocus
             className={`text-sm outline-none ring-0 border-none focus:outline-none focus:ring-0 focus:border-none w-full ${["start", "left"].includes(textAlign) ? "text-left" : ["center"].includes(textAlign) ? "text-center" : ["right", "end"].includes(textAlign) ? "text-right" : ``}`}
           />
@@ -80,22 +81,16 @@ export const EditableLabelWithInput: FC<props> = ({ value, type, handleChange, a
             {["int", "float"].includes(type) && typeof newValue === "string"
               ? newValue !== ""
                 ? type === "float"
-                  ? new Intl.NumberFormat(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  }).format(parseInt(newValue))
+                  ? getCurrency(parseFloat(newValue))
                   : new Intl.NumberFormat().format(parseInt(newValue))
                 : 0
               : typeof newValue === "number"
                 ? type === "float"
-                  ? new Intl.NumberFormat(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  }).format(newValue)
+                  ? getCurrency(newValue)
                   : new Intl.NumberFormat().format(newValue)
                 : newValue}
             {!isLabelDisabled && <span className="ml-1">{t(accessor)}</span>}
-            {hovered && <div className="absolute right-0 w-6 h-full flex translate-x-[calc(100%+6px)] -translate-y-[calc(100%+4px)]">
+            {hovered && isAllowed() && <div className="absolute right-0 w-6 h-full flex translate-x-[calc(100%+6px)] -translate-y-[calc(100%+4px)]">
               <FaPencilAlt className="hover:scale-105" />
             </div>
             }

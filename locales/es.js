@@ -653,6 +653,12 @@ export const es = {
     'duplicateIn': 'duplicar en',
     'seleccionaOpcion': "selecciona una opción",
     'successful': 'con éxito',
+    'import': 'importar',
+    'export': 'exportar',
+    'importBudget': "importar presupuesto",
+    'importInto': "importar en",
+    'from':"desde",
+
     maxLimitedItineraries: "El límite máximo para crear o duplicar fue alcanzado",
 
     importCorrect: "invitados importados correctamente",

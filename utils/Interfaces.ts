@@ -1,4 +1,4 @@
-import { Dispatch, MouseEvent, ReactNode, SetStateAction } from "react"
+import { Dispatch, ReactNode, SetStateAction } from "react"
 
 export interface Event {
     _id: string
@@ -137,6 +137,7 @@ export interface OptionsMenu {
     title: string
     onClick?: any
     isDisabled?: boolean
+    object?: any
 }
 
 export interface Notification {
@@ -190,17 +191,24 @@ export interface detalle_compartidos_array {
     icon?: any
 }
 
-interface TotalStimatedGuests {
+export interface VisibleColumn {
+    accessor: string
+    show: boolean
+}
+
+export interface TotalStimatedGuests {
     children: number
     adults: number
 }
 
 export interface estimate {
+    presupuesto_total: number
     viewEstimates: boolean
     coste_estimado: number
     coste_final: number
     pagado: number
     currency: string
+    visibleColumns: VisibleColumn[]
     totalStimatedGuests: TotalStimatedGuests
     categorias_array: estimateCategory[]
 }

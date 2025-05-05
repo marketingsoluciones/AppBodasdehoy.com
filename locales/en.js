@@ -654,8 +654,15 @@ export const en = {
     'duplicarEn': "duplicate in",
     'seleccionaOpcion': "select an option",
     'successful': "successful",
-    maxLimitedItineraries: "The maximum limit for creating or duplicating was reached",
+    'import': 'import',
+    'export': 'export',
+    'importBudget': "import budget",
+    'importInto': "import into",
+    'from': "from", 
+   
 
+
+    maxLimitedItineraries: "The maximum limit for creating or duplicating was reached",
     importCorrect: "guests imported successfully",
     fileErrors: "The file contains errors",
     contactTemplateFileName: "Contact%20Template",
