@@ -222,6 +222,17 @@ export const ExtraTableView: FC<props> = ({
                     >
                       <FaPencilAlt />
                     </button>
+
+                              {/* Código integrado */}
+          <div className="absolute w-[22px] h-[22px] top-[3px] right-[26px] z-50 bg-gray-200 text-gray-600 border border-gray-400 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <IniterarySelectionMenu
+              data={data}
+              itinerario={itinerario}
+              optionsItineraryButtonBox={optionsItineraryButtonBox}
+              setShowEditTask={setShowEditTask}
+              showEditTask={showEditTask}
+            />
+          </div>
                   </div>
                 </div>
           
@@ -844,25 +855,27 @@ export const ExtraTableView: FC<props> = ({
             </span>
           </div>
           <div className="absolute right-[2px] top-1/2 transform -translate-y-1/2 flex space-x-2">
-            <button
-              className="bg-gray-200 text-gray-600 border border-gray-400 rounded-md p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleOpenInfoModal();
-              }}
-            >
-              <span>↓</span> {/* Ícono de flecha */}
-            </button>
-            <button
-              className="bg-gray-200 text-gray-600 border border-gray-400 rounded-md p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleOpenModal();
-              }}
-            >
-              <FaPencilAlt />
-            </button>
-          </div>
+  {data.cell.value && data.cell.value.length > 0 && (
+    <button
+      className="bg-gray-200 text-gray-600 border border-gray-400 rounded-md p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+      onClick={(e) => {
+        e.stopPropagation();
+        handleOpenInfoModal();
+      }}
+    >
+      <span>↓</span> {/* Ícono de flecha */}
+    </button>
+  )}
+  <button
+    className="bg-gray-200 text-gray-600 border border-gray-400 rounded-md p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+    onClick={(e) => {
+      e.stopPropagation();
+      handleOpenModal();
+    }}
+  >
+    <FaPencilAlt />
+  </button>
+</div>
         </div>
       </div>
         

@@ -323,47 +323,6 @@ const initialValues = useMemo(() => ({
                             <span>min</span>
                           </div>
                         </div>
-                        <div className="flex items-start space-x-2 font-title text-primary text-2xl relative group">
-                          <div className="min-w-2 h-2 bg-primary rounded-full translate-y-2.5" />
-                          {editingField === "descripcion" ? (
-                            <div className="w-full relative flex items-center">
-                              <InputField
-                                name="descripcion"
-                                type="text"
-                                value={tempValues.descripcion || ""}
-                                onChange={(e) => setTempValues({ ...tempValues, descripcion: e.target.value })}
-                              />
-                              <div className="flex space-x-2 ml-2">
-                                <FaCheck
-                                  className="text-green-500 cursor-pointer"
-                                  onClick={() => handleSave("descripcion")} // Guardar cambios
-                                />
-                                <FaTimes
-                                  className="text-red-500 cursor-pointer"
-                                  onClick={() => handleCancel("descripcion", values)} // Cancelar edición
-                                />
-                              </div>
-                            </div>
-                          ) : (
-                            <div
-                              className="cursor-pointer flex items-center group"
-                              onClick={() => handleEdit("descripcion", tempValues.descripcion || "")}
-                            >
-                              <strong className="leading-[1] mt-1">{tempValues?.descripcion || t("noDescription")}</strong>
-                              <FaPencilAlt className="text-gray-400 ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                            </div>
-                          )}
-                          {/* Botón global de editar */}
-                          {!isGlobalEdit && (
-                            <button
-                              type="button"
-                              className="absolute right-0 top-0 p-2 bg-blue-500 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                              onClick={() => handleEdit("descripcion", tempValues.descripcion || "")} // Activar edición
-                            >
-                              <FaPencilAlt />
-                            </button>
-                          )}
-                        </div>
                         
                         <div className=" grid grid-flow-dense w-full space-x-2 text-[12px] mt-2">
                           <p >
@@ -400,26 +359,31 @@ const initialValues = useMemo(() => ({
                   <SelectIcon name="icon" className="" handleChange={handleBlurData} data={values} />
                 </div>
                 {editingField === "descripcion" || isGlobalEdit ? (
-                  <div className="w-full relative flex items-center">
-                    <InputField
-                      name="descripcion"
-                      type="text"
-                      value={tempValues.descripcion || ""}
-                      onChange={(e) => setTempValues({ ...tempValues, descripcion: e.target.value })}
-                    />
-                    {!isGlobalEdit && (
-                      <div className="flex space-x-2 ml-2">
-                        <FaCheck
-                          className="text-green-500 cursor-pointer"
-                          onClick={() => handleSave("descripcion")} // Guardar cambios
-                        />
-                        <FaTimes
-                         className="text-red-500 cursor-pointer"
-                         onClick={() => handleCancel("descripcion", values)} // Cancelar edición
-                        />
-        </div>
-      )}
+                  <div className="w-1/2 relative flex items-center">
+  <InputField
+    name="descripcion"
+    type="text"
+    value={tempValues.descripcion || ""}
+    onChange={(e) => setTempValues({ ...tempValues, descripcion: e.target.value })}
+    className="w-full p-2 border border-gray-300 rounded"
+  />
+  {!isGlobalEdit && (
+    <div className="absolute top-10 right-0 flex space-x-0 z-50">
+      <button
+        className="flex items-center justify-center w-8 h-8 bg-green-100 text-green-600 rounded-md shadow-md border border-green-300 hover:bg-green-200 transition-all duration-200"
+        onClick={() => handleSave("descripcion")}
+      >
+        <FaCheck />
+      </button>
+      <button
+        className="flex items-center justify-center w-8 h-8 bg-red-100 text-red-600 rounded-md shadow-md border border-red-300 hover:bg-red-200 transition-all duration-200"
+        onClick={() => handleCancel("descripcion", values)}
+      >
+        <FaTimes />
+      </button>
     </div>
+  )}
+</div>
   ) : (
     <div
       className="cursor-pointer flex items-center group"
@@ -430,33 +394,35 @@ const initialValues = useMemo(() => ({
           ? tempValues.descripcion.length > 20
             ? `${tempValues.descripcion.slice(0, 20)}...` // Limita a 20 caracteres
             : tempValues.descripcion
-          : t("noDescription")}
+          : t("Sin Descripción")}
       </span>
       <FaPencilAlt className="text-gray-400 ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
     </div>
   )}
+
+
 {/* Botón general de edición o botones de guardar/cancelar */}
-<div className="absolute top-[15px] right-0 z-50 flex items-center">
+<div className="absolute top-2 right-2 flex space-x-0">
   {!isGlobalEdit ? (
     <button
       type="button"
-      className="p-2 text-gray-500 rounded"
+      className="p-2 bg-pink-50 text-primary rounded-full shadow-md hover:bg-pink-200 transition-all duration-200"
       onClick={() => setIsGlobalEdit(true)} // Activar modo de edición global
     >
-      <FaPencilAlt /> {/* Ícono de lápiz */}
+      <FaPencilAlt className="w-5 h-5" /> {/* Ícono de lápiz */}
     </button>
   ) : (
-    <div className="flex space-x-4">
+    <div className="flex space-x-0">
       <button
         type="button"
-        className="px-4 py-2 bg-green text-white rounded"
+        className="flex items-center justify-center w-8 h-8 bg-green-100 text-green-600 rounded-md shadow-md border border-green-300 hover:bg-green-200 transition-all duration-200"
         onClick={() => handleSave(null)} // Guardar todos los cambios realizados en modo global
       >
         <FaCheck />
       </button>
       <button
         type="button"
-        className="px-4 py-2 bg-red text-white rounded"
+        className="flex items-center justify-center w-8 h-8 bg-red-100 text-red-600 rounded-md shadow-md border border-red-300 hover:bg-red-200 transition-all duration-200"
         onClick={() => handleCancel(null, values)} // Cancelar todos los cambios realizados en modo global
       >
         <FaTimes />
@@ -464,40 +430,43 @@ const initialValues = useMemo(() => ({
     </div>
   )}
 </div>
+
 </div>
 
 {/* Responsables */}
-<div className="flex items-center space-x-5 group relative">
+<div className="flex w-auto items-center space-x-5 group relative">
   <div className="flex items-center space-x-1">
     <HiOutlineUserCircle />
-    <span className="text-[14px] capitalize cursor-default group-hover:underline">
+    <span className="text-[14px] capitalize cursor-default group">
       {t("assigned")}:
     </span>
-    <FaPencilAlt
-      className="text-gray-400 ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
-      onClick={() => handleEdit("responsable", tempValues.responsable || [])}
-    />
   </div>
-  {editingField === "responsable" ? (
+  {editingField === "responsable" || isGlobalEdit ? (
     <div className="w-full relative flex items-center">
-      <ResponsableSelector
-        name="responsable"
-        handleChange={(newResponsables) =>
-          setTempValues({ ...tempValues, responsable: newResponsables })
-        }
-        disable={false}
-      />
-      <div className="flex space-x-2 ml-2">
-        <FaCheck
-          className="text-green-500 cursor-pointer"
-          onClick={() => handleSave("responsable")}
-        />
-        <FaTimes
-          className="text-red-500 cursor-pointer"
-          onClick={() => handleCancel("responsable", values)}
-        />
-      </div>
-    </div>
+  <ResponsableSelector
+    name="responsable"
+    handleChange={(newResponsables) =>
+      setTempValues({ ...tempValues, responsable: newResponsables })
+    }
+    disable={false}
+  />
+  {!isGlobalEdit && (
+  <div className="absolute bottom-[-34px] right-0 flex space-x-0 z-50">
+    <button
+      className="flex items-center justify-center w-8 h-8 bg-green-100 text-green-600 rounded-md shadow-md border border-green-300 hover:bg-green-200 transition-all duration-200"
+      onClick={() => handleSave("responsable")}
+    >
+      <FaCheck />
+    </button>
+    <button
+      className="flex items-center justify-center w-8 h-8 bg-red-100 text-red-600 rounded-md shadow-md border border-red-300 hover:bg-red-200 transition-all duration-200"
+      onClick={() => handleCancel("responsable", values)}
+    >
+      <FaTimes />
+    </button>
+  </div>
+  )}
+</div>
   ) : (
     <div className="text-gray-900 flex">
       {values?.responsable?.length > 0 ? (
@@ -521,50 +490,59 @@ const initialValues = useMemo(() => ({
         <span className="text-[12px] text-gray-400 capitalize cursor-default">
           {t("unassigned")}
         </span>
+        
       )}
+      {editingField !== "responsable" && !isGlobalEdit && (
+    <FaPencilAlt
+      className="absolute left-[180px] text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
+      onClick={() => handleEdit("responsable", tempValues.responsable || [])}
+    />
+  )}
+      
     </div>
   )}
+
 </div>
 
 {/* Adjuntos */}
 <div className="flex items-center space-x-5 group relative">
   <div className="flex items-center space-x-1">
     <LiaPaperclipSolid />
-    <span className="text-[14px] capitalize cursor-default group-hover:underline">
+    <span className="text-[14px] capitalize cursor-default group">
       {t("addfile")}
     </span>
-    <FaPencilAlt
-      className="text-gray-400 ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
-      onClick={() => handleEdit("attachments", tempValues.attachments || [])}
-    />
   </div>
-  {editingField === "attachments" ? (
+  {editingField === "attachments" || isGlobalEdit ? (
     <div className="w-full relative flex items-center">
-<InputAttachments
-  name="attachments"
-  label={t("archivos adjuntos")}
-  itinerarioID={itinerario._id}
-  task={task}
-  onChange={(newAttachments) => {
-    // Verificar si newAttachments es un arreglo
-    if (Array.isArray(newAttachments)) {
-      setTempValues({ ...tempValues, attachments: newAttachments });
-    } else {
-      console.error("El valor de newAttachments no es un arreglo:", newAttachments);
-    }
-  }}
-/>
-      <div className="flex space-x-2 ml-2">
-        <FaCheck
-          className="text-green-500 cursor-pointer"
-          onClick={() => handleSave("attachments")}
-        />
-        <FaTimes
-          className="text-red-500 cursor-pointer"
-          onClick={() => handleCancel("attachments", values)}
-        />
-      </div>
-    </div>
+  <InputAttachments
+    name="attachments"
+    itinerarioID={itinerario._id}
+    task={task}
+    onChange={(newAttachments) => {
+      if (Array.isArray(newAttachments)) {
+        setTempValues({ ...tempValues, attachments: newAttachments });
+      } else {
+        console.error("El valor de newAttachments no es un arreglo:", newAttachments);
+      }
+    }}
+  />
+  {!isGlobalEdit && (
+  <div className="absolute bottom-[-34px] right-0 flex space-x-0 z-50">
+    <button
+      className="flex items-center justify-center w-8 h-8 bg-green-100 text-green-600 rounded-md shadow-md border border-green-300 hover:bg-green-200 transition-all duration-200"
+      onClick={() => handleSave("attachments")}
+    >
+      <FaCheck />
+    </button>
+    <button
+      className="flex items-center justify-center w-8 h-8 bg-red-100 text-red-600 rounded-md shadow-md border border-red-300 hover:bg-red-200 transition-all duration-200"
+      onClick={() => handleCancel("attachments", values)}
+    >
+      <FaTimes />
+    </button>
+  </div>
+  )}
+</div>
   ) : (
     <div
       className={`text-[14px] flex items-center space-x-1 ${
@@ -582,6 +560,12 @@ const initialValues = useMemo(() => ({
           values.attachments.length === 0 && "hidden"
         } ${showModalAdjuntos.state && "rotate-180"}`}
       />
+                {editingField !== "attachments" && (
+    <FaPencilAlt
+      className="absolute left-56 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
+      onClick={() => handleEdit("attachments", tempValues.attachments || [])}
+    />
+  )}
     </div>
   )}
   {showModalAdjuntos.state && (
@@ -617,6 +601,7 @@ const initialValues = useMemo(() => ({
       </div>
     </ClickAwayListener>
   )}
+
 </div>
 
 {/* Etiquetas */}
@@ -627,29 +612,32 @@ const initialValues = useMemo(() => ({
   </div>
   {editingField === "tags" || isGlobalEdit ? (
     <div className="w-full relative flex items-center">
-      <InputTags
-        name="tags"
-        value={Array.isArray(tempValues.tags) ? tempValues.tags : []}
-        onChange={(newTags) => {
-          // Verificar si newTags es un arreglo
-          if (Array.isArray(newTags)) {
-            setTempValues({ ...tempValues, tags: newTags });
-          } else {
-            console.error("El valor de newTags no es un arreglo:", newTags);
-          }
-        }}
-      />
+  <InputTags
+    name="tags"
+    value={Array.isArray(tempValues.tags) ? tempValues.tags : []}
+    onChange={(newTags) => {
+      if (Array.isArray(newTags)) {
+        setTempValues({ ...tempValues, tags: newTags });
+      } else {
+        console.error("El valor de newTags no es un arreglo:", newTags);
+      }
+    }}
+  />
       {!isGlobalEdit && (
-        <div className="flex space-x-2 ml-2">
-          <FaCheck
-            className="text-green-500 cursor-pointer"
-            onClick={() => handleSave("tags")} // Guardar cambios
-          />
-          <FaTimes
-            className="text-red-500 cursor-pointer"
-            onClick={() => handleCancel("tags", values)} // Cancelar edición
-          />
-        </div>
+  <div className="absolute bottom-0 right-2 flex space-x-0 z-50">
+  <button
+    className="flex items-center justify-center w-8 h-8 bg-green-100 text-green-600 rounded-md shadow-md border border-green-300 hover:bg-green-200 transition-all duration-200"
+    onClick={() => handleSave("tags")}
+  >
+    <FaCheck />
+  </button>
+  <button
+    className="flex items-center justify-center w-8 h-8 bg-red-100 text-red-600 rounded-md shadow-md border border-red-300 hover:bg-red-200 transition-all duration-200"
+    onClick={() => handleCancel("tags", values)}
+  >
+    <FaTimes />
+  </button>
+</div>
       )}
     </div>
   ) : (
@@ -667,105 +655,77 @@ const initialValues = useMemo(() => ({
   )}
 </div>
 
-                {/* Fecha, Duracion y Hora */}
-                <div className="space-y-2">
-{/* Fecha combinada */}
-<div className="space-x-5 flex items-center group">
-  <div className="flex items-center space-x-1">
+{/* Fecha, Duración y Hora */}
+<div className="flex items-center gap-3 space-y-0">
+  <div className="flex items-center space-x-2">
     <IoCalendarClearOutline className="pb-0.5" />
     <span className="text-[14px] capitalize cursor-default">{t("Fecha")}:</span>
   </div>
-  <div
-    className="cursor-pointer flex items-center group"
-    onClick={handleOpenDateModal}
-  >
-    {tempValues?.fecha && tempValues?.hora && tempValues?.duracion
-      ? `${tempValues.fecha} ${tempValues.hora} (${tempValues.duracion} min)`
-      : <span className="text-[12px] text-gray-400 capitalize">{t("Sin Informacion")}</span>}
-    <FaPencilAlt className="text-gray-400 ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-  </div>
-</div>
-
-{/* Modal para editar Fecha, Hora y Duración */}
-{showDateModal && (
-  <Modal
-    state={showDateModal}
-    set={setShowDateModal}
-    style={{
-      position: "absolute",
-      top: "100%", // Aparece justo debajo del contenedor
-      left: 0,
-      width: "auto", // Ajustar al contenido
-      maxWidth: "400px", // Limitar el ancho máximo
-    }}
-  >
-    <div className="p-4">
-      <h2 className="text-lg font-semibold mb-4">{t("Editar Fecha")}</h2>
-      <div className="space-y-4">
-        {/* Componente para editar Fecha */}
-        <div className="space-x-5 flex items-center">
-          <span className="text-[14px] capitalize">{t("Fecha")}:</span>
-          <InputField
-            name="fecha"
-            type="date"
-            value={tempValues.fecha || ""}
-            onChange={(e) => setTempValues({ ...tempValues, fecha: e.target.value })}
-          />
+  {editingField === "fecha" || editingField === "hora" || editingField === "duracion" || isGlobalEdit ? (
+    <div className="flex space-x-2">
+      <InputField
+        name="fecha"
+        type="date"
+        value={tempValues.fecha || ""}
+        onChange={(e) => setTempValues({ ...tempValues, fecha: e.target.value })}
+        className="w-1/3 p-2 border border-gray-300 rounded"
+      />
+      <InputField
+        name="hora"
+        type="time"
+        value={tempValues.hora || ""}
+        onChange={(e) => setTempValues({ ...tempValues, hora: e.target.value })}
+        className="w-1/3 p-2 border border-gray-300 rounded"
+      />
+      <InputField
+        name="duracion"
+        type="number"
+        value={tempValues.duracion?.toString() || ""}
+        onChange={(e) => setTempValues({ ...tempValues, duracion: e.target.value })}
+        className="w-1/3 p-2 border border-gray-300 rounded"
+      />
+      {!isGlobalEdit && (
+        <div className="absolute top-[208px] left-[505px] flex space-x-0 z-50">
+          <button
+            className="flex items-center justify-center w-8 h-8 bg-white text-green-600 rounded-md shadow-md border border-green-300 hover:bg-green-200 transition-all duration-200"
+            onClick={() => {
+              handleSave("fecha");
+              handleSave("hora");
+              handleSave("duracion");
+            }}
+          >
+            <FaCheck />
+          </button>
+          <button
+            className="flex items-center justify-center w-8 h-8 bg-white text-red-600 rounded-md shadow-md border border-red-300 hover:bg-red-200 transition-all duration-200"
+            onClick={() => {
+              handleCancel("fecha", values);
+              handleCancel("hora", values);
+              handleCancel("duracion", values);
+            }}
+          >
+            <FaTimes />
+          </button>
         </div>
-
-        {/* Componente para editar Hora */}
-        <div className="space-x-5 flex items-center">
-          <span className="text-[14px] capitalize">{t("Hora")}:</span>
-          <InputField
-            name="hora"
-            type="time"
-            value={tempValues.hora || ""}
-            onChange={(e) => setTempValues({ ...tempValues, hora: e.target.value })}
-          />
-        </div>
-
-        {/* Componente para editar Duración */}
-        <div className="space-x-5 flex items-center">
-          <span className="text-[14px] capitalize">{t("Duración")}:</span>
-          <InputField
-            name="duracion"
-            type="number"
-            value={tempValues.duracion?.toString() || ""}
-            onChange={(e) => setTempValues({ ...tempValues, duracion: e.target.value })}
-          />
-        </div>
-      </div>
-
-      {/* Botones de Guardar y Cancelar */}
-      <div className="flex justify-end space-x-4 mt-6">
-        <button
-          type="button"
-          className="px-4 py-2 bg-green-500 text-white rounded"
-          onClick={() => {
-            handleSave("fecha");
-            handleSave("hora");
-            handleSave("duracion");
-            setShowDateModal(false);
-          }}
-        >
-          {t("Guardar")}
-        </button>
-        <button
-          type="button"
-          className="px-4 py-2 bg-red-500 text-white rounded"
-          onClick={() => {
-            handleCancel("fecha", values);
-            handleCancel("hora", values);
-            handleCancel("duracion", values);
-            setShowDateModal(false);
-          }}
-        >
-          {t("Cancelar")}
-        </button>
-      </div>
+      )}
     </div>
-  </Modal>
-)}
+  ) : (
+    <div
+      className="cursor-pointer flex items-center space-x-2 group"
+      onClick={() => {
+        handleEdit("fecha", tempValues.fecha || "");
+        handleEdit("hora", tempValues.hora || "");
+        handleEdit("duracion", tempValues.duracion || "");
+      }}
+    >
+      <span className="text-[14px] capitalize">
+        {tempValues?.fecha && tempValues?.hora && tempValues?.duracion
+          ? `${tempValues.fecha} ${tempValues.hora} (${tempValues.duracion} min)`
+          : <span className="text-[12px] text-gray-400 capitalize">{t("Sin Informacion")}</span>}
+      </span>
+      <FaPencilAlt className="text-gray-400 ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+    </div>
+  )}
 </div>
 
 {/* Block de Texto */}
@@ -787,16 +747,20 @@ const initialValues = useMemo(() => ({
 />
       </div>
       {!isGlobalEdit && (
-        <div className="flex space-x-2 ml-2">
-          <FaCheck
-            className="text-green-500 cursor-pointer"
-            onClick={() => handleSave("tips")} // Guardar cambios
-          />
-          <FaTimes
-            className="text-red-500 cursor-pointer"
-            onClick={() => handleCancel("tips", values)} // Cancelar edición
-          />
-        </div>
+  <div className="absolute top-1 right-2 flex space-x-0">
+  <button
+    className="flex items-center justify-center w-8 h-8 bg-green-100 text-green-600 rounded-md shadow-md border border-green-300 hover:bg-green-200 transition-all duration-200"
+    onClick={() => handleSave("tips")}
+  >
+    <FaCheck />
+  </button>
+  <button
+    className="flex items-center justify-center w-8 h-8 bg-red-100 text-red-600 rounded-md shadow-md border border-red-300 hover:bg-red-200 transition-all duration-200"
+    onClick={() => handleCancel("tips", values)}
+  >
+    <FaTimes />
+  </button>
+</div>
       )}
     </div>
   ) : (
@@ -804,9 +768,11 @@ const initialValues = useMemo(() => ({
       className="cursor-pointer flex items-center group"
       onClick={() => handleEdit("tips", tempValues.tips || "")}
     >
-      <span className="text-sm text-gray-800 break-words">
-        {stripHtml(tempValues?.tips || t("noDescription"))}
-      </span>
+<span className="text-sm text-gray-800 break-words">
+  {tempValues?.tips
+    ? stripHtml(tempValues.tips)
+    : <span className="text-[12px] text-gray-400">{t("Sin Descripcion")}</span>}
+</span>
       <FaPencilAlt className="text-gray-400 ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
     </div>
   )}
