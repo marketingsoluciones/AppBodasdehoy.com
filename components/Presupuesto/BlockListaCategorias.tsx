@@ -15,6 +15,7 @@ interface props {
 }
 
 export const BlockListaCategorias: FC<props> = ({ categorias_array, setShowCategoria, showCategoria }) => {
+  const { event } = EventContextProvider()
   const { t } = useTranslation();
   const [showCreateCategorie, setShowCreateCategorie] = useState(false);
   const [isAllowed, ht] = useAllowed()
@@ -34,6 +35,15 @@ export const BlockListaCategorias: FC<props> = ({ categorias_array, setShowCateg
           <PlusIcon className="text-white w-4 h-4" />
           {t("newcategory")}
         </button>
+        <div className="grid grid-cols-6 text-xs">
+          <div className="col-span-1 md:col-span-2 text-center font-semibold text-gray-500 py-2">{t("category")}</div>
+          {
+          event?.presupuesto_objeto?.viewEstimates &&
+            <div className=" transition-all duration-150 col-span-1 md:col-span-2 text-center font-semibold text-gray-500 py-2">Estimado</div>
+          }
+          <div className={` ${!event?.presupuesto_objeto?.viewEstimates ? "col-span-4 transition-all duration-150 translate-x-0  " : "col-span-2 "} text-center  font-semibold text-gray-500 py-2`}>Total</div>
+
+        </div>
         <ul className={`w-full flex flex-col text-sm h-44 overflow-y-auto md:h-[400px] divide-y text-gray-600 cursor-pointer`}>
           {categorias_array?.map((item, idx) => (
             <ItemCategoria key={idx} item={item} setShowCategoria={setShowCategoria} showCategoria={showCategoria} />

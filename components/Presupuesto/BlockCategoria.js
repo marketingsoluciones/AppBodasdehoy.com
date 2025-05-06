@@ -96,7 +96,7 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
               }}
               type={"float"}
               value={value}
-              textAlign={"center"}
+              textAlign="end"
               isLabelDisabled
             />
           );
@@ -112,16 +112,17 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
           props.row.original.gastoID = props.row.original._id;
           let value = props.row.original.coste_final;
           return (
-            <EditableLabelWithInput
-              accessor="coste_final"
-              handleChange={(values) => {
-                handleChange({ values, info: props, event, setEvent });
-              }}
-              type={"float"}
-              value={value}
-              textAlign={"center"}
-              isLabelDisabled
-            />
+
+              <EditableLabelWithInput
+                accessor="coste_final"
+                handleChange={(values) => {
+                  handleChange({ values, info: props, event, setEvent });
+                }}
+                type={"float"}
+                value={value}
+                textAlign={"end"}
+                isLabelDisabled
+              />
           );
         },
       },
@@ -394,7 +395,7 @@ export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate
                     <td
                       key={i}
                       {...cell.getCellProps()}
-                      className={`font-display text-sm w-full text-left py-2 col-span-${colSpan[cell.column.id]
+                      className={`font-display  text-sm w-full text-left py-2 col-span-${colSpan[cell.column.id]
                         }`}
                     >
                       {cell.render("Cell")}

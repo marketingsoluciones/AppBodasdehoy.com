@@ -11,7 +11,6 @@ export const MontoPresupuesto = () => {
 
   useEffect(() => {
     if (event?.presupuesto_objeto && typeof event.presupuesto_objeto.presupuesto_total !== "number" && event.presupuesto_objeto.viewEstimates && event.presupuesto_objeto.coste_estimado) {
-      console.log(100051)
       event.presupuesto_objeto.presupuesto_total = event.presupuesto_objeto.coste_estimado
       fetchApiEventos({
         query: queries.editPresupuesto,
