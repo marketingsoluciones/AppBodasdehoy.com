@@ -24,7 +24,7 @@ const Presupuesto = () => {
   const { user, verificationDone, forCms } = AuthContextProvider()
   const [showCategoria, setShowCategoria] = useState({ state: false, _id: "" });
   const [active, setActive] = useState("resumen");
-  const { event, setEvent } = EventContextProvider();
+  const { event } = EventContextProvider();
   const [categorias, setCategorias] = useState([]);
   const [getId, setGetId] = useState()
   const [showModalDuplicate, setShowModalDuplicate] = useState(false)
@@ -39,26 +39,6 @@ const Presupuesto = () => {
     setCategorias(event?.presupuesto_objeto?.categorias_array)
   }, [event])
 
-  const handleChangeS = (e) => {
-
-    const params = {
-      query: `mutation {
-          editCurrency(evento_id:"${event._id}", currency:"${e.target.value}"  ){
-            currency
-          }
-        }`,
-      variables: {},
-    }
-    try {
-      api.ApiApp(params).then(result => {
-        const currency = result?.data?.data?.editCurrency?.currency
-        event.presupuesto_objeto.currency = currency
-        setEvent({ ...event })
-      })
-    } catch (error) {
-      console.log(error)
-    }
-  }
 
   if (verificationDone) {
     if (!user) {
@@ -102,7 +82,7 @@ const Presupuesto = () => {
               <div className="w-full flex justify-center my-2 mt-4 rounded-2xl text-xs md:text-sm">
                 <div
                   onClick={() => setActive("resumen")}
-                  className={`w-[40%]. md:w-[150px]  ${active == "resumen" ? "bg-primary text-white" : "bg-white text-primary"
+                  className={`px-1 md:w-[150px]  ${active == "resumen" ? "bg-primary text-white" : "bg-white text-primary"
                     } h-full flex justify-center items-center cursor-pointer capitalize rounded-l-2xl `}
                 >
                   <p >{t("budget")}</p>
@@ -110,7 +90,7 @@ const Presupuesto = () => {
 
                 <div
                   onClick={() => setActive("excelView")}
-                  className={` w-[40%]. md:w-[200px] ${active == "excelView" ? "bg-primary text-white" : "bg-white text-primary"
+                  className={` w-[30%] md:w-[200px] ${active == "excelView" ? "bg-primary text-white" : "bg-white text-primary"
                     } h-full flex  justify-center items-center cursor-pointer capitalize `}
                 >
                   <p >{t("budgetdetails")}</p>
@@ -118,7 +98,7 @@ const Presupuesto = () => {
 
                 <div
                   onClick={() => setActive("pagos")}
-                  className={`w-[25%]. md:w-[100px] py-1 ${active == "pagos" ? "bg-primary text-white" : "bg-white text-primary"
+                  className={`w-[20%] md:w-[100px] py-1 ${active == "pagos" ? "bg-primary text-white" : "bg-white text-primary"
                     } h-full flex  justify-center items-center cursor-pointer capitalize `}
                 >
                   <p >{t("payments")}</p>
@@ -126,13 +106,13 @@ const Presupuesto = () => {
 
                 <div
                   onClick={() => setActive("pendiente")}
-                  className={` w-[40%]. md:w-[180px] py-1  ${active == "pendiente" ? "bg-primary text-white" : "bg-white text-primary"
+                  className={` px-1 md:w-[180px] py-1  ${active == "pendiente" ? "bg-primary text-white" : "bg-white text-primary"
                     } h-full flex  justify-center items-center  cursor-pointer rounded-r-2xl`}
                 >
                   <p>{t("pendingpayments")}</p>
                 </div>
 
-                <div className="relative">
+               {/*  <div className="relative">
                   <div className="absolute z-10 -right-40 -top-2 rounded-full overflow-hidden h-10">
                     <select disabled={!isAllowed()} value={event?.presupuesto_objeto?.currency} className={`border-none focus:ring-0 ${isAllowed() ? "cursor-pointer" : "cursor-default"} text-sm text-gray-700 h-10`} onChange={(e) => isAllowed() ? handleChangeS(e) : ht()}  >
                       <option value={"eur"}>EUR</option>
@@ -143,10 +123,8 @@ const Presupuesto = () => {
                       <option value={"ars"}>ARG</option>
                       <option value={"uyu"}>URU</option>
                     </select>
-
-
                   </div>
-                </div>
+                </div> */}
               </div>
 
               <div className="w-full h-[calc(100vh-260px)]">
@@ -156,7 +134,7 @@ const Presupuesto = () => {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="flex flex-col md:flex-row w-full h-full gap-6 pt-2 md:pr-0"
+                      className="flex flex-col md:flex-row w-full h-full gap-6 pt-2 md:pr-0 "
                     >
                       <div className="w-full md:w-[310px]">
                         <BlockListaCategorias

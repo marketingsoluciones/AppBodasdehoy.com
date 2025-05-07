@@ -91,7 +91,7 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
 
             }
           </div>
-          <div className="col-span-3 flex justify-end items-center">
+          <div className="col-span-3 flex justify-end items-center overflow-hidden truncate">
             <span >
               {getCurrency(item.coste_final)}
             </span>

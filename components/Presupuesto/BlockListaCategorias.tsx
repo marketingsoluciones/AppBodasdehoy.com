@@ -36,12 +36,12 @@ export const BlockListaCategorias: FC<props> = ({ categorias_array, setShowCateg
           {t("newcategory")}
         </button>
         <div className="grid grid-cols-6 text-xs">
-          <div className="col-span-1 md:col-span-2 text-center font-semibold text-gray-500 py-2">{t("category")}</div>
+          <div className="col-span-2 text-center font-semibold text-gray-500 py-2">{t("category")}</div>
           {
           event?.presupuesto_objeto?.viewEstimates &&
-            <div className=" transition-all duration-150 col-span-1 md:col-span-2 text-center font-semibold text-gray-500 py-2">Estimado</div>
+            <div className=" transition-all duration-150 col-span-2 text-center font-semibold text-gray-500 py-2">Estimado</div>
           }
-          <div className={` ${!event?.presupuesto_objeto?.viewEstimates ? "col-span-4 transition-all duration-150 translate-x-0  " : "col-span-2 "} text-center  font-semibold text-gray-500 py-2`}>Total</div>
+          <div className={` ${!event?.presupuesto_objeto?.viewEstimates ? "md:col-span-4 transition-all duration-150 translate-x-0  " : "col-span-2  "} text-center  font-semibold text-gray-500 py-2`}>Total</div>
 
         </div>
         <ul className={`w-full flex flex-col text-sm h-44 overflow-y-auto md:h-[400px] divide-y text-gray-600 cursor-pointer`}>
