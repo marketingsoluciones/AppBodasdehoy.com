@@ -30,7 +30,7 @@ export const SelectVisiblesColumns: FC<props> = ({ columns, table, handleChangeC
             ht()
           }
         }}
-        className="bg-primary w-8 h-8 rounded-full flex items-center justify-center"
+        className="bg-primary.   w-8 h-8 .rounded-full flex items-center justify-center"
       >
 
         <PiGearFill className="w-5 h-5 text-white hover:scale-110" />

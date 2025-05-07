@@ -304,7 +304,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
 
   return (
     < div className="text-sm w-full h-full font-calibri relative." >
-      <div className='absolute z-30 right-4 -translate-y-10'>
+      <div className='absolute z-30 right-5 translate-y-2'>
         <SelectVisiblesColumns columns={initialColumn} table={table} handleChangeColumnVisible={handleChangeColumnVisible} showDataState={showDataState} setShowDataState={setShowDataState} />
       </div>
       {
