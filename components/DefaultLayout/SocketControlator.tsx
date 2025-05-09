@@ -107,6 +107,7 @@ export const SocketControlator = () => {
   }, [socket])
 
   useEffect(() => {
+    console.log(4442001)
     socket?.emit(`app:message`, {
       event: null,
       emit: user?.uid,
@@ -122,6 +123,7 @@ export const SocketControlator = () => {
 
   useEffect(() => {
     if (!valirRemoteEvent && !valirRemotePlanSpaceActive) {
+      console.log(44420044, socket)
       socket?.emit(`app:message`, {
         event: event?._id,
         emit: user?.uid,

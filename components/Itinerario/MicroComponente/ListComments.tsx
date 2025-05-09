@@ -23,13 +23,16 @@ interface props extends HTMLAttributes<HTMLDivElement> {
   item: Comment
   identifierDisabled?: boolean
   tempPastedAndDropFiles?: TempPastedAndDropFiles[]
+  nicknameUnregistered?: string
 }
 
-export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisabled, tempPastedAndDropFiles, ...props }) => {
+export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisabled, tempPastedAndDropFiles, nicknameUnregistered, ...props }) => {
   const { user, config } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
   const router = useRouter()
-  const userAsd = [...event?.detalles_compartidos_array, event?.detalles_usuario_id, user]?.find(elem => elem?.uid === item?.uid) as detalle_compartidos_array
+  const userAsd = event?.detalles_compartidos_array
+    ? [...event?.detalles_compartidos_array, event?.detalles_usuario_id, user]?.find(elem => elem?.uid === item?.uid) as detalle_compartidos_array
+    : undefined
   const temp = tempPastedAndDropFiles?.find(elem => elem?.commentID === item?._id)?.files
   const storage = getStorage();
   const { t } = useTranslation();
@@ -95,7 +98,7 @@ export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisa
             : <div className="w-8 h-8" />}
         </div>
         <div className="flex flex-col flex-1 px-1.5 w-[85%]">
-          <span className="text-[11px] mt-2.5 font-semibold my-emoji">{userAsd?.displayName}</span>
+          <span className="text-[11px] mt-2.5 font-semibold my-emoji">{userAsd?.displayName ? userAsd.displayName : item?.nicknameUnregistered}</span>
           <div className="grid grid-cols-2 gap-3 max-w-[280px] ">
             {(temp ? temp : item?.attachments)?.map((elem: any, idx: number) => {
               return <div key={idx} className="bg-gray-300 col-span-1 flex flex-col items-center w-[130px] h-[80px] rounded-lg overflow-hidden" >
@@ -141,7 +144,7 @@ export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisa
           </div>
         </div>
         <div className="w-5">
-          {user && user.uid === item?.uid && <MdOutlineDeleteOutline
+          {((user && user.uid === item?.uid) || (item?.nicknameUnregistered === nicknameUnregistered && (new Date().getTime() - new Date(item.createdAt).getTime()) / 1000 < 300)) && <MdOutlineDeleteOutline
             onClick={() => {
               handleDelete()
             }}

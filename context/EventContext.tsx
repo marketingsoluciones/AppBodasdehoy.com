@@ -2,7 +2,6 @@ import { createContext, useState, useContext, useEffect, Dispatch, SetStateActio
 import { EditDefaultState, Event, filterGuest, planSpace } from "../utils/Interfaces";
 import { EventsGroupContextProvider } from "./EventsGroupContext";
 import { getAllFilterGuest } from "../utils/Funciones";
-import { SocketContextProvider } from "./SocketContext";
 import { AuthContextProvider } from "./AuthContext";
 
 interface idxGroupEvent {

@@ -282,6 +282,7 @@ export const queries = {
         comment
         uid
         createdAt
+        nicknameUnregistered
         attachments{
           _id
           name
@@ -297,12 +298,13 @@ export const queries = {
     deleteTask ( eventID:$eventID  itinerarioID:$itinerarioID  taskID:$taskID)
   }`,
   createComment: `
-  mutation  ( $eventID:String, $itinerarioID:String, $taskID:String, $comment:String, $attachments: [inputFileData]) {
-    createComment ( eventID:$eventID  itinerarioID:$itinerarioID  taskID:$taskID, comment:$comment, attachments: $attachments){
+  mutation  ( $eventID:String, $itinerarioID:String, $taskID:String, $comment:String, $attachments: [inputFileData], $nicknameUnregistered:String) {
+    createComment ( eventID:$eventID  itinerarioID:$itinerarioID  taskID:$taskID, comment:$comment, attachments: $attachments, nicknameUnregistered:$nicknameUnregistered){
       _id
       comment
       uid
       createdAt
+      nicknameUnregistered
       attachments{
         _id
         name
@@ -344,6 +346,7 @@ export const queries = {
           comment
           uid
           createdAt
+          nicknameUnregistered
           attachments{
             _id
             name
@@ -386,6 +389,7 @@ export const queries = {
           comment
           uid
           createdAt
+          nicknameUnregistered
           attachments{
             _id
             name
@@ -441,6 +445,7 @@ export const queries = {
             comment
             uid
             createdAt
+            nicknameUnregistered
             attachments{
               _id
               name
@@ -680,6 +685,7 @@ export const queries = {
             comment
             uid
             createdAt
+            nicknameUnregistered
             attachments{
               _id
               name
@@ -1539,6 +1545,7 @@ export const queries = {
             comment
             uid
             createdAt
+            nicknameUnregistered
             attachments{
               _id
               name
