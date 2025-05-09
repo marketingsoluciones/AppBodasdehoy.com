@@ -187,6 +187,7 @@ export const ExtraTableView: FC<props> = ({
             const [showModal, setShowModal] = useState(false);
             const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
             const limitedText = useDynamicCharacterLimit(data.cell.value || "", containerRef);
+            const [showTooltip, setShowTooltip] = useState(false); // Estado para mostrar el tooltip
           
             const handleOpenModal = () => {
               if (containerRef.current) {
@@ -198,16 +199,22 @@ export const ExtraTableView: FC<props> = ({
           
             return (
               <>
-                <div
-                  ref={containerRef}
-                  className="relative group flex items-start w-full text-left transition-all duration-300"
-                >
+      <div
+        ref={containerRef}
+        className="relative group flex items-start w-full text-left transition-all duration-300"
+        onMouseEnter={() => {
+          if (data.cell.value && data.cell.value.length > limitedText.length) {
+            setShowTooltip(true); // Muestra el tooltip si la información sobrepasa el límite
+          }
+        }}
+        onMouseLeave={() => setShowTooltip(false)} // Oculta el tooltip al salir del hover
+      >
                   {/* Contenedor principal con borde dinámico */}
                   <div
                     className="w-full p-[5px] group-hover:border group-hover:border-primary rounded-md transition-all duration-300"
                   >
                     <div
-                      className="overflow-hidden max-h-[2rem] group-hover:max-h-[10rem] transition-all duration-300 ease-in-out whitespace-normal"
+                      className="overflow-hidden max-h-[2rem] group-hover:max-h-[10rem] transition-all duration-300 ease-in-out whitespace-nowrap"
                     >
                       <span className="flex-1 pr-10">
                         {data.cell.value ? limitedText : <span className="text-gray-400">{t("Sin información")}</span>}
@@ -222,6 +229,13 @@ export const ExtraTableView: FC<props> = ({
                     >
                       <FaPencilAlt />
                     </button>
+
+                              {/* Tooltip que muestra la información completa */}
+          {showTooltip && (
+            <div className="absolute top-full left-0 mt-2 bg-white border border-gray-300 shadow-lg rounded-md p-2 z-50 w-auto max-w-xs">
+              <span className="text-sm text-gray-700">{data.cell.value}</span>
+            </div>
+          )}
 
                               {/* Código integrado */}
           <div className="absolute w-[22px] h-[22px] top-[3px] right-[26px] z-50 bg-gray-200 text-gray-600 border border-gray-400 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200">
@@ -303,6 +317,7 @@ export const ExtraTableView: FC<props> = ({
             const containerRef = useRef<HTMLDivElement>(null);
             const [showModal, setShowModal] = useState(false);
             const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
+            const [showTooltip, setShowTooltip] = useState(false);
             const limitedText = useDynamicCharacterLimit(
               data.cell.value ? new Date(data.cell.value).toLocaleString() : t("Sin Fecha"),
               containerRef
@@ -318,15 +333,21 @@ export const ExtraTableView: FC<props> = ({
           
             return (
               <>
-                <div
-                  ref={containerRef}
-                  className="relative group flex items-start w-full text-left transition-all duration-300"
-                >
+      <div
+        ref={containerRef}
+        className="relative group flex items-start w-full text-left transition-all duration-300"
+        onMouseEnter={() => {
+          if (data.cell.value && data.cell.value.length > limitedText.length) {
+            setShowTooltip(true); // Muestra el tooltip si la información sobrepasa el límite
+          }
+        }}
+        onMouseLeave={() => setShowTooltip(false)} // Oculta el tooltip al salir del hover
+      >
                   <div
                     className="w-full p-[5px] group-hover:border group-hover:border-primary rounded-md transition-all duration-300"
                   >
                     <div
-                      className="overflow-hidden max-h-[2rem] group-hover:max-h-[10rem] transition-all duration-300 ease-in-out whitespace-normal"
+                      className="overflow-hidden max-h-[2rem] group-hover:max-h-[10rem] transition-all duration-300 ease-in-out whitespace-nowrap"
                     >
                     <span className={data.cell.value ? "" : "text-gray-400"}>
                       {limitedText}
@@ -341,6 +362,12 @@ export const ExtraTableView: FC<props> = ({
                     >
                       <FaPencilAlt />
                     </button>
+    {/* Tooltip que aparece siempre al hacer hover */}
+    {showTooltip && (
+      <div className="absolute top-full left-0 mt-2 bg-white border border-gray-300 shadow-lg rounded-md p-2 z-50 w-auto max-w-xs">
+        <span className="text-sm text-gray-700">{data.cell.value}</span>
+      </div>
+    )}
                   </div>
                 </div>
         
@@ -684,6 +711,7 @@ export const ExtraTableView: FC<props> = ({
             const containerRef = useRef<HTMLDivElement>(null);
             const [showModal, setShowModal] = useState(false);
             const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
+            const [showTooltip, setShowTooltip] = useState(false);
         
             // Función para limitar caracteres dinámicamente según el ancho del contenedor
             const getLimitedText = (text: string) => {
@@ -709,10 +737,16 @@ export const ExtraTableView: FC<props> = ({
         
             return (
               <>
-                <div
-                  ref={containerRef}
-                  className="relative group flex items-start w-full text-left transition-all duration-300"
-                >
+<div
+        ref={containerRef}
+        className="relative group flex items-start w-full text-left transition-all duration-300"
+        onMouseEnter={() => {
+          if (data.cell.value && data.cell.value.length > limitedText.length) {
+            setShowTooltip(true); // Muestra el tooltip si la información sobrepasa el límite
+          }
+        }}
+        onMouseLeave={() => setShowTooltip(false)} // Oculta el tooltip al salir del hover
+      >
                   <div
                     className="w-full p-[5px] group-hover:border group-hover:border-primary rounded-md transition-all duration-300"
                   >
@@ -730,6 +764,14 @@ export const ExtraTableView: FC<props> = ({
                     >
                       <FaPencilAlt />
                     </button>
+                        {/* Tooltip que aparece siempre al hacer hover */}
+                        {showTooltip && (
+  <div className="absolute top-full left-0 mt-2 bg-white border border-gray-300 shadow-lg rounded-md p-2 z-50 w-auto max-w-xs">
+    <span className="text-sm text-gray-700 break-words">
+      {cleanText}
+    </span>
+  </div>
+)}
                   </div>
                 </div>
           
@@ -797,6 +839,7 @@ export const ExtraTableView: FC<props> = ({
             const [showModal, setShowModal] = useState(false);
             const [infoModal, setInfoModal] = useState(false); // Estado para el modal de información
             const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
+            const [showTooltip, setShowTooltip] = useState(false);
         
             const handleOpenModal = () => {
               if (containerRef.current) {
@@ -835,16 +878,28 @@ export const ExtraTableView: FC<props> = ({
             };
         
             const limitedText = useDynamicCharacterLimit(
-              data.cell.value ? data.cell.value.map((elem) => elem.name).join(", ") : t("Sin información"),
+              data.cell.value && Array.isArray(data.cell.value)
+                ? data.cell.value.map((elem) => elem.name).join(", ")
+                : t("Sin información"),
               containerRef
             );
         
         
             return (
               <>
-<div
+      <div
         ref={containerRef}
         className="relative group flex items-start w-full text-left transition-all duration-300"
+        onMouseEnter={() => {
+          if (
+            data.cell.value &&
+            Array.isArray(data.cell.value) &&
+            data.cell.value.map((elem) => elem.name).join(", ").length > limitedText.length
+          ) {
+            setShowTooltip(true);
+          }
+        }}
+        onMouseLeave={() => setShowTooltip(false)}
       >
         <div
           className="w-full p-[5px] group-hover:border group-hover:border-primary rounded-md transition-all duration-300"
@@ -863,7 +918,10 @@ export const ExtraTableView: FC<props> = ({
         handleOpenInfoModal();
       }}
     >
-      <span>↓</span> {/* Ícono de flecha */}
+      <span><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-3">
+  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+</svg>
+</span> {/* Ícono de flecha */}
     </button>
   )}
   <button
@@ -875,6 +933,18 @@ export const ExtraTableView: FC<props> = ({
   >
     <FaPencilAlt />
   </button>
+           {/* Tooltip que aparece siempre al hacer hover */}
+           {showTooltip && (
+  <div className="absolute top-full right-0 mt-2 bg-white border border-gray-300 shadow-lg rounded-md p-2 z-50 w-auto max-w-xs">
+    <ul className="text-sm text-gray-700 space-y-1">
+      {data.cell.value.map((elem, idx) => (
+        <li key={idx} className="whitespace-nowrap overflow-hidden text-ellipsis">
+          {elem.name}
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
 </div>
         </div>
       </div>
@@ -947,7 +1017,7 @@ export const ExtraTableView: FC<props> = ({
         }}
         onClick={(e) => e.stopPropagation()} // Evita cerrar el modal al hacer clic dentro
       >
-        <h2 className="text-md font-semibold mb-3">{t("Información de Adjuntos")}</h2> {/* Tamaño reducido del título */}
+        <h2 className="text-md font-semibold mb-3">{t("Descargar Archivos")}</h2> {/* Tamaño reducido del título */}
         <ul className="space-y-1">
           {data.cell.value.map((elem, idx) => (
             <li key={idx} className="flex items-center justify-start text-sm"> {/* Texto más pequeño */}
@@ -962,14 +1032,6 @@ export const ExtraTableView: FC<props> = ({
             </li>
           ))}
         </ul>
-        <div className="flex justify-end mt-3">
-          <button
-            className="px-3 py-1 bg-red-500 text-white rounded text-sm" // Botón más pequeño
-            onClick={() => setInfoModal(false)}
-          >
-            {t("Cerrar")}
-          </button>
-        </div>
       </div>
     </div>
   )}
@@ -987,6 +1049,7 @@ export const ExtraTableView: FC<props> = ({
             const containerRef = useRef<HTMLDivElement>(null);
             const [showModal, setShowModal] = useState(false);
             const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
+            const [showTooltip, setShowTooltip] = useState(false);
         
             // Limitador de texto ajustado a 5 caracteres
             const limitedText = useMemo(() => {
@@ -1006,10 +1069,20 @@ export const ExtraTableView: FC<props> = ({
         
             return (
               <>
-                <div
-                  ref={containerRef}
-                  className="relative group flex items-start w-full text-left transition-all duration-300"
-                >
+      <div
+        ref={containerRef}
+        className="relative group flex items-start w-full text-left transition-all duration-300"
+        onMouseEnter={() => {
+          if (
+            data.cell.value &&
+            Array.isArray(data.cell.value) &&
+            data.cell.value.join(", ").length > limitedText.length
+          ) {
+            setShowTooltip(true);
+          }
+        }}
+        onMouseLeave={() => setShowTooltip(false)}
+      >
                   <div
                     className="w-full p-[5px] group-hover:border group-hover:border-primary rounded-md transition-all duration-300"
                   >
@@ -1027,6 +1100,18 @@ export const ExtraTableView: FC<props> = ({
                     >
                       <FaPencilAlt />
                     </button>
+          {/* Tooltip que aparece siempre al hacer hover */}
+          {showTooltip && (
+            <div className="absolute top-full left-0 mt-2 bg-white border border-gray-300 shadow-lg rounded-md p-2 z-50 w-auto max-w-xs">
+              <ul className="text-sm text-gray-700 space-y-1">
+                {data.cell.value.map((tag, idx) => (
+                  <li key={idx} className="whitespace-nowrap overflow-hidden text-ellipsis">
+                    {tag}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
                   </div>
                 </div>
           

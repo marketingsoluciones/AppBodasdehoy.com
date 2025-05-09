@@ -396,7 +396,7 @@ const initialValues = useMemo(() => ({
             : tempValues.descripcion
           : t("Sin Descripción")}
       </span>
-      <FaPencilAlt className="text-gray-400 ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+      <FaPencilAlt className="text-primary ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
     </div>
   )}
 
@@ -494,7 +494,7 @@ const initialValues = useMemo(() => ({
       )}
       {editingField !== "responsable" && !isGlobalEdit && (
     <FaPencilAlt
-      className="absolute left-[180px] text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
+      className="absolute left-[180px] text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
       onClick={() => handleEdit("responsable", tempValues.responsable || [])}
     />
   )}
@@ -561,10 +561,19 @@ const initialValues = useMemo(() => ({
         } ${showModalAdjuntos.state && "rotate-180"}`}
       />
                 {editingField !== "attachments" && (
-    <FaPencilAlt
-      className="absolute left-56 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
-      onClick={() => handleEdit("attachments", tempValues.attachments || [])}
-    />
+    
+  
+/* Lápiz con posición condicional */
+
+<FaPencilAlt
+  className={`absolute ${
+    values.attachments.length > 0 ? "left-[250px] " : "left-56"
+  } text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer`}
+  onClick={() => handleEdit("attachments", tempValues.attachments || [])}
+/>
+
+
+
   )}
     </div>
   )}
@@ -650,7 +659,7 @@ const initialValues = useMemo(() => ({
       ) : (
         <span className="text-[12px] text-gray-400 capitalize">{t("noLabels")}</span>
       )}
-      <FaPencilAlt className="text-gray-400 ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+      <FaPencilAlt className="text-primary ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
     </div>
   )}
 </div>
@@ -697,7 +706,7 @@ const initialValues = useMemo(() => ({
             <FaCheck />
           </button>
           <button
-            className="flex items-center justify-center w-8 h-8 bg-white text-red-600 rounded-md shadow-md border border-red-300 hover:bg-red-200 transition-all duration-200"
+            className="flex items-center justify-center w-8 h-8 bg-red-100 text-red-600 rounded-md shadow-md border border-red-300 hover:bg-red-200 transition-all duration-200"
             onClick={() => {
               handleCancel("fecha", values);
               handleCancel("hora", values);
@@ -723,7 +732,7 @@ const initialValues = useMemo(() => ({
           ? `${tempValues.fecha} ${tempValues.hora} (${tempValues.duracion} min)`
           : <span className="text-[12px] text-gray-400 capitalize">{t("Sin Informacion")}</span>}
       </span>
-      <FaPencilAlt className="text-gray-400 ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+      <FaPencilAlt className="text-primary ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
     </div>
   )}
 </div>
@@ -773,7 +782,7 @@ const initialValues = useMemo(() => ({
     ? stripHtml(tempValues.tips)
     : <span className="text-[12px] text-gray-400">{t("Sin Descripcion")}</span>}
 </span>
-      <FaPencilAlt className="text-gray-400 ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+      <FaPencilAlt className="text-primary ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
     </div>
   )}
 </div>

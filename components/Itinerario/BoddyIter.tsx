@@ -183,7 +183,11 @@ export const BoddyIter = () => {
     }, [event, router])
 
     return (
-        <div className="bg-white w-full h-[calc(100vh-212px)] flex flex-col items-center rounded-t-lg mt-3 relative overflow-hidden">
+<div
+  className={`bg-white ${
+    view === "cards" ? "max-w-[1050px] mx-auto" : "w-auto"
+  } h-[calc(100vh-212px)] flex flex-col items-center rounded-t-lg mt-3 relative overflow-hidden`}
+>
             {modal.state && <Modal set={setModal} classe={"w-[95%] md:w-[450px] h-[250px]"} loading={loadingModal} >
                 <DeleteConfirmation setModal={setModal} modal={modal} />
             </Modal>}
