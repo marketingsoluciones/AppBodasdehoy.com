@@ -63,7 +63,6 @@ const EventsGroupProvider = ({ children }) => {
   const [eventsGroup, setEventsGroup] = useReducer<Reducer<Event[], action>>(reducerAction, []);
   const [psTemplates, setPsTemplates] = useState<any>([]);
   const { user, config, verificationDone } = AuthContextProvider();
-  const [reload, setReload] = useState<number>(0);
   const [isMounted, setIsMounted] = useState(false)
   const [eventsGroupDone, setEventsGroupDone] = useState(false)
 
@@ -77,7 +76,7 @@ const EventsGroupProvider = ({ children }) => {
   }, [])
 
   useEffect(() => {
-    if (verificationDone && user?.displayName !== "anonymous") {
+    if (verificationDone && user?.displayName !== "anonymous" && user?.displayName !== "guest") {
       if (user) {
         fetchApiEventos({
           query: queries.getEventsByID,

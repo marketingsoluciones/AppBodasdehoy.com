@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { FC, useEffect, useState } from "react"
 import { BoddyIter } from "../components/Itinerario"
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, } from "../context"
 import { BlockTitle } from "../components/Utils/BlockTitle"
@@ -10,7 +10,7 @@ import { fetchApiEventos, queries } from "../utils/Fetching"
 import { openGraphData } from "./_app"
 
 
-const Itinerario = (props) => {
+const Itinerario: FC<any> = (props) => {
     const [createPdf, setCreatePdf] = useState(false)
     const { eventsGroup } = EventsGroupContextProvider()
     const { event, setEvent } = EventContextProvider()
@@ -29,9 +29,8 @@ const Itinerario = (props) => {
         }
     }, [router])
 
-
     if (verificationDone) {
-        if (!user) {
+        if (!user || user?.displayName === "guest") {
             return (
                 <VistaSinCookie />
             )

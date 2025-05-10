@@ -122,19 +122,19 @@ export async function getServerSideProps(context) {
         itinerario_id
       }
     }) as any
-
     if (evento) {
       openGraphData.openGraph.title = `${evento.itinerarios_array[0]?.tasks[0]?.descripcion}`
       openGraphData.openGraph.description = evento.itinerarios_array[0]?.tasks[0]?.tips?.replace(/<[^>]*>/g, "")?.replace(".", ". ")
     }
     const itinerary = evento.itinerarios_array.find(elem => elem._id === query.itinerary)
     const task = itinerary?.tasks?.find(elem => elem._id === query.task)
+    const development = getDevelopment(req.headers.host)
     const users = await fetchApiBodas({
       query: queries?.getUsers,
       variables: { uids: task.comments.filter(elem => !!elem.uid).map(elem => elem.uid) },
-      development: getDevelopment(req.headers.host)
+      development: !/^\d+$/.test(development) ? development : "champagne-events"
     })
-    const usersMap = users.map(elem => {
+    const usersMap = users?.map(elem => {
       return {
         uid: elem.uid,
         displayName: elem?.displayName,
