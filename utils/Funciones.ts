@@ -9,7 +9,6 @@ export const Loading = (set) => {
   }, 1000)
 }
 
-
 export function useDelayUnmount(isMounted: boolean, delayTime: number) {
   const [shouldRender, setShouldRender] = useState(false);
 
@@ -98,7 +97,6 @@ export const getAllFilterGuest = (event: Event) => {
   }
 
 }
-
 
 // Objeto de icono perfil
 export const ImageProfile = {

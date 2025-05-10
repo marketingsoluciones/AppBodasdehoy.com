@@ -104,10 +104,12 @@ const EventProvider = ({ children }) => {
     if (event) {
       GlobalCurrency = event?.presupuesto_objeto?.currency
       console.log("seteado event", event)
-      const f1 = eventsGroup.findIndex(elem => elem?._id === event?._id)
-      eventsGroup.splice(f1, 1, event)
-      setEventsGroup({ type: "INITIAL_STATE", payload: [...eventsGroup] })
-      setAllFilterGuests({ ...getAllFilterGuest(event), update: new Date().getTime() })
+      const f1 = eventsGroup?.findIndex(elem => elem?._id === event?._id)
+      if (f1 > -1) {
+        eventsGroup.splice(f1, 1, event)
+        setEventsGroup({ type: "INITIAL_STATE", payload: [...eventsGroup] })
+        setAllFilterGuests({ ...getAllFilterGuest(event), update: new Date().getTime() })
+      }
     }
   }, [event])
 

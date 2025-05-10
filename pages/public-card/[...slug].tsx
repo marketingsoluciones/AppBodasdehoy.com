@@ -17,9 +17,7 @@ interface props {
   query?: any
 }
 
-
 const Slug: FC<props> = (props) => {
-
   if (!props?.evento?.itinerarios_array?.length)
     return (
       <div className="bg-red-200 text-blue-700 w-full h-full text-center mt-20">
@@ -30,7 +28,6 @@ const Slug: FC<props> = (props) => {
     <ServicesVew evento={props.evento} />
   )
 };
-
 export default Slug;
 
 const ServicesVew = (props) => {
@@ -55,32 +52,32 @@ const ServicesVew = (props) => {
         <div className={`bg-white w-full h-14 rounded-xl shadow-lg flex items-center justify-between `}>
           <div className='flex md:flex-1 flex-col px-2 md:px-6 font-display'>
             <div className='space-x-1'>
-              <span className='md:hidden capitalize text-primary text-[12px] leading-[12px]'>{evento?.tipo}</span>
-              <span className='md:hidden capitalize text-gray-600 text-[12px] leading-[20px] font-medium'>{evento?.nombre}</span>
+              <span className='md:hidden capitalize text-primary text-[12px] leading-[12px]'>{event?.tipo}</span>
+              <span className='md:hidden capitalize text-gray-600 text-[12px] leading-[20px] font-medium'>{event?.nombre}</span>
             </div>
           </div>
           <div className='flex-1 md:flex-none md:w-[35%] h-[100%] flex flex-row-reverse md:flex-row items-center '>
             <img
-              src={defaultImagenes[evento?.tipo]}
+              src={defaultImagenes[event?.tipo]}
               className=" h-[90%] object-cover object-top rounded-md border-1 border-gray-600  hidden md:block"
-              alt={evento?.nombre}
+              alt={event?.nombre}
             />
             <div className='hidden md:flex flex-col font-display font-semibold text-md text-gray-500 px-2 md:pt-2 gap-2'>
-              <span className='text-sm translate-y-2 text-primary text-[12px] first-letter:capitalize'>{evento?.tipo}</span>
-              <span className='uppercase w-64 truncate '>{evento?.nombre}</span>
+              <span className='text-sm translate-y-2 text-primary text-[12px] first-letter:capitalize'>{event?.tipo}</span>
+              <span className='uppercase w-64 truncate '>{event?.nombre}</span>
             </div>
           </div>
         </div>
         <div className="w-full px-4 md:px-10 py-4" >
           <div className="flex flex-col justify-center items-center">
-            <span className="text-3xl md:text-[40px] font-title text-primary">{evento?.itinerarios_array[0]?.title}</span>
+            <span className="text-3xl md:text-[40px] font-title text-primary">{event?.itinerarios_array[0]?.title}</span>
             <div className="w-[100px] bg-primary h-0.5 rounded-md mt-2" />
           </div>
         </div >
         <div className="w-full  mt-4">
           <TaskNew
-            task={evento?.itinerarios_array[0]?.tasks[0]}
-            itinerario={evento?.itinerarios_array[0]}
+            task={event?.itinerarios_array[0]?.tasks[0]}
+            itinerario={event?.itinerarios_array[0]}
             view={"cards"}
             isTaskPublic={true}
             onClick={() => { }}
@@ -91,11 +88,9 @@ const ServicesVew = (props) => {
       </motion.div>
       <style jsx>
         {`
-         
           .image {
             height: 400px;
           }
-
           @media only screen and (min-width: 1700px) {
             .image {
               height: 700px;
@@ -105,7 +100,6 @@ const ServicesVew = (props) => {
             @media only screen and (max-height: 530px) {
             .image {
               display: none;
-              
             }
           }
         `}
@@ -114,7 +108,6 @@ const ServicesVew = (props) => {
   )
 }
 
-//https://dev.bodasdehoy.com/public-card/servicios?event=67925c3c334004a3930cb331&itinerary=67cf2e71bfa1cbe167ebce7c&task=67cf2e71bfa1cbe167ebce7d
 export async function getServerSideProps(context) {
   const { params, query, req } = context
   try {
@@ -152,6 +145,7 @@ export async function getServerSideProps(context) {
       itinerary.tasks = [task]
     evento.itinerarios_array = [itinerary]
     evento.detalles_compartidos_array = users
+    evento.fecha_actualizacion = new Date().toLocaleString()
     return {
       props: { ...params, query, evento, users: usersMap },
     };

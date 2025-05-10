@@ -144,11 +144,12 @@ export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisa
           </div>
         </div>
         <div className="w-5">
-          {((user && user.uid === item?.uid) || (item?.nicknameUnregistered === nicknameUnregistered && (new Date().getTime() - new Date(item.createdAt).getTime()) / 1000 < 300)) && <MdOutlineDeleteOutline
-            onClick={() => {
-              handleDelete()
-            }}
-            className="absolute w-5 h-5 cursor-pointer right-2 bottom-5 text-gray-600" />}
+          {
+            (user && user.uid === item?.uid && user?.displayName !== "anonymous") && <MdOutlineDeleteOutline onClick={() => { handleDelete() }} className="absolute w-5 h-5 cursor-pointer right-2 bottom-5 text-gray-600" />
+            ||
+            (item?.nicknameUnregistered === nicknameUnregistered && (new Date().getTime() - new Date(item.createdAt).getTime()) / 1000 < 300 && user?.displayName === "anonymous")
+            && <MdOutlineDeleteOutline onClick={() => { handleDelete() }} className="absolute w-5 h-5 cursor-pointer right-2 bottom-5 text-gray-600" />
+          }
         </div>
       </div>
       <span className='cursor-default justify-end text-[9px] font-medium flex-1 flex right-0'>

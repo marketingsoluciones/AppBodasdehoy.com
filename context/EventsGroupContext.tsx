@@ -27,7 +27,6 @@ enum actions {
   UPDATE_A_EVENT
 }
 
-
 type action = {
   type: keyof typeof actions;
   payload: any;
@@ -78,7 +77,7 @@ const EventsGroupProvider = ({ children }) => {
   }, [])
 
   useEffect(() => {
-    if (verificationDone) {
+    if (verificationDone && user?.displayName !== "anonymous") {
       if (user) {
         fetchApiEventos({
           query: queries.getEventsByID,
@@ -90,10 +89,8 @@ const EventsGroupProvider = ({ children }) => {
                 if (events.length === 0) router.push("/")
               }, 100);
             }
-
             Promise.all(
               events.map(async (event) => {
-
                 if (event?.compartido_array?.length) {
                   const fMyUid = event?.compartido_array?.findIndex(elem => elem === user?.uid)
                   if (fMyUid > -1) {
