@@ -6,9 +6,10 @@ import { motion } from "framer-motion"
 import { defaultImagenes } from "../../components/Home/Card";
 import { TaskNew } from "../../components/Itinerario/MicroComponente/TaskNew";
 import { openGraphData } from "../_app";
-import { AuthContextProvider, varGlobalDevelopment } from "../../context/AuthContext";
+import { AuthContextProvider } from "../../context/AuthContext";
 import { EventContextProvider } from "../../context";
 import { TempPastedAndDropFiles } from "../../components/Itinerario/MicroComponente/ItineraryPanel";
+import { useRouter } from "next/router";
 
 interface props {
   evento: Event
@@ -31,15 +32,22 @@ const Slug: FC<props> = (props) => {
 export default Slug;
 
 const ServicesVew = (props) => {
-  const { evento, users } = props
+
+  const router = useRouter()
   const { event, setEvent } = EventContextProvider()
-  const { setUser } = AuthContextProvider()
+  const { user, setUser, verificationDone } = AuthContextProvider()
   const [tempPastedAndDropFiles, setTempPastedAndDropFiles] = useState<TempPastedAndDropFiles[]>([]);
 
   useEffect(() => {
-    setEvent({ ...evento })
-    setUser({ displayName: "anonymous" })
-  }, [props])
+    if (verificationDone) {
+      if (!user?.auth) {
+        setUser({ displayName: "anonymous" })
+        setEvent({ ...props.evento })
+      } else {
+        router.push(window.location.href.replace("/public-card", ""))
+      }
+    }
+  }, [verificationDone, props])
 
   return (
     <section className={` absolute z-[50] w-[calc(100vw)] h-[calc(100vh-63px)] top-[63px] left-4. bg-white`}>

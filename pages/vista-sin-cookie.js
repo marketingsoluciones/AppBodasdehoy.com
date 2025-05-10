@@ -22,13 +22,13 @@ const VistaSinCookie = () => {
     }
   }, [isMounted])
   if (isMounted) {
-    // if (config?.development !== "bodasdehoy") {
     if (router.route == "/servicios") {
       router?.push(`/public-card${router?.asPath}`)
-    } else (
-      router?.push(`/login${router.asPath !== "/" ? `?d=${router.asPath}` : ""}`)
-    )
-
+    } else {
+      if (config?.development !== "bodasdehoy") {
+        router?.push(`/login${router.asPath !== "/" ? `?d=${router.asPath}` : ""}`)
+      }
+    }
 
     setLoading(false)
     // } else {

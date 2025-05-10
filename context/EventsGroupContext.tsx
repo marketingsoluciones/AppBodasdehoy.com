@@ -76,60 +76,62 @@ const EventsGroupProvider = ({ children }) => {
   }, [])
 
   useEffect(() => {
-    if (verificationDone && user?.displayName !== "anonymous" && user?.displayName !== "guest") {
-      if (user) {
-        fetchApiEventos({
-          query: queries.getEventsByID,
-          variables: { variable: "usuario_id", valor: user?.uid, development: config?.development },
-        })
-          .then((events: Event[]) => {
-            if (!["RelacionesPublicas", "facturacion", "event"].includes(router?.route.split("/")[1])) {
-              setTimeout(() => {
-                if (events.length === 0) router.push("/")
-              }, 100);
-            }
-            Promise.all(
-              events.map(async (event) => {
-                if (event?.compartido_array?.length) {
-                  const fMyUid = event?.compartido_array?.findIndex(elem => elem === user?.uid)
-                  if (fMyUid > -1) {
-                    event.permissions = [...event.detalles_compartidos_array[fMyUid].permissions]
-                    event.compartido_array.splice(fMyUid, 1)
-                    event.detalles_compartidos_array?.splice(fMyUid, 1)
+    if (!["servicios", "credic-card"].includes(router?.route.split("/")[1]) || (user?.displayName !== "anonymous" && user?.displayName !== "guest")) {
+      if (verificationDone) {
+        if (user) {
+          fetchApiEventos({
+            query: queries.getEventsByID,
+            variables: { variable: "usuario_id", valor: user?.uid, development: config?.development },
+          })
+            .then((events: Event[]) => {
+              if (!["RelacionesPublicas", "facturacion", "event"].includes(router?.route.split("/")[1])) {
+                setTimeout(() => {
+                  if (events.length === 0) router.push("/")
+                }, 100);
+              }
+              Promise.all(
+                events.map(async (event) => {
+                  if (event?.compartido_array?.length) {
+                    const fMyUid = event?.compartido_array?.findIndex(elem => elem === user?.uid)
+                    if (fMyUid > -1) {
+                      event.permissions = [...event.detalles_compartidos_array[fMyUid].permissions]
+                      event.compartido_array.splice(fMyUid, 1)
+                      event.detalles_compartidos_array?.splice(fMyUid, 1)
+                    }
+                    const results = await fetchApiBodas({
+                      query: queries?.getUsers,
+                      variables: { uids: user?.uid === event?.usuario_id ? event?.compartido_array : [...event?.compartido_array, event?.usuario_id] },
+                      development: config?.development
+                    });
+                    results?.map((result: detalle_compartidos_array) => {
+                      const f1 = event.detalles_compartidos_array?.findIndex(elem => elem.uid === result.uid);
+                      if (f1 > -1) {
+                        event.detalles_compartidos_array?.splice(f1, 1, { ...event.detalles_compartidos_array[f1], ...result });
+                      }
+                      if (result.uid === event?.usuario_id) {
+                        event.detalles_usuario_id = result
+                      }
+                    })
                   }
-                  const results = await fetchApiBodas({
-                    query: queries?.getUsers,
-                    variables: { uids: user?.uid === event?.usuario_id ? event?.compartido_array : [...event?.compartido_array, event?.usuario_id] },
-                    development: config?.development
-                  });
-                  results?.map((result: detalle_compartidos_array) => {
-                    const f1 = event.detalles_compartidos_array?.findIndex(elem => elem.uid === result.uid);
-                    if (f1 > -1) {
-                      event.detalles_compartidos_array?.splice(f1, 1, { ...event.detalles_compartidos_array[f1], ...result });
-                    }
-                    if (result.uid === event?.usuario_id) {
-                      event.detalles_usuario_id = result
-                    }
-                  })
-                }
-                return event
+                  return event
+                })
+              ).then((values) => {
+                setEventsGroup({ type: "INITIAL_STATE", payload: values })
+                setEventsGroupDone(true)
               })
-            ).then((values) => {
-              setEventsGroup({ type: "INITIAL_STATE", payload: values })
-              setEventsGroupDone(true)
             })
+            .catch((error) => console.log(error));
+          fetchApiEventos({
+            query: queries.getPsTemplate,
+            variables: { uid: user.uid }
           })
-          .catch((error) => console.log(error));
-        fetchApiEventos({
-          query: queries.getPsTemplate,
-          variables: { uid: user.uid }
-        })
-          .then((templates: any) => {
-            setPsTemplates(templates)
-          })
-          .catch((error) => console.log(error));
-      } else {
-        setEventsGroupDone(true)
+            .then((templates: any) => {
+              setPsTemplates(templates)
+            })
+            .catch((error) => console.log(error));
+        } else {
+          setEventsGroupDone(true)
+        }
       }
     }
   }, [user]);
