@@ -107,7 +107,7 @@ const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled =
                       elemInput.focus();
                     }} className="flex space-x-1 items-center justify-center hover:bg-gray-200 px-2 py-1">
                       <div className="border-[1px] border-gray-800">
-                        <img src={`flags-svg/${elem.pre}.svg`.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')} className="object-cover w-6 h-4" />
+                        <img src={`/flags-svg/${elem.pre}.svg`.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')} className="object-cover w-6 h-4" />
                       </div>
                       <div className="flex flex-1 truncate">
                         <span className="flex-1 text-gray-700">{elem.name}</span>
@@ -121,7 +121,7 @@ const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled =
               setShowFlags(!showFlags)
               setOptions(flags)
             }} className="absolute w-12 h-9 flex justify-start items-center cursor-pointer ml-[1.5px] pl-2 bg-slate-100 rounded-l-xl mt-[1px]">
-              {optionSelect?.pre && <img src={`flags-svg/${optionSelect?.pre}.svg`.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')} width={22} className="border-[1px] border-gray-500" />}
+              {optionSelect?.pre && <img src={`/flags-svg/${optionSelect?.pre}.svg`.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')} width={22} className="border-[1px] border-gray-500" />}
               <IoIosArrowDown className="text-gray-500" />
             </div>
           </>

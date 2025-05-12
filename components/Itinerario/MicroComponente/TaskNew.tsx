@@ -9,7 +9,7 @@ import { ItineraryButtonBox } from './ItineraryButtonBox'
 import { Comment, Itinerary, OptionsSelect, Task, TaskDateTimeAsString } from "../../../utils/Interfaces";
 import { ViewItinerary } from "../../../pages/invitados";
 import { CgSoftwareDownload } from "react-icons/cg";
-import { getBytes, getMetadata, getStorage, ref } from "firebase/storage";
+import { getStorage } from "firebase/storage";
 import { Interweave } from "interweave";
 import { HashtagMatcher, UrlMatcher } from "interweave-autolink";
 import 'react-quill/dist/quill.snow.css'
@@ -57,6 +57,8 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
   const [showModalAdjuntos, setShowModalAdjuntos] = useState({ state: false, id: "" })
   const [showTagsModal, setShowTagsModal] = useState(false)
   const toast = useToast()
+  const [nicknameUnregistered, setNicknameUnregistered] = useState<string>()
+
   const initialValues: TaskDateTimeAsString = {
     _id: task?._id,
     icon: !task?.icon ? "" : task?.icon,
@@ -388,13 +390,13 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                         </div>
                         <div className='border-gray-300 border-[1px] rounded-lg py-2 w-full'>
                           <div ref={divRef} className='w-full h-[260px] flex flex-col-reverse rounded-lg overflow-auto break-words'>
-                            {!["/public-card/servicios"].includes(window?.location?.pathname) && comments?.map((elem, idx) => {
+                            {/*!["/public-card/servicios"].includes(window?.location?.pathname)*/ true && comments?.map((elem, idx) => {
                               return (
-                                <ListComments id={elem?._id} key={idx} itinerario={itinerario} task={task} item={elem} tempPastedAndDropFiles={tempPastedAndDropFiles} />
+                                <ListComments id={elem?._id} key={idx} itinerario={itinerario} task={task} item={elem} tempPastedAndDropFiles={tempPastedAndDropFiles} nicknameUnregistered={nicknameUnregistered} />
                               )
                             })}
                           </div>
-                          < InputComments itinerario={itinerario} task={task} tempPastedAndDropFiles={tempPastedAndDropFiles} setTempPastedAndDropFiles={setTempPastedAndDropFiles} />
+                          < InputComments itinerario={itinerario} task={task} tempPastedAndDropFiles={tempPastedAndDropFiles} setTempPastedAndDropFiles={setTempPastedAndDropFiles} nicknameUnregistered={nicknameUnregistered} setNicknameUnregistered={setNicknameUnregistered} />
                         </div>
                       </div>}
                       <div className={`${["/itinerario"].includes(window?.location?.pathname) && "pt-3"} flex justify-between`}>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { FC, useEffect, useState } from "react"
 import { BoddyIter } from "../components/Itinerario"
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, } from "../context"
 import { BlockTitle } from "../components/Utils/BlockTitle"
@@ -10,7 +10,7 @@ import { fetchApiEventos, queries } from "../utils/Fetching"
 import { openGraphData } from "./_app"
 
 
-const Itinerario = (props) => {
+const Itinerario: FC<any> = (props) => {
     const [createPdf, setCreatePdf] = useState(false)
     const { eventsGroup } = EventsGroupContextProvider()
     const { event, setEvent } = EventContextProvider()
@@ -29,9 +29,8 @@ const Itinerario = (props) => {
         }
     }, [router])
 
-
     if (verificationDone) {
-        if (!user) {
+        if (!user || user?.displayName === "guest") {
             return (
                 <VistaSinCookie />
             )
@@ -75,6 +74,12 @@ export async function getServerSideProps({ params, query }) {
                 itinerario_id
             }
         }) as any
+        const itinerary = evento.itinerarios_array.find(elem => elem._id === query.itinerary)
+        const task = itinerary?.tasks?.find(elem => elem._id === query.task)
+        evento._id = evento_id,
+            itinerary.tasks = [task]
+        evento.itinerarios_array = [itinerary]
+        evento.fecha_actualizacion = new Date().toLocaleString()
         if (evento) {
             openGraphData.openGraph.title = `${evento.itinerarios_array[0].tasks[0].descripcion}`
             openGraphData.openGraph.description = ` El Evento ${evento.tipo}, de ${evento.nombre}, ${new Date(parseInt(evento?.itinerarios_array[0].fecha_creacion)).toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}

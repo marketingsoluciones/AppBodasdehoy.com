@@ -32,68 +32,101 @@ export const SocketControlator = () => {
   useEffect(() => {
     setValirRemoteEvent(true)
     setValirRemotePlanSpaceActive(true)
-    if (received.channel === "app:message") {
-      if (received?.msg?.payload?.action === "setEvent") {
-        const eventOld = {
-          planSpaceSelect: event?.planSpaceSelect,
-          updatedAt: new Date()
-        }
-        let eventNew: Event = received.msg?.payload?.value
-        eventNew.fecha = new Date(eventNew.fecha).getTime().toString()
-        if (eventNew?.compartido_array?.length) {
-          const fMyUid = eventNew?.compartido_array?.findIndex(elem => elem === user?.uid)
-          if (fMyUid > -1) {
-            eventNew.permissions = [...eventNew.detalles_compartidos_array[fMyUid].permissions]
-            eventNew.compartido_array.splice(fMyUid, 1)
-            eventNew.detalles_compartidos_array?.splice(fMyUid, 1)
-          }
-          fetchApiBodas({
-            query: queries?.getUsers,
-            variables: { uids: user?.uid === eventNew?.usuario_id ? eventNew?.compartido_array : [...eventNew?.compartido_array, eventNew?.usuario_id] },
-            development: config?.development
-          }).then((results) => {
-            results?.map((result: detalle_compartidos_array) => {
-              const f1 = eventNew.detalles_compartidos_array?.findIndex(elem => elem.uid === result.uid);
-              if (f1 > -1) {
-                eventNew.detalles_compartidos_array?.splice(f1, 1, { ...eventNew.detalles_compartidos_array[f1], ...result });
-              }
-              if (result.uid === eventNew?.usuario_id) {
-                eventNew.detalles_usuario_id = result
-              }
-            })
-            setEvent({ ...eventNew, ...eventOld })
-          })
-        } else {
-          setEvent({ ...eventNew, ...eventOld })
-        }
-      }
-      if (received?.msg?.payload?.action === "setPlanSpaceActive") {
-        setPlanSpaceActive(received?.msg?.payload?.value)
-      }
-    }
-    if (received.channel === "cms:message") {
+    if (user?.displayName === "anonymous") {
+      if (received.channel === "app:message") {
+        if (received?.msg?.payload?.action === "setEvent") {
+          let eventNew: Event = received.msg?.payload?.value
+          let itinerary = eventNew.itinerarios_array.find(elem => elem._id === event.itinerarios_array[0]._id)
+          const task = itinerary?.tasks?.find(elem => elem._id === event.itinerarios_array[0].tasks[0]._id)
 
-      if (received?.msg?.payload?.action === "clickCard") {
-        const data = eventsGroup.find(elem => elem._id === received?.msg?.payload?.value)
-        handleClickCard({ t, final: true, config, data, setEvent, user, setUser, router })
-      }
-      if (received?.msg?.payload?.action === "setRoute") {
-        router.push(`${received?.msg?.payload?.value}`)
-      }
-      if (received?.msg?.payload?.action === "setEventId") {
-        setValirRemoteEvent(true)
+          // falta esto
+
+          // const users = await fetchApiBodas({
+          //   query: queries?.getUsers,
+          //   variables: { uids: task.comments.filter(elem => !!elem.uid).map(elem => elem.uid) },
+          //   development: getDevelopment(req.headers.host)
+          // })
+          // const usersMap = users.map(elem => {
+          //   return {
+          //     uid: elem.uid,
+          //     displayName: elem?.displayName,
+          //     photoURL: elem.photoURL
+          //   }
+          // })
+          itinerary.tasks = [task]
+          event.itinerarios_array = [itinerary]
+          event.fecha_actualizacion = new Date().toLocaleString()
+
+          // eventNew.detalles_compartidos_array = users
+          setEvent({ ...event })
+        }
       }
     }
-    if (received.channel === "notification") {
-      notifications.total = notifications.total + 1
-      notifications.results.unshift(received.msg)
-      setNotifications({ ...notifications })
+    if (user?.displayName !== "anonymous") {
+      if (received.channel === "app:message") {
+        if (received?.msg?.payload?.action === "setEvent") {
+          const eventOld = {
+            planSpaceSelect: event?.planSpaceSelect,
+            updatedAt: new Date()
+          }
+          let eventNew: Event = received.msg?.payload?.value
+          eventNew.fecha = new Date(eventNew.fecha).getTime().toString()
+          if (eventNew?.compartido_array?.length) {
+            const fMyUid = eventNew?.compartido_array?.findIndex(elem => elem === user?.uid)
+            if (fMyUid > -1) {
+              eventNew.permissions = [...eventNew.detalles_compartidos_array[fMyUid].permissions]
+              eventNew.compartido_array.splice(fMyUid, 1)
+              eventNew.detalles_compartidos_array?.splice(fMyUid, 1)
+            }
+            fetchApiBodas({
+              query: queries?.getUsers,
+              variables: { uids: user?.uid === eventNew?.usuario_id ? eventNew?.compartido_array : [...eventNew?.compartido_array, eventNew?.usuario_id] },
+              development: config?.development
+            }).then((results) => {
+              results?.map((result: detalle_compartidos_array) => {
+                const f1 = eventNew.detalles_compartidos_array?.findIndex(elem => elem.uid === result.uid);
+                if (f1 > -1) {
+                  eventNew.detalles_compartidos_array?.splice(f1, 1, { ...eventNew.detalles_compartidos_array[f1], ...result });
+                }
+                if (result.uid === eventNew?.usuario_id) {
+                  eventNew.detalles_usuario_id = result
+                }
+              })
+              setEvent({ ...eventNew, ...eventOld })
+            })
+          } else {
+            setEvent({ ...eventNew, ...eventOld })
+          }
+        }
+        if (received?.msg?.payload?.action === "setPlanSpaceActive") {
+          setPlanSpaceActive(received?.msg?.payload?.value)
+        }
+      }
+      if (received.channel === "cms:message") {
+
+        if (received?.msg?.payload?.action === "clickCard") {
+          const data = eventsGroup.find(elem => elem._id === received?.msg?.payload?.value)
+          handleClickCard({ t, final: true, config, data, setEvent, user, setUser, router })
+        }
+        if (received?.msg?.payload?.action === "setRoute") {
+          router.push(`${received?.msg?.payload?.value}`)
+        }
+        if (received?.msg?.payload?.action === "setEventId") {
+          setValirRemoteEvent(true)
+        }
+      }
+      if (received.channel === "notification") {
+        notifications.total = notifications.total + 1
+        notifications.results.unshift(received.msg)
+        setNotifications({ ...notifications })
+      }
     }
   }, [received])
 
   useEffect(() => {
-    socket?.on("cms:message", async (msg) => {
-      setReceived({ channel: "cms:message", msg, d: new Date() })
+
+    socket?.on("connect", () => {
+      setReconet(new Date())
     })
     socket?.on("app:message", async (msg) => {
       setReceived({ channel: "app:message", msg, d: new Date() })

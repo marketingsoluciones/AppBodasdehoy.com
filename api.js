@@ -73,7 +73,7 @@ export const api = {
     )
     const socket = manager.socket("/", {
       auth: {
-        token: `Bearer ${token}`,
+        token: token ? `Bearer ${token}` : "anonymous",
         development,
         father,
         origin
@@ -100,19 +100,23 @@ export const api = {
 
   ApiBodas: async ({ data, development, token }) => {
     let idToken = Cookies.get("idTokenV0.1.0")
-    if (getAuth().currentUser) {
-      //idToken = Cookies.get("idTokenV0.1.0")
-      if (!idToken) {
-        idToken = await getAuth().currentUser?.getIdToken(true)
-        const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
-        Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_PRODUCTION ? varGlobalDomain : process.env.NEXT_PUBLIC_DOMINIO, expires: dateExpire })
+    try {
+      if (getAuth().currentUser) {
+        //idToken = Cookies.get("idTokenV0.1.0")
+        if (!idToken) {
+          idToken = await getAuth().currentUser?.getIdToken(true)
+          const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
+          Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_PRODUCTION ? varGlobalDomain : process.env.NEXT_PUBLIC_DOMINIO, expires: dateExpire })
+        }
       }
+    } catch (error) {
+      console.log("error no firebase")
     }
     return axios.post('https://api.bodasdehoy.com/graphql', data, {
       headers: {
         Authorization: `Bearer ${idToken}`,
         Development: development,
-        IsProduction: process?.env?.NEXT_PUBLIC_PRODUCTION && !["testticket", "testinvitado"].includes(varGlobalSubdomain)
+        IsProduction: (process?.env?.NEXT_PUBLIC_PRODUCTION && !["testticket", "testinvitado"].includes(varGlobalSubdomain)) ?? false
       }
     })
   }
