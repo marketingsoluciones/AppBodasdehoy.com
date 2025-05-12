@@ -74,14 +74,16 @@ export async function getServerSideProps({ params, query }) {
                 itinerario_id
             }
         }) as any
-        const itinerary = evento.itinerarios_array.find(elem => elem._id === query.itinerary)
-        const task = itinerary?.tasks?.find(elem => elem._id === query.task)
-        evento._id = evento_id,
+        const itinerary = evento?.itinerarios_array?.find(elem => elem?._id === query?.itinerary)
+        const task = itinerary?.tasks?.find(elem => elem?._id === query?.task)
+        if(evento_id){
+            evento._id = evento_id
             itinerary.tasks = [task]
-        evento.itinerarios_array = [itinerary]
-        evento.fecha_actualizacion = new Date().toLocaleString()
+            evento.itinerarios_array = [itinerary]
+            evento.fecha_actualizacion = new Date().toLocaleString()
+        }
         if (evento) {
-            openGraphData.openGraph.title = `${evento.itinerarios_array[0].tasks[0].descripcion}`
+            openGraphData.openGraph.title = `${evento?.itinerarios_array[0]?.tasks[0]?.descripcion}`
             openGraphData.openGraph.description = ` El Evento ${evento.tipo}, de ${evento.nombre}, ${new Date(parseInt(evento?.itinerarios_array[0].fecha_creacion)).toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}
 ${evento.itinerarios_array[0].tasks[0].tips.replace(/<[^>]*>/g, "").replace(".", ". ")}`
         }
