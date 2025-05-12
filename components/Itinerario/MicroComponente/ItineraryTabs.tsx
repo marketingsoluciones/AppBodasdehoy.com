@@ -117,7 +117,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
     }, [event])
 
     const handleCreateItinerario = async () => {
-        if (event.itinerarios_array.filter(elem => elem.tipo === window?.location?.pathname.slice(1)).length > 9) {
+        if (event.itinerarios_array.filter(elem => elem.tipo === window?.location?.pathname.slice(1)).length > 15) {
             toast("warning", t("maxLimitedItineraries"));
             return
         }
@@ -333,7 +333,6 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
     }
 
     const releaseAndLeave = (e: MouseEvent<HTMLDivElement, globalThis.MouseEvent>, item: Itinerary) => {
-        console.log(100095, "releaseAndLeave")
         const itinerariesCopy = [...itineraries]
         if (itineraries.length === 1) {
             return
@@ -436,8 +435,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
 
 
     return (
-        <div className="flex max-w-[100%] min-w-[100%] h-10 items-center justify-center border-b md:px-4 md:py-2 shadow-md z-10">
-
+        <div className="flex max-w-[100%] min-w-[100%] overflow-x-auto. h-10 items-center justify-center border-b md:px-4 md:py-2 shadow-md z-10">
             <div id="content" className="flex-1 h-full  flex justify-between">
                 <div className="inline-flex max-w-full h-full items-center  mr-2">
                     {showTabs && <>
@@ -468,12 +466,12 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                                                     {!!item?.icon && <div className="flex w-5 h-5 mr-1 items-center justify-center">
                                                         {item?.icon}
                                                     </div>}
-                                                    <div className={`${itinerario?._id !== item?._id && "break-all"} line-clamp-1 flex-1`}>
+                                                    <div className={`${itinerario?._id !== item?._id && "break-all"} line-clamp-1 flex-1 `}>
                                                         {item?.title}
                                                     </div>
                                                     {(editTitle && itinerario?._id === item?._id && window?.location?.pathname !== "/itinerario") &&
-                                                        <div onMouseDown={(e) => e.stopPropagation()} className="fixed md:absolute w-full h-16 z-20 translate-y-6 flex left-0 items-center justify-center">
-                                                            <div className="h-full bg-white space-x-2 rounded-md flex px-6 items-center justify-center shadow-md border-[1px]">
+                                                        <div onMouseDown={(e) => e.stopPropagation()} className="fixed md:absolute w-full h-16 z-50 translate-y-6 flex left-16 items-center justify-center">
+                                                            <div className="h-full bg-white space-x-2 rounded-md flex px-2 items-center justify-center shadow-md border-[1px]">
                                                                 <input type="text" onChange={(e) => setTitle(e.target.value)} value={title} className={` font-display text-sm text-gray-500 border-[1px] border-primary focus:border-gray-400 w-min py-1 px-2 rounded-xl focus:ring-0 focus:outline-none transition`} />
                                                                 <button type="button" onClick={() => handleUpdateTitle()} className="border-primary border font-display focus:outline-none text-primary hover:text-white text-xs bg-white hover:bg-primary px-3 py-1 rounded-lg transition">
                                                                     <FaCheck />

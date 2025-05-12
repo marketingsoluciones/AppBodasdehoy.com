@@ -35,7 +35,7 @@ export const ModalDuplicate = ({ setModalDuplicate, modalDuplicate }) => {
   const handleDuplicateItinerario = async () => {
     try {
       const eventDestination = eventsGroup.find(elem => elem.nombre === selectedOption)
-      if (eventDestination.itinerarios_array.filter(elem => elem.tipo === window?.location?.pathname.slice(1)).length > 9) {
+      if (eventDestination.itinerarios_array.filter(elem => elem.tipo === window?.location?.pathname.slice(1)).length > 15) {
         toast("warning", t("maxLimitedItineraries"));
         setTimeout(() => {
           setModalDuplicate({ state: false })
