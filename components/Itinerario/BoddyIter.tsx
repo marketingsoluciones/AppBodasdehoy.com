@@ -208,7 +208,7 @@ export const BoddyIter = () => {
                 selectTask={selectTask}
                 setSelectTask={setSelectTask}
             />
-            {(isAllowedViewer(itinerario?.viewers ?? []) || window?.location?.pathname === "/itinerario")
+            {(isAllowedViewer(itinerario?.viewers ?? []) || window?.location?.pathname === "/itinerario" || isAllowed())
                 ? <ItineraryPanel itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} title={title} setTitle={setTitle} view={view} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} selectTask={selectTask} setSelectTask={setSelectTask} />
                 : <div className="h-full">
                     <ViewWihtoutData />
