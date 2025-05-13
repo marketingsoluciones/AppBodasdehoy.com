@@ -61,7 +61,7 @@ const Itinerario: FC<any> = (props) => {
 
 export default Itinerario
 
-export async function getServerSideProps({ params, query }) {
+/* export async function getServerSideProps({ params, query }) {
     try {
         const p = params?.slug[0]?.split("-")
         const evento_id = p?.[1] || query?.event;
@@ -76,17 +76,17 @@ export async function getServerSideProps({ params, query }) {
         }) as any
         const itinerary = evento?.itinerarios_array?.find(elem => elem?._id === query?.itinerary)
         const task = itinerary?.tasks?.find(elem => elem?._id === query?.task)
-        if(evento_id){
+        if (evento_id) {
             evento._id = evento_id
             itinerary.tasks = [task]
             evento.itinerarios_array = [itinerary]
             evento.fecha_actualizacion = new Date().toLocaleString()
         }
-        if (evento) {
-            openGraphData.openGraph.title = `${evento?.itinerarios_array[0]?.tasks[0]?.descripcion}`
-            openGraphData.openGraph.description = ` El Evento ${evento.tipo}, de ${evento.nombre}, ${new Date(parseInt(evento?.itinerarios_array[0].fecha_creacion)).toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}
+
+        openGraphData.openGraph.title = `${evento?.itinerarios_array[0]?.tasks[0]?.descripcion}`
+        openGraphData.openGraph.description = ` El Evento ${evento.tipo}, de ${evento.nombre}, ${new Date(parseInt(evento?.itinerarios_array[0].fecha_creacion)).toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}
 ${evento.itinerarios_array[0].tasks[0].tips.replace(/<[^>]*>/g, "").replace(".", ". ")}`
-        }
+
         return {
             props: { ...params, query, evento },
         };
@@ -95,5 +95,61 @@ ${evento.itinerarios_array[0].tasks[0].tips.replace(/<[^>]*>/g, "").replace(".",
             props: params,
         };
 
+    }
+} */
+
+    export async function getServerSideProps({ params, query }) {
+    try {
+        const p = params?.slug?.[0]?.split("-");
+        const evento_id = p?.[1] || query?.event;
+        const itinerario_id = p?.[2] || query?.itinerary;
+
+        const evento = await fetchApiEventos({
+            query: queries.getItinerario,
+            variables: {
+                evento_id,
+                itinerario_id,
+            },
+        }) as any;
+
+        if (!evento) {
+            throw new Error("Evento no encontrado");
+        }
+
+        const itinerary = evento?.itinerarios_array?.find(
+            (elem) => elem?._id === query?.itinerary
+        );
+
+        const task = itinerary?.tasks?.find(
+            (elem) => elem?._id === query?.task
+        );
+
+        if (evento_id) {
+            evento._id = evento_id;
+            itinerary.tasks = task ? [task] : [];
+            evento.itinerarios_array = itinerary ? [itinerary] : [];
+            evento.fecha_actualizacion = new Date().toLocaleString();
+        }
+
+        openGraphData.openGraph.title = `${evento?.itinerarios_array?.[0]?.tasks?.[0]?.descripcion || "Sin descripción"}`;
+        openGraphData.openGraph.description = `El Evento ${evento.tipo || "desconocido"}, de ${evento.nombre || "desconocido"}, ${new Date(parseInt(evento?.itinerarios_array?.[0]?.fecha_creacion || "0")).toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}
+${evento.itinerarios_array?.[0]?.tasks?.[0]?.tips?.replace(/<[^>]*>/g, "").replace(".", ". ") || ""}`;
+
+        return {
+            props: {
+                params: params || {},
+                query: query || {},
+                evento: evento || null,
+            },
+        };
+    } catch (error) {
+        console.error("Error en getServerSideProps:", error.message);
+        return {
+            props: {
+                params: params || {},
+                query: query || {},
+                evento: null, // Asegúrate de devolver un valor válido
+            },
+        };
     }
 }
