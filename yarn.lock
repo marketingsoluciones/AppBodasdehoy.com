@@ -5361,6 +5361,13 @@ react-dom@^18.1.0:
     loose-envify "^1.1.0"
     scheduler "^0.23.2"
 
+react-email-editor@^1.7.11:
+  version "1.7.11"
+  resolved "https://registry.yarnpkg.com/react-email-editor/-/react-email-editor-1.7.11.tgz#dc6c908130dd97985d23f5a640b02bc4cb687094"
+  integrity sha512-AyoKKtMEPhKdqUxFX1hyJMvEO+E5fzk88uNVGHhK1ymhLpcghYLkz1+pXKLcByjR6LHkfEbrCmoYFG8zyripug==
+  dependencies:
+    unlayer-types latest
+
 react-facebook-pixel@^1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/react-facebook-pixel/-/react-facebook-pixel-1.0.4.tgz#4760b60dc0451e345649d9710152b4b5419cf989"
@@ -6369,6 +6376,11 @@ universalify@^2.0.0:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/universalify/-/universalify-2.0.1.tgz#168efc2180964e6386d061e094df61afe239b18d"
   integrity sha512-gptHNQghINnc/vTGIk0SOFGFNXw7JVrlRUtConJRlvaw6DuX0wO5Jeko9sWrMBhh+PsYAZ7oXAiOnf/UKogyiw==
+
+unlayer-types@latest:
+  version "1.262.0"
+  resolved "https://registry.yarnpkg.com/unlayer-types/-/unlayer-types-1.262.0.tgz#370b2c4e96159d2c9971dfc1981a9fca1bb43476"
+  integrity sha512-1binA+iOQvHyUA+Qjvhs43jHyuHscXJNf9b8hL+rOAsD8E+R4AT6IE9whsm7+dH/jv0YOMPB22hFuWYcSvp9ZA==
 
 unpipe@1.0.0:
   version "1.0.0"
