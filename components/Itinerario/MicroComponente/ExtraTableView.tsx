@@ -60,21 +60,40 @@ interface Column {
   isHidden?: boolean; // Agregar la propiedad isHidden
 }
 
-const ColumnFilter = ({ columns, setHiddenColumns }) => {
+const ColumnFilter = ({ columns, setHiddenColumns, headerRef }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [buttonPosition, setButtonPosition] = useState({ right: '10px' });
+
+  useEffect(() => {
+    if (headerRef.current) {
+      // Obtener todas las celdas del header visibles
+      const headerCells = headerRef.current.querySelectorAll('th:not(.hidden)');
+      if (headerCells.length > 0) {
+        const lastCell = headerCells[headerCells.length - 1];
+        const containerRect = headerRef.current.getBoundingClientRect();
+        const lastCellRect = lastCell.getBoundingClientRect();
+        
+        // Calcular posición relativa del final de la última columna
+        const rightPosition = containerRect.right - lastCellRect.right;
+        setButtonPosition({ right: `${Math.max(rightPosition - 40, 10)}px` });
+      }
+    }
+  }, [columns.filter(col => !col.isHidden).length]);
 
   const toggleColumnVisibility = (columnId) => {
     setHiddenColumns((prev) => {
       const updatedHiddenColumns = prev.includes(columnId)
         ? prev.filter((id) => id !== columnId)
         : [...prev, columnId];
-  
       return updatedHiddenColumns;
     });
   };
 
   return (
-    <div className="relative">
+    <div
+      className="absolute top-0 z-50"
+      style={buttonPosition}
+    >
       <button
         className="flex items-center justify-center w-10 h-10 bg-gray-200 rounded-full shadow-md hover:bg-gray-300 transition duration-200"
         onClick={() => setIsOpen(!isOpen)}
@@ -83,7 +102,7 @@ const ColumnFilter = ({ columns, setHiddenColumns }) => {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded-lg shadow-lg z-50">
+        <div className="absolute right-0 top-12 w-48 bg-white border border-gray-300 rounded-lg shadow-lg z-50">
           <div className="p-2">
             <h3 className="text-sm font-semibold text-gray-700 mb-2">
               {t("Configurar Columnas")}
@@ -137,7 +156,12 @@ export const ExtraTableView: FC<props> = ({
     const { t } = useTranslation();
     const [arrEnviarInvitaciones, setArrEnviatInvitaciones] = useState([]);
     const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
+    const tableRef = useRef<HTMLDivElement>(null);
+    const [tableWidth, setTableWidth] = useState(0);
   
+
+  
+
     // Verifica si los datos están llegando correctamente
     useEffect(() => {
       if (!data || data.length === 0) {
@@ -181,7 +205,10 @@ export const ExtraTableView: FC<props> = ({
           Header: t("title"),
           accessor: "descripcion",
           id: "description",
-          className: 'sticky *lg:static z-0 left-0 relative',
+          width: 150, // Ancho inicial
+          minWidth: 100, // Ancho mínimo
+          maxWidth: 300, // Ancho máximo
+          canResize: true, // Habilitar redimensionamiento
           Cell: (data) => {
             const containerRef = useRef<HTMLDivElement>(null);
             const [showModal, setShowModal] = useState(false);
@@ -253,15 +280,16 @@ export const ExtraTableView: FC<props> = ({
                 {/* Modal fuera del contenedor de la celda */}
                 {showModal && (
                   <div
-                    className="fixed top-0 left-0 w-full h-full flex items-center justify-center border-[1px] border-gray-400 z-[1000]"
+                    className="fixed top-0 left-0 w-full h-full flex items-center justify-center border-[1px] border-gray-400 z-[1050]"
                     onClick={() => setShowModal(false)} // Cierra el modal al hacer clic fuera
                   >
                     <div
-                      className="bg-white shadow-lg rounded-lg border border-gray-300 p-4 w-[350px] max-w-full"
+                      className="bg-white shadow-lg rounded-lg border border-gray-300 p-4 w-[350px] max-w-full "
                       style={{
                         position: "absolute",
                         top: modalPosition.top + 40, // Ajusta la posición para que esté debajo de la celda
                         left: modalPosition.left,
+                        zIndex: 1051, // Asegura que el contenido del modal esté encima
                       }}
                       onClick={(e) => e.stopPropagation()} // Evita cerrar el modal al hacer clic dentro
                     >
@@ -313,6 +341,10 @@ export const ExtraTableView: FC<props> = ({
           Header: t("date"),
           accessor: "fecha",
           id: "date",
+          width: 100, // Ancho inicial
+          minWidth: 80, // Ancho mínimo
+          maxWidth: 200, // Anc
+          canResize: true, // Habilitar redimensionamientoho máximo
           Cell: (data) => {
             const containerRef = useRef<HTMLDivElement>(null);
             const [showModal, setShowModal] = useState(false);
@@ -461,6 +493,10 @@ export const ExtraTableView: FC<props> = ({
           Header: t("duracion"),
           accessor: "duracion",
           id: "duration",
+          width: 100, // Ancho inicial
+          minWidth: 80, // Ancho mínimo
+          maxWidth: 200, // Anc
+          canResize: true, // Habilitar redimensionamientoho máximo
           Cell: (data) => {
             const containerRef = useRef<HTMLDivElement>(null);
             const [showModal, setShowModal] = useState(false);
@@ -576,6 +612,10 @@ export const ExtraTableView: FC<props> = ({
           Header: t("responsible"),
           accessor: "responsable",
           id: "responsables",
+          width: 150, // Ancho inicial
+          minWidth: 100, // Ancho mínimo
+          maxWidth: 300, // Anc
+          canResize: true, // Habilitar redimensionamientoho máximo
           Cell: (data) => {
             const containerRef = useRef<HTMLDivElement>(null);
             const [showModal, setShowModal] = useState(false);
@@ -707,6 +747,10 @@ export const ExtraTableView: FC<props> = ({
           Header: t("tips"),
           accessor: "tips",
           id: "tips",
+          width: 200, // Ancho inicial
+          minWidth: 150, // Ancho mínimo
+          maxWidth: 400, // Ancho máximo
+          canResize: true, // Habilitar redimensionamientoho máximo
           Cell: (data) => {
             const containerRef = useRef<HTMLDivElement>(null);
             const [showModal, setShowModal] = useState(false);
@@ -834,6 +878,10 @@ export const ExtraTableView: FC<props> = ({
           Header: t("attachments"),
           accessor: "attachments",
           id: "attachments",
+          width: 180, // Ancho inicial
+          minWidth: 120, // Ancho mínimo
+          maxWidth: 300, // Ancho máximo
+          canResize: true, // Habilitar redimensionamientoho máximo
           Cell: (data) => {
             const containerRef = useRef<HTMLDivElement>(null);
             const [showModal, setShowModal] = useState(false);
@@ -1045,6 +1093,10 @@ export const ExtraTableView: FC<props> = ({
           Header: t("labels"),
           accessor: "tags",
           id: "tags",
+          width: 120, // Ancho inicial
+          minWidth: 100, // Ancho mínimo
+          maxWidth: 250, // Ancho máximo
+          canResize: true, // Habilitar redimensionamientoho máximo
           Cell: (data) => {
             const containerRef = useRef<HTMLDivElement>(null);
             const [showModal, setShowModal] = useState(false);
@@ -1118,7 +1170,7 @@ export const ExtraTableView: FC<props> = ({
                 {/* Modal para editar etiquetas */}
                 {showModal && (
                   <div
-                    className="fixed top-0 right-56 w-full h-full flex items-center justify-center"
+                    className="fixed top-0 right-56 w-full h-full flex items-center justify-center z-[1000]"
                     onClick={() => setShowModal(false)}
                   >
                     <div
@@ -1176,35 +1228,44 @@ export const ExtraTableView: FC<props> = ({
       ],
       [itinerario, i18next.language, t, hiddenColumns]
     );
-  
 
 
+    const visibleColumnsCount = Columna.filter((column) => !hiddenColumns.includes(column.id)).length;
+
+    useEffect(() => {
+      if (tableRef.current) {
+        setTableWidth(tableRef.current.offsetWidth); // Calcula el ancho de la tabla
+      }
+    }, [hiddenColumns]);
   
-  return (
-    <div className="w-full p-4 relative">
-      {arrEnviarInvitaciones.length > 0 && (
-        <ConfirmationBlock
-          arrEnviarInvitaciones={arrEnviarInvitaciones}
-          set={(act) => setArrEnviatInvitaciones(act)}
-        />
-      )}
-<ItineraryTable
-  columns={Columna} // Pasar todas las columnas, pero `ItineraryTable` filtrará las visibles
-  data={data}
-  multiSeled={multiSeled}
-  setArrEnviatInvitaciones={setArrEnviatInvitaciones}
-  reenviar={reenviar}
-  activeFunction={activeFunction}
-  selectTask={selectTask}
-  setSelectTask={setSelectTask}
-/>
-      {/* Filtro de columnas */}
-      <div className="absolute top-3 right-[-8px] ">
-      <ColumnFilter
-        columns={Columna}
-        setHiddenColumns={setHiddenColumns}
-      />
+    return (
+      <div className="w-full p-4 relative">
+        {arrEnviarInvitaciones.length > 0 && (
+          <ConfirmationBlock
+            arrEnviarInvitaciones={arrEnviarInvitaciones}
+            set={(act) => setArrEnviatInvitaciones(act)}
+          />
+        )}
+        <div ref={tableRef} className="relative">
+          <ItineraryTable
+            columns={Columna}
+            data={data}
+            multiSeled={multiSeled}
+            setArrEnviatInvitaciones={setArrEnviatInvitaciones}
+            reenviar={reenviar}
+            activeFunction={activeFunction}
+            selectTask={selectTask}
+            setSelectTask={setSelectTask}
+            headerRef={tableRef} // Pasar la referencia
+          />
+          
+          {/* Filtro de columnas con nueva implementación */}
+          <ColumnFilter
+            columns={Columna}
+            setHiddenColumns={setHiddenColumns}
+            headerRef={tableRef}
+          />
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+}; 

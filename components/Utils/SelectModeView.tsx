@@ -1,15 +1,13 @@
+
 import { FC, useEffect, useState } from "react"
 import ClickAwayListener from "react-click-away-listener"
 import { GoMultiSelect } from "react-icons/go"
 import { LiaIdCardSolid } from "react-icons/lia";
 import { HiOutlineViewList } from "react-icons/hi";
-import { TbSchema } from "react-icons/tb";
+import { TbSchema, TbLayoutKanban } from "react-icons/tb"; // Agregar TbLayoutKanban
 import { ArrowDownBodasIcon } from "../icons";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from "react-i18next";
-import { ExtraTableView } from "../Itinerario/MicroComponente/ExtraTableView"; // Importar el nuevo componente
-
-
 
 interface props {
   value: any
@@ -28,9 +26,14 @@ export const SelectModeView: FC<props> = ({ value, setValue }) => {
       title: t("card")
     },
     {
-      value: "extraTable", // Nueva opción para otra vista de tabla
+      value: "extraTable", // Vista de tabla personalizada
       icon: <HiOutlineViewList className="w-5 h-5" />,
       title: t("NuevaTabla") // Traducción para la nueva opción
+    },
+    {
+      value: "boardView", // Nueva vista de tablero Kanban
+      icon: <TbLayoutKanban className="w-5 h-5" />,
+      title: t("kanban") // Traducción para vista kanban
     }
   ];
   
@@ -51,7 +54,6 @@ export const SelectModeView: FC<props> = ({ value, setValue }) => {
   }
   
   return (
-    
     <ClickAwayListener onClickAway={() => setShow(false)} >
       <div className="relative flex cursor-pointer -translate-y-10 md:translate-y-0">
         <div onClick={() => { setShow(!show) }} className="inline-flex text-sm gap-0.5 text-gray-700 items-center capitalize">

@@ -33,6 +33,7 @@ import { ImageAvatar } from "../../Utils/ImageAvatar";
 import { ItineraryDetails } from "../MicroComponente/ItineraryDetails"
 import { SimpleDeleteConfirmation } from "../../Utils/SimpleDeleteConfirmation";
 import { ExtraTableView } from "./ExtraTableView"; // Importar el nuevo componente
+import { BoardView } from "./BoardView";
 
 interface props {
     itinerario: Itinerary
@@ -297,6 +298,164 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         },
     ]
 
+// Corrección de handleTaskUpdate en ItineraryPanel.tsx
+
+const handleTaskUpdate = async (taskId: string, updates: Partial<Task>) => {
+    try {
+      // Encontrar la tarea que se va a actualizar
+      const taskToUpdate = tasks.find(task => task._id === taskId);
+      if (!taskToUpdate) {
+        console.error('Tarea no encontrada:', taskId);
+        return;
+      }
+  
+      // Preparar las actualizaciones para la API
+      const updatePromises: Promise<any>[] = [];
+  
+      // Procesar cada actualización
+      Object.entries(updates).forEach(([key, value]) => {
+        let apiValue: string | any = value;
+        let apiKey = key;
+        
+        // Transformar valores según el tipo de campo
+        if (key === 'responsable' || key === 'tags' || key === 'attachments') {
+          apiValue = JSON.stringify(value);
+        } else if (key === 'status') {
+          // El BoardView envía 'status', pero necesitamos mapear a campos existentes
+          if (value === 'completed') {
+            // Marcar como completada podría significar cambiar spectatorView o algún otro campo
+            apiKey = 'spectatorView';
+            apiValue = JSON.stringify(false);
+          } else if (value === 'blocked') {
+            apiKey = 'estatus';
+            apiValue = JSON.stringify(true);
+          } else if (value === 'in_progress') {
+            apiKey = 'estatus';
+            apiValue = JSON.stringify(false);
+          } else if (value === 'pending') {
+            apiKey = 'estatus';
+            apiValue = JSON.stringify(false);
+          }
+        } else {
+          // Para otros campos, convertir a string si no lo es
+          apiValue = typeof value === 'string' ? value : JSON.stringify(value);
+        }
+  
+        // Crear promesa de actualización
+        const updatePromise = fetchApiEventos({
+          query: queries.editTask,
+          variables: {
+            eventID: event._id,
+            itinerarioID: itinerario._id,
+            taskID: taskId,
+            variable: apiKey,
+            valor: apiValue,
+          },
+          domain: config.domain,
+        });
+  
+        updatePromises.push(updatePromise);
+      });
+  
+      // Ejecutar todas las actualizaciones
+      const results = await Promise.all(updatePromises);
+  
+      // Verificar que todas las actualizaciones fueron exitosas
+      const hasError = results.some(result => !result);
+      if (hasError) {
+        throw new Error('Algunas actualizaciones fallaron');
+      }
+  
+      // Actualizar el estado local
+      setEvent((oldEvent) => {
+        const newEvent = { ...oldEvent };
+        const f1 = newEvent.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
+        
+        if (f1 > -1) {
+          const f2 = newEvent.itinerarios_array[f1].tasks.findIndex(elem => elem._id === taskId);
+          
+          if (f2 > -1) {
+            // Actualizar la tarea con los nuevos valores
+            newEvent.itinerarios_array[f1].tasks[f2] = {
+              ...newEvent.itinerarios_array[f1].tasks[f2],
+              ...updates
+            };
+          }
+        }
+        
+        return newEvent;
+      });
+  
+      toast("success", t("Item guardado con éxito"));
+      
+    } catch (error) {
+      console.error('Error al actualizar la tarea:', error);
+      toast("error", t("Error al actualizar la tarea"));
+    }
+  };
+  
+// Corrección de handleTaskCreate en ItineraryPanel.tsx
+
+const handleTaskCreate = async (taskData: Partial<Task>) => {
+    try {
+      // Usar la lógica existente de addTask pero con los datos del BoardView
+      const f = new Date(parseInt(event.fecha));
+      const fy = f.getUTCFullYear();
+      const fm = f.getUTCMonth();
+      const fd = f.getUTCDate();
+      let newEpoch = new Date(fy, fm + 1, fd).getTime() + 7 * 60 * 60 * 1000;
+      
+      if (tasks?.length) {
+        const item = tasks[tasks?.length - 1];
+        const epoch = new Date(item.fecha).getTime();
+        newEpoch = epoch + (item.duracion || 30) * 60 * 1000;
+      }
+  
+      const defaultDate = taskData.fecha ? new Date(taskData.fecha) : new Date(newEpoch);
+  
+      // Hacer la llamada a la API y tipar correctamente la respuesta
+      const response = await fetchApiEventos({
+        query: queries.createTask,
+        variables: {
+          eventID: event._id,
+          itinerarioID: itinerario._id,
+          descripcion: taskData.descripcion || "Nueva tarea",
+          fecha: defaultDate,
+          duracion: taskData.duracion || 30,
+          responsable: taskData.responsable || [],
+          tags: taskData.tags || [],
+          attachments: taskData.attachments || [],
+          tips: taskData.tips || "",
+          spectatorView: taskData.spectatorView !== undefined ? taskData.spectatorView : true,
+          estatus: taskData.estatus !== undefined ? taskData.estatus : false,
+        },
+        domain: config.domain
+      });
+  
+      // Tipar explícitamente la respuesta como Task
+      const newTask = response as Task;
+  
+      // Verificar que la respuesta tenga las propiedades necesarias
+      if (!newTask || !newTask._id) {
+        throw new Error('Respuesta inválida del servidor');
+      }
+  
+      // Actualizar el estado local
+      const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
+      event.itinerarios_array[f1].tasks.push(newTask);
+      setEvent({ ...event });
+      
+      // Seleccionar la nueva tarea
+      setSelectTask(newTask._id);
+      
+      toast("success", t("Tarea creada con éxito"));
+    } catch (error) {
+      console.error('Error al crear la tarea:', error);
+      toast("error", t("Error al crear la tarea"));
+    }
+  };
+
+
     return (
         <div className="w-full flex-1 flex flex-col overflow-auto">
             <InfoLateral ubication="left" infoOptions={infoLeftOptions} />
@@ -316,9 +475,24 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             />}
             {["/itinerario"].includes(window?.location?.pathname) && <SubHeader view={view} itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} title={title} setTitle={setTitle} />}
             <div className={`*!hidden w-full flex-1 flex flex-col pt-2 md:px-2 lg:px-6`}>
-                {
-                    tasksReduce?.length > 0 ?
-                    view === "extraTable" ? (
+            {
+  tasksReduce?.length > 0 ?
+    view === "boardView" ? (
+      <BoardView
+        data={tasks}
+        itinerario={itinerario}
+        selectTask={selectTask}
+        setSelectTask={setSelectTask}
+        onTaskUpdate={handleTaskUpdate}
+        onTaskDelete={(taskId) => {
+          const task = tasks.find(t => t._id === taskId);
+          if (task) {
+            deleteTask(task, itinerario);
+          }
+        }}
+        onTaskCreate={handleTaskCreate}
+      />
+    )  : view === "extraTable" ? (
                         <ExtraTableView
                           data={tasks} // Pasar las tareas como datos
                           setModalStatus={setModalStatus}

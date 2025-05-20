@@ -633,15 +633,15 @@ const initialValues = useMemo(() => ({
     }}
   />
       {!isGlobalEdit && (
-  <div className="absolute bottom-0 right-2 flex space-x-0 z-50">
+  <div className="absolute top-9 right-8 flex space-x-0 z-50">
   <button
-    className="flex items-center justify-center w-8 h-8 bg-green-100 text-green-600 rounded-md shadow-md border border-green-300 hover:bg-green-200 transition-all duration-200"
+    className="flex items-center justify-center w-8 h-8 bg-white text-green-600 rounded-md shadow-md border border-green-300 hover:bg-green-200 transition-all duration-200"
     onClick={() => handleSave("tags")}
   >
     <FaCheck />
   </button>
   <button
-    className="flex items-center justify-center w-8 h-8 bg-red-100 text-red-600 rounded-md shadow-md border border-red-300 hover:bg-red-200 transition-all duration-200"
+    className="flex items-center justify-center w-8 h-8 bg-white text-red-600 rounded-md shadow-md border border-red-300 hover:bg-red-200 transition-all duration-200"
     onClick={() => handleCancel("tags", values)}
   >
     <FaTimes />
@@ -694,7 +694,7 @@ const initialValues = useMemo(() => ({
         className="w-1/3 p-2 border border-gray-300 rounded"
       />
       {!isGlobalEdit && (
-        <div className="absolute top-[208px] left-[505px] flex space-x-0 z-50">
+        <div className="absolute top-[208px] left-[415px] flex space-x-0 z-50">
           <button
             className="flex items-center justify-center w-8 h-8 bg-white text-green-600 rounded-md shadow-md border border-green-300 hover:bg-green-200 transition-all duration-200"
             onClick={() => {
@@ -706,7 +706,7 @@ const initialValues = useMemo(() => ({
             <FaCheck />
           </button>
           <button
-            className="flex items-center justify-center w-8 h-8 bg-red-100 text-red-600 rounded-md shadow-md border border-red-300 hover:bg-red-200 transition-all duration-200"
+            className="flex items-center justify-center w-8 h-8 bg-white text-red-600 rounded-md shadow-md border border-red-300 hover:bg-red-200 transition-all duration-200"
             onClick={() => {
               handleCancel("fecha", values);
               handleCancel("hora", values);
@@ -774,16 +774,28 @@ const initialValues = useMemo(() => ({
     </div>
   ) : (
     <div
-      className="cursor-pointer flex items-center group"
+      className="cursor-pointer flex flex-col group"
       onClick={() => handleEdit("tips", tempValues.tips || "")}
     >
-<span className="text-sm text-gray-800 break-words">
-  {tempValues?.tips
-    ? stripHtml(tempValues.tips)
-    : <span className="text-[12px] text-gray-400">{t("Sin Descripcion")}</span>}
-</span>
-      <FaPencilAlt className="text-primary ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-    </div>
+      <div
+        className="text-xs text-gray-500 break-words overflow-hidden flex-1"
+        style={{
+          display: "-webkit-box",
+          WebkitLineClamp: 5, // Máximo de 5 líneas
+          WebkitBoxOrient: "vertical",
+          lineHeight: "1.5rem", // Altura de línea para ajustar el espaciado
+          padding: "0.5rem", // Padding para evitar que el texto esté pegado a los bordes
+          maxHeight: "7.5rem", // Altura máxima (5 líneas * 1.5rem)
+        }}
+      >
+        {tempValues?.tips
+          ? stripHtml(tempValues.tips)
+          : <span className="text-[12px] text-gray-400">{t("Sin Descripcion")}</span>}
+      </div>
+      <div className="flex justify-end items-center mt-1">
+        <FaPencilAlt className="text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+      </div>
+      </div>
   )}
 </div>
                     </div>
