@@ -184,7 +184,7 @@ export const BoddyIter = () => {
 
     return (
         <div className="bg-white w-full h-[calc(100vh-212px)] flex flex-col items-center rounded-t-lg mt-3 relative overflow-hidden">
-            {modal.state && <Modal set={setModal} classe={"w-[95%] md:w-[450px] h-[250px]"} loading={loadingModal} >
+            {modal.state && <Modal set={setModal} classe={"w-[95%] md:w-[450px] h-[250px] flex items-center justify-center"} loading={loadingModal} >
                 <DeleteConfirmation setModal={setModal} modal={modal} />
             </Modal>}
             {

@@ -16,6 +16,9 @@ import Test from "../components/Invitaciones/Test";
 import { PlantillaTextos } from "../components/Invitaciones/PlantillaTextos";
 import { GoChevronDown } from "react-icons/go";
 import { useTranslation } from 'react-i18next';
+import { OpenModal } from "../components/Home/OpenModal";
+import { Modal } from "../components/Utils/Modal";
+import { EmailReactEditorCom } from "../components/Invitaciones/EmailReactEditorCom";
 
 export type optionArryOptions = {
   title: string;
@@ -32,6 +35,7 @@ const Invitaciones = () => {
   const [dataInvitationNotSent, setDataInvitationNotSent] = useState([]);
   const [optionSelect, setOptionSelect] = useState("email")
   const [stateConfi, setStateConfi] = useState(true)
+  const [EmailEditorModal, setEmailEditorModal] = useState(true)
 
   const arryOptions: optionArryOptions[] = [
     {
@@ -96,6 +100,11 @@ const Invitaciones = () => {
             exit={{ opacity: 0 }}
             className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 gap-4 h-full "
           >
+            {
+              EmailEditorModal && <Modal  classe={" md:w-[90%] h-[90%] "}>
+                <EmailReactEditorCom  setEmailEditorModal={setEmailEditorModal} EmailEditorModal={EmailEditorModal} />
+              </Modal>
+            }
             <BlockTitle title="Invitaciones" />
             <CounterInvitations />
             <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full md:px-6 pt-2 md:pt-6 pb-28 mb-32 md:mb-0 md:p-12 relative">
@@ -117,7 +126,7 @@ const Invitaciones = () => {
                       setOptionSelect={setOptionSelect}
                     />
                     <div className="col-span-3 pt-4 md:p-6 w-full">
-                      {optionSelect !== "diseño" ? <Test TitelComponent={optionSelect} /> : <DiseñoComponent />}
+                      {optionSelect !== "diseño" ? <Test TitelComponent={optionSelect} /> : <DiseñoComponent  setEmailEditorModal={setEmailEditorModal} EmailEditorModal={EmailEditorModal} />}
                     </div>
                   </div>
                 </div>

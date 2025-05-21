@@ -390,19 +390,19 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                 }
                 {view !== "schema" && <AddEvent tasks={tasks} itinerario={itinerario} setSelectTask={setSelectTask} />}
             </div>
-            {modalStatus && <Modal set={setModalStatus} state={modalStatus} classe={"w-[95%] md:w-[450px] h-[370px]"}>
+            {modalStatus && <Modal set={setModalStatus} state={modalStatus} classe={"w-[95%] md:w-[450px] h-[370px] flex items-center justify-center"}>
                 <WarningMessage setModal={setModalStatus} modal={modalStatus} title={t("visibility")} />
             </Modal>
             }
-            {modalWorkFlow && <Modal set={setModalWorkFlow} state={modalWorkFlow} classe={"w-[95%] md:w-[450px] h-[370px]"}>
+            {modalWorkFlow && <Modal set={setModalWorkFlow} state={modalWorkFlow} classe={"w-[95%] md:w-[450px] h-[370px] flex items-center justify-center"}>
                 <WarningMessage setModal={setModalWorkFlow} modal={modalWorkFlow} title={t("workflow")} />
             </Modal>
             }
-            {modalCompartirTask && <Modal set={setModalCompartirTask} state={modalCompartirTask} classe={"w-[95%] md:w-[450px] h-[370px]"}>
+            {modalCompartirTask && <Modal set={setModalCompartirTask} state={modalCompartirTask} classe={"w-[95%] md:w-[450px] h-[370px] flex items-center justify-center"}>
                 <WarningMessage setModal={setModalCompartirTask} modal={modalCompartirTask} title={t("share")} />
             </Modal>
             }
-            {modalPlantilla && <Modal set={setModalPlantilla} state={modalPlantilla} classe={"w-[95%] md:w-[450px] h-[370px]"}>
+            {modalPlantilla && <Modal set={setModalPlantilla} state={modalPlantilla} classe={"w-[95%] md:w-[450px] h-[370px] flex items-center justify-center"}>
                 <WarningMessage setModal={setModalPlantilla} modal={modalPlantilla} title={t("template")} />
             </Modal>
             }

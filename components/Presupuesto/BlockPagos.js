@@ -38,7 +38,7 @@ const BlockPagos = ({ getId, setGetId, cate, estado }) => {
       </div>
       {
         showSoporte.state &&
-        <Modal set={setShowSoporte} state={showSoporte.state} classe={"w-[95%] md:w-[450px] max-h-[600px] min-h-[100px]"}>
+        <Modal set={setShowSoporte} state={showSoporte.state} classe={"w-[95%] md:w-[450px] max-h-[600px] min-h-[100px] flex items-center justify-center"}>
           <div className="flex flex-col items-center h-full w-full relative">
             <div className="absolute right-3 top-2 cursor-pointer" onClick={() => setShowSoporte({ state: false })}>
               <PiXBold className="w-5 h-5" />

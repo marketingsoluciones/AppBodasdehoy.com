@@ -167,7 +167,7 @@ export const ResponsableSelector: FC<props> = ({ disable, handleChange, ...props
                     </p>
             }
             {openResponsableList &&
-                <Modal set={setOpenResponsableList} classe={"w-[80%] md:w-[270px] h-3/4 md:h-[550px]"} >
+                <Modal set={setOpenResponsableList} classe={"w-[80%] md:w-[270px] h-3/4 md:h-[550px] flex items-center justify-center"} >
                     <ResponsableList DataArry={GruposResponsablesArry} openModal={openResponsableList} setOpenModal={setOpenResponsableList} setSelectIcon={setSelectIcon} value={field.value} />
                 </Modal>
             }

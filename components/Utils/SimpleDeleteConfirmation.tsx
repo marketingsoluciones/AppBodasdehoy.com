@@ -14,7 +14,7 @@ export const SimpleDeleteConfirmation: FC<props> = ({ setModal, handleDelete, me
   const { t } = useTranslation();
 
   return (
-    <Modal set={setModal} loading={loading} classe={"w-[95%] md:w-[450px] h-[200px]"}>
+    <Modal set={setModal} loading={loading} classe={"w-[95%] md:w-[450px] h-[200px] flex items-center justify-center"}>
       <div className="flex flex-col items-center justify-center h-full space-y-8 text-[16px]">
         <div className='flex flex-col items-center space-y-2'>
           {message}
