@@ -18,7 +18,6 @@ import { TbTableShare } from "react-icons/tb";
 import { NextSeo } from 'next-seo';
 
 const Home: NextPage = () => {
-
   const { user, verificationDone, config, setUser } = AuthContextProvider()
   const { eventsGroup, eventsGroupDone } = EventsGroupContextProvider()
   const { setEvent } = EventContextProvider()
@@ -74,12 +73,11 @@ const Home: NextPage = () => {
     }
 
     if (router?.query?.pGuestEvent) {
-      console.log("entro")
       router.push(`/confirmar-asistencia?pGuestEvent=${router?.query?.pGuestEvent}`)
     }
 
     if ((!user || user.displayName === "guest") && ["vivetuboda"].includes(config?.development)) {
-        router?.push(`/login`)
+      router?.push(`/login`)
       return <></>
     }
 

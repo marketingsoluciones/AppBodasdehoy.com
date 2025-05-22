@@ -23,8 +23,6 @@ interface props {
 
 export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria }) => {
   const { event, setEvent } = EventContextProvider()
-  const [showMenu, setShowMenu] = useState(false);
-  const [showEditCategorie, setShowEditCategorie] = useState(false);
   const toast = useToast()
   const [isAllowed, ht] = useAllowed()
   const { t } = useTranslation()
@@ -74,8 +72,8 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
         }}
         className={`text-xs w-full py-0.5 md:py-0 md:h-11 justify-center items-center flex pl-5 md:pl-2 transition hover:bg-base ${showCategoria?._id == item._id ? "bg-slate-200" : "bg-white"}`}
       >
-        <div className="flex-1 flex flex-col space-y-1 md:space-y-0">
-          <span className="flex justify-start items-center text-sm w-max"
+        <div className="grid grid-cols-10 text-xs w-full">
+          <div className="col-span-4 flex capitalize"
             onClick={(e) => e.stopPropagation()}
           >
             <EditableLabelWithInput
@@ -84,33 +82,23 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
               handleChange={handleOnBlur}
               accessor={null}
               textAlign="left" />
-          </span>
-          <span className={`flex justify-end w-full ${event?.presupuesto_objeto?.coste_estimado?.toString()?.length < 9 ? "text-[11px]" : "text-[10px]"}`} >
-            <div className="flex w-[97%] space-x-3">
-              <div className="w-1/2 flex justify-end space-x-1">
-                {event?.presupuesto_objeto?.viewEstimates && <>
-                  <span >
-                    {getCurrency(item?.coste_estimado)}
-                  </span>
-                  <span className={`text-[10px] ${event?.presupuesto_objeto?.coste_estimado?.toString().length < 9 ? "translate-y-[1.3px]" : ""}`}>
-                    Estimado
-                  </span>
-                </>
-                }
-              </div>
-              <div className="w-1/2 flex justify-end space-x-1">
-                <span >
-                  {getCurrency(item.coste_final)}
-                </span>
-                <span className={`text-[10px] ${event?.presupuesto_objeto?.coste_estimado?.toString().length < 9 ? "translate-y-[1.3px]" : ""}`}>
-                  Total
-                </span>
-              </div>
-            </div>
-          </span>
+          </div>
+          <div className="col-span-3 flex justify-end items-center">
+            {event?.presupuesto_objeto?.viewEstimates &&
+              <span >
+                {getCurrency(item?.coste_estimado)}
+              </span>
+
+            }
+          </div>
+          <div className="col-span-3 flex justify-end items-center overflow-hidden truncate">
+            <span >
+              {getCurrency(item.coste_final)}
+            </span>
+          </div>
         </div>
         <span onClick={(e) => e.stopPropagation()} className="gap-4 flex items-center h-full md:py-0" >
-          <div onClick={() => isAllowed() ? setShowModalDelete({ state: true, values: { object: "categoria", _id: item._id }, title: item.nombre }):ht()} className="relative w-8 h-8 flex justify-center items-center">
+          <div onClick={() => isAllowed() ? setShowModalDelete({ state: true, values: { object: "categoria", _id: item._id }, title: item.nombre }) : ht()} className="relative w-8 h-8 flex justify-center items-center">
             <MdOutlineDeleteOutline className="w-4 h-4" />
           </div>
         </span>
@@ -118,3 +106,29 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
     </>
   );
 };
+
+
+
+{/* <span className={`flex justify-end w-full ${event?.presupuesto_objeto?.coste_estimado?.toString()?.length < 9 ? "text-[11px]" : "text-[10px]"}`} >
+            <div className="flex w-[97%] space-x-3">
+              <div className="w-[160px]. flex justify-end space-x-1">
+                {event?.presupuesto_objeto?.viewEstimates && <>
+                  <span >
+                    {getCurrency(item?.coste_estimado)}
+                  </span>
+                  {/* <span className={`text-[10px] ${event?.presupuesto_objeto?.coste_estimado?.toString().length < 9 ? "translate-y-[1.3px]" : ""}`}>
+                    Estimado
+                  </span> 
+                </>
+                }
+              </div>
+              <div className="w-[80px]. flex justify-end space-x-1">
+                <span >
+                  {getCurrency(item.coste_final)}
+                </span>
+                {/* <span className={`text-[10px] ${event?.presupuesto_objeto?.coste_estimado?.toString().length < 9 ? "translate-y-[1.3px]" : ""}`}>
+                  Total
+                </span> *
+              </div>
+            </div>
+          </span> */}

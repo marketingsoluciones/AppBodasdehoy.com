@@ -30,7 +30,7 @@ const CellPagado = ({ set, ...props }) => {
 
   return (
     <>
-      <div className="w-full flex items-center justify-center h-full">
+      <div className="w-full flex items-center justify-end h-full">
         <p onClick={() => !isAllowed() ? ht() : handleClick()} className="hover:shadow-md rounded px-2 hover:bg-gray-200 hover:text-white transition w-max cursor-pointer">
           {mask}
         </p>

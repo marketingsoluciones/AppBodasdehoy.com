@@ -62,6 +62,7 @@ export interface Comment {
     _id: string
     comment: string
     uid: string
+    nicknameUnregistered: string
     attachments: FileData[]
     createdAt: Date
 }
