@@ -26,12 +26,17 @@ import {
   Settings,
   X
 } from 'lucide-react';
-import { Task, Itinerary } from '../../../utils/Interfaces';
+import { Task, Itinerary, Event as EventInterface } from '../../../utils/Interfaces';
 import { BoardColumn } from './BoardColumn';
 import { TaskCard } from './TaskCard';
 import { BoardFilters } from './BoardFilters';
 import { AddColumnModal } from './AddColumnModal';
 import { SubTaskModal } from './SubTaskModal';
+// Añadir esta importación junto con las demás importaciones al inicio del archivo
+import { fetchApiEventos, queries } from '../../../utils/Fetching';
+import { toast } from "react-toastify";
+// Agregar esta importación al inicio del archivo junto con las demás
+import { useTranslation } from 'react-i18next';
 
 // Tipos para el tablero
 export interface BoardColumn {
@@ -58,11 +63,13 @@ export interface DragItem {
 interface BoardViewProps {
   data: Task[];
   itinerario: Itinerary;
+  event: EventInterface; // Usar el tipo con alias
   selectTask: string;
   setSelectTask: (taskId: string) => void;
   onTaskUpdate: (taskId: string, updates: Partial<Task>) => void;
   onTaskDelete: (taskId: string) => void;
   onTaskCreate: (task: Partial<Task>) => void;
+  setEvent: (event: EventInterface) => void;
 }
 
 // Estados por defecto
@@ -100,11 +107,13 @@ const DEFAULT_COLUMNS: Record<string, Omit<BoardColumn, 'tasks'>> = {
 export const BoardView: React.FC<BoardViewProps> = ({
   data,
   itinerario,
+  event, // Asegurarse de recibir event como prop
   selectTask,
   setSelectTask,
   onTaskUpdate,
   onTaskDelete,
   onTaskCreate,
+  setEvent,
 }) => {
   // Estados
   const [boardState, setBoardState] = useState<BoardState>({
@@ -118,6 +127,7 @@ export const BoardView: React.FC<BoardViewProps> = ({
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [showFilters, setShowFilters] = useState(false);
   const [showAddColumn, setShowAddColumn] = useState(false);
+  const { t } = useTranslation();
   const [showSubTaskModal, setShowSubTaskModal] = useState<{
     show: boolean;
     parentTaskId?: string;
@@ -452,6 +462,58 @@ export const BoardView: React.FC<BoardViewProps> = ({
     setShowAddColumn(false);
   }, []);
 
+  // Modificar la función handleTaskCreate
+  const handleTaskCreate = async (taskData: Partial<Task>) => {
+    try {
+      const eventID = (event as EventInterface)._id;
+      
+      if (!eventID) {
+        throw new Error("No se pudo obtener el ID del evento");
+      }
+
+      const response = await fetchApiEventos({
+        query: queries.createTask,
+        variables: {
+          eventID: eventID,
+          itinerarioID: itinerario._id,
+          descripcion: taskData.descripcion || "Nueva tarea",
+          fecha: taskData.fecha || new Date(),
+          duracion: taskData.duracion || 30,
+          responsable: taskData.responsable || [],
+          tags: taskData.tags || [],
+          attachments: taskData.attachments || [],
+          tips: taskData.tips || "",
+          spectatorView: taskData.spectatorView !== undefined ? taskData.spectatorView : true,
+          estatus: taskData.estatus !== undefined ? taskData.estatus : false,
+          estado: taskData.estado || "pending",
+          prioridad: taskData.prioridad || "media",
+        },
+        domain: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+      });
+
+      if (!response) {
+        throw new Error("No se recibió respuesta del servidor");
+      }
+
+      const newTask = response as Task;
+      
+      // Actualizar el estado local
+      const f1 = event.itinerarios_array.findIndex((elem) => elem._id === itinerario._id);
+      if (f1 === -1) {
+        throw new Error("No se encontró el itinerario en el evento");
+      }
+      
+      event.itinerarios_array[f1].tasks.push(newTask);
+      setEvent({ ...event });
+      setSelectTask(newTask._id);
+       // Corregir el uso de toast
+    toast.success(t("Tarea creada con éxito")); // Usar toast.success en lugar de toast("success", ...)
+  } catch (error) {
+    console.error("Error al crear la tarea:", error);
+    toast.error(t("Error al crear la tarea")); // Usar toast.error en lugar de toast("error", ...)
+  }
+  };
+
 // Crear sub-tarea usando tags para la relación
 const handleCreateSubTask = useCallback((parentTaskId: string, subTask: Partial<Task>) => {
     onTaskCreate({
@@ -586,7 +648,7 @@ const handleCreateSubTask = useCallback((parentTaskId: string, subTask: Partial<
                     onTaskClick={setSelectTask}
                     onTaskUpdate={onTaskUpdate}
                     onTaskDelete={onTaskDelete}
-                    onTaskCreate={onTaskCreate}
+                    onTaskCreate={handleTaskCreate}
                     onToggleCollapse={() => toggleColumnCollapse(columnId)}
                     onCreateSubTask={(taskId) => 
                       setShowSubTaskModal({ show: true, parentTaskId: taskId })

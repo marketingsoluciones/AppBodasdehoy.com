@@ -8,7 +8,7 @@ import { EditTastk } from "./ItineraryPanel";
 import { useAllowed } from "../../../hooks/useAllowed";
 import { CgSoftwareDownload } from "react-icons/cg";
 import { getBytes, getMetadata, getStorage, ref } from "firebase/storage";
-import { Itinerary, OptionsSelect } from "../../../utils/Interfaces";
+import { Itinerary, OptionsSelect, Event as EventInterface } from "../../../utils/Interfaces";
 import { AuthContextProvider, EventContextProvider } from "../../../context";
 
 import { ImageAvatar } from "../../Utils/ImageAvatar";
@@ -30,6 +30,7 @@ import { useContext } from "react";
 import { MyEditor } from "./QuillText";
 import InputAttachments from "../../Forms/InputAttachments";
 import { InputTags } from "../../Forms/InputTags";
+import { fetchApiEventos, queries } from "../../../utils/Fetching";
 
 interface props {
   data?: any[],
@@ -49,6 +50,7 @@ interface props {
   selectTask: string
   setSelectTask: any
   itinerario: Itinerary
+  event: EventInterface
 }
 
 interface Column {
@@ -151,6 +153,8 @@ export const ExtraTableView: FC<props> = ({
   selectTask,
   setSelectTask,
   itinerario,
+  event,
+
 }) => {
     const storage = getStorage();
     const { t } = useTranslation();
@@ -1225,6 +1229,86 @@ export const ExtraTableView: FC<props> = ({
           },
           isHidden: hiddenColumns.includes("tags"), // Sincroniza con hiddenColumns
         },
+        // Columna para Estado
+    {
+      Header: t("Estado"),
+      accessor: "estado",
+      id: "estado",
+      width: 120,
+      minWidth: 100,
+      maxWidth: 200,
+      canResize: true,
+      Cell: (data) => {
+        const [value, setValue] = useState(data.cell.value || "pending");
+        const handleChange = async (newValue: string) => {
+          setValue(newValue);
+          await fetchApiEventos({
+            query: queries.editTask,
+            variables: {
+              eventID: event._id,
+              itinerarioID: itinerario._id,
+              taskID: data.row.original._id,
+              variable: "estado",
+              valor: newValue,
+            },
+          });
+        };
+
+        return (
+          <select
+            value={value}
+            onChange={(e) => handleChange(e.target.value)}
+            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+          >
+            <option value="pending">Pendiente</option>
+            <option value="in_progress">En Progreso</option>
+            <option value="completed">Completado</option>
+            <option value="blocked">Bloqueado</option>
+          </select>
+        );
+      },
+      isHidden: hiddenColumns.includes("estado"),
+    },
+
+    // Columna para Prioridad
+    {
+      Header: t("Prioridad"),
+      accessor: "prioridad",
+      id: "prioridad",
+      width: 120,
+      minWidth: 100,
+      maxWidth: 200,
+      canResize: true,
+      Cell: (data) => {
+        const [value, setValue] = useState(data.cell.value || "media");
+        const handleChange = async (newValue: string) => {
+          setValue(newValue);
+          await fetchApiEventos({
+            query: queries.editTask,
+            variables: {
+              eventID: event._id,
+              itinerarioID: itinerario._id,
+              taskID: data.row.original._id,
+              variable: "prioridad",
+              valor: newValue,
+            },
+          });
+        };
+
+        return (
+          <select
+            value={value}
+            onChange={(e) => handleChange(e.target.value)}
+            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+          >
+            <option value="alta">Alta</option>
+            <option value="media">Media</option>
+            <option value="baja">Baja</option>
+          </select>
+        );
+      },
+      isHidden: hiddenColumns.includes("prioridad"),
+    },
       ],
       [itinerario, i18next.language, t, hiddenColumns]
     );

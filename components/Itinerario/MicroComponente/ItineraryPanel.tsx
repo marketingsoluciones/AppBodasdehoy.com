@@ -34,6 +34,9 @@ import { ItineraryDetails } from "../MicroComponente/ItineraryDetails"
 import { SimpleDeleteConfirmation } from "../../Utils/SimpleDeleteConfirmation";
 import { ExtraTableView } from "./ExtraTableView"; // Importar el nuevo componente
 import { BoardView } from "./BoardView";
+import { ClickUpTableView } from "./NewTableView";
+// Importar el tipo Event con un alias para evitar conflictos
+import { Event as EventInterface } from '../../../utils/Interfaces';
 
 interface props {
     itinerario: Itinerary
@@ -480,6 +483,8 @@ const handleTaskCreate = async (taskData: Partial<Task>) => {
     view === "boardView" ? (
       <BoardView
         data={tasks}
+        event={event as EventInterface} // Usar el tipo con alias
+        setEvent={setEvent}
         itinerario={itinerario}
         selectTask={selectTask}
         setSelectTask={setSelectTask}
@@ -492,10 +497,26 @@ const handleTaskCreate = async (taskData: Partial<Task>) => {
         }}
         onTaskCreate={handleTaskCreate}
       />
-    )  : view === "extraTable" ? (
+    ) : view === "newTable" ? (
+        <ClickUpTableView
+          data={tasks}
+          itinerario={itinerario}
+          selectTask={selectTask}
+          setSelectTask={setSelectTask}
+          onTaskUpdate={handleTaskUpdate}
+          onTaskDelete={(taskId) => {
+            const task = tasks.find(t => t._id === taskId);
+            if (task) {
+              deleteTask(task, itinerario);
+            }
+          }}
+          onTaskCreate={handleTaskCreate}
+        />
+      )  : view === "extraTable" ? (
                         <ExtraTableView
                           data={tasks} // Pasar las tareas como datos
                           setModalStatus={setModalStatus}
+                          event={event as EventInterface} // Asegurar que pasamos el evento con el tipo correcto
                           modalStatus={modalStatus}
                           setModalWorkFlow={setModalWorkFlow}
                           modalWorkFlow={modalWorkFlow}

@@ -14,7 +14,7 @@ import { BlockTableroInvitados } from "../components/Invitados/BlockTableroInvit
 import { SelectModeView } from "../components/Utils/SelectModeView";
 import { NextSeo } from "next-seo";
 
-export type ViewItinerary = "table" | "schema" | "cards" | "extraTable" | "boardView"; // Agregar "extraTable"
+export type ViewItinerary = "table" | "schema" | "cards" | "extraTable" | "boardView" | "newTable"; // Agregar "extraTable"
 
 const Invitados: FC = () => {
   const [isMounted, setIsMounted] = useState<boolean>(false);

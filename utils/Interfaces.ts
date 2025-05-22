@@ -86,6 +86,8 @@ export interface Task {
     spectatorView: boolean
     comments: Comment[]
     commentsViewers: string[]
+    estado: string
+    prioridad: string
     estatus: boolean
 }
 

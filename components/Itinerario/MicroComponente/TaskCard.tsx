@@ -1,6 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+// En TaskCard.tsx, verifica la importación
+import { TaskEditModal } from './TaskEditModal';
 import {
   Check,
   PlusCircle,
@@ -18,6 +20,7 @@ import {
 import { Task, Itinerary } from '../../../utils/Interfaces';
 import { ImageAvatar } from '../../Utils/ImageAvatar';
 import { GruposResponsablesArry } from '../MicroComponente/ResponsableSelector';
+
 
 interface TaskCardProps {
   task: Task;
@@ -42,6 +45,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 }) => {
   const [showActions, setShowActions] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
+  // Agregar el estado para el modal
+  const [showEditModal, setShowEditModal] = useState(false);
+
+
 
   const {
     attributes,
@@ -83,12 +90,12 @@ const handleToggleComplete = useCallback((e: React.MouseEvent) => {
     setShowActions(false);
   }, [task._id, onCreateSubTask]);
 
-  // Función para editar
+  // Modificar el handleEdit
   const handleEdit = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    onTaskClick(task._id);
+    setShowEditModal(true);
     setShowActions(false);
-  }, [task._id, onTaskClick]);
+  }, []);
 
   // Función para mostrar más opciones
   const handleMoreOptions = useCallback((e: React.MouseEvent) => {
@@ -153,6 +160,7 @@ const getSubtaskInfo = (tags: string[]) => {
 };
 
   return (
+    <>
     <div
       ref={setNodeRef}
       style={style}
@@ -226,20 +234,20 @@ const getSubtaskInfo = (tags: string[]) => {
             </button>
 
              {/* Modificar el menú de opciones */}
-{showMoreMenu && (
-  <div className="absolute right-0 top-8 w-40 bg-white border border-gray-200 rounded-md shadow-lg z-20">
-    <div className="py-1">
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          updatePriority(task._id, 'alta');
-          setShowMoreMenu(false);
-        }}
-        className="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
-      >
-        <AlertCircle className="w-4 h-4 mr-2" />
-        Prioridad alta
-      </button>
+            {showMoreMenu && (
+              <div className="absolute right-0 top-8 w-40 bg-white border border-gray-200 rounded-md shadow-lg z-20">
+                <div className="py-1">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      updatePriority(task._id, 'alta');
+                      setShowMoreMenu(false);
+                    }}
+                    className="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <AlertCircle className="w-4 h-4 mr-2" />
+                    Prioridad alta
+                  </button>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -266,6 +274,8 @@ const getSubtaskInfo = (tags: string[]) => {
           </div>
         </div>
       )}
+
+
 
       {/* Contenido principal de la tarjeta */}
       <div className="p-3">
@@ -419,5 +429,15 @@ const getSubtaskInfo = (tags: string[]) => {
 })()}
       </div>
     </div>
+
+    {showEditModal && (
+      <TaskEditModal
+        task={task}
+        onSave={onTaskUpdate}
+        onClose={() => setShowEditModal(false)}
+        itinerario={itinerario}
+      />
+    )}
+    </>
   );
 };

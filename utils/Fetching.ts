@@ -289,6 +289,8 @@ export const queries = {
         }
       }
       commentsViewers
+      estado
+      prioridad
       fecha_creacion
     }
   }`,
@@ -351,6 +353,8 @@ export const queries = {
           }
         }
         commentsViewers
+        estado
+        prioridad
       }
       tipo
       fecha_creacion
@@ -393,6 +397,8 @@ export const queries = {
           }
         }
         commentsViewers
+        estado
+        prioridad
       }
       tipo
     }
@@ -448,6 +454,8 @@ export const queries = {
             }
           }
           commentsViewers
+          estado
+          prioridad
           fecha_creacion
         }
         viewers
@@ -687,6 +695,8 @@ export const queries = {
             }
           }
           commentsViewers
+          estado
+          prioridad
         }
         viewers
         tipo
@@ -1469,6 +1479,8 @@ export const queries = {
             }
           }
           commentsViewers
+          estado
+          prioridad
         }
         viewers
         tipo

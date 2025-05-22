@@ -130,77 +130,53 @@ const handleCloseDateModal = () => {
     setTempValues((prev) => ({ ...prev, [field]: currentValue }));
   };
 
-  const handleSave = async (field?: string) => {
-    try {
-      let dataSend;
-  
-      if (field) {
-        let valueToSave = tempValues[field];
-  
-        // Procesar datos según el campo
-        if (field === "responsable") {
-          valueToSave = Array.isArray(valueToSave) ? valueToSave : [];
-        } else if (field === "attachments") {
-          valueToSave = Array.isArray(valueToSave) ? valueToSave : [];
-        } else if (field === "tags") {
-          valueToSave = Array.isArray(valueToSave) ? valueToSave : [];
-        } else if (field === "fecha" || field === "hora") {
-          const fecha = tempValues.fecha || "";
-          const hora = tempValues.hora || "";
-          valueToSave = new Date(`${fecha} ${hora}`).toISOString(); // Combinar fecha y hora
-        } else if (field === "duracion") {
-          valueToSave = tempValues.duracion?.toString() || "0"; // Convertir a string
-        } else if (field === "tips") {
-          valueToSave = tempValues.tips || ""; // Asegurar que sea texto
-        }
-  
-        // Guardar el campo específico
-        dataSend = { [field]: valueToSave };
-      } else {
-        // Guardar todos los campos en modo global
-        dataSend = { ...tempValues };
+// Agregar campos para estado y prioridad
+const handleSave = async (field?: string) => {
+  try {
+    let dataSend;
+
+    if (field) {
+      let valueToSave = tempValues[field];
+
+      if (field === "estado" || field === "prioridad") {
+        valueToSave = tempValues[field] || "pending"; // Valor por defecto
       }
-  
-      // Enviar datos al backend
-      await fetchApiEventos({
-        query: queries.editTask,
-        variables: {
-          eventID: event._id,
-          itinerarioID: itinerario._id,
-          taskID: task._id,
-          variable: field || "all",
-          valor: JSON.stringify(dataSend),
-        },
-        domain: config.domain,
-      });
-  
-      // Actualizar el estado global
-      setEvent((old) => {
-        const f1 = old.itinerarios_array.findIndex((elem) => elem._id === itinerario._id);
-        if (f1 > -1) {
-          const f2 = old.itinerarios_array[f1].tasks.findIndex((elem) => elem._id === task._id);
-          old.itinerarios_array[f1].tasks[f2] = { ...old.itinerarios_array[f1].tasks[f2], ...dataSend };
-        }
-        return { ...old };
-      });
-  
-      // Actualizar `tempValues` con los valores guardados
-      setTempValues((prev) => ({ ...prev, ...dataSend }));
-  
-      // Salir del modo de edición después de actualizar el estado
-      setTimeout(() => {
-        setEditingField(null);
-        setIsGlobalEdit(false);
-      }, 100); // Asegurarse de que el estado se actualice antes de salir del modo de edición
-  
-      // Mostrar mensaje de éxito
-      toast("success", t("Item guardado con éxito"));
-    } catch (error) {
-      // Mostrar mensaje de error
-      toast("error", `${t("Ha ocurrido un error")} ${error}`);
-      console.error(error);
+
+      dataSend = { [field]: valueToSave };
+    } else {
+      dataSend = { ...tempValues };
     }
-  };
+
+    await fetchApiEventos({
+      query: queries.editTask,
+      variables: {
+        eventID: event._id,
+        itinerarioID: itinerario._id,
+        taskID: task._id,
+        variable: field || "all",
+        valor: JSON.stringify(dataSend),
+      },
+      domain: config.domain,
+    });
+
+    setEvent((old) => {
+      const f1 = old.itinerarios_array.findIndex((elem) => elem._id === itinerario._id);
+      if (f1 > -1) {
+        const f2 = old.itinerarios_array[f1].tasks.findIndex((elem) => elem._id === task._id);
+        old.itinerarios_array[f1].tasks[f2] = { ...old.itinerarios_array[f1].tasks[f2], ...dataSend };
+      }
+      return { ...old };
+    });
+
+    setTempValues((prev) => ({ ...prev, ...dataSend }));
+    setEditingField(null);
+    setIsGlobalEdit(false);
+    toast("success", t("Item guardado con éxito"));
+  } catch (error) {
+    toast("error", `${t("Ha ocurrido un error")} ${error}`);
+    console.error(error);
+  }
+};
 
   const handleCancel = (field?: string, formValues?: any) => {
     if (field) {
