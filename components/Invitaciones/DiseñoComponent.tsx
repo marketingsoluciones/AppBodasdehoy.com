@@ -8,7 +8,7 @@ export const DiseñoComponent = ({ setEmailEditorModal, EmailEditorModal }) => {
             <div className="my-4 flex flex-col justify-center items-center translate-y-10 md:translate-y-0">
 
                 {
-                    false ?
+                    !false ?
                         <FooterComponent  setEmailEditorModal={setEmailEditorModal} EmailEditorModal={EmailEditorModal} /> :
                         <EmailTemplatesList  setEmailEditorModal={setEmailEditorModal} EmailEditorModal={EmailEditorModal} />
                 }

@@ -35,7 +35,7 @@ const Invitaciones = () => {
   const [dataInvitationNotSent, setDataInvitationNotSent] = useState([]);
   const [optionSelect, setOptionSelect] = useState("email")
   const [stateConfi, setStateConfi] = useState(true)
-  const [EmailEditorModal, setEmailEditorModal] = useState(true)
+  const [EmailEditorModal, setEmailEditorModal] = useState(false)
 
   const arryOptions: optionArryOptions[] = [
     {
