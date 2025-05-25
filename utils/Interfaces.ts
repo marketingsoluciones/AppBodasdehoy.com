@@ -118,6 +118,8 @@ export interface OptionsSelect {
     idDisabled?: boolean
     vew?: string
 }
+export type Order = "nombre" | "fecha" | "estado"
+export type Direction = "asc" | "des"
 
 export interface FloatMenu {
     info: any

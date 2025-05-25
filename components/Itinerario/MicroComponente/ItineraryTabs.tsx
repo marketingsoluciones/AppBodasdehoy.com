@@ -10,6 +10,7 @@ import { FaCheck } from "react-icons/fa"
 import { useAllowed, useAllowedViewer } from "../../../hooks/useAllowed"
 import { useTranslation } from "react-i18next"
 import { useToast } from "../../../hooks/useToast"
+import { SelectModeSort } from "../../Utils/SelectModeSort"
 
 interface props {
     itinerario: Itinerary
@@ -43,6 +44,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
     const refTabs: LegacyRef<HTMLDivElement> = useRef()
     const [reverse, setReverse] = useState<{ direction: string, position: number }[]>([])
     const toast = useToast()
+    const [order, setOrder] = useState<boolean>(true)
 
     useEffect(() => {
         const itineraries = event?.itinerarios_array?.filter(elem => elem?.tipo === window?.location?.pathname.slice(1))
@@ -497,7 +499,11 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                         </div>}
                     </>}
                 </div>
-                {isAllowed() && <SelectModeView value={view} setValue={setView} />}
+                {isAllowed() && <div className="inline-flex space-x-4">
+                    <SelectModeSort value={view} setValue={setView} />
+                    <SelectModeView value={view} setValue={setView} />
+                </div>
+                }
             </div>
         </div>
     )
