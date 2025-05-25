@@ -399,7 +399,7 @@ const handleToggleColumn = useCallback((columnId: string) => {
       )}
 
       {/* Tabla principal */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto z-0">
         <div className="min-w-full">
           <table {...getTableProps()} className="w-full bg-white">
             {/* Header de la tabla */}

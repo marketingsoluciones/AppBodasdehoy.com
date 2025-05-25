@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
-import { Formik, Form } from 'formik';
+import { Formik, Form, useFormikContext } from 'formik';
 import * as Yup from 'yup';
-import { Task, FileData } from '../../../utils/Interfaces';
+import { Task } from '../../../utils/Interfaces';
+import { fetchApiEventos, queries } from '../../../utils/Fetching';
+import { useToast } from '../../../hooks/useToast';
+import { useTranslation } from 'react-i18next';
+import { AuthContextProvider, EventContextProvider } from '../../../context';
 
 import InputField from '../../Forms/InputField';
 import { ResponsableSelector } from './ResponsableSelector';
@@ -17,49 +21,74 @@ interface TaskEditModalProps {
   itinerario: any;
 }
 
-
-const validationSchema = Yup.object().shape({
-  descripcion: Yup.string().required('La descripción es requerida'),
-  fecha: Yup.string()
-    .nullable()
-    .test('is-date', 'Fecha inválida', value => {
-      if (!value) return true;
-      const date = new Date(value);
-      return !isNaN(date.getTime());
-    }),
-  duracion: Yup.number().min(0),
-  responsable: Yup.array(),
-  tags: Yup.array(),
-  tips: Yup.string(),
-});
-
 export const TaskEditModal: React.FC<TaskEditModalProps> = ({
   task,
-  onSave,
   onClose,
   itinerario,
 }) => {
-    const [isFormDisabled, setIsFormDisabled] = useState(false);
+  const { t } = useTranslation();
+  const { config } = AuthContextProvider();
+  const { event, setEvent } = EventContextProvider();
+  const toast = useToast();
+
+  const f = new Date(task?.fecha);
+  const y = f.getFullYear();
+  const m = f.getMonth() + 1;
+  const d = f.getDate();
+
   const initialValues = {
-    descripcion: task.descripcion || '',
-    fecha: task.fecha ? new Date(task.fecha).toISOString().split('T')[0] : '',
-    duracion: task.duracion || 0,
-    responsable: task.responsable || [],
-    tags: task.tags || [],
-    tips: task.tips || '',
-    attachments: task.attachments || [],
-    spectatorView: task.spectatorView,
-    estatus: task.estatus,
-    estado: task.estado || 'pending',
-    prioridad: task.prioridad || 'media',
+    ...task,
+    fecha: f ? `${y}-${m < 10 ? "0" : ""}${m}-${d < 10 ? "0" : ""}${d}` : "",
+    hora: f ? f.toTimeString().split(' ')[0] : "",
+    estado: task.estado,
+    prioridad: task.prioridad
   };
 
+// Modificar handleSubmit para mantener el estado actual si no se modifica
+const handleSubmit = async (values: any, actions: any,) => {
+  try {
+    const d = values?.fecha?.split("-");
+    const h = values?.hora?.split(":");
+    const dataSend = {
+      ...values,
+      estado: values.estado ?? task.estado, // Mantener el estado actual si no se modifica
+      ...(new Date(d[0], d[1] - 1, d[2], h[0], h[1]).getTime() > 0 
+        ? { fecha: new Date(d[0], d[1] - 1, d[2], h[0], h[1]) } 
+        : { fecha: "" })
+    };
+    delete dataSend.hora;
+
+    const response = await fetchApiEventos({
+      query: queries.editTask,
+      variables: {
+        eventID: event._id,
+        itinerarioID: itinerario._id,
+        taskID: values._id,
+        variable: "all",
+        valor: JSON.stringify(dataSend)
+      },
+      domain: config.domain
+    });
+
+    if (response) {
+      const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
+      const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === values._id);
+      event.itinerarios_array[f1].tasks[f2] = dataSend;
+      setEvent({ ...event });
+      toast("success", t("Item guardado con éxito"));
+      onClose();
+    }
+  } catch (error) {
+    toast("error", `${t("Ha ocurrido un error")} ${error}`);
+    console.log(error);
+  }
+};
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 overflow-y-auto max-h-[90vh]">
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-800">
-            Editar Tarea
+            {t("edit")} {t("task")}
           </h3>
           <button
             onClick={onClose}
@@ -71,158 +100,117 @@ export const TaskEditModal: React.FC<TaskEditModalProps> = ({
 
         <Formik
           initialValues={initialValues}
-          validationSchema={validationSchema}
-          onSubmit={(values) => {
-            // Convertir el string de fecha a objeto Date
-            const updatedValues = {
-              ...values,
-              fecha: values.fecha ? new Date(values.fecha) : null,
-            };
-            onSave(task._id, updatedValues);
-            onClose();
-          }}
+          onSubmit={handleSubmit}
         >
           {({ values, setFieldValue }) => (
             <Form className="p-6 space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Descripción
-                </label>
+              <AutoSubmitToken />
+              
+              <InputField
+                name="descripcion"
+                label={t("name")}
+                type="text"
+              />
+
+              <div className="grid grid-cols-2 gap-4">
                 <InputField
-                  name="descripcion"
-                  placeholder="Descripción de la tarea"
-                  className="w-full"
+                  name="fecha"
+                  label={t("Fecha")}
+                  type="date"
                 />
+                
+                <div className="w-full flex space-x-2">
+                  <InputField
+                    name="hora"
+                    label={t("Hora")}
+                    type="time"
+                  />
+                  <div className="flex items-end space-x-1 w-1/3">
+                    <InputField
+                      name="duracion"
+                      label={t("duraction")}
+                      type="number"
+                    />
+                    <span className="-translate-y-2">min</span>
+                  </div>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Fecha
+                    {t("Estado")}
                   </label>
-                  <InputField
-                    name="fecha"
-                    type="date"
-                    className="w-full"
-                  />
+                  <select
+                    name="estado"
+                    value={values.estado}
+                    onChange={(e) => setFieldValue("estado", e.target.value)}
+                    className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+                  >
+                    <option value="pending">{t("Pendiente")}</option>
+                    <option value="in_progress">{t("En Progreso")}</option>
+                    <option value="completed">{t("Completado")}</option>
+                    <option value="blocked">{t("Bloqueado")}</option>
+                  </select>
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Duración (minutos)
+                    {t("Prioridad")}
                   </label>
-                  <InputField
-                    name="duracion"
-                    type="number"
-                    className="w-full"
-                  />
+                  <select
+                    name="prioridad"
+                    value={values.prioridad}
+                    onChange={(e) => setFieldValue("prioridad", e.target.value)}
+                    className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+                  >
+                    <option value="alta">{t("Alta")}</option>
+                    <option value="media">{t("Media")}</option>
+                    <option value="baja">{t("Baja")}</option>
+                  </select>
                 </div>
               </div>
 
-              <div>
-  <label className="block text-sm font-medium text-gray-700 mb-1">
-    Responsables
-  </label>
-  <ResponsableSelector
-    name="responsable"
-    value={values.responsable}
-    handleChange={(fieldName, value) => {
-      setFieldValue(fieldName, value);
-    }}
-    disable={isFormDisabled}
-  />
-</div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Etiquetas
+              <div className="w-full h-max relative">
+                <label className="font-display text-primary text-sm w-full capitalize">
+                  {t("responsables")}
                 </label>
-                <InputTags
-                  name="tags"
-                  value={values.tags}
-                  onChange={(value) => setFieldValue('tags', value)}
+                <ResponsableSelector 
+                  name="responsable" 
+                  handleChange={(fieldName, value) => setFieldValue(fieldName, value)}
+                  disable={false}
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Adjuntos
+              <div className="w-full h-max relative">
+                <label className="font-display text-primary text-sm w-full capitalize">
+                  {t("items")}
                 </label>
+                <MyEditor name="tips" />
+              </div>
+
+              <div className="w-full h-max relative">
+                <label className="font-display text-primary text-sm w-full capitalize">
+                  {t("etiquetas")}
+                </label>
+                <InputTags name="tags" />
+              </div>
+
+              <div className="w-full flex pb-0">
                 <InputAttachments
                   name="attachments"
-                  value={values.attachments.map((file) => file.name)} // Convertir a un array de strings (solo nombres)
-                  onChange={(event) => {
-                    const files = Array.from(event.target.files || []); // Obtener los archivos del evento
-                    setFieldValue(
-                      'attachments',
-                      files.map((file) => ({
-                        name: file.name,
-                        size: file.size, // Usar el tamaño real del archivo
-                      }))
-                    );
-                  }}
+                  label={t("archivos adjuntos")}
                   itinerarioID={itinerario._id}
+                  task={task}
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Notas
-                </label>
-                <MyEditor
-                  name="tips"
-                  value={values.tips}
-                  onChange={(content) => setFieldValue('tips', content)}
-                />
-              </div>
-
-              <div>
-  <label className="block text-sm font-medium text-gray-700 mb-1">
-    Estado
-  </label>
-  <select
-    name="estado"
-    value={values.estado}
-    onChange={(e) => setFieldValue("estado", e.target.value)}
-    className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-  >
-    <option value="pending">Pendiente</option>
-    <option value="in_progress">En Progreso</option>
-    <option value="completed">Completado</option>
-    <option value="blocked">Bloqueado</option>
-  </select>
-</div>
-
-<div>
-  <label className="block text-sm font-medium text-gray-700 mb-1">
-    Prioridad
-  </label>
-  <select
-    name="prioridad"
-    value={values.prioridad}
-    onChange={(e) => setFieldValue("prioridad", e.target.value)}
-    className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-  >
-    <option value="alta">Alta</option>
-    <option value="media">Media</option>
-    <option value="baja">Baja</option>
-  </select>
-</div>
-
-              <div className="flex justify-end space-x-3 pt-6">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-                >
-                  Guardar Cambios
-                </button>
-              </div>
+              <button
+                className="font-display rounded-full py-2 px-6 text-white font-medium transition w-full hover:opacity-70 bg-primary"
+                type="submit"
+              >
+                {t("save")}
+              </button>
             </Form>
           )}
         </Formik>
@@ -230,3 +218,19 @@ export const TaskEditModal: React.FC<TaskEditModalProps> = ({
     </div>
   );
 };
+
+const AutoSubmitToken = () => {
+  const { values, errors } = useFormikContext();
+  
+  useEffect(() => {
+    console.log("errors", errors);
+  }, [errors]);
+
+  useEffect(() => {
+    // console.log("values", values);
+  }, [values]);
+
+  return null;
+};
+
+export default TaskEditModal;

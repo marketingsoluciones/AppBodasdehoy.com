@@ -60,16 +60,17 @@ export interface DragItem {
   data: Task | BoardColumn;
 }
 
+// En las props del componente BoardView
 interface BoardViewProps {
   data: Task[];
   itinerario: Itinerary;
-  event: EventInterface; // Usar el tipo con alias
+  event: EventInterface;
   selectTask: string;
   setSelectTask: (taskId: string) => void;
   onTaskUpdate: (taskId: string, updates: Partial<Task>) => void;
   onTaskDelete: (taskId: string) => void;
   onTaskCreate: (task: Partial<Task>) => void;
-  setEvent: (event: EventInterface) => void;
+  setEvent: (event: EventInterface | ((prev: EventInterface) => EventInterface)) => void;
 }
 
 // Estados por defecto
@@ -121,6 +122,56 @@ export const BoardView: React.FC<BoardViewProps> = ({
     columnOrder: [],
     isGlobalCollapsed: false,
   });
+
+  // En BoardView.tsx, modificar handleTaskUpdate
+
+  const handleTaskUpdate = useCallback(async (taskId: string, updates: Partial<Task>) => {
+    try {
+      // Primero actualizar en la API
+      const response = await fetchApiEventos({
+        query: queries.editTask,
+        variables: {
+          eventID: (event as EventInterface)._id,
+          itinerarioID: itinerario._id,
+          taskID: taskId,
+          ...updates,
+        },
+        domain: process.env.NEXT_PUBLIC_BASE_URL
+      });
+  
+      if (response) {
+        // Llamar a onTaskUpdate para mantener la sincronización con el componente padre
+        onTaskUpdate(taskId, updates);
+        
+        // Actualizar el estado local del tablero si es necesario
+        setBoardState(prev => {
+          const newColumns = { ...prev.columns };
+          
+          // Buscar y actualizar la tarea en la columna correcta
+          Object.keys(newColumns).forEach(columnId => {
+            const taskIndex = newColumns[columnId].tasks.findIndex(t => t._id === taskId);
+            if (taskIndex !== -1) {
+              newColumns[columnId].tasks[taskIndex] = {
+                ...newColumns[columnId].tasks[taskIndex],
+                ...updates
+              };
+            }
+          });
+  
+          return {
+            ...prev,
+            columns: newColumns
+          };
+        });
+  
+        toast.success(t('Tarea actualizada correctamente'));
+      }
+    } catch (error) {
+      console.error('Error al actualizar la tarea:', error);
+      toast.error(t('Error al actualizar la tarea'));
+    }
+  }, [event, itinerario, onTaskUpdate]);
+  
   
   const [draggedItem, setDraggedItem] = useState<DragItem | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -133,6 +184,8 @@ export const BoardView: React.FC<BoardViewProps> = ({
     parentTaskId?: string;
   }>({ show: false });
 
+  const [hiddenEmptyColumns, setHiddenEmptyColumns] = useState<string[]>([]);
+
   // Configuración de sensores para drag & drop
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -142,25 +195,34 @@ export const BoardView: React.FC<BoardViewProps> = ({
     })
   );
 
-  // Inicializar columnas con tareas
-  useEffect(() => {
-    const columns: Record<string, BoardColumn> = {};
-    
-    // Crear columnas por defecto
-    Object.entries(DEFAULT_COLUMNS).forEach(([id, column]) => {
-      columns[id] = {
-        ...column,
-        tasks: [],
-      };
-    });
+// Memoizar getTaskStatus
+const getTaskStatus = useCallback((task: Task): string => {
+  if (task.estatus === true) return 'blocked';
+  if (task.spectatorView === false) return 'completed';
+  if (task.responsable && task.responsable.length > 0 && task.fecha) return 'in_progress';
+  return 'pending';
+}, []);
 
-    // Distribuir tareas por status
+// Primero, memoizamos la función initializeColumns
+const initializeColumns = useCallback(() => {
+  const columns: Record<string, BoardColumn> = {};
+  const hiddenColumns: string[] = [];
+  
+  // Crear columnas por defecto
+  Object.entries(DEFAULT_COLUMNS).forEach(([id, column]) => {
+    columns[id] = {
+      ...column,
+      tasks: [],
+    };
+  });
+
+  // Distribuir tareas por status
+  if (data) {
     data.forEach(task => {
       const status = getTaskStatus(task);
       if (columns[status]) {
         columns[status].tasks.push(task);
       } else {
-        // Si no hay columna para este status, crear una
         columns[status] = {
           id: status,
           title: status.charAt(0).toUpperCase() + status.slice(1),
@@ -171,33 +233,64 @@ export const BoardView: React.FC<BoardViewProps> = ({
         };
       }
     });
+  }
 
-    setBoardState({
-      columns,
-      columnOrder: Object.keys(columns).sort((a, b) => 
-        columns[a].order - columns[b].order
-      ),
-      isGlobalCollapsed: false,
+  // Identificar columnas vacías
+  Object.entries(columns).forEach(([id, column]) => {
+    if (column.tasks.length === 0) {
+      hiddenColumns.push(id);
+    }
+  });
+
+  return { columns, hiddenColumns };
+}, [data, getTaskStatus]);
+
+  // Inicializar columnas con tareas
+  useEffect(() => {
+    // Inicializar las columnas
+    const { columns, hiddenColumns } = initializeColumns();
+    const columnOrder = Object.keys(columns).sort((a, b) => 
+      columns[a].order - columns[b].order
+    );
+
+    setBoardState(prev => {
+      // Comparar el estado actual con el nuevo estado
+      const currentState = JSON.stringify({
+        columns: prev.columns,
+        columnOrder: prev.columnOrder
+      });
+      
+      const newState = JSON.stringify({
+        columns,
+        columnOrder
+      });
+
+      // Solo actualizar si hay cambios reales
+      if (currentState === newState) {
+        return prev;
+      }
+
+      return {
+        columns,
+        columnOrder,
+        isGlobalCollapsed: prev.isGlobalCollapsed,
+      };
     });
-  }, [data]);
 
-  // Función para determinar el status de una tarea
-  const getTaskStatus = (task: Task): string => {
-    // Si la tarea está bloqueada (estatus true)
-    if (task.estatus === true) return 'blocked';
-    
-    // Si tiene fecha de finalización o está marcada como completada
-    // Puedes usar cualquier lógica específica de tu aplicación aquí
-    // Por ejemplo, si usas algún campo para marcar completado
-    if (task.spectatorView === false) return 'completed'; // Ejemplo usando spectatorView
-    
-    // Si está en progreso - puedes usar otra lógica
-    // Por ejemplo, si tiene responsable asignado y fecha
-    if (task.responsable && task.responsable.length > 0 && task.fecha) return 'in_progress';
-    
-    // Por defecto, pendiente
-    return 'pending';
-  };
+    // Actualizar columnas ocultas solo si han cambiado
+    setHiddenEmptyColumns(prev => {
+      const hiddenColumnsString = JSON.stringify(hiddenColumns);
+      const prevHiddenColumnsString = JSON.stringify(prev);
+      
+      if (hiddenColumnsString === prevHiddenColumnsString) {
+        return prev;
+      }
+      
+      return hiddenColumns;
+    });
+  }, [initializeColumns]); // Solo depender de initializeColumns
+
+
 
   // Filtrar tareas basado en búsqueda y filtros
   const filteredColumns = useMemo(() => {
@@ -462,57 +555,72 @@ export const BoardView: React.FC<BoardViewProps> = ({
     setShowAddColumn(false);
   }, []);
 
-  // Modificar la función handleTaskCreate
-  const handleTaskCreate = async (taskData: Partial<Task>) => {
-    try {
-      const eventID = (event as EventInterface)._id;
-      
-      if (!eventID) {
-        throw new Error("No se pudo obtener el ID del evento");
+  // Primero, definamos una interfaz para la respuesta de la API
+interface ApiResponse {
+  data: Task;
+  _id: string;
+  success: boolean;
+}
+
+// Modificar la función handleTaskCreate
+const handleTaskCreate = async (taskData: Partial<Task>) => {
+  try {
+    const eventID = (event as EventInterface)._id;
+    
+    if (!eventID) {
+      throw new Error("No se pudo obtener el ID del evento");
+    }
+
+    const response = await fetchApiEventos({
+      query: queries.createTask,
+      variables: {
+        eventID: eventID,
+        itinerarioID: itinerario._id,
+        descripcion: taskData.descripcion || "Nueva tarea",
+        fecha: taskData.fecha || new Date(),
+        duracion: taskData.duracion || 30,
+        responsable: taskData.responsable || [],
+        tags: taskData.tags || [],
+        attachments: taskData.attachments || [],
+        tips: taskData.tips || "",
+        spectatorView: taskData.spectatorView !== undefined ? taskData.spectatorView : true,
+        estatus: taskData.estatus !== undefined ? taskData.estatus : false,
+        estado: taskData.estado,
+        prioridad: taskData.prioridad,
+      },
+      domain: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    }) as ApiResponse; // Tipar la respuesta
+
+    if (!response) {
+      throw new Error("No se recibió respuesta del servidor");
+    }
+
+    // Actualizar el estado local asegurando los tipos
+    setEvent((prevEvent: EventInterface) => {
+      const newEvent = { ...prevEvent };
+      const itineraryIndex = newEvent.itinerarios_array.findIndex(
+        it => it._id === itinerario._id
+      );
+
+      if (itineraryIndex !== -1) {
+        const newTask = response.data;
+        newEvent.itinerarios_array[itineraryIndex].tasks.push(newTask);
       }
 
-      const response = await fetchApiEventos({
-        query: queries.createTask,
-        variables: {
-          eventID: eventID,
-          itinerarioID: itinerario._id,
-          descripcion: taskData.descripcion || "Nueva tarea",
-          fecha: taskData.fecha || new Date(),
-          duracion: taskData.duracion || 30,
-          responsable: taskData.responsable || [],
-          tags: taskData.tags || [],
-          attachments: taskData.attachments || [],
-          tips: taskData.tips || "",
-          spectatorView: taskData.spectatorView !== undefined ? taskData.spectatorView : true,
-          estatus: taskData.estatus !== undefined ? taskData.estatus : false,
-          estado: taskData.estado || "pending",
-          prioridad: taskData.prioridad || "media",
-        },
-        domain: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-      });
+      return newEvent;
+    });
 
-      if (!response) {
-        throw new Error("No se recibió respuesta del servidor");
-      }
+    // Actualizar la selección de tarea
+    if (response._id) {
+      setSelectTask(response._id);
+    }
 
-      const newTask = response as Task;
-      
-      // Actualizar el estado local
-      const f1 = event.itinerarios_array.findIndex((elem) => elem._id === itinerario._id);
-      if (f1 === -1) {
-        throw new Error("No se encontró el itinerario en el evento");
-      }
-      
-      event.itinerarios_array[f1].tasks.push(newTask);
-      setEvent({ ...event });
-      setSelectTask(newTask._id);
-       // Corregir el uso de toast
-    toast.success(t("Tarea creada con éxito")); // Usar toast.success en lugar de toast("success", ...)
+    toast.success(t("Tarea creada con éxito"));
   } catch (error) {
     console.error("Error al crear la tarea:", error);
-    toast.error(t("Error al crear la tarea")); // Usar toast.error en lugar de toast("error", ...)
+    toast.error(t("Error al crear la tarea"));
   }
-  };
+};
 
 // Crear sub-tarea usando tags para la relación
 const handleCreateSubTask = useCallback((parentTaskId: string, subTask: Partial<Task>) => {
@@ -637,7 +745,9 @@ const handleCreateSubTask = useCallback((parentTaskId: string, subTask: Partial<
               items={boardState.columnOrder}
               strategy={horizontalListSortingStrategy}
             >
-              {boardState.columnOrder.map(columnId => {
+              {boardState.columnOrder
+                .filter(columnId => !hiddenEmptyColumns.includes(columnId))
+                .map(columnId => {
                 const column = filteredColumns[columnId];
                 if (!column) return null;
 
@@ -646,7 +756,7 @@ const handleCreateSubTask = useCallback((parentTaskId: string, subTask: Partial<
                     key={columnId}
                     column={column}
                     onTaskClick={setSelectTask}
-                    onTaskUpdate={onTaskUpdate}
+                    onTaskUpdate={handleTaskUpdate}
                     onTaskDelete={onTaskDelete}
                     onTaskCreate={handleTaskCreate}
                     onToggleCollapse={() => toggleColumnCollapse(columnId)}

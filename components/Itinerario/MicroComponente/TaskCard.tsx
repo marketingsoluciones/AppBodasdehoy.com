@@ -20,6 +20,7 @@ import {
 import { Task, Itinerary } from '../../../utils/Interfaces';
 import { ImageAvatar } from '../../Utils/ImageAvatar';
 import { GruposResponsablesArry } from '../MicroComponente/ResponsableSelector';
+import { PriorityBadge, Priority } from './PriorityBadge'
 
 
 interface TaskCardProps {
@@ -47,6 +48,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   // Agregar el estado para el modal
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showPriorityMenu, setShowPriorityMenu] = useState(false);
 
 
 
@@ -159,6 +161,14 @@ const getSubtaskInfo = (tags: string[]) => {
   };
 };
 
+// Función para asegurar que la prioridad sea válida
+const getValidPriority = (priority: string | undefined): Priority => {
+  if (priority === 'alta' || priority === 'media' || priority === 'baja') {
+    return priority;
+  }
+  return 'media'; // valor por defecto
+};
+
   return (
     <>
     <div
@@ -237,7 +247,7 @@ const getSubtaskInfo = (tags: string[]) => {
             {showMoreMenu && (
               <div className="absolute right-0 top-8 w-40 bg-white border border-gray-200 rounded-md shadow-lg z-20">
                 <div className="py-1">
-                  <button
+                  {/* <button
                     onClick={(e) => {
                       e.stopPropagation();
                       updatePriority(task._id, 'alta');
@@ -247,7 +257,7 @@ const getSubtaskInfo = (tags: string[]) => {
                   >
                     <AlertCircle className="w-4 h-4 mr-2" />
                     Prioridad alta
-                  </button>
+                  </button> */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -289,6 +299,32 @@ const getSubtaskInfo = (tags: string[]) => {
 
         {/* Indicadores de estado */}
         <div className="flex items-center space-x-2 mb-2">
+          {/* Prioridad */}
+          <PriorityBadge 
+            priority={getValidPriority(task.prioridad)}
+            onClick={() => {
+              setShowPriorityMenu(!showPriorityMenu);
+            }}
+          />
+          
+          {showPriorityMenu && (
+            <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-20">
+              {(['baja', 'media', 'alta'] as Priority[]).map((priority) => (
+                <button
+                  key={priority}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onTaskUpdate(task._id, { prioridad: priority });
+                    setShowPriorityMenu(false);
+                  }}
+                  className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  <PriorityBadge priority={priority} className="w-full" />
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Indicador de bloqueo */}
           {isBlocked && (
             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">
@@ -330,39 +366,28 @@ const getSubtaskInfo = (tags: string[]) => {
         <div className="space-y-2">
           {/* Responsables */}
           {task.responsable && task.responsable.length > 0 && (
-            <div className="flex items-center space-x-1">
-              <User className="w-3 h-3 text-gray-400" />
-              <div className="flex -space-x-1">
-                {task.responsable.slice(0, 3).map((resp, index) => {
-                  const responsableInfo = getResponsableInfo(resp);
-                  return (
-                    <div
-                      key={index}
-                      className="w-6 h-6 rounded-full border-2 border-white overflow-hidden"
-                      title={resp}
-                    >
-                      {responsableInfo ? (
-                        <img
-                          src={responsableInfo.icon}
-                          alt={resp}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gray-300 flex items-center justify-center text-xs text-gray-600">
-                          {resp.charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-                {task.responsable.length > 3 && (
-                  <div className="w-6 h-6 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center">
-                    <span className="text-xs text-gray-600">
-                      +{task.responsable.length - 3}
-                    </span>
+            <div className="flex flex-wrap gap-1 mt-2">
+              {task.responsable.map((resp, index) => (
+                <div
+                  key={index}
+                  className="flex items-center bg-gray-100 rounded-full px-2 py-1"
+                >
+                  <div className="w-4 h-4 rounded-full overflow-hidden mr-1">
+                    {getResponsableInfo(resp)?.icon ? (
+                      <img
+                        src={getResponsableInfo(resp).icon}
+                        alt={resp}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-300 flex items-center justify-center text-[10px] text-gray-600">
+                        {resp.charAt(0).toUpperCase()}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+                  <span className="text-xs text-gray-600">{resp}</span>
+                </div>
+              ))}
             </div>
           )}
 

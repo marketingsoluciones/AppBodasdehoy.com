@@ -64,6 +64,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
 // Crear un estado separado para el seguimiento de columnas
 const [taskColumnMap, setTaskColumnMap] = useState<Record<string, string>>({});
 
+// Modificar la función handleCreateTask
 const handleCreateTask = useCallback(() => {
   if (newTaskTitle.trim()) {
     const newTask = {
@@ -76,6 +77,8 @@ const handleCreateTask = useCallback(() => {
       tips: '',
       spectatorView: true,
       estatus: false,
+      estado: column.id, // Asignar el ID de la columna como estado
+      prioridad: 'media',
       icon: '',
       comments: [],
       commentsViewers: [],
@@ -83,13 +86,6 @@ const handleCreateTask = useCallback(() => {
     };
 
     onTaskCreate(newTask);
-    
-    // Guardar la relación tarea-columna en un estado separado
-    setTaskColumnMap(prev => ({
-      ...prev,
-      [newTask._id]: column.id
-    }));
-
     setNewTaskTitle('');
     setIsCreatingTask(false);
   }

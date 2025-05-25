@@ -25,11 +25,11 @@ export const SelectModeView: FC<props> = ({ value, setValue }) => {
       icon: <LiaIdCardSolid className="w-5 h-5" />,
       title: t("card")
     },
-    {
+/*     {
       value: "extraTable", // Vista de tabla personalizada
       icon: <HiOutlineViewList className="w-5 h-5" />,
       title: t("NuevaTabla") // Traducción para la nueva opción
-    },
+    }, */
     {
       value: "newTable", // Vista de tabla personalizada
       icon: <HiOutlineViewList className="w-5 h-5" />,
@@ -66,7 +66,7 @@ export const SelectModeView: FC<props> = ({ value, setValue }) => {
           {t("view")}
           <ArrowDownBodasIcon className="w-4 h-4 rotate-90" />
         </div>
-        {show && <div className={`absolute right-0 bg-white top-8 z-50 rounded-md shadow-md`}>
+        {show && <div className={`absolute right-0 bg-white top-8 z-[1000] rounded-md shadow-md`}>
           {options?.map((item, idx) =>
             <div key={idx}
               onClick={() => {
