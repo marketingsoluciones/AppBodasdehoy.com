@@ -13,7 +13,6 @@ const ModalLeft = ({ children, state, set, clickAwayListened = true, ...rest }) 
     }
   }, [])
 
-
   return (
     <>
       <div className={`z-40 fixed top-0 left-0 w-full h-screen backdrop-filter backdrop-blur backlayout ${state ? "" : "hidden"} `} />
@@ -23,7 +22,7 @@ const ModalLeft = ({ children, state, set, clickAwayListened = true, ...rest }) 
           <span
             id='close'
             onClick={() => set(!state)}
-            className="font-display bg-gray-200 md:bg-gray-100 hover:bg-gray-200 w-10 h-10 rounded-full flex items-center justify-center text-gray-500 hover:text-gray-700 transition cursor-pointer text-2xl absolute md:translate-x-14 translate-y-4">X</span>
+            className={`font-display bg-gray-200 md:bg-gray-100 hover:bg-gray-200 w-10 h-10 rounded-full flex items-center justify-center text-gray-500 hover:text-gray-700 cursor-pointer text-2xl absolute md:translate-x-14 translate-y-4 ${state ? "opacity-100" : "opacity-0"}`} >X</span>
           <div className='flex w-full items-start p-12 overflow-auto'>
             {children}
           </div>

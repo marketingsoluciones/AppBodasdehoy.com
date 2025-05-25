@@ -25,6 +25,7 @@ export interface Event {
     mesas_array: tableOld[]
     grupos_array: string[]
     notificaciones_array: notification[]
+    imgEvento: image
     imgInvitacion: image
     presupuesto_objeto: estimate
     listaRegalos: string

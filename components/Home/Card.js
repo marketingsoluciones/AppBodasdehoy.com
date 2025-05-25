@@ -1,15 +1,19 @@
-import { memo, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../context/";
 import useHover from "../../hooks/useHover";
-import { BorrarIcon, IconFolderOpen } from "../icons";
 import { useRouter } from "next/router";
-import { setCookie } from "../../utils/Cookies";
 import { fetchApiBodas, fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from '../../hooks/useToast'
-import { Lista } from "../../pages";
 import { IoShareSocial } from "react-icons/io5";
 import { ModalAddUserToEvent, UsuariosCompartidos } from "../Utils/Compartir"
 import { useTranslation } from "react-i18next";
+import { FaRegFolderOpen } from "react-icons/fa6";
+import { MdDelete } from "react-icons/md";
+import { BiSolidPencil } from "react-icons/bi";
+import ModalLeft from "../Utils/ModalLeft";
+import FormCrearEvento from "../Forms/FormCrearEvento";
+import { useAllowed } from "../../hooks/useAllowed"
+import { useDelayUnmount } from "../../utils/Funciones";
 
 export const defaultImagenes = {
   boda: "/cards/boda.webp",
@@ -72,7 +76,9 @@ const Card = ({ data, grupoStatus, idx }) => {
   const { event, setEvent, idxGroupEvent, setIdxGroupEvent } = EventContextProvider();
   const router = useRouter();
   const [openModal, setOpenModal] = useState(false)
-
+  const [isAllowed, ht] = useAllowed()
+  const [isMounted, setIsMounted] = useState(false);
+  const shouldRenderChild = useDelayUnmount(isMounted, 500);
 
   const toast = useToast()
 
@@ -152,16 +158,24 @@ const Card = ({ data, grupoStatus, idx }) => {
     }
   }, [])
 
+  const handleEdit = () => {
+    setIsMounted(!isMounted);
+  };
 
   return (
     <>
+      <div className={`${!shouldRenderChild ? "hidden" : "fixed z-50"}`}>
+        {shouldRenderChild && <ModalLeft set={setIsMounted} state={isMounted} clickAwayListened={false}>
+          <FormCrearEvento set={setIsMounted} state={isMounted} EditEvent={true} eventData={data[idx]} />
+        </ModalLeft>}
+      </div>
       <ModalAddUserToEvent openModal={openModal} setOpenModal={setOpenModal} event={data[idx]} />
       <div ref={hoverRef} className={`w-max h-full relative grid place-items-center bg-white transition ${isHovered ? "transform scale-105 duration-700" : ""}`}>
         <div className={` h-32 w-10  absolute z-[10] right-0  flex flex-col items-center justify-between px-2 `}>
           <div onClick={() => { data[idx]?.usuario_id === user?.uid && setOpenModal(!openModal) }} className="w-max h-max relative" >
             <UsuariosCompartidos event={data[idx]} />
           </div>
-          {data[idx]?.usuario_id === user?.uid && <div className="space-y-2">
+          {data[idx]?.usuario_id === user?.uid && <div className="space-y-1 flex flex-col items-center">
             <div onClick={() => {
               if (user?.displayName !== "guest") {
                 setTimeout(() => {
@@ -170,14 +184,17 @@ const Card = ({ data, grupoStatus, idx }) => {
                 }, 100);
                 setOpenModal(!openModal)
               }
-            }} className="w-max h-max relative" >
-              <IoShareSocial className={`w-6 h-6 cursor-pointer text-white ${user?.displayName !== "guest" && "hover:text-gray-300"} -translate-x-1`} />
+            }} className="w-5 h-5 flex items-center justify-center" >
+              <IoShareSocial className={`w-full h-full cursor-pointer text-white ${user?.displayName !== "guest" && "hover:text-gray-300"}`} />
             </div>
-            <div onClick={handleArchivarEvent} className="w-max h-max relative" >
-              <IconFolderOpen className="w-5 h-6 cursor-pointer text-white hover:text-gray-300" />
+            <div onClick={handleArchivarEvent} className="w-5 h-5 flex items-center justify-center" >
+              <FaRegFolderOpen className="w-4.5 h-4.5 cursor-pointer text-white hover:text-gray-300" />
             </div>
-            <div onClick={handleRemoveEvent} className="w-max h-max relative"   >
-              <BorrarIcon className="w-4 h-5 cursor-pointer text-white hover:text-gray-300" />
+            <div onClick={() => isAllowed() && handleEdit()} className="w-5 h-5 flex items-center justify-center"   >
+              <BiSolidPencil className="w-5 h-5 cursor-pointer text-white hover:text-gray-300" />
+            </div>
+            <div onClick={handleRemoveEvent} className="w-5 h-5 flex items-center justify-center"   >
+              <MdDelete className="w-full h-full cursor-pointer text-white hover:text-gray-300" />
             </div>
           </div>}
         </div>
@@ -188,12 +205,12 @@ const Card = ({ data, grupoStatus, idx }) => {
           if (resp) toast("warning", resp)
         }} className={`w-72 h-36 rounded-xl cardEvento z-[8] cursor-pointer shadow-lg relative overflow-hidden `}>
           <img
-            src={defaultImagenes[data[idx]?.tipo]}
+            src={data[idx]?.imgEvento ? `https://apiapp.bodasdehoy.com/${data[idx].imgEvento.i800}` : defaultImagenes[data[idx]?.tipo]}
             className="object-cover w-full h-full absolute top-0 left-0 object-top "
           />
           <div className="relative w-full h-full z-10 p-4 pb-2 flex flex-col justify-between">
             <div className="flex flex-col">
-              
+
               <span className="text-sm font-display text-white capitalize">
                 {data[idx]?.tipo == "otro" ? "mi evento especial" : t(data[idx]?.tipo)}
               </span>
@@ -204,9 +221,9 @@ const Card = ({ data, grupoStatus, idx }) => {
               }
             </div>
             <div className="flex flex-col ">
-            <span className="mt-[-4px] uppercase text-xs font-display text-white truncate">
-  {data[idx]?.nombre?.length > 20 ? `${data[idx]?.nombre.substring(0, 20)}...` : data[idx]?.nombre}
-</span>
+              <span className="mt-[-4px] uppercase text-xs font-display text-white truncate">
+                {data[idx]?.nombre?.length > 20 ? `${data[idx]?.nombre.substring(0, 20)}...` : data[idx]?.nombre}
+              </span>
               <span className="mt-[-4px] uppercase text-xs font-display text-white">
                 {`${new Date(parseInt(data[idx]?.fecha)).toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}`}
               </span>
@@ -240,4 +257,4 @@ const Card = ({ data, grupoStatus, idx }) => {
   );
 };
 
-export default memo(Card);
+export default Card;

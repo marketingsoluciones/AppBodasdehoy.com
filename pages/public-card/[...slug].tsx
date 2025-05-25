@@ -66,7 +66,7 @@ const ServicesVew = (props) => {
           </div>
           <div className='flex-1 md:flex-none md:w-[35%] h-[100%] flex flex-row-reverse md:flex-row items-center '>
             <img
-              src={defaultImagenes[event?.tipo]}
+              src={event?.imgEvento ? `https://apiapp.bodasdehoy.com/${event.imgEvento.i800}` : defaultImagenes[event?.tipo]}
               className=" h-[90%] object-cover object-top rounded-md border-1 border-gray-600  hidden md:block"
               alt={event?.nombre}
             />

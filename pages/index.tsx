@@ -1,7 +1,6 @@
 import { SetStateAction, useEffect, useState, Dispatch, FC } from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
 import { motion } from "framer-motion";
-import { CircleBanner, LineaHome } from "../components/icons";
+import { LineaHome } from "../components/icons";
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, LoadingContextProvider, } from "../context";
 import Card, { handleClickCard } from "../components/Home/Card";
 import CardEmpty from "../components/Home/CardEmpty";
@@ -15,7 +14,6 @@ import { useRouter } from "next/router";
 import { useToast } from "../hooks/useToast";
 import { useTranslation } from 'react-i18next';
 import { TbTableShare } from "react-icons/tb";
-import { NextSeo } from 'next-seo';
 
 const Home: NextPage = () => {
   const { user, verificationDone, config, setUser } = AuthContextProvider()
@@ -29,36 +27,7 @@ const Home: NextPage = () => {
   const toast = useToast()
   const { t } = useTranslation()
 
-  /*   useEffect(() => {
-      if (!isMounted) {
-        setIsMounted(true)
-      }
-      return () => {
-        if (isMounted) {
-          setIsMounted(false)
-        }
-      }
-    }, [isMounted])
-  
-    useEffect(() => {
-      if (router.query?.c === "true") {
-        setValirQuery(true)
-      }
-    }, [router.query])
-  
-    useEffect(() => {
-      if (showEditEvent && !valirQuery && !valir) {
-        setValirQuery(true)
-        setValir(true)
-      }
-      if (showEditEvent && !valirQuery && valir) {
-        setShowEditEvent(false)
-        setValir(false)
-      }
-    }, [showEditEvent, valirQuery, valir]) */
-
   if (verificationDone && eventsGroupDone) {
-
     if (router?.query?.pAccShas) {
       if (!user || user?.displayName === "guest") {
         router.push(config?.pathLogin ? `${config?.pathLogin}?pAccShas=${router?.query?.pAccShas}` : `/login?pAccShas=${router?.query?.pAccShas}`)
@@ -71,16 +40,13 @@ const Home: NextPage = () => {
         return <></>
       }
     }
-
     if (router?.query?.pGuestEvent) {
       router.push(`/confirmar-asistencia?pGuestEvent=${router?.query?.pGuestEvent}`)
     }
-
     if ((!user || user.displayName === "guest") && ["vivetuboda"].includes(config?.development)) {
       router?.push(`/login`)
       return <></>
     }
-
     if (!user) {
       return (
         <VistaSinCookie />
@@ -294,7 +260,7 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             className="cursor-pointer hidden md:block "
-            onClick={() => router.push("/lista-de-mis-eventos")}
+            onClick={() => router.push("/eventos")}
           >
             <TbTableShare className="h-5 w-5 text-gray-700 hover:text-gray-900" />
             {isModalVisible && (
