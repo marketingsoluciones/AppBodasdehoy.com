@@ -7,6 +7,7 @@ import { useAllowed } from "../../hooks/useAllowed";
 import Resizer from "react-image-file-resizer";
 import { useTranslation } from 'react-i18next';
 import { useField } from "formik"
+import { LiaTrashSolid } from "react-icons/lia";
 
 const resizeImage = (file) => {
   try {
@@ -63,17 +64,21 @@ export const subir_archivo = async ({ imagePreviewUrl, event, use }) => {
 };
 
 const ModuloSubida = (props) => {
-  const { event, use, name = undefined } = props
-  const [field, meta, helpers] = useField({ name: name })
-  const { t } = useTranslation();
-  const [imagePreviewUrl, setImagePreviewUrl] = useState({
+  const { event, use, defaultImagen, name = undefined } = props
+  const defaultImagePreviewUrl = {
     file: null,
     preview: false,
-    image: event ? `${process.env.NEXT_PUBLIC_BASE_URL}${event[use]?.i800}` : "",
-  });
+    image: event
+      ? event[use]?.i800
+        ? `${process.env.NEXT_PUBLIC_BASE_URL}${event[use]?.i800}`
+        : defaultImagen
+      : defaultImagen
+  }
+  const [field, meta, helpers] = name ? useField({ name: name }) : []
+  const { t } = useTranslation();
+  const [imagePreviewUrl, setImagePreviewUrl] = useState(defaultImagePreviewUrl);
   const toast = useToast();
   const { setEvent } = EventContextProvider();
-  const [showAddImg, setShowAddImg] = useState(true);
   const [isAllowed, ht] = useAllowed();
 
   const fileInputRef = useRef(null);
@@ -83,10 +88,11 @@ const ModuloSubida = (props) => {
       if (event) {
         subir_archivo({ imagePreviewUrl, event, use })
           .then(result => {
-            helpers.setValue(result)
+            helpers?.setValue(result)
             setEvent((old) => ({ ...old, [use]: result }));
           })
           .catch(error => {
+            console.log(100087, error)
             toast("error", t("erroroccurred"));
           })
       } else {
@@ -94,6 +100,12 @@ const ModuloSubida = (props) => {
       }
     }
   }, [imagePreviewUrl]);
+
+  useEffect(() => {
+    if (!imagePreviewUrl?.file) {
+      setImagePreviewUrl(defaultImagePreviewUrl)
+    }
+  }, [defaultImagen]);
 
   const handleChange = async (e) => {
     try {
@@ -115,17 +127,16 @@ const ModuloSubida = (props) => {
       reader.readAsDataURL(file);
     } catch (error) {
       toast("error", t("erroroccurred"));
-      console.error("Error in handleChange:", error);
+      console.error(100088, error);
     }
   };
 
-  useEffect(() => {
-    event && setShowAddImg(!event[use]?.i800 && !imagePreviewUrl.preview);
-  }, [event, imagePreviewUrl.preview]);
-
   return (
     <>
-      <div className="w-full z-10 h-full background-image bg-gradient-to-r from-gray-200 to-gray-300 rounded-t-xl shadow-lg flex flex-col text-white items-center justify-center overflow-hidden" {...props}>
+      <div className="w-full z-10 h-full background-image bg-gradient-to-r from-gray-200 to-gray-300 rounded-t-xl shadow-lg flex flex-col text-white items-center justify-center overflow-hidden border-[1px] border-gray-200" {...props}>
+        {imagePreviewUrl?.file && <div onClick={() => { setImagePreviewUrl(defaultImagePreviewUrl) }} className="absolute w-9 h-9 bg-gray-200 border-[1px] border-gray-100 text-gray-500 rounded-full right-1 top-1 cursor-pointer flex justify-center items-center">
+          <LiaTrashSolid className="w-6 h-6 hover:scale-110 transition transform" />
+        </div>}
         <input
           id="file"
           type="file"
@@ -135,14 +146,14 @@ const ModuloSubida = (props) => {
           className="hidden"
           ref={fileInputRef}
         />
-        {showAddImg && (
+        {(!imagePreviewUrl?.preview && !imagePreviewUrl?.image) && (
           <label
             onClick={() => (!isAllowed() ? ht() : null)}
             htmlFor={!isAllowed() ? "null" : "file"}
             className="hover:scale-120 transform text-md flex flex-col items-center justify-center gap-1 cursor-pointer relative"
           >
             <SubirImagenIcon />
-            {imagePreviewUrl.preview ? t("processing") : t("addinvitation")}
+            {imagePreviewUrl.preview ? t("processing") : use === "imgInvitacion" ? t("addinvitation") : ""}
           </label>
         )}
         <div className="w-full flex flex-col text-gray-500 bottom-0 translate-y-full absolute">

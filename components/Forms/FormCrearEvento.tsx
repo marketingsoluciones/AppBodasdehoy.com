@@ -10,6 +10,7 @@ import Cookies from "js-cookie";
 import { useTranslation } from 'react-i18next';
 import { Event, image } from "../../utils/Interfaces";
 import ModuloSubida, { subir_archivo } from "../Invitaciones/ModuloSubida";
+import { defaultImagenes } from "../Home/Card";
 
 // formatear fecha
 const getDate = (f: Date): string => {
@@ -34,8 +35,6 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
   const toast = useToast();
   const [valir, setValir] = useState(false)
   const [event] = useState(eventData ? eventData : eventOrigin)
-
-
 
   const validationSchema = yup.object().shape({
     nombre: yup.string().required(t("Nombre de evento requerido")),
@@ -184,52 +183,50 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
       onSubmit={handleSubmit}
       validationSchema={validationSchema}
     >
-      {({ isSubmitting }) => (
-
-        <Form className="w-full flex flex-col">
-          <div className="border-l-2 border-gray-100 pl-3 w-full">
-            <h2 className="font-display text-3xl capitalize text-primary font-light">
-              {EditEvent ? t("edit") : t("create")}
-            </h2>
-            <h2 className="font-display text-5xl capitalize text-gray-500 font-medium">
-              {t("event")}
-            </h2>
-          </div>
-          <div onSubmit={handleSubmit} className="flex flex-col gap-5 py-6 w-full flex-1" >
-            <div className="">
+      {({ isSubmitting, values }) => {
+        return (
+          <Form className="w-full flex flex-col">
+            <div className="border-l-2 border-gray-100 pl-3 w-full">
+              <h2 className="font-display text-3xl capitalize text-primary font-light">
+                {EditEvent ? t("edit") : t("create")}
+              </h2>
+              <h2 className="font-display text-5xl capitalize text-gray-500 font-medium">
+                {t("event")}
+              </h2>
+            </div>
+            <div onSubmit={handleSubmit} className="flex flex-col gap-5 py-6 w-full flex-1" >
+              <div className="">
+                <InputField
+                  //placeholder="Ej. Cumpleaños de Ana"
+                  name="nombre"
+                  label={t("nameevent")}
+                />
+              </div>
+              <div>
+                <SelectField
+                  name="tipo"
+                  label={t("eventtype")}
+                  options={ListaTipo}
+                  nullable={true}
+                />
+              </div>
               <InputField
-                //placeholder="Ej. Cumpleaños de Ana"
-                name="nombre"
-                label={t("nameevent")}
+                name="fecha"
+                label={t("eventdate")}
+                type="date"
               />
-            </div>
-
-            <div>
-              <SelectField
-                name="tipo"
-                label={t("eventtype")}
-                options={ListaTipo}
-                nullable={true}
-              />
-            </div>
-
-            <InputField
-              name="fecha"
-              label={t("eventdate")}
-              type="date"
-            />
-            <div className="relative w-full h-[200px] mb-4">
-              <ModuloSubida name={"imgEvento"} event={EditEvent ? event : undefined} use={"imgEvento"} />
-            </div>
-
-            {/* <DropdownCountries
+              <div className="w-full flex justify-center">
+                <div className="relative w-[304px] h-[140px] mb-4">
+                  <ModuloSubida name={"imgEvento"} event={EditEvent ? event : undefined} use={"imgEvento"} defaultImagen={defaultImagenes[values.tipo]} />
+                </div>
+              </div>
+              {/* <DropdownCountries
             name="pais"
             placeholder="Selecciona el pais"
             label="Selecciona el pais"
             value={values.pais}
             /> */}
-
-            {/* <InputField
+              {/* <InputField
             name="poblacion"
             placeholder="Murcia"
             label="Poblacion"
@@ -237,18 +234,18 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
             value={values.poblacion}
             type="text"
             autoComplete="off"/> */}
-
-            <button
-              disabled={isSubmitting}
-              type="submit"
-              className={`font-display rounded-full mt-4 py-2 px-6 text-white font-medium transition w-full hover:opacity-70 ${isSubmitting ? "bg-secondary" : "bg-primary"
-                }`}
-            >
-              {t("save")}
-            </button>
-          </div>
-        </Form>
-      )}
+              <button
+                disabled={isSubmitting}
+                type="submit"
+                className={`font-display rounded-full mt-4 py-2 px-6 text-white font-medium transition w-full hover:opacity-70 ${isSubmitting ? "bg-secondary" : "bg-primary"
+                  }`}
+              >
+                {t("save")}
+              </button>
+            </div>
+          </Form>
+        )
+      }}
     </Formik>
   );
 };
