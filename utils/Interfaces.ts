@@ -119,7 +119,12 @@ export interface OptionsSelect {
     vew?: string
 }
 export type Order = "nombre" | "fecha" | "estado"
-export type Direction = "asc" | "des"
+export type Direction = "asc" | "desc"
+
+export interface SelectModeSortType {
+    order: Order
+    direction: Direction
+}
 
 export interface FloatMenu {
     info: any

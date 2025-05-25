@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from "react"
+import { Dispatch, FC, SetStateAction, useEffect, useState } from "react"
 import ClickAwayListener from "react-click-away-listener"
 import { GoMultiSelect } from "react-icons/go"
 import { LiaIdCardSolid } from "react-icons/lia";
@@ -7,20 +7,23 @@ import { TbSchema } from "react-icons/tb";
 import { ArrowDownBodasIcon } from "../icons";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from "react-i18next";
+import { Direction, Order, SelectModeSortType } from "../../utils/Interfaces";
+
+
 
 interface props {
-  value: any
-  setValue: any
+  value: SelectModeSortType
+  setValue: Dispatch<SetStateAction<SelectModeSortType>>
 }
 
 export const SelectModeSort: FC<props> = ({ value, setValue }) => {
   const { t } = useTranslation();
   const [show, setShow] = useState<boolean>(false)
   const [isAllowed, ht] = useAllowed()
-  const [order, setOrder] = useState<string>("fecha")
-  const [direction, setDirection] = useState<string>("asc")
+  const [order, setOrder] = useState<Order>(value ? value.order : "fecha")
+  const [direction, setDirection] = useState<Direction>(value ? value.direction : "asc")
 
-  const orderOptions = [
+  const orderOptions: { value: Order, title: string }[] = [
     {
       value: "fecha",
       title: t("date")
@@ -33,7 +36,7 @@ export const SelectModeSort: FC<props> = ({ value, setValue }) => {
     }
   ]
 
-  const directionOptions = [
+  const directionOptions: { value: Direction, title: string }[] = [
     {
       value: "asc",
       title: t("asd")
@@ -44,7 +47,7 @@ export const SelectModeSort: FC<props> = ({ value, setValue }) => {
   ]
 
   useEffect(() => {
-    // console.log(order, direction)
+    setValue({ order, direction })
   }, [order, direction])
 
 
@@ -62,19 +65,16 @@ export const SelectModeSort: FC<props> = ({ value, setValue }) => {
             return item
               ? <div key={idx}
                 onClick={() => {
-                  item.type === "order" ? setOrder(item.value) : setDirection(item.value)
+                  item.type === "order" ? setOrder(item.value as Order) : setDirection(item.value as Direction)
                   setShow(false)
                 }}
-                className={`p-2 text-gray-700 text-sm flex items-center gap-2 capitalize cursor-pointer hover:bg-gray-100 ${item.value === value && "bg-gray-200"}`}
+                className={`p-2 text-gray-700 text-sm flex items-center gap-2 capitalize cursor-pointer hover:bg-gray-100 ${[order, direction].includes(item?.value) && "bg-gray-200"}`}
               >
                 <div className={`w-2 h-2 rounded-full ${[order, direction].includes(item?.value) && "bg-gray-500"}`} />
                 {item.title}
               </div>
               : <div key={idx} className="w-full border-t-[1px] border-gray-500" />
-          }
-          )
-          }
-
+          })}
         </div>}
       </div>
     </ClickAwayListener>

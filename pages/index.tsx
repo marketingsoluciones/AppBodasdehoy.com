@@ -8,12 +8,13 @@ import FormCrearEvento from "../components/Forms/FormCrearEvento";
 import ModalLeft from "../components/Utils/ModalLeft";
 import { useDelayUnmount } from "../utils/Funciones";
 import { NextPage } from "next";
-import { Event } from "../utils/Interfaces";
+import { Event, SelectModeSortType } from "../utils/Interfaces";
 import VistaSinCookie from "../pages/vista-sin-cookie"
 import { useRouter } from "next/router";
 import { useToast } from "../hooks/useToast";
 import { useTranslation } from 'react-i18next';
 import { TbTableShare } from "react-icons/tb";
+import { SelectModeSort } from "../components/Utils/SelectModeSort";
 
 const Home: NextPage = () => {
   const { user, verificationDone, config, setUser } = AuthContextProvider()
@@ -183,6 +184,8 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
   const [tabsGroup, setTabsGroup] = useState<dataTab[]>([]);
   const [idxNew, setIdxNew] = useState<number>(-2)
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [orderAndDirection, setOrderAndDirection] = useState<SelectModeSortType>()
+
   const handleMouseEnter = () => {
     setIsModalVisible(true);
   };
@@ -255,7 +258,8 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
             </button>
           ))}
         </div>
-        <div className="flex-1 h-full flex justify-end items-center px-4 relative" >
+        <div className="flex-1 h-full flex justify-end items-center px-4 relative space-x-4" >
+          <SelectModeSort value={orderAndDirection} setValue={setOrderAndDirection} />
           <div
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
@@ -274,18 +278,22 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
       <div className="flex flex-col md:flex-1 overflow-x-scroll md:overflow-clip">
 
         {tabsGroup.map((group, idx) => {
-          const dataSort = group?.data?.sort((a, b) => {
-            const dateA = new Date(parseInt(a?.fecha)).getTime();
-            const dateB = new Date(parseInt(b?.fecha)).getTime();
-            return dateA - dateB;
+          group?.data?.sort((a, b) => {
+            if (orderAndDirection.order === "fecha") {
+              const dateA = new Date(parseInt(a?.fecha)).getTime();
+              const dateB = new Date(parseInt(b?.fecha)).getTime();
+              return orderAndDirection.direction === "asc" ? dateA - dateB : dateB - dateA;
+            }
+            if (orderAndDirection.order === "nombre") {
+              return orderAndDirection.direction === "asc" ? a.nombre.localeCompare(b.nombre) : b.nombre.localeCompare(a.nombre);
+            }
           });
-
 
           return (
             <div key={idx} className={`${isActiveStateSwiper !== idx && "hidden"} mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5`}>
               {isActiveStateSwiper == idx ? (
                 <>
-                  {dataSort.map((evento, idx) => {
+                  {group?.data?.map((evento, idx) => {
                     return (
                       <div
                         key={idx}

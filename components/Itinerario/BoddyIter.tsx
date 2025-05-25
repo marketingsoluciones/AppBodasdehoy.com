@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { ItineraryTabs } from "./MicroComponente/ItineraryTabs"
 import { ItineraryPanel } from "./MicroComponente/ItineraryPanel"
 import { AuthContextProvider, EventContextProvider } from "../../context";
-import { Event, Itinerary } from "../../utils/Interfaces"
+import { Event, Itinerary, SelectModeSortType } from "../../utils/Interfaces"
 import { ViewItinerary } from "../../pages/invitados";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
@@ -41,7 +41,11 @@ export const BoddyIter = () => {
     const [loadingModal, setLoadingModal] = useState<boolean>(false)
     const storage = getStorage();
     const [selectTask, setSelectTask] = useState<string>()
+    const [orderAndDirection, setOrderAndDirection] = useState<SelectModeSortType>()
 
+    useEffect(() => {
+        console.log(orderAndDirection)
+    }, [orderAndDirection])
 
     async function updatedNextId(itinerary: Itinerary) {
         return await fetchApiEventos({
@@ -150,6 +154,7 @@ export const BoddyIter = () => {
     const handleUpdateTitle = async () => {
 
         await fetchApiEventos({
+
             query: queries.editItinerario,
             variables: {
                 eventID: event._id,
@@ -172,15 +177,16 @@ export const BoddyIter = () => {
                 !!router.query?.itinerary
                     ? elem?._id === router.query?.itinerary
                     : elem?._id === itinerario?._id)
-            if (f1 < 0) {
-                setItinerario(itinerarios[0])
-            } else {
-                setItinerario(itinerarios[f1])
-            }
+            let itinerario = f1 < 0
+                ? itinerarios[0]
+                : itinerarios[f1]
+            // aquí hacer la rutina para ordenar
+            //itinerario.sort... bla bla bla
+            setItinerario(itinerario)
         } else {
             setItinerario(null)
         }
-    }, [event, router])
+    }, [event, router, orderAndDirection])
 
     return (
         <div className="bg-white w-full h-[calc(100vh-212px)] flex flex-col items-center rounded-t-lg mt-3 relative overflow-hidden">
@@ -207,6 +213,8 @@ export const BoddyIter = () => {
                 setModalDuplicate={setModalDuplicate}
                 selectTask={selectTask}
                 setSelectTask={setSelectTask}
+                orderAndDirection={orderAndDirection}
+                setOrderAndDirection={setOrderAndDirection}
             />
             {(isAllowedViewer(itinerario?.viewers ?? []) || window?.location?.pathname === "/itinerario" || isAllowed())
                 ? <ItineraryPanel itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} title={title} setTitle={setTitle} view={view} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} selectTask={selectTask} setSelectTask={setSelectTask} />
