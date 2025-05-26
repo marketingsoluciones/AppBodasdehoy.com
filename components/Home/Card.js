@@ -164,7 +164,7 @@ const Card = ({ data, grupoStatus, idx }) => {
 
   return (
     <>
-      <div className={`${!shouldRenderChild ? "hidden" : "fixed z-50"}`}>
+      <div className={`${!shouldRenderChild ? "hidden" : "fixed z-30"}`}>
         {shouldRenderChild && <ModalLeft set={setIsMounted} state={isMounted} clickAwayListened={false}>
           <FormCrearEvento set={setIsMounted} state={isMounted} EditEvent={true} eventData={data[idx]} />
         </ModalLeft>}
@@ -199,7 +199,7 @@ const Card = ({ data, grupoStatus, idx }) => {
           </div>}
         </div>
 
-        {data[idx]?._id == user?.eventSelected ? <div className="w-[304px] h-40 border-dashed border-2 border-yellow-300 absolute rounded-xl" /> : <></>}
+        {data[idx]?._id == user?.eventSelected ? <div className="flex w-[304px] h-40 border-dashed border-2 border-yellow-300 absolute z-0 rounded-xl" /> : <></>}
         <div onClick={() => {
           const resp = handleClickCard({ t, final: true, config, data: data[idx], setEvent, user, setUser, router })
           if (resp) toast("warning", resp)
