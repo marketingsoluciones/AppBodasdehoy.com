@@ -222,24 +222,26 @@ const handleCreateTask = useCallback(() => {
           )}
 
           {/* Lista de tareas */}
-          <SortableContext
-            items={column.tasks.map(task => task._id)}
-            strategy={verticalListSortingStrategy}
-          >
-            {column.tasks.map((task) => (
-              <TaskCard
-                key={task._id}
-                task={task}
-                onTaskClick={onTaskClick}
-                onTaskUpdate={onTaskUpdate}
-                onTaskDelete={onTaskDelete}
-                onCreateSubTask={onCreateSubTask}
-                isSelected={selectedTask === task._id}
-                isDragging={false}
-                itinerario={itinerario}
-              />
-            ))}
-          </SortableContext>
+<SortableContext
+  items={column.tasks.filter(task => task && task._id).map(task => task._id)}
+  strategy={verticalListSortingStrategy}
+>
+  {column.tasks
+    .filter(task => task && task._id)
+    .map((task) => (
+      <TaskCard
+        key={task._id}
+        task={task}
+        onTaskClick={onTaskClick}
+        onTaskUpdate={onTaskUpdate}
+        onTaskDelete={onTaskDelete}
+        onCreateSubTask={onCreateSubTask}
+        isSelected={selectedTask === task._id}
+        isDragging={false}
+        itinerario={itinerario}
+      />
+    ))}
+</SortableContext>
 
           {/* Botón para agregar tarea (cuando no está colapsada y no hay tareas) */}
           {column.tasks.length === 0 && !isCreatingTask && (

@@ -156,37 +156,47 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
 
     useEffect(() => {
         if (itinerario?.tasks?.length > 0) {
-            const tasks = [...itinerario?.tasks?.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime())].filter(elem => {
-                return (
+            const sortedTasks = [...itinerario.tasks].sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
+            const filteredTasks = sortedTasks.filter(elem =>
+                elem && (
                     view === "schema"
                     || ["/itinerario"].includes(window?.location?.pathname)
                     || elem.spectatorView
                     || event.usuario_id === user.uid
                     || isAllowed()
-                ) &&
-                    true
-            })
-            setTasks(tasks)
-            const taskReduce: TaskReduce[] = tasks.reduce((acc: TaskReduce[], item: Task) => {
-                const f = new Date(item.fecha)
-                const y = f.getUTCFullYear()
-                const m = f.getUTCMonth()
-                const d = f.getUTCDate()
-                const date = new Date(y, m, d).getTime()
-                const f1 = acc.findIndex(elem => elem.fecha === date)
+                )
+            );
+    
+            // Solo actualiza si los datos realmente cambiaron
+            setTasks(prev => {
+                if (JSON.stringify(prev) === JSON.stringify(filteredTasks)) return prev;
+                return filteredTasks;
+            });
+    
+            const taskReduce: TaskReduce[] = filteredTasks.reduce((acc: TaskReduce[], item: Task) => {
+                const f = new Date(item.fecha);
+                const y = f.getUTCFullYear();
+                const m = f.getUTCMonth();
+                const d = f.getUTCDate();
+                const date = new Date(y, m, d).getTime();
+                const f1 = acc.findIndex(elem => elem.fecha === date);
                 if (f1 < 0) {
-                    acc.push({ fecha: item.fecha ? date : null, tasks: [item] })
+                    acc.push({ fecha: item.fecha ? date : null, tasks: [item] });
                 } else {
-                    acc[f1].tasks.push(item)
+                    acc[f1].tasks.push(item);
                 }
-                return acc
-            }, [])
-            setTasksReduce(taskReduce)
+                return acc;
+            }, []);
+    
+            setTasksReduce(prev => {
+                if (JSON.stringify(prev) === JSON.stringify(taskReduce)) return prev;
+                return taskReduce;
+            });
         } else {
-            setTasks([])
-            setTasksReduce([])
+            setTasks(prev => (prev && prev.length === 0 ? prev : []));
+            setTasksReduce(prev => (prev && prev.length === 0 ? prev : []));
         }
-    }, [itinerario, event])
+    }, [itinerario, event, view, user?.uid, isAllowed]);
 
     const handleAddSpectatorView = async (values: Task) => {
         try {
@@ -269,16 +279,20 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                             },
                             domain: config.domain
                         }).then(() => {
-                            const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
-                            const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === values._id)
-                            event.itinerarios_array[f1].tasks.splice(f2, 1)
-                            setEvent({ ...event })
-                            setTimeout(() => {
-                                setModal({ state: false, title: null, values: null, itinerario: null })
-                                setLoading(false)
-                            }, 500);
-                            toast("success", t(itinerario.tipo === "itinerario" ? "activitydeleted" : "servicedeleted"));
-                        })
+                            const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
+    if (f1 !== -1 && event.itinerarios_array[f1]?.tasks) {
+        const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem && elem._id === values._id);
+        if (f2 !== -1) {
+            event.itinerarios_array[f1].tasks.splice(f2, 1);
+            setEvent({ ...event });
+        }
+    }
+    setTimeout(() => {
+        setModal({ state: false, title: null, values: null, itinerario: null });
+        setLoading(false);
+    }, 500);
+    toast("success", t(itinerario.tipo === "itinerario" ? "activitydeleted" : "servicedeleted"));
+})
                     })
                 )
 
@@ -401,56 +415,61 @@ const handleTaskUpdate = async (taskId: string, updates: Partial<Task>) => {
 
 const handleTaskCreate = async (taskData: Partial<Task>) => {
     try {
-      // Usar la lógica existente de addTask pero con los datos del BoardView
+      // Calcular fecha por defecto
       const f = new Date(parseInt(event.fecha));
       const fy = f.getUTCFullYear();
       const fm = f.getUTCMonth();
       const fd = f.getUTCDate();
       let newEpoch = new Date(fy, fm + 1, fd).getTime() + 7 * 60 * 60 * 1000;
-      
+  
       if (tasks?.length) {
-        const item = tasks[tasks?.length - 1];
+        const item = tasks[tasks.length - 1];
         const epoch = new Date(item.fecha).getTime();
         newEpoch = epoch + (item.duracion || 30) * 60 * 1000;
       }
   
       const defaultDate = taskData.fecha ? new Date(taskData.fecha) : new Date(newEpoch);
   
-      // Hacer la llamada a la API y tipar correctamente la respuesta
-      const response = await fetchApiEventos({
-        query: queries.createTask,
-        variables: {
-          eventID: event._id,
-          itinerarioID: itinerario._id,
-          descripcion: taskData.descripcion || "Nueva tarea",
-          fecha: defaultDate,
-          duracion: taskData.duracion || 30,
-          responsable: taskData.responsable || [],
-          tags: taskData.tags || [],
-          attachments: taskData.attachments || [],
-          tips: taskData.tips || "",
-          spectatorView: taskData.spectatorView !== undefined ? taskData.spectatorView : true,
-          estatus: taskData.estatus !== undefined ? taskData.estatus : false,
-        },
-        domain: config.domain
-      });
+const response = await fetchApiEventos({
+  query: queries.createTask,
+  variables: {
+    eventID: event._id,
+    itinerarioID: itinerario._id,
+    descripcion: taskData.descripcion || "Nueva tarea",
+    fecha: defaultDate,
+    duracion: taskData.duracion || 30,
+    responsable: taskData.responsable || [],
+    tags: taskData.tags || [],
+    attachments: taskData.attachments || [],
+    tips: taskData.tips || "",
+    spectatorView: taskData.spectatorView !== undefined ? taskData.spectatorView : true,
+    estatus: taskData.estatus !== undefined ? taskData.estatus : false,
+    estado: taskData.estado || "pending",
+    prioridad: taskData.prioridad || "media",
+  },
+  domain: config.domain
+});
+
+// Validar respuesta
+const newTask = response && (response as Task)._id ? (response as Task) : null;
+if (!newTask) {
+  throw new Error('Respuesta inválida del servidor');
+}
   
-      // Tipar explícitamente la respuesta como Task
-      const newTask = response as Task;
-  
-      // Verificar que la respuesta tenga las propiedades necesarias
-      if (!newTask || !newTask._id) {
-        throw new Error('Respuesta inválida del servidor');
+      // Actualizar el estado global (event)
+      const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
+      if (f1 !== -1) {
+        event.itinerarios_array[f1].tasks.push(newTask);
+        setEvent({ ...event });
       }
   
-      // Actualizar el estado local
-      const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
-      event.itinerarios_array[f1].tasks.push(newTask);
-      setEvent({ ...event });
-      
+      // Actualizar el estado local (tasks)
+      setTasks(prev => prev ? [...prev, newTask] : [newTask]);
+  
       // Seleccionar la nueva tarea
       setSelectTask(newTask._id);
-      
+  
+      // Notificar éxito
       toast("success", t("Tarea creada con éxito"));
     } catch (error) {
       console.error('Error al crear la tarea:', error);

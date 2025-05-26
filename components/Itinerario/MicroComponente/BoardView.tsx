@@ -122,6 +122,17 @@ export const BoardView: React.FC<BoardViewProps> = ({
     columnOrder: [],
     isGlobalCollapsed: false,
   });
+  
+
+
+  
+  
+  const [draggedItem, setDraggedItem] = useState<DragItem | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+  const [showFilters, setShowFilters] = useState(false);
+  const [showAddColumn, setShowAddColumn] = useState(false);
+  const { t } = useTranslation();
 
   // En BoardView.tsx, modificar handleTaskUpdate
 
@@ -170,15 +181,8 @@ export const BoardView: React.FC<BoardViewProps> = ({
       console.error('Error al actualizar la tarea:', error);
       toast.error(t('Error al actualizar la tarea'));
     }
-  }, [event, itinerario, onTaskUpdate]);
-  
-  
-  const [draggedItem, setDraggedItem] = useState<DragItem | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
-  const [showFilters, setShowFilters] = useState(false);
-  const [showAddColumn, setShowAddColumn] = useState(false);
-  const { t } = useTranslation();
+  }, [event, itinerario, onTaskUpdate, t]);
+
   const [showSubTaskModal, setShowSubTaskModal] = useState<{
     show: boolean;
     parentTaskId?: string;
@@ -197,17 +201,21 @@ export const BoardView: React.FC<BoardViewProps> = ({
 
 // Memoizar getTaskStatus
 const getTaskStatus = useCallback((task: Task): string => {
+  if (!task) return 'pending';
+  if (task.estado) return task.estado;
   if (task.estatus === true) return 'blocked';
   if (task.spectatorView === false) return 'completed';
-  if (task.responsable && task.responsable.length > 0 && task.fecha) return 'in_progress';
+  if (task.responsable?.length > 0 && task.fecha) return 'in_progress';
   return 'pending';
-}, []);
+}, []); // Sin dependencias ya que no usa nada externo
 
-// Primero, memoizamos la función initializeColumns
-const initializeColumns = useCallback(() => {
+// Modifica el useEffect para que sea más simple y tenga las dependencias correctas
+useEffect(() => {
+  if (!data) return; // Si no hay datos, no hacer nada
+
   const columns: Record<string, BoardColumn> = {};
   const hiddenColumns: string[] = [];
-  
+
   // Crear columnas por defecto
   Object.entries(DEFAULT_COLUMNS).forEach(([id, column]) => {
     columns[id] = {
@@ -216,24 +224,13 @@ const initializeColumns = useCallback(() => {
     };
   });
 
-  // Distribuir tareas por status
-  if (data) {
-    data.forEach(task => {
-      const status = getTaskStatus(task);
-      if (columns[status]) {
-        columns[status].tasks.push(task);
-      } else {
-        columns[status] = {
-          id: status,
-          title: status.charAt(0).toUpperCase() + status.slice(1),
-          color: 'bg-gray-50 border-gray-300',
-          tasks: [task],
-          isCollapsed: false,
-          order: Object.keys(columns).length,
-        };
-      }
-    });
-  }
+  // Distribuir tareas por estado
+  data.forEach(task => {
+    const status = getTaskStatus(task);
+    if (columns[status]) {
+      columns[status].tasks.push(task);
+    }
+  });
 
   // Identificar columnas vacías
   Object.entries(columns).forEach(([id, column]) => {
@@ -242,53 +239,19 @@ const initializeColumns = useCallback(() => {
     }
   });
 
-  return { columns, hiddenColumns };
-}, [data, getTaskStatus]);
+  const columnOrder = Object.keys(columns).sort((a, b) => 
+    columns[a].order - columns[b].order
+  );
 
-  // Inicializar columnas con tareas
-  useEffect(() => {
-    // Inicializar las columnas
-    const { columns, hiddenColumns } = initializeColumns();
-    const columnOrder = Object.keys(columns).sort((a, b) => 
-      columns[a].order - columns[b].order
-    );
+  // Actualizar el estado una sola vez
+  setBoardState({
+    columns,
+    columnOrder,
+    isGlobalCollapsed: false
+  });
 
-    setBoardState(prev => {
-      // Comparar el estado actual con el nuevo estado
-      const currentState = JSON.stringify({
-        columns: prev.columns,
-        columnOrder: prev.columnOrder
-      });
-      
-      const newState = JSON.stringify({
-        columns,
-        columnOrder
-      });
-
-      // Solo actualizar si hay cambios reales
-      if (currentState === newState) {
-        return prev;
-      }
-
-      return {
-        columns,
-        columnOrder,
-        isGlobalCollapsed: prev.isGlobalCollapsed,
-      };
-    });
-
-    // Actualizar columnas ocultas solo si han cambiado
-    setHiddenEmptyColumns(prev => {
-      const hiddenColumnsString = JSON.stringify(hiddenColumns);
-      const prevHiddenColumnsString = JSON.stringify(prev);
-      
-      if (hiddenColumnsString === prevHiddenColumnsString) {
-        return prev;
-      }
-      
-      return hiddenColumns;
-    });
-  }, [initializeColumns]); // Solo depender de initializeColumns
+  setHiddenEmptyColumns(hiddenColumns);
+}, [data, getTaskStatus]); // Solo dependemos de data y getTaskStatus
 
 
 
@@ -566,10 +529,7 @@ interface ApiResponse {
 const handleTaskCreate = async (taskData: Partial<Task>) => {
   try {
     const eventID = (event as EventInterface)._id;
-    
-    if (!eventID) {
-      throw new Error("No se pudo obtener el ID del evento");
-    }
+    if (!eventID) throw new Error("No se pudo obtener el ID del evento");
 
     const response = await fetchApiEventos({
       query: queries.createTask,
@@ -589,28 +549,40 @@ const handleTaskCreate = async (taskData: Partial<Task>) => {
         prioridad: taskData.prioridad,
       },
       domain: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-    }) as ApiResponse; // Tipar la respuesta
+    }) as ApiResponse;
 
-    if (!response) {
-      throw new Error("No se recibió respuesta del servidor");
-    }
+    if (!response) throw new Error("No se recibió respuesta del servidor");
 
-    // Actualizar el estado local asegurando los tipos
+    // Actualizar el estado global
     setEvent((prevEvent: EventInterface) => {
       const newEvent = { ...prevEvent };
       const itineraryIndex = newEvent.itinerarios_array.findIndex(
         it => it._id === itinerario._id
       );
-
       if (itineraryIndex !== -1) {
         const newTask = response.data;
         newEvent.itinerarios_array[itineraryIndex].tasks.push(newTask);
       }
-
       return newEvent;
     });
 
-    // Actualizar la selección de tarea
+    // Actualizar el estado local del board inmediatamente
+setBoardState(prev => {
+  const columns = { ...prev.columns };
+  const status = getTaskStatus(response.data);
+  if (columns[status]) {
+    columns[status] = {
+      ...columns[status],
+      tasks: [...columns[status].tasks, response.data],
+    };
+  }
+  return {
+    ...prev,
+    columns,
+  };
+});
+
+    // Seleccionar la nueva tarea
     if (response._id) {
       setSelectTask(response._id);
     }
@@ -712,13 +684,13 @@ const handleCreateSubTask = useCallback((parentTaskId: string, subTask: Partial<
           </button>
 
           {/* Agregar columna */}
-          <button
+{/*           <button
             onClick={() => setShowAddColumn(true)}
             className="flex items-center space-x-1 px-3 py-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors"
           >
             <Plus className="w-4 h-4" />
             <span className="text-sm font-medium">Agregar Estado</span>
-          </button>
+          </button> */}
         </div>
       </div>
 
