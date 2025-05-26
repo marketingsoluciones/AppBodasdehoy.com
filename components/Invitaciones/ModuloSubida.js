@@ -196,3 +196,4 @@ const BotonConfirmar = ({ onClick }) => {
     </div>
   );
 };
+
