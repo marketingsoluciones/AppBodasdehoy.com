@@ -1,4 +1,4 @@
-import { Form, Formik, FormikValues } from "formik";
+import { Form, Formik, FormikValues, useFormikContext } from "formik";
 import { fetchApiBodas, fetchApiEventos, queries } from "../../utils/Fetching";
 import { AuthContextProvider, EventsGroupContextProvider, EventContextProvider } from "../../context";
 import InputField from "./InputField";
@@ -35,6 +35,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
   const toast = useToast();
   const [valir, setValir] = useState(false)
   const [event] = useState(eventData ? eventData : eventOrigin)
+  const [valueImage, setValueImage] = useState()
 
   const validationSchema = yup.object().shape({
     nombre: yup.string().required(t("Nombre de evento requerido")),
@@ -186,6 +187,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
       {({ isSubmitting, values }) => {
         return (
           <Form className="w-full flex flex-col">
+            <AutoSubmitToken valueImage={valueImage} />
             <div className="border-l-2 border-gray-100 pl-3 w-full">
               <h2 className="font-display text-3xl capitalize text-primary font-light">
                 {EditEvent ? t("edit") : t("create")}
@@ -217,7 +219,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
               />
               <div className="w-full flex justify-center">
                 <div className="relative w-[304px] h-[140px] mb-4">
-                  <ModuloSubida name={"imgEvento"} event={EditEvent ? event : undefined} use={"imgEvento"} defaultImagen={defaultImagenes[values.tipo]} />
+                  <ModuloSubida setValueImage={setValueImage} event={EditEvent ? event : undefined} use={"imgEvento"} defaultImagen={defaultImagenes[values.tipo]} />
                 </div>
               </div>
               {/* <DropdownCountries
@@ -251,3 +253,22 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
 };
 
 export default FormCrearEvento;
+
+const AutoSubmitToken = ({ valueImage }) => {
+  const { values, errors, setValues } = useFormikContext();
+  useEffect(() => {
+    console.log("errors", errors)
+  }, [errors]);
+
+  useEffect(() => {
+    // console.log(100030, values)
+  }, [values]);
+
+  useEffect(() => {
+    // console.log(100031, valueImage)
+    const newValues = { ...values as any, imgEvento: valueImage }
+    setValues(newValues)
+  }, [valueImage]);
+
+  return null;
+};

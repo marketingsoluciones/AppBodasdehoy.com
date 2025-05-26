@@ -6,7 +6,6 @@ import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
 import Resizer from "react-image-file-resizer";
 import { useTranslation } from 'react-i18next';
-import { useField } from "formik"
 import { LiaTrashSolid } from "react-icons/lia";
 
 const resizeImage = (file) => {
@@ -64,7 +63,7 @@ export const subir_archivo = async ({ imagePreviewUrl, event, use }) => {
 };
 
 const ModuloSubida = (props) => {
-  const { event, use, defaultImagen, name = undefined } = props
+  const { event, use, defaultImagen, setValueImage } = props
   const defaultImagePreviewUrl = {
     file: null,
     preview: false,
@@ -74,7 +73,6 @@ const ModuloSubida = (props) => {
         : defaultImagen
       : defaultImagen
   }
-  const [field, meta, helpers] = name ? useField({ name: name }) : []
   const { t } = useTranslation();
   const [imagePreviewUrl, setImagePreviewUrl] = useState(defaultImagePreviewUrl);
   const toast = useToast();
@@ -88,7 +86,7 @@ const ModuloSubida = (props) => {
       if (event) {
         subir_archivo({ imagePreviewUrl, event, use })
           .then(result => {
-            helpers?.setValue(result)
+            setValueImage(result)
             setEvent((old) => ({ ...old, [use]: result }));
           })
           .catch(error => {
@@ -96,7 +94,7 @@ const ModuloSubida = (props) => {
             toast("error", t("erroroccurred"));
           })
       } else {
-        helpers.setValue(imagePreviewUrl)
+        setValueImage(imagePreviewUrl)
       }
     }
   }, [imagePreviewUrl]);
