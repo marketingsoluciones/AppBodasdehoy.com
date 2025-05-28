@@ -658,9 +658,11 @@ export const en = {
     'export': 'export',
     'importBudget': "import budget",
     'importInto': "import into",
-    'from': "from", 
-   
+    'from': "from",
 
+    asc: "ascending",
+    desc: "descending",
+    toOrder: "to order",
 
     maxLimitedItineraries: "The maximum limit for creating or duplicating was reached",
     importCorrect: "guests imported successfully",

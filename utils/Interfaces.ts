@@ -25,6 +25,7 @@ export interface Event {
     mesas_array: tableOld[]
     grupos_array: string[]
     notificaciones_array: notification[]
+    imgEvento: image
     imgInvitacion: image
     presupuesto_objeto: estimate
     listaRegalos: string
@@ -116,6 +117,13 @@ export interface OptionsSelect {
     onClick?: any
     idDisabled?: boolean
     vew?: string
+}
+export type Order = "nombre" | "fecha" | "estado"
+export type Direction = "asc" | "desc"
+
+export interface SelectModeSortType {
+    order: Order
+    direction: Direction
 }
 
 export interface FloatMenu {

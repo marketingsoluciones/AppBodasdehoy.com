@@ -1,6 +1,6 @@
-import { FC, LegacyRef, MouseEvent, useEffect, useRef, useState } from "react"
+import { Dispatch, FC, LegacyRef, MouseEvent, SetStateAction, useEffect, useRef, useState } from "react"
 import { PlusIcon } from "../../icons"
-import { Event, Info, Itinerary } from "../../../utils/Interfaces"
+import { Event, Info, Itinerary, SelectModeSortType } from "../../../utils/Interfaces"
 import { fetchApiEventos, queries } from "../../../utils/Fetching"
 import { AuthContextProvider, EventContextProvider } from "../../../context"
 import { ViewItinerary } from "../../../pages/invitados"
@@ -10,6 +10,7 @@ import { FaCheck } from "react-icons/fa"
 import { useAllowed, useAllowedViewer } from "../../../hooks/useAllowed"
 import { useTranslation } from "react-i18next"
 import { useToast } from "../../../hooks/useToast"
+import { SelectModeSort } from "../../Utils/SelectModeSort"
 
 interface props {
     itinerario: Itinerary
@@ -25,9 +26,11 @@ interface props {
     setModalDuplicate: any
     selectTask: string
     setSelectTask: any
+    orderAndDirection: SelectModeSortType
+    setOrderAndDirection: Dispatch<SetStateAction<SelectModeSortType>>
 }
 
-export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setItinerario, setEditTitle, view, setView, handleDeleteItinerario, handleUpdateTitle, title, setTitle, editTitle, selectTask, setSelectTask }) => {
+export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setItinerario, setEditTitle, view, setView, handleDeleteItinerario, handleUpdateTitle, title, setTitle, editTitle, selectTask, setSelectTask, orderAndDirection, setOrderAndDirection }) => {
     const [isAllowed, ht] = useAllowed()
     const [isAllowedViewer] = useAllowedViewer()
     const { config, user } = AuthContextProvider()
@@ -497,7 +500,11 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                         </div>}
                     </>}
                 </div>
-                {isAllowed() && <SelectModeView value={view} setValue={setView} />}
+                {isAllowed() && <div className="inline-flex space-x-4">
+                    {view === "cards" && <SelectModeSort value={orderAndDirection} setValue={setOrderAndDirection} />}
+                    <SelectModeView value={view} setValue={setView} />
+                </div>
+                }
             </div>
         </div>
     )

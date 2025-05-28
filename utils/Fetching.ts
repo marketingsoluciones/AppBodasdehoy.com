@@ -642,6 +642,14 @@ export const queries = {
       }
       poblacion
       pais
+      imgEvento{
+        _id
+        i1024
+        i800
+        i640
+        i320
+        createdAt
+      }
       imgInvitacion{
         _id
         i1024
@@ -1501,6 +1509,14 @@ export const queries = {
         _id
         title
         slug
+      }
+      imgEvento{
+        _id
+        i1024
+        i800
+        i640
+        i320
+        createdAt
       }
       imgInvitacion{
         _id

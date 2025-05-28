@@ -1,4 +1,3 @@
-import Image from "next/image";
 import React, { FC, useState } from "react";
 import { PencilEdit } from "../icons";
 import { capitalize } from '../../utils/Capitalize'
@@ -10,13 +9,11 @@ import { defaultImagenes } from "../Home/Card";
 import { ModalAddUserToEvent, UsuariosCompartidos } from "../Utils/Compartir";
 import { IoShareSocial } from "react-icons/io5";
 import { useAllowed } from "../../hooks/useAllowed"
-import { useToast } from "../../hooks/useToast";
 import { useTranslation } from 'react-i18next';
 
 interface propsBlockVista {
   children?: React.ReactNode;
 }
-
 
 const BlockVista: FC<propsBlockVista> = ({ children }) => {
   const [state, setState] = useState(0)
@@ -51,19 +48,17 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
       <div className="w-full bg-white shadow rounded-xl overflow-hidden relative flex flex-col-reverse md:flex-row md:h-72 gap-12  md:gap-0 pt-10 md:pt-0">
         {event?.tipo && (
           <img
-            src={defaultImagenes[event?.tipo]}
+            src={event?.imgEvento ? `https://apiapp.bodasdehoy.com/${event.imgEvento.i800}` : defaultImagenes[event?.tipo]}
             className="md:w-1/2 md:h-full h-60 object-cover object-top rounded-xl"
             alt={event?.nombre}
           />
         )}
-
         {children}
         <div className="md:w-1/2 h-full flex flex-col items-center justify-center px-8 gap-6 relative">
           <div className="w-auto mx-auto inset-x-0 text-center">
-          
-          <h1 className="mt-[-4px] font-display font-semibold text-3xl text-gray-500 truncate overflow-hidden text-ellipsis max-w-full">
-  {event?.nombre?.length > 20 ? `${event?.nombre.substring(0, 20)}...` : event?.nombre}
-</h1>
+            <h1 className="mt-[-4px] font-display font-semibold text-3xl text-gray-500 truncate overflow-hidden text-ellipsis max-w-full">
+              {event?.nombre?.length > 20 ? `${event?.nombre.substring(0, 20)}...` : event?.nombre}
+            </h1>
             <span className="font-display font-base text-sm flex gap-2 mx-auto w-max inset-x-0">
               <p className="text-gray-500">
                 {/* @ts-ignore */}
@@ -72,7 +67,6 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
               -<p className="text-primary">{event?.tipo == "otro" ? "Mi Evento Especial" : event?.tipo && capitalize(event?.tipo)}</p>
             </span>
           </div>
-
           <div className="w-full">
             <span className="w-full justify-between flex">
               <p className="font-display text-xs text-gray-500">{t("state")}</p>
@@ -80,13 +74,8 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
                 {t("letscelebratestarted")}
               </p>
             </span>
-            {/* <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-              
-              <svg className="bg-primary h-full" width={ count <= 1 ? "20%": "50%" || count > 2? "100%": "60%" }  />
-            </div> */}
             <StateBar />
           </div>
-
           <div className="w-full justify-between flex">
             <div className="w-1/3 grid place-items-center">
               <p className="font-display text-lg font-base text-gray-500">
@@ -96,7 +85,6 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
                 {t("stepstocompleteyourevent")}
               </p>
             </div>
-
             <div className="w-1/3 grid place-items-center">
               <p className="font-display text-lg font-base text-gray-500">
                 {event?.invitados_array?.length}
@@ -105,7 +93,6 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
                 {`${t("invitado")}${event?.invitados_array?.length > 1 ? "s" : ""}`}
               </p>
             </div>
-
             <div className="w-1/3 grid place-items-center">
               <p className="font-display text-lg font-base text-gray-500">
                 {seatedGuests} de {event?.invitados_array?.length}
@@ -129,8 +116,6 @@ const BlockPrincipal: FC = () => {
   const [openModal, setOpenModal] = useState(false)
   const [isAllowed, ht] = useAllowed()
   const { t } = useTranslation();
-
-
 
   const handleEdit = (): void => {
     setIsMounted(!isMounted);
