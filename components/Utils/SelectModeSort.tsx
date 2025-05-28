@@ -30,10 +30,7 @@ export const SelectModeSort: FC<props> = ({ value, setValue }) => {
     }, {
       value: "nombre",
       title: t("name")
-    }, {
-      value: "estado",
-      title: t("state")
-    }
+    },
   ]
 
   const directionOptions: { value: Direction, title: string }[] = [
