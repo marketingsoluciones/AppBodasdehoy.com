@@ -672,96 +672,124 @@ export const BoardView: React.FC<BoardViewProps> = ({
     success: boolean;
   }
 
- const handleTaskCreate = async (taskData: Partial<Task>) => {
-    try {
-      const eventID = (event as EventInterface)._id;
-      if (!eventID) throw new Error("No se pudo obtener el ID del evento");
+const handleTaskCreate = async (taskData: Partial<Task>) => {
+  try {
+    const eventID = (event as EventInterface)._id;
+    if (!eventID) throw new Error("No se pudo obtener el ID del evento");
 
-      console.log('Creando tarea con datos:', taskData);
+    console.log('Creando tarea con datos:', taskData);
 
-      const response = await fetchApiEventos({
-        query: queries.createTask,
-        variables: {
-          eventID: eventID,
-          itinerarioID: itinerario._id,
-          descripcion: taskData.descripcion || "Nueva tarea",
-          fecha: taskData.fecha || new Date(),
-          duracion: taskData.duracion || 30,
-          responsable: taskData.responsable || [],
-          tags: taskData.tags || [],
-          attachments: taskData.attachments || [],
-          tips: taskData.tips || "",
-          spectatorView: taskData.spectatorView !== undefined ? taskData.spectatorView : true,
-          estatus: taskData.estatus !== undefined ? taskData.estatus : false,
-          estado: taskData.estado || 'pending',
-          prioridad: taskData.prioridad || 'media',
-        },
-        domain: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-      });
+    // Primer fetch: Crear la tarea
+    const createResponse = await fetchApiEventos({
+      query: queries.createTask,
+      variables: {
+        eventID: eventID,
+        itinerarioID: itinerario._id,
+        descripcion: taskData.descripcion || "Nueva tarea",
+        fecha: taskData.fecha || new Date(),
+        duracion: taskData.duracion || 30,
+      },
+      domain: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    });
 
-      if (!response) throw new Error("No se recibió respuesta del servidor");
+    if (!createResponse) throw new Error("No se recibió respuesta del servidor al crear la tarea");
 
-      // La respuesta puede venir directamente como Task o dentro de data
-      const newTask: Task = (response as { data?: Task }).data || (response as Task);
+    // La respuesta puede venir directamente como Task o dentro de data
+    const newTask: Task = (createResponse as { data?: Task }).data || (createResponse as Task);
+    
+    if (!newTask._id) throw new Error("La tarea creada no tiene ID válido");
+
+    console.log('Tarea creada con ID:', newTask._id);
+
+    // Preparar los datos completos para la actualización
+    const fullTaskData = {
+      descripcion: taskData.descripcion || "Nueva tarea",
+      fecha: taskData.fecha || new Date(),
+      duracion: taskData.duracion || 30,
+      responsable: taskData.responsable || [],
+      tags: taskData.tags || [],
+      attachments: taskData.attachments || [],
+      tips: taskData.tips || "",
+      spectatorView: taskData.spectatorView !== undefined ? taskData.spectatorView : true,
+      estatus: taskData.estatus !== undefined ? taskData.estatus : false,
+      estado: taskData.estado || 'pending',
+      prioridad: taskData.prioridad || 'media',
+    };
+
+    // Segundo fetch: Actualizar la tarea con todos los datos incluyendo el estado
+    const updateResponse = await fetchApiEventos({
+      query: queries.editTask,
+      variables: {
+        eventID: eventID,
+        itinerarioID: itinerario._id,
+        taskID: newTask._id,
+        variable: "all",
+        valor: JSON.stringify(fullTaskData)
+      },
+      domain: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    });
+
+    if (!updateResponse) throw new Error("No se pudo actualizar la tarea con los datos completos");
+
+    // Combinar los datos de la tarea creada con los datos actualizados
+    const finalTask: Task = {
+      ...newTask,
+      ...fullTaskData
+    };
+
+    console.log('Tarea actualizada:', finalTask);
+
+    // Actualizar el evento global
+    setEvent((prevEvent: EventInterface) => {
+      const newEvent = { ...prevEvent };
+      const itineraryIndex = newEvent.itinerarios_array.findIndex(
+        it => it._id === itinerario._id
+      );
+      if (itineraryIndex !== -1) {
+        newEvent.itinerarios_array[itineraryIndex].tasks.push(finalTask);
+      }
+      return newEvent;
+    });
+
+    // Actualizar el estado local del tablero inmediatamente
+    setBoardState(prev => {
+      const newColumns = { ...prev.columns };
       
-      // Asegurar que la tarea tenga el estado correcto
-      if (!newTask.estado && taskData.estado) {
-        newTask.estado = taskData.estado;
-      }
-
-      console.log('Tarea creada:', newTask);
-
-      // Actualizar el evento global
-      setEvent((prevEvent: EventInterface) => {
-        const newEvent = { ...prevEvent };
-        const itineraryIndex = newEvent.itinerarios_array.findIndex(
-          it => it._id === itinerario._id
-        );
-        if (itineraryIndex !== -1) {
-          newEvent.itinerarios_array[itineraryIndex].tasks.push(newTask);
-        }
-        return newEvent;
-      });
-
-      // Actualizar el estado local del tablero inmediatamente
-      setBoardState(prev => {
-        const newColumns = { ...prev.columns };
-        
-        // Usar el estado especificado o determinar basado en la tarea
-        const targetColumnId = newTask.estado || taskData.estado || 'pending';
-        
-        if (newColumns[targetColumnId]) {
-          newColumns[targetColumnId] = {
-            ...newColumns[targetColumnId],
-            tasks: [...newColumns[targetColumnId].tasks, newTask],
-          };
-        } else {
-          console.warn(`Columna ${targetColumnId} no encontrada, agregando a pending`);
-          if (newColumns.pending) {
-            newColumns.pending = {
-              ...newColumns.pending,
-              tasks: [...newColumns.pending.tasks, newTask],
-            };
-          }
-        }
-        
-        return {
-          ...prev,
-          columns: newColumns,
+      // Usar el estado especificado o determinar basado en la tarea
+      const targetColumnId = taskData.estado || 'pending';
+      
+      if (newColumns[targetColumnId]) {
+        newColumns[targetColumnId] = {
+          ...newColumns[targetColumnId],
+          tasks: [...newColumns[targetColumnId].tasks, finalTask],
         };
-      });
-
-      // Seleccionar la nueva tarea
-      if (newTask._id) {
-        setSelectTask(newTask._id);
+      } else {
+        console.warn(`Columna ${targetColumnId} no encontrada, agregando a pending`);
+        if (newColumns.pending) {
+          newColumns.pending = {
+            ...newColumns.pending,
+            tasks: [...newColumns.pending.tasks, finalTask],
+          };
+        }
       }
+      
+      return {
+        ...prev,
+        columns: newColumns,
+      };
+    });
 
-      toast.success(t("Tarea creada con éxito"));
-    } catch (error) {
-      console.error("Error al crear la tarea:", error);
-      toast.error(t("Error al crear la tarea"));
+    // Seleccionar la nueva tarea
+    if (finalTask._id) {
+      setSelectTask(finalTask._id);
     }
-  };
+
+    toast.success(t("Tarea creada con éxito"));
+  } catch (error) {
+    console.error("Error al crear la tarea:", error);
+    toast.error(t("Error al crear la tarea"));
+  }
+};
 
   // Crear sub-tarea
   const handleCreateSubTask = useCallback((parentTaskId: string, subTask: Partial<Task>) => {
