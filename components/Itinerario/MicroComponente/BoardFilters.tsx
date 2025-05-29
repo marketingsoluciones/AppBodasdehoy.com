@@ -29,10 +29,11 @@ export const BoardFilters: React.FC<BoardFiltersProps> = ({
 
   // Extraer valores únicos para los filtros
 
-  const filterOptions = useMemo(() => {
+ const filterOptions = useMemo(() => {
     const responsables = new Set<string>();
     const tags = new Set<string>();
     const statuses = new Set<string>();
+    const prioridades = new Set<string>();
   
     tasks.forEach(task => {
       // Responsables
@@ -49,12 +50,18 @@ export const BoardFilters: React.FC<BoardFiltersProps> = ({
       } else {
         statuses.add('pending'); // Pendiente
       }
+      
+      // Prioridades
+      if (task.prioridad) {
+        prioridades.add(task.prioridad);
+      }
     });
   
     return {
-      responsables: Array.from(responsables),
-      tags: Array.from(tags),
+      responsables: Array.from(responsables).sort(),
+      tags: Array.from(tags).sort(),
       statuses: Array.from(statuses),
+      prioridades: Array.from(prioridades),
     };
   }, [tasks]);
 
@@ -106,7 +113,7 @@ export const BoardFilters: React.FC<BoardFiltersProps> = ({
           <Filter className="w-5 h-5 text-gray-500" />
           <h3 className="text-lg font-semibold text-gray-800">Filtros</h3>
           {activeFilterCount > 0 && (
-            <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+            <span className="bg-pink-100 text-primary text-xs px-2 py-1 rounded-full">
               {activeFilterCount} activo{activeFilterCount > 1 ? 's' : ''}
             </span>
           )}
@@ -147,7 +154,7 @@ export const BoardFilters: React.FC<BoardFiltersProps> = ({
                   type="checkbox"
                   checked={(localFilters.responsable || []).includes(responsable)}
                   onChange={() => toggleArrayFilter('responsable', responsable)}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="rounded border-gray-300 text-primary focus:ring-primary"
                 />
                 <span>{responsable}</span>
               </label>
@@ -178,7 +185,7 @@ export const BoardFilters: React.FC<BoardFiltersProps> = ({
           type="checkbox"
           checked={(localFilters.status || []).includes(status.key)}
           onChange={() => toggleArrayFilter('status', status.key)}
-          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          className="rounded border-gray-300 text-primary focus:ring-primary"
         />
         <status.icon className="w-4 h-4 text-gray-400" />
         <span>{status.label}</span>
@@ -203,9 +210,9 @@ export const BoardFilters: React.FC<BoardFiltersProps> = ({
                   type="checkbox"
                   checked={(localFilters.tags || []).includes(tag)}
                   onChange={() => toggleArrayFilter('tags', tag)}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="rounded border-gray-300 text- focus:ring-primary"
                 />
-                <span className="inline-block w-3 h-3 bg-blue-500 rounded"></span>
+                <span className="inline-block w-3 h-3 bg-primary rounded"></span>
                 <span>{tag}</span>
               </label>
             ))}
@@ -228,7 +235,7 @@ export const BoardFilters: React.FC<BoardFiltersProps> = ({
                 type="date"
                 value={localFilters.dateFrom || ''}
                 onChange={(e) => updateLocalFilter('dateFrom', e.target.value)}
-                className="w-full px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-blue-500"
+                className="w-full px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-primary"
               />
             </div>
             <div>
@@ -237,7 +244,7 @@ export const BoardFilters: React.FC<BoardFiltersProps> = ({
                 type="date"
                 value={localFilters.dateTo || ''}
                 onChange={(e) => updateLocalFilter('dateTo', e.target.value)}
-                className="w-full px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-blue-500"
+                className="w-full px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-primary"
               />
             </div>
           </div>
@@ -254,7 +261,7 @@ export const BoardFilters: React.FC<BoardFiltersProps> = ({
               type="checkbox"
               checked={localFilters.overdue || false}
               onChange={(e) => updateLocalFilter('overdue', e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="rounded border-gray-300 text-primary focus:ring-primary"
             />
             <span>Solo vencidas</span>
           </label>
@@ -265,7 +272,7 @@ export const BoardFilters: React.FC<BoardFiltersProps> = ({
               type="checkbox"
               checked={localFilters.hasAttachments || false}
               onChange={(e) => updateLocalFilter('hasAttachments', e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="rounded border-gray-300 text-primary focus:ring-primary"
             />
             <span>Con adjuntos</span>
           </label>
@@ -276,7 +283,7 @@ export const BoardFilters: React.FC<BoardFiltersProps> = ({
               type="checkbox"
               checked={localFilters.unassigned || false}
               onChange={(e) => updateLocalFilter('unassigned', e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="rounded border-gray-300 text-primary focus:ring-primary"
             />
             <span>Sin responsable</span>
           </label>
@@ -287,7 +294,7 @@ export const BoardFilters: React.FC<BoardFiltersProps> = ({
       <div className="mt-4 flex justify-end">
         <button
           onClick={handleApplyFilters}
-          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+          className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary transition-colors"
         >
           Aplicar Filtros
         </button>

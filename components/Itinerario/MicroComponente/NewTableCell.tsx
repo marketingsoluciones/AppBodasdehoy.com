@@ -73,7 +73,7 @@ export const ClickUpTableCell: React.FC<ClickUpCellProps> = ({
             value={editValue || ''}
             onChange={(e) => setEditValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="w-full px-2 py-1 border border-blue-500 rounded text-sm focus:outline-none"
+            className="w-full px-2 py-1 border border-primary rounded text-sm focus:outline-none"
             placeholder="Escribir..."
           />
         ) : (
@@ -117,7 +117,7 @@ export const ClickUpTableCell: React.FC<ClickUpCellProps> = ({
             value={editValue || ''}
             onChange={(e) => setEditValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="w-full px-2 py-1 border border-blue-500 rounded text-sm focus:outline-none"
+            className="w-full px-2 py-1 border border-primary rounded text-sm focus:outline-none"
           />
         ) : (
           <div className="flex items-center space-x-1">
@@ -136,7 +136,7 @@ export const ClickUpTableCell: React.FC<ClickUpCellProps> = ({
             value={editValue || ''}
             onChange={(e) => setEditValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="w-full px-2 py-1 border border-blue-500 rounded text-sm focus:outline-none"
+            className="w-full px-2 py-1 border border-primary rounded text-sm focus:outline-none"
             placeholder="0"
           />
         ) : (
@@ -196,7 +196,7 @@ export const ClickUpTableCell: React.FC<ClickUpCellProps> = ({
                 {tags.slice(0, isExpanded ? tags.length : 2).map((tag, index) => (
                   <span
                     key={index}
-                    className="inline-block px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded"
+                    className="inline-block px-2 py-1 text-xs bg-pink-100 text-primary rounded"
                   >
                     {tag}
                   </span>
@@ -271,7 +271,7 @@ export const ClickUpTableCell: React.FC<ClickUpCellProps> = ({
       ref={cellRef}
       className={`
         relative group h-auto min-h-[40px] flex items-center px-2 py-1 min-w-0
-        ${isEditing ? 'bg-blue-50' : 'hover:bg-gray-50'}
+        ${isEditing ? 'bg-pink-50' : 'hover:bg-gray-50'}
         ${canEdit ? 'cursor-text' : 'cursor-default'}
       `}
       onClick={() => {
@@ -414,7 +414,7 @@ export const CellValueRenderer: React.FC<{
           {value.slice(0, 2).map((tag, index) => (
             <span
               key={`tag-${index}-${tag}`}
-              className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded"
+              className="px-2 py-1 bg-pink-100 text-primary text-xs rounded"
             >
               {tag}
             </span>

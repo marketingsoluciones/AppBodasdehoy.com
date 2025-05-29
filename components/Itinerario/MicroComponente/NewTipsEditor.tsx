@@ -46,7 +46,7 @@ export const ClickUpTipsEditor: React.FC<ClickUpTipsEditorProps> = ({
   if (isEditing) {
     return (
       <div className="w-full relative" onKeyDown={handleKeyDown}>
-        <div className="w-full min-h-[120px] max-h-[300px] overflow-y-auto border border-blue-500 rounded-md bg-white">
+        <div className="w-full min-h-[120px] max-h-[300px] overflow-y-auto border border-primary rounded-md bg-white">
         <MyEditor
   name="tips"
   value={value}
@@ -106,7 +106,7 @@ export const ClickUpTipsEditor: React.FC<ClickUpTipsEditorProps> = ({
                   e.stopPropagation();
                   setIsExpanded(!isExpanded);
                 }}
-                className="mt-1 text-xs text-blue-600 hover:text-blue-800 flex items-center space-x-1"
+                className="mt-1 text-xs text-primary hover:text-primary flex items-center space-x-1"
               >
                 {isExpanded ? (
                   <>

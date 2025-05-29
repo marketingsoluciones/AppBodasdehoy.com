@@ -275,7 +275,7 @@ export const ColumnConfigModal: React.FC<{
                   type="checkbox"
                   checked={!hiddenColumns.includes(column.id)}
                   onChange={() => onToggleColumn(column.id)}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="rounded border-gray-300 text-primary focus:ring-primary"
                 />
                 <span className="flex-1 text-sm text-gray-700">
                   {column.Header}

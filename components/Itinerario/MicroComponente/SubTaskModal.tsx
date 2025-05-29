@@ -80,7 +80,7 @@ export const SubTaskModal: React.FC<SubTaskModalProps> = ({
               onChange={(e) => setTitle(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Ej: Revisar documentos..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
               autoFocus
             />
           </div>
@@ -95,7 +95,7 @@ export const SubTaskModal: React.FC<SubTaskModalProps> = ({
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Detalles adicionales sobre la sub-tarea..."
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
             />
           </div>
 
@@ -108,7 +108,7 @@ export const SubTaskModal: React.FC<SubTaskModalProps> = ({
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
             />
           </div>
 
@@ -122,7 +122,7 @@ export const SubTaskModal: React.FC<SubTaskModalProps> = ({
               value={assignee}
               onChange={(e) => setAssignee(e.target.value)}
               placeholder="Nombre del responsable..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
             />
           </div>
         </div>
@@ -141,7 +141,7 @@ export const SubTaskModal: React.FC<SubTaskModalProps> = ({
             className={`
               px-4 py-2 rounded-md transition-colors
               ${isValid
-                ? 'bg-blue-500 text-white hover:bg-blue-600'
+                ? 'bg-primary text-white hover:bg-primary'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }
             `}

@@ -24,7 +24,26 @@ import {
   Maximize2, 
   Minimize2,
   Settings,
-  X
+  X,
+  Eye,
+  EyeOff,
+  Trash2,
+  RefreshCw,
+  Download,
+  Upload,
+  History,
+  Zap,
+  Grid3x3,
+  List,
+  Circle,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  Archive,
+  Hash,
+  Layers,
+  MoreVertical
 } from 'lucide-react';
 import { Task, Itinerary, Event as EventInterface } from '../../../utils/Interfaces';
 import { BoardColumn } from './BoardColumn';
@@ -32,26 +51,33 @@ import { TaskCard } from './TaskCard';
 import { BoardFilters } from './BoardFilters';
 import { AddColumnModal } from './AddColumnModal';
 import { SubTaskModal } from './SubTaskModal';
-// Añadir esta importación junto con las demás importaciones al inicio del archivo
 import { fetchApiEventos, queries } from '../../../utils/Fetching';
 import { toast } from "react-toastify";
-// Agregar esta importación al inicio del archivo junto con las demás
 import { useTranslation } from 'react-i18next';
 
-// Tipos para el tablero
+// Tipos actualizados para el tablero
 export interface BoardColumn {
   id: string;
   title: string;
   color: string;
+  colorConfig?: {
+    bg: string;
+    border: string;
+    text: string;
+  };
+  icon?: React.ReactNode;
   tasks: Task[];
   isCollapsed: boolean;
+  isHidden?: boolean;
   order: number;
 }
 
 export interface BoardState {
   columns: Record<string, BoardColumn>;
   columnOrder: string[];
+  deletedColumns: BoardColumn[];
   isGlobalCollapsed: boolean;
+  viewMode?: 'board' | 'compact' | 'list';
 }
 
 export interface DragItem {
@@ -60,7 +86,7 @@ export interface DragItem {
   data: Task | BoardColumn;
 }
 
-// En las props del componente BoardView
+// Props del componente
 interface BoardViewProps {
   data: Task[];
   itinerario: Itinerary;
@@ -73,34 +99,115 @@ interface BoardViewProps {
   setEvent: (event: EventInterface | ((prev: EventInterface) => EventInterface)) => void;
 }
 
-// Estados por defecto
+// Configuración mejorada de columnas con colores e íconos
+const COLUMN_CONFIG: Record<string, {
+  title: string;
+  colorConfig: { bg: string; border: string; text: string };
+  icon: React.ReactNode;
+  color: string; // Para compatibilidad
+}> = {
+  pending: {
+    title: 'Pendiente',
+    colorConfig: { 
+      bg: 'bg-gray-50', 
+      border: 'border-gray-300',
+      text: 'text-gray-700'
+    },
+    icon: <Circle className="w-4 h-4" />,
+    color: 'bg-gray-50 border-gray-300'
+  },
+  in_progress: {
+    title: 'En Curso',
+    colorConfig: { 
+      bg: 'bg-pink-50', 
+      border: 'border-pink-300',
+      text: 'text-primary'
+    },
+    icon: <Clock className="w-4 h-4" />,
+    color: 'bg-pink-50 border-pink-300'
+  },
+  completed: {
+    title: 'Completado',
+    colorConfig: { 
+      bg: 'bg-green-50', 
+      border: 'border-green-300',
+      text: 'text-green-700'
+    },
+    icon: <CheckCircle2 className="w-4 h-4" />,
+    color: 'bg-green-50 border-green-300'
+  },
+  blocked: {
+    title: 'Bloqueado',
+    colorConfig: { 
+      bg: 'bg-red-50', 
+      border: 'border-red-300',
+      text: 'text-red-700'
+    },
+    icon: <XCircle className="w-4 h-4" />,
+    color: 'bg-red-50 border-red-300'
+  },
+  review: {
+    title: 'En Revisión',
+    colorConfig: { 
+      bg: 'bg-purple-50', 
+      border: 'border-purple-300',
+      text: 'text-purple-700'
+    },
+    icon: <Eye className="w-4 h-4" />,
+    color: 'bg-purple-50 border-purple-300'
+  },
+  archived: {
+    title: 'Archivado',
+    colorConfig: { 
+      bg: 'bg-amber-50', 
+      border: 'border-amber-300',
+      text: 'text-amber-700'
+    },
+    icon: <Archive className="w-4 h-4" />,
+    color: 'bg-amber-50 border-amber-300'
+  }
+};
+
+// Estados por defecto actualizados
 const DEFAULT_COLUMNS: Record<string, Omit<BoardColumn, 'tasks'>> = {
   pending: {
     id: 'pending',
     title: 'Pendiente',
-    color: 'bg-gray-100 border-gray-300',
+    color: 'bg-gray-50 border-gray-300',
+    colorConfig: COLUMN_CONFIG.pending.colorConfig,
+    icon: COLUMN_CONFIG.pending.icon,
     isCollapsed: false,
+    isHidden: false,
     order: 0,
   },
   in_progress: {
     id: 'in_progress',
-    title: 'En Progreso',
-    color: 'bg-blue-50 border-blue-300',
+    title: 'En Curso',
+    color: 'bg-pink-50 border-pink-300',
+    colorConfig: COLUMN_CONFIG.in_progress.colorConfig,
+    icon: COLUMN_CONFIG.in_progress.icon,
     isCollapsed: false,
+    isHidden: false,
     order: 1,
   },
   completed: {
     id: 'completed',
     title: 'Completado',
     color: 'bg-green-50 border-green-300',
+    colorConfig: COLUMN_CONFIG.completed.colorConfig,
+    icon: COLUMN_CONFIG.completed.icon,
     isCollapsed: false,
+    isHidden: false,
     order: 2,
   },
   blocked: {
     id: 'blocked',
     title: 'Bloqueado',
     color: 'bg-red-50 border-red-300',
+    colorConfig: COLUMN_CONFIG.blocked.colorConfig,
+    icon: COLUMN_CONFIG.blocked.icon,
     isCollapsed: false,
+    isHidden: false,
     order: 3,
   },
 };
@@ -108,7 +215,7 @@ const DEFAULT_COLUMNS: Record<string, Omit<BoardColumn, 'tasks'>> = {
 export const BoardView: React.FC<BoardViewProps> = ({
   data,
   itinerario,
-  event, // Asegurarse de recibir event como prop
+  event,
   selectTask,
   setSelectTask,
   onTaskUpdate,
@@ -116,29 +223,27 @@ export const BoardView: React.FC<BoardViewProps> = ({
   onTaskCreate,
   setEvent,
 }) => {
-  // Estados
+  // Estados actualizados
   const [boardState, setBoardState] = useState<BoardState>({
     columns: {},
     columnOrder: [],
+    deletedColumns: [],
     isGlobalCollapsed: false,
+    viewMode: 'board'
   });
-  
-
-
-  
   
   const [draggedItem, setDraggedItem] = useState<DragItem | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [showFilters, setShowFilters] = useState(false);
   const [showAddColumn, setShowAddColumn] = useState(false);
+  const [showColumnManager, setShowColumnManager] = useState(false);
+  const [showDeletedColumns, setShowDeletedColumns] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
   const { t } = useTranslation();
-
-  // En BoardView.tsx, modificar handleTaskUpdate
 
   const handleTaskUpdate = useCallback(async (taskId: string, updates: Partial<Task>) => {
     try {
-      // Primero actualizar en la API
       const response = await fetchApiEventos({
         query: queries.editTask,
         variables: {
@@ -151,14 +256,11 @@ export const BoardView: React.FC<BoardViewProps> = ({
       });
   
       if (response) {
-        // Llamar a onTaskUpdate para mantener la sincronización con el componente padre
         onTaskUpdate(taskId, updates);
         
-        // Actualizar el estado local del tablero si es necesario
         setBoardState(prev => {
           const newColumns = { ...prev.columns };
           
-          // Buscar y actualizar la tarea en la columna correcta
           Object.keys(newColumns).forEach(columnId => {
             const taskIndex = newColumns[columnId].tasks.findIndex(t => t._id === taskId);
             if (taskIndex !== -1) {
@@ -194,66 +296,148 @@ export const BoardView: React.FC<BoardViewProps> = ({
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8, // Evita activación accidental
+        distance: 8,
       },
     })
   );
 
-// Memoizar getTaskStatus
-const getTaskStatus = useCallback((task: Task): string => {
-  if (!task) return 'pending';
-  if (task.estado) return task.estado;
-  if (task.estatus === true) return 'blocked';
-  if (task.spectatorView === false) return 'completed';
-  if (task.responsable?.length > 0 && task.fecha) return 'in_progress';
-  return 'pending';
-}, []); // Sin dependencias ya que no usa nada externo
+  // Memoizar getTaskStatus
+  const getTaskStatus = useCallback((task: Task): string => {
+    if (!task) return 'pending';
+    if (task.estado) return task.estado;
+    if (task.estatus === true) return 'completed';
+    if (task.spectatorView === false) return 'blocked';
+    if (task.responsable?.length > 0 && task.fecha) return 'in_progress';
+    return 'pending';
+  }, []);
 
-// Modifica el useEffect para que sea más simple y tenga las dependencias correctas
-useEffect(() => {
-  if (!data) return; // Si no hay datos, no hacer nada
+  // useEffect actualizado con columnas mejoradas
+  useEffect(() => {
+    if (!data || data.length === 0) {
+      // Si no hay datos, crear columnas vacías
+      const columns: Record<string, BoardColumn> = {};
+      
+      Object.entries(DEFAULT_COLUMNS).forEach(([id, column]) => {
+        columns[id] = {
+          ...column,
+          tasks: [],
+        };
+      });
 
-  const columns: Record<string, BoardColumn> = {};
-  const hiddenColumns: string[] = [];
+      const columnOrder = Object.keys(columns).sort((a, b) => 
+        columns[a].order - columns[b].order
+      );
 
-  // Crear columnas por defecto
-  Object.entries(DEFAULT_COLUMNS).forEach(([id, column]) => {
-    columns[id] = {
-      ...column,
-      tasks: [],
-    };
-  });
-
-  // Distribuir tareas por estado
-  data.forEach(task => {
-    const status = getTaskStatus(task);
-    if (columns[status]) {
-      columns[status].tasks.push(task);
+      setBoardState({
+        columns,
+        columnOrder,
+        deletedColumns: [],
+        isGlobalCollapsed: false,
+        viewMode: 'board'
+      });
+      
+      return;
     }
-  });
 
-  // Identificar columnas vacías
-  Object.entries(columns).forEach(([id, column]) => {
-    if (column.tasks.length === 0) {
-      hiddenColumns.push(id);
-    }
-  });
+    const columns: Record<string, BoardColumn> = {};
 
-  const columnOrder = Object.keys(columns).sort((a, b) => 
-    columns[a].order - columns[b].order
-  );
+    // Crear columnas por defecto con configuración mejorada
+    Object.entries(DEFAULT_COLUMNS).forEach(([id, column]) => {
+      columns[id] = {
+        ...column,
+        tasks: [],
+      };
+    });
 
-  // Actualizar el estado una sola vez
-  setBoardState({
-    columns,
-    columnOrder,
-    isGlobalCollapsed: false
-  });
+    // Distribuir tareas por estado
+    data.forEach(task => {
+      const status = getTaskStatus(task);
+      if (columns[status]) {
+        columns[status].tasks.push(task);
+      } else {
+        // Si el estado no existe, ponerlo en pending
+        console.warn(`Estado desconocido: ${status}, moviendo a pending`);
+        columns.pending.tasks.push(task);
+      }
+    });
 
-  setHiddenEmptyColumns(hiddenColumns);
-}, [data, getTaskStatus]); // Solo dependemos de data y getTaskStatus
+    const columnOrder = Object.keys(columns).sort((a, b) => 
+      columns[a].order - columns[b].order
+    );
 
+    setBoardState(prev => ({
+      columns,
+      columnOrder,
+      deletedColumns: prev.deletedColumns || [],
+      isGlobalCollapsed: false,
+      viewMode: prev.viewMode || 'board'
+    }));
+  }, [data, getTaskStatus]);
 
+  // Función para eliminar columna
+  const handleDeleteColumn = useCallback((columnId: string) => {
+    setBoardState(prev => {
+      const column = prev.columns[columnId];
+      if (!column) return prev;
+
+      const newColumns = { ...prev.columns };
+      delete newColumns[columnId];
+
+      return {
+        ...prev,
+        columns: newColumns,
+        columnOrder: prev.columnOrder.filter(id => id !== columnId),
+        deletedColumns: [...prev.deletedColumns, column]
+      };
+    });
+    
+    toast.success(t('Columna eliminada'));
+  }, [t]);
+
+  // Función para restaurar columna
+  const handleRestoreColumn = useCallback((column: BoardColumn) => {
+    setBoardState(prev => {
+      const newOrder = [...prev.columnOrder, column.id].sort((a, b) => {
+        const aOrder = prev.columns[a]?.order ?? column.order;
+        const bOrder = prev.columns[b]?.order ?? column.order;
+        return aOrder - bOrder;
+      });
+
+      return {
+        ...prev,
+        columns: {
+          ...prev.columns,
+          [column.id]: { ...column, isHidden: false }
+        },
+        columnOrder: newOrder,
+        deletedColumns: prev.deletedColumns.filter(c => c.id !== column.id)
+      };
+    });
+    
+    toast.success(t('Columna restaurada'));
+  }, [t]);
+
+  // Función para alternar visibilidad de columna
+  const handleToggleColumnVisibility = useCallback((columnId: string) => {
+    setBoardState(prev => ({
+      ...prev,
+      columns: {
+        ...prev.columns,
+        [columnId]: {
+          ...prev.columns[columnId],
+          isHidden: !prev.columns[columnId].isHidden
+        }
+      }
+    }));
+  }, []);
+
+  // Filtrar columnas visibles
+  const visibleColumns = useMemo(() => {
+    return boardState.columnOrder
+      .filter(id => !boardState.columns[id]?.isHidden)
+      .map(id => boardState.columns[id])
+      .filter(Boolean);
+  }, [boardState]);
 
   // Filtrar tareas basado en búsqueda y filtros
   const filteredColumns = useMemo(() => {
@@ -284,8 +468,19 @@ useEffect(() => {
           );
           if (!hasResponsible) return false;
         }
+
+        if (activeFilters.tags && activeFilters.tags.length > 0) {
+          const hasTags = task.tags?.some(t => 
+            activeFilters.tags.includes(t)
+          );
+          if (!hasTags) return false;
+        }
+
+        if (activeFilters.status && activeFilters.status.length > 0) {
+          const taskStatus = task.estatus ? 'completed' : 'pending';
+          if (!activeFilters.status.includes(taskStatus)) return false;
+        }
   
-        // Eliminar la comprobación de prioridad que causaba el error
         return true;
       });
   
@@ -297,51 +492,12 @@ useEffect(() => {
   
     return filtered;
   }, [boardState.columns, searchTerm, activeFilters]);
-  
-
-  // Filtrar tareas según los filtros activos
-  const filteredTasks = useMemo(() => {
-    return data.filter(task => {
-      // Filtrar por texto
-      if (activeFilters.text) {
-        const searchText = activeFilters.text.toLowerCase();
-        if (!task.descripcion.toLowerCase().includes(searchText)) {
-          return false;
-        }
-      }
-
-      // Filtrar por responsables
-      if (activeFilters.responsable && activeFilters.responsable.length > 0) {
-        if (!task.responsable.some(r => activeFilters.responsable.includes(r))) {
-          return false;
-        }
-      }
-
-      // Filtrar por etiquetas
-      if (activeFilters.tags && activeFilters.tags.length > 0) {
-        if (!task.tags.some(t => activeFilters.tags.includes(t))) {
-          return false;
-        }
-      }
-
-      // Filtrar por estado
-      if (activeFilters.status) {
-        const taskStatus = task.estatus ? 'completed' : 'pending';
-        if (taskStatus !== activeFilters.status) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-  }, [data, activeFilters]);
 
   // Manejar inicio de arrastre
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const { active } = event;
     const activeId = active.id as string;
     
-    // Buscar la tarea o columna que se está arrastrando
     for (const column of Object.values(boardState.columns)) {
       const task = column.tasks.find(t => t._id === activeId);
       if (task) {
@@ -354,7 +510,6 @@ useEffect(() => {
       }
     }
     
-    // Si no es una tarea, debe ser una columna
     const column = boardState.columns[activeId];
     if (column) {
       setDraggedItem({
@@ -378,7 +533,6 @@ useEffect(() => {
     const overId = over.id as string;
 
     if (draggedItem.type === 'task') {
-      // Encontrar en qué columna está la tarea actualmente
       let sourceColumnId = '';
       for (const [columnId, column] of Object.entries(boardState.columns)) {
         if (column.tasks.some(t => t._id === activeId)) {
@@ -387,10 +541,8 @@ useEffect(() => {
         }
       }
 
-      // Determinar la columna destino
       let targetColumnId = overId;
       
-      // Si se suelta sobre una tarea, obtener su columna
       for (const [columnId, column] of Object.entries(boardState.columns)) {
         if (column.tasks.some(t => t._id === overId)) {
           targetColumnId = columnId;
@@ -398,30 +550,26 @@ useEffect(() => {
         }
       }
 
-      // Si se mueve entre columnas diferentes, actualizar status
       if (sourceColumnId !== targetColumnId) {
         const newEstatus = getStatusFromColumnId(targetColumnId);
-        onTaskUpdate(activeId, { estatus: newEstatus });
+        onTaskUpdate(activeId, { estatus: newEstatus, estado: targetColumnId });
         
-        // Actualizar estado local
         setBoardState(prev => {
           const newColumns = { ...prev.columns };
           const task = newColumns[sourceColumnId].tasks.find(t => t._id === activeId);
           
           if (task) {
-            // Actualizar el estatus de la tarea
             const updatedTask = {
               ...task,
-              estatus: newEstatus
+              estatus: newEstatus,
+              estado: targetColumnId
             };
             
-            // Remover de columna origen
             newColumns[sourceColumnId] = {
               ...newColumns[sourceColumnId],
               tasks: newColumns[sourceColumnId].tasks.filter(t => t._id !== activeId),
             };
             
-            // Agregar a columna destino
             newColumns[targetColumnId] = {
               ...newColumns[targetColumnId],
               tasks: [...newColumns[targetColumnId].tasks, updatedTask],
@@ -435,7 +583,6 @@ useEffect(() => {
         });
       }
     } else if (draggedItem.type === 'column') {
-      // Reordenar columnas
       if (activeId !== overId) {
         setBoardState(prev => {
           const newColumnOrder = [...prev.columnOrder];
@@ -458,7 +605,6 @@ useEffect(() => {
 
   // Convertir columnId a status
   const getStatusFromColumnId = (columnId: string): boolean => {
-    // Convertir el columnId a un valor booleano según la lógica de negocio
     switch (columnId) {
       case 'completed':
         return true;
@@ -516,182 +662,349 @@ useEffect(() => {
       };
     });
     setShowAddColumn(false);
-  }, []);
+    toast.success(t('Columna agregada'));
+  }, [t]);
 
-  // Primero, definamos una interfaz para la respuesta de la API
-interface ApiResponse {
-  data: Task;
-  _id: string;
-  success: boolean;
-}
+  // Manejar creación de tareas
+  interface ApiResponse {
+    data: Task;
+    _id: string;
+    success: boolean;
+  }
 
-// Modificar la función handleTaskCreate
-const handleTaskCreate = async (taskData: Partial<Task>) => {
-  try {
-    const eventID = (event as EventInterface)._id;
-    if (!eventID) throw new Error("No se pudo obtener el ID del evento");
+ const handleTaskCreate = async (taskData: Partial<Task>) => {
+    try {
+      const eventID = (event as EventInterface)._id;
+      if (!eventID) throw new Error("No se pudo obtener el ID del evento");
 
-    const response = await fetchApiEventos({
-      query: queries.createTask,
-      variables: {
-        eventID: eventID,
-        itinerarioID: itinerario._id,
-        descripcion: taskData.descripcion || "Nueva tarea",
-        fecha: taskData.fecha || new Date(),
-        duracion: taskData.duracion || 30,
-        responsable: taskData.responsable || [],
-        tags: taskData.tags || [],
-        attachments: taskData.attachments || [],
-        tips: taskData.tips || "",
-        spectatorView: taskData.spectatorView !== undefined ? taskData.spectatorView : true,
-        estatus: taskData.estatus !== undefined ? taskData.estatus : false,
-        estado: taskData.estado,
-        prioridad: taskData.prioridad,
-      },
-      domain: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-    }) as ApiResponse;
+      console.log('Creando tarea con datos:', taskData);
 
-    if (!response) throw new Error("No se recibió respuesta del servidor");
+      const response = await fetchApiEventos({
+        query: queries.createTask,
+        variables: {
+          eventID: eventID,
+          itinerarioID: itinerario._id,
+          descripcion: taskData.descripcion || "Nueva tarea",
+          fecha: taskData.fecha || new Date(),
+          duracion: taskData.duracion || 30,
+          responsable: taskData.responsable || [],
+          tags: taskData.tags || [],
+          attachments: taskData.attachments || [],
+          tips: taskData.tips || "",
+          spectatorView: taskData.spectatorView !== undefined ? taskData.spectatorView : true,
+          estatus: taskData.estatus !== undefined ? taskData.estatus : false,
+          estado: taskData.estado || 'pending',
+          prioridad: taskData.prioridad || 'media',
+        },
+        domain: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+      });
 
-    // Actualizar el estado global
-    setEvent((prevEvent: EventInterface) => {
-      const newEvent = { ...prevEvent };
-      const itineraryIndex = newEvent.itinerarios_array.findIndex(
-        it => it._id === itinerario._id
-      );
-      if (itineraryIndex !== -1) {
-        const newTask = response.data;
-        newEvent.itinerarios_array[itineraryIndex].tasks.push(newTask);
+      if (!response) throw new Error("No se recibió respuesta del servidor");
+
+      // La respuesta puede venir directamente como Task o dentro de data
+      const newTask: Task = (response as { data?: Task }).data || (response as Task);
+      
+      // Asegurar que la tarea tenga el estado correcto
+      if (!newTask.estado && taskData.estado) {
+        newTask.estado = taskData.estado;
       }
-      return newEvent;
-    });
 
-    // Actualizar el estado local del board inmediatamente
-setBoardState(prev => {
-  const columns = { ...prev.columns };
-  const status = getTaskStatus(response.data);
-  if (columns[status]) {
-    columns[status] = {
-      ...columns[status],
-      tasks: [...columns[status].tasks, response.data],
-    };
-  }
-  return {
-    ...prev,
-    columns,
-  };
-});
+      console.log('Tarea creada:', newTask);
 
-    // Seleccionar la nueva tarea
-    if (response._id) {
-      setSelectTask(response._id);
+      // Actualizar el evento global
+      setEvent((prevEvent: EventInterface) => {
+        const newEvent = { ...prevEvent };
+        const itineraryIndex = newEvent.itinerarios_array.findIndex(
+          it => it._id === itinerario._id
+        );
+        if (itineraryIndex !== -1) {
+          newEvent.itinerarios_array[itineraryIndex].tasks.push(newTask);
+        }
+        return newEvent;
+      });
+
+      // Actualizar el estado local del tablero inmediatamente
+      setBoardState(prev => {
+        const newColumns = { ...prev.columns };
+        
+        // Usar el estado especificado o determinar basado en la tarea
+        const targetColumnId = newTask.estado || taskData.estado || 'pending';
+        
+        if (newColumns[targetColumnId]) {
+          newColumns[targetColumnId] = {
+            ...newColumns[targetColumnId],
+            tasks: [...newColumns[targetColumnId].tasks, newTask],
+          };
+        } else {
+          console.warn(`Columna ${targetColumnId} no encontrada, agregando a pending`);
+          if (newColumns.pending) {
+            newColumns.pending = {
+              ...newColumns.pending,
+              tasks: [...newColumns.pending.tasks, newTask],
+            };
+          }
+        }
+        
+        return {
+          ...prev,
+          columns: newColumns,
+        };
+      });
+
+      // Seleccionar la nueva tarea
+      if (newTask._id) {
+        setSelectTask(newTask._id);
+      }
+
+      toast.success(t("Tarea creada con éxito"));
+    } catch (error) {
+      console.error("Error al crear la tarea:", error);
+      toast.error(t("Error al crear la tarea"));
     }
+  };
 
-    toast.success(t("Tarea creada con éxito"));
-  } catch (error) {
-    console.error("Error al crear la tarea:", error);
-    toast.error(t("Error al crear la tarea"));
-  }
-};
-
-// Crear sub-tarea usando tags para la relación
-const handleCreateSubTask = useCallback((parentTaskId: string, subTask: Partial<Task>) => {
+  // Crear sub-tarea
+  const handleCreateSubTask = useCallback((parentTaskId: string, subTask: Partial<Task>) => {
     onTaskCreate({
       ...subTask,
-      // Agregar un tag especial para marcar la relación padre-hijo
       tags: [
         ...(subTask.tags || []),
-        `subtask-of:${parentTaskId}` // Usar un tag para marcar la relación
+        `subtask-of:${parentTaskId}`
       ]
     });
     
     setShowSubTaskModal({ show: false });
   }, [onTaskCreate]);
 
-  // Funciones auxiliares para manejar subtareas
-  const isSubtask = (task: Task): boolean => {
-    return task.tags.some(tag => tag.startsWith('subtask-of:'));
-  };
+  // Atajos de teclado
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        switch(e.key) {
+          case 'f':
+            e.preventDefault();
+            const searchInput = document.querySelector('input[type="text"][placeholder*="Buscar"]') as HTMLInputElement;
+            searchInput?.focus();
+            break;
+          case 'e':
+            e.preventDefault();
+            toggleGlobalCollapse();
+            break;
+          case 'h':
+            e.preventDefault();
+            setShowShortcuts(true);
+            break;
+        }
+      }
+    };
 
-  const getParentTaskId = (task: Task): string | null => {
-    const parentTag = task.tags.find(tag => tag.startsWith('subtask-of:'));
-    return parentTag ? parentTag.split(':')[1] : null;
-  };
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [toggleGlobalCollapse]);
 
-  const getSubtasks = (parentId: string, tasks: Task[]): Task[] => {
-    return tasks.filter(task => 
-      task.tags.includes(`subtask-of:${parentId}`)
-    );
-  };
-  
+  // Exportar datos
+  const exportData = useCallback(() => {
+    const exportData = {
+      itinerario: itinerario.title,
+      fecha: new Date().toISOString(),
+      columnas: boardState.columnOrder.map(columnId => ({
+        nombre: boardState.columns[columnId].title,
+        tareas: boardState.columns[columnId].tasks.map(task => ({
+          titulo: task.descripcion,
+          responsable: task.responsable,
+          prioridad: task.prioridad,
+          estado: task.estatus ? 'Completado' : 'Pendiente'
+        }))
+      }))
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `tablero-${itinerario.title}-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    toast.success(t('Datos exportados correctamente'));
+  }, [boardState, itinerario, t]);
 
   return (
     <div className="h-full flex flex-col bg-gray-50">
-      {/* Header del tablero */}
-      <div className="flex items-center justify-between p-4 bg-white border-b border-gray-200">
-        <div className="flex items-center space-x-4">
-          <h2 className="text-xl font-semibold text-gray-800">
-            {itinerario.title} - Vista Tablero
-          </h2>
-          
-          {/* Controles de colapso global */}
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={toggleGlobalCollapse}
-              className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
-              title={boardState.isGlobalCollapsed ? 'Expandir todo' : 'Contraer todo'}
-            >
-              {boardState.isGlobalCollapsed ? (
-                <Maximize2 className="w-4 h-4" />
-              ) : (
-                <Minimize2 className="w-4 h-4" />
-              )}
-            </button>
-          </div>
-        </div>
+      {/* Header del tablero mejorado */}
+      <div className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <h2 className="text-xl font-semibold text-gray-800">
+                {itinerario.title} - Vista Tablero
+              </h2>
+              
 
-        <div className="flex items-center space-x-2">
-          {/* Búsqueda */}
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Buscar tareas..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-            {searchTerm && (
+            </div>
+
+            <div className="flex items-center space-x-2">
+                            {/* Indicadores de estado */}
+              <div className="flex items-center space-x-3 text-sm">
+                <span className="flex items-center space-x-1 text-gray-500">
+                  <Layers className="w-4 h-4" />
+                  <span>{visibleColumns.length} columnas</span>
+                </span>
+                <span className="flex items-center space-x-1 text-gray-500">
+                  <Hash className="w-4 h-4" />
+                  <span>
+                    {visibleColumns.reduce((acc, col) => acc + col.tasks.length, 0)} tareas
+                  </span>
+                </span>
+                {boardState.deletedColumns.length > 0 && (
+                  <button
+                    onClick={() => setShowDeletedColumns(!showDeletedColumns)}
+                    className="flex items-center space-x-1 text-orange-600 hover:text-orange-700"
+                  >
+                    <Archive className="w-4 h-4" />
+                    <span>{boardState.deletedColumns.length} eliminadas</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Selector de vista */}
+              <div className="flex items-center bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => setBoardState(prev => ({ ...prev, viewMode: 'board' }))}
+                  className={`p-2 rounded transition-all ${
+                    boardState.viewMode === 'board' 
+                      ? 'bg-white shadow-sm text-primary' 
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                  title="Vista Tablero"
+                >
+                  <Grid3x3 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setBoardState(prev => ({ ...prev, viewMode: 'compact' }))}
+                  className={`p-2 rounded transition-all ${
+                    boardState.viewMode === 'compact' 
+                      ? 'bg-white shadow-sm text-primary' 
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                  title="Vista Compacta"
+                >
+                  <Layers className="w-4 h-4" />
+                </button>
+{/*                 <button
+                  onClick={() => setBoardState(prev => ({ ...prev, viewMode: 'list' }))}
+                  className={`p-2 rounded transition-all ${
+                    boardState.viewMode === 'list' 
+                      ? 'bg-white shadow-sm text-primary' 
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                  title="Vista Lista"
+                >
+                  <List className="w-4 h-4" />
+                </button> */}
+              </div>
+              {/* Búsqueda mejorada */}
+              <div className="relative">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Buscar tareas... (Ctrl+F)"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
+              {/* Botones de acción */}
               <button
-                onClick={() => setSearchTerm('')}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                onClick={() => setShowFilters(!showFilters)}
+                className={`p-2 rounded-md transition-colors ${
+                  showFilters || Object.keys(activeFilters).length > 0
+                    ? 'bg-pink-100 text-primary'
+                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+                }`}
+                title="Filtros"
               >
-                <X className="w-4 h-4" />
+                <Filter className="w-4 h-4" />
               </button>
-            )}
+
+              <button
+                onClick={() => setShowColumnManager(true)}
+                className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
+                title="Gestionar Columnas"
+              >
+                <Settings className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={toggleGlobalCollapse}
+                className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
+                title={boardState.isGlobalCollapsed ? 'Expandir todo' : 'Contraer todo'}
+              >
+                {boardState.isGlobalCollapsed ? (
+                  <Maximize2 className="w-4 h-4" />
+                ) : (
+                  <Minimize2 className="w-4 h-4" />
+                )}
+              </button>
+
+              <button
+                onClick={exportData}
+                className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
+                title="Exportar datos"
+              >
+                <Download className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={() => setShowShortcuts(true)}
+                className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
+                title="Atajos de teclado (Ctrl+H)"
+              >
+                <Zap className="w-4 h-4" />
+              </button>
+
+{/*               <button
+                onClick={() => setShowAddColumn(true)}
+                className="flex items-center space-x-1 px-3 py-2 text-primary hover:text-primary hover:bg-pink-50 rounded-md transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                <span className="text-sm font-medium">Agregar Estado</span>
+              </button> */}
+            </div>
           </div>
-
-          {/* Filtros */}
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`p-2 rounded-md transition-colors ${
-              showFilters || Object.keys(activeFilters).length > 0
-                ? 'bg-blue-100 text-blue-600'
-                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
-            }`}
-          >
-            <Filter className="w-4 h-4" />
-          </button>
-
-          {/* Agregar columna */}
-{/*           <button
-            onClick={() => setShowAddColumn(true)}
-            className="flex items-center space-x-1 px-3 py-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="text-sm font-medium">Agregar Estado</span>
-          </button> */}
         </div>
+
+        {/* Barra de columnas eliminadas */}
+        {showDeletedColumns && boardState.deletedColumns.length > 0 && (
+          <div className="px-4 py-3 bg-amber-50 border-t border-amber-200">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-medium text-amber-800">
+                Columnas Eliminadas
+              </h3>
+              <div className="flex items-center space-x-2">
+                {boardState.deletedColumns.map(column => (
+                  <button
+                    key={column.id}
+                    onClick={() => handleRestoreColumn(column)}
+                    className="inline-flex items-center space-x-2 px-3 py-1 bg-white border border-amber-300 rounded-md text-sm hover:bg-amber-50 transition-colors"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    <span>{column.title}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Filtros expandibles */}
@@ -718,7 +1031,7 @@ const handleCreateSubTask = useCallback((parentTaskId: string, subTask: Partial<
               strategy={horizontalListSortingStrategy}
             >
               {boardState.columnOrder
-                .filter(columnId => !hiddenEmptyColumns.includes(columnId))
+                .filter(columnId => !boardState.columns[columnId]?.isHidden)
                 .map(columnId => {
                 const column = filteredColumns[columnId];
                 if (!column) return null;
@@ -737,6 +1050,9 @@ const handleCreateSubTask = useCallback((parentTaskId: string, subTask: Partial<
                     }
                     selectedTask={selectTask}
                     itinerario={itinerario}
+                    onDeleteColumn={() => handleDeleteColumn(columnId)}
+                    onToggleVisibility={() => handleToggleColumnVisibility(columnId)}
+                    viewMode={boardState.viewMode || 'board'}
                   />
                 );
               })}
@@ -777,6 +1093,183 @@ const handleCreateSubTask = useCallback((parentTaskId: string, subTask: Partial<
           itinerario={itinerario}
         />
       )}
+
+      {/* Modal de gestión de columnas */}
+      {showColumnManager && (
+        <ColumnManagerModal
+          columns={boardState.columns}
+          columnOrder={boardState.columnOrder}
+          deletedColumns={boardState.deletedColumns}
+          onToggleVisibility={handleToggleColumnVisibility}
+          onRestore={handleRestoreColumn}
+          onDelete={handleDeleteColumn}
+          onClose={() => setShowColumnManager(false)}
+        />
+      )}
+
+      {/* Modal de atajos de teclado */}
+      {showShortcuts && (
+        <ShortcutsModal onClose={() => setShowShortcuts(false)} />
+      )}
     </div>
   );
 };
+
+// Modal de gestión de columnas
+function ColumnManagerModal({ 
+  columns, 
+  columnOrder, 
+  deletedColumns,
+  onToggleVisibility, 
+  onRestore, 
+  onDelete,
+  onClose 
+}: any) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[80vh] overflow-hidden">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <h3 className="text-xl font-semibold text-gray-800">
+            {t('Gestionar Columnas')}
+          </h3>
+          <button
+            onClick={onClose}
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="p-6 overflow-y-auto">
+          {/* Columnas activas */}
+          <div className="mb-6">
+            <h4 className="text-sm font-medium text-gray-700 mb-3">
+              {t('Columnas Activas')}
+            </h4>
+            <div className="space-y-2">
+              {columnOrder.map((id: string) => {
+                const column = columns[id];
+                if (!column) return null;
+                
+                return (
+                  <div
+                    key={id}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  >
+                    <div className="flex items-center space-x-3">
+                      {column.icon && (
+                        <div className={column.colorConfig?.text || 'text-gray-600'}>
+                          {column.icon}
+                        </div>
+                      )}
+                      <span className="font-medium">{column.title}</span>
+                      <span className="text-sm text-gray-500">
+                        ({column.tasks.length} tareas)
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => onToggleVisibility(id)}
+                        className="p-2 text-gray-600 hover:bg-gray-200 rounded transition-colors"
+                        title={column.isHidden ? 'Mostrar' : 'Ocultar'}
+                      >
+                        {column.isHidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                      <button
+                        onClick={() => onDelete(id)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+                        title="Eliminar"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Columnas eliminadas */}
+          {deletedColumns.length > 0 && (
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 mb-3">
+                {t('Columnas Eliminadas')}
+              </h4>
+              <div className="space-y-2">
+                {deletedColumns.map((column: BoardColumn) => (
+                  <div
+                    key={column.id}
+                    className="flex items-center justify-between p-3 bg-red-50 rounded-lg"
+                  >
+                    <div className="flex items-center space-x-3">
+                      {column.icon && (
+                        <div className={column.colorConfig?.text || 'text-gray-600'}>
+                          {column.icon}
+                        </div>
+                      )}
+                      <span className="font-medium text-gray-600">
+                        {column.title}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => onRestore(column)}
+                      className="flex items-center space-x-1 px-3 py-1 bg-white border border-gray-300 rounded text-sm hover:bg-gray-50 transition-colors"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      <span>{t('Restaurar')}</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Modal de atajos de teclado
+function ShortcutsModal({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation();
+  
+  const shortcuts = [
+    { keys: 'Ctrl + F', description: t('Buscar tareas') },
+    { keys: 'Ctrl + E', description: t('Expandir/Contraer todo') },
+    { keys: 'Ctrl + H', description: t('Mostrar atajos') },
+    { keys: 'Esc', description: t('Cerrar modales') },
+  ];
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <h3 className="text-xl font-semibold text-gray-800">
+            {t('Atajos de Teclado')}
+          </h3>
+          <button
+            onClick={onClose}
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="p-6">
+          <div className="space-y-3">
+            {shortcuts.map((shortcut, index) => (
+              <div key={index} className="flex items-center justify-between">
+                <kbd className="px-3 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono">
+                  {shortcut.keys}
+                </kbd>
+                <span className="text-gray-600">{shortcut.description}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -179,7 +179,7 @@ const getValidPriority = (priority: string | undefined): Priority => {
       className={`
         relative group cursor-grab active:cursor-grabbing rounded-lg border transition-all duration-200
         ${isSelected 
-          ? 'border-blue-500 shadow-md ring-2 ring-blue-200' 
+          ? 'border-primary shadow-md ring-2 ring-pink-200' 
           : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
         }
         ${isCompleted ? 'bg-green-50' : 'bg-white'}
@@ -218,7 +218,7 @@ const getValidPriority = (priority: string | undefined): Priority => {
           {/* Botón de sub-tarea */}
           <button
             onClick={handleCreateSubTask}
-            className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+            className="p-1 text-gray-400 hover:text-primary hover:bg-pink-50 rounded-md transition-colors"
             title="Crear sub-tarea"
           >
             <PlusCircle className="w-4 h-4" />
@@ -407,7 +407,7 @@ const getValidPriority = (priority: string | undefined): Priority => {
                 {task.tags.slice(0, 2).map((tag, index) => (
                   <span
                     key={index}
-                    className="inline-block px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded"
+                    className="inline-block px-2 py-1 text-xs bg-pink-100 text-primary rounded"
                   >
                     {tag}
                   </span>
@@ -443,7 +443,7 @@ const getValidPriority = (priority: string | undefined): Priority => {
       </div>
       <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
         <div
-          className="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
+          className="bg-primary h-1.5 rounded-full transition-all duration-300"
           style={{
             width: `${(subtaskInfo.completed / subtaskInfo.total) * 100}%`
           }}

@@ -337,24 +337,17 @@ const handleTaskUpdate = async (taskId: string, updates: Partial<Task>) => {
         // Transformar valores según el tipo de campo
         if (key === 'responsable' || key === 'tags' || key === 'attachments') {
           apiValue = JSON.stringify(value);
-        } else if (key === 'status') {
-          // El BoardView envía 'status', pero necesitamos mapear a campos existentes
-          if (value === 'completed') {
-            // Marcar como completada podría significar cambiar spectatorView o algún otro campo
-            apiKey = 'spectatorView';
-            apiValue = JSON.stringify(false);
-          } else if (value === 'blocked') {
-            apiKey = 'estatus';
-            apiValue = JSON.stringify(true);
-          } else if (value === 'in_progress') {
-            apiKey = 'estatus';
-            apiValue = JSON.stringify(false);
-          } else if (value === 'pending') {
-            apiKey = 'estatus';
-            apiValue = JSON.stringify(false);
-          }
+        } else if (key === 'estado') {
+          // El campo estado se pasa tal cual
+          apiValue = value;
+        } else if (key === 'estatus' || key === 'spectatorView') {
+          // Campos booleanos
+          apiValue = JSON.stringify(value);
+        } else if (key === 'fecha') {
+          // Fechas necesitan ser convertidas correctamente
+          apiValue = value;
         } else {
-          // Para otros campos, convertir a string si no lo es
+          // Para otros campos, convertir a string si es necesario
           apiValue = typeof value === 'string' ? value : JSON.stringify(value);
         }
   

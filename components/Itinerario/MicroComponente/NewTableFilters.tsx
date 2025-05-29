@@ -162,7 +162,7 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
             type="date"
             value={filter.value || ''}
             onChange={(e) => updateFilter(filter.id, { value: e.target.value })}
-            className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+            className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-primary"
           />
         );
       
@@ -173,7 +173,7 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
             value={filter.value || ''}
             onChange={(e) => updateFilter(filter.id, { value: e.target.value })}
             placeholder="Valor"
-            className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+            className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-primary"
           />
         );
       
@@ -184,7 +184,7 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
             value={filter.value || ''}
             onChange={(e) => updateFilter(filter.id, { value: e.target.value })}
             placeholder="Valor"
-            className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+            className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-primary"
           />
         );
     }
@@ -200,7 +200,7 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
             className={`
               flex items-center space-x-2 px-3 py-1 rounded-md transition-colors
               ${activeFiltersCount > 0 
-                ? 'bg-blue-100 text-blue-700' 
+                ? 'bg-pink-100 text-primary' 
                 : 'text-gray-600 hover:bg-gray-100'
               }
             `}
@@ -208,7 +208,7 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
             <Filter className="w-4 h-4" />
             <span className="text-sm font-medium">Filtros</span>
             {activeFiltersCount > 0 && (
-              <span className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">
+              <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full">
                 {activeFiltersCount}
               </span>
             )}
@@ -295,7 +295,7 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
                         value: ''
                       });
                     }}
-                    className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                    className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-primary"
                   >
                     {columns.map((col) => (
                       <option key={col.id} value={col.id}>
@@ -308,7 +308,7 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
                   <select
                     value={filter.operator}
                     onChange={(e) => updateFilter(filter.id, { operator: e.target.value as any })}
-                    className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                    className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-primary"
                   >
                     {operators.map((op) => (
                       <option key={op.value} value={op.value}>
@@ -388,7 +388,7 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
                     value={newViewName}
                     onChange={(e) => setNewViewName(e.target.value)}
                     placeholder="Mi vista personalizada"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
                     autoFocus
                   />
                 </div>
@@ -417,7 +417,7 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
                 className={`
                   px-4 py-2 rounded-md transition-colors
                   ${newViewName.trim()
-                    ? 'bg-blue-500 text-white hover:bg-blue-600'
+                    ? 'bg-primary text-white hover:bg-primary'
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   }
                 `}

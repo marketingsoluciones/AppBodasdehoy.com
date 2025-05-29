@@ -66,7 +66,7 @@ export const ClickUpTableHeader: React.FC<ClickUpTableHeaderProps> = ({
             <div className="flex items-center text-sm text-gray-500">
               <span>{totalItems} tarea{totalItems !== 1 ? 's' : ''}</span>
               {selectedItems > 0 && (
-                <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">
+                <span className="ml-2 px-2 py-1 bg-pink-100 text-primary rounded-full text-xs">
                   {selectedItems} seleccionada{selectedItems !== 1 ? 's' : ''}
                 </span>
               )}
@@ -107,7 +107,7 @@ export const ClickUpTableHeader: React.FC<ClickUpTableHeaderProps> = ({
             {/* Botón de agregar */}
             <button
               onClick={onAddTask}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+              className="flex items-center space-x-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary transition-colors"
             >
               <Plus className="w-4 h-4" />
               <span>Nueva tarea</span>
@@ -174,7 +174,7 @@ export const ClickUpTableHeader: React.FC<ClickUpTableHeaderProps> = ({
                 placeholder="Buscar tareas..."
                 value={searchValue}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
               />
               {searchValue && (
                 <button
@@ -192,7 +192,7 @@ export const ClickUpTableHeader: React.FC<ClickUpTableHeaderProps> = ({
               className={`
                 flex items-center space-x-2 px-3 py-2 rounded-md transition-colors
                 ${filtersActive 
-                  ? 'bg-blue-100 text-blue-700 border border-blue-200' 
+                  ? 'bg-pink-100 text-primary border border-pink-200' 
                   : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
                 }
               `}
@@ -200,7 +200,7 @@ export const ClickUpTableHeader: React.FC<ClickUpTableHeaderProps> = ({
               <Filter className="w-4 h-4" />
               <span>Filtros</span>
               {filtersActive && (
-                <span className="bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                <span className="bg-primary text-white text-xs px-1.5 py-0.5 rounded-full">
                   !
                 </span>
               )}
@@ -221,17 +221,17 @@ export const ClickUpTableHeader: React.FC<ClickUpTableHeaderProps> = ({
 
         {/* Tercera fila: Acciones en lote (solo visible cuando hay selecciones) */}
         {selectedItems > 0 && (
-          <div className="flex items-center justify-between mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+          <div className="flex items-center justify-between mt-3 p-3 bg-pink-50 border border-pink-200 rounded-md">
             <div className="flex items-center space-x-3">
-              <span className="text-sm font-medium text-blue-900">
+              <span className="text-sm font-medium text-pink-900">
                 {selectedItems} tarea{selectedItems !== 1 ? 's' : ''} seleccionada{selectedItems !== 1 ? 's' : ''}
               </span>
             </div>
             <div className="flex items-center space-x-2">
-              <button className="px-3 py-1 text-sm text-blue-700 hover:bg-blue-100 rounded transition-colors">
+              <button className="px-3 py-1 text-sm text-primary hover:bg-pink-100 rounded transition-colors">
                 Cambiar estado
               </button>
-              <button className="px-3 py-1 text-sm text-blue-700 hover:bg-blue-100 rounded transition-colors">
+              <button className="px-3 py-1 text-sm text-primary hover:bg-pink-100 rounded transition-colors">
                 Asignar
               </button>
               <button className="px-3 py-1 text-sm text-red-600 hover:bg-red-100 rounded transition-colors">
@@ -275,7 +275,7 @@ export const TableMiniHeader: React.FC<{
                 if (input) input.indeterminate = someSelected && !allSelected;
               }}
               onChange={(e) => onSelectAll(e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="rounded border-gray-300 text-primary focus:ring-primary"
             />
           </label>
           <span className="text-sm text-gray-600">Seleccionar todo</span>

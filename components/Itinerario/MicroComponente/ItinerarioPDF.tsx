@@ -43,7 +43,7 @@ export const ItinerarioPDF = (props) => {
   
     if (props?.evento?.itinerarios_array?.length < 1 )
       return (
-        <div className="bg-red-200 text-blue-700 w-full h-full text-center mt-20">
+        <div className="bg-red-200 text-primary w-full h-full text-center mt-20">
           Page not found error 404
         </div>
       )

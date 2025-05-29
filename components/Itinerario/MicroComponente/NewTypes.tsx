@@ -58,7 +58,7 @@ export interface ClickUpViewConfig {
 // Estados y prioridades predefinidos
 export const TASK_STATUSES: ClickUpSelectOption[] = [
   { value: 'pending', label: 'Pendiente', color: 'bg-gray-500' },
-  { value: 'in_progress', label: 'En Progreso', color: 'bg-blue-500' },
+  { value: 'in_progress', label: 'En Progreso', color: 'bg-primary' },
   { value: 'review', label: 'En Revisión', color: 'bg-yellow-500' },
   { value: 'completed', label: 'Completado', color: 'bg-green-500' },
   { value: 'blocked', label: 'Bloqueado', color: 'bg-red-500' },

@@ -34,7 +34,7 @@ const defineColumns = (t: any): ClickUpColumn[] => [
         type="checkbox"
         checked={false}
         onChange={() => {}}
-        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+        className="rounded border-gray-300 text-primary focus:ring-primary"
       />
     )
   }, */
@@ -428,7 +428,7 @@ const handleToggleColumn = useCallback((columnId: string) => {
                         >
                           <span>{column.render('Header')}</span>
                           {column.isSorted && (
-                            <span className="text-blue-500">
+                            <span className="text-primary">
                               {column.isSortedDesc ? '↓' : '↑'}
                             </span>
                           )}
@@ -463,7 +463,7 @@ const handleToggleColumn = useCallback((columnId: string) => {
                     {...row.getRowProps()}
                     className={`
                       hover:bg-gray-50 transition-colors divide-x divide-gray-200
-                      ${selectTask === row.original._id ? 'bg-blue-50' : ''}
+                      ${selectTask === row.original._id ? 'bg-pink-50' : ''}
                     `}
                     onClick={() => setSelectTask(row.original._id)}
                   >

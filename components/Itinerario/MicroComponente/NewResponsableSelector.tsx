@@ -62,7 +62,7 @@ export const ClickUpResponsableSelector: React.FC<Props> = ({
             key={`person-${index}`}
             onClick={() => handleToggleSelection(name)}
             className={`flex items-center space-x-3 p-2 rounded-md cursor-pointer transition-colors ${
-              isSelected ? 'bg-blue-50 border border-blue-200' : 'hover:bg-gray-50'
+              isSelected ? 'bg-pink-50 border border-pink-200' : 'hover:bg-gray-50'
             }`}
           >
             <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200">
@@ -77,7 +77,7 @@ export const ClickUpResponsableSelector: React.FC<Props> = ({
               )}
             </div>
             {isSelected && (
-              <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+              <div className="w-4 h-4 bg-primary rounded-full flex items-center justify-center">
                 <div className="w-2 h-2 bg-white rounded-full" />
               </div>
             )}
@@ -102,7 +102,7 @@ export const ClickUpResponsableSelector: React.FC<Props> = ({
             key={`grupo-${index}`}
             onClick={() => handleToggleSelection(grupo.title)}
             className={`flex items-center space-x-3 p-2 rounded-md cursor-pointer transition-colors ${
-              isSelected ? 'bg-blue-50 border border-blue-200' : 'hover:bg-gray-50'
+              isSelected ? 'bg-pink-50 border border-pink-200' : 'hover:bg-gray-50'
             }`}
           >
             <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200">
@@ -112,7 +112,7 @@ export const ClickUpResponsableSelector: React.FC<Props> = ({
               <p className="text-sm font-medium text-gray-900">{grupo.title}</p>
             </div>
             {isSelected && (
-              <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+              <div className="w-4 h-4 bg-primary rounded-full flex items-center justify-center">
                 <div className="w-2 h-2 bg-white rounded-full" />
               </div>
             )}
@@ -153,7 +153,7 @@ export const ClickUpResponsableSelector: React.FC<Props> = ({
             placeholder="Buscar..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-blue-500"
+            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-primary"
           />
         </div>
 

@@ -11,7 +11,7 @@ interface AddColumnModalProps {
 // Colores predefinidos para las columnas
 const COLUMN_COLORS = [
   { bg: 'bg-gray-50', border: 'border-gray-300', name: 'Gris' },
-  { bg: 'bg-blue-50', border: 'border-blue-300', name: 'Azul' },
+  { bg: 'bg-pink-50', border: 'border-pink-300', name: 'Azul' },
   { bg: 'bg-green-50', border: 'border-green-300', name: 'Verde' },
   { bg: 'bg-yellow-50', border: 'border-yellow-300', name: 'Amarillo' },
   { bg: 'bg-red-50', border: 'border-red-300', name: 'Rojo' },
@@ -83,7 +83,7 @@ export const AddColumnModal: React.FC<AddColumnModalProps> = ({
               onChange={(e) => setTitle(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Ej: En Revisión, Aprobado..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
               autoFocus
             />
           </div>
@@ -103,7 +103,7 @@ export const AddColumnModal: React.FC<AddColumnModalProps> = ({
                     relative p-3 rounded-md transition-all
                     ${color.bg} border-2 ${color.border}
                     ${selectedColor === color 
-                      ? 'ring-2 ring-blue-500 ring-offset-2' 
+                      ? 'ring-2 ring-primary ring-offset-2' 
                       : 'hover:ring-2 hover:ring-gray-300'
                     }
                   `}
@@ -112,7 +112,7 @@ export const AddColumnModal: React.FC<AddColumnModalProps> = ({
                   <div className="w-full h-4 rounded-sm opacity-60"></div>
                   {selectedColor === color && (
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                      <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
                         <div className="w-2 h-2 bg-white rounded-full"></div>
                       </div>
                     </div>
@@ -152,7 +152,7 @@ export const AddColumnModal: React.FC<AddColumnModalProps> = ({
                 type="checkbox"
                 checked={isCollapsed}
                 onChange={(e) => setIsCollapsed(e.target.checked)}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                className="rounded border-gray-300 text-primary focus:ring-primary"
               />
               <span>Crear columna colapsada</span>
             </label>
@@ -173,7 +173,7 @@ export const AddColumnModal: React.FC<AddColumnModalProps> = ({
             className={`
               px-4 py-2 rounded-md transition-colors
               ${isValid
-                ? 'bg-blue-500 text-white hover:bg-blue-600'
+                ? 'bg-primary text-white hover:bg-primary'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }
             `}
@@ -265,7 +265,7 @@ export const SubTaskModal: React.FC<SubTaskModalProps> = ({
               onChange={(e) => setTitle(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Ej: Revisar documentos..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
               autoFocus
             />
           </div>
@@ -280,7 +280,7 @@ export const SubTaskModal: React.FC<SubTaskModalProps> = ({
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Detalles adicionales sobre la sub-tarea..."
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
             />
           </div>
 
@@ -293,7 +293,7 @@ export const SubTaskModal: React.FC<SubTaskModalProps> = ({
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
             />
           </div>
 
@@ -307,7 +307,7 @@ export const SubTaskModal: React.FC<SubTaskModalProps> = ({
               value={assignee}
               onChange={(e) => setAssignee(e.target.value)}
               placeholder="Nombre del responsable..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
             />
           </div>
         </div>
@@ -326,7 +326,7 @@ export const SubTaskModal: React.FC<SubTaskModalProps> = ({
             className={`
               px-4 py-2 rounded-md transition-colors
               ${isValid
-                ? 'bg-blue-500 text-white hover:bg-blue-600'
+                ? 'bg-primary text-white hover:bg-primary'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }
             `}

@@ -19,7 +19,7 @@ interface ClickUpTagsEditorProps {
 
 // Colores predefinidos para las etiquetas
 const TAG_COLORS = [
-  { name: 'Azul', value: 'bg-blue-500', text: 'text-blue-800', bg: 'bg-blue-100' },
+  { name: 'Azul', value: 'bg-primary', text: 'text-primary', bg: 'bg-pink-100' },
   { name: 'Verde', value: 'bg-green-500', text: 'text-green-800', bg: 'bg-green-100' },
   { name: 'Rojo', value: 'bg-red-500', text: 'text-red-800', bg: 'bg-red-100' },
   { name: 'Amarillo', value: 'bg-yellow-500', text: 'text-yellow-800', bg: 'bg-yellow-100' },
@@ -175,14 +175,14 @@ export const ClickUpTagsEditor: React.FC<ClickUpTagsEditorProps> = ({
               value={newTag}
               onChange={(e) => setNewTag(e.target.value)}
               placeholder="Escribir nueva etiqueta..."
-              className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-primary focus:border-primary"
             />
           </div>
           
           <button
             onClick={handleAddTag}
             disabled={!newTag.trim()}
-            className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-2 py-1 text-xs bg-primary text-white rounded hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="w-3 h-3" />
           </button>

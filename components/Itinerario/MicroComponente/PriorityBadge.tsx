@@ -1,7 +1,7 @@
 import React from 'react';
-import { AlertTriangle, AlertCircle, AlertOctagon } from 'lucide-react';
+import { AlertCircle, AlertTriangle, Info } from 'lucide-react';
 
-export type Priority = 'alta' | 'media' | 'baja'; // Cambiar a export
+export type Priority = 'alta' | 'media' | 'baja';
 
 interface PriorityBadgeProps {
   priority: Priority;
@@ -10,42 +10,42 @@ interface PriorityBadgeProps {
 }
 
 const priorityConfig = {
-  baja: {
-    icon: AlertCircle,
-    color: 'text-green-600 bg-green-50',
-    label: 'Baja'
+  alta: {
+    icon: <AlertCircle className="w-3 h-3" />,
+    color: 'bg-red-100 text-red-700 border-red-200',
+    label: 'Alta',
   },
   media: {
-    icon: AlertTriangle,
-    color: 'text-yellow-600 bg-yellow-50',
-    label: 'Media'
+    icon: <AlertTriangle className="w-3 h-3" />,
+    color: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+    label: 'Media',
   },
-  alta: {
-    icon: AlertOctagon,
-    color: 'text-red-600 bg-red-50',
-    label: 'Alta'
-  }
+  baja: {
+    icon: <Info className="w-3 h-3" />,
+    color: 'bg-green-100 text-green-700 border-green-200',
+    label: 'Baja',
+  },
 };
 
 export const PriorityBadge: React.FC<PriorityBadgeProps> = ({ 
   priority, 
   onClick,
-  className = ''
+  className = '' 
 }) => {
   const config = priorityConfig[priority] || priorityConfig.media;
-  const Icon = config.icon;
 
   return (
-    <div 
+    <button
       onClick={onClick}
       className={`
-        flex items-center gap-1 px-2 py-1 rounded-full
-        ${config.color} ${className}
-        ${onClick ? 'cursor-pointer hover:opacity-80' : ''}
+        inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium border
+        ${config.color}
+        ${onClick ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}
+        ${className}
       `}
     >
-      <Icon className="w-3 h-3" />
-      <span className="text-xs font-medium">{config.label}</span>
-    </div>
+      {config.icon}
+      <span>{config.label}</span>
+    </button>
   );
 };
