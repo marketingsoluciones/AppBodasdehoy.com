@@ -36,12 +36,13 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
         variables: {
           evento_id: event?._id,
           categoria_id: item._id,
-          nombre: value,
+          nombre: value !== "" ? value : "nueva categoria"
         }
       }).then(() => {
         setEvent(old => {
+          console.log("value", value)
           const index = old?.presupuesto_objeto?.categorias_array?.findIndex(item => item._id == item._id)
-          old.presupuesto_objeto.categorias_array[index].nombre = value
+          old.presupuesto_objeto.categorias_array[index].nombre = value !== "" ? value : "nueva categoria"
           return { ...old }
         });
         toast("success", t("suscess"))
@@ -81,7 +82,7 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
               type={null}
               handleChange={handleOnBlur}
               accessor={null}
-              textAlign="left" />
+              textAlign="left"/>
           </div>
           <div className="col-span-3 flex justify-end items-center">
             {event?.presupuesto_objeto?.viewEstimates &&
