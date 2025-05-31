@@ -70,6 +70,7 @@ export interface BoardColumn {
   isCollapsed: boolean;
   isHidden?: boolean;
   order: number;
+  bgColor?: string;
 }
 
 export interface BoardState {
@@ -111,7 +112,7 @@ const COLUMN_CONFIG: Record<string, {
     colorConfig: { 
       bg: 'bg-gray-50', 
       border: 'border-gray-300',
-      text: 'text-gray-700'
+      text: 'text-white'
     },
     icon: <Circle className="w-4 h-4" />,
     color: 'bg-gray-50 border-gray-300'
@@ -121,7 +122,7 @@ const COLUMN_CONFIG: Record<string, {
     colorConfig: { 
       bg: 'bg-pink-50', 
       border: 'border-pink-300',
-      text: 'text-primary'
+      text: 'text-white'
     },
     icon: <Clock className="w-4 h-4" />,
     color: 'bg-pink-50 border-pink-300'
@@ -131,7 +132,7 @@ const COLUMN_CONFIG: Record<string, {
     colorConfig: { 
       bg: 'bg-green-50', 
       border: 'border-green-300',
-      text: 'text-green-700'
+      text: 'text-white'
     },
     icon: <CheckCircle2 className="w-4 h-4" />,
     color: 'bg-green-50 border-green-300'
@@ -141,7 +142,7 @@ const COLUMN_CONFIG: Record<string, {
     colorConfig: { 
       bg: 'bg-red-50', 
       border: 'border-red-300',
-      text: 'text-red-700'
+      text: 'text-white'
     },
     icon: <XCircle className="w-4 h-4" />,
     color: 'bg-red-50 border-red-300'
@@ -151,7 +152,7 @@ const COLUMN_CONFIG: Record<string, {
     colorConfig: { 
       bg: 'bg-purple-50', 
       border: 'border-purple-300',
-      text: 'text-purple-700'
+      text: 'text-white'
     },
     icon: <Eye className="w-4 h-4" />,
     color: 'bg-purple-50 border-purple-300'
@@ -161,7 +162,7 @@ const COLUMN_CONFIG: Record<string, {
     colorConfig: { 
       bg: 'bg-amber-50', 
       border: 'border-amber-300',
-      text: 'text-amber-700'
+      text: 'text-white'
     },
     icon: <Archive className="w-4 h-4" />,
     color: 'bg-amber-50 border-amber-300'
@@ -179,6 +180,7 @@ const DEFAULT_COLUMNS: Record<string, Omit<BoardColumn, 'tasks'>> = {
     isCollapsed: false,
     isHidden: false,
     order: 0,
+    bgColor: 'bg-gray-700', // <-- Agrega esto
   },
   in_progress: {
     id: 'in_progress',
@@ -189,6 +191,7 @@ const DEFAULT_COLUMNS: Record<string, Omit<BoardColumn, 'tasks'>> = {
     isCollapsed: false,
     isHidden: false,
     order: 1,
+    bgColor: 'bg-primary', // <-- Agrega esto
   },
   completed: {
     id: 'completed',
@@ -199,6 +202,7 @@ const DEFAULT_COLUMNS: Record<string, Omit<BoardColumn, 'tasks'>> = {
     isCollapsed: false,
     isHidden: false,
     order: 2,
+    bgColor: 'bg-green', // <-- Agrega esto
   },
   blocked: {
     id: 'blocked',
@@ -209,6 +213,7 @@ const DEFAULT_COLUMNS: Record<string, Omit<BoardColumn, 'tasks'>> = {
     isCollapsed: false,
     isHidden: false,
     order: 3,
+    bgColor: 'bg-red', // <-- Agrega esto
   },
 };
 

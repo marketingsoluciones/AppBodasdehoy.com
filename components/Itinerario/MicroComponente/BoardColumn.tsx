@@ -172,6 +172,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
         ${isCompact ? 'w-64' : 'w-80'}
         ${isList ? 'w-full max-w-4xl' : ''}
         ${column.isCollapsed ? 'h-16' : ''}
+        h-full min-h-0
       `}
       {...attributes}
     >
@@ -195,16 +196,20 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
             )}
           </button>
           
+        {/* titulo y Ícono de la columna */}
+          <div className={`flex items-center gap-2 px-2 py-1 rounded-md ${column.bgColor}`}>
           {/* Ícono de la columna */}
           {column.icon && (
             <div className={columnColors.text}>
               {column.icon}
             </div>
           )}
-          
-          <h3 className={`font-semibold select-none ${columnColors.text}`}>
+          {/* titulo de la columna */}
+          <h3 className={`font-medium select-none ${columnColors.text}`}>
             {column.title}
           </h3>
+          </div>
+
           
           <span className="bg-white bg-opacity-60 text-gray-600 text-xs px-2 py-1 rounded-full select-none">
             {column.tasks.length}
@@ -302,11 +307,13 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
 
       {/* Contenido de la columna */}
       {!column.isCollapsed && (
-        <div className={`
-          flex-1 p-3 space-y-3 overflow-y-auto 
-          ${isCompact ? 'max-h-72' : 'max-h-96'}
-          ${isList ? 'max-h-full' : ''}
-        `}>
+        <div           className={`
+            flex-1 max-h-full min-h-0 p-3 space-y-3 overflow-y-auto
+            ${isCompact ? 'max-h-72' : 'max-h-96'}
+            ${isList ? 'max-h-full' : ''}
+          `}
+          style={{ height: '100%' }} // <-- Fuerza el alto máximo
+          >
           {/* Formulario para crear nueva tarea */}
           {isCreatingTask && (
             <div className="bg-white bg-opacity-80 border border-gray-200 rounded-md p-3 shadow-sm">
@@ -359,11 +366,13 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
               ))}
           </SortableContext>
 
+
+
           {/* Botón para agregar tarea (cuando no está colapsada y no hay tareas) */}
           {column.tasks.length === 0 && !isCreatingTask && (
             <button
               onClick={() => setIsCreatingTask(true)}
-              className="w-full py-8 border-2 border-dashed border-gray-300 rounded-md text-gray-500 hover:text-gray-700 hover:border-gray-400 transition-colors group"
+              className="inline-flex flex-col items-center space-y-2 border-2 border-dashed border-gray-300 rounded-md text-gray-500 hover:text-gray-700 hover:border-gray-400 transition-colors group px-6 py-4 mx-auto"
             >
               <div className="flex flex-col items-center space-y-2">
                 <Plus className="w-6 h-6 group-hover:scale-110 transition-transform" />
