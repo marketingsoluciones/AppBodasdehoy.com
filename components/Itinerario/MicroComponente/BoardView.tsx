@@ -54,6 +54,7 @@ import { SubTaskModal } from './SubTaskModal';
 import { fetchApiEventos, queries } from '../../../utils/Fetching';
 import { toast } from "react-toastify";
 import { useTranslation } from 'react-i18next';
+import * as XLSX from 'xlsx';
 
 // Tipos actualizados para el tablero
 export interface BoardColumn {
@@ -836,31 +837,35 @@ const handleTaskCreate = async (taskData: Partial<Task>) => {
   }, [toggleGlobalCollapse]);
 
   // Exportar datos
-  const exportData = useCallback(() => {
-    const exportData = {
-      itinerario: itinerario.title,
-      fecha: new Date().toISOString(),
-      columnas: boardState.columnOrder.map(columnId => ({
-        nombre: boardState.columns[columnId].title,
-        tareas: boardState.columns[columnId].tasks.map(task => ({
-          titulo: task.descripcion,
-          responsable: task.responsable,
-          prioridad: task.prioridad,
-          estado: task.estatus ? 'Completado' : 'Pendiente'
-        }))
-      }))
-    };
+const exportData = useCallback(() => {
+  // Prepara los datos en formato de tabla
+  const rows: any[] = [];
+  boardState.columnOrder.forEach(columnId => {
+    const column = boardState.columns[columnId];
+    column.tasks.forEach(task => {
+      rows.push({
+        Estado: column.title,
+        Título: task.descripcion,
+        Responsable: Array.isArray(task.responsable) ? task.responsable.join(', ') : '',
+        Prioridad: task.prioridad,
+        EstadoTarea: task.estatus ? 'Completado' : 'Pendiente',
+        Fecha: task.fecha ? new Date(task.fecha).toLocaleString() : '',
+        Tags: Array.isArray(task.tags) ? task.tags.join(', ') : '',
+        Tips: task.tips || ''
+      });
+    });
+  });
 
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `tablero-${itinerario.title}-${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    
-    toast.success(t('Datos exportados correctamente'));
-  }, [boardState, itinerario, t]);
+  // Crea la hoja y el libro
+  const worksheet = XLSX.utils.json_to_sheet(rows);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Tareas');
+
+  // Genera el archivo y lo descarga
+  XLSX.writeFile(workbook, `tablero-${itinerario.title}-${new Date().toISOString().split('T')[0]}.xlsx`);
+
+  toast.success(t('Datos exportados correctamente'));
+}, [boardState, itinerario, t]);
 
   return (
     <div className="h-full flex flex-col bg-gray-50">
