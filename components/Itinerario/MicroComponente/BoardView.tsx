@@ -206,7 +206,7 @@ const DEFAULT_COLUMNS: Record<string, Omit<BoardColumn, 'tasks'>> = {
   },
   blocked: {
     id: 'blocked',
-    title: 'Bloqueado',
+    title: 'Bloqueado2',
     color: 'bg-[#fff0f0] border-[#ffa7a7]',
     colorConfig: COLUMN_CONFIG.blocked.colorConfig,
     icon: COLUMN_CONFIG.blocked.icon,
@@ -458,10 +458,10 @@ export const BoardView: React.FC<BoardViewProps> = ({
         if (searchTerm) {
           const searchLower = searchTerm.toLowerCase();
           const matchesSearch = 
-            task.descripcion?.toLowerCase().includes(searchLower) ||
-            task.tips?.toLowerCase().includes(searchLower) ||
-            task.responsable?.some(r => r.toLowerCase().includes(searchLower)) ||
-            task.tags?.some(t => t.toLowerCase().includes(searchLower));
+        (task.descripcion?.toLowerCase().includes(searchLower) ?? false) ||
+        (task.tips?.toLowerCase().includes(searchLower) ?? false) ||
+        (Array.isArray(task.responsable) && task.responsable.some(r => r?.toLowerCase().includes(searchLower))) ||
+        (Array.isArray(task.tags) && task.tags.some(t => t?.toLowerCase().includes(searchLower)));
           
           if (!matchesSearch) return false;
         }
