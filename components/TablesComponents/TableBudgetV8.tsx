@@ -13,7 +13,7 @@ import { GrMoney } from 'react-icons/gr';
 import { GoEye, GoEyeClosed, GoTasklist } from 'react-icons/go';
 import { PiNewspaperClippingLight } from 'react-icons/pi';
 import { MdOutlineDeleteOutline } from 'react-icons/md';
-import { handleChange, determinatedPositionMenu, handleCreateItem, handleCreateGasto, handleCreateCategoria, handleChangeEstatus } from "./tableBudgetV8.handles"
+import { handleChange, determinatedPositionMenu, handleCreateItem, handleCreateGasto, handleCreateCategoria, handleChangeEstatus, handleChangeEstatusItem } from "./tableBudgetV8.handles"
 import { useToast } from '../../hooks/useToast';
 import FormAddPago from '../Forms/FormAddPago';
 import ClickAwayListener from 'react-click-away-listener';
@@ -28,6 +28,7 @@ interface props {
   setLoading: any
   showDataState: any
   setShowDataState: any
+  setIdItem: any
 }
 
 export interface InitialColumn {
@@ -57,7 +58,7 @@ const optionsSelect = [
   { title: "xNiños", value: "xNiños." },
 ]
 
-export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDelete, setLoading, showDataState, setShowDataState }) => {
+export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDelete, setLoading, showDataState, setShowDataState, setIdItem }) => {
   const rerender = useReducer(() => ({}), {})[1]
   const { event, setEvent } = EventContextProvider()
   const [isAllowed, ht] = useAllowed()
@@ -142,10 +143,17 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
       icon: true ? <GoEye className="w-4 h-4" /> : <GoEyeClosed className="w-4 h-4" />,
       title: "Estado",
       onClick: (info) => {
-        handleChangeEstatus({ event, categoriaID: info.row.original.categoriaID, gastoId: info.row.original.gastoID, setEvent })
-          .catch(error => toast("error", "ha ocurrido un error"))
+        console.log("???????", info)
+        if (info.column.id === "gasto") {
+          handleChangeEstatus({ event, categoriaID: info.row.original.categoriaID, gastoId: info.row.original.gastoID, setEvent })
+            .catch(error => toast("error", "ha ocurrido un error"))
+        }
+        if (info.column.id === "nombre") {
+          handleChangeEstatusItem({ event, categoriaID: info.row.original.categoriaID, gastoId: info.row.original.gastoID, itemId: info.row.original.itemID, setEvent })
+            .catch(error => toast("error", "ha ocurrido un error"))
+        }
       },
-      object: ["gasto"]
+      object: ["gasto", "item"]
     },
     {
       icon: <GoTasklist className="w-4 h-4" />,
@@ -223,6 +231,10 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                 <>
                   {
                     elem?.accessor === "gasto" && info?.row?.original?.gastoOriginal?.estatus === false &&
+                    <GoEyeClosed className="w-4 h-4 mr-1 " />
+                  }
+                  {
+                    elem?.accessor === "nombre" && info?.row?.original?.itemOriginal?.estatus === true &&
                     <GoEyeClosed className="w-4 h-4 mr-1 " />
                   }
                   <EditableLabelWithInput
