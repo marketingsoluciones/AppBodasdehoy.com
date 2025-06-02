@@ -355,6 +355,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
                 <TaskCard
                   key={task._id}
                   task={task}
+                  column={column}
                   onTaskClick={onTaskClick}
                   onTaskUpdate={onTaskUpdate}
                   onTaskDelete={onTaskDelete}

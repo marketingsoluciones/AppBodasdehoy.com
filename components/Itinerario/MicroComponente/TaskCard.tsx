@@ -21,6 +21,7 @@ import { Task, Itinerary } from '../../../utils/Interfaces';
 import { ImageAvatar } from '../../Utils/ImageAvatar';
 import { GruposResponsablesArry } from '../MicroComponente/ResponsableSelector';
 import { PriorityBadge, Priority } from './PriorityBadge'
+import { BoardColumn } from './BoardView';
 
 
 interface TaskCardProps {
@@ -32,6 +33,7 @@ interface TaskCardProps {
   isSelected: boolean;
   isDragging: boolean;
   itinerario: Itinerary;
+  column?: BoardColumn;
 }
 
 export const TaskCard: React.FC<TaskCardProps> = ({
@@ -43,6 +45,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   isSelected,
   isDragging,
   itinerario,
+  column
 }) => {
   const [showActions, setShowActions] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
@@ -74,8 +77,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   };
 
   // Determinar el estado de completado
-  const isCompleted = task.estatus === true;
-  const isBlocked = task.estatus === true;
+  const isCompleted = column.id === 'completed';
+  const isBlocked = column.id === 'blocked';
 
   // Función para alternar completado
   const handleToggleComplete = useCallback((e: React.MouseEvent) => {
@@ -290,7 +293,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           {/* Título de la tarea */}
 <h4 className={`
   font-medium text-sm mb-2 pr-8
-  ${isCompleted ? 'line-through text-gray-500' : 'text-gray-800'}
+  ${isBlocked ? 'line-through text-gray-500' : 'text-gray-800'}
 `}>
   {(task.descripcion && task.descripcion.length > 30)
     ? `${task.descripcion.slice(0, 30)}...`
@@ -326,12 +329,18 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             )}
 
             {/* Indicador de bloqueo */}
-            {isBlocked && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-[#ffdada] text-red">
-                <AlertCircle className="w-3 h-3 mr-1" />
-                Bloqueado
-              </span>
-            )}
+{isCompleted && (
+  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-[#e9fdf1] text-green">
+    <CheckCircle2 className="w-3 h-3 mr-1" />
+    Completado
+  </span>
+)}
+{isBlocked && (
+  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-[#ffdada] text-red">
+    <AlertCircle className="w-3 h-3 mr-1" />
+    Bloqueado
+  </span>
+)}
 
             {/* Indicador de prioridad */}
             {getPriorityTag(task.tags)?.split(':')[1] === 'alta' && (
