@@ -252,10 +252,10 @@ export const BoardFilters: React.FC<BoardFiltersProps> = ({
       </div>
 
       {/* Filtros avanzados */}
-      <div className="mt-4 pt-4 border-t border-gray-200">
+{/*       <div className="mt-4 pt-4 border-t border-gray-200">
         <h4 className="text-sm font-medium text-gray-700 mb-2">Filtros Avanzados</h4>
         <div className="flex flex-wrap gap-2">
-          {/* Mostrar solo tareas vencidas */}
+          
           <label className="flex items-center space-x-2 text-sm cursor-pointer">
             <input
               type="checkbox"
@@ -266,7 +266,7 @@ export const BoardFilters: React.FC<BoardFiltersProps> = ({
             <span>Solo vencidas</span>
           </label>
 
-          {/* Mostrar solo tareas con adjuntos */}
+          
           <label className="flex items-center space-x-2 text-sm cursor-pointer">
             <input
               type="checkbox"
@@ -277,7 +277,7 @@ export const BoardFilters: React.FC<BoardFiltersProps> = ({
             <span>Con adjuntos</span>
           </label>
 
-          {/* Mostrar solo tareas sin responsable */}
+          
           <label className="flex items-center space-x-2 text-sm cursor-pointer">
             <input
               type="checkbox"
@@ -288,7 +288,7 @@ export const BoardFilters: React.FC<BoardFiltersProps> = ({
             <span>Sin responsable</span>
           </label>
         </div>
-      </div>
+      </div> */}
 
       {/* Botón para aplicar filtros */}
       <div className="mt-4 flex justify-end">
