@@ -172,7 +172,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
         ${isCompact ? 'w-64' : 'w-80'}
         ${isList ? 'w-full max-w-4xl' : ''}
         ${column.isCollapsed ? 'h-16' : ''}
-        h-full min-h-0
+        
       `}
       {...attributes}
     >
