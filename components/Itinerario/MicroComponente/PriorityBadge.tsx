@@ -12,7 +12,7 @@ interface PriorityBadgeProps {
 const priorityConfig = {
   alta: {
     icon: <AlertCircle className="w-3 h-3" />,
-    color: 'bg-red-100 text-red-700 border-red-200',
+    color: 'bg-[#ffdddd] text-red border-[#ff8686]',
     label: 'Alta',
   },
   media: {
@@ -22,7 +22,7 @@ const priorityConfig = {
   },
   baja: {
     icon: <Info className="w-3 h-3" />,
-    color: 'bg-green-100 text-green-700 border-green-200',
+    color: 'bg-[#e2ffdc] text-green border-[#92ffb8]',
     label: 'Baja',
   },
 };

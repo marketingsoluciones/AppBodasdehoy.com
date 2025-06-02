@@ -130,22 +130,22 @@ const COLUMN_CONFIG: Record<string, {
   completed: {
     title: 'Completado',
     colorConfig: { 
-      bg: 'bg-green-50', 
-      border: 'border-green-300',
+      bg: 'bg-[#eeffee]', 
+      border: 'border-[#7bff7b]',
       text: 'text-white'
     },
     icon: <CheckCircle2 className="w-4 h-4" />,
-    color: 'bg-green-50 border-green-300'
+    color: 'bg-[#eeffee] border-[#7bff7b]'
   },
   blocked: {
     title: 'Bloqueado',
     colorConfig: { 
-      bg: 'bg-red-50', 
-      border: 'border-red-300',
+      bg: 'bg-[#fff0f0]', 
+      border: 'border-[#ffa7a7]',
       text: 'text-white'
     },
     icon: <XCircle className="w-4 h-4" />,
-    color: 'bg-red-50 border-red-300'
+    color: 'bg-[#fff0f0] border-[#ffa7a7]'
   },
   review: {
     title: 'En Revisión',
@@ -196,7 +196,7 @@ const DEFAULT_COLUMNS: Record<string, Omit<BoardColumn, 'tasks'>> = {
   completed: {
     id: 'completed',
     title: 'Completado',
-    color: 'bg-green-50 border-green-300',
+    color: 'bg-[#eeffee] border-[#7bff7b]',
     colorConfig: COLUMN_CONFIG.completed.colorConfig,
     icon: COLUMN_CONFIG.completed.icon,
     isCollapsed: false,
@@ -207,7 +207,7 @@ const DEFAULT_COLUMNS: Record<string, Omit<BoardColumn, 'tasks'>> = {
   blocked: {
     id: 'blocked',
     title: 'Bloqueado',
-    color: 'bg-red-50 border-red-300',
+    color: 'bg-[#fff0f0] border-[#ffa7a7]',
     colorConfig: COLUMN_CONFIG.blocked.colorConfig,
     icon: COLUMN_CONFIG.blocked.icon,
     isCollapsed: false,
@@ -1212,7 +1212,7 @@ function ColumnManagerModal({
                       </button>
                       <button
                         onClick={() => onDelete(id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+                        className="p-2 text-[#ff2525] hover:bg-[#fff0f0] rounded transition-colors"
                         title="Eliminar"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -1234,7 +1234,7 @@ function ColumnManagerModal({
                 {deletedColumns.map((column: BoardColumn) => (
                   <div
                     key={column.id}
-                    className="flex items-center justify-between p-3 bg-red-50 rounded-lg"
+                    className="flex items-center justify-between p-3 bg-[#fff0f0] rounded-lg"
                   >
                     <div className="flex items-center space-x-3">
                       {column.icon && (

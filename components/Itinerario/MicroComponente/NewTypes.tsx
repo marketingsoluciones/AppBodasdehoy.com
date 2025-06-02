@@ -60,15 +60,15 @@ export const TASK_STATUSES: ClickUpSelectOption[] = [
   { value: 'pending', label: 'Pendiente', color: 'bg-gray-500' },
   { value: 'in_progress', label: 'En Progreso', color: 'bg-primary' },
   { value: 'review', label: 'En Revisión', color: 'bg-yellow-500' },
-  { value: 'completed', label: 'Completado', color: 'bg-green-500' },
-  { value: 'blocked', label: 'Bloqueado', color: 'bg-red-500' },
+  { value: 'completed', label: 'Completado', color: 'bg-[#eeffee]0' },
+  { value: 'blocked', label: 'Bloqueado', color: 'bg-[#fff0f0]0' },
 ];
 
 export const TASK_PRIORITIES: ClickUpSelectOption[] = [
-  { value: 'urgent', label: 'Urgente', color: 'bg-red-600' },
+  { value: 'urgent', label: 'Urgente', color: 'bg-[#ff2525]' },
   { value: 'high', label: 'Alta', color: 'bg-orange-500' },
   { value: 'normal', label: 'Normal', color: 'bg-yellow-500' },
-  { value: 'low', label: 'Baja', color: 'bg-green-500' },
+  { value: 'low', label: 'Baja', color: 'bg-[#eeffee]0' },
 ];
 
 // Props para componentes

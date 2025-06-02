@@ -177,13 +177,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         {...attributes}
         {...listeners}
         className={`
-        relative group cursor-grab active:cursor-grabbing rounded-lg border transition-all duration-200
+        relative group bg-white cursor-grab active:cursor-grabbing rounded-lg border transition-all duration-200
         ${isSelected
-            ? 'border-primary shadow-md ring-2 ring-pink-200'
+            ? 'border-primary shadow-md ring-2 ring-pink-100'
             : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
           }
-        ${isCompleted ? 'bg-green-50' : 'bg-white'}
-        ${isBlocked ? 'bg-red-50' : ''}
         ${isDragging || isSortableDragging ? 'rotate-2 shadow-lg' : ''}
       `}
         onClick={() => onTaskClick(task._id)}
@@ -195,15 +193,15 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       >
         {/* Botones de acción en hover */}
         {showActions && !isDragging && !isSortableDragging && (
-          <div className="absolute top-2 right-2 flex items-center space-x-1 z-10">
+          <div className="absolute top-2 right-2 flex bg-white rounded-md shadow-md items-center space-x-1 z-50">
             {/* Botón de completar */}
             <button
               onClick={handleToggleComplete}
               className={`
               p-1 rounded-md transition-colors
               ${isCompleted
-                  ? 'text-green-600 hover:bg-green-100'
-                  : 'text-gray-400 hover:text-green-600 hover:bg-green-50'
+                  ? 'text-green hover:bg-[#dafdda]'
+                  : 'text-gray-400 hover:text-green hover:bg-[#eeffee]'
                 }
             `}
               title={isCompleted ? 'Marcar como pendiente' : 'Marcar como completada'}
@@ -274,7 +272,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                         onTaskDelete(task._id);
                         setShowMoreMenu(false);
                       }}
-                      className="flex items-center w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                      className="flex items-center w-full px-3 py-2 text-sm text-[#ff2424] hover:bg-[#fff0f0] "
                     >
                       Eliminar
                     </button>
@@ -290,12 +288,14 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         {/* Contenido principal de la tarjeta */}
         <div className="p-3">
           {/* Título de la tarea */}
-          <h4 className={`
-          font-medium text-sm mb-2 pr-8
-          ${isCompleted ? 'line-through text-gray-500' : 'text-gray-800'}
-        `}>
-            {task.descripcion || 'Sin título'}
-          </h4>
+<h4 className={`
+  font-medium text-sm mb-2 pr-8
+  ${isCompleted ? 'line-through text-gray-500' : 'text-gray-800'}
+`}>
+  {(task.descripcion && task.descripcion.length > 30)
+    ? `${task.descripcion.slice(0, 30)}...`
+    : (task.descripcion || 'Sin título')}
+</h4>
 
           {/* Indicadores de estado */}
           <div className="flex items-center space-x-2 mb-2">
@@ -327,7 +327,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
             {/* Indicador de bloqueo */}
             {isBlocked && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-[#ffdada] text-red">
                 <AlertCircle className="w-3 h-3 mr-1" />
                 Bloqueado
               </span>
@@ -345,7 +345,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               <span className={`
               inline-flex items-center px-2 py-1 rounded-full text-xs
               ${isOverdue
-                  ? 'bg-red-100 text-red-800'
+                  ? 'bg-[#ffdada] text-red'
                   : isDueSoon
                     ? 'bg-yellow-100 text-yellow-800'
                     : 'bg-gray-100 text-gray-600'

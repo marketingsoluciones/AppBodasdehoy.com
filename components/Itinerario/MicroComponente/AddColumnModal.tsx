@@ -43,9 +43,9 @@ const COLUMN_COLORS = [
     name: 'Azul' 
   },
   { 
-    bg: 'bg-green-50', 
-    border: 'border-green-300', 
-    text: 'text-green-700',
+    bg: 'bg-[#eeffee]', 
+    border: 'border-[#7bff7b]', 
+    text: 'text-green',
     name: 'Verde' 
   },
   { 
@@ -55,9 +55,9 @@ const COLUMN_COLORS = [
     name: 'Amarillo' 
   },
   { 
-    bg: 'bg-red-50', 
-    border: 'border-red-300', 
-    text: 'text-red-700',
+    bg: 'bg-[#fff0f0]', 
+    border: 'border-[#ffa7a7]', 
+    text: 'text-red',
     name: 'Rojo' 
   },
   { 

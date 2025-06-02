@@ -20,8 +20,8 @@ interface ClickUpTagsEditorProps {
 // Colores predefinidos para las etiquetas
 const TAG_COLORS = [
   { name: 'Azul', value: 'bg-primary', text: 'text-primary', bg: 'bg-pink-100' },
-  { name: 'Verde', value: 'bg-green-500', text: 'text-green-800', bg: 'bg-green-100' },
-  { name: 'Rojo', value: 'bg-red-500', text: 'text-red-800', bg: 'bg-red-100' },
+  { name: 'Verde', value: 'bg-[#eeffee]0', text: 'text-green', bg: 'bg-[#dafdda]' },
+  { name: 'Rojo', value: 'bg-[#fff0f0]0', text: 'text-red', bg: 'bg-[#ffdada]' },
   { name: 'Amarillo', value: 'bg-yellow-500', text: 'text-yellow-800', bg: 'bg-yellow-100' },
   { name: 'Púrpura', value: 'bg-purple-500', text: 'text-purple-800', bg: 'bg-purple-100' },
   { name: 'Rosa', value: 'bg-pink-500', text: 'text-pink-800', bg: 'bg-pink-100' },
@@ -137,7 +137,7 @@ export const ClickUpTagsEditor: React.FC<ClickUpTagsEditorProps> = ({
                 {/* Botón de eliminar */}
                 <button
                   onClick={() => handleRemoveTag(tag)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-200 rounded"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[#ffbfbf] rounded"
                   title="Eliminar etiqueta"
                 >
                   <X className="w-3 h-3" />
@@ -192,14 +192,14 @@ export const ClickUpTagsEditor: React.FC<ClickUpTagsEditorProps> = ({
         <div className="flex items-center justify-end space-x-1">
           <button
             onClick={onSave}
-            className="p-1 text-green-600 hover:bg-green-100 rounded"
+            className="p-1 text-green hover:bg-[#dafdda] rounded"
             title="Guardar"
           >
             <Check className="w-3 h-3" />
           </button>
           <button
             onClick={onCancel}
-            className="p-1 text-red-600 hover:bg-red-100 rounded"
+            className="p-1 text-[#ff2525] hover:bg-[#ffdada] rounded"
             title="Cancelar"
           >
             <X className="w-3 h-3" />

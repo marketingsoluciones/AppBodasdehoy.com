@@ -294,7 +294,7 @@ export const ClickUpTableCell: React.FC<ClickUpCellProps> = ({
               e.stopPropagation();
               handleSave();
             }}
-            className="p-1 text-green-600 hover:bg-green-100 rounded"
+            className="p-1 text-green hover:bg-[#dafdda] rounded"
             title="Guardar"
           >
             <Check className="w-3 h-3" />
@@ -304,7 +304,7 @@ export const ClickUpTableCell: React.FC<ClickUpCellProps> = ({
               e.stopPropagation();
               handleCancel();
             }}
-            className="p-1 text-red-600 hover:bg-red-100 rounded"
+            className="p-1 text-[#ff2525] hover:bg-[#ffdada] rounded"
             title="Cancelar"
           >
             <X className="w-3 h-3" />

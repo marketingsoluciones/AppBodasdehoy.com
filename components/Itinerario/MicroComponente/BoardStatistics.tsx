@@ -91,8 +91,8 @@ export const BoardStatistics: React.FC<BoardStatisticsProps> = ({
   }) => {
     const colorClasses = {
       blue: 'bg-pink-50 text-primary border-pink-200',
-      green: 'bg-green-50 text-green-600 border-green-200',
-      red: 'bg-red-50 text-red-600 border-red-200',
+      green: 'bg-[#eeffee] text-green border-[#b2ffb2]',
+      red: 'bg-[#fff0f0] text-[#ff2525] border-[#ffbfbf]',
       amber: 'bg-amber-50 text-amber-600 border-amber-200',
       purple: 'bg-purple-50 text-purple-600 border-purple-200',
       gray: 'bg-gray-50 text-gray-600 border-gray-200'
@@ -116,14 +116,14 @@ export const BoardStatistics: React.FC<BoardStatisticsProps> = ({
           <div className="mt-3 flex items-center space-x-1">
             {trend === 'up' && (
               <>
-                <TrendingUp className="w-4 h-4 text-green-600" />
-                <span className="text-xs text-green-600">{t('Mejorando')}</span>
+                <TrendingUp className="w-4 h-4 text-green" />
+                <span className="text-xs text-green">{t('Mejorando')}</span>
               </>
             )}
             {trend === 'down' && (
               <>
-                <TrendingDown className="w-4 h-4 text-red-600" />
-                <span className="text-xs text-red-600">{t('Bajando')}</span>
+                <TrendingDown className="w-4 h-4 text-[#ff2525]" />
+                <span className="text-xs text-[#ff2525]">{t('Bajando')}</span>
               </>
             )}
             {trend === 'stable' && (
@@ -211,7 +211,7 @@ export const BoardStatistics: React.FC<BoardStatisticsProps> = ({
             <span className="text-sm text-gray-600 w-20">{t('Alta')}</span>
             <div className="flex-1 bg-gray-200 rounded-full h-6 relative overflow-hidden">
               <div 
-                className="absolute inset-y-0 left-0 bg-red-500 rounded-full flex items-center justify-end pr-2"
+                className="absolute inset-y-0 left-0 bg-[#fff0f0]0 rounded-full flex items-center justify-end pr-2"
                 style={{ width: `${statistics.totalTasks > 0 ? (statistics.highPriorityTasks / statistics.totalTasks) * 100 : 0}%` }}
               >
                 <span className="text-xs text-white font-medium">{statistics.highPriorityTasks}</span>
@@ -235,7 +235,7 @@ export const BoardStatistics: React.FC<BoardStatisticsProps> = ({
             <span className="text-sm text-gray-600 w-20">{t('Baja')}</span>
             <div className="flex-1 bg-gray-200 rounded-full h-6 relative overflow-hidden">
               <div 
-                className="absolute inset-y-0 left-0 bg-green-500 rounded-full flex items-center justify-end pr-2"
+                className="absolute inset-y-0 left-0 bg-[#eeffee]0 rounded-full flex items-center justify-end pr-2"
                 style={{ width: `${statistics.totalTasks > 0 ? (statistics.lowPriorityTasks / statistics.totalTasks) * 100 : 0}%` }}
               >
                 <span className="text-xs text-white font-medium">{statistics.lowPriorityTasks}</span>
@@ -262,7 +262,7 @@ export const BoardStatistics: React.FC<BoardStatisticsProps> = ({
             <li>• {t('Más del 50% de las tareas son de alta prioridad. Considera re-evaluar las prioridades.')}</li>
           )}
           {statistics.productivityTrend === 'up' && (
-            <li className="text-green-700">• {t('¡Excelente! La productividad está mejorando.')}</li>
+            <li className="text-green">• {t('¡Excelente! La productividad está mejorando.')}</li>
           )}
         </ul>
       </div>

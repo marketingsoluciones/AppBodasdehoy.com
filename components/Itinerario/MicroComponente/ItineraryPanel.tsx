@@ -610,7 +610,9 @@ if (!newTask) {
                                 </div>
                             </div>
                 }
-                {view !== "schema" && <AddEvent tasks={tasks} itinerario={itinerario} setSelectTask={setSelectTask} />}
+                {view !== "schema" && view !== "boardView" && (
+                  <AddEvent tasks={tasks} itinerario={itinerario} setSelectTask={setSelectTask} />
+                )}
             </div>
             {modalStatus && <Modal set={setModalStatus} state={modalStatus} classe={"w-[95%] md:w-[450px] h-[370px]"}>
                 <WarningMessage setModal={setModalStatus} modal={modalStatus} title={t("visibility")} />

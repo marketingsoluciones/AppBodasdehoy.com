@@ -242,7 +242,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
             {showColumnMenu && (
               <div className="absolute right-0 top-8 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
                 <div className="py-1">
-                  <button
+{/*                   <button
                     onClick={() => {
                       // Implementar configuración de columna
                       setShowColumnMenu(false);
@@ -251,7 +251,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
                   >
                     <Settings className="w-4 h-4 mr-3" />
                     {t("Configurar columna")}
-                  </button>
+                  </button> */}
                   
                   {onToggleVisibility && (
                     <button
@@ -266,13 +266,13 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
                     </button>
                   )}
                   
-                  <button
+{/*                   <button
                     onClick={handleDuplicateColumn}
                     className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
                     <Copy className="w-4 h-4 mr-3" />
                     {t("Duplicar columna")}
-                  </button>
+                  </button> */}
                   
                   <button
                     onClick={handleExportColumn}
@@ -292,7 +292,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
                           setShowColumnMenu(false);
                         }
                       }}
-                      className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                      className="flex items-center w-full px-4 py-2 text-sm text-[#ff2525] hover:bg-[#fff0f0]"
                     >
                       <Trash2 className="w-4 h-4 mr-3" />
                       {t("Eliminar columna")}
@@ -308,7 +308,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
       {/* Contenido de la columna */}
       {!column.isCollapsed && (
         <div           className={`
-            flex-1 max-h-full min-h-0 p-3 space-y-3 overflow-y-auto
+            flex-1 w-full max-h-full min-h-0 p-3 space-y-3 overflow-y-auto
             ${isCompact ? 'max-h-72' : 'max-h-96'}
             ${isList ? 'max-h-full' : ''}
           `}
@@ -372,7 +372,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
           {column.tasks.length === 0 && !isCreatingTask && (
             <button
               onClick={() => setIsCreatingTask(true)}
-              className="inline-flex flex-col items-center space-y-2 border-2 border-dashed border-gray-300 rounded-md text-gray-500 hover:text-gray-700 hover:border-gray-400 transition-colors group px-6 py-4 mx-auto"
+              className="flex w-full flex-col items-center space-y-2 border-2 border-dashed border-gray-300 rounded-md text-gray-500 hover:text-gray-700 hover:border-gray-400 transition-colors group px-6 py-4 mx-auto"
             >
               <div className="flex flex-col items-center space-y-2">
                 <Plus className="w-6 h-6 group-hover:scale-110 transition-transform" />

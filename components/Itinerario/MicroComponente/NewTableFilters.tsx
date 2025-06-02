@@ -328,7 +328,7 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
                     className={`
                       p-1 rounded transition-colors
                       ${filter.isActive 
-                        ? 'text-green-600 hover:bg-green-100' 
+                        ? 'text-green hover:bg-[#dafdda]' 
                         : 'text-gray-400 hover:bg-gray-100'
                       }
                     `}
@@ -340,7 +340,7 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
                   {/* Eliminar */}
                   <button
                     onClick={() => removeFilter(filter.id)}
-                    className="p-1 text-red-600 hover:bg-red-100 rounded transition-colors"
+                    className="p-1 text-[#ff2525] hover:bg-[#ffdada] rounded transition-colors"
                     title="Eliminar filtro"
                   >
                     <X className="w-4 h-4" />

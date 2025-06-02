@@ -149,7 +149,7 @@ export const ClickUpColumnMenu: React.FC<ClickUpColumnMenuProps> = ({
       label: 'Ocultar columna',
       icon: <EyeOff className="w-4 h-4" />,
       action: () => onHide(),
-      className: 'text-red-600 hover:bg-red-50'
+      className: 'text-[#ff2525] hover:bg-[#fff0f0]'
     }
   ];
 

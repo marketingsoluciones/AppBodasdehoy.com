@@ -70,8 +70,8 @@ export const QuickActionsMenu: React.FC<QuickActionsMenuProps> = ({
       id: 'calendar-view',
       icon: <Calendar className="w-5 h-5" />,
       label: t('Vista Calendario'),
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
+      color: 'text-green',
+      bgColor: 'bg-[#eeffee]',
       description: t('Ver tareas en calendario')
     },
     {

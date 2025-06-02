@@ -196,7 +196,7 @@ export const ClickUpResponsableSelector: React.FC<Props> = ({
             </span>
             <button
               onClick={() => onChange([])}
-              className="text-sm text-red-600 hover:text-red-700"
+              className="text-sm text-[#ff2525] hover:text-red"
             >
               Limpiar todo
             </button>

@@ -39,8 +39,8 @@ const Estadistica = (props) => {
               <div className="text-xs font-light text-gray-300">{t("Earrings")}</div>
             </div>
             <div className="flex items-center gap-1 pl-2 justify-start">
-              <div className="text-xl font-bold text-red-300">{cancelados}</div>
-              <div className="text-xs font-light text-red-300">{t("cancelled")}</div>
+              <div className="text-xl font-bold text-[#ffa7a7]">{cancelados}</div>
+              <div className="text-xs font-light text-[#ffa7a7]">{t("cancelled")}</div>
             </div>
           </div>
           <div className="w-1/2 flex items-center justify-center">

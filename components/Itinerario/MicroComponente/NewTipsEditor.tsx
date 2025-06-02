@@ -60,14 +60,14 @@ export const ClickUpTipsEditor: React.FC<ClickUpTipsEditorProps> = ({
         <div className="absolute top-2 right-2 flex items-center space-x-1 bg-white rounded-md shadow-sm border">
           <button
             onClick={onSave}
-            className="p-1 text-green-600 hover:bg-green-100 rounded"
+            className="p-1 text-green hover:bg-[#dafdda] rounded"
             title="Guardar (Enter)"
           >
             <Check className="w-3 h-3" />
           </button>
           <button
             onClick={onCancel}
-            className="p-1 text-red-600 hover:bg-red-100 rounded"
+            className="p-1 text-[#ff2525] hover:bg-[#ffdada] rounded"
             title="Cancelar (Esc)"
           >
             <X className="w-3 h-3" />

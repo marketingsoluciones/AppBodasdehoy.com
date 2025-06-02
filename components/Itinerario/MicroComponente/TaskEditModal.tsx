@@ -131,7 +131,7 @@ const handleSubmit = async (values: any, actions: any,) => {
                       label={t("duraction")}
                       type="number"
                     />
-                    <span className="-translate-y-2">min</span>
+                    <span className="text-xs -translate-y-2">min</span>
                   </div>
                 </div>
               </div>
@@ -148,7 +148,7 @@ const handleSubmit = async (values: any, actions: any,) => {
                     className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
                   >
                     <option value="pending">{t("Pendiente")}</option>
-                    <option value="in_progress">{t("En Progreso")}</option>
+                    <option value="in_progress">{t("En Curso")}</option>
                     <option value="completed">{t("Completado")}</option>
                     <option value="blocked">{t("Bloqueado")}</option>
                   </select>

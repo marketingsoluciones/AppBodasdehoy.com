@@ -234,7 +234,7 @@ export const ClickUpTableHeader: React.FC<ClickUpTableHeaderProps> = ({
               <button className="px-3 py-1 text-sm text-primary hover:bg-pink-100 rounded transition-colors">
                 Asignar
               </button>
-              <button className="px-3 py-1 text-sm text-red-600 hover:bg-red-100 rounded transition-colors">
+              <button className="px-3 py-1 text-sm text-[#ff2525] hover:bg-[#ffdada] rounded transition-colors">
                 Eliminar
               </button>
             </div>
