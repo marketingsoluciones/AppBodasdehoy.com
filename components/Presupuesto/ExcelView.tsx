@@ -47,6 +47,8 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
         { column: "J", title: "Opciones", accessor: "options" }
     ]; */
 
+    console.log("DataTableTotales",showDataState)
+
     useEffect(() => {
         setCategoria(
             event?.presupuesto_objeto?.categorias_array?.find(
@@ -76,7 +78,7 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
             setData([...dataView]);
         }
 
-        if (showDataState) {
+        if (!showDataState) {
             const data = event?.presupuesto_objeto?.categorias_array?.filter(elem => !!showCategoria?._id ? showCategoria?._id === elem._id : true)
             const dataView = data.map(elem => ({
                 ...elem,
@@ -127,7 +129,7 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
                     <div className="mb-2 w-full">
                         <ResumenInvitados />
                     </div>
-                    <BlockListaCategorias setShowCategoria={setShowCategoria} categorias_array={categorias_array} showCategoria={showCategoria} />
+                    <BlockListaCategorias setShowCategoria={setShowCategoria} categorias_array={categorias_array} showCategoria={showCategoria} showDataState={showDataState} />
                 </div>
                 {
                     true &&

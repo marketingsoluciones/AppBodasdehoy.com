@@ -281,7 +281,7 @@ export const handleChangeEstatusItem = async ({ event, categoriaID, gastoId, ite
   const f3 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.items_array.findIndex((item) => item._id == itemId)
   const ItemEstatus = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.items_array[f3]?.estatus
   event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array[f3].estatus = !ItemEstatus
-  console.log('itemEstatus', !ItemEstatus)
+  
   try {
     fetchApiEventos({
       query: queries.editItemGasto,
@@ -295,7 +295,6 @@ export const handleChangeEstatusItem = async ({ event, categoriaID, gastoId, ite
       }
     }).then((result: any) => {
       console.log('result', result.categorias_array[f1].gastos_array[f2].items_array)
-      
       setEvent({ ...event })
     })
   } catch (error) {

@@ -15,14 +15,41 @@ interface props {
   categorias_array: estimateCategory[]
   setShowCategoria: Dispatch<SetStateAction<{ state: boolean, _id?: string }>>
   showCategoria: { state: boolean, _id: string }
+  showDataState: boolean
 }
 
-export const BlockListaCategorias: FC<props> = ({ categorias_array, setShowCategoria, showCategoria }) => {
+export const BlockListaCategorias: FC<props> = ({ categorias_array, setShowCategoria, showCategoria, showDataState }) => {
   const { event } = EventContextProvider()
   const { t } = useTranslation();
   const [showCreateCategorie, setShowCreateCategorie] = useState(false);
   const [isAllowed, ht] = useAllowed()
   const [showOptionsModal, setShowOptionsModal] = useState(false)
+
+  function calcularCosteFinal(categorias_array) {
+    categorias_array.forEach(categoria => {
+      categoria.gastos_array.forEach(gasto => {
+        if (Array.isArray(gasto.items_array) && gasto.items_array.length > 0) {
+          gasto.coste_final = gasto.items_array
+            .filter(item => !showDataState || item.estatus === false)
+            .reduce(
+              (total, item) => total + (item.valor_unitario * item.cantidad),
+              0
+            )
+        }
+        categoria.coste_final = categoria.gastos_array
+          .filter(gasto => !showDataState || gasto.estatus === false)
+          .reduce(
+            (total, gasto) => total + (gasto.coste_final || 0),
+            0
+          );
+      });
+    });
+  }
+
+  // Uso:
+  calcularCosteFinal(categorias_array);
+
+  console.log("categorias_array", categorias_array)
 
   return (
     <>
@@ -44,7 +71,7 @@ export const BlockListaCategorias: FC<props> = ({ categorias_array, setShowCateg
             <PlusIcon className="text-white w-4 h-4" />
             {t("newcategory")}
           </button>
-          <button onClick={()=> setShowOptionsModal(!showOptionsModal)} className="flex items-center gap-1">
+          <button onClick={() => setShowOptionsModal(!showOptionsModal)} className="flex items-center gap-1">
             <BsThreeDotsVertical />
           </button>
         </div>
