@@ -25,29 +25,38 @@ export const BlockListaCategorias: FC<props> = ({ categorias_array, setShowCateg
   const [isAllowed, ht] = useAllowed()
   const [showOptionsModal, setShowOptionsModal] = useState(false)
 
+  useEffect(() => {
+    calcularCosteFinal(categorias_array);
+  }, [categorias_array, showDataState])
+
   function calcularCosteFinal(categorias_array) {
-    categorias_array.forEach(categoria => {
+    categorias_array?.forEach(categoria => {
       categoria.gastos_array.forEach(gasto => {
         if (Array.isArray(gasto.items_array) && gasto.items_array.length > 0) {
+          const totalInvitados = event?.presupuesto_objeto?.totalStimatedGuests?.adults + event?.presupuesto_objeto?.totalStimatedGuests?.children;
           gasto.coste_final = gasto.items_array
-            .filter(item => !showDataState || item.estatus === false)
+            .filter(item => showDataState ? true : item.estatus === false)
             .reduce(
-              (total, item) => total + (item.valor_unitario * item.cantidad),
+              (total, item) =>
+
+                total + (item.valor_unitario * item.cantidad),
+
               0
-            )
+            );
         }
-        categoria.coste_final = categoria.gastos_array
-          .filter(gasto => !showDataState || gasto.estatus === false)
-          .reduce(
-            (total, gasto) => total + (gasto.coste_final || 0),
-            0
-          );
       });
+      categoria.coste_final = categoria.gastos_array
+        .filter(gasto => showDataState ? true : gasto.estatus === true)
+        .reduce(
+          (total, gasto) => total + (gasto.coste_final || 0),
+          0
+        );
     });
   }
 
-  // Uso:
-  calcularCosteFinal(categorias_array);
+ 
+
+
 
   console.log("categorias_array", categorias_array)
 

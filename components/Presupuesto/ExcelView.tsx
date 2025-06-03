@@ -47,7 +47,7 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
         { column: "J", title: "Opciones", accessor: "options" }
     ]; */
 
-    console.log("DataTableTotales",showDataState)
+    console.log("DataTableTotales", showDataState)
 
     useEffect(() => {
         setCategoria(
@@ -66,32 +66,53 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
             })
             setData([...dataView]);
         }
-        if (showDataState) {
-            const data = event?.presupuesto_objeto?.categorias_array?.filter(elem => !!showCategoria?._id ? showCategoria?._id === elem._id : true)
-            setData([...data]);
-        } else {
-            const data = event?.presupuesto_objeto?.categorias_array?.filter(elem => !!showCategoria?._id ? showCategoria?._id === elem._id : true)
-            const dataView = data.map(elem => ({
-                ...elem,
-                gastos_array: elem.gastos_array.filter(gasto => gasto?.estatus !== false)
-            }))
-            setData([...dataView]);
-        }
 
-        if (!showDataState) {
-            const data = event?.presupuesto_objeto?.categorias_array?.filter(elem => !!showCategoria?._id ? showCategoria?._id === elem._id : true)
-            const dataView = data.map(elem => ({
-                ...elem,
-                gastos_array: elem.gastos_array.map(gasto => ({
-                    ...gasto,
-                    items_array: gasto.items_array
-                        ? gasto.items_array.filter(item => item?.estatus === false)
-                        : []
-                }))
-            }))
-            setData([...dataView]);
+        const categoriasFiltradas = event?.presupuesto_objeto?.categorias_array?.filter(
+            elem => !!showCategoria?._id ? showCategoria?._id === elem._id : true
+        );
 
-        }
+            if (showDataState) {
+                setData([...categoriasFiltradas]);
+            } else {
+                const dataView = categoriasFiltradas.map(categoria => ({
+                    ...categoria,
+                    gastos_array: categoria.gastos_array
+                        .filter(gasto => gasto?.estatus !== false)
+                        .map(gasto => ({
+                            ...gasto,
+                            items_array: gasto.items_array
+                                ? gasto.items_array.filter(item => item?.estatus !== true)
+                                : []
+                        }))
+                }));
+                setData([...dataView]);
+            }
+        
+        /* 
+                 if (showDataState) {
+                     const data = event?.presupuesto_objeto?.categorias_array?.filter(elem => !!showCategoria?._id ? showCategoria?._id === elem._id : true)
+                     setData([...data]);
+                 } else {
+                     const data = event?.presupuesto_objeto?.categorias_array?.filter(elem => !!showCategoria?._id ? showCategoria?._id === elem._id : true)
+                     const dataView = data.map(elem => ({
+                         ...elem,
+                         gastos_array: elem.gastos_array.filter(gasto => gasto?.estatus !== false)
+                     }))
+                     setData([...dataView]);
+                 }
+         
+                 if (showDataState) {
+                     const data = event?.presupuesto_objeto?.categorias_array?.filter(elem => !!showCategoria?._id ? showCategoria?._id === elem._id : true)
+                     const dataView = data.map(elem => ({
+                         ...elem,
+                         gastos_array: elem.gastos_array.map(gasto => ({
+                             ...gasto,
+                             items_array: gasto.items_array.filter(item => item?.estatus == false)
+                                 
+                         }))
+                     }))
+                     setData([...dataView]);
+                 } */
     }, [showCategoria, event, event?.presupuesto_objeto?.currency, showDataState]);
 
 
