@@ -290,8 +290,8 @@ export const handleChangeEstatusItem = async ({ event, categoriaID, gastoId, ite
         categoria_id: categoriaID,
         gasto_id: gastoId,
         itemGasto_id: itemId,
-        variable_reemplazar: "estatus",
-        valor_reemplazar: !ItemEstatus
+        variable: "estatus",
+        valor: !ItemEstatus
       }
     }).then((result: any) => {
       console.log('result', result.categorias_array[f1].gastos_array[f2].items_array)
