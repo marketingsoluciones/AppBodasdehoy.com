@@ -82,7 +82,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     { accessor: "pagado", header: t("pagado"), size: defaultSize.float, horizontalAlignment: "end", type: "float" },
     { accessor: "pendiente_pagar", header: t("pendiente por pagar"), size: defaultSize.float, horizontalAlignment: "end", type: "float" },
   ]
-
+  console.log('data', data)
   useEffect(() => {
     const columnsVisibility = event?.presupuesto_objeto?.visibleColumns?.reduce((acc, item) => {
       acc = {
@@ -513,7 +513,48 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
             })}
             {/* --------------------------------------------------------------------------------------------------------------------------------------------*/}
           </tbody>
-          {/*  <tfoot
+          <tfoot
+            style={{
+              minWidth: table.getTotalSize(),
+            }}
+          >
+            <tr className='flex'>
+              {table.getAllLeafColumns().map((column, idx) => {
+
+                return (
+                  <th
+                    key={column.id}
+                    style={{
+                      ...(column.columnDef.size
+                        ? { width: column.columnDef.size }
+                        : { flex: 1 })
+                    }}
+                    className={` text-right`}
+                  >
+                    {idx === 5
+                      ? "Total: "
+                      : column.id === "coste_final"
+                        ? getCurrency(
+                          table
+                            .getRowModel()
+                            .rows
+                            .filter(row => row.original?.fatherCategoria) // Solo categorías
+                            .reduce(
+                              (acc, row) =>
+                                acc +
+                                (typeof row.original.coste_final === "number"
+                                  ? row.original.coste_final
+                                  : 0),
+                              0
+                            )
+                        )
+                        : null}
+                  </th>
+                )
+              })}
+            </tr>
+          </tfoot>
+          {/* <tfoot
             style={{
               minWidth: table.getTotalSize(),
             }}
