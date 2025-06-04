@@ -1,6 +1,8 @@
+
 import React, { useCallback, useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import * as XLSX from 'xlsx';
 import {
   ChevronDown,
   ChevronRight,
@@ -34,6 +36,8 @@ interface BoardColumnProps {
   onDeleteColumn?: () => void;
   onToggleVisibility?: () => void;
   viewMode?: 'board' | 'compact' | 'list';
+
+  
 }
 
 export const BoardColumn: React.FC<BoardColumnProps> = ({
@@ -120,26 +124,25 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
 
   // Exportar tareas de la columna
   const handleExportColumn = useCallback(() => {
-    const exportData = {
-      columna: column.title,
-      fecha: new Date().toISOString(),
-      tareas: column.tasks.map(task => ({
-        titulo: task.descripcion,
-        responsable: task.responsable,
-        prioridad: task.prioridad,
-        estado: task.estatus ? 'Completado' : 'Pendiente',
-        fecha: task.fecha,
-        tags: task.tags
-      }))
-    };
+    // Prepara los datos en formato de tabla
+    const rows: any[] = column.tasks.map(task => ({
+      Título: task.descripcion,
+      Responsable: Array.isArray(task.responsable) ? task.responsable.join(', ') : '',
+      Prioridad: task.prioridad,
+      Estado: task.estatus ? 'Completado' : 'Pendiente',
+      Fecha: task.fecha ? new Date(task.fecha).toLocaleString() : '',
+      Tags: Array.isArray(task.tags) ? task.tags.join(', ') : '',
+      Duración: `${task.duracion || 0} min`,
+      Comentarios: task.comments?.length || 0
+    }));
 
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `columna-${column.title.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    // Crea la hoja y el libro
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, column.title);
+
+    // Genera el archivo y lo descarga
+    XLSX.writeFile(workbook, `columna-${column.title.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.xlsx`);
     
     toast.success(t('Columna exportada'));
     setShowColumnMenu(false);
@@ -253,7 +256,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
                     {t("Configurar columna")}
                   </button> */}
                   
-                  {onToggleVisibility && (
+{/*                   {onToggleVisibility && (
                     <button
                       onClick={() => {
                         onToggleVisibility();
@@ -264,7 +267,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
                       <EyeOff className="w-4 h-4 mr-3" />
                       {t("Ocultar columna")}
                     </button>
-                  )}
+                  )} */}
                   
 {/*                   <button
                     onClick={handleDuplicateColumn}
@@ -282,7 +285,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
                     {t("Exportar columna")}
                   </button>
                   
-                  <div className="border-t border-gray-200 my-1"></div>
+{/*                   <div className="border-t border-gray-200 my-1"></div>
                   
                   {onDeleteColumn && (
                     <button
@@ -297,7 +300,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
                       <Trash2 className="w-4 h-4 mr-3" />
                       {t("Eliminar columna")}
                     </button>
-                  )}
+                  )} */}
                 </div>
               </div>
             )}
@@ -360,6 +363,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
                   onTaskUpdate={onTaskUpdate}
                   onTaskDelete={onTaskDelete}
                   onCreateSubTask={onCreateSubTask}
+                  onTaskCreate={onTaskCreate}
                   isSelected={selectedTask === task._id}
                   isDragging={false}
                   itinerario={itinerario}

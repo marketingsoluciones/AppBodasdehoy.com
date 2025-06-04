@@ -508,6 +508,8 @@ if (!newTask) {
           }
         }}
         onTaskCreate={handleTaskCreate}
+        tempPastedAndDropFiles={tempPastedAndDropFiles}
+        setTempPastedAndDropFiles={setTempPastedAndDropFiles}
       />
     ) : view === "newTable" ? (
         <ClickUpTableView

@@ -106,10 +106,12 @@ const handleSubmit = async (values: any, actions: any,) => {
             <Form className="p-6 space-y-6">
               <AutoSubmitToken />
               
+              
               <InputField
                 name="descripcion"
                 label={t("name")}
                 type="text"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
 
               <div className="grid grid-cols-2 gap-4">
@@ -117,6 +119,7 @@ const handleSubmit = async (values: any, actions: any,) => {
                   name="fecha"
                   label={t("Fecha")}
                   type="date"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 
                 <div className="w-full flex space-x-2">
@@ -124,12 +127,14 @@ const handleSubmit = async (values: any, actions: any,) => {
                     name="hora"
                     label={t("Hora")}
                     type="time"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   <div className="flex items-end space-x-1 w-1/3">
                     <InputField
                       name="duracion"
                       label={t("duraction")}
                       type="number"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     <span className="text-xs -translate-y-2">min</span>
                   </div>
@@ -145,7 +150,7 @@ const handleSubmit = async (values: any, actions: any,) => {
                     name="estado"
                     value={values.estado}
                     onChange={(e) => setFieldValue("estado", e.target.value)}
-                    className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="pending">{t("Pendiente")}</option>
                     <option value="in_progress">{t("En Curso")}</option>
@@ -162,7 +167,7 @@ const handleSubmit = async (values: any, actions: any,) => {
                     name="prioridad"
                     value={values.prioridad}
                     onChange={(e) => setFieldValue("prioridad", e.target.value)}
-                    className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="alta">{t("Alta")}</option>
                     <option value="media">{t("Media")}</option>

@@ -72,6 +72,17 @@ export type Info = {
     info: JSX.Element | null,
 }
 
+export interface TaskOrder {
+  taskId: string;
+  order: number;
+  columnId: string;
+}
+
+export interface ColumnOrder {
+  columnId: string;
+  order: number;
+}
+
 export interface Task {
     _id: string
     fecha: Date
@@ -89,6 +100,8 @@ export interface Task {
     estado: string
     prioridad: string
     estatus: boolean
+    order?: number;
+    commentsCount?: number;
 }
 
 export interface TaskDateTimeAsString extends Omit<Task, 'fecha'> {

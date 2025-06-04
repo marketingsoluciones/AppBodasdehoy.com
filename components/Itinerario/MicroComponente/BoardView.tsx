@@ -55,7 +55,21 @@ import { fetchApiEventos, queries } from '../../../utils/Fetching';
 import { toast } from "react-toastify";
 import { useTranslation } from 'react-i18next';
 import * as XLSX from 'xlsx';
+import TaskDetailModal from './TaskDetailModal';
 
+
+
+// Interfaces para orden
+interface TaskOrder {
+  taskId: string;
+  order: number;
+  columnId: string;
+}
+
+interface ColumnOrder {
+  columnId: string;
+  order: number;
+}
 // Tipos actualizados para el tablero
 export interface BoardColumn {
   id: string;
@@ -99,6 +113,8 @@ interface BoardViewProps {
   onTaskDelete: (taskId: string) => void;
   onTaskCreate: (task: Partial<Task>) => void;
   setEvent: (event: EventInterface | ((prev: EventInterface) => EventInterface)) => void;
+  tempPastedAndDropFiles?: any[];
+  setTempPastedAndDropFiles?: any;
 }
 
 // Configuración mejorada de columnas con colores e íconos
@@ -219,7 +235,7 @@ const DEFAULT_COLUMNS: Record<string, Omit<BoardColumn, 'tasks'>> = {
 };
 
 export const BoardView: React.FC<BoardViewProps> = ({
-  data,
+data,
   itinerario,
   event,
   selectTask,
@@ -228,6 +244,8 @@ export const BoardView: React.FC<BoardViewProps> = ({
   onTaskDelete,
   onTaskCreate,
   setEvent,
+  tempPastedAndDropFiles,
+  setTempPastedAndDropFiles,
 }) => {
   // Estados actualizados
   const [boardState, setBoardState] = useState<BoardState>({
@@ -238,7 +256,7 @@ export const BoardView: React.FC<BoardViewProps> = ({
     viewMode: 'board'
   });
   
-  const [draggedItem, setDraggedItem] = useState<DragItem | null>(null);
+const [draggedItem, setDraggedItem] = useState<DragItem | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [showFilters, setShowFilters] = useState(false);
@@ -246,6 +264,7 @@ export const BoardView: React.FC<BoardViewProps> = ({
   const [showColumnManager, setShowColumnManager] = useState(false);
   const [showDeletedColumns, setShowDeletedColumns] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [showTaskDetail, setShowTaskDetail] = useState<{ show: boolean; task?: Task }>({ show: false });
   const { t } = useTranslation();
 
   const handleTaskUpdate = useCallback(async (taskId: string, updates: Partial<Task>) => {
@@ -423,7 +442,8 @@ export const BoardView: React.FC<BoardViewProps> = ({
     toast.success(t('Columna restaurada'));
   }, [t]);
 
-  // Función para alternar visibilidad de columna
+
+// Función para alternar visibilidad de columna
   const handleToggleColumnVisibility = useCallback((columnId: string) => {
     setBoardState(prev => ({
       ...prev,
@@ -499,7 +519,168 @@ export const BoardView: React.FC<BoardViewProps> = ({
     return filtered;
   }, [boardState.columns, searchTerm, activeFilters]);
 
-  // Manejar inicio de arrastre
+  // Función para guardar el orden de las tareas
+  const saveTasksOrder = useCallback(async () => {
+    try {
+      const tasksOrder: TaskOrder[] = [];
+      
+      Object.entries(boardState.columns).forEach(([columnId, column]) => {
+        column.tasks.forEach((task, index) => {
+          tasksOrder.push({
+            taskId: task._id,
+            order: index,
+            columnId: columnId
+          });
+        });
+      });
+
+      // Esta es la variable que necesitas agregar a tu endpoint
+      const tasksOrderData = {
+        eventId: event._id,
+        itineraryId: itinerario._id,
+        tasksOrder: tasksOrder
+      };
+
+      // Aquí harías la llamada a tu API
+      // await fetchApiEventos({
+      //   query: queries.updateTasksOrder, // Necesitas crear este query
+      //   variables: tasksOrderData,
+      //   domain: config.domain
+      // });
+
+      console.log('Orden de tareas guardado:', tasksOrderData);
+    } catch (error) {
+      console.error('Error al guardar orden de tareas:', error);
+    }
+  }, [boardState.columns, event._id, itinerario._id]);
+
+// Función para guardar el orden de las columnas
+  const saveColumnsOrder = useCallback(async () => {
+    try {
+      const columnsOrder: ColumnOrder[] = boardState.columnOrder.map((columnId, index) => ({
+        columnId: columnId,
+        order: index
+      }));
+
+      // Esta es la variable que necesitas agregar a tu endpoint
+      const columnsOrderData = {
+        eventId: event._id,
+        itineraryId: itinerario._id,
+        columnsOrder: columnsOrder
+      };
+
+      // Aquí harías la llamada a tu API
+      // await fetchApiEventos({
+      //   query: queries.updateColumnsOrder, // Necesitas crear este query
+      //   variables: columnsOrderData,
+      //   domain: config.domain
+      // });
+
+      console.log('Orden de columnas guardado:', columnsOrderData);
+    } catch (error) {
+      console.error('Error al guardar orden de columnas:', error);
+    }
+  }, [boardState.columnOrder, event._id, itinerario._id]);
+
+// Función mejorada para manejar el drag end con guardado de orden
+const handleDragEndWithOrder = useCallback(async (event: DragEndEvent) => {
+  const { active, over } = event;
+  
+  if (!over || !draggedItem) {
+    setDraggedItem(null);
+    return;
+  }
+
+  const activeId = active.id as string;
+  const overId = over.id as string;
+
+  if (draggedItem.type === 'task') {
+    // Lógica existente para mover tareas...
+    let sourceColumnId = '';
+    let targetColumnId = overId;
+    
+    // Encontrar columna origen
+    for (const [columnId, column] of Object.entries(boardState.columns)) {
+      if (column.tasks.some(t => t._id === activeId)) {
+        sourceColumnId = columnId;
+        break;
+      }
+    }
+    
+    // Si el over es una tarea, encontrar su columna
+    for (const [columnId, column] of Object.entries(boardState.columns)) {
+      if (column.tasks.some(t => t._id === overId)) {
+        targetColumnId = columnId;
+        break;
+      }
+    }
+
+    setBoardState(prev => {
+      const newColumns = { ...prev.columns };
+      const task = newColumns[sourceColumnId].tasks.find(t => t._id === activeId);
+      
+      if (task) {
+        // Remover de columna origen
+        const sourceIndex = newColumns[sourceColumnId].tasks.findIndex(t => t._id === activeId);
+        newColumns[sourceColumnId].tasks.splice(sourceIndex, 1);
+        
+        // Encontrar índice destino
+        let targetIndex = newColumns[targetColumnId].tasks.length;
+        if (overId !== targetColumnId) {
+          targetIndex = newColumns[targetColumnId].tasks.findIndex(t => t._id === overId);
+          if (targetIndex === -1) targetIndex = newColumns[targetColumnId].tasks.length;
+        }
+        
+        // Insertar en columna destino
+        const updatedTask = {
+          ...task,
+          estado: targetColumnId,
+          estatus: targetColumnId === 'completed'
+        };
+        newColumns[targetColumnId].tasks.splice(targetIndex, 0, updatedTask);
+        
+        // Actualizar tarea en la API si cambió de columna
+        if (sourceColumnId !== targetColumnId) {
+          onTaskUpdate(activeId, { 
+            estado: targetColumnId,
+            estatus: targetColumnId === 'completed'
+          });
+        }
+      }
+      
+      return {
+        ...prev,
+        columns: newColumns,
+      };
+    });
+    
+    // Guardar el nuevo orden de tareas
+    setTimeout(() => saveTasksOrder(), 500);
+    
+  } else if (draggedItem.type === 'column') {
+    if (activeId !== overId) {
+      setBoardState(prev => {
+        const newColumnOrder = [...prev.columnOrder];
+        const oldIndex = newColumnOrder.indexOf(activeId);
+        const newIndex = newColumnOrder.indexOf(overId);
+        
+        newColumnOrder.splice(oldIndex, 1);
+        newColumnOrder.splice(newIndex, 0, activeId);
+        
+        return {
+          ...prev,
+          columnOrder: newColumnOrder,
+        };
+      });
+      
+      // Guardar el nuevo orden de columnas
+      setTimeout(() => saveColumnsOrder(), 500);
+    }
+  }
+
+  setDraggedItem(null);
+}, [draggedItem, boardState.columns, onTaskUpdate, saveTasksOrder, saveColumnsOrder]);
+ // Manejar inicio de arrastre
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const { active } = event;
     const activeId = active.id as string;
@@ -526,7 +707,7 @@ export const BoardView: React.FC<BoardViewProps> = ({
     }
   }, [boardState.columns]);
 
-  // Manejar finalización de arrastre
+// Manejar finalización de arrastre con guardado de orden
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     
@@ -556,30 +737,40 @@ export const BoardView: React.FC<BoardViewProps> = ({
         }
       }
 
-      if (sourceColumnId !== targetColumnId) {
-        const newEstatus = getStatusFromColumnId(targetColumnId);
-        onTaskUpdate(activeId, { estatus: newEstatus, estado: targetColumnId });
-        
+      if (sourceColumnId && targetColumnId) {
         setBoardState(prev => {
           const newColumns = { ...prev.columns };
           const task = newColumns[sourceColumnId].tasks.find(t => t._id === activeId);
           
           if (task) {
+            // Remover de columna origen
+            const sourceIndex = newColumns[sourceColumnId].tasks.findIndex(t => t._id === activeId);
+            newColumns[sourceColumnId].tasks.splice(sourceIndex, 1);
+            
+            // Encontrar índice destino
+            let targetIndex = newColumns[targetColumnId].tasks.length;
+            if (overId !== targetColumnId) {
+              targetIndex = newColumns[targetColumnId].tasks.findIndex(t => t._id === overId);
+              if (targetIndex === -1) targetIndex = newColumns[targetColumnId].tasks.length;
+            }
+            
+            // Actualizar tarea con nuevo estado
             const updatedTask = {
               ...task,
-              estatus: newEstatus,
+              estatus: targetColumnId === 'completed',
               estado: targetColumnId
             };
             
-            newColumns[sourceColumnId] = {
-              ...newColumns[sourceColumnId],
-              tasks: newColumns[sourceColumnId].tasks.filter(t => t._id !== activeId),
-            };
+            // Insertar en columna destino
+            newColumns[targetColumnId].tasks.splice(targetIndex, 0, updatedTask);
             
-            newColumns[targetColumnId] = {
-              ...newColumns[targetColumnId],
-              tasks: [...newColumns[targetColumnId].tasks, updatedTask],
-            };
+            // Actualizar en la API si cambió de columna
+            if (sourceColumnId !== targetColumnId) {
+              onTaskUpdate(activeId, { 
+                estatus: targetColumnId === 'completed',
+                estado: targetColumnId 
+              });
+            }
           }
           
           return {
@@ -587,6 +778,9 @@ export const BoardView: React.FC<BoardViewProps> = ({
             columns: newColumns,
           };
         });
+
+        // Guardar el nuevo orden de tareas
+        setTimeout(() => saveTasksOrder(), 500);
       }
     } else if (draggedItem.type === 'column') {
       if (activeId !== overId) {
@@ -603,11 +797,14 @@ export const BoardView: React.FC<BoardViewProps> = ({
             columnOrder: newColumnOrder,
           };
         });
+
+        // Guardar el nuevo orden de columnas
+        setTimeout(() => saveColumnsOrder(), 500);
       }
     }
 
     setDraggedItem(null);
-  }, [draggedItem, boardState.columns, onTaskUpdate]);
+  }, [draggedItem, boardState.columns, onTaskUpdate, saveTasksOrder, saveColumnsOrder]);
 
   // Convertir columnId a status
   const getStatusFromColumnId = (columnId: string): boolean => {
@@ -867,6 +1064,8 @@ const exportData = useCallback(() => {
   toast.success(t('Datos exportados correctamente'));
 }, [boardState, itinerario, t]);
 
+
+
   return (
     <div className="h-full flex flex-col bg-gray-50">
       {/* Header del tablero mejorado */}
@@ -907,7 +1106,7 @@ const exportData = useCallback(() => {
 
               {/* Selector de vista */}
               <div className="flex items-center bg-gray-100 rounded-lg p-1">
-                <button
+{/*                 <button
                   onClick={() => setBoardState(prev => ({ ...prev, viewMode: 'board' }))}
                   className={`p-2 rounded transition-all ${
                     boardState.viewMode === 'board' 
@@ -928,7 +1127,7 @@ const exportData = useCallback(() => {
                   title="Vista Compacta"
                 >
                   <Layers className="w-4 h-4" />
-                </button>
+                </button> */}
 {/*                 <button
                   onClick={() => setBoardState(prev => ({ ...prev, viewMode: 'list' }))}
                   className={`p-2 rounded transition-all ${
@@ -974,13 +1173,13 @@ const exportData = useCallback(() => {
                 <Filter className="w-4 h-4" />
               </button>
 
-              <button
+{/*               <button
                 onClick={() => setShowColumnManager(true)}
                 className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
                 title="Gestionar Columnas"
               >
                 <Settings className="w-4 h-4" />
-              </button>
+              </button> */}
 
               <button
                 onClick={toggleGlobalCollapse}
@@ -1061,7 +1260,7 @@ const exportData = useCallback(() => {
           sensors={sensors}
           collisionDetection={closestCorners}
           onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
+          onDragEnd={handleDragEndWithOrder}
         >
           <div className="flex h-full p-4 space-x-4" style={{ minWidth: 'fit-content' }}>
             <SortableContext
@@ -1078,7 +1277,12 @@ const exportData = useCallback(() => {
                   <BoardColumn
                     key={columnId}
                     column={column}
-                    onTaskClick={setSelectTask}
+                    onTaskClick={(taskId) => {
+                      const task = column.tasks.find(t => t._id === taskId);
+                      if (task) {
+                        setShowTaskDetail({ show: true, task });
+                      }
+                    }}
                     onTaskUpdate={handleTaskUpdate}
                     onTaskDelete={onTaskDelete}
                     onTaskCreate={handleTaskCreate}
@@ -1106,6 +1310,7 @@ const exportData = useCallback(() => {
                 onTaskUpdate={() => {}}
                 onTaskDelete={() => {}}
                 onCreateSubTask={() => {}}
+                onTaskCreate={() => {}}
                 isSelected={false}
                 isDragging={true}
                 itinerario={itinerario}
@@ -1145,9 +1350,29 @@ const exportData = useCallback(() => {
         />
       )}
 
-      {/* Modal de atajos de teclado */}
+{/* Modal de atajos de teclado */}
       {showShortcuts && (
         <ShortcutsModal onClose={() => setShowShortcuts(false)} />
+      )}
+
+{/* Modal de detalle de tarea */}
+      {showTaskDetail.show && showTaskDetail.task && (
+        <TaskDetailModal
+          task={showTaskDetail.task}
+          itinerario={itinerario}
+          onClose={() => setShowTaskDetail({ show: false })}
+          onUpdate={handleTaskUpdate}
+          onDelete={(taskId) => {
+            const task = data.find(t => t._id === taskId);
+           if (task) {
+              onTaskDelete(taskId);
+           }
+           setShowTaskDetail({ show: false });
+          }}
+          onTaskCreate={handleTaskCreate}
+          tempPastedAndDropFiles={tempPastedAndDropFiles}
+          setTempPastedAndDropFiles={setTempPastedAndDropFiles}
+        />
       )}
     </div>
   );

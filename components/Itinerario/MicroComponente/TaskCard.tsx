@@ -3,6 +3,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 // En TaskCard.tsx, verifica la importación
 import { TaskEditModal } from './TaskEditModal';
+import { TaskDetailModal } from './TaskDetailModal';
 import {
   Check,
   PlusCircle,
@@ -16,6 +17,7 @@ import {
   AlertCircle,
   CheckCircle2,
   Circle,
+  MessageSquare,
 } from 'lucide-react';
 import { Task, Itinerary } from '../../../utils/Interfaces';
 import { ImageAvatar } from '../../Utils/ImageAvatar';
@@ -25,11 +27,12 @@ import { BoardColumn } from './BoardView';
 
 
 interface TaskCardProps {
-  task: Task;
+ task: Task;
   onTaskClick: (taskId: string) => void;
   onTaskUpdate: (taskId: string, updates: Partial<Task>) => void;
   onTaskDelete: (taskId: string) => void;
   onCreateSubTask: (taskId: string) => void;
+  onTaskCreate?: (task: Partial<Task>) => void;
   isSelected: boolean;
   isDragging: boolean;
   itinerario: Itinerary;
@@ -37,11 +40,12 @@ interface TaskCardProps {
 }
 
 export const TaskCard: React.FC<TaskCardProps> = ({
-  task,
+task,
   onTaskClick,
   onTaskUpdate,
   onTaskDelete,
   onCreateSubTask,
+  onTaskCreate,
   isSelected,
   isDragging,
   itinerario,
@@ -77,8 +81,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   };
 
   // Determinar el estado de completado
-  const isCompleted = column.id === 'completed';
-  const isBlocked = column.id === 'blocked';
+  const isCompleted = column?.id === 'completed';
+  const isBlocked = column?.id === 'blocked';
 
   // Función para alternar completado
   const handleToggleComplete = useCallback((e: React.MouseEvent) => {
@@ -101,13 +105,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     setShowEditModal(true);
     setShowActions(false);
   }, []);
-
-  // Función para mostrar más opciones
-  const handleMoreOptions = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    setShowMoreMenu(!showMoreMenu);
-    setShowActions(false);
-  }, [showMoreMenu]);
 
   // Obtener información del responsable
   const getResponsableInfo = useCallback((responsableTitle: string) => {
@@ -172,6 +169,47 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     return 'media'; // valor por defecto
   };
 
+  
+  // Función para duplicar tarea
+  const handleDuplicateTask = useCallback(async () => {
+    try {
+      if (!onTaskCreate) {
+        console.warn('onTaskCreate no está definido');
+        return;
+      }
+      
+      // Crear una copia de la tarea
+      const duplicatedTask = {
+        ...task,
+        descripcion: `${task.descripcion} (copia)`,
+        fecha: new Date(),
+        _id: undefined, // Para que se genere un nuevo ID
+        createdAt: undefined,
+        updatedAt: undefined,
+        comments: [], // Limpiar comentarios
+        commentsViewers: []
+      };
+      
+      // Eliminar propiedades que no deben duplicarse
+      delete duplicatedTask._id;
+      delete duplicatedTask.createdAt;
+      delete duplicatedTask.updatedAt;
+      
+      // Llamar a la función de crear tarea con los datos duplicados
+      onTaskCreate(duplicatedTask);
+      
+    } catch (error) {
+      console.error('Error al duplicar tarea:', error);
+    }
+  }, [task, onTaskCreate]);
+
+  // Función para mostrar más opciones
+  const handleMoreOptions = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowMoreMenu(!showMoreMenu);
+    setShowActions(false);
+  }, [showMoreMenu]);
+
   return (
     <>
       <div
@@ -217,13 +255,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             </button>
 
             {/* Botón de sub-tarea */}
-            <button
+{/*             <button
               onClick={handleCreateSubTask}
               className="p-1 text-gray-400 hover:text-primary hover:bg-pink-50 rounded-md transition-colors"
               title="Crear sub-tarea"
             >
               <PlusCircle className="w-4 h-4" />
-            </button>
+            </button> */}
 
             {/* Botón de editar */}
             <button
@@ -259,10 +297,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                     <AlertCircle className="w-4 h-4 mr-2" />
                     Prioridad alta
                   </button> */}
-                    <button
+                      <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        // Implementar duplicar tarea
+                        handleDuplicateTask();
                         setShowMoreMenu(false);
                       }}
                       className="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -461,6 +499,21 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               </div>
             );
           })()}
+
+          {/* Indicador de comentarios */}
+          {(task.comments?.length || 0) > 0 && (
+            <div className="mt-2 pt-2 border-t border-gray-100">
+              <div className="flex items-center justify-between text-xs text-gray-500">
+                <div className="flex items-center space-x-1">
+                  <MessageSquare className="w-3 h-3" />
+                  <span>Comentarios</span>
+                </div>
+                <span className="bg-gray-200 px-2 py-0.5 rounded-full">
+                  {task.comments.length}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
