@@ -223,7 +223,7 @@ const DEFAULT_COLUMNS: Record<string, Omit<BoardColumn, 'tasks'>> = {
   },
   blocked: {
     id: 'blocked',
-    title: 'Bloqueado2',
+    title: 'Bloqueado',
     color: 'bg-[#fff0f0] border-[#ffa7a7]',
     colorConfig: COLUMN_CONFIG.blocked.colorConfig,
     icon: COLUMN_CONFIG.blocked.icon,
