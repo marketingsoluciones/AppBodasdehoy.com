@@ -132,9 +132,9 @@ export const ModalOptionsCategoria = ({ showOptionsModal, setShowOptionsModal })
   return (
     <ClickAwayListener onClickAway={() => showOptionsModal && setShowOptionsModal(false)}>
       <div className="absolute top-10 right-5 bg-white shadow-lg rounded-lg  z-50">
-        <div className="text-xs flex justify-center border-b py-2 ">
+        {/* <div className="text-xs flex justify-center border-b py-2 ">
           Opciones
-        </div>
+        </div> */}
         <div className="flex items-center gap-2 px-4 py-2">
           <input
             type="checkbox"

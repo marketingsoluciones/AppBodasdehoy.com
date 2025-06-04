@@ -532,13 +532,13 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                     className={` text-right`}
                   >
                     {idx === 5
-                      ? "Total: "
+                      ? "Total"
                       : column.id === "coste_final"
                         ? getCurrency(
                           table
                             .getRowModel()
                             .rows
-                            .filter(row => row.original?.fatherCategoria) // Solo categorías
+                            .filter(row => row.original?.fatherCategoria)
                             .reduce(
                               (acc, row) =>
                                 acc +
@@ -548,7 +548,37 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                               0
                             )
                         )
-                        : null}
+                        : column.id === "coste_estimado"
+                          ? getCurrency(
+                            table
+                              .getRowModel()
+                              .rows
+                              .filter(row => row.original?.fatherCategoria)
+                              .reduce(
+                                (acc, row) =>
+                                  acc +
+                                  (typeof row.original.coste_estimado === "number"
+                                    ? row.original.coste_estimado
+                                    : 0),
+                                0
+                              )
+                          )
+                          : column.id === "pendiente_pagar"
+                            ? getCurrency(
+                              table
+                                .getRowModel()
+                                .rows
+                                .filter(row => row.original?.fatherCategoria)
+                                .reduce(
+                                  (acc, row) =>
+                                    acc +
+                                    (typeof row.original.pendiente_pagar === "number"
+                                      ? row.original.pendiente_pagar
+                                      : 0),
+                                  0
+                                )
+                            )
+                            : null}
                   </th>
                 )
               })}

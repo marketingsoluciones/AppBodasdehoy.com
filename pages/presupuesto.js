@@ -184,10 +184,10 @@ const Presupuesto = () => {
                                 </div>
                               </div>
                               <div className="flex  justify-between w-full text-sm">
-                                <div onClick={() => isAllowed() ? setShowModalDuplicate(true) : ht()} className=" capitalize text-gray-500 cursor-pointer flex justify-center items-center hover:text-gray-900">
+                                <div onClick={() => isAllowed() ? setShowModalDuplicate(true) : ht()} className=" capitalize text-gray-500 cursor-pointer flex justify-center items-center  border  border-primary rounded-md px-3 text-xs text-primary">
                                   {t("import")}
                                 </div>
-                                <div className=" text-gray-200 cursor-default flex justify-center items-center">
+                                <div className="  cursor-default flex justify-center items-center px-3 text-primary opacity-50 border rounded-md text-xs border-primary">
                                   {t("export")}
                                 </div>
                               </div>
