@@ -173,6 +173,23 @@ export const BoddyIter = () => {
     useEffect(() => {
         const itinerarios = event?.itinerarios_array.filter(elem => elem?.tipo === window?.location?.pathname.slice(1))
         if (itinerarios.length) {
+            let nuevoItinerario = itinerario;
+            // Si hay un itinerario en la URL, priorízalo
+            if (router?.query?.itinerary) {
+                nuevoItinerario = itinerarios.find(elem => elem?._id === router.query?.itinerary)
+            } else if (!itinerario || !itinerarios.some(elem => elem._id === itinerario._id)) {
+                // Si no hay seleccionado o el actual ya no existe, selecciona el primero
+                nuevoItinerario = itinerarios[0]
+            }
+            setItinerario(nuevoItinerario)
+        } else {
+            setItinerario(null)
+        }
+    }, [event, router, orderAndDirection])
+
+    /* useEffect(() => {
+        const itinerarios = event?.itinerarios_array.filter(elem => elem?.tipo === window?.location?.pathname.slice(1))
+        if (itinerarios.length) {
             const f1 = itinerarios.findIndex(elem =>
                 !!router.query?.itinerary
                     ? elem?._id === router.query?.itinerary
@@ -186,7 +203,7 @@ export const BoddyIter = () => {
         } else {
             setItinerario(null)
         }
-    }, [event, router, orderAndDirection])
+    }, [event, router, orderAndDirection]) */
 
     return (
         <div className="bg-white w-full h-[calc(100vh-212px)] flex flex-col items-center rounded-t-lg mt-3 relative overflow-hidden">
