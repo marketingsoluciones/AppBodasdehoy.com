@@ -15,9 +15,10 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
-import { ClickUpColumnMenuProps } from './NewTypes';
+import { ColumnMenuProps } from './NewTypes';
+import { useTranslation } from 'react-i18next';
 
-export const ClickUpColumnMenu: React.FC<ClickUpColumnMenuProps> = ({
+export const ColumnMenu: React.FC<ColumnMenuProps> = ({
   column,
   onSort,
   onFilter,
@@ -30,6 +31,7 @@ export const ClickUpColumnMenu: React.FC<ClickUpColumnMenuProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [showSubMenu, setShowSubMenu] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -52,7 +54,7 @@ export const ClickUpColumnMenu: React.FC<ClickUpColumnMenuProps> = ({
   const menuItems = [
     {
       id: 'sort',
-      label: 'Ordenar',
+      label: t('Ordenar'),
       icon: <ArrowUp className="w-4 h-4" />,
       hasSubmenu: true,
       submenu: [
@@ -70,30 +72,30 @@ export const ClickUpColumnMenu: React.FC<ClickUpColumnMenuProps> = ({
     },
     {
       id: 'filter',
-      label: 'Filtrar',
+      label: t('Filtrar'),
       icon: <Filter className="w-4 h-4" />,
       action: () => onFilter()
     },
     {
       id: 'group',
-      label: 'Agrupar',
+      label: t('Agrupar'),
       icon: <Move className="w-4 h-4" />,
       action: () => console.log('Agrupar por', column.id)
     },
     { id: 'divider' },
     {
       id: 'insert',
-      label: 'Insertar columna',
+      label: t('Insertar columna'),
       icon: <Plus className="w-4 h-4" />,
       hasSubmenu: true,
       submenu: [
         {
-          label: 'Insertar a la izquierda',
+          label: t('Insertar a la izquierda'),
           icon: <ChevronLeft className="w-4 h-4" />,
           action: () => onInsertLeft()
         },
         {
-          label: 'Insertar a la derecha',
+          label: t('Insertar a la derecha'),
           icon: <ChevronRight className="w-4 h-4" />,
           action: () => onInsertRight()
         }
@@ -101,24 +103,24 @@ export const ClickUpColumnMenu: React.FC<ClickUpColumnMenuProps> = ({
     },
     {
       id: 'resize',
-      label: 'Ajustar automáticamente',
+      label: t('Ajustar automáticamente'),
       icon: <Maximize2 className="w-4 h-4" />,
       action: () => onResize()
     },
     { id: 'divider' },
     {
       id: 'pin',
-      label: column.isPinned ? 'Desanclar columna' : 'Anclar columna',
+      label: column.isPinned ? t('Desanclar columna') : t('Anclar columna'),
       icon: column.isPinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />,
       hasSubmenu: !column.isPinned,
       submenu: !column.isPinned ? [
         {
-          label: 'Anclar a la izquierda',
+          label: t('Anclar a la izquierda'),
           icon: <ChevronLeft className="w-4 h-4" />,
           action: () => onPin('left')
         },
         {
-          label: 'Anclar a la derecha',
+          label: t('Anclar a la derecha'),
           icon: <ChevronRight className="w-4 h-4" />,
           action: () => onPin('right')
         }
@@ -127,17 +129,17 @@ export const ClickUpColumnMenu: React.FC<ClickUpColumnMenuProps> = ({
     },
     {
       id: 'move',
-      label: 'Mover columna',
+      label: t('Mover columna'),
       icon: <Move className="w-4 h-4" />,
       hasSubmenu: true,
       submenu: [
         {
-          label: 'Mover a la izquierda',
+          label: t('Mover a la izquierda'),
           icon: <ChevronLeft className="w-4 h-4" />,
           action: () => console.log('Mover izquierda')
         },
         {
-          label: 'Mover a la derecha',
+          label: t('Mover a la derecha'),
           icon: <ChevronRight className="w-4 h-4" />,
           action: () => console.log('Mover derecha')
         }
@@ -146,10 +148,10 @@ export const ClickUpColumnMenu: React.FC<ClickUpColumnMenuProps> = ({
     { id: 'divider' },
     {
       id: 'hide',
-      label: 'Ocultar columna',
+      label: t('Ocultar columna'),
       icon: <EyeOff className="w-4 h-4" />,
       action: () => onHide(),
-      className: 'text-[#ff2525] hover:bg-[#fff0f0]'
+      className: 'text-red-600 hover:bg-red-50'
     }
   ];
 
@@ -158,7 +160,7 @@ export const ClickUpColumnMenu: React.FC<ClickUpColumnMenuProps> = ({
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded opacity-0 group-hover:opacity-100 transition-all"
-        title="Opciones de columna"
+        title={t('Opciones de columna')}
       >
         <MoreHorizontal className="w-4 h-4" />
       </button>
@@ -186,7 +188,7 @@ export const ClickUpColumnMenu: React.FC<ClickUpColumnMenuProps> = ({
                       }
                     }}
                     className={`
-                      w-full flex items-center justify-between px-3 py-2 text-sm text-left hover:bg-gray-100
+                      w-full flex items-center justify-between px-3 py-2 text-sm text-left hover:bg-gray-100 transition-colors
                       ${item.className || 'text-gray-700'}
                       ${showSubMenu === item.id ? 'bg-gray-100' : ''}
                     `}
@@ -231,11 +233,13 @@ export const ClickUpColumnMenu: React.FC<ClickUpColumnMenuProps> = ({
 export const ColumnConfigButton: React.FC<{
   onShowConfig: () => void;
 }> = ({ onShowConfig }) => {
+  const { t } = useTranslation();
+  
   return (
     <button
       onClick={onShowConfig}
       className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
-      title="Configurar columnas"
+      title={t('Configurar columnas')}
     >
       <Eye className="w-4 h-4" />
     </button>
@@ -249,12 +253,14 @@ export const ColumnConfigModal: React.FC<{
   onToggleColumn: (columnId: string) => void;
   onClose: () => void;
 }> = ({ columns, hiddenColumns, onToggleColumn, onClose }) => {
+  const { t } = useTranslation();
+  
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-800">
-            Configurar columnas
+            {t('Configurar columnas')}
           </h3>
           <button
             onClick={onClose}
@@ -266,7 +272,7 @@ export const ColumnConfigModal: React.FC<{
 
         <div className="p-4">
           <div className="space-y-2 max-h-64 overflow-y-auto">
-            {columns.map((column) => (
+            {columns.filter(col => col.id !== 'actions').map((column) => (
               <label
                 key={column.id}
                 className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer"
@@ -294,7 +300,7 @@ export const ColumnConfigModal: React.FC<{
             onClick={onClose}
             className="px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
           >
-            Cerrar
+            {t('Cerrar')}
           </button>
         </div>
       </div>

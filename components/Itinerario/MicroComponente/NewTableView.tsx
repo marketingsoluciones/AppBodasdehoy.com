@@ -1,43 +1,41 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useTable, useSortBy, useRowSelect, useGlobalFilter } from 'react-table';
 import { 
-  ClickUpTableProps, 
-  ClickUpColumn, 
-  ClickUpTableState, 
-  ClickUpFilter,
-  ClickUpViewConfig,
+  TableProps, 
+  TableColumn, 
+  TableState, 
+  TableFilter,
+  ViewConfig,
   TASK_STATUSES,
   TASK_PRIORITIES
 } from './NewTypes';
-import { ClickUpTableHeader } from './NewTableHeader';
-import { ClickUpTableFilters } from './NewTableFilters';
-import { ClickUpTableCell } from './NewTableCell';
-import { ClickUpColumnMenu } from './NewColumnMenu';
+import { TableHeader } from './NewTableHeader';
+import { TableFilters } from './NewTableFilters';
+import { TableCell } from './NewTableCell';
+import { ColumnMenu } from './NewColumnMenu';
 import { AuthContextProvider, EventContextProvider } from '../../../context';
 import { fetchApiEventos, queries } from '../../../utils/Fetching';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../../../hooks/useToast';
+import { MessageSquare, Edit2, Paperclip } from 'lucide-react';
+import { CommentModal } from './CommentModal';
+import { TableEditModal } from './TableEditModal';
 
-// Definir las columnas antes del estado - ACTUALIZADO
-const defineColumns = (t: any): ClickUpColumn[] => [
-/*   {
-    id: 'select',
+// Definir las columnas con adjuntos incluido
+const defineColumns = (t: any): TableColumn[] => [
+  {
+    id: 'actions',
     Header: '',
     accessor: '_id',
     width: 40,
+    minWidth: 40,
+    maxWidth: 40,
     canResize: false,
     canSort: false,
     canFilter: false,
     canHide: false,
-    Cell: ({ row }) => (
-      <input
-        type="checkbox"
-        checked={false}
-        onChange={() => {}}
-        className="rounded border-gray-300 text-primary focus:ring-primary"
-      />
-    )
-  }, */
+    Cell: () => null
+  },
   {
     id: 'descripcion',
     Header: t('title'),
@@ -46,7 +44,8 @@ const defineColumns = (t: any): ClickUpColumn[] => [
     minWidth: 150,
     maxWidth: 400,
     canResize: true,
-    type: 'text'
+    type: 'text',
+    truncate: 30
   },
   {
     id: 'estado',
@@ -74,11 +73,11 @@ const defineColumns = (t: any): ClickUpColumn[] => [
     id: 'responsable',
     Header: t('responsible'),
     accessor: 'responsable',
-    width: 150,
-    minWidth: 120,
-    maxWidth: 250,
+    width: 200,
+    minWidth: 150,
+    maxWidth: 300,
     canResize: true,
-    type: 'user'
+    type: 'responsable'
   },
   {
     id: 'fecha',
@@ -89,6 +88,16 @@ const defineColumns = (t: any): ClickUpColumn[] => [
     maxWidth: 160,
     canResize: true,
     type: 'date'
+  },
+  {
+    id: 'hora',
+    Header: t('time'),
+    accessor: 'fecha',
+    width: 80,
+    minWidth: 70,
+    maxWidth: 100,
+    canResize: true,
+    type: 'time'
   },
   {
     id: 'duracion',
@@ -102,27 +111,49 @@ const defineColumns = (t: any): ClickUpColumn[] => [
   },
   {
     id: 'tips',
-    Header: t('tips'),
+    Header: t('description'),
     accessor: 'tips',
-    width: 200,
-    minWidth: 150,
+    width: 250,
+    minWidth: 200,
     maxWidth: 400,
     canResize: true,
-    type: 'editor'
+    type: 'tips'
   },
   {
     id: 'tags',
     Header: t('labels'),
     accessor: 'tags',
-    width: 120,
-    minWidth: 100,
-    maxWidth: 250,
+    width: 180,
+    minWidth: 150,
+    maxWidth: 300,
     canResize: true,
     type: 'tags'
+  },
+  {
+    id: 'attachments',
+    Header: t('attachments'),
+    accessor: 'attachments',
+    width: 120,
+    minWidth: 100,
+    maxWidth: 150,
+    canResize: true,
+    type: 'text',
+    canSort: false
+  },
+  {
+    id: 'comments',
+    Header: t('comments'),
+    accessor: 'comments',
+    width: 100,
+    minWidth: 80,
+    maxWidth: 120,
+    canResize: true,
+    type: 'comments',
+    canSort: false
   }
 ];
 
-export const ClickUpTableView: React.FC<ClickUpTableProps> = ({
+export const TableView: React.FC<TableProps> = ({
   data,
   itinerario,
   selectTask,
@@ -140,7 +171,7 @@ export const ClickUpTableView: React.FC<ClickUpTableProps> = ({
   const columns = useMemo(() => defineColumns(t), [t]);
 
   // Estado de la tabla
-  const [tableState, setTableState] = useState<ClickUpTableState>(() => ({
+  const [tableState, setTableState] = useState<TableState>(() => ({
     columns: columns,
     hiddenColumns: [],
     pinnedColumns: { left: [], right: [] },
@@ -153,18 +184,26 @@ export const ClickUpTableView: React.FC<ClickUpTableProps> = ({
   const [editingCell, setEditingCell] = useState<{ row: number; column: string } | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'table' | 'board'>('table');
-  const [savedViews, setSavedViews] = useState<ClickUpViewConfig[]>([]);
+  const [savedViews, setSavedViews] = useState<ViewConfig[]>([]);
+  const [showCommentModal, setShowCommentModal] = useState<{ show: boolean; task?: any; rowIndex?: number }>({ show: false });
+  const [showEditModal, setShowEditModal] = useState<{ show: boolean; task?: any }>({ show: false });
 
-  // Verificación de seguridad para filteredData
+  // Forzar actualización cuando cambian los datos
+  const [forceUpdate, setForceUpdate] = useState(0);
+
+  useEffect(() => {
+    setForceUpdate(prev => prev + 1);
+  }, [data]);
+
+  // Filtrar datos
   const filteredData = useMemo(() => {
     if (!data || !Array.isArray(data)) return [];
     
     let filtered = [...data];
 
-    // Memoizar los filtros para evitar recálculos innecesarios
+    // Aplicar filtros
     const activeFilters = tableState.filters.filter(f => f.isActive && f.value);
     
-    // Aplicar filtros solo si hay filtros activos
     if (activeFilters.length > 0) {
       filtered = filtered.filter(item => {
         return activeFilters.every(filter => {
@@ -199,7 +238,7 @@ export const ClickUpTableView: React.FC<ClickUpTableProps> = ({
       });
     }
 
-    // Aplicar filtro global solo si existe
+    // Aplicar búsqueda global
     if (tableState.globalFilter) {
       const searchTerm = tableState.globalFilter.toLowerCase();
       filtered = filtered.filter(item =>
@@ -210,13 +249,12 @@ export const ClickUpTableView: React.FC<ClickUpTableProps> = ({
     }
 
     return filtered;
-  }, [data, tableState.filters, tableState.globalFilter]);
+  }, [data, tableState.filters, tableState.globalFilter, forceUpdate]);
 
   // Configurar react-table
   const tableInstance = useTable(
     {
       columns: useMemo(() => {
-        // Asegurarnos de que columns existe antes de filtrar
         if (!tableState.columns) return columns;
         return tableState.columns.filter(
           col => !tableState.hiddenColumns.includes(col.id)
@@ -241,114 +279,131 @@ export const ClickUpTableView: React.FC<ClickUpTableProps> = ({
     prepareRow
   } = tableInstance;
 
-// Optimizar el manejo de actualizaciones de celda - MEJORADO
-const handleCellUpdate = useCallback(async (rowIndex: number, columnId: string, value: any) => {
-  const task = filteredData[rowIndex];
-  
-  try {
-    let processedValue = value;
+  // Manejar actualización de celda mejorada
+  const handleCellUpdate = useCallback(async (rowIndex: number, columnId: string, value: any) => {
+    const task = filteredData[rowIndex];
+    if (!task) return;
     
-    // Procesar el valor según el tipo de columna
-    switch (columnId) {
-      case 'responsable':
-      case 'tags':
-      case 'attachments':
-        // Para arrays, asegurar que sea un array y convertir a JSON
-        processedValue = Array.isArray(value) ? JSON.stringify(value) : JSON.stringify([]);
-        break;
-      case 'tips':
-        // Para editor de texto, mantener como string
-        processedValue = String(value || '');
-        break;
-      case 'duracion':
-        // Para números, convertir a string
-        processedValue = String(value || '0');
-        break;
-      case 'fecha':
-        // Para fechas, manejar formato
-        if (value instanceof Date) {
-          processedValue = value.toISOString();
-        } else if (typeof value === 'string') {
-          processedValue = value;
-        } else {
-          processedValue = new Date().toISOString();
-        }
-        break;
-      case 'estatus':
-      case 'spectatorView':
-        // Para booleanos
-        processedValue = JSON.stringify(Boolean(value));
-        break;
-      default:
-        // Para otros tipos, convertir a string
-        processedValue = String(value || '');
+    try {
+      let processedValue = value;
+      let actualColumnId = columnId;
+      
+      // Procesar según el tipo de columna
+      switch (columnId) {
+        case 'responsable':
+        case 'tags':
+        case 'attachments':
+          processedValue = JSON.stringify(Array.isArray(value) ? value : []);
+          break;
+        case 'tips':
+          processedValue = String(value || '');
+          break;
+        case 'duracion':
+          processedValue = String(value || '0');
+          break;
+        case 'fecha':
+          if (value instanceof Date) {
+            processedValue = value.toISOString();
+          } else if (typeof value === 'string') {
+            processedValue = new Date(value).toISOString();
+          } else {
+            processedValue = new Date().toISOString();
+          }
+          break;
+        case 'hora':
+          // Para la hora, actualizamos la fecha completa
+          if (task.fecha && value) {
+            const fecha = new Date(task.fecha);
+            const [hours, minutes] = value.split(':');
+            fecha.setHours(parseInt(hours), parseInt(minutes));
+            processedValue = fecha.toISOString();
+            actualColumnId = 'fecha';
+          }
+          break;
+        case 'estatus':
+        case 'spectatorView':
+          processedValue = JSON.stringify(Boolean(value));
+          break;
+        case 'estado':
+        case 'prioridad':
+          processedValue = String(value);
+          break;
+        default:
+          processedValue = String(value || '');
+      }
+
+      // Hacer la llamada a la API
+      await fetchApiEventos({
+        query: queries.editTask,
+        variables: {
+          eventID: event._id,
+          itinerarioID: itinerario._id,
+          taskID: task._id,
+          variable: actualColumnId,
+          valor: processedValue
+        },
+        domain: config.domain
+      });
+
+      // Actualizar el estado local
+      const updatedValue = ['responsable', 'tags', 'attachments'].includes(columnId)
+        ? (Array.isArray(value) ? value : [])
+        : value;
+
+      // Actualizar a través del callback padre
+      await onTaskUpdate(task._id, { [columnId]: updatedValue });
+      
+      // Forzar actualización de la tabla
+      setForceUpdate(prev => prev + 1);
+      
+      toast('success', t('Campo actualizado'));
+      
+    } catch (error) {
+      console.error('Error al actualizar tarea:', error);
+      toast('error', t('Error al actualizar la tarea'));
     }
-
-    await fetchApiEventos({
-      query: queries.editTask,
-      variables: {
-        eventID: event._id,
-        itinerarioID: itinerario._id,
-        taskID: task._id,
-        variable: columnId,
-        valor: processedValue
-      },
-      domain: config.domain
-    });
-
-    // Actualizar el estado local
-    const updatedValue = columnId === 'responsable' || columnId === 'tags' || columnId === 'attachments' 
-      ? (Array.isArray(value) ? value : [])
-      : value;
-
-    onTaskUpdate(task._id, { [columnId]: updatedValue });
-    toast('success', t('Item guardado con éxito'));
-    
-  } catch (error) {
-    console.error('Error al actualizar tarea:', error);
-    toast('error', t('Error al actualizar la tarea'));
-  }
-}, [event._id, itinerario._id, filteredData, onTaskUpdate, config.domain, t, toast]);
+  }, [event._id, itinerario._id, filteredData, onTaskUpdate, config.domain, t, toast]);
 
   // Manejar creación de tarea
   const handleAddTask = () => {
     const newTask = {
       descripcion: 'Nueva tarea',
       estado: 'pending',
-      prioridad: 'normal',
+      prioridad: 'media',
       responsable: [],
-      fecha: new Date(), // Convertir a objeto Date en lugar de string
+      fecha: new Date(),
       duracion: 30,
       tags: [],
-      tips: ''
+      tips: '',
+      attachments: []
     };
     
     onTaskCreate(newTask);
   };
 
-// Optimizar el manejo de toggles de columnas
-const handleToggleColumn = useCallback((columnId: string) => {
-  setTableState(prev => ({
-    ...prev,
-    hiddenColumns: prev.hiddenColumns.includes(columnId)
-      ? prev.hiddenColumns.filter(id => id !== columnId)
-      : [...prev.hiddenColumns, columnId]
-  }));
-}, []);
+  // Toggle columnas
+  const handleToggleColumn = useCallback((columnId: string) => {
+    setTableState(prev => ({
+      ...prev,
+      hiddenColumns: prev.hiddenColumns.includes(columnId)
+        ? prev.hiddenColumns.filter(id => id !== columnId)
+        : [...prev.hiddenColumns, columnId]
+    }));
+  }, []);
 
   // Manejar filtros
-  const handleFiltersChange = (filters: ClickUpFilter[]) => {
+  const handleFiltersChange = (filters: TableFilter[]) => {
     setTableState(prev => ({ ...prev, filters }));
   };
 
   // Guardar vista
-  const handleSaveView = (view: ClickUpViewConfig) => {
+  const handleSaveView = (view: ViewConfig) => {
     setSavedViews(prev => [...prev, view]);
     toast('success', 'Vista guardada correctamente');
   };
 
   // Cargar vista
-  const handleLoadView = (view: ClickUpViewConfig) => {
+  const handleLoadView = (view: ViewConfig) => {
     setTableState(prev => ({
       ...prev,
       columns: view.columns,
@@ -358,9 +413,19 @@ const handleToggleColumn = useCallback((columnId: string) => {
     toast('success', `Vista "${view.name}" cargada`);
   };
 
+  // Manejar click en comentarios
+  const handleCommentsClick = (task: any, rowIndex: number) => {
+    setShowCommentModal({ show: true, task, rowIndex });
+  };
+
+  // Actualizar comentarios
+  const handleUpdateComments = async (taskId: string, comments: any[]) => {
+    await onTaskUpdate(taskId, { comments });
+    setForceUpdate(prev => prev + 1);
+  };
+
   const activeFiltersCount = tableState.filters.filter(f => f.isActive && f.value).length;
 
-  // Verificación para el renderizado
   if (!tableState.columns) {
     return <div>Cargando...</div>;
   }
@@ -368,7 +433,7 @@ const handleToggleColumn = useCallback((columnId: string) => {
   return (
     <div className="h-full flex flex-col bg-gray-50">
       {/* Header principal */}
-      <ClickUpTableHeader
+      <TableHeader
         title={`${itinerario.title} - Vista Tabla`}
         totalItems={data.length}
         selectedItems={tableState.selectedRows.length}
@@ -388,7 +453,7 @@ const handleToggleColumn = useCallback((columnId: string) => {
 
       {/* Panel de filtros */}
       {showFilters && (
-        <ClickUpTableFilters
+        <TableFilters
           filters={tableState.filters}
           columns={tableState.columns}
           onFiltersChange={handleFiltersChange}
@@ -399,56 +464,69 @@ const handleToggleColumn = useCallback((columnId: string) => {
       )}
 
       {/* Tabla principal */}
-      <div className="flex-1 overflow-auto z-0">
+      <div className="flex-1 overflow-auto">
         <div className="min-w-full">
-          <table {...getTableProps()} className="w-full bg-white">
+          <table {...getTableProps()} className="w-full bg-white relative">
             {/* Header de la tabla */}
-            <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
+            <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-20">
               {headerGroups.map((headerGroup, headerGroupIndex) => (
                 <tr 
                   key={`header-group-${headerGroupIndex}`} 
                   {...headerGroup.getHeaderGroupProps()} 
                   className="divide-x divide-gray-200"
                 >
-                  {headerGroup.headers.map((column, columnIndex) => (
-                    <th
-                      key={`header-${column.id || columnIndex}`}
-                      {...column.getHeaderProps()}
-                      className="group relative px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      style={{
-                        width: column.width,
-                        minWidth: column.minWidth,
-                        maxWidth: column.maxWidth
-                      }}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div 
-                          {...(column.canSort ? column.getSortByToggleProps() : {})}
-                          className={`flex items-center space-x-1 ${column.canSort ? 'cursor-pointer' : ''}`}
+                  {headerGroup.headers.map((column, columnIndex) => {
+                    if (column.id === 'actions') {
+                      return (
+                        <th
+                          key={`header-${column.id}`}
+                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12"
                         >
-                          <span>{column.render('Header')}</span>
-                          {column.isSorted && (
-                            <span className="text-primary">
-                              {column.isSortedDesc ? '↓' : '↑'}
-                            </span>
+                          {/* Espacio vacío para el header de acciones */}
+                        </th>
+                      );
+                    }
+                    
+                    return (
+                      <th
+                        key={`header-${column.id || columnIndex}`}
+                        {...column.getHeaderProps()}
+                        className="group relative px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        style={{
+                          width: column.width,
+                          minWidth: column.minWidth,
+                          maxWidth: column.maxWidth
+                        }}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div 
+                            {...(column.canSort ? column.getSortByToggleProps() : {})}
+                            className={`flex items-center space-x-1 ${column.canSort ? 'cursor-pointer' : ''}`}
+                          >
+                            <span>{column.render('Header')}</span>
+                            {column.isSorted && (
+                              <span className="text-primary">
+                                {column.isSortedDesc ? '↓' : '↑'}
+                              </span>
+                            )}
+                          </div>
+                          
+                          {column.id !== 'select' && column.id !== 'actions' && (
+                            <ColumnMenu
+                              column={column as any}
+                              onSort={(direction) => console.log('Sort', direction)}
+                              onFilter={() => console.log('Filter')}
+                              onHide={() => handleToggleColumn(column.id)}
+                              onPin={(position) => console.log('Pin', position)}
+                              onResize={() => console.log('Resize')}
+                              onInsertLeft={() => console.log('Insert left')}
+                              onInsertRight={() => console.log('Insert right')}
+                            />
                           )}
                         </div>
-                        
-                        {column.id !== 'select' && (
-                          <ClickUpColumnMenu
-                            column={column as any}
-                            onSort={(direction) => console.log('Sort', direction)}
-                            onFilter={() => console.log('Filter')}
-                            onHide={() => handleToggleColumn(column.id)}
-                            onPin={(position) => console.log('Pin', position)}
-                            onResize={() => console.log('Resize')}
-                            onInsertLeft={() => console.log('Insert left')}
-                            onInsertRight={() => console.log('Insert right')}
-                          />
-                        )}
-                      </div>
-                    </th>
-                  ))}
+                      </th>
+                    );
+                  })}
                 </tr>
               ))}
             </thead>
@@ -457,38 +535,62 @@ const handleToggleColumn = useCallback((columnId: string) => {
             <tbody {...getTableBodyProps()} className="bg-white divide-y divide-gray-200">
               {rows.map((row, rowIndex) => {
                 prepareRow(row);
+                const isSelected = selectTask === row.original._id;
+                
                 return (
                   <tr
                     key={row.original._id || `row-${rowIndex}`}
                     {...row.getRowProps()}
                     className={`
                       hover:bg-gray-50 transition-colors divide-x divide-gray-200
-                      ${selectTask === row.original._id ? 'bg-pink-50' : ''}
+                      ${isSelected ? 'bg-primary/5 border-l-4 border-primary' : ''}
                     `}
                     onClick={() => setSelectTask(row.original._id)}
                   >
-                    {row.cells.map((cell, cellIndex) => (
-                      <td
-                        key={`${row.original._id}-${cell.column.id || cellIndex}`}
-                        {...cell.getCellProps()}
-                        className="px-0 py-0 whitespace-nowrap"
-                        style={{
-                          width: cell.column.width,
-                          minWidth: cell.column.minWidth,
-                          maxWidth: cell.column.maxWidth
-                        }}
-                      >
-                        <ClickUpTableCell
-                          column={cell.column as any}
-                          row={row}
-                          value={cell.value}
-                          onUpdate={(value) => handleCellUpdate(rowIndex, cell.column.id, value)}
-                          isEditing={editingCell?.row === rowIndex && editingCell?.column === cell.column.id}
-                          onStartEdit={() => setEditingCell({ row: rowIndex, column: cell.column.id })}
-                          onStopEdit={() => setEditingCell(null)}
-                        />
-                      </td>
-                    ))}
+                    {row.cells.map((cell, cellIndex) => {
+                      // Renderizar celda de acciones manualmente
+                      if (cell.column.id === 'actions') {
+                        return (
+                          <td key={`${row.original._id}-actions`} className="px-2 py-2 whitespace-nowrap">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowEditModal({ show: true, task: row.original });
+                              }}
+                              className="p-1.5 text-gray-400 hover:text-primary hover:bg-gray-100 rounded transition-colors"
+                              title={t('Editar fila completa')}
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        );
+                      }
+                      
+                      return (
+                        <td
+                          key={`${row.original._id}-${cell.column.id || cellIndex}`}
+                          {...cell.getCellProps()}
+                          className="px-0 py-0 whitespace-nowrap overflow-visible relative"
+                          style={{
+                            width: cell.column.width,
+                            minWidth: cell.column.minWidth,
+                            maxWidth: cell.column.maxWidth
+                          }}
+                        >
+                          <TableCell
+                            column={cell.column as any}
+                            row={row}
+                            value={cell.value}
+                            task={row.original}
+                            onUpdate={(value) => handleCellUpdate(rowIndex, cell.column.id, value)}
+                            isEditing={editingCell?.row === rowIndex && editingCell?.column === cell.column.id}
+                            onStartEdit={() => setEditingCell({ row: rowIndex, column: cell.column.id })}
+                            onStopEdit={() => setEditingCell(null)}
+                            onCommentsClick={() => handleCommentsClick(row.original, rowIndex)}
+                          />
+                        </td>
+                      );
+                    })}
                   </tr>
                 );
               })}
@@ -517,21 +619,49 @@ const handleToggleColumn = useCallback((columnId: string) => {
       </div>
 
       {/* Footer con información */}
-      <div className="bg-white border-t border-gray-200 px-4 py-2">
-        <div className="flex items-center justify-between text-sm text-gray-500">
+      <div className="bg-white border-t border-gray-200 px-4 py-3">
+        <div className="flex items-center justify-between text-sm text-gray-600">
           <div>
             Mostrando {filteredData.length} de {data.length} tareas
           </div>
           <div className="flex items-center space-x-4">
             {tableState.selectedRows.length > 0 && (
-              <span>{tableState.selectedRows.length} seleccionadas</span>
+              <span className="font-medium text-primary">
+                {tableState.selectedRows.length} seleccionadas
+              </span>
             )}
             {activeFiltersCount > 0 && (
-              <span>{activeFiltersCount} filtros activos</span>
+              <span className="px-2 py-1 bg-primary/10 text-primary rounded-full text-xs">
+                {activeFiltersCount} filtros activos
+              </span>
             )}
           </div>
         </div>
       </div>
+
+      {/* Modal de comentarios */}
+      {showCommentModal.show && showCommentModal.task && (
+        <CommentModal
+          task={showCommentModal.task}
+          itinerario={itinerario}
+          onClose={() => setShowCommentModal({ show: false })}
+          onUpdateComments={handleUpdateComments}
+        />
+      )}
+
+      {/* Modal de edición de fila completa */}
+      {showEditModal.show && showEditModal.task && (
+        <TableEditModal
+          task={showEditModal.task}
+          itinerario={itinerario}
+          onClose={() => setShowEditModal({ show: false })}
+          onSave={async (taskId, updates) => {
+            await onTaskUpdate(taskId, updates);
+            setShowEditModal({ show: false });
+            setForceUpdate(prev => prev + 1);
+          }}
+        />
+      )}
     </div>
   );
 };

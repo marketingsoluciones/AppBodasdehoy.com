@@ -13,10 +13,11 @@ import {
   ChevronDown,
   Eye
 } from 'lucide-react';
-import { ClickUpColumn } from './NewTypes';
+import { TableColumn } from './NewTypes';
 import { ColumnConfigModal } from './NewColumnMenu';
+import { useTranslation } from 'react-i18next';
 
-interface ClickUpTableHeaderProps {
+interface TableHeaderProps {
   title: string;
   totalItems: number;
   selectedItems: number;
@@ -27,14 +28,14 @@ interface ClickUpTableHeaderProps {
   onImport: () => void;
   viewMode: 'table' | 'board';
   onViewModeChange: (mode: 'table' | 'board') => void;
-  columns: ClickUpColumn[];
+  columns: TableColumn[];
   hiddenColumns: string[];
   onToggleColumn: (columnId: string) => void;
   onFiltersToggle: () => void;
   filtersActive: boolean;
 }
 
-export const ClickUpTableHeader: React.FC<ClickUpTableHeaderProps> = ({
+export const TableHeader: React.FC<TableHeaderProps> = ({
   title,
   totalItems,
   selectedItems,
@@ -53,8 +54,9 @@ export const ClickUpTableHeader: React.FC<ClickUpTableHeaderProps> = ({
 }) => {
   const [showColumnConfig, setShowColumnConfig] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const { t } = useTranslation();
 
-  const visibleColumnsCount = columns.filter(col => !hiddenColumns.includes(col.id)).length;
+  const visibleColumnsCount = columns.filter(col => !hiddenColumns.includes(col.id) && col.id !== 'actions').length;
 
   return (
     <>
@@ -64,53 +66,23 @@ export const ClickUpTableHeader: React.FC<ClickUpTableHeaderProps> = ({
           <div className="flex items-center space-x-4">
             <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
             <div className="flex items-center text-sm text-gray-500">
-              <span>{totalItems} tarea{totalItems !== 1 ? 's' : ''}</span>
+              <span>{totalItems} {t('tareas')}</span>
               {selectedItems > 0 && (
-                <span className="ml-2 px-2 py-1 bg-pink-100 text-primary rounded-full text-xs">
-                  {selectedItems} seleccionada{selectedItems !== 1 ? 's' : ''}
+                <span className="ml-2 px-2 py-1 bg-primary/10 text-primary rounded-full text-xs">
+                  {selectedItems} {t('seleccionadas')}
                 </span>
               )}
             </div>
           </div>
 
           <div className="flex items-center space-x-2">
-            {/* Selector de vista */}
-{/*             <div className="flex items-center bg-gray-100 rounded-md p-1">
-              <button
-                onClick={() => onViewModeChange('table')}
-                className={`
-                  flex items-center space-x-1 px-3 py-1 rounded text-sm transition-colors
-                  ${viewMode === 'table' 
-                    ? 'bg-white text-gray-900 shadow-sm' 
-                    : 'text-gray-600 hover:text-gray-900'
-                  }
-                `}
-              >
-                <List className="w-4 h-4" />
-                <span>Tabla</span>
-              </button>
-              <button
-                onClick={() => onViewModeChange('board')}
-                className={`
-                  flex items-center space-x-1 px-3 py-1 rounded text-sm transition-colors
-                  ${viewMode === 'board' 
-                    ? 'bg-white text-gray-900 shadow-sm' 
-                    : 'text-gray-600 hover:text-gray-900'
-                  }
-                `}
-              >
-                <Grid3X3 className="w-4 h-4" />
-                <span>Tablero</span>
-              </button>
-            </div> */}
-
             {/* Botón de agregar */}
             <button
               onClick={onAddTask}
-              className="flex items-center space-x-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary transition-colors"
+              className="flex items-center space-x-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
             >
               <Plus className="w-4 h-4" />
-              <span>Nueva tarea</span>
+              <span>{t('Nueva tarea')}</span>
             </button>
 
             {/* Menú de más opciones */}
@@ -133,7 +105,7 @@ export const ClickUpTableHeader: React.FC<ClickUpTableHeaderProps> = ({
                       className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
                       <Download className="w-4 h-4" />
-                      <span>Exportar</span>
+                      <span>{t('Exportar')}</span>
                     </button>
                     <button
                       onClick={() => {
@@ -143,7 +115,7 @@ export const ClickUpTableHeader: React.FC<ClickUpTableHeaderProps> = ({
                       className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
                       <Upload className="w-4 h-4" />
-                      <span>Importar</span>
+                      <span>{t('Importar')}</span>
                     </button>
                     <div className="border-t border-gray-200 my-1" />
                     <button
@@ -154,7 +126,7 @@ export const ClickUpTableHeader: React.FC<ClickUpTableHeaderProps> = ({
                       className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
                       <Settings className="w-4 h-4" />
-                      <span>Configurar columnas</span>
+                      <span>{t('Configurar columnas')}</span>
                     </button>
                   </div>
                 </div>
@@ -171,10 +143,10 @@ export const ClickUpTableHeader: React.FC<ClickUpTableHeaderProps> = ({
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Buscar tareas..."
+                placeholder={t('Buscar tareas...')}
                 value={searchValue}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
               {searchValue && (
                 <button
@@ -192,13 +164,13 @@ export const ClickUpTableHeader: React.FC<ClickUpTableHeaderProps> = ({
               className={`
                 flex items-center space-x-2 px-3 py-2 rounded-md transition-colors
                 ${filtersActive 
-                  ? 'bg-pink-100 text-primary border border-pink-200' 
+                  ? 'bg-primary/10 text-primary border border-primary/20' 
                   : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
                 }
               `}
             >
               <Filter className="w-4 h-4" />
-              <span>Filtros</span>
+              <span>{t('Filtros')}</span>
               {filtersActive && (
                 <span className="bg-primary text-white text-xs px-1.5 py-0.5 rounded-full">
                   !
@@ -214,28 +186,28 @@ export const ClickUpTableHeader: React.FC<ClickUpTableHeaderProps> = ({
               className="flex items-center space-x-1 hover:text-gray-700 transition-colors"
             >
               <Eye className="w-4 h-4" />
-              <span>{visibleColumnsCount} de {columns.length} columnas</span>
+              <span>{visibleColumnsCount} {t('de')} {columns.filter(col => col.id !== 'actions').length} {t('columnas')}</span>
             </button>
           </div>
         </div>
 
         {/* Tercera fila: Acciones en lote (solo visible cuando hay selecciones) */}
         {selectedItems > 0 && (
-          <div className="flex items-center justify-between mt-3 p-3 bg-pink-50 border border-pink-200 rounded-md">
+          <div className="flex items-center justify-between mt-3 p-3 bg-primary/5 border border-primary/20 rounded-md">
             <div className="flex items-center space-x-3">
-              <span className="text-sm font-medium text-pink-900">
-                {selectedItems} tarea{selectedItems !== 1 ? 's' : ''} seleccionada{selectedItems !== 1 ? 's' : ''}
+              <span className="text-sm font-medium text-primary">
+                {selectedItems} {t('tareas seleccionadas')}
               </span>
             </div>
             <div className="flex items-center space-x-2">
-              <button className="px-3 py-1 text-sm text-primary hover:bg-pink-100 rounded transition-colors">
-                Cambiar estado
+              <button className="px-3 py-1 text-sm text-primary hover:bg-primary/10 rounded transition-colors">
+                {t('Cambiar estado')}
               </button>
-              <button className="px-3 py-1 text-sm text-primary hover:bg-pink-100 rounded transition-colors">
-                Asignar
+              <button className="px-3 py-1 text-sm text-primary hover:bg-primary/10 rounded transition-colors">
+                {t('Asignar')}
               </button>
-              <button className="px-3 py-1 text-sm text-[#ff2525] hover:bg-[#ffdada] rounded transition-colors">
-                Eliminar
+              <button className="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded transition-colors">
+                {t('Eliminar')}
               </button>
             </div>
           </div>
@@ -263,6 +235,8 @@ export const TableMiniHeader: React.FC<{
   allSelected: boolean;
   someSelected: boolean;
 }> = ({ sortBy, onSort, onSelectAll, allSelected, someSelected }) => {
+  const { t } = useTranslation();
+  
   return (
     <div className="bg-gray-50 border-b border-gray-200 px-4 py-2">
       <div className="flex items-center justify-between">
@@ -278,13 +252,13 @@ export const TableMiniHeader: React.FC<{
               className="rounded border-gray-300 text-primary focus:ring-primary"
             />
           </label>
-          <span className="text-sm text-gray-600">Seleccionar todo</span>
+          <span className="text-sm text-gray-600">{t('Seleccionar todo')}</span>
         </div>
 
         <div className="flex items-center space-x-2 text-sm text-gray-500">
           {sortBy.length > 0 && (
             <div className="flex items-center space-x-1">
-              <span>Ordenado por:</span>
+              <span>{t('Ordenado por')}:</span>
               {sortBy.map((sort, index) => (
                 <span key={`sort-${sort.id}-${index}`} className="flex items-center">
                   {index > 0 && <span className="mx-1">,</span>}

@@ -1,7 +1,22 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Check, X, Edit3, Calendar, Clock, User, Flag } from 'lucide-react';
 import { 
-  ClickUpCellProps, 
+  Check, 
+  X, 
+  Edit3, 
+  Calendar, 
+  Clock, 
+  User, 
+  Flag, 
+  MessageSquare,
+  ChevronRight,
+  Tag,
+  FileText,
+  MoreHorizontal,
+  Paperclip,
+  Download
+} from 'lucide-react';
+import { 
+  TableCellProps, 
   TASK_STATUSES, 
   TASK_PRIORITIES 
 } from './NewTypes';
@@ -10,28 +25,45 @@ import {
   PriorityDropdown, 
   DateSelector 
 } from './NewDropdown';
-import { MyEditor } from '../MicroComponente/QuillText';
-import { GruposResponsablesArry } from '../MicroComponente/ResponsableSelector';
+import { ClickUpResponsableSelector } from './NewResponsableSelector';
 import { ImageAvatar } from '../../Utils/ImageAvatar';
 import { AuthContextProvider, EventContextProvider } from '../../../context';
+import { Interweave } from 'interweave';
+import { HashtagMatcher, UrlMatcher } from 'interweave-autolink';
+import { TagsEditor } from './NewTagsEditor';
+import { TipsEditor } from './NewTipsEditor';
+import { AttachmentsEditor } from './AttachmentsEditor';
+import { useTranslation } from 'react-i18next';
+import { GruposResponsablesArry } from '../MicroComponente/ResponsableSelector';
+import { getStorage } from 'firebase/storage';
+import { downloadFile } from '../../Utils/storages';
+import { useToast } from '../../../hooks/useToast';
 
-export const ClickUpTableCell: React.FC<ClickUpCellProps> = ({
+export const TableCell: React.FC<TableCellProps> = ({
   column,
   row,
   value,
+  task,
   onUpdate,
   isEditing,
   onStartEdit,
-  onStopEdit
+  onStopEdit,
+  onCommentsClick,
+  itinerarioId
 }) => {
   const [editValue, setEditValue] = useState(value);
   const [showEditControls, setShowEditControls] = useState(false);
-  const [showModal, setShowModal] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showFullText, setShowFullText] = useState(false);
+  const [showResponsableSelector, setShowResponsableSelector] = useState(false);
   const cellRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const selectorRef = useRef<HTMLDivElement>(null);
   const { user } = AuthContextProvider();
   const { event } = EventContextProvider();
+  const { t } = useTranslation();
+  const storage = getStorage();
+  const toast = useToast();
 
   useEffect(() => {
     setEditValue(value);
@@ -40,6 +72,7 @@ export const ClickUpTableCell: React.FC<ClickUpCellProps> = ({
   useEffect(() => {
     if (isEditing && inputRef.current) {
       inputRef.current.focus();
+      inputRef.current.select();
     }
   }, [isEditing]);
 
@@ -54,7 +87,7 @@ export const ClickUpTableCell: React.FC<ClickUpCellProps> = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSave();
     } else if (e.key === 'Escape') {
@@ -63,9 +96,26 @@ export const ClickUpTableCell: React.FC<ClickUpCellProps> = ({
     }
   };
 
+  // Función para truncar texto
+  const truncateText = (text: string, maxLength: number) => {
+    if (!text || text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
+
+  // Función para limpiar HTML
+  const stripHtml = (html: string): string => {
+    if (!html) return "";
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    return doc.body.textContent || "";
+  };
+
   const renderCellContent = () => {
     switch (column.type) {
       case 'text':
+        const maxLength = column.truncate || 50;
+        const displayText = value || '';
+        const needsTruncate = displayText.length > maxLength;
+        
         return isEditing ? (
           <input
             ref={inputRef}
@@ -73,43 +123,77 @@ export const ClickUpTableCell: React.FC<ClickUpCellProps> = ({
             value={editValue || ''}
             onChange={(e) => setEditValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="w-full px-2 py-1 border border-primary rounded text-sm focus:outline-none"
-            placeholder="Escribir..."
+            onBlur={handleSave}
+            className="w-full px-3 py-2 border-2 border-primary rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+            placeholder={t('Escribir...')}
           />
         ) : (
-          <span className={`truncate ${!value ? 'text-gray-400' : ''}`}>
-            {value || 'Sin información'}
-          </span>
+          <div className="px-3 py-2 relative">
+            <span 
+              className={`text-sm ${!value ? 'text-gray-400 italic' : 'text-gray-900 font-medium'} ${needsTruncate && !showFullText ? 'cursor-pointer hover:text-primary' : ''}`}
+              onClick={(e) => {
+                if (needsTruncate && !showFullText) {
+                  e.stopPropagation();
+                  setShowFullText(true);
+                }
+              }}
+              title={needsTruncate && !showFullText ? displayText : ''}
+            >
+              {!value ? t('Sin título') : (showFullText ? displayText : truncateText(displayText, maxLength))}
+            </span>
+            {needsTruncate && showFullText && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowFullText(false);
+                }}
+                className="ml-2 text-xs text-primary hover:text-primary/80"
+              >
+                {t('Ver menos')}
+              </button>
+            )}
+          </div>
         );
 
       case 'select':
         return (
-          <StatusDropdown
-            value={value || 'pending'}
-            onChange={(newValue) => onUpdate(newValue)}
-            size="sm"
-          />
+          <div className="px-3 py-2">
+            <StatusDropdown
+              value={value || 'pending'}
+              onChange={(newValue) => onUpdate(newValue)}
+              size="sm"
+            />
+          </div>
         );
 
       case 'priority':
         return (
-          <PriorityDropdown
-            value={value || 'normal'}
-            onChange={(newValue) => onUpdate(newValue)}
-            size="sm"
-          />
+          <div className="px-3 py-2">
+            <PriorityDropdown
+              value={value || 'media'}
+              onChange={(newValue) => onUpdate(newValue)}
+              size="sm"
+            />
+          </div>
         );
 
       case 'date':
         return (
-          <DateSelector
-            value={value}
-            onChange={(newValue) => onUpdate(newValue)}
-            placeholder="Sin fecha"
-          />
+          <div className="px-3 py-2">
+            <DateSelector
+              value={value}
+              onChange={(newValue) => onUpdate(newValue)}
+              placeholder={t('Sin fecha')}
+            />
+          </div>
         );
 
       case 'time':
+        const timeValue = value ? new Date(value).toLocaleTimeString('es-ES', { 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        }) : '';
+        
         return isEditing ? (
           <input
             ref={inputRef}
@@ -117,13 +201,14 @@ export const ClickUpTableCell: React.FC<ClickUpCellProps> = ({
             value={editValue || ''}
             onChange={(e) => setEditValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="w-full px-2 py-1 border border-primary rounded text-sm focus:outline-none"
+            onBlur={handleSave}
+            className="w-full px-3 py-2 border-2 border-primary rounded-md text-sm focus:outline-none"
           />
         ) : (
-          <div className="flex items-center space-x-1">
-            <Clock className="w-3 h-3 text-gray-400" />
-            <span className={!value ? 'text-gray-400' : ''}>
-              {value || 'Sin hora'}
+          <div className="flex items-center space-x-2 px-3 py-2">
+            <Clock className="w-4 h-4 text-gray-400" />
+            <span className={`text-sm ${!timeValue ? 'text-gray-400' : ''}`}>
+              {timeValue || t('Sin hora')}
             </span>
           </div>
         );
@@ -136,146 +221,176 @@ export const ClickUpTableCell: React.FC<ClickUpCellProps> = ({
             value={editValue || ''}
             onChange={(e) => setEditValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="w-full px-2 py-1 border border-primary rounded text-sm focus:outline-none"
+            onBlur={handleSave}
+            className="w-full px-3 py-2 border-2 border-primary rounded-md text-sm focus:outline-none"
             placeholder="0"
           />
         ) : (
-          <span className={!value ? 'text-gray-400' : ''}>
-            {value || 'Sin duración'}
-          </span>
+          <div className="px-3 py-2">
+            <span className={`text-sm ${!value ? 'text-gray-400' : ''}`}>
+              {value ? `${value} min` : t('Sin duración')}
+            </span>
+          </div>
         );
 
-      case 'user':
+      case 'responsable':
         const responsables = Array.isArray(value) ? value : [];
         const allUsers = [user, event?.detalles_usuario_id, ...(event?.detalles_compartidos_array || [])];
 
         return (
-          <div className="flex items-center space-x-2 min-h-[32px]">
-            <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
-            {responsables.length > 0 ? (
-              <div className="flex items-center space-x-1 flex-1">
-                <div className="flex -space-x-1">
-                  {responsables.slice(0, 3).map((resp, index) => {
-                    const userSelect = GruposResponsablesArry.find(el => 
-                      el.title.toLowerCase() === resp?.toLowerCase()
-                    ) ?? allUsers.find(el => 
-                      el?.displayName?.toLowerCase() === resp?.toLowerCase()
-                    );
+          <div className="relative" ref={selectorRef}>
+            <div 
+              className="flex items-center space-x-2 px-3 py-2 cursor-pointer hover:bg-gray-50 min-h-[48px]"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowResponsableSelector(true);
+              }}
+            >
+              {responsables.length > 0 ? (
+                <div className="flex items-center space-x-2 flex-1">
+                  <div className="flex -space-x-2">
+                    {responsables.slice(0, 3).map((resp, index) => {
+                      const userSelect = GruposResponsablesArry.find(el => 
+                        el.title.toLowerCase() === resp?.toLowerCase()
+                      ) ?? allUsers.find(el => 
+                        el?.displayName?.toLowerCase() === resp?.toLowerCase()
+                      );
 
-                    return (
-                      <div key={index} className="w-6 h-6 rounded-full border-[1px] border-gray-300 overflow-hidden">
-                        <ImageAvatar user={userSelect} />
+                      return (
+                        <div 
+                          key={index} 
+                          className="w-6 h-6 rounded-full border-2 border-white overflow-hidden hover:z-10 transition-all"
+                          title={resp}
+                        >
+                          <ImageAvatar user={userSelect} />
+                        </div>
+                      );
+                    })}
+                    {responsables.length > 3 && (
+                      <div className="w-6 h-6 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center">
+                        <span className="text-xs text-gray-600 font-medium">+{responsables.length - 3}</span>
                       </div>
-                    );
-                  })}
-                  {responsables.length > 3 && (
-                    <div className="w-6 h-6 rounded-full bg-gray-100 border-[1px] border-gray-300 flex items-center justify-center">
-                      <span className="text-xs text-gray-600">+{responsables.length - 3}</span>
+                    )}
+                  </div>
+                  {isExpanded && (
+                    <div className="ml-2 text-xs text-gray-600">
+                      {responsables.join(', ')}
                     </div>
                   )}
                 </div>
-                {isExpanded && (
-                  <div className="ml-2 text-xs text-gray-600">
-                    {responsables.join(', ')}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <span className="text-sm text-gray-400 flex-1">Sin asignar</span>
+              ) : (
+                <div className="flex items-center space-x-2 text-gray-400">
+                  <User className="w-4 h-4" />
+                  <span className="text-sm">{t('Sin asignar')}</span>
+                </div>
+              )}
+            </div>
+            
+            {showResponsableSelector && (
+              <ClickUpResponsableSelector
+                value={responsables}
+                onChange={(newValue) => {
+                  onUpdate(newValue);
+                  setShowResponsableSelector(false);
+                }}
+                onClose={() => setShowResponsableSelector(false)}
+              />
             )}
           </div>
         );
 
       case 'tags':
-        const tags = Array.isArray(value) ? value : [];
-        
         return (
-          <div className="flex items-center space-x-2 min-h-[32px]">
-            {tags.length > 0 ? (
-              <div className="flex items-center space-x-1 flex-wrap">
-                {tags.slice(0, isExpanded ? tags.length : 2).map((tag, index) => (
-                  <span
-                    key={index}
-                    className="inline-block px-2 py-1 text-xs bg-pink-100 text-primary rounded"
-                  >
-                    {tag}
-                  </span>
-                ))}
-                {tags.length > 2 && !isExpanded && (
-                  <button
-                    onClick={() => setIsExpanded(true)}
-                    className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded hover:bg-gray-200"
-                  >
-                    +{tags.length - 2}
-                  </button>
-                )}
-                {isExpanded && tags.length > 2 && (
-                  <button
-                    onClick={() => setIsExpanded(false)}
-                    className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded hover:bg-gray-200"
-                  >
-                    Menos
-                  </button>
-                )}
-              </div>
-            ) : (
-              <span className="text-sm text-gray-400">Sin etiquetas</span>
-            )}
+          <div className="p-2">
+            <TagsEditor
+              value={value || []}
+              onChange={onUpdate}
+              isEditing={isEditing}
+              onStartEdit={onStartEdit}
+              onStopEdit={onStopEdit}
+              onSave={handleSave}
+              onCancel={handleCancel}
+              placeholder={t('Agregar etiquetas...')}
+            />
           </div>
         );
 
-      case 'editor':
+      case 'tips':
         return (
-          <div className="w-full">
-            {isEditing ? (
-              <div className="w-full max-h-32 overflow-y-auto">
-                <MyEditor
-                  name="tips"
-                  value={editValue || ''}
-                  onChange={(newValue) => setEditValue(newValue)}
-                />
-              </div>
-            ) : (
-              <div 
-                className="w-full cursor-text"
-                onClick={() => !isEditing && onStartEdit()}
-              >
-                {value ? (
-                  <div 
-                    className="text-sm text-gray-700 max-h-16 overflow-hidden"
-                    dangerouslySetInnerHTML={{ 
-                      __html: value.length > 100 ? `${value.substring(0, 100)}...` : value 
-                    }}
-                  />
-                ) : (
-                  <span className="text-sm text-gray-400">Sin información</span>
-                )}
-              </div>
+          <div className="p-2">
+            <TipsEditor
+              value={value || ''}
+              onChange={setEditValue}
+              isEditing={isEditing}
+              onStartEdit={onStartEdit}
+              onStopEdit={onStopEdit}
+              onSave={handleSave}
+              onCancel={handleCancel}
+              placeholder={t('Agregar descripción...')}
+            />
+          </div>
+        );
+
+      case 'attachments':
+        return (
+          <div className="relative">
+            <AttachmentsEditor
+              value={value || []}
+              onChange={onUpdate}
+              taskId={task._id}
+              isEditing={isEditing}
+              onStartEdit={onStartEdit}
+              onStopEdit={onStopEdit}
+              task={task}
+              itinerarioId={itinerarioId || ''}
+            />
+          </div>
+        );
+
+      case 'comments':
+        const commentsCount = Array.isArray(value) ? value.length : 0;
+        return (
+          <div 
+            className="flex items-center space-x-2 px-3 py-2 cursor-pointer hover:bg-gray-50 group"
+            onClick={(e) => {
+              e.stopPropagation();
+              onCommentsClick && onCommentsClick();
+            }}
+          >
+            <MessageSquare className="w-4 h-4 text-gray-400 group-hover:text-primary" />
+            <span className={`text-sm ${commentsCount > 0 ? 'text-gray-900 font-medium' : 'text-gray-400'}`}>
+              {commentsCount || '-'}
+            </span>
+            {commentsCount > 0 && (
+              <ChevronRight className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
             )}
           </div>
         );
 
       default:
         return (
-          <span className={`truncate ${!value ? 'text-gray-400' : ''}`}>
-            {value || 'Sin información'}
-          </span>
+          <div className="px-3 py-2">
+            <span className={`text-sm ${!value ? 'text-gray-400' : ''}`}>
+              {value || t('Sin información')}
+            </span>
+          </div>
         );
     }
   };
 
-  const canEdit = ['text', 'number', 'time', 'editor'].includes(column.type);
+  const canEdit = ['text', 'number', 'time', 'tips', 'tags', 'attachments'].includes(column.type);
 
   return (
     <div
       ref={cellRef}
       className={`
-        relative group h-auto min-h-[40px] flex items-center px-2 py-1 min-w-0
-        ${isEditing ? 'bg-pink-50' : 'hover:bg-gray-50'}
-        ${canEdit ? 'cursor-text' : 'cursor-default'}
+        relative group h-full min-h-[48px] flex items-center
+        ${isEditing ? 'bg-primary/5 ring-2 ring-primary/20' : ''}
+        ${canEdit && !isEditing ? 'hover:bg-gray-50' : ''}
+        ${column.type === 'comments' || column.type === 'attachments' || column.type === 'responsable' ? '' : canEdit ? 'cursor-text' : 'cursor-default'}
       `}
       onClick={() => {
-        if (canEdit && !isEditing) {
+        if (canEdit && !isEditing && column.type !== 'comments' && column.type !== 'responsable' && column.type !== 'attachments') {
           onStartEdit();
         }
       }}
@@ -286,154 +401,38 @@ export const ClickUpTableCell: React.FC<ClickUpCellProps> = ({
         {renderCellContent()}
       </div>
 
-      {/* Controles de edición */}
-      {isEditing && canEdit && (
-        <div className="flex items-center space-x-1 ml-2 flex-shrink-0">
+      {/* Controles de edición inline */}
+      {isEditing && canEdit && ['text', 'number', 'time'].includes(column.type) && (
+        <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1 bg-white rounded-md shadow-sm border border-gray-200 p-1">
           <button
             onClick={(e) => {
               e.stopPropagation();
               handleSave();
             }}
-            className="p-1 text-green hover:bg-[#dafdda] rounded"
+            className="p-1 text-green-600 hover:bg-green-50 rounded transition-colors"
             title="Guardar"
           >
-            <Check className="w-3 h-3" />
+            <Check className="w-4 h-4" />
           </button>
           <button
             onClick={(e) => {
               e.stopPropagation();
               handleCancel();
             }}
-            className="p-1 text-[#ff2525] hover:bg-[#ffdada] rounded"
+            className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
             title="Cancelar"
           >
-            <X className="w-3 h-3" />
+            <X className="w-4 h-4" />
           </button>
         </div>
       )}
 
-      {/* Indicador de edición para celdas editables */}
-      {!isEditing && canEdit && showEditControls && (
-        <div className="absolute right-1 top-1/2 transform -translate-y-1/2 flex-shrink-0">
-          <Edit3 className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+      {/* Indicador de edición */}
+      {!isEditing && canEdit && showEditControls && column.type !== 'comments' && column.type !== 'tips' && column.type !== 'tags' && column.type !== 'responsable' && column.type !== 'attachments' && (
+        <div className="absolute right-2 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Edit3 className="w-3 h-3 text-gray-400" />
         </div>
       )}
     </div>
   );
-};
-
-// Componente para renderizar valores con formato específico - ACTUALIZADO
-export const CellValueRenderer: React.FC<{
-  type: string;
-  value: any;
-  options?: any[];
-}> = ({ type, value, options }) => {
-  const { user } = AuthContextProvider();
-  const { event } = EventContextProvider();
-
-  switch (type) {
-    case 'status':
-      const status = TASK_STATUSES.find(s => s.value === value);
-      return status ? (
-        <div className="flex items-center space-x-2">
-          <div className={`w-2 h-2 rounded-full ${status.color}`} />
-          <span className="text-sm">{status.label}</span>
-        </div>
-      ) : (
-        <span className="text-gray-400 text-sm">Sin estado</span>
-      );
-
-    case 'priority':
-      const priority = TASK_PRIORITIES.find(p => p.value === value);
-      return priority ? (
-        <div className="flex items-center space-x-2">
-          <Flag className={`w-3 h-3 ${priority.color.replace('bg-', 'text-')}`} />
-          <span className="text-sm">{priority.label}</span>
-        </div>
-      ) : (
-        <span className="text-gray-400 text-sm">Sin prioridad</span>
-      );
-
-    case 'date':
-      return value ? (
-        <div className="flex items-center space-x-2">
-          <Calendar className="w-3 h-3 text-gray-400" />
-          <span className="text-sm">
-            {new Date(value).toLocaleDateString('es-ES')}
-          </span>
-        </div>
-      ) : (
-        <span className="text-gray-400 text-sm">Sin fecha</span>
-      );
-
-    case 'duration':
-      return (
-        <div className="flex items-center space-x-2">
-          <Clock className="w-3 h-3 text-gray-400" />
-          <span className="text-sm">
-            {value ? `${value} min` : 'Sin duración'}
-          </span>
-        </div>
-      );
-
-    case 'user':
-      const responsables = Array.isArray(value) ? value : [];
-      const allUsers = [user, event?.detalles_usuario_id, ...(event?.detalles_compartidos_array || [])];
-      
-      return responsables.length > 0 ? (
-        <div className="flex items-center space-x-2">
-          <User className="w-3 h-3 text-gray-400" />
-          <div className="flex -space-x-1">
-            {responsables.slice(0, 3).map((resp, index) => {
-              const userSelect = GruposResponsablesArry.find(el => 
-                el.title.toLowerCase() === resp?.toLowerCase()
-              ) ?? allUsers.find(el => 
-                el?.displayName?.toLowerCase() === resp?.toLowerCase()
-              );
-
-              return (
-                <div key={index} className="w-6 h-6 rounded-full border-2 border-white overflow-hidden">
-                  <ImageAvatar user={userSelect} />
-                </div>
-              );
-            })}
-            {responsables.length > 3 && (
-              <div className="w-6 h-6 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center">
-                <span className="text-xs text-gray-600">+{responsables.length - 3}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      ) : (
-        <span className="text-gray-400 text-sm">Sin asignar</span>
-      );
-
-    case 'tags':
-      return Array.isArray(value) && value.length > 0 ? (
-        <div className="flex items-center space-x-1">
-          {value.slice(0, 2).map((tag, index) => (
-            <span
-              key={`tag-${index}-${tag}`}
-              className="px-2 py-1 bg-pink-100 text-primary text-xs rounded"
-            >
-              {tag}
-            </span>
-          ))}
-          {value.length > 2 && (
-            <span className="text-xs text-gray-500">
-              +{value.length - 2}
-            </span>
-          )}
-        </div>
-      ) : (
-        <span className="text-gray-400 text-sm">Sin etiquetas</span>
-      );
-
-    default:
-      return (
-        <span className={`text-sm ${!value ? 'text-gray-400' : ''}`}>
-          {value || 'Sin información'}
-        </span>
-      );
-  }
 };

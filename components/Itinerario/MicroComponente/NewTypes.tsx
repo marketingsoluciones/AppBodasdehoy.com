@@ -1,7 +1,8 @@
+
 import { Task, Itinerary } from '../../../utils/Interfaces';
 
-// Tipos base para la tabla ClickUp
-export interface ClickUpColumn {
+// Tipos base para la tabla
+export interface TableColumn {
   id: string;
   Header: string;
   accessor: string;
@@ -16,61 +17,62 @@ export interface ClickUpColumn {
   isPinned?: boolean;
   position?: 'left' | 'right' | null;
   Cell?: (data: any) => JSX.Element;
-  type?: 'text' | 'select' | 'date' | 'time' | 'number' | 'multiselect' | 'user' | 'priority' | 'status' | 'editor' | 'tags';
-  options?: ClickUpSelectOption[];
+  type?: 'text' | 'select' | 'date' | 'time' | 'number' | 'multiselect' | 'user' | 'priority' | 'status' | 'editor' | 'tags' | 'responsable' | 'tips' | 'comments';
+  options?: SelectOption[];
+  truncate?: number; // Para limitar caracteres en campos de texto
 }
 
-export interface ClickUpSelectOption {
+export interface SelectOption {
   value: string;
   label: string;
   color?: string;
   icon?: JSX.Element;
 }
 
-export interface ClickUpTableState {
-  columns: ClickUpColumn[];
+export interface TableState {
+  columns: TableColumn[];
   hiddenColumns: string[];
   pinnedColumns: { left: string[]; right: string[] };
   sortBy: { id: string; desc: boolean }[];
-  filters: ClickUpFilter[];
+  filters: TableFilter[];
   globalFilter: string;
   selectedRows: string[];
 }
 
-export interface ClickUpFilter {
+export interface TableFilter {
   id: string;
   columnId: string;
-  type: 'text' | 'select' | 'date' | 'number' | 'multiselect' | 'user' | 'tags' | 'editor';
+  type: 'text' | 'select' | 'date' | 'number' | 'multiselect' | 'user' | 'tags' | 'editor' | 'responsable' | 'tips';
   operator: 'equals' | 'contains' | 'startsWith' | 'endsWith' | 'gt' | 'lt' | 'gte' | 'lte' | 'in' | 'notIn';
   value: any;
   isActive: boolean;
 }
 
-export interface ClickUpViewConfig {
+export interface ViewConfig {
   id: string;
   name: string;
-  columns: ClickUpColumn[];
-  filters: ClickUpFilter[];
+  columns: TableColumn[];
+  filters: TableFilter[];
   sortBy: { id: string; desc: boolean }[];
   isDefault?: boolean;
 }
 
 // Estados y prioridades predefinidos
-export const TASK_STATUSES: ClickUpSelectOption[] = [
+export const TASK_STATUSES: SelectOption[] = [
   { value: 'pending', label: 'Pendiente', color: 'bg-gray-500' },
-  { value: 'in_progress', label: 'En Progreso', color: 'bg-primary' },
+  { value: 'in_progress', label: 'En Curso', color: 'bg-primary' },
   { value: 'completed', label: 'Completado', color: 'bg-green' },
   { value: 'blocked', label: 'Bloqueado', color: 'bg-red' },
 ];
 
-export const TASK_PRIORITIES: ClickUpSelectOption[] = [
-  { value: 'high', label: 'Alta', color: 'bg-red' },
-  { value: 'normal', label: 'Normal', color: 'bg-yellow-500' },
-  { value: 'low', label: 'Baja', color: 'bg-green' },
+export const TASK_PRIORITIES: SelectOption[] = [
+  { value: 'alta', label: 'Alta', color: 'bg-red' },
+  { value: 'media', label: 'Media', color: 'bg-yellow-500' },
+  { value: 'baja', label: 'Baja', color: 'bg-gray-400' },
 ];
 
 // Props para componentes
-export interface ClickUpTableProps {
+export interface TableProps {
   data: Task[];
   itinerario: Itinerary;
   selectTask: string;
@@ -80,18 +82,21 @@ export interface ClickUpTableProps {
   onTaskCreate: (task: Partial<Task>) => void;
 }
 
-export interface ClickUpCellProps {
-  column: ClickUpColumn;
+export interface TableCellProps {
+  column: any;
   row: any;
   value: any;
+  task: any;
   onUpdate: (value: any) => void;
   isEditing: boolean;
   onStartEdit: () => void;
   onStopEdit: () => void;
+  onCommentsClick?: () => void;
+  itinerarioId?: string; 
 }
 
-export interface ClickUpDropdownProps {
-  options: ClickUpSelectOption[];
+export interface TableDropdownProps {
+  options: SelectOption[];
   value: string | string[];
   onChange: (value: string | string[]) => void;
   placeholder?: string;
@@ -101,8 +106,8 @@ export interface ClickUpDropdownProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
-export interface ClickUpColumnMenuProps {
-  column: ClickUpColumn;
+export interface ColumnMenuProps {
+  column: TableColumn;
   onSort: (direction: 'asc' | 'desc') => void;
   onFilter: () => void;
   onHide: () => void;
@@ -112,11 +117,12 @@ export interface ClickUpColumnMenuProps {
   onInsertRight: () => void;
 }
 
-export interface ClickUpFiltersProps {
-  filters: ClickUpFilter[];
-  columns: ClickUpColumn[];
-  onFiltersChange: (filters: ClickUpFilter[]) => void;
-  onSaveView: (view: ClickUpViewConfig) => void;
-  savedViews: ClickUpViewConfig[];
-  onLoadView: (view: ClickUpViewConfig) => void;
+export interface FiltersProps {
+  filters: TableFilter[];
+  columns: TableColumn[];
+  onFiltersChange: (filters: TableFilter[]) => void;
+  onSaveView: (view: ViewConfig) => void;
+  savedViews: ViewConfig[];
+  onLoadView: (view: ViewConfig) => void;
 }
+

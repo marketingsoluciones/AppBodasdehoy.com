@@ -11,30 +11,32 @@ import {
   Settings
 } from 'lucide-react';
 import { 
-  ClickUpFiltersProps, 
-  ClickUpFilter, 
-  ClickUpViewConfig,
+  FiltersProps, 
+  TableFilter, 
+  ViewConfig,
   TASK_STATUSES,
   TASK_PRIORITIES 
 } from './NewTypes';
-import { ClickUpDropdown } from './NewDropdown';
+import { TableDropdown } from './NewDropdown';
+import { useTranslation } from 'react-i18next';
 
-// 1. Primero, definamos los tipos permitidos
-type AllowedFilterTypes = 'number' | 'tags' | 'select' | 'text' | 'user' | 'date' | 'multiselect' | 'editor';
-
-// 2. Crear una función auxiliar para convertir tipos de columna a tipos de filtro
-const getFilterType = (columnType: string): AllowedFilterTypes => {
+// Función auxiliar para convertir tipos de columna a tipos de filtro
+const getFilterType = (columnType: string): TableFilter['type'] => {
   switch (columnType) {
     case 'time':
     case 'status':
     case 'priority':
       return 'select';
+    case 'responsable':
+      return 'responsable';
+    case 'tips':
+      return 'tips';
     default:
-      return (columnType as AllowedFilterTypes) || 'text';
+      return (columnType as TableFilter['type']) || 'text';
   }
 };
 
-export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
+export const TableFilters: React.FC<FiltersProps> = ({
   filters,
   columns,
   onFiltersChange,
@@ -46,9 +48,10 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [newViewName, setNewViewName] = useState('');
   const [showViewsDropdown, setShowViewsDropdown] = useState(false);
+  const { t } = useTranslation();
 
   const addFilter = () => {
-    const newFilter: ClickUpFilter = {
+    const newFilter: TableFilter = {
       id: `filter_${Date.now()}`,
       columnId: columns[0]?.id || '',
       type: 'text',
@@ -59,7 +62,7 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
     onFiltersChange([...filters, newFilter]);
   };
 
-  const updateFilter = (filterId: string, updates: Partial<ClickUpFilter>) => {
+  const updateFilter = (filterId: string, updates: Partial<TableFilter>) => {
     const updatedFilters = filters.map(filter =>
       filter.id === filterId ? { ...filter, ...updates } : filter
     );
@@ -80,42 +83,42 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
     switch (type) {
       case 'text':
         return [
-          { value: 'contains', label: 'Contiene' },
-          { value: 'equals', label: 'Es igual a' },
-          { value: 'startsWith', label: 'Comienza con' },
-          { value: 'endsWith', label: 'Termina con' }
+          { value: 'contains', label: t('Contiene') },
+          { value: 'equals', label: t('Es igual a') },
+          { value: 'startsWith', label: t('Comienza con') },
+          { value: 'endsWith', label: t('Termina con') }
         ];
       case 'number':
         return [
-          { value: 'equals', label: 'Es igual a' },
-          { value: 'gt', label: 'Mayor que' },
-          { value: 'lt', label: 'Menor que' },
-          { value: 'gte', label: 'Mayor o igual' },
-          { value: 'lte', label: 'Menor o igual' }
+          { value: 'equals', label: t('Es igual a') },
+          { value: 'gt', label: t('Mayor que') },
+          { value: 'lt', label: t('Menor que') },
+          { value: 'gte', label: t('Mayor o igual') },
+          { value: 'lte', label: t('Menor o igual') }
         ];
       case 'date':
         return [
-          { value: 'equals', label: 'Es igual a' },
-          { value: 'gt', label: 'Después de' },
-          { value: 'lt', label: 'Antes de' },
-          { value: 'gte', label: 'Desde' },
-          { value: 'lte', label: 'Hasta' }
+          { value: 'equals', label: t('Es igual a') },
+          { value: 'gt', label: t('Después de') },
+          { value: 'lt', label: t('Antes de') },
+          { value: 'gte', label: t('Desde') },
+          { value: 'lte', label: t('Hasta') }
         ];
       case 'select':
       case 'multiselect':
         return [
-          { value: 'in', label: 'Es uno de' },
-          { value: 'notIn', label: 'No es uno de' }
+          { value: 'in', label: t('Es uno de') },
+          { value: 'notIn', label: t('No es uno de') }
         ];
       default:
-        return [{ value: 'contains', label: 'Contiene' }];
+        return [{ value: 'contains', label: t('Contiene') }];
     }
   };
 
   const saveView = () => {
     if (!newViewName.trim()) return;
 
-    const newView: ClickUpViewConfig = {
+    const newView: ViewConfig = {
       id: `view_${Date.now()}`,
       name: newViewName.trim(),
       columns,
@@ -128,17 +131,17 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
     setShowSaveModal(false);
   };
 
-  const renderFilterValue = (filter: ClickUpFilter) => {
+  const renderFilterValue = (filter: TableFilter) => {
     const column = columns.find(col => col.id === filter.columnId);
     
     switch (column?.type) {
       case 'select':
         return (
-          <ClickUpDropdown
+          <TableDropdown
             options={TASK_STATUSES}
             value={filter.value}
             onChange={(value) => updateFilter(filter.id, { value })}
-            placeholder="Seleccionar estado"
+            placeholder={t('Seleccionar estado')}
             multiple={filter.operator === 'in' || filter.operator === 'notIn'}
             size="sm"
           />
@@ -146,11 +149,11 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
       
       case 'priority':
         return (
-          <ClickUpDropdown
+          <TableDropdown
             options={TASK_PRIORITIES}
             value={filter.value}
             onChange={(value) => updateFilter(filter.id, { value })}
-            placeholder="Seleccionar prioridad"
+            placeholder={t('Seleccionar prioridad')}
             multiple={filter.operator === 'in' || filter.operator === 'notIn'}
             size="sm"
           />
@@ -162,7 +165,7 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
             type="date"
             value={filter.value || ''}
             onChange={(e) => updateFilter(filter.id, { value: e.target.value })}
-            className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-primary"
+            className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-primary/20"
           />
         );
       
@@ -172,8 +175,8 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
             type="number"
             value={filter.value || ''}
             onChange={(e) => updateFilter(filter.id, { value: e.target.value })}
-            placeholder="Valor"
-            className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-primary"
+            placeholder={t('Valor')}
+            className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-primary/20"
           />
         );
       
@@ -183,8 +186,8 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
             type="text"
             value={filter.value || ''}
             onChange={(e) => updateFilter(filter.id, { value: e.target.value })}
-            placeholder="Valor"
-            className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-primary"
+            placeholder={t('Valor')}
+            className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-primary/20"
           />
         );
     }
@@ -200,13 +203,13 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
             className={`
               flex items-center space-x-2 px-3 py-1 rounded-md transition-colors
               ${activeFiltersCount > 0 
-                ? 'bg-pink-100 text-primary' 
+                ? 'bg-primary/10 text-primary' 
                 : 'text-gray-600 hover:bg-gray-100'
               }
             `}
           >
             <Filter className="w-4 h-4" />
-            <span className="text-sm font-medium">Filtros</span>
+            <span className="text-sm font-medium">{t('Filtros')}</span>
             {activeFiltersCount > 0 && (
               <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full">
                 {activeFiltersCount}
@@ -222,7 +225,7 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
               className="flex items-center space-x-2 px-3 py-1 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
             >
               <Eye className="w-4 h-4" />
-              <span className="text-sm">Vistas</span>
+              <span className="text-sm">{t('Vistas')}</span>
               <ChevronDown className="w-3 h-3" />
             </button>
 
@@ -243,7 +246,7 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
                   ))}
                   {savedViews.length === 0 && (
                     <div className="px-3 py-2 text-sm text-gray-500">
-                      No hay vistas guardadas
+                      {t('No hay vistas guardadas')}
                     </div>
                   )}
                 </div>
@@ -259,7 +262,7 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
               className="flex items-center space-x-1 px-2 py-1 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
             >
               <RotateCcw className="w-3 h-3" />
-              <span className="text-sm">Limpiar</span>
+              <span className="text-sm">{t('Limpiar')}</span>
             </button>
           )}
 
@@ -268,7 +271,7 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
             className="flex items-center space-x-1 px-2 py-1 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
           >
             <Save className="w-3 h-3" />
-            <span className="text-sm">Guardar vista</span>
+            <span className="text-sm">{t('Guardar vista')}</span>
           </button>
         </div>
       </div>
@@ -295,9 +298,9 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
                         value: ''
                       });
                     }}
-                    className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-primary"
+                    className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-primary/20"
                   >
-                    {columns.map((col) => (
+                    {columns.filter(col => col.id !== 'actions' && col.canFilter !== false).map((col) => (
                       <option key={col.id} value={col.id}>
                         {col.Header}
                       </option>
@@ -308,7 +311,7 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
                   <select
                     value={filter.operator}
                     onChange={(e) => updateFilter(filter.id, { operator: e.target.value as any })}
-                    className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-primary"
+                    className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-primary/20"
                   >
                     {operators.map((op) => (
                       <option key={op.value} value={op.value}>
@@ -328,11 +331,11 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
                     className={`
                       p-1 rounded transition-colors
                       ${filter.isActive 
-                        ? 'text-green hover:bg-[#dafdda]' 
+                        ? 'text-green-600 hover:bg-green-50' 
                         : 'text-gray-400 hover:bg-gray-100'
                       }
                     `}
-                    title={filter.isActive ? 'Desactivar filtro' : 'Activar filtro'}
+                    title={filter.isActive ? t('Desactivar filtro') : t('Activar filtro')}
                   >
                     <Eye className="w-4 h-4" />
                   </button>
@@ -340,8 +343,8 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
                   {/* Eliminar */}
                   <button
                     onClick={() => removeFilter(filter.id)}
-                    className="p-1 text-[#ff2525] hover:bg-[#ffdada] rounded transition-colors"
-                    title="Eliminar filtro"
+                    className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                    title={t('Eliminar filtro')}
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -355,7 +358,7 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
               className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors w-full"
             >
               <Plus className="w-4 h-4" />
-              <span className="text-sm">Agregar filtro</span>
+              <span className="text-sm">{t('Agregar filtro')}</span>
             </button>
           </div>
         </div>
@@ -367,7 +370,7 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-800">
-                Guardar vista
+                {t('Guardar vista')}
               </h3>
               <button
                 onClick={() => setShowSaveModal(false)}
@@ -381,24 +384,24 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Nombre de la vista
+                    {t('Nombre de la vista')}
                   </label>
                   <input
                     type="text"
                     value={newViewName}
                     onChange={(e) => setNewViewName(e.target.value)}
-                    placeholder="Mi vista personalizada"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                    placeholder={t('Mi vista personalizada')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary/20 focus:border-primary"
                     autoFocus
                   />
                 </div>
 
                 <div className="text-sm text-gray-600">
-                  <p>Esta vista incluirá:</p>
+                  <p>{t('Esta vista incluirá')}:</p>
                   <ul className="mt-1 ml-4 list-disc space-y-1">
-                    <li>Configuración actual de columnas</li>
-                    <li>{filters.length} filtro{filters.length !== 1 ? 's' : ''}</li>
-                    <li>Orden actual</li>
+                    <li>{t('Configuración actual de columnas')}</li>
+                    <li>{filters.length} {t('filtros')}</li>
+                    <li>{t('Orden actual')}</li>
                   </ul>
                 </div>
               </div>
@@ -409,7 +412,7 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
                 onClick={() => setShowSaveModal(false)}
                 className="px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
               >
-                Cancelar
+                {t('Cancelar')}
               </button>
               <button
                 onClick={saveView}
@@ -417,12 +420,12 @@ export const ClickUpTableFilters: React.FC<ClickUpFiltersProps> = ({
                 className={`
                   px-4 py-2 rounded-md transition-colors
                   ${newViewName.trim()
-                    ? 'bg-primary text-white hover:bg-primary'
+                    ? 'bg-primary text-white hover:bg-primary/90'
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   }
                 `}
               >
-                Guardar vista
+                {t('Guardar vista')}
               </button>
             </div>
           </div>

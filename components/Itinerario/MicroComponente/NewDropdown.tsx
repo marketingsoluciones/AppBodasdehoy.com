@@ -9,9 +9,10 @@ import {
   Clock,
   Calendar
 } from 'lucide-react';
-import { ClickUpDropdownProps, ClickUpSelectOption, TASK_STATUSES, TASK_PRIORITIES } from './NewTypes';
+import { TableDropdownProps, SelectOption, TASK_STATUSES, TASK_PRIORITIES } from './NewTypes';
+import { useTranslation } from 'react-i18next';
 
-export const ClickUpDropdown: React.FC<ClickUpDropdownProps> = ({
+export const TableDropdown: React.FC<TableDropdownProps> = ({
   options,
   value,
   onChange,
@@ -24,6 +25,7 @@ export const ClickUpDropdown: React.FC<ClickUpDropdownProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation();
 
   const filteredOptions = searchable 
     ? options.filter(option => 
@@ -46,7 +48,7 @@ export const ClickUpDropdown: React.FC<ClickUpDropdownProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSelect = (option: ClickUpSelectOption) => {
+  const handleSelect = (option: SelectOption) => {
     if (multiple) {
       const currentValues = value as string[];
       const newValues = currentValues.includes(option.value)
@@ -61,9 +63,9 @@ export const ClickUpDropdown: React.FC<ClickUpDropdownProps> = ({
 
   const getSizeClasses = () => {
     switch (size) {
-      case 'sm': return 'px-2 py-1 text-sm';
-      case 'lg': return 'px-4 py-3 text-lg';
-      default: return 'px-3 py-2 text-sm';
+      case 'sm': return 'px-2 py-1 text-xs';
+      case 'lg': return 'px-4 py-3 text-base';
+      default: return 'px-3 py-1.5 text-sm';
     }
   };
 
@@ -74,24 +76,24 @@ export const ClickUpDropdown: React.FC<ClickUpDropdownProps> = ({
         onClick={() => setIsOpen(!isOpen)}
         className={`
           w-full flex items-center justify-between border border-gray-300 rounded-md
-          hover:border-gray-400 focus:border-primary focus:ring-1 focus:ring-primary
-          ${getSizeClasses()}
+          hover:border-gray-400 focus:border-primary focus:ring-2 focus:ring-primary/20
+          transition-colors ${getSizeClasses()}
         `}
       >
         <span className="flex items-center space-x-2 truncate">
           {multiple ? (
-            selectedOptions && (selectedOptions as ClickUpSelectOption[]).length > 0 ? (
-              <span>{(selectedOptions as ClickUpSelectOption[]).length} seleccionados</span>
+            selectedOptions && (selectedOptions as SelectOption[]).length > 0 ? (
+              <span>{(selectedOptions as SelectOption[]).length} {t('seleccionados')}</span>
             ) : (
               <span className="text-gray-500">{placeholder}</span>
             )
           ) : (
             selectedOptions ? (
               <div className="flex items-center space-x-2">
-                {(selectedOptions as ClickUpSelectOption).color && (
-                  <div className={`w-3 h-3 rounded-full ${(selectedOptions as ClickUpSelectOption).color}`} />
+                {(selectedOptions as SelectOption).color && (
+                  <div className={`w-3 h-3 rounded-full ${(selectedOptions as SelectOption).color}`} />
                 )}
-                <span>{(selectedOptions as ClickUpSelectOption).label}</span>
+                <span>{(selectedOptions as SelectOption).label}</span>
               </div>
             ) : (
               <span className="text-gray-500">{placeholder}</span>
@@ -109,10 +111,10 @@ export const ClickUpDropdown: React.FC<ClickUpDropdownProps> = ({
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Buscar..."
+                  placeholder={t('Buscar...')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-primary"
+                  className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary/20"
                 />
               </div>
             </div>
@@ -120,7 +122,7 @@ export const ClickUpDropdown: React.FC<ClickUpDropdownProps> = ({
           
           <div className="py-1">
             {filteredOptions.length === 0 ? (
-              <div className="px-3 py-2 text-gray-500 text-sm">No hay opciones</div>
+              <div className="px-3 py-2 text-gray-500 text-sm">{t('No hay opciones')}</div>
             ) : (
               filteredOptions.map((option, optionIndex) => {
                 const isSelected = multiple 
@@ -133,7 +135,8 @@ export const ClickUpDropdown: React.FC<ClickUpDropdownProps> = ({
                     onClick={() => handleSelect(option)}
                     className={`
                       w-full flex items-center space-x-2 px-3 py-2 text-left hover:bg-gray-100
-                      ${isSelected ? 'bg-pink-50 text-primary' : 'text-gray-700'}
+                      ${isSelected ? 'bg-primary/10 text-primary' : 'text-gray-700'}
+                      transition-colors
                     `}
                   >
                     {multiple && (
@@ -175,7 +178,7 @@ export const StatusDropdown: React.FC<{
   size?: 'sm' | 'md' | 'lg';
 }> = ({ value, onChange, size = 'md' }) => {
   return (
-    <ClickUpDropdown
+    <TableDropdown
       options={TASK_STATUSES}
       value={value}
       onChange={onChange as any}
@@ -192,7 +195,7 @@ export const PriorityDropdown: React.FC<{
   size?: 'sm' | 'md' | 'lg';
 }> = ({ value, onChange, size = 'md' }) => {
   return (
-    <ClickUpDropdown
+    <TableDropdown
       options={TASK_PRIORITIES}
       value={value}
       onChange={onChange as any}
@@ -209,7 +212,7 @@ export const AssigneeDropdown: React.FC<{
   users: { id: string; name: string; avatar?: string }[];
   size?: 'sm' | 'md' | 'lg';
 }> = ({ value, onChange, users, size = 'md' }) => {
-  const userOptions: ClickUpSelectOption[] = users.map(user => ({
+  const userOptions: SelectOption[] = users.map(user => ({
     value: user.id,
     label: user.name,
     icon: user.avatar ? (
@@ -220,7 +223,7 @@ export const AssigneeDropdown: React.FC<{
   }));
 
   return (
-    <ClickUpDropdown
+    <TableDropdown
       options={userOptions}
       value={value}
       onChange={onChange as any}
@@ -240,6 +243,7 @@ export const DateSelector: React.FC<{
 }> = ({ value, onChange, placeholder = "Sin fecha" }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(value);
+  const { t } = useTranslation();
 
   const formatDate = (dateString: string) => {
     if (!dateString) return placeholder;
@@ -263,7 +267,7 @@ export const DateSelector: React.FC<{
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md hover:border-gray-400 text-sm"
+        className="w-full flex items-center justify-between px-3 py-1.5 border border-gray-300 rounded-md hover:border-gray-400 text-sm transition-colors"
       >
         <span className="flex items-center space-x-2">
           <Calendar className="w-4 h-4 text-gray-400" />
@@ -278,7 +282,7 @@ export const DateSelector: React.FC<{
               onChange('');
               setSelectedDate('');
             }}
-            className="p-1 hover:bg-gray-100 rounded"
+            className="p-1 hover:bg-gray-100 rounded transition-colors"
           >
             <X className="w-3 h-3 text-gray-400" />
           </button>
@@ -291,7 +295,7 @@ export const DateSelector: React.FC<{
             type="date"
             value={selectedDate}
             onChange={handleDateChange}
-            className="w-full p-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-primary"
+            className="w-full p-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary/20"
             autoFocus
           />
         </div>
