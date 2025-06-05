@@ -659,6 +659,7 @@ export const en = {
     'importBudget': "import budget",
     'importInto': "import into",
     'from': "from",
+    'importWarning': "The import will overwrite the current budget",
 
     asc: "ascending",
     desc: "descending",

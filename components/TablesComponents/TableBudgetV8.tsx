@@ -13,7 +13,7 @@ import { GrMoney } from 'react-icons/gr';
 import { GoEye, GoEyeClosed, GoTasklist } from 'react-icons/go';
 import { PiNewspaperClippingLight } from 'react-icons/pi';
 import { MdOutlineDeleteOutline } from 'react-icons/md';
-import { handleChange, determinatedPositionMenu, handleCreateItem, handleCreateGasto, handleCreateCategoria, handleChangeEstatus } from "./tableBudgetV8.handles"
+import { handleChange, determinatedPositionMenu, handleCreateItem, handleCreateGasto, handleCreateCategoria, handleChangeEstatus, handleChangeEstatusItem } from "./tableBudgetV8.handles"
 import { useToast } from '../../hooks/useToast';
 import FormAddPago from '../Forms/FormAddPago';
 import ClickAwayListener from 'react-click-away-listener';
@@ -28,6 +28,7 @@ interface props {
   setLoading: any
   showDataState: any
   setShowDataState: any
+  setIdItem: any
 }
 
 export interface InitialColumn {
@@ -57,7 +58,7 @@ const optionsSelect = [
   { title: "xNiños", value: "xNiños." },
 ]
 
-export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDelete, setLoading, showDataState, setShowDataState }) => {
+export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDelete, setLoading, showDataState, setShowDataState, setIdItem }) => {
   const rerender = useReducer(() => ({}), {})[1]
   const { event, setEvent } = EventContextProvider()
   const [isAllowed, ht] = useAllowed()
@@ -81,7 +82,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     { accessor: "pagado", header: t("pagado"), size: defaultSize.float, horizontalAlignment: "end", type: "float" },
     { accessor: "pendiente_pagar", header: t("pendiente por pagar"), size: defaultSize.float, horizontalAlignment: "end", type: "float" },
   ]
-
+  console.log('data', data)
   useEffect(() => {
     const columnsVisibility = event?.presupuesto_objeto?.visibleColumns?.reduce((acc, item) => {
       acc = {
@@ -142,10 +143,17 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
       icon: true ? <GoEye className="w-4 h-4" /> : <GoEyeClosed className="w-4 h-4" />,
       title: "Estado",
       onClick: (info) => {
-        handleChangeEstatus({ event, categoriaID: info.row.original.categoriaID, gastoId: info.row.original.gastoID, setEvent })
-          .catch(error => toast("error", "ha ocurrido un error"))
+        console.log("???????", info)
+        if (info.column.id === "gasto") {
+          handleChangeEstatus({ event, categoriaID: info.row.original.categoriaID, gastoId: info.row.original.gastoID, setEvent })
+            .catch(error => toast("error", "ha ocurrido un error"))
+        }
+        if (info.column.id === "nombre") {
+          handleChangeEstatusItem({ event, categoriaID: info.row.original.categoriaID, gastoId: info.row.original.gastoID, itemId: info.row.original.itemID, setEvent })
+            .catch(error => toast("error", "ha ocurrido un error"))
+        }
       },
-      object: ["gasto"]
+      object: ["gasto", "item"]
     },
     {
       icon: <GoTasklist className="w-4 h-4" />,
@@ -223,6 +231,10 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                 <>
                   {
                     elem?.accessor === "gasto" && info?.row?.original?.gastoOriginal?.estatus === false &&
+                    <GoEyeClosed className="w-4 h-4 mr-1 " />
+                  }
+                  {
+                    elem?.accessor === "nombre" && info?.row?.original?.itemOriginal?.estatus === true &&
                     <GoEyeClosed className="w-4 h-4 mr-1 " />
                   }
                   <EditableLabelWithInput
@@ -501,7 +513,78 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
             })}
             {/* --------------------------------------------------------------------------------------------------------------------------------------------*/}
           </tbody>
-          {/*  <tfoot
+          <tfoot
+            style={{
+              minWidth: table.getTotalSize(),
+            }}
+          >
+            <tr className='flex'>
+              {table.getAllLeafColumns().map((column, idx) => {
+
+                return (
+                  <th
+                    key={column.id}
+                    style={{
+                      ...(column.columnDef.size
+                        ? { width: column.columnDef.size }
+                        : { flex: 1 })
+                    }}
+                    className={` text-right`}
+                  >
+                    {idx === 5
+                      ? "Total"
+                      : column.id === "coste_final"
+                        ? getCurrency(
+                          table
+                            .getRowModel()
+                            .rows
+                            .filter(row => row.original?.fatherCategoria)
+                            .reduce(
+                              (acc, row) =>
+                                acc +
+                                (typeof row.original.coste_final === "number"
+                                  ? row.original.coste_final
+                                  : 0),
+                              0
+                            )
+                        )
+                        : column.id === "coste_estimado"
+                          ? getCurrency(
+                            table
+                              .getRowModel()
+                              .rows
+                              .filter(row => row.original?.fatherCategoria)
+                              .reduce(
+                                (acc, row) =>
+                                  acc +
+                                  (typeof row.original.coste_estimado === "number"
+                                    ? row.original.coste_estimado
+                                    : 0),
+                                0
+                              )
+                          )
+                          : column.id === "pendiente_pagar"
+                            ? getCurrency(
+                              table
+                                .getRowModel()
+                                .rows
+                                .filter(row => row.original?.fatherCategoria)
+                                .reduce(
+                                  (acc, row) =>
+                                    acc +
+                                    (typeof row.original.pendiente_pagar === "number"
+                                      ? row.original.pendiente_pagar
+                                      : 0),
+                                  0
+                                )
+                            )
+                            : null}
+                  </th>
+                )
+              })}
+            </tr>
+          </tfoot>
+          {/* <tfoot
             style={{
               minWidth: table.getTotalSize(),
             }}

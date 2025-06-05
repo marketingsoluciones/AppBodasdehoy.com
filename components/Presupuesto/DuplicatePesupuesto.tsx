@@ -7,6 +7,7 @@ import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { estimate } from "../../utils/Interfaces";
 import { useToast } from "../../hooks/useToast";
 import ClickAwayListener from "react-click-away-listener";
+import { GoAlert } from "react-icons/go";
 
 export const DuplicatePresupuesto = ({ setModal, showModalDuplicate }) => {
     const { config, user } = AuthContextProvider()
@@ -15,6 +16,7 @@ export const DuplicatePresupuesto = ({ setModal, showModalDuplicate }) => {
     const [filteredEventsGroup, setFilteredEventsGroup] = useState([])
     const [selectedOption, setSelectedOption] = useState('');
     const toast = useToast();
+    const [warningImport, setWarningImport] = useState(false)
 
     useEffect(() => {
         setFilteredEventsGroup(eventsGroup?.filter(elem =>
@@ -85,10 +87,29 @@ export const DuplicatePresupuesto = ({ setModal, showModalDuplicate }) => {
                         />
                     </div>
                 </div>
-                <div className=" text-xs flex justify-end gap-4 border-t border-gray-300 px-4 pb-4 bg-gray-100">
+                <div className={` bg-gray-100 px-4 py-3 border-gray-300 border-t flex justify-between. items-center ${warningImport?"justify-between" :"justify-end"} `}>
+                    {
+                        warningImport &&
+                        <div className="flex items-center justify-center space-x-1">
+                            <div>
+                                <GoAlert className="h-4 w-4 text-yellow-600" />
+                            </div>
+                            <span className="text-xs text-gray-500">{t("importWarning")}</span>
+                        </div>
+                    }
+                    <div className="text-xs gap-4 space-x-1 flex justify-end items-end ">
+                        <button onClick={() => { setModal(false) }} className="bg-gray-400 text-white rounded-md py-2 px-4 ">{t("cancel")}</button>
+                        {
+                            warningImport ?
+                                <button onClick={() => handleDuplicate()} disabled={!selectedOption} className={`${!selectedOption ? "bg-gray-300" : "bg-primary"} text-white rounded-md py-2 px-4  capitalize`}>{t("import")}</button> :
+                                <button onClick={() => setWarningImport(true)}  className={`${!selectedOption ? "bg-gray-300" : "bg-primary"} text-white rounded-md py-2 px-4  capitalize`}>Aceptar</button>
+                        }
+                    </div>
+                </div>
+                {/* <div className=" text-xs flex justify-end gap-4 border-t border-gray-300 px-4 pb-4 bg-gray-100">
                     <button onClick={() => { setModal(false) }} className="bg-gray-400 text-white rounded-md py-2 px-4 mt-4">{t("cancel")}</button>
                     <button onClick={() => handleDuplicate()} disabled={!selectedOption} className={`${!selectedOption ? "bg-gray-300" : "bg-primary"} text-white rounded-md py-2 px-4 mt-4 capitalize`}>{t("import")}</button>
-                </div>
+                </div> */}
             </div>
         </ClickAwayListener >
 

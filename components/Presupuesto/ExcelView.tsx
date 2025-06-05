@@ -27,6 +27,7 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
     const [loading, setLoading] = useState(false)
     const [showModalDelete, setShowModalDelete] = useState<ModalInterface>({ state: false })
     const [showDataState, setShowDataState] = useState(true)
+    const [idItem, setIdItem] = useState<string | null>(null);
 
     window.addEventListener("resize", () => {
         const nuevoAncho = window.innerWidth;
@@ -46,6 +47,8 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
         { column: "J", title: "Opciones", accessor: "options" }
     ]; */
 
+    console.log("DataTableTotales", showDataState)
+
     useEffect(() => {
         setCategoria(
             event?.presupuesto_objeto?.categorias_array?.find(
@@ -63,17 +66,53 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
             })
             setData([...dataView]);
         }
-        if (showDataState) {
-            const data = event?.presupuesto_objeto?.categorias_array?.filter(elem => !!showCategoria?._id ? showCategoria?._id === elem._id : true)
-            setData([...data]);
-        } else {
-            const data = event?.presupuesto_objeto?.categorias_array?.filter(elem => !!showCategoria?._id ? showCategoria?._id === elem._id : true)
-            const dataView = data.map(elem => ({
-                ...elem,
-                gastos_array: elem.gastos_array.filter(gasto => gasto?.estatus !== false)
-            }))
-            setData([...dataView]);
-        }
+
+        const categoriasFiltradas = event?.presupuesto_objeto?.categorias_array?.filter(
+            elem => !!showCategoria?._id ? showCategoria?._id === elem._id : true
+        );
+
+            if (showDataState) {
+                setData([...categoriasFiltradas]);
+            } else {
+                const dataView = categoriasFiltradas.map(categoria => ({
+                    ...categoria,
+                    gastos_array: categoria.gastos_array
+                        .filter(gasto => gasto?.estatus !== false)
+                        .map(gasto => ({
+                            ...gasto,
+                            items_array: gasto.items_array
+                                ? gasto.items_array.filter(item => item?.estatus !== true)
+                                : []
+                        }))
+                }));
+                setData([...dataView]);
+            }
+        
+        /* 
+                 if (showDataState) {
+                     const data = event?.presupuesto_objeto?.categorias_array?.filter(elem => !!showCategoria?._id ? showCategoria?._id === elem._id : true)
+                     setData([...data]);
+                 } else {
+                     const data = event?.presupuesto_objeto?.categorias_array?.filter(elem => !!showCategoria?._id ? showCategoria?._id === elem._id : true)
+                     const dataView = data.map(elem => ({
+                         ...elem,
+                         gastos_array: elem.gastos_array.filter(gasto => gasto?.estatus !== false)
+                     }))
+                     setData([...dataView]);
+                 }
+         
+                 if (showDataState) {
+                     const data = event?.presupuesto_objeto?.categorias_array?.filter(elem => !!showCategoria?._id ? showCategoria?._id === elem._id : true)
+                     const dataView = data.map(elem => ({
+                         ...elem,
+                         gastos_array: elem.gastos_array.map(gasto => ({
+                             ...gasto,
+                             items_array: gasto.items_array.filter(item => item?.estatus == false)
+                                 
+                         }))
+                     }))
+                     setData([...dataView]);
+                 } */
     }, [showCategoria, event, event?.presupuesto_objeto?.currency, showDataState]);
 
 
@@ -111,13 +150,13 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
                     <div className="mb-2 w-full">
                         <ResumenInvitados />
                     </div>
-                    <BlockListaCategorias setShowCategoria={setShowCategoria} categorias_array={categorias_array} showCategoria={showCategoria} />
+                    <BlockListaCategorias setShowCategoria={setShowCategoria} categorias_array={categorias_array} showCategoria={showCategoria} showDataState={showDataState} />
                 </div>
                 {
                     true &&
                     <div className={`flex ${menuIzquierdo ? "w-full" : "md:w-[calc(100%-300px)]"} h-full`}>
                         <div className='bg-blue-50 w-full h-full flex'>
-                            <TableBudgetV8 showDataState={showDataState} setShowDataState={setShowDataState} showModalDelete={showModalDelete} setShowModalDelete={setShowModalDelete} setLoading={setLoading}
+                            <TableBudgetV8 showDataState={showDataState} setShowDataState={setShowDataState} showModalDelete={showModalDelete} setShowModalDelete={setShowModalDelete} setLoading={setLoading} setIdItem={setIdItem}
                                 data={data.reduce((acc, item) => {
                                     let coste_final_categoria = 0
                                     let valirFirtsChild = true
