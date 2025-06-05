@@ -132,7 +132,6 @@ export async function getServerSideProps(context) {
       }
     }) as any
 
-    console.log("evento", evento)
     const itinerary = evento.itinerarios_array.find(elem => elem._id === query.itinerary)
     const task = itinerary?.tasks?.find(elem => elem._id === query.task)
     const development = getDevelopment(req.headers.host)
@@ -156,11 +155,11 @@ export async function getServerSideProps(context) {
     evento.itinerarios_array = [itinerary]
     evento.detalles_compartidos_array = users
     evento.fecha_actualizacion = new Date().toLocaleString()
-    console.log("evento222", evento)
 
     if (evento) {
       openGraphData.openGraph.title = `${evento.itinerarios_array[0].tasks[0].descripcion}`
-      openGraphData.openGraph.description = ` El Evento ${evento.tipo}, de ${evento.nombre}, ${new Date(parseInt(evento?.itinerarios_array[0].fecha_creacion))?.toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}`
+      openGraphData.openGraph.description = ` El Evento ${evento.tipo}, de ${evento.nombre}, ${new Date(parseInt(evento?.itinerarios_array[0].fecha_creacion))?.toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}
+`
     }
     return {
       props: { ...params, query, evento, users: usersMap },
@@ -173,6 +172,8 @@ export async function getServerSideProps(context) {
 
   }
 }
+
+/* ${evento.itinerarios_array[0].tasks[0].tips.replace(/<[^>]*>/g, "").replace(".", ". ")} */
 
 const getDevelopment = (host) => {
   let domain = '';
