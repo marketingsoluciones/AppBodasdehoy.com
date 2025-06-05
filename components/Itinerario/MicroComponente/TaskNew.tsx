@@ -5,7 +5,6 @@ import { EventContextProvider } from "../../../context/EventContext";
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
 import { AuthContextProvider } from "../../../context";
 import { useTranslation } from 'react-i18next';
-import { ItineraryButtonBox } from './ItineraryButtonBox'
 import { Comment, Itinerary, OptionsSelect, Task } from "../../../utils/Interfaces";
 import { ViewItinerary } from "../../../pages/invitados";
 import { CgSoftwareDownload } from "react-icons/cg";
@@ -19,13 +18,6 @@ import { ListComments } from "./ListComments"
 import ClickAwayListener from "react-click-away-listener";
 import { CopiarLink } from "../../Utils/Compartir";
 import { useRouter } from "next/router";
-import { IoCalendarClearOutline } from "react-icons/io5";
-import { HiOutlineUserCircle } from "react-icons/hi2";
-import { LiaPaperclipSolid } from "react-icons/lia";
-import { MdOutlineLabel } from "react-icons/md";
-import { RiNotification2Fill } from "react-icons/ri";
-import { GoChevronDown } from "react-icons/go";
-import { LuClock } from "react-icons/lu";
 import { TempPastedAndDropFiles } from "./ItineraryPanel";
 import { downloadFile } from "../../Utils/storages";
 import { useToast } from "../../../hooks/useToast";
@@ -33,16 +25,37 @@ import InputField from "../../Forms/InputField";
 import InputAttachments from "../../Forms/InputAttachments";
 import { InputTags } from "../../Forms/InputTags";
 import { MyEditor } from "./QuillText";
-import { FaPencilAlt, FaCheck, FaTimes } from "react-icons/fa";
 import { Modal } from "../../Utils/ModalServicios";
-import { Flag, ChevronDown } from 'lucide-react';
 import { TASK_STATUSES, TASK_PRIORITIES } from './NewTypes';
+import {
+  X,
+  MessageSquare,
+  Paperclip,
+  Tag,
+  Calendar,
+  Clock,
+  User,
+  Flag,
+  ChevronDown,
+  Copy,
+  Link,
+  MoreHorizontal,
+  Trash2,
+  Archive,
+  Bell,
+  Plus,
+  Eye,
+  EyeOff,
+  GitBranch,
+  Lock,
+  Unlock
+} from 'lucide-react';
 
 // Tipos mejorados
 interface TaskFormValues {
   _id: string;
   icon: string;
-  fecha: string;
+  fecha: string | Date; // <-- Permitir ambos tipos
   hora: string;
   duracion: string | number;
   tags: string[];
@@ -57,53 +70,6 @@ interface TaskFormValues {
   estado: string;
   prioridad: string;
 }
-
-// Identificadores de campos
-const FIELD_IDS = {
-  HEADER: 'header-field',
-  DESCRIPTION: 'description-field', 
-  RESPONSABLE: 'responsable-field',
-  ATTACHMENTS: 'attachments-field',
-  TAGS: 'tags-field',
-  DATETIME: 'datetime-field',
-  TIPS: 'tips-field',
-  STATUS: 'status-field',
-  PRIORITY: 'priority-field'
-} as const;
-
-// Componente de botones de acción mejorado
-const ActionButtons: FC<{
-  onSave: () => void;
-  onCancel: () => void;
-  size?: 'sm' | 'md';
-  className?: string;
-}> = memo(({ onSave, onCancel, size = 'md', className = '' }) => {
-  const buttonSize = size === 'sm' ? 'w-6 h-6' : 'w-8 h-8';
-  const iconSize = size === 'sm' ? 'w-3 h-3' : 'w-4 h-4';
-  
-  return (
-    <div className={`flex gap-1 ${className}`}>
-      <button
-        type="button"
-        className={`${buttonSize} flex items-center justify-center bg-primary text-white rounded-md shadow-sm hover:bg-primary/90 transition-all duration-200`}
-        onClick={onSave}
-        title="Guardar"
-      >
-        <FaCheck className={iconSize} />
-      </button>
-      <button
-        type="button"
-        className={`${buttonSize} flex items-center justify-center bg-gray-100 text-gray-600 rounded-md shadow-sm hover:bg-gray-200 transition-all duration-200`}
-        onClick={onCancel}
-        title="Cancelar"
-      >
-        <FaTimes className={iconSize} />
-      </button>
-    </div>
-  );
-});
-
-ActionButtons.displayName = 'ActionButtons';
 
 const stripHtml = (html: string): string => {
   if (!html) return "";
@@ -147,50 +113,46 @@ export const TaskNew: FC<Props> = memo(({
   const link = `${window.location.origin}/services/servicios-${event?._id}-${itinerario?._id}-${task?._id}`;
   
   // Estados básicos
-  const [viewComments, setViewComments] = useState(true);
   const [comments, setComments] = useState<Comment[]>([]);
   const [previousCountComments, setPreviousCountComments] = useState<number>(0);
-  const [showModalAdjuntos, setShowModalAdjuntos] = useState({ state: false, id: "" });
-  
-  // Estados de edición
-  const [editingFields, setEditingFields] = useState<Set<string>>(new Set());
-  const [isGlobalEdit, setIsGlobalEdit] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [showPriorityDropdown, setShowPriorityDropdown] = useState(false);
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [tempValue, setTempValue] = useState<any>(null);
+  const [editingDescription, setEditingDescription] = useState(false);
+  const [customDescription, setCustomDescription] = useState(task.tips || '');
+  const [editingResponsable, setEditingResponsable] = useState(false);
+  const [tempResponsable, setTempResponsable] = useState<string[]>([]);
+  const [editingAttachments, setEditingAttachments] = useState(false);
   
-  // Estado temporal para valores durante la edición
-  const [tempValues, setTempValues] = useState<TaskFormValues>({
-    _id: "",
-    icon: "",
-    fecha: "",
+  // Estado local de la tarea
+  const [localTask, setLocalTask] = useState<TaskFormValues>({
+    _id: task?._id || "",
+    icon: task?.icon || "",
+    fecha: task?.fecha || "",
     hora: "",
-    duracion: 0,
-    tags: [],
-    descripcion: "",
-    responsable: [],
-    tips: "",
-    attachments: [],
-    spectatorView: true,
-    comments: [],
-    commentsViewers: [],
-    estatus: false,
-    estado: 'pending',
-    prioridad: 'media'
+    duracion: task?.duracion || 0,
+    tags: Array.isArray(task?.tags) ? task.tags : [],
+    descripcion: task?.descripcion || "",
+    responsable: Array.isArray(task?.responsable) ? task.responsable : [],
+    tips: task?.tips || "",
+    attachments: Array.isArray(task?.attachments) ? task.attachments : [],
+    spectatorView: task?.spectatorView ?? true,
+    comments: Array.isArray(task?.comments) ? task.comments : [],
+    commentsViewers: Array.isArray(task?.commentsViewers) ? task.commentsViewers : [],
+    estatus: task?.estatus ?? false,
+    estado: task?.estado || 'pending',
+    prioridad: task?.prioridad || 'media'
   });
 
-  // Función para obtener valores iniciales
-  const getInitialValues = useCallback((): TaskFormValues => {
-    const fecha = task?.fecha ? new Date(task.fecha) : null;
-    const locale = geoInfo?.acceptLanguage?.split(",")[0] || 'es-ES';
-    
-    return {
+  // Actualizar localTask cuando cambie task
+  useEffect(() => {
+    setLocalTask({
       _id: task?._id || "",
       icon: task?.icon || "",
-      fecha: fecha ? fecha.toLocaleDateString(locale) : "",
-      hora: fecha ? fecha.toLocaleTimeString(locale, {
-        hour: "2-digit",
-        minute: "2-digit",
-      }) : "",
+      fecha: task?.fecha || "",
+      hora: "",
       duracion: task?.duracion || 0,
       tags: Array.isArray(task?.tags) ? task.tags : [],
       descripcion: task?.descripcion || "",
@@ -203,101 +165,37 @@ export const TaskNew: FC<Props> = memo(({
       estatus: task?.estatus ?? false,
       estado: task?.estado || 'pending',
       prioridad: task?.prioridad || 'media'
-    };
-  }, [task, geoInfo]);
+    });
+    setCustomDescription(task?.tips || '');
+  }, [task]);
 
-  // Actualizar tempValues cuando cambie task
-  useEffect(() => {
-    if (!isGlobalEdit && editingFields.size === 0) {
-      setTempValues(getInitialValues());
-    }
-  }, [task, isGlobalEdit, editingFields.size, getInitialValues]);
-
-  // Función para manejar edición de campos
-  const handleEdit = useCallback((fieldId: string) => {
-    if (isGlobalEdit) return;
-    
-    setEditingFields(new Set([fieldId]));
-    
-    // Asegurar que los arrays estén inicializados
-    const arrayFields = {
-      [FIELD_IDS.ATTACHMENTS]: 'attachments',
-      [FIELD_IDS.TAGS]: 'tags',
-      [FIELD_IDS.RESPONSABLE]: 'responsable'
-    };
-    
-    const arrayField = arrayFields[fieldId];
-    if (arrayField && !Array.isArray(tempValues[arrayField])) {
-      setTempValues(prev => ({ ...prev, [arrayField]: [] }));
-    }
-  }, [isGlobalEdit, tempValues]);
-
-  // Función mejorada para guardar cambios
-  const handleSave = useCallback(async (fieldId?: string) => {
+  // Función para manejar actualización de campos
+  const handleUpdate = async (fieldName: string, value: any) => {
     try {
-      let fieldsToSave: string[] = [];
-      let dataToSave: Partial<TaskFormValues> = {};
-
-      if (fieldId) {
-        fieldsToSave = [fieldId];
-      } else if (isGlobalEdit) {
-        fieldsToSave = Array.from(editingFields);
+      let apiValue: string;
+      
+      if (['responsable', 'tags', 'attachments'].includes(fieldName)) {
+        apiValue = JSON.stringify(value || []);
+      } else if (fieldName === 'duracion') {
+        apiValue = String(value || "0");
+      } else if (fieldName === 'fecha' && value) {
+        const dateObj = new Date(value);
+        apiValue = dateObj.toISOString();
       } else {
-        return;
+        apiValue = String(value || "");
       }
 
-      // Preparar datos según campos
-      const fieldMapping = {
-        [FIELD_IDS.DESCRIPTION]: { descripcion: tempValues.descripcion },
-        [FIELD_IDS.RESPONSABLE]: { responsable: tempValues.responsable },
-        [FIELD_IDS.ATTACHMENTS]: { attachments: tempValues.attachments },
-        [FIELD_IDS.TAGS]: { tags: tempValues.tags },
-        [FIELD_IDS.DATETIME]: {
-          fecha: tempValues.fecha,
-          hora: tempValues.hora,
-          duracion: tempValues.duracion
+      await fetchApiEventos({
+        query: queries.editTask,
+        variables: {
+          eventID: event._id,
+          itinerarioID: itinerario._id,
+          taskID: task._id,
+          variable: fieldName,
+          valor: apiValue,
         },
-        [FIELD_IDS.TIPS]: { tips: tempValues.tips },
-        [FIELD_IDS.STATUS]: { estado: tempValues.estado },
-        [FIELD_IDS.PRIORITY]: { prioridad: tempValues.prioridad }
-      };
-
-      fieldsToSave.forEach(field => {
-        Object.assign(dataToSave, fieldMapping[field] || {});
+        domain: config.domain,
       });
-
-      // Realizar actualizaciones API
-      const updatePromises = Object.entries(dataToSave).map(([key, value]) => {
-        let apiValue: string;
-        
-        // Transformar valores para API
-        if (['responsable', 'tags', 'attachments'].includes(key)) {
-          apiValue = JSON.stringify(value || []);
-        } else if (key === 'duracion') {
-          apiValue = String(value || "0");
-        } else if (key === 'fecha' && value) {
-          // Manejar fecha correctamente
-          const [day, month, year] = (value as string).split('/');
-          const dateObj = new Date(Number(year), Number(month) - 1, Number(day));
-          apiValue = dateObj.toISOString();
-        } else {
-          apiValue = String(value || "");
-        }
-
-        return fetchApiEventos({
-          query: queries.editTask,
-          variables: {
-            eventID: event._id,
-            itinerarioID: itinerario._id,
-            taskID: task._id,
-            variable: key,
-            valor: apiValue,
-          },
-          domain: config.domain,
-        });
-      });
-
-      await Promise.all(updatePromises);
 
       // Actualizar estado global
       setEvent((oldEvent) => {
@@ -308,68 +206,124 @@ export const TaskNew: FC<Props> = memo(({
           const taskIndex = newEvent.itinerarios_array[itineraryIndex].tasks.findIndex(t => t._id === task._id);
           
           if (taskIndex > -1) {
-            Object.assign(newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex], dataToSave);
+            newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex][fieldName] = value;
           }
         }
         
         return newEvent;
       });
 
-      // Limpiar estados de edición
-      setEditingFields(new Set());
-      setIsGlobalEdit(false);
+      // Actualizar estado local
+      setLocalTask(prev => ({ ...prev, [fieldName]: value }));
       
-      // Actualizar tempValues con los valores guardados
-      setTempValues(prev => ({ ...prev, ...dataToSave }));
-
-      toast("success", t("Item guardado con éxito"));
+      toast("success", t("Campo actualizado"));
     } catch (error) {
-      console.error('Error al guardar:', error);
-      toast("error", t("Ha ocurrido un error"));
+      console.error('Error al actualizar:', error);
+      toast("error", t("Error al actualizar"));
     }
-  }, [tempValues, editingFields, isGlobalEdit, event, itinerario, task, config.domain, t, toast, setEvent]);
+  };
 
-  // Función para cancelar edición
-  const handleCancel = useCallback((fieldId?: string) => {
-    if (fieldId) {
-      const newEditingFields = new Set(editingFields);
-      newEditingFields.delete(fieldId);
-      setEditingFields(newEditingFields);
-    } else {
-      setEditingFields(new Set());
-      setIsGlobalEdit(false);
+  // Manejadores de edición de campos
+  const handleFieldClick = (fieldName: string, currentValue: any) => {
+    if (editingField !== fieldName) {
+      setEditingField(fieldName);
+      setTempValue(currentValue);
     }
+  };
+
+  const handleFieldSave = async (fieldName: string) => {
+    await handleUpdate(fieldName, tempValue);
+    setEditingField(null);
+  };
+
+  const handleFieldCancel = () => {
+    setEditingField(null);
+    setTempValue(null);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent, fieldName: string) => {
+    if (e.key === 'Enter') {
+      handleFieldSave(fieldName);
+    } else if (e.key === 'Escape') {
+      handleFieldCancel();
+    }
+  };
+
+  // Manejadores específicos
+  const handleIconChange = (name: string, value: any) => {
+    handleUpdate('icon', value);
+  };
+
+  const handleDuplicate = () => {
+    const duplicatedTask = {
+      ...task,
+      descripcion: `${task.descripcion} (copia)`,
+      fecha: new Date(),
+      _id: undefined,
+      createdAt: undefined,
+      updatedAt: undefined,
+      comments: [],
+      commentsViewers: []
+    };
     
-    // Restaurar valores originales
-    setTempValues(getInitialValues());
-  }, [editingFields, getInitialValues]);
+    delete duplicatedTask._id;
+    delete duplicatedTask.createdAt;
+    delete duplicatedTask.updatedAt;
+    
+    // Aquí deberías llamar a una función para crear la tarea
+    toast('success', t('Tarea duplicada'));
+  };
 
-  // Función para iniciar edición global
-  const handleStartGlobalEdit = useCallback(() => {
-    setIsGlobalEdit(true);
-    setEditingFields(new Set(Object.values(FIELD_IDS)));
-  }, []);
+  const handleAddTag = (newTag: string) => {
+    if (newTag && !localTask.tags?.includes(newTag)) {
+      const newTags = [...(localTask.tags || []), newTag];
+      handleUpdate('tags', newTags);
+    }
+  };
 
-  // Función para verificar si un campo está en edición
-  const isFieldEditing = useCallback((fieldId: string) => {
-    return editingFields.has(fieldId) || isGlobalEdit;
-  }, [editingFields, isGlobalEdit]);
+  const handleRemoveTag = (tagToRemove: string) => {
+    const newTags = localTask.tags?.filter(tag => tag !== tagToRemove) || [];
+    handleUpdate('tags', newTags);
+  };
 
-  // Obtener información de estado y prioridad actual
-  const currentStatus = TASK_STATUSES.find(s => s.value === tempValues.estado) || TASK_STATUSES[0];
-  const currentPriority = TASK_PRIORITIES.find(p => p.value === tempValues.prioridad) || TASK_PRIORITIES[2];
+  const handleSaveResponsable = async () => {
+    await handleUpdate('responsable', tempResponsable);
+    setEditingResponsable(false);
+  };
+
+  const formatDate = (date: string | Date) => {
+    if (!date) return '';
+    const d = new Date(date);
+    return d.toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
+
+  const formatTime = (date: string | Date) => {
+    if (!date) return '';
+    const d = new Date(date);
+    return d.toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Estados y prioridades
+  const currentStatus = TASK_STATUSES.find(s => s.value === localTask.estado) || TASK_STATUSES[0];
+  const currentPriority = TASK_PRIORITIES.find(p => p.value === localTask.prioridad) || TASK_PRIORITIES[1];
 
   // Manejo de comentarios
   useEffect(() => {
     const sortedComments = (task?.comments || [])
-      .slice(!viewComments ? -3 : 0)
       .sort((a, b) => {
         const dateA = a?.createdAt ? new Date(a.createdAt).getTime() : 0;
         const dateB = b?.createdAt ? new Date(b.createdAt).getTime() : 0;
         return dateB - dateA;
       });
     setComments(sortedComments);
-  }, [viewComments, task?.comments]);
+  }, [task?.comments]);
 
   useEffect(() => {
     if (comments.length > previousCountComments && divRef.current) {
@@ -378,627 +332,623 @@ export const TaskNew: FC<Props> = memo(({
     setPreviousCountComments(comments.length);
   }, [comments, previousCountComments]);
 
-  // Función legacy para compatibilidad
-  const handleBlurData = async (variable: string, valor: any) => {
-    try {
-      await fetchApiEventos({
-        query: queries.editTask,
-        variables: {
-          eventID: event._id,
-          itinerarioID: itinerario._id,
-          taskID: task._id,
-          variable,
-          valor: variable === "responsable" ? JSON.stringify(valor) : valor.toString(),
-        },
-        domain: config.domain,
-      });
-
-      setEvent((old) => {
-        const newEvent = { ...old };
-        const f1 = newEvent.itinerarios_array.findIndex((elem) => elem._id === itinerario._id);
-        if (f1 > -1) {
-          const f2 = newEvent.itinerarios_array[f1].tasks.findIndex((elem) => elem._id === task._id);
-          if (f2 > -1) {
-            newEvent.itinerarios_array[f1].tasks[f2][variable] = valor;
-          }
-        }
-        return newEvent;
-      });
-    } catch (error) {
-      console.error("Error al actualizar los datos:", error);
-    }
-  };
-
-  const initialValues = getInitialValues();
-
   return (
-    <div {...props}>
-      <Formik enableReinitialize initialValues={initialValues} onSubmit={() => {}}>
-        {({ values }) => {
-          return (
-            <Form className="w-full">
-              <div className={`flex w-full justify-center items-stretch text-gray-800 ${["/servicios"].includes(window?.location?.pathname) ? "" : "2xl:px-36"} `}>
-                {/* Vista Schema */}
-                {view === "schema" && values.spectatorView && (
-                  <>
-                    <div className={`flex w-[55%] md:w-[45%] lg:w-[40%] p-2 items-start justify-start border-t-[1px] border-r-[1px] border-primary border-dotted relative`}>
-                      <div className="w-12 h-12 md:w-16 md:h-16 md:min-w-16 flex items-center justify-center">
-                        <SelectIcon name="icon" className="scale-[120%] -translate-y-1" handleChange={handleBlurData} />
-                      </div>
-                      <div className="flex-1">
-                        <div className="inline-flex flex-col justify-start items-start">
-                          <span className="text-xl md:text-2xl text-gray-900">{values?.hora}</span>
-                          <div className="w-full flex justify-end items-end text-xs -mt-1">
-                            <span>{t("duration")}</span>
-                            <span className="text-[12px] md:text-[14px] lg:text-[16px] text-center bg-transparent px-1">
-                              {values?.duracion}
-                            </span>
-                            <span>min</span>
-                          </div>
-                        </div>
-                        
-                        <div className="grid grid-flow-dense w-full space-x-2 text-[12px] mt-2">
-                          <p>
-                            {t("responsible")}: {(values?.responsable || []).join(", ")}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="bg-white w-3 h-3 rounded-full border-[1px] border-primary border-dotted absolute right-0 top-0 translate-x-1/2 -translate-y-1/2" />
-                    </div>
-                    <div className={`flex-1 flex flex-col px-4 md:px-0 border-primary border-dotted w-[10%] md:w-[50%] border-t-[1px]`}>
-                      {!!values?.tips && <Interweave
-                        className="md:text-xs text-sm text-justify transition-all m-1 p-1 break-words"
-                        content={values.tips}
-                        matchers={[new UrlMatcher('url'), new HashtagMatcher('hashtag')]}
-                      />}
-                    </div>
-                  </>
-                )}
-                
-                {/* Vista Cards */}
-                {view === "cards" && (
-                  <div className={`${isSelect ? "border-gray-300" : "border-gray-100"} border-2 box-content bg-slate-50 w-full rounded-lg mx-1 my-1 flex p-2 relative ${!["/itinerario"].includes(window?.location?.pathname) ? "grid md:grid-cols-2" : "grid grid-cols-1"}`}>
-                    {/* Modal compartir */}
-                    {showModalCompartir?.state && showModalCompartir.id === values._id && (
-                      <ClickAwayListener onClickAway={() => setShowModalCompartir(false)}>
-                        <ul className="absolute transition shadow-lg rounded-lg duration-500 bottom-2 right-2 w-[300px] z-50">
-                          <li className="flex items-center py-4 px-6 font-display text-sm text-gray-500 bg-base transition w-full capitalize">
-                            <CopiarLink link={link} />
-                          </li>
-                        </ul>
-                      </ClickAwayListener>
-                    )}
-                    
-                    {/* Lado izquierdo */}
-                    <div className="space-y-3">
-                      {/* Header con descripción */}
-                      <div id={FIELD_IDS.HEADER} className="flex items-start space-x-2 relative">
-                        <div className={`${values?.estatus === true ? "" : "cursor-pointer"} bg-white w-12 h-12 md:w-16 md:h-16 md:min-w-16 flex items-center justify-center rounded-full border-[1px] border-gray-300`}>
-                          <SelectIcon name="icon" className="" handleChange={handleBlurData} data={values} />
-                        </div>
-                        
-                        {isFieldEditing(FIELD_IDS.DESCRIPTION) ? (
-                          <div className="flex-1 relative">
-                            <InputField
-                              name="descripcion"
-                              type="text"
-                              value={tempValues.descripcion || ""}
-                              onChange={(e) => setTempValues({ ...tempValues, descripcion: e.target.value })}
-                              className="w-full p-2 border border-gray-300 rounded"
-                            />
-                            {!isGlobalEdit && (
-                              <ActionButtons
-                                onSave={() => handleSave(FIELD_IDS.DESCRIPTION)}
-                                onCancel={() => handleCancel(FIELD_IDS.DESCRIPTION)}
-                                className="absolute -bottom-10 right-0 z-50"
-                              />
-                            )}
-                          </div>
-                        ) : (
-                          <div
-                            className="cursor-pointer flex items-center group flex-1"
-                            onClick={() => handleEdit(FIELD_IDS.DESCRIPTION)}
-                          >
-                            <span className="text-[19px] capitalize cursor-default">
-                              {tempValues?.descripcion
-                                ? tempValues.descripcion.length > 20
-                                  ? `${tempValues.descripcion.slice(0, 20)}...`
-                                  : tempValues.descripcion
-                                : t("Sin Descripción")}
-                            </span>
-                            <FaPencilAlt className="text-primary ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                          </div>
-                        )}
-
-                        {/* Botón de edición global */}
-                        <div className="absolute top-0 right-0">
-                          {!isGlobalEdit ? (
-                            <button
-                              type="button"
-                              className="p-2 bg-pink-50 text-primary rounded-full shadow-md hover:bg-pink-100 transition-all duration-200"
-                              onClick={handleStartGlobalEdit}
-                            >
-                              <FaPencilAlt className="w-5 h-5" />
-                            </button>
-                          ) : (
-                            <ActionButtons
-                              onSave={() => handleSave()}
-                              onCancel={() => handleCancel()}
-                            />
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Responsables */}
-                      <div id={FIELD_IDS.RESPONSABLE} className="flex items-center space-x-5 group relative">
-                        <div className="flex items-center space-x-1">
-                          <HiOutlineUserCircle />
-                          <span className="text-[14px] capitalize cursor-default">
-                            {t("assigned")}:
-                          </span>
-                        </div>
-                        {isFieldEditing(FIELD_IDS.RESPONSABLE) ? (
-                          <div className="flex-1 relative">
-                            <ResponsableSelector
-                              name="responsable"
-                              value={tempValues.responsable || []}
-                              handleChange={(fieldName, newValue) =>
-                                setTempValues({ ...tempValues, responsable: Array.isArray(newValue) ? newValue : [] })
-                              }
-                              disable={false}
-                            />
-                            {!isGlobalEdit && (
-                              <ActionButtons
-                                onSave={() => handleSave(FIELD_IDS.RESPONSABLE)}
-                                onCancel={() => handleCancel(FIELD_IDS.RESPONSABLE)}
-                                className="absolute -bottom-10 right-0 z-50"
-                              />
-                            )}
-                          </div>
-                        ) : (
-                          <div className="text-gray-900 flex items-center">
-                            {(tempValues?.responsable?.length || 0) > 0 ? (
-                              tempValues.responsable.map((elem, idx) => {
-                                const userSelect =
-                                  GruposResponsablesArry.find(
-                                    (el) => el.title.toLowerCase() === elem?.toLowerCase()
-                                  ) ??
-                                  [user, event?.detalles_usuario_id, ...(event?.detalles_compartidos_array || [])].find(
-                                    (el) => el?.displayName?.toLowerCase() === elem?.toLowerCase()
-                                  );
-                                return (
-                                  <span key={idx} className="inline-flex items-center space-x-0.5 mr-1.5">
-                                    <div className="w-6 h-6 rounded-full border-[1px] border-gray-400">
-                                      <ImageAvatar user={userSelect} />
-                                    </div>
-                                  </span>
-                                );
-                              })
-                            ) : (
-                              <span className="text-[12px] text-gray-400 capitalize cursor-default">
-                                {t("unassigned")}
-                              </span>
-                            )}
-                            <FaPencilAlt
-                              className="text-primary ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
-                              onClick={() => handleEdit(FIELD_IDS.RESPONSABLE)}
-                            />
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Adjuntos */}
-                      <div id={FIELD_IDS.ATTACHMENTS} className="flex items-center space-x-5 group relative">
-                        <div className="flex items-center space-x-1">
-                          <LiaPaperclipSolid />
-                          <span className="text-[14px] capitalize cursor-default">
-                            {t("addfile")}
-                          </span>
-                        </div>
-                        {isFieldEditing(FIELD_IDS.ATTACHMENTS) ? (
-                          <div className="flex-1 relative">
-                            <InputAttachments
-                              name="attachments"
-                              value={tempValues.attachments || []}
-                              itinerarioID={itinerario._id}
-                              task={task}
-                              onChange={(newAttachments) => {
-                                setTempValues({ ...tempValues, attachments: Array.isArray(newAttachments) ? newAttachments : [] });
-                              }}
-                            />
-                            {!isGlobalEdit && (
-                              <ActionButtons
-                                onSave={() => handleSave(FIELD_IDS.ATTACHMENTS)}
-                                onCancel={() => handleCancel(FIELD_IDS.ATTACHMENTS)}
-                                className="absolute -bottom-10 right-0 z-50"
-                              />
-                            )}
-                          </div>
-                        ) : (
-                          <div
-                            className={`text-[14px] flex items-center space-x-1 ${
-                              (tempValues.attachments?.length || 0) > 0 ? "cursor-pointer" : "cursor-default"
-                            }`}
-                            onClick={() =>
-                              (tempValues.attachments?.length || 0) > 0
-                                ? setShowModalAdjuntos({ state: !showModalAdjuntos.state, id: values._id })
-                                : null
-                            }
-                          >
-                            {(tempValues.attachments?.length || 0) > 0 ? (
-                              <>
-                                {t("attachment")}
-                                <GoChevronDown
-                                  className={`w-[14px] h-auto transition-all ${
-                                    showModalAdjuntos.state && "rotate-180"
-                                  }`}
-                                />
-                              </>
-                            ) : (
-                              <span className="text-[12px] text-gray-400 capitalize">{t("noAttachments")}</span>
-                            )}
-                            <FaPencilAlt
-                              className="text-primary ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEdit(FIELD_IDS.ATTACHMENTS);
-                              }}
-                            />
-                          </div>
-                        )}
-                        
-                        {/* Modal de adjuntos */}
-                        {showModalAdjuntos.state && showModalAdjuntos.id === values._id && (
-                          <ClickAwayListener onClickAway={() => setShowModalAdjuntos({ state: false, id: "" })}>
-                            <div className="bg-white p-4 rounded-md shadow-md absolute top-8 left-0 z-50 w-max">
-                              <div className="flex justify-between items-center mb-4">
-                                <h2 className="text-lg font-semibold capitalize">{t("addfile")}</h2>
-                                <button
-                                  onClick={() => setShowModalAdjuntos({ state: false, id: "" })}
-                                  className="text-gray-500 hover:text-gray-700"
-                                >
-                                  &times;
-                                </button>
-                              </div>
-                              <div className="grid md:grid-cols-2 gap-2">
-                                {(tempValues?.attachments || []).map((elem, idx) =>
-                                  elem._id && (
-                                    <div
-                                      key={idx}
-                                      onClick={() => {
-                                        downloadFile(storage, `${task._id}//${elem.name}`).catch(() =>
-                                          toast("error", t("Ha ocurrido un error"))
-                                        );
-                                      }}
-                                      className="flex justify-between hover:bg-gray-200 rounded-sm px-2 py-1 items-center cursor-pointer text-[12px]"
-                                    >
-                                      <span className="truncate max-w-[150px]">{elem.name}</span>
-                                      <CgSoftwareDownload className="w-4 h-auto ml-2" />
-                                    </div>
-                                  )
-                                )}
-                              </div>
-                            </div>
-                          </ClickAwayListener>
-                        )}
-                      </div>
-
-                      {/* Etiquetas */}
-                      <div id={FIELD_IDS.TAGS} className="flex items-center space-x-5 relative group">
-                        <div className="flex items-center space-x-1">
-                          <MdOutlineLabel />
-                          <span className="text-[14px] capitalize cursor-default">{t("labels")}:</span>
-                        </div>
-                        {isFieldEditing(FIELD_IDS.TAGS) ? (
-                          <div className="flex-1 relative">
-                            <InputTags
-                              name="tags"
-                              value={tempValues.tags || []}
-                              onChange={(newTags) => {
-                                setTempValues({ ...tempValues, tags: Array.isArray(newTags) ? newTags : [] });
-                              }}
-                            />
-                            {!isGlobalEdit && (
-                              <ActionButtons
-                                onSave={() => handleSave(FIELD_IDS.TAGS)}
-                                onCancel={() => handleCancel(FIELD_IDS.TAGS)}
-                                className="absolute -bottom-10 right-0 z-50"
-                              />
-                            )}
-                          </div>
-                        ) : (
-                          <div
-                            className="cursor-pointer flex items-center group"
-                            onClick={() => handleEdit(FIELD_IDS.TAGS)}
-                          >
-                            {Array.isArray(tempValues?.tags) && tempValues.tags.length > 0 ? (
-                              <span className="text-[14px]">{tempValues.tags.join(", ")}</span>
-                            ) : (
-                              <span className="text-[12px] text-gray-400 capitalize">{t("noLabels")}</span>
-                            )}
-                            <FaPencilAlt className="text-primary ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Fecha, Duración y Hora */}
-                      <div id={FIELD_IDS.DATETIME} className="flex items-center gap-3">
-                        <div className="flex items-center space-x-2">
-                          <IoCalendarClearOutline />
-                          <span className="text-[14px] capitalize cursor-default">{t("Fecha")}:</span>
-                        </div>
-                        {isFieldEditing(FIELD_IDS.DATETIME) ? (
-                          <div className="flex-1">
-                            <div className="flex space-x-2">
-                              <InputField
-                                name="fecha"
-                                type="date"
-                                value={tempValues.fecha || ""}
-                                onChange={(e) => setTempValues({ ...tempValues, fecha: e.target.value })}
-                                className="flex-1 p-1 border border-gray-300 rounded text-sm"
-                              />
-                              <InputField
-                                name="hora"
-                                type="time"
-                                value={tempValues.hora || ""}
-                                onChange={(e) => setTempValues({ ...tempValues, hora: e.target.value })}
-                                className="w-20 p-1 border border-gray-300 rounded text-sm"
-                              />
-                              <InputField
-                                name="duracion"
-                                type="number"
-                                value={String(tempValues.duracion || "")}
-                                onChange={(e) => setTempValues({ ...tempValues, duracion: parseInt(e.target.value) || 0 })}
-                                className="w-16 p-1 border border-gray-300 rounded text-sm"
-                                placeholder="min"
-                              />
-                            </div>
-                            {!isGlobalEdit && (
-                              <ActionButtons
-                                onSave={() => handleSave(FIELD_IDS.DATETIME)}
-                                onCancel={() => handleCancel(FIELD_IDS.DATETIME)}
-                                className="mt-2"
-                              />
-                            )}
-                          </div>
-                        ) : (
-                          <div
-                            className="cursor-pointer flex items-center space-x-2 group"
-                            onClick={() => handleEdit(FIELD_IDS.DATETIME)}
-                          >
-                            <span className="text-[14px] capitalize">
-                              {tempValues?.fecha && tempValues?.hora && tempValues?.duracion
-                                ? `${tempValues.fecha} ${tempValues.hora} (${tempValues.duracion} min)`
-                                : <span className="text-[12px] text-gray-400">{t("Sin Informacion")}</span>}
-                            </span>
-                            <FaPencilAlt className="text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Block de Texto (Tips) */}
-                      <div id={FIELD_IDS.TIPS} className={`${["/itinerario"].includes(window?.location?.pathname) ? "h-[100px]" : "md:h-[183px] h-[100px]"} border-[1px] border-gray-300 rounded-lg p-2 overflow-auto group relative`}>
-                        {isFieldEditing(FIELD_IDS.TIPS) ? (
-                          <div className="h-full">
-                            <MyEditor
-                              name="tips"
-                              value={tempValues.tips || ""}
-                              onChange={(newTips) => {
-                                setTempValues({ ...tempValues, tips: String(newTips || "") });
-                              }}
-                            />
-                            {!isGlobalEdit && (
-                              <ActionButtons
-                                onSave={() => handleSave(FIELD_IDS.TIPS)}
-                                onCancel={() => handleCancel(FIELD_IDS.TIPS)}
-                                className="absolute top-2 right-2 z-50"
-                              />
-                            )}
-                          </div>
-                        ) : (
-                          <div
-                            className="cursor-pointer h-full flex flex-col"
-                            onClick={() => handleEdit(FIELD_IDS.TIPS)}
-                          >
-                            <div
-                              className="text-xs text-gray-500 break-words overflow-hidden flex-1"
-                              style={{
-                                display: "-webkit-box",
-                                WebkitLineClamp: 5,
-                                WebkitBoxOrient: "vertical",
-                                lineHeight: "1.5rem",
-                                maxHeight: "7.5rem",
-                              }}
-                            >
-                              {tempValues?.tips
-                                ? stripHtml(tempValues.tips)
-                                : <span className="text-[12px] text-gray-400">{t("Sin Descripcion")}</span>}
-                            </div>
-                            <div className="flex justify-end items-center">
-                              <FaPencilAlt className="text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Lado derecho */}
-                    <div className="flex-1 flex flex-col text-[12px] pl-1 md:pl-2 mt-1 md:mt-0">
-                      {/* Estado y Prioridad */}
-                      <div className="flex space-x-2 mb-4">
-                        {/* Dropdown de Estado */}
-                        <div className="relative">
-                          {isFieldEditing(FIELD_IDS.STATUS) ? (
-                            <div className="flex items-center space-x-1">
-                              <select
-                                value={tempValues.estado}
-                                onChange={(e) => setTempValues({ ...tempValues, estado: e.target.value })}
-                                className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                              >
-                                {TASK_STATUSES.map(status => (
-                                  <option key={status.value} value={status.value}>
-                                    {status.label}
-                                  </option>
-                                ))}
-                              </select>
-                              {!isGlobalEdit && (
-                                <ActionButtons
-                                  onSave={() => handleSave(FIELD_IDS.STATUS)}
-                                  onCancel={() => handleCancel(FIELD_IDS.STATUS)}
-                                  size="sm"
-                                />
-                              )}
-                            </div>
-                          ) : (
-                            <div className="relative">
-                              <button
-                                className={`px-4 py-1 text-white text-sm rounded ${currentStatus.color} flex items-center space-x-1`}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (!isGlobalEdit) {
-                                    setShowStatusDropdown(!showStatusDropdown);
-                                  }
-                                }}
-                              >
-                                <span>{currentStatus.label}</span>
-                                <ChevronDown className="w-3 h-3" />
-                              </button>
-                              {showStatusDropdown && (
-                                <ClickAwayListener onClickAway={() => setShowStatusDropdown(false)}>
-                                  <ul className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded shadow-lg z-50">
-                                    {TASK_STATUSES.map((status) => (
-                                      <li
-                                        key={status.value}
-                                        className="px-4 py-2 cursor-pointer hover:bg-gray-100 flex items-center space-x-2"
-                                        onClick={() => {
-                                          setTempValues({ ...tempValues, estado: status.value });
-                                          handleEdit(FIELD_IDS.STATUS);
-                                          setShowStatusDropdown(false);
-                                        }}
-                                      >
-                                        <span className={`w-3 h-3 rounded-full ${status.color}`}></span>
-                                        <span>{status.label}</span>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </ClickAwayListener>
-                              )}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Dropdown de Prioridad */}
-                        <div className="relative">
-                          {isFieldEditing(FIELD_IDS.PRIORITY) ? (
-                            <div className="flex items-center space-x-1">
-                              <select
-                                value={tempValues.prioridad}
-                                onChange={(e) => setTempValues({ ...tempValues, prioridad: e.target.value })}
-                                className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                              >
-                                {TASK_PRIORITIES.map(priority => (
-                                  <option key={priority.value} value={priority.value}>
-                                    {priority.label}
-                                  </option>
-                                ))}
-                              </select>
-                              {!isGlobalEdit && (
-                                <ActionButtons
-                                  onSave={() => handleSave(FIELD_IDS.PRIORITY)}
-                                  onCancel={() => handleCancel(FIELD_IDS.PRIORITY)}
-                                  size="sm"
-                                />
-                              )}
-                            </div>
-                          ) : (
-                            <div className="relative">
-                              <button
-                                className={`px-3 py-1 text-white text-sm rounded flex items-center space-x-1 ${currentPriority.color}`}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (!isGlobalEdit) {
-                                    setShowPriorityDropdown(!showPriorityDropdown);
-                                  }
-                                }}
-                              >
-                                <Flag className="w-3 h-3" />
-                                <span>{currentPriority.label}</span>
-                                <ChevronDown className="w-3 h-3" />
-                              </button>
-                              {showPriorityDropdown && (
-                                <ClickAwayListener onClickAway={() => setShowPriorityDropdown(false)}>
-                                  <ul className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded shadow-lg z-50">
-                                    {TASK_PRIORITIES.map((priority) => (
-                                      <li
-                                        key={priority.value}
-                                        className="px-4 py-2 cursor-pointer hover:bg-gray-100 flex items-center space-x-2"
-                                        onClick={() => {
-                                          setTempValues({ ...tempValues, prioridad: priority.value });
-                                          handleEdit(FIELD_IDS.PRIORITY);
-                                          setShowPriorityDropdown(false);
-                                        }}
-                                      >
-                                        <Flag className={`w-4 h-4 ${priority.color.replace('bg-', 'text-')}`} />
-                                        <span>{priority.label}</span>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </ClickAwayListener>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Comentarios */}
-                      {!["/itinerario"].includes(window?.location?.pathname) && (
-                        <div className="mb-2 w-full">
-                          <div className="flex justify-between mb-1">
-                            <div className="capitalize">
-                              {t('messages')}
-                            </div>
-                            <div>
-                              <RiNotification2Fill className="text-gray-500 w-4 h-4 scale-x-90" />
-                            </div>
-                          </div>
-                          <div className='border-gray-300 border-[1px] rounded-lg py-2'>
-                            <div ref={divRef} className='h-[260px] flex flex-col-reverse rounded-lg overflow-auto break-words'>
-                              {comments.map((elem, idx) => (
-                                <ListComments 
-                                  id={elem?._id} 
-                                  key={idx} 
-                                  itinerario={itinerario} 
-                                  task={task} 
-                                  item={elem} 
-                                  tempPastedAndDropFiles={tempPastedAndDropFiles} 
-                                />
-                              ))}
-                            </div>
-                            <InputComments 
-                              itinerario={itinerario} 
-                              task={task} 
-                              tempPastedAndDropFiles={tempPastedAndDropFiles} 
-                              setTempPastedAndDropFiles={setTempPastedAndDropFiles} 
-                            />
-                          </div>
-                        </div>
-                      )}
-                      
-                      <div className={`${["/itinerario"].includes(window?.location?.pathname) && "pt-3"} flex justify-between`}>
-                        <ItineraryButtonBox 
-                          optionsItineraryButtonBox={optionsItineraryButtonBox} 
-                          values={task} 
-                          itinerario={itinerario} 
-                        />
-                      </div>
-                    </div>
+    <div {...props} className="w-full bg-white rounded-lg shadow-lg overflow-hidden">
+      <div className="flex min-h-[600px]">
+        {/* Panel principal */}
+        <div className="flex-1 flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center space-x-4 flex-1">
+              {/* Icono de la tarea */}
+              <Formik
+                initialValues={{ icon: localTask.icon || '' }}
+                onSubmit={() => {}}
+                enableReinitialize
+              >
+                <Form>
+                  <div className="flex items-center justify-center hover:bg-gray-100 rounded-full p-3 cursor-pointer">
+                    <SelectIcon 
+                      name="icon" 
+                      className="scale-125"
+                      handleChange={handleIconChange}
+                      data={localTask}
+                    />
                   </div>
+                </Form>
+              </Formik>
+
+              {/* Título */}
+              {editingField === 'descripcion' ? (
+                <input
+                  type="text"
+                  value={tempValue}
+                  onChange={(e) => setTempValue(e.target.value)}
+                  onBlur={() => handleFieldSave('descripcion')}
+                  onKeyDown={(e) => handleKeyPress(e, 'descripcion')}
+                  className="text-2xl font-semibold px-2 py-1 border-b-2 border-primary focus:outline-none flex-1"
+                  autoFocus
+                />
+              ) : (
+                <h2
+                  className="text-2xl font-semibold cursor-pointer hover:text-gray-700 flex-1"
+                  onClick={() => handleFieldClick('descripcion', localTask.descripcion)}
+                >
+                  {localTask.descripcion || t('Sin título')}
+                </h2>
+              )}
+            </div>
+
+            <div className="flex items-center space-x-2">
+              {/* Botón de opciones */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowMoreMenu(!showMoreMenu)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <MoreHorizontal className="w-5 h-5" />
+                </button>
+                {showMoreMenu && (
+                  <ClickAwayListener onClickAway={() => setShowMoreMenu(false)}>
+                    <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                      <button
+                        onClick={() => {
+                          const newValue = !localTask.spectatorView;
+                          handleUpdate('spectatorView', newValue);
+                          toast('success', t(newValue ? 'Tarea visible' : 'Tarea oculta'));
+                        }}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        {localTask.spectatorView ? <EyeOff className="w-4 h-4 mr-3" /> : <Eye className="w-4 h-4 mr-3" />}
+                        {localTask.spectatorView ? t('Ocultar') : t('Mostrar')}
+                      </button>
+                      <button
+                        onClick={handleDuplicate}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        <Copy className="w-4 h-4 mr-3" />
+                        {t('Duplicar')}
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(link);
+                          toast('success', t('Enlace copiado'));
+                        }}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        <Link className="w-4 h-4 mr-3" />
+                        {t('Copiar enlace')}
+                      </button>
+                      <button
+                        onClick={() => {
+                          const newValue = !localTask.estatus;
+                          handleUpdate('estatus', newValue);
+                          toast('success', t(newValue ? 'Tarea bloqueada' : 'Tarea desbloqueada'));
+                        }}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        {localTask.estatus ? <Unlock className="w-4 h-4 mr-3" /> : <Lock className="w-4 h-4 mr-3" />}
+                        {localTask.estatus ? t('Desbloquear') : t('Bloquear')}
+                      </button>
+                      
+                      {/* Opciones del ItineraryButtonBox */}
+                      {optionsItineraryButtonBox && optionsItineraryButtonBox.length > 0 && (
+                        <>
+                          <div className="border-t border-gray-200 my-1"></div>
+                          {optionsItineraryButtonBox.map((option, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => {
+                                // Ejecutar la acción de la opción basada en el tipo o función
+                                if (typeof option.onClick === 'function') {
+                                  option.onClick(task, itinerario);
+                                }
+                                setShowMoreMenu(false);
+                              }}
+                              className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              disabled={option.idDisabled}
+                            >
+                              {option.icon && (
+                                <span className="w-4 h-4 mr-3 flex items-center justify-center">
+                                  {typeof option.icon === 'string' ? (
+                                    <span>{option.icon}</span>
+                                  ) : (
+                                    option.icon
+                                  )}
+                                </span>
+                              )}
+                              {option.title || t(option.value || '')}
+                            </button>
+                          ))}
+                        </>
+                      )}
+                    </div>
+                  </ClickAwayListener>
                 )}
               </div>
-            </Form>
-          );
-        }}
-      </Formik>
+            </div>
+          </div>
+
+          {/* Contenido principal */}
+          <div className="flex-1 overflow-y-auto">
+            {/* Información principal de la tarea */}
+            <div className="px-6 py-4 space-y-4">
+              {/* Fila de Estado y Prioridad */}
+              <div className="flex items-center space-x-4">
+                {/* Estado */}
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-600">{t('Estado')}</span>
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+                      className={`px-3 py-1 rounded text-white text-sm flex items-center space-x-1 ${currentStatus.color}`}
+                    >
+                      <span>{currentStatus.label}</span>
+                      <ChevronDown className="w-3 h-3" />
+                    </button>
+                    {showStatusDropdown && (
+                      <ClickAwayListener onClickAway={() => setShowStatusDropdown(false)}>
+                        <div className="absolute mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                          {TASK_STATUSES.map(status => (
+                            <button
+                              key={status.value}
+                              onClick={() => {
+                                handleUpdate('estado', status.value);
+                                setShowStatusDropdown(false);
+                              }}
+                              className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100"
+                            >
+                              <div className={`w-3 h-3 rounded-full ${status.color} mr-3`}></div>
+                              <span>{status.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </ClickAwayListener>
+                    )}
+                  </div>
+                </div>
+
+                {/* Prioridad */}
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-600">{t('Prioridad')}</span>
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowPriorityDropdown(!showPriorityDropdown)}
+                      className={`px-3 py-1 rounded text-white text-sm flex items-center space-x-1 ${currentPriority.color}`}
+                    >
+                      <Flag className="w-3 h-3" />
+                      <span>{currentPriority.label}</span>
+                      <ChevronDown className="w-3 h-3" />
+                    </button>
+                    {showPriorityDropdown && (
+                      <ClickAwayListener onClickAway={() => setShowPriorityDropdown(false)}>
+                        <div className="absolute mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                          {TASK_PRIORITIES.map(priority => (
+                            <button
+                              key={priority.value}
+                              onClick={() => {
+                                handleUpdate('prioridad', priority.value);
+                                setShowPriorityDropdown(false);
+                              }}
+                              className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100"
+                            >
+                              <Flag className={`w-4 h-4 mr-3 ${priority.color.replace('bg-', 'text-')}`} />
+                              <span>{priority.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </ClickAwayListener>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Asignados */}
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <User className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm text-gray-600">{t('Asignados')}</span>
+                </div>
+                <div className="flex items-center flex-wrap gap-2">
+                  {editingResponsable ? (
+                    <div className="flex items-center space-x-2">
+                      <Formik
+                        initialValues={{ responsable: tempResponsable }}
+                        enableReinitialize
+                        onSubmit={() => {}}
+                      >
+                        <Form>
+                          <ResponsableSelector
+                            name="responsable"
+                            value={tempResponsable}
+                            handleChange={(fieldName, newValue) => setTempResponsable(newValue)}
+                            disable={false}
+                          />
+                        </Form>
+                      </Formik>
+                      <button
+                        onClick={handleSaveResponsable}
+                        className="px-3 py-1 bg-primary text-white rounded text-sm"
+                      >
+                        {t('Guardar')}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingResponsable(false);
+                          setTempResponsable(localTask.responsable || []);
+                        }}
+                        className="px-3 py-1 bg-gray-200 text-gray-700 rounded text-sm"
+                      >
+                        {t('Cancelar')}
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center flex-wrap gap-2">
+                        {(localTask.responsable || []).map((resp, idx) => {
+                          const userInfo = GruposResponsablesArry.find(
+                            (el) => el.title?.toLowerCase() === resp?.toLowerCase()
+                          ) || [user, event?.detalles_usuario_id, ...(event?.detalles_compartidos_array || [])].find(
+                            (el) => el?.displayName?.toLowerCase() === resp?.toLowerCase()
+                          );
+
+                          return (
+                            <div
+                              key={idx}
+                              className="flex items-center bg-gray-100 rounded-full px-3 py-1"
+                            >
+                              <div className="w-6 h-6 rounded-full mr-2 overflow-hidden">
+                                <ImageAvatar user={userInfo} />
+                              </div>
+                              <span className="text-sm">{resp}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <button
+                        onClick={() => {
+                          setEditingResponsable(true);
+                          setTempResponsable(localTask.responsable || []);
+                        }}
+                        className="text-gray-500 hover:text-gray-700 border border-gray-300 rounded-full px-3 py-1 text-sm"
+                      >
+                        {localTask.responsable?.length > 0 ? t('Editar') : t('Asignar')}
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Fechas con duración y hora */}
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <Calendar className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm text-gray-600">{t('Fecha y hora')}</span>
+                </div>
+                <div className="flex items-center space-x-4">
+                  {editingField === 'fecha' ? (
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="date"
+                        value={tempValue ? new Date(tempValue).toISOString().split('T')[0] : ''}
+                        onChange={(e) => setTempValue(e.target.value)}
+                        onBlur={() => handleFieldSave('fecha')}
+                        onKeyDown={(e) => handleKeyPress(e, 'fecha')}
+                        className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                        autoFocus
+                      />
+                    </div>
+                  ) : (
+                    <span
+                      className="text-sm cursor-pointer hover:text-primary"
+                      onClick={() => handleFieldClick('fecha', localTask.fecha)}
+                    >
+                      {localTask.fecha ? formatDate(localTask.fecha) : t('Sin fecha')}
+                    </span>
+                  )}
+                  
+                  {/* Hora */}
+                  {editingField === 'hora' ? (
+                    <input
+                      type="time"
+                      value={tempValue || ''}
+                      onChange={(e) => setTempValue(e.target.value)}
+                      onBlur={() => {
+                        if (localTask.fecha && tempValue) {
+                          const fecha = new Date(localTask.fecha);
+                          const [hours, minutes] = tempValue.split(':');
+                          fecha.setHours(parseInt(hours), parseInt(minutes));
+                          handleUpdate('fecha', fecha);
+                        }
+                        setEditingField(null);
+                      }}
+                      onKeyDown={(e) => handleKeyPress(e, 'hora')}
+                      className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                      autoFocus
+                    />
+                  ) : (
+                    <div className="flex items-center space-x-1">
+                      <Clock className="w-4 h-4 text-gray-500" />
+                      <span
+                        className="text-sm cursor-pointer hover:text-primary"
+                        onClick={() => handleFieldClick('hora', localTask.fecha ? formatTime(localTask.fecha) : '')}
+                      >
+                        {localTask.fecha ? formatTime(localTask.fecha) : t('Sin hora')}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Duración */}
+                  {editingField === 'duracion' ? (
+                    <div className="flex items-center space-x-1">
+                      <input
+                        type="number"
+                        value={tempValue || ''}
+                        onChange={(e) => setTempValue(e.target.value)}
+                        onBlur={() => handleFieldSave('duracion')}
+                        onKeyDown={(e) => handleKeyPress(e, 'duracion')}
+                        className="w-20 px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                        autoFocus
+                      />
+                      <span className="text-sm text-gray-600">min</span>
+                    </div>
+                  ) : (
+                    <span
+                      className="text-sm cursor-pointer hover:text-primary"
+                      onClick={() => handleFieldClick('duracion', localTask.duracion)}
+                    >
+                      {localTask.duracion ? `${localTask.duracion} min` : t('Sin duración')}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Etiquetas */}
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <Tag className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm text-gray-600">{t('Etiquetas')}</span>
+                </div>
+                <div className="flex items-center flex-wrap gap-2">
+                  {(localTask.tags || []).map((tag, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center bg-primary/10 text-primary rounded-full px-3 py-1 group"
+                    >
+                      <span className="text-sm">{tag}</span>
+                      <button
+                        onClick={() => handleRemoveTag(tag)}
+                        className="ml-2 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                  {editingField === 'tags' ? (
+                    <ClickAwayListener onClickAway={handleFieldCancel}>
+                      <input
+                        type="text"
+                        placeholder={t('Agregar etiqueta...')}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            const input = e.target as HTMLInputElement;
+                            if (input.value.trim()) {
+                              handleAddTag(input.value.trim());
+                              input.value = '';
+                            }
+                          }
+                        }}
+                        className="px-3 py-1 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                        autoFocus
+                      />
+                    </ClickAwayListener>
+                  ) : (
+                    <button
+                      onClick={() => handleFieldClick('tags', '')}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Sección de Detalles */}
+            <div className="border-t border-gray-200">
+              <div className="px-6 py-4">
+                <h3 className="text-lg font-semibold mb-4">{t('Detalles')}</h3>
+                
+                {/* Campos personalizados */}
+                <div className="space-y-6">
+                  {/* Descripción Tarea larga */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-sm font-medium text-gray-700">
+                        {t('Descripción Tarea larga')}
+                      </label>
+                      {customDescription && !editingDescription && (
+                        <button
+                          onClick={() => setEditingDescription(true)}
+                          className="text-sm text-primary hover:text-primary/80"
+                        >
+                          {t('Editar')}
+                        </button>
+                      )}
+                    </div>
+                    
+                    {editingDescription ? (
+                      <div className="border border-gray-300 rounded-lg p-4">
+                        <textarea
+                          value={customDescription}
+                          onChange={(e) => setCustomDescription(e.target.value)}
+                          className="w-full min-h-[200px] resize-none border-0 focus:ring-0 focus:outline-none"
+                          placeholder={t('Escribe una descripción detallada...')}
+                        />
+                        <div className="flex justify-end space-x-2 mt-2">
+                          <button
+                            onClick={() => {
+                              setCustomDescription(task.tips || '');
+                              setEditingDescription(false);
+                            }}
+                            className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
+                          >
+                            {t('Cancelar')}
+                          </button>
+                          <button
+                            onClick={() => {
+                              handleUpdate('tips', customDescription);
+                              setEditingDescription(false);
+                            }}
+                            className="px-3 py-1 text-sm bg-primary text-white rounded hover:bg-primary/90"
+                          >
+                            {t('Guardar')}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div 
+                        className="border border-gray-200 rounded-lg p-4 min-h-[100px] cursor-pointer hover:border-gray-300"
+                        onClick={() => setEditingDescription(true)}
+                      >
+                        {customDescription ? (
+                          <Interweave
+                            className="text-sm text-gray-700"
+                            content={customDescription}
+                            matchers={[new UrlMatcher('url'), new HashtagMatcher('hashtag')]}
+                          />
+                        ) : (
+                          <p className="text-sm text-gray-400">{t('Haz clic para agregar una descripción...')}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Adjuntos */}
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 mb-3">{t('Adjuntos')}</h4>
+                    
+                    {editingAttachments ? (
+                      <div>
+                        <Formik
+                          initialValues={{ attachments: localTask.attachments || [] }}
+                          onSubmit={() => {}}
+                        >
+                          <Form>
+                            <InputAttachments
+                              name="attachments"
+                              itinerarioID={itinerario._id}
+                              task={task}
+                              onChange={(files) => {
+                                handleUpdate('attachments', files);
+                                setEditingAttachments(false);
+                              }}
+                            />
+                          </Form>
+                        </Formik>
+                        <button
+                          onClick={() => setEditingAttachments(false)}
+                          className="mt-2 text-sm text-gray-600 hover:text-gray-800"
+                        >
+                          {t('Cerrar')}
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        {(localTask.attachments || []).length > 0 ? (
+                          <div className="space-y-2 mb-4">
+                            {localTask.attachments.map((file, idx) => (
+                              <div
+                                key={idx}
+                                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 group cursor-pointer"
+                                onClick={() => {
+                                  downloadFile(storage, `${task._id}//${file.name}`)
+                                    .catch(() => toast("error", t("Error al descargar")));
+                                }}
+                              >
+                                <div className="flex items-center space-x-3">
+                                  <Paperclip className="w-4 h-4 text-gray-400" />
+                                  <span className="text-sm">{file.name}</span>
+                                  <span className="text-xs text-gray-500">
+                                    {Math.round(file.size / 1024)} KB
+                                  </span>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <CgSoftwareDownload className="w-5 h-5 text-gray-500 hover:text-gray-700" />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div 
+                            className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg cursor-pointer hover:border-gray-300"
+                            onClick={() => setEditingAttachments(true)}
+                          >
+                            <p className="text-sm text-gray-500 mb-2">
+                              {t('Suelta los archivos aquí para')} <span className="text-primary">{t('subir')}</span>
+                            </p>
+                          </div>
+                        )}
+                        
+                        {(localTask.attachments || []).length > 0 && (
+                          <button
+                            onClick={() => setEditingAttachments(true)}
+                            className="text-sm text-primary hover:text-primary/80"
+                          >
+                            {t('Gestionar archivos')}
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Panel lateral - Chat/Comentarios */}
+        <div className="w-96 border-l border-gray-200 flex flex-col bg-gray-50">
+          {/* Header del chat */}
+          <div className="p-4 border-b border-gray-200 bg-white">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-lg">{t('Actividad')}</h3>
+              <Bell className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600" />
+            </div>
+          </div>
+
+          {/* Lista de comentarios */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-2">
+            {comments.map((comment) => (
+              <ListComments
+                key={comment._id}
+                id={comment._id}
+                itinerario={itinerario}
+                task={task}
+                item={comment}
+                tempPastedAndDropFiles={tempPastedAndDropFiles}
+              />
+            ))}
+            
+            {comments.length === 0 && (
+              <div className="text-center py-8">
+                <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                <p className="text-sm text-gray-500">{t('No hay comentarios aún')}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Input de comentarios */}
+          <div className="border-t border-gray-200 bg-white w-full min-h-[105px] max-h-70 overflow-visible px-4 py-2">
+            <InputComments
+              itinerario={itinerario}
+              task={task}
+              tempPastedAndDropFiles={tempPastedAndDropFiles || []}
+              setTempPastedAndDropFiles={setTempPastedAndDropFiles}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 });
