@@ -19,6 +19,7 @@ interface props {
 }
 
 const Slug: FC<props> = (props) => {
+  console.log("propsnew", props)
   if (!props?.evento?.itinerarios_array?.length)
     return (
       <div className="bg-red-200 text-blue-700 w-full h-full text-center mt-20">
@@ -130,14 +131,17 @@ export async function getServerSideProps(context) {
         itinerario_id
       }
     }) as any
+
     const itinerary = evento.itinerarios_array.find(elem => elem._id === query.itinerary)
     const task = itinerary?.tasks?.find(elem => elem._id === query.task)
     const development = getDevelopment(req.headers.host)
+
     const users = await fetchApiBodas({
       query: queries?.getUsers,
       variables: { uids: task.comments.filter(elem => !!elem.uid).map(elem => elem.uid) },
       development: !/^\d+$/.test(development) ? development : "champagne-events"
     })
+
     const usersMap = users?.map(elem => {
       return {
         uid: elem.uid,
@@ -145,15 +149,17 @@ export async function getServerSideProps(context) {
         photoURL: elem.photoURL
       }
     })
-    evento._id = evento_id,
-      itinerary.tasks = [task]
+
+    evento._id = evento_id
+    itinerary.tasks = [task]
     evento.itinerarios_array = [itinerary]
     evento.detalles_compartidos_array = users
     evento.fecha_actualizacion = new Date().toLocaleString()
+
     if (evento) {
       openGraphData.openGraph.title = `${evento.itinerarios_array[0].tasks[0].descripcion}`
-      openGraphData.openGraph.description = ` El Evento ${evento.tipo}, de ${evento.nombre}, ${new Date(parseInt(evento?.itinerarios_array[0].fecha_creacion)).toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}
-${evento.itinerarios_array[0].tasks[0].tips.replace(/<[^>]*>/g, "").replace(".", ". ")}`
+      openGraphData.openGraph.description = ` El Evento ${evento.tipo}, de ${evento.nombre}, ${new Date(parseInt(evento?.itinerarios_array[0].fecha_creacion))?.toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}
+`
     }
     return {
       props: { ...params, query, evento, users: usersMap },
@@ -166,6 +172,8 @@ ${evento.itinerarios_array[0].tasks[0].tips.replace(/<[^>]*>/g, "").replace(".",
 
   }
 }
+
+/* ${evento.itinerarios_array[0].tasks[0].tips.replace(/<[^>]*>/g, "").replace(".", ". ")} */
 
 const getDevelopment = (host) => {
   let domain = '';
