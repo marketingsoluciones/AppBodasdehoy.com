@@ -316,7 +316,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                 message={<p className="text-azulCorporativo mx-8 text-center capitalize" > Estas seguro de borrar <span className='font-semibold'>{modal.title}</span></p>}
             />}
             {["/itinerario"].includes(window?.location?.pathname) && <SubHeader view={view} itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} title={title} setTitle={setTitle} />}
-            {["/servicios"].includes(window?.location?.pathname) && <SubHeaderServicios  itinerario={itinerario} />}
+            {["/servicios"].includes(window?.location?.pathname) && <SubHeaderServicios itinerario={itinerario} />}
             <div className={` w-full flex-1 flex flex-col md:px-2 lg:px-6`}>
                 {
                     tasksReduce?.length > 0 ?
