@@ -17,7 +17,7 @@ export interface TableColumn {
   isPinned?: boolean;
   position?: 'left' | 'right' | null;
   Cell?: (data: any) => JSX.Element;
-  type?: 'text' | 'select' | 'date' | 'time' | 'number' | 'multiselect' | 'user' | 'priority' | 'status' | 'editor' | 'tags' | 'responsable' | 'tips' | 'comments';
+  type?: 'text' | 'select' | 'date' | 'time' | 'number' | 'multiselect' | 'user' | 'priority' | 'status' | 'editor' | 'tags' | 'responsable' | 'tips' | 'comments' | 'attachments';
   options?: SelectOption[];
   truncate?: number; // Para limitar caracteres en campos de texto
 }

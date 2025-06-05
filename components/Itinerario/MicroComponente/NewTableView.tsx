@@ -137,7 +137,7 @@ const defineColumns = (t: any): TableColumn[] => [
     minWidth: 100,
     maxWidth: 150,
     canResize: true,
-    type: 'text',
+    type: 'attachments',
     canSort: false
   },
   {
