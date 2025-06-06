@@ -73,14 +73,14 @@ export type Info = {
 }
 
 export interface TaskOrder {
-  taskId: string;
-  order: number;
-  columnId: string;
+    taskId: string;
+    order: number;
+    columnId: string;
 }
 
 export interface ColumnOrder {
-  columnId: string;
-  order: number;
+    columnId: string;
+    order: number;
 }
 
 export interface Task {
@@ -109,10 +109,13 @@ export interface TaskDateTimeAsString extends Omit<Task, 'fecha'> {
     hora: string
 }
 
+
+
 export interface Itinerary {
     _id: string
     title: string
     tasks: Task[]
+    columnsOrder: ColumnOrder[]
     viewers: string[]
     tipo: string
     estatus: boolean //activo, borrado

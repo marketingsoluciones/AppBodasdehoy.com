@@ -458,6 +458,10 @@ export const queries = {
           prioridad
           fecha_creacion
         }
+        columnsOrder{
+          columnId
+          order
+        }
         viewers
         tipo
         estatus
@@ -697,6 +701,10 @@ export const queries = {
           commentsViewers
           estado
           prioridad
+        }
+        columnsOrder{
+          columnId
+          order
         }
         viewers
         tipo
@@ -1481,6 +1489,10 @@ export const queries = {
           commentsViewers
           estado
           prioridad
+        }
+        columnsOrder{
+          columnId
+          order
         }
         viewers
         tipo
