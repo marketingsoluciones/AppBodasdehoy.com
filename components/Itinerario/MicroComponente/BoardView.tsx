@@ -387,11 +387,7 @@ export const BoardView: React.FC<BoardViewProps> = ({
         columns.pending.tasks.push(task);
       }
     });
-
-    const columnOrder = Object.keys(columns).sort((a, b) =>
-      columns[a].order - columns[b].order
-    );
-
+    const columnOrder = itinerario.columnsOrder.map(elem => elem.columnId)
     setBoardState(prev => ({
       columns,
       columnOrder,
@@ -399,8 +395,7 @@ export const BoardView: React.FC<BoardViewProps> = ({
       isGlobalCollapsed: false,
       viewMode: prev.viewMode || 'board'
     }));
-    console.log("AAAAAAAAAAAquiiiii")
-  }, [data, getTaskStatus]);
+  }, [data, getTaskStatus, itinerario]);
 
   // Función para eliminar columna
   const handleDeleteColumn = useCallback((columnId: string) => {
@@ -556,15 +551,10 @@ export const BoardView: React.FC<BoardViewProps> = ({
       console.error('Error al guardar orden de tareas:', error);
     }
   }, [boardState.columns, event._id, itinerario._id]);
-  useEffect(() => {
-    console.log(100041, boardState)
-  }, [boardState])
-
 
   // Función para guardar el orden de las columnas
   const saveColumnsOrder = useCallback(async (boardState) => {
     try {
-      console.log(100042, boardState)
       const columnsOrder: ColumnOrder[] = boardState.columnOrder.map((columnId, index) => ({
         columnId: columnId,
         order: index
