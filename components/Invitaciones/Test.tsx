@@ -1,22 +1,22 @@
-import { Formik, ErrorMessage, Form, useFormikContext } from "formik";
+import { Formik, Form, useFormikContext } from "formik";
 import { AuthContextProvider, EventContextProvider } from "../../context";
-import { api } from '../../api'
 import InputField from "../Forms/InputField";
-import { DiamanteIcon, EmailIcon, IconLightBulb16, PhoneMobile } from "../icons";
+import { IconLightBulb16 } from "../icons";
 import * as yup from "yup";
 import { phoneUtil, useAuthentication } from "../../utils/Authentication";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { ActivatorPremium } from "../ActivatorPremium";
 import { Tooltip } from "../Utils/Tooltip";
 import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
 
-export default function Test({ TitelComponent }) {
+export type TitleComponent = "email" | "whatsapp" | "sms" | "diseño"
+
+export const Test = ({ TitleComponent }: { TitleComponent: TitleComponent }) => {
   const { t } = useTranslation();
-  const { geoInfo } = AuthContextProvider()
+  const { geoInfo, config } = AuthContextProvider()
   const { event } = EventContextProvider()
   const { isPhoneValid } = useAuthentication()
   const [valirReset, setValirReset] = useState(false)
@@ -35,6 +35,7 @@ export default function Test({ TitelComponent }) {
         const result = await fetchApiBodas({
           query: queries.getEmailValid,
           variables: { email: value },
+          development: config.development
         })
         return result?.valid
       } else {
@@ -98,50 +99,53 @@ export default function Test({ TitelComponent }) {
   const redireccionFacturacion = window.origin.includes("://test") ? path?.replace("//", "//test") : path
 
   return (
-    <div className="shadow-md rounded-2xl w-full mx-auto inset-x-0 md:h-60 py-8 md:p-4 font-display flex flex-col gap-2">
+    <div className="w-full h-full font-display flex flex-col">
+      <div className="bg-blue w-full h-8">
+        <div className="bg-green w-full h-full">
+
+        </div>
+      </div>
       <Formik
-        validationSchema={TitelComponent === "email" ? validationSchemaEmail : validationSchemaPhoneNumber}
+        validationSchema={TitleComponent === "email" ? validationSchemaEmail : validationSchemaPhoneNumber}
         onSubmit={(values, actions) => handleClick(values, actions)}
         initialValues={initialValues}
       >
         {({ handleChange, values }) => (
           <Form className="md:w-1/2 flex flex-col gap-2 mx-auto">
             <>
-              <AutoSubmitToken TitelComponent={TitelComponent} valirReset={valirReset} setValirReset={setValirReset} />
-              <h3 className="font-medium text-gray-500 first-letter:uppercase">{`${TitelComponent} ${t("de prueba")}`}</h3>
-              {TitelComponent === "email"
+              <AutoSubmitToken TitelComponent={TitleComponent} valirReset={valirReset} setValirReset={setValirReset} />
+              <h3 className="font-medium text-gray-500 first-letter:uppercase">{`${TitleComponent} ${t("de prueba")}`}</h3>
+              {TitleComponent === "email"
                 ? <InputField
                   name="email"
                   label={t("email")}
                   type="email"
-                  icon={<EmailIcon className="absolute w-4 h-4 inset-y-0 left-4 m-auto text-gray-500" />}
                 />
                 : <InputField
                   name="phoneNumber"
                   label={t("phonenumber")}
                   type="telefono"
                   autoComplete="off"
-                  icon={<PhoneMobile className="absolute w-4 h-4 inset-y-0 left-4 m-auto text-gray-500" />}
                 />
               }
               <Tooltip
                 label={t("firstyoumust")}
                 icon={<IconLightBulb16 className="w-6 h-6" />}
-                disabled={TitelComponent !== "email" || event?.imgInvitacion}>
+                disabled={TitleComponent !== "email" || !!event?.imgInvitacion}>
                 <button
                   onClick={() => !isAllowed() ? ht() : null}
                   type="submit"
-                  disabled={TitelComponent !== "email" || !event?.imgInvitacion}
-                  className={`${TitelComponent !== "email" ? "bg-gray-300" : "focus:outline-none hover:opacity-70 transition bg-primary"} text-white rounded-xl text-sm px-5 py-2 mt-4 w-full`}
+                  disabled={TitleComponent !== "email" || !event?.imgInvitacion}
+                  className={`${TitleComponent !== "email" ? "bg-gray-300" : "focus:outline-none hover:opacity-70 transition bg-primary"} text-white rounded-xl text-sm px-5 py-2 mt-4 w-full`}
                 >
-                  Enviar {TitelComponent} de prueba
+                  Enviar {TitleComponent} de prueba
                 </button>
               </Tooltip>
             </>
           </Form>
         )}
       </Formik>
-      {TitelComponent !== "email" && <div className="text-yellow-500 flex items-center justify-center space-x-1 md:my-2 text-sm cursor-default gap-4">
+      {TitleComponent !== "email" && <div className="text-yellow-500 flex items-center justify-center space-x-1 md:my-2 text-sm cursor-default gap-4">
         <ActivatorPremium link={redireccionFacturacion} />
       </div>}
     </div>
@@ -158,29 +162,3 @@ const AutoSubmitToken = ({ TitelComponent, valirReset, setValirReset }) => {
   return null;
 };
 
-
-
-const Aceptar = async () => {
-
-
-  try {
-    await api.ApiApp(params);
-  } catch (error) {
-    console.log(error);
-  } finally {
-    setEvento((old) => {
-      arrEnviarInvitaciones.forEach((invitado) => {
-        const idxInvitado = evento?.invitados_array?.findIndex(
-          (inv) => inv._id == invitado
-        );
-        old.invitados_array[idxInvitado] = {
-          ...old.invitados_array[idxInvitado],
-          invitacion: true,
-        };
-      });
-
-      return { ...old };
-    });
-    set([])
-  }
-};
