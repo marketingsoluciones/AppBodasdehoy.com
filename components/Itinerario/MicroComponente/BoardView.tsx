@@ -387,7 +387,9 @@ export const BoardView: React.FC<BoardViewProps> = ({
         columns.pending.tasks.push(task);
       }
     });
-    const columnOrder = itinerario.columnsOrder.map(elem => elem.columnId)
+    const columnOrder = itinerario.columnsOrder.length ? itinerario.columnsOrder.map(elem => elem.columnId) : Object.keys(columns).sort((a, b) =>
+      columns[a].order - columns[b].order
+    )
     setBoardState(prev => ({
       columns,
       columnOrder,
