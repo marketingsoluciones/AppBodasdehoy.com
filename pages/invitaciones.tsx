@@ -18,7 +18,7 @@ import { GoChevronDown } from "react-icons/go";
 import { useTranslation } from 'react-i18next';
 import { OpenModal } from "../components/Home/OpenModal";
 import { Modal } from "../components/Utils/Modal";
-import { EmailReactEditorCom } from "../components/Invitaciones/EmailReactEditorCom";
+import { EmailReactEditorComponent } from "../components/Invitaciones/EmailReactEditorComponent";
 
 export type optionArryOptions = {
   title: string;
@@ -35,7 +35,8 @@ const Invitaciones = () => {
   const [dataInvitationNotSent, setDataInvitationNotSent] = useState([]);
   const [optionSelect, setOptionSelect] = useState<TitleComponent>("email")
   const [stateConfi, setStateConfi] = useState(true)
-  const [EmailEditorModal, setEmailEditorModal] = useState(false)
+  const [emailEditorModal, setEmailEditorModal] = useState(false)
+  const [previewEmailReactEditor, setPreviewEmailReactEditor] = useState(false)
 
   const arryOptions: optionArryOptions[] = [
     {
@@ -101,8 +102,8 @@ const Invitaciones = () => {
             className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 gap-4 h-full"
           >
             {
-              EmailEditorModal && <Modal classe={" md:w-[90%] h-[90%] "}>
-                <EmailReactEditorCom setEmailEditorModal={setEmailEditorModal} EmailEditorModal={EmailEditorModal} />
+              emailEditorModal && <Modal classe={" md:w-[90%] h-[90%] "} >
+                <EmailReactEditorComponent setEmailEditorModal={setEmailEditorModal} EmailEditorModal={emailEditorModal} previewEmailReactEditor={previewEmailReactEditor} />
               </Modal>
             }
             <BlockTitle title="Invitaciones" />
@@ -127,8 +128,8 @@ const Invitaciones = () => {
                     />
                     <div className="col-span-3 w-full h-[280px] md:h-full">
                       {optionSelect !== "diseño"
-                        ? <Test TitleComponent={optionSelect} />
-                        : <DiseñoComponent setEmailEditorModal={setEmailEditorModal} EmailEditorModal={EmailEditorModal} />}
+                        ? <Test TitleComponent={optionSelect} setEmailEditorModal={setEmailEditorModal} emailEditorModal={emailEditorModal} setPreviewEmailReactEditor={setPreviewEmailReactEditor} />
+                        : <DiseñoComponent setEmailEditorModal={setEmailEditorModal} EmailEditorModal={emailEditorModal} />}
                     </div>
                   </div>
                 </div>

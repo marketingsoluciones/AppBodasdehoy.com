@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 
 export type TitleComponent = "email" | "whatsapp" | "sms" | "diseño"
 
-export const Test = ({ TitleComponent }: { TitleComponent: TitleComponent }) => {
+export const Test = ({ TitleComponent, setEmailEditorModal, emailEditorModal, setPreviewEmailReactEditor }: { TitleComponent: TitleComponent, setEmailEditorModal: (value: boolean) => void, emailEditorModal: boolean, setPreviewEmailReactEditor: (value: boolean) => void }) => {
   const { t } = useTranslation();
   const { geoInfo, config } = AuthContextProvider()
   const { event } = EventContextProvider()
@@ -100,54 +100,85 @@ export const Test = ({ TitleComponent }: { TitleComponent: TitleComponent }) => 
 
   return (
     <div className="w-full h-full font-display flex flex-col">
-      <div className="bg-blue w-full h-8">
-        <div className="bg-green w-full h-full">
-
-        </div>
+      <div className="w-full h-10 flex gap-2 items-center p-2">
+        {/* <button
+          onClick={(e) => !isAllowed() ? ht() : handleClick(e, "grupo")}
+          className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary capitalize"
+        >
+          {t("sender-test")}
+        </button> */}
+        <button
+          onClick={(e) => {
+            if (!isAllowed()) {
+              ht()
+            } else {
+              setEmailEditorModal(!emailEditorModal)
+              setPreviewEmailReactEditor(true)
+            }
+          }}
+          className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary capitalize"
+        >
+          {t("preview")}
+        </button>
+        <button
+          onClick={(e) => {
+            if (!isAllowed()) {
+              ht()
+            } else {
+              setEmailEditorModal(!emailEditorModal)
+              setPreviewEmailReactEditor(false)
+            }
+          }}
+          className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary capitalize"
+        >
+          {t("edit")}
+        </button>
       </div>
-      <Formik
-        validationSchema={TitleComponent === "email" ? validationSchemaEmail : validationSchemaPhoneNumber}
-        onSubmit={(values, actions) => handleClick(values, actions)}
-        initialValues={initialValues}
-      >
-        {({ handleChange, values }) => (
-          <Form className="md:w-1/2 flex flex-col gap-2 mx-auto">
-            <>
-              <AutoSubmitToken TitelComponent={TitleComponent} valirReset={valirReset} setValirReset={setValirReset} />
-              <h3 className="font-medium text-gray-500 first-letter:uppercase">{`${TitleComponent} ${t("de prueba")}`}</h3>
-              {TitleComponent === "email"
-                ? <InputField
-                  name="email"
-                  label={t("email")}
-                  type="email"
-                />
-                : <InputField
-                  name="phoneNumber"
-                  label={t("phonenumber")}
-                  type="telefono"
-                  autoComplete="off"
-                />
-              }
-              <Tooltip
-                label={t("firstyoumust")}
-                icon={<IconLightBulb16 className="w-6 h-6" />}
-                disabled={TitleComponent !== "email" || !!event?.imgInvitacion}>
-                <button
-                  onClick={() => !isAllowed() ? ht() : null}
-                  type="submit"
-                  disabled={TitleComponent !== "email" || !event?.imgInvitacion}
-                  className={`${TitleComponent !== "email" ? "bg-gray-300" : "focus:outline-none hover:opacity-70 transition bg-primary"} text-white rounded-xl text-sm px-5 py-2 mt-4 w-full`}
-                >
-                  Enviar {TitleComponent} de prueba
-                </button>
-              </Tooltip>
-            </>
-          </Form>
-        )}
-      </Formik>
-      {TitleComponent !== "email" && <div className="text-yellow-500 flex items-center justify-center space-x-1 md:my-2 text-sm cursor-default gap-4">
-        <ActivatorPremium link={redireccionFacturacion} />
-      </div>}
+      <div className="w-full h-full p-2">
+        <Formik
+          validationSchema={TitleComponent === "email" ? validationSchemaEmail : validationSchemaPhoneNumber}
+          onSubmit={(values, actions) => handleClick(values, actions)}
+          initialValues={initialValues}
+        >
+          {({ handleChange, values }) => (
+            <Form className="md:w-1/2 flex flex-col gap-2 mx-auto">
+              <>
+                <AutoSubmitToken TitelComponent={TitleComponent} valirReset={valirReset} setValirReset={setValirReset} />
+                <h3 className="font-medium text-gray-500 first-letter:uppercase">{`${TitleComponent} ${t("de prueba")}`}</h3>
+                {TitleComponent === "email"
+                  ? <InputField
+                    name="email"
+                    label={t("email")}
+                    type="email"
+                  />
+                  : <InputField
+                    name="phoneNumber"
+                    label={t("phonenumber")}
+                    type="telefono"
+                    autoComplete="off"
+                  />
+                }
+                <Tooltip
+                  label={t("firstyoumust")}
+                  icon={<IconLightBulb16 className="w-6 h-6" />}
+                  disabled={TitleComponent !== "email" || !!event?.imgInvitacion}>
+                  <button
+                    onClick={() => !isAllowed() ? ht() : null}
+                    type="submit"
+                    disabled={TitleComponent !== "email" || !event?.imgInvitacion}
+                    className={`${TitleComponent !== "email" ? "bg-gray-300" : "focus:outline-none hover:opacity-70 transition bg-primary"} text-white rounded-xl text-sm px-5 py-2 mt-4 w-full`}
+                  >
+                    Enviar {TitleComponent} de prueba
+                  </button>
+                </Tooltip>
+              </>
+            </Form>
+          )}
+        </Formik>
+        {TitleComponent !== "email" && <div className="text-yellow-500 flex items-center justify-center space-x-1 md:my-2 text-sm cursor-default gap-4">
+          <ActivatorPremium link={redireccionFacturacion} />
+        </div>}
+      </div>
     </div>
   );
 }
