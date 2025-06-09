@@ -11,6 +11,7 @@ interface props {
 
 export const FloatOptionsMenu: FC<props> = ({ showOptionsMenu, setShowOptionsMenu }) => {
   let { info, aling, justify, options, position } = showOptionsMenu.values
+  console.log("position", position )
 
   return (
     <ClickAwayListener onClickAway={() => { setShowOptionsMenu({ state: false }) }}>
@@ -19,8 +20,8 @@ export const FloatOptionsMenu: FC<props> = ({ showOptionsMenu, setShowOptionsMen
           style={position ? { left: position.x, top: position.y } : {}}
           className={`bg-gray-50 absolute z-30 rounded-lg border-[1px] border-gray-200 position shadow-md overflow-hidden 
             ${!position
-              ? `${justify === "end" ? "translate-x-8" : "-translate-x-[calc(100%)]. "} ${aling === "botton" ? "-translate-y-[calc(100%+4px)]" : "translate-y-5"}`
-              : `${justify === "end" ? "-translate-x-full" : "translate-x-6"} ${aling === "botton" ? "-translate-y-1/2" : "translate-y-1/2"}`} `}
+              ? `${justify === "end" ? "translate-x-8" : "-translate-x-[calc(100%)]  "} ${aling === "botton" ? "-translate-y-[calc(100%+4px)]" : "translate-y-5"} `
+              : `${justify === "end" ? "-translate-x-full" : "translate-x-6"} ${aling === "botton" ? "-translate-y-1/2" : "translate-y-1/2"}`}  w-max`}
         >
           {options.filter((elem) => {
             if (elem?.object) {
