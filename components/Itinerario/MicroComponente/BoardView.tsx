@@ -767,233 +767,218 @@ export const BoardView: React.FC<BoardViewProps> = ({
     }
   }, [boardState.columns]);
 
-  // Función handleDragEnd completamente reescrita y mejorada
-  const handleDragEnd = useCallback(async (dragEvent: DragEndEvent) => {
-    const { active, over } = dragEvent;
+// Función handleDragEnd completamente reescrita y mejorada
+const handleDragEnd = useCallback(async (dragEvent: DragEndEvent) => {
+  const { active, over } = dragEvent;
 
-    if (!over || !draggedItem) {
+  if (!over || !draggedItem) {
+    setDraggedItem(null);
+    return;
+  }
+
+  const activeId = active.id as string;
+  const overId = over.id as string;
+
+  if (draggedItem.type === 'task') {
+    // Primero, obtener el estado actual y calcular los cambios
+    const currentState = boardState;
+    let sourceColumnId = '';
+    let targetColumnId = overId;
+
+    // Encontrar columna origen
+    for (const [columnId, column] of Object.entries(currentState.columns)) {
+      if (column.tasks.some(t => t._id === activeId)) {
+        sourceColumnId = columnId;
+        break;
+      }
+    }
+
+    // Si el over es una tarea, encontrar su columna
+    for (const [columnId, column] of Object.entries(currentState.columns)) {
+      if (column.tasks.some(t => t._id === overId)) {
+        targetColumnId = columnId;
+        break;
+      }
+    }
+
+    if (!sourceColumnId || !targetColumnId) {
+      console.error('No se encontraron las columnas', { sourceColumnId, targetColumnId });
       setDraggedItem(null);
       return;
     }
 
-    const activeId = active.id as string;
-    const overId = over.id as string;
+    // Actualizar el estado local inmediatamente para mejor UX
+    setBoardState(prevState => {
+      const newColumns = { ...prevState.columns };
+      
+      // Clonar las columnas afectadas
+      const sourceColumn = { 
+        ...newColumns[sourceColumnId],
+        tasks: [...newColumns[sourceColumnId].tasks]
+      };
+      
+      const targetColumn = sourceColumnId === targetColumnId 
+        ? sourceColumn 
+        : { 
+            ...newColumns[targetColumnId],
+            tasks: [...newColumns[targetColumnId].tasks]
+          };
 
-    if (draggedItem.type === 'task') {
-      // IMPORTANTE: Usar una función para obtener el estado más actual
-      setBoardState(prevState => {
-        const newColumns = { ...prevState.columns };
-        let sourceColumnId = '';
-        let targetColumnId = overId;
+      // Encontrar y remover la tarea
+      const taskIndex = sourceColumn.tasks.findIndex(t => t._id === activeId);
+      if (taskIndex === -1) return prevState;
 
-        // Encontrar columna origen con el estado actual
-        for (const [columnId, column] of Object.entries(newColumns)) {
-          if (column.tasks.some(t => t._id === activeId)) {
-            sourceColumnId = columnId;
-            break;
-          }
-        }
+      const [movedTask] = sourceColumn.tasks.splice(taskIndex, 1);
 
-        // Si el over es una tarea, encontrar su columna
-        for (const [columnId, column] of Object.entries(newColumns)) {
-          if (column.tasks.some(t => t._id === overId)) {
-            targetColumnId = columnId;
-            break;
-          }
-        }
+      // Actualizar la tarea
+      const updatedTask = {
+        ...movedTask,
+        estado: targetColumnId,
+        estatus: targetColumnId === 'completed'
+      };
 
-        if (!sourceColumnId || !targetColumnId) {
-          console.error('No se encontraron las columnas', { sourceColumnId, targetColumnId });
-          return prevState;
-        }
+      // Encontrar posición de inserción
+      let targetIndex = targetColumn.tasks.length;
+      if (overId !== targetColumnId) {
+        targetIndex = targetColumn.tasks.findIndex(t => t._id === overId);
+        if (targetIndex === -1) targetIndex = targetColumn.tasks.length;
+      }
 
-        // Clonar las columnas afectadas
-        const sourceColumn = { 
-          ...newColumns[sourceColumnId],
-          tasks: [...newColumns[sourceColumnId].tasks]
-        };
-        
-        const targetColumn = sourceColumnId === targetColumnId 
-          ? sourceColumn 
-          : { 
-              ...newColumns[targetColumnId],
-              tasks: [...newColumns[targetColumnId].tasks]
-            };
+      // Insertar la tarea
+      targetColumn.tasks.splice(targetIndex, 0, updatedTask);
 
-        // Encontrar y remover la tarea de la columna origen
-        const taskIndex = sourceColumn.tasks.findIndex(t => t._id === activeId);
-        if (taskIndex === -1) {
-          console.error('No se encontró la tarea en la columna origen');
-          return prevState;
-        }
+      // Actualizar las columnas
+      newColumns[sourceColumnId] = sourceColumn;
+      if (sourceColumnId !== targetColumnId) {
+        newColumns[targetColumnId] = targetColumn;
+      }
 
-        const [movedTask] = sourceColumn.tasks.splice(taskIndex, 1);
+      return {
+        ...prevState,
+        columns: newColumns
+      };
+    });
 
-        // Clonar la tarea para evitar mutaciones
-        const updatedTask = {
-          ...movedTask,
-          estado: targetColumnId,
-          estatus: targetColumnId === 'completed',
-          columnId: targetColumnId
-        };
-
-        // Encontrar la posición de inserción
-        let targetIndex = targetColumn.tasks.length;
-        if (overId !== targetColumnId) {
-          const overTaskIndex = targetColumn.tasks.findIndex(t => t._id === overId);
-          if (overTaskIndex !== -1) {
-            targetIndex = overTaskIndex;
-          }
-        }
-
-        // Insertar la tarea en la nueva posición
-        targetColumn.tasks.splice(targetIndex, 0, updatedTask);
-
-        // Actualizar las columnas en el nuevo estado
-        newColumns[sourceColumnId] = sourceColumn;
-        if (sourceColumnId !== targetColumnId) {
-          newColumns[targetColumnId] = targetColumn;
-        }
-
-        // Recalcular el orden de todas las tareas afectadas
-        const tasksToUpdate: TaskOrder[] = [];
-
-        // Tareas en la columna origen
-        sourceColumn.tasks.forEach((task, index) => {
-          tasksToUpdate.push({
-            taskId: task._id,
-            order: index,
-            columnId: sourceColumnId
-          });
+    // Ahora actualizar en la API
+    try {
+      // Si cambió de columna, actualizar estado y estatus
+      if (sourceColumnId !== targetColumnId) {
+        await fetchApiEventos({
+          query: queries.editTask,
+          variables: {
+            eventID: event._id,
+            itinerarioID: itinerario._id,
+            taskID: activeId,
+            variable: "estado",
+            valor: targetColumnId
+          },
+          domain: config.domain
         });
 
-        // Tareas en la columna destino (si es diferente)
-        if (sourceColumnId !== targetColumnId) {
-          targetColumn.tasks.forEach((task, index) => {
-            tasksToUpdate.push({
-              taskId: task._id,
-              order: index,
-              columnId: targetColumnId
-            });
-          });
-        }
-
-        // Guardar las actualizaciones en la API de forma asíncrona
-        const updateTasksInAPI = async () => {
-          for (const taskOrder of tasksToUpdate) {
-            try {
-              // Actualizar estado/columna
-              await fetchApiEventos({
-                query: queries.editTask,
-                variables: {
-                  eventID: event._id,
-                  itinerarioID: itinerario._id,
-                  taskID: taskOrder.taskId,
-                  variable: "estado",
-                  valor: taskOrder.columnId
-                },
-                domain: config.domain
-              });
-
-              // Actualizar orden dentro de la columna
-              await fetchApiEventos({
-                query: queries.editTask,
-                variables: {
-                  eventID: event._id,
-                  itinerarioID: itinerario._id,
-                  taskID: taskOrder.taskId,
-                  variable: "order",
-                  valor: String(taskOrder.order)
-                },
-                domain: config.domain
-              });
-
-              // Si se movió a completado o desde completado, actualizar estatus
-              const isCompleted = taskOrder.columnId === 'completed';
-              await fetchApiEventos({
-                query: queries.editTask,
-                variables: {
-                  eventID: event._id,
-                  itinerarioID: itinerario._id,
-                  taskID: taskOrder.taskId,
-                  variable: "estatus",
-                  valor: String(isCompleted)
-                },
-                domain: config.domain
-              });
-            } catch (error) {
-              console.error(`Error actualizando tarea ${taskOrder.taskId}:`, error);
-            }
-          }
-
-          // Actualizar el evento global después de todas las actualizaciones
-          setEvent((prevEvent) => {
-            const newEvent = { ...prevEvent };
-            const itineraryIndex = newEvent.itinerarios_array.findIndex(
-              it => it._id === itinerario._id
-            );
-            
-            if (itineraryIndex !== -1) {
-              tasksToUpdate.forEach(taskOrder => {
-                const taskIdx = newEvent.itinerarios_array[itineraryIndex].tasks.findIndex(
-                  t => t._id === taskOrder.taskId
-                );
-                if (taskIdx !== -1) {
-                  // Solo actualizar los campos que cambiaron
-                  newEvent.itinerarios_array[itineraryIndex].tasks[taskIdx] = {
-                    ...newEvent.itinerarios_array[itineraryIndex].tasks[taskIdx],
-                    order: taskOrder.order,
-                    estado: taskOrder.columnId,
-                    estatus: taskOrder.columnId === 'completed'
-                  };
-                }
-              });
-            }
-            
-            return newEvent;
-          });
-
-          toast.success(t('Tarea movida correctamente'));
-        };
-
-        // Ejecutar las actualizaciones
-        updateTasksInAPI();
-
-        return {
-          ...prevState,
-          columns: newColumns
-        };
-      });
-
-    } else if (draggedItem.type === 'column') {
-      // Manejo de arrastre de columnas
-      if (activeId !== overId) {
-        setBoardState(prevState => {
-          const oldIndex = prevState.columnOrder.indexOf(activeId);
-          const newIndex = prevState.columnOrder.indexOf(overId);
-
-          if (oldIndex === -1 || newIndex === -1) {
-            console.error('Índices de columna no válidos');
-            return prevState;
-          }
-
-          const newColumnOrder = [...prevState.columnOrder];
-          newColumnOrder.splice(oldIndex, 1);
-          newColumnOrder.splice(newIndex, 0, activeId);
-
-          // Guardar el nuevo orden de columnas
-          saveColumnsOrder(newColumnOrder, true);
-
-          return {
-            ...prevState,
-            columnOrder: newColumnOrder
-          };
+        const isCompleted = targetColumnId === 'completed';
+        await fetchApiEventos({
+          query: queries.editTask,
+          variables: {
+            eventID: event._id,
+            itinerarioID: itinerario._id,
+            taskID: activeId,
+            variable: "estatus",
+            valor: String(isCompleted)
+          },
+          domain: config.domain
         });
       }
+
+      // Actualizar el orden de las tareas en ambas columnas
+      const columnsToUpdate = [sourceColumnId];
+      if (sourceColumnId !== targetColumnId) {
+        columnsToUpdate.push(targetColumnId);
+      }
+
+      for (const columnId of columnsToUpdate) {
+        const column = boardState.columns[columnId];
+        if (!column) continue;
+
+        // Actualizar solo las tareas que cambiaron de posición
+        for (let i = 0; i < column.tasks.length; i++) {
+          const task = column.tasks[i];
+          if (task.order !== i) {
+            await fetchApiEventos({
+              query: queries.editTask,
+              variables: {
+                eventID: event._id,
+                itinerarioID: itinerario._id,
+                taskID: task._id,
+                variable: "order",
+                valor: String(i)
+              },
+              domain: config.domain
+            });
+          }
+        }
+      }
+
+      // Actualizar el evento global
+      setEvent((prevEvent) => {
+        const newEvent = { ...prevEvent };
+        const itineraryIndex = newEvent.itinerarios_array.findIndex(
+          it => it._id === itinerario._id
+        );
+        
+        if (itineraryIndex !== -1) {
+          const taskIndex = newEvent.itinerarios_array[itineraryIndex].tasks.findIndex(
+            t => t._id === activeId
+          );
+          
+          if (taskIndex !== -1) {
+            newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex] = {
+              ...newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex],
+              estado: targetColumnId,
+              estatus: targetColumnId === 'completed'
+            };
+          }
+        }
+        
+        return newEvent;
+      });
+
+      toast.success(t('Tarea movida correctamente'));
+    } catch (error) {
+      console.error('Error al actualizar tarea:', error);
+      toast.error(t('Error al mover la tarea'));
+      
+      // Revertir el estado si hay error
+      setBoardState(prev => ({ ...prev }));
     }
 
-    setDraggedItem(null);
-  }, [draggedItem, event, itinerario._id, config.domain, saveColumnsOrder, setEvent, t]);
+  } else if (draggedItem.type === 'column') {
+    // Manejo de arrastre de columnas
+    if (activeId !== overId) {
+      const oldIndex = boardState.columnOrder.indexOf(activeId);
+      const newIndex = boardState.columnOrder.indexOf(overId);
+
+      if (oldIndex === -1 || newIndex === -1) {
+        setDraggedItem(null);
+        return;
+      }
+
+      const newColumnOrder = [...boardState.columnOrder];
+      newColumnOrder.splice(oldIndex, 1);
+      newColumnOrder.splice(newIndex, 0, activeId);
+
+      // Actualizar estado local
+      setBoardState(prev => ({
+        ...prev,
+        columnOrder: newColumnOrder
+      }));
+
+      // Guardar en la API
+      await saveColumnsOrder(newColumnOrder, true);
+    }
+  }
+
+  setDraggedItem(null);
+}, [draggedItem, boardState, event, itinerario._id, config.domain, saveColumnsOrder, setEvent, t]);
 
   // Función handleDragOver
   const handleDragOver = useCallback((dragEvent: DragOverEvent) => {
