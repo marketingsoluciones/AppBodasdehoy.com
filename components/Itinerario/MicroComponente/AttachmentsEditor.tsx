@@ -59,9 +59,9 @@ const getFileIcon = (fileName: string) => {
     ogg: <Music className="w-4 h-4 text-purple-500" />,
     
     // Video
-    mp4: <Video className="w-4 h-4 text-green-500" />,
-    avi: <Video className="w-4 h-4 text-green-500" />,
-    mov: <Video className="w-4 h-4 text-green-500" />,
+    mp4: <Video className="w-4 h-4 text-green" />,
+    avi: <Video className="w-4 h-4 text-green" />,
+    mov: <Video className="w-4 h-4 text-green" />,
     
     // Archivos
     zip: <Archive className="w-4 h-4 text-yellow-500" />,
@@ -405,7 +405,7 @@ export const AttachmentsEditor: React.FC<AttachmentsEditorProps> = ({
                       
                       {/* Indicador de estado */}
                       {attachment._id ? (
-                        <Check className="w-4 h-4 text-green-500" />
+                        <Check className="w-4 h-4 text-green" />
                       ) : (
                         <div className="w-4 h-4 flex items-center justify-center">
                           <div className="w-4 h-4 border-2 border-gray-300 border-t-primary rounded-full animate-spin" />

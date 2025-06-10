@@ -233,7 +233,7 @@ export const SaveIndicator: React.FC<{
       case 'saved':
         return {
           text: t('Guardado'),
-          className: 'text-green-600',
+          className: 'text-green',
           icon: '✓'
         };
       case 'error':

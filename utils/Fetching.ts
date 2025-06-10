@@ -253,11 +253,23 @@ export const queries = {
     }
   }`,
 
+  updateTasksOrder: `
+    mutation($eventID: String, $itinerarioID: String, $tasksOrder: String) {
+      updateTasksOrder(
+        eventID: $eventID,
+        itinerarioID: $itinerarioID,
+        tasksOrder: $tasksOrder
+      )
+    }
+  `,
+
   editTask: `mutation ($eventID:String, $itinerarioID:String, $taskID:String, $variable:String, $valor:String){
     editTask(eventID:$eventID itinerarioID:$itinerarioID  taskID:$taskID  variable:$variable  valor:$valor )
   }`,
-  createTask: `mutation ($eventID:String, $itinerarioID:String, $fecha:String, $descripcion:String, $hora:String, $duracion:Int){
-    createTask(eventID:$eventID, itinerarioID:$itinerarioID, fecha:$fecha, descripcion:$descripcion, hora:$hora, duracion:$duracion ){
+
+
+  createTask: `mutation ($eventID:String, $itinerarioID:String, $fecha:String, $descripcion:String, $hora:String, $duracion:Int, $estado:String, $order:Int){
+    createTask(eventID:$eventID, itinerarioID:$itinerarioID, fecha:$fecha, descripcion:$descripcion, hora:$hora, duracion:$duracion, estado:$estado, order:$order ){
       _id
       fecha
       hora
@@ -291,9 +303,12 @@ export const queries = {
       commentsViewers
       estado
       prioridad
+      order
+      columnId
       fecha_creacion
     }
   }`,
+
   deleteTask: `
   mutation  ( $eventID:String, $itinerarioID:String, $taskID:String  ) {
     deleteTask ( eventID:$eventID  itinerarioID:$itinerarioID  taskID:$taskID)

@@ -409,7 +409,7 @@ export const TableCell: React.FC<TableCellProps> = ({
               e.stopPropagation();
               handleSave();
             }}
-            className="p-1 text-green-600 hover:bg-green-50 rounded transition-colors"
+            className="p-1 text-green hover:bg-green-50 rounded transition-colors"
             title="Guardar"
           >
             <Check className="w-4 h-4" />

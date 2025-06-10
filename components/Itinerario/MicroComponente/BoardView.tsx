@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -49,7 +49,7 @@ import { Task, Itinerary, Event as EventInterface } from '../../../utils/Interfa
 import { BoardColumn } from './BoardColumn';
 import { TaskCard } from './TaskCard';
 import { BoardFilters } from './BoardFilters';
-import { AddColumnModal } from './AddColumnModal';
+import { AddColumnModal } from './BoardModals';
 import { SubTaskModal } from './SubTaskModal';
 import { fetchApiEventos, queries } from '../../../utils/Fetching';
 import { toast } from "react-toastify";
@@ -58,7 +58,31 @@ import * as XLSX from 'xlsx';
 import TaskDetailModal from './TaskDetailModal';
 import { AuthContextProvider } from '../../../context';
 
+// Hook personalizado para debounce
+const useDebounce = (callback: Function, delay: number) => {
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const debouncedCallback = useCallback((...args: any[]) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    timeoutRef.current = setTimeout(() => {
+      callback(...args);
+    }, delay);
+  }, [callback, delay]);
+
+  // Cleanup en desmontaje
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  return debouncedCallback;
+};
 
 // Interfaces para orden
 interface TaskOrder {
@@ -71,6 +95,7 @@ interface ColumnOrder {
   columnId: string;
   order: number;
 }
+
 // Tipos actualizados para el tablero
 export interface BoardColumn {
   id: string;
@@ -123,7 +148,7 @@ const COLUMN_CONFIG: Record<string, {
   title: string;
   colorConfig: { bg: string; border: string; text: string };
   icon: React.ReactNode;
-  color: string; // Para compatibilidad
+  color: string;
 }> = {
   pending: {
     title: 'Pendiente',
@@ -198,7 +223,7 @@ const DEFAULT_COLUMNS: Record<string, Omit<BoardColumn, 'tasks'>> = {
     isCollapsed: false,
     isHidden: false,
     order: 0,
-    bgColor: 'bg-gray-700', // <-- Agrega esto
+    bgColor: 'bg-gray-700',
   },
   in_progress: {
     id: 'in_progress',
@@ -209,7 +234,7 @@ const DEFAULT_COLUMNS: Record<string, Omit<BoardColumn, 'tasks'>> = {
     isCollapsed: false,
     isHidden: false,
     order: 1,
-    bgColor: 'bg-primary', // <-- Agrega esto
+    bgColor: 'bg-primary',
   },
   completed: {
     id: 'completed',
@@ -220,7 +245,7 @@ const DEFAULT_COLUMNS: Record<string, Omit<BoardColumn, 'tasks'>> = {
     isCollapsed: false,
     isHidden: false,
     order: 2,
-    bgColor: 'bg-green', // <-- Agrega esto
+    bgColor: 'bg-green',
   },
   blocked: {
     id: 'blocked',
@@ -231,7 +256,7 @@ const DEFAULT_COLUMNS: Record<string, Omit<BoardColumn, 'tasks'>> = {
     isCollapsed: false,
     isHidden: false,
     order: 3,
-    bgColor: 'bg-red', // <-- Agrega esto
+    bgColor: 'bg-red',
   },
 };
 
@@ -248,6 +273,27 @@ export const BoardView: React.FC<BoardViewProps> = ({
   tempPastedAndDropFiles,
   setTempPastedAndDropFiles,
 }) => {
+  /* 
+   * SISTEMA DE ORDEN:
+   * 
+   * 1. COLUMNAS:
+   *    - Cada columna tiene un ID fijo: 'pending', 'in_progress', 'completed', 'blocked'
+   *    - El orden de las columnas se guarda en columnsOrder como array de objetos:
+   *      [{ columnId: 'pending', order: 0 }, { columnId: 'completed', order: 1 }, ...]
+   *    - Cuando se mueven columnas, solo se actualiza el campo 'order'
+   * 
+   * 2. TAREAS:
+   *    - Cada tarea tiene:
+   *      - estado: ID de la columna donde está ('pending', 'in_progress', etc)
+   *      - order: posición dentro de esa columna (0, 1, 2, ...)
+   *      - estatus: booleano que indica si está completada
+   *    - Cuando se mueve una tarea:
+   *      - Se actualiza su 'estado' si cambió de columna
+   *      - Se actualiza su 'order' con la nueva posición
+   *      - Se actualiza 'estatus' si se movió a/desde 'completed'
+   *      - Se recalcula el 'order' de las otras tareas afectadas
+   */
+
   // Estados actualizados
   const [boardState, setBoardState] = useState<BoardState>({
     columns: {},
@@ -266,15 +312,16 @@ export const BoardView: React.FC<BoardViewProps> = ({
   const [showDeletedColumns, setShowDeletedColumns] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showTaskDetail, setShowTaskDetail] = useState<{ show: boolean; task?: Task }>({ show: false });
+  const [isSaving, setIsSaving] = useState(false);
   const { t } = useTranslation();
-  const { config } = AuthContextProvider()
+  const { config } = AuthContextProvider();
 
   const handleTaskUpdate = useCallback(async (taskId: string, updates: Partial<Task>) => {
     try {
       const response = await fetchApiEventos({
         query: queries.editTask,
         variables: {
-          eventID: (event as EventInterface)._id,
+          eventID: event._id,
           itinerarioID: itinerario._id,
           taskID: taskId,
           ...updates,
@@ -338,7 +385,164 @@ export const BoardView: React.FC<BoardViewProps> = ({
     return 'pending';
   }, []);
 
-  // useEffect actualizado con columnas mejoradas
+  // Función mejorada para guardar el orden de las tareas
+  const saveTasksOrder = useCallback(async (showToast = true) => {
+    setIsSaving(true);
+    try {
+      const tasksOrder: TaskOrder[] = [];
+
+      // Recorrer todas las columnas y sus tareas para obtener el orden actual
+      Object.entries(boardState.columns).forEach(([columnId, column]) => {
+        column.tasks.forEach((task, index) => {
+          tasksOrder.push({
+            taskId: task._id,
+            order: index,
+            columnId: columnId
+          });
+        });
+      });
+
+      // Actualizar cada tarea individualmente solo con los campos necesarios
+      const updatePromises = tasksOrder.map(async (taskOrder) => {
+        try {
+          // Primero actualizar el estado/columna
+          await fetchApiEventos({
+            query: queries.editTask,
+            variables: {
+              eventID: event._id,
+              itinerarioID: itinerario._id,
+              taskID: taskOrder.taskId,
+              variable: "estado",
+              valor: taskOrder.columnId
+            },
+            domain: config.domain
+          });
+
+          // Luego actualizar el orden
+          await fetchApiEventos({
+            query: queries.editTask,
+            variables: {
+              eventID: event._id,
+              itinerarioID: itinerario._id,
+              taskID: taskOrder.taskId,
+              variable: "order",
+              valor: String(taskOrder.order)
+            },
+            domain: config.domain
+          });
+
+          // Si la tarea se movió a completado, actualizar estatus
+          if (taskOrder.columnId === 'completed') {
+            await fetchApiEventos({
+              query: queries.editTask,
+              variables: {
+                eventID: event._id,
+                itinerarioID: itinerario._id,
+                taskID: taskOrder.taskId,
+                variable: "estatus",
+                valor: "true"
+              },
+              domain: config.domain
+            });
+          } else {
+            await fetchApiEventos({
+              query: queries.editTask,
+              variables: {
+                eventID: event._id,
+                itinerarioID: itinerario._id,
+                taskID: taskOrder.taskId,
+                variable: "estatus",
+                valor: "false"
+              },
+              domain: config.domain
+            });
+          }
+        } catch (error) {
+          console.error(`Error actualizando tarea ${taskOrder.taskId}:`, error);
+        }
+      });
+
+      // Ejecutar todas las actualizaciones
+      await Promise.all(updatePromises);
+
+      // Actualizar el evento global con el nuevo orden
+      setEvent((prevEvent) => {
+        const newEvent = { ...prevEvent };
+        const itineraryIndex = newEvent.itinerarios_array.findIndex(
+          it => it._id === itinerario._id
+        );
+        
+        if (itineraryIndex !== -1) {
+          // Actualizar cada tarea con su nuevo orden y columnId
+          tasksOrder.forEach(taskOrder => {
+            const taskIndex = newEvent.itinerarios_array[itineraryIndex].tasks.findIndex(
+              t => t._id === taskOrder.taskId
+            );
+            if (taskIndex !== -1) {
+              newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex].order = taskOrder.order;
+              newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex].estado = taskOrder.columnId;
+              newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex].estatus = taskOrder.columnId === 'completed';
+            }
+          });
+        }
+        
+        return newEvent;
+      });
+
+      if (showToast) {
+        toast.success(t('Orden de tareas guardado correctamente'));
+      }
+    } catch (error) {
+      console.error('Error al guardar orden de tareas:', error);
+      toast.error(t('Error al guardar el orden de las tareas'));
+    } finally {
+      setIsSaving(false);
+    }
+  }, [boardState.columns, event._id, itinerario._id, config.domain, t]);
+
+  // Función mejorada para guardar el orden de las columnas
+  const saveColumnsOrder = useCallback(async (newColumnOrder: string[], showToast = true) => {
+    try {
+      const columnsOrder: ColumnOrder[] = newColumnOrder.map((columnId, index) => ({
+        columnId: columnId,
+        order: index
+      }));
+
+      await fetchApiEventos({
+        query: queries.editItinerario,
+        variables: {
+          eventID: event._id,
+          itinerarioID: itinerario._id,
+          variable: "columnsOrder",
+          valor: JSON.stringify(columnsOrder)
+        },
+        domain: config.domain
+      });
+
+      // Actualizar el evento global
+      setEvent((prevEvent) => {
+        const newEvent = { ...prevEvent };
+        const f1 = newEvent.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
+        if (f1 !== -1) {
+          newEvent.itinerarios_array[f1].columnsOrder = columnsOrder;
+        }
+        return newEvent;
+      });
+
+      if (showToast) {
+        toast.success(t('Orden de columnas guardado correctamente'));
+      }
+    } catch (error) {
+      console.error('Error al guardar orden de columnas:', error);
+      toast.error(t('Error al guardar el orden de las columnas'));
+    }
+  }, [event._id, itinerario._id, config.domain, t]);
+
+  // Versiones con debounce de las funciones de guardado
+  const debouncedSaveTasksOrder = useDebounce(saveTasksOrder, 1500);
+  const debouncedSaveColumnsOrder = useDebounce(saveColumnsOrder, 1500);
+
+  // useEffect actualizado con columnas mejoradas y ordenamiento
   useEffect(() => {
     if (!data || data.length === 0) {
       // Si no hay datos, crear columnas vacías
@@ -351,9 +555,9 @@ export const BoardView: React.FC<BoardViewProps> = ({
         };
       });
 
-      const columnOrder = Object.keys(columns).sort((a, b) =>
-        columns[a].order - columns[b].order
-      );
+      const columnOrder = itinerario.columnsOrder?.length 
+        ? itinerario.columnsOrder.sort((a, b) => a.order - b.order).map(c => c.columnId)
+        : Object.keys(columns).sort((a, b) => columns[a].order - columns[b].order);
 
       setBoardState({
         columns,
@@ -376,20 +580,38 @@ export const BoardView: React.FC<BoardViewProps> = ({
       };
     });
 
-    // Distribuir tareas por estado
+    // Distribuir tareas por estado y ordenarlas
     data.forEach(task => {
       const status = getTaskStatus(task);
-      if (columns[status]) {
-        columns[status].tasks.push(task);
+      const columnId = task.estado || status;
+      
+      if (columns[columnId]) {
+        columns[columnId].tasks.push(task);
       } else {
-        // Si el estado no existe, ponerlo en pending
-        console.warn(`Estado desconocido: ${status}, moviendo a pending`);
+        console.warn(`Estado desconocido: ${columnId}, moviendo a pending`);
         columns.pending.tasks.push(task);
       }
     });
-    const columnOrder = itinerario.columnsOrder.length ? itinerario.columnsOrder.map(elem => elem.columnId) : Object.keys(columns).sort((a, b) =>
-      columns[a].order - columns[b].order
-    )
+
+    // Ordenar las tareas dentro de cada columna por su campo order
+    Object.keys(columns).forEach(columnId => {
+      columns[columnId].tasks.sort((a, b) => {
+        // Si ambas tareas tienen order, usar ese valor
+        if (a.order !== undefined && b.order !== undefined) {
+          return a.order - b.order;
+        }
+        // Si solo una tiene order, ponerla primero
+        if (a.order !== undefined) return -1;
+        if (b.order !== undefined) return 1;
+        // Si ninguna tiene order, ordenar por fecha
+        return new Date(a.fecha).getTime() - new Date(b.fecha).getTime();
+      });
+    });
+
+    const columnOrder = itinerario.columnsOrder?.length 
+      ? itinerario.columnsOrder.sort((a, b) => a.order - b.order).map(c => c.columnId)
+      : Object.keys(columns).sort((a, b) => columns[a].order - columns[b].order);
+
     setBoardState(prev => ({
       columns,
       columnOrder,
@@ -441,7 +663,6 @@ export const BoardView: React.FC<BoardViewProps> = ({
 
     toast.success(t('Columna restaurada'));
   }, [t]);
-
 
   // Función para alternar visibilidad de columna
   const handleToggleColumnVisibility = useCallback((columnId: string) => {
@@ -519,169 +740,9 @@ export const BoardView: React.FC<BoardViewProps> = ({
     return filtered;
   }, [boardState.columns, searchTerm, activeFilters]);
 
-  // Función para guardar el orden de las tareas
-  const saveTasksOrder = useCallback(async () => {
-    try {
-      const tasksOrder: TaskOrder[] = [];
-
-      Object.entries(boardState.columns).forEach(([columnId, column]) => {
-        column.tasks.forEach((task, index) => {
-          tasksOrder.push({
-            taskId: task._id,
-            order: index,
-            columnId: columnId
-          });
-        });
-      });
-
-      // Esta es la variable que necesitas agregar a tu endpoint
-      const tasksOrderData = {
-        eventId: event._id,
-        itineraryId: itinerario._id,
-        tasksOrder: tasksOrder
-      };
-
-      // Aquí harías la llamada a tu API
-      // await fetchApiEventos({
-      //   query: queries.updateTasksOrder, // Necesitas crear este query
-      //   variables: tasksOrderData,
-      //   domain: config.domain
-      // });
-
-      console.log('Orden de tareas guardado:', tasksOrderData);
-    } catch (error) {
-      console.error('Error al guardar orden de tareas:', error);
-    }
-  }, [boardState.columns, event._id, itinerario._id]);
-
-  // Función para guardar el orden de las columnas
-  const saveColumnsOrder = useCallback(async (boardState) => {
-    try {
-      const columnsOrder: ColumnOrder[] = boardState.columnOrder.map((columnId, index) => ({
-        columnId: columnId,
-        order: index
-      }));
-      const columnsOrderData = {
-        eventId: event._id,
-        itineraryId: itinerario._id,
-        columnsOrder: columnsOrder
-      };
-      await fetchApiEventos({
-        query: queries.editItinerario,
-        variables: {
-          eventID: event._id,
-          itinerarioID: itinerario._id,
-          variable: "columnsOrder",
-          valor: JSON.stringify(columnsOrder)
-        },
-        domain: config.domain
-      });
-      const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
-      event.itinerarios_array[f1].columnsOrder = columnsOrder
-      setEvent({ ...event })
-      console.log('Orden de columnas guardado:', columnsOrder);
-    } catch (error) {
-      console.error('Error al guardar orden de columnas:', error);
-    }
-  }, [boardState.columnOrder, event._id, itinerario._id]);
-
-  // Función mejorada para manejar el drag end con guardado de orden
-  const handleDragEndWithOrder = useCallback(async (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (!over || !draggedItem) {
-      setDraggedItem(null);
-      return;
-    }
-
-    const activeId = active.id as string;
-    const overId = over.id as string;
-
-    if (draggedItem.type === 'task') {
-      // Lógica existente para mover tareas...
-      let sourceColumnId = '';
-      let targetColumnId = overId;
-
-      // Encontrar columna origen
-      for (const [columnId, column] of Object.entries(boardState.columns)) {
-        if (column.tasks.some(t => t._id === activeId)) {
-          sourceColumnId = columnId;
-          break;
-        }
-      }
-
-      // Si el over es una tarea, encontrar su columna
-      for (const [columnId, column] of Object.entries(boardState.columns)) {
-        if (column.tasks.some(t => t._id === overId)) {
-          targetColumnId = columnId;
-          break;
-        }
-      }
-
-      setBoardState(prev => {
-        const newColumns = { ...prev.columns };
-        const task = newColumns[sourceColumnId].tasks.find(t => t._id === activeId);
-
-        if (task) {
-          // Remover de columna origen
-          const sourceIndex = newColumns[sourceColumnId].tasks.findIndex(t => t._id === activeId);
-          newColumns[sourceColumnId].tasks.splice(sourceIndex, 1);
-
-          // Encontrar índice destino
-          let targetIndex = newColumns[targetColumnId].tasks.length;
-          if (overId !== targetColumnId) {
-            targetIndex = newColumns[targetColumnId].tasks.findIndex(t => t._id === overId);
-            if (targetIndex === -1) targetIndex = newColumns[targetColumnId].tasks.length;
-          }
-
-          // Insertar en columna destino
-          const updatedTask = {
-            ...task,
-            estado: targetColumnId,
-            estatus: targetColumnId === 'completed'
-          };
-          newColumns[targetColumnId].tasks.splice(targetIndex, 0, updatedTask);
-
-          // Actualizar tarea en la API si cambió de columna
-          if (sourceColumnId !== targetColumnId) {
-            onTaskUpdate(activeId, {
-              estado: targetColumnId,
-              estatus: targetColumnId === 'completed'
-            });
-          }
-        }
-
-        return {
-          ...prev,
-          columns: newColumns,
-        };
-      });
-
-      // Guardar el nuevo orden de tareas
-      setTimeout(() => saveTasksOrder(), 500);
-
-    } else if (draggedItem.type === 'column') {
-      if (activeId !== overId) {
-        const newColumnOrder = [...boardState.columnOrder];
-        const oldIndex = newColumnOrder.indexOf(activeId);
-        const newIndex = newColumnOrder.indexOf(overId);
-
-        newColumnOrder.splice(oldIndex, 1);
-        newColumnOrder.splice(newIndex, 0, activeId);
-        const newBoardState = {
-          ...boardState,
-          columnOrder: newColumnOrder,
-        }
-        setBoardState({ ...newBoardState });
-        saveColumnsOrder(newBoardState);
-      }
-    }
-
-    setDraggedItem(null);
-  }, [draggedItem, boardState.columns, onTaskUpdate, saveTasksOrder, saveColumnsOrder]);
   // Manejar inicio de arrastre
-  const handleDragStart = useCallback((event: DragStartEvent) => {
-    const { active } = event;
+  const handleDragStart = useCallback((dragEvent: DragStartEvent) => {
+    const { active } = dragEvent;
     const activeId = active.id as string;
 
     for (const column of Object.values(boardState.columns)) {
@@ -706,9 +767,9 @@ export const BoardView: React.FC<BoardViewProps> = ({
     }
   }, [boardState.columns]);
 
-  // Manejar finalización de arrastre con guardado de orden
-  const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over } = event;
+  // Función handleDragEnd completamente reescrita y mejorada
+  const handleDragEnd = useCallback(async (dragEvent: DragEndEvent) => {
+    const { active, over } = dragEvent;
 
     if (!over || !draggedItem) {
       setDraggedItem(null);
@@ -719,102 +780,246 @@ export const BoardView: React.FC<BoardViewProps> = ({
     const overId = over.id as string;
 
     if (draggedItem.type === 'task') {
-      let sourceColumnId = '';
-      for (const [columnId, column] of Object.entries(boardState.columns)) {
-        if (column.tasks.some(t => t._id === activeId)) {
-          sourceColumnId = columnId;
-          break;
+      // IMPORTANTE: Usar una función para obtener el estado más actual
+      setBoardState(prevState => {
+        const newColumns = { ...prevState.columns };
+        let sourceColumnId = '';
+        let targetColumnId = overId;
+
+        // Encontrar columna origen con el estado actual
+        for (const [columnId, column] of Object.entries(newColumns)) {
+          if (column.tasks.some(t => t._id === activeId)) {
+            sourceColumnId = columnId;
+            break;
+          }
         }
-      }
 
-      let targetColumnId = overId;
-
-      for (const [columnId, column] of Object.entries(boardState.columns)) {
-        if (column.tasks.some(t => t._id === overId)) {
-          targetColumnId = columnId;
-          break;
+        // Si el over es una tarea, encontrar su columna
+        for (const [columnId, column] of Object.entries(newColumns)) {
+          if (column.tasks.some(t => t._id === overId)) {
+            targetColumnId = columnId;
+            break;
+          }
         }
-      }
 
-      if (sourceColumnId && targetColumnId) {
-        setBoardState(prev => {
-          const newColumns = { ...prev.columns };
-          const task = newColumns[sourceColumnId].tasks.find(t => t._id === activeId);
+        if (!sourceColumnId || !targetColumnId) {
+          console.error('No se encontraron las columnas', { sourceColumnId, targetColumnId });
+          return prevState;
+        }
 
-          if (task) {
-            // Remover de columna origen
-            const sourceIndex = newColumns[sourceColumnId].tasks.findIndex(t => t._id === activeId);
-            newColumns[sourceColumnId].tasks.splice(sourceIndex, 1);
-
-            // Encontrar índice destino
-            let targetIndex = newColumns[targetColumnId].tasks.length;
-            if (overId !== targetColumnId) {
-              targetIndex = newColumns[targetColumnId].tasks.findIndex(t => t._id === overId);
-              if (targetIndex === -1) targetIndex = newColumns[targetColumnId].tasks.length;
-            }
-
-            // Actualizar tarea con nuevo estado
-            const updatedTask = {
-              ...task,
-              estatus: targetColumnId === 'completed',
-              estado: targetColumnId
+        // Clonar las columnas afectadas
+        const sourceColumn = { 
+          ...newColumns[sourceColumnId],
+          tasks: [...newColumns[sourceColumnId].tasks]
+        };
+        
+        const targetColumn = sourceColumnId === targetColumnId 
+          ? sourceColumn 
+          : { 
+              ...newColumns[targetColumnId],
+              tasks: [...newColumns[targetColumnId].tasks]
             };
 
-            // Insertar en columna destino
-            newColumns[targetColumnId].tasks.splice(targetIndex, 0, updatedTask);
+        // Encontrar y remover la tarea de la columna origen
+        const taskIndex = sourceColumn.tasks.findIndex(t => t._id === activeId);
+        if (taskIndex === -1) {
+          console.error('No se encontró la tarea en la columna origen');
+          return prevState;
+        }
 
-            // Actualizar en la API si cambió de columna
-            if (sourceColumnId !== targetColumnId) {
-              onTaskUpdate(activeId, {
-                estatus: targetColumnId === 'completed',
-                estado: targetColumnId
+        const [movedTask] = sourceColumn.tasks.splice(taskIndex, 1);
+
+        // Clonar la tarea para evitar mutaciones
+        const updatedTask = {
+          ...movedTask,
+          estado: targetColumnId,
+          estatus: targetColumnId === 'completed',
+          columnId: targetColumnId
+        };
+
+        // Encontrar la posición de inserción
+        let targetIndex = targetColumn.tasks.length;
+        if (overId !== targetColumnId) {
+          const overTaskIndex = targetColumn.tasks.findIndex(t => t._id === overId);
+          if (overTaskIndex !== -1) {
+            targetIndex = overTaskIndex;
+          }
+        }
+
+        // Insertar la tarea en la nueva posición
+        targetColumn.tasks.splice(targetIndex, 0, updatedTask);
+
+        // Actualizar las columnas en el nuevo estado
+        newColumns[sourceColumnId] = sourceColumn;
+        if (sourceColumnId !== targetColumnId) {
+          newColumns[targetColumnId] = targetColumn;
+        }
+
+        // Recalcular el orden de todas las tareas afectadas
+        const tasksToUpdate: TaskOrder[] = [];
+
+        // Tareas en la columna origen
+        sourceColumn.tasks.forEach((task, index) => {
+          tasksToUpdate.push({
+            taskId: task._id,
+            order: index,
+            columnId: sourceColumnId
+          });
+        });
+
+        // Tareas en la columna destino (si es diferente)
+        if (sourceColumnId !== targetColumnId) {
+          targetColumn.tasks.forEach((task, index) => {
+            tasksToUpdate.push({
+              taskId: task._id,
+              order: index,
+              columnId: targetColumnId
+            });
+          });
+        }
+
+        // Guardar las actualizaciones en la API de forma asíncrona
+        const updateTasksInAPI = async () => {
+          for (const taskOrder of tasksToUpdate) {
+            try {
+              // Actualizar estado/columna
+              await fetchApiEventos({
+                query: queries.editTask,
+                variables: {
+                  eventID: event._id,
+                  itinerarioID: itinerario._id,
+                  taskID: taskOrder.taskId,
+                  variable: "estado",
+                  valor: taskOrder.columnId
+                },
+                domain: config.domain
               });
+
+              // Actualizar orden dentro de la columna
+              await fetchApiEventos({
+                query: queries.editTask,
+                variables: {
+                  eventID: event._id,
+                  itinerarioID: itinerario._id,
+                  taskID: taskOrder.taskId,
+                  variable: "order",
+                  valor: String(taskOrder.order)
+                },
+                domain: config.domain
+              });
+
+              // Si se movió a completado o desde completado, actualizar estatus
+              const isCompleted = taskOrder.columnId === 'completed';
+              await fetchApiEventos({
+                query: queries.editTask,
+                variables: {
+                  eventID: event._id,
+                  itinerarioID: itinerario._id,
+                  taskID: taskOrder.taskId,
+                  variable: "estatus",
+                  valor: String(isCompleted)
+                },
+                domain: config.domain
+              });
+            } catch (error) {
+              console.error(`Error actualizando tarea ${taskOrder.taskId}:`, error);
             }
           }
 
+          // Actualizar el evento global después de todas las actualizaciones
+          setEvent((prevEvent) => {
+            const newEvent = { ...prevEvent };
+            const itineraryIndex = newEvent.itinerarios_array.findIndex(
+              it => it._id === itinerario._id
+            );
+            
+            if (itineraryIndex !== -1) {
+              tasksToUpdate.forEach(taskOrder => {
+                const taskIdx = newEvent.itinerarios_array[itineraryIndex].tasks.findIndex(
+                  t => t._id === taskOrder.taskId
+                );
+                if (taskIdx !== -1) {
+                  // Solo actualizar los campos que cambiaron
+                  newEvent.itinerarios_array[itineraryIndex].tasks[taskIdx] = {
+                    ...newEvent.itinerarios_array[itineraryIndex].tasks[taskIdx],
+                    order: taskOrder.order,
+                    estado: taskOrder.columnId,
+                    estatus: taskOrder.columnId === 'completed'
+                  };
+                }
+              });
+            }
+            
+            return newEvent;
+          });
+
+          toast.success(t('Tarea movida correctamente'));
+        };
+
+        // Ejecutar las actualizaciones
+        updateTasksInAPI();
+
+        return {
+          ...prevState,
+          columns: newColumns
+        };
+      });
+
+    } else if (draggedItem.type === 'column') {
+      // Manejo de arrastre de columnas
+      if (activeId !== overId) {
+        setBoardState(prevState => {
+          const oldIndex = prevState.columnOrder.indexOf(activeId);
+          const newIndex = prevState.columnOrder.indexOf(overId);
+
+          if (oldIndex === -1 || newIndex === -1) {
+            console.error('Índices de columna no válidos');
+            return prevState;
+          }
+
+          const newColumnOrder = [...prevState.columnOrder];
+          newColumnOrder.splice(oldIndex, 1);
+          newColumnOrder.splice(newIndex, 0, activeId);
+
+          // Guardar el nuevo orden de columnas
+          saveColumnsOrder(newColumnOrder, true);
+
           return {
-            ...prev,
-            columns: newColumns,
+            ...prevState,
+            columnOrder: newColumnOrder
           };
         });
-
-        // Guardar el nuevo orden de tareas
-        setTimeout(() => saveTasksOrder(), 500);
-      }
-    } else if (draggedItem.type === 'column') {
-      if (activeId !== overId) {
-        const newColumnOrder = [...boardState.columnOrder];
-        const oldIndex = newColumnOrder.indexOf(activeId);
-        const newIndex = newColumnOrder.indexOf(overId);
-
-        newColumnOrder.splice(oldIndex, 1);
-        newColumnOrder.splice(newIndex, 0, activeId);
-
-        const newBoardState = {
-          ...boardState,
-          columnOrder: newColumnOrder,
-        };
-        setBoardState({ ...newBoardState });
-
-        // Guardar el nuevo orden de columnas
-        saveColumnsOrder(newBoardState);
       }
     }
 
     setDraggedItem(null);
-  }, [draggedItem, boardState.columns, onTaskUpdate, saveTasksOrder, saveColumnsOrder]);
+  }, [draggedItem, event, itinerario._id, config.domain, saveColumnsOrder, setEvent, t]);
 
-  // Convertir columnId a status
-  const getStatusFromColumnId = (columnId: string): boolean => {
-    switch (columnId) {
-      case 'completed':
-        return true;
-      case 'blocked':
-        return true;
-      default:
-        return false;
+  // Función handleDragOver
+  const handleDragOver = useCallback((dragEvent: DragOverEvent) => {
+    const { active, over } = dragEvent;
+    
+    if (!over) return;
+
+    const activeId = active.id as string;
+    const overId = over.id as string;
+
+    if (activeId === overId) return;
+
+    // Solo permitir drag over si es del mismo tipo
+    const activeType = active.data.current?.type;
+    const overType = over.data.current?.type;
+
+    if (activeType === 'task' && (overType === 'task' || overType === 'column')) {
+      // Permitir arrastrar tareas sobre otras tareas o columnas
+      return;
     }
-  };
+
+    if (activeType === 'column' && overType === 'column') {
+      // Permitir arrastrar columnas sobre otras columnas
+      return;
+    }
+  }, []);
 
   // Alternar colapso global
   const toggleGlobalCollapse = useCallback(() => {
@@ -866,21 +1071,20 @@ export const BoardView: React.FC<BoardViewProps> = ({
     toast.success(t('Columna agregada'));
   }, [t]);
 
-  // Manejar creación de tareas
-  interface ApiResponse {
-    data: Task;
-    _id: string;
-    success: boolean;
-  }
-
+  // Manejar creación de tareas actualizada con orden
   const handleTaskCreate = async (taskData: Partial<Task>) => {
     try {
-      const eventID = (event as EventInterface)._id;
+      const eventID = event._id;
       if (!eventID) throw new Error("No se pudo obtener el ID del evento");
+
+      // Determinar el orden de la nueva tarea
+      const targetColumnId = taskData.estado || 'pending';
+      const targetColumn = boardState.columns[targetColumnId];
+      const newOrder = targetColumn ? targetColumn.tasks.length : 0;
 
       console.log('Creando tarea con datos:', taskData);
 
-      // Primer fetch: Crear la tarea
+      // Primer fetch: Crear la tarea con el orden
       const createResponse = await fetchApiEventos({
         query: queries.createTask,
         variables: {
@@ -889,21 +1093,23 @@ export const BoardView: React.FC<BoardViewProps> = ({
           descripcion: taskData.descripcion || "Nueva tarea",
           fecha: taskData.fecha || new Date(),
           duracion: taskData.duracion || 30,
+          estado: targetColumnId,
+          order: newOrder
         },
         domain: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
       });
 
       if (!createResponse) throw new Error("No se recibió respuesta del servidor al crear la tarea");
 
-      // La respuesta puede venir directamente como Task o dentro de data
       const newTask: Task = (createResponse as { data?: Task }).data || (createResponse as Task);
 
       if (!newTask._id) throw new Error("La tarea creada no tiene ID válido");
 
       console.log('Tarea creada con ID:', newTask._id);
 
-      // Preparar los datos completos para la actualización
-      const fullTaskData = {
+      // Combinar los datos de la tarea creada con los datos adicionales
+      const finalTask: Task = {
+        ...newTask,
         descripcion: taskData.descripcion || "Nueva tarea",
         fecha: taskData.fecha || new Date(),
         duracion: taskData.duracion || 30,
@@ -913,35 +1119,56 @@ export const BoardView: React.FC<BoardViewProps> = ({
         tips: taskData.tips || "",
         spectatorView: taskData.spectatorView !== undefined ? taskData.spectatorView : true,
         estatus: taskData.estatus !== undefined ? taskData.estatus : false,
-        estado: taskData.estado || 'pending',
+        estado: targetColumnId,
         prioridad: taskData.prioridad || 'media',
+        order: newOrder
       };
 
-      // Segundo fetch: Actualizar la tarea con todos los datos incluyendo el estado
-      const updateResponse = await fetchApiEventos({
-        query: queries.editTask,
-        variables: {
-          eventID: eventID,
-          itinerarioID: itinerario._id,
-          taskID: newTask._id,
-          variable: "all",
-          valor: JSON.stringify(fullTaskData)
-        },
-        domain: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-      });
-
-      if (!updateResponse) throw new Error("No se pudo actualizar la tarea con los datos completos");
-
-      // Combinar los datos de la tarea creada con los datos actualizados
-      const finalTask: Task = {
-        ...newTask,
-        ...fullTaskData
+      // Segundo fetch: Actualizar la tarea con todos los datos de forma individual
+      const fieldsToUpdate = {
+        descripcion: taskData.descripcion || "Nueva tarea",
+        fecha: taskData.fecha || new Date(),
+        duracion: taskData.duracion || 30,
+        responsable: taskData.responsable || [],
+        tags: taskData.tags || [],
+        attachments: taskData.attachments || [],
+        tips: taskData.tips || "",
+        spectatorView: taskData.spectatorView !== undefined ? taskData.spectatorView : true,
+        estatus: taskData.estatus !== undefined ? taskData.estatus : false,
+        estado: targetColumnId,
+        prioridad: taskData.prioridad || 'media',
+        order: newOrder
       };
+
+      // Actualizar cada campo individualmente
+      for (const [key, value] of Object.entries(fieldsToUpdate)) {
+        let apiValue: string;
+        
+        if (key === 'fecha' && value instanceof Date) {
+          apiValue = value.toISOString();
+        } else if (typeof value === 'object') {
+          apiValue = JSON.stringify(value);
+        } else {
+          apiValue = String(value);
+        }
+
+        await fetchApiEventos({
+          query: queries.editTask,
+          variables: {
+            eventID: eventID,
+            itinerarioID: itinerario._id,
+            taskID: newTask._id,
+            variable: key,
+            valor: apiValue
+          },
+          domain: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+        });
+      }
 
       console.log('Tarea actualizada:', finalTask);
 
       // Actualizar el evento global
-      setEvent((prevEvent: EventInterface) => {
+      setEvent((prevEvent) => {
         const newEvent = { ...prevEvent };
         const itineraryIndex = newEvent.itinerarios_array.findIndex(
           it => it._id === itinerario._id
@@ -952,12 +1179,9 @@ export const BoardView: React.FC<BoardViewProps> = ({
         return newEvent;
       });
 
-      // Actualizar el estado local del tablero inmediatamente
+      // Actualizar el estado local del tablero
       setBoardState(prev => {
         const newColumns = { ...prev.columns };
-
-        // Usar el estado especificado o determinar basado en la tarea
-        const targetColumnId = taskData.estado || 'pending';
 
         if (newColumns[targetColumnId]) {
           newColumns[targetColumnId] = {
@@ -1062,8 +1286,6 @@ export const BoardView: React.FC<BoardViewProps> = ({
     toast.success(t('Datos exportados correctamente'));
   }, [boardState, itinerario, t]);
 
-
-
   return (
     <div className="h-full flex flex-col bg-gray-50">
       {/* Header del tablero mejorado */}
@@ -1074,8 +1296,12 @@ export const BoardView: React.FC<BoardViewProps> = ({
               <h2 className="text-xl font-semibold text-gray-800">
                 {itinerario.title} - Vista Tablero
               </h2>
-
-
+              {isSaving && (
+                <div className="flex items-center space-x-2 text-sm text-gray-500">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                  <span>{t('Guardando cambios...')}</span>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center space-x-2">
@@ -1102,42 +1328,6 @@ export const BoardView: React.FC<BoardViewProps> = ({
                 )}
               </div>
 
-              {/* Selector de vista */}
-              <div className="flex items-center bg-gray-100 rounded-lg p-1">
-                {/*                 <button
-                  onClick={() => setBoardState(prev => ({ ...prev, viewMode: 'board' }))}
-                  className={`p-2 rounded transition-all ${
-                    boardState.viewMode === 'board' 
-                      ? 'bg-white shadow-sm text-primary' 
-                      : 'text-gray-600 hover:text-gray-800'
-                  }`}
-                  title="Vista Tablero"
-                >
-                  <Grid3x3 className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setBoardState(prev => ({ ...prev, viewMode: 'compact' }))}
-                  className={`p-2 rounded transition-all ${
-                    boardState.viewMode === 'compact' 
-                      ? 'bg-white shadow-sm text-primary' 
-                      : 'text-gray-600 hover:text-gray-800'
-                  }`}
-                  title="Vista Compacta"
-                >
-                  <Layers className="w-4 h-4" />
-                </button> */}
-                {/*                 <button
-                  onClick={() => setBoardState(prev => ({ ...prev, viewMode: 'list' }))}
-                  className={`p-2 rounded transition-all ${
-                    boardState.viewMode === 'list' 
-                      ? 'bg-white shadow-sm text-primary' 
-                      : 'text-gray-600 hover:text-gray-800'
-                  }`}
-                  title="Vista Lista"
-                >
-                  <List className="w-4 h-4" />
-                </button> */}
-              </div>
               {/* Búsqueda mejorada */}
               <div className="relative">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -1170,14 +1360,6 @@ export const BoardView: React.FC<BoardViewProps> = ({
                 <Filter className="w-4 h-4" />
               </button>
 
-              {/*               <button
-                onClick={() => setShowColumnManager(true)}
-                className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
-                title="Gestionar Columnas"
-              >
-                <Settings className="w-4 h-4" />
-              </button> */}
-
               <button
                 onClick={toggleGlobalCollapse}
                 className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
@@ -1205,14 +1387,6 @@ export const BoardView: React.FC<BoardViewProps> = ({
               >
                 <Zap className="w-4 h-4" />
               </button>
-
-              {/*               <button
-                onClick={() => setShowAddColumn(true)}
-                className="flex items-center space-x-1 px-3 py-2 text-primary hover:text-primary hover:bg-pink-50 rounded-md transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                <span className="text-sm font-medium">Agregar Estado</span>
-              </button> */}
             </div>
           </div>
         </div>
@@ -1257,7 +1431,8 @@ export const BoardView: React.FC<BoardViewProps> = ({
           sensors={sensors}
           collisionDetection={closestCorners}
           onDragStart={handleDragStart}
-          onDragEnd={handleDragEndWithOrder}
+          onDragEnd={handleDragEnd}
+          onDragOver={handleDragOver}
         >
           <div className="flex h-full p-4 space-x-4" style={{ minWidth: 'fit-content' }}>
             <SortableContext

@@ -610,7 +610,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                       <span className="text-sm">{tag}</span>
                       <button
                         onClick={() => handleRemoveTag(tag)}
-                        className="ml-2 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="ml-2 hover:text-red opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <X className="w-3 h-3" />
                       </button>

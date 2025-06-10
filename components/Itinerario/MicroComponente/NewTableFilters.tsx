@@ -331,7 +331,7 @@ export const TableFilters: React.FC<FiltersProps> = ({
                     className={`
                       p-1 rounded transition-colors
                       ${filter.isActive 
-                        ? 'text-green-600 hover:bg-green-50' 
+                        ? 'text-green hover:bg-green-50' 
                         : 'text-gray-400 hover:bg-gray-100'
                       }
                     `}

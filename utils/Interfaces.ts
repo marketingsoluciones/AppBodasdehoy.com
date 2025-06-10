@@ -100,8 +100,8 @@ export interface Task {
     estado: string
     prioridad: string
     estatus: boolean
-    order?: number;
-    commentsCount?: number;
+    order?: number; // Campo para mantener el orden dentro de la columna
+    columnId?: string; // Campo para saber a qué columna pertenece
 }
 
 export interface TaskDateTimeAsString extends Omit<Task, 'fecha'> {
