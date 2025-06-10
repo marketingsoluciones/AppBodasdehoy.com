@@ -1,9 +1,11 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { IoAccessibilitySharp, IoSaveOutline } from "react-icons/io5";
-import EmailEditor, { EditorRef, EmailEditorProps } from 'react-email-editor';
+import EmailEditor, { EditorRef, EmailEditorProps, UnlayerOptions } from 'react-email-editor';
 import { GoArrowLeft } from "react-icons/go";
 import { useRouter } from 'next/router';
 import { AuthContextProvider } from '../../context';
+import { translations } from '../../locales/react-email-editor-es';
+import i18next from "i18next";
 
 interface props {
     setEmailEditorModal: (value: boolean) => void
@@ -37,6 +39,7 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
     };
 
     const onLoad: EmailEditorProps['onReady'] = (unlayer) => {
+
         if (previewEmailReactEditor) {
             unlayer.showPreview({
                 device: "desktop",
@@ -52,7 +55,10 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
             setIsLoading(true)
         }, previewEmailReactEditor ? 800 : 0);
     };
-
+    useEffect(() => {
+        console.log('Idioma del navegador:', navigator.language);
+        console.log(i18next.language);
+    }, []);
     return (
         <div className='relative w-full h-full'>
             {!isLoading && <div className="absolute z-50  top-[calc(50%-20px)] left-[calc(50%-20px)] loader ease-linear rounded-full border-[7px] border-black border-opacity-35 w-10 h-10" />}
@@ -86,7 +92,46 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
                         </>
                     }
                 </div>}
-                <EmailEditor ref={emailEditorRef} onLoad={onLoad} onReady={onReady} minHeight={'100%'} />
+                {true && <EmailEditor ref={emailEditorRef} onLoad={onLoad} onReady={onReady} minHeight={'100%'} options={{
+                    locale: 'en-US',
+                    translations: {
+                        'en-US': i18next.language === 'es' ? translations : {}
+                    },
+                    offline: false,
+                    mergeTags: {
+                        nombre: {
+                            name: "Nombre",
+                            value: "{{nombre}}",
+                            sample: "Juan Pérez"
+                        },
+                        email: {
+                            name: "Email",
+                            value: "{{email}}",
+                            sample: "juan@email.com"
+                        },
+                        // Puedes agregar más variables aquí
+                    },
+                    appearance: {
+                        actionBar: {
+                            placement: 'top'
+                        },
+                        theme: 'dark',
+                        panels: {
+                            tools: {
+                                dock: 'right',
+                                collapsible: true,
+                                tabs: {
+                                    body: {
+                                        visible: true
+                                    },
+                                },
+                            },
+                        },
+                        loader: {
+                            html: '<div/>'
+                        },
+                    },
+                }} />}
             </div>
             <style jsx>
                 {`
