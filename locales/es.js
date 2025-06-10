@@ -658,7 +658,9 @@ export const es = {
     'importBudget': "importar presupuesto",
     'importInto': "importar en",
     'from': "desde",
-    'importWarning':'si importas un presupuesto, se eliminará el presupuesto actual',
+    'importWarning': 'si importas un presupuesto, se eliminará el presupuesto actual',
+    'endTime': 'hora de finalización',
+    'startTime': 'hora de inicio',
 
     maxLimitedItineraries: "El límite máximo para crear o duplicar fue alcanzado",
     asc: "ascendente",

@@ -117,6 +117,40 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
     }
   }
 
+  function getHoraFin(horaInicio: string, duracion: number): string | null {
+    if (!horaInicio || !duracion) return null;
+
+    // Intentar parsear "HH:mm"
+    let [h, m] = horaInicio.split(":");
+    let hour = Number(h);
+    let minute = Number(m);
+
+    // Si no es número, intentar formato "h:mm a" (ej: "2:30 p. m.")
+    if (isNaN(hour) || isNaN(minute)) {
+      const match = horaInicio.match(/(\d{1,2}):(\d{2})\s*([ap]\.?m\.?)/i);
+      if (match) {
+        hour = Number(match[1]);
+        minute = Number(match[2]);
+        const ampm = match[3].toLowerCase();
+        if (ampm.includes("p") && hour < 12) hour += 12;
+        if (ampm.includes("a") && hour === 12) hour = 0;
+      } else {
+        return null;
+      }
+    }
+
+    const inicio = new Date();
+    inicio.setHours(hour, minute, 0, 0);
+    inicio.setMinutes(inicio.getMinutes() + duracion);
+
+    // Formatear manualmente para quitar el cero inicial y limpiar AM/PM
+    let hours12 = inicio.getHours() % 12 || 12;
+    let minutes = inicio.getMinutes().toString().padStart(2, '0');
+    let ampm = inicio.getHours() < 12 ? 'AM' : 'PM';
+
+    return `${hours12}:${minutes} ${ampm}`;
+  }
+
   return (
     <div {...props}>
       <Formik enableReinitialize initialValues={initialValues} onSubmit={() => { }}  >
@@ -340,18 +374,31 @@ export const TaskNew: FC<props> = ({ itinerario, task, view, optionsItineraryBut
                         </div>
                       }
 
-                      {/* Hora */}
+                      {/* Hora de inicio */}
                       {
                         !["/servicios", "/public-card/servicios"].includes(window?.location?.pathname) && <div className="space-x-5 flex items-center">
                           <div className="flex items-center space-x-1">
                             <LuClock className="pb-0.5" />
-                            <span className="text-[14px] capitalize cursor-default">{t("hour")}:</span>
+                            <span className="text-[14px] capitalize cursor-default">{t("startTime")}:</span>
                           </div>
                           <div className="flex items-center space-x-1 cursor-default">
-                            {values?.hora ? <span className="text-[13px] capitalize">{t("activityTime")} {values?.hora}</span> : <span className="text-[12px] text-gray-400 capitalize cursor-default">Sin hora de la actividad</span>}
+                            {values?.hora ? <span className="text-[13px] capitalize"> {values?.hora}</span> : <span className="text-[12px] text-gray-400 capitalize cursor-default">Sin hora de la actividad</span>}
                           </div>
                         </div>
                       }
+                      {/* Hora de finalizacion */}
+                      {
+                        !["/servicios", "/public-card/servicios"].includes(window?.location?.pathname) && <div className="space-x-5 flex items-center">
+                          <div className="flex items-center space-x-1">
+                            <LuClock className="pb-0.5" />
+                            <span className="text-[14px] capitalize cursor-default">{t("endTime")}:</span>
+                          </div>
+                          <div className="flex items-center space-x-1 cursor-default">
+                            {values?.hora && values?.duracion ? <span className="text-[13px] capitalize"> {getHoraFin(values.hora, Number(values.duracion))}</span> : <span className="text-[12px] text-gray-400 capitalize cursor-default">Sin hora de la actividad</span>}
+                          </div>
+                        </div>
+                      }
+
 
                       {/* duración */}
                       {

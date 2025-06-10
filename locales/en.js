@@ -660,6 +660,8 @@ export const en = {
     'importInto': "import into",
     'from': "from",
     'importWarning': "The import will overwrite the current budget",
+    'endTime': 'end time',
+    'startTime':' start time',
 
     asc: "ascending",
     desc: "descending",
