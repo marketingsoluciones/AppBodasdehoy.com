@@ -1,38 +1,55 @@
 
-import { FC} from "react";
-import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { FC, useEffect, useState } from "react";
+import { fetchApiBodas, fetchApiEventos, queries } from "../../utils/Fetching";
 import { Event } from "../../utils/Interfaces";
 import { motion } from "framer-motion"
 import { defaultImagenes } from "../../components/Home/Card";
 import { TaskNew } from "../../components/Itinerario/MicroComponente/TaskNew";
+import { openGraphData } from "../_app";
+import { AuthContextProvider } from "../../context/AuthContext";
+import { EventContextProvider } from "../../context";
+import { TempPastedAndDropFiles } from "../../components/Itinerario/MicroComponente/ItineraryPanel";
+import { useRouter } from "next/router";
 
 interface props {
   evento: Event
+  users: any
   slug?: any
   query?: any
 }
 
-
 const Slug: FC<props> = (props) => {
-
+  console.log("propsnew", props)
   if (!props?.evento?.itinerarios_array?.length)
     return (
       <div className="bg-[#ffbfbf] text-blue-700 w-full h-full text-center mt-20">
         Page not found error 404
       </div>
     )
-
   return (
-    <ServicesVew eventProps={props.evento} querySlug={props.query} />
+    <ServicesVew evento={props.evento} />
   )
 };
-
 export default Slug;
 
-const ServicesVew = ({ eventProps, querySlug }) => {
+const ServicesVew = (props) => {
 
-  const f2 = eventProps?.itinerarios_array[0]?.tasks?.findIndex(({ _id }) => _id === querySlug?.task)
-  const Task = eventProps?.itinerarios_array[0]?.tasks[f2]
+  const router = useRouter()
+  const { event, setEvent } = EventContextProvider()
+  const { user, setUser, verificationDone } = AuthContextProvider()
+  const [tempPastedAndDropFiles, setTempPastedAndDropFiles] = useState<TempPastedAndDropFiles[]>([]);
+
+  useEffect(() => {
+    if (verificationDone) {
+      if (!user?.auth) {
+        setUser({ displayName: "anonymous" })
+        setEvent({ ...props.evento })
+      } else {
+        router.push(window.location.href.replace("/public-card", ""))
+      }
+    }
+  }, [verificationDone, props])
+
   return (
     <section className={` absolute z-[50] w-[calc(100vw)] h-[calc(100vh-63px)] top-[63px] left-4. bg-white`}>
       <motion.div
@@ -44,45 +61,45 @@ const ServicesVew = ({ eventProps, querySlug }) => {
         <div className={`bg-white w-full h-14 rounded-xl shadow-lg flex items-center justify-between `}>
           <div className='flex md:flex-1 flex-col px-2 md:px-6 font-display'>
             <div className='space-x-1'>
-              <span className='md:hidden capitalize text-primary text-[12px] leading-[12px]'>{eventProps?.tipo}</span>
-              <span className='md:hidden capitalize text-gray-600 text-[12px] leading-[20px] font-medium'>{eventProps?.nombre}</span>
+              <span className='md:hidden capitalize text-primary text-[12px] leading-[12px]'>{event?.tipo}</span>
+              <span className='md:hidden capitalize text-gray-600 text-[12px] leading-[20px] font-medium'>{event?.nombre}</span>
             </div>
           </div>
           <div className='flex-1 md:flex-none md:w-[35%] h-[100%] flex flex-row-reverse md:flex-row items-center '>
             <img
-              src={defaultImagenes[eventProps?.tipo]}
+              src={event?.imgEvento ? `https://apiapp.bodasdehoy.com/${event.imgEvento.i800}` : defaultImagenes[event?.tipo]}
               className=" h-[90%] object-cover object-top rounded-md border-1 border-gray-600  hidden md:block"
-              alt={eventProps?.nombre}
+              alt={event?.nombre}
             />
             <div className='hidden md:flex flex-col font-display font-semibold text-md text-gray-500 px-2 md:pt-2 gap-2'>
-              <span className='text-sm translate-y-2 text-primary text-[12px] first-letter:capitalize'>{eventProps?.tipo}</span>
-              <span className='uppercase w-64 truncate '>{eventProps?.nombre}</span>
+              <span className='text-sm translate-y-2 text-primary text-[12px] first-letter:capitalize'>{event?.tipo}</span>
+              <span className='uppercase w-64 truncate '>{event?.nombre}</span>
             </div>
           </div>
         </div>
         <div className="w-full px-4 md:px-10 py-4" >
           <div className="flex flex-col justify-center items-center">
-            <span className="text-3xl md:text-[40px] font-title text-primary">{eventProps?.itinerarios_array[0]?.title}</span>
+            <span className="text-3xl md:text-[40px] font-title text-primary">{event?.itinerarios_array[0]?.title}</span>
             <div className="w-[100px] bg-primary h-0.5 rounded-md mt-2" />
           </div>
         </div >
         <div className="w-full  mt-4">
           <TaskNew
-            task={Task}
-            itinerario={eventProps?.itinerarios_array[0]}
+            task={event?.itinerarios_array[0]?.tasks[0]}
+            itinerario={event?.itinerarios_array[0]}
             view={"cards"}
             isTaskPublic={true}
             onClick={() => { }}
+            tempPastedAndDropFiles={tempPastedAndDropFiles}
+            setTempPastedAndDropFiles={setTempPastedAndDropFiles}
           />
         </div>
       </motion.div>
       <style jsx>
         {`
-         
           .image {
             height: 400px;
           }
-
           @media only screen and (min-width: 1700px) {
             .image {
               height: 700px;
@@ -92,7 +109,6 @@ const ServicesVew = ({ eventProps, querySlug }) => {
             @media only screen and (max-height: 530px) {
             .image {
               display: none;
-              
             }
           }
         `}
@@ -101,8 +117,8 @@ const ServicesVew = ({ eventProps, querySlug }) => {
   )
 }
 
-
-export async function getServerSideProps({ params, query }) {
+export async function getServerSideProps(context) {
+  const { params, query, req } = context
   try {
     const p = params?.slug[0]?.split("-")
     const evento_id = p?.[1] || query?.event;
@@ -114,15 +130,69 @@ export async function getServerSideProps({ params, query }) {
         evento_id,
         itinerario_id
       }
+    }) as any
+
+    const itinerary = evento.itinerarios_array.find(elem => elem._id === query.itinerary)
+    const task = itinerary?.tasks?.find(elem => elem._id === query.task)
+    const development = getDevelopment(req.headers.host)
+
+    const users = await fetchApiBodas({
+      query: queries?.getUsers,
+      variables: { uids: task.comments.filter(elem => !!elem.uid).map(elem => elem.uid) },
+      development: !/^\d+$/.test(development) ? development : "champagne-events"
     })
 
+    const usersMap = users?.map(elem => {
+      return {
+        uid: elem.uid,
+        displayName: elem?.displayName,
+        photoURL: elem.photoURL
+      }
+    })
+
+    evento._id = evento_id
+    itinerary.tasks = [task]
+    evento.itinerarios_array = [itinerary]
+    evento.detalles_compartidos_array = users
+    evento.fecha_actualizacion = new Date().toLocaleString()
+
+    if (evento) {
+      openGraphData.openGraph.title = `${evento.itinerarios_array[0].tasks[0].descripcion}`
+      openGraphData.openGraph.description = ` El Evento ${evento.tipo}, de ${evento.nombre}, ${new Date(parseInt(evento?.itinerarios_array[0].fecha_creacion))?.toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}
+`
+    }
     return {
-      props: { ...params, query, evento },
+      props: { ...params, query, evento, users: usersMap },
     };
   } catch (error) {
+    console.log(error)
     return {
       props: params,
     };
 
   }
+}
+
+/* ${evento.itinerarios_array[0].tasks[0].tips.replace(/<[^>]*>/g, "").replace(".", ". ")} */
+
+const getDevelopment = (host) => {
+  let domain = '';
+
+  if (host) {
+    // Eliminar el puerto si existe (ej: localhost:3000)
+    const hostWithoutPort = host.split(':')[0];
+    const parts = hostWithoutPort.split('.');
+    const numParts = parts.length;
+
+    if (numParts >= 2) {
+      domain = parts.slice(-2).join('.');
+      // Caso especial para dominios como co.uk, com.ar, etc.
+      if (numParts > 2 && ['.co', '.com', '.net', '.org'].some(tld => domain.startsWith(tld))) {
+        domain = parts.slice(-3).join('.');
+      }
+    } else {
+      domain = hostWithoutPort; // Si no hay puntos, asumimos que es el dominio
+    }
+  }
+  return domain.split(".")[0]
 }

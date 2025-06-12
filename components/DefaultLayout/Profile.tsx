@@ -307,7 +307,7 @@ const Profile = ({ user, state, set, ...rest }) => {
           {
             optionSelect?.flag &&
             <div className="space-x-1 flex items-center justify-center text-sm -ml-4">
-              <img src={`flags-svg/${optionSelect?.flag}.svg`.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')} width={22} className="border-[1px] border-gray-500" />
+              <img src={`/flags-svg/${optionSelect?.flag}.svg`.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')} width={22} className="border-[1px] border-gray-500" />
               <span className="hidden md:flex text-gray-600">{optionSelect?.title}</span>
             </div >
           }
@@ -322,7 +322,7 @@ const Profile = ({ user, state, set, ...rest }) => {
                       setShowFlags(false)
                     }} className="flex space-x-1 items-center justify-center hover:bg-gray-200 px-4 py-1">
                       <div className="border-[1px] border-gray-800">
-                        <img src={`flags-svg/${elem.flag}.svg`.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')} className="object-cover w-6 h-4" />
+                        <img src={`/flags-svg/${elem.flag}.svg`.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')} className="object-cover w-6 h-4" />
                       </div>
                       <div className="flex flex-1 truncate">
                         <span className="flex-1 text-gray-700">{elem.title}</span>

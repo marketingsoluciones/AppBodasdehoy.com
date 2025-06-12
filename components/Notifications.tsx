@@ -27,10 +27,14 @@ export const Notifications = () => {
   const router = useRouter()
   const detallesUsuarioIds = eventsGroup?.flatMap(event => [...event.detalles_compartidos_array, event.detalles_usuario_id])?.filter(id => id !== undefined);
 
-
-
+  let skip = 0
   const handleScroll = (e) => {
-    if (e.target.scrollTop + e.target.offsetHeight === e.target.scrollHeight && notifications.results.length < notifications.total) {
+    const zoomFactor = window.devicePixelRatio;
+    const scrollHeight = e.target.scrollHeight / zoomFactor;
+    const offsetHeight = e.target.offsetHeight / zoomFactor;
+    const scrollTop = e.target.scrollTop / zoomFactor;
+    if (scrollTop + offsetHeight >= scrollHeight - 5 && notifications.results.length < notifications.total && skip !== 8 * countScroll.count) {
+      skip = (8 * countScroll.count)
       setShowLoad(true)
       fetchApiBodas({
         query: queries.getNotifications,
@@ -134,6 +138,7 @@ export const Notifications = () => {
     )
   };
 
+
   return (
     <ClickAwayListener onClickAway={() => { handleFalseShowNotifications() }}>
       <div onClick={() => { !showNotifications ? setShowNotifications(true) : handleFalseShowNotifications() }} className="bg-white items-center flex relative cursor-default">
@@ -149,16 +154,20 @@ export const Notifications = () => {
             <ul id="ul-notifications" className="bg-white flex flex-col text-xs place-items-left text-black max-h-[365px] overflow-y-scroll break-words">
               {notifications?.results?.map((item: Notification, idx: number) => {
                 if (item.fromUid != null) {
+                  const eventID = item?.focused?.split("event=")[1]?.split("&")[0]
+                  const itineraryID = item?.focused?.split("itinerary=")[1]?.split("&")[0];
+                  const taskID = item?.focused?.split("task=")[1]?.split("&")[0];
+                  const eventExist = eventsGroup.find(event => event._id === eventID)
+                  const itineraryExist = eventExist?.itinerarios_array?.find(itinerary => itinerary._id === itineraryID)
+                  const taskExist = itineraryExist?.tasks?.find(task => task._id === taskID)
+                  const path = item?.focused?.split("/").pop()?.split("?")[0].slice(0, -1);
+
                   return (
                     <li key={idx} onClick={() => {
                       if (item?.focused) {
-                        router.push(`${window.location.origin}${item.focused}`)
-                        // window.location.href = `${window.location.origin}${item.focused}`
-                        // if (window.location.pathname !== item.focused.split("?")[0]) {
-                        //   router.push(`${window.location.origin}${item.focused}`)
-                        // } else {
-                        //   //ejecutar la funcion de la redireccion aqui
-                        // }
+                        if (eventExist) {
+                          router.push(`${window.location.origin}${item.focused}`)
+                        }
                       }
                     }} className={`flex w-full ${item?.focused && "cursor-pointer"}`}>
                       <div className="w-full hover:bg-base text-gray-700 flex py-2 ml-2">
@@ -177,11 +186,23 @@ export const Notifications = () => {
                                 ? `${detallesUsuarioIds.find(elem => elem?.uid === item?.fromUid)?.displayName} ${item?.message}`
                                 : item?.message
                             }
-                          // matchers={[
-                          //   new UrlMatcher('url', {}, replacesLink),
-                          //   new HashtagMatcher('hashtag')
-                          // ]}
                           />
+                          {
+                            !eventExist &&
+                            <span className="capitalize bg-red w-max text-white rounded-md px-0.5 text-center">
+                              evento eliminado
+                            </span>
+                          }{
+                            eventExist && !itineraryExist &&
+                            <span className="capitalize bg-red w-max text-white rounded-md px-0.5 text-center">
+                              {path} eliminada
+                            </span>
+                          }{
+                            eventExist && itineraryExist && !taskExist &&
+                            <span className="capitalize bg-red w-max text-white rounded-md px-0.5 text-center">
+                              Tarjeta eliminada
+                            </span>
+                          }
                           <span className="text-[10px] flex-1 text-right italic">
                             Hace {formatDistanceStrict(
                               new Date(item.createdAt),

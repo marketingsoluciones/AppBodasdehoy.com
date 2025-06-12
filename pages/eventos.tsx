@@ -2,7 +2,7 @@ import { EventsTable } from "../components/Home/EventsTable"
 
 const listaDeEventos = () => {
     return (
-        <EventsTable/>
+        <EventsTable />
     )
 }
 

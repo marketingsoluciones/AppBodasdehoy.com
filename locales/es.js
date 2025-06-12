@@ -657,9 +657,15 @@ export const es = {
     'export': 'exportar',
     'importBudget': "importar presupuesto",
     'importInto': "importar en",
-    'from':"desde",
+    'from': "desde",
+    'importWarning': 'si importas un presupuesto, se eliminará el presupuesto actual',
+    'endTime': 'hora de finalización',
+    'startTime': 'hora de inicio',
 
     maxLimitedItineraries: "El límite máximo para crear o duplicar fue alcanzado",
+    asc: "ascendente",
+    dssc: "descendente",
+    toOrder: "ordenar",
 
     importCorrect: "invitados importados correctamente",
     fileErrors: "El archivo contiene errores",

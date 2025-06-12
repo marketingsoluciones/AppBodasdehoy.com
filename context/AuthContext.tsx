@@ -8,6 +8,7 @@ import { initializeApp } from "firebase/app";
 import { useRouter } from "next/router";
 import { parseJwt } from "../utils/Authentication";
 import { useActivity } from "../hooks/useActivity";
+import { getStorage } from "firebase/storage";
 
 const initialContext = {
   user: undefined,
@@ -236,6 +237,7 @@ const AuthProvider = ({ children }) => {
       setConfig(resp)
       try {
         initializeApp(resp?.fileConfig)
+        console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaqui", getStorage())
       } catch (error) {
         console.log(90001, error)
       }

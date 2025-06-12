@@ -34,8 +34,8 @@ export const MesaPodioNew: FC<propsMesaPodio> = ({ table, invitados, setDisableW
               key={idx}
               index={item}
             >
-              {invitados.filter(element => element.chair == item.toString())[0] && <SentadoItem
-                invitado={invitados.filter(element => element.chair == item.toString())[0]}
+              {invitados?.filter(element => element.chair == item.toString())[0] && <SentadoItem
+                invitado={invitados?.filter(element => element.chair == item.toString())[0]}
                 setDisableWrapper={setDisableWrapper}
               />}
               <span />

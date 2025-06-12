@@ -1,5 +1,5 @@
-import { Form, Formik, FormikValues } from "formik";
-import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { Form, Formik, FormikValues, useFormikContext } from "formik";
+import { fetchApiBodas, fetchApiEventos, queries } from "../../utils/Fetching";
 import { AuthContextProvider, EventsGroupContextProvider, EventContextProvider } from "../../context";
 import InputField from "./InputField";
 import SelectField from "./SelectField";
@@ -8,6 +8,9 @@ import * as yup from "yup";
 import { Dispatch, FC, SetStateAction, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useTranslation } from 'react-i18next';
+import { Event, image } from "../../utils/Interfaces";
+import ModuloSubida, { subir_archivo } from "../Invitaciones/ModuloSubida";
+import { defaultImagenes } from "../Home/Card";
 
 // formatear fecha
 const getDate = (f: Date): string => {
@@ -21,15 +24,18 @@ interface propsFromCrearEvento {
   state: boolean
   set: Dispatch<SetStateAction<boolean>>
   EditEvent?: boolean
+  eventData?: Event
 }
 
-const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) => {
+const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, eventData }) => {
   const { t } = useTranslation();
-  const { event, setEvent } = EventContextProvider()
-  const { user, config } = AuthContextProvider();
+  const { event: eventOrigin, setEvent } = EventContextProvider()
+  const { user, config, setUser } = AuthContextProvider();
   const { setEventsGroup, eventsGroup } = EventsGroupContextProvider();
   const toast = useToast();
   const [valir, setValir] = useState(false)
+  const [event] = useState(eventData ? eventData : eventOrigin)
+  const [valueImage, setValueImage] = useState()
 
   const validationSchema = yup.object().shape({
     nombre: yup.string().required(t("Nombre de evento requerido")),
@@ -59,6 +65,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
     poblacion: string
     usuario_id: string
     usuario_nombre: string
+    imgEvento?: image
   }
 
   const initialValues: MyValues = EditEvent ?
@@ -74,17 +81,31 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
       poblacion: "",
       usuario_id: user?.uid,
       usuario_nombre: user?.displayName,
+      imgEvento: undefined
     }
 
   const createEvent = async (values: Partial<Event>) => {
     try {
-      const crearEvento: Partial<Event> = await fetchApiEventos({
+      const imagePreviewUrl = values?.imgEvento
+      delete values?.imgEvento
+      const event: Partial<Event> = await fetchApiEventos({
         query: queries.eventCreate,
         variables: { ...values, development: config?.development },
       });
-      if (crearEvento) {
-        setEventsGroup({ type: "ADD_EVENT", payload: crearEvento });
-
+      if (event) {
+        const imgEvento = await subir_archivo({ imagePreviewUrl, event, use: "imgEvento" })
+        setEventsGroup({ type: "ADD_EVENT", payload: { ...event, imgEvento } });
+        fetchApiBodas({
+          query: queries.updateUser,
+          variables: {
+            uid: user?.uid,
+            variable: "eventSelected",
+            valor: event?._id
+          },
+          development: config?.development
+        })
+        user.eventSelected = event?._id
+        setUser(user)
       }
       toast("success", t("successfullycreatedevent"));
     } catch (error) {
@@ -104,7 +125,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
   }, [valir])
 
 
-  const updateEvent = async (values) => {
+  const updateEvent = async (values: any) => {
     try {
       values.fecha = new Date(values.fecha).getTime()
       await fetchApiEventos({
@@ -163,52 +184,51 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
       onSubmit={handleSubmit}
       validationSchema={validationSchema}
     >
-      {({ isSubmitting }) => (
-
-        <Form className="w-full flex flex-col">
-          <div className="border-l-2 border-gray-100 pl-3 w-full ">
-            <h2 className="font-display text-3xl capitalize text-primary font-light">
-              {EditEvent ? t("edit") : t("create")}
-            </h2>
-            <h2 className="font-display text-5xl capitalize text-gray-500 font-medium">
-              {t("event")}
-            </h2>
-          </div>
-          <div
-            onSubmit={handleSubmit}
-            className="flex flex-col gap-5 py-6 w-full"
-          >
-            <div className="">
+      {({ isSubmitting, values }) => {
+        return (
+          <Form className="w-full flex flex-col">
+            <AutoSubmitToken valueImage={valueImage} />
+            <div className="border-l-2 border-gray-100 pl-3 w-full">
+              <h2 className="font-display text-3xl capitalize text-primary font-light">
+                {EditEvent ? t("edit") : t("create")}
+              </h2>
+              <h2 className="font-display text-5xl capitalize text-gray-500 font-medium">
+                {t("event")}
+              </h2>
+            </div>
+            <div onSubmit={handleSubmit} className="flex flex-col gap-5 py-6 w-full flex-1" >
+              <div className="">
+                <InputField
+                  //placeholder="Ej. Cumpleaños de Ana"
+                  name="nombre"
+                  label={t("nameevent")}
+                />
+              </div>
+              <div>
+                <SelectField
+                  name="tipo"
+                  label={t("eventtype")}
+                  options={ListaTipo}
+                  nullable={true}
+                />
+              </div>
               <InputField
-                //placeholder="Ej. Cumpleaños de Ana"
-                name="nombre"
-                label={t("nameevent")}
+                name="fecha"
+                label={t("eventdate")}
+                type="date"
               />
-            </div>
-
-            <div>
-              <SelectField
-                name="tipo"
-                label={t("eventtype")}
-                options={ListaTipo}
-                nullable={true}
-              />
-            </div>
-
-            <InputField
-              name="fecha"
-              label={t("eventdate")}
-              type="date"
-            />
-
-            {/* <DropdownCountries
+              <div className="w-full flex justify-center">
+                <div className="relative w-[304px] h-[140px] mb-4">
+                  <ModuloSubida setValueImage={setValueImage} event={EditEvent ? event : undefined} use={"imgEvento"} defaultImagen={defaultImagenes[values.tipo]} />
+                </div>
+              </div>
+              {/* <DropdownCountries
             name="pais"
             placeholder="Selecciona el pais"
             label="Selecciona el pais"
             value={values.pais}
             /> */}
-
-            {/* <InputField
+              {/* <InputField
             name="poblacion"
             placeholder="Murcia"
             label="Poblacion"
@@ -216,20 +236,39 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent }) =>
             value={values.poblacion}
             type="text"
             autoComplete="off"/> */}
-
-            <button
-              disabled={isSubmitting}
-              type="submit"
-              className={`font-display rounded-full mt-4 py-2 px-6 text-white font-medium transition w-full hover:opacity-70 ${isSubmitting ? "bg-secondary" : "bg-primary"
-                }`}
-            >
-              {t("save")}
-            </button>
-          </div>
-        </Form>
-      )}
+              <button
+                disabled={isSubmitting}
+                type="submit"
+                className={`font-display rounded-full mt-4 py-2 px-6 text-white font-medium transition w-full hover:opacity-70 ${isSubmitting ? "bg-secondary" : "bg-primary"
+                  }`}
+              >
+                {t("save")}
+              </button>
+            </div>
+          </Form>
+        )
+      }}
     </Formik>
   );
 };
 
 export default FormCrearEvento;
+
+const AutoSubmitToken = ({ valueImage }) => {
+  const { values, errors, setValues } = useFormikContext();
+  useEffect(() => {
+    console.log("errors", errors)
+  }, [errors]);
+
+  useEffect(() => {
+    // console.log(100030, values)
+  }, [values]);
+
+  useEffect(() => {
+    // console.log(100031, valueImage)
+    const newValues = { ...values as any, imgEvento: valueImage }
+    setValues(newValues)
+  }, [valueImage]);
+
+  return null;
+};

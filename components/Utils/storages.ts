@@ -1,4 +1,4 @@
-import { deleteObject, FirebaseStorage, getBytes, getMetadata, list, listAll, ref } from "firebase/storage";
+import { deleteObject, FirebaseStorage, getBytes, getMetadata, list, listAll, ref, } from "firebase/storage";
 
 export const deleteRecursive = async (storage: FirebaseStorage, path: string) => {
     try {

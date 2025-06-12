@@ -28,27 +28,7 @@ import { MyEditor } from "./QuillText";
 import { Modal } from "../../Utils/ModalServicios";
 import { TASK_STATUSES, TASK_PRIORITIES } from './NewTypes';
 import {
-  X,
-  MessageSquare,
-  Paperclip,
-  Tag,
-  Calendar,
-  Clock,
-  User,
-  Flag,
-  ChevronDown,
-  Copy,
-  Link,
-  MoreHorizontal,
-  Trash2,
-  Archive,
-  Bell,
-  Plus,
-  Eye,
-  EyeOff,
-  GitBranch,
-  Lock,
-  Unlock
+  X, MessageSquare, Paperclip, Tag, Calendar, Clock, User, Flag, ChevronDown, Copy, Link, MoreHorizontal, Trash2, Archive, Bell, Plus, Eye, EyeOff, GitBranch, Lock, Unlock
 } from 'lucide-react';
 
 // Tipos mejorados
@@ -90,17 +70,17 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
   isTaskPublic?: boolean;
 }
 
-export const TaskNew: FC<Props> = memo(({ 
-  itinerario, 
-  task, 
-  view, 
-  optionsItineraryButtonBox, 
-  isSelect, 
-  showModalCompartir, 
-  setShowModalCompartir, 
-  tempPastedAndDropFiles, 
-  setTempPastedAndDropFiles, 
-  ...props 
+export const TaskNew: FC<Props> = memo(({
+  itinerario,
+  task,
+  view,
+  optionsItineraryButtonBox,
+  isSelect,
+  showModalCompartir,
+  setShowModalCompartir,
+  tempPastedAndDropFiles,
+  setTempPastedAndDropFiles,
+  ...props
 }) => {
   const divRef = useRef<HTMLDivElement>(null);
   const { config, geoInfo, user } = AuthContextProvider();
@@ -109,9 +89,9 @@ export const TaskNew: FC<Props> = memo(({
   const storage = getStorage();
   const router = useRouter();
   const toast = useToast();
-  
+
   const link = `${window.location.origin}/services/servicios-${event?._id}-${itinerario?._id}-${task?._id}`;
-  
+
   // Estados básicos
   const [comments, setComments] = useState<Comment[]>([]);
   const [previousCountComments, setPreviousCountComments] = useState<number>(0);
@@ -125,7 +105,7 @@ export const TaskNew: FC<Props> = memo(({
   const [editingResponsable, setEditingResponsable] = useState(false);
   const [tempResponsable, setTempResponsable] = useState<string[]>([]);
   const [editingAttachments, setEditingAttachments] = useState(false);
-  
+
   // Estado local de la tarea
   const [localTask, setLocalTask] = useState<TaskFormValues>({
     _id: task?._id || "",
@@ -146,7 +126,14 @@ export const TaskNew: FC<Props> = memo(({
     prioridad: task?.prioridad || 'media'
   });
 
-  // Actualizar localTask cuando cambie task
+  /*
+   NO BORRAR, HAY QUE VER SI SIRVE PARA REUTILIZARLO 
+     const initialValues: TaskDateTimeAsString = {
+      fecha: !task?.fecha ? "" : new Date(task?.fecha).toLocaleString(geoInfo?.acceptLanguage?.split(",")[0], { year: 'numeric', month: '2-digit', day: '2-digit' }),
+      hora: !task?.fecha ? "" : new Date(task?.fecha).toLocaleString(geoInfo?.acceptLanguage?.split(",")[0], { hour: 'numeric', minute: 'numeric' }), 
+    } 
+  */
+
   useEffect(() => {
     setLocalTask({
       _id: task?._id || "",
@@ -173,7 +160,7 @@ export const TaskNew: FC<Props> = memo(({
   const handleUpdate = async (fieldName: string, value: any) => {
     try {
       let apiValue: string;
-      
+
       if (['responsable', 'tags', 'attachments'].includes(fieldName)) {
         apiValue = JSON.stringify(value || []);
       } else if (fieldName === 'duracion') {
@@ -201,21 +188,21 @@ export const TaskNew: FC<Props> = memo(({
       setEvent((oldEvent) => {
         const newEvent = { ...oldEvent };
         const itineraryIndex = newEvent.itinerarios_array.findIndex(it => it._id === itinerario._id);
-        
+
         if (itineraryIndex > -1) {
           const taskIndex = newEvent.itinerarios_array[itineraryIndex].tasks.findIndex(t => t._id === task._id);
-          
+
           if (taskIndex > -1) {
             newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex][fieldName] = value;
           }
         }
-        
+
         return newEvent;
       });
 
       // Actualizar estado local
       setLocalTask(prev => ({ ...prev, [fieldName]: value }));
-      
+
       toast("success", t("Campo actualizado"));
     } catch (error) {
       console.error('Error al actualizar:', error);
@@ -265,11 +252,11 @@ export const TaskNew: FC<Props> = memo(({
       comments: [],
       commentsViewers: []
     };
-    
+
     delete duplicatedTask._id;
     delete duplicatedTask.createdAt;
     delete duplicatedTask.updatedAt;
-    
+
     // Aquí deberías llamar a una función para crear la tarea
     toast('success', t('Tarea duplicada'));
   };
@@ -332,6 +319,40 @@ export const TaskNew: FC<Props> = memo(({
     setPreviousCountComments(comments.length);
   }, [comments, previousCountComments]);
 
+  function getHoraFin(horaInicio: string, duracion: number): string | null {
+    if (!horaInicio || !duracion) return null;
+
+    // Intentar parsear "HH:mm"
+    let [h, m] = horaInicio.split(":");
+    let hour = Number(h);
+    let minute = Number(m);
+
+    // Si no es número, intentar formato "h:mm a" (ej: "2:30 p. m.")
+    if (isNaN(hour) || isNaN(minute)) {
+      const match = horaInicio.match(/(\d{1,2}):(\d{2})\s*([ap]\.?m\.?)/i);
+      if (match) {
+        hour = Number(match[1]);
+        minute = Number(match[2]);
+        const ampm = match[3].toLowerCase();
+        if (ampm.includes("p") && hour < 12) hour += 12;
+        if (ampm.includes("a") && hour === 12) hour = 0;
+      } else {
+        return null;
+      }
+    }
+
+    const inicio = new Date();
+    inicio.setHours(hour, minute, 0, 0);
+    inicio.setMinutes(inicio.getMinutes() + duracion);
+
+    // Formatear manualmente para quitar el cero inicial y limpiar AM/PM
+    let hours12 = inicio.getHours() % 12 || 12;
+    let minutes = inicio.getMinutes().toString().padStart(2, '0');
+    let ampm = inicio.getHours() < 12 ? 'AM' : 'PM';
+
+    return `${hours12}:${minutes} ${ampm}`;
+  }
+
   return (
     <div {...props} className="w-full bg-white rounded-lg shadow-lg overflow-hidden">
       <div className="flex min-h-[600px]">
@@ -343,13 +364,13 @@ export const TaskNew: FC<Props> = memo(({
               {/* Icono de la tarea */}
               <Formik
                 initialValues={{ icon: localTask.icon || '' }}
-                onSubmit={() => {}}
+                onSubmit={() => { }}
                 enableReinitialize
               >
                 <Form>
                   <div className="flex items-center justify-center hover:bg-gray-100 rounded-full p-3 cursor-pointer">
-                    <SelectIcon 
-                      name="icon" 
+                    <SelectIcon
+                      name="icon"
                       className="scale-125"
                       handleChange={handleIconChange}
                       data={localTask}
@@ -430,7 +451,7 @@ export const TaskNew: FC<Props> = memo(({
                         {localTask.estatus ? <Unlock className="w-4 h-4 mr-3" /> : <Lock className="w-4 h-4 mr-3" />}
                         {localTask.estatus ? t('Desbloquear') : t('Bloquear')}
                       </button>
-                      
+
                       {/* Opciones del ItineraryButtonBox */}
                       {optionsItineraryButtonBox && optionsItineraryButtonBox.length > 0 && (
                         <>
@@ -555,7 +576,7 @@ export const TaskNew: FC<Props> = memo(({
                       <Formik
                         initialValues={{ responsable: tempResponsable }}
                         enableReinitialize
-                        onSubmit={() => {}}
+                        onSubmit={() => { }}
                       >
                         <Form>
                           <ResponsableSelector
@@ -646,7 +667,7 @@ export const TaskNew: FC<Props> = memo(({
                       {localTask.fecha ? formatDate(localTask.fecha) : t('Sin fecha')}
                     </span>
                   )}
-                  
+
                   {/* Hora */}
                   {editingField === 'hora' ? (
                     <input
@@ -758,7 +779,7 @@ export const TaskNew: FC<Props> = memo(({
             <div className="border-t border-gray-200">
               <div className="px-6 py-4">
                 <h3 className="text-lg font-semibold mb-4">{t('Detalles')}</h3>
-                
+
                 {/* Campos personalizados */}
                 <div className="space-y-6">
                   {/* Descripción Tarea larga */}
@@ -776,7 +797,7 @@ export const TaskNew: FC<Props> = memo(({
                         </button>
                       )}
                     </div>
-                    
+
                     {editingDescription ? (
                       <div className="border border-gray-300 rounded-lg p-4">
                         <textarea
@@ -807,7 +828,7 @@ export const TaskNew: FC<Props> = memo(({
                         </div>
                       </div>
                     ) : (
-                      <div 
+                      <div
                         className="border border-gray-200 rounded-lg p-4 min-h-[100px] cursor-pointer hover:border-gray-300"
                         onClick={() => setEditingDescription(true)}
                       >
@@ -827,12 +848,12 @@ export const TaskNew: FC<Props> = memo(({
                   {/* Adjuntos */}
                   <div>
                     <h4 className="text-sm font-medium text-gray-700 mb-3">{t('Adjuntos')}</h4>
-                    
+
                     {editingAttachments ? (
                       <div>
                         <Formik
                           initialValues={{ attachments: localTask.attachments || [] }}
-                          onSubmit={() => {}}
+                          onSubmit={() => { }}
                         >
                           <Form>
                             <InputAttachments
@@ -880,7 +901,7 @@ export const TaskNew: FC<Props> = memo(({
                             ))}
                           </div>
                         ) : (
-                          <div 
+                          <div
                             className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg cursor-pointer hover:border-gray-300"
                             onClick={() => setEditingAttachments(true)}
                           >
@@ -889,7 +910,7 @@ export const TaskNew: FC<Props> = memo(({
                             </p>
                           </div>
                         )}
-                        
+
                         {(localTask.attachments || []).length > 0 && (
                           <button
                             onClick={() => setEditingAttachments(true)}
@@ -929,7 +950,7 @@ export const TaskNew: FC<Props> = memo(({
                 tempPastedAndDropFiles={tempPastedAndDropFiles}
               />
             ))}
-            
+
             {comments.length === 0 && (
               <div className="text-center py-8">
                 <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-2" />

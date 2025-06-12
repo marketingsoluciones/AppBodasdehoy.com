@@ -14,9 +14,9 @@ import { BlockListaCategorias } from "../components/Presupuesto/BlockListaCatego
 import { MontoPresupuesto } from "../components/Presupuesto/MontoPresupuesto";
 import BlockCategoria from "../components/Presupuesto/BlockCategoria";
 import { DuplicatePresupuesto } from "../components/Presupuesto/DuplicatePesupuesto";
-import ClickAwayListener from "react-click-away-listener";
 import { api } from "../api";
 import { useAllowed } from "../hooks/useAllowed";
+import { ResumenPresupuestoModal } from "../components/Presupuesto/ResumenPresupuestoModal"
 
 const Presupuesto = () => {
   useMounted()
@@ -24,41 +24,21 @@ const Presupuesto = () => {
   const { user, verificationDone, forCms } = AuthContextProvider()
   const [showCategoria, setShowCategoria] = useState({ state: false, _id: "" });
   const [active, setActive] = useState("resumen");
-  const { event, setEvent } = EventContextProvider();
+  const { event } = EventContextProvider();
   const [categorias, setCategorias] = useState([]);
   const [getId, setGetId] = useState()
   const [showModalDuplicate, setShowModalDuplicate] = useState(false)
   const [isAllowed, ht] = useAllowed()
+  const [showModalPresupuesto, setShowModalPresupuesto] = useState(false)
 
   const totalCosteFinal = categorias?.reduce((sum, categoria) => {
     return sum + (categoria.coste_final || 0);
   }, 0);
 
-
   useEffect(() => {
     setCategorias(event?.presupuesto_objeto?.categorias_array)
   }, [event])
 
-  const handleChangeS = (e) => {
-
-    const params = {
-      query: `mutation {
-          editCurrency(evento_id:"${event._id}", currency:"${e.target.value}"  ){
-            currency
-          }
-        }`,
-      variables: {},
-    }
-    try {
-      api.ApiApp(params).then(result => {
-        const currency = result?.data?.data?.editCurrency?.currency
-        event.presupuesto_objeto.currency = currency
-        setEvent({ ...event })
-      })
-    } catch (error) {
-      console.log(error)
-    }
-  }
 
   if (verificationDone) {
     if (!user) {
@@ -76,6 +56,21 @@ const Presupuesto = () => {
                 <DuplicatePresupuesto showModalDuplicate={showModalDuplicate} setModal={setShowModalDuplicate} />
               </div>
             )}
+            {
+              showModalPresupuesto && (
+                <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex justify-center items-center">
+                  <div className="bg-white w-[90%] h-[90%] rounded-lg overflow-auto shadow-lg relative">
+                    <button
+                      onClick={() => setShowModalPresupuesto(false)}
+                      className="absolute top-4 right-4 text-gray-500 hover:text-gray-800"
+                    >
+                      ✕
+                    </button>
+                    <ResumenPresupuestoModal categorias={categorias} presupuesto={event.presupuesto_objeto} estimadoState={event?.presupuesto_objeto?.viewEstimates} />
+                  </div>
+                </div>
+              )
+            }
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -87,7 +82,7 @@ const Presupuesto = () => {
               <div className="w-full flex justify-center my-2 mt-4 rounded-2xl text-xs md:text-sm">
                 <div
                   onClick={() => setActive("resumen")}
-                  className={`w-[40%]. md:w-[150px]  ${active == "resumen" ? "bg-primary text-white" : "bg-white text-primary"
+                  className={`px-1 md:w-[150px]  ${active == "resumen" ? "bg-primary text-white" : "bg-white text-primary"
                     } h-full flex justify-center items-center cursor-pointer capitalize rounded-l-2xl `}
                 >
                   <p >{t("budget")}</p>
@@ -95,7 +90,7 @@ const Presupuesto = () => {
 
                 <div
                   onClick={() => setActive("excelView")}
-                  className={` w-[40%]. md:w-[200px] ${active == "excelView" ? "bg-primary text-white" : "bg-white text-primary"
+                  className={` w-[30%] md:w-[200px] ${active == "excelView" ? "bg-primary text-white" : "bg-white text-primary"
                     } h-full flex  justify-center items-center cursor-pointer capitalize `}
                 >
                   <p >{t("budgetdetails")}</p>
@@ -103,7 +98,7 @@ const Presupuesto = () => {
 
                 <div
                   onClick={() => setActive("pagos")}
-                  className={`w-[25%]. md:w-[100px] py-1 ${active == "pagos" ? "bg-primary text-white" : "bg-white text-primary"
+                  className={`w-[20%] md:w-[100px] py-1 ${active == "pagos" ? "bg-primary text-white" : "bg-white text-primary"
                     } h-full flex  justify-center items-center cursor-pointer capitalize `}
                 >
                   <p >{t("payments")}</p>
@@ -111,13 +106,13 @@ const Presupuesto = () => {
 
                 <div
                   onClick={() => setActive("pendiente")}
-                  className={` w-[40%]. md:w-[180px] py-1  ${active == "pendiente" ? "bg-primary text-white" : "bg-white text-primary"
+                  className={` px-1 md:w-[180px] py-1  ${active == "pendiente" ? "bg-primary text-white" : "bg-white text-primary"
                     } h-full flex  justify-center items-center  cursor-pointer rounded-r-2xl`}
                 >
                   <p>{t("pendingpayments")}</p>
                 </div>
 
-                <div className="relative">
+               {/*  <div className="relative">
                   <div className="absolute z-10 -right-40 -top-2 rounded-full overflow-hidden h-10">
                     <select disabled={!isAllowed()} value={event?.presupuesto_objeto?.currency} className={`border-none focus:ring-0 ${isAllowed() ? "cursor-pointer" : "cursor-default"} text-sm text-gray-700 h-10`} onChange={(e) => isAllowed() ? handleChangeS(e) : ht()}  >
                       <option value={"eur"}>EUR</option>
@@ -128,10 +123,8 @@ const Presupuesto = () => {
                       <option value={"ars"}>ARG</option>
                       <option value={"uyu"}>URU</option>
                     </select>
-
-
                   </div>
-                </div>
+                </div> */}
               </div>
 
               <div className="w-full h-[calc(100vh-260px)]">
@@ -141,7 +134,7 @@ const Presupuesto = () => {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="flex flex-col md:flex-row w-full h-full gap-6 pt-2 md:pr-0"
+                      className="flex flex-col md:flex-row w-full h-full gap-6 pt-2 md:pr-0 "
                     >
                       <div className="w-full md:w-[310px]">
                         <BlockListaCategorias
@@ -158,14 +151,10 @@ const Presupuesto = () => {
                         />
                         : <div className="w-full md:flex-1 h-full flex flex-col relative">
                           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                            <div className=" bg-white shadow-md rounded-xl grid place-items-center p-4">
-                              <MontoPresupuesto
-                                estimado={
-                                  event?.presupuesto_objeto?.coste_estimado
-                                }
-                              />
+                            <div className="w-full bg-white shadow-md rounded-xl flex py-4 px-2">
+                              <MontoPresupuesto />
                             </div>
-                            <div className=" bg-white shadow-md rounded-xl grid place-items-center p-4">
+                            <div className=" bg-white shadow-md rounded-xl grid place-items-center py-4 px-2">
                               <DineroIcon className="w-12 h-12 text-primary " />
                               <p className="font-display text-gray-500 font-light text-md grid place-items-center">
                                 {t("finalcost")} <br />
@@ -195,10 +184,10 @@ const Presupuesto = () => {
                                 </div>
                               </div>
                               <div className="flex  justify-between w-full text-sm">
-                                <div onClick={() => isAllowed() ? setShowModalDuplicate(true) : ht()} className=" capitalize text-gray-500 cursor-pointer flex justify-center items-center hover:text-gray-900">
+                                <div onClick={() => isAllowed() ? setShowModalDuplicate(true) : ht()} className=" capitalize text-gray-500 cursor-pointer flex justify-center items-center  border  border-primary rounded-md px-3 text-xs text-primary">
                                   {t("import")}
                                 </div>
-                                <div className=" text-gray-200 cursor-default flex justify-center items-center">
+                                <div className="  cursor-default flex justify-center items-center px-3 text-primary opacity-50 border rounded-md text-xs border-primary">
                                   {t("export")}
                                 </div>
                               </div>

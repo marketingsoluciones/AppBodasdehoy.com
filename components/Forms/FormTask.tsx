@@ -1,5 +1,5 @@
 import { Form, Formik, useFormikContext } from "formik";
-import { FC, useEffect } from "react";
+import { FC, useEffect, useState } from "react";
 import { AuthContextProvider, EventContextProvider } from "../../context";
 import InputField from "./InputField";
 import * as yup from "yup";
@@ -26,28 +26,50 @@ const FormTask: FC<propsFormTask> = ({ showEditTask, setShowEditTask, itinerario
   const { event, setEvent } = EventContextProvider();
   const toast = useToast()
   const [isAllowedRouter, ht] = useAllowedRouter()
+  const [durationUnit, setDurationUnit] = useState(
+    showEditTask?.values?.duracion && showEditTask?.values?.duracion % 60 === 0
+      ? "h"
+      : "min"
+  );
+
+  const initialDuration =
+    durationUnit === "h"
+      ? (showEditTask?.values?.duracion || 0) / 60
+      : showEditTask?.values?.duracion || 0;
 
   const f = new Date(showEditTask?.values?.fecha)
   const y = f.getFullYear()
   const m = f.getMonth() + 1
   const d = f.getDate()
 
-  const initialValues: TaskDateTimeAsString = {
+  const initialValues: TaskDateTimeAsString & { duracionUnidad?: string } = {
     ...showEditTask?.values,
     fecha: f ? `${y}-${m < 10 ? "0" : ""}${m}-${d < 10 ? "0" : ""}${d}` : "",
     hora: f ? f.toTimeString().split(' ')[0] : "",
-  }
+    duracion: initialDuration,
+    duracionUnidad: durationUnit,
+  };
 
   const handleSubmit = async (values: any, actions: any) => {
     try {
       let dataSend
       const d = values?.fecha?.split("-")
       const h = values?.hora?.split(":")
+
+      let duracionEnMinutos =
+        values.duracionUnidad === "h"
+          ? Number(values.duracion) * 60
+          : Number(values.duracion);
+
       dataSend = {
         ...values,
-        ...(new Date(d[0], d[1] - 1, d[2], h[0], h[1]).getTime() > 0 ? { fecha: new Date(d[0], d[1] - 1, d[2], h[0], h[1]) } : { fecha: "" })
-      }
-      delete dataSend.hora
+        duracion: duracionEnMinutos,
+        ...(new Date(d[0], d[1] - 1, d[2], h[0], h[1]).getTime() > 0
+          ? { fecha: new Date(d[0], d[1] - 1, d[2], h[0], h[1]) }
+          : { fecha: "" }),
+      };
+      delete dataSend.hora;
+      delete dataSend.duracionUnidad;
       fetchApiEventos({
         query: queries.editTask,
         variables: {
@@ -130,22 +152,40 @@ const FormTask: FC<propsFormTask> = ({ showEditTask, setShowEditTask, itinerario
                 type="date"
                 deleted={window?.location?.pathname === "/servicios"}
               />
-              <div className="w-full flex space-x-2">
-                <InputField
-                  name="hora"
-                  label={t("Hora")}
-                  type="time"
-                  deleted={window?.location?.pathname === "/servicios"}
-                />
-                <div className="flex items-end space-x-1 w-1/3">
+              <div className="w-full grid grid-cols-7 space-x-1">
+                <div className="col-span-3">
+                  <InputField
+                    name="hora"
+                    label={t("Hora")}
+                    type="time"
+                    deleted={window?.location?.pathname === "/servicios"}
+                  />
+                </div>
+                <div className="col-span-2">
                   <InputField
                     name="duracion"
                     label={t("duraction")}
                     type="number"
                     deleted={window?.location?.pathname === "/servicios"}
                   />
-                  <span className="-translate-y-2">min</span>
                 </div>
+                <div className="col-span-2 flex  items-end">
+                  <select
+                    name="duracionUnidad"
+                    className="border rounded-xl px-2 py-1 text-sm h-[38px] w-[80px] border-gray-300 focus:ring-0 focus:outline-none focus:border-gray-500  "
+                    value={values.duracionUnidad}
+                    onChange={e => {
+                      setDurationUnit(e.target.value);
+                      // Actualiza el valor en Formik
+                      values.duracionUnidad = e.target.value;
+                    }}
+                  >
+                    <option value="min">min</option>
+                    <option value="h">hrs</option>
+                  </select>
+                  {/* <span className="-translate-y-2">min</span> */}
+                </div>
+
               </div>
               <div className="w-full h-max relative">
                 <label className={` font-display text-primary text-sm w-full capitalize`}>responsables</label>
@@ -154,7 +194,7 @@ const FormTask: FC<propsFormTask> = ({ showEditTask, setShowEditTask, itinerario
                 </div>
               </div>
               <div className="w-full h-max relative">
-                <label className={` font-display text-primary text-sm w-full capitalize`}>items</label>
+                <label className={` font-display text-primary text-sm w-full capitalize`}>itemss</label>
                 <MyEditor name="tips" />
               </div>
               <div className="w-full h-max relative">

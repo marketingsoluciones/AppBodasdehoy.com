@@ -1,4 +1,4 @@
-import { Dispatch, MouseEvent, ReactNode, SetStateAction } from "react"
+import { Dispatch, ReactNode, SetStateAction } from "react"
 
 export interface Event {
     _id: string
@@ -25,6 +25,7 @@ export interface Event {
     mesas_array: tableOld[]
     grupos_array: string[]
     notificaciones_array: notification[]
+    imgEvento: image
     imgInvitacion: image
     presupuesto_objeto: estimate
     listaRegalos: string
@@ -62,6 +63,7 @@ export interface Comment {
     _id: string
     comment: string
     uid: string
+    nicknameUnregistered: string
     attachments: FileData[]
     createdAt: Date
 }
@@ -134,6 +136,13 @@ export interface OptionsSelect {
     idDisabled?: boolean
     vew?: string
 }
+export type Order = "nombre" | "fecha" | "estado"
+export type Direction = "asc" | "desc"
+
+export interface SelectModeSortType {
+    order: Order
+    direction: Direction
+}
 
 export interface FloatMenu {
     info: any
@@ -155,6 +164,7 @@ export interface OptionsMenu {
     title: string
     onClick?: any
     isDisabled?: boolean
+    object?: any
 }
 
 export interface Notification {
@@ -208,17 +218,24 @@ export interface detalle_compartidos_array {
     icon?: any
 }
 
-interface TotalStimatedGuests {
+export interface VisibleColumn {
+    accessor: string
+    show: boolean
+}
+
+export interface TotalStimatedGuests {
     children: number
     adults: number
 }
 
 export interface estimate {
+    presupuesto_total: number
     viewEstimates: boolean
     coste_estimado: number
     coste_final: number
     pagado: number
     currency: string
+    visibleColumns: VisibleColumn[]
     totalStimatedGuests: TotalStimatedGuests
     categorias_array: estimateCategory[]
 }

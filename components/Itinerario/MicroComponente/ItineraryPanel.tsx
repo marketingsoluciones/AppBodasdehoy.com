@@ -38,6 +38,7 @@ import { BoardView } from "./BoardView";
 import { Event as EventInterface } from '../../../utils/Interfaces';
 import { TableView } from "./NewTableView";
 
+
 interface props {
     itinerario: Itinerary
     editTitle: boolean
@@ -166,13 +167,13 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                     || isAllowed()
                 )
             );
-    
+
             // Solo actualiza si los datos realmente cambiaron
             setTasks(prev => {
                 if (JSON.stringify(prev) === JSON.stringify(filteredTasks)) return prev;
                 return filteredTasks;
             });
-    
+
             const taskReduce: TaskReduce[] = filteredTasks.reduce((acc: TaskReduce[], item: Task) => {
                 const f = new Date(item.fecha);
                 const y = f.getUTCFullYear();
@@ -187,7 +188,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                 }
                 return acc;
             }, []);
-    
+
             setTasksReduce(prev => {
                 if (JSON.stringify(prev) === JSON.stringify(taskReduce)) return prev;
                 return taskReduce;
@@ -280,19 +281,19 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                             domain: config.domain
                         }).then(() => {
                             const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
-    if (f1 !== -1 && event.itinerarios_array[f1]?.tasks) {
-        const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem && elem._id === values._id);
-        if (f2 !== -1) {
-            event.itinerarios_array[f1].tasks.splice(f2, 1);
-            setEvent({ ...event });
-        }
-    }
-    setTimeout(() => {
-        setModal({ state: false, title: null, values: null, itinerario: null });
-        setLoading(false);
-    }, 500);
-    toast("success", t(itinerario.tipo === "itinerario" ? "activitydeleted" : "servicedeleted"));
-})
+                            if (f1 !== -1 && event.itinerarios_array[f1]?.tasks) {
+                                const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem && elem._id === values._id);
+                                if (f2 !== -1) {
+                                    event.itinerarios_array[f1].tasks.splice(f2, 1);
+                                    setEvent({ ...event });
+                                }
+                            }
+                            setTimeout(() => {
+                                setModal({ state: false, title: null, values: null, itinerario: null });
+                                setLoading(false);
+                            }, 500);
+                            toast("success", t(itinerario.tipo === "itinerario" ? "activitydeleted" : "servicedeleted"));
+                        })
                     })
                 )
 
@@ -315,136 +316,136 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         },
     ]
 
-// Función handleTaskUpdate corregida en ItineraryPanel.tsx
+    // Función handleTaskUpdate corregida en ItineraryPanel.tsx
 
-const handleTaskUpdate = async (taskId: string, updates: Partial<Task>) => {
-    try {
-      // Encontrar la tarea que se va a actualizar
-      const taskIndex = tasks?.findIndex(task => task._id === taskId);
-      if (taskIndex === -1 || taskIndex === undefined) {
-        console.error('Tarea no encontrada:', taskId);
-        return;
-      }
-  
-      // Actualizar el estado global del evento inmediatamente
-      setEvent((oldEvent) => {
-        const newEvent = { ...oldEvent };
-        const f1 = newEvent.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
-        
-        if (f1 > -1) {
-          const f2 = newEvent.itinerarios_array[f1].tasks.findIndex(elem => elem._id === taskId);
-          
-          if (f2 > -1) {
-            // Actualizar la tarea con los nuevos valores
-            newEvent.itinerarios_array[f1].tasks[f2] = {
-              ...newEvent.itinerarios_array[f1].tasks[f2],
-              ...updates
-            };
-          }
+    const handleTaskUpdate = async (taskId: string, updates: Partial<Task>) => {
+        try {
+            // Encontrar la tarea que se va a actualizar
+            const taskIndex = tasks?.findIndex(task => task._id === taskId);
+            if (taskIndex === -1 || taskIndex === undefined) {
+                console.error('Tarea no encontrada:', taskId);
+                return;
+            }
+
+            // Actualizar el estado global del evento inmediatamente
+            setEvent((oldEvent) => {
+                const newEvent = { ...oldEvent };
+                const f1 = newEvent.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
+
+                if (f1 > -1) {
+                    const f2 = newEvent.itinerarios_array[f1].tasks.findIndex(elem => elem._id === taskId);
+
+                    if (f2 > -1) {
+                        // Actualizar la tarea con los nuevos valores
+                        newEvent.itinerarios_array[f1].tasks[f2] = {
+                            ...newEvent.itinerarios_array[f1].tasks[f2],
+                            ...updates
+                        };
+                    }
+                }
+
+                return newEvent;
+            });
+
+            // Actualizar el estado local de las tareas
+            setTasks(prevTasks => {
+                if (!prevTasks) return prevTasks;
+                return prevTasks.map(task =>
+                    task._id === taskId ? { ...task, ...updates } : task
+                );
+            });
+
+            // Actualizar tasksReduce también
+            setTasksReduce(prevTasksReduce => {
+                if (!prevTasksReduce) return prevTasksReduce;
+
+                return prevTasksReduce.map(group => ({
+                    ...group,
+                    tasks: group.tasks?.map(task =>
+                        task._id === taskId ? { ...task, ...updates } : task
+                    )
+                }));
+            });
+
+            // No mostrar toast aquí porque ya se muestra en TableCell
+
+        } catch (error) {
+            console.error('Error al actualizar la tarea:', error);
+            toast("error", t("Error al actualizar la tarea"));
         }
-        
-        return newEvent;
-      });
+    };
 
-      // Actualizar el estado local de las tareas
-      setTasks(prevTasks => {
-        if (!prevTasks) return prevTasks;
-        return prevTasks.map(task => 
-          task._id === taskId ? { ...task, ...updates } : task
-        );
-      });
+    // Función handleTaskCreate corregida
 
-      // Actualizar tasksReduce también
-      setTasksReduce(prevTasksReduce => {
-        if (!prevTasksReduce) return prevTasksReduce;
-        
-        return prevTasksReduce.map(group => ({
-          ...group,
-          tasks: group.tasks?.map(task => 
-            task._id === taskId ? { ...task, ...updates } : task
-          )
-        }));
-      });
-      
-      // No mostrar toast aquí porque ya se muestra en TableCell
-      
-    } catch (error) {
-      console.error('Error al actualizar la tarea:', error);
-      toast("error", t("Error al actualizar la tarea"));
-    }
-  };
+    const handleTaskCreate = async (taskData: Partial<Task>) => {
+        try {
+            // Calcular fecha por defecto
+            const f = new Date(parseInt(event.fecha));
+            const fy = f.getUTCFullYear();
+            const fm = f.getUTCMonth();
+            const fd = f.getUTCDate();
+            let newEpoch = new Date(fy, fm + 1, fd).getTime() + 7 * 60 * 60 * 1000;
 
-// Función handleTaskCreate corregida
+            if (tasks?.length) {
+                const item = tasks[tasks.length - 1];
+                const epoch = new Date(item.fecha).getTime();
+                newEpoch = epoch + (item.duracion || 30) * 60 * 1000;
+            }
 
-const handleTaskCreate = async (taskData: Partial<Task>) => {
-    try {
-      // Calcular fecha por defecto
-      const f = new Date(parseInt(event.fecha));
-      const fy = f.getUTCFullYear();
-      const fm = f.getUTCMonth();
-      const fd = f.getUTCDate();
-      let newEpoch = new Date(fy, fm + 1, fd).getTime() + 7 * 60 * 60 * 1000;
-  
-      if (tasks?.length) {
-        const item = tasks[tasks.length - 1];
-        const epoch = new Date(item.fecha).getTime();
-        newEpoch = epoch + (item.duracion || 30) * 60 * 1000;
-      }
-  
-      const defaultDate = taskData.fecha ? new Date(taskData.fecha) : new Date(newEpoch);
-  
-      const response = await fetchApiEventos({
-        query: queries.createTask,
-        variables: {
-          eventID: event._id,
-          itinerarioID: itinerario._id,
-          descripcion: taskData.descripcion || "Nueva tarea",
-          fecha: defaultDate,
-          duracion: taskData.duracion || 30,
-          responsable: taskData.responsable || [],
-          tags: taskData.tags || [],
-          attachments: taskData.attachments || [],
-          tips: taskData.tips || "",
-          spectatorView: taskData.spectatorView !== undefined ? taskData.spectatorView : true,
-          estatus: taskData.estatus !== undefined ? taskData.estatus : false,
-          estado: taskData.estado || "pending",
-          prioridad: taskData.prioridad || "media",
-        },
-        domain: config.domain
-      });
+            const defaultDate = taskData.fecha ? new Date(taskData.fecha) : new Date(newEpoch);
 
-      // Validar respuesta
-      const newTask = response && (response as Task)._id ? (response as Task) : null;
-      if (!newTask) {
-        throw new Error('Respuesta inválida del servidor');
-      }
-  
-      // Actualizar el estado global (event)
-      setEvent((oldEvent) => {
-        const newEvent = { ...oldEvent };
-        const f1 = newEvent.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
-        if (f1 !== -1) {
-          if (!newEvent.itinerarios_array[f1].tasks) {
-            newEvent.itinerarios_array[f1].tasks = [];
-          }
-          newEvent.itinerarios_array[f1].tasks.push(newTask);
+            const response = await fetchApiEventos({
+                query: queries.createTask,
+                variables: {
+                    eventID: event._id,
+                    itinerarioID: itinerario._id,
+                    descripcion: taskData.descripcion || "Nueva tarea",
+                    fecha: defaultDate,
+                    duracion: taskData.duracion || 30,
+                    responsable: taskData.responsable || [],
+                    tags: taskData.tags || [],
+                    attachments: taskData.attachments || [],
+                    tips: taskData.tips || "",
+                    spectatorView: taskData.spectatorView !== undefined ? taskData.spectatorView : true,
+                    estatus: taskData.estatus !== undefined ? taskData.estatus : false,
+                    estado: taskData.estado || "pending",
+                    prioridad: taskData.prioridad || "media",
+                },
+                domain: config.domain
+            });
+
+            // Validar respuesta
+            const newTask = response && (response as Task)._id ? (response as Task) : null;
+            if (!newTask) {
+                throw new Error('Respuesta inválida del servidor');
+            }
+
+            // Actualizar el estado global (event)
+            setEvent((oldEvent) => {
+                const newEvent = { ...oldEvent };
+                const f1 = newEvent.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
+                if (f1 !== -1) {
+                    if (!newEvent.itinerarios_array[f1].tasks) {
+                        newEvent.itinerarios_array[f1].tasks = [];
+                    }
+                    newEvent.itinerarios_array[f1].tasks.push(newTask);
+                }
+                return newEvent;
+            });
+
+            // Actualizar el estado local (tasks)
+            setTasks(prev => prev ? [...prev, newTask] : [newTask]);
+
+            // Seleccionar la nueva tarea
+            setSelectTask(newTask._id);
+
+            // Notificar éxito
+            toast("success", t("Tarea creada con éxito"));
+        } catch (error) {
+            console.error('Error al crear la tarea:', error);
+            toast("error", t("Error al crear la tarea"));
         }
-        return newEvent;
-      });
-  
-      // Actualizar el estado local (tasks)
-      setTasks(prev => prev ? [...prev, newTask] : [newTask]);
-  
-      // Seleccionar la nueva tarea
-      setSelectTask(newTask._id);
-  
-      // Notificar éxito
-      toast("success", t("Tarea creada con éxito"));
-    } catch (error) {
-      console.error('Error al crear la tarea:', error);
-      toast("error", t("Error al crear la tarea"));
-    }
-  };
+    };
 
 
     return (
@@ -589,7 +590,7 @@ const handleTaskCreate = async (taskData: Partial<Task>) => {
                             </div>
                 }
                 {view !== "schema" && view !== "boardView" && (
-                  <AddEvent tasks={tasks} itinerario={itinerario} setSelectTask={setSelectTask} />
+                    <AddEvent tasks={tasks} itinerario={itinerario} setSelectTask={setSelectTask} />
                 )}
             </div>
             {modalStatus && <Modal set={setModalStatus} state={modalStatus} classe={"w-[95%] md:w-[450px] h-[370px]"}>

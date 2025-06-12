@@ -360,7 +360,7 @@ export const dataMetaData = [
         openGraph: {
           url: `${dataConfig?.pathDomain}/servicios`,
           siteName: `${dataConfig?.name}`,
-          title: `Servicios | ${dataConfig?.name}`,
+          title: `Contacto proveedores | ${dataConfig?.name}`,
           description: 'Comunicate con tus proveedores facil y rapido.',
           images: [
             {

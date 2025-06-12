@@ -9,7 +9,6 @@ export const Loading = (set) => {
   }, 1000)
 }
 
-
 export function useDelayUnmount(isMounted: boolean, delayTime: number) {
   const [shouldRender, setShouldRender] = useState(false);
 
@@ -42,7 +41,7 @@ export const getCurrency = (value: number | string, currency?: string) => {
 
 export const getAllFilterGuest = (event: Event) => {
   if (event) {
-    return event.planSpace.map((planSpace) => {
+    return event?.planSpace?.map((planSpace) => {
       const guestsSections = planSpace?.sections?.reduce((sections, section) => {
         const guestsSection = section?.tables?.reduce((tables, table) => {
           if (table?.guests?.length > 0) {
@@ -98,7 +97,6 @@ export const getAllFilterGuest = (event: Event) => {
   }
 
 }
-
 
 // Objeto de icono perfil
 export const ImageProfile = {

@@ -3,10 +3,11 @@ import { FC, useEffect, useState } from "react";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { Event, Task } from "../../utils/Interfaces";
 import { motion } from "framer-motion"
-import { AuthContextProvider, EventContextProvider } from "../../context";
+import { AuthContextProvider } from "../../context";
 import { defaultImagenes } from "../../components/Home/Card";
 import { useTranslation } from "react-i18next";
 import { TaskNew } from "../../components/Itinerario/MicroComponente/TaskNew";
+import { openGraphData } from "../_app";
 
 interface props {
   evento: Event
@@ -34,7 +35,7 @@ const Slug: FC<props> = (props) => {
   }, [])
 
   useEffect(() => {
-    if (event?.itinerarios_array[0].tasks.length > 0) {
+    if (event?.itinerarios_array[0]?.tasks?.length > 0) {
       const tasks = [event?.itinerarios_array[0]?.tasks?.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime())]
       const taskReduce: TaskReduce[] = tasks[0].reduce((acc: TaskReduce[], item: Task) => {
         const f = new Date(item.fecha)
@@ -56,7 +57,7 @@ const Slug: FC<props> = (props) => {
     }
   }, [])
 
-  if (!props.evento.itinerarios_array.length)
+  if (!props?.evento?.itinerarios_array?.length)
     return (
       <div className="bg-[#ffbfbf] text-blue-700 w-full h-full text-center mt-20">
         Page not found error 404
@@ -79,7 +80,7 @@ const Slug: FC<props> = (props) => {
           </div>
           <div className='flex-1 md:flex-none md:w-[35%] h-[100%] flex flex-row-reverse md:flex-row items-center '>
             <img
-              src={defaultImagenes[event?.tipo]}
+              src={event?.imgEvento ? `https://apiapp.bodasdehoy.com/${event.imgEvento.i800}` : defaultImagenes[event?.tipo]}
               className=" h-[90%] object-cover object-top rounded-md border-1 border-gray-600  hidden md:block"
               alt={event?.nombre}
             />
@@ -137,7 +138,11 @@ export async function getServerSideProps({ params }) {
         evento_id,
         itinerario_id
       }
-    })
+    }) as any
+    if (evento) {
+      openGraphData.openGraph.title = `${evento.itinerarios_array[0].title}`
+      openGraphData.openGraph.description = `Mira el itinerario del evento ${evento.nombre} y no te pierdas de nada`
+    }
     return {
       props: { ...params, evento },
     };

@@ -36,7 +36,7 @@ const SocketProvider: FC<any> = ({ children }): JSX.Element => {
     const token = Cookies.get("idTokenV0.1.0")
     console.log("=======> parseJwt", parseJwt(token))
     console.log("=======> development", config?.development)
-    if (token && !socket?.connected) {
+    if ((token && !socket?.connected || (user?.displayName === "anonymous" && !socket?.connected))) {
       console.log("=======> Conecta...")
       setSocket(api.socketIO({
         token,
@@ -49,12 +49,13 @@ const SocketProvider: FC<any> = ({ children }): JSX.Element => {
       console.log("=======> desconecta...")
       socket.disconnect();
     }
+
   }, [user])
 
   useEffect(() => {
     socket?.on("connect", () => {
       console.log(1445411144, socket)
-      console.log(1.00003, "Conectado", new Date().toLocaleString('es-VE', { timeZone: 'america/Caracas' }))
+      console.log(1.0000391, "Conectado", new Date().toLocaleString('es-VE', { timeZone: 'america/Caracas' }))
     })
     socket?.on("disconnect", (reason) => {
       console.log(1.0000301, "Desconectado", new Date().toLocaleString('es-VE', { timeZone: 'america/Caracas' }),
@@ -65,10 +66,10 @@ const SocketProvider: FC<any> = ({ children }): JSX.Element => {
         error)
     })
     socket?.io.on("error", (error) => {
-      console.log(1.00003, "ping", new Date().toLocaleString('es-VE', { timeZone: 'america/Caracas' }))
+      console.log(1.0000392, "error", new Date().toLocaleString('es-VE', { timeZone: 'america/Caracas' }))
     });
     socket?.io.on("ping", () => {
-      console.log(1.00003, "ping", new Date().toLocaleString('es-VE', { timeZone: 'america/Caracas' }))
+      console.log(1.0000393, "ping", new Date().toLocaleString('es-VE', { timeZone: 'america/Caracas' }))
     })
     socket?.io.on("reconnect", (attempt) => {
       console.log(1.0000303, "reconnect", new Date().toLocaleString('es-VE', { timeZone: 'america/Caracas' }),
