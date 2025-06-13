@@ -30,6 +30,7 @@
     "googleapis": "^126.0.1",
     "graphql": "^15.5.0",
     "graphql-subscriptions-client": "^0.16.3",
+    "html-to-image": "^1.11.13",
     "html2canvas": "^1.0.0-rc.7",
     "i18next": "^23.15.1",
     "i18next-browser-languagedetector": "^8.0.0",
@@ -37,6 +38,7 @@
     "interweave": "^13.1.0",
     "interweave-autolink": "^5.1.1",
     "js-cookie": "^3.0.1",
+    "lucide-react": "^0.514.0",
     "mongoose": "^5.11.15",
     "nanoid": "^4.0.2",
     "next": "^12.0.1",
@@ -63,6 +65,7 @@
     "reactstrap": "^9.2.3",
     "socket.io-client": "^4.7.2",
     "swiper": "^8.3.1",
+    "trim-canvas": "^0.1.2",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
     "xlsx-js-style": "^1.2.0",
     "yup": "^0.32.11"

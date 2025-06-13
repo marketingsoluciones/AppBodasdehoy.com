@@ -1,11 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { IoAccessibilitySharp, IoSaveOutline } from "react-icons/io5";
+import { IoAccessibilitySharp, IoFolderOpenOutline, IoSaveOutline } from "react-icons/io5";
 import EmailEditor, { EditorRef, EmailEditorProps, UnlayerOptions } from 'react-email-editor';
 import { GoArrowLeft } from "react-icons/go";
-import { useRouter } from 'next/router';
-import { AuthContextProvider } from '../../context';
+import { AuthContextProvider, EventContextProvider } from '../../context';
 import { translations } from '../../locales/react-email-editor-es';
 import i18next from "i18next";
+import { toPng } from 'html-to-image';
+import trimCanvas from 'trim-canvas'
+import { fetchApiEventos, queries } from '../../utils/Fetching';
+import { useTranslation } from 'react-i18next';
+import { IconLightBulb16 } from '../icons';
+import ModalDefault from './ModalDefault';
+import { ModalHtmlPreview } from './ModalHtmlPreview';
+import { ModalTemplates } from './ModalTemplates';
+import { EmailDesign } from '../../utils/Interfaces';
 
 interface props {
     setEmailEditorModal: (value: boolean) => void
@@ -15,28 +23,47 @@ interface props {
 
 export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModal, previewEmailReactEditor, ...props }) => {
     const { config } = AuthContextProvider()
-    const router = useRouter()
+    const { event } = EventContextProvider()
     const emailEditorRef = useRef<EditorRef>(null);
     const [editorReady, setEditorReady] = useState(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [design, setDesign] = useState();
+    const [html, setHtml] = useState<string>('');
+    const [showHtmlModal, setShowHtmlModal] = useState(false);
+    const [showTemplatesModal, setShowTemplatesModal] = useState(false);
     const unlayer = emailEditorRef.current?.editor;
-
-
+    const htmlToImageRef = useRef(null);
+    const { t } = useTranslation();
 
     const saveDesign = () => {
-
-        unlayer?.saveDesign((design) => {
-            console.log('exportHtml', design);
-        });
-
-        /* unlayer.exportImage(function (data) {
-            var json = data.design; 
-            var imageUrl = data.url; 
-
-            console.log('img', imageUrl)
-        }); */
-
+        try {
+            unlayer?.saveDesign((design) => {
+                setDesign(design)
+            });
+            unlayer.exportHtml(function (data) {
+                console.log(100041, data)
+                setHtml(data.html);
+                setShowHtmlModal(true);
+            });
+        } catch (error) {
+            console.log('error', error)
+        }
     };
+
+    useEffect(() => {
+        if (unlayer) {
+            unlayer.addEventListener('design:updated', function (updates) {
+                // Design has been updated by the user
+                console.log(100039, updates)
+                unlayer.exportHtml(function (data) {
+                    const json = data.design; // The updated design JSON
+                    const html = data.html; // The updated HTML
+                    console.log(100040, json)
+                    // Auto-save the JSON and/or HTML here
+                });
+            });
+        }
+    }, [unlayer])
 
     const onLoad: EmailEditorProps['onReady'] = (unlayer) => {
 
@@ -49,55 +76,104 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
     };
 
     const onReady: EmailEditorProps['onReady'] = (unlayer) => {
-        unlayer.loadDesign(asd)
+        //unlayer.loadDesign()
         setEditorReady(true);
         setTimeout(() => {
             setIsLoading(true)
         }, previewEmailReactEditor ? 800 : 0);
     };
-    useEffect(() => {
-        console.log('Idioma del navegador:', navigator.language);
-        console.log(i18next.language);
-    }, []);
+
+    const handleDownloadPng = async () => {
+        try {
+            if (htmlToImageRef.current) {
+                const dataUrl = await toPng(htmlToImageRef.current, { cacheBust: true, width: 1080, height: 1620 });
+                let canvas = document.createElement('canvas');
+                const img = new window.Image();
+                img.onload = function () {
+                    const scale = 0.30;
+                    canvas.width = 1080 * scale;
+                    canvas.height = 1620 * scale;
+                    const ctx = canvas.getContext('2d');
+                    if (ctx) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    const result = trimCanvas(canvas);
+                    // Descargar la imagen
+                    const pngUrl = result.toDataURL('image/png');
+                    console.log(100042, pngUrl);
+
+                    fetchApiEventos({
+                        query: queries.createEmailTemplate,
+                        variables: {
+                            evento_id: event?._id,
+                            design,
+                            html,
+                            name: 'template1',
+                            preview: pngUrl,
+                        },
+                        domain: config?.domain
+                    }).then((res) => {
+                        console.log(100043, res)
+                    })
+
+                    // const link = document.createElement('a');
+                    // link.href = pngUrl;
+                    // link.download = 'email-preview.png';
+                    // document.body.appendChild(link);
+                    // link.click();
+                    // document.body.removeChild(link);
+                    setShowHtmlModal(false);
+                    setHtml('');
+                };
+                img.src = dataUrl;
+            }
+        } catch (error) {
+            console.log('error', error)
+        }
+    };
+
+    const loadDesign = ({ _id }: { _id: string }) => {
+        fetchApiEventos({
+            query: queries.getEmailTemplate,
+            variables: {
+                evento_id: event?._id,
+                template_id: _id
+            }
+        }).then((res) => {
+            console.log(100044, res)
+            unlayer.loadDesign(res[0].design as any)
+        })
+    }
+
     return (
         <div className='relative w-full h-full'>
             {!isLoading && <div className="absolute z-50  top-[calc(50%-20px)] left-[calc(50%-20px)] loader ease-linear rounded-full border-[7px] border-black border-opacity-35 w-10 h-10" />}
-            <div className={`relatve h-full ${isLoading ? "opacity-100" : "opacity-0"} transition-all duration-300`} >
-                {editorReady && <div className='absolute flex gap-2'>
-                    <div onClick={() => setEmailEditorModal(!EmailEditorModal)} className={"flex w-16 h-[38px] flex-col items-center justify-center cursor-pointer border-x bg-[#F4F4F4]"} >
+            <div className={`h-full ${isLoading ? "opacity-100" : "opacity-0"} transition-all duration-300`} >
+                {editorReady && <div className='absolute flex'>
+                    <div onClick={() => setEmailEditorModal(!EmailEditorModal)} className={"flex w-16 h-[38px] flex-col items-center justify-center cursor-pointer border-l hover:bg-[#F4F4F4]"} >
                         <div className='pt-[2px]'>
                             <GoArrowLeft className='h-5 w-5' />
                         </div>
                     </div>
-                    {
-                        !previewEmailReactEditor &&
-                        <>
-                            <div onClick={() => saveDesign()} className={"flex w-16 h-[38px] flex-col items-center justify-center cursor-pointer border-x bg-[#F4F4F4]"} >
-                                <div className='pt-[2px]'>
-                                    <IoSaveOutline className='h-5 w-5' />
-                                </div>
-                                <div className='text-xs text-[#515151]'>Save</div>
+                    {!previewEmailReactEditor && <>
+                        <div onClick={() => { setShowTemplatesModal(true) }} className={"flex w-[50px] h-[38px] flex-col items-center justify-center cursor-pointer border-l hover:bg-[#F4F4F4]"} >
+                            <div className='pt-[2px]'>
+                                <IoFolderOpenOutline className='h-5 w-5' />
                             </div>
-                            <div onClick={() => {
-                                emailEditorRef.current.editor.showPreview({
-                                    device: "desktop",
-                                    resolution: 1024
-                                })
-                            }} className={"flex w-16 h-[38px] flex-col items-center justify-center cursor-pointer border-x bg-[#F4F4F4]"} >
-                                <div className='pt-[2px]'>
-                                    <IoAccessibilitySharp className='h-5 w-5' />
-                                </div>
-                                <div className='text-xs text-[#515151]'>Custom</div>
+                        </div>
+                        <div onClick={() => saveDesign()} className={"flex w-[50px] h-[38px] flex-col items-center justify-center cursor-pointer border-x hover:bg-[#F4F4F4]"} >
+                            <div className='pt-[2px]'>
+                                <IoSaveOutline className='h-5 w-5' />
                             </div>
-                        </>
-                    }
+                        </div>
+                    </>}
                 </div>}
-                {true && <EmailEditor ref={emailEditorRef} onLoad={onLoad} onReady={onReady} minHeight={'100%'} options={{
+                <EmailEditor ref={emailEditorRef} onLoad={onLoad} onReady={onReady} minHeight={'100%'} options={{
+                    id: 'editor',
+                    displayMode: "email",
+                    devices: [],
                     locale: 'en-US',
                     translations: {
                         'en-US': i18next.language === 'es' ? translations : {}
                     },
-                    offline: false,
                     mergeTags: {
                         nombre: {
                             name: "Nombre",
@@ -115,7 +191,6 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
                         actionBar: {
                             placement: 'top'
                         },
-                        theme: 'dark',
                         panels: {
                             tools: {
                                 dock: 'right',
@@ -131,8 +206,44 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
                             html: '<div/>'
                         },
                     },
-                }} />}
+                    tools: {
+                        rows: {
+                            properties: {
+                                noStackMobile: {
+                                    editor: {
+                                        _override: {
+                                            desktop: {
+                                                defaultValue: true, // Default value for 'Do Not Stack on Mobile'
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                        image: {
+                            enabled: true,
+                            position: 6,
+                        },
+                        button: {
+                            enabled: true,
+                            position: 7,
+                        },
+                        menu: {
+                            enabled: false,
+                        },
+                    },
+                }} />
             </div>
+            {showHtmlModal && (
+                <ModalDefault onClose={() => { setShowHtmlModal(false); setHtml(''); }} >
+                    <ModalHtmlPreview htmlToImageRef={htmlToImageRef} html={html} action={handleDownloadPng} />
+                </ModalDefault>
+            )}
+            {showTemplatesModal && (
+                <ModalDefault onClose={() => { setShowTemplatesModal(false) }} >
+                    <ModalTemplates action={(_id: string) => { loadDesign({ _id }) }} />
+                </ModalDefault>
+            )}
             <style jsx>
                 {`
           .loader {
@@ -954,7 +1065,7 @@ const asd = {
                                     "deletable": true,
                                     "hideable": true,
                                     "locked": false,
-                                    "text": "<p style=\"line-height: 150%;\">With Apple Trade In, just give us your eligible Mac and get credit for a new one. It’s good for you and the planet.</p>"
+                                    "text": "<p style=\"line-height: 150%;\">With Apple Trade In, just give us your eligible Mac and get credit for a new one. It's good for you and the planet.</p>"
                                 }
                             },
                             {
@@ -1814,7 +1925,7 @@ const asd = {
                                     "deletable": true,
                                     "hideable": true,
                                     "locked": false,
-                                    "text": "<p style=\"line-height: 200%;\">If you reside in the U.S. territories, please call Goldman Sachs at 877-255-5923 with questions about Apple Card.</p>\n<p style=\"line-height: 200%;\">TM and © 2023 Apple Inc. One Apple Park Way, MS 96-DM, Cupertino, CA 95014.</p>\n<p style=\"line-height: 200%;\"><a rel=\"noopener\" href=\"https://www.apple.com/\" target=\"_blank\" data-u-link-value=\"eyJuYW1lIjoid2ViIiwiYXR0cnMiOnsiaHJlZiI6Int7aHJlZn19IiwidGFyZ2V0Ijoie3t0YXJnZXR9fSJ9LCJ2YWx1ZXMiOnsiaHJlZiI6Imh0dHBzOi8vd3d3LmFwcGxlLmNvbS8iLCJ0YXJnZXQiOiJfYmxhbmsifX0=\">All Rights Reserved</a>    |   <a rel=\"noopener\" href=\"https://www.apple.com/\" target=\"_blank\" data-u-link-value=\"eyJuYW1lIjoid2ViIiwiYXR0cnMiOnsiaHJlZiI6Int7aHJlZn19IiwidGFyZ2V0Ijoie3t0YXJnZXR9fSJ9LCJ2YWx1ZXMiOnsiaHJlZiI6Imh0dHBzOi8vd3d3LmFwcGxlLmNvbS8iLCJ0YXJnZXQiOiJfYmxhbmsifX0=\">Privacy Policy</a>    |   <a rel=\"noopener\" href=\"https://www.apple.com/\" target=\"_blank\" data-u-link-value=\"eyJuYW1lIjoid2ViIiwiYXR0cnMiOnsiaHJlZiI6Int7aHJlZn19IiwidGFyZ2V0Ijoie3t0YXJnZXR9fSJ9LCJ2YWx1ZXMiOnsiaHJlZiI6Imh0dHBzOi8vd3d3LmFwcGxlLmNvbS8iLCJ0YXJnZXQiOiJfYmxhbmsifX0=\">My Apple ID</a></p>\n<p style=\"line-height: 200%;\">If you prefer not to receive commercial email from Apple, or if you’ve changed your email address, please <a rel=\"noopener\" href=\"https://www.apple.com/\" target=\"_blank\" data-u-link-value=\"eyJuYW1lIjoid2ViIiwiYXR0cnMiOnsiaHJlZiI6Int7aHJlZn19IiwidGFyZ2V0Ijoie3t0YXJnZXR9fSJ9LCJ2YWx1ZXMiOnsiaHJlZiI6Imh0dHBzOi8vd3d3LmFwcGxlLmNvbS8iLCJ0YXJnZXQiOiJfYmxhbmsifX0=\">click here</a>.</p>"
+                                    "text": "<p style=\"line-height: 200%;\">If you reside in the U.S. territories, please call Goldman Sachs at 877-255-5923 with questions about Apple Card.</p>\n<p style=\"line-height: 200%;\">TM and © 2023 Apple Inc. One Apple Park Way, MS 96-DM, Cupertino, CA 95014.</p>\n<p style=\"line-height: 200%;\"><a rel=\"noopener\" href=\"https://www.apple.com/\" target=\"_blank\" data-u-link-value=\"eyJuYW1lIjoid2ViIiwiYXR0cnMiOnsiaHJlZiI6Int7aHJlZn19IiwidGFyZ2V0Ijoie3t0YXJnZXR9fSJ9LCJ2YWx1ZXMiOnsiaHJlZiI6Imh0dHBzOi8vd3d3LmFwcGxlLmNvbS8iLCJ0YXJnZXQiOiJfYmxhbmsifX0=\">All Rights Reserved</a>    |   <a rel=\"noopener\" href=\"https://www.apple.com/\" target=\"_blank\" data-u-link-value=\"eyJuYW1lIjoid2ViIiwiYXR0cnMiOnsiaHJlZiI6Int7aHJlZn19IiwidGFyZ2V0Ijoie3t0YXJnZXR9fSJ9LCJ2YWx1ZXMiOnsiaHJlZiI6Imh0dHBzOi8vd3d3LmFwcGxlLmNvbS8iLCJ0YXJnZXQiOiJfYmxhbmsifX0=\">Privacy Policy</a>    |   <a rel=\"noopener\" href=\"https://www.apple.com/\" target=\"_blank\" data-u-link-value=\"eyJuYW1lIjoid2ViIiwiYXR0cnMiOnsiaHJlZiI6Int7aHJlZn19IiwidGFyZ2V0Ijoie3t0YXJnZXR9fSJ9LCJ2YWx1ZXMiOnsiaHJlZiI6Imh0dHBzOi8vd3d3LmFwcGxlLmNvbS8iLCJ0YXJnZXQiOiJfYmxhbmsifX0=\">My Apple ID</a></p>\n<p style=\"line-height: 200%;\">If you prefer not to receive commercial email from Apple, or if you've changed your email address, please <a rel=\"noopener\" href=\"https://www.apple.com/\" target=\"_blank\" data-u-link-value=\"eyJuYW1lIjoid2ViIiwiYXR0cnMiOnsiaHJlZiI6Int7aHJlZn19IiwidGFyZ2V0Ijoie3t0YXJnZXR9fSJ9LCJ2YWx1ZXMiOnsiaHJlZiI6Imh0dHBzOi8vd3d3LmFwcGxlLmNvbS8iLCJ0YXJnZXQiOiJfYmxhbmsifX0=\">click here</a>.</p>"
                                 }
                             }
                         ],

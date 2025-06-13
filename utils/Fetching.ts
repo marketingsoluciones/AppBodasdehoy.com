@@ -102,6 +102,29 @@ export const fetchApiEventos = async ({ query, variables, token }: argsFetchApi)
 };
 
 export const queries = {
+  createEmailTemplate: `mutation($evento_id:String, $design:JSON, $name:String, $preview:String, $html:String){
+    createEmailTemplate(evento_id:$evento_id, design:$design, name:$name, preview:$preview, html:$html){
+      _id
+      createdAt
+      updatedAt
+    }
+  }`,
+
+  getPreviewEmailTemplates: `query ($evento_id:String){
+    getPreviewEmailTemplates(evento_id:$evento_id){
+      _id
+      name
+      preview
+      createdAt
+      updatedAt
+    }
+  }`,
+
+  getEmailTemplate: `query ($evento_id:String, $template_id:String){
+    getEmailTemplate(evento_id:$evento_id, template_id:$template_id){
+      design
+    }
+  }`,
 
   getAllBusiness: `query ($criteria :searchCriteriaBusiness, $sort : sortCriteriaBusiness, $skip :Int, $limit : Int, $development: String!) {
     getAllBusinesses(searchCriteria:$criteria, sort: $sort, skip: $skip, limit: $limit, development: $development){

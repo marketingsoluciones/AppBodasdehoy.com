@@ -38,6 +38,16 @@ export interface Event {
     //permission: boolean
 }
 
+export interface EmailDesign {
+    _id: string
+    design: JSON
+    name: string
+    html: string
+    preview: string
+    createdAt: Date
+    updatedAt: Date
+}
+
 export interface ListIdentifiers {
     table: string
     start_Id: string
