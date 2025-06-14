@@ -5,7 +5,7 @@ import { AuthContextProvider, EventContextProvider } from "../../context";
 import { EmailDesign } from "../../utils/Interfaces";
 
 interface props {
-  action: (_id: string) => void;
+  action: (emailDesign: EmailDesign) => void;
 }
 
 export const ModalTemplates: FC<props> = ({ action }) => {
@@ -37,7 +37,7 @@ export const ModalTemplates: FC<props> = ({ action }) => {
           </div>
           <div className='bg-gray-100 w-full flex-1 flex flex-wrap overflow-y-scroll gap-x-3 gap-y-2 p-2 px-9 rounded-b-md'>
             {(elem === "templates" ? templates : myTemplates).map((template, idx) => (
-              <div key={idx} className='w-20 h-[120px] flex flex-col items-center pt-1 rounded-md hover:bg-white transition-colors ease-in-out duration-200 cursor-pointer' onClick={() => action(template._id)}>
+              <div key={idx} className='w-20 h-[120px] flex flex-col items-center pt-1 rounded-md hover:bg-white transition-colors ease-in-out duration-200 cursor-pointer' onClick={() => action({ ...template } as EmailDesign)}>
                 <div className='w-[75%] h-[75%]'>
                   <img src={template.preview} alt={template.name} className='w-full h-full object-cover' />
                 </div>

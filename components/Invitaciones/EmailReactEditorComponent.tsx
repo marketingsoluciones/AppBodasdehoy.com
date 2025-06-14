@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { IoAccessibilitySharp, IoFolderOpenOutline, IoSaveOutline } from "react-icons/io5";
-import EmailEditor, { EditorRef, EmailEditorProps, UnlayerOptions } from 'react-email-editor';
+import { IoFolderOpenOutline, IoSaveOutline } from "react-icons/io5";
+import EmailEditor, { EditorRef, EmailEditorProps } from 'react-email-editor';
 import { GoArrowLeft } from "react-icons/go";
 import { AuthContextProvider, EventContextProvider } from '../../context';
 import { translations } from '../../locales/react-email-editor-es';
@@ -9,11 +9,11 @@ import { toPng } from 'html-to-image';
 import trimCanvas from 'trim-canvas'
 import { fetchApiEventos, queries } from '../../utils/Fetching';
 import { useTranslation } from 'react-i18next';
-import { IconLightBulb16 } from '../icons';
 import ModalDefault from './ModalDefault';
 import { ModalHtmlPreview } from './ModalHtmlPreview';
 import { ModalTemplates } from './ModalTemplates';
 import { EmailDesign } from '../../utils/Interfaces';
+import { EditableLabelWithInput } from '../Forms/EditableLabelWithInput';
 
 interface props {
     setEmailEditorModal: (value: boolean) => void
@@ -32,7 +32,9 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
     const [showHtmlModal, setShowHtmlModal] = useState(false);
     const [showTemplatesModal, setShowTemplatesModal] = useState(false);
     const unlayer = emailEditorRef.current?.editor;
+    const [template, setTemplate] = useState<EmailDesign>();
     const htmlToImageRef = useRef(null);
+    const canvasRef = useRef(null);
     const { t } = useTranslation();
 
     const saveDesign = () => {
@@ -53,6 +55,10 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
     useEffect(() => {
         if (unlayer) {
             unlayer.addEventListener('design:updated', function (updates) {
+                var type = updates.type; // body, row, content
+                var item = updates.item;
+                var changes = updates.changes;
+                console.log('design:updated', type, item, changes);
                 // Design has been updated by the user
                 console.log(100039, updates)
                 unlayer.exportHtml(function (data) {
@@ -76,6 +82,7 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
     };
 
     const onReady: EmailEditorProps['onReady'] = (unlayer) => {
+        console.log(100045, unlayer)
         //unlayer.loadDesign()
         setEditorReady(true);
         setTimeout(() => {
@@ -83,10 +90,21 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
         }, previewEmailReactEditor ? 800 : 0);
     };
 
+    useEffect(() => {
+        console.log(100048, htmlToImageRef.current)
+    }, [htmlToImageRef.current])
+
     const handleDownloadPng = async () => {
         try {
             if (htmlToImageRef.current) {
-                const dataUrl = await toPng(htmlToImageRef.current, { cacheBust: true, width: 1080, height: 1620 });
+                const node = htmlToImageRef.current;
+                const rect = node.getBoundingClientRect();
+                console.log(100042, rect.width, rect.height);
+                const dataUrl = await toPng(node, {
+                    cacheBust: false,
+                    width: rect.width,
+                    height: rect.height
+                });
                 let canvas = document.createElement('canvas');
                 const img = new window.Image();
                 img.onload = function () {
@@ -98,7 +116,7 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
                     const result = trimCanvas(canvas);
                     // Descargar la imagen
                     const pngUrl = result.toDataURL('image/png');
-                    console.log(100042, pngUrl);
+                    // console.log(100042, pngUrl);
 
                     fetchApiEventos({
                         query: queries.createEmailTemplate,
@@ -130,18 +148,27 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
         }
     };
 
-    const loadDesign = ({ _id }: { _id: string }) => {
-        fetchApiEventos({
-            query: queries.getEmailTemplate,
-            variables: {
-                evento_id: event?._id,
-                template_id: _id
-            }
-        }).then((res) => {
-            console.log(100044, res)
-            unlayer.loadDesign(res[0].design as any)
-        })
+    const loadDesign = (emailDesign: EmailDesign) => {
+        try {
+            fetchApiEventos({
+                query: queries.getEmailTemplate,
+                variables: {
+                    evento_id: event?._id,
+                    template_id: emailDesign._id
+                }
+            }).then((res) => {
+                console.log(100044, res)
+                unlayer.loadDesign(res[0].design as any)
+                setTemplate({ ...emailDesign, design: res[0].design })
+            })
+        } catch (error) {
+            console.log('error', error)
+        }
     }
+
+    useEffect(() => {
+        console.log(100046, template?.name)
+    }, [template])
 
     return (
         <div className='relative w-full h-full'>
@@ -159,9 +186,19 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
                                 <IoFolderOpenOutline className='h-5 w-5' />
                             </div>
                         </div>
-                        <div onClick={() => saveDesign()} className={"flex w-[50px] h-[38px] flex-col items-center justify-center cursor-pointer border-x hover:bg-[#F4F4F4]"} >
+                        <div onClick={() => saveDesign()} className={"flex w-[50px] h-[38px] flex-col items-center justify-center cursor-pointer border-l hover:bg-[#F4F4F4]"} >
                             <div className='pt-[2px]'>
                                 <IoSaveOutline className='h-5 w-5' />
+                            </div>
+                        </div>
+                        <div className={"flex w-[250px] h-[38px] items-end justify-start cursor-pointer border-l"} >
+                            <div className='pb-1 pl-2 text-sm relative'>
+                                <EditableLabelWithInput
+                                    value={template?.name ? template.name : "Sin nombre1"}
+                                    type={null}
+                                    handleChange={() => { }}
+                                    accessor={null}
+                                    textAlign="left" />
                             </div>
                         </div>
                     </>}
@@ -234,6 +271,7 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
                     },
                 }} />
             </div>
+
             {showHtmlModal && (
                 <ModalDefault onClose={() => { setShowHtmlModal(false); setHtml(''); }} >
                     <ModalHtmlPreview htmlToImageRef={htmlToImageRef} html={html} action={handleDownloadPng} />
@@ -241,7 +279,7 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
             )}
             {showTemplatesModal && (
                 <ModalDefault onClose={() => { setShowTemplatesModal(false) }} >
-                    <ModalTemplates action={(_id: string) => { loadDesign({ _id }) }} />
+                    <ModalTemplates action={(emailDesign: EmailDesign) => { loadDesign(emailDesign) }} />
                 </ModalDefault>
             )}
             <style jsx>
