@@ -1,6 +1,5 @@
 import { TaskNew } from "./TaskNew"
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
-import { AddEvent } from "./AddEvent";
 import { FC, useEffect, useState } from "react";
 import { AuthContextProvider } from "../../../context/AuthContext";
 import { EventContextProvider } from "../../../context/EventContext";
@@ -32,7 +31,7 @@ import { CgInfo } from "react-icons/cg";
 import { ImageAvatar } from "../../Utils/ImageAvatar";
 import { ItineraryDetails } from "../MicroComponente/ItineraryDetails"
 import { SimpleDeleteConfirmation } from "../../Utils/SimpleDeleteConfirmation";
-import { ExtraTableView } from "./ExtraTableView"; // Importar el nuevo componente
+import { ExtraTableView } from "./ExtraTableView";
 import { BoardView } from "./BoardView";
 // Importar el tipo Event con un alias para evitar conflictos
 import { Event as EventInterface } from '../../../utils/Interfaces';
@@ -66,7 +65,7 @@ interface ModalItinerario extends ModalInterface {
     itinerario?: Itinerary
 }
 
-export type TempPastedAndDropFiles = {
+export type TempPastedAndDropFile = {
     taskID: string,
     commentID: string,
     files: PastedAndDropFile[],
@@ -637,9 +636,6 @@ const handleTaskCreate = async (taskData: Partial<Task>) => {
                                 </div>
                             </div>
                 }
-                {view !== "schema" && view !== "boardView" && (
-                    <AddEvent tasks={tasks} itinerario={itinerario} setSelectTask={setSelectTask} />
-                )}
             </div>
             {modalStatus && <Modal set={setModalStatus} state={modalStatus} classe={"w-[95%] md:w-[450px] h-[370px]"}>
                 <WarningMessage setModal={setModalStatus} modal={modalStatus} title={t("visibility")} />
@@ -660,5 +656,4 @@ const handleTaskCreate = async (taskData: Partial<Task>) => {
         </div>
     )
 }
-
 

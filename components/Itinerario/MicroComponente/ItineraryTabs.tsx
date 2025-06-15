@@ -1,6 +1,6 @@
 import { Dispatch, FC, LegacyRef, MouseEvent, SetStateAction, useEffect, useRef, useState } from "react"
 import { PlusIcon } from "../../icons"
-import { Event, Info, Itinerary, SelectModeSortType } from "../../../utils/Interfaces"
+import { Event, Info, Itinerary, SelectModeSortType, Task } from "../../../utils/Interfaces"
 import { fetchApiEventos, queries } from "../../../utils/Fetching"
 import { AuthContextProvider, EventContextProvider } from "../../../context"
 import { ViewItinerary } from "../../../pages/invitados"
@@ -11,6 +11,7 @@ import { useAllowed, useAllowedViewer } from "../../../hooks/useAllowed"
 import { useTranslation } from "react-i18next"
 import { useToast } from "../../../hooks/useToast"
 import { SelectModeSort } from "../../Utils/SelectModeSort"
+import { AddTaskButton } from "./AddTaskButton"
 
 interface props {
     itinerario: Itinerary
@@ -46,6 +47,52 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
     const refTabs: LegacyRef<HTMLDivElement> = useRef()
     const [reverse, setReverse] = useState<{ direction: string, position: number }[]>([])
     const toast = useToast()
+
+    // Función para agregar nueva tarea
+    const addTask = async () => {
+        try {
+            if (!itinerario) {
+                toast("warning", t("Selecciona un itinerario primero"));
+                return;
+            }
+
+            const f = new Date(parseInt(event.fecha))
+            const fy = f.getUTCFullYear()
+            const fm = f.getUTCMonth()
+            const fd = f.getUTCDate()
+            let newEpoch = new Date(fy, fm + 1, fd).getTime() + 7 * 60 * 60 * 1000
+            
+            const tasks = itinerario.tasks || [];
+            if (tasks.length) {
+                const item = tasks[tasks.length - 1]
+                const epoch = new Date(item.fecha).getTime()
+                newEpoch = epoch + item.duracion * 60 * 1000
+            }
+            
+            const fecha = new Date(newEpoch)
+            const addNewTask = await fetchApiEventos({
+                query: queries.createTask,
+                variables: {
+                    eventID: event._id,
+                    itinerarioID: itinerario._id,
+                    descripcion: itinerario.tipo === "itinerario" ? "Tarea nueva" : "Servicio nuevo",
+                    ...(itinerario.tipo === "itinerario" && { fecha: fecha }),
+                    ...(itinerario.tipo === "itinerario" && { duracion: 30 })
+                },
+                domain: config.domain
+            })
+            
+            const task = addNewTask as Task
+            const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
+            event.itinerarios_array[f1].tasks.push(task as Task)
+            setEvent({ ...event })
+            setSelectTask(task._id)
+            toast("success", t(itinerario.tipo === "itinerario" ? "Actividad añadida" : "Servicio añadido"));
+        } catch (error) {
+            console.log(error)
+            toast("error", t("Error al añadir"));
+        }
+    }
 
     useEffect(() => {
         const itineraries = event?.itinerarios_array?.filter(elem => elem?.tipo === window?.location?.pathname.slice(1))
@@ -500,7 +547,11 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                         </div>}
                     </>}
                 </div>
-                {isAllowed() && <div className="inline-flex space-x-4">
+                {isAllowed() && <div className="inline-flex justify-center space-x-4">
+                    <AddTaskButton 
+                        onAddTask={addTask} 
+                        tipo={itinerario?.tipo || window?.location?.pathname.slice(1)}
+                    />
                     {view === "cards" && <SelectModeSort value={orderAndDirection} setValue={setOrderAndDirection} />}
                     <SelectModeView value={view} setValue={setView} />
                 </div>
