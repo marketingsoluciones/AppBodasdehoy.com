@@ -578,7 +578,7 @@ export const TaskNew: FC<Props> = memo(({
                 </div>
 
                 {/* Compartir enlace - Con feedback visual al copiar */}
-                <div className="relative group">
+{/*                 <div className="relative group">
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(link);
@@ -589,11 +589,11 @@ export const TaskNew: FC<Props> = memo(({
                   >
                     <Link className="w-4 h-4" />
                   </button>
-                  {/* Tooltip informativo */}
+                  
                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
                     {t('Compartir')}
                   </div>
-                </div>
+                </div> */}
               </div>
 
               {/* Botones de ItineraryButtonBox - Con estados y colores personalizados */}
