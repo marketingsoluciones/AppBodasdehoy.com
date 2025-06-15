@@ -65,7 +65,7 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
             unlayer.addEventListener('design:updated', function (updates) {
                 unlayer.exportHtml(function (data) {
                     const json = data.design;
-                    localStorage.setItem('emailEditorDesign', JSON.stringify(json));
+                    localStorage.setItem('emailEditorDesign', JSON.stringify({ design: json, name: template.name, _id: template._id }));
                     setHasUnsavedChanges(true);
                 });
             });
@@ -84,7 +84,6 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
                     setShowUnsavedModal(undefined);
                 },
                 actionSave: () => {
-                    console.log(100051)
                     handleSaveDesign()
                     setShowUnsavedModal(undefined);
                     setPostAction({
@@ -149,7 +148,9 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
     const handleLoadDraft = () => {
         const draft = localStorage.getItem('emailEditorDesign');
         if (draft && unlayer) {
-            unlayer.loadDesign(JSON.parse(draft));
+            const template = JSON.parse(draft);
+            unlayer.loadDesign(template.design);
+            setTemplate(template);
         }
         setShowLoadDraftModal(false);
     };
@@ -191,7 +192,7 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
                     const scale = 0.30;
                     canvas.width = 1080 * scale;
                     canvas.height = 1620 * scale;
-                    const ctx = canvas.getContext('2d');
+                    const ctx = canvas.getContext('2d', { willReadFrequently: true });
                     if (ctx) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     const result = trimCanvas(canvas);
                     const pngUrl = result.toDataURL('image/png');
@@ -201,7 +202,7 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
                             evento_id: event?._id,
                             design: designASD,
                             html,
-                            name: 'template1',
+                            name: template?.name || 'template1',
                             preview: pngUrl,
                         },
                         domain: config?.domain
@@ -236,6 +237,18 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
             console.log('error', error)
         }
     }
+    useEffect(() => {
+        if (template?._id) {
+            fetchApiEventos({
+                query: queries.updateEmailTemplate,
+                variables: {
+                    evento_id: event?._id,
+                    template_id: template?._id,
+                    name: template?.name,
+                }
+            })
+        }
+    }, [template?.name])
 
     return (
         <div className='relative w-full h-full'>
@@ -307,7 +320,7 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
                                 <EditableLabelWithInput
                                     value={template?.name ? template.name : "Sin nombre1"}
                                     type={null}
-                                    handleChange={() => { }}
+                                    handleChange={(values) => { setTemplate({ ...template, name: values.value }) }}
                                     accessor={null}
                                     textAlign="left" />
                             </div>

@@ -110,6 +110,10 @@ export const queries = {
     }
   }`,
 
+  updateEmailTemplate: `mutation($evento_id:String, $template_id:String, $design:JSON, $name:String, $preview:String, $html:String){
+    updateEmailTemplate(evento_id:$evento_id, template_id:$template_id, design:$design, name:$name, preview:$preview, html:$html)
+  }`,
+
   getPreviewEmailTemplates: `query ($evento_id:String){
     getPreviewEmailTemplates(evento_id:$evento_id){
       _id
