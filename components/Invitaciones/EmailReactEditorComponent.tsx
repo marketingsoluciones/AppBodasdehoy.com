@@ -64,8 +64,12 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
         if (unlayer) {
             unlayer.addEventListener('design:updated', function (updates) {
                 unlayer.exportHtml(function (data) {
-                    const json = data.design;
-                    localStorage.setItem('emailEditorDesign', JSON.stringify({ design: json, name: template.name, _id: template._id }));
+                    localStorage.setItem('emailEditorDesign', JSON.stringify({
+                        design: data.design,
+                        name: template?.name ?? "template1",
+                        _id: template?._id,
+                        updatedAt: new Date()
+                    }));
                     setHasUnsavedChanges(true);
                 });
             });
@@ -176,6 +180,11 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
         }, previewEmailReactEditor ? 800 : 0);
     };
 
+    useEffect(() => {
+        console.log(100051, template)
+    }, [template])
+
+
     const handleNextSaveDesign = async () => {
         try {
             if (htmlToImageRef.current) {
@@ -196,21 +205,40 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
                     if (ctx) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     const result = trimCanvas(canvas);
                     const pngUrl = result.toDataURL('image/png');
-                    fetchApiEventos({
-                        query: queries.createEmailTemplate,
-                        variables: {
-                            evento_id: event?._id,
-                            design: designASD,
-                            html,
-                            name: template?.name || 'template1',
-                            preview: pngUrl,
-                        },
-                        domain: config?.domain
-                    }).then((res) => {
-                        localStorage.removeItem('emailEditorDesign');
-                        setHasUnsavedChanges(false);
-                        postAction?.state && postAction.action();
-                    })
+                    if (!template?._id) {
+                        fetchApiEventos({
+                            query: queries.createEmailTemplate,
+                            variables: {
+                                evento_id: event?._id,
+                                design: designASD,
+                                html,
+                                name: template?.name || 'template1',
+                                preview: pngUrl,
+                            },
+                            domain: config?.domain
+                        }).then((res) => {
+                            setTemplate({ ...template, _id: res[0]._id, updatedAt: new Date() })
+                            localStorage.removeItem('emailEditorDesign');
+                            setHasUnsavedChanges(false);
+                            postAction?.state && postAction.action();
+                        })
+                    } else {
+                        fetchApiEventos({
+                            query: queries.updateEmailTemplate,
+                            variables: {
+                                evento_id: event?._id,
+                                template_id: template?._id,
+                                design: designASD,
+                                html,
+                                preview: pngUrl,
+                            },
+                        }).then((res) => {
+                            setTemplate({ ...template, _id: res[0]._id, updatedAt: new Date() })
+                            localStorage.removeItem('emailEditorDesign');
+                            setHasUnsavedChanges(false);
+                            postAction?.state && postAction.action();
+                        })
+                    }
                     setShowSaveModal(false);
                     setHtml('');
                 };
@@ -318,7 +346,7 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
                         <div className={"flex w-[250px] h-[38px] items-end justify-start cursor-pointer border-l"} >
                             <div className='pb-1 pl-2 text-sm relative'>
                                 <EditableLabelWithInput
-                                    value={template?.name ? template.name : "Sin nombre1"}
+                                    value={template?.name ? template.name : "template1"}
                                     type={null}
                                     handleChange={(values) => { setTemplate({ ...template, name: values.value }) }}
                                     accessor={null}
