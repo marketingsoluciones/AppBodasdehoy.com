@@ -374,6 +374,11 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
                             value: "{{email}}",
                             sample: "juan@email.com"
                         },
+                        invitationImg: {
+                            name: "invitacion",
+                            value: "{{invitacion}}",
+                            sample: "no hay"
+                        },
                         // Puedes agregar más variables aquí
                     },
                     appearance: {
