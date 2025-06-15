@@ -5,47 +5,66 @@ export type Priority = 'alta' | 'media' | 'baja';
 
 interface PriorityBadgeProps {
   priority: Priority;
-  onClick?: () => void;
   className?: string;
+  onClick?: () => void;
 }
-
-const priorityConfig = {
-  alta: {
-    icon: <AlertCircle className="w-3 h-3" />,
-    color: 'bg-[#ffdddd] text-red border-[#ff8686]',
-    label: 'Alta',
-  },
-  media: {
-    icon: <AlertTriangle className="w-3 h-3" />,
-    color: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-    label: 'Media',
-  },
-  baja: {
-    icon: <Info className="w-3 h-3" />,
-    color: 'bg-[#e2ffdc] text-green border-[#92ffb8]',
-    label: 'Baja',
-  },
-};
 
 export const PriorityBadge: React.FC<PriorityBadgeProps> = ({ 
   priority, 
-  onClick,
-  className = '' 
+  className = '',
+  onClick
 }) => {
-  const config = priorityConfig[priority] || priorityConfig.media;
+  const getPriorityConfig = () => {
+    switch (priority) {
+      case 'alta':
+        return {
+          icon: <AlertCircle className="w-3 h-3" />,
+          text: 'Alta',
+          bgColor: 'bg-[#fff0f0]',
+          textColor: 'text-[#ff2525]',
+          borderColor: 'border-[#ffa7a7]'
+        };
+      case 'media':
+        return {
+          icon: <AlertTriangle className="w-3 h-3" />,
+          text: 'Media',
+          bgColor: 'bg-yellow-50',
+          textColor: 'text-yellow-700',
+          borderColor: 'border-yellow-300'
+        };
+      case 'baja':
+        return {
+          icon: <Info className="w-3 h-3" />,
+          text: 'Baja',
+          bgColor: 'bg-gray-50',
+          textColor: 'text-gray-600',
+          borderColor: 'border-gray-300'
+        };
+      default:
+        return {
+          icon: <Info className="w-3 h-3" />,
+          text: 'Media',
+          bgColor: 'bg-yellow-50',
+          textColor: 'text-yellow-700',
+          borderColor: 'border-yellow-300'
+        };
+    }
+  };
+
+  const config = getPriorityConfig();
 
   return (
-    <button
-      onClick={onClick}
+    <div 
       className={`
-        inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium border
-        ${config.color}
-        ${onClick ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}
+        inline-flex items-center px-2 py-1 rounded-full text-xs border
+        ${config.bgColor} ${config.textColor} ${config.borderColor}
+        ${onClick ? 'cursor-pointer hover:opacity-80' : ''}
         ${className}
       `}
+      onClick={onClick}
     >
       {config.icon}
-      <span>{config.label}</span>
-    </button>
+      <span className="ml-1 font-medium">{config.text}</span>
+    </div>
   );
 };

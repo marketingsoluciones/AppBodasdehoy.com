@@ -376,76 +376,124 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     };
 
     // Función handleTaskCreate corregida
+const handleTaskCreate = async (taskData: Partial<Task>) => {
+  try {
+    // Si la tarea tiene un _id, significa que ya fue creada (viene de BoardView)
+    if (taskData._id) {
+      console.log('La tarea ya existe, no se creará nuevamente');
+      return;
+    }
 
-    const handleTaskCreate = async (taskData: Partial<Task>) => {
-        try {
-            // Calcular fecha por defecto
-            const f = new Date(parseInt(event.fecha));
-            const fy = f.getUTCFullYear();
-            const fm = f.getUTCMonth();
-            const fd = f.getUTCDate();
-            let newEpoch = new Date(fy, fm + 1, fd).getTime() + 7 * 60 * 60 * 1000;
+    // Calcular fecha por defecto
+    const f = new Date(parseInt(event.fecha));
+    const fy = f.getUTCFullYear();
+    const fm = f.getUTCMonth();
+    const fd = f.getUTCDate();
+    let newEpoch = new Date(fy, fm + 1, fd).getTime() + 7 * 60 * 60 * 1000;
 
-            if (tasks?.length) {
-                const item = tasks[tasks.length - 1];
-                const epoch = new Date(item.fecha).getTime();
-                newEpoch = epoch + (item.duracion || 30) * 60 * 1000;
-            }
+    if (tasks?.length) {
+      const item = tasks[tasks.length - 1];
+      const epoch = new Date(item.fecha).getTime();
+      newEpoch = epoch + (item.duracion || 30) * 60 * 1000;
+    }
 
-            const defaultDate = taskData.fecha ? new Date(taskData.fecha) : new Date(newEpoch);
+    const defaultDate = taskData.fecha ? new Date(taskData.fecha) : new Date(newEpoch);
+    
+    // Formatear fecha correctamente
+    const year = defaultDate.getFullYear();
+    const month = defaultDate.getMonth() + 1;
+    const day = defaultDate.getDate();
+    const fechaString = `${year}-${month < 10 ? '0' : ''}${month}-${day < 10 ? '0' : ''}${day}`;
+    const horaString = `${defaultDate.getHours().toString().padStart(2, '0')}:${defaultDate.getMinutes().toString().padStart(2, '0')}`;
 
-            const response = await fetchApiEventos({
-                query: queries.createTask,
-                variables: {
-                    eventID: event._id,
-                    itinerarioID: itinerario._id,
-                    descripcion: taskData.descripcion || "Nueva tarea",
-                    fecha: defaultDate,
-                    duracion: taskData.duracion || 30,
-                    responsable: taskData.responsable || [],
-                    tags: taskData.tags || [],
-                    attachments: taskData.attachments || [],
-                    tips: taskData.tips || "",
-                    spectatorView: taskData.spectatorView !== undefined ? taskData.spectatorView : true,
-                    estatus: taskData.estatus !== undefined ? taskData.estatus : false,
-                    estado: taskData.estado || "pending",
-                    prioridad: taskData.prioridad || "media",
-                },
-                domain: config.domain
-            });
+    const response = await fetchApiEventos({
+      query: queries.createTask,
+      variables: {
+        eventID: event._id,
+        itinerarioID: itinerario._id,
+        descripcion: taskData.descripcion || "Nueva tarea",
+        fecha: fechaString,
+        hora: horaString,
+        duracion: taskData.duracion || 30
+      },
+      domain: config.domain
+    });
 
-            // Validar respuesta
-            const newTask = response && (response as Task)._id ? (response as Task) : null;
-            if (!newTask) {
-                throw new Error('Respuesta inválida del servidor');
-            }
+    // Validar respuesta de forma segura
+    if (!response) {
+      throw new Error('No se recibió respuesta del servidor');
+    }
 
-            // Actualizar el estado global (event)
-            setEvent((oldEvent) => {
-                const newEvent = { ...oldEvent };
-                const f1 = newEvent.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
-                if (f1 !== -1) {
-                    if (!newEvent.itinerarios_array[f1].tasks) {
-                        newEvent.itinerarios_array[f1].tasks = [];
-                    }
-                    newEvent.itinerarios_array[f1].tasks.push(newTask);
-                }
-                return newEvent;
-            });
+    // Verificar que la respuesta sea un objeto válido con _id
+    const responseObj = response as any;
+    if (typeof responseObj !== 'object' || !responseObj._id || typeof responseObj._id !== 'string') {
+      console.error('Respuesta inválida del servidor:', response);
+      throw new Error('La respuesta del servidor no contiene un ID válido');
+    }
+    
+    // Ahora podemos usar la respuesta como Task de forma segura
+    const newTask = responseObj as Task;
 
-            // Actualizar el estado local (tasks)
-            setTasks(prev => prev ? [...prev, newTask] : [newTask]);
+    // Asignar estado localmente para el manejo en el cliente
+    newTask.estado = taskData.estado || 'pending';
 
-            // Seleccionar la nueva tarea
-            setSelectTask(newTask._id);
+    // Si la tarea debe estar completada, actualizar su estatus
+    if (taskData.estado === 'completed' && newTask._id) {
+      try {
+        await fetchApiEventos({
+          query: queries.editTask,
+          variables: {
+            eventID: event._id,
+            itinerarioID: itinerario._id,
+            taskID: newTask._id,
+            variable: "estatus",
+            valor: "true"
+          },
+          domain: config.domain
+        });
+        newTask.estatus = true;
+      } catch (error) {
+        console.error('Error al actualizar estatus:', error);
+      }
+    }
 
-            // Notificar éxito
-            toast("success", t("Tarea creada con éxito"));
-        } catch (error) {
-            console.error('Error al crear la tarea:', error);
-            toast("error", t("Error al crear la tarea"));
+    // Actualizar el estado global (event)
+    setEvent((oldEvent) => {
+      const newEvent = { ...oldEvent };
+      const f1 = newEvent.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
+      if (f1 !== -1) {
+        if (!newEvent.itinerarios_array[f1].tasks) {
+          newEvent.itinerarios_array[f1].tasks = [];
         }
-    };
+        // Verificar que la tarea no exista ya
+        const taskExists = newEvent.itinerarios_array[f1].tasks.some(
+          t => t._id === newTask._id
+        );
+        if (!taskExists) {
+          newEvent.itinerarios_array[f1].tasks.push(newTask);
+        }
+      }
+      return newEvent;
+    });
+
+    // Actualizar el estado local (tasks) - verificar que no exista
+    setTasks(prev => {
+      if (!prev) return [newTask];
+      const taskExists = prev.some(t => t._id === newTask._id);
+      if (taskExists) return prev;
+      return [...prev, newTask];
+    });
+
+    // Seleccionar la nueva tarea
+    setSelectTask(newTask._id);
+
+    // Notificar éxito
+    toast("success", t("Tarea creada con éxito"));
+  } catch (error) {
+    console.error('Error al crear la tarea:', error);
+    toast("error", t("Error al crear la tarea"));
+  }
+};
 
 
     return (

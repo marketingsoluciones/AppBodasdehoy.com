@@ -343,9 +343,6 @@ task,
             {/* Prioridad */}
             <PriorityBadge
               priority={getValidPriority(task.prioridad)}
-              onClick={() => {
-                setShowPriorityMenu(!showPriorityMenu);
-              }}
             />
 
             {showPriorityMenu && (

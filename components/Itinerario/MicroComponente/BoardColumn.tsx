@@ -1,4 +1,3 @@
-
 import React, { useCallback, useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -36,8 +35,6 @@ interface BoardColumnProps {
   onDeleteColumn?: () => void;
   onToggleVisibility?: () => void;
   viewMode?: 'board' | 'compact' | 'list';
-
-  
 }
 
 export const BoardColumn: React.FC<BoardColumnProps> = ({
@@ -80,7 +77,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
     opacity: isDragging ? 0.5 : 1,
   };
 
-  // Crear nueva tarea
+  // Crear nueva tarea con validación
   const handleCreateTask = useCallback(() => {
     if (newTaskTitle.trim()) {
       const newTask: Partial<Task> = {
@@ -93,7 +90,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
         tips: '',
         spectatorView: true,
         estatus: false,
-        estado: column.id, // Importante: usar el ID de la columna actual
+        estado: column.id,
         prioridad: 'media',
         icon: '',
         comments: [],
@@ -116,6 +113,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
   // Manejar Enter y Escape
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
+      e.preventDefault();
       handleCreateTask();
     } else if (e.key === 'Escape') {
       handleCancelCreate();
@@ -124,7 +122,6 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
 
   // Exportar tareas de la columna
   const handleExportColumn = useCallback(() => {
-    // Prepara los datos en formato de tabla
     const rows: any[] = column.tasks.map(task => ({
       Título: task.descripcion,
       Responsable: Array.isArray(task.responsable) ? task.responsable.join(', ') : '',
@@ -136,23 +133,14 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
       Comentarios: task.comments?.length || 0
     }));
 
-    // Crea la hoja y el libro
     const worksheet = XLSX.utils.json_to_sheet(rows);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, column.title);
-
-    // Genera el archivo y lo descarga
     XLSX.writeFile(workbook, `columna-${column.title.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.xlsx`);
     
     toast.success(t('Columna exportada'));
     setShowColumnMenu(false);
   }, [column, t]);
-
-  // Duplicar columna
-  const handleDuplicateColumn = useCallback(() => {
-    toast.info(t('Función de duplicar columna en desarrollo'));
-    setShowColumnMenu(false);
-  }, [t]);
 
   // Obtener el color de la columna
   const columnColors = column.colorConfig || {
@@ -163,6 +151,33 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
 
   const isCompact = viewMode === 'compact';
   const isList = viewMode === 'list';
+
+  // Manejar el clic en agregar tarea desde el header
+  const handleAddTaskClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log('Botón agregar tarea clickeado');
+    setIsCreatingTask(true);
+  }, []);
+
+  // Determinar el color del ícono basado en el bgColor de la columna
+  const getIconColorClass = () => {
+    if (column.bgColor) {
+      return column.bgColor;
+    }
+    // Fallback basado en el ID de la columna - Solo las 4 permitidas
+    switch (column.id) {
+      case 'pending':
+        return 'bg-gray-700';
+      case 'in_progress':
+        return 'bg-primary';
+      case 'completed':
+        return 'bg-[#00b341]';
+      case 'blocked':
+        return 'bg-[#ff2525]';
+      default:
+        return 'bg-gray-600';
+    }
+  };
 
   return (
     <div
@@ -175,11 +190,10 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
         ${isCompact ? 'w-64' : 'w-80'}
         ${isList ? 'w-full max-w-4xl' : ''}
         ${column.isCollapsed ? 'h-16' : ''}
-        
       `}
       {...attributes}
     >
-      {/* Header de la columna mejorado */}
+      {/* Header de la columna */}
       <div
         {...listeners}
         className={`
@@ -199,20 +213,19 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
             )}
           </button>
           
-        {/* titulo y Ícono de la columna */}
-          <div className={`flex items-center gap-2 px-2 py-1 rounded-md ${column.bgColor}`}>
-          {/* Ícono de la columna */}
-          {column.icon && (
-            <div className={columnColors.text}>
-              {column.icon}
-            </div>
-          )}
-          {/* titulo de la columna */}
-          <h3 className={`font-medium select-none ${columnColors.text}`}>
-            {column.title}
-          </h3>
+          {/* Título y Ícono de la columna */}
+          <div className={`flex items-center gap-2 px-2 py-1 rounded-md ${getIconColorClass()}`}>
+            {/* Ícono de la columna */}
+            {column.icon && (
+              <div className="text-white">
+                {column.icon}
+              </div>
+            )}
+            {/* Título de la columna */}
+            <h3 className="font-medium select-none text-white">
+              {column.title}
+            </h3>
           </div>
-
           
           <span className="bg-white bg-opacity-60 text-gray-600 text-xs px-2 py-1 rounded-full select-none">
             {column.tasks.length}
@@ -222,10 +235,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
         <div className="flex items-center space-x-1">
           {!column.isCollapsed && (
             <button
-              onClick={() => {
-                console.log('Iniciando creación de tarea en columna:', column.id);
-                setIsCreatingTask(true);
-              }}
+              onClick={handleAddTaskClick}
               className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 hover:bg-opacity-50 rounded transition-colors"
               title={t("Agregar tarea")}
             >
@@ -245,38 +255,6 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
             {showColumnMenu && (
               <div className="absolute right-0 top-8 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
                 <div className="py-1">
-{/*                   <button
-                    onClick={() => {
-                      // Implementar configuración de columna
-                      setShowColumnMenu(false);
-                    }}
-                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    <Settings className="w-4 h-4 mr-3" />
-                    {t("Configurar columna")}
-                  </button> */}
-                  
-{/*                   {onToggleVisibility && (
-                    <button
-                      onClick={() => {
-                        onToggleVisibility();
-                        setShowColumnMenu(false);
-                      }}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      <EyeOff className="w-4 h-4 mr-3" />
-                      {t("Ocultar columna")}
-                    </button>
-                  )} */}
-                  
-{/*                   <button
-                    onClick={handleDuplicateColumn}
-                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    <Copy className="w-4 h-4 mr-3" />
-                    {t("Duplicar columna")}
-                  </button> */}
-                  
                   <button
                     onClick={handleExportColumn}
                     className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -284,23 +262,6 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
                     <Download className="w-4 h-4 mr-3" />
                     {t("Exportar columna")}
                   </button>
-                  
-{/*                   <div className="border-t border-gray-200 my-1"></div>
-                  
-                  {onDeleteColumn && (
-                    <button
-                      onClick={() => {
-                        if (window.confirm(t('¿Estás seguro de eliminar esta columna?'))) {
-                          onDeleteColumn();
-                          setShowColumnMenu(false);
-                        }
-                      }}
-                      className="flex items-center w-full px-4 py-2 text-sm text-[#ff2525] hover:bg-[#fff0f0]"
-                    >
-                      <Trash2 className="w-4 h-4 mr-3" />
-                      {t("Eliminar columna")}
-                    </button>
-                  )} */}
                 </div>
               </div>
             )}
@@ -310,13 +271,13 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
 
       {/* Contenido de la columna */}
       {!column.isCollapsed && (
-        <div           className={`
-            flex-1 w-full max-h-full min-h-0 p-3 space-y-3 overflow-y-auto
-            ${isCompact ? 'max-h-72' : 'max-h-96'}
-            ${isList ? 'max-h-full' : ''}
-          `}
-          style={{ height: '100%' }} // <-- Fuerza el alto máximo
-          >
+        <div className={`
+          flex-1 w-full max-h-full min-h-0 p-3 space-y-3 overflow-y-auto
+          ${isCompact ? 'max-h-72' : 'max-h-96'}
+          ${isList ? 'max-h-full' : ''}
+        `}
+        style={{ height: '100%' }}
+        >
           {/* Formulario para crear nueva tarea */}
           {isCreatingTask && (
             <div className="bg-white bg-opacity-80 border border-gray-200 rounded-md p-3 shadow-sm">
@@ -339,7 +300,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
                 <button
                   onClick={handleCreateTask}
                   disabled={!newTaskTitle.trim()}
-                  className="px-3 py-1 text-sm bg-primary text-white rounded hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-3 py-1 text-sm bg-primary text-white rounded hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {t("Crear")}
                 </button>
@@ -371,9 +332,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
               ))}
           </SortableContext>
 
-
-
-          {/* Botón para agregar tarea (cuando no está colapsada y no hay tareas) */}
+          {/* Botón para agregar tarea cuando no hay tareas */}
           {column.tasks.length === 0 && !isCreatingTask && (
             <button
               onClick={() => setIsCreatingTask(true)}
@@ -388,7 +347,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
         </div>
       )}
 
-      {/* Pie de columna con botón de agregar cuando no está colapsada */}
+      {/* Pie de columna con botón de agregar cuando hay tareas */}
       {!column.isCollapsed && column.tasks.length > 0 && !isCreatingTask && (
         <div className={`p-3 border-t ${columnColors.border}`}>
           <button

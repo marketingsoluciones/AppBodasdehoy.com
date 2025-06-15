@@ -28,8 +28,7 @@ export const BoardFilters: React.FC<BoardFiltersProps> = ({
   const [localFilters, setLocalFilters] = useState(activeFilters);
 
   // Extraer valores únicos para los filtros
-
- const filterOptions = useMemo(() => {
+  const filterOptions = useMemo(() => {
     const responsables = new Set<string>();
     const tags = new Set<string>();
     const statuses = new Set<string>();
@@ -37,18 +36,24 @@ export const BoardFilters: React.FC<BoardFiltersProps> = ({
   
     tasks.forEach(task => {
       // Responsables
-      task.responsable?.forEach(r => responsables.add(r));
+      if (task.responsable && Array.isArray(task.responsable)) {
+        task.responsable.forEach(r => {
+          if (r) responsables.add(r);
+        });
+      }
       
       // Tags
-      task.tags?.forEach(t => {
-        tags.add(t);
-      });
+      if (task.tags && Array.isArray(task.tags)) {
+        task.tags.forEach(t => {
+          if (t) tags.add(t);
+        });
+      }
       
-      // Estados - Usando solo la propiedad estatus
+      // Estados - Usando la propiedad estatus
       if (task.estatus === true) {
-        statuses.add('completed'); // Completada
+        statuses.add('completed');
       } else {
-        statuses.add('pending'); // Pendiente
+        statuses.add('pending');
       }
       
       // Prioridades
@@ -65,10 +70,17 @@ export const BoardFilters: React.FC<BoardFiltersProps> = ({
     };
   }, [tasks]);
 
-
   // Aplicar filtros
   const handleApplyFilters = useCallback(() => {
-    onFiltersChange(localFilters);
+    // Limpiar filtros vacíos antes de aplicar
+    const cleanedFilters = Object.entries(localFilters).reduce((acc, [key, value]) => {
+      if (value && (Array.isArray(value) ? value.length > 0 : true)) {
+        acc[key] = value;
+      }
+      return acc;
+    }, {} as Record<string, any>);
+    
+    onFiltersChange(cleanedFilters);
   }, [localFilters, onFiltersChange]);
 
   // Limpiar filtros
@@ -79,10 +91,16 @@ export const BoardFilters: React.FC<BoardFiltersProps> = ({
 
   // Actualizar filtro local
   const updateLocalFilter = useCallback((key: string, value: any) => {
-    setLocalFilters(prev => ({
-      ...prev,
-      [key]: value,
-    }));
+    setLocalFilters(prev => {
+      if (value === '' || value === null || value === undefined || (Array.isArray(value) && value.length === 0)) {
+        const { [key]: _, ...rest } = prev;
+        return rest;
+      }
+      return {
+        ...prev,
+        [key]: value,
+      };
+    });
   }, []);
 
   // Alternar elemento en array de filtro
@@ -93,9 +111,14 @@ export const BoardFilters: React.FC<BoardFiltersProps> = ({
         ? currentArray.filter((i: string) => i !== item)
         : [...currentArray, item];
       
+      if (newArray.length === 0) {
+        const { [key]: _, ...rest } = prev;
+        return rest;
+      }
+      
       return {
         ...prev,
-        [key]: newArray.length > 0 ? newArray : undefined,
+        [key]: newArray,
       };
     });
   }, []);
@@ -145,54 +168,54 @@ export const BoardFilters: React.FC<BoardFiltersProps> = ({
             <span>Responsables</span>
           </label>
           <div className="max-h-32 overflow-y-auto border border-gray-200 rounded-md p-2 space-y-1">
-            {filterOptions.responsables.map(responsable => (
-              <label
-                key={responsable}
-                className="flex items-center space-x-2 text-sm cursor-pointer hover:bg-gray-50 p-1 rounded"
-              >
-                <input
-                  type="checkbox"
-                  checked={(localFilters.responsable || []).includes(responsable)}
-                  onChange={() => toggleArrayFilter('responsable', responsable)}
-                  className="rounded border-gray-300 text-primary focus:ring-primary"
-                />
-                <span>{responsable}</span>
-              </label>
-            ))}
-            {filterOptions.responsables.length === 0 && (
+            {filterOptions.responsables.length > 0 ? (
+              filterOptions.responsables.map(responsable => (
+                <label
+                  key={responsable}
+                  className="flex items-center space-x-2 text-sm cursor-pointer hover:bg-gray-50 p-1 rounded"
+                >
+                  <input
+                    type="checkbox"
+                    checked={(localFilters.responsable || []).includes(responsable)}
+                    onChange={() => toggleArrayFilter('responsable', responsable)}
+                    className="rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <span>{responsable}</span>
+                </label>
+              ))
+            ) : (
               <p className="text-gray-500 text-sm">No hay responsables</p>
             )}
           </div>
         </div>
 
-
-{/* Filtro de Estados */}
-<div className="space-y-2">
-  <label className="flex items-center space-x-1 text-sm font-medium text-gray-700">
-    <CheckCircle className="w-4 h-4" />
-    <span>Estados</span>
-  </label>
-  <div className="space-y-1">
-    {[
-      { key: 'pending', label: 'Pendiente', icon: Clock },
-      { key: 'completed', label: 'Completado', icon: CheckCircle }
-    ].map(status => (
-      <label
-        key={status.key}
-        className="flex items-center space-x-2 text-sm cursor-pointer hover:bg-gray-50 p-1 rounded"
-      >
-        <input
-          type="checkbox"
-          checked={(localFilters.status || []).includes(status.key)}
-          onChange={() => toggleArrayFilter('status', status.key)}
-          className="rounded border-gray-300 text-primary focus:ring-primary"
-        />
-        <status.icon className="w-4 h-4 text-gray-400" />
-        <span>{status.label}</span>
-      </label>
-    ))}
-  </div>
-</div>
+        {/* Filtro de Estados */}
+        <div className="space-y-2">
+          <label className="flex items-center space-x-1 text-sm font-medium text-gray-700">
+            <CheckCircle className="w-4 h-4" />
+            <span>Estados</span>
+          </label>
+          <div className="space-y-1">
+            {[
+              { key: 'pending', label: 'Pendiente', icon: Clock, color: 'text-gray-600' },
+              { key: 'completed', label: 'Completado', icon: CheckCircle, color: 'text-[#00b341]' }
+            ].map(status => (
+              <label
+                key={status.key}
+                className="flex items-center space-x-2 text-sm cursor-pointer hover:bg-gray-50 p-1 rounded"
+              >
+                <input
+                  type="checkbox"
+                  checked={(localFilters.status || []).includes(status.key)}
+                  onChange={() => toggleArrayFilter('status', status.key)}
+                  className="rounded border-gray-300 text-primary focus:ring-primary"
+                />
+                <status.icon className={`w-4 h-4 ${status.color}`} />
+                <span>{status.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
 
         {/* Filtro de Etiquetas */}
         <div className="space-y-2">
@@ -201,22 +224,23 @@ export const BoardFilters: React.FC<BoardFiltersProps> = ({
             <span>Etiquetas</span>
           </label>
           <div className="max-h-32 overflow-y-auto border border-gray-200 rounded-md p-2 space-y-1">
-            {filterOptions.tags.map(tag => (
-              <label
-                key={tag}
-                className="flex items-center space-x-2 text-sm cursor-pointer hover:bg-gray-50 p-1 rounded"
-              >
-                <input
-                  type="checkbox"
-                  checked={(localFilters.tags || []).includes(tag)}
-                  onChange={() => toggleArrayFilter('tags', tag)}
-                  className="rounded border-gray-300 text- focus:ring-primary"
-                />
-                <span className="inline-block w-3 h-3 bg-primary rounded"></span>
-                <span>{tag}</span>
-              </label>
-            ))}
-            {filterOptions.tags.length === 0 && (
+            {filterOptions.tags.length > 0 ? (
+              filterOptions.tags.map(tag => (
+                <label
+                  key={tag}
+                  className="flex items-center space-x-2 text-sm cursor-pointer hover:bg-gray-50 p-1 rounded"
+                >
+                  <input
+                    type="checkbox"
+                    checked={(localFilters.tags || []).includes(tag)}
+                    onChange={() => toggleArrayFilter('tags', tag)}
+                    className="rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <span className="inline-block w-3 h-3 bg-primary rounded"></span>
+                  <span>{tag}</span>
+                </label>
+              ))
+            ) : (
               <p className="text-gray-500 text-sm">No hay etiquetas</p>
             )}
           </div>
@@ -235,7 +259,7 @@ export const BoardFilters: React.FC<BoardFiltersProps> = ({
                 type="date"
                 value={localFilters.dateFrom || ''}
                 onChange={(e) => updateLocalFilter('dateFrom', e.target.value)}
-                className="w-full px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-primary"
+                className="w-full px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-primary focus:border-primary"
               />
             </div>
             <div>
@@ -244,57 +268,18 @@ export const BoardFilters: React.FC<BoardFiltersProps> = ({
                 type="date"
                 value={localFilters.dateTo || ''}
                 onChange={(e) => updateLocalFilter('dateTo', e.target.value)}
-                className="w-full px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-primary"
+                className="w-full px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-primary focus:border-primary"
               />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Filtros avanzados */}
-{/*       <div className="mt-4 pt-4 border-t border-gray-200">
-        <h4 className="text-sm font-medium text-gray-700 mb-2">Filtros Avanzados</h4>
-        <div className="flex flex-wrap gap-2">
-          
-          <label className="flex items-center space-x-2 text-sm cursor-pointer">
-            <input
-              type="checkbox"
-              checked={localFilters.overdue || false}
-              onChange={(e) => updateLocalFilter('overdue', e.target.checked)}
-              className="rounded border-gray-300 text-primary focus:ring-primary"
-            />
-            <span>Solo vencidas</span>
-          </label>
-
-          
-          <label className="flex items-center space-x-2 text-sm cursor-pointer">
-            <input
-              type="checkbox"
-              checked={localFilters.hasAttachments || false}
-              onChange={(e) => updateLocalFilter('hasAttachments', e.target.checked)}
-              className="rounded border-gray-300 text-primary focus:ring-primary"
-            />
-            <span>Con adjuntos</span>
-          </label>
-
-          
-          <label className="flex items-center space-x-2 text-sm cursor-pointer">
-            <input
-              type="checkbox"
-              checked={localFilters.unassigned || false}
-              onChange={(e) => updateLocalFilter('unassigned', e.target.checked)}
-              className="rounded border-gray-300 text-primary focus:ring-primary"
-            />
-            <span>Sin responsable</span>
-          </label>
-        </div>
-      </div> */}
-
       {/* Botón para aplicar filtros */}
       <div className="mt-4 flex justify-end">
         <button
           onClick={handleApplyFilters}
-          className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary transition-colors"
+          className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
         >
           Aplicar Filtros
         </button>

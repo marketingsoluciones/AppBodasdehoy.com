@@ -268,8 +268,8 @@ export const queries = {
   }`,
 
 
-  createTask: `mutation ($eventID:String, $itinerarioID:String, $fecha:String, $descripcion:String, $hora:String, $duracion:Int, $estado:String, $order:Int){
-    createTask(eventID:$eventID, itinerarioID:$itinerarioID, fecha:$fecha, descripcion:$descripcion, hora:$hora, duracion:$duracion, estado:$estado, order:$order ){
+createTask: `mutation ($eventID:String, $itinerarioID:String, $fecha:String, $descripcion:String, $hora:String, $duracion:Int){
+    createTask(eventID:$eventID, itinerarioID:$itinerarioID, fecha:$fecha, descripcion:$descripcion, hora:$hora, duracion:$duracion ){
       _id
       fecha
       hora
@@ -304,8 +304,6 @@ export const queries = {
       commentsViewers
       estado
       prioridad
-      order
-      columnId
       fecha_creacion
     }
   }`,
