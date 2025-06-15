@@ -14,6 +14,7 @@ import { ModalHtmlPreview } from './ModalHtmlPreview';
 import { ModalTemplates } from './ModalTemplates';
 import { EmailDesign } from '../../utils/Interfaces';
 import { EditableLabelWithInput } from '../Forms/EditableLabelWithInput';
+import ButtonPrimary from './ButtonPrimary';
 
 interface props {
     setEmailEditorModal: (value: boolean) => void
@@ -21,58 +22,144 @@ interface props {
     previewEmailReactEditor?: boolean
 }
 
+type showUnsavedModalType = {
+    state: boolean,
+    label: string,
+    actionUnsave: () => void,
+    actionSave: () => void
+}
+
+type postActionType = {
+    state: boolean,
+    action: () => void
+}
+
 export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModal, previewEmailReactEditor, ...props }) => {
     const { config } = AuthContextProvider()
     const { event } = EventContextProvider()
+    const { t } = useTranslation();
     const emailEditorRef = useRef<EditorRef>(null);
-    const [editorReady, setEditorReady] = useState(false);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [design, setDesign] = useState();
-    const [html, setHtml] = useState<string>('');
-    const [showHtmlModal, setShowHtmlModal] = useState(false);
-    const [showTemplatesModal, setShowTemplatesModal] = useState(false);
     const unlayer = emailEditorRef.current?.editor;
+    const [editorReady, setEditorReady] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [html, setHtml] = useState<string>('');
+    const [designASD, setDesignASD] = useState<EmailDesign>();
     const [template, setTemplate] = useState<EmailDesign>();
     const htmlToImageRef = useRef(null);
-    const canvasRef = useRef(null);
-    const { t } = useTranslation();
+    const [showTemplatesModal, setShowTemplatesModal] = useState<boolean>(false);
+    const [showSaveModal, setShowSaveModal] = useState<boolean>(false);
+    const [showUnsavedModal, setShowUnsavedModal] = useState<showUnsavedModalType>();
+    const [showLoadDraftModal, setShowLoadDraftModal] = useState<boolean>(false);
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
+    const [postAction, setPostAction] = useState<postActionType>();
 
-    const saveDesign = () => {
+    useEffect(() => {
+        const draft = localStorage.getItem('emailEditorDesign');
+        if (draft) {
+            setShowLoadDraftModal(true);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (unlayer) {
+            unlayer.addEventListener('design:updated', function (updates) {
+                unlayer.exportHtml(function (data) {
+                    const json = data.design;
+                    localStorage.setItem('emailEditorDesign', JSON.stringify(json));
+                    setHasUnsavedChanges(true);
+                });
+            });
+        }
+    }, [unlayer]);
+
+    const handleCloseEditor = () => {
+        if (hasUnsavedChanges) {
+            setShowUnsavedModal({
+                state: true,
+                label: '¿Seguro que quieres salir?',
+                actionUnsave: () => {
+                    localStorage.removeItem('emailEditorDesign');
+                    setHasUnsavedChanges(false);
+                    setEmailEditorModal(false);
+                    setShowUnsavedModal(undefined);
+                },
+                actionSave: () => {
+                    console.log(100051)
+                    handleSaveDesign()
+                    setShowUnsavedModal(undefined);
+                    setPostAction({
+                        state: true,
+                        action: () => {
+                            setEmailEditorModal(false);
+                        }
+                    });
+                }
+            });
+        } else {
+            setEmailEditorModal(false);
+        }
+    };
+
+    const handleOpenFolderTemplates = () => {
+        if (hasUnsavedChanges) {
+            setShowUnsavedModal({
+                state: true,
+                label: '¿Seguro que quieres continuar?',
+                actionUnsave: () => {
+                    setShowTemplatesModal(true);
+                    setShowUnsavedModal(undefined);
+                    setPostAction({
+                        state: true,
+                        action: () => {
+                            localStorage.removeItem('emailEditorDesign');
+                            setHasUnsavedChanges(false);
+                        }
+                    });
+                },
+                actionSave: () => {
+                    handleSaveDesign()
+                    setShowUnsavedModal(undefined);
+                    setPostAction({
+                        state: true,
+                        action: () => {
+                            setShowTemplatesModal(true);
+                        }
+                    });
+                }
+            });
+        } else {
+            setShowTemplatesModal(true);
+        }
+    };
+
+    const handleSaveDesign = () => {
         try {
             unlayer?.saveDesign((design) => {
-                setDesign(design)
+                setDesignASD(design)
             });
             unlayer.exportHtml(function (data) {
-                console.log(100041, data)
                 setHtml(data.html);
-                setShowHtmlModal(true);
+                setShowSaveModal(true);
             });
         } catch (error) {
             console.log('error', error)
         }
     };
 
-    useEffect(() => {
-        if (unlayer) {
-            unlayer.addEventListener('design:updated', function (updates) {
-                var type = updates.type; // body, row, content
-                var item = updates.item;
-                var changes = updates.changes;
-                console.log('design:updated', type, item, changes);
-                // Design has been updated by the user
-                console.log(100039, updates)
-                unlayer.exportHtml(function (data) {
-                    const json = data.design; // The updated design JSON
-                    const html = data.html; // The updated HTML
-                    console.log(100040, json)
-                    // Auto-save the JSON and/or HTML here
-                });
-            });
+    const handleLoadDraft = () => {
+        const draft = localStorage.getItem('emailEditorDesign');
+        if (draft && unlayer) {
+            unlayer.loadDesign(JSON.parse(draft));
         }
-    }, [unlayer])
+        setShowLoadDraftModal(false);
+    };
+
+    const handleDiscardDraft = () => {
+        localStorage.removeItem('emailEditorDesign');
+        setShowLoadDraftModal(false);
+    };
 
     const onLoad: EmailEditorProps['onReady'] = (unlayer) => {
-
         if (previewEmailReactEditor) {
             unlayer.showPreview({
                 device: "desktop",
@@ -82,26 +169,19 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
     };
 
     const onReady: EmailEditorProps['onReady'] = (unlayer) => {
-        console.log(100045, unlayer)
-        //unlayer.loadDesign()
         setEditorReady(true);
         setTimeout(() => {
             setIsLoading(true)
         }, previewEmailReactEditor ? 800 : 0);
     };
 
-    useEffect(() => {
-        console.log(100048, htmlToImageRef.current)
-    }, [htmlToImageRef.current])
-
-    const handleDownloadPng = async () => {
+    const handleNextSaveDesign = async () => {
         try {
             if (htmlToImageRef.current) {
                 const node = htmlToImageRef.current;
                 const rect = node.getBoundingClientRect();
-                console.log(100042, rect.width, rect.height);
                 const dataUrl = await toPng(node, {
-                    cacheBust: false,
+                    cacheBust: true,
                     width: rect.width,
                     height: rect.height
                 });
@@ -114,31 +194,23 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
                     const ctx = canvas.getContext('2d');
                     if (ctx) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     const result = trimCanvas(canvas);
-                    // Descargar la imagen
                     const pngUrl = result.toDataURL('image/png');
-                    // console.log(100042, pngUrl);
-
                     fetchApiEventos({
                         query: queries.createEmailTemplate,
                         variables: {
                             evento_id: event?._id,
-                            design,
+                            design: designASD,
                             html,
                             name: 'template1',
                             preview: pngUrl,
                         },
                         domain: config?.domain
                     }).then((res) => {
-                        console.log(100043, res)
+                        localStorage.removeItem('emailEditorDesign');
+                        setHasUnsavedChanges(false);
+                        postAction?.state && postAction.action();
                     })
-
-                    // const link = document.createElement('a');
-                    // link.href = pngUrl;
-                    // link.download = 'email-preview.png';
-                    // document.body.appendChild(link);
-                    // link.click();
-                    // document.body.removeChild(link);
-                    setShowHtmlModal(false);
+                    setShowSaveModal(false);
                     setHtml('');
                 };
                 img.src = dataUrl;
@@ -157,7 +229,6 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
                     template_id: emailDesign._id
                 }
             }).then((res) => {
-                console.log(100044, res)
                 unlayer.loadDesign(res[0].design as any)
                 setTemplate({ ...emailDesign, design: res[0].design })
             })
@@ -166,27 +237,67 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
         }
     }
 
-    useEffect(() => {
-        console.log(100046, template?.name)
-    }, [template])
-
     return (
         <div className='relative w-full h-full'>
+            {showSaveModal && (
+                <ModalDefault onClose={() => { setShowSaveModal(false); setHtml(''); }} >
+                    <ModalHtmlPreview htmlToImageRef={htmlToImageRef} html={html} action={handleNextSaveDesign} />
+                </ModalDefault>
+            )}
+            {showTemplatesModal && (
+                <ModalDefault onClose={() => { setShowTemplatesModal(false) }} >
+                    <ModalTemplates action={(emailDesign: EmailDesign) => {
+                        loadDesign(emailDesign)
+                        postAction?.state && postAction.action();
+                    }} />
+                </ModalDefault>
+            )}
+            {showLoadDraftModal && (
+                <ModalDefault onClose={handleDiscardDraft}>
+                    <div className="p-4">
+                        <p className="mb-4">Tienes un diseño guardado sin terminar. ¿Quieres cargarlo?</p>
+                        <div className="flex gap-2">
+                            <ButtonPrimary onClick={handleLoadDraft}>Cargar</ButtonPrimary>
+                            <ButtonPrimary onClick={handleDiscardDraft}>Descartar</ButtonPrimary>
+                        </div>
+                    </div>
+                </ModalDefault>
+            )}
+            {showUnsavedModal?.state && (
+                <ModalDefault onClose={() => setShowUnsavedModal({ state: false, label: '', actionUnsave: () => { }, actionSave: () => { } })}>
+                    <div className="p-4">
+                        <p className="mb-4">{`Tienes cambios sin guardar. ${showUnsavedModal.label}`}</p>
+                        <div className="flex gap-2 flex-wrap">
+                            <ButtonPrimary onClick={showUnsavedModal.actionUnsave} >
+                                Descartar los cambios
+                            </ButtonPrimary>
+                            <ButtonPrimary onClick={showUnsavedModal.actionSave} >
+                                Guardar los cambios
+                            </ButtonPrimary>
+                            <ButtonPrimary
+                                onClick={() => setShowUnsavedModal({ state: false, label: '', actionUnsave: () => { }, actionSave: () => { } })}
+                            >
+                                Cancelar
+                            </ButtonPrimary>
+                        </div>
+                    </div>
+                </ModalDefault>
+            )}
             {!isLoading && <div className="absolute z-50  top-[calc(50%-20px)] left-[calc(50%-20px)] loader ease-linear rounded-full border-[7px] border-black border-opacity-35 w-10 h-10" />}
             <div className={`h-full ${isLoading ? "opacity-100" : "opacity-0"} transition-all duration-300`} >
                 {editorReady && <div className='absolute flex'>
-                    <div onClick={() => setEmailEditorModal(!EmailEditorModal)} className={"flex w-16 h-[38px] flex-col items-center justify-center cursor-pointer border-l hover:bg-[#F4F4F4]"} >
+                    <div onClick={handleCloseEditor} className={"flex w-16 h-[38px] flex-col items-center justify-center cursor-pointer border-l hover:bg-[#F4F4F4]"} >
                         <div className='pt-[2px]'>
                             <GoArrowLeft className='h-5 w-5' />
                         </div>
                     </div>
                     {!previewEmailReactEditor && <>
-                        <div onClick={() => { setShowTemplatesModal(true) }} className={"flex w-[50px] h-[38px] flex-col items-center justify-center cursor-pointer border-l hover:bg-[#F4F4F4]"} >
+                        <div onClick={handleOpenFolderTemplates} className={"flex w-[50px] h-[38px] flex-col items-center justify-center cursor-pointer border-l hover:bg-[#F4F4F4]"} >
                             <div className='pt-[2px]'>
                                 <IoFolderOpenOutline className='h-5 w-5' />
                             </div>
                         </div>
-                        <div onClick={() => saveDesign()} className={"flex w-[50px] h-[38px] flex-col items-center justify-center cursor-pointer border-l hover:bg-[#F4F4F4]"} >
+                        <div onClick={handleSaveDesign} className={"flex w-[50px] h-[38px] flex-col items-center justify-center cursor-pointer border-l hover:bg-[#F4F4F4]"} >
                             <div className='pt-[2px]'>
                                 <IoSaveOutline className='h-5 w-5' />
                             </div>
@@ -271,17 +382,6 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
                     },
                 }} />
             </div>
-
-            {showHtmlModal && (
-                <ModalDefault onClose={() => { setShowHtmlModal(false); setHtml(''); }} >
-                    <ModalHtmlPreview htmlToImageRef={htmlToImageRef} html={html} action={handleDownloadPng} />
-                </ModalDefault>
-            )}
-            {showTemplatesModal && (
-                <ModalDefault onClose={() => { setShowTemplatesModal(false) }} >
-                    <ModalTemplates action={(emailDesign: EmailDesign) => { loadDesign(emailDesign) }} />
-                </ModalDefault>
-            )}
             <style jsx>
                 {`
           .loader {
