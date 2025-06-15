@@ -547,12 +547,16 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                         </div>}
                     </>}
                 </div>
-                {isAllowed() && <div className="inline-flex justify-center space-x-4">
-                    <AddTaskButton 
-                        onAddTask={addTask} 
-                        tipo={itinerario?.tipo || window?.location?.pathname.slice(1)}
-                    />
-                    {view === "cards" && <SelectModeSort value={orderAndDirection} setValue={setOrderAndDirection} />}
+                {isAllowed() && <div className="inline-flex space-x-4">
+                    {view === "cards" && (
+                        <>
+                            <AddTaskButton 
+                                onAddTask={addTask} 
+                                tipo={itinerario?.tipo || window?.location?.pathname.slice(1)}
+                            />
+                            <SelectModeSort value={orderAndDirection} setValue={setOrderAndDirection} />
+                        </>
+                    )}
                     <SelectModeView value={view} setValue={setView} />
                 </div>
                 }
