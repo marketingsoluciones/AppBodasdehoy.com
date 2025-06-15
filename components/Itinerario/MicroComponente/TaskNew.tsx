@@ -1,6 +1,6 @@
 import { Form, Formik } from "formik";
 import { FC, HTMLAttributes, useEffect, useRef, useState, useCallback, memo } from "react";
-import { SelectIcon, GruposResponsablesArry, ResponsableSelector } from ".";
+import { SelectIcon, GruposResponsablesArry } from ".";
 import { EventContextProvider } from "../../../context/EventContext";
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
 import { AuthContextProvider } from "../../../context";
@@ -22,11 +22,13 @@ import { TempPastedAndDropFiles } from "./ItineraryPanel";
 import { downloadFile } from "../../Utils/storages";
 import { useToast } from "../../../hooks/useToast";
 import InputField from "../../Forms/InputField";
-import InputAttachments from "../../Forms/InputAttachments";
+import { NewAttachmentsEditor } from "./NewAttachmentsEditor";
 import { InputTags } from "../../Forms/InputTags";
 import { MyEditor } from "./QuillText";
 import { Modal } from "../../Utils/ModalServicios";
 import { TASK_STATUSES, TASK_PRIORITIES } from './NewTypes';
+import { ClickUpResponsableSelector } from './NewResponsableSelector';
+import { NewSelectIcon } from './NewSelectIcon';
 import {
   X, MessageSquare, Paperclip, Tag, Calendar, Clock, User, Flag, ChevronDown, Copy, Link, MoreHorizontal, Trash2, Archive, Bell, Plus, Eye, EyeOff, GitBranch, Lock, Unlock
 } from 'lucide-react';
@@ -35,7 +37,7 @@ import {
 interface TaskFormValues {
   _id: string;
   icon: string;
-  fecha: string | Date; // <-- Permitir ambos tipos
+  fecha: string | Date;
   hora: string;
   duracion: string | number;
   tags: string[];
@@ -70,6 +72,29 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
   isTaskPublic?: boolean;
 }
 
+// Conversor de minutos a formato legible
+const minutesToReadableFormat = (minutes: number): string => {
+  if (!minutes || minutes === 0) return "0 min";
+  
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  
+  if (hours === 0) return `${mins} min`;
+  if (mins === 0) return `${hours} h`;
+  return `${hours} h ${mins} min`;
+};
+
+// Conversor de formato legible a minutos
+const readableFormatToMinutes = (value: string): number => {
+  const hoursMatch = value.match(/(\d+)\s*h/);
+  const minsMatch = value.match(/(\d+)\s*min/);
+  
+  const hours = hoursMatch ? parseInt(hoursMatch[1]) : 0;
+  const mins = minsMatch ? parseInt(minsMatch[1]) : 0;
+  
+  return hours * 60 + mins;
+};
+
 export const TaskNew: FC<Props> = memo(({
   itinerario,
   task,
@@ -83,6 +108,7 @@ export const TaskNew: FC<Props> = memo(({
   ...props
 }) => {
   const divRef = useRef<HTMLDivElement>(null);
+  const commentsContainerRef = useRef<HTMLDivElement>(null);
   const { config, geoInfo, user } = AuthContextProvider();
   const { event, setEvent } = EventContextProvider();
   const { t } = useTranslation();
@@ -105,6 +131,10 @@ export const TaskNew: FC<Props> = memo(({
   const [editingResponsable, setEditingResponsable] = useState(false);
   const [tempResponsable, setTempResponsable] = useState<string[]>([]);
   const [editingAttachments, setEditingAttachments] = useState(false);
+  const [editingDuration, setEditingDuration] = useState(false);
+  const [durationInput, setDurationInput] = useState('');
+  const [showIconSelector, setShowIconSelector] = useState(false);
+  const [tempIcon, setTempIcon] = useState(task.icon || '');
 
   // Estado local de la tarea
   const [localTask, setLocalTask] = useState<TaskFormValues>({
@@ -126,14 +156,6 @@ export const TaskNew: FC<Props> = memo(({
     prioridad: task?.prioridad || 'media'
   });
 
-  /*
-   NO BORRAR, HAY QUE VER SI SIRVE PARA REUTILIZARLO 
-     const initialValues: TaskDateTimeAsString = {
-      fecha: !task?.fecha ? "" : new Date(task?.fecha).toLocaleString(geoInfo?.acceptLanguage?.split(",")[0], { year: 'numeric', month: '2-digit', day: '2-digit' }),
-      hora: !task?.fecha ? "" : new Date(task?.fecha).toLocaleString(geoInfo?.acceptLanguage?.split(",")[0], { hour: 'numeric', minute: 'numeric' }), 
-    } 
-  */
-
   useEffect(() => {
     setLocalTask({
       _id: task?._id || "",
@@ -154,6 +176,7 @@ export const TaskNew: FC<Props> = memo(({
       prioridad: task?.prioridad || 'media'
     });
     setCustomDescription(task?.tips || '');
+    setTempIcon(task?.icon || '');
   }, [task]);
 
   // Función para manejar actualización de campos
@@ -237,28 +260,87 @@ export const TaskNew: FC<Props> = memo(({
   };
 
   // Manejadores específicos
-  const handleIconChange = (name: string, value: any) => {
+  const handleIconChange = (value: string) => {
+    setTempIcon(value);
     handleUpdate('icon', value);
+    setShowIconSelector(false);
   };
 
-  const handleDuplicate = () => {
-    const duplicatedTask = {
-      ...task,
-      descripcion: `${task.descripcion} (copia)`,
-      fecha: new Date(),
-      _id: undefined,
-      createdAt: undefined,
-      updatedAt: undefined,
-      comments: [],
-      commentsViewers: []
-    };
+  const handleDeleteComment = async (commentId: string) => {
+    try {
+      await fetchApiEventos({
+        query: queries.deleteComment,
+        variables: {
+          eventID: event._id,
+          itinerarioID: itinerario._id,
+          taskID: task._id,
+          commentID: commentId
+        },
+        domain: config.domain
+      });
 
-    delete duplicatedTask._id;
-    delete duplicatedTask.createdAt;
-    delete duplicatedTask.updatedAt;
+      // Actualizar estado global
+      setEvent((oldEvent) => {
+        const newEvent = { ...oldEvent };
+        const itineraryIndex = newEvent.itinerarios_array.findIndex(it => it._id === itinerario._id);
+        
+        if (itineraryIndex > -1) {
+          const taskIndex = newEvent.itinerarios_array[itineraryIndex].tasks.findIndex(t => t._id === task._id);
+          
+          if (taskIndex > -1) {
+            newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex].comments = 
+              newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex].comments.filter(c => c._id !== commentId);
+          }
+        }
+        
+        return newEvent;
+      });
 
-    // Aquí deberías llamar a una función para crear la tarea
-    toast('success', t('Tarea duplicada'));
+      // Actualizar estado local
+      setComments(prev => prev.filter(c => c._id !== commentId));
+      
+      toast("success", t("Comentario eliminado"));
+    } catch (error) {
+      console.error('Error al eliminar comentario:', error);
+      toast("error", t("Error al eliminar comentario"));
+    }
+  };
+
+  const handleDuplicate = async () => {
+    try {
+      const newDate = new Date();
+      const response = await fetchApiEventos({
+        query: queries.createTask,
+        variables: {
+          eventID: event._id,
+          itinerarioID: itinerario._id,
+          descripcion: `${task.descripcion} (copia)`,
+          fecha: newDate.toISOString(),
+          duracion: task.duracion || 30,
+          estado: 'pending'
+        },
+        domain: config.domain
+      }) as Task; // Asegurar el tipo Task
+
+      if (response && response._id) {
+        // Actualizar el estado global
+        setEvent((oldEvent) => {
+          const newEvent = { ...oldEvent };
+          const itineraryIndex = newEvent.itinerarios_array.findIndex(it => it._id === itinerario._id);
+          
+          if (itineraryIndex > -1) {
+            newEvent.itinerarios_array[itineraryIndex].tasks.push(response);
+          }
+          
+          return newEvent;
+        });
+
+        toast('success', t('Tarea duplicada'));
+      }
+    } catch (error) {
+      console.error('Error al duplicar tarea:', error);
+      toast('error', t('Error al duplicar tarea'));
+    }
   };
 
   const handleAddTag = (newTag: string) => {
@@ -301,85 +383,90 @@ export const TaskNew: FC<Props> = memo(({
   const currentStatus = TASK_STATUSES.find(s => s.value === localTask.estado) || TASK_STATUSES[0];
   const currentPriority = TASK_PRIORITIES.find(p => p.value === localTask.prioridad) || TASK_PRIORITIES[1];
 
-  // Manejo de comentarios
+  // Manejo de comentarios - ordenados de más antiguo a más reciente (abajo hacia arriba)
   useEffect(() => {
     const sortedComments = (task?.comments || [])
       .sort((a, b) => {
         const dateA = a?.createdAt ? new Date(a.createdAt).getTime() : 0;
         const dateB = b?.createdAt ? new Date(b.createdAt).getTime() : 0;
-        return dateB - dateA;
+        return dateA - dateB; // Orden ascendente (más antiguos primero)
       });
     setComments(sortedComments);
   }, [task?.comments]);
 
+  // Auto-scroll al agregar nuevos comentarios
   useEffect(() => {
-    if (comments.length > previousCountComments && divRef.current) {
-      divRef.current.scroll({ top: divRef.current.scrollHeight, behavior: 'smooth' });
+    if (comments.length > previousCountComments && commentsContainerRef.current) {
+      setTimeout(() => {
+        commentsContainerRef.current?.scrollTo({ 
+          top: commentsContainerRef.current.scrollHeight, 
+          behavior: 'smooth' 
+        });
+      }, 100);
     }
     setPreviousCountComments(comments.length);
   }, [comments, previousCountComments]);
 
-  function getHoraFin(horaInicio: string, duracion: number): string | null {
-    if (!horaInicio || !duracion) return null;
-
-    // Intentar parsear "HH:mm"
-    let [h, m] = horaInicio.split(":");
-    let hour = Number(h);
-    let minute = Number(m);
-
-    // Si no es número, intentar formato "h:mm a" (ej: "2:30 p. m.")
-    if (isNaN(hour) || isNaN(minute)) {
-      const match = horaInicio.match(/(\d{1,2}):(\d{2})\s*([ap]\.?m\.?)/i);
-      if (match) {
-        hour = Number(match[1]);
-        minute = Number(match[2]);
-        const ampm = match[3].toLowerCase();
-        if (ampm.includes("p") && hour < 12) hour += 12;
-        if (ampm.includes("a") && hour === 12) hour = 0;
-      } else {
-        return null;
+  // Función para manejar la actualización de comentarios
+  const handleUpdateComments = useCallback((taskId: string, newComments: Comment[]) => {
+    setEvent((oldEvent) => {
+      const newEvent = { ...oldEvent };
+      const itineraryIndex = newEvent.itinerarios_array.findIndex(it => it._id === itinerario._id);
+      
+      if (itineraryIndex > -1) {
+        const taskIndex = newEvent.itinerarios_array[itineraryIndex].tasks.findIndex(t => t._id === taskId);
+        
+        if (taskIndex > -1) {
+          newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex].comments = newComments;
+        }
       }
-    }
-
-    const inicio = new Date();
-    inicio.setHours(hour, minute, 0, 0);
-    inicio.setMinutes(inicio.getMinutes() + duracion);
-
-    // Formatear manualmente para quitar el cero inicial y limpiar AM/PM
-    let hours12 = inicio.getHours() % 12 || 12;
-    let minutes = inicio.getMinutes().toString().padStart(2, '0');
-    let ampm = inicio.getHours() < 12 ? 'AM' : 'PM';
-
-    return `${hours12}:${minutes} ${ampm}`;
-  }
+      
+      return newEvent;
+    });
+  }, [itinerario._id, setEvent]);
 
   return (
-    <div {...props} className="w-full bg-white rounded-lg shadow-lg overflow-hidden">
+    <div {...props} className="w-full bg-white rounded-lg shadow-lg">
       <div className="flex min-h-[600px]">
         {/* Panel principal */}
         <div className="flex-1 flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
             <div className="flex items-center space-x-4 flex-1">
-              {/* Icono de la tarea */}
-              <Formik
-                initialValues={{ icon: localTask.icon || '' }}
-                onSubmit={() => { }}
-                enableReinitialize
-              >
-                <Form>
-                  <div className="flex items-center justify-center hover:bg-gray-100 rounded-full p-3 cursor-pointer">
-                    <SelectIcon
-                      name="icon"
-                      className="scale-125"
-                      handleChange={handleIconChange}
-                      data={localTask}
-                    />
-                  </div>
-                </Form>
-              </Formik>
+              {/* Icono de la tarea - Mejorado con NewSelectIcon */}
+              <div className="flex items-center justify-center">
+                {showIconSelector ? (
+                  <NewSelectIcon
+                    value={tempIcon}
+                    onChange={handleIconChange}
+                    onClose={() => setShowIconSelector(false)}
+                  />
+                ) : (
+                  <Formik
+                    initialValues={{ icon: tempIcon }}
+                    onSubmit={(values) => {
+                      handleIconChange(values.icon);
+                    }}
+                  >
+                    <Form>
+                      <button
+                        onClick={() => setShowIconSelector(true)}
+                        className="w-12 h-12 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors"
+                      >
+                        <SelectIcon
+                          name="icon"
+                          value={tempIcon}
+                          className="w-8 h-8"
+                          handleChange={() => {}}
+                          data={localTask}
+                        />
+                      </button>
+                    </Form>
+                  </Formik>
+                )}
+              </div>
 
-              {/* Título */}
+              {/* Título con borde primary */}
               {editingField === 'descripcion' ? (
                 <input
                   type="text"
@@ -400,89 +487,244 @@ export const TaskNew: FC<Props> = memo(({
               )}
             </div>
 
-            <div className="flex items-center space-x-2">
-              {/* Botón de opciones */}
-              <div className="relative">
-                <button
-                  onClick={() => setShowMoreMenu(!showMoreMenu)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <MoreHorizontal className="w-5 h-5" />
-                </button>
-                {showMoreMenu && (
-                  <ClickAwayListener onClickAway={() => setShowMoreMenu(false)}>
-                    <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                      <button
-                        onClick={() => {
-                          const newValue = !localTask.spectatorView;
-                          handleUpdate('spectatorView', newValue);
-                          toast('success', t(newValue ? 'Tarea visible' : 'Tarea oculta'));
-                        }}
-                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        {localTask.spectatorView ? <EyeOff className="w-4 h-4 mr-3" /> : <Eye className="w-4 h-4 mr-3" />}
-                        {localTask.spectatorView ? t('Ocultar') : t('Mostrar')}
-                      </button>
-                      <button
-                        onClick={handleDuplicate}
-                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        <Copy className="w-4 h-4 mr-3" />
-                        {t('Duplicar')}
-                      </button>
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(link);
-                          toast('success', t('Enlace copiado'));
-                        }}
-                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        <Link className="w-4 h-4 mr-3" />
-                        {t('Copiar enlace')}
-                      </button>
-                      <button
-                        onClick={() => {
-                          const newValue = !localTask.estatus;
-                          handleUpdate('estatus', newValue);
-                          toast('success', t(newValue ? 'Tarea bloqueada' : 'Tarea desbloqueada'));
-                        }}
-                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        {localTask.estatus ? <Unlock className="w-4 h-4 mr-3" /> : <Lock className="w-4 h-4 mr-3" />}
-                        {localTask.estatus ? t('Desbloquear') : t('Bloquear')}
-                      </button>
+            {/* Botones de acción integrados - Diseño mejorado con iconos sin labels y tamaño reducido */}
+            <div className="flex items-center">
+              {/* Grupo de botones principales con indicadores visuales de estado */}
+              <div className="flex items-center bg-gray-50 rounded-lg p-0.5 mr-2">
+                {/* Visibilidad - Con animación de estado activo */}
+                <div className="relative group">
+                  <button
+                    onClick={() => {
+                      const newValue = !localTask.spectatorView;
+                      handleUpdate('spectatorView', newValue);
+                      toast('success', t(newValue ? 'Tarea visible' : 'Tarea oculta'));
+                    }}
+                    className={`relative p-1.5 rounded-md transition-all duration-200 ${
+                      localTask.spectatorView 
+                        ? 'text-primary bg-primary/10 shadow-sm' 
+                        : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                    }`}
+                    title={t(localTask.spectatorView ? 'Tarea visible' : 'Tarea oculta')}
+                  >
+                    {localTask.spectatorView ? (
+                      <Eye className="w-4 h-4 transition-transform duration-200" />
+                    ) : (
+                      <EyeOff className="w-4 h-4 transition-transform duration-200" />
+                    )}
+                    {/* Indicador de estado con animación pulsante */}
+                    {localTask.spectatorView && (
+                      <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                      </span>
+                    )}
+                  </button>
+                  {/* Tooltip informativo */}
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
+                    {t(localTask.spectatorView ? 'Visible' : 'Oculta')}
+                  </div>
+                </div>
 
-                      {/* Opciones del ItineraryButtonBox */}
-                      {optionsItineraryButtonBox && optionsItineraryButtonBox.length > 0 && (
-                        <>
-                          <div className="border-t border-gray-200 my-1"></div>
-                          {optionsItineraryButtonBox.map((option, idx) => (
+                {/* Bloqueo - Con color rojo cuando está activo */}
+                <div className="relative group">
+                  <button
+                    onClick={() => {
+                      const newValue = !localTask.estatus;
+                      handleUpdate('estatus', newValue);
+                      toast('success', t(newValue ? 'Tarea bloqueada' : 'Tarea desbloqueada'));
+                    }}
+                    className={`relative p-1.5 rounded-md transition-all duration-200 ${
+                      localTask.estatus 
+                        ? 'text-[#ef4444] bg-[#ef4444]/10 shadow-sm' 
+                        : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                    }`}
+                    title={t(localTask.estatus ? 'Tarea bloqueada' : 'Tarea desbloqueada')}
+                  >
+                    {localTask.estatus ? (
+                      <Lock className="w-4 h-4 transition-transform duration-200" />
+                    ) : (
+                      <Unlock className="w-4 h-4 transition-transform duration-200" />
+                    )}
+                    {/* Indicador de estado con animación pulsante roja */}
+                    {localTask.estatus && (
+                      <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#ef4444] opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-[#ef4444]"></span>
+                      </span>
+                    )}
+                  </button>
+                  {/* Tooltip informativo */}
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
+                    {t(localTask.estatus ? 'Bloqueada' : 'Desbloqueada')}
+                  </div>
+                </div>
+
+                {/* Separador visual sutil */}
+                <div className="w-px h-4 bg-gray-300 mx-1 opacity-50"></div>
+
+                {/* Duplicar - Acción rápida con hover primary */}
+                <div className="relative group">
+                  <button
+                    onClick={handleDuplicate}
+                    className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-md transition-all duration-200"
+                    title={t('Duplicar tarea')}
+                  >
+                    <Copy className="w-4 h-4" />
+                  </button>
+                  {/* Tooltip informativo */}
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
+                    {t('Duplicar')}
+                  </div>
+                </div>
+
+                {/* Compartir enlace - Con feedback visual al copiar */}
+                <div className="relative group">
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(link);
+                      toast('success', t('Enlace copiado'));
+                    }}
+                    className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-md transition-all duration-200"
+                    title={t('Copiar enlace')}
+                  >
+                    <Link className="w-4 h-4" />
+                  </button>
+                  {/* Tooltip informativo */}
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
+                    {t('Compartir')}
+                  </div>
+                </div>
+              </div>
+
+              {/* Botones de ItineraryButtonBox - Con estados y colores personalizados */}
+              {optionsItineraryButtonBox && optionsItineraryButtonBox.length > 0 && (
+                <>
+                  <div className="flex items-center bg-gray-50 rounded-lg p-0.5 mr-2">
+                    {optionsItineraryButtonBox
+                      .filter(option => option.value !== 'estatus' && option.value !== 'status') // Excluir estatus y estado como se solicitó
+                      .map((option, idx) => {
+                        // Obtener el icono correcto basado en el estado
+                        let icon = option.icon;
+                        if (option.getIcon && typeof option.getIcon === 'function') {
+                          // Para opciones con getIcon dinámico
+                          if (option.value === 'status') {
+                            icon = option.getIcon(localTask.spectatorView);
+                          }
+                        }
+
+                        // Determinar estado activo y colores según el tipo de acción
+                        let isActive = false;
+                        let activeColorClass = '';
+                        let hoverColorClass = '';
+                        
+                        switch(option.value) {
+                          case 'status':
+                            isActive = localTask.spectatorView;
+                            activeColorClass = 'text-primary bg-primary/10';
+                            break;
+                          case 'flujo':
+                            // Lógica personalizada para flujo de trabajo
+                            isActive = false;
+                            activeColorClass = 'text-purple-500 bg-purple-500/10';
+                            hoverColorClass = 'hover:text-purple-600 hover:bg-purple-100';
+                            break;
+                          case 'share':
+                            // Estado para compartir
+                            isActive = false;
+                            activeColorClass = 'text-blue-500 bg-blue-500/10';
+                            hoverColorClass = 'hover:text-blue-600 hover:bg-blue-100';
+                            break;
+                          case 'delete':
+                            // Delete con hover rojo destructivo
+                            isActive = false;
+                            activeColorClass = '';
+                            hoverColorClass = 'hover:text-[#ef4444] hover:bg-[#ef4444]/10';
+                            break;
+                          default:
+                            hoverColorClass = 'hover:text-gray-600 hover:bg-gray-100';
+                        }
+
+                        return (
+                          <div key={idx} className="relative group">
                             <button
-                              key={idx}
                               onClick={() => {
-                                // Ejecutar la acción de la opción basada en el tipo o función
                                 if (typeof option.onClick === 'function') {
                                   option.onClick(task, itinerario);
                                 }
-                                setShowMoreMenu(false);
                               }}
-                              className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              className={`relative p-1.5 rounded-md transition-all duration-200 ${
+                                isActive
+                                  ? `${activeColorClass} shadow-sm`
+                                  : `text-gray-400 ${hoverColorClass}`
+                              }`}
+                              title={t(option.title || option.value || '')}
                               disabled={option.idDisabled}
                             >
-                              {option.icon && (
-                                <span className="w-4 h-4 mr-3 flex items-center justify-center">
-                                  {typeof option.icon === 'string' ? (
-                                    <span>{option.icon}</span>
-                                  ) : (
-                                    option.icon
-                                  )}
+                              <span className="w-4 h-4 flex items-center justify-center"
+                                style={{ transform: 'scale(0.8)' }}>
+                                {icon}
+                              </span>
+                              {/* Indicador de estado con colores específicos por tipo */}
+                              {isActive && (
+                                <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+                                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${
+                                    option.value === 'status' ? 'bg-primary' : 
+                                    option.value === 'flujo' ? 'bg-purple-500' : 
+                                    'bg-blue-500'
+                                  } opacity-75`}></span>
+                                  <span className={`relative inline-flex rounded-full h-2 w-2 ${
+                                    option.value === 'status' ? 'bg-primary' : 
+                                    option.value === 'flujo' ? 'bg-purple-500' : 
+                                    'bg-blue-500'
+                                  }`}></span>
                                 </span>
                               )}
-                              {option.title || t(option.value || '')}
                             </button>
-                          ))}
-                        </>
-                      )}
+                            {/* Tooltip informativo dinámico */}
+                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
+                              {t(option.title || option.value || '')}
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </>
+              )}
+
+              {/* Menú de más opciones - Para acciones menos frecuentes */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowMoreMenu(!showMoreMenu)}
+                  className={`p-1.5 rounded-lg transition-all duration-200 ${
+                    showMoreMenu ? 'bg-gray-100 text-gray-700' : 'hover:bg-gray-100 text-gray-500'
+                  }`}
+                >
+                  <MoreHorizontal className="w-4 h-4" />
+                </button>
+                {showMoreMenu && (
+                  <ClickAwayListener onClickAway={() => setShowMoreMenu(false)}>
+                    <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
+                      <div className="py-1">
+                        <button
+                          className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          <Archive className="w-4 h-4 mr-3" />
+                          {t('Archivar')}
+                        </button>
+                        <button
+                          className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          <Bell className="w-4 h-4 mr-3" />
+                          {t('Notificaciones')}
+                        </button>
+                        <div className="border-t border-gray-100 my-1"></div>
+                        <button
+                          className="flex items-center w-full px-4 py-2.5 text-sm text-[#ef4444] hover:bg-[#ef4444]/10 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4 mr-3" />
+                          {t('Eliminar')}
+                        </button>
+                      </div>
                     </div>
                   </ClickAwayListener>
                 )}
@@ -553,7 +795,11 @@ export const TaskNew: FC<Props> = memo(({
                               }}
                               className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100"
                             >
-                              <Flag className={`w-4 h-4 mr-3 ${priority.color.replace('bg-', 'text-')}`} />
+                              <Flag className={`w-4 h-4 mr-3 ${
+                                priority.value === 'alta' ? 'text-[#ef4444]' :
+                                priority.value === 'media' ? 'text-yellow-500' :
+                                'text-gray-400'
+                              }`} />
                               <span>{priority.label}</span>
                             </button>
                           ))}
@@ -564,7 +810,7 @@ export const TaskNew: FC<Props> = memo(({
                 </div>
               </div>
 
-              {/* Asignados */}
+              {/* Asignados con NewResponsableSelector */}
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
                   <User className="w-4 h-4 text-gray-500" />
@@ -572,37 +818,18 @@ export const TaskNew: FC<Props> = memo(({
                 </div>
                 <div className="flex items-center flex-wrap gap-2">
                   {editingResponsable ? (
-                    <div className="flex items-center space-x-2">
-                      <Formik
-                        initialValues={{ responsable: tempResponsable }}
-                        enableReinitialize
-                        onSubmit={() => { }}
-                      >
-                        <Form>
-                          <ResponsableSelector
-                            name="responsable"
-                            value={tempResponsable}
-                            handleChange={(fieldName, newValue) => setTempResponsable(newValue)}
-                            disable={false}
-                          />
-                        </Form>
-                      </Formik>
-                      <button
-                        onClick={handleSaveResponsable}
-                        className="px-3 py-1 bg-primary text-white rounded text-sm"
-                      >
-                        {t('Guardar')}
-                      </button>
-                      <button
-                        onClick={() => {
-                          setEditingResponsable(false);
-                          setTempResponsable(localTask.responsable || []);
-                        }}
-                        className="px-3 py-1 bg-gray-200 text-gray-700 rounded text-sm"
-                      >
-                        {t('Cancelar')}
-                      </button>
-                    </div>
+                    <ClickUpResponsableSelector
+                      value={tempResponsable}
+                      onChange={(newValue) => {
+                        setTempResponsable(newValue);
+                        handleUpdate('responsable', newValue);
+                        setEditingResponsable(false);
+                      }}
+                      onClose={() => {
+                        setEditingResponsable(false);
+                        setTempResponsable(localTask.responsable || []);
+                      }}
+                    />
                   ) : (
                     <>
                       <div className="flex items-center flex-wrap gap-2">
@@ -610,7 +837,10 @@ export const TaskNew: FC<Props> = memo(({
                           const userInfo = GruposResponsablesArry.find(
                             (el) => el.title?.toLowerCase() === resp?.toLowerCase()
                           ) || [user, event?.detalles_usuario_id, ...(event?.detalles_compartidos_array || [])].find(
-                            (el) => el?.displayName?.toLowerCase() === resp?.toLowerCase()
+                            (el) => {
+                              const displayName = el?.displayName || el?.email || 'Sin nombre';
+                              return displayName.toLowerCase() === resp?.toLowerCase();
+                            }
                           );
 
                           return (
@@ -699,26 +929,41 @@ export const TaskNew: FC<Props> = memo(({
                     </div>
                   )}
 
-                  {/* Duración */}
-                  {editingField === 'duracion' ? (
+                  {/* Duración mejorada con conversor */}
+                  {editingDuration ? (
                     <div className="flex items-center space-x-1">
                       <input
-                        type="number"
-                        value={tempValue || ''}
-                        onChange={(e) => setTempValue(e.target.value)}
-                        onBlur={() => handleFieldSave('duracion')}
-                        onKeyDown={(e) => handleKeyPress(e, 'duracion')}
-                        className="w-20 px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                        type="text"
+                        value={durationInput}
+                        onChange={(e) => setDurationInput(e.target.value)}
+                        onBlur={() => {
+                          const minutes = readableFormatToMinutes(durationInput);
+                          handleUpdate('duracion', minutes);
+                          setEditingDuration(false);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            const minutes = readableFormatToMinutes(durationInput);
+                            handleUpdate('duracion', minutes);
+                            setEditingDuration(false);
+                          } else if (e.key === 'Escape') {
+                            setEditingDuration(false);
+                          }
+                        }}
+                        placeholder="Ej: 1h 30min"
+                        className="w-24 px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                         autoFocus
                       />
-                      <span className="text-sm text-gray-600">min</span>
                     </div>
                   ) : (
                     <span
                       className="text-sm cursor-pointer hover:text-primary"
-                      onClick={() => handleFieldClick('duracion', localTask.duracion)}
+                      onClick={() => {
+                        setEditingDuration(true);
+                        setDurationInput(minutesToReadableFormat(localTask.duracion as number));
+                      }}
                     >
-                      {localTask.duracion ? `${localTask.duracion} min` : t('Sin duración')}
+                      {minutesToReadableFormat(localTask.duracion as number)}
                     </span>
                   )}
                 </div>
@@ -739,7 +984,7 @@ export const TaskNew: FC<Props> = memo(({
                       <span className="text-sm">{tag}</span>
                       <button
                         onClick={() => handleRemoveTag(tag)}
-                        className="ml-2 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="ml-2 hover:text-[#ef4444] opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -782,11 +1027,11 @@ export const TaskNew: FC<Props> = memo(({
 
                 {/* Campos personalizados */}
                 <div className="space-y-6">
-                  {/* Descripción Tarea larga */}
+                  {/* Descripción larga */}
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <label className="text-sm font-medium text-gray-700">
-                        {t('Descripción Tarea larga')}
+                        {t('Descripción detallada')}
                       </label>
                       {customDescription && !editingDescription && (
                         <button
@@ -845,82 +1090,16 @@ export const TaskNew: FC<Props> = memo(({
                     )}
                   </div>
 
-                  {/* Adjuntos */}
+                  {/* Adjuntos mejorados */}
                   <div>
                     <h4 className="text-sm font-medium text-gray-700 mb-3">{t('Adjuntos')}</h4>
-
-                    {editingAttachments ? (
-                      <div>
-                        <Formik
-                          initialValues={{ attachments: localTask.attachments || [] }}
-                          onSubmit={() => { }}
-                        >
-                          <Form>
-                            <InputAttachments
-                              name="attachments"
-                              itinerarioID={itinerario._id}
-                              task={task}
-                              onChange={(files) => {
-                                handleUpdate('attachments', files);
-                                setEditingAttachments(false);
-                              }}
-                            />
-                          </Form>
-                        </Formik>
-                        <button
-                          onClick={() => setEditingAttachments(false)}
-                          className="mt-2 text-sm text-gray-600 hover:text-gray-800"
-                        >
-                          {t('Cerrar')}
-                        </button>
-                      </div>
-                    ) : (
-                      <>
-                        {(localTask.attachments || []).length > 0 ? (
-                          <div className="space-y-2 mb-4">
-                            {localTask.attachments.map((file, idx) => (
-                              <div
-                                key={idx}
-                                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 group cursor-pointer"
-                                onClick={() => {
-                                  downloadFile(storage, `${task._id}//${file.name}`)
-                                    .catch(() => toast("error", t("Error al descargar")));
-                                }}
-                              >
-                                <div className="flex items-center space-x-3">
-                                  <Paperclip className="w-4 h-4 text-gray-400" />
-                                  <span className="text-sm">{file.name}</span>
-                                  <span className="text-xs text-gray-500">
-                                    {Math.round(file.size / 1024)} KB
-                                  </span>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  <CgSoftwareDownload className="w-5 h-5 text-gray-500 hover:text-gray-700" />
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div
-                            className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg cursor-pointer hover:border-gray-300"
-                            onClick={() => setEditingAttachments(true)}
-                          >
-                            <p className="text-sm text-gray-500 mb-2">
-                              {t('Suelta los archivos aquí para')} <span className="text-primary">{t('subir')}</span>
-                            </p>
-                          </div>
-                        )}
-
-                        {(localTask.attachments || []).length > 0 && (
-                          <button
-                            onClick={() => setEditingAttachments(true)}
-                            className="text-sm text-primary hover:text-primary/80"
-                          >
-                            {t('Gestionar archivos')}
-                          </button>
-                        )}
-                      </>
-                    )}
+                    <NewAttachmentsEditor
+                      attachments={localTask.attachments || []}
+                      onUpdate={(files) => handleUpdate('attachments', files)}
+                      taskId={task._id}
+                      eventId={event._id}
+                      itinerarioId={itinerario._id}
+                    />
                   </div>
                 </div>
               </div>
@@ -934,33 +1113,52 @@ export const TaskNew: FC<Props> = memo(({
           <div className="p-4 border-b border-gray-200 bg-white">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-lg">{t('Actividad')}</h3>
-              <Bell className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600" />
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-500">{comments.length} {t('comentarios')}</span>
+                <Bell className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600" />
+              </div>
             </div>
           </div>
 
-          {/* Lista de comentarios */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-2">
-            {comments.map((comment) => (
-              <ListComments
-                key={comment._id}
-                id={comment._id}
-                itinerario={itinerario}
-                task={task}
-                item={comment}
-                tempPastedAndDropFiles={tempPastedAndDropFiles}
-              />
-            ))}
-
-            {comments.length === 0 && (
-              <div className="text-center py-8">
-                <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-gray-500">{t('No hay comentarios aún')}</p>
+          {/* Lista de comentarios - scroll desde abajo hacia arriba */}
+          <div 
+            ref={commentsContainerRef}
+            className="flex-1 overflow-y-auto p-4 space-y-2 flex flex-col-reverse"
+          >
+            {comments.length === 0 ? (
+              <div className="text-center py-8 flex-1 flex items-center justify-center">
+                <div>
+                  <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                  <p className="text-sm text-gray-500">{t('No hay comentarios aún')}</p>
+                  <p className="text-xs text-gray-400 mt-1">{t('Sé el primero en comentar')}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {comments.map((comment) => (
+                  <div key={comment._id} className="relative group">
+                    <ListComments
+                      id={comment._id}
+                      itinerario={itinerario}
+                      task={task}
+                      item={comment}
+                      tempPastedAndDropFiles={tempPastedAndDropFiles}
+                    />
+                    <button
+                      onClick={() => handleDeleteComment(comment._id)}
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-white rounded shadow-sm hover:bg-gray-100"
+                      title={t('Eliminar comentario')}
+                    >
+                      <Trash2 className="w-4 h-4 text-gray-500 hover:text-[#ef4444]" />
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
           </div>
 
           {/* Input de comentarios */}
-          <div className="border-t border-gray-200 bg-white w-full min-h-[105px] max-h-70 overflow-visible px-4 py-2">
+          <div className="border-t border-gray-200 bg-white min-h-[105px] px-4 py-2">
             <InputComments
               itinerario={itinerario}
               task={task}
@@ -970,6 +1168,20 @@ export const TaskNew: FC<Props> = memo(({
           </div>
         </div>
       </div>
+
+      {/* Estilos CSS para animaciones */}
+      <style jsx>{`
+        @keyframes ping {
+          75%, 100% {
+            transform: scale(2);
+            opacity: 0;
+          }
+        }
+        
+        .animate-ping {
+          animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+      `}</style>
     </div>
   );
 });
