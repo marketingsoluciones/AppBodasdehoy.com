@@ -334,14 +334,14 @@ import { SwiperPastedAndDropFiles } from "./SwiperPastedAndDropFiles"
 import { LiaTrashSolid } from "react-icons/lia";
 import { FileIconComponent } from "./FileIconComponent"
 import { getStorage, ref, uploadBytesResumable } from "firebase/storage"
-import { TempPastedAndDropFiles } from "./ItineraryPanel"
+import { TempPastedAndDropFile } from "./ItineraryPanel"
 import { customAlphabet } from "nanoid"
 import { SetNickname } from "./SetNickName"
-
+ 
 interface props {
   itinerario?: Itinerary
   task?: Task
-  tempPastedAndDropFiles?: TempPastedAndDropFiles[]
+  tempPastedAndDropFiles?: TempPastedAndDropFile[]
   setTempPastedAndDropFiles?: any
   nicknameUnregistered?: string
   setNicknameUnregistered?: Dispatch<SetStateAction<string>>

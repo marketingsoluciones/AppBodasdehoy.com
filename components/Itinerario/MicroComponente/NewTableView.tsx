@@ -37,6 +37,7 @@ import { CommentModal } from './CommentModal';
 import { TableEditModal } from './TableEditModal';
 import { customAlphabet } from 'nanoid';
 import * as XLSX from 'xlsx';
+import { Task } from '../../../utils/Interfaces';
 
 // Función auxiliar para descargar archivos sin file-saver
 const downloadFile = (data: Blob, filename: string) => {
@@ -488,6 +489,18 @@ export const TableView: React.FC<TableProps> = ({
     }
   }, [event._id, itinerario._id, filteredData, onTaskUpdate, config.domain, t, toast]);
 
+  // Primero definimos la validación de la respuesta
+  const isValidTaskResponse = (response: unknown): response is Task => {
+    return (
+      typeof response === 'object' &&
+      response !== null &&
+      '_id' in response &&
+      typeof (response as any)._id === 'string' &&
+      'descripcion' in response &&
+      typeof (response as any).descripcion === 'string'
+    );
+  };
+
   // Manejar creación de tarea mejorada
   const handleAddTask = async () => {
     try {
@@ -495,7 +508,6 @@ export const TableView: React.FC<TableProps> = ({
       const currentDate = new Date();
       const eventDate = event.fecha ? new Date(event.fecha) : currentDate;
       
-      // Si hay tareas, usar la última fecha + duración
       let defaultDate = eventDate;
       if (data && data.length > 0) {
         const lastTask = data[data.length - 1];
@@ -503,7 +515,7 @@ export const TableView: React.FC<TableProps> = ({
           const lastDate = new Date(lastTask.fecha);
           defaultDate = new Date(lastDate.getTime() + (lastTask.duracion || 30) * 60000);
         }
-      }
+      } 
 
       // Formatear fecha para el API
       const year = defaultDate.getFullYear();
@@ -512,7 +524,8 @@ export const TableView: React.FC<TableProps> = ({
       const hours = String(defaultDate.getHours()).padStart(2, '0');
       const minutes = String(defaultDate.getMinutes()).padStart(2, '0');
 
-      const response = await fetchApiEventos({
+      // Hacer la petición con type assertion seguro
+      const apiResponse = await fetchApiEventos({
         query: queries.createTask,
         variables: {
           eventID: event._id,
@@ -520,12 +533,32 @@ export const TableView: React.FC<TableProps> = ({
           descripcion: t('Nueva tarea'),
           fecha: `${year}-${month}-${day}`,
           hora: `${hours}:${minutes}`,
-          duracion: 30
+          duracion: 30 
         },
         domain: config.domain
-      });
+      }); 
 
-      if (response && response._id) {
+      // Validar la respuesta usando el type guard
+      if (isValidTaskResponse(apiResponse)) {
+        // Construir una tarea completa con los valores por defecto
+        const newTask: Task = {
+          _id: apiResponse._id,
+          fecha: new Date(`${year}-${month}-${day}T${hours}:${minutes}`),
+          icon: '',
+          descripcion: apiResponse.descripcion,
+          duracion: apiResponse.duracion || 30,
+          estado: 'pending',
+          estatus: false,
+          spectatorView: true,
+          responsable: [],
+          tags: [],
+          tips: '',
+          attachments: [],
+          comments: [],
+          commentsViewers: [],
+          prioridad: 'media'
+        };
+
         // Actualizar estado global
         setEvent((oldEvent) => {
           const newEvent = { ...oldEvent };
@@ -537,22 +570,22 @@ export const TableView: React.FC<TableProps> = ({
             if (!newEvent.itinerarios_array[itineraryIndex].tasks) {
               newEvent.itinerarios_array[itineraryIndex].tasks = [];
             }
-            newEvent.itinerarios_array[itineraryIndex].tasks.push(response);
+            newEvent.itinerarios_array[itineraryIndex].tasks.push(newTask);
           }
           
           return newEvent;
         });
 
-        // Seleccionar la nueva tarea
-        setSelectTask(response._id);
-        
+        setSelectTask(newTask._id);
         toast('success', t('Tarea creada correctamente'));
+      } else {
+        throw new Error('Respuesta inválida del servidor');
       }
     } catch (error) {
       console.error('Error al crear tarea:', error);
       toast('error', t('Error al crear la tarea'));
     }
-  };
+  }; 
 
   // Funciones de exportación e importación
   const handleExport = () => {
@@ -725,11 +758,11 @@ export const TableView: React.FC<TableProps> = ({
         filteredData.findIndex(t => t._id === task._id),
         'estatus',
         !task.estatus
-      );
+      ); 
     },
     handleDuplicate: async (task: any) => {
       try {
-        const response = await fetchApiEventos({
+        const apiResponse = await fetchApiEventos({
           query: queries.createTask,
           variables: {
             eventID: event._id,
@@ -737,17 +770,59 @@ export const TableView: React.FC<TableProps> = ({
             descripcion: `${task.descripcion} (copia)`,
             fecha: new Date().toISOString().split('T')[0],
             hora: new Date().toTimeString().substring(0, 5),
-            duracion: task.duracion || 30
+            duracion: task.duracion || 30,
+            variable: "estado",
+            valor: task.estado || "pending"
           },
           domain: config.domain
         });
 
-        if (response && response._id) {
-          window.location.reload();
-          toast('success', t('Tarea duplicada'));
+        if (isValidTaskResponse(apiResponse)) {
+          // Construir la nueva tarea con todos los campos necesarios
+          const newTask: Task = {
+            _id: apiResponse._id,
+            fecha: new Date(apiResponse.fecha),
+            icon: task.icon || '',
+            descripcion: apiResponse.descripcion,
+            duracion: apiResponse.duracion || task.duracion || 30,
+            estado: task.estado || 'pending',
+            estatus: false,
+            spectatorView: true,
+            responsable: [...(task.responsable || [])],
+            tags: [...(task.tags || [])],
+            tips: task.tips || '',
+            attachments: [],
+            comments: [],
+            commentsViewers: [],
+            prioridad: task.prioridad || 'media'
+          };
+
+          // Actualizar el estado global
+          setEvent((prevEvent) => {
+            const newEvent = { ...prevEvent };
+            const itineraryIndex = newEvent.itinerarios_array.findIndex(
+              it => it._id === itinerario._id
+            );
+            
+            if (itineraryIndex > -1) {
+              if (!newEvent.itinerarios_array[itineraryIndex].tasks) {
+                newEvent.itinerarios_array[itineraryIndex].tasks = [];
+              }
+              newEvent.itinerarios_array[itineraryIndex].tasks.push(newTask);
+            }
+            
+            return newEvent;
+          });
+
+          // Actualizar la vista
+          setForceUpdate(prev => prev + 1);
+          toast('success', t('Tarea duplicada correctamente'));
+        } else {
+          throw new Error('Respuesta inválida del servidor');
         }
       } catch (error) {
-        toast('error', t('Error al duplicar tarea'));
+        console.error('Error al duplicar tarea:', error);
+        toast('error', t('Error al duplicar la tarea'));
       }
     },
     handleCopyLink: (task: any) => {
