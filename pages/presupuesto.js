@@ -148,13 +148,12 @@ const Presupuesto = () => {
                               <MontoPresupuesto />
                             </div>
                             <div className=" bg-white shadow-md rounded-xl grid place-items-center py-4 px-2 relative">
-                              <div className={`${showModalPresupuesto?"hidden": " absolute"}  right-2 -top-11 `}>
+                             {/*  <div className={`${showModalPresupuesto?"hidden": " absolute"}  right-2 -top-11 `}>
                                 <button
                                   onClick={() => setShowModalPresupuesto(true)}
                                   className={`z-[60] bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 text-white font-bold py-1 px-3 rounded-full shadow-lg flex items-center relative hover:scale-105 transition `}
                                   title="Ver novedades"
                                 >
-                                  {/* Circulito titilando */}
                                   <span className="absolute -top-1 -right-1">
                                     <span className="relative flex h-3 w-3">
                                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
@@ -163,7 +162,7 @@ const Presupuesto = () => {
                                   </span>
                                   <span className="uppercase tracking-wider text-xs">New</span>
                                 </button>
-                              </div>
+                              </div> */}
                               <DineroIcon className="w-12 h-12 text-primary " />
                               <p className="font-display text-gray-500 font-light text-md grid place-items-center">
                                 {t("finalcost")} <br />
