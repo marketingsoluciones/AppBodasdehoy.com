@@ -143,7 +143,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
       icon: true ? <GoEye className="w-4 h-4" /> : <GoEyeClosed className="w-4 h-4" />,
       title: "Estado",
       onClick: (info) => {
-        console.log("???????", info)
         if (info.column.id === "gasto") {
           handleChangeEstatus({ event, categoriaID: info.row.original.categoriaID, gastoId: info.row.original.gastoID, setEvent })
             .catch(error => toast("error", "ha ocurrido un error"))
