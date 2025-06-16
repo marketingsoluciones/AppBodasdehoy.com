@@ -1,4 +1,3 @@
-import {  Eye, EyeOff } from 'lucide-react';
 import { getCurrency } from '../../../utils/Funciones';
 import { FC } from 'react';
 
@@ -38,7 +37,7 @@ export const PanelControlSuperior : FC <props> = ({viewLevel, setViewLevel, setS
                     onClick={() => setShowEstimados(!showEstimados)}
                     className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800"
                 >
-                    {showEstimados ? <Eye size={16} /> : <EyeOff size={16} />}
+                   {/*  {showEstimados ? <Eye size={16} /> : <EyeOff size={16} />} */}
                     Estimados
                 </button>
             </div>

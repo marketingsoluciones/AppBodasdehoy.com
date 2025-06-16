@@ -1,5 +1,4 @@
 import { FC } from "react";
-import { ChevronDown, ChevronRight, Settings } from 'lucide-react';
 import { getCurrency } from '../../../utils/Funciones';
 
 interface Props {
@@ -74,7 +73,7 @@ export const TableBudgetV2: FC<Props> = ({ tableData, showEstimados, handleRowCl
                                             }}
                                             className="hover:bg-gray-200 p-1 rounded transition-colors"
                                         >
-                                            {row.expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                                           {/*  {row.expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />} */}
                                         </button>
                                     )}
                                     <span className={`${textWeight} ${row.type === 'category' ? 'text-blue-800' : 'text-gray-800'}`}>
@@ -113,7 +112,7 @@ export const TableBudgetV2: FC<Props> = ({ tableData, showEstimados, handleRowCl
                                     className="text-gray-400 hover:text-gray-600 p-1 rounded transition-colors"
                                     onClick={(e) => e.stopPropagation()}
                                 >
-                                    <Settings size={16} />
+                                   {/*  <Settings size={16} /> */}
                                 </button>
                             </td>
                         </tr>

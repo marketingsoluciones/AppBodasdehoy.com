@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from "framer-motion";
-import { ChevronDown, ChevronRight, Settings, Eye, EyeOff } from 'lucide-react';
 import { EventContextProvider } from '../../../context';
 import { getCurrency } from '../../../utils/Funciones';
 import { useTranslation } from 'react-i18next';
