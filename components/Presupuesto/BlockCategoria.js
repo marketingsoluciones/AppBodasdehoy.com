@@ -145,9 +145,6 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
         Cell: (props) => {
           const [value, setValue] = useState(0);
           const total = props?.row?.values?.pagado - props?.row?.values?.coste_final
-          console.log(15, props?.row?.values?.pagado)
-          console.log(16, props?.row?.values?.coste_final)
-          console.log(17, total)
 
           useEffect(() => {
             if (props?.row?.values?.coste_final === 0) {

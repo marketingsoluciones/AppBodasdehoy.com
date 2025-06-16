@@ -106,6 +106,7 @@ const FormAddPago = ({ GastoID, cate }) => {
     <Formik
       initialValues={initialValues}
       onSubmit={async (values) => {
+        console.log(444, values)
         try {
           if (!isSubmitting) {
             setIsSubmitting(true)
@@ -304,15 +305,11 @@ export const BasicFormLogin = ({ ischecked, setCheck, handleChange, handleSubmit
       }
       <div className="col-span-2 h-[400px]* flex flex-col space-y-2 transition-all duration-500 ">
         <div className="flex  items-center justify-between">
-          <div className="flex  items-center space-x-2 cursor-pointer hover:underline hover:decoration-1 decoration-azulCorporativo ">
+          <div className="flex  items-center space-x-2  decoration-azulCorporativo ">
             <h2 className="text-2xl text-azulCorporativo"> {t("prooptions")}</h2>
             <div className="text-yellow-200 h-auto w-5">
-              <DiamanteIcon className="h-8 w-8" />
             </div>
           </div>
-          {/* <div onClick={() => setShowProOptions(!showProOptions)}>
-              <GoChevronDown className={` h-8 w-8 text-azulCorporativo cursor-pointer transition-all ${showProOptions && "rotate-180"}`} />
-            </div> */}
         </div>
         {
           showProOptions ?
@@ -339,31 +336,6 @@ export const BasicFormLogin = ({ ischecked, setCheck, handleChange, handleSubmit
                   className="hidden"
                 />
               </div>
-              {/* <div className=" flex flex-col space-y-2  ">
-                  <h2 className="text-gray-800 text-[14px]">{t("documentnumber")}</h2>
-                  <div className="w-[90%] self-center">
-                    <InputField
-                      name="a"
-                      onChange={handleChange}
-                      disabled={true}
-                      className={`${false ? "" : "bg-slate-200"}`}
-                      type="text"
-                      autoComplete="off" />
-                  </div>
-                </div> */}
-              {/* <div className="flex flex-col space-y-2  ">
-                  <h2 className="text-gray-800 text-[14px]">{t("contact")}</h2>
-                  <div className="w-[90%] self-center">
-                    <InputField
-                      name="b"
-                      onChange={handleChange}
-                      disabled={true}
-                      className={`${false ? "" : "bg-slate-200"}`}
-                      type="text"
-                      autoComplete="off" />
-                  </div>
-                </div> */}
-
             </div> :
             null
         }
