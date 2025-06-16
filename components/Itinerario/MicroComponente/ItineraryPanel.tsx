@@ -513,7 +513,7 @@ const handleTaskCreate = async (taskData: Partial<Task>) => {
                 message={<p className="text-azulCorporativo mx-8 text-center capitalize" > Estas seguro de borrar <span className='font-semibold'>{modal.title}</span></p>}
             />}
             {["/itinerario"].includes(window?.location?.pathname) && <SubHeader view={view} itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} title={title} setTitle={setTitle} />}
-            <div className={`*!hidden w-full flex-1 flex flex-col pt-2 md:px-2 lg:px-6`}>
+            <div className={`*!hidden w-full flex-1 flex flex-col pt-2 md:px-2 lg:px-6 z-0`}>
             {
   tasksReduce?.length > 0 ?
     view === "boardView" ? (

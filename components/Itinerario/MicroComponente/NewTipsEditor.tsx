@@ -13,6 +13,7 @@ interface TipsEditorProps {
   onSave: () => void;
   onCancel: () => void;
   placeholder?: string;
+  maxTooltipLength?: number;
 }
 
 export const TipsEditor: React.FC<TipsEditorProps> = ({
@@ -23,13 +24,15 @@ export const TipsEditor: React.FC<TipsEditorProps> = ({
   onStopEdit,
   onSave,
   onCancel,
-  placeholder = "Agregar descripción..."
+  placeholder = "Agregar descripción...",
+  maxTooltipLength = 200
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const [localValue, setLocalValue] = useState(value);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const expandedRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -53,9 +56,38 @@ export const TipsEditor: React.FC<TipsEditorProps> = ({
     return doc.body.textContent || "";
   };
 
+  // Función para formatear texto con límite de línea
+  const formatTextWithLineLimit = (text: string, charsPerLine: number = 60, maxLines: number = 6): string => {
+    if (!text) return "";
+    
+    const words = text.split(' ');
+    const lines: string[] = [];
+    let currentLine = '';
+    
+    for (const word of words) {
+      if ((currentLine + ' ' + word).trim().length <= charsPerLine) {
+        currentLine = currentLine ? currentLine + ' ' + word : word;
+      } else {
+        if (currentLine) lines.push(currentLine);
+        currentLine = word;
+      }
+      
+      // Si ya tenemos el máximo de líneas, detener
+      if (lines.length >= maxLines - 1 && currentLine) {
+        lines.push(currentLine + '...');
+        return lines.join('\n');
+      }
+    }
+    
+    if (currentLine) lines.push(currentLine);
+    
+    return lines.slice(0, maxLines).join('\n');
+  };
+
   const plainText = stripHtml(value || "");
   const isLongText = plainText.length > 100;
   const truncatedText = isLongText && !isExpanded ? `${plainText.slice(0, 100)}...` : plainText;
+  const tooltipText = plainText.length > maxTooltipLength ? `${plainText.slice(0, maxTooltipLength)}...` : plainText;
   const hasContent = value && value.trim() !== '';
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -136,29 +168,41 @@ export const TipsEditor: React.FC<TipsEditorProps> = ({
       <div className="flex-1 min-w-0">
         {hasContent ? (
           <div className="relative">
-            {/* Contenido con Interweave */}
-            <div className={`text-sm text-gray-700 break-words ${!isExpanded && isLongText ? 'line-clamp-3' : ''}`}>
-              <Interweave
-                content={isExpanded ? value : (isLongText ? truncatedText : value)}
-                matchers={[new UrlMatcher('url'), new HashtagMatcher('hashtag')]}
-              />
+            {/* Contenido formateado con límite de líneas */}
+            <div className={`text-sm text-gray-700 break-words whitespace-pre-wrap ${!isExpanded && isLongText ? 'line-clamp-6' : ''}`}>
+              {isExpanded ? (
+                <div className="space-y-1">
+                  {formatTextWithLineLimit(plainText, 60, 9999).split('\n').map((line, idx) => (
+                    <div key={idx}>{line}</div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {formatTextWithLineLimit(plainText, 60, 6).split('\n').map((line, idx) => (
+                    <div key={idx}>{line}</div>
+                  ))}
+                </div>
+              )}
             </div>
             
             {/* Contenedor expandido con z-index alto */}
             {isExpanded && isLongText && (
-              <div className="absolute top-0 left-0 right-0 bg-white rounded-lg shadow-lg p-2 z-30 border border-gray-200">
-                <div className="text-sm text-gray-700 break-words">
-                  <Interweave
-                    content={value}
-                    matchers={[new UrlMatcher('url'), new HashtagMatcher('hashtag')]}
-                  />
+              <div 
+                ref={expandedRef}
+                className="absolute top-0 left-0 right-0 bg-white rounded-lg shadow-lg p-3 z-40 border border-gray-200 max-w-[600px] overflow-auto"
+                style={{ maxHeight: '400px' }}
+              >
+                <div className="text-sm text-gray-700 break-words whitespace-pre-wrap">
+                  {formatTextWithLineLimit(plainText, 60, 9999).split('\n').map((line, idx) => (
+                    <div key={idx}>{line}</div>
+                  ))}
                 </div>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsExpanded(false);
                   }}
-                  className="mt-2 text-xs text-primary hover:text-primary/80 flex items-center space-x-1 transition-colors"
+                  className="mt-3 text-xs text-primary hover:text-primary/80 flex items-center space-x-1 transition-colors"
                 >
                   <Minimize2 className="w-3 h-3" />
                   <span>{t('Ver menos')}</span>
@@ -167,7 +211,7 @@ export const TipsEditor: React.FC<TipsEditorProps> = ({
             )}
             
             {/* Botón para expandir */}
-            {isLongText && !isExpanded && (
+            {isLongText && !isExpanded && plainText.split('\n').length > 6 && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -188,11 +232,11 @@ export const TipsEditor: React.FC<TipsEditorProps> = ({
         )}
       </div>
 
-      {/* Tooltip para texto completo */}
+      {/* Tooltip para texto completo con límite de caracteres */}
       {showTooltip && isLongText && !isExpanded && (
         <div className="absolute z-50 top-full left-0 mt-2 p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg max-w-md">
           <div className="whitespace-pre-wrap break-words">
-            {plainText}
+            {tooltipText}
           </div>
           <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
         </div>

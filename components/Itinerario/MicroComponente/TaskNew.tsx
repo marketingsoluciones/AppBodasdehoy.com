@@ -1,6 +1,6 @@
-import { Form, Formik } from "formik";
 import { FC, HTMLAttributes, useEffect, useRef, useState, useCallback, memo } from "react";
 import { SelectIcon, GruposResponsablesArry } from ".";
+import { Formik, Form, Field } from 'formik';
 import { EventContextProvider } from "../../../context/EventContext";
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
 import { AuthContextProvider } from "../../../context";
@@ -18,7 +18,7 @@ import { ListComments } from "./ListComments"
 import ClickAwayListener from "react-click-away-listener";
 import { CopiarLink } from "../../Utils/Compartir";
 import { useRouter } from "next/router";
-import { TempPastedAndDropFiles } from "./ItineraryPanel";
+import { TempPastedAndDropFile } from "./ItineraryPanel";
 import { downloadFile } from "../../Utils/storages";
 import { useToast } from "../../../hooks/useToast";
 import InputField from "../../Forms/InputField";
@@ -67,7 +67,7 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
   isSelect?: boolean;
   showModalCompartir?: any;
   setShowModalCompartir?: any;
-  tempPastedAndDropFiles?: TempPastedAndDropFiles[];
+  tempPastedAndDropFiles?: TempPastedAndDropFile[];
   setTempPastedAndDropFiles?: any;
   isTaskPublic?: boolean;
 }
@@ -93,6 +93,34 @@ const readableFormatToMinutes = (value: string): number => {
   const mins = minsMatch ? parseInt(minsMatch[1]) : 0;
   
   return hours * 60 + mins;
+};
+
+// Función para formatear texto con límite de línea
+const formatTextWithLineLimit = (text: string, charsPerLine: number = 60, maxLines: number = 6): string => {
+  if (!text) return "";
+  
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let currentLine = '';
+  
+  for (const word of words) {
+    if ((currentLine + ' ' + word).trim().length <= charsPerLine) {
+      currentLine = currentLine ? currentLine + ' ' + word : word;
+    } else {
+      if (currentLine) lines.push(currentLine);
+      currentLine = word;
+    }
+    
+    // Si ya tenemos el máximo de líneas, detener
+    if (lines.length >= maxLines - 1 && currentLine) {
+      lines.push(currentLine + '...');
+      return lines.join('\n');
+    }
+  }
+  
+  if (currentLine) lines.push(currentLine);
+  
+  return lines.slice(0, maxLines).join('\n');
 };
 
 export const TaskNew: FC<Props> = memo(({
@@ -320,7 +348,7 @@ export const TaskNew: FC<Props> = memo(({
           estado: 'pending'
         },
         domain: config.domain
-      }) as Task; // Asegurar el tipo Task
+      }) as Task;
 
       if (response && response._id) {
         // Actualizar el estado global
@@ -442,27 +470,37 @@ export const TaskNew: FC<Props> = memo(({
                     onClose={() => setShowIconSelector(false)}
                   />
                 ) : (
-                  <Formik
-                    initialValues={{ icon: tempIcon }}
-                    onSubmit={(values) => {
-                      handleIconChange(values.icon);
-                    }}
+                  <button
+                    onClick={() => setShowIconSelector(true)}
+                    className="w-12 h-12 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors"
                   >
-                    <Form>
-                      <button
-                        onClick={() => setShowIconSelector(true)}
-                        className="w-12 h-12 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors"
-                      >
-                        <SelectIcon
-                          name="icon"
-                          value={tempIcon}
-                          className="w-8 h-8"
-                          handleChange={() => {}}
-                          data={localTask}
-                        />
-                      </button>
-                    </Form>
-                  </Formik>
+<Formik
+  initialValues={{ icon: tempIcon }}
+  onSubmit={(values) => {
+    handleIconChange(values.icon);
+  }}
+>
+  {({ setFieldValue }) => (
+    <Form>
+      <Field name="icon">
+        {({ field }) => (
+          <SelectIcon
+            {...field}
+            name="icon"
+            value={field.value || tempIcon}
+            className="w-8 h-8"
+            handleChange={(value) => {
+              setFieldValue('icon', value);
+              handleIconChange(value);
+            }}
+            data={localTask}
+          />
+        )}
+      </Field>
+    </Form>
+  )}
+</Formik>
+                  </button>
                 )}
               </div>
 
@@ -578,7 +616,7 @@ export const TaskNew: FC<Props> = memo(({
                 </div>
 
                 {/* Compartir enlace - Con feedback visual al copiar */}
-{/*                 <div className="relative group">
+                <div className="relative group">
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(link);
@@ -589,11 +627,11 @@ export const TaskNew: FC<Props> = memo(({
                   >
                     <Link className="w-4 h-4" />
                   </button>
-                  
+                  {/* Tooltip informativo */}
                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
                     {t('Compartir')}
                   </div>
-                </div> */}
+                </div>
               </div>
 
               {/* Botones de ItineraryButtonBox - Con estados y colores personalizados */}
@@ -601,7 +639,7 @@ export const TaskNew: FC<Props> = memo(({
                 <>
                   <div className="flex items-center bg-gray-50 rounded-lg p-0.5 mr-2">
                     {optionsItineraryButtonBox
-                      .filter(option => option.value !== 'estatus' && option.value !== 'status') // Excluir estatus y estado como se solicitó
+                      .filter(option => option.value !== 'estatus' && option.value !== 'status')
                       .map((option, idx) => {
                         // Obtener el icono correcto basado en el estado
                         let icon = option.icon;
@@ -1027,7 +1065,7 @@ export const TaskNew: FC<Props> = memo(({
 
                 {/* Campos personalizados */}
                 <div className="space-y-6">
-                  {/* Descripción larga */}
+                  {/* Descripción larga formateada */}
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <label className="text-sm font-medium text-gray-700">
@@ -1078,11 +1116,11 @@ export const TaskNew: FC<Props> = memo(({
                         onClick={() => setEditingDescription(true)}
                       >
                         {customDescription ? (
-                          <Interweave
-                            className="text-sm text-gray-700"
-                            content={customDescription}
-                            matchers={[new UrlMatcher('url'), new HashtagMatcher('hashtag')]}
-                          />
+                          <div className="text-sm text-gray-700 whitespace-pre-wrap break-words">
+                            {formatTextWithLineLimit(stripHtml(customDescription), 70, 6).split('\n').map((line, idx) => (
+                              <div key={idx} className="mb-1">{line}</div>
+                            ))}
+                          </div>
                         ) : (
                           <p className="text-sm text-gray-400">{t('Haz clic para agregar una descripción...')}</p>
                         )}

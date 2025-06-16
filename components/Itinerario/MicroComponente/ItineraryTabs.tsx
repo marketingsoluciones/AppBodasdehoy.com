@@ -547,7 +547,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                         </div>}
                     </>}
                 </div>
-                {isAllowed() && <div className="inline-flex space-x-4">
+                {isAllowed() && <div className="inline-flex space-x-4 z-1000">
                     {view === "cards" && (
                         <>
                             <AddTaskButton 

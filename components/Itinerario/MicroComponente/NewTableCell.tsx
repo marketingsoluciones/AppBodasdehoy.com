@@ -56,6 +56,7 @@ export const TableCell: React.FC<TableCellProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [showFullText, setShowFullText] = useState(false);
   const [showResponsableSelector, setShowResponsableSelector] = useState(false);
+  const [previousValue, setPreviousValue] = useState(value);
   const cellRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const selectorRef = useRef<HTMLDivElement>(null);
@@ -67,6 +68,7 @@ export const TableCell: React.FC<TableCellProps> = ({
 
   useEffect(() => {
     setEditValue(value);
+    setPreviousValue(value);
   }, [value]);
 
   useEffect(() => {
@@ -77,12 +79,15 @@ export const TableCell: React.FC<TableCellProps> = ({
   }, [isEditing]);
 
   const handleSave = () => {
-    onUpdate(editValue);
+    // Verificar si el valor cambió antes de actualizar
+    if (JSON.stringify(editValue) !== JSON.stringify(previousValue)) {
+      onUpdate(editValue);
+    }
     onStopEdit();
   };
 
   const handleCancel = () => {
-    setEditValue(value);
+    setEditValue(previousValue);
     onStopEdit();
   };
 
@@ -96,7 +101,7 @@ export const TableCell: React.FC<TableCellProps> = ({
     }
   };
 
-  // Función para truncar texto
+  // Función para truncar texto con límite de caracteres
   const truncateText = (text: string, maxLength: number) => {
     if (!text || text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
@@ -160,7 +165,9 @@ export const TableCell: React.FC<TableCellProps> = ({
           <div className="px-3 py-2">
             <StatusDropdown
               value={value || 'pending'}
-              onChange={(newValue) => onUpdate(newValue)}
+              onChange={(newValue) => {
+                if (newValue !== value) onUpdate(newValue);
+              }}
               size="sm"
             />
           </div>
@@ -171,7 +178,9 @@ export const TableCell: React.FC<TableCellProps> = ({
           <div className="px-3 py-2">
             <PriorityDropdown
               value={value || 'media'}
-              onChange={(newValue) => onUpdate(newValue)}
+              onChange={(newValue) => {
+                if (newValue !== value) onUpdate(newValue);
+              }}
               size="sm"
             />
           </div>
@@ -181,8 +190,18 @@ export const TableCell: React.FC<TableCellProps> = ({
         return (
           <div className="px-3 py-2">
             <DateSelector
-              value={value}
-              onChange={(newValue) => onUpdate(newValue)}
+              value={value ? new Date(value).toISOString().split('T')[0] : ''}
+              onChange={(newValue) => {
+                if (newValue) {
+                  const newDate = new Date(newValue);
+                  if (!isNaN(newDate.getTime())) {
+                    onUpdate(newDate.toISOString());
+                  }
+                } else {
+                  // Si se borra la fecha, usar fecha actual
+                  onUpdate(new Date().toISOString());
+                }
+              }}
               placeholder={t('Sin fecha')}
             />
           </div>
@@ -195,15 +214,17 @@ export const TableCell: React.FC<TableCellProps> = ({
         }) : '';
         
         return isEditing ? (
-          <input
-            ref={inputRef}
-            type="time"
-            value={editValue || ''}
-            onChange={(e) => setEditValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onBlur={handleSave}
-            className="w-full px-3 py-2 border-2 border-primary rounded-md text-sm focus:outline-none"
-          />
+          <div className="px-3 py-2">
+            <input
+              ref={inputRef}
+              type="time"
+              value={editValue || ''}
+              onChange={(e) => setEditValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onBlur={handleSave}
+              className="w-full px-3 py-2 border-2 border-primary rounded-md text-sm focus:outline-none min-w-[120px]"
+            />
+          </div>
         ) : (
           <div className="flex items-center space-x-2 px-3 py-2">
             <Clock className="w-4 h-4 text-gray-400" />
@@ -287,14 +308,21 @@ export const TableCell: React.FC<TableCellProps> = ({
             </div>
             
             {showResponsableSelector && (
-              <ClickUpResponsableSelector
-                value={responsables}
-                onChange={(newValue) => {
-                  onUpdate(newValue);
-                  setShowResponsableSelector(false);
-                }}
-                onClose={() => setShowResponsableSelector(false)}
-              />
+              <div className="fixed inset-0 z-50 flex items-center justify-center">
+                <div className="absolute inset-0 bg-black/20" onClick={() => setShowResponsableSelector(false)} />
+                <div className="relative">
+                  <ClickUpResponsableSelector
+                    value={responsables}
+                    onChange={(newValue) => {
+                      if (JSON.stringify(newValue) !== JSON.stringify(responsables)) {
+                        onUpdate(newValue);
+                      }
+                      setShowResponsableSelector(false);
+                    }}
+                    onClose={() => setShowResponsableSelector(false)}
+                  />
+                </div>
+              </div>
             )}
           </div>
         );
@@ -304,7 +332,11 @@ export const TableCell: React.FC<TableCellProps> = ({
           <div className="p-2">
             <TagsEditor
               value={value || []}
-              onChange={onUpdate}
+              onChange={(newValue) => {
+                if (JSON.stringify(newValue) !== JSON.stringify(value || [])) {
+                  onUpdate(newValue);
+                }
+              }}
               isEditing={isEditing}
               onStartEdit={onStartEdit}
               onStopEdit={onStopEdit}
@@ -327,6 +359,7 @@ export const TableCell: React.FC<TableCellProps> = ({
               onSave={handleSave}
               onCancel={handleCancel}
               placeholder={t('Agregar descripción...')}
+              maxTooltipLength={200}
             />
           </div>
         );
@@ -336,7 +369,11 @@ export const TableCell: React.FC<TableCellProps> = ({
           <div className="relative">
             <AttachmentsEditor
               value={value || []}
-              onChange={onUpdate}
+              onChange={(newValue) => {
+                if (JSON.stringify(newValue) !== JSON.stringify(value || [])) {
+                  onUpdate(newValue);
+                }
+              }}
               taskId={task._id}
               isEditing={isEditing}
               onStartEdit={onStartEdit}
@@ -403,7 +440,7 @@ export const TableCell: React.FC<TableCellProps> = ({
 
       {/* Controles de edición inline */}
       {isEditing && canEdit && ['text', 'number', 'time'].includes(column.type) && (
-        <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1 bg-white rounded-md shadow-sm border border-gray-200 p-1">
+        <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1 bg-white rounded-md shadow-sm border border-gray-200 p-1 z-10">
           <button
             onClick={(e) => {
               e.stopPropagation();

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useTable, useSortBy, useRowSelect, useGlobalFilter } from 'react-table';
 import { 
   TableProps, 
@@ -17,25 +17,41 @@ import { AuthContextProvider, EventContextProvider } from '../../../context';
 import { fetchApiEventos, queries } from '../../../utils/Fetching';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../../../hooks/useToast';
-import { MessageSquare, Edit2, Paperclip } from 'lucide-react';
+import { 
+  MessageSquare, 
+  Edit2, 
+  Paperclip, 
+  MoreHorizontal,
+  Eye,
+  EyeOff,
+  GitBranch,
+  Link,
+  Trash2,
+  Lock,
+  Unlock,
+  Copy,
+  Download,
+  Upload
+} from 'lucide-react';
 import { CommentModal } from './CommentModal';
 import { TableEditModal } from './TableEditModal';
+import { customAlphabet } from 'nanoid';
+import * as XLSX from 'xlsx';
+
+// Función auxiliar para descargar archivos sin file-saver
+const downloadFile = (data: Blob, filename: string) => {
+  const url = URL.createObjectURL(data);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
 
 // Definir las columnas con adjuntos incluido
 const defineColumns = (t: any): TableColumn[] => [
-  {
-    id: 'actions',
-    Header: '',
-    accessor: '_id',
-    width: 40,
-    minWidth: 40,
-    maxWidth: 40,
-    canResize: false,
-    canSort: false,
-    canFilter: false,
-    canHide: false,
-    Cell: () => null
-  },
   {
     id: 'descripcion',
     Header: t('title'),
@@ -93,9 +109,9 @@ const defineColumns = (t: any): TableColumn[] => [
     id: 'hora',
     Header: t('time'),
     accessor: 'fecha',
-    width: 80,
-    minWidth: 70,
-    maxWidth: 100,
+    width: 100,
+    minWidth: 80,
+    maxWidth: 120,
     canResize: true,
     type: 'time'
   },
@@ -153,6 +169,52 @@ const defineColumns = (t: any): TableColumn[] => [
   }
 ];
 
+// Opciones de botones por fila
+const getRowActions = (task: any, optionsItineraryButtonBox: any[], handlers: any) => {
+  const actions = [
+    {
+      value: "edit",
+      icon: <Edit2 className="w-4 h-4" />,
+      title: "Editar tarea",
+      onClick: () => handlers.handleEdit(task),
+      className: 'text-gray-400 hover:text-primary'
+    },
+    {
+      value: "visibility",
+      icon: task.spectatorView ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />,
+      title: task.spectatorView ? "Visible" : "Oculta",
+      onClick: () => handlers.handleToggleVisibility(task),
+      className: task.spectatorView ? 'text-primary' : 'text-gray-400'
+    },
+    {
+      value: "lock",
+      icon: task.estatus ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />,
+      title: task.estatus ? "Bloqueada" : "Desbloqueada",
+      onClick: () => handlers.handleToggleLock(task),
+      className: task.estatus ? 'text-red-500' : 'text-gray-400'
+    },
+    {
+      value: "duplicate",
+      icon: <Copy className="w-4 h-4" />,
+      title: "Duplicar",
+      onClick: () => handlers.handleDuplicate(task),
+      className: 'text-gray-400 hover:text-primary'
+    },
+    {
+      value: "link",
+      icon: <Link className="w-4 h-4" />,
+      title: "Copiar enlace",
+      onClick: () => handlers.handleCopyLink(task),
+      className: 'text-gray-400 hover:text-primary'
+    },
+    ...(optionsItineraryButtonBox || []).filter(opt => 
+      !['estatus', 'status'].includes(opt.value)
+    )
+  ];
+
+  return actions;
+};
+
 export const TableView: React.FC<TableProps> = ({
   data,
   itinerario,
@@ -163,9 +225,10 @@ export const TableView: React.FC<TableProps> = ({
   onTaskCreate
 }) => {
   const { t } = useTranslation();
-  const { config } = AuthContextProvider();
+  const { config, user } = AuthContextProvider();
   const { event, setEvent } = EventContextProvider();
   const toast = useToast();
+  const tableContainerRef = useRef<HTMLDivElement>(null);
 
   // Definir columnas usando useMemo
   const columns = useMemo(() => defineColumns(t), [t]);
@@ -187,15 +250,29 @@ export const TableView: React.FC<TableProps> = ({
   const [savedViews, setSavedViews] = useState<ViewConfig[]>([]);
   const [showCommentModal, setShowCommentModal] = useState<{ show: boolean; task?: any; rowIndex?: number }>({ show: false });
   const [showEditModal, setShowEditModal] = useState<{ show: boolean; task?: any }>({ show: false });
+  const [hoveredRow, setHoveredRow] = useState<string | null>(null);
 
   // Forzar actualización cuando cambian los datos
   const [forceUpdate, setForceUpdate] = useState(0);
+
+  // Cargar vistas guardadas desde localStorage
+  useEffect(() => {
+    const savedViewsKey = `tableViews_${event._id}_${itinerario._id}`;
+    const saved = localStorage.getItem(savedViewsKey);
+    if (saved) {
+      try {
+        setSavedViews(JSON.parse(saved));
+      } catch (e) {
+        console.error('Error loading saved views:', e);
+      }
+    }
+  }, [event._id, itinerario._id]);
 
   useEffect(() => {
     setForceUpdate(prev => prev + 1);
   }, [data]);
 
-  // Filtrar datos
+  // Filtrar datos mejorado
   const filteredData = useMemo(() => {
     if (!data || !Array.isArray(data)) return [];
     
@@ -210,27 +287,41 @@ export const TableView: React.FC<TableProps> = ({
           const value = item[filter.columnId];
           const filterValue = filter.value;
           
+          // Convertir valores a string para comparación
+          const valueStr = String(value || '').toLowerCase();
+          const filterStr = String(filterValue || '').toLowerCase();
+          
           switch (filter.operator) {
             case 'contains':
-              return String(value).toLowerCase().includes(String(filterValue).toLowerCase());
+              return valueStr.includes(filterStr);
             case 'equals':
-              return value === filterValue;
+              return valueStr === filterStr;
             case 'startsWith':
-              return String(value).toLowerCase().startsWith(String(filterValue).toLowerCase());
+              return valueStr.startsWith(filterStr);
             case 'endsWith':
-              return String(value).toLowerCase().endsWith(String(filterValue).toLowerCase());
+              return valueStr.endsWith(filterStr);
             case 'gt':
-              return Number(value) > Number(filterValue);
+              return Number(value || 0) > Number(filterValue || 0);
             case 'lt':
-              return Number(value) < Number(filterValue);
+              return Number(value || 0) < Number(filterValue || 0);
             case 'gte':
-              return Number(value) >= Number(filterValue);
+              return Number(value || 0) >= Number(filterValue || 0);
             case 'lte':
-              return Number(value) <= Number(filterValue);
+              return Number(value || 0) <= Number(filterValue || 0);
             case 'in':
-              return Array.isArray(filterValue) && filterValue.includes(value);
+              if (Array.isArray(filterValue)) {
+                return filterValue.some(fv => 
+                  String(fv).toLowerCase() === valueStr
+                );
+              }
+              return false;
             case 'notIn':
-              return Array.isArray(filterValue) && !filterValue.includes(value);
+              if (Array.isArray(filterValue)) {
+                return !filterValue.some(fv => 
+                  String(fv).toLowerCase() === valueStr
+                );
+              }
+              return true;
             default:
               return true;
           }
@@ -238,14 +329,25 @@ export const TableView: React.FC<TableProps> = ({
       });
     }
 
-    // Aplicar búsqueda global
+    // Aplicar búsqueda global mejorada
     if (tableState.globalFilter) {
       const searchTerm = tableState.globalFilter.toLowerCase();
-      filtered = filtered.filter(item =>
-        Object.values(item).some(value =>
-          String(value).toLowerCase().includes(searchTerm)
-        )
-      );
+      filtered = filtered.filter(item => {
+        // Buscar en todos los campos, incluyendo arrays
+        return Object.entries(item).some(([key, value]) => {
+          if (value === null || value === undefined) return false;
+          
+          if (Array.isArray(value)) {
+            // Para arrays, buscar en cada elemento
+            return value.some(v => 
+              String(v).toLowerCase().includes(searchTerm)
+            );
+          }
+          
+          // Para valores simples
+          return String(value).toLowerCase().includes(searchTerm);
+        });
+      });
     }
 
     return filtered;
@@ -279,10 +381,22 @@ export const TableView: React.FC<TableProps> = ({
     prepareRow
   } = tableInstance;
 
-  // Manejar actualización de celda mejorada
+  // Manejar actualización de celda mejorada con verificación de cambios
   const handleCellUpdate = useCallback(async (rowIndex: number, columnId: string, value: any) => {
     const task = filteredData[rowIndex];
     if (!task) return;
+    
+    // Verificar si el valor realmente cambió
+    const currentValue = task[columnId];
+    
+    // Comparación profunda para arrays
+    if (Array.isArray(currentValue) && Array.isArray(value)) {
+      if (JSON.stringify(currentValue) === JSON.stringify(value)) {
+        return; // No hay cambios
+      }
+    } else if (currentValue === value) {
+      return; // No hay cambios
+    }
     
     try {
       let processedValue = value;
@@ -302,11 +416,21 @@ export const TableView: React.FC<TableProps> = ({
           processedValue = String(value || '0');
           break;
         case 'fecha':
-          if (value instanceof Date) {
-            processedValue = value.toISOString();
-          } else if (typeof value === 'string') {
-            processedValue = new Date(value).toISOString();
+          if (value) {
+            if (value instanceof Date) {
+              processedValue = value.toISOString();
+            } else if (typeof value === 'string') {
+              // Verificar si es una fecha válida
+              const date = new Date(value);
+              if (!isNaN(date.getTime())) {
+                processedValue = date.toISOString();
+              } else {
+                toast('error', t('Fecha inválida'));
+                return;
+              }
+            }
           } else {
+            // Si se borra la fecha, establecer fecha actual
             processedValue = new Date().toISOString();
           }
           break;
@@ -364,21 +488,169 @@ export const TableView: React.FC<TableProps> = ({
     }
   }, [event._id, itinerario._id, filteredData, onTaskUpdate, config.domain, t, toast]);
 
-  // Manejar creación de tarea
-  const handleAddTask = () => {
-    const newTask = {
-      descripcion: 'Nueva tarea',
-      estado: 'pending',
-      prioridad: 'media',
-      responsable: [],
-      fecha: new Date(),
-      duracion: 30,
-      tags: [],
-      tips: '',
-      attachments: []
-    };
+  // Manejar creación de tarea mejorada
+  const handleAddTask = async () => {
+    try {
+      // Calcular fecha por defecto
+      const currentDate = new Date();
+      const eventDate = event.fecha ? new Date(event.fecha) : currentDate;
+      
+      // Si hay tareas, usar la última fecha + duración
+      let defaultDate = eventDate;
+      if (data && data.length > 0) {
+        const lastTask = data[data.length - 1];
+        if (lastTask.fecha) {
+          const lastDate = new Date(lastTask.fecha);
+          defaultDate = new Date(lastDate.getTime() + (lastTask.duracion || 30) * 60000);
+        }
+      }
+
+      // Formatear fecha para el API
+      const year = defaultDate.getFullYear();
+      const month = String(defaultDate.getMonth() + 1).padStart(2, '0');
+      const day = String(defaultDate.getDate()).padStart(2, '0');
+      const hours = String(defaultDate.getHours()).padStart(2, '0');
+      const minutes = String(defaultDate.getMinutes()).padStart(2, '0');
+
+      const response = await fetchApiEventos({
+        query: queries.createTask,
+        variables: {
+          eventID: event._id,
+          itinerarioID: itinerario._id,
+          descripcion: t('Nueva tarea'),
+          fecha: `${year}-${month}-${day}`,
+          hora: `${hours}:${minutes}`,
+          duracion: 30
+        },
+        domain: config.domain
+      });
+
+      if (response && response._id) {
+        // Actualizar estado global
+        setEvent((oldEvent) => {
+          const newEvent = { ...oldEvent };
+          const itineraryIndex = newEvent.itinerarios_array.findIndex(
+            it => it._id === itinerario._id
+          );
+          
+          if (itineraryIndex > -1) {
+            if (!newEvent.itinerarios_array[itineraryIndex].tasks) {
+              newEvent.itinerarios_array[itineraryIndex].tasks = [];
+            }
+            newEvent.itinerarios_array[itineraryIndex].tasks.push(response);
+          }
+          
+          return newEvent;
+        });
+
+        // Seleccionar la nueva tarea
+        setSelectTask(response._id);
+        
+        toast('success', t('Tarea creada correctamente'));
+      }
+    } catch (error) {
+      console.error('Error al crear tarea:', error);
+      toast('error', t('Error al crear la tarea'));
+    }
+  };
+
+  // Funciones de exportación e importación
+  const handleExport = () => {
+    try {
+      // Preparar datos para exportar
+      const exportData = filteredData.map(task => ({
+        [t('Título')]: task.descripcion || '',
+        [t('Estado')]: task.estado || 'pending',
+        [t('Prioridad')]: task.prioridad || 'media',
+        [t('Responsables')]: Array.isArray(task.responsable) ? task.responsable.join(', ') : '',
+        [t('Fecha')]: task.fecha ? new Date(task.fecha).toLocaleDateString() : '',
+        [t('Hora')]: task.fecha ? new Date(task.fecha).toLocaleTimeString() : '',
+        [t('Duración (min)')]: task.duracion || 0,
+        [t('Descripción')]: task.tips || '',
+        [t('Etiquetas')]: Array.isArray(task.tags) ? task.tags.join(', ') : '',
+        [t('Visible')]: task.spectatorView ? 'Sí' : 'No',
+        [t('Bloqueada')]: task.estatus ? 'Sí' : 'No'
+      }));
+
+      // Crear libro de Excel
+      const ws = XLSX.utils.json_to_sheet(exportData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Tareas');
+
+      // Generar archivo
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([wbout], { type: 'application/octet-stream' });
+      
+      // Descargar archivo
+      const fileName = `${itinerario.title}_tareas_${new Date().toISOString().split('T')[0]}.xlsx`;
+      downloadFile(blob, fileName);
+      
+      toast('success', t('Datos exportados correctamente'));
+    } catch (error) {
+      console.error('Error al exportar:', error);
+      toast('error', t('Error al exportar los datos'));
+    }
+  };
+
+  const handleImport = () => {
+    // Crear input file temporal
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.xlsx,.xls';
     
-    onTaskCreate(newTask);
+    input.onchange = async (e: any) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      try {
+        const reader = new FileReader();
+        
+        reader.onload = async (evt) => {
+          try {
+            const bstr = evt.target?.result;
+            const wb = XLSX.read(bstr, { type: 'binary' });
+            const wsname = wb.SheetNames[0];
+            const ws = wb.Sheets[wsname];
+            const data = XLSX.utils.sheet_to_json(ws);
+
+            // Procesar cada fila e importar
+            for (const row of data as any[]) {
+              const fecha = row[t('Fecha')] ? new Date(row[t('Fecha')]) : new Date();
+              const [hours, minutes] = (row[t('Hora')] || '00:00').split(':');
+              fecha.setHours(parseInt(hours), parseInt(minutes));
+
+              await fetchApiEventos({
+                query: queries.createTask,
+                variables: {
+                  eventID: event._id,
+                  itinerarioID: itinerario._id,
+                  descripcion: row[t('Título')] || t('Tarea importada'),
+                  fecha: fecha.toISOString().split('T')[0],
+                  hora: `${hours}:${minutes}`,
+                  duracion: parseInt(row[t('Duración (min)')] || '30')
+                },
+                domain: config.domain
+              });
+            }
+
+            // Recargar datos
+            window.location.reload();
+            
+            toast('success', t('Datos importados correctamente'));
+          } catch (error) {
+            console.error('Error procesando archivo:', error);
+            toast('error', t('Error al procesar el archivo'));
+          }
+        };
+
+        reader.readAsBinaryString(file);
+      } catch (error) {
+        console.error('Error al importar:', error);
+        toast('error', t('Error al importar los datos'));
+      }
+    };
+
+    input.click();
   };
 
   // Toggle columnas
@@ -396,9 +668,18 @@ export const TableView: React.FC<TableProps> = ({
     setTableState(prev => ({ ...prev, filters }));
   };
 
-  // Guardar vista
+  // Guardar vista mejorada
   const handleSaveView = (view: ViewConfig) => {
-    setSavedViews(prev => [...prev, view]);
+    const newViews = [...savedViews, view];
+    setSavedViews(newViews);
+    
+    // Guardar en localStorage
+    const savedViewsKey = `tableViews_${event._id}_${itinerario._id}`;
+    localStorage.setItem(savedViewsKey, JSON.stringify(newViews));
+    
+    // TODO: Guardar en base de datos
+    // Agregar campo viewConfigs al itinerario en la base de datos
+    
     toast('success', 'Vista guardada correctamente');
   };
 
@@ -408,7 +689,10 @@ export const TableView: React.FC<TableProps> = ({
       ...prev,
       columns: view.columns,
       filters: view.filters,
-      sortBy: view.sortBy
+      sortBy: view.sortBy,
+      hiddenColumns: view.columns
+        .filter(col => col.isHidden)
+        .map(col => col.id)
     }));
     toast('success', `Vista "${view.name}" cargada`);
   };
@@ -424,6 +708,55 @@ export const TableView: React.FC<TableProps> = ({
     setForceUpdate(prev => prev + 1);
   };
 
+  // Handlers para acciones de fila
+  const rowActionHandlers = {
+    handleEdit: (task: any) => {
+      setShowEditModal({ show: true, task });
+    },
+    handleToggleVisibility: async (task: any) => {
+      await handleCellUpdate(
+        filteredData.findIndex(t => t._id === task._id),
+        'spectatorView',
+        !task.spectatorView
+      );
+    },
+    handleToggleLock: async (task: any) => {
+      await handleCellUpdate(
+        filteredData.findIndex(t => t._id === task._id),
+        'estatus',
+        !task.estatus
+      );
+    },
+    handleDuplicate: async (task: any) => {
+      try {
+        const response = await fetchApiEventos({
+          query: queries.createTask,
+          variables: {
+            eventID: event._id,
+            itinerarioID: itinerario._id,
+            descripcion: `${task.descripcion} (copia)`,
+            fecha: new Date().toISOString().split('T')[0],
+            hora: new Date().toTimeString().substring(0, 5),
+            duracion: task.duracion || 30
+          },
+          domain: config.domain
+        });
+
+        if (response && response._id) {
+          window.location.reload();
+          toast('success', t('Tarea duplicada'));
+        }
+      } catch (error) {
+        toast('error', t('Error al duplicar tarea'));
+      }
+    },
+    handleCopyLink: (task: any) => {
+      const link = `${window.location.origin}/services/servicios-${event._id}-${itinerario._id}-${task._id}`;
+      navigator.clipboard.writeText(link);
+      toast('success', t('Enlace copiado'));
+    }
+  };
+
   const activeFiltersCount = tableState.filters.filter(f => f.isActive && f.value).length;
 
   if (!tableState.columns) {
@@ -431,44 +764,48 @@ export const TableView: React.FC<TableProps> = ({
   }
 
   return (
-    <div className="h-full flex flex-col bg-gray-50">
-      {/* Header principal */}
-      <TableHeader
-        title={`${itinerario.title} - Vista Tabla`}
-        totalItems={data.length}
-        selectedItems={tableState.selectedRows.length}
-        searchValue={tableState.globalFilter}
-        onSearchChange={(value) => setTableState(prev => ({ ...prev, globalFilter: value }))}
-        onAddTask={handleAddTask}
-        onExport={() => console.log('Exportar')}
-        onImport={() => console.log('Importar')}
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
-        columns={tableState.columns}
-        hiddenColumns={tableState.hiddenColumns}
-        onToggleColumn={handleToggleColumn}
-        onFiltersToggle={() => setShowFilters(!showFilters)}
-        filtersActive={activeFiltersCount > 0}
-      />
+    <div className="h-full flex flex-col bg-gray-50 relative">
+      {/* Header principal - fixed para evitar solapamiento */}
+      <div className="sticky top-0 z-30 bg-white shadow-sm">
+        <TableHeader
+          title={`${itinerario.title} - Vista Tabla`}
+          totalItems={data.length}
+          selectedItems={tableState.selectedRows.length}
+          searchValue={tableState.globalFilter}
+          onSearchChange={(value) => setTableState(prev => ({ ...prev, globalFilter: value }))}
+          onAddTask={handleAddTask}
+          onExport={handleExport}
+          onImport={handleImport}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          columns={tableState.columns}
+          hiddenColumns={tableState.hiddenColumns}
+          onToggleColumn={handleToggleColumn}
+          onFiltersToggle={() => setShowFilters(!showFilters)}
+          filtersActive={activeFiltersCount > 0}
+        />
+      </div>
 
       {/* Panel de filtros */}
       {showFilters && (
-        <TableFilters
-          filters={tableState.filters}
-          columns={tableState.columns}
-          onFiltersChange={handleFiltersChange}
-          onSaveView={handleSaveView}
-          savedViews={savedViews}
-          onLoadView={handleLoadView}
-        />
+        <div className="sticky top-[73px] z-20 bg-white shadow-sm">
+          <TableFilters
+            filters={tableState.filters}
+            columns={tableState.columns}
+            onFiltersChange={handleFiltersChange}
+            onSaveView={handleSaveView}
+            savedViews={savedViews}
+            onLoadView={handleLoadView}
+          />
+        </div>
       )}
 
-      {/* Tabla principal */}
-      <div className="flex-1 overflow-auto">
+      {/* Tabla principal con contenedor de scroll */}
+      <div ref={tableContainerRef} className="flex-1 overflow-auto relative">
         <div className="min-w-full">
           <table {...getTableProps()} className="w-full bg-white relative">
             {/* Header de la tabla */}
-            <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-20">
+            <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
               {headerGroups.map((headerGroup, headerGroupIndex) => (
                 <tr 
                   key={`header-group-${headerGroupIndex}`} 
@@ -476,17 +813,6 @@ export const TableView: React.FC<TableProps> = ({
                   className="divide-x divide-gray-200"
                 >
                   {headerGroup.headers.map((column, columnIndex) => {
-                    if (column.id === 'actions') {
-                      return (
-                        <th
-                          key={`header-${column.id}`}
-                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12"
-                        >
-                          {/* Espacio vacío para el header de acciones */}
-                        </th>
-                      );
-                    }
-                    
                     return (
                       <th
                         key={`header-${column.id || columnIndex}`}
@@ -511,7 +837,7 @@ export const TableView: React.FC<TableProps> = ({
                             )}
                           </div>
                           
-                          {column.id !== 'select' && column.id !== 'actions' && (
+                          {column.id !== 'select' && (
                             <ColumnMenu
                               column={column as any}
                               onSort={(direction) => console.log('Sort', direction)}
@@ -536,36 +862,25 @@ export const TableView: React.FC<TableProps> = ({
               {rows.map((row, rowIndex) => {
                 prepareRow(row);
                 const isSelected = selectTask === row.original._id;
+                const isHovered = hoveredRow === row.original._id;
                 
                 return (
                   <tr
                     key={row.original._id || `row-${rowIndex}`}
                     {...row.getRowProps()}
                     className={`
-                      hover:bg-gray-50 transition-colors divide-x divide-gray-200
+                      relative hover:bg-gray-50 transition-colors divide-x divide-gray-200
                       ${isSelected ? 'bg-primary/5 border-l-4 border-primary' : ''}
                     `}
                     onClick={() => setSelectTask(row.original._id)}
+                    onMouseEnter={() => {
+                      setHoveredRow(row.original._id);
+                    }}
+                    onMouseLeave={() => {
+                      setHoveredRow(null);
+                    }}
                   >
                     {row.cells.map((cell, cellIndex) => {
-                      // Renderizar celda de acciones manualmente
-                      if (cell.column.id === 'actions') {
-                        return (
-                          <td key={`${row.original._id}-actions`} className="px-2 py-2 whitespace-nowrap">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setShowEditModal({ show: true, task: row.original });
-                              }}
-                              className="p-1.5 text-gray-400 hover:text-primary hover:bg-gray-100 rounded transition-colors"
-                              title={t('Editar fila completa')}
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </button>
-                          </td>
-                        );
-                      }
-                      
                       return (
                         <td
                           key={`${row.original._id}-${cell.column.id || cellIndex}`}
@@ -577,6 +892,34 @@ export const TableView: React.FC<TableProps> = ({
                             maxWidth: cell.column.maxWidth
                           }}
                         >
+                          {/* Barra de acciones flotante - Solo en la primera columna */}
+                          {cellIndex === 0 && hoveredRow === row.original._id && (
+                            <div 
+                              className="absolute -top-0 left-0 z-50 pointer-events-none"
+                              style={{ transform: 'translateY(-100%)' }}
+                            >
+                              <div 
+                                className="flex items-center bg-white border border-gray-200 rounded-lg shadow-lg p-1 space-x-1 pointer-events-auto"
+                                onMouseEnter={() => setHoveredRow(row.original._id)}
+                                onMouseLeave={() => setHoveredRow(null)}
+                              >
+                                {getRowActions(row.original, [], rowActionHandlers).map((action, idx) => (
+                                  <button
+                                    key={idx}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      action.onClick();
+                                    }}
+                                    className={`p-1.5 rounded hover:bg-gray-100 transition-colors ${action.className || ''}`}
+                                    title={t(action.title)}
+                                  >
+                                    {action.icon}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          
                           <TableCell
                             column={cell.column as any}
                             row={row}
@@ -587,6 +930,7 @@ export const TableView: React.FC<TableProps> = ({
                             onStartEdit={() => setEditingCell({ row: rowIndex, column: cell.column.id })}
                             onStopEdit={() => setEditingCell(null)}
                             onCommentsClick={() => handleCommentsClick(row.original, rowIndex)}
+                            itinerarioId={itinerario._id}
                           />
                         </td>
                       );
@@ -603,13 +947,13 @@ export const TableView: React.FC<TableProps> = ({
               <div className="text-gray-500">
                 {data.length === 0 ? (
                   <div>
-                    <p className="text-lg mb-2">No hay tareas todavía</p>
-                    <p className="text-sm">Crea tu primera tarea para comenzar</p>
+                    <p className="text-lg mb-2">{t('No hay tareas todavía')}</p>
+                    <p className="text-sm">{t('Crea tu primera tarea para comenzar')}</p>
                   </div>
                 ) : (
                   <div>
-                    <p className="text-lg mb-2">No se encontraron resultados</p>
-                    <p className="text-sm">Intenta ajustar tus filtros o búsqueda</p>
+                    <p className="text-lg mb-2">{t('No se encontraron resultados')}</p>
+                    <p className="text-sm">{t('Intenta ajustar tus filtros o búsqueda')}</p>
                   </div>
                 )}
               </div>
@@ -622,45 +966,49 @@ export const TableView: React.FC<TableProps> = ({
       <div className="bg-white border-t border-gray-200 px-4 py-3">
         <div className="flex items-center justify-between text-sm text-gray-600">
           <div>
-            Mostrando {filteredData.length} de {data.length} tareas
+            {t('Mostrando')} {filteredData.length} {t('de')} {data.length} {t('tareas')}
           </div>
           <div className="flex items-center space-x-4">
             {tableState.selectedRows.length > 0 && (
               <span className="font-medium text-primary">
-                {tableState.selectedRows.length} seleccionadas
+                {tableState.selectedRows.length} {t('seleccionadas')}
               </span>
             )}
             {activeFiltersCount > 0 && (
               <span className="px-2 py-1 bg-primary/10 text-primary rounded-full text-xs">
-                {activeFiltersCount} filtros activos
+                {activeFiltersCount} {t('filtros activos')}
               </span>
             )}
           </div>
         </div>
       </div>
 
-      {/* Modal de comentarios */}
+      {/* Modal de comentarios con z-index alto */}
       {showCommentModal.show && showCommentModal.task && (
-        <CommentModal
-          task={showCommentModal.task}
-          itinerario={itinerario}
-          onClose={() => setShowCommentModal({ show: false })}
-          onUpdateComments={handleUpdateComments}
-        />
+        <div className="fixed inset-0 z-50">
+          <CommentModal
+            task={showCommentModal.task}
+            itinerario={itinerario}
+            onClose={() => setShowCommentModal({ show: false })}
+            onUpdateComments={handleUpdateComments}
+          />
+        </div>
       )}
 
-      {/* Modal de edición de fila completa */}
+      {/* Modal de edición de fila completa con z-index alto */}
       {showEditModal.show && showEditModal.task && (
-        <TableEditModal
-          task={showEditModal.task}
-          itinerario={itinerario}
-          onClose={() => setShowEditModal({ show: false })}
-          onSave={async (taskId, updates) => {
-            await onTaskUpdate(taskId, updates);
-            setShowEditModal({ show: false });
-            setForceUpdate(prev => prev + 1);
-          }}
-        />
+        <div className="fixed inset-0 z-50">
+          <TableEditModal
+            task={showEditModal.task}
+            itinerario={itinerario}
+            onClose={() => setShowEditModal({ show: false })}
+            onSave={async (taskId, updates) => {
+              await onTaskUpdate(taskId, updates);
+              setShowEditModal({ show: false });
+              setForceUpdate(prev => prev + 1);
+            }}
+          />
+        </div>
       )}
     </div>
   );
