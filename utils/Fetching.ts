@@ -1134,6 +1134,46 @@ export const queries = {
                     }
                   }
                 }`,
+
+  editPago: `mutation($evento_id:String, $categoria_id:String, $gasto_id: String, $pago_id:String,$pagos_array:pagos_arrayAinput){
+                  editPago(evento_id:$evento_id, categoria_id:$categoria_id, gasto_id:$gasto_id,pago_id:$pago_id, pagos_array:$pagos_array){
+                    categorias_array{
+                      pagado
+                      gastos_array{
+                        pagado 
+                        pagos_array{
+                          _id
+                          estado
+                          fecha_creacion
+                          fecha_pago
+                          fecha_vencimiento
+                          medio_pago
+                          importe
+                          pagado_por
+                          concepto
+                          soporte{
+                            image_url
+                            medium_url
+                            thumb_url
+                            delete_url
+                          }
+                        }
+                        items_array{
+                          _id
+                          next_id
+                          unidad
+                          cantidad
+                          nombre
+                          valor_unitario
+                          total
+                          estatus
+                          fecha_creacion
+                        }
+                      }
+                    }
+                  }
+                }`,
+
   borrarGasto: `mutation($evento_id: String, $categoria_id: String, $gasto_id: String){
                 borraGasto(evento_id:$evento_id, categoria_id:$categoria_id,gasto_id:$gasto_id){
                   coste_final

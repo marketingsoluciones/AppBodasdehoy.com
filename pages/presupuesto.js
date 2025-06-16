@@ -17,6 +17,7 @@ import { DuplicatePresupuesto } from "../components/Presupuesto/DuplicatePesupue
 import { api } from "../api";
 import { useAllowed } from "../hooks/useAllowed";
 import { ResumenPresupuestoModal } from "../components/Presupuesto/ResumenPresupuestoModal"
+import { SmartSpreadsheetView2 } from "../components/Presupuesto/PresupuestoV2/IndexPresupuesto";
 
 const Presupuesto = () => {
   useMounted()
@@ -62,11 +63,17 @@ const Presupuesto = () => {
                   <div className="bg-white w-[90%] h-[90%] rounded-lg overflow-auto shadow-lg relative">
                     <button
                       onClick={() => setShowModalPresupuesto(false)}
-                      className="absolute top-4 right-4 text-gray-500 hover:text-gray-800"
+                      className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
                     >
                       ✕
                     </button>
-                    <ResumenPresupuestoModal categorias={categorias} presupuesto={event.presupuesto_objeto} estimadoState={event?.presupuesto_objeto?.viewEstimates} />
+                    <SmartSpreadsheetView2
+                      categorias_array={categorias}
+                      event={event}
+                      setShowCategoria={setShowCategoria}
+                      showCategoria={showCategoria}
+                    />
+                    {/* <ResumenPresupuestoModal categorias={categorias} presupuesto={event.presupuesto_objeto} estimadoState={event?.presupuesto_objeto?.viewEstimates} /> */}
                   </div>
                 </div>
               )
@@ -111,20 +118,6 @@ const Presupuesto = () => {
                 >
                   <p>{t("pendingpayments")}</p>
                 </div>
-
-               {/*  <div className="relative">
-                  <div className="absolute z-10 -right-40 -top-2 rounded-full overflow-hidden h-10">
-                    <select disabled={!isAllowed()} value={event?.presupuesto_objeto?.currency} className={`border-none focus:ring-0 ${isAllowed() ? "cursor-pointer" : "cursor-default"} text-sm text-gray-700 h-10`} onChange={(e) => isAllowed() ? handleChangeS(e) : ht()}  >
-                      <option value={"eur"}>EUR</option>
-                      <option value={"usd"}>USD</option>
-                      <option value={"ves"}>VES</option>
-                      <option value={"mxn"}>MXN</option>
-                      <option value={"cop"}>COL</option>
-                      <option value={"ars"}>ARG</option>
-                      <option value={"uyu"}>URU</option>
-                    </select>
-                  </div>
-                </div> */}
               </div>
 
               <div className="w-full h-[calc(100vh-260px)]">
@@ -154,7 +147,23 @@ const Presupuesto = () => {
                             <div className="w-full bg-white shadow-md rounded-xl flex py-4 px-2">
                               <MontoPresupuesto />
                             </div>
-                            <div className=" bg-white shadow-md rounded-xl grid place-items-center py-4 px-2">
+                            <div className=" bg-white shadow-md rounded-xl grid place-items-center py-4 px-2 relative">
+                              <div className={`${showModalPresupuesto?"hidden": " absolute"}  right-2 -top-11 `}>
+                                <button
+                                  onClick={() => setShowModalPresupuesto(true)}
+                                  className={`z-[60] bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 text-white font-bold py-1 px-3 rounded-full shadow-lg flex items-center relative hover:scale-105 transition `}
+                                  title="Ver novedades"
+                                >
+                                  {/* Circulito titilando */}
+                                  <span className="absolute -top-1 -right-1">
+                                    <span className="relative flex h-3 w-3">
+                                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                      <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-400"></span>
+                                    </span>
+                                  </span>
+                                  <span className="uppercase tracking-wider text-xs">New</span>
+                                </button>
+                              </div>
                               <DineroIcon className="w-12 h-12 text-primary " />
                               <p className="font-display text-gray-500 font-light text-md grid place-items-center">
                                 {t("finalcost")} <br />

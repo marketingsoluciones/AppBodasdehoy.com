@@ -8,8 +8,8 @@ import { CheckIcon, DiamanteIcon } from "../icons";
 import InputField from "./InputField";
 import { useToast } from "../../hooks/useToast";
 import { getCurrency } from "../../utils/Funciones";
-import { GoChevronDown } from "react-icons/go";
 import { useTranslation } from 'react-i18next';
+import { fetchApiEventos, queries } from "../../utils/Fetching";
 
 
 
@@ -34,9 +34,12 @@ const validacion = (values) => {
 
 const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categorias, getId }) => {
   const { event, setEvent } = EventContextProvider()
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [pago, setPago] = useState(ListaPagos?.find(item => item._id == IDPagoAModificar))
   const toast = useToast()
   const { t } = useTranslation()
+  const [isLoadingImage, setIsLoadingImage] = useState(false); // Nuevo estado
+
 
   useEffect(() => {
     setPago(ListaPagos?.find(item => item._id == IDPagoAModificar))
@@ -48,10 +51,6 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categor
     }
   }, [IDs])
 
-  useEffect(() => {
-    console.log(pago)
-  }, [pago])
-
   const checkbox = {
     true: "pagado",
     false: "pendiente",
@@ -59,105 +58,93 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categor
     pendiente: false
   }
 
+  const initialValues = {
+    importe: pago?.importe,
+    pagado: checkbox[pago?.estado],
+    fechaPago: pago?.fecha_pago,
+    fechaVencimiento: pago?.fecha_vencimiento,
+    pagado_por: pago?.pagado_por,
+    medio_pago: pago?.medio_pago,
+    concepto: pago?.concepto,
+    file: pago?.soporte
+  }
+
+  const saveData = async (values) => {
+    try {
+      await fetchApiEventos({
+        query: queries.editPago,
+        variables: {
+          evento_id: event?._id,
+          categoria_id: pago?.idCategoria,
+          gasto_id: pago?.idGasto,
+          pago_id: IDPagoAModificar,
+          pagos_array: {
+            importe: values.importe,
+            estado: checkbox[values.pagado],
+            fecha_pago: values.fechaPago,
+            fecha_vencimiento: values.fechaVencimiento,
+            pagado_por: values.pagado_por,
+            medio_pago: values.medio_pago,
+            concepto: values.concepto,
+            soporte: values?.soporte
+          }
+        }
+      })
+      const f1 = event?.presupuesto_objeto?.categorias_array?.findIndex(item => item._id == pago?.idCategoria)
+      const f2 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array?.findIndex(item => item._id == pago?.idGasto)
+      const f3 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.pagos_array?.findIndex(item => item._id == IDPagoAModificar)
+      event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].pagos_array[f3] = { ...event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2].pagos_array[f3], ...values }
+      toast("success", t("savedpayment"))
+      setEvent({ ...event })
+      set(!state)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   return (
     <Formik
-      initialValues={{
-        importe: pago?.importe,
-        pagado: checkbox[pago?.estado],
-        fechaPago: pago?.fecha_pago,
-        fechaVencimiento: pago?.fecha_vencimiento,
-        pagado_por: pago?.pagado_por,
-        medio_pago: pago?.medio_pago,
-        concepto: pago?.concepto,
-        file: pago?.file
-      }}
-
-      onSubmit={async (values, actions) => {
-        console.log(values)
-        const params = {
-          query: `mutation{
-                editPago(evento_id:"${event?._id}", categoria_id:"${pago?.idCategoria}", gasto_id:"${pago?.idGasto}", pago_id:"${IDPagoAModificar}", pagos_array:{
-                  importe: ${values.importe},
-                  estado: "${checkbox[values.pagado]}",
-                  fecha_pago: "${values.fechaPago}",
-                  fecha_vencimiento: "${values.fechaVencimiento}",
-                  pagado_por: "${values.pagado_por}"
-                  medio_pago: "${values.medio_pago}",
-                  concepto:"${values.concepto}"
-                }
-              ){
-                categorias_array{
-                  pagado
-                  gastos_array{
-                    pagado
-                    pagos_array{
-                        _id
-                        estado
-                        fecha_creacion
-                        fecha_pago
-                        fecha_vencimiento
-                        medio_pago
-                        importe
-                        pagado_por
-                        concepto
-                    }
-                    items_array{
-                      _id
-                      next_id
-                      unidad
-                      cantidad
-                      nombre
-                      valor_unitario
-                      total
-                      estatus
-                      fecha_creacion
-                    }
-                  }
-                }
-                }
-              }`,
-          variables: {},
-        }
-
-        let res
+      initialValues={initialValues}
+      onSubmit={async (values) => {
         try {
-          actions.setSubmitting(true)
-          const { data } = await api.ApiApp(params)
-          res = data?.data?.editPago
-          toast("success", t(`savedpayment`))
+          setIsLoadingImage(true)
+
+          if (!isSubmitting) {
+            setIsSubmitting(true)
+            if (values.file !== initialValues.file) {
+              const formdata = new FormData();
+              formdata.append("image", values.file.split("base64,")[1]);
+              const requestOptions = {
+                method: "POST",
+                body: formdata,
+                redirect: "follow"
+              };
+              fetch("https://api.imgbb.com/1/upload?expiration=15552000&key=c6f787e40fd29dac790a3e42d38c5078", requestOptions)
+                .then((response) => response.text())
+                .then((result) => {
+                  const data = JSON.parse(result)?.data
+                  values.soporte = {
+                    image_url: data?.image?.url,
+                    medium_url: data?.medium?.url,
+                    thumb_url: data?.thumb?.url,
+                    delete_url: data?.delete_url
+                  }
+                  saveData(values)
+                })
+                .catch((error) => console.error(error));
+              return
+            }
+            saveData(values)
+            setIsLoadingImage(false)
+
+          }
         } catch (error) {
           console.log(error)
-        } finally {
-          setEvent(old => {
-            const idxCategoria = old?.presupuesto_objeto?.categorias_array?.findIndex(item => item._id == pago?.idCategoria)
-            const idxGasto = old?.presupuesto_objeto?.categorias_array[idxCategoria]?.gastos_array?.findIndex(item => item._id == pago?.idGasto)
-            const idxPago = old?.presupuesto_objeto?.categorias_array[idxCategoria]?.gastos_array[idxGasto].pagos_array?.findIndex(item => item._id == IDPagoAModificar)
-            old.presupuesto_objeto.categorias_array[idxCategoria].gastos_array[idxGasto].pagos_array[idxPago] = {
-              ...old.presupuesto_objeto.categorias_array[idxCategoria].gastos_array[idxGasto].pagos_array[idxPago],
-              ...values
-            }
-            if (values.importe !== pago.importe) {
-
-              //Actualizar pagado en categoria
-              old.presupuesto_objeto.categorias_array[idxCategoria].pagado = res?.categorias_array[0]?.pagado
-              //Actualizar pagado en gasto
-              old.presupuesto_objeto.categorias_array[idxCategoria].gastos_array[idxGasto].pagado = res?.categorias_array[0]?.gastos_array[0].pagado
-            }
-            if (values.pagado !== checkbox[pago?.estado]) {
-              //Actualizar estado en gasto
-              old.presupuesto_objeto.categorias_array[idxCategoria].gastos_array[idxGasto].pagado = res?.categorias_array[0]?.gastos_array[0].pagado
-              old.presupuesto_objeto.categorias_array[idxCategoria].gastos_array[idxGasto].pagos_array[idxPago].estado = res?.categorias_array[0]?.gastos_array[0].pagos_array[0].estado
-              old.presupuesto_objeto.categorias_array[idxCategoria].pagado = res?.categorias_array[0]?.pagado
-            }
-            return { ...old }
-          })
-          set(!state)
-          actions.setSubmitting(false)
         }
       }}
       validate={validacion}
     >
-      {(props) => <BasicFormLogin getId={getId} categorias={categorias} {...props} />}
+      {(props) => <BasicFormLogin getId={getId} categorias={categorias} isLoadingImage={isLoadingImage} {...props} />}
     </Formik>
   );
 }
@@ -170,26 +157,66 @@ export const BasicFormLogin = ({
   handleSubmit,
   isSubmitting,
   values,
+  setValues,
   categorias,
-  getId
+  getId,
+  isLoadingImage
 }) => {
 
   const { event } = EventContextProvider()
+  const { config } = AuthContextProvider()
   const [ischecked, setCheck] = useState(values.pagado)
   const toast = useToast()
   const { currency } = AuthContextProvider()
-  const [showProOptions, setShowProOptions] = useState(false)
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [showProOptions, setShowProOptions] = useState(true)
   const Categoria = event?.presupuesto_objeto?.categorias_array?.find(item => item?._id == categorias)?.nombre
   const idxCate = event?.presupuesto_objeto?.categorias_array?.findIndex(item => item?._id == categorias)
   const Proveedor = event?.presupuesto_objeto?.categorias_array[idxCate]?.gastos_array?.find(item => item?._id == getId)
   const { t } = useTranslation();
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(
+    values.file && typeof values.file === "string" && values.file.startsWith("data:")
+      ? values.file
+      : (values.file?.image_url || values.file || null)
+  );
+
+
   useEffect(() => {
     values.pagado = ischecked
   }, [ischecked])
+
+  useEffect(() => {
+    if (!selectedFile) {
+      if (values.file && typeof values.file === "string" && values.file.startsWith("data:")) {
+        setPreviewUrl(values.file);
+      } else if (values.file?.image_url) {
+        setPreviewUrl(values.file.image_url);
+      } else if (values.file && typeof values.file === "string") {
+        setPreviewUrl(values.file);
+      } else if (values.soporte?.image_url) {
+        setPreviewUrl(values.soporte.image_url);
+      }
+    }
+  }, [values.file, values.soporte, selectedFile]);
+
   const handleFileChange = (event) => {
-    setSelectedFile(event.target.files[0]);
+    try {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        values.file = reader.result;
+        setValues({ ...values });
+        setPreviewUrl(reader.result);
+      };
+      reader.readAsDataURL(file);
+      setSelectedFile(file);
+    } catch (error) {
+      console.log(error)
+    }
   };
+
+
 
   return (
     <>
@@ -336,75 +363,84 @@ export const BasicFormLogin = ({
           )
         }
 
-        <div className="col-span-2 h-[400px]* flex flex-col space-y-2 transition-all duration-500 ">
+        <div className=" relative col-span-2 h-[400px]* flex flex-col space-y-2 transition-all duration-500 ">
           <div className="flex  items-center justify-between">
-            <div className="flex  items-center space-x-2 cursor-pointer hover:underline hover:decoration-1 decoration-azulCorporativo ">
+            <div className="flex  items-center space-x-2  decoration-azulCorporativo ">
               <h2 className="text-2xl text-azulCorporativo">{t("prooptions")}</h2>
-              <div className="text-yellow-200 h-auto w-5">
-                <DiamanteIcon className="h-8 w-8" />
-              </div>
-            </div>
-            <div onClick={() => setShowProOptions(!showProOptions)}>
-              <GoChevronDown className={` h-8 w-8 text-azulCorporativo cursor-pointer transition-all ${showProOptions && "rotate-180"}`} />
+              <div className="text-yellow-200 h-auto w-5"></div>
             </div>
           </div>
           {
             showProOptions ?
-            <div className={`space-y-2 transition-all duration-200`}>
-            <div className="h-[200px] flex flex-col space-y-2 ">
-              <h2 className="text-primary text-[14px]"> {t("uploaddocument")}</h2>
-              <label htmlFor="file-upload" className="cursor-pointer self-center flex items-center justify-center bg-slate-200  border-dotted border-2 border-slate-600  h-full  w-[80%] rounded-md ">
-                {
-                  selectedFile ? (
-                    <div className="w-full h-full">
-                      {selectedFile.type.startsWith('image/') && (
-                        <img src={URL.createObjectURL(selectedFile)} alt="Vista previa" className="w-full h-full object-contain" />
-                      )}
-                      <p className="text-gray-600 pt-1 text-xs">Archivo: {selectedFile.name}</p>
-                    </div>
-                  ) : <GoFileDiff className="h-14 w-14 text-gray-400" />
-                }
-              </label>
-              <input
-                type="file"
-                onChange={handleFileChange}
-                id="file-upload"
-                name="file"
-                className="hidden"
-              />
-            </div>
-            {/* <div className=" flex flex-col space-y-2  ">
-              <h2 className="text-gray-800 text-[14px]">{t("documentnumber")}</h2>
-              <div className="w-[90%] self-center">
-                <InputField
-                  name="a"
-                  onChange={handleChange}
-                  disabled={true}
-                  className={`${false ? "" : "bg-slate-200"}`}
-                  type="text"
-                  autoComplete="off" />
-              </div>
-            </div> */}
-            {/* <div className="flex flex-col space-y-2  ">
-              <h2 className="text-gray-800 text-[14px]">{t("contact")}</h2>
-              <div className="w-[90%] self-center">
-                <InputField
-                  name="b"
-                  onChange={handleChange}
-                  disabled={true}
-                  className={`${false ? "" : "bg-slate-200"}`}
-                  type="text"
-                  autoComplete="off" />
-              </div>
-            </div> */}
-
-          </div>  :
+              <div className={`space-y-2 transition-all duration-200`}>
+                <div className="h-[200px] flex flex-col space-y-2 ">
+                  <h2 className="text-primary text-[14px]"> {t("uploaddocument")}</h2>
+                  <label htmlFor="file-upload" className="cursor-pointer self-center flex items-center justify-center bg-slate-200  border-dotted border-2 border-slate-600 h-48 w-[80%] rounded-md ">
+                    {(
+                      isLoadingImage ? <div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4 opacity-100"></div> :
+                        typeof previewUrl === "string" ?
+                          <div className="w-full h-full">
+                            <img src={previewUrl} alt="Vista previa" className="w-full h-full object-contain" />
+                            <button
+                              type="button"
+                              className="text-xs text-red-500 underline mt-1"
+                              onClick={e => {
+                                e.stopPropagation();
+                                setPreviewUrl(null);
+                                setSelectedFile(null);
+                                values.file = "";
+                                setValues({ ...values });
+                              }}
+                            >
+                              {t("removeimage") || "Eliminar imagen"}
+                            </button>
+                          </div>
+                          : <GoFileDiff className="h-14 w-14 text-gray-400" />
+                    )}
+                  </label>
+                  <input
+                    type="file"
+                    onChange={handleFileChange}
+                    id="file-upload"
+                    name="file"
+                    className="hidden"
+                  />
+                </div>
+              </div> :
               null
           }
         </div>
         <button disabled={isSubmitting} type="submit" className={`col-span-2 font-display rounded-full mt-4 py-2 px-6 text-white font-medium transition w-full hover:opacity-70 ${isSubmitting ? "bg-secondary" : "bg-primary"
           }`} >{t("save")}</button>
       </form>
+
+      <style jsx>
+        {`
+                    .loader {
+                        border-top-color:  ${config?.theme?.primaryColor};
+                        -webkit-animation: spinner 1.5s linear infinite;
+                        animation: spinner 1.5s linear infinite;
+                    }
+
+                    @-webkit-keyframes spinner {
+                        0% {
+                        -webkit-transform: rotate(0deg);
+                        }
+                        100% {
+                        -webkit-transform: rotate(360deg);
+                        }
+                    }
+
+                    @keyframes spinner {
+                        0% {
+                        transform: rotate(0deg);
+                        }
+                        100% {
+                        transform: rotate(360deg);
+                        }
+                    }
+                `}
+      </style>
     </>
   )
 }
