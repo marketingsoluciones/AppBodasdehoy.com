@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { DineroIcon } from "../components/icons";
 import BlockPagos from "../components/Presupuesto/BlockPagos";
 import Grafico from "../components/Presupuesto/Grafico";
@@ -14,9 +14,7 @@ import { BlockListaCategorias } from "../components/Presupuesto/BlockListaCatego
 import { MontoPresupuesto } from "../components/Presupuesto/MontoPresupuesto";
 import BlockCategoria from "../components/Presupuesto/BlockCategoria";
 import { DuplicatePresupuesto } from "../components/Presupuesto/DuplicatePesupuesto";
-import { api } from "../api";
 import { useAllowed } from "../hooks/useAllowed";
-import { ResumenPresupuestoModal } from "../components/Presupuesto/ResumenPresupuestoModal"
 import { SmartSpreadsheetView2 } from "../components/Presupuesto/PresupuestoV2/IndexPresupuesto";
 
 const Presupuesto = () => {
@@ -148,7 +146,7 @@ const Presupuesto = () => {
                               <MontoPresupuesto />
                             </div>
                             <div className=" bg-white shadow-md rounded-xl grid place-items-center py-4 px-2 relative">
-                              <div className={`${showModalPresupuesto?"hidden": " absolute"}  right-2 -top-11 `}>
+                              <div className={`${showModalPresupuesto ? "hidden" : " absolute"}  right-2 -top-11 `}>
                                 <button
                                   onClick={() => setShowModalPresupuesto(true)}
                                   className={`z-[60] bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 text-white font-bold py-1 px-3 rounded-full shadow-lg flex items-center relative hover:scale-105 transition `}

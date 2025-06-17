@@ -82,7 +82,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     { accessor: "pagado", header: t("pagado"), size: defaultSize.float, horizontalAlignment: "end", type: "float" },
     { accessor: "pendiente_pagar", header: t("pendiente por pagar"), size: defaultSize.float, horizontalAlignment: "end", type: "float" },
   ]
-  console.log('data', data)
+  
   useEffect(() => {
     const columnsVisibility = event?.presupuesto_objeto?.visibleColumns?.reduce((acc, item) => {
       acc = {
@@ -94,11 +94,11 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     setColumnVisibility({ ...columnsVisibility })
   }, [event])
 
-  useEffect(() => {
+ /*  useEffect(() => {
     if (data) {
       console.log(100080, data)
     }
-  }, [data])
+  }, [data]) */
 
   const options = [
     {
