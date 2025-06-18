@@ -47,7 +47,6 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
         { column: "J", title: "Opciones", accessor: "options" }
     ]; */
 
-    console.log("DataTableTotales", showDataState)
 
     useEffect(() => {
         setCategoria(

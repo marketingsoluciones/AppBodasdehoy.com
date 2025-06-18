@@ -31,12 +31,12 @@ export const BlockListaCategorias: FC<props> = ({ categorias_array, setShowCateg
 
   function calcularCosteFinal(categorias_array) {
     categorias_array?.forEach(categoria => {
-      categoria.gastos_array.forEach(gasto => {
+      categoria.gastos_array?.forEach(gasto => {
         if (Array.isArray(gasto.items_array) && gasto.items_array.length > 0) {
           const totalInvitados = event?.presupuesto_objeto?.totalStimatedGuests?.adults + event?.presupuesto_objeto?.totalStimatedGuests?.children;
           gasto.coste_final = gasto.items_array
-            .filter(item => showDataState ? true : item.estatus === false)
-            .reduce(
+            ?.filter(item => showDataState ? true : item.estatus === false)
+            ?.reduce(
               (total, item) =>
 
                 total + (item.valor_unitario * item.cantidad),
@@ -46,19 +46,13 @@ export const BlockListaCategorias: FC<props> = ({ categorias_array, setShowCateg
         }
       });
       categoria.coste_final = categoria.gastos_array
-        .filter(gasto => showDataState ? true : gasto.estatus === true)
-        .reduce(
+        ?.filter(gasto => showDataState ? true : gasto.estatus === true)
+        ?.reduce(
           (total, gasto) => total + (gasto.coste_final || 0),
           0
         );
     });
   }
-
- 
-
-
-
-  console.log("categorias_array", categorias_array)
 
   return (
     <>
