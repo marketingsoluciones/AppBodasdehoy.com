@@ -513,10 +513,11 @@ const handleTaskCreate = async (taskData: Partial<Task>) => {
                 message={<p className="text-azulCorporativo mx-8 text-center capitalize" > Estas seguro de borrar <span className='font-semibold'>{modal.title}</span></p>}
             />}
             {["/itinerario"].includes(window?.location?.pathname) && <SubHeader view={view} itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} title={title} setTitle={setTitle} />}
-            <div className={`*!hidden w-full flex-1 flex flex-col pt-2 md:px-2 lg:px-6 z-0`}>
+            <div className="w-full flex-1 flex flex-col pt-2 md:px-2 lg:px-6 z-0">
             {
   tasksReduce?.length > 0 ?
     view === "boardView" ? (
+        <div className="w-full flex-1">
       <BoardView
         data={tasks}
         event={event as EventInterface} // Usar el tipo con alias
@@ -535,7 +536,9 @@ const handleTaskCreate = async (taskData: Partial<Task>) => {
         tempPastedAndDropFiles={tempPastedAndDropFiles}
         setTempPastedAndDropFiles={setTempPastedAndDropFiles}
       />
+      </div>
     ) : view === "newTable" ? (
+        <div className="w-full flex-1">
         <TableView
           data={tasks}
           itinerario={itinerario}
@@ -550,7 +553,9 @@ const handleTaskCreate = async (taskData: Partial<Task>) => {
           }}
           onTaskCreate={handleTaskCreate}
         />
+              </div>
       )  : view === "extraTable" ? (
+        <div className="w-full flex-1">
                         <ExtraTableView
                           data={tasks} // Pasar las tareas como datos
                           setModalStatus={setModalStatus}
@@ -568,6 +573,7 @@ const handleTaskCreate = async (taskData: Partial<Task>) => {
                           setSelectTask={setSelectTask}
                           itinerario={itinerario}
                         />
+                              </div>
                       ) : view !== "table"
                             ? tasksReduce?.map((el, i) =>
                                 <div key={i} className="w-full mt-4 flex flex-col gap-4">
@@ -578,6 +584,7 @@ const handleTaskCreate = async (taskData: Partial<Task>) => {
                                     </div>}
                                     {el?.tasks?.map((elem, idx) => {
                                         return (
+                                            
                                             <TaskNew
                                                 id={elem._id}
                                                 key={idx}
@@ -598,6 +605,8 @@ const handleTaskCreate = async (taskData: Partial<Task>) => {
                             )
                             : <div className="relative overflow-x-auto md:overflow-x-visible h-full">
                                 <div className="w-[250%] md:w-[100%]">
+
+                                     <div className="w-full">
                                     <ItineraryColumns
                                         data={tasks}
                                         setModalStatus={setModalStatus}
@@ -614,6 +623,7 @@ const handleTaskCreate = async (taskData: Partial<Task>) => {
                                         setSelectTask={setSelectTask}
                                         itinerario={itinerario}
                                     />
+                                    </div>
                                 </div>
                             </div>
                         : isAllowed() ?
