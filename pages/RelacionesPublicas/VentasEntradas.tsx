@@ -173,7 +173,7 @@ const VentasEntradas: FC<propsVentasEntradas> = ({ }) => {
                                 <div className="self-stretch flex flex-row items-center justify-start gap-[0.01px]">
                                   <div className="flex-1 flex flex-col items-start justify-start py-0 pr-[7px] pl-0">
                                     <div className="self-stretch flex flex-col items-center justify-start">
-                                      <div className="self-stretch rounded-md bg-green-200 flex flex-row items-start justify-start p-[10.5px]">
+                                      <div className="self-stretch rounded-md bg-[#b2ffb2] flex flex-row items-start justify-start p-[10.5px]">
                                         <div className="flex flex-col items-center justify-start py-0 pr-2.5 pl-[10.19999999999709px]">
                                           <div className="self-stretch h-[24.5px] relative leading-[24.5px] font-semibold inline-block min-w-[22px] max-h-[24.5px] whitespace-nowrap">
                                             {`${item?.prices[0]?.currency === "usd" ? "$" : item?.prices[0]?.currency} ${item?.prices[0]?.unit_amount / 100}`}

@@ -87,7 +87,7 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
             <Lock className="text-primary md:block h-6 w-5" />
           </span>
         </div>
-        <div className="flex text-red-700 items-center pr-2 md:pr-3 gap-1 md:gap-2">
+        <div className="flex text-red items-center pr-2 md:pr-3 gap-1 md:gap-2">
           <ClickAwayListener onClickAway={() => setShowMiniMenu(false)}>
             <div>
               <MdSaveAlt className="h-6 w-6 cursor-pointer text-primary" onClick={() => { !isAllowed() ? ht() : setShowMiniMenu(!showMiniMenu) }} />

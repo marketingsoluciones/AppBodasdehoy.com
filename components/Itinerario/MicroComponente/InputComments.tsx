@@ -306,17 +306,14 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
             <QuillEditor value={value} setValue={setValue} setPastedAndDropFiles={setPastedAndDropFiles} pastedAndDropFiles={pastedAndDropFiles} />
           </div>
         </div>
-        {!pastedAndDropFiles.length && <span onClick={valir
-          ? () => {
-            if (user?.displayName === "anonymous" && !nicknameUnregistered) {
-              setShowModalNickname(true)
-              return
-            }
-            handleCreateComment()
-          }
-          : () => { }} className={`${valir ? "cursor-pointer font-semibold" : "text-gray-400"} absolute right-3 bottom-[10.5px]`} >
-          <IoIosSend className={`h-[23px] w-auto ${valir ? "text-teal-500" : "text-gray-200"} select-none`} />
-        </span>}
+        {(!pastedAndDropFiles.length && (
+  <span
+    onClick={(valir || pastedAndDropFiles.length) ? handleCreateComment : () => { }}
+    className={`${(valir || pastedAndDropFiles.length) ? "cursor-pointer font-semibold" : "text-gray-400"} absolute right-3 bottom-[10.5px]`}
+  >
+    <IoIosSend className={`h-[23px] w-auto ${(valir || pastedAndDropFiles.length) ? "text-teal-500" : "text-gray-200"} select-none`} />
+  </span>
+))}
       </div>
     </div>
   )
@@ -337,17 +334,17 @@ import { SwiperPastedAndDropFiles } from "./SwiperPastedAndDropFiles"
 import { LiaTrashSolid } from "react-icons/lia";
 import { FileIconComponent } from "./FileIconComponent"
 import { getStorage, ref, uploadBytesResumable } from "firebase/storage"
-import { TempPastedAndDropFiles } from "./ItineraryPanel"
+import { TempPastedAndDropFile } from "./ItineraryPanel"
 import { customAlphabet } from "nanoid"
 import { SetNickname } from "./SetNickName"
-
+ 
 interface props {
-  itinerario: Itinerary
-  task: Task
-  tempPastedAndDropFiles: TempPastedAndDropFiles[]
-  setTempPastedAndDropFiles: any
-  nicknameUnregistered: string
-  setNicknameUnregistered: Dispatch<SetStateAction<string>>
+  itinerario?: Itinerary
+  task?: Task
+  tempPastedAndDropFiles?: TempPastedAndDropFile[]
+  setTempPastedAndDropFiles?: any
+  nicknameUnregistered?: string
+  setNicknameUnregistered?: Dispatch<SetStateAction<string>>
 }
 
 export type PastedAndDropFile = {

@@ -36,7 +36,7 @@ const CompVentas1: FC <CompVentas1Type> =
             <div className="w-auto flex flex-col items-start justify-start py-[10.5px] pl-0 box-border text-center">
               <div className="self-stretch flex flex-row items-center justify-start gap-[5px]">
                 <div className="flex flex-col items-center justify-start">
-                  <div className="self-stretch rounded-md bg-green-200 flex flex-row items-start justify-start p-[10.5px]">
+                  <div className="self-stretch rounded-md bg-[#b2ffb2] flex flex-row items-start justify-start p-[10.5px]">
                     <div className="flex flex-col items-center justify-start py-0 px-[10.5px]">
                       <div className="self-stretch h-[24.5px] relative leading-[24.5px] font-semibold inline-block min-w-[11px] max-h-[24.5px]">
                         0

@@ -8,7 +8,7 @@ import { TaskNew } from "../../components/Itinerario/MicroComponente/TaskNew";
 import { openGraphData } from "../_app";
 import { AuthContextProvider } from "../../context/AuthContext";
 import { EventContextProvider } from "../../context";
-import { TempPastedAndDropFiles } from "../../components/Itinerario/MicroComponente/ItineraryPanel";
+import { TempPastedAndDropFile } from "../../components/Itinerario/MicroComponente/ItineraryPanel";
 import { useRouter } from "next/router";
 
 interface props {
@@ -22,7 +22,7 @@ const Slug: FC<props> = (props) => {
   console.log("propsnew", props)
   if (!props?.evento?.itinerarios_array?.length)
     return (
-      <div className="bg-red-200 text-blue-700 w-full h-full text-center mt-20">
+      <div className="bg-[#ffbfbf] text-blue-700 w-full h-full text-center mt-20">
         Page not found error 404
       </div>
     )
@@ -37,7 +37,7 @@ const ServicesVew = (props) => {
   const router = useRouter()
   const { event, setEvent } = EventContextProvider()
   const { user, setUser, verificationDone } = AuthContextProvider()
-  const [tempPastedAndDropFiles, setTempPastedAndDropFiles] = useState<TempPastedAndDropFiles[]>([]);
+  const [tempPastedAndDropFiles, setTempPastedAndDropFiles] = useState<TempPastedAndDropFile[]>([]);
 
   useEffect(() => {
     if (verificationDone) {

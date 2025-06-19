@@ -9,7 +9,7 @@ import { HashtagMatcher, UrlMatcher, UrlProps } from "interweave-autolink"
 import Link from "next/link"
 import { detalle_compartidos_array } from "../../../utils/Interfaces"
 import { useRouter } from "next/router"
-import { TempPastedAndDropFiles } from "./ItineraryPanel"
+import { TempPastedAndDropFile } from "./ItineraryPanel"
 import { FileIconComponent } from "./FileIconComponent"
 import { CgSoftwareDownload } from "react-icons/cg"
 import { deleteObject, getStorage, listAll, ref } from "firebase/storage"
@@ -22,7 +22,7 @@ interface props extends HTMLAttributes<HTMLDivElement> {
   task: Task
   item: Comment
   identifierDisabled?: boolean
-  tempPastedAndDropFiles?: TempPastedAndDropFiles[]
+  tempPastedAndDropFiles?: TempPastedAndDropFile[]
   nicknameUnregistered?: string
 }
 
