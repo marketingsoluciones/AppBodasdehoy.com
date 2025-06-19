@@ -116,20 +116,30 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
           props.row.original.categoriaID = categoria?._id;
           props.row.original.gastoID = props.row.original._id;
           let value = props.row.original.coste_final;
-          return (
-            <div className="flex justify-end  ">
-              <EditableLabelWithInput
-                accessor="coste_final"
-                handleChange={(values) => {
-                  handleChange({ values, info: props, event, setEvent });
-                }}
-                type="float"
-                value={value}
-                textAlign="end"
-                isLabelDisabled
-              />
-            </div>
-          );
+          if (props.row.original.items_array.length == 0) {
+
+            return (
+              <div className="flex justify-end  ">
+                <EditableLabelWithInput
+                  accessor="coste_final"
+                  handleChange={(values) => {
+                    handleChange({ values, info: props, event, setEvent });
+                  }}
+                  type="float"
+                  value={value}
+                  textAlign="end"
+                  isLabelDisabled
+                />
+              </div>
+            );
+          } else {
+            return (
+              <div className="flex justify-end  ">
+                {getCurrency(parseFloat(value))}
+              </div>
+            );
+          }
+
         },
       },
       {

@@ -102,10 +102,10 @@ export const handleChange = ({ values, info, event, setEvent }: propsHandleChang
 
 
     if ((original.object === "gasto" && (!["categoria"].includes(values.accessor)) || (original.object === "item" && values.accessor === "gasto"))) {
-      const f1 = event?.presupuesto_objeto?.categorias_array.findIndex(elem => elem._id === original?.categoriaID)
-      const f2 = event?.presupuesto_objeto?.categorias_array[f1].gastos_array.findIndex(elem => elem._id === original?.gastoID)
+      const f1 = event?.presupuesto_objeto?.categorias_array?.findIndex(elem => elem._id === original?.categoriaID)
+      const f2 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array.findIndex(elem => elem._id === original?.gastoID)
       event.presupuesto_objeto.categorias_array[f1].gastos_array[f2][values.accessor === "gasto" ? "nombre" : values.accessor] = values.value !== "" ? values.value : "nuevo gasto"
-      const sumaTotalesGastos = original.categoriaOriginal.gastos_array.reduce((acumulador, item) => acumulador + (item.coste_final || 0), 0)
+      const sumaTotalesGastos = original?.categoriaOriginal?.gastos_array.reduce((acumulador, item) => acumulador + (item.coste_final || 0), 0)
 
       const nuevasCategorias = event.presupuesto_objeto.categorias_array.map((cat, idx) =>
         idx === f1 ? { ...cat, coste_final: sumaTotalesGastos } : cat
@@ -124,7 +124,6 @@ export const handleChange = ({ values, info, event, setEvent }: propsHandleChang
       }).then((result: any) => {
         /* Se setea el coste final de las categorias con la variable sumaTotalesGastos */
         if (values.accessor === 'coste_final' && original[values.accessor] !== values.value && original.items_array.length == 0) {
-          /* event.presupuesto_objeto.categorias_array[f1].coste_final = sumaTotalesGastos */
           setEvent(prev => ({
             ...prev,
             presupuesto_objeto: {
@@ -193,8 +192,8 @@ export const handleDelete = ({ showModalDelete, event, setEvent, setLoading, set
             categoria_id: values?._id,
           },
         }).then(result => {
-          const f1 = event?.presupuesto_objeto?.categorias_array.findIndex(elem => elem._id === values?._id)
-          event?.presupuesto_objeto?.categorias_array.splice(f1, 1)
+          const f1 = event?.presupuesto_objeto?.categorias_array?.findIndex(elem => elem._id === values?._id)
+          event?.presupuesto_objeto?.categorias_array?.splice(f1, 1)
           resolve(event)
         })
       }
@@ -207,9 +206,9 @@ export const handleDelete = ({ showModalDelete, event, setEvent, setLoading, set
             gasto_id: values?._id,
           },
         }).then(result => {
-          const f1 = event?.presupuesto_objeto?.categorias_array.findIndex(elem => elem._id === values?.categoriaID)
-          const f2 = event?.presupuesto_objeto?.categorias_array[f1].gastos_array.findIndex(elem => elem._id === values?._id)
-          event?.presupuesto_objeto?.categorias_array[f1].gastos_array.splice(f2, 1)
+          const f1 = event?.presupuesto_objeto?.categorias_array?.findIndex(elem => elem._id === values?.categoriaID)
+          const f2 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array?.findIndex(elem => elem._id === values?._id)
+          event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array?.splice(f2, 1)
           resolve(event)
         })
       }
@@ -223,10 +222,10 @@ export const handleDelete = ({ showModalDelete, event, setEvent, setLoading, set
             itemsGastos_ids: [values?._id],
           },
         }).then(result => {
-          const f1 = event?.presupuesto_objeto?.categorias_array.findIndex(elem => elem._id === values?.categoriaID)
-          const f2 = event?.presupuesto_objeto?.categorias_array[f1].gastos_array.findIndex(elem => elem._id === values?.gastoID)
-          const f3 = event?.presupuesto_objeto?.categorias_array[f1].gastos_array[f2].items_array.findIndex(elem => elem._id === values._id)
-          event?.presupuesto_objeto?.categorias_array[f1].gastos_array[f2].items_array.splice(f3, 1)
+          const f1 = event?.presupuesto_objeto?.categorias_array?.findIndex(elem => elem._id === values?.categoriaID)
+          const f2 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array?.findIndex(elem => elem._id === values?.gastoID)
+          const f3 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.items_array?.findIndex(elem => elem._id === values._id)
+          event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.items_array.splice(f3, 1)
           resolve(event)
         })
       }

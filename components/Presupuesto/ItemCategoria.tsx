@@ -53,11 +53,6 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
   }
 
 
-  if (item.nombre == 'invitaciones') {
-    console.log('=====>', item)
-
-  }
-
   return (
     <>
       {showModalDelete.state &&
