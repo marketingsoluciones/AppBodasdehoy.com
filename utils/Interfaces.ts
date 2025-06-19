@@ -74,21 +74,36 @@ export type Info = {
     info: JSX.Element | null,
 }
 
+export interface TaskOrder {
+    taskId: string;
+    order: number;
+    columnId: string;
+}
+
+export interface ColumnOrder {
+    columnId: string;
+    order: number;
+}
+
 export interface Task {
-    _id: string
-    fecha: Date
-    //hora: string
-    icon: string
-    descripcion: string
-    responsable: string[]
-    duracion: number
-    tags: string[]
-    tips: string
-    attachments: FileData[]
-    spectatorView: boolean
-    comments: Comment[]
-    commentsViewers: string[]
-    estatus: boolean
+  _id: string
+  fecha: Date
+  //hora: string // No es un campo separado, se incluye en fecha
+  icon: string
+  descripcion: string
+  responsable: string[]
+  duracion: number
+  tags: string[]
+  tips: string
+  attachments: FileData[]
+  spectatorView: boolean
+  comments: Comment[]
+  commentsViewers: string[]
+  estado: string // Campo local para manejar el estado en el cliente
+  prioridad: string
+  estatus: boolean // Campo que determina si está completada
+  order?: number; // Campo local para mantener el orden en el cliente
+  columnId?: string; // Campo local para saber a qué columna pertenece
 }
 
 export interface TaskDateTimeAsString extends Omit<Task, 'fecha'> {
@@ -96,10 +111,13 @@ export interface TaskDateTimeAsString extends Omit<Task, 'fecha'> {
     hora: string
 }
 
+
+
 export interface Itinerary {
     _id: string
     title: string
     tasks: Task[]
+    columnsOrder: ColumnOrder[]
     viewers: string[]
     tipo: string
     estatus: boolean //activo, borrado

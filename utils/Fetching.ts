@@ -253,10 +253,22 @@ export const queries = {
     }
   }`,
 
+  updateTasksOrder: `
+    mutation($eventID: String, $itinerarioID: String, $tasksOrder: String) {
+      updateTasksOrder(
+        eventID: $eventID,
+        itinerarioID: $itinerarioID,
+        tasksOrder: $tasksOrder
+      )
+    }
+  `,
+
   editTask: `mutation ($eventID:String, $itinerarioID:String, $taskID:String, $variable:String, $valor:String){
     editTask(eventID:$eventID itinerarioID:$itinerarioID  taskID:$taskID  variable:$variable  valor:$valor )
   }`,
-  createTask: `mutation ($eventID:String, $itinerarioID:String, $fecha:String, $descripcion:String, $hora:String, $duracion:Int){
+
+
+createTask: `mutation ($eventID:String, $itinerarioID:String, $fecha:String, $descripcion:String, $hora:String, $duracion:Int){
     createTask(eventID:$eventID, itinerarioID:$itinerarioID, fecha:$fecha, descripcion:$descripcion, hora:$hora, duracion:$duracion ){
       _id
       fecha
@@ -290,9 +302,12 @@ export const queries = {
         }
       }
       commentsViewers
+      estado
+      prioridad
       fecha_creacion
     }
   }`,
+
   deleteTask: `
   mutation  ( $eventID:String, $itinerarioID:String, $taskID:String  ) {
     deleteTask ( eventID:$eventID  itinerarioID:$itinerarioID  taskID:$taskID)
@@ -354,6 +369,8 @@ export const queries = {
           }
         }
         commentsViewers
+        estado
+        prioridad
       }
       tipo
       fecha_creacion
@@ -397,6 +414,8 @@ export const queries = {
           }
         }
         commentsViewers
+        estado
+        prioridad
       }
       tipo
     }
@@ -453,7 +472,13 @@ export const queries = {
             }
           }
           commentsViewers
+          estado
+          prioridad
           fecha_creacion
+        }
+        columnsOrder{
+          columnId
+          order
         }
         viewers
         tipo
@@ -701,6 +726,12 @@ export const queries = {
             }
           }
           commentsViewers
+          estado
+          prioridad
+        }
+        columnsOrder{
+          columnId
+          order
         }
         viewers
         tipo
@@ -1617,6 +1648,12 @@ export const queries = {
             }
           }
           commentsViewers
+          estado
+          prioridad
+        }
+        columnsOrder{
+          columnId
+          order
         }
         viewers
         tipo

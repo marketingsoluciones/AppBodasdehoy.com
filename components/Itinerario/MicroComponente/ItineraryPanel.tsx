@@ -1,7 +1,5 @@
-
 import { TaskNew } from "./TaskNew"
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
-import { AddEvent } from "./AddEvent";
 import { FC, useEffect, useState } from "react";
 import { AuthContextProvider } from "../../../context/AuthContext";
 import { EventContextProvider } from "../../../context/EventContext";
@@ -33,7 +31,12 @@ import { CgInfo } from "react-icons/cg";
 import { ImageAvatar } from "../../Utils/ImageAvatar";
 import { ItineraryDetails } from "../MicroComponente/ItineraryDetails"
 import { SimpleDeleteConfirmation } from "../../Utils/SimpleDeleteConfirmation";
-import { SubHeaderServicios } from "./SubHeaderServicios";
+import { ExtraTableView } from "./ExtraTableView";
+import { BoardView } from "./BoardView";
+// Importar el tipo Event con un alias para evitar conflictos
+import { Event as EventInterface } from '../../../utils/Interfaces';
+import { TableView } from "./NewTableView";
+
 
 interface props {
     itinerario: Itinerary
@@ -62,7 +65,7 @@ interface ModalItinerario extends ModalInterface {
     itinerario?: Itinerary
 }
 
-export type TempPastedAndDropFiles = {
+export type TempPastedAndDropFile = {
     taskID: string,
     commentID: string,
     files: PastedAndDropFile[],
@@ -89,7 +92,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     const [showModalCompartir, setShowModalCompartir] = useState({ state: false, id: null });
     const router = useRouter()
     const notification = useNotification()
-    const [tempPastedAndDropFiles, setTempPastedAndDropFiles] = useState<TempPastedAndDropFiles[]>([]);
+    const [tempPastedAndDropFiles, setTempPastedAndDropFiles] = useState<TempPastedAndDropFile[]>([]);
     const [loading, setLoading] = useState<boolean>(false)
     const [task, setTask] = useState<Task>()
 
@@ -153,37 +156,47 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
 
     useEffect(() => {
         if (itinerario?.tasks?.length > 0) {
-            const tasks = [...itinerario?.tasks?.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime())].filter(elem => {
-                return (
+            const sortedTasks = [...itinerario.tasks].sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
+            const filteredTasks = sortedTasks.filter(elem =>
+                elem && (
                     view === "schema"
                     || ["/itinerario"].includes(window?.location?.pathname)
                     || elem.spectatorView
                     || event.usuario_id === user.uid
                     || isAllowed()
-                ) &&
-                    true
-            })
-            setTasks(tasks)
-            const taskReduce: TaskReduce[] = tasks.reduce((acc: TaskReduce[], item: Task) => {
-                const f = new Date(item.fecha)
-                const y = f.getUTCFullYear()
-                const m = f.getUTCMonth()
-                const d = f.getUTCDate()
-                const date = new Date(y, m, d).getTime()
-                const f1 = acc.findIndex(elem => elem.fecha === date)
+                )
+            );
+
+            // Solo actualiza si los datos realmente cambiaron
+            setTasks(prev => {
+                if (JSON.stringify(prev) === JSON.stringify(filteredTasks)) return prev;
+                return filteredTasks;
+            });
+
+            const taskReduce: TaskReduce[] = filteredTasks.reduce((acc: TaskReduce[], item: Task) => {
+                const f = new Date(item.fecha);
+                const y = f.getUTCFullYear();
+                const m = f.getUTCMonth();
+                const d = f.getUTCDate();
+                const date = new Date(y, m, d).getTime();
+                const f1 = acc.findIndex(elem => elem.fecha === date);
                 if (f1 < 0) {
-                    acc.push({ fecha: item.fecha ? date : null, tasks: [item] })
+                    acc.push({ fecha: item.fecha ? date : null, tasks: [item] });
                 } else {
-                    acc[f1].tasks.push(item)
+                    acc[f1].tasks.push(item);
                 }
-                return acc
-            }, [])
-            setTasksReduce(taskReduce)
+                return acc;
+            }, []);
+
+            setTasksReduce(prev => {
+                if (JSON.stringify(prev) === JSON.stringify(taskReduce)) return prev;
+                return taskReduce;
+            });
         } else {
-            setTasks([])
-            setTasksReduce([])
+            setTasks(prev => (prev && prev.length === 0 ? prev : []));
+            setTasksReduce(prev => (prev && prev.length === 0 ? prev : []));
         }
-    }, [itinerario, event])
+    }, [itinerario, event, view, user?.uid, isAllowed]);
 
     const handleAddSpectatorView = async (values: Task) => {
         try {
@@ -266,13 +279,17 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                             },
                             domain: config.domain
                         }).then(() => {
-                            const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
-                            const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === values._id)
-                            event.itinerarios_array[f1].tasks.splice(f2, 1)
-                            setEvent({ ...event })
+                            const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
+                            if (f1 !== -1 && event.itinerarios_array[f1]?.tasks) {
+                                const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem && elem._id === values._id);
+                                if (f2 !== -1) {
+                                    event.itinerarios_array[f1].tasks.splice(f2, 1);
+                                    setEvent({ ...event });
+                                }
+                            }
                             setTimeout(() => {
-                                setModal({ state: false, title: null, values: null, itinerario: null })
-                                setLoading(false)
+                                setModal({ state: false, title: null, values: null, itinerario: null });
+                                setLoading(false);
                             }, 500);
                             toast("success", t(itinerario.tipo === "itinerario" ? "activitydeleted" : "servicedeleted"));
                         })
@@ -298,6 +315,186 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         },
     ]
 
+    // Función handleTaskUpdate corregida en ItineraryPanel.tsx
+
+    const handleTaskUpdate = async (taskId: string, updates: Partial<Task>) => {
+        try {
+            // Encontrar la tarea que se va a actualizar
+            const taskIndex = tasks?.findIndex(task => task._id === taskId);
+            if (taskIndex === -1 || taskIndex === undefined) {
+                console.error('Tarea no encontrada:', taskId);
+                return;
+            }
+
+            // Actualizar el estado global del evento inmediatamente
+            setEvent((oldEvent) => {
+                const newEvent = { ...oldEvent };
+                const f1 = newEvent.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
+
+                if (f1 > -1) {
+                    const f2 = newEvent.itinerarios_array[f1].tasks.findIndex(elem => elem._id === taskId);
+
+                    if (f2 > -1) {
+                        // Actualizar la tarea con los nuevos valores
+                        newEvent.itinerarios_array[f1].tasks[f2] = {
+                            ...newEvent.itinerarios_array[f1].tasks[f2],
+                            ...updates
+                        };
+                    }
+                }
+
+                return newEvent;
+            });
+
+            // Actualizar el estado local de las tareas
+            setTasks(prevTasks => {
+                if (!prevTasks) return prevTasks;
+                return prevTasks.map(task =>
+                    task._id === taskId ? { ...task, ...updates } : task
+                );
+            });
+
+            // Actualizar tasksReduce también
+            setTasksReduce(prevTasksReduce => {
+                if (!prevTasksReduce) return prevTasksReduce;
+
+                return prevTasksReduce.map(group => ({
+                    ...group,
+                    tasks: group.tasks?.map(task =>
+                        task._id === taskId ? { ...task, ...updates } : task
+                    )
+                }));
+            });
+
+            // No mostrar toast aquí porque ya se muestra en TableCell
+
+        } catch (error) {
+            console.error('Error al actualizar la tarea:', error);
+            toast("error", t("Error al actualizar la tarea"));
+        }
+    };
+
+    // Función handleTaskCreate corregida
+const handleTaskCreate = async (taskData: Partial<Task>) => {
+  try {
+    // Si la tarea tiene un _id, significa que ya fue creada (viene de BoardView)
+    if (taskData._id) {
+      console.log('La tarea ya existe, no se creará nuevamente');
+      return;
+    }
+
+    // Calcular fecha por defecto
+    const f = new Date(parseInt(event.fecha));
+    const fy = f.getUTCFullYear();
+    const fm = f.getUTCMonth();
+    const fd = f.getUTCDate();
+    let newEpoch = new Date(fy, fm + 1, fd).getTime() + 7 * 60 * 60 * 1000;
+
+    if (tasks?.length) {
+      const item = tasks[tasks.length - 1];
+      const epoch = new Date(item.fecha).getTime();
+      newEpoch = epoch + (item.duracion || 30) * 60 * 1000;
+    }
+
+    const defaultDate = taskData.fecha ? new Date(taskData.fecha) : new Date(newEpoch);
+    
+    // Formatear fecha correctamente
+    const year = defaultDate.getFullYear();
+    const month = defaultDate.getMonth() + 1;
+    const day = defaultDate.getDate();
+    const fechaString = `${year}-${month < 10 ? '0' : ''}${month}-${day < 10 ? '0' : ''}${day}`;
+    const horaString = `${defaultDate.getHours().toString().padStart(2, '0')}:${defaultDate.getMinutes().toString().padStart(2, '0')}`;
+
+    const response = await fetchApiEventos({
+      query: queries.createTask,
+      variables: {
+        eventID: event._id,
+        itinerarioID: itinerario._id,
+        descripcion: taskData.descripcion || "Nueva tarea",
+        fecha: fechaString,
+        hora: horaString,
+        duracion: taskData.duracion || 30
+      },
+      domain: config.domain
+    });
+
+    // Validar respuesta de forma segura
+    if (!response) {
+      throw new Error('No se recibió respuesta del servidor');
+    }
+
+    // Verificar que la respuesta sea un objeto válido con _id
+    const responseObj = response as any;
+    if (typeof responseObj !== 'object' || !responseObj._id || typeof responseObj._id !== 'string') {
+      console.error('Respuesta inválida del servidor:', response);
+      throw new Error('La respuesta del servidor no contiene un ID válido');
+    }
+    
+    // Ahora podemos usar la respuesta como Task de forma segura
+    const newTask = responseObj as Task;
+
+    // Asignar estado localmente para el manejo en el cliente
+    newTask.estado = taskData.estado || 'pending';
+
+    // Si la tarea debe estar completada, actualizar su estatus
+    if (taskData.estado === 'completed' && newTask._id) {
+      try {
+        await fetchApiEventos({
+          query: queries.editTask,
+          variables: {
+            eventID: event._id,
+            itinerarioID: itinerario._id,
+            taskID: newTask._id,
+            variable: "estatus",
+            valor: "true"
+          },
+          domain: config.domain
+        });
+        newTask.estatus = true;
+      } catch (error) {
+        console.error('Error al actualizar estatus:', error);
+      }
+    }
+
+    // Actualizar el estado global (event)
+    setEvent((oldEvent) => {
+      const newEvent = { ...oldEvent };
+      const f1 = newEvent.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
+      if (f1 !== -1) {
+        if (!newEvent.itinerarios_array[f1].tasks) {
+          newEvent.itinerarios_array[f1].tasks = [];
+        }
+        // Verificar que la tarea no exista ya
+        const taskExists = newEvent.itinerarios_array[f1].tasks.some(
+          t => t._id === newTask._id
+        );
+        if (!taskExists) {
+          newEvent.itinerarios_array[f1].tasks.push(newTask);
+        }
+      }
+      return newEvent;
+    });
+
+    // Actualizar el estado local (tasks) - verificar que no exista
+    setTasks(prev => {
+      if (!prev) return [newTask];
+      const taskExists = prev.some(t => t._id === newTask._id);
+      if (taskExists) return prev;
+      return [...prev, newTask];
+    });
+
+    // Seleccionar la nueva tarea
+    setSelectTask(newTask._id);
+
+    // Notificar éxito
+    toast("success", t("Tarea creada con éxito"));
+  } catch (error) {
+    console.error('Error al crear la tarea:', error);
+    toast("error", t("Error al crear la tarea"));
+  }
+};
+
+
     return (
         <div className="w-full flex-1 flex flex-col overflow-auto">
             <InfoLateral ubication="left" infoOptions={infoLeftOptions} />
@@ -316,13 +513,70 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                 message={<p className="text-azulCorporativo mx-8 text-center capitalize" > Estas seguro de borrar <span className='font-semibold'>{modal.title}</span></p>}
             />}
             {["/itinerario"].includes(window?.location?.pathname) && <SubHeader view={view} itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} title={title} setTitle={setTitle} />}
-            {["/servicios"].includes(window?.location?.pathname) && <SubHeaderServicios itinerario={itinerario} />}
-            <div className={` w-full flex-1 flex flex-col md:px-2 lg:px-6`}>
-                {
-                    tasksReduce?.length > 0 ?
-                        view !== "table"
+            <div className="w-full flex-1 flex flex-col pt-2 md:px-2 lg:px-6 z-0">
+            {
+  tasksReduce?.length > 0 ?
+    view === "boardView" ? (
+        <div className="w-full flex-1">
+      <BoardView
+        data={tasks}
+        event={event as EventInterface} // Usar el tipo con alias
+        setEvent={setEvent}
+        itinerario={itinerario}
+        selectTask={selectTask}
+        setSelectTask={setSelectTask}
+        onTaskUpdate={handleTaskUpdate}
+        onTaskDelete={(taskId) => {
+          const task = tasks.find(t => t._id === taskId);
+          if (task) {
+            deleteTask(task, itinerario);
+          }
+        }}
+        onTaskCreate={handleTaskCreate}
+        tempPastedAndDropFiles={tempPastedAndDropFiles}
+        setTempPastedAndDropFiles={setTempPastedAndDropFiles}
+      />
+      </div>
+    ) : view === "newTable" ? (
+        <div className="w-full flex-1">
+        <TableView
+          data={tasks}
+          itinerario={itinerario}
+          selectTask={selectTask}
+          setSelectTask={setSelectTask}
+          onTaskUpdate={handleTaskUpdate}
+          onTaskDelete={(taskId) => {
+            const task = tasks.find(t => t._id === taskId);
+            if (task) {
+              deleteTask(task, itinerario);
+            }
+          }}
+          onTaskCreate={handleTaskCreate}
+        />
+              </div>
+      )  : view === "extraTable" ? (
+        <div className="w-full flex-1">
+                        <ExtraTableView
+                          data={tasks} // Pasar las tareas como datos
+                          setModalStatus={setModalStatus}
+                          event={event as EventInterface} // Asegurar que pasamos el evento con el tipo correcto
+                          modalStatus={modalStatus}
+                          setModalWorkFlow={setModalWorkFlow}
+                          modalWorkFlow={modalWorkFlow}
+                          setModalCompartirTask={setModalCompartirTask}
+                          modalCompartirTask={modalCompartirTask}
+                          deleteTask={deleteTask}
+                          showEditTask={showEditTask}
+                          setShowEditTask={setShowEditTask}
+                          optionsItineraryButtonBox={optionsItineraryButtonBox}
+                          selectTask={selectTask}
+                          setSelectTask={setSelectTask}
+                          itinerario={itinerario}
+                        />
+                              </div>
+                      ) : view !== "table"
                             ? tasksReduce?.map((el, i) =>
-                                <div key={i} className="w-full mt-4">
+                                <div key={i} className="w-full mt-4 flex flex-col gap-4">
                                     {["/itinerario"].includes(window?.location?.pathname) && <div className={`w-full flex ${view === "schema" ? "justify-start" : "justify-center"}`}>
                                         <span className={`${view === "schema" ? "border-primary border-dotted mb-1" : "border-gray-300 mb-1"} border-[1px] px-5 py-[1px] rounded-full text-[12px] font-semibold`}>
                                             {new Date(el?.fecha).toLocaleString(geoInfo?.acceptLanguage?.split(",")[0], { year: "numeric", month: "long", day: "2-digit" })}
@@ -330,6 +584,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                                     </div>}
                                     {el?.tasks?.map((elem, idx) => {
                                         return (
+                                            
                                             <TaskNew
                                                 id={elem._id}
                                                 key={idx}
@@ -350,6 +605,8 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                             )
                             : <div className="relative overflow-x-auto md:overflow-x-visible h-full">
                                 <div className="w-[250%] md:w-[100%]">
+
+                                     <div className="w-full">
                                     <ItineraryColumns
                                         data={tasks}
                                         setModalStatus={setModalStatus}
@@ -366,6 +623,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                                         setSelectTask={setSelectTask}
                                         itinerario={itinerario}
                                     />
+                                    </div>
                                 </div>
                             </div>
                         : isAllowed() ?
@@ -388,7 +646,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                                 </div>
                             </div>
                 }
-                {view !== "schema" && <AddEvent tasks={tasks} itinerario={itinerario} setSelectTask={setSelectTask} />}
             </div>
             {modalStatus && <Modal set={setModalStatus} state={modalStatus} classe={"w-[95%] md:w-[450px] h-[370px]"}>
                 <WarningMessage setModal={setModalStatus} modal={modalStatus} title={t("visibility")} />
@@ -409,5 +666,4 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         </div>
     )
 }
-
 
