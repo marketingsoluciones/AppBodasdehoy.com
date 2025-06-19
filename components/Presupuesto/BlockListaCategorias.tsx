@@ -26,9 +26,9 @@ export const BlockListaCategorias: FC<props> = ({ categorias_array, setShowCateg
   const [showOptionsModal, setShowOptionsModal] = useState(false)
 
   const categorias = event.presupuesto_objeto.categorias_array
+  console.log("categorias en la lista", categorias)
 
-
-  useEffect(() => {
+  /* useEffect(() => {
     calcularCosteFinal(categorias_array);
   }, [categorias_array, showDataState])
 
@@ -55,7 +55,7 @@ export const BlockListaCategorias: FC<props> = ({ categorias_array, setShowCateg
           0
         );
     });
-  }
+  } */
 
   return (
     <>

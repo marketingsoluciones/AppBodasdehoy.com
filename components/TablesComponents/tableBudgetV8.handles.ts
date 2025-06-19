@@ -60,9 +60,13 @@ export const handleChange = ({ values, info, event, setEvent }: propsHandleChang
                 valor: totalItem
               }
             }).then((result: any) => {
-
               const SumaTotalItems = original.gastoOriginal.items_array.reduce((acumulador, item) => acumulador + (item.total || 0), 0)
               event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].coste_final = SumaTotalItems
+              const sumaTotalesGastos = original.categoriaOriginal.gastos_array.reduce((acumulador, item) => acumulador + (item.coste_final || 0), 0)
+              const nuevasCategorias = event.presupuesto_objeto.categorias_array.map((cat, idx) =>
+                idx === f1 ? { ...cat, coste_final: sumaTotalesGastos } : cat
+              );
+
               if (original.gastoOriginal.coste_final !== SumaTotalItems) {
                 fetchApiEventos({
                   query: queries.editGasto,
@@ -72,6 +76,17 @@ export const handleChange = ({ values, info, event, setEvent }: propsHandleChang
                     gasto_id: original?.gastoID,
                     variable_reemplazar: "coste_final",
                     valor_reemplazar: SumaTotalItems
+                  }
+                }).then((result: any) => {
+                  if (event.presupuesto_objeto.categorias_array[f1].coste_final != sumaTotalesGastos) {
+                    /*  event.presupuesto_objeto.categorias_array[f1].coste_final = sumaTotalesGastos */
+                    setEvent(prev => ({
+                      ...prev,
+                      presupuesto_objeto: {
+                        ...prev.presupuesto_objeto,
+                        categorias_array: nuevasCategorias
+                      }
+                    }));
                   }
                 })
               }
@@ -91,6 +106,11 @@ export const handleChange = ({ values, info, event, setEvent }: propsHandleChang
       const f2 = event?.presupuesto_objeto?.categorias_array[f1].gastos_array.findIndex(elem => elem._id === original?.gastoID)
       event.presupuesto_objeto.categorias_array[f1].gastos_array[f2][values.accessor === "gasto" ? "nombre" : values.accessor] = values.value !== "" ? values.value : "nuevo gasto"
       const sumaTotalesGastos = original.categoriaOriginal.gastos_array.reduce((acumulador, item) => acumulador + (item.coste_final || 0), 0)
+
+      const nuevasCategorias = event.presupuesto_objeto.categorias_array.map((cat, idx) =>
+        idx === f1 ? { ...cat, coste_final: sumaTotalesGastos } : cat
+      );
+
       setEvent({ ...event })
       fetchApiEventos({
         query: queries.editGasto,
@@ -104,7 +124,14 @@ export const handleChange = ({ values, info, event, setEvent }: propsHandleChang
       }).then((result: any) => {
         /* Se setea el coste final de las categorias con la variable sumaTotalesGastos */
         if (values.accessor === 'coste_final' && original[values.accessor] !== values.value && original.items_array.length == 0) {
-          event.presupuesto_objeto.categorias_array[f1].coste_final = sumaTotalesGastos
+          /* event.presupuesto_objeto.categorias_array[f1].coste_final = sumaTotalesGastos */
+          setEvent(prev => ({
+            ...prev,
+            presupuesto_objeto: {
+              ...prev.presupuesto_objeto,
+              categorias_array: nuevasCategorias
+            }
+          }));
         }
         return
       }).catch((error) => {
