@@ -12,13 +12,12 @@ interface propsHandleChange {
 export const handleChange = ({ values, info, event, setEvent }: propsHandleChange) => {
   try {
     const original = info.row.original
-
+    /* Para actualizar los items de las partidas de gastos */
     if (original.object === "item" && (!["categoria", "gasto"].includes(values.accessor))) {
       const f1 = event?.presupuesto_objeto?.categorias_array.findIndex(elem => elem._id === original?.categoriaID)
       const f2 = event?.presupuesto_objeto?.categorias_array[f1].gastos_array.findIndex(elem => elem._id === original?.gastoID)
       const f3 = event?.presupuesto_objeto?.categorias_array[f1].gastos_array[f2].items_array.findIndex(elem => elem._id === original?.itemID)
       event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array[f3][values.accessor] = values.value !== "" ? values.value : "nuevo item"
-
       if (values.accessor === "unidad" && values.value === "xUni.") {
         event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array[f3].cantidad = 0
         fetchApiEventos({
@@ -45,15 +44,53 @@ export const handleChange = ({ values, info, event, setEvent }: propsHandleChang
           valor: values.value !== "" ? values.value : "nuevo item"
         }
       }).then((result: any) => {
+        /* Para actualizar los totales del item */
+        if (original[values.accessor] != values.value) {
+          const totalItem = event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array[f3].cantidad * event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array[f3].valor_unitario
+          event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array[f3].total = totalItem
+          if (original.coste_final !== totalItem) {
+            fetchApiEventos({
+              query: queries.editItemGasto,
+              variables: {
+                evento_id: event?._id,
+                categoria_id: original?.categoriaID,
+                gasto_id: original?.gastoID,
+                itemGasto_id: original?.itemID,
+                variable: "total",
+                valor: totalItem
+              }
+            }).then((result: any) => {
+
+              const SumaTotalItems = original.gastoOriginal.items_array.reduce((acumulador, item) => acumulador + (item.total || 0), 0)
+              event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].coste_final = SumaTotalItems
+              if (original.gastoOriginal.coste_final !== SumaTotalItems) {
+                fetchApiEventos({
+                  query: queries.editGasto,
+                  variables: {
+                    evento_id: event?._id,
+                    categoria_id: original?.categoriaID,
+                    gasto_id: original?.gastoID,
+                    variable_reemplazar: "coste_final",
+                    valor_reemplazar: SumaTotalItems
+                  }
+                })
+              }
+            })
+          }
+          return
+        }
         return
       }).catch((error) => {
         console.log(error);
       })
     }
+
+
     if ((original.object === "gasto" && (!["categoria"].includes(values.accessor)) || (original.object === "item" && values.accessor === "gasto"))) {
       const f1 = event?.presupuesto_objeto?.categorias_array.findIndex(elem => elem._id === original?.categoriaID)
       const f2 = event?.presupuesto_objeto?.categorias_array[f1].gastos_array.findIndex(elem => elem._id === original?.gastoID)
       event.presupuesto_objeto.categorias_array[f1].gastos_array[f2][values.accessor === "gasto" ? "nombre" : values.accessor] = values.value !== "" ? values.value : "nuevo gasto"
+      const sumaTotalesGastos = original.categoriaOriginal.gastos_array.reduce((acumulador, item) => acumulador + (item.coste_final || 0), 0)
       setEvent({ ...event })
       fetchApiEventos({
         query: queries.editGasto,
@@ -65,6 +102,10 @@ export const handleChange = ({ values, info, event, setEvent }: propsHandleChang
           valor_reemplazar: values.value !== "" ? values.value : "nuevo gasto"
         }
       }).then((result: any) => {
+        /* Se setea el coste final de las categorias con la variable sumaTotalesGastos */
+        if (values.accessor === 'coste_final' && original[values.accessor] !== values.value && original.items_array.length == 0) {
+          event.presupuesto_objeto.categorias_array[f1].coste_final = sumaTotalesGastos
+        }
         return
       }).catch((error) => {
         console.log(error);
@@ -222,7 +263,7 @@ export const handleCreateGasto = async ({ info, event, setEvent, setShowDotsOpti
     }).then((result: expenses) => {
       setShowDotsOptionsMenu({ state: false })
       const f1 = event?.presupuesto_objeto?.categorias_array.findIndex((elem) => elem._id === info?.row?.original?.categoriaID)
-      event?.presupuesto_objeto?.categorias_array[f1].gastos_array.push(result)
+      event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array?.push(result)
       setEvent({ ...event })
     })
   } catch (error) {
@@ -254,7 +295,6 @@ export const handleChangeEstatus = async ({ event, categoriaID, gastoId, setEven
   const f1 = event?.presupuesto_objeto?.categorias_array.findIndex(elem => elem._id === categoriaID)
   const f2 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == gastoId);
   const gastoEstatus = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.estatus
-  console.log("pepe", gastoId)
   try {
     fetchApiEventos({
       query: queries.editGasto,
@@ -281,7 +321,7 @@ export const handleChangeEstatusItem = async ({ event, categoriaID, gastoId, ite
   const f3 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.items_array.findIndex((item) => item._id == itemId)
   const ItemEstatus = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.items_array[f3]?.estatus
   event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array[f3].estatus = !ItemEstatus
-  
+
   try {
     fetchApiEventos({
       query: queries.editItemGasto,
@@ -294,7 +334,6 @@ export const handleChangeEstatusItem = async ({ event, categoriaID, gastoId, ite
         valor: !ItemEstatus
       }
     }).then((result: any) => {
-      console.log('result', result.categorias_array[f1].gastos_array[f2].items_array)
       setEvent({ ...event })
     })
   } catch (error) {
