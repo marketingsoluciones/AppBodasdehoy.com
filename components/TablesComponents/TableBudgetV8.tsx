@@ -82,7 +82,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     { accessor: "pagado", header: t("pagado"), size: defaultSize.float, horizontalAlignment: "end", type: "float" },
     { accessor: "pendiente_pagar", header: t("pendiente por pagar"), size: defaultSize.float, horizontalAlignment: "end", type: "float" },
   ]
-  
+
   useEffect(() => {
     const columnsVisibility = event?.presupuesto_objeto?.visibleColumns?.reduce((acc, item) => {
       acc = {
@@ -94,11 +94,11 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     setColumnVisibility({ ...columnsVisibility })
   }, [event])
 
- /*  useEffect(() => {
-    if (data) {
-      console.log(100080, data)
-    }
-  }, [data]) */
+  /*  useEffect(() => {
+     if (data) {
+       console.log(100080, data)
+     }
+   }, [data]) */
 
   const options = [
     {
@@ -143,13 +143,14 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
       icon: true ? <GoEye className="w-4 h-4" /> : <GoEyeClosed className="w-4 h-4" />,
       title: "Estado",
       onClick: (info) => {
-        if (info.column.id === "gasto") {
+        if (info.row.original.object === 'gasto') {
           handleChangeEstatus({ event, categoriaID: info.row.original.categoriaID, gastoId: info.row.original.gastoID, setEvent })
-            .catch(error => toast("error", "ha ocurrido un error"))
+            .catch(error => { toast("error", "ha ocurrido un error"), console.log(error) })
         }
-        if (info.column.id === "nombre") {
+
+        if (info.row.original.object === 'item') {
           handleChangeEstatusItem({ event, categoriaID: info.row.original.categoriaID, gastoId: info.row.original.gastoID, itemId: info.row.original.itemID, setEvent })
-            .catch(error => toast("error", "ha ocurrido un error"))
+            .catch(error => { toast("error", "ha ocurrido un error"), console.log(error) })
         }
       },
       object: ["gasto", "item"]

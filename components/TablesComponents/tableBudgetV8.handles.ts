@@ -321,6 +321,9 @@ export const handleChangeEstatus = async ({ event, categoriaID, gastoId, setEven
   const f1 = event?.presupuesto_objeto?.categorias_array.findIndex(elem => elem._id === categoriaID)
   const f2 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == gastoId);
   const gastoEstatus = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.estatus
+
+  console.log('entro en el gasto')
+
   try {
     fetchApiEventos({
       query: queries.editGasto,
@@ -347,6 +350,8 @@ export const handleChangeEstatusItem = async ({ event, categoriaID, gastoId, ite
   const f3 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.items_array.findIndex((item) => item._id == itemId)
   const ItemEstatus = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.items_array[f3]?.estatus
   event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array[f3].estatus = !ItemEstatus
+
+  console.log('Entro')
 
   try {
     fetchApiEventos({
