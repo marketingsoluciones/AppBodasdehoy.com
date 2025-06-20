@@ -165,6 +165,13 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
                                         !elem?.items_array?.length && accessorEditables.push("coste_final")
                                         let valirFirtsChildGasto = true
                                         elem?.items_array?.map((el, idxEl) => {
+                                            // FILTRO: solo mostrar si es el dueño o el estatus es true
+                                            if (
+                                                event?.usuario_id !== user?.uid &&
+                                                el.estatus !== false
+                                            ) {
+                                                return; // No pushear este item
+                                            }
                                             let accessorEditables = []
                                             el.unidad === "xUni." && accessorEditables.push("cantidad")
                                             const cantidad = el.unidad === "xUni."

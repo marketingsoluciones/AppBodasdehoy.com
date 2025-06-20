@@ -4,7 +4,7 @@ import { t } from 'i18next';
 import { EditableLabelWithInput } from '../Forms/EditableLabelWithInput';
 import { EditableSelect } from '../Forms/EditableSelect';
 import { fetchApiEventos, queries } from '../../utils/Fetching';
-import { EventContextProvider } from '../../context';
+import { AuthContextProvider, EventContextProvider } from '../../context';
 import { FloatOptionsMenuInterface, ModalInterface, VisibleColumn } from '../../utils/Interfaces';
 import { DotsOpcionesIcon } from '../icons';
 import { useAllowed } from '../../hooks/useAllowed';
@@ -69,6 +69,8 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
   const [showFloatOptionsMenu, setShowFloatOptionsMenu] = useState<FloatOptionsMenuInterface>()
   const [RelacionarPagoModal, setRelacionarPagoModal] = useState({ id: "", crear: false, categoriaID: "" })
   const [ServisiosListModal, setServisiosListModal] = useState({ id: "", crear: false, categoriaID: "" })
+  
+
 
   const initialColumn: InitialColumn[] = [
     { accessor: "categoria", header: t("categoria"), isEditabled: true },
@@ -93,12 +95,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     }, {})
     setColumnVisibility({ ...columnsVisibility })
   }, [event])
-
-  /*  useEffect(() => {
-     if (data) {
-       console.log(100080, data)
-     }
-   }, [data]) */
 
   const options = [
     {
@@ -420,17 +416,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                       ${horizontalAlignment === "start" ? "justify-start" : horizontalAlignment === "center" ? "justify-center" : horizontalAlignment === "end" ? "justify-end" : ""}
                       ${verticalAlignment === "start" ? "items-start" : verticalAlignment === "center" ? "items-center" : verticalAlignment === "end" ? "items-end" : ""}
                     `.replace(/\s+/g, ' ').replace(/\n+/g, ' ')
-                    // const value = cell.column.id === "categoria"
-                    //   ? row.original.firstChildGasto || row.original.firstChild
-                    //     ? cell.getValue()
-                    //     : ""
-                    //   : cell.column.id === "gasto"
-                    //     ? !row.original?.fatherCategoria
-                    //       ? row.original?.firstChildItem && cell.getValue()
-                    //       : ""
-                    //     : (cell.column.id === "nombre" && row.original?.fatherCategoria) || (cell.column.id === "nombre" && row.original?.fatherGasto)
-                    //       ? ""
-                    //       : cell.getValue()
                     return (
                       <td
                         id={`${cell.column.id}-${row.original._id}`}
@@ -456,7 +441,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                           }
                         }}
                         key={cell.id}
-                        //onDoubleClick={() => console.log(row.original)}
                         onClick={() => {
                           const initialValue = initialColumn.find(elem => elem.accessor === cell.getContext().column.columnDef.id)
                           !!initialValue && !!initialValue["onClick"] && initialValue.onClick(cell.getContext())
