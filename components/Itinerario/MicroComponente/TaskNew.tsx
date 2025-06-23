@@ -371,6 +371,41 @@ export const TaskNew: FC<Props> = memo(({
     }
   };
 
+  const handleCopyLink = useCallback(async (task: any) => {
+  const link = `${window.location.origin}/services/servicios-${event._id}-${itinerario._id}-${task._id}`;
+  
+  try {
+    // Verificar si el navegador soporta clipboard API
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(link);
+      toast('success', t('Enlace copiado'));
+    } else {
+      // Fallback para navegadores que no soportan clipboard API
+      const textArea = document.createElement("textarea");
+      textArea.value = link;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      
+      try {
+        document.execCommand('copy');
+        toast('success', t('Enlace copiado'));
+      } catch (err) {
+        console.error('Error al copiar:', err);
+        toast('error', t('Error al copiar el enlace'));
+      } finally {
+        textArea.remove();
+      }
+    }
+  } catch (error) {
+    console.error('Error al copiar enlace:', error);
+    toast('error', t('Error al copiar el enlace'));
+  }
+}, [event._id, itinerario._id, t]);
+
   const handleAddTag = (newTag: string) => {
     if (newTag && !localTask.tags?.includes(newTag)) {
       const newTags = [...(localTask.tags || []), newTag];
@@ -619,8 +654,7 @@ export const TaskNew: FC<Props> = memo(({
                 <div className="relative group">
                   <button
                     onClick={() => {
-                      navigator.clipboard.writeText(link);
-                      toast('success', t('Enlace copiado'));
+                      handleCopyLink(task);
                     }}
                     className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-md transition-all duration-200"
                     title={t('Copiar enlace')}
