@@ -266,7 +266,31 @@ export const queries = {
   editTask: `mutation ($eventID:String, $itinerarioID:String, $taskID:String, $variable:String, $valor:String){
     editTask(eventID:$eventID itinerarioID:$itinerarioID  taskID:$taskID  variable:$variable  valor:$valor )
   }`,
-
+  
+      saveViewConfig: `
+    mutation saveViewConfig($eventID: String, $itinerarioID: String, $viewConfig: String) {
+      saveViewConfig(
+        eventID: $eventID,
+        itinerarioID: $itinerarioID,
+        viewConfig: $viewConfig
+      )
+    }
+  `,
+  
+  getViewConfigs: `
+    query getViewConfigs($eventID: String, $itinerarioID: String) {
+      getViewConfigs(
+        eventID: $eventID,
+        itinerarioID: $itinerarioID
+      ) {
+        id
+        name
+        columns
+        filters
+        sortBy
+      }
+    }
+  `,  
 
 createTask: `mutation ($eventID:String, $itinerarioID:String, $fecha:String, $descripcion:String, $hora:String, $duracion:Int){
     createTask(eventID:$eventID, itinerarioID:$itinerarioID, fecha:$fecha, descripcion:$descripcion, hora:$hora, duracion:$duracion ){

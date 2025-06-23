@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { 
   ChevronDown, 
   Search, 
@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { TableDropdownProps, SelectOption, TASK_STATUSES, TASK_PRIORITIES } from './NewTypes';
 import { useTranslation } from 'react-i18next';
+import { fetchApiEventos, queries } from '../../../utils/Fetching';
 
 export const TableDropdown: React.FC<TableDropdownProps> = ({
   options,
@@ -240,10 +241,30 @@ export const DateSelector: React.FC<{
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
-}> = ({ value, onChange, placeholder = "Sin fecha" }) => {
+  // Nuevas props necesarias:
+  task?: any;
+  event?: any;
+  itinerarioId?: string;
+  config?: any;
+  onUpdate?: (value: any) => void;
+  setEvent?: (fn: any) => void;
+  toast?: any;
+  t?: any;
+}> = ({
+  value,
+  onChange,
+  placeholder = "Sin fecha",
+  task,
+  event,
+  itinerarioId,
+  config,
+  onUpdate,
+  setEvent,
+  toast,
+  t
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(value);
-  const { t } = useTranslation();
 
   const formatDate = (dateString: string) => {
     if (!dateString) return placeholder;
@@ -262,6 +283,53 @@ export const DateSelector: React.FC<{
     setIsOpen(false);
   };
 
+  // Tu función para eliminar la fecha
+  const handleDeleteDate = useCallback(async () => {
+    if (!event || !task || !config || !itinerarioId) {
+      toast && toast('error', t ? t('Faltan datos para eliminar la fecha') : 'Faltan datos para eliminar la fecha');
+      return;
+    }
+    try {
+      await fetchApiEventos({
+        query: queries.editTask,
+        variables: {
+          eventID: event._id,
+          itinerarioID: itinerarioId,
+          taskID: task._id,
+          variable: "fecha",
+          valor: null
+        },
+        domain: config.domain
+      });
+
+      onUpdate && onUpdate(null);
+
+      setEvent && setEvent((prevEvent: any) => {
+        const newEvent = { ...prevEvent };
+        const itineraryIndex = newEvent.itinerarios_array.findIndex(
+          (it: any) => it._id === itinerarioId
+        );
+
+        if (itineraryIndex !== -1) {
+          const taskIndex = newEvent.itinerarios_array[itineraryIndex].tasks.findIndex(
+            (t: any) => t._id === task._id
+          );
+
+          if (taskIndex !== -1) {
+            newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex].fecha = null;
+          }
+        }
+
+        return newEvent;
+      });
+
+      toast && toast('success', t ? t('Fecha eliminada') : 'Fecha eliminada');
+    } catch (error) {
+      console.error('Error al eliminar fecha:', error);
+      toast && toast('error', t ? t('Error al eliminar la fecha') : 'Error al eliminar la fecha');
+    }
+  }, [task, event, itinerarioId, config, onUpdate, setEvent, toast, t]);
+
   return (
     <div className="relative">
       <button
@@ -277,9 +345,10 @@ export const DateSelector: React.FC<{
         </span>
         {value && (
           <button
+            type="button"
             onClick={(e) => {
               e.stopPropagation();
-              onChange('');
+              handleDeleteDate();
               setSelectedDate('');
             }}
             className="p-1 hover:bg-gray-100 rounded transition-colors"

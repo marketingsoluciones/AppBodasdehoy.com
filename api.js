@@ -122,5 +122,30 @@ export const api = {
   }
 };
 
+export const fetchApiViewConfig = async (params) => {
+  const endpoint = 'http://api2.eventosorganizador.com:3000/graphql';
+  
+  let idToken = Cookies.get("idTokenV0.1.0");
+  try {
+    if (getAuth().currentUser && !idToken) {
+      idToken = await getAuth().currentUser?.getIdToken(true);
+      const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000);
+      Cookies.set("idTokenV0.1.0", idToken ?? "", { 
+        domain: process.env.NEXT_PUBLIC_PRODUCTION ? varGlobalDomain : process.env.NEXT_PUBLIC_DOMINIO, 
+        expires: dateExpire 
+      });
+    }
+  } catch (error) {
+    console.error("Error getting token:", error);
+  }
+
+  return axios.post(endpoint, params, {
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+      'Content-Type': 'application/json',
+    }
+  });
+};
+
 
 

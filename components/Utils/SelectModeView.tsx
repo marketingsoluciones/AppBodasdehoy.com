@@ -60,13 +60,13 @@ export const SelectModeView: FC<props> = ({ value, setValue }) => {
   
   return (
     <ClickAwayListener onClickAway={() => setShow(false)} >
-      <div className="relative flex cursor-pointer -translate-y-10 md:translate-y-0">
+      <div className="relative flex cursor-pointer -translate-y-10 md:translate-y-0  z-[99999]">
         <div onClick={() => { setShow(!show) }} className="inline-flex text-sm gap-0.5 text-gray-700 items-center capitalize">
           {options.find(item => item.value === value)?.icon}
           {t("view")}
           <ArrowDownBodasIcon className="w-4 h-4 rotate-90" />
         </div>
-        {show && <div className={`absolute right-0 bg-white top-8 z-[1000] rounded-md shadow-md`}>
+{show && <div className={`absolute right-0 bg-white top-8 rounded-md shadow-md`}>
           {options?.map((item, idx) =>
             <div key={idx}
               onClick={() => {

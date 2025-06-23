@@ -825,11 +825,40 @@ export const TableView: React.FC<TableProps> = ({
         toast('error', t('Error al duplicar la tarea'));
       }
     },
-    handleCopyLink: (task: any) => {
+
+
+    handleCopyLink: useCallback(async (task: any) => {
       const link = `${window.location.origin}/services/servicios-${event._id}-${itinerario._id}-${task._id}`;
-      navigator.clipboard.writeText(link);
-      toast('success', t('Enlace copiado'));
-    }
+      
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(link);
+          toast('success', t('Enlace copiado'));
+        } else {
+          const textArea = document.createElement("textarea");
+          textArea.value = link;
+          textArea.style.position = "fixed";
+          textArea.style.left = "-999999px";
+          textArea.style.top = "-999999px";
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+          try {
+            document.execCommand('copy');
+            toast('success', t('Enlace copiado'));
+          } catch (err) {
+            console.error('Error al copiar:', err);
+            toast('error', t('Error al copiar el enlace'));
+          } finally {
+            textArea.remove();
+          }
+        }
+      } catch (error) {
+        console.error('Error al copiar enlace:', error);
+        toast('error', t('Error al copiar el enlace'));
+      }
+    }, [event._id, itinerario._id, t, toast])
+    
   };
 
   const activeFiltersCount = tableState.filters.filter(f => f.isActive && f.value).length;
@@ -841,7 +870,7 @@ export const TableView: React.FC<TableProps> = ({
   return (
     <div className="h-full flex flex-col bg-gray-50 relative">
       {/* Header principal - fixed para evitar solapamiento */}
-      <div className="sticky top-0 z-30 bg-white shadow-sm">
+      <div className="sticky top-0 z-20 bg-white shadow-sm">
         <TableHeader
           title={`${itinerario.title} - Vista Tabla`}
           totalItems={data.length}
@@ -1070,21 +1099,29 @@ export const TableView: React.FC<TableProps> = ({
         </div>
       )}
 
-      {/* Modal de edición de fila completa con z-index alto */}
-      {showEditModal.show && showEditModal.task && (
-        <div className="fixed inset-0 z-50">
-          <TableEditModal
-            task={showEditModal.task}
-            itinerario={itinerario}
-            onClose={() => setShowEditModal({ show: false })}
-            onSave={async (taskId, updates) => {
-              await onTaskUpdate(taskId, updates);
-              setShowEditModal({ show: false });
-              setForceUpdate(prev => prev + 1);
-            }}
-          />
+{/* Modal de edición con z-index más alto y estructura corregida */}
+    {showEditModal.show && showEditModal.task && (
+      <>
+        {/* Backdrop para bloquear interacciones */}
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[100]" onClick={() => setShowEditModal({ show: false })} />
+        
+        {/* Modal container con z-index superior */}
+        <div className="fixed inset-0 z-[101] flex items-center justify-center p-4 pointer-events-none">
+          <div className="pointer-events-auto">
+            <TableEditModal
+              task={showEditModal.task}
+              itinerario={itinerario}
+              onClose={() => setShowEditModal({ show: false })}
+              onSave={async (taskId, updates) => {
+                await onTaskUpdate(taskId, updates);
+                setShowEditModal({ show: false });
+                setForceUpdate(prev => prev + 1);
+              }}
+            />
+          </div>
         </div>
-      )}
+      </>
+    )}
     </div>
   );
 };

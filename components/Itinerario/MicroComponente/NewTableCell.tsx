@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { 
   Check, 
   X, 
@@ -38,6 +38,7 @@ import { GruposResponsablesArry } from '../MicroComponente/ResponsableSelector';
 import { getStorage } from 'firebase/storage';
 import { downloadFile } from '../../Utils/storages';
 import { useToast } from '../../../hooks/useToast';
+import { fetchApiEventos, queries } from '../../../utils/Fetching';
 
 export const TableCell: React.FC<TableCellProps> = ({
   column,
@@ -61,10 +62,12 @@ export const TableCell: React.FC<TableCellProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const selectorRef = useRef<HTMLDivElement>(null);
   const { user } = AuthContextProvider();
-  const { event } = EventContextProvider();
+  const { event, setEvent } = EventContextProvider();
   const { t } = useTranslation();
   const storage = getStorage();
   const toast = useToast();
+  const config = (event as any)?.config || {};
+
 
   useEffect(() => {
     setEditValue(value);
@@ -113,6 +116,7 @@ export const TableCell: React.FC<TableCellProps> = ({
     const doc = new DOMParser().parseFromString(html, "text/html");
     return doc.body.textContent || "";
   };
+
 
   const renderCellContent = () => {
     switch (column.type) {
@@ -188,7 +192,7 @@ export const TableCell: React.FC<TableCellProps> = ({
 
       case 'date':
         return (
-          <div className="px-3 py-2">
+          <div className="px-3 py-2 flex items-center gap-2">
             <DateSelector
               value={value ? new Date(value).toISOString().split('T')[0] : ''}
               onChange={(newValue) => {
@@ -198,12 +202,32 @@ export const TableCell: React.FC<TableCellProps> = ({
                     onUpdate(newDate.toISOString());
                   }
                 } else {
-                  // Si se borra la fecha, usar fecha actual
                   onUpdate(new Date().toISOString());
                 }
               }}
               placeholder={t('Sin fecha')}
+              task={task}
+              event={event}
+              itinerarioId={itinerarioId}
+              config={config}
+              onUpdate={onUpdate}
+              setEvent={setEvent}
+              toast={toast}
+              t={t}
             />
+{/*             {value && (
+              <button
+                type="button"
+                className="ml-2 text-gray-400 hover:text-red-500 transition-colors"
+                title={t('Eliminar fecha')}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteDate();
+                }}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )} */}
           </div>
         );
 

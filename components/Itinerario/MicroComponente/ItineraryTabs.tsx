@@ -485,7 +485,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
 
 
     return (
-        <div className="flex max-w-[100%] min-w-[100%] overflow-x-auto. h-10 items-center justify-center border-b md:px-4 md:py-2 shadow-md z-10">
+        <div className="flex max-w-[100%] min-w-[100%] overflow-x-auto. h-10 items-center justify-center border-b md:px-4 md:py-2 shadow-md">
             <div id="content" className="flex-1 h-full  flex justify-between">
                 <div className="inline-flex max-w-full h-full items-center  mr-2">
                     {showTabs && <>
