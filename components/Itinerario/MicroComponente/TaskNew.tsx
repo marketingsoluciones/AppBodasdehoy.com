@@ -155,7 +155,7 @@ export const TaskNew: FC<Props> = memo(({
   const [editingField, setEditingField] = useState<string | null>(null);
   const [tempValue, setTempValue] = useState<any>(null);
   const [editingDescription, setEditingDescription] = useState(false);
-  const [customDescription, setCustomDescription] = useState(task.tips || '');
+  const [customDescription, setCustomDescription] = useState(stripHtml(task.tips || ''));
   const [editingResponsable, setEditingResponsable] = useState(false);
   const [tempResponsable, setTempResponsable] = useState<string[]>([]);
   const [editingAttachments, setEditingAttachments] = useState(false);
@@ -1081,51 +1081,54 @@ export const TaskNew: FC<Props> = memo(({
                       )}
                     </div>
 
-                    {editingDescription ? (
-                      <div className="border border-gray-300 rounded-lg p-4">
-                        <textarea
-                          value={customDescription}
-                          onChange={(e) => setCustomDescription(e.target.value)}
-                          className="w-full min-h-[200px] resize-none border-0 focus:ring-0 focus:outline-none"
-                          placeholder={t('Escribe una descripción detallada...')}
-                        />
-                        <div className="flex justify-end space-x-2 mt-2">
-                          <button
-                            onClick={() => {
-                              setCustomDescription(task.tips || '');
-                              setEditingDescription(false);
-                            }}
-                            className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
-                          >
-                            {t('Cancelar')}
-                          </button>
-                          <button
-                            onClick={() => {
-                              handleUpdate('tips', customDescription);
-                              setEditingDescription(false);
-                            }}
-                            className="px-3 py-1 text-sm bg-primary text-white rounded hover:bg-primary/90"
-                          >
-                            {t('Guardar')}
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div
-                        className="border border-gray-200 rounded-lg p-4 min-h-[100px] cursor-pointer hover:border-gray-300"
-                        onClick={() => setEditingDescription(true)}
-                      >
-                        {customDescription ? (
-                          <div className="text-sm text-gray-700 whitespace-pre-wrap break-words">
-                            {formatTextWithLineLimit(stripHtml(customDescription), 70, 6).split('\n').map((line, idx) => (
-                              <div key={idx} className="mb-1">{line}</div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-gray-400">{t('Haz clic para agregar una descripción...')}</p>
-                        )}
-                      </div>
-                    )}
+{editingDescription ? (
+  <div className="border border-gray-300 rounded-lg p-4">
+    <textarea
+      value={stripHtml(customDescription)} // IMPORTANTE: Aplicar stripHtml aquí
+      onChange={(e) => setCustomDescription(e.target.value)}
+      className="w-full min-h-[200px] resize-none border-0 focus:ring-0 focus:outline-none"
+      placeholder={t('Escribe una descripción detallada...')}
+    />
+    <div className="flex justify-end space-x-2 mt-2">
+      <button
+        onClick={() => {
+          setCustomDescription(localTask.tips || '');
+          setEditingDescription(false);
+        }}
+        className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
+      >
+        {t('Cancelar')}
+      </button>
+      <button
+        onClick={() => {
+          handleUpdate('tips', customDescription);
+          setEditingDescription(false);
+        }}
+        className="px-3 py-1 text-sm bg-primary text-white rounded hover:bg-primary/90"
+      >
+        {t('Guardar')}
+      </button>
+    </div>
+  </div>
+) : (
+  <div
+    className="border border-gray-200 rounded-lg p-4 min-h-[100px] cursor-pointer hover:border-gray-300"
+    onClick={() => {
+      setCustomDescription(stripHtml(localTask.tips || '')); // Limpiar HTML antes de editar
+      setEditingDescription(true);
+    }}
+  >
+    {customDescription ? (
+      <div className="text-sm text-gray-700 whitespace-pre-wrap break-words">
+        {formatTextWithLineLimit(stripHtml(customDescription), 70, 6).split('\n').map((line, idx) => (
+          <div key={idx} className="mb-1">{line}</div>
+        ))}
+      </div>
+    ) : (
+      <p className="text-sm text-gray-400">{t('Haz clic para agregar una descripción...')}</p>
+    )}
+  </div>
+)}  
                   </div>
 
                   {/* Adjuntos mejorados */}
