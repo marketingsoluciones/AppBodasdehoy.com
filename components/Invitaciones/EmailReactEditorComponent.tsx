@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { FC, useEffect, useRef, useState } from 'react';
 import { IoFolderOpenOutline, IoSaveOutline } from "react-icons/io5";
 import EmailEditor, { EditorRef, EmailEditorProps } from 'react-email-editor';
 import { GoArrowLeft } from "react-icons/go";
@@ -6,6 +6,7 @@ import { AuthContextProvider, EventContextProvider } from '../../context';
 import { translations } from '../../locales/react-email-editor-es';
 import i18next from "i18next";
 import { toPng } from 'html-to-image';
+import html2canvas from 'html2canvas';
 import trimCanvas from 'trim-canvas'
 import { fetchApiEventos, queries } from '../../utils/Fetching';
 import { useTranslation } from 'react-i18next';
@@ -15,10 +16,11 @@ import { ModalTemplates } from './ModalTemplates';
 import { EmailDesign } from '../../utils/Interfaces';
 import { EditableLabelWithInput } from '../Forms/EditableLabelWithInput';
 import ButtonPrimary from './ButtonPrimary';
+import { IoIosClose } from 'react-icons/io';
 
 interface props {
-    setEmailEditorModal: (value: boolean) => void
-    EmailEditorModal: boolean
+    setShowEmailEditorModal: (value: boolean) => void
+    showEmailEditorModal: boolean
     previewEmailReactEditor?: boolean
 }
 
@@ -34,7 +36,7 @@ type postActionType = {
     action: () => void
 }
 
-export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModal, previewEmailReactEditor, ...props }) => {
+export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, showEmailEditorModal, previewEmailReactEditor, ...props }) => {
     const { config } = AuthContextProvider()
     const { event } = EventContextProvider()
     const { t } = useTranslation();
@@ -52,39 +54,46 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
     const [showLoadDraftModal, setShowLoadDraftModal] = useState<boolean>(false);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
     const [postAction, setPostAction] = useState<postActionType>();
+    const [nameNewtemplate, setNameNewTemplate] = useState<string>("new template");
 
     useEffect(() => {
-        const draft = localStorage.getItem('emailEditorDesign');
-        if (draft) {
-            setShowLoadDraftModal(true);
+        if (!previewEmailReactEditor) {
+            const draft = localStorage.getItem('emailEditorDesign');
+            if (draft) {
+                setShowLoadDraftModal(true);
+            }
         }
     }, []);
 
     useEffect(() => {
         if (unlayer) {
-            unlayer.addEventListener('design:updated', function (updates) {
-                unlayer.exportHtml(function (data) {
-                    localStorage.setItem('emailEditorDesign', JSON.stringify({
-                        design: data.design,
-                        name: template?.name ?? "template1",
-                        _id: template?._id,
-                        updatedAt: new Date()
-                    }));
-                    setHasUnsavedChanges(true);
+            if (!previewEmailReactEditor) {
+                unlayer.addEventListener('design:updated', function (updates) {
+                    unlayer.exportHtml(function (data) {
+                        localStorage.setItem('emailEditorDesign', JSON.stringify({
+                            design: data.design,
+                            name: template?.name ?? nameNewtemplate,
+                            _id: template?._id,
+                            updatedAt: new Date()
+                        }));
+                        setHasUnsavedChanges(true);
+                    });
                 });
-            });
+            } else {
+                loadDesign({ _id: event?.templateInvitacionSelect } as EmailDesign)
+            }
         }
     }, [unlayer]);
 
     const handleCloseEditor = () => {
-        if (hasUnsavedChanges) {
+        if (hasUnsavedChanges && !previewEmailReactEditor) {
             setShowUnsavedModal({
                 state: true,
                 label: '¿Seguro que quieres salir?',
                 actionUnsave: () => {
                     localStorage.removeItem('emailEditorDesign');
                     setHasUnsavedChanges(false);
-                    setEmailEditorModal(false);
+                    setShowEmailEditorModal(false);
                     setShowUnsavedModal(undefined);
                 },
                 actionSave: () => {
@@ -93,13 +102,13 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
                     setPostAction({
                         state: true,
                         action: () => {
-                            setEmailEditorModal(false);
+                            setShowEmailEditorModal(false);
                         }
                     });
                 }
             });
         } else {
-            setEmailEditorModal(false);
+            setShowEmailEditorModal(false);
         }
     };
 
@@ -174,7 +183,7 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
     };
 
     const onReady: EmailEditorProps['onReady'] = (unlayer) => {
-        setEditorReady(true);
+        setEditorReady(true);//ver que hace
         setTimeout(() => {
             setIsLoading(true)
         }, previewEmailReactEditor ? 800 : 0);
@@ -185,11 +194,13 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
             if (htmlToImageRef.current) {
                 const node = htmlToImageRef.current;
                 const rect = node.getBoundingClientRect();
+                console.log(100055, "img")
                 const dataUrl = await toPng(node, {
                     cacheBust: true,
                     width: rect.width,
                     height: rect.height
                 });
+                console.log(100056, dataUrl)
                 let canvas = document.createElement('canvas');
                 const img = new window.Image();
                 img.onload = function () {
@@ -201,13 +212,14 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
                     const result = trimCanvas(canvas);
                     const pngUrl = result.toDataURL('image/png');
                     if (!template?._id) {
+                        console.log(100053, "nuevo")
                         fetchApiEventos({
                             query: queries.createEmailTemplate,
                             variables: {
                                 evento_id: event?._id,
                                 design: designASD,
                                 html,
-                                name: template?.name || 'template1',
+                                name: template?.name || nameNewtemplate,
                                 preview: pngUrl,
                             },
                             domain: config?.domain
@@ -218,6 +230,7 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
                             postAction?.state && postAction.action();
                         })
                     } else {
+                        console.log(100054, "actualizar")
                         fetchApiEventos({
                             query: queries.updateEmailTemplate,
                             variables: {
@@ -237,7 +250,7 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
                     setShowSaveModal(false);
                     setHtml('');
                 };
-                img.src = dataUrl;
+                // img.src = dataUrl;
             }
         } catch (error) {
             console.log('error', error)
@@ -246,6 +259,7 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
 
     const loadDesign = (emailDesign: EmailDesign) => {
         try {
+            console.log(100051, emailDesign)
             fetchApiEventos({
                 query: queries.getEmailTemplate,
                 variables: {
@@ -253,8 +267,9 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
                     template_id: emailDesign._id
                 }
             }).then((res) => {
+                console.log(100052, res)
                 unlayer.loadDesign(res[0].design as any)
-                setTemplate({ ...emailDesign, design: res[0].design })
+                !previewEmailReactEditor && setTemplate({ ...emailDesign, design: res[0].design })
             })
         } catch (error) {
             console.log('error', error)
@@ -272,6 +287,8 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
             })
         }
     }, [template?.name])
+
+    const asd = "{{var}}"
 
     return (
         <div className='relative w-full h-full'>
@@ -341,14 +358,26 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
                         <div className={"flex w-[250px] h-[38px] items-end justify-start cursor-pointer border-l"} >
                             <div className='pb-1 pl-2 text-sm relative'>
                                 <EditableLabelWithInput
-                                    value={template?.name ? template.name : "template1"}
+                                    value={template?.name ? template.name : nameNewtemplate}
                                     type={null}
                                     handleChange={(values) => { setTemplate({ ...template, name: values.value }) }}
                                     accessor={null}
                                     textAlign="left" />
                             </div>
                         </div>
+                        {/* <div onClick={handleSaveDesign} className={"flex w-[50px] h-[38px] flex-col items-center justify-center cursor-pointer border-x hover:bg-[#F4F4F4]"} >
+                            <div className='pt-[2px] text-xs font-semibold text-gray-800'>
+                                {asd}
+                            </div>
+                        </div> */}
                     </>}
+                </div>}
+                {previewEmailReactEditor && <div className='absolute flex right-0 bg-white'>
+                    <div onClick={handleCloseEditor} className={"flex w-[50px] h-[38px] flex-col items-center justify-center cursor-pointer border-l hover:bg-[#F4F4F4]"} >
+                        <div className='pt-[2px]'>
+                            <IoIosClose className='h-6 w-6 text-gray-800' />
+                        </div>
+                    </div>
                 </div>}
                 <EmailEditor ref={emailEditorRef} onLoad={onLoad} onReady={onReady} minHeight={'100%'} options={{
                     id: 'editor',
@@ -359,22 +388,21 @@ export const EmailReactEditorComponent = ({ setEmailEditorModal, EmailEditorModa
                         'en-US': i18next.language === 'es' ? translations : {}
                     },
                     mergeTags: {
-                        nombre: {
-                            name: "Nombre",
-                            value: "{{nombre}}",
-                            sample: "Juan Pérez"
+                        tag1: {
+                            name: "tipo de evento",
+                            value: "{{params.typeEvent}}",
+                            sample: event?.tipo
                         },
-                        email: {
-                            name: "Email",
-                            value: "{{email}}",
-                            sample: "juan@email.com"
+                        tag3: {
+                            name: "nombre del evento",
+                            value: "{{params.nameEvent}}",
+                            sample: event?.nombre
                         },
-                        invitationImg: {
-                            name: "invitacion",
-                            value: "{{invitacion}}",
-                            sample: "no hay"
+                        tag2: {
+                            name: "invitado",
+                            value: "{{params.nameGuest}}",
+                            sample: event?.invitados_array[0]?.nombre || "sin invitados cargados"
                         },
-                        // Puedes agregar más variables aquí
                     },
                     appearance: {
                         actionBar: {

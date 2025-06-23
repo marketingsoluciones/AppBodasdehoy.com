@@ -144,7 +144,7 @@ export const Test = ({ TitleComponent, setEmailEditorModal, emailEditorModal, se
       <div className="md:w-max">
         <div className="w-full h-10 flex gap-2 items-end px-2">
           <span className="text-sm text-gray-600 text-primary py-1">{t("template")}</span>
-          <div className="flex-1 h-8 border-[1px] border-gray-300 rounded-md px-2 py-1 text-sm text-gray-600">
+          <div className="flex-1 h-8 bg-gray-100 rounded-md px-2 py-2 text-sm text-gray-600">
             {templateName}
           </div>
         </div>
@@ -160,7 +160,7 @@ export const Test = ({ TitleComponent, setEmailEditorModal, emailEditorModal, se
               setPreviewEmailReactEditor(false)
             }
           }} >
-            {t("edit")}
+            {t("createOrEdit")}
           </ButtonPrimary>
           <ButtonPrimary disabled={!event?.templateInvitacionSelect} onClick={(e) => {
             if (!isAllowed()) {

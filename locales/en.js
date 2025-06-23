@@ -348,6 +348,7 @@ export const en = {
     'morepasses': "more passes to this event",
     'myguests': "My guests",
     'mytables': "My tables",
+    "createOrEdit": "Create or Edit",
     'mytemplates': "My templates",
     'name': "NAME",
     'nameevent': "Event name",

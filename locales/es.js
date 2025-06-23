@@ -348,6 +348,7 @@ export const es = {
     'morepasses': 'pases más a este evento',
     'myguests': 'Mis invitados',
     'mytables': 'Mis Mesas',
+    "createOrEdit": "Crear o Editar",
     'mytemplates': 'Mis plantillas',
     'name': 'nombre',
     'nameevent': 'Nombre del evento',

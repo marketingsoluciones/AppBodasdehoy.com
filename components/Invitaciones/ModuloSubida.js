@@ -6,6 +6,9 @@ import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
 import Resizer from "react-image-file-resizer";
 import { useTranslation } from 'react-i18next';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
+import { PiCheckFatThin } from "react-icons/pi";
+import { LiaLinkSolid } from "react-icons/lia";
 
 const resizeImage = (file) => {
   try {
@@ -44,6 +47,14 @@ const ModuloSubida = ({ event, use }) => {
   const [showAddImg, setShowAddImg] = useState(true)
   const [sendedImg, setSendedImg] = useState(false)
   const [isAllowed, ht] = useAllowed()
+  const [copied, setCopied] = useState(false)
+  useEffect(() => {
+    if (copied) {
+      setTimeout(() => {
+        setCopied(false)
+      }, 3000);
+    }
+  }, [copied])
 
   const subir_archivo = async () => {
     try {
@@ -138,13 +149,16 @@ const ModuloSubida = ({ event, use }) => {
             {imagePreviewUrl.preview ? cargado.titulo : t("addinvitation")}
           </label>
         )}
-        <div className="w-full flex flex-col text-gray-500 bottom-0 translate-y-full absolute">
-          <label onClick={() => !isAllowed() ? ht() : null} htmlFor={!isAllowed() ? "null" : "file"} className="gap-1 flex items-center justify-center w-full bg-gray-200 px-3 py-1 cursor-pointer rounded-b-xl shadow-sm hover:z-10">
-            <div className="flex hover:scale-105 transition transform">
-              {t("change")} <EditarIcon className="w-6 h-6" />
-            </div>
+
+        <div className="w-full flex text-gray-500 bottom-0 translate-y-full absolute rounded-b-xl text-xs overflow-hidden border-[1px] border-gray-300">
+          <label onClick={() => !isAllowed() ? ht() : null} htmlFor={!isAllowed() ? "null" : "file"} className="bg-gray-200 gap-1 flex items-center justify-center w-1/2 py-1 cursor-pointer">
+            {t("change")} <EditarIcon className="w-6 h-6" />
           </label>
-          {/*<span className={`${"text-xs text-gray-600 ml-2 mb-1 flex justify-center"}`}>Tamaño máximo 5M</span>*/}
+          <CopyToClipboard text={`${process.env.NEXT_PUBLIC_BASE_URL}${event?.imgInvitacion?.i800}`}>
+            <label onClick={() => { setCopied(true) }} className="bg-gray-200gap-1 flex items-center justify-center w-1/2 py-1 cursor-pointer">
+              {t("copylink")} {copied ? <PiCheckFatThin className="w-6 h-6" /> : <LiaLinkSolid className="w-6 h-6" />}
+            </label>
+          </CopyToClipboard>
         </div>
       </div>
       <style jsx>
