@@ -26,6 +26,7 @@ export interface Event {
     grupos_array: string[]
     notificaciones_array: notification[]
     imgInvitacion: image
+    templateInvitacionSelect: string
     presupuesto_objeto: estimate
     listaRegalos: string
     listIdentifiers: ListIdentifiers[]

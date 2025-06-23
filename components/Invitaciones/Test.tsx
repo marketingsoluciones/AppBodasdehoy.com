@@ -4,24 +4,46 @@ import InputField from "../Forms/InputField";
 import { IconLightBulb16 } from "../icons";
 import * as yup from "yup";
 import { phoneUtil, useAuthentication } from "../../utils/Authentication";
-import { fetchApiBodas, queries } from "../../utils/Fetching";
+import { fetchApiBodas, fetchApiEventos, queries } from "../../utils/Fetching";
 import { useEffect, useState } from "react";
 import { ActivatorPremium } from "../ActivatorPremium";
 import { Tooltip } from "../Utils/Tooltip";
 import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
+import ButtonPrimary from "./ButtonPrimary";
+import ModalDefault from "./ModalDefault";
+import { ModalTemplates } from "./ModalTemplates";
+import { EmailDesign } from "../../utils/Interfaces";
 
 export type TitleComponent = "email" | "whatsapp" | "sms" | "diseño"
 
 export const Test = ({ TitleComponent, setEmailEditorModal, emailEditorModal, setPreviewEmailReactEditor }: { TitleComponent: TitleComponent, setEmailEditorModal: (value: boolean) => void, emailEditorModal: boolean, setPreviewEmailReactEditor: (value: boolean) => void }) => {
   const { t } = useTranslation();
   const { geoInfo, config } = AuthContextProvider()
-  const { event } = EventContextProvider()
+  const { event, setEvent } = EventContextProvider()
   const { isPhoneValid } = useAuthentication()
   const [valirReset, setValirReset] = useState(false)
+  const [showModalTemplate, setShowModalTemplate] = useState(false)
   const toast = useToast()
   const [isAllowed, ht] = useAllowed()
+  const [templateName, setTemplateName] = useState<string>()
+
+  useEffect(() => {
+    if (event?.templateInvitacionSelect) {
+      fetchApiEventos({
+        query: queries.getVariableEmailTemplate,
+        variables: {
+          evento_id: event?._id,
+          template_id: event?.templateInvitacionSelect,
+          selectVariable: "name"
+        },
+      }).then((res: any) => {
+        setTemplateName(res?.name)
+      })
+    }
+  }, [])
+
 
   const initialValues = {
     email: "",
@@ -62,6 +84,7 @@ export const Test = ({ TitleComponent, setEmailEditorModal, emailEditorModal, se
 
   })
 
+
   const handleClick = async (values, actions) => {
     const params = {
       query: `mutation TestInvitacion ($eventoID : String, $email : [String], $linkUrl: String, $imgUrl: String){
@@ -95,44 +118,61 @@ export const Test = ({ TitleComponent, setEmailEditorModal, emailEditorModal, se
       actions.setSubmitting(false)
     }
   }
+
+  const handleChangeTemplate = (template: EmailDesign) => {
+    fetchApiEventos({
+      query: queries.eventUpdate,
+      variables: {
+        idEvento: event?._id,
+        variable: "templateInvitacionSelect",
+        value: template._id
+      }
+    })
+    setEvent({ ...event, templateInvitacionSelect: template._id })
+    setTemplateName(template.name)
+  }
   const path = `${process.env.NEXT_PUBLIC_CMS}/facturacion`
   const redireccionFacturacion = window.origin.includes("://test") ? path?.replace("//", "//test") : path
 
   return (
-    <div className="w-full h-full font-display flex flex-col">
-      <div className="w-full h-10 flex gap-2 items-center p-2">
-        {/* <button
-          onClick={(e) => !isAllowed() ? ht() : handleClick(e, "grupo")}
-          className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary capitalize"
-        >
-          {t("sender-test")}
-        </button> */}
-        <button
-          onClick={(e) => {
-            if (!isAllowed()) {
-              ht()
-            } else {
-              setEmailEditorModal(!emailEditorModal)
-              setPreviewEmailReactEditor(true)
-            }
-          }}
-          className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary capitalize"
-        >
-          {t("preview")}
-        </button>
-        <button
-          onClick={(e) => {
+    <div className="w-full h-full font-display flex flex-col space-y-2">
+      {showModalTemplate && (
+        <ModalDefault onClose={() => setShowModalTemplate(false)}>
+          <ModalTemplates action={(template) => { handleChangeTemplate(template) }} use={"load"} />
+        </ModalDefault>
+      )}
+      <div className="md:w-max">
+        <div className="w-full h-10 flex gap-2 items-end px-2">
+          <span className="text-sm text-gray-600 text-primary py-1">{t("template")}</span>
+          <div className="flex-1 h-8 border-[1px] border-gray-300 rounded-md px-2 py-1 text-sm text-gray-600">
+            {templateName}
+          </div>
+        </div>
+        <div className="w-full h-10 flex justify-end gap-2 items-center px-2">
+          <ButtonPrimary onClick={(e) => !isAllowed() ? ht() : setShowModalTemplate(true)} >
+            {`${event?.templateInvitacionSelect ? t("change") : t("select")} ${t("template")}`}
+          </ButtonPrimary>
+          <ButtonPrimary onClick={(e) => {
             if (!isAllowed()) {
               ht()
             } else {
               setEmailEditorModal(!emailEditorModal)
               setPreviewEmailReactEditor(false)
             }
-          }}
-          className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary capitalize"
-        >
-          {t("edit")}
-        </button>
+          }} >
+            {t("edit")}
+          </ButtonPrimary>
+          <ButtonPrimary disabled={!event?.templateInvitacionSelect} onClick={(e) => {
+            if (!isAllowed()) {
+              ht()
+            } else {
+              setEmailEditorModal(!emailEditorModal)
+              setPreviewEmailReactEditor(true)
+            }
+          }} >
+            {t("preview")}
+          </ButtonPrimary>
+        </div>
       </div>
       <div className="w-full h-full p-2">
         <Formik

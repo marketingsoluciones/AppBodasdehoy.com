@@ -7,15 +7,17 @@ import { IoTrashOutline } from "react-icons/io5";
 import { SimpleDeleteConfirmation } from "../Utils/SimpleDeleteConfirmation";
 
 interface props {
+  use: "load" | "edit"
   action: (emailDesign: EmailDesign) => void;
 }
 
-export const ModalTemplates: FC<props> = ({ action }) => {
+export const ModalTemplates: FC<props> = ({ action, use }) => {
   const { event } = EventContextProvider();
   const { t } = useTranslation();
   const [templates, setTemplates] = useState<EmailDesign[]>([]);
   const [myTemplates, setMyTemplates] = useState<EmailDesign[]>([]);
   const [modal, setModal] = useState<ModalInterface>({ state: false });
+  const [folders] = useState<string[]>(use === "edit" ? ["templates", "mytemplates"] : ["mytemplates"]);
 
   useEffect(() => {
     fetchApiEventos({
@@ -50,15 +52,15 @@ export const ModalTemplates: FC<props> = ({ action }) => {
         handleDelete={handleDelete}
         message={<p className="text-azulCorporativo mx-8 text-center capitalize" > Estas seguro de borrar <span className='font-semibold'>{modal.title}</span></p>}
       />}
-      {["templates", "mytemplates"].map((elem, idx) => (
-        <div key={idx} className='w-full h-1/2 flex flex-col rounded-md border-[1px]'>
+      {folders.map((elem, idx) => (
+        <div key={idx} className={`w-full ${use === "edit" ? "h-1/2" : "h-full"} flex flex-col rounded-md border-[1px]`}>
           <div className='w-full h-10 px-2 py-1 border-b-[1px]'>
             {t(elem)}
           </div>
-          <div className='bg-gray-100 w-full flex-1 flex flex-wrap overflow-y-scroll gap-x-3 gap-y-2 p-2 px-9 rounded-b-md'>
+          <div className={`bg-gray-100 w-full flex-1 flex flex-wrap overflow-y-scroll gap-x-3 gap-y-2 p-2 rounded-b-md ${use === "edit" ? "px-9" : "px-34"}`}>
             {(elem === "templates" ? templates : myTemplates).map((template, idx) => (
-              <div key={idx} className='w-20 h-[120px] flex flex-col items-center pt-1 rounded-md hover:bg-white transition-colors ease-in-out duration-200 cursor-pointer relative' onClick={() => action({ ...template } as EmailDesign)}>
-                {elem !== "templates" && <div onClick={e => {
+              <div key={idx} className={`${use === "edit" ? "w-20 h-[120px] pt-1 text-[10px]" : "w-40 h-[240px] space-y-2 pt-3 text-[11px]"} flex flex-col items-center rounded-md hover:bg-white transition-colors ease-in-out duration-200 cursor-pointer relative`} onClick={() => action({ ...template } as EmailDesign)}>
+                {(elem !== "templates" && use === "edit") && <div onClick={e => {
                   e.stopPropagation();
                   setModal({ state: true, title: template.name, values: template })
                 }} className="absolute top-1 right-1 p-1 bg-white rounded-full hover:scale-105 hover:bg-red-100 z-10" >
@@ -67,7 +69,7 @@ export const ModalTemplates: FC<props> = ({ action }) => {
                 <div className='w-[75%] h-[75%]'>
                   <img src={template.preview} alt={template.name} className='w-full h-full object-cover' />
                 </div>
-                <span className="w-full text-center text-[10px] break-all line-clamp-2">
+                <span className="w-full text-center break-all line-clamp-2">
                   {template.name}
                 </span>
               </div>

@@ -132,6 +132,18 @@ export const queries = {
     }
   }`,
 
+  getVariableEmailTemplate: `query ($evento_id:String, $template_id:String, $selectVariable:String){
+    getVariableEmailTemplate(evento_id:$evento_id, template_id:$template_id, selectVariable:$selectVariable){
+      _id
+      name
+      preview
+      html
+      design
+      createdAt
+      updatedAt
+    }
+  }`,
+
   getAllBusiness: `query ($criteria :searchCriteriaBusiness, $sort : sortCriteriaBusiness, $skip :Int, $limit : Int, $development: String!) {
     getAllBusinesses(searchCriteria:$criteria, sort: $sort, skip: $skip, limit: $limit, development: $development){
       total
@@ -671,6 +683,7 @@ export const queries = {
       }
       poblacion
       pais
+      templateInvitacionSelect
       imgInvitacion{
         _id
         i1024
@@ -1531,6 +1544,7 @@ export const queries = {
         title
         slug
       }
+      templateInvitacionSelect
       imgInvitacion{
         _id
         i1024

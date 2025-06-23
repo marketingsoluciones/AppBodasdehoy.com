@@ -147,6 +147,7 @@ export const en = {
     'createplanconquer': "Create, plan, and achieved memorable events",
     'createprivate': "Create a private chat with your guests.",
     'createtable': "Create table",
+    'templates': "Templates",
     'createtemplates': "Create Templates",
     'createyourlist': "Create your list",
     'createzones': "Create Zones",
@@ -347,6 +348,7 @@ export const en = {
     'morepasses': "more passes to this event",
     'myguests': "My guests",
     'mytables': "My tables",
+    'mytemplates': "My templates",
     'name': "NAME",
     'nameevent': "Event name",
     'namemenu': "Menu name",
@@ -658,8 +660,8 @@ export const en = {
     'export': 'export',
     'importBudget': "import budget",
     'importInto': "import into",
-    'from': "from", 
-   
+    'from': "from",
+
 
 
     maxLimitedItineraries: "The maximum limit for creating or duplicating was reached",

@@ -146,6 +146,7 @@ export const es = {
     'createmenu': 'Crear menú',
     'createplanconquer': 'Crea, planifica y conquista eventos memorables',
     'createprivate': 'Creación de un chat privado con tus invitados.',
+    'templates': 'Plantillas',
     'createtable': 'Crear mesa',
     'createtemplates': 'Crear Plantillas',
     'createyourlist': 'Crea tu lista',
@@ -347,6 +348,7 @@ export const es = {
     'morepasses': 'pases más a este evento',
     'myguests': 'Mis invitados',
     'mytables': 'Mis Mesas',
+    'mytemplates': 'Mis plantillas',
     'name': 'nombre',
     'nameevent': 'Nombre del evento',
     'namemenu': 'Nombre del menú',
@@ -657,7 +659,7 @@ export const es = {
     'export': 'exportar',
     'importBudget': "importar presupuesto",
     'importInto': "importar en",
-    'from':"desde",
+    'from': "desde",
 
     maxLimitedItineraries: "El límite máximo para crear o duplicar fue alcanzado",
 
