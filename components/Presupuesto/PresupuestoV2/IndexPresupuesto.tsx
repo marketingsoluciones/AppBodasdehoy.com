@@ -73,7 +73,7 @@ const optionsSelect = [
   { title: "xNiños", value: "xNiños." },
 ];
 
-export const SmartSpreadsheetView2 = ({ categorias, setShowCategoria, showCategoria }) => {
+export const SmartSpreadsheetView2 = ({ categorias_array, setShowCategoria, showCategoria }) => {
   const { event, setEvent } = EventContextProvider();
   const [viewLevel, setViewLevel] = useState(2); // 1=Solo categorías, 2=Cat+Gastos, 3=Todo
   const [columnConfig, setColumnConfig] = useState({
@@ -86,6 +86,9 @@ export const SmartSpreadsheetView2 = ({ categorias, setShowCategoria, showCatego
     pendiente: { visible: true, width: 120 },
     acciones: { visible: true, width: 100 }
   });
+  console.log('Categorias', categorias_array)
+  console.log('event', event.presupuesto_objeto)
+
 
   // Función para manejar cambios similar a TableBudgetV8
   const handleChange = async ({ values, info, rowType }) => {
@@ -155,7 +158,7 @@ export const SmartSpreadsheetView2 = ({ categorias, setShowCategoria, showCatego
   const tableData = useMemo(() => {
     const rows = [];
 
-    mockData.categorias_array.forEach(categoria => {
+    event?.presupuesto_objeto?.categorias_array?.forEach(categoria => {
       // Fila de categoría
       rows.push({
         type: 'category',
@@ -178,7 +181,7 @@ export const SmartSpreadsheetView2 = ({ categorias, setShowCategoria, showCatego
       if (viewLevel >= 2) {
         categoria.gastos_array.forEach(gasto => {
           rows.push({
-            type: 'expense',
+            type: 'gasto',
             id: gasto._id,
             categoriaID: categoria._id,
             gastoID: gasto._id,
@@ -239,20 +242,26 @@ export const SmartSpreadsheetView2 = ({ categorias, setShowCategoria, showCatego
 
   // Renderizar celda con componentes editables
   const renderEditableCell = (row, field, type) => {
+    // Forzamos el tipo a uno de los literales permitidos
+    const allowedTypes = ["string", "int", "float"];
+    const safeType = allowedTypes.includes(type) ? type : "string";
 
-    console.log("field  tabla", field)
     console.log('row', row)
 
     const isEditable = (
       (field === "categoria" && row.type === "category") ||
-      (field === "partida" && row.type === "expense") ||
+      (field === "partida" && row.type === "gasto") ||
       (field === "item" && row.type === "item") ||
       (field === "valorUnitario" && row.type === "item") ||
-      (field === "cantidad" && row.type === "item" && row.unidad === "xUni.")
+      (field === "cantidad" && row.type === "item" && row.unidad === "xUni.") ||
+      (field === "unidad" && row.type === "item") ||
+      
+
+      (field === "total" && row.type === "gasto")
     );
 
     if (!isEditable) {
-      if (type === "currency") {
+      if (safeType === "currency") {
         return getCurrency(row[field] || 0);
       }
       return row[field] || '';
@@ -288,7 +297,7 @@ export const SmartSpreadsheetView2 = ({ categorias, setShowCategoria, showCatego
         }}
         type={type}
         value={row[field] || (type === "float" || type === "int" ? 0 : "")}
-        textAlign={type === "float" ? "end" : "start"}
+        textAlign={type === "float" ? "end" : "center"}
         isLabelDisabled
       />
     );
@@ -378,9 +387,9 @@ export const SmartSpreadsheetView2 = ({ categorias, setShowCategoria, showCatego
           <tbody>
             {tableData.map((row, index) => {
               const bgColor = row.type === 'category' ? 'bg-blue-50' :
-                row.type === 'expense' ? 'bg-gray-50' : 'bg-white';
+                row.type === 'gasto' ? 'bg-gray-50' : 'bg-white';
               const textWeight = row.type === 'category' ? 'font-semibold' :
-                row.type === 'expense' ? 'font-medium' : 'font-normal';
+                row.type === 'gasto' ? 'font-medium' : 'font-normal';
               const paddingLeft = `${row.level * 20 + 12}px`;
 
               return (
@@ -411,10 +420,10 @@ export const SmartSpreadsheetView2 = ({ categorias, setShowCategoria, showCatego
                   <td className="p-3 border-r text-right text-sm text-blue-600">
                     {renderEditableCell(row, 'estimado', 'float')}
                   </td>
-                  <td className="p-3 border-r text-right text-green-600">
+                  <td className="p-3 border-r text-right text-green">
                     {renderEditableCell(row, 'pagado', 'float')}
                   </td>
-                  <td className="p-3 border-r text-right text-red-600">
+                  <td className="p-3 border-r text-right text-red">
                     {renderEditableCell(row, 'pendiente', 'float')}
                   </td>
                   <td className="p-3 text-center">
@@ -433,7 +442,7 @@ export const SmartSpreadsheetView2 = ({ categorias, setShowCategoria, showCatego
       <div className="bg-gray-100 px-4 py-2 border-t flex justify-between items-center text-sm text-gray-600">
         <div>
           {tableData.filter(r => r.type === 'category').length} categorías, {' '}
-          {tableData.filter(r => r.type === 'expense').length} partidas de gasto
+          {tableData.filter(r => r.type === 'gasto').length} partidas de gasto
           {viewLevel >= 3 && (
             <>, {tableData.filter(r => r.type === 'item').length} items detallados</>
           )}
