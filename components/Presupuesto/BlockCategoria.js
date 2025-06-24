@@ -114,9 +114,9 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
         Cell: props => {
           props.row.original.object = "gasto";
           props.row.original.categoriaID = categoria?._id;
-          props.row.original.gastoID = props.row.original._id;
-          let value = props.row.original.coste_final;
-          if (props.row.original.items_array.length == 0) {
+          props.row.original.gastoID = props?.row?.original?._id;
+          let value = props?.row?.original?.coste_final;
+          if (props?.row?.original?.items_array?.length === 0) {
 
             return (
               <div className="flex justify-end  ">
