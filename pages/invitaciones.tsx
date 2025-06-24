@@ -19,6 +19,7 @@ import { useTranslation } from 'react-i18next';
 import { OpenModal } from "../components/Home/OpenModal";
 import { Modal } from "../components/Utils/Modal";
 import { EmailReactEditorComponent } from "../components/Invitaciones/EmailReactEditorComponent";
+import { fetchApiEventos, queries } from "../utils/Fetching";
 
 export type optionArryOptions = {
   title: string;
@@ -37,6 +38,7 @@ const Invitaciones = () => {
   const [stateConfi, setStateConfi] = useState(true)
   const [ShowEmailEditorModal, setShowEmailEditorModal] = useState(false)
   const [previewEmailReactEditor, setPreviewEmailReactEditor] = useState(false)
+  const [previewEmail, setPreviewEmail] = useState<string>()
 
   const arryOptions: optionArryOptions[] = [
     {
@@ -83,6 +85,18 @@ const Invitaciones = () => {
 
     reduce?.sent?.length != dataInvitationSent?.length && setDataInvitationSent(InvitationSent);
     reduce?.notSent.length != dataInvitationNotSent?.length && setDataInvitationNotSent(InvitationNotSent);
+    if (event?.templateInvitacionSelect) {
+      fetchApiEventos({
+        query: queries.getVariableEmailTemplate,
+        variables: {
+          evento_id: event?._id,
+          template_id: event?.templateInvitacionSelect,
+          selectVariable: "preview"
+        },
+      }).then((res: any) => {
+        setPreviewEmail(res?.preview)
+      })
+    }
   }, [event]);
 
   if (verificationDone) {
@@ -116,8 +130,19 @@ const Invitaciones = () => {
               <div className={`${stateConfi ? "" : "hidden"} md:h-96`}>
                 <div className="w-full h-full flex flex-col md:flex-row mt-3">
                   <div className={`w-full h-96 md:w-1/3 flex justify-center`}>
-                    <div ref={hoverRef} className="relative w-60 h-80">
-                      <ModuloSubida event={event} use={"imgInvitacion"} />
+                    <div ref={hoverRef} className="relative w-60 h-80 bg-[#808080] rounded-lg border-[1px] border-gray-300">
+                      {optionSelect === "email"
+                        ? previewEmail
+                          ? <img
+                            src={previewEmail}
+                            alt="imgInvitacion"
+                            className="w-full h-full object-contain rounded-lg"
+                            style={{ maxWidth: "100%", maxHeight: "100%", display: "block" }} />
+                          : <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-lg">
+                            <p className="text-gray-500 text-xs">No hay template seleccionado</p>
+                          </div>
+                        : <ModuloSubida event={event} use={"imgInvitacion"} />
+                      }
                     </div>
                   </div>
                   <div className={`flex-1 h-[352px] flex flex-col shadow-md rounded-2xl overflow-hidden`}>

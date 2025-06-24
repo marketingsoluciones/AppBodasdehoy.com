@@ -21,7 +21,7 @@ export const ModalTemplates: FC<props> = ({ action, use }) => {
 
   useEffect(() => {
     fetchApiEventos({
-      query: queries.getPreviewEmailTemplates,
+      query: queries.getPreviewsEmailTemplates,
       variables: {
         evento_id: event?._id
       },

@@ -116,8 +116,8 @@ export const queries = {
   deleteEmailTemplate: `mutation($evento_id:String, $template_id:String){
     deleteEmailTemplate(evento_id:$evento_id, template_id:$template_id)
   }`,
-  getPreviewEmailTemplates: `query ($evento_id:String){
-    getPreviewEmailTemplates(evento_id:$evento_id){
+  getPreviewsEmailTemplates: `query ($evento_id:String){
+    getPreviewsEmailTemplates(evento_id:$evento_id){
       _id
       name
       preview

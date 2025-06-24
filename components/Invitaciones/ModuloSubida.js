@@ -155,7 +155,7 @@ const ModuloSubida = ({ event, use }) => {
             {t("change")} <EditarIcon className="w-6 h-6" />
           </label>
           <CopyToClipboard text={`${process.env.NEXT_PUBLIC_BASE_URL}${event?.imgInvitacion?.i800}`}>
-            <label onClick={() => { setCopied(true) }} className="bg-gray-200gap-1 flex items-center justify-center w-1/2 py-1 cursor-pointer">
+            <label onClick={() => { setCopied(true) }} className="flex items-center justify-center w-1/2 py-1 cursor-pointer">
               {t("copylink")} {copied ? <PiCheckFatThin className="w-6 h-6" /> : <LiaLinkSolid className="w-6 h-6" />}
             </label>
           </CopyToClipboard>
