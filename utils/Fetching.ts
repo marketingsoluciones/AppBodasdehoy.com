@@ -102,16 +102,16 @@ export const fetchApiEventos = async ({ query, variables, token }: argsFetchApi)
 };
 
 export const queries = {
-  createEmailTemplate: `mutation($evento_id:String, $design:JSON, $name:String, $preview:String, $html:String){
-    createEmailTemplate(evento_id:$evento_id, design:$design, name:$name, preview:$preview, html:$html){
+  createEmailTemplate: `mutation($evento_id:String, $design:JSON, $name:String, $html:String){
+    createEmailTemplate(evento_id:$evento_id, design:$design, name:$name, html:$html){
       _id
       createdAt
       updatedAt
     }
   }`,
 
-  updateEmailTemplate: `mutation($evento_id:String, $template_id:String, $design:JSON, $name:String, $preview:String, $html:String){
-    updateEmailTemplate(evento_id:$evento_id, template_id:$template_id, design:$design, name:$name, preview:$preview, html:$html)
+  updateEmailTemplate: `mutation($evento_id:String, $template_id:String, $design:JSON, $name:String, $html:String){
+    updateEmailTemplate(evento_id:$evento_id, template_id:$template_id, design:$design, name:$name, html:$html)
   }`,
   deleteEmailTemplate: `mutation($evento_id:String, $template_id:String){
     deleteEmailTemplate(evento_id:$evento_id, template_id:$template_id)

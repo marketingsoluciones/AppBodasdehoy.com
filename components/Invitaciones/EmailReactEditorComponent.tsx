@@ -5,9 +5,6 @@ import { GoArrowLeft } from "react-icons/go";
 import { AuthContextProvider, EventContextProvider } from '../../context';
 import { translations } from '../../locales/react-email-editor-es';
 import i18next from "i18next";
-import { toPng } from 'html-to-image';
-import html2canvas from 'html2canvas';
-import trimCanvas from 'trim-canvas'
 import { fetchApiEventos, queries } from '../../utils/Fetching';
 import { useTranslation } from 'react-i18next';
 import ModalDefault from './ModalDefault';
@@ -191,67 +188,43 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
 
     const handleNextSaveDesign = async () => {
         try {
-            if (htmlToImageRef.current) {
-                const node = htmlToImageRef.current;
-                const rect = node.getBoundingClientRect();
-                console.log(100055, "img")
-                const dataUrl = await toPng(node, {
-                    cacheBust: true,
-                    width: rect.width,
-                    height: rect.height
-                });
-                console.log(100056, dataUrl)
-                let canvas = document.createElement('canvas');
-                const img = new window.Image();
-                img.onload = function () {
-                    const scale = 0.30;
-                    canvas.width = 1080 * scale;
-                    canvas.height = 1620 * scale;
-                    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-                    if (ctx) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    const result = trimCanvas(canvas);
-                    const pngUrl = result.toDataURL('image/png');
-                    if (!template?._id) {
-                        console.log(100053, "nuevo")
-                        fetchApiEventos({
-                            query: queries.createEmailTemplate,
-                            variables: {
-                                evento_id: event?._id,
-                                design: designASD,
-                                html,
-                                name: template?.name || nameNewtemplate,
-                                preview: pngUrl,
-                            },
-                            domain: config?.domain
-                        }).then((res) => {
-                            setTemplate({ ...template, _id: res[0]._id, updatedAt: new Date() })
-                            localStorage.removeItem('emailEditorDesign');
-                            setHasUnsavedChanges(false);
-                            postAction?.state && postAction.action();
-                        })
-                    } else {
-                        console.log(100054, "actualizar")
-                        fetchApiEventos({
-                            query: queries.updateEmailTemplate,
-                            variables: {
-                                evento_id: event?._id,
-                                template_id: template?._id,
-                                design: designASD,
-                                html,
-                                preview: pngUrl,
-                            },
-                        }).then((res) => {
-                            setTemplate({ ...template, _id: res[0]._id, updatedAt: new Date() })
-                            localStorage.removeItem('emailEditorDesign');
-                            setHasUnsavedChanges(false);
-                            postAction?.state && postAction.action();
-                        })
-                    }
-                    setShowSaveModal(false);
-                    setHtml('');
-                };
-                // img.src = dataUrl;
+            if (!template?._id) {
+                console.log(100053, "nuevo")
+                fetchApiEventos({
+                    query: queries.createEmailTemplate,
+                    variables: {
+                        evento_id: event?._id,
+                        design: designASD,
+                        html,
+                        name: template?.name || nameNewtemplate,
+                    },
+                    domain: config?.domain
+                }).then((res: EmailDesign) => {
+                    console.log(100060, res)
+                    setTemplate({ ...template, _id: res._id, updatedAt: new Date() })
+                    localStorage.removeItem('emailEditorDesign');
+                    setHasUnsavedChanges(false);
+                    postAction?.state && postAction.action();
+                })
+            } else {
+                console.log(100054, "actualizar")
+                fetchApiEventos({
+                    query: queries.updateEmailTemplate,
+                    variables: {
+                        evento_id: event?._id,
+                        template_id: template?._id,
+                        design: designASD,
+                        html,
+                    },
+                }).then((res) => {
+                    setTemplate({ ...template, _id: res[0]._id, updatedAt: new Date() })
+                    localStorage.removeItem('emailEditorDesign');
+                    setHasUnsavedChanges(false);
+                    postAction?.state && postAction.action();
+                })
             }
+            setShowSaveModal(false);
+            setHtml('');
         } catch (error) {
             console.log('error', error)
         }
@@ -350,7 +323,7 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
                                 <IoFolderOpenOutline className='h-5 w-5' />
                             </div>
                         </div>
-                        <div onClick={handleSaveDesign} className={"flex w-[50px] h-[38px] flex-col items-center justify-center cursor-pointer border-l hover:bg-[#F4F4F4]"} >
+                        <div onClick={handleSaveDesign} className={"bg-red flex w-[50px] h-[38px] flex-col items-center justify-center cursor-pointer border-l hover:bg-[#F4F4F4]"} >
                             <div className='pt-[2px]'>
                                 <IoSaveOutline className='h-5 w-5' />
                             </div>
