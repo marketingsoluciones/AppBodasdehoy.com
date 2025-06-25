@@ -154,9 +154,18 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
 
     ]
 
+    const [currentItinerario, setCurrentItinerario] = useState<Itinerary>(itinerario);
+
     useEffect(() => {
-        if (itinerario?.tasks?.length > 0) {
-            const sortedTasks = [...itinerario.tasks].sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
+        if (event && event.itinerarios_array) {
+            const found = event.itinerarios_array.find((it: Itinerary) => it._id === itinerario._id);
+            if (found) setCurrentItinerario(found);
+        }
+    }, [event, itinerario._id]);
+
+    useEffect(() => {
+        if (currentItinerario?.tasks?.length > 0) {
+            const sortedTasks = [...currentItinerario.tasks].sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
             const filteredTasks = sortedTasks.filter(elem =>
                 elem && (
                     view === "schema"
@@ -167,7 +176,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                 )
             );
 
-            // Solo actualiza si los datos realmente cambiaron
             setTasks(prev => {
                 if (JSON.stringify(prev) === JSON.stringify(filteredTasks)) return prev;
                 return filteredTasks;
@@ -494,6 +502,38 @@ const handleTaskCreate = async (taskData: Partial<Task>) => {
   }
 };
 
+useEffect(() => {
+  const interval = setInterval(() => {
+    fetchEventFromApi();
+  }, 300); // 30 segundos
+
+  return () => clearInterval(interval);
+}, [event?._id]); // O [] si el id no cambia
+
+const fetchEventFromApi = async () => {
+  const data = await fetchApiEventos({
+    query: queries.getEventsByID,
+    variables: { variable: "_id", valor: event._id, development: config?.development || "" }
+  });
+
+  if (Array.isArray(data) && data.length === 0) return;
+
+  if (data && typeof data === "object" && "queryenEvento" in data) {
+    const evento = Array.isArray((data as any).queryenEvento)
+      ? (data as any).queryenEvento[0]
+      : (data as any).queryenEvento;
+    if (evento && evento._id) setEvent(evento as EventInterface);
+    return;
+  }
+
+  if (data && typeof data === "object" && (data as any)._id) {
+    setEvent(data as EventInterface);
+    return;
+  }
+
+  // Si no es válido, no hagas nada o muestra un error
+  console.error("La respuesta de la API no contiene un evento válido", data);
+};
 
     return (
         <div className="w-full flex-1 flex flex-col overflow-auto">
