@@ -129,6 +129,8 @@ export const en = {
     'coordinateevent': "Coordinate your entire event",
     'coordinates': "Coordinate",
     'copiedlink': "Link copied",
+    'nameTemplate': "Template name",
+    'subject': "Subject of the email",
     'copylink': "Copy link",
     'corporateevents': "Corporate events",
     'CORREO': "MAIL",

@@ -20,7 +20,7 @@ export type TitleComponent = "email" | "whatsapp" | "sms" | "diseño"
 
 export const Test = ({ TitleComponent, setEmailEditorModal, emailEditorModal, setPreviewEmailReactEditor }: { TitleComponent: TitleComponent, setEmailEditorModal: (value: boolean) => void, emailEditorModal: boolean, setPreviewEmailReactEditor: (value: boolean) => void }) => {
   const { t } = useTranslation();
-  const { geoInfo, config } = AuthContextProvider()
+  const { geoInfo } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
   const { isPhoneValid } = useAuthentication()
   const [valirReset, setValirReset] = useState(false)
@@ -36,14 +36,14 @@ export const Test = ({ TitleComponent, setEmailEditorModal, emailEditorModal, se
         variables: {
           evento_id: event?._id,
           template_id: event?.templateInvitacionSelect,
-          selectVariable: "name"
+          selectVariable: "configTemplate"
         },
       }).then((res: any) => {
-        setTemplateName(res?.name)
+        console.log(100066, res)
+        setTemplateName(res?.configTemplate?.name)
       })
     }
-  }, [])
-
+  }, [event?.templateInvitacionSelect, event?.fecha_actualizacion, event?.updatedAt])
 
   const initialValues = {
     email: "",
@@ -54,12 +54,13 @@ export const Test = ({ TitleComponent, setEmailEditorModal, emailEditorModal, se
     email: yup.string().required("Campo requerido").test("Unico", "Correo inválido", async (value) => {
       const name = document.activeElement?.getAttribute("name")
       if (name !== "identifier" && !(!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(value))) {
-        const result = await fetchApiBodas({
-          query: queries.getEmailValid,
-          variables: { email: value },
-          development: config.development
-        })
-        return result?.valid
+        // const result = await fetchApiBodas({
+        //   query: queries.getEmailValid,
+        //   variables: { email: value },
+        //   development: config.development
+        // })
+        // return result?.valid
+        return true
       } else {
         return false
       }
@@ -84,38 +85,20 @@ export const Test = ({ TitleComponent, setEmailEditorModal, emailEditorModal, se
 
   })
 
-
-  const handleClick = async (values, actions) => {
-    const params = {
-      query: `mutation TestInvitacion ($eventoID : String, $email : [String], $linkUrl: String, $imgUrl: String){
-          testInvitacion(
-            evento_id:$eventoID,
-            email:$email,
-            linkUrl:$linkUrl,
-            imgUrl:$imgUrl
-          )
-        }        
-        `,
-      variables: {
-        eventoID: event?._id,
-        email: [values.email],
-        linkUrl: `${process.env.NEXT_PUBLIC_CHAT}`,
-        imgUrl: `${process.env.NEXT_PUBLIC_BASE_URL}${event?.imgInvitacion?.i640}`
-      },
-    };
-
+  const handleClick = async (values) => {
     try {
       console.log("click",)
-
-      actions.setSubmitting(true)
-      // const { data } = await api.ApiApp(params)
-      // console.log(data)
+      fetchApiEventos({
+        query: queries.testInvitacion,
+        variables: {
+          eventoID: event?._id,
+          email: [values.email]
+        }
+      })
       setValirReset(true)
       toast("success", t("Invitación enviada"))
     } catch (error) {
       console.log(error)
-    } finally {
-      actions.setSubmitting(false)
     }
   }
 
@@ -129,7 +112,7 @@ export const Test = ({ TitleComponent, setEmailEditorModal, emailEditorModal, se
       }
     })
     setEvent({ ...event, templateInvitacionSelect: template._id })
-    setTemplateName(template.name)
+    setTemplateName(template.configTemplate.name)
   }
   const path = `${process.env.NEXT_PUBLIC_CMS}/facturacion`
   const redireccionFacturacion = window.origin.includes("://test") ? path?.replace("//", "//test") : path
@@ -177,7 +160,7 @@ export const Test = ({ TitleComponent, setEmailEditorModal, emailEditorModal, se
       <div className="w-full h-full p-2">
         <Formik
           validationSchema={TitleComponent === "email" ? validationSchemaEmail : validationSchemaPhoneNumber}
-          onSubmit={(values, actions) => handleClick(values, actions)}
+          onSubmit={(values) => handleClick(values)}
           initialValues={initialValues}
         >
           {({ handleChange, values }) => (

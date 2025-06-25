@@ -5,6 +5,7 @@ export interface Event {
     fecha_creacion: string
     estatus: string
     fecha_actualizacion: string
+    updatedAt: Date
     tipo: string
     nombre: string
     usuario_id: string
@@ -39,10 +40,15 @@ export interface Event {
     //permission: boolean
 }
 
+export interface ConfigTemplate {
+    name: string
+    subject: string
+}
+
 export interface EmailDesign {
     _id: string
+    configTemplate: ConfigTemplate
     design: JSON
-    name: string
     html: string
     preview: string
     createdAt: Date

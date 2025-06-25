@@ -102,16 +102,16 @@ export const fetchApiEventos = async ({ query, variables, token }: argsFetchApi)
 };
 
 export const queries = {
-  createEmailTemplate: `mutation($evento_id:String, $design:JSON, $name:String, $html:String){
-    createEmailTemplate(evento_id:$evento_id, design:$design, name:$name, html:$html){
+  createEmailTemplate: `mutation($evento_id:String, $design:JSON, $configTemplate:inputCongigTemplate, $html:String){
+    createEmailTemplate(evento_id:$evento_id, design:$design, configTemplate:$configTemplate, html:$html){
       _id
       createdAt
       updatedAt
     }
   }`,
 
-  updateEmailTemplate: `mutation($evento_id:String, $template_id:String, $design:JSON, $name:String, $html:String){
-    updateEmailTemplate(evento_id:$evento_id, template_id:$template_id, design:$design, name:$name, html:$html)
+  updateEmailTemplate: `mutation($evento_id:String, $template_id:String, $design:JSON, $configTemplate:inputCongigTemplate, $html:String){
+    updateEmailTemplate(evento_id:$evento_id, template_id:$template_id, design:$design, configTemplate:$configTemplate, html:$html)
   }`,
   deleteEmailTemplate: `mutation($evento_id:String, $template_id:String){
     deleteEmailTemplate(evento_id:$evento_id, template_id:$template_id)
@@ -119,7 +119,10 @@ export const queries = {
   getPreviewsEmailTemplates: `query ($evento_id:String){
     getPreviewsEmailTemplates(evento_id:$evento_id){
       _id
-      name
+      configTemplate{
+        name
+        subject
+      }
       preview
       createdAt
       updatedAt
@@ -135,7 +138,10 @@ export const queries = {
   getVariableEmailTemplate: `query ($evento_id:String, $template_id:String, $selectVariable:String){
     getVariableEmailTemplate(evento_id:$evento_id, template_id:$template_id, selectVariable:$selectVariable){
       _id
-      name
+      configTemplate{
+        name
+        subject
+      }
       preview
       html
       design
@@ -2058,5 +2064,8 @@ export const queries = {
   }`,
   signOut: `mutation ($sessionCookie :String){
     signOut(sessionCookie:$sessionCookie)
+  }`,
+  testInvitacion: `mutation ($eventoID: String, $email: [String]){
+    testInvitacion(evento_id:$eventoID, email:$email)
   }`,
 };

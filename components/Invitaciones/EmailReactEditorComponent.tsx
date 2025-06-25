@@ -35,7 +35,7 @@ type postActionType = {
 
 export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, showEmailEditorModal, previewEmailReactEditor, ...props }) => {
     const { config } = AuthContextProvider()
-    const { event } = EventContextProvider()
+    const { event, setEvent } = EventContextProvider()
     const { t } = useTranslation();
     const emailEditorRef = useRef<EditorRef>(null);
     const unlayer = emailEditorRef.current?.editor;
@@ -69,7 +69,7 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
                     unlayer.exportHtml(function (data) {
                         localStorage.setItem('emailEditorDesign', JSON.stringify({
                             design: data.design,
-                            name: template?.name ?? nameNewtemplate,
+                            name: template?.configTemplate.name ?? nameNewtemplate,
                             _id: template?._id,
                             updatedAt: new Date()
                         }));
@@ -147,7 +147,7 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
                 setDesignASD(design)
             });
             unlayer.exportHtml(function (data) {
-                setHtml(data.html);
+                setHtml(data.html.replace(/\r?\n|\r/g, ' ').replace(/\s{2,}/g, ' '));
                 setShowSaveModal(true);
             });
         } catch (error) {
@@ -196,7 +196,10 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
                         evento_id: event?._id,
                         design: designASD,
                         html,
-                        name: template?.name || nameNewtemplate,
+                        configTemplate: {
+                            name: template?.configTemplate.name || nameNewtemplate,
+                            subject: template?.configTemplate.subject || ""
+                        }
                     },
                     domain: config?.domain
                 }).then((res: EmailDesign) => {
@@ -221,6 +224,10 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
                     localStorage.removeItem('emailEditorDesign');
                     setHasUnsavedChanges(false);
                     postAction?.state && postAction.action();
+                    if (template._id === event.templateInvitacionSelect) {
+                        const newEvent = { ...event, fecha_actualizacion: new Date().toLocaleString() }
+                        setEvent({ ...newEvent })
+                    }
                 })
             }
             setShowSaveModal(false);
@@ -255,13 +262,23 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
                 variables: {
                     evento_id: event?._id,
                     template_id: template?._id,
-                    name: template?.name,
+                    configTemplate: template?.configTemplate,
                 }
             })
+            if (template._id === event.templateInvitacionSelect) {
+                const newEvent = { ...event, fecha_actualizacion: new Date().toLocaleString() }
+                setEvent({ ...newEvent })
+            }
         }
-    }, [template?.name])
+    }, [template?.configTemplate?.name, template?.configTemplate?.subject])
 
     const asd = "{{var}}"
+
+    useEffect(() => {
+        if (template) {
+            console.log(100064, template)
+        }
+    }, [template])
 
     return (
         <div className='relative w-full h-full'>
@@ -311,7 +328,7 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
             )}
             {!isLoading && <div className="absolute z-50  top-[calc(50%-20px)] left-[calc(50%-20px)] loader ease-linear rounded-full border-[7px] border-black border-opacity-35 w-10 h-10" />}
             <div className={`h-full ${isLoading ? "opacity-100" : "opacity-0"} transition-all duration-300`} >
-                {editorReady && <div className='absolute flex'>
+                {editorReady && <div className='absolute flex w-[604px]'>
                     <div onClick={handleCloseEditor} className={"flex w-16 h-[38px] flex-col items-center justify-center cursor-pointer border-l hover:bg-[#F4F4F4]"} >
                         <div className='pt-[2px]'>
                             <GoArrowLeft className='h-5 w-5' />
@@ -323,17 +340,33 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
                                 <IoFolderOpenOutline className='h-5 w-5' />
                             </div>
                         </div>
-                        <div onClick={handleSaveDesign} className={"bg-red flex w-[50px] h-[38px] flex-col items-center justify-center cursor-pointer border-l hover:bg-[#F4F4F4]"} >
+                        <div onClick={handleSaveDesign} className={"flex w-[50px] h-[38px] flex-col items-center justify-center cursor-pointer border-l hover:bg-[#F4F4F4]"} >
                             <div className='pt-[2px]'>
                                 <IoSaveOutline className='h-5 w-5' />
                             </div>
                         </div>
-                        <div className={"flex w-[250px] h-[38px] items-end justify-start cursor-pointer border-l"} >
-                            <div className='pb-1 pl-2 text-sm relative'>
+                        <div className={"flex flex-col w-[250px] h-[38px] items-start justify-end cursor-pointer border-l"} >
+                            <label className='text-[10px] font-semibold text-gray-600 translate-y-0.5 px-1'>{t('nameTemplate')}</label>
+                            <div className='pb-0.5 w-full flex justify-start text-sm relative px-2'>
                                 <EditableLabelWithInput
-                                    value={template?.name ? template.name : nameNewtemplate}
+                                    value={template?.configTemplate?.name ? template.configTemplate.name : nameNewtemplate}
                                     type={null}
-                                    handleChange={(values) => { setTemplate({ ...template, name: values.value }) }}
+                                    handleChange={(values) => {
+                                        setTemplate({ ...template, configTemplate: { ...template?.configTemplate, name: values.value } })
+                                    }}
+                                    accessor={null}
+                                    textAlign="left" />
+                            </div>
+                        </div>
+                        <div className={"bg-blue-500* flex flex-col flex-1 h-[38px] items-start justify-end cursor-pointer border-l"} >
+                            <label className='text-[10px] font-semibold text-gray-600 translate-y-0.5 px-1'>{t('subject')}</label>
+                            <div className='pb-0.5 w-full flex justify-start text-sm relative px-2'>
+                                <EditableLabelWithInput
+                                    value={template?.configTemplate?.subject ? template.configTemplate.subject : ""}
+                                    type={null}
+                                    handleChange={(values) => {
+                                        setTemplate({ ...template, configTemplate: { ...template?.configTemplate, subject: values.value } })
+                                    }}
                                     accessor={null}
                                     textAlign="left" />
                             </div>

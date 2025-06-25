@@ -29,11 +29,9 @@ export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, set
             }, [row.isSelected, row, dispatch, arrIDs]);
 
             return (
-              <>
-                <div>
-                  {multiSeled && < IndeterminateCheckbox {...row.getToggleRowSelectedProps()} />}
-                </div>
-              </>
+              <div key={row.id}>
+                {multiSeled && < IndeterminateCheckbox {...row.getToggleRowSelectedProps()} />}
+              </div>
             )
           },
           Header: ({ getToggleAllRowsSelectedProps, row }) => {
@@ -95,41 +93,48 @@ export const DataTable: FC<any> = ({ columns, data = [], multiSeled = false, set
         {...getTableProps()}
         className="table-auto border-collapse w-full rounded-lg relative p-4 ">
         <thead className="relative text-xs text-gray-700 uppercase bg-gray-100 w-full">
-          {headerGroups.map((headerGroup: any, id: any) => (
-            <tr
-              {...headerGroup.getHeaderGroupProps()}
-              className="grid grid-cols-24"
-              key={id} >
-              {headerGroup.headers.map((column: any, id: any) => (
-                <th
-                  {...column.getHeaderProps(column.getSortByToggleProps())}
-                  className={`px-6 py-1 md:py-2 text-center flex justify-center items-center text-sm font-light font-display col-span-${colSpan[column.id]
-                    }`}
-                  key={id} >
-                  {typeof column.render("Header") == "string" && t(column.render("Header"))}
-                  <span>
-                    {column.isSorted ? (column.isSortedDesc ? " 🠻" : " 🠹") : ""}
-                  </span>
-                </th>
-              ))}
-            </tr>
-          ))}
+          {headerGroups.map((headerGroup: any, idx: any) => {
+            return (
+              <tr
+                {...headerGroup.getHeaderGroupProps()}
+                className="grid grid-cols-24"
+                key={idx} >
+                {headerGroup.headers.map((column: any, idx: any) => {
+                  let props = column.getHeaderProps(column.getSortByToggleProps())
+                  delete props.key
+                  delete props.role
+                  return (
+                    <th
+                      key={idx}
+                      {...props}
+                      className={`px-6 py-1 md:py-2 text-center flex justify-center items-center text-sm font-light font-display col-span-${colSpan[column.id]
+                        }`}
+                    >
+                      {typeof column.render("Header") == "string" && t(column.render("Header"))}
+                      <span>
+                        {column.isSorted ? (column.isSortedDesc ? " 🠻" : " 🠹") : ""}
+                      </span>
+                    </th>
+                  )
+                })}
+              </tr>
+            )
+          })}
         </thead>
 
         <tbody {...getTableBodyProps()} className="text-gray-700 text-sm ">
-          {rows.length >= 1 ? rows.map((row, i) => {
+          {rows.length >= 1 ? rows.map((row, idx) => {
             prepareRow(row);
             return (
               <tr
-                key={i}
                 {...row.getRowProps()}
+                key={idx}
                 className={`w-full bg-white border-b font-display text-sm grid grid-cols-24`}
               >
-                {row.cells.map((cell, i) => {
+                {row.cells.map((cell, idx) => {
                   return (
                     <td
-                      key={i}
-                      {...cell.getCellProps()}
+                      key={idx}
                       className={`truncate px-3 py-2 flex items-center col-span-${colSpan[cell.column.id]}`}
                     >
                       {cell.render("Cell")}
