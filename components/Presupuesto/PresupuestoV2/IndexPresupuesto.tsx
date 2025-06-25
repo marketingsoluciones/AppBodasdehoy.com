@@ -1,14 +1,27 @@
 import React, { useState, useMemo } from 'react';
-import { IoSettingsOutline, IoFilterOutline, IoSearchOutline, IoEyeOutline, IoCloseOutline } from "react-icons/io5";
+import { IoSettingsOutline, IoFilterOutline, IoSearchOutline, IoEyeOutline, IoCloseOutline, IoInformationCircleOutline } from "react-icons/io5";
 import { IoIosArrowForward, IoIosArrowDown } from "react-icons/io";
+import { GrMoney } from 'react-icons/gr';
+import { GoEye, GoEyeClosed, GoTasklist } from 'react-icons/go';
+import { PiNewspaperClippingLight } from 'react-icons/pi';
+import { MdOutlineDeleteOutline } from 'react-icons/md';
 import { EventContextProvider } from "../../../context";
 import { EditableLabelWithInput } from "../../Forms/EditableLabelWithInput";
 import { EditableSelect } from "../../Forms/EditableSelect";
-import { handleChange } from "../../TablesComponents/tableBudgetV8.handles";
+import { handleChange, determinatedPositionMenu, handleCreateItem, handleCreateGasto, handleCreateCategoria, handleChangeEstatus, handleChangeEstatusItem } from "../../TablesComponents/tableBudgetV8.handles";
 import { getCurrency } from "../../../utils/Funciones";
+import { useAllowed } from "../../../hooks/useAllowed";
+import { useToast } from "../../../hooks/useToast";
+import { FloatOptionsMenu } from "../../Utils/FloatOptionsMenu";
+import FormAddPago from "../../Forms/FormAddPago";
+import { ModalTaskList } from "../ModalTaskList";
+import ClickAwayListener from "react-click-away-listener";
+import { FloatOptionsMenuInterface } from '../../../utils/Interfaces';
 
 export const SmartSpreadsheetView2 = () => {
   const { event, setEvent } = EventContextProvider();
+  const [isAllowed, ht] = useAllowed();
+  const toast = useToast();
   const [viewLevel, setViewLevel] = useState(2); // 1=Solo categorías, 2=Cat+Gastos, 3=Todo
   
   // Inicializar con todas las categorías expandidas por defecto
@@ -20,6 +33,12 @@ export const SmartSpreadsheetView2 = () => {
   // Estados para filtros y opciones
   const [showFiltersModal, setShowFiltersModal] = useState(false);
   const [showColumnsConfig, setShowColumnsConfig] = useState(false);
+  const [showEventInfoModal, setShowEventInfoModal] = useState(false);
+  
+  // Estados para opciones y modales adicionales
+  const [showOptionsMenu, setShowOptionsMenu] = useState<FloatOptionsMenuInterface>();
+  const [RelacionarPagoModal, setRelacionarPagoModal] = useState({ id: "", crear: false, categoriaID: "" });
+  const [ServisiosListModal, setServisiosListModal] = useState({ id: "", crear: false, categoriaID: "" });
   const [filters, setFilters] = useState({
     categories: [],
     paymentStatus: 'all', // 'all', 'paid', 'pending', 'partial'
@@ -62,11 +81,13 @@ export const SmartSpreadsheetView2 = () => {
   // Cerrar modales al hacer clic fuera
   React.useEffect(() => {
     const handleClickOutside = (event) => {
-      if (showFiltersModal || showColumnsConfig) {
+      if (showFiltersModal || showColumnsConfig || showEventInfoModal) {
         const isFiltersModal = event.target.closest('.filters-modal');
         const isColumnsModal = event.target.closest('.columns-modal');
+        const isEventInfoModal = event.target.closest('.event-info-modal');
         const isFilterButton = event.target.closest('.filter-button');
         const isColumnButton = event.target.closest('.column-button');
+        const isEventInfoButton = event.target.closest('.event-info-button');
 
         if (!isFiltersModal && !isFilterButton && showFiltersModal) {
           setShowFiltersModal(false);
@@ -74,12 +95,16 @@ export const SmartSpreadsheetView2 = () => {
         if (!isColumnsModal && !isColumnButton && showColumnsConfig) {
           setShowColumnsConfig(false);
         }
+        if (!isEventInfoModal && !isEventInfoButton && showEventInfoModal) {
+          setShowEventInfoModal(false);
+        }
+        // El menú de opciones se maneja por ClickAwayListener en FloatOptionsMenu
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showFiltersModal, showColumnsConfig]);
+  }, [showFiltersModal, showColumnsConfig, showEventInfoModal]);
 
   // Opciones para el select de unidades
   const optionsSelect = [
@@ -89,6 +114,115 @@ export const SmartSpreadsheetView2 = () => {
     { title: "xNiños", value: "xNiños." },
   ];
 
+  // Array de opciones para el menú contextual
+  const options = [
+    {
+      icon: <PiNewspaperClippingLight className="w-4 h-4" />,
+      title: "Agregar:",
+      object: ["categoria", "gasto", "item"]
+    },
+    {
+      title: "Categoría",
+      onClick: (info) => {
+        handleCreateCategoria({ info, event, setEvent, setShowDotsOptionsMenu: setShowOptionsMenu })
+          .catch(error => toast("error", "ha ocurrido un error"))
+      },
+      object: ["categoria", "gasto", "item"]
+    },
+    {
+      title: "Partida",
+      onClick: (info) => {
+        handleCreateGasto({ info, event, setEvent, setShowDotsOptionsMenu: setShowOptionsMenu })
+          .catch(error => toast("error", "ha ocurrido un error"))
+      },
+      object: ["categoria", "gasto", "item"]
+    },
+    {
+      title: "Item",
+      onClick: (info) => {
+        handleCreateItem({ info, event, setEvent, setShowDotsOptionsMenu: setShowOptionsMenu })
+          .catch(error => toast("error", "ha ocurrido un error"))
+      },
+      object: ["gasto", "item"]
+    },
+    {
+      icon: <GrMoney className="w-4 h-4" />,
+      title: "Relacionar Pago",
+      onClick: (info) => {
+        setShowOptionsMenu({ state: false })
+        setRelacionarPagoModal({ id: info.row.original._id, crear: true, categoriaID: info.row.original.categoriaID })
+      },
+      object: ["gasto"]
+    },
+    {
+      icon: true ? <GoEye className="w-4 h-4" /> : <GoEyeClosed className="w-4 h-4" />,
+      title: "Estado",
+      onClick: (info) => {
+        if (info.row.original.object === 'gasto') {
+          handleChangeEstatus({ event, categoriaID: info.row.original.categoriaID, gastoId: info.row.original.gastoID, setEvent })
+            .catch(error => { toast("error", "ha ocurrido un error"), console.log(error) })
+        }
+        if (info.row.original.object === 'item') {
+          handleChangeEstatusItem({ event, categoriaID: info.row.original.categoriaID, gastoId: info.row.original.gastoID, itemId: info.row.original.itemID, setEvent })
+            .catch(error => { toast("error", "ha ocurrido un error"), console.log(error) })
+        }
+      },
+      object: ["gasto", "item"]
+    },
+    {
+      icon: <GoTasklist className="w-4 h-4" />,
+      title: "Task",
+      onClick: (info) => {
+        setShowOptionsMenu({ state: false })
+        setServisiosListModal({ id: info.row.original._id, crear: true, categoriaID: info.row.original.categoriaID })
+      },
+      object: ["gasto"]
+    },
+    {
+      icon: <MdOutlineDeleteOutline className="w-4 h-4" />,
+      title: "Borrar",
+      onClick: (info) => {
+        // Aquí podrías agregar un modal de confirmación si lo necesitas
+        console.log("Borrar:", info.row.original);
+      },
+      object: ["categoria", "gasto", "item"]
+    },
+  ];
+
+  // Función para manejar el menú de opciones
+  const handleOptionsMenu = (e, row) => {
+    if (isAllowed()) {
+      const position = determinatedPositionMenu({ e, height: options.length * 32, width: 200 });
+      if (showOptionsMenu?.values?.info?.row?.original?._id === row.id && showOptionsMenu?.state === true) {
+        setShowOptionsMenu({ state: false });
+      } else {
+        const mockInfo = {
+          row: {
+            original: {
+              object: row.object,
+              categoriaID: row.categoriaID,
+              gastoID: row.gastoID,
+              itemID: row.itemID,
+              _id: row.type === 'category' ? row.categoriaID : row.type === 'expense' ? row.gastoID : row.itemID,
+              nombre: row.type === 'category' ? row.categoria : row.type === 'expense' ? row.partida : row.item
+            }
+          }
+        };
+        
+        setShowOptionsMenu({
+          state: true,
+          values: {
+            info: mockInfo,
+            aling: position.aling,
+            justify: position.justify,
+            options: options
+          }
+        });
+      }
+    } else {
+      ht();
+    }
+  };
   const toggleCategory = (categoryId) => {
     const newExpanded = new Set(expandedCategories);
     if (newExpanded.has(categoryId)) {
@@ -484,6 +618,16 @@ export const SmartSpreadsheetView2 = () => {
           {/* Botones de control */}
           <div className="flex items-center gap-1">
             <button
+              onClick={() => setShowEventInfoModal(!showEventInfoModal)}
+              className={`event-info-button flex items-center gap-1 px-2 py-1 text-xs border rounded transition-colors ${
+                showEventInfoModal ? 'bg-blue-100 border-blue-300 text-blue-700' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <IoInformationCircleOutline className="w-3 h-3" />
+              <span className="hidden sm:inline">Info</span>
+            </button>
+
+            <button
               onClick={() => setShowFiltersModal(!showFiltersModal)}
               className={`filter-button flex items-center gap-1 px-2 py-1 text-xs border rounded transition-colors ${
                 showFiltersModal || Object.values(filters).some(f => f !== 'all' && f !== '' && (Array.isArray(f) ? f.length > 0 : typeof f === 'object' && f !== null ? (f.min !== '' || f.max !== '') : f !== 'all' && f !== ''))
@@ -532,6 +676,135 @@ export const SmartSpreadsheetView2 = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal de Información del Evento */}
+      {showEventInfoModal && (
+        <div className="event-info-modal absolute top-12 left-3 bg-white shadow-lg rounded border z-50 w-80 max-w-[calc(100vw-24px)]">
+          <div className="p-3 border-b">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-gray-800 text-sm">Información del Evento</h3>
+              <button
+                onClick={() => setShowEventInfoModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <IoCloseOutline className="w-3 h-3" />
+              </button>
+            </div>
+          </div>
+          
+          <div className="p-3 space-y-4">
+            {/* Resumen de Invitados */}
+            <div className="bg-gray-50 rounded-lg p-3">
+              <h4 className="text-xs font-medium text-gray-700 mb-2">Resumen de Invitados</h4>
+              <div className="flex items-center justify-between">
+                <div className="text-center">
+                  <div className="text-lg font-semibold text-blue-600">
+                    {totalStimatedGuests.adults + totalStimatedGuests.children}
+                  </div>
+                  <div className="text-xs text-gray-500">Total</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-sm font-medium text-gray-700">
+                    {totalStimatedGuests.adults}
+                  </div>
+                  <div className="text-xs text-gray-500">Adultos</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-sm font-medium text-gray-700">
+                    {totalStimatedGuests.children}
+                  </div>
+                  <div className="text-xs text-gray-500">Niños</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Información del Evento */}
+            <div>
+              <h4 className="text-xs font-medium text-gray-700 mb-2">Detalles del Evento</h4>
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-500">Nombre:</span>
+                  <span className="text-gray-800 font-medium truncate ml-2">{event?.nombre || 'Sin nombre'}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-500">Moneda:</span>
+                  <span className="text-gray-800 font-medium uppercase">{currency}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-500">Categorías:</span>
+                  <span className="text-gray-800 font-medium">{categorias_array.length}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-500">Total Gastos:</span>
+                  <span className="text-gray-800 font-medium">
+                    {categorias_array.reduce((acc, cat) => acc + (cat.gastos_array?.length || 0), 0)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Progreso del Presupuesto */}
+            <div>
+              <h4 className="text-xs font-medium text-gray-700 mb-2">Progreso del Presupuesto</h4>
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-500">% Pagado:</span>
+                  <span className="text-gray-800 font-medium">
+                    {totals.total > 0 ? Math.round((totals.pagado / totals.total) * 100) : 0}%
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                    style={{ 
+                      width: `${totals.total > 0 ? Math.min((totals.pagado / totals.total) * 100, 100) : 0}%` 
+                    }}
+                  ></div>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-green-600">Pagado: {formatNumber(totals.pagado)}</span>
+                  <span className="text-red-600">Pendiente: {formatNumber(totals.total - totals.pagado)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modales adicionales */}
+      {RelacionarPagoModal.crear && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <ClickAwayListener onClickAway={() => RelacionarPagoModal.crear && setRelacionarPagoModal({ id: "", crear: false, categoriaID: "" })}>
+            <div className="relative bg-white rounded-xl shadow-lg p-8 w-full max-w-xl h-[90%] overflow-auto">
+              <button
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition transform hover:scale-110"
+                onClick={() => setRelacionarPagoModal({ id: "", crear: false, categoriaID: "" })}
+              >
+                ✕
+              </button>
+              <FormAddPago GastoID={RelacionarPagoModal?.id} cate={RelacionarPagoModal?.categoriaID} />
+            </div>
+          </ClickAwayListener>
+        </div>
+      )}
+
+      {ServisiosListModal.crear && (
+        <ClickAwayListener onClickAway={() => ServisiosListModal.crear && setServisiosListModal({ id: "", crear: false, categoriaID: "" })}>
+          <div>
+            <ModalTaskList
+              setModal={setServisiosListModal}
+              categoria={ServisiosListModal?.categoriaID}
+              gasto={ServisiosListModal?.id}
+              event={event}
+              setEvent={setEvent}
+            />
+          </div>
+        </ClickAwayListener>
+      )}
+
+      {showOptionsMenu?.state && (
+        <FloatOptionsMenu showOptionsMenu={showOptionsMenu} setShowOptionsMenu={setShowOptionsMenu} />
+      )}
 
       {/* Modal de Filtros */}
       {showFiltersModal && (
@@ -749,7 +1022,14 @@ export const SmartSpreadsheetView2 = () => {
                 const paddingLeft = `${row.level * 16 + 8}px`;
 
                 return (
-                  <tr key={row.id} className={`${bgColor} border-b hover:bg-gray-100 transition-colors`}>
+                  <tr 
+                    key={row.id} 
+                    className={`${bgColor} border-b hover:bg-gray-100 transition-colors`}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      handleOptionsMenu(e, row);
+                    }}
+                  >
                     {columnConfig.categoria.visible && (
                       <td className="p-2 border-r text-xs" style={{paddingLeft}}>
                         <div className="flex items-center gap-1">
@@ -824,7 +1104,13 @@ export const SmartSpreadsheetView2 = () => {
                     )}
                     {columnConfig.acciones.visible && (
                       <td className="p-2 text-center">
-                        <button className="text-gray-400 hover:text-gray-600 p-0.5">
+                        <button 
+                          className="text-gray-400 hover:text-gray-600 p-0.5"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOptionsMenu(e, row);
+                          }}
+                        >
                           <IoSettingsOutline size={12} />
                         </button>
                       </td>
