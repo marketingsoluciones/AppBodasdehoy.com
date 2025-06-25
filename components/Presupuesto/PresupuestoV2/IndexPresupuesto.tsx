@@ -10,7 +10,12 @@ import { getCurrency } from "../../../utils/Funciones";
 export const SmartSpreadsheetView2 = () => {
   const { event, setEvent } = EventContextProvider();
   const [viewLevel, setViewLevel] = useState(2); // 1=Solo categorías, 2=Cat+Gastos, 3=Todo
-  const [expandedCategories, setExpandedCategories] = useState(new Set());
+  
+  // Inicializar con todas las categorías expandidas por defecto
+  const [expandedCategories, setExpandedCategories] = useState(() => {
+    const categorias = event?.presupuesto_objeto?.categorias_array || [];
+    return new Set(categorias.map(cat => cat._id));
+  });
   const [columnConfig, setColumnConfig] = useState({
     categoria: { visible: true, width: 200 },
     partida: { visible: true, width: 250 },
@@ -26,6 +31,19 @@ export const SmartSpreadsheetView2 = () => {
   const categorias_array = event?.presupuesto_objeto?.categorias_array || [];
   const currency = event?.presupuesto_objeto?.currency || 'eur';
   const totalStimatedGuests = event?.presupuesto_objeto?.totalStimatedGuests || { adults: 0, children: 0 };
+
+  // Función para formatear números con puntos y comas sin símbolo de moneda
+  const formatNumber = (value) => {
+    if (typeof value !== 'number') return value || 0;
+    return value.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
+  // Actualizar categorías expandidas cuando cambien los datos
+  React.useEffect(() => {
+    if (categorias_array.length > 0) {
+      setExpandedCategories(new Set(categorias_array.map(cat => cat._id)));
+    }
+  }, [categorias_array.length]);
 
   // Opciones para el select de unidades
   const optionsSelect = [
@@ -87,20 +105,22 @@ export const SmartSpreadsheetView2 = () => {
   const renderPartidaCell = (row) => {
     if (row.type === 'expense' && row.partida) {
       return (
-        <EditableLabelWithInput
-          accessor="gasto"
-          handleChange={(values) => {
-            const mockInfo = createInfoObject(row);
-            handleChange({ values, info: mockInfo, event, setEvent });
-          }}
-          type={null}
-          value={row.partida}
-          textAlign="left"
-          isLabelDisabled
-        />
+        <div className="text-left">
+          <EditableLabelWithInput
+            accessor="gasto"
+            handleChange={(values) => {
+              const mockInfo = createInfoObject(row);
+              handleChange({ values, info: mockInfo, event, setEvent });
+            }}
+            type={null}
+            value={row.partida}
+            textAlign="left"
+            isLabelDisabled
+          />
+        </div>
       );
     }
-    return row.partida;
+    return <span className="text-left block w-full">{row.partida}</span>;
   };
 
   // Renderizar celda de Unidad
@@ -148,20 +168,22 @@ export const SmartSpreadsheetView2 = () => {
   const renderItemCell = (row) => {
     if (row.type === 'item' && row.item) {
       return (
-        <EditableLabelWithInput
-          accessor="nombre"
-          handleChange={(values) => {
-            const mockInfo = createInfoObject(row);
-            handleChange({ values, info: mockInfo, event, setEvent });
-          }}
-          type={null}
-          value={row.item}
-          textAlign="left"
-          isLabelDisabled
-        />
+        <div className="text-left">
+          <EditableLabelWithInput
+            accessor="nombre"
+            handleChange={(values) => {
+              const mockInfo = createInfoObject(row);
+              handleChange({ values, info: mockInfo, event, setEvent });
+            }}
+            type={null}
+            value={row.item}
+            textAlign="left"
+            isLabelDisabled
+          />
+        </div>
       );
     }
-    return row.item;
+    return <span className="text-left block w-full">{row.item}</span>;
   };
 
   // Renderizar celda de Valor Unitario
@@ -182,8 +204,16 @@ export const SmartSpreadsheetView2 = () => {
           />
         </div>
       );
+    } else if (row.type === 'item') {
+      // Solo mostrar valor para items
+      return (
+        <span className="text-right block w-full pr-3">
+          {formatNumber(row.valorUnitario)}
+        </span>
+      );
     }
-    return row.valorUnitario ? getCurrency(row.valorUnitario, currency) : '';
+    // Para categorías y gastos, no mostrar nada
+    return '';
   };
 
   const tableData = useMemo(() => {
@@ -313,7 +343,7 @@ export const SmartSpreadsheetView2 = () => {
       // Categoría, gasto con items, o item - solo lectura
       return (
         <span className="text-right block w-full pr-3">
-          {getCurrency(row.total, currency)}
+          {formatNumber(row.total)}
         </span>
       );
     }
@@ -345,19 +375,19 @@ export const SmartSpreadsheetView2 = () => {
         <div className="flex items-center gap-6 pr-10">
           <div className="text-center">
             <div className="text-xs text-gray-500">Estimado</div>
-            <div className="font-semibold text-blue-600">{getCurrency(totals.estimado, currency)}</div>
+            <div className="font-semibold text-blue-600">{formatNumber(totals.estimado)}</div>
           </div>
           <div className="text-center">
             <div className="text-xs text-gray-500">Total</div>
-            <div className="font-semibold text-gray-800">{getCurrency(totals.total, currency)}</div>
+            <div className="font-semibold text-gray-800">{formatNumber(totals.total)}</div>
           </div>
           <div className="text-center">
             <div className="text-xs text-gray-500">Pagado</div>
-            <div className="font-semibold text-green-600">{getCurrency(totals.pagado, currency)}</div>
+            <div className="font-semibold text-green-600">{formatNumber(totals.pagado)}</div>
           </div>
           <div className="text-center">
             <div className="text-xs text-gray-500">Pendiente</div>
-            <div className="font-semibold text-red-600">{getCurrency(totals.total - totals.pagado, currency)}</div>
+            <div className="font-semibold text-red-600">{formatNumber(totals.total - totals.pagado)}</div>
           </div>
         </div>
       </div>
@@ -429,7 +459,7 @@ export const SmartSpreadsheetView2 = () => {
                       </span>
                     </div>
                   </td>
-                  <td className={`p-3 border-r ${textWeight} text-gray-700`}>
+                  <td className="p-3 border-r text-left">
                     {renderPartidaCell(row)}
                   </td>
                   <td className="p-3 border-r text-center text-sm text-gray-600">
@@ -438,7 +468,7 @@ export const SmartSpreadsheetView2 = () => {
                   <td className="p-3 border-r text-center text-sm text-gray-600">
                     {renderCantidadCell(row)}
                   </td>
-                  <td className={`p-3 border-r ${textWeight} text-gray-700`}>
+                  <td className="p-3 border-r text-left">
                     {renderItemCell(row)}
                   </td>
                   <td className="p-3 border-r text-right text-sm">
@@ -448,15 +478,21 @@ export const SmartSpreadsheetView2 = () => {
                     {renderCosteTotalCell(row)}
                   </td>
                   {event?.presupuesto_objeto?.viewEstimates && (
-                    <td className="p-3 border-r text-right text-sm text-blue-600">
-                      {row.estimado ? getCurrency(row.estimado, currency) : ''}
+                    <td className="p-3 border-r text-right">
+                      <span className="text-blue-600">
+                        {formatNumber(row.estimado)}
+                      </span>
                     </td>
                   )}
-                  <td className="p-3 border-r text-right text-green-600">
-                    {getCurrency(row.pagado, currency)}
+                  <td className="p-3 border-r text-right">
+                    <span className="text-green-600">
+                      {formatNumber(row.pagado)}
+                    </span>
                   </td>
-                  <td className="p-3 border-r text-right text-red-600">
-                    {getCurrency(row.pendiente, currency)}
+                  <td className="p-3 border-r text-right">
+                    <span className="text-red-600">
+                      {formatNumber(row.pendiente)}
+                    </span>
                   </td>
                   <td className="p-3 text-center">
                     <button className="text-gray-400 hover:text-gray-600 p-1">
@@ -480,9 +516,9 @@ export const SmartSpreadsheetView2 = () => {
           )}
         </div>
         <div className="flex items-center gap-4">
-          <span>Total: {getCurrency(totals.total, currency)}</span>
+          <span>Total: {formatNumber(totals.total)}</span>
           <span>|</span>
-          <span>Pendiente: {getCurrency(totals.total - totals.pagado, currency)}</span>
+          <span>Pendiente: {formatNumber(totals.total - totals.pagado)}</span>
           <span>|</span>
           <span className="text-xs">
             Vista: {viewLevel === 1 ? 'Categorías' : viewLevel === 2 ? 'Cat + Gastos' : 'Completa'}
