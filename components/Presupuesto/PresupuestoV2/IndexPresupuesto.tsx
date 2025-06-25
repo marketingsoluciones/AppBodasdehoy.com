@@ -190,35 +190,75 @@ export const SmartSpreadsheetView2 = () => {
   ];
 
   // Función para manejar el menú de opciones
-  const handleOptionsMenu = (e, row) => {
+  const handleOptionsMenu = (e, row, isContextMenu = false) => {
     if (isAllowed()) {
-      const position = determinatedPositionMenu({ e, height: options.length * 32, width: 200 });
+      e.preventDefault();
+      e.stopPropagation();
+      
       if (showOptionsMenu?.values?.info?.row?.original?._id === row.id && showOptionsMenu?.state === true) {
         setShowOptionsMenu({ state: false });
-      } else {
-        const mockInfo = {
-          row: {
-            original: {
-              object: row.object,
-              categoriaID: row.categoriaID,
-              gastoID: row.gastoID,
-              itemID: row.itemID,
-              _id: row.type === 'category' ? row.categoriaID : row.type === 'expense' ? row.gastoID : row.itemID,
-              nombre: row.type === 'category' ? row.categoria : row.type === 'expense' ? row.partida : row.item
-            }
-          }
-        };
-        
-        setShowOptionsMenu({
-          state: true,
-          values: {
-            info: mockInfo,
-            aling: position.aling,
-            justify: position.justify,
-            options: options
-          }
-        });
+        return;
       }
+
+      const mockInfo = {
+        row: {
+          original: {
+            object: row.object,
+            categoriaID: row.categoriaID,
+            gastoID: row.gastoID,
+            itemID: row.itemID,
+            _id: row.type === 'category' ? row.categoriaID : row.type === 'expense' ? row.gastoID : row.itemID,
+            nombre: row.type === 'category' ? row.categoria : row.type === 'expense' ? row.partida : row.item
+          }
+        }
+      };
+
+      // Obtener el contenedor de la tabla
+      const tableContainer = e.target.closest('.table-container') || document.querySelector('[class*="overflow-auto"]');
+      const tableRect = tableContainer?.getBoundingClientRect() || { left: 0, top: 0, right: window.innerWidth, bottom: window.innerHeight };
+      
+      let position;
+      
+      if (isContextMenu) {
+        // Para click derecho, usar la posición del mouse
+        position = {
+          x: e.clientX - tableRect.left,
+          y: e.clientY - tableRect.top
+        };
+      } else {
+        // Para botón de acciones, usar la posición del elemento
+        const buttonRect = e.target.getBoundingClientRect();
+        position = {
+          x: buttonRect.left - tableRect.left + buttonRect.width,
+          y: buttonRect.top - tableRect.top
+        };
+      }
+
+      // Dimensiones del menú (estimadas)
+      const menuWidth = 200;
+      const menuHeight = options.length * 32;
+
+      // Ajustar posición para que no se salga de la tabla
+      const maxX = tableRect.width - menuWidth - 10;
+      const maxY = tableRect.height - menuHeight - 10;
+
+      position.x = Math.min(Math.max(10, position.x), maxX);
+      position.y = Math.min(Math.max(10, position.y), maxY);
+
+      // Determinar alineación basada en la posición ajustada
+      const aling = position.y > tableRect.height / 2 ? "botton" : "top";
+      const justify = position.x > tableRect.width / 2 ? "end" : "start";
+        
+      setShowOptionsMenu({
+        state: true,
+        values: {
+          info: mockInfo,
+          position: position,
+          aling: aling,
+          justify: justify,
+          options: options
+        }
+      });
     } else {
       ht();
     }
@@ -950,7 +990,7 @@ export const SmartSpreadsheetView2 = () => {
       )}
 
       {/* Tabla */}
-      <div className="flex-1 overflow-auto bg-white relative">
+      <div className="flex-1 overflow-auto bg-white relative table-container">
         {/* Contenedor con scroll horizontal en pantallas pequeñas */}
         <div className="min-w-[800px]">
           <table className="w-full">
@@ -1026,8 +1066,7 @@ export const SmartSpreadsheetView2 = () => {
                     key={row.id} 
                     className={`${bgColor} border-b hover:bg-gray-100 transition-colors`}
                     onContextMenu={(e) => {
-                      e.preventDefault();
-                      handleOptionsMenu(e, row);
+                      handleOptionsMenu(e, row, true);
                     }}
                   >
                     {columnConfig.categoria.visible && (
@@ -1107,8 +1146,7 @@ export const SmartSpreadsheetView2 = () => {
                         <button 
                           className="text-gray-400 hover:text-gray-600 p-0.5"
                           onClick={(e) => {
-                            e.stopPropagation();
-                            handleOptionsMenu(e, row);
+                            handleOptionsMenu(e, row, false);
                           }}
                         >
                           <IoSettingsOutline size={12} />
