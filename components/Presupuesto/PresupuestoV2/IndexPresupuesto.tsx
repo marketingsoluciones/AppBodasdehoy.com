@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { IoSettingsOutline } from "react-icons/io5";
+import { IoSettingsOutline, IoFilterOutline, IoSearchOutline, IoEyeOutline, IoCloseOutline } from "react-icons/io5";
 import { IoIosArrowForward, IoIosArrowDown } from "react-icons/io";
 import { EventContextProvider } from "../../../context";
 import { EditableLabelWithInput } from "../../Forms/EditableLabelWithInput";
@@ -16,15 +16,29 @@ export const SmartSpreadsheetView2 = () => {
     const categorias = event?.presupuesto_objeto?.categorias_array || [];
     return new Set(categorias.map(cat => cat._id));
   });
+  
+  // Estados para filtros y opciones
+  const [showFiltersModal, setShowFiltersModal] = useState(false);
+  const [showColumnsConfig, setShowColumnsConfig] = useState(false);
+  const [filters, setFilters] = useState({
+    categories: [],
+    paymentStatus: 'all', // 'all', 'paid', 'pending', 'partial'
+    amountRange: { min: '', max: '' },
+    searchText: ''
+  });
+  
   const [columnConfig, setColumnConfig] = useState({
-    categoria: { visible: true, width: 200 },
-    partida: { visible: true, width: 250 },
-    items: { visible: true, width: 80 },
-    estimado: { visible: true, width: 120 },
-    total: { visible: true, width: 120 },
-    pagado: { visible: true, width: 120 },
-    pendiente: { visible: true, width: 120 },
-    acciones: { visible: true, width: 100 }
+    categoria: { visible: true, width: 160 },
+    partida: { visible: true, width: 200 },
+    unidad: { visible: true, width: 60 },
+    cantidad: { visible: true, width: 60 },
+    item: { visible: true, width: 140 },
+    valorUnitario: { visible: true, width: 100 },
+    total: { visible: true, width: 100 },
+    estimado: { visible: true, width: 100 },
+    pagado: { visible: true, width: 100 },
+    pendiente: { visible: true, width: 100 },
+    acciones: { visible: true, width: 80 }
   });
 
   // Usar los datos reales del evento
@@ -45,6 +59,28 @@ export const SmartSpreadsheetView2 = () => {
     }
   }, [categorias_array.length]);
 
+  // Cerrar modales al hacer clic fuera
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showFiltersModal || showColumnsConfig) {
+        const isFiltersModal = event.target.closest('.filters-modal');
+        const isColumnsModal = event.target.closest('.columns-modal');
+        const isFilterButton = event.target.closest('.filter-button');
+        const isColumnButton = event.target.closest('.column-button');
+
+        if (!isFiltersModal && !isFilterButton && showFiltersModal) {
+          setShowFiltersModal(false);
+        }
+        if (!isColumnsModal && !isColumnButton && showColumnsConfig) {
+          setShowColumnsConfig(false);
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showFiltersModal, showColumnsConfig]);
+
   // Opciones para el select de unidades
   const optionsSelect = [
     { title: "xUni", value: "xUni." },
@@ -61,6 +97,82 @@ export const SmartSpreadsheetView2 = () => {
       newExpanded.add(categoryId);
     }
     setExpandedCategories(newExpanded);
+  };
+
+  // Funciones para manejar filtros
+  const toggleColumnVisibility = (columnKey) => {
+    setColumnConfig(prev => ({
+      ...prev,
+      [columnKey]: {
+        ...prev[columnKey],
+        visible: !prev[columnKey].visible
+      }
+    }));
+  };
+
+  const handleFilterChange = (filterType, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [filterType]: value
+    }));
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      categories: [],
+      paymentStatus: 'all',
+      amountRange: { min: '', max: '' },
+      searchText: ''
+    });
+  };
+
+  // Función para filtrar datos
+  const applyFilters = (data) => {
+    return data.filter(row => {
+      // Filtro por texto de búsqueda
+      if (filters.searchText) {
+        const searchLower = filters.searchText.toLowerCase();
+        const matchesSearch = 
+          row.categoria?.toLowerCase().includes(searchLower) ||
+          row.partida?.toLowerCase().includes(searchLower) ||
+          row.item?.toLowerCase().includes(searchLower);
+        if (!matchesSearch) return false;
+      }
+
+      // Filtro por categorías seleccionadas
+      if (filters.categories.length > 0) {
+        if (row.type === 'category' && !filters.categories.includes(row.id)) return false;
+        if (row.type !== 'category' && !filters.categories.includes(row.categoriaID)) return false;
+      }
+
+      // Filtro por estado de pago
+      if (filters.paymentStatus !== 'all') {
+        const isPaid = row.pagado >= row.total;
+        const isPending = row.pagado === 0;
+        const isPartial = row.pagado > 0 && row.pagado < row.total;
+
+        switch (filters.paymentStatus) {
+          case 'paid':
+            if (!isPaid) return false;
+            break;
+          case 'pending':
+            if (!isPending) return false;
+            break;
+          case 'partial':
+            if (!isPartial) return false;
+            break;
+        }
+      }
+
+      // Filtro por rango de montos
+      if (filters.amountRange.min !== '' || filters.amountRange.max !== '') {
+        const amount = row.total || 0;
+        if (filters.amountRange.min !== '' && amount < parseFloat(filters.amountRange.min)) return false;
+        if (filters.amountRange.max !== '' && amount > parseFloat(filters.amountRange.max)) return false;
+      }
+
+      return true;
+    });
   };
 
   // Función para determinar si un gasto es editable (no tiene items)
@@ -131,7 +243,7 @@ export const SmartSpreadsheetView2 = () => {
           accessor="unidad"
           value={row.unidad}
           optionsSelect={optionsSelect}
-          size={80}
+          size={60}
           handleChange={(values) => {
             const mockInfo = createInfoObject(row);
             handleChange({ values, info: mockInfo, event, setEvent });
@@ -207,7 +319,7 @@ export const SmartSpreadsheetView2 = () => {
     } else if (row.type === 'item') {
       // Solo mostrar valor para items
       return (
-        <span className="text-right block w-full pr-3">
+        <span className="text-right block w-full pr-2">
           {formatNumber(row.valorUnitario)}
         </span>
       );
@@ -300,8 +412,9 @@ export const SmartSpreadsheetView2 = () => {
       }
     });
 
-    return rows;
-  }, [viewLevel, expandedCategories, categorias_array, totalStimatedGuests]);
+    // Aplicar filtros
+    return applyFilters(rows);
+  }, [viewLevel, expandedCategories, categorias_array, totalStimatedGuests, filters]);
 
   const totals = useMemo(() => {
     return {
@@ -342,7 +455,7 @@ export const SmartSpreadsheetView2 = () => {
     } else {
       // Categoría, gasto con items, o item - solo lectura
       return (
-        <span className="text-right block w-full pr-3">
+        <span className="text-right block w-full pr-2">
           {formatNumber(row.total)}
         </span>
       );
@@ -350,179 +463,386 @@ export const SmartSpreadsheetView2 = () => {
   };
 
   return (
-    <div className="w-full h-full bg-gray-50 flex flex-col">
+    <div className="w-full h-full bg-gray-50 flex flex-col relative">
       {/* Header con controles */}
-      <div className="bg-white shadow-sm border-b px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <h2 className="text-lg font-semibold text-gray-800">Vista Inteligente</h2>
+      <div className="bg-white shadow-sm border-b px-3 py-2 flex flex-col lg:flex-row lg:items-center lg:justify-between relative gap-2 lg:gap-0">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+          <h2 className="text-base font-semibold text-gray-800">Vista Inteligente</h2>
           
-          {/* Control de nivel de detalle */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Detalle:</span>
-            <select 
-              value={viewLevel} 
-              onChange={(e) => setViewLevel(Number(e.target.value))}
-              className="text-sm border border-gray-300 rounded px-2 py-1"
+          {/* Barra de búsqueda */}
+          <div className="relative">
+            <IoSearchOutline className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3" />
+            <input
+              type="text"
+              placeholder="Buscar..."
+              value={filters.searchText}
+              onChange={(e) => handleFilterChange('searchText', e.target.value)}
+              className="pl-8 pr-3 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 w-full sm:w-48"
+            />
+          </div>
+
+          {/* Botones de control */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setShowFiltersModal(!showFiltersModal)}
+              className={`filter-button flex items-center gap-1 px-2 py-1 text-xs border rounded transition-colors ${
+                showFiltersModal || Object.values(filters).some(f => f !== 'all' && f !== '' && (Array.isArray(f) ? f.length > 0 : typeof f === 'object' && f !== null ? (f.min !== '' || f.max !== '') : f !== 'all' && f !== ''))
+                  ? 'bg-blue-100 border-blue-300 text-blue-700'
+                  : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
             >
-              <option value={1}>Solo Categorías</option>
-              <option value={2}>Categorías + Gastos</option>
-              <option value={3}>Detalle Completo</option>
-            </select>
+              <IoFilterOutline className="w-3 h-3" />
+              <span className="hidden sm:inline">Filtros</span>
+              {(filters.categories.length > 0 || filters.paymentStatus !== 'all' || filters.amountRange.min || filters.amountRange.max) && (
+                <span className="bg-blue-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center leading-none">
+                  {filters.categories.length + (filters.paymentStatus !== 'all' ? 1 : 0) + (filters.amountRange.min || filters.amountRange.max ? 1 : 0)}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => setShowColumnsConfig(!showColumnsConfig)}
+              className={`column-button flex items-center gap-1 px-2 py-1 text-xs border rounded transition-colors ${
+                showColumnsConfig ? 'bg-blue-100 border-blue-300 text-blue-700' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <IoEyeOutline className="w-3 h-3" />
+              <span className="hidden sm:inline">Columnas</span>
+            </button>
           </div>
         </div>
 
         {/* Resumen financiero */}
-        <div className="flex items-center gap-6 pr-10">
-          <div className="text-center">
+        <div className="flex items-center gap-2 sm:gap-4 lg:pr-8 overflow-x-auto">
+          <div className="text-center min-w-0 flex-shrink-0">
             <div className="text-xs text-gray-500">Estimado</div>
-            <div className="font-semibold text-blue-600">{formatNumber(totals.estimado)}</div>
+            <div className="font-semibold text-blue-600 text-xs sm:text-sm">{formatNumber(totals.estimado)}</div>
           </div>
-          <div className="text-center">
+          <div className="text-center min-w-0 flex-shrink-0">
             <div className="text-xs text-gray-500">Total</div>
-            <div className="font-semibold text-gray-800">{formatNumber(totals.total)}</div>
+            <div className="font-semibold text-gray-800 text-xs sm:text-sm">{formatNumber(totals.total)}</div>
           </div>
-          <div className="text-center">
+          <div className="text-center min-w-0 flex-shrink-0">
             <div className="text-xs text-gray-500">Pagado</div>
-            <div className="font-semibold text-green-600">{formatNumber(totals.pagado)}</div>
+            <div className="font-semibold text-green-600 text-xs sm:text-sm">{formatNumber(totals.pagado)}</div>
           </div>
-          <div className="text-center">
+          <div className="text-center min-w-0 flex-shrink-0">
             <div className="text-xs text-gray-500">Pendiente</div>
-            <div className="font-semibold text-red-600">{formatNumber(totals.total - totals.pagado)}</div>
+            <div className="font-semibold text-red-600 text-xs sm:text-sm">{formatNumber(totals.total - totals.pagado)}</div>
           </div>
         </div>
       </div>
 
-      {/* Tabla */}
-      <div className="flex-1 overflow-auto bg-white">
-        <table className="w-full">
-          <thead className="bg-gray-100 sticky top-0">
-            <tr>
-              <th className="text-left p-3 font-medium text-gray-700 border-r" style={{width: columnConfig.categoria.width}}>
-                Categoría
-              </th>
-              <th className="text-left p-3 font-medium text-gray-700 border-r" style={{width: columnConfig.partida.width}}>
-                Partida de Gasto
-              </th>
-              <th className="text-center p-3 font-medium text-gray-700 border-r" style={{width: 80}}>
-                Unidad
-              </th>
-              <th className="text-center p-3 font-medium text-gray-700 border-r" style={{width: 80}}>
-                Cantidad
-              </th>
-              <th className="text-left p-3 font-medium text-gray-700 border-r" style={{width: 180}}>
-                Item
-              </th>
-              <th className="text-right p-3 font-medium text-gray-700 border-r" style={{width: columnConfig.estimado.width}}>
-                Valor Unitario
-              </th>
-              <th className="text-right p-3 font-medium text-gray-700 border-r" style={{width: columnConfig.total.width}}>
-                Coste Total
-              </th>
-              {event?.presupuesto_objeto?.viewEstimates && (
-                <th className="text-right p-3 font-medium text-gray-700 border-r" style={{width: columnConfig.estimado.width}}>
-                  Coste Estimado
-                </th>
-              )}
-              <th className="text-right p-3 font-medium text-gray-700 border-r" style={{width: columnConfig.pagado.width}}>
-                Pagado
-              </th>
-              <th className="text-right p-3 font-medium text-gray-700 border-r" style={{width: columnConfig.pendiente.width}}>
-                Pendiente
-              </th>
-              <th className="text-center p-3 font-medium text-gray-700" style={{width: columnConfig.acciones.width}}>
-                Acciones
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {tableData.map((row, index) => {
-              const bgColor = row.type === 'category' ? 'bg-blue-50' : 
-                             row.type === 'expense' ? 'bg-gray-50' : 'bg-white';
-              const textWeight = row.type === 'category' ? 'font-semibold' : 
-                               row.type === 'expense' ? 'font-medium' : 'font-normal';
-              const paddingLeft = `${row.level * 20 + 12}px`;
+      {/* Modal de Filtros */}
+      {showFiltersModal && (
+        <div className="filters-modal absolute top-12 left-3 bg-white shadow-lg rounded border z-50 w-80 max-w-[calc(100vw-24px)]">
+          <div className="p-3 border-b">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-gray-800 text-sm">Filtros</h3>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={clearFilters}
+                  className="text-xs text-gray-500 hover:text-gray-700"
+                >
+                  Limpiar
+                </button>
+                <button
+                  onClick={() => setShowFiltersModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <IoCloseOutline className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <div className="p-3 space-y-3 max-h-80 overflow-y-auto">
+            {/* Vista de Detalle */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Vista de Detalle</label>
+              <select 
+                value={viewLevel} 
+                onChange={(e) => setViewLevel(Number(e.target.value))}
+                className="w-full text-xs border border-gray-300 rounded px-2 py-1"
+              >
+                <option value={1}>Solo Categorías</option>
+                <option value={2}>Categorías + Gastos</option>
+                <option value={3}>Detalle Completo</option>
+              </select>
+            </div>
 
-              return (
-                <tr key={row.id} className={`${bgColor} border-b hover:bg-gray-100 transition-colors`}>
-                  <td className="p-3 border-r" style={{paddingLeft}}>
-                    <div className="flex items-center gap-2">
-                      {row.expandable && (
-                        <button 
-                          onClick={() => toggleCategory(row.id)}
-                          className="hover:bg-gray-200 p-1 rounded"
-                        >
-                          {row.expanded ? <IoIosArrowDown size={16} /> : <IoIosArrowForward size={16} />}
+            {/* Filtro por Categorías */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Categorías</label>
+              <div className="space-y-1 max-h-24 overflow-y-auto">
+                {categorias_array.map(categoria => (
+                  <label key={categoria._id} className="flex items-center text-xs">
+                    <input
+                      type="checkbox"
+                      checked={filters.categories.includes(categoria._id)}
+                      onChange={(e) => {
+                        const newCategories = e.target.checked
+                          ? [...filters.categories, categoria._id]
+                          : filters.categories.filter(id => id !== categoria._id);
+                        handleFilterChange('categories', newCategories);
+                      }}
+                      className="mr-2 rounded text-xs"
+                    />
+                    <span className="truncate">{categoria.nombre}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Filtro por Estado de Pago */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Estado de Pago</label>
+              <select
+                value={filters.paymentStatus}
+                onChange={(e) => handleFilterChange('paymentStatus', e.target.value)}
+                className="w-full text-xs border border-gray-300 rounded px-2 py-1"
+              >
+                <option value="all">Todos</option>
+                <option value="paid">Pagado</option>
+                <option value="pending">Pendiente</option>
+                <option value="partial">Pago Parcial</option>
+              </select>
+            </div>
+
+            {/* Filtro por Rango de Montos */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Rango de Montos</label>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  placeholder="Mín"
+                  value={filters.amountRange.min}
+                  onChange={(e) => handleFilterChange('amountRange', { ...filters.amountRange, min: e.target.value })}
+                  className="flex-1 text-xs border border-gray-300 rounded px-2 py-1"
+                />
+                <input
+                  type="number"
+                  placeholder="Máx"
+                  value={filters.amountRange.max}
+                  onChange={(e) => handleFilterChange('amountRange', { ...filters.amountRange, max: e.target.value })}
+                  className="flex-1 text-xs border border-gray-300 rounded px-2 py-1"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Configuración de Columnas */}
+      {showColumnsConfig && (
+        <div className="columns-modal absolute top-12 right-3 bg-white shadow-lg rounded border z-50 w-52 max-w-[calc(100vw-24px)]">
+          <div className="p-3 border-b">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-gray-800 text-sm">Columnas</h3>
+              <button
+                onClick={() => setShowColumnsConfig(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <IoCloseOutline className="w-3 h-3" />
+              </button>
+            </div>
+          </div>
+          
+          <div className="p-3 space-y-1 max-h-80 overflow-y-auto">
+            {Object.entries(columnConfig).map(([key, config]) => (
+              <label key={key} className="flex items-center text-xs">
+                <input
+                  type="checkbox"
+                  checked={config.visible}
+                  onChange={() => toggleColumnVisibility(key)}
+                  className="mr-2 rounded text-xs"
+                />
+                <span className="truncate">
+                  {key === 'categoria' ? 'Categoría' :
+                   key === 'partida' ? 'Partida de Gasto' :
+                   key === 'unidad' ? 'Unidad' :
+                   key === 'cantidad' ? 'Cantidad' :
+                   key === 'item' ? 'Item' :
+                   key === 'valorUnitario' ? 'Valor Unitario' :
+                   key === 'total' ? 'Coste Total' :
+                   key === 'estimado' ? 'Coste Estimado' :
+                   key === 'pagado' ? 'Pagado' :
+                   key === 'pendiente' ? 'Pendiente' :
+                   'Acciones'}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Tabla */}
+      <div className="flex-1 overflow-auto bg-white relative">
+        {/* Contenedor con scroll horizontal en pantallas pequeñas */}
+        <div className="min-w-[800px]">
+          <table className="w-full">
+            <thead className="bg-gray-100 sticky top-0">
+              <tr>
+                {columnConfig.categoria.visible && (
+                  <th className="text-left p-2 font-medium text-gray-700 border-r text-xs" style={{width: columnConfig.categoria.width}}>
+                    Categoría
+                  </th>
+                )}
+                {columnConfig.partida.visible && (
+                  <th className="text-left p-2 font-medium text-gray-700 border-r text-xs" style={{width: columnConfig.partida.width}}>
+                    Partida de Gasto
+                  </th>
+                )}
+                {columnConfig.unidad.visible && (
+                  <th className="text-center p-2 font-medium text-gray-700 border-r text-xs" style={{width: columnConfig.unidad.width}}>
+                    Unidad
+                  </th>
+                )}
+                {columnConfig.cantidad.visible && (
+                  <th className="text-center p-2 font-medium text-gray-700 border-r text-xs" style={{width: columnConfig.cantidad.width}}>
+                    Cantidad
+                  </th>
+                )}
+                {columnConfig.item.visible && (
+                  <th className="text-left p-2 font-medium text-gray-700 border-r text-xs" style={{width: columnConfig.item.width}}>
+                    Item
+                  </th>
+                )}
+                {columnConfig.valorUnitario.visible && (
+                  <th className="text-right p-2 font-medium text-gray-700 border-r text-xs" style={{width: columnConfig.valorUnitario.width}}>
+                    Valor Unitario
+                  </th>
+                )}
+                {columnConfig.total.visible && (
+                  <th className="text-right p-2 font-medium text-gray-700 border-r text-xs" style={{width: columnConfig.total.width}}>
+                    Coste Total
+                  </th>
+                )}
+                {columnConfig.estimado.visible && event?.presupuesto_objeto?.viewEstimates && (
+                  <th className="text-right p-2 font-medium text-gray-700 border-r text-xs" style={{width: columnConfig.estimado.width}}>
+                    Coste Estimado
+                  </th>
+                )}
+                {columnConfig.pagado.visible && (
+                  <th className="text-right p-2 font-medium text-gray-700 border-r text-xs" style={{width: columnConfig.pagado.width}}>
+                    Pagado
+                  </th>
+                )}
+                {columnConfig.pendiente.visible && (
+                  <th className="text-right p-2 font-medium text-gray-700 border-r text-xs" style={{width: columnConfig.pendiente.width}}>
+                    Pendiente
+                  </th>
+                )}
+                {columnConfig.acciones.visible && (
+                  <th className="text-center p-2 font-medium text-gray-700 text-xs" style={{width: columnConfig.acciones.width}}>
+                    Acciones
+                  </th>
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {tableData.map((row, index) => {
+                const bgColor = row.type === 'category' ? 'bg-blue-50' : 
+                               row.type === 'expense' ? 'bg-gray-50' : 'bg-white';
+                const textWeight = row.type === 'category' ? 'font-semibold' : 
+                                 row.type === 'expense' ? 'font-medium' : 'font-normal';
+                const paddingLeft = `${row.level * 16 + 8}px`;
+
+                return (
+                  <tr key={row.id} className={`${bgColor} border-b hover:bg-gray-100 transition-colors`}>
+                    {columnConfig.categoria.visible && (
+                      <td className="p-2 border-r text-xs" style={{paddingLeft}}>
+                        <div className="flex items-center gap-1">
+                          {row.expandable && (
+                            <button 
+                              onClick={() => toggleCategory(row.id)}
+                              className="hover:bg-gray-200 p-0.5 rounded flex-shrink-0"
+                            >
+                              {row.expanded ? <IoIosArrowDown size={12} /> : <IoIosArrowForward size={12} />}
+                            </button>
+                          )}
+                          <span className={`${textWeight} ${row.type === 'category' ? 'text-blue-800' : 'text-gray-800'} truncate`}>
+                            {renderCategoriaCell(row)}
+                          </span>
+                        </div>
+                      </td>
+                    )}
+                    {columnConfig.partida.visible && (
+                      <td className="p-2 border-r text-left text-xs">
+                        <div className="truncate">
+                          {renderPartidaCell(row)}
+                        </div>
+                      </td>
+                    )}
+                    {columnConfig.unidad.visible && (
+                      <td className="p-2 border-r text-center text-xs text-gray-600">
+                        {renderUnidadCell(row)}
+                      </td>
+                    )}
+                    {columnConfig.cantidad.visible && (
+                      <td className="p-2 border-r text-center text-xs text-gray-600">
+                        {renderCantidadCell(row)}
+                      </td>
+                    )}
+                    {columnConfig.item.visible && (
+                      <td className="p-2 border-r text-left text-xs">
+                        <div className="truncate">
+                          {renderItemCell(row)}
+                        </div>
+                      </td>
+                    )}
+                    {columnConfig.valorUnitario.visible && (
+                      <td className="p-2 border-r text-right text-xs">
+                        {renderValorUnitarioCell(row)}
+                      </td>
+                    )}
+                    {columnConfig.total.visible && (
+                      <td className={`p-2 border-r ${textWeight} text-xs`}>
+                        {renderCosteTotalCell(row)}
+                      </td>
+                    )}
+                    {columnConfig.estimado.visible && event?.presupuesto_objeto?.viewEstimates && (
+                      <td className="p-2 border-r text-right text-xs">
+                        <span className="text-blue-600">
+                          {formatNumber(row.estimado)}
+                        </span>
+                      </td>
+                    )}
+                    {columnConfig.pagado.visible && (
+                      <td className="p-2 border-r text-right text-xs">
+                        <span className="text-green-600">
+                          {formatNumber(row.pagado)}
+                        </span>
+                      </td>
+                    )}
+                    {columnConfig.pendiente.visible && (
+                      <td className="p-2 border-r text-right text-xs">
+                        <span className="text-red-600">
+                          {formatNumber(row.pendiente)}
+                        </span>
+                      </td>
+                    )}
+                    {columnConfig.acciones.visible && (
+                      <td className="p-2 text-center">
+                        <button className="text-gray-400 hover:text-gray-600 p-0.5">
+                          <IoSettingsOutline size={12} />
                         </button>
-                      )}
-                      <span className={`${textWeight} ${row.type === 'category' ? 'text-blue-800' : 'text-gray-800'}`}>
-                        {renderCategoriaCell(row)}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="p-3 border-r text-left">
-                    {renderPartidaCell(row)}
-                  </td>
-                  <td className="p-3 border-r text-center text-sm text-gray-600">
-                    {renderUnidadCell(row)}
-                  </td>
-                  <td className="p-3 border-r text-center text-sm text-gray-600">
-                    {renderCantidadCell(row)}
-                  </td>
-                  <td className="p-3 border-r text-left">
-                    {renderItemCell(row)}
-                  </td>
-                  <td className="p-3 border-r text-right text-sm">
-                    {renderValorUnitarioCell(row)}
-                  </td>
-                  <td className={`p-3 border-r ${textWeight}`}>
-                    {renderCosteTotalCell(row)}
-                  </td>
-                  {event?.presupuesto_objeto?.viewEstimates && (
-                    <td className="p-3 border-r text-right">
-                      <span className="text-blue-600">
-                        {formatNumber(row.estimado)}
-                      </span>
-                    </td>
-                  )}
-                  <td className="p-3 border-r text-right">
-                    <span className="text-green-600">
-                      {formatNumber(row.pagado)}
-                    </span>
-                  </td>
-                  <td className="p-3 border-r text-right">
-                    <span className="text-red-600">
-                      {formatNumber(row.pendiente)}
-                    </span>
-                  </td>
-                  <td className="p-3 text-center">
-                    <button className="text-gray-400 hover:text-gray-600 p-1">
-                      <IoSettingsOutline size={16} />
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Footer con información */}
-      <div className="bg-gray-100 px-4 py-2 border-t flex justify-between items-center text-sm text-gray-600">
-        <div>
-          {tableData.filter(r => r.type === 'category').length} categorías, {' '}
-          {tableData.filter(r => r.type === 'expense').length} partidas de gasto
-          {viewLevel >= 3 && (
-            <>, {tableData.filter(r => r.type === 'item').length} items detallados</>
-          )}
-        </div>
-        <div className="flex items-center gap-4">
+      <div className="bg-gray-100 px-3 py-1 border-t flex flex-col sm:flex-row sm:justify-end items-center text-xs text-gray-600 gap-1 sm:gap-0">
+        <div className="flex items-center gap-3">
           <span>Total: {formatNumber(totals.total)}</span>
-          <span>|</span>
+          <span className="hidden sm:inline">|</span>
           <span>Pendiente: {formatNumber(totals.total - totals.pagado)}</span>
-          <span>|</span>
-          <span className="text-xs">
-            Vista: {viewLevel === 1 ? 'Categorías' : viewLevel === 2 ? 'Cat + Gastos' : 'Completa'}
-          </span>
         </div>
       </div>
     </div>
