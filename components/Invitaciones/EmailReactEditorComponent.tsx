@@ -189,7 +189,6 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
     const handleNextSaveDesign = async () => {
         try {
             if (!template?._id) {
-                console.log(100053, "nuevo")
                 fetchApiEventos({
                     query: queries.createEmailTemplate,
                     variables: {
@@ -203,14 +202,12 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
                     },
                     domain: config?.domain
                 }).then((res: EmailDesign) => {
-                    console.log(100060, res)
                     setTemplate({ ...template, _id: res._id, updatedAt: new Date() })
                     localStorage.removeItem('emailEditorDesign');
                     setHasUnsavedChanges(false);
                     postAction?.state && postAction.action();
                 })
             } else {
-                console.log(100054, "actualizar")
                 fetchApiEventos({
                     query: queries.updateEmailTemplate,
                     variables: {
@@ -239,7 +236,6 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
 
     const loadDesign = (emailDesign: EmailDesign) => {
         try {
-            console.log(100051, emailDesign)
             fetchApiEventos({
                 query: queries.getEmailTemplate,
                 variables: {
@@ -247,7 +243,6 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
                     template_id: emailDesign._id
                 }
             }).then((res) => {
-                console.log(100052, res)
                 unlayer.loadDesign(res[0].design as any)
                 !previewEmailReactEditor && setTemplate({ ...emailDesign, design: res[0].design })
             })
@@ -273,12 +268,6 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
     }, [template?.configTemplate?.name, template?.configTemplate?.subject])
 
     const asd = "{{var}}"
-
-    useEffect(() => {
-        if (template) {
-            console.log(100064, template)
-        }
-    }, [template])
 
     return (
         <div className='relative w-full h-full'>
