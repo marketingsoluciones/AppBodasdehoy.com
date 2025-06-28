@@ -60,7 +60,7 @@ export const SmartSpreadsheetView2 = () => {
     acciones: { visible: true, width: 80 }
   });
 
-  // Usar los datos reales del evento
+  // Usar los datos reales del evento con validación
   const categorias_array = event?.presupuesto_objeto?.categorias_array || [];
   const currency = event?.presupuesto_objeto?.currency || 'eur';
   const totalStimatedGuests = event?.presupuesto_objeto?.totalStimatedGuests || { adults: 0, children: 0 };
@@ -77,6 +77,32 @@ export const SmartSpreadsheetView2 = () => {
       setExpandedCategories(new Set(categorias_array.map(cat => cat._id)));
     }
   }, [categorias_array.length]);
+
+  // Efecto para inicializar arrays vacíos en categorías recién creadas (solo lectura para validación)
+  React.useEffect(() => {
+    // Solo validar que tengan la estructura correcta, no modificar aquí
+    if (categorias_array && Array.isArray(categorias_array)) {
+      categorias_array.forEach(categoria => {
+        if (!categoria.gastos_array) {
+          console.warn(`Categoría ${categoria.nombre} no tiene gastos_array inicializado`);
+        }
+      });
+    }
+  }, [categorias_array]);
+
+  // Efecto para actualizar los datos cuando el event cambie
+  React.useEffect(() => {
+    // Forzar re-render cuando el event del presupuesto cambie
+    if (event?.presupuesto_objeto?.categorias_array && Array.isArray(event.presupuesto_objeto.categorias_array)) {
+      // Asegurar que las categorías nuevas se expandan automáticamente
+      const currentCategoryIds = new Set(categorias_array.map(cat => cat._id));
+      const shouldExpand = categorias_array.some(cat => !expandedCategories.has(cat._id));
+      
+      if (shouldExpand) {
+        setExpandedCategories(prev => new Set([...prev, ...currentCategoryIds]));
+      }
+    }
+  }, [event?.presupuesto_objeto?.categorias_array, event?._id]);
 
   // Cerrar modales al hacer clic fuera
   React.useEffect(() => {
@@ -123,25 +149,49 @@ export const SmartSpreadsheetView2 = () => {
     },
     {
       title: "Categoría",
-      onClick: (info) => {
-        handleCreateCategoria({ info, event, setEvent, setShowDotsOptionsMenu: setShowOptionsMenu })
-          .catch(error => toast("error", "ha ocurrido un error"))
+      onClick: async (info) => {
+        try {
+          setShowOptionsMenu({ ...showOptionsMenu, select: "Categoría" });
+          await handleCreateCategoria({ info, event, setEvent, setShowDotsOptionsMenu: setShowOptionsMenu });
+          toast("success", "Categoría creada exitosamente");
+        } catch (error) {
+          toast("error", "Error al crear categoría");
+          console.error(error);
+        } finally {
+          setShowOptionsMenu({ state: false });
+        }
       },
       object: ["categoria", "gasto", "item"]
     },
     {
       title: "Partida",
-      onClick: (info) => {
-        handleCreateGasto({ info, event, setEvent, setShowDotsOptionsMenu: setShowOptionsMenu })
-          .catch(error => toast("error", "ha ocurrido un error"))
+      onClick: async (info) => {
+        try {
+          setShowOptionsMenu({ ...showOptionsMenu, select: "Partida" });
+          await handleCreateGasto({ info, event, setEvent, setShowDotsOptionsMenu: setShowOptionsMenu });
+          toast("success", "Partida de gasto creada exitosamente");
+        } catch (error) {
+          toast("error", "Error al crear partida de gasto");
+          console.error(error);
+        } finally {
+          setShowOptionsMenu({ state: false });
+        }
       },
       object: ["categoria", "gasto", "item"]
     },
     {
       title: "Item",
-      onClick: (info) => {
-        handleCreateItem({ info, event, setEvent, setShowDotsOptionsMenu: setShowOptionsMenu })
-          .catch(error => toast("error", "ha ocurrido un error"))
+      onClick: async (info) => {
+        try {
+          setShowOptionsMenu({ ...showOptionsMenu, select: "Item" });
+          await handleCreateItem({ info, event, setEvent, setShowDotsOptionsMenu: setShowOptionsMenu });
+          toast("success", "Item creado exitosamente");
+        } catch (error) {
+          toast("error", "Error al crear item");
+          console.error(error);
+        } finally {
+          setShowOptionsMenu({ state: false });
+        }
       },
       object: ["gasto", "item"]
     },
@@ -157,14 +207,22 @@ export const SmartSpreadsheetView2 = () => {
     {
       icon: true ? <GoEye className="w-4 h-4" /> : <GoEyeClosed className="w-4 h-4" />,
       title: "Estado",
-      onClick: (info) => {
-        if (info.row.original.object === 'gasto') {
-          handleChangeEstatus({ event, categoriaID: info.row.original.categoriaID, gastoId: info.row.original.gastoID, setEvent })
-            .catch(error => { toast("error", "ha ocurrido un error"), console.log(error) })
-        }
-        if (info.row.original.object === 'item') {
-          handleChangeEstatusItem({ event, categoriaID: info.row.original.categoriaID, gastoId: info.row.original.gastoID, itemId: info.row.original.itemID, setEvent })
-            .catch(error => { toast("error", "ha ocurrido un error"), console.log(error) })
+      onClick: async (info) => {
+        try {
+          setShowOptionsMenu({ ...showOptionsMenu, select: "Estado" });
+          if (info.row.original.object === 'gasto') {
+            await handleChangeEstatus({ event, categoriaID: info.row.original.categoriaID, gastoId: info.row.original.gastoID, setEvent });
+            toast("success", "Estado del gasto actualizado");
+          }
+          if (info.row.original.object === 'item') {
+            await handleChangeEstatusItem({ event, categoriaID: info.row.original.categoriaID, gastoId: info.row.original.gastoID, itemId: info.row.original.itemID, setEvent });
+            toast("success", "Estado del item actualizado");
+          }
+        } catch (error) {
+          toast("error", "Error al actualizar estado");
+          console.error(error);
+        } finally {
+          setShowOptionsMenu({ state: false });
         }
       },
       object: ["gasto", "item"]
@@ -184,6 +242,7 @@ export const SmartSpreadsheetView2 = () => {
       onClick: (info) => {
         // Aquí podrías agregar un modal de confirmación si lo necesitas
         console.log("Borrar:", info.row.original);
+        setShowOptionsMenu({ state: false });
       },
       object: ["categoria", "gasto", "item"]
     },
@@ -257,7 +316,8 @@ export const SmartSpreadsheetView2 = () => {
           aling: aling,
           justify: justify,
           options: options
-        }
+        },
+        select: ""
       });
     } else {
       ht();
@@ -351,7 +411,7 @@ export const SmartSpreadsheetView2 = () => {
 
   // Función para determinar si un gasto es editable (no tiene items)
   const isGastoEditable = (gasto) => {
-    return !gasto.items_array || gasto.items_array.length === 0;
+    return !gasto.items_array || !Array.isArray(gasto.items_array) || gasto.items_array.length === 0;
   };
 
   // Función para crear el objeto info para handleChange
@@ -505,21 +565,31 @@ export const SmartSpreadsheetView2 = () => {
   const tableData = useMemo(() => {
     const rows = [];
     
+    // Validar que categorias_array sea un array válido
+    if (!categorias_array || !Array.isArray(categorias_array)) {
+      return [];
+    }
+    
     categorias_array.forEach(categoria => {
+      // Validar que categoria tenga los campos necesarios
+      if (!categoria || !categoria._id) {
+        return; // Skip categorías inválidas
+      }
+      
       // Fila de categoría
       rows.push({
         type: 'category',
         id: categoria._id,
-        categoria: categoria.nombre,
+        categoria: categoria.nombre || 'Sin nombre',
         partida: '',
         unidad: '',
         cantidad: '',
         item: '',
         valorUnitario: '',
-        estimado: categoria.coste_estimado,
-        total: categoria.coste_final,
-        pagado: categoria.pagado,
-        pendiente: categoria.coste_final - categoria.pagado,
+        estimado: categoria.coste_estimado || 0,
+        total: categoria.coste_final || 0,
+        pagado: categoria.pagado || 0,
+        pendiente: (categoria.coste_final || 0) - (categoria.pagado || 0),
         level: 0,
         expandable: true,
         expanded: expandedCategories.has(categoria._id),
@@ -529,22 +599,27 @@ export const SmartSpreadsheetView2 = () => {
         object: 'categoria'
       });
 
-      // Filas de gastos si está expandida
-      if (expandedCategories.has(categoria._id) && viewLevel >= 2) {
+      // Filas de gastos si está expandida - Validar que gastos_array existe y es un array
+      if (expandedCategories.has(categoria._id) && viewLevel >= 2 && categoria.gastos_array && Array.isArray(categoria.gastos_array)) {
         categoria.gastos_array.forEach(gasto => {
+          // Validar que gasto tenga los campos necesarios
+          if (!gasto || !gasto._id) {
+            return; // Skip gastos inválidos
+          }
+          
           rows.push({
             type: 'expense',
             id: gasto._id,
             categoria: '',
-            partida: gasto.nombre,
+            partida: gasto.nombre || 'Sin nombre',
             unidad: '',
             cantidad: '',
             item: '',
             valorUnitario: '',
             estimado: null,
-            total: gasto.coste_final,
-            pagado: gasto.pagado,
-            pendiente: gasto.coste_final - gasto.pagado,
+            total: gasto.coste_final || 0,
+            pagado: gasto.pagado || 0,
+            pendiente: (gasto.coste_final || 0) - (gasto.pagado || 0),
             level: 1,
             categoriaID: categoria._id,
             gastoID: gasto._id,
@@ -554,26 +629,31 @@ export const SmartSpreadsheetView2 = () => {
             isEditable: isGastoEditable(gasto)
           });
 
-          // Items si está en nivel 3
-          if (viewLevel >= 3 && gasto.items_array) {
+          // Items si está en nivel 3 - Validar que items_array existe y es un array
+          if (viewLevel >= 3 && gasto.items_array && Array.isArray(gasto.items_array)) {
             gasto.items_array.forEach(item => {
+              // Validar que item tenga los campos necesarios
+              if (!item || !item._id) {
+                return; // Skip items inválidos
+              }
+              
               const cantidad = item.unidad === 'xAdultos.' ? totalStimatedGuests.adults :
                              item.unidad === 'xNiños.' ? totalStimatedGuests.children :
-                             item.cantidad;
+                             item.cantidad || 0;
               
               rows.push({
                 type: 'item',
                 id: item._id,
                 categoria: '',
                 partida: '',
-                unidad: item.unidad,
+                unidad: item.unidad || '',
                 cantidad: cantidad,
-                item: item.nombre,
-                valorUnitario: item.valor_unitario,
+                item: item.nombre || 'Sin nombre',
+                valorUnitario: item.valor_unitario || 0,
                 estimado: null,
-                total: cantidad * item.valor_unitario,
+                total: cantidad * (item.valor_unitario || 0),
                 pagado: 0,
-                pendiente: cantidad * item.valor_unitario,
+                pendiente: cantidad * (item.valor_unitario || 0),
                 level: 2,
                 categoriaID: categoria._id,
                 gastoID: gasto._id,
@@ -588,15 +668,20 @@ export const SmartSpreadsheetView2 = () => {
 
     // Aplicar filtros
     return applyFilters(rows);
-  }, [viewLevel, expandedCategories, categorias_array, totalStimatedGuests, filters]);
+  }, [viewLevel, expandedCategories, categorias_array, totalStimatedGuests, filters, event]); // Agregado 'event' como dependencia
 
   const totals = useMemo(() => {
+    // Validar que categorias_array sea un array válido
+    if (!categorias_array || !Array.isArray(categorias_array)) {
+      return { estimado: 0, total: 0, pagado: 0 };
+    }
+    
     return {
       estimado: categorias_array.reduce((acc, cat) => acc + (cat.coste_estimado || 0), 0),
       total: categorias_array.reduce((acc, cat) => acc + (cat.coste_final || 0), 0),
       pagado: categorias_array.reduce((acc, cat) => acc + (cat.pagado || 0), 0),
     };
-  }, [categorias_array]);
+  }, [categorias_array, event]); // Agregado 'event' como dependencia
 
   // Renderizar la celda de Coste Total
   const renderCosteTotalCell = (row) => {
@@ -777,7 +862,7 @@ export const SmartSpreadsheetView2 = () => {
                 <div className="flex justify-between text-xs">
                   <span className="text-gray-500">Total Gastos:</span>
                   <span className="text-gray-800 font-medium">
-                    {categorias_array.reduce((acc, cat) => acc + (cat.gastos_array?.length || 0), 0)}
+                    {categorias_array.reduce((acc, cat) => acc + ((cat.gastos_array && Array.isArray(cat.gastos_array)) ? cat.gastos_array.length : 0), 0)}
                   </span>
                 </div>
               </div>
@@ -888,7 +973,7 @@ export const SmartSpreadsheetView2 = () => {
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Categorías</label>
               <div className="space-y-1 max-h-24 overflow-y-auto">
-                {categorias_array.map(categoria => (
+                {categorias_array && Array.isArray(categorias_array) ? categorias_array.map(categoria => (
                   <label key={categoria._id} className="flex items-center text-xs">
                     <input
                       type="checkbox"
@@ -903,7 +988,9 @@ export const SmartSpreadsheetView2 = () => {
                     />
                     <span className="truncate">{categoria.nombre}</span>
                   </label>
-                ))}
+                )) : (
+                  <p className="text-xs text-gray-500 italic">No hay categorías disponibles</p>
+                )}
               </div>
             </div>
 
@@ -992,7 +1079,20 @@ export const SmartSpreadsheetView2 = () => {
       {/* Tabla */}
       <div className="flex-1 overflow-auto bg-white relative table-container">
         {/* Contenedor con scroll horizontal en pantallas pequeñas */}
-        <div className="min-w-[800px]">
+        <div className="min-w-[800px]" onContextMenu={(e) => {
+          // Manejar click derecho en área vacía para crear categorías
+          if (tableData.length === 0) {
+            const mockRow = {
+              id: 'empty',
+              type: 'category',
+              object: 'categoria',
+              categoriaID: null,
+              gastoID: null,
+              itemID: null
+            };
+            handleOptionsMenu(e, mockRow, true);
+          }
+        }}>
           <table className="w-full">
             <thead className="bg-gray-100 sticky top-0 z-20">
               <tr>
@@ -1054,7 +1154,7 @@ export const SmartSpreadsheetView2 = () => {
               </tr>
             </thead>
             <tbody>
-              {tableData.map((row, index) => {
+              {tableData.length > 0 ? tableData.map((row, index) => {
                 const bgColor = row.type === 'category' ? 'bg-blue-50' : 
                                row.type === 'expense' ? 'bg-gray-50' : 'bg-white';
                 const textWeight = row.type === 'category' ? 'font-semibold' : 
@@ -1155,7 +1255,16 @@ export const SmartSpreadsheetView2 = () => {
                     )}
                   </tr>
                 );
-              })}
+              }) : (
+                <tr>
+                  <td colSpan={Object.values(columnConfig).filter(col => col.visible).length} className="p-8 text-center text-gray-500 italic">
+                    <div className="flex flex-col items-center gap-2">
+                      <span>No hay datos disponibles</span>
+                      <span className="text-xs">Haz clic derecho para agregar una categoría</span>
+                    </div>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

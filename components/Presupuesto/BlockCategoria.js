@@ -32,10 +32,10 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
     );
     if (event?.usuario_id === user?.uid || event?.permissions?.find(elem => elem?.title === "presupuesto").value === "edit") {
       const data = event?.presupuesto_objeto?.categorias_array?.find((item) => item._id == showCategoria?._id)?.gastos_array
-      setData([...data]);
+      setData([...(data ?? [])]);
     } else {
       const data = event?.presupuesto_objeto?.categorias_array?.find((item) => item._id == showCategoria?._id)?.gastos_array.filter(el => el?.estatus !== false)
-      setData([...data]);
+      setData([...(data ?? [])]);
     }
     setGastoID(old => ({ ...old, crear: false }))
   }, [showCategoria, event, event?.presupuesto_objeto?.currency]);
