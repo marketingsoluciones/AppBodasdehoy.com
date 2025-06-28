@@ -60,14 +60,14 @@ export const handleChange = ({ values, info, event, setEvent }: propsHandleChang
                 valor: totalItem
               }
             }).then((result: any) => {
-              const SumaTotalItems = original.gastoOriginal.items_array.reduce((acumulador, item) => acumulador + (item.total || 0), 0)
+              const SumaTotalItems = original?.gastoOriginal?.items_array?.reduce((acumulador, item) => acumulador + (item.total || 0), 0)
               event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].coste_final = SumaTotalItems
-              const sumaTotalesGastos = original.categoriaOriginal.gastos_array.reduce((acumulador, item) => acumulador + (item.coste_final || 0), 0)
-              const nuevasCategorias = event.presupuesto_objeto.categorias_array.map((cat, idx) =>
+              const sumaTotalesGastos = original?.categoriaOriginal?.gastos_array?.reduce((acumulador, item) => acumulador + (item.coste_final || 0), 0)
+              const nuevasCategorias = event?.presupuesto_objeto?.categorias_array?.map((cat, idx) =>
                 idx === f1 ? { ...cat, coste_final: sumaTotalesGastos } : cat
               );
 
-              if (original.gastoOriginal.coste_final !== SumaTotalItems) {
+              if (original?.gastoOriginal?.coste_final !== SumaTotalItems) {
                 fetchApiEventos({
                   query: queries.editGasto,
                   variables: {
