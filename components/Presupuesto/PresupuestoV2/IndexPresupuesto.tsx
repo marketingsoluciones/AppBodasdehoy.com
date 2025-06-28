@@ -22,7 +22,7 @@ export const SmartSpreadsheetView2 = () => {
   const { event, setEvent } = EventContextProvider();
   const [isAllowed, ht] = useAllowed();
   const toast = useToast();
-  const [viewLevel, setViewLevel] = useState(2); // 1=Solo categorías, 2=Cat+Gastos, 3=Todo
+  const [viewLevel, setViewLevel] = useState(3); // 1=Solo categorías, 2=Cat+Gastos, 3=Todo
   
   // Inicializar con todas las categorías expandidas por defecto
   const [expandedCategories, setExpandedCategories] = useState(() => {
@@ -948,7 +948,7 @@ export const SmartSpreadsheetView2 = () => {
 
       {/* Modal de Configuración de Columnas */}
       {showColumnsConfig && (
-        <div className="columns-modal absolute top-12 right-3 bg-white shadow-lg rounded border z-50 w-52 max-w-[calc(100vw-24px)]">
+        <div className="columns-modal absolute top-12 left-3 bg-white shadow-lg rounded border z-50 w-52 max-w-[calc(100vw-24px)]">
           <div className="p-3 border-b">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-gray-800 text-sm">Columnas</h3>
@@ -994,15 +994,15 @@ export const SmartSpreadsheetView2 = () => {
         {/* Contenedor con scroll horizontal en pantallas pequeñas */}
         <div className="min-w-[800px]">
           <table className="w-full">
-            <thead className="bg-gray-100 sticky top-0">
+            <thead className="bg-gray-100 sticky top-0 z-20">
               <tr>
                 {columnConfig.categoria.visible && (
-                  <th className="text-left p-2 font-medium text-gray-700 border-r text-xs" style={{width: columnConfig.categoria.width}}>
+                  <th className="text-left p-2 font-medium text-gray-700 border-r text-xs sticky left-0 bg-gray-100 z-30" style={{width: columnConfig.categoria.width}}>
                     Categoría
                   </th>
                 )}
                 {columnConfig.partida.visible && (
-                  <th className="text-left p-2 font-medium text-gray-700 border-r text-xs" style={{width: columnConfig.partida.width}}>
+                  <th className="text-left p-2 font-medium text-gray-700 border-r text-xs sticky bg-gray-100 z-30" style={{width: columnConfig.partida.width, left: columnConfig.categoria.visible ? columnConfig.categoria.width : 0}}>
                     Partida de Gasto
                   </th>
                 )}
@@ -1064,13 +1064,13 @@ export const SmartSpreadsheetView2 = () => {
                 return (
                   <tr 
                     key={row.id} 
-                    className={`${bgColor} border-b hover:bg-gray-100 transition-colors`}
+                    className={`${bgColor} border-b transition-colors group`}
                     onContextMenu={(e) => {
                       handleOptionsMenu(e, row, true);
                     }}
                   >
                     {columnConfig.categoria.visible && (
-                      <td className="p-2 border-r text-xs" style={{paddingLeft}}>
+                      <td className={`p-2 border-r text-xs sticky left-0 z-10 ${bgColor} group-hover:bg-gray-100`} style={{paddingLeft, width: columnConfig.categoria.width}}>
                         <div className="flex items-center gap-1">
                           {row.expandable && (
                             <button 
@@ -1087,62 +1087,62 @@ export const SmartSpreadsheetView2 = () => {
                       </td>
                     )}
                     {columnConfig.partida.visible && (
-                      <td className="p-2 border-r text-left text-xs">
+                      <td className={`p-2 border-r text-left text-xs sticky z-10 ${bgColor} group-hover:bg-gray-100`} style={{width: columnConfig.partida.width, left: columnConfig.categoria.visible ? columnConfig.categoria.width : 0}}>
                         <div className="truncate">
                           {renderPartidaCell(row)}
                         </div>
                       </td>
                     )}
                     {columnConfig.unidad.visible && (
-                      <td className="p-2 border-r text-center text-xs text-gray-600">
+                      <td className="p-2 border-r text-center text-xs text-gray-600 group-hover:bg-gray-100">
                         {renderUnidadCell(row)}
                       </td>
                     )}
                     {columnConfig.cantidad.visible && (
-                      <td className="p-2 border-r text-center text-xs text-gray-600">
+                      <td className="p-2 border-r text-center text-xs text-gray-600 group-hover:bg-gray-100">
                         {renderCantidadCell(row)}
                       </td>
                     )}
                     {columnConfig.item.visible && (
-                      <td className="p-2 border-r text-left text-xs">
+                      <td className="p-2 border-r text-left text-xs group-hover:bg-gray-100">
                         <div className="truncate">
                           {renderItemCell(row)}
                         </div>
                       </td>
                     )}
                     {columnConfig.valorUnitario.visible && (
-                      <td className="p-2 border-r text-right text-xs">
+                      <td className="p-2 border-r text-right text-xs group-hover:bg-gray-100">
                         {renderValorUnitarioCell(row)}
                       </td>
                     )}
                     {columnConfig.total.visible && (
-                      <td className={`p-2 border-r ${textWeight} text-xs`}>
+                      <td className={`p-2 border-r ${textWeight} text-xs group-hover:bg-gray-100`}>
                         {renderCosteTotalCell(row)}
                       </td>
                     )}
                     {columnConfig.estimado.visible && event?.presupuesto_objeto?.viewEstimates && (
-                      <td className="p-2 border-r text-right text-xs">
+                      <td className="p-2 border-r text-right text-xs group-hover:bg-gray-100">
                         <span className="text-blue-600">
                           {formatNumber(row.estimado)}
                         </span>
                       </td>
                     )}
                     {columnConfig.pagado.visible && (
-                      <td className="p-2 border-r text-right text-xs">
+                      <td className="p-2 border-r text-right text-xs group-hover:bg-gray-100">
                         <span className="text-green-600">
                           {formatNumber(row.pagado)}
                         </span>
                       </td>
                     )}
                     {columnConfig.pendiente.visible && (
-                      <td className="p-2 border-r text-right text-xs">
+                      <td className="p-2 border-r text-right text-xs group-hover:bg-gray-100">
                         <span className="text-red-600">
                           {formatNumber(row.pendiente)}
                         </span>
                       </td>
                     )}
                     {columnConfig.acciones.visible && (
-                      <td className="p-2 text-center">
+                      <td className="p-2 text-center group-hover:bg-gray-100">
                         <button 
                           className="text-gray-400 hover:text-gray-600 p-0.5"
                           onClick={(e) => {
