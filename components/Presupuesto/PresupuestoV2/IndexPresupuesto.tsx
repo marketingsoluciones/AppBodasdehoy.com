@@ -17,6 +17,7 @@ import FormAddPago from "../../Forms/FormAddPago";
 import { ModalTaskList } from "../ModalTaskList";
 import ClickAwayListener from "react-click-away-listener";
 import { FloatOptionsMenuInterface } from '../../../utils/Interfaces';
+import { fetchApiEventos, queries } from "../../../utils/Fetching";
 
 export const SmartSpreadsheetView2 = () => {
   const { event, setEvent } = EventContextProvider();
@@ -39,6 +40,8 @@ export const SmartSpreadsheetView2 = () => {
   const [showOptionsMenu, setShowOptionsMenu] = useState<FloatOptionsMenuInterface>();
   const [RelacionarPagoModal, setRelacionarPagoModal] = useState({ id: "", crear: false, categoriaID: "" });
   const [ServisiosListModal, setServisiosListModal] = useState({ id: "", crear: false, categoriaID: "" });
+  const [showDeleteModal, setShowDeleteModal] = useState({ state: false, title: "", values: null });
+  const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({
     categories: [],
     paymentStatus: 'all', // 'all', 'paid', 'pending', 'partial'
@@ -104,6 +107,50 @@ export const SmartSpreadsheetView2 = () => {
     }
   }, [event?.presupuesto_objeto?.categorias_array, event?._id]);
 
+  // Efecto para forzar actualización cuando se creen nuevas partidas de gasto
+  React.useEffect(() => {
+    // Esto fuerza un re-render cuando cambia cualquier propiedad del evento
+    if (event?.presupuesto_objeto) {
+      // Asegurar que todas las categorías tengan gastos_array inicializado
+      const needsUpdate = categorias_array.some(categoria => 
+        !categoria.gastos_array || !Array.isArray(categoria.gastos_array)
+      );
+      
+      if (needsUpdate) {
+        console.log("Inicializando gastos_array faltantes...");
+        categorias_array.forEach(categoria => {
+          if (!categoria.gastos_array) {
+            categoria.gastos_array = [];
+          }
+        });
+        // Forzar actualización del estado
+        setEvent({ ...event });
+      }
+    }
+  }, [event?.presupuesto_objeto?.categorias_array?.length]);
+
+  // Efecto para detectar cambios en gastos y items
+  React.useEffect(() => {
+    if (categorias_array && Array.isArray(categorias_array)) {
+      // Calcular el número total de gastos e items para detectar cambios
+      const totalGastos = categorias_array.reduce((acc, cat) => {
+        return acc + ((cat.gastos_array && Array.isArray(cat.gastos_array)) ? cat.gastos_array.length : 0);
+      }, 0);
+      
+      const totalItems = categorias_array.reduce((acc, cat) => {
+        if (cat.gastos_array && Array.isArray(cat.gastos_array)) {
+          return acc + cat.gastos_array.reduce((gastosAcc, gasto) => {
+            return gastosAcc + ((gasto.items_array && Array.isArray(gasto.items_array)) ? gasto.items_array.length : 0);
+          }, 0);
+        }
+        return acc;
+      }, 0);
+
+      // Esto ayuda a forzar re-renders cuando cambian los totales
+      console.log(`Total gastos: ${totalGastos}, Total items: ${totalItems}`);
+    }
+  }, [categorias_array, event?.presupuesto_objeto]);
+
   // Cerrar modales al hacer clic fuera
   React.useEffect(() => {
     const handleClickOutside = (event) => {
@@ -140,113 +187,212 @@ export const SmartSpreadsheetView2 = () => {
     { title: "xNiños", value: "xNiños." },
   ];
 
-  // Array de opciones para el menú contextual
-  const options = [
-    {
-      icon: <PiNewspaperClippingLight className="w-4 h-4" />,
-      title: "Agregar:",
-      object: ["categoria", "gasto", "item"]
-    },
-    {
-      title: "Categoría",
-      onClick: async (info) => {
-        try {
-          setShowOptionsMenu({ ...showOptionsMenu, select: "Categoría" });
-          await handleCreateCategoria({ info, event, setEvent, setShowDotsOptionsMenu: setShowOptionsMenu });
-          toast("success", "Categoría creada exitosamente");
-        } catch (error) {
-          toast("error", "Error al crear categoría");
-          console.error(error);
-        } finally {
-          setShowOptionsMenu({ state: false });
-        }
+  // Función para generar opciones dinámicas del menú
+  const getMenuOptions = (info) => {
+    // Determinar el estado actual del elemento
+    let isHidden = false;
+    if (info?.row?.original?.object === 'gasto' && info?.row?.original?.gastoOriginal) {
+      isHidden = info.row.original.gastoOriginal.estatus === false;
+    } else if (info?.row?.original?.object === 'item') {
+      // Buscar el item original para verificar su estatus
+      const categoria = categorias_array.find(cat => cat._id === info?.row?.original?.categoriaID);
+      const gasto = categoria?.gastos_array?.find(g => g._id === info?.row?.original?.gastoID);
+      const itemOriginal = gasto?.items_array?.find(item => item._id === info?.row?.original?.itemID);
+      isHidden = itemOriginal?.estatus === true;
+    }
+
+    return [
+      {
+        icon: <PiNewspaperClippingLight className="w-4 h-4" />,
+        title: "Agregar:",
+        object: ["categoria", "gasto", "item"]
       },
-      object: ["categoria", "gasto", "item"]
-    },
-    {
-      title: "Partida",
-      onClick: async (info) => {
-        try {
-          setShowOptionsMenu({ ...showOptionsMenu, select: "Partida" });
-          await handleCreateGasto({ info, event, setEvent, setShowDotsOptionsMenu: setShowOptionsMenu });
-          toast("success", "Partida de gasto creada exitosamente");
-        } catch (error) {
-          toast("error", "Error al crear partida de gasto");
-          console.error(error);
-        } finally {
-          setShowOptionsMenu({ state: false });
-        }
-      },
-      object: ["categoria", "gasto", "item"]
-    },
-    {
-      title: "Item",
-      onClick: async (info) => {
-        try {
-          setShowOptionsMenu({ ...showOptionsMenu, select: "Item" });
-          await handleCreateItem({ info, event, setEvent, setShowDotsOptionsMenu: setShowOptionsMenu });
-          toast("success", "Item creado exitosamente");
-        } catch (error) {
-          toast("error", "Error al crear item");
-          console.error(error);
-        } finally {
-          setShowOptionsMenu({ state: false });
-        }
-      },
-      object: ["gasto", "item"]
-    },
-    {
-      icon: <GrMoney className="w-4 h-4" />,
-      title: "Relacionar Pago",
-      onClick: (info) => {
-        setShowOptionsMenu({ state: false })
-        setRelacionarPagoModal({ id: info.row.original._id, crear: true, categoriaID: info.row.original.categoriaID })
-      },
-      object: ["gasto"]
-    },
-    {
-      icon: true ? <GoEye className="w-4 h-4" /> : <GoEyeClosed className="w-4 h-4" />,
-      title: "Estado",
-      onClick: async (info) => {
-        try {
-          setShowOptionsMenu({ ...showOptionsMenu, select: "Estado" });
-          if (info.row.original.object === 'gasto') {
-            await handleChangeEstatus({ event, categoriaID: info.row.original.categoriaID, gastoId: info.row.original.gastoID, setEvent });
-            toast("success", "Estado del gasto actualizado");
+      {
+        title: "Categoría",
+        onClick: async (info) => {
+          try {
+            setShowOptionsMenu({ ...showOptionsMenu, select: "Categoría" });
+            
+            // Crear la categoría
+            await handleCreateCategoria({ info, event, setEvent, setShowDotsOptionsMenu: setShowOptionsMenu });
+            
+            // Esperar un poco para que se procese la creación de la categoría
+            setTimeout(async () => {
+              try {
+                // Obtener la categoría recién creada (la última en el array)
+                const nuevaCategoria = event?.presupuesto_objeto?.categorias_array[event.presupuesto_objeto.categorias_array.length - 1];
+                
+                if (nuevaCategoria) {
+                  // Asegurar que tenga gastos_array inicializado
+                  if (!nuevaCategoria.gastos_array) {
+                    nuevaCategoria.gastos_array = [];
+                  }
+                  
+                  // Crear una partida de gasto automáticamente
+                  const mockInfoGasto = {
+                    row: {
+                      original: {
+                        categoriaID: nuevaCategoria._id,
+                        object: 'categoria'
+                      }
+                    }
+                  };
+                  
+                  await handleCreateGasto({ 
+                    info: mockInfoGasto, 
+                    event, 
+                    setEvent, 
+                    setShowDotsOptionsMenu: setShowOptionsMenu 
+                  });
+                  
+                  // Expandir la nueva categoría
+                  setExpandedCategories(prev => new Set([...prev, nuevaCategoria._id]));
+                  
+                  toast("success", "Categoría y partida de gasto creadas exitosamente");
+                }
+              } catch (error) {
+                console.error("Error al crear partida de gasto automática:", error);
+                toast("warning", "Categoría creada, pero hubo un problema al crear la partida automática");
+              }
+            }, 500);
+            
+          } catch (error) {
+            toast("error", "Error al crear categoría");
+            console.error(error);
+          } finally {
+            setShowOptionsMenu({ state: false });
           }
-          if (info.row.original.object === 'item') {
-            await handleChangeEstatusItem({ event, categoriaID: info.row.original.categoriaID, gastoId: info.row.original.gastoID, itemId: info.row.original.itemID, setEvent });
-            toast("success", "Estado del item actualizado");
+        },
+        object: ["categoria", "gasto", "item"]
+      },
+      {
+        title: "Partida",
+        onClick: async (info) => {
+          try {
+            setShowOptionsMenu({ ...showOptionsMenu, select: "Partida" });
+            
+            // Crear la partida de gasto
+            await handleCreateGasto({ info, event, setEvent, setShowDotsOptionsMenu: setShowOptionsMenu });
+            
+            // Forzar actualización del estado para sincronización en tiempo real
+            setTimeout(() => {
+              setEvent(prevEvent => ({ ...prevEvent }));
+              
+              // Si es una categoría, asegurar que esté expandida
+              if (info?.row?.original?.categoriaID) {
+                setExpandedCategories(prev => new Set([...prev, info.row.original.categoriaID]));
+              }
+            }, 100);
+            
+            toast("success", "Partida de gasto creada exitosamente");
+          } catch (error) {
+            toast("error", "Error al crear partida de gasto");
+            console.error(error);
+          } finally {
+            setShowOptionsMenu({ state: false });
           }
-        } catch (error) {
-          toast("error", "Error al actualizar estado");
-          console.error(error);
-        } finally {
+        },
+        object: ["categoria", "gasto", "item"]
+      },
+      {
+        title: "Item",
+        onClick: async (info) => {
+          try {
+            setShowOptionsMenu({ ...showOptionsMenu, select: "Item" });
+            
+            // Crear el item
+            await handleCreateItem({ info, event, setEvent, setShowDotsOptionsMenu: setShowOptionsMenu });
+            
+            // Forzar actualización del estado para sincronización en tiempo real
+            setTimeout(() => {
+              setEvent(prevEvent => ({ ...prevEvent }));
+              
+              // Asegurar que la categoría esté expandida
+              if (info?.row?.original?.categoriaID) {
+                setExpandedCategories(prev => new Set([...prev, info.row.original.categoriaID]));
+              }
+            }, 100);
+            
+            toast("success", "Item creado exitosamente");
+          } catch (error) {
+            toast("error", "Error al crear item");
+            console.error(error);
+          } finally {
+            setShowOptionsMenu({ state: false });
+          }
+        },
+        object: ["gasto", "item"]
+      },
+      {
+        icon: <GrMoney className="w-4 h-4" />,
+        title: "Relacionar Pago",
+        onClick: (info) => {
           setShowOptionsMenu({ state: false });
-        }
+          setRelacionarPagoModal({ id: info.row.original._id, crear: true, categoriaID: info.row.original.categoriaID });
+        },
+        object: ["gasto"]
       },
-      object: ["gasto", "item"]
-    },
-    {
-      icon: <GoTasklist className="w-4 h-4" />,
-      title: "Task",
-      onClick: (info) => {
-        setShowOptionsMenu({ state: false })
-        setServisiosListModal({ id: info.row.original._id, crear: true, categoriaID: info.row.original.categoriaID })
+      {
+        icon: isHidden ? <GoEyeClosed className="w-4 h-4" /> : <GoEye className="w-4 h-4" />,
+        title: isHidden ? "Mostrar" : "Ocultar",
+        onClick: async (info) => {
+          try {
+            setShowOptionsMenu({ ...showOptionsMenu, select: "Estado" });
+            if (info.row.original.object === 'gasto') {
+              await handleChangeEstatus({ event, categoriaID: info.row.original.categoriaID, gastoId: info.row.original.gastoID, setEvent });
+              toast("success", "Estado del gasto actualizado");
+            }
+            if (info.row.original.object === 'item') {
+              await handleChangeEstatusItem({ event, categoriaID: info.row.original.categoriaID, gastoId: info.row.original.gastoID, itemId: info.row.original.itemID, setEvent });
+              toast("success", "Estado del item actualizado");
+            }
+          } catch (error) {
+            toast("error", "Error al actualizar estado");
+            console.error(error);
+          } finally {
+            setShowOptionsMenu({ state: false });
+          }
+        },
+        object: ["gasto", "item"]
       },
-      object: ["gasto"]
-    },
-    {
-      icon: <MdOutlineDeleteOutline className="w-4 h-4" />,
-      title: "Borrar",
-      onClick: (info) => {
-        // Aquí podrías agregar un modal de confirmación si lo necesitas
-        console.log("Borrar:", info.row.original);
-        setShowOptionsMenu({ state: false });
+      {
+        icon: <GoTasklist className="w-4 h-4" />,
+        title: "Task",
+        onClick: (info) => {
+          setShowOptionsMenu({ state: false });
+          setServisiosListModal({ id: info.row.original._id, crear: true, categoriaID: info.row.original.categoriaID });
+        },
+        object: ["gasto"]
       },
-      object: ["categoria", "gasto", "item"]
-    },
-  ];
+      {
+        icon: <MdOutlineDeleteOutline className="w-4 h-4" />,
+        title: "Borrar",
+        onClick: (info) => {
+          // Abrir modal de confirmación de borrado
+          const objectType = info.row.original.object === 'categoria' ? 'Categoría' :
+                            info.row.original.object === 'gasto' ? 'Partida de gasto' : 'Item';
+          const objectName = info.row.original.object === 'categoria' ? info.row.original.categoria :
+                            info.row.original.object === 'gasto' ? info.row.original.partida : info.row.original.item;
+          
+          setShowDeleteModal({
+            state: true,
+            title: `${objectType}: ${objectName}`,
+            values: {
+              object: info.row.original.object,
+              _id: info.row.original.object === 'categoria' ? info.row.original.categoriaID :
+                   info.row.original.object === 'gasto' ? info.row.original.gastoID : info.row.original.itemID,
+              categoriaID: info.row.original.categoriaID,
+              gastoID: info.row.original.gastoID,
+              itemID: info.row.original.itemID,
+              nombre: objectName
+            }
+          });
+          setShowOptionsMenu({ state: false });
+        },
+        object: ["categoria", "gasto", "item"]
+      },
+    ];
+  };
 
   // Función para manejar el menú de opciones
   const handleOptionsMenu = (e, row, isContextMenu = false) => {
@@ -295,7 +441,7 @@ export const SmartSpreadsheetView2 = () => {
 
       // Dimensiones del menú (estimadas)
       const menuWidth = 200;
-      const menuHeight = options.length * 32;
+      const menuHeight = Option.length * 32;
 
       // Ajustar posición para que no se salga de la tabla
       const maxX = tableRect.width - menuWidth - 10;
@@ -307,6 +453,9 @@ export const SmartSpreadsheetView2 = () => {
       // Determinar alineación basada en la posición ajustada
       const aling = position.y > tableRect.height / 2 ? "botton" : "top";
       const justify = position.x > tableRect.width / 2 ? "end" : "start";
+      
+      // Generar opciones dinámicas
+      const dynamicOptions = getMenuOptions(mockInfo);
         
       setShowOptionsMenu({
         state: true,
@@ -315,7 +464,7 @@ export const SmartSpreadsheetView2 = () => {
           position: position,
           aling: aling,
           justify: justify,
-          options: options
+          options: dynamicOptions
         },
         select: ""
       });
@@ -409,6 +558,112 @@ export const SmartSpreadsheetView2 = () => {
     });
   };
 
+  // Función para inicializar categorías recién creadas
+  const initializeNewCategory = React.useCallback((categoryId) => {
+    if (event?.presupuesto_objeto?.categorias_array) {
+      const categoria = event.presupuesto_objeto.categorias_array.find(cat => cat._id === categoryId);
+      if (categoria && (!categoria.gastos_array || !Array.isArray(categoria.gastos_array))) {
+        categoria.gastos_array = [];
+        setEvent({ ...event });
+      }
+      // Expandir automáticamente la nueva categoría
+      setExpandedCategories(prev => new Set([...prev, categoryId]));
+    }
+  }, [event, setEvent]);
+
+  // Función para manejar el borrado después de la confirmación
+  const handleDeleteConfirm = async () => {
+    if (!showDeleteModal.values) return;
+    
+    setLoading(true);
+    
+    try {
+      const { values } = showDeleteModal;
+      
+      // Función de borrado implementada directamente
+      if (values?.object === "categoria") {
+        await fetchApiEventos({
+          query: queries.borraCategoria,
+          variables: {
+            evento_id: event?._id,
+            categoria_id: values?._id,
+          },
+        });
+        
+        // Actualizar el estado local
+        const f1 = event?.presupuesto_objeto?.categorias_array.findIndex(elem => elem._id === values?._id);
+        if (f1 > -1) {
+          event?.presupuesto_objeto?.categorias_array.splice(f1, 1);
+        }
+      }
+      
+      if (values?.object === "gasto") {
+        await fetchApiEventos({
+          query: queries.borrarGasto,
+          variables: {
+            evento_id: event?._id,
+            categoria_id: values?.categoriaID,
+            gasto_id: values?._id,
+          },
+        });
+        
+        // Actualizar el estado local
+        const f1 = event?.presupuesto_objeto?.categorias_array.findIndex(elem => elem._id === values?.categoriaID);
+        if (f1 > -1) {
+          const f2 = event?.presupuesto_objeto?.categorias_array[f1].gastos_array.findIndex(elem => elem._id === values?._id);
+          if (f2 > -1) {
+            event?.presupuesto_objeto?.categorias_array[f1].gastos_array.splice(f2, 1);
+          }
+        }
+      }
+      
+      if (values?.object === "item") {
+        await fetchApiEventos({
+          query: queries.borrarItemsGastos,
+          variables: {
+            evento_id: event?._id,
+            categoria_id: values?.categoriaID,
+            gasto_id: values?.gastoID,
+            itemsGastos_ids: [values?._id],
+          },
+        });
+        
+        // Actualizar el estado local
+        const f1 = event?.presupuesto_objeto?.categorias_array.findIndex(elem => elem._id === values?.categoriaID);
+        if (f1 > -1) {
+          const f2 = event?.presupuesto_objeto?.categorias_array[f1].gastos_array.findIndex(elem => elem._id === values?.gastoID);
+          if (f2 > -1) {
+            const f3 = event?.presupuesto_objeto?.categorias_array[f1].gastos_array[f2].items_array.findIndex(elem => elem._id === values._id);
+            if (f3 > -1) {
+              event?.presupuesto_objeto?.categorias_array[f1].gastos_array[f2].items_array.splice(f3, 1);
+            }
+          }
+        }
+      }
+      
+      // Forzar actualización del estado
+      setEvent({ ...event });
+      
+      // Cerrar modal y opciones
+      setShowOptionsMenu({ state: false });
+      
+      toast("success", `${values.object === 'categoria' ? 'Categoría' : 
+                       values.object === 'gasto' ? 'Partida de gasto' : 'Item'} eliminado exitosamente`);
+      
+    } catch (error) {
+      console.error("Error al eliminar:", error);
+      toast("error", "Error al eliminar el elemento");
+    } finally {
+      setLoading(false);
+      setShowDeleteModal({ state: false, title: "", values: null });
+    }
+  };
+
+  // Función para forzar actualización del estado
+  const forceUpdate = React.useCallback(() => {
+    setEvent(prevEvent => ({ ...prevEvent }));
+  }, [setEvent]);
+
   // Función para determinar si un gasto es editable (no tiene items)
   const isGastoEditable = (gasto) => {
     return !gasto.items_array || !Array.isArray(gasto.items_array) || gasto.items_array.length === 0;
@@ -431,17 +686,19 @@ export const SmartSpreadsheetView2 = () => {
   const renderCategoriaCell = (row) => {
     if (row.type === 'category' && row.categoria) {
       return (
-        <EditableLabelWithInput
-          accessor="categoria"
-          handleChange={(values) => {
-            const mockInfo = createInfoObject(row);
-            handleChange({ values, info: mockInfo, event, setEvent });
-          }}
-          type={null}
-          value={row.categoria}
-          textAlign="left"
-          isLabelDisabled
-        />
+        <div className="flex items-center gap-2">
+          <EditableLabelWithInput
+            accessor="categoria"
+            handleChange={(values) => {
+              const mockInfo = createInfoObject(row);
+              handleChange({ values, info: mockInfo, event, setEvent });
+            }}
+            type={null}
+            value={row.categoria}
+            textAlign="left"
+            isLabelDisabled
+          />
+        </div>
       );
     }
     return row.categoria;
@@ -450,8 +707,14 @@ export const SmartSpreadsheetView2 = () => {
   // Renderizar celda de Partida de Gasto
   const renderPartidaCell = (row) => {
     if (row.type === 'expense' && row.partida) {
+      const gastoOriginal = row.gastoOriginal;
+      const isHidden = gastoOriginal?.estatus === false;
+      
       return (
-        <div className="text-left">
+        <div className="flex items-center gap-2">
+          {isHidden && (
+            <GoEyeClosed className="w-4 h-4 text-gray-400 flex-shrink-0" title="Partida oculta" />
+          )}
           <EditableLabelWithInput
             accessor="gasto"
             handleChange={(values) => {
@@ -513,8 +776,17 @@ export const SmartSpreadsheetView2 = () => {
   // Renderizar celda de Item
   const renderItemCell = (row) => {
     if (row.type === 'item' && row.item) {
+      // Buscar el item original para verificar su estatus
+      const categoria = categorias_array.find(cat => cat._id === row.categoriaID);
+      const gasto = categoria?.gastos_array?.find(g => g._id === row.gastoID);
+      const itemOriginal = gasto?.items_array?.find(item => item._id === row.itemID);
+      const isHidden = itemOriginal?.estatus === true; // true significa oculto para items
+      
       return (
-        <div className="text-left">
+        <div className="flex items-center gap-2">
+          {isHidden && (
+            <GoEyeClosed className="w-4 h-4 text-gray-400 flex-shrink-0" title="Item oculto" />
+          )}
           <EditableLabelWithInput
             accessor="nombre"
             handleChange={(values) => {
@@ -570,10 +842,115 @@ export const SmartSpreadsheetView2 = () => {
       return [];
     }
     
+    // Forzar re-render usando una clave única basada en el timestamp del evento
+    const eventKey = Date.now();
+    
     categorias_array.forEach(categoria => {
       // Validar que categoria tenga los campos necesarios
       if (!categoria || !categoria._id) {
         return; // Skip categorías inválidas
+      }
+      
+      // Asegurar que gastos_array esté inicializado
+      if (!categoria.gastos_array || !Array.isArray(categoria.gastos_array)) {
+        categoria.gastos_array = [];
+      }
+      
+      // Calcular el total de la categoría como suma de totales de gastos
+      let totalCategoria = 0;
+      const gastosData = [];
+      
+      // Filas de gastos si está expandida - Validar que gastos_array existe y es un array
+      if (categoria.gastos_array && Array.isArray(categoria.gastos_array)) {
+        categoria.gastos_array.forEach(gasto => {
+          // Validar que gasto tenga los campos necesarios
+          if (!gasto || !gasto._id) {
+            return; // Skip gastos inválidos
+          }
+          
+          // Asegurar que items_array esté inicializado
+          if (!gasto.items_array || !Array.isArray(gasto.items_array)) {
+            gasto.items_array = [];
+          }
+          
+          // Calcular el total del gasto
+          let totalGasto = 0;
+          const itemsData = [];
+          
+          // Si el gasto tiene items, calcular total como suma de items
+          if (gasto.items_array && Array.isArray(gasto.items_array) && gasto.items_array.length > 0) {
+            gasto.items_array.forEach(item => {
+              // Validar que item tenga los campos necesarios
+              if (!item || !item._id) {
+                return; // Skip items inválidos
+              }
+              
+              const cantidad = item.unidad === 'xAdultos.' ? totalStimatedGuests.adults :
+                             item.unidad === 'xNiños.' ? totalStimatedGuests.children :
+                             item.unidad === 'xInv.' ? (totalStimatedGuests.adults + totalStimatedGuests.children) :
+                             item.cantidad || 0;
+              
+              const totalItem = cantidad * (item.valor_unitario || 0);
+              totalGasto += totalItem;
+              
+              // Items si está en nivel 3
+              if (viewLevel >= 3) {
+                itemsData.push({
+                  type: 'item',
+                  id: item._id,
+                  categoria: '',
+                  partida: '',
+                  unidad: item.unidad || '',
+                  cantidad: cantidad,
+                  item: item.nombre || 'Sin nombre',
+                  valorUnitario: item.valor_unitario || 0,
+                  estimado: null,
+                  total: totalItem,
+                  pagado: 0,
+                  pendiente: totalItem,
+                  level: 2,
+                  categoriaID: categoria._id,
+                  gastoID: gasto._id,
+                  itemID: item._id,
+                  object: 'item',
+                  eventKey: eventKey // Agregar clave para forzar re-render
+                });
+              }
+            });
+          } else {
+            // Si no tiene items, usar el coste_final del gasto
+            totalGasto = gasto.coste_final || 0;
+          }
+          
+          totalCategoria += totalGasto;
+          
+          // Agregar fila de gasto si está en nivel 2 o superior
+          if (viewLevel >= 2) {
+            gastosData.push({
+              type: 'expense',
+              id: gasto._id,
+              categoria: '',
+              partida: gasto.nombre || 'Sin nombre',
+              unidad: '',
+              cantidad: '',
+              item: '',
+              valorUnitario: '',
+              estimado: null,
+              total: totalGasto,
+              pagado: gasto.pagado || 0,
+              pendiente: totalGasto - (gasto.pagado || 0),
+              level: 1,
+              categoriaID: categoria._id,
+              gastoID: gasto._id,
+              itemID: null,
+              object: 'gasto',
+              gastoOriginal: gasto,
+              isEditable: isGastoEditable(gasto),
+              items: itemsData,
+              eventKey: eventKey // Agregar clave para forzar re-render
+            });
+          }
+        });
       }
       
       // Fila de categoría
@@ -587,79 +964,28 @@ export const SmartSpreadsheetView2 = () => {
         item: '',
         valorUnitario: '',
         estimado: categoria.coste_estimado || 0,
-        total: categoria.coste_final || 0,
+        total: totalCategoria,
         pagado: categoria.pagado || 0,
-        pendiente: (categoria.coste_final || 0) - (categoria.pagado || 0),
+        pendiente: totalCategoria - (categoria.pagado || 0),
         level: 0,
         expandable: true,
         expanded: expandedCategories.has(categoria._id),
         categoriaID: categoria._id,
         gastoID: null,
         itemID: null,
-        object: 'categoria'
+        object: 'categoria',
+        eventKey: eventKey // Agregar clave para forzar re-render
       });
 
-      // Filas de gastos si está expandida - Validar que gastos_array existe y es un array
-      if (expandedCategories.has(categoria._id) && viewLevel >= 2 && categoria.gastos_array && Array.isArray(categoria.gastos_array)) {
-        categoria.gastos_array.forEach(gasto => {
-          // Validar que gasto tenga los campos necesarios
-          if (!gasto || !gasto._id) {
-            return; // Skip gastos inválidos
-          }
+      // Agregar gastos si está expandida
+      if (expandedCategories.has(categoria._id) && viewLevel >= 2) {
+        gastosData.forEach(gastoData => {
+          rows.push(gastoData);
           
-          rows.push({
-            type: 'expense',
-            id: gasto._id,
-            categoria: '',
-            partida: gasto.nombre || 'Sin nombre',
-            unidad: '',
-            cantidad: '',
-            item: '',
-            valorUnitario: '',
-            estimado: null,
-            total: gasto.coste_final || 0,
-            pagado: gasto.pagado || 0,
-            pendiente: (gasto.coste_final || 0) - (gasto.pagado || 0),
-            level: 1,
-            categoriaID: categoria._id,
-            gastoID: gasto._id,
-            itemID: null,
-            object: 'gasto',
-            gastoOriginal: gasto,
-            isEditable: isGastoEditable(gasto)
-          });
-
-          // Items si está en nivel 3 - Validar que items_array existe y es un array
-          if (viewLevel >= 3 && gasto.items_array && Array.isArray(gasto.items_array)) {
-            gasto.items_array.forEach(item => {
-              // Validar que item tenga los campos necesarios
-              if (!item || !item._id) {
-                return; // Skip items inválidos
-              }
-              
-              const cantidad = item.unidad === 'xAdultos.' ? totalStimatedGuests.adults :
-                             item.unidad === 'xNiños.' ? totalStimatedGuests.children :
-                             item.cantidad || 0;
-              
-              rows.push({
-                type: 'item',
-                id: item._id,
-                categoria: '',
-                partida: '',
-                unidad: item.unidad || '',
-                cantidad: cantidad,
-                item: item.nombre || 'Sin nombre',
-                valorUnitario: item.valor_unitario || 0,
-                estimado: null,
-                total: cantidad * (item.valor_unitario || 0),
-                pagado: 0,
-                pendiente: cantidad * (item.valor_unitario || 0),
-                level: 2,
-                categoriaID: categoria._id,
-                gastoID: gasto._id,
-                itemID: item._id,
-                object: 'item'
-              });
+          // Agregar items del gasto si están disponibles
+          if (gastoData.items && gastoData.items.length > 0) {
+            gastoData.items.forEach(itemData => {
+              rows.push(itemData);
             });
           }
         });
@@ -668,20 +994,18 @@ export const SmartSpreadsheetView2 = () => {
 
     // Aplicar filtros
     return applyFilters(rows);
-  }, [viewLevel, expandedCategories, categorias_array, totalStimatedGuests, filters, event]); // Agregado 'event' como dependencia
+  }, [viewLevel, expandedCategories, categorias_array, totalStimatedGuests, filters, event, event?.presupuesto_objeto]); // Agregado dependencias más específicas
 
   const totals = useMemo(() => {
-    // Validar que categorias_array sea un array válido
-    if (!categorias_array || !Array.isArray(categorias_array)) {
-      return { estimado: 0, total: 0, pagado: 0 };
-    }
+    // Calcular totales basados en los datos procesados de la tabla
+    const categoryRows = tableData.filter(row => row.type === 'category');
     
     return {
-      estimado: categorias_array.reduce((acc, cat) => acc + (cat.coste_estimado || 0), 0),
-      total: categorias_array.reduce((acc, cat) => acc + (cat.coste_final || 0), 0),
-      pagado: categorias_array.reduce((acc, cat) => acc + (cat.pagado || 0), 0),
+      estimado: categoryRows.reduce((acc, cat) => acc + (cat.estimado || 0), 0),
+      total: categoryRows.reduce((acc, cat) => acc + (cat.total || 0), 0),
+      pagado: categoryRows.reduce((acc, cat) => acc + (cat.pagado || 0), 0),
     };
-  }, [categorias_array, event]); // Agregado 'event' como dependencia
+  }, [tableData]); // Cambié la dependencia de categorias_array por tableData
 
   // Renderizar la celda de Coste Total
   const renderCosteTotalCell = (row) => {
@@ -931,6 +1255,56 @@ export const SmartSpreadsheetView2 = () => {
         <FloatOptionsMenu showOptionsMenu={showOptionsMenu} setShowOptionsMenu={setShowOptionsMenu} />
       )}
 
+      {/* Modal de Confirmación de Borrado */}
+      {showDeleteModal.state && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                <MdOutlineDeleteOutline className="h-6 w-6 text-red-600" />
+              </div>
+              
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Confirmar Eliminación
+              </h3>
+              
+              <p className="text-sm text-gray-500 mb-6">
+                ¿Estás seguro de que deseas eliminar{' '}
+                <span className="font-semibold text-gray-700">
+                  {showDeleteModal.title}
+                </span>
+                ? Esta acción no se puede deshacer.
+              </p>
+              
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={() => setShowDeleteModal({ state: false, title: "", values: null })}
+                  disabled={loading}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+                
+                <button
+                  onClick={handleDeleteConfirm}
+                  disabled={loading}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 flex items-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Eliminando...
+                    </>
+                  ) : (
+                    'Eliminar'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal de Filtros */}
       {showFiltersModal && (
         <div className="filters-modal absolute top-12 left-3 bg-white shadow-lg rounded border z-50 w-80 max-w-[calc(100vw-24px)]">
@@ -1090,7 +1464,33 @@ export const SmartSpreadsheetView2 = () => {
               gastoID: null,
               itemID: null
             };
-            handleOptionsMenu(e, mockRow, true);
+            
+            const mockInfo = {
+              row: {
+                original: mockRow
+              }
+            };
+            
+            const dynamicOptions = getMenuOptions(mockInfo);
+            
+            const position = {
+              x: e.clientX - e.currentTarget.getBoundingClientRect().left,
+              y: e.clientY - e.currentTarget.getBoundingClientRect().top
+            };
+            
+            setShowOptionsMenu({
+              state: true,
+              values: {
+                info: mockInfo,
+                position: position,
+                aling: "top",
+                justify: "start",
+                options: dynamicOptions
+              },
+              select: ""
+            });
+            
+            e.preventDefault();
           }
         }}>
           <table className="w-full">
@@ -1164,7 +1564,7 @@ export const SmartSpreadsheetView2 = () => {
                 return (
                   <tr 
                     key={row.id} 
-                    className={`${bgColor} border-b transition-colors group`}
+                    className={`${bgColor} border-b transition-colors group hover:bg-gray-100`}
                     onContextMenu={(e) => {
                       handleOptionsMenu(e, row, true);
                     }}
