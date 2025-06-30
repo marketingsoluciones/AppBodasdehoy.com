@@ -157,11 +157,18 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     const [currentItinerario, setCurrentItinerario] = useState<Itinerary>(itinerario);
 
     useEffect(() => {
-        if (event && event.itinerarios_array) {
-            const found = event.itinerarios_array.find((it: Itinerary) => it._id === itinerario._id);
+        if (
+            event &&
+            event.itinerarios_array &&
+            itinerario &&
+            typeof itinerario._id !== "undefined"
+        ) {
+            const found = event.itinerarios_array.find(
+                (it: Itinerary) => it._id === itinerario._id
+            );
             if (found) setCurrentItinerario(found);
         }
-    }, [event, itinerario._id]);
+    }, [event, itinerario?._id]);
 
     useEffect(() => {
         if (currentItinerario?.tasks?.length > 0) {
