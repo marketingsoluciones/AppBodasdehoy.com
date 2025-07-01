@@ -42,9 +42,12 @@ export const SmartSpreadsheetView2 = () => {
   const [ServisiosListModal, setServisiosListModal] = useState({ id: "", crear: false, categoriaID: "" });
   const [showDeleteModal, setShowDeleteModal] = useState({ state: false, title: "", values: null });
   const [loading, setLoading] = useState(false);
+  
+  // FILTROS ACTUALIZADOS - Agregar visibilityStatus
   const [filters, setFilters] = useState({
     categories: [],
     paymentStatus: 'all', // 'all', 'paid', 'pending', 'partial'
+    visibilityStatus: 'all', // 'all', 'visible', 'hidden'
     amountRange: { min: '', max: '' },
     searchText: ''
   });
@@ -74,6 +77,93 @@ export const SmartSpreadsheetView2 = () => {
     return value.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
+  // NUEVA SOLUCIÓN: Función para recalcular y actualizar totales directamente en el contexto
+  const recalculateEventTotals = React.useCallback(() => {
+    if (!event?.presupuesto_objeto?.categorias_array) return false;
+
+    let hasChanges = false;
+    const updatedEvent = { ...event };
+
+    updatedEvent.presupuesto_objeto.categorias_array.forEach(categoria => {
+      if (!categoria.gastos_array || !Array.isArray(categoria.gastos_array)) return;
+      
+      let categoriaTotalCalculated = 0;
+      
+      categoria.gastos_array.forEach(gasto => {
+        let gastoTotalCalculated = 0;
+        
+        // Si el gasto tiene items, calcular su total como suma de items
+        if (gasto.items_array && Array.isArray(gasto.items_array) && gasto.items_array.length > 0) {
+          gasto.items_array.forEach(item => {
+            const cantidad = item.unidad === 'xAdultos.' ? totalStimatedGuests.adults :
+                           item.unidad === 'xNiños.' ? totalStimatedGuests.children :
+                           item.unidad === 'xInv.' ? (totalStimatedGuests.adults + totalStimatedGuests.children) :
+                           item.cantidad || 0;
+            
+            gastoTotalCalculated += cantidad * (item.valor_unitario || 0);
+          });
+          
+          // Actualizar el coste_final del gasto si es diferente
+          if (Math.abs(gasto.coste_final - gastoTotalCalculated) > 0.01) {
+            gasto.coste_final = gastoTotalCalculated;
+            hasChanges = true;
+          }
+        } else {
+          // Si no tiene items, usar el coste_final actual del gasto
+          gastoTotalCalculated = gasto.coste_final || 0;
+        }
+        
+        // Sumar al total de la categoría
+        categoriaTotalCalculated += gastoTotalCalculated;
+      });
+      
+      // Actualizar el coste_final de la categoría si es diferente
+      if (Math.abs(categoria.coste_final - categoriaTotalCalculated) > 0.01) {
+        categoria.coste_final = categoriaTotalCalculated;
+        hasChanges = true;
+      }
+    });
+    
+    // Si hubo cambios, actualizar el evento inmediatamente
+    if (hasChanges) {
+      setEvent(updatedEvent);
+      return true;
+    }
+    return false;
+  }, [event, setEvent, totalStimatedGuests]);
+
+  // Función para determinar si un gasto es editable (no tiene items)
+  const isGastoEditable = (gasto) => {
+    return !gasto.items_array || !Array.isArray(gasto.items_array) || gasto.items_array.length === 0;
+  };
+
+  // Función personalizada para manejar cambios CON recálculo inmediato
+  const handleChangeWithRecalculation = React.useCallback((values, info) => {
+    // Primero hacer el cambio original
+    handleChange({ values, info, event, setEvent });
+    
+    // Si es un cambio que afecta los costes, recalcular inmediatamente
+    if (['valor_unitario', 'cantidad', 'unidad', 'coste_final'].includes(values.accessor)) {
+      // Pequeño delay para que se procese el cambio anterior
+      setTimeout(() => {
+        recalculateEventTotals();
+      }, 50);
+    }
+  }, [recalculateEventTotals, event, setEvent]);
+
+  // Función para crear el objeto info para handleChange
+  const createInfoObject = (row) => ({
+    row: {
+      original: {
+        object: row.object,
+        categoriaID: row.categoriaID,
+        gastoID: row.gastoID,
+        itemID: row.itemID,
+        _id: row.type === 'category' ? row.categoriaID : row.type === 'expense' ? row.gastoID : row.itemID
+      }
+    }
+  });
+
   // Actualizar categorías expandidas cuando cambien los datos
   React.useEffect(() => {
     if (categorias_array.length > 0) {
@@ -81,75 +171,15 @@ export const SmartSpreadsheetView2 = () => {
     }
   }, [categorias_array.length]);
 
-  // Efecto para inicializar arrays vacíos en categorías recién creadas (solo lectura para validación)
+  // Efecto para recalcular totales cuando cambien datos relevantes
   React.useEffect(() => {
-    // Solo validar que tengan la estructura correcta, no modificar aquí
-    if (categorias_array && Array.isArray(categorias_array)) {
-      categorias_array.forEach(categoria => {
-        if (!categoria.gastos_array) {
-          console.warn(`Categoría ${categoria.nombre} no tiene gastos_array inicializado`);
-        }
-      });
-    }
-  }, [categorias_array]);
+    // Recalcular totales cuando cambien las categorías, gastos o items
+    const timeoutId = setTimeout(() => {
+      recalculateEventTotals();
+    }, 100);
 
-  // Efecto para actualizar los datos cuando el event cambie
-  React.useEffect(() => {
-    // Forzar re-render cuando el event del presupuesto cambie
-    if (event?.presupuesto_objeto?.categorias_array && Array.isArray(event.presupuesto_objeto.categorias_array)) {
-      // Asegurar que las categorías nuevas se expandan automáticamente
-      const currentCategoryIds = new Set(categorias_array.map(cat => cat._id));
-      const shouldExpand = categorias_array.some(cat => !expandedCategories.has(cat._id));
-      
-      if (shouldExpand) {
-        setExpandedCategories(prev => new Set([...prev, ...currentCategoryIds]));
-      }
-    }
-  }, [event?.presupuesto_objeto?.categorias_array, event?._id]);
-
-  // Efecto para forzar actualización cuando se creen nuevas partidas de gasto
-  React.useEffect(() => {
-    // Esto fuerza un re-render cuando cambia cualquier propiedad del evento
-    if (event?.presupuesto_objeto) {
-      // Asegurar que todas las categorías tengan gastos_array inicializado
-      const needsUpdate = categorias_array.some(categoria => 
-        !categoria.gastos_array || !Array.isArray(categoria.gastos_array)
-      );
-      
-      if (needsUpdate) {
-        console.log("Inicializando gastos_array faltantes...");
-        categorias_array.forEach(categoria => {
-          if (!categoria.gastos_array) {
-            categoria.gastos_array = [];
-          }
-        });
-        // Forzar actualización del estado
-        setEvent({ ...event });
-      }
-    }
-  }, [event?.presupuesto_objeto?.categorias_array?.length]);
-
-  // Efecto para detectar cambios en gastos y items
-  React.useEffect(() => {
-    if (categorias_array && Array.isArray(categorias_array)) {
-      // Calcular el número total de gastos e items para detectar cambios
-      const totalGastos = categorias_array.reduce((acc, cat) => {
-        return acc + ((cat.gastos_array && Array.isArray(cat.gastos_array)) ? cat.gastos_array.length : 0);
-      }, 0);
-      
-      const totalItems = categorias_array.reduce((acc, cat) => {
-        if (cat.gastos_array && Array.isArray(cat.gastos_array)) {
-          return acc + cat.gastos_array.reduce((gastosAcc, gasto) => {
-            return gastosAcc + ((gasto.items_array && Array.isArray(gasto.items_array)) ? gasto.items_array.length : 0);
-          }, 0);
-        }
-        return acc;
-      }, 0);
-
-      // Esto ayuda a forzar re-renders cuando cambian los totales
-      console.log(`Total gastos: ${totalGastos}, Total items: ${totalItems}`);
-    }
-  }, [categorias_array, event?.presupuesto_objeto]);
+    return () => clearTimeout(timeoutId);
+  }, [recalculateEventTotals]);
 
   // Cerrar modales al hacer clic fuera
   React.useEffect(() => {
@@ -171,7 +201,6 @@ export const SmartSpreadsheetView2 = () => {
         if (!isEventInfoModal && !isEventInfoButton && showEventInfoModal) {
           setShowEventInfoModal(false);
         }
-        // El menú de opciones se maneja por ClickAwayListener en FloatOptionsMenu
       }
     };
 
@@ -303,9 +332,13 @@ export const SmartSpreadsheetView2 = () => {
             // Crear el item
             await handleCreateItem({ info, event, setEvent, setShowDotsOptionsMenu: setShowOptionsMenu });
             
-            // Forzar actualización del estado para sincronización en tiempo real
+            // Forzar actualización del estado y recalcular totales inmediatamente
             setTimeout(() => {
-              setEvent(prevEvent => ({ ...prevEvent }));
+              const updated = recalculateEventTotals();
+              if (!updated) {
+                // Si no hubo cambios en recalculation, forzar update manual
+                setEvent(prevEvent => ({ ...prevEvent }));
+              }
               
               // Asegurar que la categoría esté expandida
               if (info?.row?.original?.categoriaID) {
@@ -441,7 +474,7 @@ export const SmartSpreadsheetView2 = () => {
 
       // Dimensiones del menú (estimadas)
       const menuWidth = 200;
-      const menuHeight = Option.length * 32;
+      const menuHeight = getMenuOptions(mockInfo).length * 32;
 
       // Ajustar posición para que no se salga de la tabla
       const maxX = tableRect.width - menuWidth - 10;
@@ -472,6 +505,7 @@ export const SmartSpreadsheetView2 = () => {
       ht();
     }
   };
+
   const toggleCategory = (categoryId) => {
     const newExpanded = new Set(expandedCategories);
     if (newExpanded.has(categoryId)) {
@@ -504,12 +538,13 @@ export const SmartSpreadsheetView2 = () => {
     setFilters({
       categories: [],
       paymentStatus: 'all',
+      visibilityStatus: 'all', // Resetear también el filtro de visibilidad
       amountRange: { min: '', max: '' },
       searchText: ''
     });
   };
 
-  // Función para filtrar datos
+  // FUNCIÓN APPLYFILTERS ACTUALIZADA - Agregar lógica para filtro de visibilidad
   const applyFilters = (data) => {
     return data.filter(row => {
       // Filtro por texto de búsqueda
@@ -547,6 +582,34 @@ export const SmartSpreadsheetView2 = () => {
         }
       }
 
+      // NUEVO: Filtro por estado de visibilidad
+      if (filters.visibilityStatus !== 'all') {
+        let isHidden = false;
+        
+        if (row.type === 'expense') {
+          // Para gastos: estatus === false significa oculto
+          isHidden = row.gastoOriginal?.estatus === false;
+        } else if (row.type === 'item') {
+          // Para items: estatus === true significa oculto
+          const categoria = categorias_array.find(cat => cat._id === row.categoriaID);
+          const gasto = categoria?.gastos_array?.find(g => g._id === row.gastoID);
+          const itemOriginal = gasto?.items_array?.find(item => item._id === row.itemID);
+          isHidden = itemOriginal?.estatus === true;
+        }
+        // Las categorías siempre se consideran visibles
+        
+        switch (filters.visibilityStatus) {
+          case 'visible':
+            if (isHidden) return false;
+            break;
+          case 'hidden':
+            if (!isHidden && row.type !== 'category') return false;
+            // Si filtro "solo ocultos" está activo, no mostrar categorías
+            if (row.type === 'category') return false;
+            break;
+        }
+      }
+
       // Filtro por rango de montos
       if (filters.amountRange.min !== '' || filters.amountRange.max !== '') {
         const amount = row.total || 0;
@@ -557,19 +620,6 @@ export const SmartSpreadsheetView2 = () => {
       return true;
     });
   };
-
-  // Función para inicializar categorías recién creadas
-  const initializeNewCategory = React.useCallback((categoryId) => {
-    if (event?.presupuesto_objeto?.categorias_array) {
-      const categoria = event.presupuesto_objeto.categorias_array.find(cat => cat._id === categoryId);
-      if (categoria && (!categoria.gastos_array || !Array.isArray(categoria.gastos_array))) {
-        categoria.gastos_array = [];
-        setEvent({ ...event });
-      }
-      // Expandir automáticamente la nueva categoría
-      setExpandedCategories(prev => new Set([...prev, categoryId]));
-    }
-  }, [event, setEvent]);
 
   // Función para manejar el borrado después de la confirmación
   const handleDeleteConfirm = async () => {
@@ -647,6 +697,11 @@ export const SmartSpreadsheetView2 = () => {
       // Cerrar modal y opciones
       setShowOptionsMenu({ state: false });
       
+      // Recalcular totales después de eliminar
+      setTimeout(() => {
+        recalculateEventTotals();
+      }, 50);
+      
       toast("success", `${values.object === 'categoria' ? 'Categoría' : 
                        values.object === 'gasto' ? 'Partida de gasto' : 'Item'} eliminado exitosamente`);
       
@@ -659,28 +714,68 @@ export const SmartSpreadsheetView2 = () => {
     }
   };
 
-  // Función para forzar actualización del estado
-  const forceUpdate = React.useCallback(() => {
-    setEvent(prevEvent => ({ ...prevEvent }));
-  }, [setEvent]);
+  // Función para sincronizar costes en el contexto del evento
+  const syncEventCosts = React.useCallback(() => {
+    if (!event?.presupuesto_objeto?.categorias_array) return;
+
+    let eventUpdated = false;
+    
+    event.presupuesto_objeto.categorias_array.forEach(categoria => {
+      if (!categoria.gastos_array || !Array.isArray(categoria.gastos_array)) return;
+      
+      let categoriaTotalCalculated = 0;
+      
+      categoria.gastos_array.forEach(gasto => {
+        // Si el gasto tiene items, calcular su total como suma de items
+        if (gasto.items_array && Array.isArray(gasto.items_array) && gasto.items_array.length > 0) {
+          let gastoTotalCalculated = 0;
+          
+          gasto.items_array.forEach(item => {
+            const cantidad = item.unidad === 'xAdultos.' ? totalStimatedGuests.adults :
+                           item.unidad === 'xNiños.' ? totalStimatedGuests.children :
+                           item.unidad === 'xInv.' ? (totalStimatedGuests.adults + totalStimatedGuests.children) :
+                           item.cantidad || 0;
+            
+            gastoTotalCalculated += cantidad * (item.valor_unitario || 0);
+          });
+          
+          // Actualizar el coste_final del gasto si es diferente
+          if (Math.abs(gasto.coste_final - gastoTotalCalculated) > 0.01) {
+            gasto.coste_final = gastoTotalCalculated;
+            eventUpdated = true;
+          }
+        }
+        
+        // Sumar al total de la categoría
+        categoriaTotalCalculated += gasto.coste_final || 0;
+      });
+      
+      // Actualizar el coste_final de la categoría si es diferente
+      if (Math.abs(categoria.coste_final - categoriaTotalCalculated) > 0.01) {
+        categoria.coste_final = categoriaTotalCalculated;
+        eventUpdated = true;
+      }
+    });
+    
+    // Si hubo cambios, actualizar el evento
+    if (eventUpdated) {
+      setEvent({ ...event });
+    }
+  }, [event, setEvent, totalStimatedGuests]);
 
   // Función para determinar si un gasto es editable (no tiene items)
-  const isGastoEditable = (gasto) => {
-    return !gasto.items_array || !Array.isArray(gasto.items_array) || gasto.items_array.length === 0;
-  };
-
-  // Función para crear el objeto info para handleChange
-  const createInfoObject = (row) => ({
-    row: {
-      original: {
-        object: row.object,
-        categoriaID: row.categoriaID,
-        gastoID: row.gastoID,
-        itemID: row.itemID,
-        _id: row.type === 'category' ? row.categoriaID : row.type === 'expense' ? row.gastoID : row.itemID
-      }
+  
+  // Función personalizada para manejar cambios con sincronización de costes
+  const handleChangeWithSync = (values, info) => {
+    handleChange({ values, info, event, setEvent });
+    
+    // Si es un cambio que afecta los costes (valor_unitario, cantidad, unidad), sincronizar
+    if (['valor_unitario', 'cantidad', 'unidad', 'coste_final'].includes(values.accessor)) {
+      setTimeout(() => {
+        syncEventCosts();
+      }, 150);
     }
-  });
+  };
 
   // Renderizar celda de Categoría
   const renderCategoriaCell = (row) => {
@@ -691,7 +786,7 @@ export const SmartSpreadsheetView2 = () => {
             accessor="categoria"
             handleChange={(values) => {
               const mockInfo = createInfoObject(row);
-              handleChange({ values, info: mockInfo, event, setEvent });
+              handleChangeWithRecalculation(values, mockInfo);
             }}
             type={null}
             value={row.categoria}
@@ -719,7 +814,7 @@ export const SmartSpreadsheetView2 = () => {
             accessor="gasto"
             handleChange={(values) => {
               const mockInfo = createInfoObject(row);
-              handleChange({ values, info: mockInfo, event, setEvent });
+              handleChangeWithRecalculation(values, mockInfo);
             }}
             type={null}
             value={row.partida}
@@ -743,7 +838,7 @@ export const SmartSpreadsheetView2 = () => {
           size={60}
           handleChange={(values) => {
             const mockInfo = createInfoObject(row);
-            handleChange({ values, info: mockInfo, event, setEvent });
+            handleChangeWithRecalculation(values, mockInfo);
           }}
         />
       );
@@ -760,7 +855,7 @@ export const SmartSpreadsheetView2 = () => {
             accessor="cantidad"
             handleChange={(values) => {
               const mockInfo = createInfoObject(row);
-              handleChange({ values, info: mockInfo, event, setEvent });
+              handleChangeWithRecalculation(values, mockInfo);
             }}
             type="int"
             value={row.cantidad}
@@ -791,7 +886,7 @@ export const SmartSpreadsheetView2 = () => {
             accessor="nombre"
             handleChange={(values) => {
               const mockInfo = createInfoObject(row);
-              handleChange({ values, info: mockInfo, event, setEvent });
+              handleChangeWithRecalculation(values, mockInfo);
             }}
             type={null}
             value={row.item}
@@ -813,7 +908,7 @@ export const SmartSpreadsheetView2 = () => {
             accessor="valor_unitario"
             handleChange={(values) => {
               const mockInfo = createInfoObject(row);
-              handleChange({ values, info: mockInfo, event, setEvent });
+              handleChangeWithRecalculation(values, mockInfo);
             }}
             type="float"
             value={row.valorUnitario}
@@ -856,8 +951,7 @@ export const SmartSpreadsheetView2 = () => {
         categoria.gastos_array = [];
       }
       
-      // Calcular el total de la categoría como suma de totales de gastos
-      let totalCategoria = 0;
+      // CAMBIO CLAVE: Usar el coste_final del contexto, no calcular aquí
       const gastosData = [];
       
       // Filas de gastos si está expandida - Validar que gastos_array existe y es un array
@@ -873,11 +967,10 @@ export const SmartSpreadsheetView2 = () => {
             gasto.items_array = [];
           }
           
-          // Calcular el total del gasto
-          let totalGasto = 0;
+          // IMPORTANTE: Solo calcular totales para mostrar en tabla, pero usar valores del contexto
           const itemsData = [];
           
-          // Si el gasto tiene items, calcular total como suma de items
+          // Si el gasto tiene items, mostrar los items en la tabla
           if (gasto.items_array && Array.isArray(gasto.items_array) && gasto.items_array.length > 0) {
             gasto.items_array.forEach(item => {
               // Validar que item tenga los campos necesarios
@@ -891,7 +984,6 @@ export const SmartSpreadsheetView2 = () => {
                              item.cantidad || 0;
               
               const totalItem = cantidad * (item.valor_unitario || 0);
-              totalGasto += totalItem;
               
               // Items si está en nivel 3
               if (viewLevel >= 3) {
@@ -904,8 +996,8 @@ export const SmartSpreadsheetView2 = () => {
                   cantidad: cantidad,
                   item: item.nombre || 'Sin nombre',
                   valorUnitario: item.valor_unitario || 0,
-                  estimado: null,
-                  total: totalItem,
+                  estimado: null, // Items no tienen coste estimado
+                  total: totalItem, // Calculado para mostrar, pero no afecta el contexto
                   pagado: 0,
                   pendiente: totalItem,
                   level: 2,
@@ -917,12 +1009,7 @@ export const SmartSpreadsheetView2 = () => {
                 });
               }
             });
-          } else {
-            // Si no tiene items, usar el coste_final del gasto
-            totalGasto = gasto.coste_final || 0;
           }
-          
-          totalCategoria += totalGasto;
           
           // Agregar fila de gasto si está en nivel 2 o superior
           if (viewLevel >= 2) {
@@ -935,10 +1022,10 @@ export const SmartSpreadsheetView2 = () => {
               cantidad: '',
               item: '',
               valorUnitario: '',
-              estimado: null,
-              total: totalGasto,
+              estimado: null, // Gastos no tienen coste estimado
+              total: gasto.coste_final || 0, // USAR VALOR DEL CONTEXTO directamente
               pagado: gasto.pagado || 0,
-              pendiente: totalGasto - (gasto.pagado || 0),
+              pendiente: (gasto.coste_final || 0) - (gasto.pagado || 0),
               level: 1,
               categoriaID: categoria._id,
               gastoID: gasto._id,
@@ -953,7 +1040,7 @@ export const SmartSpreadsheetView2 = () => {
         });
       }
       
-      // Fila de categoría
+      // Fila de categoría - USAR VALORES DEL CONTEXTO
       rows.push({
         type: 'category',
         id: categoria._id,
@@ -964,9 +1051,9 @@ export const SmartSpreadsheetView2 = () => {
         item: '',
         valorUnitario: '',
         estimado: categoria.coste_estimado || 0,
-        total: totalCategoria,
+        total: categoria.coste_final || 0, // USAR VALOR DEL CONTEXTO directamente
         pagado: categoria.pagado || 0,
-        pendiente: totalCategoria - (categoria.pagado || 0),
+        pendiente: (categoria.coste_final || 0) - (categoria.pagado || 0),
         level: 0,
         expandable: true,
         expanded: expandedCategories.has(categoria._id),
@@ -994,7 +1081,7 @@ export const SmartSpreadsheetView2 = () => {
 
     // Aplicar filtros
     return applyFilters(rows);
-  }, [viewLevel, expandedCategories, categorias_array, totalStimatedGuests, filters, event, event?.presupuesto_objeto]); // Agregado dependencias más específicas
+  }, [viewLevel, expandedCategories, categorias_array, totalStimatedGuests, filters, event?.presupuesto_objeto]); // Usar event?.presupuesto_objeto como dependencia
 
   const totals = useMemo(() => {
     // Calcular totales basados en los datos procesados de la tabla
@@ -1026,7 +1113,7 @@ export const SmartSpreadsheetView2 = () => {
                   }
                 }
               };
-              handleChange({ values, info: mockInfo, event, setEvent });
+              handleChangeWithRecalculation(values, mockInfo);
             }}
             type="float"
             value={row.total}
@@ -1086,9 +1173,9 @@ export const SmartSpreadsheetView2 = () => {
             >
               <IoFilterOutline className="w-3 h-3" />
               <span className="hidden sm:inline">Filtros</span>
-              {(filters.categories.length > 0 || filters.paymentStatus !== 'all' || filters.amountRange.min || filters.amountRange.max) && (
+              {(filters.categories.length > 0 || filters.paymentStatus !== 'all' || filters.visibilityStatus !== 'all' || filters.amountRange.min || filters.amountRange.max) && (
                 <span className="bg-blue-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center leading-none">
-                  {filters.categories.length + (filters.paymentStatus !== 'all' ? 1 : 0) + (filters.amountRange.min || filters.amountRange.max ? 1 : 0)}
+                  {filters.categories.length + (filters.paymentStatus !== 'all' ? 1 : 0) + (filters.visibilityStatus !== 'all' ? 1 : 0) + (filters.amountRange.min || filters.amountRange.max ? 1 : 0)}
                 </span>
               )}
             </button>
@@ -1126,6 +1213,132 @@ export const SmartSpreadsheetView2 = () => {
         </div>
       </div>
 
+      {/* Modal de Filtros - ACTUALIZADO */}
+      {showFiltersModal && (
+        <div className="filters-modal absolute top-12 left-3 bg-white shadow-lg rounded border z-50 w-80 max-w-[calc(100vw-24px)]">
+          <div className="p-3 border-b">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-gray-800 text-sm">Filtros</h3>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={clearFilters}
+                  className="text-xs text-gray-500 hover:text-gray-700"
+                >
+                  Limpiar
+                </button>
+                <button
+                  onClick={() => setShowFiltersModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <IoCloseOutline className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <div className="p-3 space-y-3 max-h-80 overflow-y-auto">
+            {/* Vista de Detalle */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Vista de Detalle</label>
+              <select 
+                value={viewLevel} 
+                onChange={(e) => setViewLevel(Number(e.target.value))}
+                className="w-full text-xs border border-gray-300 rounded px-2 py-1"
+              >
+                <option value={1}>Solo Categorías</option>
+                <option value={2}>Categorías + Gastos</option>
+                <option value={3}>Detalle Completo</option>
+              </select>
+            </div>
+
+            {/* Filtro por Categorías */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Categorías</label>
+              <div className="space-y-1 max-h-24 overflow-y-auto">
+                {categorias_array && Array.isArray(categorias_array) ? categorias_array.map(categoria => (
+                  <label key={categoria._id} className="flex items-center text-xs">
+                    <input
+                      type="checkbox"
+                      checked={filters.categories.includes(categoria._id)}
+                      onChange={(e) => {
+                        const newCategories = e.target.checked
+                          ? [...filters.categories, categoria._id]
+                          : filters.categories.filter(id => id !== categoria._id);
+                        handleFilterChange('categories', newCategories);
+                      }}
+                      className="mr-2 rounded text-xs"
+                    />
+                    <span className="truncate">{categoria.nombre}</span>
+                  </label>
+                )) : (
+                  <p className="text-xs text-gray-500 italic">No hay categorías disponibles</p>
+                )}
+              </div>
+            </div>
+
+            {/* Filtro por Estado de Pago */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Estado de Pago</label>
+              <select
+                value={filters.paymentStatus}
+                onChange={(e) => handleFilterChange('paymentStatus', e.target.value)}
+                className="w-full text-xs border border-gray-300 rounded px-2 py-1"
+              >
+                <option value="all">Todos</option>
+                <option value="paid">Pagado</option>
+                <option value="pending">Pendiente</option>
+                <option value="partial">Pago Parcial</option>
+              </select>
+            </div>
+
+            {/* NUEVO: Filtro por Estado de Visibilidad */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                <div className="flex items-center gap-1">
+                  <GoEye className="w-3 h-3" />
+                  Estado de Visibilidad
+                </div>
+              </label>
+              <select
+                value={filters.visibilityStatus}
+                onChange={(e) => handleFilterChange('visibilityStatus', e.target.value)}
+                className="w-full text-xs border border-gray-300 rounded px-2 py-1"
+              >
+                <option value="all">Todos</option>
+                <option value="visible">Solo Visibles</option>
+                <option value="hidden">Solo Ocultos</option>
+              </select>
+              <div className="text-xs text-gray-500 mt-1">
+                Filtra partidas e items según su estado de visibilidad
+              </div>
+            </div>
+
+            {/* Filtro por Rango de Montos */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Rango de Montos</label>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  placeholder="Mín"
+                  value={filters.amountRange.min}
+                  onChange={(e) => handleFilterChange('amountRange', { ...filters.amountRange, min: e.target.value })}
+                  className="flex-1 text-xs border border-gray-300 rounded px-2 py-1"
+                />
+                <input
+                  type="number"
+                  placeholder="Máx"
+                  value={filters.amountRange.max}
+                  onChange={(e) => handleFilterChange('amountRange', { ...filters.amountRange, max: e.target.value })}
+                  className="flex-1 text-xs border border-gray-300 rounded px-2 py-1"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* [Resto de los modales y componentes permanecen igual...] */}
+      
       {/* Modal de Información del Evento */}
       {showEventInfoModal && (
         <div className="event-info-modal absolute top-12 left-3 bg-white shadow-lg rounded border z-50 w-80 max-w-[calc(100vw-24px)]">
@@ -1220,6 +1433,9 @@ export const SmartSpreadsheetView2 = () => {
         </div>
       )}
 
+      {/* [Resto de modales: RelacionarPagoModal, ServisiosListModal, showOptionsMenu, showDeleteModal, showColumnsConfig...] */}
+      {/* [Tabla completa...] */}
+      
       {/* Modales adicionales */}
       {RelacionarPagoModal.crear && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -1299,108 +1515,6 @@ export const SmartSpreadsheetView2 = () => {
                     'Eliminar'
                   )}
                 </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de Filtros */}
-      {showFiltersModal && (
-        <div className="filters-modal absolute top-12 left-3 bg-white shadow-lg rounded border z-50 w-80 max-w-[calc(100vw-24px)]">
-          <div className="p-3 border-b">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-gray-800 text-sm">Filtros</h3>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={clearFilters}
-                  className="text-xs text-gray-500 hover:text-gray-700"
-                >
-                  Limpiar
-                </button>
-                <button
-                  onClick={() => setShowFiltersModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <IoCloseOutline className="w-3 h-3" />
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          <div className="p-3 space-y-3 max-h-80 overflow-y-auto">
-            {/* Vista de Detalle */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Vista de Detalle</label>
-              <select 
-                value={viewLevel} 
-                onChange={(e) => setViewLevel(Number(e.target.value))}
-                className="w-full text-xs border border-gray-300 rounded px-2 py-1"
-              >
-                <option value={1}>Solo Categorías</option>
-                <option value={2}>Categorías + Gastos</option>
-                <option value={3}>Detalle Completo</option>
-              </select>
-            </div>
-
-            {/* Filtro por Categorías */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Categorías</label>
-              <div className="space-y-1 max-h-24 overflow-y-auto">
-                {categorias_array && Array.isArray(categorias_array) ? categorias_array.map(categoria => (
-                  <label key={categoria._id} className="flex items-center text-xs">
-                    <input
-                      type="checkbox"
-                      checked={filters.categories.includes(categoria._id)}
-                      onChange={(e) => {
-                        const newCategories = e.target.checked
-                          ? [...filters.categories, categoria._id]
-                          : filters.categories.filter(id => id !== categoria._id);
-                        handleFilterChange('categories', newCategories);
-                      }}
-                      className="mr-2 rounded text-xs"
-                    />
-                    <span className="truncate">{categoria.nombre}</span>
-                  </label>
-                )) : (
-                  <p className="text-xs text-gray-500 italic">No hay categorías disponibles</p>
-                )}
-              </div>
-            </div>
-
-            {/* Filtro por Estado de Pago */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Estado de Pago</label>
-              <select
-                value={filters.paymentStatus}
-                onChange={(e) => handleFilterChange('paymentStatus', e.target.value)}
-                className="w-full text-xs border border-gray-300 rounded px-2 py-1"
-              >
-                <option value="all">Todos</option>
-                <option value="paid">Pagado</option>
-                <option value="pending">Pendiente</option>
-                <option value="partial">Pago Parcial</option>
-              </select>
-            </div>
-
-            {/* Filtro por Rango de Montos */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Rango de Montos</label>
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  placeholder="Mín"
-                  value={filters.amountRange.min}
-                  onChange={(e) => handleFilterChange('amountRange', { ...filters.amountRange, min: e.target.value })}
-                  className="flex-1 text-xs border border-gray-300 rounded px-2 py-1"
-                />
-                <input
-                  type="number"
-                  placeholder="Máx"
-                  value={filters.amountRange.max}
-                  onChange={(e) => handleFilterChange('amountRange', { ...filters.amountRange, max: e.target.value })}
-                  className="flex-1 text-xs border border-gray-300 rounded px-2 py-1"
-                />
               </div>
             </div>
           </div>
@@ -1622,9 +1736,15 @@ export const SmartSpreadsheetView2 = () => {
                     )}
                     {columnConfig.estimado.visible && event?.presupuesto_objeto?.viewEstimates && (
                       <td className="p-2 border-r text-right text-xs group-hover:bg-gray-100">
-                        <span className="text-blue-600">
-                          {formatNumber(row.estimado)}
-                        </span>
+                        {row.type === 'category' ? (
+                          <span className="text-blue-600">
+                            {formatNumber(row.estimado)}
+                          </span>
+                        ) : (
+                          <span className="text-gray-300">
+                            —
+                          </span>
+                        )}
                       </td>
                     )}
                     {columnConfig.pagado.visible && (

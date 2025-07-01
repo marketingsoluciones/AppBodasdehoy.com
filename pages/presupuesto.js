@@ -241,7 +241,8 @@ const Presupuesto = () => {
                       exit={{ opacity: 0 }}
                       className="w-full h-full gap-6 pt-2 md:pr-0"
                     >
-                      <ExcelView setShowCategoria={setShowCategoria} categorias_array={categorias} showCategoria={showCategoria} />
+                      <SmartSpreadsheetView2/>
+                      {/* <ExcelView setShowCategoria={setShowCategoria} categorias_array={categorias} showCategoria={showCategoria} /> */}
                     </motion.div>
                   )
                 }
