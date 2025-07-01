@@ -22,7 +22,7 @@ export interface TableRow {
   gastoOriginal?: any;
   isEditable?: boolean;
   items?: TableRow[];
-  eventKey?: number;
+  eventKey?: string;
 }
 
 export interface TableFilters {

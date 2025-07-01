@@ -399,8 +399,11 @@ export const SmartSpreadsheetView2 = () => {
       };
 
       const tableContainer = (e.target as Element).closest('.table-container') || document.querySelector('[class*="overflow-auto"]');
+      let tableRect = tableContainer?.getBoundingClientRect();
+
+      // Normaliza el rectángulo para evitar problemas de tipos con DOMRect
       const domRect = tableContainer?.getBoundingClientRect();
-      const tableRect = domRect
+      tableRect = domRect
         ? {
             left: domRect.left,
             top: domRect.top,
@@ -408,6 +411,9 @@ export const SmartSpreadsheetView2 = () => {
             bottom: domRect.bottom,
             width: domRect.right - domRect.left,
             height: domRect.bottom - domRect.top,
+            x: domRect.x,
+            y: domRect.y,
+            toJSON: () => domRect.toJSON(),
           }
         : {
             left: 0,
@@ -416,6 +422,9 @@ export const SmartSpreadsheetView2 = () => {
             bottom: window.innerHeight,
             width: window.innerWidth,
             height: window.innerHeight,
+            x: 0,
+            y: 0,
+            toJSON: () => ({}),
           };
       
       let position;

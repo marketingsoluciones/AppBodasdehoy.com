@@ -8,8 +8,62 @@ export const useSmartTableData = (
   expandedCategories: Set<string>,
   filters: TableFilters,
   totalStimatedGuests: { adults: number; children: number },
-  event: any
+  event: any,
+  updateTrigger?: number // Nuevo parámetro para forzar actualizaciones
 ) => {
+  
+  // Función para calcular la cantidad según la unidad
+  const calculateCantidad = useCallback((item: any) => {
+    if (!item || !item.unidad) return item?.cantidad || 0;
+    
+    switch (item.unidad) {
+      case 'xAdultos.':
+        return totalStimatedGuests.adults || 0;
+      case 'xNiños.':
+        return totalStimatedGuests.children || 0;
+      case 'xInv.':
+        return (totalStimatedGuests.adults || 0) + (totalStimatedGuests.children || 0);
+      case 'xUni.':
+      default:
+        return item.cantidad || 0;
+    }
+  }, [totalStimatedGuests]);
+
+  // Función para calcular el total de un item
+  const calculateItemTotal = useCallback((item: any) => {
+    const cantidad = calculateCantidad(item);
+    const valorUnitario = item.valor_unitario || 0;
+    return Math.round(cantidad * valorUnitario * 100) / 100;
+  }, [calculateCantidad]);
+
+  // Función para calcular el total de un gasto
+  const calculateGastoTotal = useCallback((gasto: any) => {
+    if (!gasto) return 0;
+    
+    // Si el gasto tiene items, calcular desde los items
+    if (gasto.items_array && Array.isArray(gasto.items_array) && gasto.items_array.length > 0) {
+      const total = gasto.items_array.reduce((acc: number, item: any) => {
+        return acc + calculateItemTotal(item);
+      }, 0);
+      return Math.round(total * 100) / 100;
+    }
+    
+    // Si no tiene items, usar el coste_final del gasto
+    return gasto.coste_final || 0;
+  }, [calculateItemTotal]);
+
+  // Función para calcular el total de una categoría
+  const calculateCategoriaTotal = useCallback((categoria: any) => {
+    if (!categoria || !categoria.gastos_array || !Array.isArray(categoria.gastos_array)) {
+      return 0;
+    }
+    
+    const total = categoria.gastos_array.reduce((acc: number, gasto: any) => {
+      return acc + calculateGastoTotal(gasto);
+    }, 0);
+    
+    return Math.round(total * 100) / 100;
+  }, [calculateGastoTotal]);
   
   // Función para aplicar filtros
   const applyFilters = useCallback((data: TableRow[]) => {
@@ -89,15 +143,56 @@ export const useSmartTableData = (
     return !gasto.items_array || !Array.isArray(gasto.items_array) || gasto.items_array.length === 0;
   }, []);
 
-  // Generar datos de la tabla
+  // Crear un key de dependencia más específico para detectar cambios
+  const eventDependencyKey = useMemo(() => {
+    console.log('🔑 Generando nuevo eventDependencyKey...');
+    
+    if (!event?.presupuesto_objeto?.categorias_array) {
+      const emptyKey = `empty-${Date.now()}`;
+      console.log('📭 Key para evento vacío:', emptyKey);
+      return emptyKey;
+    }
+    
+    // Crear una cadena única basada en los valores que afectan los cálculos
+    const keyParts = [
+      `trigger-${updateTrigger}`,
+      `guests-${totalStimatedGuests.adults}-${totalStimatedGuests.children}`,
+      `level-${viewLevel}`,
+      `expanded-${Array.from(expandedCategories).sort().join(',')}`,
+      `lastUpdate-${event._lastUpdate || 'none'}`
+    ];
+    
+    // Agregar información específica de cada categoría, gasto e item
+    event.presupuesto_objeto.categorias_array.forEach(categoria => {
+      keyParts.push(`cat-${categoria._id}-${categoria.nombre}-${categoria.coste_final}`);
+      
+      if (categoria.gastos_array) {
+        categoria.gastos_array.forEach(gasto => {
+          keyParts.push(`gas-${gasto._id}-${gasto.nombre}-${gasto.coste_final}`);
+          
+          if (gasto.items_array) {
+            gasto.items_array.forEach(item => {
+              keyParts.push(`itm-${item._id}-${item.cantidad}-${item.valor_unitario}-${item.unidad}`);
+            });
+          }
+        });
+      }
+    });
+    
+    const finalKey = keyParts.join('|');
+    console.log('🔑 Nuevo eventDependencyKey generado. Hash:', finalKey.substring(0, 100) + '...');
+    return finalKey;
+  }, [event, updateTrigger, totalStimatedGuests, viewLevel, expandedCategories]);
+
+  // Generar datos de la tabla con cálculos automáticos
   const tableData = useMemo(() => {
+    console.log('🔄 Regenerando tableData con key:', eventDependencyKey);
+    
     const rows: TableRow[] = [];
     
     if (!categorias_array || !Array.isArray(categorias_array)) {
       return [];
     }
-    
-    const eventKey = Date.now();
     
     categorias_array.forEach(categoria => {
       if (!categoria || !categoria._id) return;
@@ -122,12 +217,8 @@ export const useSmartTableData = (
             gasto.items_array.forEach(item => {
               if (!item || !item._id) return;
               
-              const cantidad = item.unidad === 'xAdultos.' ? totalStimatedGuests.adults :
-                             item.unidad === 'xNiños.' ? totalStimatedGuests.children :
-                             item.unidad === 'xInv.' ? (totalStimatedGuests.adults + totalStimatedGuests.children) :
-                             item.cantidad || 0;
-              
-              const totalItem = cantidad * (item.valor_unitario || 0);
+              const cantidad = calculateCantidad(item);
+              const totalItem = calculateItemTotal(item);
               
               if (viewLevel >= 3) {
                 itemsData.push({
@@ -148,13 +239,15 @@ export const useSmartTableData = (
                   gastoID: gasto._id,
                   itemID: item._id,
                   object: 'item',
-                  eventKey: eventKey
+                  eventKey: eventDependencyKey // Usar el nuevo key
                 });
               }
             });
           }
           
           if (viewLevel >= 2) {
+            const gastoTotal = calculateGastoTotal(gasto);
+            
             gastosData.push({
               type: 'expense',
               id: gasto._id,
@@ -165,9 +258,9 @@ export const useSmartTableData = (
               item: '',
               valorUnitario: 0,
               estimado: null,
-              total: gasto.coste_final || 0,
+              total: gastoTotal,
               pagado: gasto.pagado || 0,
-              pendiente: (gasto.coste_final || 0) - (gasto.pagado || 0),
+              pendiente: gastoTotal - (gasto.pagado || 0),
               level: 1,
               categoriaID: categoria._id,
               gastoID: gasto._id,
@@ -176,11 +269,14 @@ export const useSmartTableData = (
               gastoOriginal: gasto,
               isEditable: isGastoEditable(gasto),
               items: itemsData,
-              eventKey: eventKey
+              eventKey: eventDependencyKey // Usar el nuevo key
             });
           }
         });
       }
+      
+      // Calcular el total real de la categoría
+      const categoriaTotal = calculateCategoriaTotal(categoria);
       
       // Fila de categoría
       rows.push({
@@ -193,9 +289,9 @@ export const useSmartTableData = (
         item: '',
         valorUnitario: 0,
         estimado: categoria.coste_estimado || 0,
-        total: categoria.coste_final || 0,
+        total: categoriaTotal,
         pagado: categoria.pagado || 0,
-        pendiente: (categoria.coste_final || 0) - (categoria.pagado || 0),
+        pendiente: categoriaTotal - (categoria.pagado || 0),
         level: 0,
         expandable: true,
         expanded: expandedCategories.has(categoria._id),
@@ -203,7 +299,7 @@ export const useSmartTableData = (
         gastoID: null,
         itemID: null,
         object: 'categoria',
-        eventKey: eventKey
+        eventKey: eventDependencyKey // Usar el nuevo key
       });
 
       // Agregar gastos si está expandida
@@ -221,23 +317,35 @@ export const useSmartTableData = (
     });
 
     return applyFilters(rows);
-  }, [viewLevel, expandedCategories, categorias_array, totalStimatedGuests, filters, event?.presupuesto_objeto, applyFilters, isGastoEditable]);
+  }, [
+    eventDependencyKey, // Nueva dependencia principal que detecta todos los cambios
+    filters,
+    applyFilters
+  ]);
 
-  // Calcular totales
+  // Calcular totales con cálculos actualizados
   const totals = useMemo((): TableTotals => {
+    console.log('🧮 Recalculando totales generales...');
     const categoryRows = tableData.filter(row => row.type === 'category');
     
-    return {
+    const newTotals = {
       estimado: categoryRows.reduce((acc, cat) => acc + (cat.estimado || 0), 0),
       total: categoryRows.reduce((acc, cat) => acc + (cat.total || 0), 0),
       pagado: categoryRows.reduce((acc, cat) => acc + (cat.pagado || 0), 0),
     };
+    
+    console.log('📊 Nuevos totales:', newTotals);
+    return newTotals;
   }, [tableData]);
 
   return {
     tableData,
     totals,
-    isGastoEditable
+    isGastoEditable,
+    calculateCantidad,
+    calculateItemTotal,
+    calculateGastoTotal,
+    calculateCategoriaTotal
   };
 };
 
