@@ -11,11 +11,11 @@ export const useSmartTableData = (
   event: any,
   updateTrigger?: number // Nuevo parámetro para forzar actualizaciones
 ) => {
-  
+
   // Función para calcular la cantidad según la unidad
   const calculateCantidad = useCallback((item: any) => {
     if (!item || !item.unidad) return item?.cantidad || 0;
-    
+
     switch (item.unidad) {
       case 'xAdultos.':
         return totalStimatedGuests.adults || 0;
@@ -39,7 +39,7 @@ export const useSmartTableData = (
   // Función para calcular el total de un gasto
   const calculateGastoTotal = useCallback((gasto: any) => {
     if (!gasto) return 0;
-    
+
     // Si el gasto tiene items, calcular desde los items
     if (gasto.items_array && Array.isArray(gasto.items_array) && gasto.items_array.length > 0) {
       const total = gasto.items_array.reduce((acc: number, item: any) => {
@@ -47,7 +47,7 @@ export const useSmartTableData = (
       }, 0);
       return Math.round(total * 100) / 100;
     }
-    
+
     // Si no tiene items, usar el coste_final del gasto
     return gasto.coste_final || 0;
   }, [calculateItemTotal]);
@@ -57,21 +57,21 @@ export const useSmartTableData = (
     if (!categoria || !categoria.gastos_array || !Array.isArray(categoria.gastos_array)) {
       return 0;
     }
-    
+
     const total = categoria.gastos_array.reduce((acc: number, gasto: any) => {
       return acc + calculateGastoTotal(gasto);
     }, 0);
-    
+
     return Math.round(total * 100) / 100;
   }, [calculateGastoTotal]);
-  
+
   // Función para aplicar filtros
   const applyFilters = useCallback((data: TableRow[]) => {
     return data.filter(row => {
       // Filtro por texto de búsqueda
       if (filters.searchText) {
         const searchLower = filters.searchText.toLowerCase();
-        const matchesSearch = 
+        const matchesSearch =
           row.categoria?.toLowerCase().includes(searchLower) ||
           row.partida?.toLowerCase().includes(searchLower) ||
           row.item?.toLowerCase().includes(searchLower);
@@ -106,7 +106,7 @@ export const useSmartTableData = (
       // Filtro por estado de visibilidad
       if (filters.visibilityStatus !== 'all') {
         let isHidden = false;
-        
+
         if (row.type === 'expense') {
           isHidden = row.gastoOriginal?.estatus === false;
         } else if (row.type === 'item') {
@@ -115,7 +115,7 @@ export const useSmartTableData = (
           const itemOriginal = gasto?.items_array?.find(item => item._id === row.itemID);
           isHidden = itemOriginal?.estatus === true;
         }
-        
+
         switch (filters.visibilityStatus) {
           case 'visible':
             if (isHidden) return false;
@@ -144,13 +144,15 @@ export const useSmartTableData = (
   }, []);
 
   // Crear un key de dependencia más específico para detectar cambios
+  // En el archivo: components/Presupuesto/PresupuestoV2/hooks.ts
+  // Buscar la función eventDependencyKey y reemplazar esta parte:
+
   const eventDependencyKey = useMemo(() => {
-    
     if (!event?.presupuesto_objeto?.categorias_array) {
       const emptyKey = `empty-${Date.now()}`;
       return emptyKey;
     }
-    
+
     // Crear una cadena única basada en los valores que afectan los cálculos
     const keyParts = [
       `trigger-${updateTrigger}`,
@@ -159,15 +161,24 @@ export const useSmartTableData = (
       `expanded-${Array.from(expandedCategories).sort().join(',')}`,
       `lastUpdate-${event._lastUpdate || 'none'}`
     ];
-    
+
     // Agregar información específica de cada categoría, gasto e item
     event.presupuesto_objeto.categorias_array.forEach(categoria => {
-      keyParts.push(`cat-${categoria._id}-${categoria.nombre}-${categoria.coste_final}`);
-      
+      keyParts.push(`cat-${categoria._id}-${categoria.nombre}-${categoria.coste_final}-${categoria.pagado || 0}`);
+
       if (categoria.gastos_array) {
         categoria.gastos_array.forEach(gasto => {
-          keyParts.push(`gas-${gasto._id}-${gasto.nombre}-${gasto.coste_final}`);
-          
+          // INCLUIR INFORMACIÓN DE PAGOS AQUÍ 👇
+          keyParts.push(`gas-${gasto._id}-${gasto.nombre}-${gasto.coste_final}-${gasto.pagado || 0}`);
+
+          // También incluir información de pagos_array si existe
+          if (gasto.pagos_array && Array.isArray(gasto.pagos_array)) {
+            const pagosInfo = gasto.pagos_array.map(pago =>
+              `pago-${pago._id}-${pago.importe}-${pago.estado}`
+            ).join(',');
+            keyParts.push(`pagos-${gasto._id}-[${pagosInfo}]`);
+          }
+
           if (gasto.items_array) {
             gasto.items_array.forEach(item => {
               keyParts.push(`itm-${item._id}-${item.cantidad}-${item.valor_unitario}-${item.unidad}`);
@@ -176,46 +187,46 @@ export const useSmartTableData = (
         });
       }
     });
-    
+
     const finalKey = keyParts.join('|');
     return finalKey;
   }, [event, updateTrigger, totalStimatedGuests, viewLevel, expandedCategories]);
 
   // Generar datos de la tabla con cálculos automáticos
   const tableData = useMemo(() => {
-    
+
     const rows: TableRow[] = [];
-    
+
     if (!categorias_array || !Array.isArray(categorias_array)) {
       return [];
     }
-    
+
     categorias_array.forEach(categoria => {
       if (!categoria || !categoria._id) return;
-      
+
       if (!categoria.gastos_array || !Array.isArray(categoria.gastos_array)) {
         categoria.gastos_array = [];
       }
-      
+
       const gastosData: TableRow[] = [];
-      
+
       if (categoria.gastos_array && Array.isArray(categoria.gastos_array)) {
         categoria.gastos_array.forEach(gasto => {
           if (!gasto || !gasto._id) return;
-          
+
           if (!gasto.items_array || !Array.isArray(gasto.items_array)) {
             gasto.items_array = [];
           }
-          
+
           const itemsData: TableRow[] = [];
-          
+
           if (gasto.items_array && Array.isArray(gasto.items_array) && gasto.items_array.length > 0) {
             gasto.items_array.forEach(item => {
               if (!item || !item._id) return;
-              
+
               const cantidad = calculateCantidad(item);
               const totalItem = calculateItemTotal(item);
-              
+
               if (viewLevel >= 3) {
                 itemsData.push({
                   type: 'item',
@@ -240,10 +251,10 @@ export const useSmartTableData = (
               }
             });
           }
-          
+
           if (viewLevel >= 2) {
             const gastoTotal = calculateGastoTotal(gasto);
-            
+
             gastosData.push({
               type: 'expense',
               id: gasto._id,
@@ -270,10 +281,10 @@ export const useSmartTableData = (
           }
         });
       }
-      
+
       // Calcular el total real de la categoría
       const categoriaTotal = calculateCategoriaTotal(categoria);
-      
+
       // Fila de categoría
       rows.push({
         type: 'category',
@@ -302,7 +313,7 @@ export const useSmartTableData = (
       if (expandedCategories.has(categoria._id) && viewLevel >= 2) {
         gastosData.forEach(gastoData => {
           rows.push(gastoData);
-          
+
           if (gastoData.items && gastoData.items.length > 0) {
             gastoData.items.forEach(itemData => {
               rows.push(itemData);
@@ -322,13 +333,13 @@ export const useSmartTableData = (
   // Calcular totales con cálculos actualizados
   const totals = useMemo((): TableTotals => {
     const categoryRows = tableData.filter(row => row.type === 'category');
-    
+
     const newTotals = {
       estimado: categoryRows.reduce((acc, cat) => acc + (cat.estimado || 0), 0),
       total: categoryRows.reduce((acc, cat) => acc + (cat.total || 0), 0),
       pagado: categoryRows.reduce((acc, cat) => acc + (cat.pagado || 0), 0),
     };
-    
+
     return newTotals;
   }, [tableData]);
 
