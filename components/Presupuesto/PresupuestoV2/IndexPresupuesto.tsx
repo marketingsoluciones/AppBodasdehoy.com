@@ -572,7 +572,7 @@ export const SmartSpreadsheetView2 = () => {
   }
 
   return (
-    <div className="w-full h-full bg-gray-50 flex flex-col relative">
+    <div className="pl-2  h-full bg-gray-50 flex flex-col  relative">
       {/* Header con controles */}
       <SmartSpreadsheetHeader
         filters={filters}

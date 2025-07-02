@@ -116,9 +116,7 @@ export const FiltersModal: React.FC<FiltersModalProps> = ({
             <option value="visible">Solo Visibles</option>
             <option value="hidden">Solo Ocultos</option>
           </select>
-          <div className="text-xs text-gray-500 mt-1">
-            Filtra partidas e items según su estado de visibilidad
-          </div>
+          
         </div>
 
         {/* Filtro por Rango de Montos */}
@@ -130,14 +128,14 @@ export const FiltersModal: React.FC<FiltersModalProps> = ({
               placeholder="Mín"
               value={filters.amountRange.min}
               onChange={(e) => onFilterChange('amountRange', { ...filters.amountRange, min: e.target.value })}
-              className="flex-1 text-xs border border-gray-300 rounded px-2 py-1"
+              className="flex-1 text-xs border border-gray-300 rounded px-2 py-1 w-12"
             />
             <input
               type="number"
               placeholder="Máx"
               value={filters.amountRange.max}
               onChange={(e) => onFilterChange('amountRange', { ...filters.amountRange, max: e.target.value })}
-              className="flex-1 text-xs border border-gray-300 rounded px-2 py-1"
+              className="flex-1 text-xs border border-gray-300 rounded px-2 py-1 w-12"
             />
           </div>
         </div>

@@ -55,7 +55,7 @@ const Presupuesto = () => {
                 <DuplicatePresupuesto showModalDuplicate={showModalDuplicate} setModal={setShowModalDuplicate} />
               </div>
             )}
-            {
+            {/* {
               showModalPresupuesto && (
                 <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex justify-center items-center">
                   <div className="bg-white w-[90%] h-[90%] rounded-lg overflow-auto shadow-lg relative">
@@ -71,11 +71,10 @@ const Presupuesto = () => {
                       setShowCategoria={setShowCategoria}
                       showCategoria={showCategoria}
                     />
-                    {/* <ResumenPresupuestoModal categorias={categorias} presupuesto={event.presupuesto_objeto} estimadoState={event?.presupuesto_objeto?.viewEstimates} /> */}
                   </div>
                 </div>
               )
-            }
+            } */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -239,7 +238,7 @@ const Presupuesto = () => {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="w-full h-full gap-6 pt-2 md:pr-0"
+                      className=" w-full h-full gap-6 pt-2 md:pr-0"
                     >
                       <SmartSpreadsheetView2/>
                       {/* <ExcelView setShowCategoria={setShowCategoria} categorias_array={categorias} showCategoria={showCategoria} /> */}
