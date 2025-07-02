@@ -62,9 +62,9 @@ export const FiltersModal: React.FC<FiltersModalProps> = ({
         {/* Filtro por Categorías */}
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">Categorías</label>
-          <div className="space-y-1 max-h-24 overflow-y-auto">
+          <div className="space-y-1 max-h-24 overflow-y-auto py-1">
             {categorias_array && Array.isArray(categorias_array) ? categorias_array.map(categoria => (
-              <label key={categoria._id} className="flex items-center text-xs">
+              <label key={categoria._id} className="flex items-center text-xs pl-2 ">
                 <input
                   type="checkbox"
                   checked={filters.categories.includes(categoria._id)}
@@ -74,7 +74,7 @@ export const FiltersModal: React.FC<FiltersModalProps> = ({
                       : filters.categories.filter(id => id !== categoria._id);
                     onFilterChange('categories', newCategories);
                   }}
-                  className="mr-2 rounded text-xs"
+                  className="mr-2 rounded text-xs focus:ring-none focus:ring-offset-0"
                 />
                 <span className="truncate">{categoria.nombre}</span>
               </label>

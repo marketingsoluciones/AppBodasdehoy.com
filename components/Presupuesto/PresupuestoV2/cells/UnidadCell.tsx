@@ -33,7 +33,7 @@ export const UnidadCell: React.FC<UnidadCellProps> = ({ row, onRowChange }) => {
         accessor="unidad"
         value={row.unidad}
         optionsSelect={optionsSelect}
-        size={60}
+        size={70}
         handleChange={(values) => onRowChange(values, mockInfo)}
       />
     );

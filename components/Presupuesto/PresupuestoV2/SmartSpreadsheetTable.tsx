@@ -204,14 +204,14 @@ export const SmartSpreadsheetTable: React.FC<SmartSpreadsheetTableProps> = ({
                   )}
                   {columnConfig.pagado.visible && (
                     <td className="p-2 border-r text-right text-xs group-hover:bg-gray-100">
-                      <span className="text-green-600">
+                      <span className="text-green">
                         {formatNumber(row.pagado)}
                       </span>
                     </td>
                   )}
                   {columnConfig.pendiente.visible && (
                     <td className="p-2 border-r text-right text-xs group-hover:bg-gray-100">
-                      <span className="text-red-600">
+                      <span className="text-red">
                         {formatNumber(row.pendiente)}
                       </span>
                     </td>
