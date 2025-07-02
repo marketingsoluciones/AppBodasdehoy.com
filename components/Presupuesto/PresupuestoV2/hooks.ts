@@ -145,11 +145,9 @@ export const useSmartTableData = (
 
   // Crear un key de dependencia más específico para detectar cambios
   const eventDependencyKey = useMemo(() => {
-    console.log('🔑 Generando nuevo eventDependencyKey...');
     
     if (!event?.presupuesto_objeto?.categorias_array) {
       const emptyKey = `empty-${Date.now()}`;
-      console.log('📭 Key para evento vacío:', emptyKey);
       return emptyKey;
     }
     
@@ -180,13 +178,11 @@ export const useSmartTableData = (
     });
     
     const finalKey = keyParts.join('|');
-    console.log('🔑 Nuevo eventDependencyKey generado. Hash:', finalKey.substring(0, 100) + '...');
     return finalKey;
   }, [event, updateTrigger, totalStimatedGuests, viewLevel, expandedCategories]);
 
   // Generar datos de la tabla con cálculos automáticos
   const tableData = useMemo(() => {
-    console.log('🔄 Regenerando tableData con key:', eventDependencyKey);
     
     const rows: TableRow[] = [];
     
@@ -325,7 +321,6 @@ export const useSmartTableData = (
 
   // Calcular totales con cálculos actualizados
   const totals = useMemo((): TableTotals => {
-    console.log('🧮 Recalculando totales generales...');
     const categoryRows = tableData.filter(row => row.type === 'category');
     
     const newTotals = {
@@ -334,7 +329,6 @@ export const useSmartTableData = (
       pagado: categoryRows.reduce((acc, cat) => acc + (cat.pagado || 0), 0),
     };
     
-    console.log('📊 Nuevos totales:', newTotals);
     return newTotals;
   }, [tableData]);
 

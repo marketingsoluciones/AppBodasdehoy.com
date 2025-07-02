@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { IoCloseOutline } from "react-icons/io5";
 import { ColumnConfig } from '../types';
 
@@ -27,6 +27,27 @@ export const ColumnsConfigModal: React.FC<ColumnsConfigModalProps> = ({
     acciones: 'Acciones'
   };
 
+  // Calcular el estado del checkbox "Seleccionar todo"
+  const allColumnsState = useMemo(() => {
+    const visibleColumns = Object.values(columnConfig).filter(config => config.visible).length;
+    const totalColumns = Object.keys(columnConfig).length;
+    
+    if (visibleColumns === 0) return 'none';
+    if (visibleColumns === totalColumns) return 'all';
+    return 'some';
+  }, [columnConfig]);
+
+  // Función para manejar seleccionar/deseleccionar todo
+  const handleToggleAll = () => {
+    const shouldSelectAll = allColumnsState !== 'all';
+    
+    Object.keys(columnConfig).forEach(key => {
+      if (columnConfig[key as keyof ColumnConfig].visible !== shouldSelectAll) {
+        toggleColumnVisibility(key as keyof ColumnConfig);
+      }
+    });
+  };
+
   return (
     <div className="columns-modal absolute top-12 left-3 bg-white shadow-lg rounded border z-50 w-52 max-w-[calc(100vw-24px)]">
       <div className="p-3 border-b">
@@ -41,14 +62,33 @@ export const ColumnsConfigModal: React.FC<ColumnsConfigModalProps> = ({
         </div>
       </div>
       
-      <div className="p-3 space-y-1 max-h-80 overflow-y-auto">
+      <div className="p-3 max-h-80 overflow-y-auto">
+        {/* Checkbox para seleccionar/deseleccionar todo */}
+        <div className="border-b border-gray-200 pb-1 mb-1">
+          <label className="flex items-center text-xs font-medium text-gray-700">
+            <input
+              type="checkbox"
+              checked={allColumnsState === 'all'}
+              ref={(el) => {
+                if (el) el.indeterminate = allColumnsState === 'some';
+              }}
+              onChange={handleToggleAll}
+              className="mr-2 rounded text-xs focus:ring-1 focus:ring-blue-500"
+            />
+            <span className="truncate">
+              {allColumnsState === 'all' ? 'Deseleccionar todo' : 'Seleccionar todo'}
+            </span>
+          </label>
+        </div>
+
+        {/* Lista de columnas individuales */}
         {Object.entries(columnConfig).map(([key, config]) => (
-          <label key={key} className="flex items-center text-xs">
+          <label key={key} className="flex items-center text-xs hover:bg-gray-50 p-1 rounded">
             <input
               type="checkbox"
               checked={config.visible}
               onChange={() => toggleColumnVisibility(key as keyof ColumnConfig)}
-              className="mr-2 rounded text-xs"
+              className="mr-2 rounded text-xs focus:ring-1 focus:ring-blue-500"
             />
             <span className="truncate">
               {columnLabels[key as keyof typeof columnLabels]}

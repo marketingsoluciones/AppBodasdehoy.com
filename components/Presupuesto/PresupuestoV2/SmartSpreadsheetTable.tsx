@@ -57,7 +57,7 @@ export const SmartSpreadsheetTable: React.FC<SmartSpreadsheetTableProps> = ({
             pendiente: 0,
             level: 0
           };
-          
+
           onOptionsMenu(e, mockRow, true);
           e.preventDefault();
         }
@@ -66,57 +66,57 @@ export const SmartSpreadsheetTable: React.FC<SmartSpreadsheetTableProps> = ({
           <thead className="bg-gray-100 sticky top-0 z-20">
             <tr>
               {columnConfig.categoria.visible && (
-                <th className="text-left p-2 font-medium text-gray-700 border-r text-xs sticky left-0 bg-gray-100 z-30" style={{width: columnConfig.categoria.width}}>
+                <th className="text-left p-2 font-medium text-gray-700 border-r text-xs sticky left-0 bg-gray-100 z-30" style={{ width: columnConfig.categoria.width }}>
                   Categoría
                 </th>
               )}
               {columnConfig.partida.visible && (
-                <th className="text-left p-2 font-medium text-gray-700 border-r text-xs sticky bg-gray-100 z-30" style={{width: columnConfig.partida.width, left: columnConfig.categoria.visible ? columnConfig.categoria.width : 0}}>
+                <th className="text-left p-2 font-medium text-gray-700 border-r text-xs sticky bg-gray-100 z-30" style={{ width: columnConfig.partida.width, left: columnConfig.categoria.visible ? columnConfig.categoria.width : 0 }}>
                   Partida de Gasto
                 </th>
               )}
               {columnConfig.unidad.visible && (
-                <th className="text-center p-2 font-medium text-gray-700 border-r text-xs" style={{width: columnConfig.unidad.width}}>
+                <th className="text-center p-2 font-medium text-gray-700 border-r text-xs" style={{ width: columnConfig.unidad.width }}>
                   Unidad
                 </th>
               )}
               {columnConfig.cantidad.visible && (
-                <th className="text-center p-2 font-medium text-gray-700 border-r text-xs" style={{width: columnConfig.cantidad.width}}>
+                <th className="text-center p-2 font-medium text-gray-700 border-r text-xs" style={{ width: columnConfig.cantidad.width }}>
                   Cantidad
                 </th>
               )}
               {columnConfig.item.visible && (
-                <th className="text-left p-2 font-medium text-gray-700 border-r text-xs" style={{width: columnConfig.item.width}}>
+                <th className="text-left p-2 font-medium text-gray-700 border-r text-xs" style={{ width: columnConfig.item.width }}>
                   Item
                 </th>
               )}
               {columnConfig.valorUnitario.visible && (
-                <th className="text-right p-2 font-medium text-gray-700 border-r text-xs" style={{width: columnConfig.valorUnitario.width}}>
+                <th className="text-right p-2 font-medium text-gray-700 border-r text-xs" style={{ width: columnConfig.valorUnitario.width }}>
                   Valor Unitario
                 </th>
               )}
               {columnConfig.total.visible && (
-                <th className="text-right p-2 font-medium text-gray-700 border-r text-xs" style={{width: columnConfig.total.width}}>
+                <th className="text-right p-2 font-medium text-gray-700 border-r text-xs" style={{ width: columnConfig.total.width }}>
                   Coste Total
                 </th>
               )}
               {columnConfig.estimado.visible && event?.presupuesto_objeto?.viewEstimates && (
-                <th className="text-right p-2 font-medium text-gray-700 border-r text-xs" style={{width: columnConfig.estimado.width}}>
+                <th className="text-right p-2 font-medium text-gray-700 border-r text-xs" style={{ width: columnConfig.estimado.width }}>
                   Coste Estimado
                 </th>
               )}
               {columnConfig.pagado.visible && (
-                <th className="text-right p-2 font-medium text-gray-700 border-r text-xs" style={{width: columnConfig.pagado.width}}>
+                <th className="text-right p-2 font-medium text-gray-700 border-r text-xs" style={{ width: columnConfig.pagado.width }}>
                   Pagado
                 </th>
               )}
               {columnConfig.pendiente.visible && (
-                <th className="text-right p-2 font-medium text-gray-700 border-r text-xs" style={{width: columnConfig.pendiente.width}}>
+                <th className="text-right p-2 font-medium text-gray-700 border-r text-xs" style={{ width: columnConfig.pendiente.width }}>
                   Pendiente
                 </th>
               )}
               {columnConfig.acciones.visible && (
-                <th className="text-center p-2 font-medium text-gray-700 text-xs" style={{width: columnConfig.acciones.width}}>
+                <th className="text-center p-2 font-medium text-gray-700 text-xs" style={{ width: columnConfig.acciones.width }}>
                   Acciones
                 </th>
               )}
@@ -124,25 +124,25 @@ export const SmartSpreadsheetTable: React.FC<SmartSpreadsheetTableProps> = ({
           </thead>
           <tbody>
             {tableData.length > 0 ? tableData.map((row, index) => {
-              const bgColor = row.type === 'category' ? 'bg-blue-50' : 
-                             row.type === 'expense' ? 'bg-gray-50' : 'bg-white';
-              const textWeight = row.type === 'category' ? 'font-semibold' : 
-                               row.type === 'expense' ? 'font-medium' : 'font-normal';
+              const bgColor = row.type === 'category' ? 'bg-blue-50' :
+                row.type === 'expense' ? 'bg-gray-50' : 'bg-white';
+              const textWeight = row.type === 'category' ? 'font-semibold' :
+                row.type === 'expense' ? 'font-medium' : 'font-normal';
               const paddingLeft = `${row.level * 16 + 8}px`;
 
               return (
-                <tr 
-                  key={row.id} 
+                <tr
+                  key={row.id}
                   className={`${bgColor} border-b transition-colors group hover:bg-gray-100`}
                   onContextMenu={(e) => {
                     onOptionsMenu(e, row, true);
                   }}
                 >
                   {columnConfig.categoria.visible && (
-                    <td className={`p-2 border-r text-xs sticky left-0 z-10 ${bgColor} group-hover:bg-gray-100`} style={{paddingLeft, width: columnConfig.categoria.width}}>
+                    <td className={`p-2 border-r text-xs sticky left-0 z-10 ${bgColor} group-hover:bg-gray-100`} style={{ paddingLeft, width: columnConfig.categoria.width }}>
                       <div className="flex items-center gap-1">
                         {row.expandable && (
-                          <button 
+                          <button
                             onClick={() => onToggleCategory(row.id)}
                             className="hover:bg-gray-200 p-0.5 rounded flex-shrink-0"
                           >
@@ -156,7 +156,7 @@ export const SmartSpreadsheetTable: React.FC<SmartSpreadsheetTableProps> = ({
                     </td>
                   )}
                   {columnConfig.partida.visible && (
-                    <td className={`p-2 border-r text-left text-xs sticky z-10 ${bgColor} group-hover:bg-gray-100`} style={{width: columnConfig.partida.width, left: columnConfig.categoria.visible ? columnConfig.categoria.width : 0}}>
+                    <td className={`p-2 border-r text-left text-xs sticky z-10 ${bgColor} group-hover:bg-gray-100`} style={{ width: columnConfig.partida.width, left: columnConfig.categoria.visible ? columnConfig.categoria.width : 0 }}>
                       <div className="truncate">
                         <PartidaCell row={row} onRowChange={onRowChange} />
                       </div>
@@ -204,21 +204,34 @@ export const SmartSpreadsheetTable: React.FC<SmartSpreadsheetTableProps> = ({
                   )}
                   {columnConfig.pagado.visible && (
                     <td className="p-2 border-r text-right text-xs group-hover:bg-gray-100">
-                      <span className="text-green">
-                        {formatNumber(row.pagado)}
-                      </span>
+                      {row.type !== 'item' ? (
+                        <span className="text-green">
+                          {formatNumber(row.pagado)}
+                        </span>
+                      ) : (
+                        <span className="text-gray-300">
+                          —
+                        </span>
+                      )}
                     </td>
                   )}
+
                   {columnConfig.pendiente.visible && (
                     <td className="p-2 border-r text-right text-xs group-hover:bg-gray-100">
-                      <span className="text-red">
-                        {formatNumber(row.pendiente)}
-                      </span>
+                      {row.type !== 'item' ? (
+                        <span className="text-red">
+                          {formatNumber(row.pendiente)}
+                        </span>
+                      ) : (
+                        <span className="text-gray-300">
+                          —
+                        </span>
+                      )}
                     </td>
                   )}
                   {columnConfig.acciones.visible && (
                     <td className="p-2 text-center group-hover:bg-gray-100">
-                      <AccionesCell 
+                      <AccionesCell
                         onOptionsClick={(e) => onOptionsMenu(e, row, false)}
                       />
                     </td>
