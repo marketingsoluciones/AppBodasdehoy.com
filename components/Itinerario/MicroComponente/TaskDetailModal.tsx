@@ -396,7 +396,6 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
               showEditTask={showEditTask} 
               setShowEditTask={setShowEditTask} 
               itinerarioID={itinerario._id}
-              onTaskUpdate={handleTaskUpdate}
             />
           </div>
         </ModalLeft>

@@ -63,6 +63,9 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
   tempPastedAndDropFiles?: TempPastedAndDropFile[];
   setTempPastedAndDropFiles?: any;
   isTaskPublic?: boolean;
+  onUpdate?: (taskId: string, updates: Partial<Task>) => void;
+  onUpdateComments?: (taskId: string, newComments: Comment[]) => void;
+  onDeleteComment?: (commentId: string) => void;
 }
 
 // Componente de Tooltip para mostrar información de permisos

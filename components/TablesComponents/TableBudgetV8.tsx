@@ -326,7 +326,11 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
               >
                 X
               </button>
-              <FormAddPago GastoID={RelacionarPagoModal?.id} cate={RelacionarPagoModal?.categoriaID} />
+              <FormAddPago 
+                GastoID={RelacionarPagoModal?.id} 
+                cate={RelacionarPagoModal?.categoriaID} 
+                setGastoID={setRelacionarPagoModal} 
+              /> 
             </div>
           </ClickAwayListener>
         </div>
