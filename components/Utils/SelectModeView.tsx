@@ -30,11 +30,11 @@ export const SelectModeView: FC<props> = ({ value, setValue }) => {
       icon: <HiOutlineViewList className="w-5 h-5" />,
       title: t("NuevaTabla") // Traducción para la nueva opción
     }, */
-    {
+/*     {
       value: "newTable", // Vista de tabla personalizada
       icon: <HiOutlineViewList className="w-5 h-5" />,
       title: t("NewTabla") // Traducción para la nueva opción
-    },
+    }, */
     {
       value: "boardView", // Nueva vista de tablero Kanban
       icon: <TbLayoutKanban className="w-5 h-5" />,
@@ -60,7 +60,7 @@ export const SelectModeView: FC<props> = ({ value, setValue }) => {
   
   return (
     <ClickAwayListener onClickAway={() => setShow(false)} >
-      <div className="relative flex cursor-pointer -translate-y-10 md:translate-y-0  z-[99999]">
+      <div className="relative flex cursor-pointer -translate-y-10 md:translate-y-0 z-10">
         <div onClick={() => { setShow(!show) }} className="inline-flex text-sm gap-0.5 text-gray-700 items-center capitalize">
           {options.find(item => item.value === value)?.icon}
           {t("view")}

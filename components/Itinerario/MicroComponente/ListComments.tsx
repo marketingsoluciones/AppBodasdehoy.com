@@ -16,6 +16,7 @@ import { deleteObject, getStorage, listAll, ref } from "firebase/storage"
 import { downloadFile } from "../../Utils/storages"
 import { useTranslation } from "react-i18next"
 import { useToast } from "../../../hooks/useToast"
+import { useAllowed } from "../../../hooks/useAllowed"
 
 interface props extends HTMLAttributes<HTMLDivElement> {
   itinerario: Itinerary
@@ -24,11 +25,24 @@ interface props extends HTMLAttributes<HTMLDivElement> {
   identifierDisabled?: boolean
   tempPastedAndDropFiles?: TempPastedAndDropFile[]
   nicknameUnregistered?: string
+  onCommentDeleted?: (commentId: string) => void // Nueva prop para notificar eliminación
+  showDeleteButton?: boolean // Nueva prop para controlar si mostrar el botón de eliminar
 }
 
-export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisabled, tempPastedAndDropFiles, nicknameUnregistered, ...props }) => {
+export const ListComments: FC<props> = ({ 
+  itinerario, 
+  task, 
+  item, 
+  identifierDisabled, 
+  tempPastedAndDropFiles, 
+  nicknameUnregistered, 
+  onCommentDeleted,
+  showDeleteButton = false, // Por defecto no mostrar el botón (se maneja desde el padre)
+  ...props 
+}) => {
   const { user, config } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
+  const [isAllowed, ht] = useAllowed()
   const router = useRouter()
   const userAsd = event?.detalles_compartidos_array
     ? [...event?.detalles_compartidos_array, event?.detalles_usuario_id, user]?.find(elem => elem?.uid === item?.uid) as detalle_compartidos_array
@@ -47,35 +61,67 @@ export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisa
     }
   }, [router])
 
-  const handleDelete = () => {
-    const storageRef = ref(storage, `event-${event?._id}//itinerary-${itinerario?._id}//task-${task._id}//comment-${item?._id}`)
-    listAll(storageRef)
-      .then((res) => {
-        res.items.forEach((itemRef) => {
-          deleteObject(itemRef)
-            .catch((error) => {
-              console.error(`Error al eliminar el archivo ${itemRef.name}:`, error);
-            });
-        });
-      })
-      .catch((error) => {
-        console.error('Error al listar los archivos:', error);
-      });
-    fetchApiEventos({
-      query: queries.deleteComment,
-      variables: {
-        eventID: event._id,
-        itinerarioID: itinerario._id,
-        taskID: task._id,
-        commentID: item?._id
+  // Función mejorada para eliminar comentarios que puede ser reutilizada
+  const handleDelete = async () => {
+    if (!isAllowed()) {
+      ht();
+      return;
+    }
+
+    try {
+      // Eliminar archivos del storage
+      const storageRef = ref(storage, `event-${event?._id}//itinerary-${itinerario?._id}//task-${task._id}//comment-${item?._id}`)
+      
+      try {
+        const res = await listAll(storageRef);
+        await Promise.all(res.items.map(itemRef => deleteObject(itemRef)));
+      } catch (storageError) {
+        console.error(`Error al eliminar archivos del storage:`, storageError);
+        // Continuar aunque falle la eliminación de archivos
       }
-    }).then((result) => {
-      const f1 = event.itinerarios_array.findIndex(elm => elm._id === itinerario._id)
-      const f2 = event.itinerarios_array[f1].tasks.findIndex(elm => elm._id === task._id)
-      const f3 = event.itinerarios_array[f1].tasks[f2].comments.findIndex(elm => elm._id === item?._id)
-      event.itinerarios_array[f1].tasks[f2].comments.splice(f3, 1)
-      setEvent({ ...event })
-    })
+
+      // Eliminar comentario de la API
+      await fetchApiEventos({
+        query: queries.deleteComment,
+        variables: {
+          eventID: event._id,
+          itinerarioID: itinerario._id,
+          taskID: task._id,
+          commentID: item?._id
+        },
+        domain: config.domain
+      });
+
+      // Actualizar estado global
+      setEvent((prevEvent) => {
+        const newEvent = { ...prevEvent };
+        const f1 = newEvent.itinerarios_array.findIndex(elm => elm._id === itinerario._id);
+        
+        if (f1 !== -1) {
+          const f2 = newEvent.itinerarios_array[f1].tasks.findIndex(elm => elm._id === task._id);
+          
+          if (f2 !== -1) {
+            const f3 = newEvent.itinerarios_array[f1].tasks[f2].comments.findIndex(elm => elm._id === item?._id);
+            
+            if (f3 !== -1) {
+              newEvent.itinerarios_array[f1].tasks[f2].comments.splice(f3, 1);
+            }
+          }
+        }
+        
+        return newEvent;
+      });
+
+      // Notificar al componente padre si se proporciona el callback
+      if (onCommentDeleted && typeof onCommentDeleted === 'function') {
+        onCommentDeleted(item._id);
+      }
+
+      toast('success', t('Comentario eliminado'));
+    } catch (error) {
+      console.error('Error al eliminar comentario:', error);
+      toast('error', t('Error al eliminar comentario'));
+    }
   }
 
   const replacesLink: ComponentType<UrlProps> = (props) => {
@@ -84,6 +130,30 @@ export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisa
         <a className="text-xs break-all underline" target="_blank"  >{props?.children}</a>
       </Link>
     )
+  };
+
+  // Verificar si el usuario puede eliminar este comentario
+  const canDeleteComment = () => {
+    // El usuario puede eliminar si:
+    // 1. Tiene permisos generales (isAllowed)
+    // 2. Es el autor del comentario y está autenticado
+    // 3. Es el autor del comentario con nickname y han pasado menos de 5 minutos
+    
+    if (isAllowed()) {
+      return true;
+    }
+    
+    if (user && user.uid === item?.uid && user?.displayName !== "anonymous") {
+      return true;
+    }
+    
+    if (item?.nicknameUnregistered === nicknameUnregistered && 
+        (new Date().getTime() - new Date(item.createdAt).getTime()) / 1000 < 300 && 
+        user?.displayName === "anonymous") {
+      return true;
+    }
+    
+    return false;
   };
 
   return (
@@ -116,13 +186,9 @@ export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisa
                       <div className="absolute loader ease-linear rounded-full border-[3px] border-black border-opacity-35 w-4 h-4" />
                     </>
                   }
-                  {/*elem?.type === "image"
-                    ? <img src={elem?.file as string} alt="Imagen" style={{ maxWidth: '100%', maxHeight: '54px', minHeight: '30px' }} />
-                    : */
-                    <div className="w-full h-[54px] flex flex-col items-center justify-center">
-                      <FileIconComponent extension={(elem?.name ?? elem?.file?.name)?.split(".")?.slice(-1)[0]} className="w-10 h-10 mb-2 border-[1px] border-gray-300 rounded-[5px]" />
-                    </div>
-                  }
+                  <div className="w-full h-[54px] flex flex-col items-center justify-center">
+                    <FileIconComponent extension={(elem?.name ?? elem?.file?.name)?.split(".")?.slice(-1)[0]} className="w-10 h-10 mb-2 border-[1px] border-gray-300 rounded-[5px]" />
+                  </div>
                 </div>
                 <div className="w-full flex flex-col items-center px-2 cursor-default">
                   <span className="w-full text-[10px] truncate text-center">{elem?.name ?? elem?.file?.name}</span>
@@ -143,14 +209,17 @@ export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisa
             />
           </div>
         </div>
-        <div className="w-5">
-          {
-            (user && user.uid === item?.uid && user?.displayName !== "anonymous") && <MdOutlineDeleteOutline onClick={() => { handleDelete() }} className="absolute w-5 h-5 cursor-pointer right-2 bottom-5 text-gray-600" />
-            ||
-            (item?.nicknameUnregistered === nicknameUnregistered && (new Date().getTime() - new Date(item.createdAt).getTime()) / 1000 < 300 && user?.displayName === "anonymous")
-            && <MdOutlineDeleteOutline onClick={() => { handleDelete() }} className="absolute w-5 h-5 cursor-pointer right-2 bottom-5 text-gray-600" />
-          }
-        </div>
+        
+        {/* Botón de eliminar - Solo mostrar si showDeleteButton es true O si canDeleteComment */}
+{/*         <div className="w-5">
+          {(showDeleteButton || canDeleteComment()) && (
+            <MdOutlineDeleteOutline 
+              onClick={handleDelete} 
+              className="absolute w-5 h-5 cursor-pointer right-2 bottom-5 text-gray-600 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100" 
+              title={t('Eliminar comentario')}
+            />
+          )}
+        </div> */}
       </div>
       <span className='cursor-default justify-end text-[9px] font-medium flex-1 flex right-0'>
         {new Date(item?.createdAt).toLocaleString()}
@@ -189,3 +258,45 @@ export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisa
   )
 }
 
+// Función de utilidad exportada que puede ser usada por otros componentes
+export const deleteCommentFromStorage = async (
+  storage: any,
+  eventId: string,
+  itinerarioId: string,
+  taskId: string,
+  commentId: string
+) => {
+  try {
+    const storageRef = ref(storage, `event-${eventId}//itinerary-${itinerarioId}//task-${taskId}//comment-${commentId}`);
+    const res = await listAll(storageRef);
+    await Promise.all(res.items.map(itemRef => deleteObject(itemRef)));
+  } catch (error) {
+    console.error('Error al eliminar archivos del storage:', error);
+    throw error;
+  }
+};
+
+// Función de utilidad exportada para eliminar comentario de la API
+export const deleteCommentFromAPI = async (
+  eventId: string,
+  itinerarioId: string,
+  taskId: string,
+  commentId: string,
+  domain: string
+) => {
+  try {
+    await fetchApiEventos({
+      query: queries.deleteComment,
+      variables: {
+        eventID: eventId,
+        itinerarioID: itinerarioId,
+        taskID: taskId,
+        commentID: commentId
+      },
+      domain
+    });
+  } catch (error) {
+    console.error('Error al eliminar comentario de la API:', error);
+    throw error;
+  }
+};

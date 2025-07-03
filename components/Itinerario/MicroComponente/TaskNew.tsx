@@ -7,7 +7,7 @@ import { AuthContextProvider } from "../../../context";
 import { useTranslation } from 'react-i18next';
 import { Comment, Itinerary, OptionsSelect, Task } from "../../../utils/Interfaces";
 import { ViewItinerary } from "../../../pages/invitados";
-import { getStorage } from "firebase/storage";
+import { getStorage, ref, listAll, deleteObject } from "firebase/storage";
 import { ImageAvatar } from "../../Utils/ImageAvatar";
 import { InputComments } from "./InputComments"
 import { ListComments } from "./ListComments"
@@ -23,7 +23,7 @@ import { ClickUpResponsableSelector } from './NewResponsableSelector';
 import { NewSelectIcon } from './NewSelectIcon';
 import { useAllowed } from '../../../hooks/useAllowed';
 import {
-  X, MessageSquare, Tag, Calendar, Clock, User, Flag, ChevronDown, Copy, Link, MoreHorizontal, Trash2, Archive, Bell, Plus, Eye, EyeOff, Lock, Unlock, AlertCircle
+  X, MessageSquare, Tag, Calendar, Clock, User, Flag, ChevronDown, Copy, Link, MoreHorizontal, Trash2, Archive, Bell, Plus, Eye, EyeOff, Lock, Unlock, AlertCircle, PlayCircle, StopCircle
 } from 'lucide-react';
 
 // Tipos mejorados
@@ -150,6 +150,14 @@ const formatTime = (date: string | Date): string => {
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
 
+// NUEVA FUNCIÓN: Calcular hora de finalización
+const calculateEndTime = (startDate: string | Date, durationMinutes: number): string => {
+  if (!startDate || !durationMinutes) return '';
+  const start = new Date(startDate);
+  const end = new Date(start.getTime() + durationMinutes * 60 * 1000);
+  return formatTime(end);
+};
+
 export const TaskNew: FC<Props> = memo(({
   itinerario,
   task,
@@ -252,6 +260,8 @@ export const TaskNew: FC<Props> = memo(({
     });
     setCustomDescription(task.tips || '');
     setTempIcon(task.icon || '');
+    // CORREGIDO: Inicializar tempResponsable correctamente
+    setTempResponsable(Array.isArray(task.responsable) ? task.responsable : []);
   }, [task]);
 
   // Efecto para ordenar comentarios
@@ -857,20 +867,22 @@ export const TaskNew: FC<Props> = memo(({
                   <User className="w-4 h-4 text-gray-500" />
                   <span className="text-sm text-gray-600">{t('Asignados')}</span>
                 </div>
-                <div className="flex items-center flex-wrap gap-2">
+                <div className="flex items-center flex-wrap gap-2 relative">
                   {editingResponsable && canEdit ? (
-                    <ClickUpResponsableSelector
-                      value={tempResponsable}
-                      onChange={(newValue) => {
-                        setTempResponsable(newValue);
-                        handleUpdate('responsable', newValue);
-                        setEditingResponsable(false);
-                      }}
-                      onClose={() => {
-                        setEditingResponsable(false);
-                        setTempResponsable(localTask.responsable || []);
-                      }}
-                    />
+                    <div className="relative">
+                      <ClickUpResponsableSelector
+                        value={tempResponsable}
+                        onChange={(newValue) => {
+                          setTempResponsable(newValue);
+                          handleUpdate('responsable', newValue);
+                          setEditingResponsable(false);
+                        }}
+                        onClose={() => {
+                          setEditingResponsable(false);
+                          setTempResponsable(localTask.responsable || []);
+                        }}
+                      />
+                    </div>
                   ) : (
                     <PermissionWrapper hasPermission={canEdit}>
                       <div className="flex items-center flex-wrap gap-2">
@@ -1024,6 +1036,44 @@ export const TaskNew: FC<Props> = memo(({
                   )}
                 </div>
               </div>
+
+              {/* NUEVA SECCIÓN: Indicadores de hora inicio y fin (SOLO VISUALES) */}
+              {localTask.fecha && localTask.duracion && (
+                <div className="flex items-center space-x-6 bg-gray-50 rounded-lg p-3">
+                  {/* Hora de inicio */}
+                  <div className="flex items-center space-x-2">
+                    <PlayCircle className="w-5 h-5 text-green-600" />
+                    <div>
+                      <span className="text-xs text-gray-500 block">{t('Inicio')}</span>
+                      <span className="text-sm font-medium text-gray-900">
+                        {formatTime(localTask.fecha)}
+                      </span>
+                    </div>
+                  </div>
+                  {/* Separador */}
+                  <div className="w-px h-8 bg-gray-300"></div>
+                  {/* Hora de finalización */}
+                  <div className="flex items-center space-x-2">
+                    <StopCircle className="w-5 h-5 text-red-600" />
+                    <div>
+                      <span className="text-xs text-gray-500 block">{t('Final')}</span>
+                      <span className="text-sm font-medium text-gray-900">
+                        {calculateEndTime(localTask.fecha, localTask.duracion as number)}
+                      </span>
+                    </div>
+                  </div>
+                  {/* Duración total */}
+                  <div className="flex items-center space-x-2">
+                    <Clock className="w-5 h-5 text-blue-600" />
+                    <div>
+                      <span className="text-xs text-gray-500 block">{t('Duración')}</span>
+                      <span className="text-sm font-medium text-gray-900">
+                        {minutesToReadableFormat(localTask.duracion as number)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Etiquetas */}
               <div className="flex items-center space-x-4">

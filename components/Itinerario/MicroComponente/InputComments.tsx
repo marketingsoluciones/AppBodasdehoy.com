@@ -319,7 +319,7 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
   )
 } */
 
-import { ChangeEvent, Dispatch, FC, SetStateAction, useEffect, useState } from "react"
+  import { ChangeEvent, Dispatch, FC, SetStateAction, useEffect, useState } from "react"
 import { QuillEditor } from "./QuillEditor"
 import { AuthContextProvider, EventContextProvider } from "../../../context"
 import { fetchApiEventos, queries } from "../../../utils/Fetching"
@@ -347,7 +347,8 @@ interface props {
   setTempPastedAndDropFiles?: any
   nicknameUnregistered?: string
   setNicknameUnregistered?: Dispatch<SetStateAction<string>>
-  disabled?: boolean // NUEVA PROP AGREGADA
+  disabled?: boolean
+  onCommentAdded?: (comment: Comment) => void // Nueva prop para notificar cuando se agrega un comentario
 }
 
 export type PastedAndDropFile = {
@@ -364,7 +365,8 @@ export const InputComments: FC<props> = ({
   setTempPastedAndDropFiles,
   nicknameUnregistered,
   setNicknameUnregistered,
-  disabled = false // VALOR POR DEFECTO AGREGADO
+  disabled = false,
+  onCommentAdded
 }) => {
   const { t } = useTranslation()
   const { user, config } = AuthContextProvider()
@@ -420,7 +422,7 @@ export const InputComments: FC<props> = ({
     // eslint-disable-next-line
   }, [nicknameUnregistered])
 
-  const handleCreateComment = () => {
+  const handleCreateComment = async () => {
     // VALIDACIÓN DE PERMISOS AGREGADA
     if (disabled) {
       return;
@@ -432,47 +434,90 @@ export const InputComments: FC<props> = ({
       const attachments = pastedAndDropFiles?.map((elem): FileData => {
         return { name: elem.file.name, size: elem.file.size }
       })
-      fetchApiEventos({
-        query: queries.createComment,
-        variables: {
-          eventID: event?._id,
-          itinerarioID: itinerario?._id,
-          taskID: task?._id,
-          comment: valueSend,
-          attachments,
-          nicknameUnregistered
-        },
-        domain: config.domain
-      }).then((results: Comment) => {
-        const f1 = event?.itinerarios_array.findIndex(elm => elm?._id === itinerario?._id)
-        const f2 = event?.itinerarios_array[f1]?.tasks.findIndex(elm => elm?._id === task?._id)
-        event?.itinerarios_array[f1]?.tasks[f2]?.comments.push(results)
-        setEvent({ ...event })
-        const asd = event?.detalles_compartidos_array?.filter(elem => ["edit", "view"].includes(elem?.permissions?.find(el => el.title === "servicios")?.value))?.map(elem => elem.uid) ?? []
-        let qwe = [...asd, event?.usuario_id]
-        const af1 = qwe?.findIndex(elem => elem === user?.uid)
-        if (af1 > -1) {
-          qwe.splice(af1, 1)
+      
+      try {
+        const results = await fetchApiEventos({
+          query: queries.createComment,
+          variables: {
+            eventID: event?._id,
+            itinerarioID: itinerario?._id,
+            taskID: task?._id,
+            comment: valueSend,
+            attachments,
+            nicknameUnregistered
+          },
+          domain: config.domain
+        }) as Comment;
+
+        if (!results || typeof results !== 'object' || !('_id' in results)) {
+        console.error('La respuesta de la API no es válida:', results);
+        return;
+}
+
+        // Actualizar estado global
+        setEvent((prevEvent) => {
+          const newEvent = { ...prevEvent };
+          const f1 = newEvent?.itinerarios_array.findIndex(elm => elm?._id === itinerario?._id);
+          
+          if (f1 !== -1) {
+            const f2 = newEvent?.itinerarios_array[f1]?.tasks.findIndex(elm => elm?._id === task?._id);
+            
+            if (f2 !== -1) {
+              if (!newEvent.itinerarios_array[f1].tasks[f2].comments) {
+                newEvent.itinerarios_array[f1].tasks[f2].comments = [];
+              }
+              newEvent.itinerarios_array[f1].tasks[f2].comments.push(results);
+            }
+          }
+          
+          return newEvent;
+        });
+
+        // Notificar al componente padre si se proporciona el callback
+        if (onCommentAdded && typeof onCommentAdded === 'function') {
+          onCommentAdded(results);
         }
-        if (pastedAndDropFiles?.length) {
-          tempPastedAndDropFiles.push({
+
+        // Manejo de archivos adjuntos
+        if (pastedAndDropFiles?.length && tempPastedAndDropFiles && setTempPastedAndDropFiles) {
+          const newTempFiles = [...tempPastedAndDropFiles, {
             taskID: task?._id,
             commentID: results?._id,
             files: pastedAndDropFiles,
             uploaded: false,
-          })
-          setTempPastedAndDropFiles([...tempPastedAndDropFiles])
-          handleClosePasteImages()
+          }];
+          setTempPastedAndDropFiles(newTempFiles);
+          handleClosePasteImages();
         }
-        const focused = `${window.location.pathname}?event=${event._id}&itinerary=${itinerario._id}&task=${task?._id}&comment=${results?._id}`
+
+        // Notificaciones
+        const asd = event?.detalles_compartidos_array?.filter(elem => 
+          ["edit", "view"].includes(elem?.permissions?.find(el => el.title === "servicios")?.value)
+        )?.map(elem => elem.uid) ?? [];
+        
+        let qwe = [...asd, event?.usuario_id];
+        const af1 = qwe?.findIndex(elem => elem === user?.uid);
+        
+        if (af1 > -1) {
+          qwe.splice(af1, 1);
+        }
+
+        const focused = `${window.location.pathname}?event=${event._id}&itinerary=${itinerario._id}&task=${task?._id}&comment=${results?._id}`;
+        
         notification({
           type: "user",
           message: ` ha escrito un comentario: ${valueSend?.slice(0, 50)}${valueSend?.length > 50 ? "..." : ""} | Evento ${event?.tipo}: <strong>${event?.nombre?.toUpperCase()}</strong>`,
           uids: qwe,
           focused
-        })
-      })
-      setValue("")
+        });
+
+        // Limpiar formulario
+        setValue("<p><br></p>");
+        setPastedAndDropFiles([]);
+        
+      } catch (error) {
+        console.error('Error al crear comentario:', error);
+      }
     }
   }
 
@@ -662,7 +707,7 @@ export const InputComments: FC<props> = ({
                 </ClickAwayListener>
               </div>
             </div>
-            <div className='w-full min-h-[52px] flex items-center'>
+            <div className='w-full min-h-[52px] flex items-center relative'>
               <div className={`w-full ${disabled ? 'opacity-60' : ''}`}>
                 <QuillEditor 
                   value={value} 

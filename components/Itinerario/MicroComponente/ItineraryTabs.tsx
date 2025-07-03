@@ -551,7 +551,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
 />
                     </>}
                 </div>
-                {isAllowed() && <div className="inline-flex space-x-4 z-1000">
+                {isAllowed() && <div className="inline-flex space-x-4">
                     {view === "cards" && (
                         <>
                             {/* Reemplazar el botón de agregar servicio */}

@@ -19,7 +19,7 @@ interface IconData {
 const IconArray: IconData[] = [
   {
     title: "Anillos",
-    icon: <Anillos className="w-full h-full" />,
+    icon: <Anillos  className="w-full h-full" />,
     category: "ceremonia",
     keywords: ["anillos", "boda", "compromiso", "matrimonio"]
   },
@@ -254,7 +254,7 @@ export const NewSelectIcon: React.FC<Props> = ({ value, onChange, onClose }) => 
                   className={`relative group aspect-square p-3 rounded-lg transition-all duration-200 ${
                     value === iconData.title
                       ? 'bg-primary text-white shadow-lg scale-105'
-                      : 'bg-gray-50 hover:bg-primary/10 hover:scale-105 text-gray-700'
+                      : 'bg-gray-50 hover:bg-primary hover:scale-105 text-white'
                   }`}
                 >
                   <div className={`w-full h-full transition-colors ${
@@ -302,7 +302,7 @@ export const NewSelectIcon: React.FC<Props> = ({ value, onChange, onClose }) => 
                 </span>
               )}
             </div>
-            <div className="flex gap-2">
+{/*             <div className="flex gap-2">
               <button
                 onClick={onClose}
                 className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
@@ -318,7 +318,7 @@ export const NewSelectIcon: React.FC<Props> = ({ value, onChange, onClose }) => 
               >
                 {t('Confirmar')}
               </button>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
