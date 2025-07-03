@@ -32,6 +32,8 @@ import { NewSelectIcon } from './NewSelectIcon';
 import {
   X, MessageSquare, Paperclip, Tag, Calendar, Clock, User, Flag, ChevronDown, Copy, Link, MoreHorizontal, Trash2, Archive, Bell, Plus, Eye, EyeOff, GitBranch, Lock, Unlock
 } from 'lucide-react';
+import { PermissionWrapper } from './PermissionWrapper';
+import { PencilEdit } from '../../icons';
 
 // Tipos mejorados
 interface TaskFormValues {
@@ -541,22 +543,26 @@ export const TaskNew: FC<Props> = memo(({
 
               {/* Título con borde primary */}
               {editingField === 'descripcion' ? (
-                <input
-                  type="text"
-                  value={tempValue}
-                  onChange={(e) => setTempValue(e.target.value)}
-                  onBlur={() => handleFieldSave('descripcion')}
-                  onKeyDown={(e) => handleKeyPress(e, 'descripcion')}
-                  className="text-2xl font-semibold px-2 py-1 border-b-2 border-primary focus:outline-none flex-1"
-                  autoFocus
-                />
+                <PermissionWrapper requireEdit={true}>
+                  <input
+                    type="text"
+                    value={tempValue}
+                    onChange={(e) => setTempValue(e.target.value)}
+                    onBlur={() => handleFieldSave('descripcion')}
+                    onKeyDown={(e) => handleKeyPress(e, 'descripcion')}
+                    className="text-2xl font-semibold px-2 py-1 border-b-2 border-primary focus:outline-none flex-1"
+                    autoFocus
+                  />
+                </PermissionWrapper>
               ) : (
-                <h2
-                  className="text-2xl font-semibold cursor-pointer hover:text-gray-700 flex-1"
-                  onClick={() => handleFieldClick('descripcion', localTask.descripcion)}
-                >
-                  {localTask.descripcion || t('Sin título')}
-                </h2>
+                <div className="flex items-center">
+                  <h2
+                    className="text-2xl font-semibold cursor-pointer hover:text-gray-700 flex-1"
+                    onClick={() => handleFieldClick('descripcion', localTask.descripcion)}
+                  >
+                    {localTask.descripcion || t('Sin título')}
+                  </h2>
+                </div>
               )}
             </div>
 

@@ -16,6 +16,7 @@ import { t } from "i18next";
 import { deleteAllFiles, deleteRecursive } from "../Utils/storages";
 import { getStorage } from "firebase/storage";
 import { ModalDuplicate } from "./MicroComponente/ModalDuplicate";
+import { PermissionWrapper } from "./MicroComponente/PermissionWrapper";
 
 interface Modal {
     state: boolean
@@ -206,6 +207,7 @@ export const BoddyIter = () => {
     }, [event, router, orderAndDirection]) */
 
     return (
+        <PermissionWrapper>
 <div
   className={`bg-white ${
     view === "cards" ? "max-w-[1050px] mx-auto" : "w-auto"
@@ -244,6 +246,7 @@ export const BoddyIter = () => {
                 </div>
             }
         </div>
+        </PermissionWrapper>
     )
 }
 

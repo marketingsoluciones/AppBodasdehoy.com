@@ -12,6 +12,8 @@ import { useTranslation } from "react-i18next"
 import { useToast } from "../../../hooks/useToast"
 import { SelectModeSort } from "../../Utils/SelectModeSort"
 import { AddTaskButton } from "./AddTaskButton"
+import { PermissionAddButton } from './PermissionAddButton';
+import { PermissionSelectModeView } from './PermissionSelectModeView';
 
 interface props {
     itinerario: Itinerary
@@ -542,22 +544,27 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                                 )
                             })}
                         </div>
-                        {isAllowed() && <div id="plusIcon" onClick={() => handleCreateItinerario()} className="flex w-8 items-center justify-start bg-white">
-                            <PlusIcon className="w-4 h-4 text-primary cursor-pointer" />
-                        </div>}
+<PermissionAddButton
+  onClick={handleCreateItinerario} // ✅ función real
+  className="flex w-8 items-center justify-start bg-white"
+  iconClassName="w-4 h-4 text-primary cursor-pointer"
+/>
                     </>}
                 </div>
                 {isAllowed() && <div className="inline-flex space-x-4 z-1000">
                     {view === "cards" && (
                         <>
-                            <AddTaskButton 
-                                onAddTask={addTask} 
-                                tipo={itinerario?.tipo || window?.location?.pathname.slice(1)}
-                            />
+                            {/* Reemplazar el botón de agregar servicio */}
+<PermissionAddButton
+  onClick={addTask} // ✅ función real
+  text={itinerario?.tipo === "itinerario" ? "" : ""}
+  showText={true}
+/>
                             <SelectModeSort value={orderAndDirection} setValue={setOrderAndDirection} />
                         </>
                     )}
-                    <SelectModeView value={view} setValue={setView} />
+                    {/* Reemplazar SelectModeView */}
+                   <PermissionSelectModeView view={view} setView={setView} />
                 </div>
                 }
             </div>
