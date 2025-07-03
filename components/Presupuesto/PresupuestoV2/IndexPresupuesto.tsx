@@ -35,18 +35,18 @@ export const SmartSpreadsheetView2 = () => {
   const [isAllowed, ht] = useAllowed();
   const toast = useToast();
   const [viewLevel, setViewLevel] = useState(3);
-  
+
   // Inicializar con todas las categorías expandidas por defecto
   const [expandedCategories, setExpandedCategories] = useState(() => {
     const categorias = event?.presupuesto_objeto?.categorias_array || [];
     return new Set(categorias.map(cat => cat._id));
   });
-  
+
   // Estados para modales de control
   const [showFiltersModal, setShowFiltersModal] = useState(false);
   const [showColumnsConfig, setShowColumnsConfig] = useState(false);
   const [showEventInfoModal, setShowEventInfoModal] = useState(false);
-  
+
   // Estados para opciones y modales adicionales
   const [showOptionsMenu, setShowOptionsMenu] = useState<FloatOptionsMenuInterface>();
   const [RelacionarPagoModal, setRelacionarPagoModal] = useState<ModalState>({ id: "", crear: false, categoriaID: "" });
@@ -54,10 +54,12 @@ export const SmartSpreadsheetView2 = () => {
   const [showDeleteModal, setShowDeleteModal] = useState<DeleteModalState>({ state: false, title: "", values: null });
   const [loading, setLoading] = useState(false);
 
+  console.log("1212", showOptionsMenu)
+
   // Usar hooks personalizados
   const { filters, handleFilterChange, clearFilters } = useSmartTableFilters();
   const { columnConfig, toggleColumnVisibility } = useSmartTableColumns();
-  
+
   // Datos del evento con validación
   const categorias_array = event?.presupuesto_objeto?.categorias_array || [];
   const currency = event?.presupuesto_objeto?.currency || 'eur';
@@ -88,22 +90,22 @@ export const SmartSpreadsheetView2 = () => {
 
     updatedEvent.presupuesto_objeto.categorias_array.forEach(categoria => {
       if (!categoria.gastos_array || !Array.isArray(categoria.gastos_array)) return;
-      
+
       let categoriaTotalCalculated = 0;
-      
+
       categoria.gastos_array.forEach(gasto => {
         let gastoTotalCalculated = 0;
-        
+
         if (gasto.items_array && Array.isArray(gasto.items_array) && gasto.items_array.length > 0) {
           gasto.items_array.forEach(item => {
             const cantidad = item.unidad === 'xAdultos.' ? totalStimatedGuests.adults :
-                           item.unidad === 'xNiños.' ? totalStimatedGuests.children :
-                           item.unidad === 'xInv.' ? (totalStimatedGuests.adults + totalStimatedGuests.children) :
-                           item.cantidad || 0;
-            
+              item.unidad === 'xNiños.' ? totalStimatedGuests.children :
+                item.unidad === 'xInv.' ? (totalStimatedGuests.adults + totalStimatedGuests.children) :
+                  item.cantidad || 0;
+
             gastoTotalCalculated += cantidad * (item.valor_unitario || 0);
           });
-          
+
           if (Math.abs(gasto.coste_final - gastoTotalCalculated) > 0.01) {
             gasto.coste_final = gastoTotalCalculated;
             hasChanges = true;
@@ -111,16 +113,16 @@ export const SmartSpreadsheetView2 = () => {
         } else {
           gastoTotalCalculated = gasto.coste_final || 0;
         }
-        
+
         categoriaTotalCalculated += gastoTotalCalculated;
       });
-      
+
       if (Math.abs(categoria.coste_final - categoriaTotalCalculated) > 0.01) {
         categoria.coste_final = categoriaTotalCalculated;
         hasChanges = true;
       }
     });
-    
+
     if (hasChanges) {
       setEvent(updatedEvent);
       return true;
@@ -131,7 +133,7 @@ export const SmartSpreadsheetView2 = () => {
   // Función para manejar cambios con recálculo
   const handleChangeWithRecalculation = useCallback((values: any, info: any) => {
     handleChange({ values, info, event, setEvent });
-    
+
     if (['valor_unitario', 'cantidad', 'unidad', 'coste_final'].includes(values.accessor)) {
       setTimeout(() => {
         recalculateEventTotals();
@@ -207,16 +209,16 @@ export const SmartSpreadsheetView2 = () => {
           try {
             setShowOptionsMenu({ ...showOptionsMenu, select: "Categoría" });
             await handleCreateCategoria({ info, event, setEvent, setShowDotsOptionsMenu: setShowOptionsMenu });
-            
+
             setTimeout(async () => {
               try {
                 const nuevaCategoria = event?.presupuesto_objeto?.categorias_array[event.presupuesto_objeto.categorias_array.length - 1];
-                
+
                 if (nuevaCategoria) {
                   if (!nuevaCategoria.gastos_array) {
                     nuevaCategoria.gastos_array = [];
                   }
-                  
+
                   const mockInfoGasto = {
                     row: {
                       original: {
@@ -225,14 +227,14 @@ export const SmartSpreadsheetView2 = () => {
                       }
                     }
                   };
-                  
-                  await handleCreateGasto({ 
-                    info: mockInfoGasto, 
-                    event, 
-                    setEvent, 
-                    setShowDotsOptionsMenu: setShowOptionsMenu 
+
+                  await handleCreateGasto({
+                    info: mockInfoGasto,
+                    event,
+                    setEvent,
+                    setShowDotsOptionsMenu: setShowOptionsMenu
                   });
-                  
+
                   setExpandedCategories(prev => new Set([...prev, nuevaCategoria._id]));
                   toast("success", "Categoría y partida de gasto creadas exitosamente");
                 }
@@ -241,7 +243,7 @@ export const SmartSpreadsheetView2 = () => {
                 toast("warning", "Categoría creada, pero hubo un problema al crear la partida automática");
               }
             }, 500);
-            
+
           } catch (error) {
             toast("error", "Error al crear categoría");
             console.error(error);
@@ -257,15 +259,15 @@ export const SmartSpreadsheetView2 = () => {
           try {
             setShowOptionsMenu({ ...showOptionsMenu, select: "Partida" });
             await handleCreateGasto({ info, event, setEvent, setShowDotsOptionsMenu: setShowOptionsMenu });
-            
+
             setTimeout(() => {
               setEvent(prevEvent => ({ ...prevEvent }));
-              
+
               if (info?.row?.original?.categoriaID) {
                 setExpandedCategories(prev => new Set([...prev, info.row.original.categoriaID]));
               }
             }, 100);
-            
+
             toast("success", "Partida de gasto creada exitosamente");
           } catch (error) {
             toast("error", "Error al crear partida de gasto");
@@ -282,18 +284,18 @@ export const SmartSpreadsheetView2 = () => {
           try {
             setShowOptionsMenu({ ...showOptionsMenu, select: "Item" });
             await handleCreateItem({ info, event, setEvent, setShowDotsOptionsMenu: setShowOptionsMenu });
-            
+
             setTimeout(() => {
               const updated = recalculateEventTotals();
               if (!updated) {
                 setEvent(prevEvent => ({ ...prevEvent }));
               }
-              
+
               if (info?.row?.original?.categoriaID) {
                 setExpandedCategories(prev => new Set([...prev, info.row.original.categoriaID]));
               }
             }, 100);
-            
+
             toast("success", "Item creado exitosamente");
           } catch (error) {
             toast("error", "Error al crear item");
@@ -350,17 +352,17 @@ export const SmartSpreadsheetView2 = () => {
         title: "Borrar",
         onClick: (info) => {
           const objectType = info.row.original.object === 'categoria' ? 'Categoría' :
-                            info.row.original.object === 'gasto' ? 'Partida de gasto' : 'Item';
+            info.row.original.object === 'gasto' ? 'Partida de gasto' : 'Item';
           const objectName = info.row.original.object === 'categoria' ? info.row.original.categoria :
-                            info.row.original.object === 'gasto' ? info.row.original.partida : info.row.original.item;
-          
+            info.row.original.object === 'gasto' ? info.row.original.partida : info.row.original.item;
+
           setShowDeleteModal({
             state: true,
             title: `${objectType}: ${objectName}`,
             values: {
               object: info.row.original.object,
               _id: info.row.original.object === 'categoria' ? info.row.original.categoriaID :
-                   info.row.original.object === 'gasto' ? info.row.original.gastoID : info.row.original.itemID,
+                info.row.original.object === 'gasto' ? info.row.original.gastoID : info.row.original.itemID,
               categoriaID: info.row.original.categoriaID,
               gastoID: info.row.original.gastoID,
               itemID: info.row.original.itemID,
@@ -379,7 +381,7 @@ export const SmartSpreadsheetView2 = () => {
     if (isAllowed()) {
       e.preventDefault();
       e.stopPropagation();
-      
+
       if (showOptionsMenu?.values?.info?.row?.original?._id === row.id && showOptionsMenu?.state === true) {
         setShowOptionsMenu({ state: false });
         return;
@@ -403,39 +405,47 @@ export const SmartSpreadsheetView2 = () => {
 
       // Normaliza el rectángulo para evitar problemas de tipos con DOMRect
       const domRect = tableContainer?.getBoundingClientRect();
+      console.log("click right", domRect)
+      console.log("e", e.clientX, e.clientY)
+
+
+
       tableRect = domRect
         ? {
-            left: domRect.left,
-            top: domRect.top,
-            right: domRect.right,
-            bottom: domRect.bottom,
-            width: domRect.right - domRect.left,
-            height: domRect.bottom - domRect.top,
-            x: domRect.x,
-            y: domRect.y,
-            toJSON: () => domRect.toJSON(),
-          }
+          left: domRect.left,
+          top: domRect.top,
+          right: domRect.right,
+          bottom: domRect.bottom,
+          width: domRect.right - domRect.left,
+          height: domRect.bottom - domRect.top,
+          x: domRect.x,
+          y: domRect.y,
+          toJSON: () => domRect.toJSON(),
+        }
         : {
-            left: 0,
-            top: 0,
-            right: window.innerWidth,
-            bottom: window.innerHeight,
-            width: window.innerWidth,
-            height: window.innerHeight,
-            x: 0,
-            y: 0,
-            toJSON: () => ({}),
-          };
-      
+          left: 0,
+          top: 0,
+          right: window.innerWidth,
+          bottom: window.innerHeight,
+          width: window.innerWidth,
+          height: window.innerHeight,
+          x: 0,
+          y: 0,
+          toJSON: () => ({}),
+        };
+
       let position;
-      
+      console.log("tableRect", tableRect)
+
+
       if (isContextMenu) {
         position = {
-          x: e.clientX - tableRect.left,
-          y: e.clientY - tableRect.top
+          x: e.clientX,
+          y: e.clientY
         };
       } else {
         const buttonRect = (e.target as Element).getBoundingClientRect();
+        console.log("buttonRect", buttonRect)
         position = {
           x: buttonRect.left - tableRect.left + buttonRect.width,
           y: buttonRect.top - tableRect.top
@@ -443,19 +453,23 @@ export const SmartSpreadsheetView2 = () => {
       }
 
       const menuWidth = 200;
-      const menuHeight = getMenuOptions(mockInfo).length * 32;
+      const menuHeight = getMenuOptions(mockInfo).length /* * 32 */;
 
       const maxX = tableRect.width - menuWidth - 10;
-      const maxY = tableRect.height - menuHeight - 10;
+      const maxY = tableRect.height - menuHeight - 100;
 
-      position.x = Math.min(Math.max(10, position.x), maxX);
-      position.y = Math.min(Math.max(10, position.y), maxY);
+      console.log("maxX", maxX, "maxY", maxY)
+
+      position.x = Math.min(Math.max(20, position.x), maxX);
+      position.y = Math.min(Math.max(20, position.y), maxY);
 
       const aling = position.y > tableRect.height / 2 ? "botton" : "top";
       const justify = position.x > tableRect.width / 2 ? "end" : "start";
-      
+
       const dynamicOptions = getMenuOptions(mockInfo);
-        
+
+      console.log("aling", aling, "justify", justify)
+
       setShowOptionsMenu({
         state: true,
         values: {
@@ -485,12 +499,12 @@ export const SmartSpreadsheetView2 = () => {
   // Función para manejar el borrado
   const handleDeleteConfirm = useCallback(async () => {
     if (!showDeleteModal.values) return;
-    
+
     setLoading(true);
-    
+
     try {
       const { values } = showDeleteModal;
-      
+
       if (values?.object === "categoria") {
         await fetchApiEventos({
           query: queries.borraCategoria,
@@ -499,13 +513,13 @@ export const SmartSpreadsheetView2 = () => {
             categoria_id: values?._id,
           },
         });
-        
+
         const f1 = event?.presupuesto_objeto?.categorias_array.findIndex(elem => elem._id === values?._id);
         if (f1 > -1) {
           event?.presupuesto_objeto?.categorias_array.splice(f1, 1);
         }
       }
-      
+
       if (values?.object === "gasto") {
         await fetchApiEventos({
           query: queries.borrarGasto,
@@ -515,7 +529,7 @@ export const SmartSpreadsheetView2 = () => {
             gasto_id: values?._id,
           },
         });
-        
+
         const f1 = event?.presupuesto_objeto?.categorias_array.findIndex(elem => elem._id === values?.categoriaID);
         if (f1 > -1) {
           const f2 = event?.presupuesto_objeto?.categorias_array[f1].gastos_array.findIndex(elem => elem._id === values?._id);
@@ -524,7 +538,7 @@ export const SmartSpreadsheetView2 = () => {
           }
         }
       }
-      
+
       if (values?.object === "item") {
         await fetchApiEventos({
           query: queries.borrarItemsGastos,
@@ -535,7 +549,7 @@ export const SmartSpreadsheetView2 = () => {
             itemsGastos_ids: [values?._id],
           },
         });
-        
+
         const f1 = event?.presupuesto_objeto?.categorias_array.findIndex(elem => elem._id === values?.categoriaID);
         if (f1 > -1) {
           const f2 = event?.presupuesto_objeto?.categorias_array[f1].gastos_array.findIndex(elem => elem._id === values?.gastoID);
@@ -547,17 +561,17 @@ export const SmartSpreadsheetView2 = () => {
           }
         }
       }
-      
+
       setEvent({ ...event });
       setShowOptionsMenu({ state: false });
-      
+
       setTimeout(() => {
         recalculateEventTotals();
       }, 50);
-      
-      toast("success", `${values.object === 'categoria' ? 'Categoría' : 
-                       values.object === 'gasto' ? 'Partida de gasto' : 'Item'} eliminado exitosamente`);
-      
+
+      toast("success", `${values.object === 'categoria' ? 'Categoría' :
+        values.object === 'gasto' ? 'Partida de gasto' : 'Item'} eliminado exitosamente`);
+
     } catch (error) {
       console.error("Error al eliminar:", error);
       toast("error", "Error al eliminar el elemento");
