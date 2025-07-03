@@ -33,7 +33,6 @@ export const PermissionAddButton: FC<PermissionAddButtonProps> = ({
         {children || (
           <>
             <PlusIcon className={iconClassName} />
-            {showText && <span>{t(text)}</span>}
           </>
         )}
       </button>
@@ -47,7 +46,6 @@ export const PermissionAddButton: FC<PermissionAddButtonProps> = ({
         {children || (
           <>
             <PlusIcon className={iconClassName} />
-            {showText && <span>{t(text)}</span>}
           </>
         )}
       </button>

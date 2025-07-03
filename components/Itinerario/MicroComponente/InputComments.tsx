@@ -337,6 +337,8 @@ import { getStorage, ref, uploadBytesResumable } from "firebase/storage"
 import { TempPastedAndDropFile } from "./ItineraryPanel"
 import { customAlphabet } from "nanoid"
 import { SetNickname } from "./SetNickName"
+import { useTranslation } from 'react-i18next'
+import { Lock } from 'lucide-react'
  
 interface props {
   itinerario?: Itinerary
@@ -345,6 +347,7 @@ interface props {
   setTempPastedAndDropFiles?: any
   nicknameUnregistered?: string
   setNicknameUnregistered?: Dispatch<SetStateAction<string>>
+  disabled?: boolean // NUEVA PROP AGREGADA
 }
 
 export type PastedAndDropFile = {
@@ -360,8 +363,10 @@ export const InputComments: FC<props> = ({
   tempPastedAndDropFiles,
   setTempPastedAndDropFiles,
   nicknameUnregistered,
-  setNicknameUnregistered
+  setNicknameUnregistered,
+  disabled = false // VALOR POR DEFECTO AGREGADO
 }) => {
+  const { t } = useTranslation()
   const { user, config } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
   const [value, setValue] = useState<string>("<p><br></p>")
@@ -416,6 +421,11 @@ export const InputComments: FC<props> = ({
   }, [nicknameUnregistered])
 
   const handleCreateComment = () => {
+    // VALIDACIÓN DE PERMISOS AGREGADA
+    if (disabled) {
+      return;
+    }
+
     setValir(false)
     if ((user || nicknameUnregistered) && (value || pastedAndDropFiles.length)) {
       const valueSend = value?.replace(/ id="selected"/g, "")?.replace(/ focusoffset="[^"]*"/g, '')
@@ -472,6 +482,11 @@ export const InputComments: FC<props> = ({
   }
 
   const handleFileChange = async ({ event, saveType }: asd) => {
+    // VALIDACIÓN DE PERMISOS AGREGADA
+    if (disabled) {
+      return;
+    }
+
     const files = [...Array.from(event.currentTarget.files)]
     const newFiles = files.map(elem => ({
       saveType,
@@ -486,6 +501,18 @@ export const InputComments: FC<props> = ({
     setSlideSelect(0)
     setPastedAndDropFiles([])
   };
+
+  // MOSTRAR MENSAJE DE SOLO LECTURA SI ESTÁ DESHABILITADO
+  if (disabled) {
+    return (
+      <div className='bg-gray-50 flex items-center justify-center pt-2 px-2 py-4 border-t border-gray-200'>
+        <div className="flex items-center space-x-2 text-gray-500">
+          <Lock className="w-4 h-4" />
+          <span className="text-sm">{t('Los comentarios están deshabilitados - No tienes permisos para comentar')}</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className='bg-white flex items-center pt-2 px-2 relative'>
@@ -503,6 +530,8 @@ export const InputComments: FC<props> = ({
           <div className='bg-gray-50 absolute z-[20] -translate-y-[calc(100%-90px)] w-full md:w-[90%] border-gray-200 border-[1px] rounded-md shadow-md flex flex-col items-center justify-center'>
             <div className='bg-gray-300 w-full h-8 flex justify-end items-center px-2'>
               <div onClick={() => {
+                if (disabled) return; // VALIDACIÓN DE PERMISOS
+                
                 if (slideSelect === pastedAndDropFiles.length - 1 && pastedAndDropFiles.length > 1) {
                   setSlideSelect(slideSelect - 1)
                 }
@@ -512,10 +541,14 @@ export const InputComments: FC<props> = ({
                 const newFiles = [...pastedAndDropFiles]
                 newFiles.splice(slideSelect, 1)
                 setPastedAndDropFiles(newFiles)
-              }} className="cursor-pointer">
+              }} className={disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}>
                 <LiaTrashSolid className="w-6 h-6 mr-6" />
               </div>
-              <div onClick={handleClosePasteImages} className="text-gray-700 cursor-pointer">
+              <div onClick={() => {
+                if (!disabled) {
+                  handleClosePasteImages()
+                }
+              }} className={`text-gray-700 ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}>
                 <IoClose className="w-6 h-6" />
               </div>
             </div>
@@ -527,8 +560,13 @@ export const InputComments: FC<props> = ({
                 <span className="text-gray-600">{Math.trunc(pastedAndDropFiles[slideSelect].file.size / 1024)} K</span>
               </div>
             }
-            <div className='bg-gray-200 w-full min-h-[52px] flex items-center px-2'>
-              <QuillEditor value={value} setValue={setValue} setPastedAndDropFiles={setPastedAndDropFiles} pastedAndDropFiles={pastedAndDropFiles} />
+            <div className={`w-full min-h-[52px] flex items-center px-2 ${disabled ? 'bg-gray-100' : 'bg-gray-200'}`}>
+              <QuillEditor 
+                value={value} 
+                setValue={disabled ? () => {} : setValue} 
+                setPastedAndDropFiles={disabled ? () => {} : setPastedAndDropFiles} 
+                pastedAndDropFiles={pastedAndDropFiles} 
+              />
             </div>
             <div className='bg-gray-100 flex w-full h-10'>
               <div className="w-14 h-full flex justify-center items-center"></div>
@@ -537,14 +575,25 @@ export const InputComments: FC<props> = ({
                   <SwiperPastedAndDropFiles pastedAndDropFiles={pastedAndDropFiles} setSlideSelect={setSlideSelect} slideSelect={slideSelect} />
                 )}
               </div>
-              <span onClick={() => {
-                if (user?.displayName === "anonymous" && !nicknameUnregistered) {
-                  setShowModalNickname(true)
-                  return
-                }
-                handleCreateComment()
-              }} className="cursor-pointer font-semibold w-10 flex justify-center items-center right-3 bottom-[10.5px]">
-                <IoIosSend className="h-[23px] w-auto text-teal-500 select-none" />
+              <span 
+                onClick={() => {
+                  if (disabled) return; // VALIDACIÓN DE PERMISOS
+                  
+                  if (user?.displayName === "anonymous" && !nicknameUnregistered) {
+                    setShowModalNickname(true)
+                    return
+                  }
+                  handleCreateComment()
+                }} 
+                className={`w-10 flex justify-center items-center right-3 bottom-[10.5px] ${
+                  disabled 
+                    ? "cursor-not-allowed opacity-50" 
+                    : "cursor-pointer font-semibold"
+                }`}
+              >
+                <IoIosSend className={`h-[23px] w-auto select-none ${
+                  disabled ? "text-gray-300" : "text-teal-500"
+                }`} />
               </span>
             </div>
           </div>
@@ -552,17 +601,36 @@ export const InputComments: FC<props> = ({
         {!pastedAndDropFiles.length && (
           <>
             <div className='flex justify-center items-center'>
-              {enabledInput && (
+              {enabledInput && !disabled && (
                 <>
-                  <input type="file" accept='image/*' onChange={(event) => handleFileChange({ event, saveType: "image" })} id={`file-upload-img-${task?._id}`} className="hidden" multiple />
-                  <input type="file" onChange={(event) => handleFileChange({ event, saveType: "doc" })} id={`file-upload-doc-${task?._id}`} className="hidden" multiple />
+                  <input 
+                    type="file" 
+                    accept='image/*' 
+                    onChange={(event) => handleFileChange({ event, saveType: "image" })} 
+                    id={`file-upload-img-${task?._id}`} 
+                    className="hidden" 
+                    multiple 
+                    disabled={disabled}
+                  />
+                  <input 
+                    type="file" 
+                    onChange={(event) => handleFileChange({ event, saveType: "doc" })} 
+                    id={`file-upload-doc-${task?._id}`} 
+                    className="hidden" 
+                    multiple 
+                    disabled={disabled}
+                  />
                 </>
               )}
               <div>
-                <ClickAwayListener onClickAway={() => { setAttachment(false) }}>
-                  <div className='cursor-pointer select-none'>
+                <ClickAwayListener onClickAway={() => { 
+                  if (!disabled) {
+                    setAttachment(false) 
+                  }
+                }}>
+                  <div className={`select-none ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}>
                     <div className='translate-y-[4px]'>
-                      {attachment && (
+                      {attachment && !disabled && (
                         <div className='bg-white w-40 absolute z-50 -translate-y-full -translate-x-4 border-gray-200 border-[1px] rounded-md shadow-md'>
                           <ul className='py-2 px-1 text-[11px]'>
                             <li onClickCapture={() => setEnabledInput(true)} className='cursor-pointer hover:bg-gray-100 rounded-md items-center'>
@@ -576,10 +644,18 @@ export const InputComments: FC<props> = ({
                       )}
                     </div>
                     <div onClick={() => {
+                      if (disabled) return; // VALIDACIÓN DE PERMISOS
+                      
                       setTimeout(() => {
                         setAttachment(!attachment)
                       }, 10);
-                    }} className={`w-10 h-10 flex justify-center items-center ${pastedAndDropFiles?.length ? "hover:bg-white" : "hover:bg-gray-100"} rounded-full`}>
+                    }} className={`w-10 h-10 flex justify-center items-center rounded-full ${
+                      disabled 
+                        ? "opacity-50" 
+                        : pastedAndDropFiles?.length 
+                          ? "hover:bg-white" 
+                          : "hover:bg-gray-100"
+                    }`}>
                       <PlusIcon className="w-5 h-5 text-gray-700" />
                     </div>
                   </div>
@@ -587,20 +663,43 @@ export const InputComments: FC<props> = ({
               </div>
             </div>
             <div className='w-full min-h-[52px] flex items-center'>
-              <div className="w-full">
-                <QuillEditor value={value} setValue={setValue} setPastedAndDropFiles={setPastedAndDropFiles} pastedAndDropFiles={pastedAndDropFiles} />
+              <div className={`w-full ${disabled ? 'opacity-60' : ''}`}>
+                <QuillEditor 
+                  value={value} 
+                  setValue={disabled ? () => {} : setValue} 
+                  setPastedAndDropFiles={disabled ? () => {} : setPastedAndDropFiles} 
+                  pastedAndDropFiles={pastedAndDropFiles} 
+                />
               </div>
+              {disabled && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-50 bg-opacity-50 rounded">
+                  <div className="text-center">
+                    <Lock className="w-6 h-6 text-gray-400 mx-auto mb-2" />
+                    <p className="text-xs text-gray-500">{t('Comentarios deshabilitados')}</p>
+                  </div>
+                </div>
+              )}
             </div>
-            <span onClick={valir
-              ? () => {
-                if (user?.displayName === "anonymous" && !nicknameUnregistered) {
-                  setShowModalNickname(true)
-                  return
+            <span 
+              onClick={valir && !disabled
+                ? () => {
+                  if (user?.displayName === "anonymous" && !nicknameUnregistered) {
+                    setShowModalNickname(true)
+                    return
+                  }
+                  handleCreateComment()
                 }
-                handleCreateComment()
-              }
-              : () => { }} className={`${valir ? "cursor-pointer font-semibold" : "text-gray-400"} absolute right-3 bottom-[10.5px]`}>
-              <IoIosSend className={`h-[23px] w-auto ${valir ? "text-teal-500" : "text-gray-200"} select-none`} />
+                : () => { }} 
+              className={`absolute right-3 bottom-[10.5px] ${
+                valir && !disabled 
+                  ? "cursor-pointer font-semibold" 
+                  : "text-gray-400"
+              } ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
+              title={disabled ? t("No tienes permisos para comentar") : ""}
+            >
+              <IoIosSend className={`h-[23px] w-auto select-none ${
+                valir && !disabled ? "text-teal-500" : "text-gray-200"
+              }`} />
             </span>
           </>
         )}
