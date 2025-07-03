@@ -1066,7 +1066,7 @@ export const TaskNew: FC<Props> = memo(({
                     </div>
                   </div>
                   {/* Duración total */}
-                  <div className="flex items-center space-x-2">
+{/*                   <div className="flex items-center space-x-2">
                     <Clock className="w-5 h-5 text-blue-600" />
                     <div>
                       <span className="text-xs text-gray-500 block">{t('Duración')}</span>
@@ -1074,7 +1074,7 @@ export const TaskNew: FC<Props> = memo(({
                         {minutesToReadableFormat(localTask.duracion as number)}
                       </span>
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               )}
 
