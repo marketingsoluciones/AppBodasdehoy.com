@@ -661,6 +661,7 @@ const fetchEventFromApi = async () => {
                   onClick={() => { setSelectTask(elem._id) }}
                   tempPastedAndDropFiles={tempPastedAndDropFiles}
                   setTempPastedAndDropFiles={setTempPastedAndDropFiles}
+                  minimalView={window?.location?.pathname === "/itinerario"}
                 />
               </PermissionTaskActionWrapper>
             )
