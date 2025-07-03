@@ -31,7 +31,7 @@ export const SmartSpreadsheetTable: React.FC<SmartSpreadsheetTableProps> = ({
   formatNumber,
   categorias_array,
   event,
-  getMenuOptions
+  getMenuOptions, 
 }) => {
   return (
     <div className="flex-1 overflow-auto bg-white relative table-container">

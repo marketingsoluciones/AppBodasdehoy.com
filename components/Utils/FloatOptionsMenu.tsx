@@ -49,7 +49,7 @@ export const FloatOptionsMenu: FC<props> = ({ showOptionsMenu, setShowOptionsMen
                     onClick={() => {
                       if (!!elem?.onClick) {
                         elem?.onClick(info)
-                        setShowOptionsMenu({ ...showOptionsMenu, isLoading: true, select: elem?.title })
+                        setShowOptionsMenu({ ...showOptionsMenu, state:false,  isLoading: true, select: elem?.title })
                       }
                     }} 
                     className={`flex items-center gap-3 px-3 py-2 text-xs transition-colors duration-150
