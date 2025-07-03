@@ -53,7 +53,7 @@ export const SmartSpreadsheetView2 = () => {
   const [ServisiosListModal, setServisiosListModal] = useState<ModalState>({ id: "", crear: false, categoriaID: "" });
   const [showDeleteModal, setShowDeleteModal] = useState<DeleteModalState>({ state: false, title: "", values: null });
   const [loading, setLoading] = useState(false);
-  
+
   // Usar hooks personalizados
   const { filters, handleFilterChange, clearFilters } = useSmartTableFilters();
   const { columnConfig, toggleColumnVisibility } = useSmartTableColumns();
@@ -308,7 +308,7 @@ export const SmartSpreadsheetView2 = () => {
         icon: <GrMoney className="w-4 h-4" />,
         title: "Relacionar Pago",
         onClick: (info) => {
-          setShowOptionsMenu({ state: false });
+          setShowOptionsMenu({  state: false });
           setRelacionarPagoModal({ id: info.row.original._id, crear: true, categoriaID: info.row.original.categoriaID });
         },
         object: ["gasto"]
@@ -650,7 +650,7 @@ export const SmartSpreadsheetView2 = () => {
               >
                 ✕
               </button>
-              <FormAddPago GastoID={RelacionarPagoModal?.id} cate={RelacionarPagoModal?.categoriaID} />
+              <FormAddPago GastoID={RelacionarPagoModal?.id} cate={RelacionarPagoModal?.categoriaID} setGastoID={setRelacionarPagoModal} />
             </div>
           </ClickAwayListener>
         </div>

@@ -255,7 +255,7 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
         <div className="relative bg-white w-full  h-max grid place-items-center z-20 rounded-xl white shadow-lg top-0 left-0 p-8 ">
           <div className="font-display text-gray-500 hover:text-gray-300 transition text-lg absolute top-5 right-5 cursor-pointer hover:scale-125" onClick={() => setGastoID("")}>X</div>
 
-          <FormAddPago GastoID={GastoID?.id} cate={categoria?._id} />
+          <FormAddPago GastoID={GastoID?.id} cate={categoria?._id}  setGastoID={setGastoID}  />
 
         </div>
       )}

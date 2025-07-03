@@ -39,7 +39,7 @@ const validacion2 = (values) => {
   return errors
 }
 
-const FormAddPago = ({ GastoID, cate }) => {
+const FormAddPago = ({ GastoID, cate, setGastoID }) => {
   const { event, setEvent } = EventContextProvider()
   const [ischecked, setCheck] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -107,7 +107,6 @@ const FormAddPago = ({ GastoID, cate }) => {
     <Formik
       initialValues={initialValues}
       onSubmit={async (values) => {
-        console.log(444, values)
         try {
           if (!isSubmitting) {
             setIsSubmitting(true)
@@ -135,6 +134,7 @@ const FormAddPago = ({ GastoID, cate }) => {
               return
             }
             saveData(values)
+             setGastoID("")
           }
         } catch (error) {
           console.log(error)
