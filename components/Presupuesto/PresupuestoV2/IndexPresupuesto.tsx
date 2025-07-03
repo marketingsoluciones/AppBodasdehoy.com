@@ -1,4 +1,3 @@
-// components/SmartSpreadsheetView2.tsx
 import React, { useState, useCallback, useEffect } from 'react';
 import { GrMoney } from 'react-icons/gr';
 import { GoEye, GoEyeClosed, GoTasklist } from 'react-icons/go';
@@ -14,8 +13,7 @@ import { ModalTaskList } from "../ModalTaskList";
 import ClickAwayListener from "react-click-away-listener";
 import { FloatOptionsMenuInterface, ModalInterface } from '../../../utils/Interfaces';
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
-
-// Importar componentes separados
+import { FixedOptionsMenu } from './FixedOptionsMenu';
 import { SmartSpreadsheetHeader } from './SmartSpreadsheetHeader';
 import { SmartSpreadsheetTable } from './SmartSpreadsheetTable';
 import { SmartSpreadsheetFooter } from './SmartSpreadsheetFooter';
@@ -23,11 +21,7 @@ import { FiltersModal } from './modals/FiltersModal';
 import { EventInfoModal } from './modals/EventInfoModal';
 import { ColumnsConfigModal } from './modals/ColumnsConfigModal';
 import { DeleteConfirmModal } from './modals/DeleteConfirmModal';
-
-// Importar hooks personalizados
 import { useSmartTableData, useSmartTableFilters, useSmartTableColumns } from './hooks';
-
-// Importar tipos
 import { TableRow, MenuOption, ModalState, DeleteModalState } from './types';
 
 export const SmartSpreadsheetView2 = () => {
@@ -154,8 +148,26 @@ export const SmartSpreadsheetView2 = () => {
       recalculateEventTotals();
     }, 100);
 
+
     return () => clearTimeout(timeoutId);
   }, [recalculateEventTotals]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showOptionsMenu?.state) {
+        const target = event.target as Element;
+        const isFixedOptionsMenu = target.closest('.fixed-options-menu');
+        const isActionButton = target.closest('[data-options-trigger]');
+
+        if (!isFixedOptionsMenu && !isActionButton) {
+          setShowOptionsMenu({ state: false });
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showOptionsMenu?.state]);
 
   // Cerrar modales al hacer clic fuera
   useEffect(() => {
@@ -310,7 +322,7 @@ export const SmartSpreadsheetView2 = () => {
         icon: <GrMoney className="w-4 h-4" />,
         title: "Relacionar Pago",
         onClick: (info) => {
-          setShowOptionsMenu({  state: false });
+          setShowOptionsMenu({ state: false });
           setRelacionarPagoModal({ id: info.row.original._id, crear: true, categoriaID: info.row.original.categoriaID });
         },
         object: ["gasto"]
@@ -376,12 +388,14 @@ export const SmartSpreadsheetView2 = () => {
     ];
   }, [categorias_array, showOptionsMenu, event, setEvent, setShowOptionsMenu, recalculateEventTotals, toast]);
 
-  // Función para manejar el menú de opciones
+
+  // 2. REEMPLAZAR la función handleOptionsMenu por esta versión simplificada:
   const handleOptionsMenu = useCallback((e: React.MouseEvent, row: TableRow, isContextMenu = false) => {
     if (isAllowed()) {
       e.preventDefault();
       e.stopPropagation();
 
+      // Si ya está abierto el mismo elemento, cerrarlo
       if (showOptionsMenu?.values?.info?.row?.original?._id === row.id && showOptionsMenu?.state === true) {
         setShowOptionsMenu({ state: false });
         return;
@@ -400,83 +414,12 @@ export const SmartSpreadsheetView2 = () => {
         }
       };
 
-      const tableContainer = (e.target as Element).closest('.table-container') || document.querySelector('[class*="overflow-auto"]');
-      let tableRect = tableContainer?.getBoundingClientRect();
-
-      // Normaliza el rectángulo para evitar problemas de tipos con DOMRect
-      const domRect = tableContainer?.getBoundingClientRect();
-      console.log("click right", domRect)
-      console.log("e", e.clientX, e.clientY)
-
-
-
-      tableRect = domRect
-        ? {
-          left: domRect.left,
-          top: domRect.top,
-          right: domRect.right,
-          bottom: domRect.bottom,
-          width: domRect.right - domRect.left,
-          height: domRect.bottom - domRect.top,
-          x: domRect.x,
-          y: domRect.y,
-          toJSON: () => domRect.toJSON(),
-        }
-        : {
-          left: 0,
-          top: 0,
-          right: window.innerWidth,
-          bottom: window.innerHeight,
-          width: window.innerWidth,
-          height: window.innerHeight,
-          x: 0,
-          y: 0,
-          toJSON: () => ({}),
-        };
-
-      let position;
-      console.log("tableRect", tableRect)
-
-
-      if (isContextMenu) {
-        position = {
-          x: e.clientX,
-          y: e.clientY
-        };
-      } else {
-        const buttonRect = (e.target as Element).getBoundingClientRect();
-        console.log("buttonRect", buttonRect)
-        position = {
-          x: buttonRect.left - tableRect.left + buttonRect.width,
-          y: buttonRect.top - tableRect.top
-        };
-      }
-
-      const menuWidth = 200;
-      const menuHeight = getMenuOptions(mockInfo).length /* * 32 */;
-
-      const maxX = tableRect.width - menuWidth - 10;
-      const maxY = tableRect.height - menuHeight - 100;
-
-      console.log("maxX", maxX, "maxY", maxY)
-
-      position.x = Math.min(Math.max(20, position.x), maxX);
-      position.y = Math.min(Math.max(20, position.y), maxY);
-
-      const aling = position.y > tableRect.height / 2 ? "botton" : "top";
-      const justify = position.x > tableRect.width / 2 ? "end" : "start";
-
       const dynamicOptions = getMenuOptions(mockInfo);
-
-      console.log("aling", aling, "justify", justify)
 
       setShowOptionsMenu({
         state: true,
         values: {
           info: mockInfo,
-          position: position,
-          aling: aling,
-          justify: justify,
           options: dynamicOptions
         },
         select: ""
@@ -685,7 +628,10 @@ export const SmartSpreadsheetView2 = () => {
       )}
 
       {showOptionsMenu?.state && (
-        <FloatOptionsMenu showOptionsMenu={showOptionsMenu} setShowOptionsMenu={setShowOptionsMenu} />
+        <FixedOptionsMenu
+          showOptionsMenu={showOptionsMenu}
+          setShowOptionsMenu={setShowOptionsMenu}
+        />
       )}
 
       <DeleteConfirmModal
