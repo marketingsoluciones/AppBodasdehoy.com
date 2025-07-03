@@ -12,14 +12,19 @@ interface propsHandleChange {
 export const handleChange = ({ values, info, event, setEvent }: propsHandleChange) => {
   try {
     const original = info.row.original
-    /* Para actualizar los items de las partidas de gastos */
+
     if (original.object === "item" && (!["categoria", "gasto"].includes(values.accessor))) {
       const f1 = event?.presupuesto_objeto?.categorias_array.findIndex(elem => elem._id === original?.categoriaID)
       const f2 = event?.presupuesto_objeto?.categorias_array[f1].gastos_array.findIndex(elem => elem._id === original?.gastoID)
       const f3 = event?.presupuesto_objeto?.categorias_array[f1].gastos_array[f2].items_array.findIndex(elem => elem._id === original?.itemID)
-      event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array[f3][values.accessor] = values.value !== "" ? values.value : "nuevo item"
+      
+      // Actualizar el valor en el estado inmediatamente
+      event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array[f3][values.accessor] = values.value !== "" ? values.value : (values.accessor === "nombre" ? "nuevo item" : 0)
+
+      // Si se cambió la unidad a xUni., resetear cantidad si es necesario
       if (values.accessor === "unidad" && values.value === "xUni.") {
         event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array[f3].cantidad = 0
+        // Actualizar cantidad en backend
         fetchApiEventos({
           query: queries.editItemGasto,
           variables: {
@@ -30,9 +35,17 @@ export const handleChange = ({ values, info, event, setEvent }: propsHandleChang
             variable: "cantidad",
             valor: 0
           }
-        })
+        }).catch(error => console.log(error))
       }
+
+      // Después de cambiar valores que afectan cálculos, recalcular totales
+      if (['cantidad', 'valor_unitario', 'unidad'].includes(values.accessor)) {
+        recalculateItemAndGastoTotals(event, f1, f2, f3)
+      }
+
       setEvent({ ...event })
+      
+      // Actualizar en backend
       fetchApiEventos({
         query: queries.editItemGasto,
         variables: {
@@ -41,77 +54,30 @@ export const handleChange = ({ values, info, event, setEvent }: propsHandleChang
           gasto_id: original?.gastoID,
           itemGasto_id: original?.itemID,
           variable: values.accessor,
-          valor: values.value !== "" ? values.value : "nuevo item"
+          valor: values.value !== "" ? values.value : (values.accessor === "nombre" ? "nuevo item" : 0)
         }
       }).then((result: any) => {
-        /* Para actualizar los totales del item */
-        if (original[values.accessor] != values.value) {
-          const totalItem = event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array[f3].cantidad * event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array[f3].valor_unitario
-          event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array[f3].total = totalItem
-          if (original.coste_final !== totalItem) {
-            fetchApiEventos({
-              query: queries.editItemGasto,
-              variables: {
-                evento_id: event?._id,
-                categoria_id: original?.categoriaID,
-                gasto_id: original?.gastoID,
-                itemGasto_id: original?.itemID,
-                variable: "total",
-                valor: totalItem
-              }
-            }).then((result: any) => {
-              const SumaTotalItems = original?.gastoOriginal?.items_array?.reduce((acumulador, item) => acumulador + (item.total || 0), 0)
-              event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].coste_final = SumaTotalItems
-              const sumaTotalesGastos = original?.categoriaOriginal?.gastos_array?.reduce((acumulador, item) => acumulador + (item.coste_final || 0), 0)
-              const nuevasCategorias = event?.presupuesto_objeto?.categorias_array?.map((cat, idx) =>
-                idx === f1 ? { ...cat, coste_final: sumaTotalesGastos } : cat
-              );
-
-              if (original?.gastoOriginal?.coste_final !== SumaTotalItems) {
-                fetchApiEventos({
-                  query: queries.editGasto,
-                  variables: {
-                    evento_id: event?._id,
-                    categoria_id: original?.categoriaID,
-                    gasto_id: original?.gastoID,
-                    variable_reemplazar: "coste_final",
-                    valor_reemplazar: SumaTotalItems
-                  }
-                }).then((result: any) => {
-                  if (event.presupuesto_objeto.categorias_array[f1].coste_final != sumaTotalesGastos) {
-                    /*  event.presupuesto_objeto.categorias_array[f1].coste_final = sumaTotalesGastos */
-                    setEvent(prev => ({
-                      ...prev,
-                      presupuesto_objeto: {
-                        ...prev.presupuesto_objeto,
-                        categorias_array: nuevasCategorias
-                      }
-                    }));
-                  }
-                })
-              }
-            })
-          }
-          return
-        }
         return
       }).catch((error) => {
         console.log(error);
       })
     }
-
-
+    
     if ((original.object === "gasto" && (!["categoria"].includes(values.accessor)) || (original.object === "item" && values.accessor === "gasto"))) {
-      const f1 = event?.presupuesto_objeto?.categorias_array?.findIndex(elem => elem._id === original?.categoriaID)
-      const f2 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array.findIndex(elem => elem._id === original?.gastoID)
+      const f1 = event?.presupuesto_objeto?.categorias_array.findIndex(elem => elem._id === original?.categoriaID)
+      const f2 = event?.presupuesto_objeto?.categorias_array[f1].gastos_array.findIndex(elem => elem._id === original?.gastoID)
+      
+      // Actualizar el valor en el estado inmediatamente
       event.presupuesto_objeto.categorias_array[f1].gastos_array[f2][values.accessor === "gasto" ? "nombre" : values.accessor] = values.value !== "" ? values.value : "nuevo gasto"
-      const sumaTotalesGastos = original?.categoriaOriginal?.gastos_array.reduce((acumulador, item) => acumulador + (item.coste_final || 0), 0)
-
-      const nuevasCategorias = event.presupuesto_objeto.categorias_array.map((cat, idx) =>
-        idx === f1 ? { ...cat, coste_final: sumaTotalesGastos } : cat
-      );
-
+      
+      // Si se cambió coste_final de gasto, recalcular totales de categoría
+      if (values.accessor === 'coste_final') {
+        recalculateCategoriaTotals(event, f1)
+      }
+      
       setEvent({ ...event })
+      
+      // Actualizar en backend
       fetchApiEventos({
         query: queries.editGasto,
         variables: {
@@ -122,25 +88,17 @@ export const handleChange = ({ values, info, event, setEvent }: propsHandleChang
           valor_reemplazar: values.value !== "" ? values.value : "nuevo gasto"
         }
       }).then((result: any) => {
-        /* Se setea el coste final de las categorias con la variable sumaTotalesGastos */
-        if (values.accessor === 'coste_final' && original[values.accessor] !== values.value && original.items_array.length == 0) {
-          setEvent(prev => ({
-            ...prev,
-            presupuesto_objeto: {
-              ...prev.presupuesto_objeto,
-              categorias_array: nuevasCategorias
-            }
-          }));
-        }
         return
       }).catch((error) => {
         console.log(error);
       })
     }
+    
     if (original.object === "categoria" || (original.object === "gasto" && values.accessor === "categoria") || (original.object === "item" && values.accessor === "categoria")) {
       const f1 = event?.presupuesto_objeto?.categorias_array.findIndex(elem => elem._id === original?.categoriaID)
       event.presupuesto_objeto.categorias_array[f1].nombre = values.value !== "" ? values.value : "nueva categoria"
       setEvent({ ...event })
+      
       fetchApiEventos({
         query: queries.editCategoria,
         variables: {
@@ -156,6 +114,61 @@ export const handleChange = ({ values, info, event, setEvent }: propsHandleChang
     }
   } catch (error) {
     console.log(error)
+  }
+}
+
+// Nueva función para recalcular totales de item y gasto automáticamente
+const recalculateItemAndGastoTotals = (event: Event, categoriaIndex: number, gastoIndex: number, itemIndex: number) => {
+  const totalStimatedGuests = event?.presupuesto_objeto?.totalStimatedGuests || { adults: 0, children: 0 }
+  const categoria = event.presupuesto_objeto.categorias_array[categoriaIndex]
+  const gasto = categoria.gastos_array[gastoIndex]
+  
+  // Recalcular total del gasto basado en sus items
+  if (gasto.items_array && gasto.items_array.length > 0) {
+    let gastoTotal = 0
+    
+    gasto.items_array.forEach(item => {
+      // Calcular cantidad según unidad
+      let cantidad = item.cantidad || 0
+      switch (item.unidad) {
+        case 'xAdultos.':
+          cantidad = totalStimatedGuests.adults
+          break
+        case 'xNiños.':
+          cantidad = totalStimatedGuests.children
+          break
+        case 'xInv.':
+          cantidad = totalStimatedGuests.adults + totalStimatedGuests.children
+          break
+        default:
+          cantidad = item.cantidad || 0
+      }
+      
+      const itemTotal = cantidad * (item.valor_unitario || 0)
+      gastoTotal += itemTotal
+    })
+    
+    // Actualizar coste_final del gasto
+    gasto.coste_final = Math.round(gastoTotal * 100) / 100
+  }
+  
+  // Recalcular total de la categoría
+  recalculateCategoriaTotals(event, categoriaIndex)
+}
+
+// Nueva función para recalcular totales de categoría
+const recalculateCategoriaTotals = (event: Event, categoriaIndex: number) => {
+  const categoria = event.presupuesto_objeto.categorias_array[categoriaIndex]
+  
+  if (categoria.gastos_array && categoria.gastos_array.length > 0) {
+    let categoriaTotal = 0
+    
+    categoria.gastos_array.forEach(gasto => {
+      categoriaTotal += gasto.coste_final || 0
+    })
+    
+    // Actualizar coste_final de la categoría
+    categoria.coste_final = Math.round(categoriaTotal * 100) / 100
   }
 }
 
@@ -192,8 +205,8 @@ export const handleDelete = ({ showModalDelete, event, setEvent, setLoading, set
             categoria_id: values?._id,
           },
         }).then(result => {
-          const f1 = event?.presupuesto_objeto?.categorias_array?.findIndex(elem => elem._id === values?._id)
-          event?.presupuesto_objeto?.categorias_array?.splice(f1, 1)
+          const f1 = event?.presupuesto_objeto?.categorias_array.findIndex(elem => elem._id === values?._id)
+          event?.presupuesto_objeto?.categorias_array.splice(f1, 1)
           resolve(event)
         })
       }
@@ -206,9 +219,13 @@ export const handleDelete = ({ showModalDelete, event, setEvent, setLoading, set
             gasto_id: values?._id,
           },
         }).then(result => {
-          const f1 = event?.presupuesto_objeto?.categorias_array?.findIndex(elem => elem._id === values?.categoriaID)
-          const f2 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array?.findIndex(elem => elem._id === values?._id)
-          event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array?.splice(f2, 1)
+          const f1 = event?.presupuesto_objeto?.categorias_array.findIndex(elem => elem._id === values?.categoriaID)
+          const f2 = event?.presupuesto_objeto?.categorias_array[f1].gastos_array.findIndex(elem => elem._id === values?._id)
+          event?.presupuesto_objeto?.categorias_array[f1].gastos_array.splice(f2, 1)
+          
+          // Recalcular totales de categoría después de eliminar gasto
+          recalculateCategoriaTotals(event, f1)
+          
           resolve(event)
         })
       }
@@ -222,10 +239,14 @@ export const handleDelete = ({ showModalDelete, event, setEvent, setLoading, set
             itemsGastos_ids: [values?._id],
           },
         }).then(result => {
-          const f1 = event?.presupuesto_objeto?.categorias_array?.findIndex(elem => elem._id === values?.categoriaID)
-          const f2 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array?.findIndex(elem => elem._id === values?.gastoID)
-          const f3 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.items_array?.findIndex(elem => elem._id === values._id)
-          event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.items_array.splice(f3, 1)
+          const f1 = event?.presupuesto_objeto?.categorias_array.findIndex(elem => elem._id === values?.categoriaID)
+          const f2 = event?.presupuesto_objeto?.categorias_array[f1].gastos_array.findIndex(elem => elem._id === values?.gastoID)
+          const f3 = event?.presupuesto_objeto?.categorias_array[f1].gastos_array[f2].items_array.findIndex(elem => elem._id === values._id)
+          event?.presupuesto_objeto?.categorias_array[f1].gastos_array[f2].items_array.splice(f3, 1)
+          
+          // Recalcular totales después de eliminar item
+          recalculateItemAndGastoTotals(event, f1, f2, -1) // -1 indica que ya se eliminó el item
+          
           resolve(event)
         })
       }
@@ -269,6 +290,10 @@ export const handleCreateItem = async ({ info, event, setEvent, setShowDotsOptio
       const f1 = event?.presupuesto_objeto?.categorias_array.findIndex((elem) => elem._id === info?.row?.original?.categoriaID)
       const f2 = event?.presupuesto_objeto?.categorias_array[f1].gastos_array.findIndex((elem) => elem._id == info?.row?.original?.gastoID)
       event?.presupuesto_objeto?.categorias_array[f1].gastos_array[f2].items_array.push(result)
+      
+      // Recalcular totales después de agregar item
+      recalculateItemAndGastoTotals(event, f1, f2, -1)
+      
       setEvent({ ...event })
     })
   } catch (error) {
@@ -289,7 +314,11 @@ export const handleCreateGasto = async ({ info, event, setEvent, setShowDotsOpti
     }).then((result: expenses) => {
       setShowDotsOptionsMenu({ state: false })
       const f1 = event?.presupuesto_objeto?.categorias_array.findIndex((elem) => elem._id === info?.row?.original?.categoriaID)
-      event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array?.push(result)
+      event?.presupuesto_objeto?.categorias_array[f1].gastos_array.push(result)
+      
+      // Recalcular totales de categoría después de agregar gasto
+      recalculateCategoriaTotals(event, f1)
+      
       setEvent({ ...event })
     })
   } catch (error) {
@@ -321,9 +350,7 @@ export const handleChangeEstatus = async ({ event, categoriaID, gastoId, setEven
   const f1 = event?.presupuesto_objeto?.categorias_array.findIndex(elem => elem._id === categoriaID)
   const f2 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == gastoId);
   const gastoEstatus = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.estatus
-
-  console.log('entro en el gasto')
-
+  console.log("pepe", gastoId)
   try {
     fetchApiEventos({
       query: queries.editGasto,
@@ -350,9 +377,7 @@ export const handleChangeEstatusItem = async ({ event, categoriaID, gastoId, ite
   const f3 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.items_array.findIndex((item) => item._id == itemId)
   const ItemEstatus = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.items_array[f3]?.estatus
   event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array[f3].estatus = !ItemEstatus
-
-  console.log('Entro')
-
+  
   try {
     fetchApiEventos({
       query: queries.editItemGasto,
@@ -365,6 +390,7 @@ export const handleChangeEstatusItem = async ({ event, categoriaID, gastoId, ite
         valor: !ItemEstatus
       }
     }).then((result: any) => {
+      console.log('result', result.categorias_array[f1].gastos_array[f2].items_array)
       setEvent({ ...event })
     })
   } catch (error) {
