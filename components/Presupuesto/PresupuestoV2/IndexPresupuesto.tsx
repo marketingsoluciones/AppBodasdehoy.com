@@ -3,7 +3,7 @@ import { GrMoney } from 'react-icons/gr';
 import { GoEye, GoEyeClosed, GoTasklist } from 'react-icons/go';
 import { PiNewspaperClippingLight } from 'react-icons/pi';
 import { MdOutlineDeleteOutline } from 'react-icons/md';
-import { EventContextProvider } from "../../../context";
+import { EventContextProvider, AuthContextProvider } from "../../../context"; // Agregamos AuthContextProvider
 import { handleChange, handleCreateItem, handleCreateGasto, handleCreateCategoria, handleChangeEstatus, handleChangeEstatusItem } from "../../TablesComponents/tableBudgetV8.handles";
 import { useAllowed } from "../../../hooks/useAllowed";
 import { useToast } from "../../../hooks/useToast";
@@ -26,6 +26,7 @@ import { TableRow, MenuOption, ModalState, DeleteModalState } from './types';
 
 export const SmartSpreadsheetView2 = () => {
   const { event, setEvent } = EventContextProvider();
+  const { user } = AuthContextProvider(); // Agregamos el contexto de autenticación
   const [isAllowed, ht] = useAllowed();
   const toast = useToast();
   const [viewLevel, setViewLevel] = useState(3);
@@ -48,7 +49,6 @@ export const SmartSpreadsheetView2 = () => {
   const [showDeleteModal, setShowDeleteModal] = useState<DeleteModalState>({ state: false, title: "", values: null });
   const [loading, setLoading] = useState(false);
 
-  console.log("1212", showOptionsMenu)
 
   // Usar hooks personalizados
   const { filters, handleFilterChange, clearFilters } = useSmartTableFilters();
@@ -59,14 +59,15 @@ export const SmartSpreadsheetView2 = () => {
   const currency = event?.presupuesto_objeto?.currency || 'eur';
   const totalStimatedGuests = event?.presupuesto_objeto?.totalStimatedGuests || { adults: 0, children: 0 };
 
-  // Generar datos de la tabla usando el hook personalizado
+  // Generar datos de la tabla usando el hook personalizado (agregamos user como parámetro)
   const { tableData, totals, isGastoEditable } = useSmartTableData(
     categorias_array,
     viewLevel,
     expandedCategories,
     filters,
     totalStimatedGuests,
-    event
+    event,
+    user // Agregamos el usuario para validaciones de permisos
   );
 
   // Función para formatear números
@@ -147,7 +148,6 @@ export const SmartSpreadsheetView2 = () => {
     const timeoutId = setTimeout(() => {
       recalculateEventTotals();
     }, 100);
-
 
     return () => clearTimeout(timeoutId);
   }, [recalculateEventTotals]);
@@ -387,7 +387,6 @@ export const SmartSpreadsheetView2 = () => {
       },
     ];
   }, [categorias_array, showOptionsMenu, event, setEvent, setShowOptionsMenu, recalculateEventTotals, toast]);
-
 
   // 2. REEMPLAZAR la función handleOptionsMenu por esta versión simplificada:
   const handleOptionsMenu = useCallback((e: React.MouseEvent, row: TableRow, isContextMenu = false) => {

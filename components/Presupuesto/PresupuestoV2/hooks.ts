@@ -9,8 +9,14 @@ export const useSmartTableData = (
   filters: TableFilters,
   totalStimatedGuests: { adults: number; children: number },
   event: any,
+  user: any, // Agregamos el parámetro user para validaciones
   updateTrigger?: number // Nuevo parámetro para forzar actualizaciones
 ) => {
+
+  // Función para verificar si el usuario puede ver elementos ocultos
+  const canViewHiddenElements = useCallback(() => {
+    return event?.usuario_id === user?.uid;
+  }, [event?.usuario_id, user?.uid]);
 
   // Función para calcular la cantidad según la unidad
   const calculateCantidad = useCallback((item: any) => {
@@ -40,17 +46,24 @@ export const useSmartTableData = (
   const calculateGastoTotal = useCallback((gasto: any) => {
     if (!gasto) return 0;
 
-    // Si el gasto tiene items, calcular desde los items
+    // Si el gasto tiene items, calcular desde los items (solo los visibles)
     if (gasto.items_array && Array.isArray(gasto.items_array) && gasto.items_array.length > 0) {
       const total = gasto.items_array.reduce((acc: number, item: any) => {
-        return acc + calculateItemTotal(item);
+        // Aplicar validación de visibilidad para items
+        const isItemHidden = item.estatus === true;
+        const shouldShowItem = canViewHiddenElements() || !isItemHidden;
+        
+        if (shouldShowItem) {
+          return acc + calculateItemTotal(item);
+        }
+        return acc;
       }, 0);
       return Math.round(total * 100) / 100;
     }
 
     // Si no tiene items, usar el coste_final del gasto
     return gasto.coste_final || 0;
-  }, [calculateItemTotal]);
+  }, [calculateItemTotal, canViewHiddenElements]);
 
   // Función para calcular el total de una categoría
   const calculateCategoriaTotal = useCallback((categoria: any) => {
@@ -59,11 +72,18 @@ export const useSmartTableData = (
     }
 
     const total = categoria.gastos_array.reduce((acc: number, gasto: any) => {
-      return acc + calculateGastoTotal(gasto);
+      // Aplicar validación de visibilidad para gastos
+      const isGastoHidden = gasto.estatus === false;
+      const shouldShowGasto = canViewHiddenElements() || !isGastoHidden;
+      
+      if (shouldShowGasto) {
+        return acc + calculateGastoTotal(gasto);
+      }
+      return acc;
     }, 0);
 
     return Math.round(total * 100) / 100;
-  }, [calculateGastoTotal]);
+  }, [calculateGastoTotal, canViewHiddenElements]);
 
   // Función para aplicar filtros
   const applyFilters = useCallback((data: TableRow[]) => {
@@ -144,9 +164,6 @@ export const useSmartTableData = (
   }, []);
 
   // Crear un key de dependencia más específico para detectar cambios
-  // En el archivo: components/Presupuesto/PresupuestoV2/hooks.ts
-  // Buscar la función eventDependencyKey y reemplazar esta parte:
-
   const eventDependencyKey = useMemo(() => {
     if (!event?.presupuesto_objeto?.categorias_array) {
       const emptyKey = `empty-${Date.now()}`;
@@ -159,7 +176,9 @@ export const useSmartTableData = (
       `guests-${totalStimatedGuests.adults}-${totalStimatedGuests.children}`,
       `level-${viewLevel}`,
       `expanded-${Array.from(expandedCategories).sort().join(',')}`,
-      `lastUpdate-${event._lastUpdate || 'none'}`
+      `lastUpdate-${event._lastUpdate || 'none'}`,
+      `user-${user?.uid || 'none'}`, // Agregar información del usuario al key
+      `eventOwner-${event?.usuario_id || 'none'}` // Agregar información del dueño del evento
     ];
 
     // Agregar información específica de cada categoría, gasto e item
@@ -169,7 +188,7 @@ export const useSmartTableData = (
       if (categoria.gastos_array) {
         categoria.gastos_array.forEach(gasto => {
           // INCLUIR INFORMACIÓN DE PAGOS AQUÍ 👇
-          keyParts.push(`gas-${gasto._id}-${gasto.nombre}-${gasto.coste_final}-${gasto.pagado || 0}`);
+          keyParts.push(`gas-${gasto._id}-${gasto.nombre}-${gasto.coste_final}-${gasto.pagado || 0}-${gasto.estatus}`);
 
           // También incluir información de pagos_array si existe
           if (gasto.pagos_array && Array.isArray(gasto.pagos_array)) {
@@ -181,7 +200,7 @@ export const useSmartTableData = (
 
           if (gasto.items_array) {
             gasto.items_array.forEach(item => {
-              keyParts.push(`itm-${item._id}-${item.cantidad}-${item.valor_unitario}-${item.unidad}`);
+              keyParts.push(`itm-${item._id}-${item.cantidad}-${item.valor_unitario}-${item.unidad}-${item.estatus}`);
             });
           }
         });
@@ -190,9 +209,9 @@ export const useSmartTableData = (
 
     const finalKey = keyParts.join('|');
     return finalKey;
-  }, [event, updateTrigger, totalStimatedGuests, viewLevel, expandedCategories]);
+  }, [event, updateTrigger, totalStimatedGuests, viewLevel, expandedCategories, user?.uid]);
 
-  // Generar datos de la tabla con cálculos automáticos
+  // Generar datos de la tabla con cálculos automáticos y validación de permisos
   const tableData = useMemo(() => {
 
     const rows: TableRow[] = [];
@@ -214,6 +233,15 @@ export const useSmartTableData = (
         categoria.gastos_array.forEach(gasto => {
           if (!gasto || !gasto._id) return;
 
+          // **VALIDACIÓN DE PERMISOS PARA GASTOS**
+          const isGastoHidden = gasto.estatus === false;
+          const shouldShowGasto = canViewHiddenElements() || !isGastoHidden;
+          
+          // Si el gasto está oculto y el usuario no puede verlo, skip
+          if (!shouldShowGasto) {
+            return;
+          }
+
           if (!gasto.items_array || !Array.isArray(gasto.items_array)) {
             gasto.items_array = [];
           }
@@ -223,6 +251,15 @@ export const useSmartTableData = (
           if (gasto.items_array && Array.isArray(gasto.items_array) && gasto.items_array.length > 0) {
             gasto.items_array.forEach(item => {
               if (!item || !item._id) return;
+
+              // **VALIDACIÓN DE PERMISOS PARA ITEMS**
+              const isItemHidden = item.estatus === true;
+              const shouldShowItem = canViewHiddenElements() || !isItemHidden;
+              
+              // Si el item está oculto y el usuario no puede verlo, skip
+              if (!shouldShowItem) {
+                return;
+              }
 
               const cantidad = calculateCantidad(item);
               const totalItem = calculateItemTotal(item);
@@ -246,7 +283,7 @@ export const useSmartTableData = (
                   gastoID: gasto._id,
                   itemID: item._id,
                   object: 'item',
-                  eventKey: eventDependencyKey // Usar el nuevo key
+                  eventKey: eventDependencyKey
                 });
               }
             });
@@ -276,13 +313,13 @@ export const useSmartTableData = (
               gastoOriginal: gasto,
               isEditable: isGastoEditable(gasto),
               items: itemsData,
-              eventKey: eventDependencyKey // Usar el nuevo key
+              eventKey: eventDependencyKey
             });
           }
         });
       }
 
-      // Calcular el total real de la categoría
+      // Calcular el total real de la categoría (considerando solo elementos visibles)
       const categoriaTotal = calculateCategoriaTotal(categoria);
 
       // Fila de categoría
@@ -306,7 +343,7 @@ export const useSmartTableData = (
         gastoID: null,
         itemID: null,
         object: 'categoria',
-        eventKey: eventDependencyKey // Usar el nuevo key
+        eventKey: eventDependencyKey
       });
 
       // Agregar gastos si está expandida
@@ -325,9 +362,10 @@ export const useSmartTableData = (
 
     return applyFilters(rows);
   }, [
-    eventDependencyKey, // Nueva dependencia principal que detecta todos los cambios
+    eventDependencyKey,
     filters,
-    applyFilters
+    applyFilters,
+    canViewHiddenElements
   ]);
 
   // Calcular totales con cálculos actualizados
@@ -350,7 +388,8 @@ export const useSmartTableData = (
     calculateCantidad,
     calculateItemTotal,
     calculateGastoTotal,
-    calculateCategoriaTotal
+    calculateCategoriaTotal,
+    canViewHiddenElements // Exportamos esta función por si se necesita en otros lugares
   };
 };
 
