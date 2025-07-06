@@ -15,6 +15,7 @@ import { PiNewspaperClippingLight } from 'react-icons/pi';
 import { MdOutlineDeleteOutline } from 'react-icons/md';
 import { IoSettingsOutline, IoInformationCircleOutline } from 'react-icons/io5';
 import { HiOutlineSearch, HiOutlineX } from 'react-icons/hi';
+import { TbColumns3 } from 'react-icons/tb'; // Nuevo icono para columnas
 import { handleChange, determinatedPositionMenu, handleCreateItem, handleCreateGasto, handleCreateCategoria, handleChangeEstatus, handleChangeEstatusItem } from "./tableBudgetV8.handles"
 import { useToast } from '../../hooks/useToast';
 import FormAddPago from '../Forms/FormAddPago';
@@ -23,6 +24,7 @@ import { SelectVisiblesColumns } from './SelectVisiblesColumns';
 import { getCurrency } from '../../utils/Funciones';
 import { ModalTaskList } from '../Presupuesto/ModalTaskList';
 import { EventInfoModal } from '../Presupuesto/PresupuestoV2/modals/EventInfoModal';
+import { ColumnsConfigModal } from '../Presupuesto/PresupuestoV2/modals/ColumnsConfigModal'; // Importar el nuevo modal
 
 interface props {
   data: any
@@ -46,6 +48,21 @@ export interface InitialColumn {
   className?: string
   type?: "string" | "int" | "float" | "select"
   onClick?: Dispatch<SetStateAction<any>>
+}
+
+// Definir el tipo ColumnConfig basado en los accessors reales de la tabla
+interface ColumnConfig {
+  categoria: { visible: boolean };
+  gasto: { visible: boolean };
+  unidad: { visible: boolean };
+  cantidad: { visible: boolean };
+  nombre: { visible: boolean };
+  valor_unitario: { visible: boolean };
+  coste_final: { visible: boolean };
+  coste_estimado: { visible: boolean };
+  pagado: { visible: boolean };
+  pendiente_pagar: { visible: boolean };
+  options: { visible: boolean };
 }
 
 const defaultSize = {
@@ -80,6 +97,9 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
   const [searchTerm, setSearchTerm] = useState('');
   const [showSearch, setShowSearch] = useState(false);
 
+  // NUEVO: Estado para el modal de configuración de columnas
+  const [showColumnsModal, setShowColumnsModal] = useState(false);
+
   const initialColumn: InitialColumn[] = [
     { accessor: "categoria", header: t("categoria"), isEditabled: true, size: 140 },
     { accessor: "gasto", header: t("partida de gasto"), isEditabled: true, size: 180 },
@@ -92,6 +112,52 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     { accessor: "pagado", header: t("pagado"), size: 90, horizontalAlignment: "end", type: "float" },
     { accessor: "pendiente_pagar", header: t("pendiente por pagar"), size: 90, horizontalAlignment: "end", type: "float" },
   ]
+
+  // NUEVO: Mapeo directo usando los accessors reales de la tabla
+  const getColumnVisibility = (accessor: string): boolean => {
+    if (accessor === "coste_estimado") {
+      return event?.presupuesto_objeto?.viewEstimates && (columnsVisibility[accessor] !== false);
+    }
+    return columnsVisibility[accessor] !== false;
+  };
+
+  // NUEVO: Crear el columnConfig basado en la visibilidad actual usando accessors reales
+  const columnConfig: ColumnConfig = useMemo(() => {
+    return {
+      categoria: { visible: getColumnVisibility("categoria") },
+      gasto: { visible: getColumnVisibility("gasto") },
+      unidad: { visible: getColumnVisibility("unidad") },
+      cantidad: { visible: getColumnVisibility("cantidad") },
+      nombre: { visible: getColumnVisibility("nombre") },
+      valor_unitario: { visible: getColumnVisibility("valor_unitario") },
+      coste_final: { visible: getColumnVisibility("coste_final") },
+      coste_estimado: { visible: getColumnVisibility("coste_estimado") },
+      pagado: { visible: getColumnVisibility("pagado") },
+      pendiente_pagar: { visible: getColumnVisibility("pendiente_pagar") },
+      options: { visible: getColumnVisibility("options") }
+    };
+  }, [columnsVisibility, event?.presupuesto_objeto?.viewEstimates]);
+
+  // NUEVO: Función para alternar la visibilidad de columnas desde el modal
+  const toggleColumnVisibility = (columnKey: keyof ColumnConfig) => {
+    // columnKey es directamente el accessor de la tabla
+    const accessor = columnKey;
+    
+    if (accessor === "options") {
+      // Para la columna de opciones, manejar directamente con setColumnVisibility
+      setColumnVisibility(prev => ({
+        ...prev,
+        [accessor]: !columnConfig[columnKey].visible
+      }));
+    } else {
+      // Para el resto de columnas, usar la función existente handleChangeColumnVisible
+      const currentVisibility = columnConfig[columnKey].visible;
+      handleChangeColumnVisible({
+        accessor,
+        show: !currentVisibility
+      });
+    }
+  };
 
   // Función para filtrar los datos basada en el término de búsqueda
   const filteredData = useMemo(() => {
@@ -361,13 +427,13 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     } else {
       event.presupuesto_objeto.visibleColumns = []
     }
-    fetchApiEventos({
+    /* fetchApiEventos({
       query: queries.editVisibleColumns,
       variables: {
         evento_id: event?._id,
         visibleColumns: event.presupuesto_objeto.visibleColumns
       },
-    })
+    }) */
     setEvent({ ...event })
   }
 
@@ -496,17 +562,42 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
               <span className="text-xs">Info evento</span>
             </button>
           </div>
+
+          {/* NUEVO: Botón para abrir modal de configuración de columnas */}
+          <div className="relative">
+            <button
+              onClick={() => setShowColumnsModal(true)}
+              className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors flex items-center gap-1"
+              title="Configurar columnas"
+            >
+              <TbColumns3 className="w-3.5 h-3.5" />
+              <span className="text-xs">Columnas</span>
+            </button>
+
+            {/* Modal de configuración de columnas */}
+            {showColumnsModal && (
+              /* <ClickAwayListener onClickAway={() => setShowColumnsModal(false)}> */
+                <ColumnsConfigModal
+                  columnConfig={columnConfig}
+                  toggleColumnVisibility={toggleColumnVisibility}
+                  onClose={() => setShowColumnsModal(false)}
+                />
+              /* </ClickAwayListener> */
+            )}
+          </div>
         </div>
 
-        {/* Selector de columnas */}
-        <div className="relative">
-          <SelectVisiblesColumns
-            columns={initialColumn}
-            table={table}
-            handleChangeColumnVisible={handleChangeColumnVisible}
-            showDataState={showDataState}
-            setShowDataState={setShowDataState}
-          />
+        {/* Controles de columnas - Selector original (mantener por compatibilidad) */}
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <SelectVisiblesColumns
+              columns={initialColumn}
+              table={table}
+              handleChangeColumnVisible={handleChangeColumnVisible}
+              showDataState={showDataState}
+              setShowDataState={setShowDataState}
+            />
+          </div>
         </div>
 
         {/* Resumen financiero */}

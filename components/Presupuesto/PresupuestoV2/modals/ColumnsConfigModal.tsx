@@ -1,6 +1,20 @@
 import React, { useMemo } from 'react';
 import { IoCloseOutline } from "react-icons/io5";
-import { ColumnConfig } from '../types';
+
+// Definir el tipo basado en los accessors reales de TableBudgetV82
+interface ColumnConfig {
+  categoria: { visible: boolean };
+  gasto: { visible: boolean };
+  unidad: { visible: boolean };
+  cantidad: { visible: boolean };
+  nombre: { visible: boolean };
+  valor_unitario: { visible: boolean };
+  coste_final: { visible: boolean };
+  coste_estimado: { visible: boolean };
+  pagado: { visible: boolean };
+  pendiente_pagar: { visible: boolean };
+  options: { visible: boolean };
+}
 
 interface ColumnsConfigModalProps {
   columnConfig: ColumnConfig;
@@ -13,18 +27,19 @@ export const ColumnsConfigModal: React.FC<ColumnsConfigModalProps> = ({
   toggleColumnVisibility,
   onClose
 }) => {
+  // Labels que coinciden con los headers de TableBudgetV82
   const columnLabels = {
     categoria: 'Categoría',
-    partida: 'Partida de Gasto',
+    gasto: 'Partida de Gasto', 
     unidad: 'Unidad',
     cantidad: 'Cantidad',
-    item: 'Item',
-    valorUnitario: 'Valor Unitario',
-    total: 'Coste Total',
-    estimado: 'Coste Estimado',
+    nombre: 'Item',
+    valor_unitario: 'Valor Unitario',
+    coste_final: 'Coste Total',
+    coste_estimado: 'Coste Estimado',
     pagado: 'Pagado',
-    pendiente: 'Pendiente',
-    acciones: 'Acciones'
+    pendiente_pagar: 'Pendiente',
+    options: 'Acciones'
   };
 
   // Calcular el estado del checkbox "Seleccionar todo"
