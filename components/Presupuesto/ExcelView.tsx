@@ -3,7 +3,7 @@ import { AuthContextProvider, EventContextProvider } from '../../context';
 import { GoArrowRight } from 'react-icons/go';
 import { ModalInterface } from "../../utils/Interfaces";
 import { ResumenInvitados } from './ResumenDeInvitadosPresupuesto';
-import { TableBudgetV8 } from '../TablesComponents/TableBudgetV8';
+import { TableBudgetV8 } from '../TablesComponents/TableBudgetV82';
 import { BlockListaCategorias } from './BlockListaCategorias';
 import { handleDelete } from '../TablesComponents/tableBudgetV8.handles';
 import { SimpleDeleteConfirmation } from '../Utils/SimpleDeleteConfirmation';
@@ -118,11 +118,11 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
 
     return (
         <div className='w-full h-full'>
-            <div className="absolute left-0" >
+         {/*    <div className="absolute left-0" >
                 <button onClick={() => setMenuIzquierdo(!menuIzquierdo)} className="bg-white rounded-r-md w-7 h-7 md:flex items-center justify-center -translate-y-full">
                     <GoArrowRight className={` ${menuIzquierdo === true ? "" : "rotate-180"} h-5 w-5 transition-all`} />
                 </button>
-            </div>
+            </div> */}
 
 
             {
@@ -145,16 +145,16 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
             }
             <div className="flex flex-col md:flex-row w-full h-[calc(100vh-300px)] md:h-[calc(100vh-266px)]" >
 
-                <div className={`${menuIzquierdo ? "hidden" : "md:w-[300px] flex items-center flex-col mb-3 md:mb-0"} transition-all duration-300 ease-in-out`}>
+               {/*  <div className={`${menuIzquierdo ? "hidden" : "md:w-[300px] flex items-center flex-col mb-3 md:mb-0"} transition-all duration-300 ease-in-out`}>
                     <div className="mb-2 w-full">
                         <ResumenInvitados />
                     </div>
                     <BlockListaCategorias setShowCategoria={setShowCategoria} categorias_array={categorias_array} showCategoria={showCategoria} showDataState={showDataState} />
-                </div>
+                </div> */}
                 {
                     true &&
-                    <div className={`flex ${menuIzquierdo ? "w-full" : "md:w-[calc(100%-300px)]"} h-full`}>
-                        <div className='bg-blue-50 w-full h-full flex'>
+                    <div className={`flex w-full h-full`}>
+                        <div className='bg-blue-50 w-full h-full flex '>
                             <TableBudgetV8 showDataState={showDataState} setShowDataState={setShowDataState} showModalDelete={showModalDelete} setShowModalDelete={setShowModalDelete} setLoading={setLoading} setIdItem={setIdItem}
                                 data={data.reduce((acc, item) => {
                                     let coste_final_categoria = 0
