@@ -33,19 +33,6 @@ export interface TableFilters {
   searchText: string;
 }
 
-export interface ColumnConfig {
-  categoria: { visible: boolean; width: number };
-  partida: { visible: boolean; width: number };
-  unidad: { visible: boolean; width: number };
-  cantidad: { visible: boolean; width: number };
-  item: { visible: boolean; width: number };
-  valorUnitario: { visible: boolean; width: number };
-  total: { visible: boolean; width: number };
-  estimado: { visible: boolean; width: number };
-  pagado: { visible: boolean; width: number };
-  pendiente: { visible: boolean; width: number };
-  acciones: { visible: boolean; width: number };
-}
 
 export interface TableTotals {
   estimado: number;

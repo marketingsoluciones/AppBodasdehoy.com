@@ -1,6 +1,6 @@
 import React from 'react';
 import { IoIosArrowDown, IoIosArrowForward } from "react-icons/io";
-import { TableRow, ColumnConfig } from './types';
+import { TableRow } from './types';
 import { CategoriaCell } from './cells/CategoriaCell';
 import { PartidaCell } from './cells/PartidaCell';
 import { UnidadCell } from './cells/UnidadCell';
@@ -12,7 +12,7 @@ import { AccionesCell } from './cells/AccionesCell';
 
 interface SmartSpreadsheetTableProps {
   tableData: TableRow[];
-  columnConfig: ColumnConfig;
+  columnConfig;
   onToggleCategory: (categoryId: string) => void;
   onRowChange: (values: any, info: any) => void;
   onOptionsMenu: (e: React.MouseEvent, row: TableRow, isContextMenu?: boolean) => void;
@@ -240,7 +240,7 @@ export const SmartSpreadsheetTable: React.FC<SmartSpreadsheetTableProps> = ({
               );
             }) : (
               <tr>
-                <td colSpan={Object.values(columnConfig).filter(col => col.visible).length} className="p-8 text-center text-gray-500 italic">
+                <td  className="p-8 text-center text-gray-500 italic">
                   <div className="flex flex-col items-center gap-2">
                     <span>No hay datos disponibles</span>
                     <span className="text-xs">Haz clic derecho para agregar una categoría</span>

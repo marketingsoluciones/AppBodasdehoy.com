@@ -1,6 +1,6 @@
 // hooks/useSmartTableData.ts
 import { useMemo, useCallback, useState } from 'react';
-import { TableRow, TableFilters, TableTotals, ColumnConfig } from '../PresupuestoV2/types';
+import { TableRow, TableFilters, TableTotals } from '../PresupuestoV2/types';
 
 export const useSmartTableData = (
   categorias_array: any[],
@@ -431,32 +431,5 @@ export const useSmartTableFilters = () => {
 // hooks/useSmartTableColumns.ts
 
 export const useSmartTableColumns = () => {
-  const [columnConfig, setColumnConfig] = useState<ColumnConfig>({
-    categoria: { visible: true, width: 160 },
-    partida: { visible: true, width: 200 },
-    unidad: { visible: true, width: 60 },
-    cantidad: { visible: true, width: 60 },
-    item: { visible: true, width: 140 },
-    valorUnitario: { visible: true, width: 100 },
-    total: { visible: true, width: 100 },
-    estimado: { visible: true, width: 100 },
-    pagado: { visible: true, width: 100 },
-    pendiente: { visible: true, width: 100 },
-    acciones: { visible: true, width: 80 }
-  });
-
-  const toggleColumnVisibility = useCallback((columnKey: keyof ColumnConfig) => {
-    setColumnConfig(prev => ({
-      ...prev,
-      [columnKey]: {
-        ...prev[columnKey],
-        visible: !prev[columnKey].visible
-      }
-    }));
-  }, []);
-
-  return {
-    columnConfig,
-    toggleColumnVisibility
-  };
+ 
 };

@@ -3,17 +3,17 @@ import { IoCloseOutline } from "react-icons/io5";
 
 // Definir el tipo basado en los accessors reales de TableBudgetV82
 interface ColumnConfig {
-  categoria: { visible: boolean };
-  gasto: { visible: boolean };
-  unidad: { visible: boolean };
-  cantidad: { visible: boolean };
-  nombre: { visible: boolean };
-  valor_unitario: { visible: boolean };
-  coste_final: { visible: boolean };
-  coste_estimado: { visible: boolean };
-  pagado: { visible: boolean };
-  pendiente_pagar: { visible: boolean };
-  options: { visible: boolean };
+  categoria?: { visible: boolean };
+  gasto?: { visible: boolean };
+  unidad?: { visible: boolean };
+  cantidad?: { visible: boolean };
+  nombre?: { visible: boolean };
+  valor_unitario?: { visible: boolean };
+  coste_final?: { visible: boolean };
+  coste_estimado?: { visible: boolean };
+  pagado?: { visible: boolean };
+  pendiente_pagar?: { visible: boolean };
+  options?: { visible: boolean };
 }
 
 interface ColumnsConfigModalProps {
