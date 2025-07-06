@@ -309,6 +309,20 @@ export const handleCreateCategoria = async ({ info, event, setEvent, setShowDots
     }).then((result: estimateCategory) => {
       setShowDotsOptionsMenu({ state: false })
       event?.presupuesto_objeto?.categorias_array.push(result)
+      fetchApiEventos({
+        query: queries.nuevoGasto,
+        variables: {
+          evento_id: event?._id,
+          categoria_id: result?._id,
+          nombre: "Nueva part. de gasto",
+        }
+      }).then((resultGasto: expenses) => {
+        const f1 = event?.presupuesto_objeto?.categorias_array.findIndex((elem) => elem._id === result?._id)
+        event.presupuesto_objeto.categorias_array[f1].gastos_array = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array || []
+        event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array?.push(resultGasto)
+        setEvent({ ...event })
+
+      })
       setEvent({ ...event })
     })
   } catch (error) {
