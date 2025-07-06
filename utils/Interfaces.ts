@@ -1,5 +1,11 @@
 import { Dispatch, ReactNode, SetStateAction } from "react"
 
+export interface TableTotals {
+  estimado: number;
+  total: number;
+  pagado: number;
+}
+
 export interface Event {
     _id: string
     fecha_creacion: string

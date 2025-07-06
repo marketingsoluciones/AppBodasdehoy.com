@@ -15,7 +15,6 @@ import { MontoPresupuesto } from "../components/Presupuesto/MontoPresupuesto";
 import BlockCategoria from "../components/Presupuesto/BlockCategoria";
 import { DuplicatePresupuesto } from "../components/Presupuesto/DuplicatePesupuesto";
 import { useAllowed } from "../hooks/useAllowed";
-import { SmartSpreadsheetView2 } from "../components/Presupuesto/PresupuestoV2/IndexPresupuesto";
 
 const Presupuesto = () => {
   useMounted()
@@ -28,7 +27,6 @@ const Presupuesto = () => {
   const [getId, setGetId] = useState()
   const [showModalDuplicate, setShowModalDuplicate] = useState(false)
   const [isAllowed, ht] = useAllowed()
-  const [showModalPresupuesto, setShowModalPresupuesto] = useState(false)
 
   const totalCosteFinal = categorias?.reduce((sum, categoria) => {
     return sum + (categoria.coste_final || 0);
@@ -221,7 +219,6 @@ const Presupuesto = () => {
                       exit={{ opacity: 0 }}
                       className=" w-full h-full gap-6 pt-2 md:pr-0"
                     >
-                      {/* <SmartSpreadsheetView2/> */}
                       <ExcelView setShowCategoria={setShowCategoria} categorias_array={categorias} showCategoria={showCategoria} />
                     </motion.div>
                   )

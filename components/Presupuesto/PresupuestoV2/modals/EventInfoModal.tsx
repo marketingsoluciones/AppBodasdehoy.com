@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { IoCloseOutline} from "react-icons/io5";
-import { TableTotals } from '../types';
+import { TableTotals } from '../../../../utils/Interfaces';
 import { fetchApiEventos, queries } from '../../../../utils/Fetching';
 import { useToast } from '../../../../hooks/useToast';
 

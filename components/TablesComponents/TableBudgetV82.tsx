@@ -90,12 +90,6 @@ const optionsSelect = [
   { title: "xNiños", value: "xNiños." },
 ]
 
-const determinatedPositionMenu = ({ e, element = undefined, height = 0, width = 0 }): { aling: "top" | "botton", justify: "start" | "end" } => {
-  return {
-    aling: "top",
-    justify: "end"
-  }
-}
 
 
 export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDelete, setLoading, showDataState, setShowDataState, setIdItem }) => {
