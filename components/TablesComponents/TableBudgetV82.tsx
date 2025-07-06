@@ -1,4 +1,4 @@
-import { Dispatch, FC, SetStateAction, useEffect, useReducer, useState } from 'react';
+import { Dispatch, FC, SetStateAction, useEffect, useReducer, useState, useMemo } from 'react';
 import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import { t } from 'i18next';
 import { EditableLabelWithInput } from '../Forms/EditableLabelWithInput';
@@ -14,6 +14,7 @@ import { GoEye, GoEyeClosed, GoTasklist } from 'react-icons/go';
 import { PiNewspaperClippingLight } from 'react-icons/pi';
 import { MdOutlineDeleteOutline } from 'react-icons/md';
 import { IoSettingsOutline, IoInformationCircleOutline } from 'react-icons/io5';
+import { HiOutlineSearch, HiOutlineX } from 'react-icons/hi';
 import { handleChange, determinatedPositionMenu, handleCreateItem, handleCreateGasto, handleCreateCategoria, handleChangeEstatus, handleChangeEstatusItem } from "./tableBudgetV8.handles"
 import { useToast } from '../../hooks/useToast';
 import FormAddPago from '../Forms/FormAddPago';
@@ -75,18 +76,57 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
   // Estado para el modal de información
   const [showEventInfoModal, setShowEventInfoModal] = useState(false);
 
+  // Estados para el buscador
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
+
   const initialColumn: InitialColumn[] = [
-    { accessor: "categoria", header: t("categoria"), isEditabled: true, size: 160 },
-    { accessor: "gasto", header: t("partida de gasto"), isEditabled: true, size: 200 },
-    { accessor: "unidad", header: t("unidad"), size: 60, type: "select", isEditabled: true, horizontalAlignment: "center" },
-    { accessor: "cantidad", header: t("cantidad"), size: 60, horizontalAlignment: "center", type: "int" },
-    { accessor: "nombre", header: t("item"), isEditabled: true, size: 140 },
-    { accessor: "valor_unitario", header: t("valor unitario"), size: 100, horizontalAlignment: "end", type: "float", isEditabled: true },
-    { accessor: "coste_final", header: t("coste total"), size: 100, horizontalAlignment: "end", type: "float" },
-    { accessor: "coste_estimado", header: t("coste estimado"), size: 100, horizontalAlignment: "end", type: "float", className: "text-blue-600", isHidden: !event?.presupuesto_objeto?.viewEstimates },
-    { accessor: "pagado", header: t("pagado"), size: 100, horizontalAlignment: "end", type: "float" },
-    { accessor: "pendiente_pagar", header: t("pendiente por pagar"), size: 100, horizontalAlignment: "end", type: "float" },
+    { accessor: "categoria", header: t("categoria"), isEditabled: true, size: 140 },
+    { accessor: "gasto", header: t("partida de gasto"), isEditabled: true, size: 180 },
+    { accessor: "unidad", header: t("unidad"), size: 50, type: "select", isEditabled: true, horizontalAlignment: "center" },
+    { accessor: "cantidad", header: t("cantidad"), size: 50, horizontalAlignment: "center", type: "int" },
+    { accessor: "nombre", header: t("item"), isEditabled: true, size: 120 },
+    { accessor: "valor_unitario", header: t("valor unitario"), size: 90, horizontalAlignment: "end", type: "float", isEditabled: true },
+    { accessor: "coste_final", header: t("coste total"), size: 90, horizontalAlignment: "end", type: "float" },
+    { accessor: "coste_estimado", header: t("coste estimado"), size: 90, horizontalAlignment: "end", type: "float", className: "text-blue-600", isHidden: !event?.presupuesto_objeto?.viewEstimates },
+    { accessor: "pagado", header: t("pagado"), size: 90, horizontalAlignment: "end", type: "float" },
+    { accessor: "pendiente_pagar", header: t("pendiente por pagar"), size: 90, horizontalAlignment: "end", type: "float" },
   ]
+
+  // Función para filtrar los datos basada en el término de búsqueda
+  const filteredData = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return data;
+    }
+
+    const searchLower = searchTerm.toLowerCase().trim();
+
+    return data.filter((item: any) => {
+      // Buscar en campos de texto
+      const searchableFields = [
+        item.categoria,
+        item.gasto,
+        item.nombre,
+        item.unidad
+      ];
+
+      // Buscar en campos numéricos convertidos a string
+      const numericFields = [
+        item.cantidad?.toString(),
+        item.valor_unitario?.toString(),
+        item.coste_final?.toString(),
+        item.coste_estimado?.toString(),
+        item.pagado?.toString(),
+        item.pendiente_pagar?.toString()
+      ];
+
+      const allFields = [...searchableFields, ...numericFields];
+
+      return allFields.some(field =>
+        field && field.toString().toLowerCase().includes(searchLower)
+      );
+    });
+  }, [data, searchTerm]);
 
   useEffect(() => {
     const columnsVisibility = event?.presupuesto_objeto?.visibleColumns?.reduce((acc, item) => {
@@ -235,7 +275,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
       )
     },
     footer: "",
-    size: 80,
+    size: 60,
   })
 
   const columns = initialColumn.map((elem, idx) => {
@@ -295,7 +335,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
       columnVisibility: columnsVisibility,
     },
     onColumnVisibilityChange: setColumnVisibility,
-    data,
+    data: filteredData, // Usar los datos filtrados aquí
     columns,
     getCoreRowModel: getCoreRowModel(),
   })
@@ -331,61 +371,54 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     setEvent({ ...event })
   }
 
+  // Funciones de totales usando los datos originales (no filtrados) para mantener consistencia
   const getTotalEstimado = () => {
-    return table
-      .getRowModel()
-      .rows
-      .filter(row => row.original?.fatherCategoria)
+    return data
+      .filter(item => item?.fatherCategoria)
       .reduce(
-        (acc, row) =>
+        (acc, item) =>
           acc +
-          (typeof row.original.coste_estimado === "number"
-            ? row.original.coste_estimado
+          (typeof item.coste_estimado === "number"
+            ? item.coste_estimado
             : 0),
         0
       );
   };
 
   const getTotalFinal = () => {
-    return table
-      .getRowModel()
-      .rows
-      .filter(row => row.original?.fatherCategoria)
+    return data
+      .filter(item => item?.fatherCategoria)
       .reduce(
-        (acc, row) =>
+        (acc, item) =>
           acc +
-          (typeof row.original.coste_final === "number"
-            ? row.original.coste_final
+          (typeof item.coste_final === "number"
+            ? item.coste_final
             : 0),
         0
       );
   };
 
   const getTotalPagado = () => {
-    return table
-      .getRowModel()
-      .rows
-      .filter(row => row.original?.fatherCategoria)
+    return data
+      .filter(item => item?.fatherCategoria)
       .reduce(
-        (acc, row) =>
+        (acc, item) =>
           acc +
-          (typeof row.original.pagado === "number"
-            ? row.original.pagado
+          (typeof item.pagado === "number"
+            ? item.pagado
             : 0),
         0
       );
   };
 
   const getTotalPendiente = () => {
-    return table
-      .getRowModel()
-      .rows
-      .filter(row => row.original?.fatherCategoria)
+    return data
+      .filter(item => item?.fatherCategoria)
       .reduce(
-        (acc, row) =>
+        (acc, item) =>
           acc +
-          (typeof row.original.pendiente_pagar === "number"
-            ? row.original.pendiente_pagar
+          (typeof item.pendiente_pagar === "number"
+            ? item.pendiente_pagar
             : 0),
         0
       );
@@ -393,11 +426,8 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
 
   // Función para obtener las categorías para el modal
   const getCategorias = () => {
-    return table
-      .getRowModel()
-      .rows
-      .filter(row => row.original?.fatherCategoria)
-      .map(row => row.original);
+    return data
+      .filter(item => item?.fatherCategoria);
   };
 
   // Función para obtener los totales para el modal
@@ -410,22 +440,60 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     };
   };
 
+  // Función para limpiar el buscador
+  const clearSearch = () => {
+    setSearchTerm('');
+  };
+
   return (
     <div className="h-full bg-gray-50 flex flex-col relative w-full">
       {/* Header con controles */}
-      <div className="bg-white shadow-sm border-b px-3 py-2 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h2 className="text-base font-semibold text-gray-800">Presupuesto</h2>
+      <div className="bg-white shadow-sm border-b px-2 py-1.5 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm font-semibold text-gray-800">Presupuesto</h2>
+
+          {/* Buscador */}
+          <div className="flex items-center gap-1.5">
+            {false? (
+              <button
+                onClick={() => setShowSearch(true)}
+                className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                title="Buscar"
+              >
+                <HiOutlineSearch className="w-3.5 h-3.5" />
+              </button>
+            ) : (
+              <div className="flex items-center gap-1.5 bg-gray-50 rounded px-2 py-1 border">
+                <HiOutlineSearch className="w-3.5 h-3.5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Buscar..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="bg-transparent border-none outline-none text-xs placeholder-gray-400 w-40 h-5"
+                  autoFocus
+                />
+                {searchTerm && (
+                  <button
+                    onClick={clearSearch}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <HiOutlineX className="w-2.5 h-2.5" />
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Botón de información del evento */}
           <div className="relative">
             <button
               onClick={() => setShowEventInfoModal(true)}
-              className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors group flex items-center gap-1 "
+              className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors group flex items-center gap-1"
               title="Información del evento"
             >
-              <IoInformationCircleOutline className="w-4 h-4" />
-              Info Evento
+              <IoInformationCircleOutline className="w-3.5 h-3.5" />
+              <span className="text-xs">Info evento</span>
             </button>
           </div>
         </div>
@@ -442,30 +510,30 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
         </div>
 
         {/* Resumen financiero */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {event?.presupuesto_objeto?.viewEstimates && (
             <div className="text-center">
               <div className="text-xs text-gray-500">Estimado</div>
-              <div className="font-semibold text-blue-600 text-sm">
+              <div className="font-semibold text-blue-600 text-xs">
                 {formatNumber(getTotalEstimado())}
               </div>
             </div>
           )}
           <div className="text-center">
             <div className="text-xs text-gray-500">Total</div>
-            <div className="font-semibold text-gray-800 text-sm">
+            <div className="font-semibold text-gray-800 text-xs">
               {formatNumber(getTotalFinal())}
             </div>
           </div>
           <div className="text-center">
             <div className="text-xs text-gray-500">Pagado</div>
-            <div className="font-semibold text-green-600 text-sm">
+            <div className="font-semibold text-green text-xs">
               {formatNumber(getTotalPagado())}
             </div>
           </div>
           <div className="text-center">
             <div className="text-xs text-gray-500">Pendiente</div>
-            <div className="font-semibold text-red-600 text-sm">
+            <div className="font-semibold text-red text-xs">
               {formatNumber(getTotalPendiente())}
             </div>
           </div>
@@ -474,7 +542,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
 
       {/* Tabla */}
       <div className="flex-1 overflow-auto bg-white relative">
-        <div className="min-w-[800px]" onContextMenu={(e) => {
+        <div className="min-w-[700px]" onContextMenu={(e) => {
           const element = document.getElementById("ElementEditable")
           if (isAllowed()) {
             if (!element) {
@@ -489,7 +557,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                 <tr key={headerGroup.id}>
                   {headerGroup.headers.map(header => {
                     const isSticky = header.column.getIndex() < 2;
-                    const leftPosition = header.column.getIndex() === 1 ? initialColumn[0]?.size || 160 : 0;
+                    const leftPosition = header.column.getIndex() === 1 ? initialColumn[0]?.size || 140 : 0;
 
                     return (
                       <th
@@ -498,7 +566,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                           width: header.getContext().column.columnDef.size || 'auto',
                           left: isSticky ? leftPosition : undefined
                         }}
-                        className={`text-left p-2 font-medium text-gray-700 border-r text-xs ${isSticky ? 'sticky bg-gray-100 z-30' : ''
+                        className={`text-left p-1.5 font-medium text-gray-700 border-r text-xs ${isSticky ? 'sticky bg-gray-100 z-30' : ''
                           }`}
                       >
                         {header.isPlaceholder
@@ -540,7 +608,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                   >
                     {row.getVisibleCells().map(cell => {
                       const isSticky = cell.column.getIndex() < 2;
-                      const leftPosition = cell.column.getIndex() === 1 ? initialColumn[0]?.size || 160 : 0;
+                      const leftPosition = cell.column.getIndex() === 1 ? initialColumn[0]?.size || 140 : 0;
                       const alignment = initialColumn.find(col => col.accessor === cell.column.id);
 
                       const alignmentClass = alignment?.horizontalAlignment === "center" ? "text-center" :
@@ -553,7 +621,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                             width: cell.getContext().column.columnDef.size || 'auto',
                             left: isSticky ? leftPosition : undefined
                           }}
-                          className={`p-2 border-r text-xs group-hover:bg-gray-100 ${alignmentClass} ${isSticky ? `sticky z-10 ${rowStyles}` : ''
+                          className={`p-1.5 border-r text-xs group-hover:bg-gray-100 ${alignmentClass} ${isSticky ? `sticky z-10 ${rowStyles}` : ''
                             }`}
                           onContextMenu={(e) => {
                             const element = document.getElementById("ElementEditable")
@@ -598,10 +666,24 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                 )
               }) : (
                 <tr>
-                  <td colSpan={table.getAllLeafColumns().length} className="p-8 text-center text-gray-500 italic">
-                    <div className="flex flex-col items-center gap-2">
-                      <span>No hay datos disponibles</span>
-                      <span className="text-xs">Haz clic derecho para agregar una categoría</span>
+                  <td colSpan={table.getAllLeafColumns().length} className="p-6 text-center text-gray-500 italic">
+                    <div className="flex flex-col items-center gap-1.5">
+                      {searchTerm ? (
+                        <>
+                          <span className="text-sm">{`No se encontraron resultados para "${searchTerm}" `}</span>
+                          <button
+                            onClick={clearSearch}
+                            className="text-blue-600 hover:text-blue-800 text-xs underline"
+                          >
+                            Limpiar búsqueda
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-sm">No hay datos disponibles</span>
+                          <span className="text-xs">Haz clic derecho para agregar una categoría</span>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -612,8 +694,8 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
       </div>
 
       {/* Footer */}
-      <div className="bg-gray-100 px-3 py-2 border-t flex justify-end items-center text-xs text-gray-600">
-        <div className="flex items-center gap-4">
+      <div className="bg-gray-100 px-2 py-1.5 border-t flex justify-end items-center text-xs text-gray-600">
+        <div className="flex items-center gap-3">
           <span>Total: {formatNumber(getTotalFinal())}</span>
           <span>|</span>
           <span>Pendiente: {formatNumber(getTotalPendiente())}</span>
