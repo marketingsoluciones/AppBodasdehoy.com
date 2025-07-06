@@ -14,8 +14,8 @@ import { GoEye, GoEyeClosed, GoTasklist } from 'react-icons/go';
 import { PiNewspaperClippingLight } from 'react-icons/pi';
 import { MdOutlineDeleteOutline } from 'react-icons/md';
 import { IoCloseOutline, IoSettingsOutline, IoInformationCircleOutline } from 'react-icons/io5';
-import { HiOutlineSearch, HiOutlineX } from 'react-icons/hi';
-import { TbColumns3 } from 'react-icons/tb'; // Nuevo icono para columnas
+import { HiOutlineSearch, HiOutlineX, HiOutlineFilter } from 'react-icons/hi';
+import { TbColumns3 } from 'react-icons/tb';
 import { handleChange, handleCreateItem, handleCreateGasto, handleCreateCategoria, handleChangeEstatus, handleChangeEstatusItem } from "./tableBudgetV8.handles"
 import { useToast } from '../../hooks/useToast';
 import FormAddPago from '../Forms/FormAddPago';
@@ -24,7 +24,8 @@ import { SelectVisiblesColumns } from './SelectVisiblesColumns';
 import { getCurrency } from '../../utils/Funciones';
 import { ModalTaskList } from '../Presupuesto/ModalTaskList';
 import { EventInfoModal } from '../Presupuesto/PresupuestoV2/modals/EventInfoModal';
-import { ColumnsConfigModal } from '../Presupuesto/PresupuestoV2/modals/ColumnsConfigModal'; // Importar el nuevo modal
+import { ColumnsConfigModal } from '../Presupuesto/PresupuestoV2/modals/ColumnsConfigModal';
+import { FiltersModal } from '../Presupuesto/PresupuestoV2/modals/FiltersModal';
 
 interface props {
   data: any
@@ -48,6 +49,17 @@ export interface InitialColumn {
   className?: string
   type?: "string" | "int" | "float" | "select"
   onClick?: Dispatch<SetStateAction<any>>
+}
+
+// Tipos para filtros
+interface TableFilters {
+  categories: string[];
+  paymentStatus: 'all' | 'paid' | 'pending' | 'partial';
+  visibilityStatus: 'all' | 'visible' | 'hidden';
+  amountRange: {
+    min: string;
+    max: string;
+  };
 }
 
 // Definir el tipo ColumnConfig basado en los accessors reales de la tabla
@@ -78,15 +90,12 @@ const optionsSelect = [
   { title: "xNiños", value: "xNiños." },
 ]
 
-// Función modificada que sobrescribe determinatedPositionMenu para posición fija
 const determinatedPositionMenu = ({ e, element = undefined, height = 0, width = 0 }): { aling: "top" | "botton", justify: "start" | "end" } => {
-  // Función original comentada - ahora usamos modal
   return {
     aling: "top",
     justify: "end"
   }
 }
-
 
 
 export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDelete, setLoading, showDataState, setShowDataState, setIdItem }) => {
@@ -115,8 +124,66 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     availableOptions?: any[];
   }>({ show: false });
 
-  // NUEVO: Estado para el modal de configuración de columnas
+  // Estado para el modal de configuración de columnas
   const [showColumnsModal, setShowColumnsModal] = useState(false);
+
+  // NUEVOS ESTADOS PARA FILTROS
+  const [showFiltersModal, setShowFiltersModal] = useState(false);
+  const [viewLevel, setViewLevel] = useState(3); // 1: Solo categorías, 2: Cat + Gastos, 3: Completo
+  const [filters, setFilters] = useState<TableFilters>({
+    categories: [],
+    paymentStatus: 'all',
+    visibilityStatus: 'all',
+    amountRange: {
+      min: '',
+      max: ''
+    }
+  });
+
+  // *** NUEVO: useEffect para manejar clics fuera de los modales ***
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      
+      // Para FiltersModal
+      if (showFiltersModal) {
+        const filtersModal = document.querySelector('.filters-modal');
+        const filtersButton = document.querySelector('[data-filters-button]');
+        
+        if (filtersModal && !filtersModal.contains(target) && 
+            filtersButton && !filtersButton.contains(target)) {
+          setShowFiltersModal(false);
+        }
+      }
+      
+      // Para ColumnsModal
+      if (showColumnsModal) {
+        const columnsModal = document.querySelector('.columns-modal');
+        const columnsButton = document.querySelector('[data-columns-button]');
+        
+        if (columnsModal && !columnsModal.contains(target) && 
+            columnsButton && !columnsButton.contains(target)) {
+          setShowColumnsModal(false);
+        }
+      }
+      
+      // Para EventInfoModal
+      if (showEventInfoModal) {
+        const eventModal = document.querySelector('.event-info-modal');
+        const eventButton = document.querySelector('[data-event-button]');
+        
+        if (eventModal && !eventModal.contains(target) && 
+            eventButton && !eventButton.contains(target)) {
+          setShowEventInfoModal(false);
+        }
+      }
+    };
+
+    if (showFiltersModal || showColumnsModal || showEventInfoModal) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showFiltersModal, showColumnsModal, showEventInfoModal]);
 
   const initialColumn: InitialColumn[] = [
     { accessor: "categoria", header: t("categoria"), isEditabled: true, size: 140 },
@@ -131,7 +198,114 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     { accessor: "pendiente_pagar", header: t("pendiente por pagar"), size: 90, horizontalAlignment: "end", type: "float" },
   ]
 
-  // NUEVO: Mapeo directo usando los accessors reales de la tabla
+  // FUNCIONES PARA FILTROS
+  const handleFilterChange = (filterType: keyof TableFilters, value: any) => {
+    setFilters(prev => ({
+      ...prev,
+      [filterType]: value
+    }));
+  };
+
+  const handleClearFilters = () => {
+    setFilters({
+      categories: [],
+      paymentStatus: 'all',
+      visibilityStatus: 'all',
+      amountRange: {
+        min: '',
+        max: ''
+      }
+    });
+    setViewLevel(3);
+  };
+
+  const applyFilters = (data: any[]) => {
+    let filteredData = [...data];
+
+    if (viewLevel === 1) {
+      filteredData = filteredData.filter(item => item?.fatherCategoria);
+    } else if (viewLevel === 2) {
+      filteredData = filteredData.filter(item => 
+        item?.fatherCategoria || item?.fatherGasto
+      );
+    }
+
+    if (filters.categories.length > 0) {
+      filteredData = filteredData.filter(item => {
+        if (item?.fatherCategoria) {
+          return filters.categories.includes(item._id);
+        } else if (item?.fatherGasto || item?.object === 'item') {
+          return filters.categories.includes(item.categoriaID);
+        }
+        return false;
+      });
+    }
+
+    if (filters.paymentStatus !== 'all') {
+      filteredData = filteredData.filter(item => {
+        const pagado = item.pagado || 0;
+        const total = item.coste_final || 0;
+        
+        switch (filters.paymentStatus) {
+          case 'paid':
+            return pagado >= total && total > 0;
+          case 'pending':
+            return pagado === 0 && total > 0;
+          case 'partial':
+            return pagado > 0 && pagado < total;
+          default:
+            return true;
+        }
+      });
+    }
+
+    if (filters.visibilityStatus !== 'all') {
+      filteredData = filteredData.filter(item => {
+        const isHidden = (item?.gastoOriginal?.estatus === false) || 
+                         (item?.itemOriginal?.estatus === false);
+        
+        switch (filters.visibilityStatus) {
+          case 'visible':
+            return !isHidden;
+          case 'hidden':
+            return isHidden;
+          default:
+            return true;
+        }
+      });
+    }
+
+    if (filters.amountRange.min || filters.amountRange.max) {
+      filteredData = filteredData.filter(item => {
+        const amount = item.coste_final || 0;
+        const min = filters.amountRange.min ? parseFloat(filters.amountRange.min) : 0;
+        const max = filters.amountRange.max ? parseFloat(filters.amountRange.max) : Infinity;
+        
+        return amount >= min && amount <= max;
+      });
+    }
+
+    return filteredData;
+  };
+
+  const getCategorias = () => {
+    return data
+      .filter(item => item?.fatherCategoria)
+      .map(item => ({
+        _id: item._id,
+        nombre: item.categoria
+      }));
+  };
+
+  const hasActiveFilters = () => {
+    return filters.categories.length > 0 ||
+           filters.paymentStatus !== 'all' ||
+           filters.visibilityStatus !== 'all' ||
+           filters.amountRange.min ||
+           filters.amountRange.max ||
+           viewLevel !== 3;
+  };
+
   const getColumnVisibility = (accessor: string): boolean => {
     if (accessor === "coste_estimado") {
       return event?.presupuesto_objeto?.viewEstimates && (columnsVisibility[accessor] !== false);
@@ -139,7 +313,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     return columnsVisibility[accessor] !== false;
   };
 
-  // NUEVO: Crear el columnConfig basado en la visibilidad actual usando accessors reales
   const columnConfig: ColumnConfig = useMemo(() => {
     return {
       categoria: { visible: getColumnVisibility("categoria") },
@@ -156,19 +329,15 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     };
   }, [columnsVisibility, event?.presupuesto_objeto?.viewEstimates]);
 
-  // NUEVO: Función para alternar la visibilidad de columnas desde el modal
   const toggleColumnVisibility = (columnKey: keyof ColumnConfig) => {
-    // columnKey es directamente el accessor de la tabla
     const accessor = columnKey;
 
     if (accessor === "options") {
-      // Para la columna de opciones, manejar directamente con setColumnVisibility
       setColumnVisibility(prev => ({
         ...prev,
         [accessor]: !columnConfig[columnKey].visible
       }));
     } else {
-      // Para el resto de columnas, usar la función existente handleChangeColumnVisible
       const currentVisibility = columnConfig[columnKey].visible;
       handleChangeColumnVisible({
         accessor,
@@ -177,40 +346,36 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     }
   };
 
-  // Función para filtrar los datos basada en el término de búsqueda
   const filteredData = useMemo(() => {
-    if (!searchTerm.trim()) {
-      return data;
+    let result = data;
+
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase().trim();
+      result = result.filter((item: any) => {
+        const searchableFields = [
+          item.categoria,
+          item.gasto,
+          item.nombre,
+          item.unidad
+        ];
+        const numericFields = [
+          item.cantidad?.toString(),
+          item.valor_unitario?.toString(),
+          item.coste_final?.toString(),
+          item.coste_estimado?.toString(),
+          item.pagado?.toString(),
+          item.pendiente_pagar?.toString()
+        ];
+        const allFields = [...searchableFields, ...numericFields];
+        return allFields.some(field =>
+          field && field.toString().toLowerCase().includes(searchLower)
+        );
+      });
     }
 
-    const searchLower = searchTerm.toLowerCase().trim();
-
-    return data.filter((item: any) => {
-      // Buscar en campos de texto
-      const searchableFields = [
-        item.categoria,
-        item.gasto,
-        item.nombre,
-        item.unidad
-      ];
-
-      // Buscar en campos numéricos convertidos a string
-      const numericFields = [
-        item.cantidad?.toString(),
-        item.valor_unitario?.toString(),
-        item.coste_final?.toString(),
-        item.coste_estimado?.toString(),
-        item.pagado?.toString(),
-        item.pendiente_pagar?.toString()
-      ];
-
-      const allFields = [...searchableFields, ...numericFields];
-
-      return allFields.some(field =>
-        field && field.toString().toLowerCase().includes(searchLower)
-      );
-    });
-  }, [data, searchTerm]);
+    result = applyFilters(result);
+    return result;
+  }, [data, searchTerm, filters, viewLevel]);
 
   useEffect(() => {
     const columnsVisibility = event?.presupuesto_objeto?.visibleColumns?.reduce((acc, item) => {
@@ -298,30 +463,23 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     },
   ];
 
-  // Función para abrir el modal de opciones con filtrado correcto
   const openOptionsModal = (info: any, objectType?: string) => {
-    console.log("openOptionsModal", info, objectType)
-
-    // Determinar el tipo de objeto
     let type = objectType;
     if (!type && info) {
       type = info.row?.original?.object || "categoria";
     }
     if (!type) {
-      type = "categoria"; // Default para menú contextual general
+      type = "categoria";
     }
 
-    // Crear una copia de las opciones para no mutar el array original
     let filteredOptions = [...options];
 
-    // Si es categoría, remover la opción "Item" (índice 3 en el array original)
     if (type === "categoria") {
       filteredOptions = filteredOptions.filter(opt => opt.title !== "Item");
     }
 
-    // Filtrar opciones según el tipo de objeto
     filteredOptions = filteredOptions.filter(option => {
-      if (!option.object) return true; // Mostrar opciones sin restricción de objeto
+      if (!option.object) return true;
       return option.object.includes(type);
     });
 
@@ -331,23 +489,20 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
       availableOptions: filteredOptions
     });
 
-    // Cerrar otros menús
     setShowDotsOptionsMenu({ state: false });
     setShowFloatOptionsMenu({ state: false });
   };
 
-  // Función para obtener los estilos de fila según el tipo
   const getRowStyles = (row: any) => {
     if (row.original?.fatherCategoria) {
-      return "bg-blue-50 font-semibold text-blue-800"; // Categoría
+      return "bg-blue-50 font-semibold text-blue-800";
     } else if (row.original?.fatherGasto) {
-      return "bg-gray-50 font-medium text-gray-800"; // Gasto
+      return "bg-gray-50 font-medium text-gray-800";
     } else {
-      return "bg-white font-normal text-gray-800"; // Item
+      return "bg-white font-normal text-gray-800";
     }
   };
 
-  // Función para formatear números
   const formatNumber = (value: number) => {
     if (typeof value !== 'number') return String(value || 0);
     return value.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -365,7 +520,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                 if (showOptionsModal.show && showOptionsModal.info?.row?.original?._id === info.row.original._id) {
                   setShowOptionsModal({ show: false });
                 } else {
-                  // Abrir modal de opciones con el tipo correcto
                   openOptionsModal(info, info.row.original.object);
                 }
               } else {
@@ -441,7 +595,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
       columnVisibility: columnsVisibility,
     },
     onColumnVisibilityChange: setColumnVisibility,
-    data: filteredData, // Usar los datos filtrados aquí
+    data: filteredData,
     columns,
     getCoreRowModel: getCoreRowModel(),
   })
@@ -467,17 +621,9 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     } else {
       event.presupuesto_objeto.visibleColumns = []
     }
-    /* fetchApiEventos({
-      query: queries.editVisibleColumns,
-      variables: {
-        evento_id: event?._id,
-        visibleColumns: event.presupuesto_objeto.visibleColumns
-      },
-    }) */
     setEvent({ ...event })
   }
 
-  // Funciones de totales usando los datos originales (no filtrados) para mantener consistencia
   const getTotalEstimado = () => {
     return data
       .filter(item => item?.fatherCategoria)
@@ -530,13 +676,11 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
       );
   };
 
-  // Función para obtener las categorías para el modal
-  const getCategorias = () => {
+  const getCategoriasForModal = () => {
     return data
       .filter(item => item?.fatherCategoria);
   };
 
-  // Función para obtener los totales para el modal
   const getModalTotals = () => {
     return {
       total: getTotalFinal(),
@@ -546,7 +690,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     };
   };
 
-  // Función para limpiar el buscador
   const clearSearch = () => {
     setSearchTerm('');
   };
@@ -560,40 +703,64 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
 
           {/* Buscador */}
           <div className="flex items-center gap-1.5">
-            {false ? (
-              <button
-                onClick={() => setShowSearch(true)}
-                className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
-                title="Buscar"
-              >
-                <HiOutlineSearch className="w-3.5 h-3.5" />
-              </button>
-            ) : (
-              <div className="flex items-center gap-1.5 bg-gray-50 rounded px-2 py-1 border">
-                <HiOutlineSearch className="w-3.5 h-3.5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Buscar..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="bg-transparent border-none outline-none text-xs placeholder-gray-400 w-40 h-5"
-                  autoFocus
-                />
-                {searchTerm && (
-                  <button
-                    onClick={clearSearch}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
-                  >
-                    <HiOutlineX className="w-2.5 h-2.5" />
-                  </button>
-                )}
-              </div>
+            <div className="flex items-center gap-1.5 bg-gray-50 rounded px-2 py-1 border">
+              <HiOutlineSearch className="w-3.5 h-3.5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Buscar..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-transparent border-none outline-none text-xs placeholder-gray-400 w-40 h-5"
+                autoFocus
+              />
+              {searchTerm && (
+                <button
+                  onClick={clearSearch}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <HiOutlineX className="w-2.5 h-2.5" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Botón de filtros */}
+          <div className="relative">
+            <button
+              data-filters-button="true"
+              onClick={() => setShowFiltersModal(!showFiltersModal)}
+              className={`p-1 rounded transition-colors flex items-center gap-1 ${
+                showFiltersModal || hasActiveFilters()
+                  ? 'text-blue-600 bg-blue-50 hover:bg-blue-100' 
+                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+              }`}
+              title="Filtros"
+            >
+              <HiOutlineFilter className="w-3.5 h-3.5" />
+              <span className="text-xs">Filtros</span>
+              {hasActiveFilters() && (
+                <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
+              )}
+            </button>
+
+            {/* Modal de filtros - SIN ClickAwayListener */}
+            {showFiltersModal && (
+              <FiltersModal
+                filters={filters}
+                onFilterChange={handleFilterChange}
+                onClose={() => setShowFiltersModal(false)}
+                onClearFilters={handleClearFilters}
+                categorias_array={getCategorias()}
+                viewLevel={viewLevel}
+                setViewLevel={setViewLevel}
+              />
             )}
           </div>
 
           {/* Botón de información del evento */}
           <div className="relative">
             <button
+              data-event-button="true"
               onClick={() => setShowEventInfoModal(true)}
               className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors group flex items-center gap-1"
               title="Información del evento"
@@ -603,9 +770,10 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
             </button>
           </div>
 
-          {/* NUEVO: Botón para abrir modal de configuración de columnas */}
+          {/* Botón para abrir modal de configuración de columnas */}
           <div className="relative">
             <button
+              data-columns-button="true"
               onClick={() => setShowColumnsModal(true)}
               className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors flex items-center gap-1"
               title="Configurar columnas"
@@ -614,20 +782,18 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
               <span className="text-xs">Columnas</span>
             </button>
 
-            {/* Modal de configuración de columnas */}
+            {/* Modal de configuración de columnas - SIN ClickAwayListener */}
             {showColumnsModal && (
-              /* <ClickAwayListener onClickAway={() => setShowColumnsModal(false)}> */
               <ColumnsConfigModal
                 columnConfig={columnConfig}
                 toggleColumnVisibility={toggleColumnVisibility}
                 onClose={() => setShowColumnsModal(false)}
               />
-              /* </ClickAwayListener> */
             )}
           </div>
         </div>
 
-        {/* Controles de columnas - Selector original (mantener por compatibilidad) */}
+        {/* Controles de columnas - Selector original */}
         <div className="flex items-center gap-2">
           <div className="relative">
             <SelectVisiblesColumns
@@ -678,8 +844,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
           if (isAllowed()) {
             if (!element) {
               e.preventDefault();
-              // Abrir modal para categoría por defecto
-              /* openOptionsModal(undefined, "categoria"); */
             }
           }
         }}>
@@ -726,10 +890,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                       let info = row.getVisibleCells().find(cell => cell.column.id === "categoria")?.getContext() || infoAsd
                       if (!element) {
                         e.preventDefault();
-                        // Usar el tipo de objeto de la fila actual (row.original.object)
                         const objectType = row.original?.object ;
-
-                        console.log(1212, objectType)
                         openOptionsModal(info, objectType);
                       }
                     }}
@@ -761,24 +922,21 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                                 : cell.getContext()
                             if (!element) {
                               e.preventDefault();
-                              // Usar directamente el tipo de objeto de la celda actual
                               const objectType = cell.row.original?.object || "categoria";
-
-                              console.log(3232, objectType)
                               openOptionsModal(info || infoAsd, objectType);
                             }
                           }}
                         >
                           {cell.column.id === "categoria"
-                            ? row.original.object === "categoria" // Solo mostrar en filas de categoría
+                            ? row.original.object === "categoria"
                               ? flexRender(cell.column.columnDef.cell, cell.getContext())
                               : ""
                             : cell.column.id === "gasto"
-                              ? row.original.object === "gasto" // Solo mostrar en filas de gasto
+                              ? row.original.object === "gasto"
                                 ? flexRender(cell.column.columnDef.cell, cell.getContext())
                                 : ""
                               : cell.column.id === "nombre"
-                                ? row.original.object === "item" // Solo mostrar nombre en filas de item
+                                ? row.original.object === "item"
                                   ? flexRender(cell.column.columnDef.cell, cell.getContext())
                                   : ""
                                 : flexRender(cell.column.columnDef.cell, cell.getContext())
@@ -792,15 +950,32 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                 <tr>
                   <td colSpan={table.getAllLeafColumns().length} className="p-6 text-center text-gray-500 italic">
                     <div className="flex flex-col items-center gap-1.5">
-                      {searchTerm ? (
+                      {searchTerm || hasActiveFilters() ? (
                         <>
-                          <span className="text-sm">{`No se encontraron resultados para "${searchTerm}" `}</span>
-                          <button
-                            onClick={clearSearch}
-                            className="text-blue-600 hover:text-blue-800 text-xs underline"
-                          >
-                            Limpiar búsqueda
-                          </button>
+                          <span className="text-sm">
+                            {searchTerm 
+                              ? `No se encontraron resultados para "${searchTerm}"` 
+                              : "No se encontraron resultados con los filtros aplicados"
+                            }
+                          </span>
+                          <div className="flex gap-2">
+                            {searchTerm && (
+                              <button
+                                onClick={clearSearch}
+                                className="text-blue-600 hover:text-blue-800 text-xs underline"
+                              >
+                                Limpiar búsqueda
+                              </button>
+                            )}
+                            {hasActiveFilters() && (
+                              <button
+                                onClick={handleClearFilters}
+                                className="text-blue-600 hover:text-blue-800 text-xs underline"
+                              >
+                                Limpiar filtros
+                              </button>
+                            )}
+                          </div>
                         </>
                       ) : (
                         <>
@@ -823,10 +998,16 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
           <span>Total: {formatNumber(getTotalFinal())}</span>
           <span>|</span>
           <span>Pendiente: {formatNumber(getTotalPendiente())}</span>
+          {hasActiveFilters() && (
+            <>
+              <span>|</span>
+              <span className="text-blue-600">Filtros aplicados</span>
+            </>
+          )}
         </div>
       </div>
 
-      {/* Modal de opciones flotante dentro de la tabla (similar a EventInfoModal) */}
+      {/* Modal de opciones flotante dentro de la tabla */}
       {showOptionsModal.show && (
         <ClickAwayListener onClickAway={() => setShowOptionsModal({ show: false })}>
           <div className="absolute top-12 right-3 bg-white shadow-lg rounded border z-50 w-48 max-w-[calc(100vw-24px)]">
@@ -846,7 +1027,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
               {showOptionsModal.availableOptions?.map((option, index) => (
                 <div key={index}>
                   {option.icon && typeof option.icon !== 'boolean' && !option.onClick ? (
-                    // Header con icono (similar al estilo del EventInfoModal)
                     <div className="flex items-center gap-2 py-2 px-3 bg-gray-50 rounded border">
                       <div className="text-gray-500 text-sm">
                         {option.icon}
@@ -854,7 +1034,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                       <span className="text-xs font-medium text-gray-700">{option.title}</span>
                     </div>
                   ) : option.onClick ? (
-                    // Opción clickeable con estilo similar al modal de evento
                     <button
                       onClick={() => {
                         option.onClick(showOptionsModal.info);
@@ -868,7 +1047,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                       <span className="text-xs text-gray-700">{option.title}</span>
                     </button>
                   ) : (
-                    // Título simple
                     <div className="text-xs text-gray-600 font-medium px-2">
                       {option.title}
                     </div>
@@ -880,12 +1058,12 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
         </ClickAwayListener>
       )}
 
-      {/* Modal de información del evento */}
+      {/* Modal de información del evento - SIN ClickAwayListener */}
       {showEventInfoModal && (
         <EventInfoModal
           event={event}
           currency={event?.presupuesto_objeto?.currency}
-          categorias_array={getCategorias()}
+          categorias_array={getCategoriasForModal()}
           totalStimatedGuests={event?.presupuesto_objeto?.totalStimatedGuests || { adults: 0, children: 0 }}
           totals={getModalTotals()}
           formatNumber={formatNumber}
