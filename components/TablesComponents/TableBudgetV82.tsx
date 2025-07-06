@@ -13,7 +13,7 @@ import { GrMoney } from 'react-icons/gr';
 import { GoEye, GoEyeClosed, GoTasklist } from 'react-icons/go';
 import { PiNewspaperClippingLight } from 'react-icons/pi';
 import { MdOutlineDeleteOutline } from 'react-icons/md';
-import { IoSettingsOutline } from 'react-icons/io5';
+import { IoSettingsOutline, IoInformationCircleOutline } from 'react-icons/io5';
 import { handleChange, determinatedPositionMenu, handleCreateItem, handleCreateGasto, handleCreateCategoria, handleChangeEstatus, handleChangeEstatusItem } from "./tableBudgetV8.handles"
 import { useToast } from '../../hooks/useToast';
 import FormAddPago from '../Forms/FormAddPago';
@@ -21,6 +21,7 @@ import ClickAwayListener from 'react-click-away-listener';
 import { SelectVisiblesColumns } from './SelectVisiblesColumns';
 import { getCurrency } from '../../utils/Funciones';
 import { ModalTaskList } from '../Presupuesto/ModalTaskList';
+import { EventInfoModal } from '../Presupuesto/PresupuestoV2/modals/EventInfoModal';
 
 interface props {
   data: any
@@ -70,6 +71,9 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
   const [showFloatOptionsMenu, setShowFloatOptionsMenu] = useState<FloatOptionsMenuInterface>()
   const [RelacionarPagoModal, setRelacionarPagoModal] = useState({ id: "", crear: false, categoriaID: "" })
   const [ServisiosListModal, setServisiosListModal] = useState({ id: "", crear: false, categoriaID: "" })
+
+  // Estado para el modal de información
+  const [showEventInfoModal, setShowEventInfoModal] = useState(false);
 
   const initialColumn: InitialColumn[] = [
     { accessor: "categoria", header: t("categoria"), isEditabled: true, size: 160 },
@@ -387,11 +391,44 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
       );
   };
 
+  // Función para obtener las categorías para el modal
+  const getCategorias = () => {
+    return table
+      .getRowModel()
+      .rows
+      .filter(row => row.original?.fatherCategoria)
+      .map(row => row.original);
+  };
+
+  // Función para obtener los totales para el modal
+  const getModalTotals = () => {
+    return {
+      total: getTotalFinal(),
+      pagado: getTotalPagado(),
+      pendiente: getTotalPendiente(),
+      estimado: getTotalEstimado()
+    };
+  };
+
   return (
     <div className="h-full bg-gray-50 flex flex-col relative w-full">
       {/* Header con controles */}
       <div className="bg-white shadow-sm border-b px-3 py-2 flex items-center justify-between">
-        <h2 className="text-base font-semibold text-gray-800">Presupuesto</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-base font-semibold text-gray-800">Presupuesto</h2>
+
+          {/* Botón de información del evento */}
+          <div className="relative">
+            <button
+              onClick={() => setShowEventInfoModal(true)}
+              className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors group flex items-center gap-1 "
+              title="Información del evento"
+            >
+              <IoInformationCircleOutline className="w-4 h-4" />
+              Info Evento
+            </button>
+          </div>
+        </div>
 
         {/* Selector de columnas */}
         <div className="relative">
@@ -583,7 +620,20 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
         </div>
       </div>
 
-      {/* Modales */}
+      {/* Modal de información del evento */}
+      {showEventInfoModal && (
+        <EventInfoModal
+          event={event}
+          currency={event?.presupuesto_objeto?.currency}
+          categorias_array={getCategorias()}
+          totalStimatedGuests={event?.presupuesto_objeto?.totalStimatedGuests || { adults: 0, children: 0 }}
+          totals={getModalTotals()}
+          formatNumber={formatNumber}
+          onClose={() => setShowEventInfoModal(false)}
+        />
+      )}
+
+      {/* Modales existentes */}
       {RelacionarPagoModal.crear && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <ClickAwayListener onClickAway={() => RelacionarPagoModal.crear && setRelacionarPagoModal({ id: "", crear: false, categoriaID: "" })}>
