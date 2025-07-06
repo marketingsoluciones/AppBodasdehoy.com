@@ -118,7 +118,7 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
 
     return (
         <div className='w-full h-full'>
-         {/*    <div className="absolute left-0" >
+            {/*    <div className="absolute left-0" >
                 <button onClick={() => setMenuIzquierdo(!menuIzquierdo)} className="bg-white rounded-r-md w-7 h-7 md:flex items-center justify-center -translate-y-full">
                     <GoArrowRight className={` ${menuIzquierdo === true ? "" : "rotate-180"} h-5 w-5 transition-all`} />
                 </button>
@@ -145,7 +145,7 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
             }
             <div className="flex flex-col md:flex-row w-full h-[calc(100vh-300px)] md:h-[calc(100vh-266px)]" >
 
-               {/*  <div className={`${menuIzquierdo ? "hidden" : "md:w-[300px] flex items-center flex-col mb-3 md:mb-0"} transition-all duration-300 ease-in-out`}>
+                {/*  <div className={`${menuIzquierdo ? "hidden" : "md:w-[300px] flex items-center flex-col mb-3 md:mb-0"} transition-all duration-300 ease-in-out`}>
                     <div className="mb-2 w-full">
                         <ResumenInvitados />
                     </div>
@@ -159,20 +159,21 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
                                 data={data.reduce((acc, item) => {
                                     let coste_final_categoria = 0
                                     let valirFirtsChild = true
+
+                                    // PRIMERO: Agregar la categoría
                                     item?.gastos_array?.map((elem, idxElem) => {
                                         let coste_final_gasto = !!elem?.items_array?.length ? 0 : elem.coste_final
                                         let accessorEditables = ["coste_estimado"]
                                         !elem?.items_array?.length && accessorEditables.push("coste_final")
                                         let valirFirtsChildGasto = true
+
                                         elem?.items_array?.map((el, idxEl) => {
                                             if (
                                                 event?.usuario_id !== user?.uid &&
                                                 el.estatus !== false
                                             ) {
-                                                return; 
+                                                return;
                                             }
-                                            let accessorEditables = []
-                                            el.unidad === "xUni." && accessorEditables.push("cantidad")
                                             const cantidad = el.unidad === "xUni."
                                                 ? el.cantidad
                                                 : el.unidad === "xNiños."
@@ -184,6 +185,87 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
                                             coste_final_gasto = coste_final_gasto + coste_final_item
                                             valirFirtsChildGasto = false
                                             valirFirtsChild = false
+                                        })
+                                        coste_final_categoria = coste_final_categoria + coste_final_gasto
+                                    })
+
+                                    // Agregar la categoría PRIMERO
+                                    acc.push({
+                                        ...item,
+                                        object: "categoria",
+                                        categoria: item.nombre,
+                                        categoriaID: item._id,
+                                        categoriaOriginal: { ...item },
+                                        fatherCategoria: true,
+                                        coste_final: coste_final_categoria,
+                                        pendiente_pagar: coste_final_categoria - item.pagado,
+                                        firstChild: true,
+                                    })
+
+                                    // SEGUNDO: Agregar los gastos y sus items
+                                    item?.gastos_array?.map((elem, idxElem) => {
+                                        let coste_final_gasto = !!elem?.items_array?.length ? 0 : elem.coste_final
+                                        let accessorEditables = ["coste_estimado"]
+                                        !elem?.items_array?.length && accessorEditables.push("coste_final")
+                                        let valirFirtsChildGasto = true
+
+                                        // Calcular el coste final del gasto
+                                        elem?.items_array?.map((el, idxEl) => {
+                                            if (
+                                                event?.usuario_id !== user?.uid &&
+                                                el.estatus !== false
+                                            ) {
+                                                return;
+                                            }
+                                            const cantidad = el.unidad === "xUni."
+                                                ? el.cantidad
+                                                : el.unidad === "xNiños."
+                                                    ? event?.presupuesto_objeto?.totalStimatedGuests?.children
+                                                    : el.unidad === "xAdultos."
+                                                        ? event?.presupuesto_objeto?.totalStimatedGuests?.adults
+                                                        : event?.presupuesto_objeto?.totalStimatedGuests?.children + event?.presupuesto_objeto?.totalStimatedGuests?.adults
+                                            let coste_final_item = cantidad * el.valor_unitario
+                                            coste_final_gasto = coste_final_gasto + coste_final_item
+                                            valirFirtsChildGasto = false
+                                        })
+
+                                        // Agregar el gasto
+                                        acc.push({
+                                            ...elem,
+                                            object: "gasto",
+                                            categoria: item.nombre,
+                                            categoriaID: item._id,
+                                            categoriaOriginal: { ...item },
+                                            gasto: elem.nombre,
+                                            gastoID: elem._id,
+                                            gastoOriginal: { ...elem },
+                                            firstChildItem: valirFirtsChildGasto,
+                                            firstChildGasto: idxElem === 0,
+                                            fatherGasto: true,
+                                            coste_final: coste_final_gasto,
+                                            pendiente_pagar: coste_final_gasto - elem.pagado,
+                                            accessorEditables
+                                        })
+
+                                        // TERCERO: Agregar los items de este gasto
+                                        elem?.items_array?.map((el, idxEl) => {
+                                            if (
+                                                event?.usuario_id !== user?.uid &&
+                                                el.estatus !== false
+                                            ) {
+                                                return;
+                                            }
+                                            let accessorEditables = []
+                                            el.unidad === "xUni." && accessorEditables.push("cantidad")
+                                            const cantidad = el.unidad === "xUni."
+                                                ? el.cantidad
+                                                : el.unidad === "xNiños."
+                                                    ? event?.presupuesto_objeto?.totalStimatedGuests?.children
+                                                    : el.unidad === "xAdultos."
+                                                        ? event?.presupuesto_objeto?.totalStimatedGuests?.adults
+                                                        : event?.presupuesto_objeto?.totalStimatedGuests?.children + event?.presupuesto_objeto?.totalStimatedGuests?.adults
+                                            let coste_final_item = cantidad * el.valor_unitario
+
                                             acc.push({
                                                 ...el,
                                                 object: "item",
@@ -198,46 +280,15 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
                                                 itemOriginal: { ...el },
                                                 coste_final: coste_final_item,
                                                 cantidad,
-                                                ...(idxEl === 0 && { firstChildItem: true }),
-                                                ...((idxElem === 0 && idxEl === 0) && { firstChildGasto: true }),
-                                                ...((idxElem === 0 && idxEl === 0) && { firstChild: true }),
-                                                ...((idxEl === elem.items_array.length - 1) && { lastChildGasto: true }),
+                                                firstChildItem: idxEl === 0,
+                                                lastChildGasto: idxEl === elem.items_array.length - 1,
                                                 idxElem,
                                                 idxEl,
                                                 accessorEditables
                                             })
                                         })
-                                        coste_final_categoria = coste_final_categoria + coste_final_gasto
-                                        acc.push({
-                                            ...elem,
-                                            object: "gasto",
-                                            categoria: item.nombre,
-                                            categoriaID: item._id,
-                                            categoriaOriginal: { ...item },
-                                            gasto: elem.nombre,
-                                            gastoID: elem._id,
-                                            gastoOriginal: { ...elem },
-                                            ...((valirFirtsChildGasto) && { firstChildItem: true }),
-                                            ...((idxElem === 0 && valirFirtsChildGasto) && { firstChildGasto: true }),
-                                            ...((idxElem === 0 && valirFirtsChild) && { firstChild: true }),
-                                            fatherGasto: true,
-                                            coste_final: coste_final_gasto,
-                                            pendiente_pagar: coste_final_gasto - elem.pagado,
-                                            accessorEditables
-                                        })
-                                        valirFirtsChild = false
                                     })
-                                    acc.push({
-                                        ...item,
-                                        object: "categoria",
-                                        categoria: item.nombre,
-                                        categoriaID: item._id,
-                                        categoriaOriginal: { ...item },
-                                        fatherCategoria: true,
-                                        coste_final: coste_final_categoria,
-                                        pendiente_pagar: coste_final_categoria - item.pagado,
-                                        ...((valirFirtsChild) && { firstChild: true }),
-                                    })
+
                                     return acc
                                 }, [])} />
                         </div>

@@ -193,7 +193,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     cell: info => {
       return (
         <div className='w-full h-full flex justify-center items-center'>
-          {(showDotsOptionsMenu?.state && showDotsOptionsMenu?.values?.info?.row?.original?._id === info.row.original._id) && 
+          {(showDotsOptionsMenu?.state && showDotsOptionsMenu?.values?.info?.row?.original?._id === info.row.original._id) &&
             <FloatOptionsMenu showOptionsMenu={showDotsOptionsMenu} setShowOptionsMenu={setShowDotsOptionsMenu} />
           }
           <button
@@ -243,7 +243,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
           cell: info => {
             let value = info.getValue()
             const isHidden = (elem?.accessor === "gasto" && info?.row?.original?.gastoOriginal?.estatus === false) ||
-                            (elem?.accessor === "nombre" && info?.row?.original?.itemOriginal?.estatus === true);
+              (elem?.accessor === "nombre" && info?.row?.original?.itemOriginal?.estatus === true);
 
             return elem.isEditabled || info?.row?.original?.accessorEditables?.includes(elem.accessor)
               ? elem?.type !== "select"
@@ -259,7 +259,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                     type={elem?.type}
                     value={value as string | number}
                     textAlign={elem?.horizontalAlignment}
-                    isLabelDisabled 
+                    isLabelDisabled
                   />
                 </div>
                 : <EditableSelect
@@ -392,15 +392,15 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
       {/* Header con controles */}
       <div className="bg-white shadow-sm border-b px-3 py-2 flex items-center justify-between">
         <h2 className="text-base font-semibold text-gray-800">Presupuesto</h2>
-        
+
         {/* Selector de columnas */}
         <div className="relative">
-          <SelectVisiblesColumns 
-            columns={initialColumn} 
-            table={table} 
-            handleChangeColumnVisible={handleChangeColumnVisible} 
-            showDataState={showDataState} 
-            setShowDataState={setShowDataState} 
+          <SelectVisiblesColumns
+            columns={initialColumn}
+            table={table}
+            handleChangeColumnVisible={handleChangeColumnVisible}
+            showDataState={showDataState}
+            setShowDataState={setShowDataState}
           />
         </div>
 
@@ -453,7 +453,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                   {headerGroup.headers.map(header => {
                     const isSticky = header.column.getIndex() < 2;
                     const leftPosition = header.column.getIndex() === 1 ? initialColumn[0]?.size || 160 : 0;
-                    
+
                     return (
                       <th
                         key={header.id}
@@ -461,9 +461,8 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                           width: header.getContext().column.columnDef.size || 'auto',
                           left: isSticky ? leftPosition : undefined
                         }}
-                        className={`text-left p-2 font-medium text-gray-700 border-r text-xs ${
-                          isSticky ? 'sticky bg-gray-100 z-30' : ''
-                        }`}
+                        className={`text-left p-2 font-medium text-gray-700 border-r text-xs ${isSticky ? 'sticky bg-gray-100 z-30' : ''
+                          }`}
                       >
                         {header.isPlaceholder
                           ? null
@@ -475,11 +474,11 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                 </tr>
               ))}
             </thead>
-            
+
             <tbody>
               {table.getRowModel().rows.length > 0 ? table.getRowModel().rows.map((row, index) => {
                 const rowStyles = getRowStyles(row);
-                
+
                 return (
                   <tr
                     key={row.id}
@@ -506,9 +505,9 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                       const isSticky = cell.column.getIndex() < 2;
                       const leftPosition = cell.column.getIndex() === 1 ? initialColumn[0]?.size || 160 : 0;
                       const alignment = initialColumn.find(col => col.accessor === cell.column.id);
-                      
+
                       const alignmentClass = alignment?.horizontalAlignment === "center" ? "text-center" :
-                                           alignment?.horizontalAlignment === "end" ? "text-right" : "text-left";
+                        alignment?.horizontalAlignment === "end" ? "text-right" : "text-left";
 
                       return (
                         <td
@@ -517,9 +516,8 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                             width: cell.getContext().column.columnDef.size || 'auto',
                             left: isSticky ? leftPosition : undefined
                           }}
-                          className={`p-2 border-r text-xs group-hover:bg-gray-100 ${alignmentClass} ${
-                            isSticky ? `sticky z-10 ${rowStyles}` : ''
-                          }`}
+                          className={`p-2 border-r text-xs group-hover:bg-gray-100 ${alignmentClass} ${isSticky ? `sticky z-10 ${rowStyles}` : ''
+                            }`}
                           onContextMenu={(e) => {
                             const element = document.getElementById("ElementEditable")
                             let infoAsd = cell.getContext()
@@ -543,15 +541,17 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                           }}
                         >
                           {cell.column.id === "categoria"
-                            ? row.original.firstChildGasto || row.original.firstChild
+                            ? row.original.object === "categoria" // Solo mostrar en filas de categoría
                               ? flexRender(cell.column.columnDef.cell, cell.getContext())
                               : ""
                             : cell.column.id === "gasto"
-                              ? !row.original?.fatherCategoria
-                                ? row.original?.firstChildItem && flexRender(cell.column.columnDef.cell, cell.getContext())
+                              ? row.original.object === "gasto" // Solo mostrar en filas de gasto
+                                ? flexRender(cell.column.columnDef.cell, cell.getContext())
                                 : ""
-                              : (cell.column.id === "nombre" && row.original?.fatherCategoria) || (cell.column.id === "nombre" && row.original?.fatherGasto)
-                                ? ""
+                              : cell.column.id === "nombre"
+                                ? row.original.object === "item" // Solo mostrar nombre en filas de item
+                                  ? flexRender(cell.column.columnDef.cell, cell.getContext())
+                                  : ""
                                 : flexRender(cell.column.columnDef.cell, cell.getContext())
                           }
                         </td>
@@ -594,11 +594,11 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
               >
                 ✕
               </button>
-              <FormAddPago 
-                GastoID={RelacionarPagoModal?.id} 
-                cate={RelacionarPagoModal?.categoriaID} 
-                setGastoID={setRelacionarPagoModal} 
-              /> 
+              <FormAddPago
+                GastoID={RelacionarPagoModal?.id}
+                cate={RelacionarPagoModal?.categoriaID}
+                setGastoID={setRelacionarPagoModal}
+              />
             </div>
           </ClickAwayListener>
         </div>
