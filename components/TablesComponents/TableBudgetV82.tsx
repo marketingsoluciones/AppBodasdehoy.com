@@ -13,10 +13,10 @@ import { GrMoney } from 'react-icons/gr';
 import { GoEye, GoEyeClosed, GoTasklist } from 'react-icons/go';
 import { PiNewspaperClippingLight } from 'react-icons/pi';
 import { MdOutlineDeleteOutline } from 'react-icons/md';
-import { IoSettingsOutline, IoInformationCircleOutline } from 'react-icons/io5';
+import { IoCloseOutline, IoSettingsOutline, IoInformationCircleOutline } from 'react-icons/io5';
 import { HiOutlineSearch, HiOutlineX } from 'react-icons/hi';
 import { TbColumns3 } from 'react-icons/tb'; // Nuevo icono para columnas
-import { handleChange, determinatedPositionMenu, handleCreateItem, handleCreateGasto, handleCreateCategoria, handleChangeEstatus, handleChangeEstatusItem } from "./tableBudgetV8.handles"
+import { handleChange, handleCreateItem, handleCreateGasto, handleCreateCategoria, handleChangeEstatus, handleChangeEstatusItem } from "./tableBudgetV8.handles"
 import { useToast } from '../../hooks/useToast';
 import FormAddPago from '../Forms/FormAddPago';
 import ClickAwayListener from 'react-click-away-listener';
@@ -78,6 +78,17 @@ const optionsSelect = [
   { title: "xNiños", value: "xNiños." },
 ]
 
+// Función modificada que sobrescribe determinatedPositionMenu para posición fija
+const determinatedPositionMenu = ({ e, element = undefined, height = 0, width = 0 }): { aling: "top" | "botton", justify: "start" | "end" } => {
+  // Función original comentada - ahora usamos modal
+  return {
+    aling: "top",
+    justify: "end"
+  }
+}
+
+
+
 export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDelete, setLoading, showDataState, setShowDataState, setIdItem }) => {
   const rerender = useReducer(() => ({}), {})[1]
   const { event, setEvent } = EventContextProvider()
@@ -96,6 +107,13 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
   // Estados para el buscador
   const [searchTerm, setSearchTerm] = useState('');
   const [showSearch, setShowSearch] = useState(false);
+
+  // Estado para el modal de opciones
+  const [showOptionsModal, setShowOptionsModal] = useState<{
+    show: boolean;
+    info?: any;
+    availableOptions?: any[];
+  }>({ show: false });
 
   // NUEVO: Estado para el modal de configuración de columnas
   const [showColumnsModal, setShowColumnsModal] = useState(false);
@@ -142,7 +160,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
   const toggleColumnVisibility = (columnKey: keyof ColumnConfig) => {
     // columnKey es directamente el accessor de la tabla
     const accessor = columnKey;
-    
+
     if (accessor === "options") {
       // Para la columna de opciones, manejar directamente con setColumnVisibility
       setColumnVisibility(prev => ({
@@ -280,6 +298,44 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     },
   ];
 
+  // Función para abrir el modal de opciones con filtrado correcto
+  const openOptionsModal = (info: any, objectType?: string) => {
+    console.log("openOptionsModal", info, objectType)
+
+    // Determinar el tipo de objeto
+    let type = objectType;
+    if (!type && info) {
+      type = info.row?.original?.object || "categoria";
+    }
+    if (!type) {
+      type = "categoria"; // Default para menú contextual general
+    }
+
+    // Crear una copia de las opciones para no mutar el array original
+    let filteredOptions = [...options];
+
+    // Si es categoría, remover la opción "Item" (índice 3 en el array original)
+    if (type === "categoria") {
+      filteredOptions = filteredOptions.filter(opt => opt.title !== "Item");
+    }
+
+    // Filtrar opciones según el tipo de objeto
+    filteredOptions = filteredOptions.filter(option => {
+      if (!option.object) return true; // Mostrar opciones sin restricción de objeto
+      return option.object.includes(type);
+    });
+
+    setShowOptionsModal({
+      show: true,
+      info,
+      availableOptions: filteredOptions
+    });
+
+    // Cerrar otros menús
+    setShowDotsOptionsMenu({ state: false });
+    setShowFloatOptionsMenu({ state: false });
+  };
+
   // Función para obtener los estilos de fila según el tipo
   const getRowStyles = (row: any) => {
     if (row.original?.fatherCategoria) {
@@ -303,30 +359,14 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     cell: info => {
       return (
         <div className='w-full h-full flex justify-center items-center'>
-          {(showDotsOptionsMenu?.state && showDotsOptionsMenu?.values?.info?.row?.original?._id === info.row.original._id) &&
-            <FloatOptionsMenu showOptionsMenu={showDotsOptionsMenu} setShowOptionsMenu={setShowDotsOptionsMenu} />
-          }
           <button
             onClick={(e) => {
               if (isAllowed()) {
-                const element = document.getElementById(`options-${info.row.original._id}`)
-                const position = determinatedPositionMenu({ e, element, height: options.length * 32 })
-                if (showDotsOptionsMenu?.values?.info?.row?.original?._id === info.row.original._id && showDotsOptionsMenu?.state === true) {
-                  setShowDotsOptionsMenu({
-                    state: false,
-                  })
+                if (showOptionsModal.show && showOptionsModal.info?.row?.original?._id === info.row.original._id) {
+                  setShowOptionsModal({ show: false });
                 } else {
-                  info.row.original?.object === "categoria" && options.splice(3, 1)
-                  setShowFloatOptionsMenu({ state: false })
-                  setShowDotsOptionsMenu({
-                    state: true,
-                    values: {
-                      info,
-                      aling: position.aling,
-                      justify: position.justify,
-                      options: options
-                    }
-                  })
+                  // Abrir modal de opciones con el tipo correcto
+                  openOptionsModal(info, info.row.original.object);
                 }
               } else {
                 ht()
@@ -520,7 +560,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
 
           {/* Buscador */}
           <div className="flex items-center gap-1.5">
-            {false? (
+            {false ? (
               <button
                 onClick={() => setShowSearch(true)}
                 className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
@@ -577,11 +617,11 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
             {/* Modal de configuración de columnas */}
             {showColumnsModal && (
               /* <ClickAwayListener onClickAway={() => setShowColumnsModal(false)}> */
-                <ColumnsConfigModal
-                  columnConfig={columnConfig}
-                  toggleColumnVisibility={toggleColumnVisibility}
-                  onClose={() => setShowColumnsModal(false)}
-                />
+              <ColumnsConfigModal
+                columnConfig={columnConfig}
+                toggleColumnVisibility={toggleColumnVisibility}
+                onClose={() => setShowColumnsModal(false)}
+              />
               /* </ClickAwayListener> */
             )}
           </div>
@@ -637,8 +677,9 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
           const element = document.getElementById("ElementEditable")
           if (isAllowed()) {
             if (!element) {
-              const position = { x: e.clientX - 8, y: e.clientY - 144 - 124 }
-              setShowFloatOptionsMenu({ state: false, values: { info: undefined, position, options }, control: "ok" })
+              e.preventDefault();
+              // Abrir modal para categoría por defecto
+              /* openOptionsModal(undefined, "categoria"); */
             }
           }
         }}>
@@ -684,16 +725,12 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                       let infoAsd = row.getVisibleCells()[0].getContext()
                       let info = row.getVisibleCells().find(cell => cell.column.id === "categoria")?.getContext() || infoAsd
                       if (!element) {
-                        const positionAsd = determinatedPositionMenu({ e, height: options.length * 32, width: 200 })
-                        setShowDotsOptionsMenu({
-                          state: false, values: {
-                            info: info ?? infoAsd,
-                            aling: positionAsd.aling,
-                            justify: positionAsd.justify,
-                            options
-                          }, control: "ok"
-                        })
-                        e.preventDefault()
+                        e.preventDefault();
+                        // Usar el tipo de objeto de la fila actual (row.original.object)
+                        const objectType = row.original?.object ;
+
+                        console.log(1212, objectType)
+                        openOptionsModal(info, objectType);
                       }
                     }}
                   >
@@ -723,16 +760,12 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                                 ? table.getRowModel().rows.find(elem => elem.original._id === infoAsd.row.original.gastoID)?.getVisibleCells().find(elem => elem.column.id === cell.column.id)
                                 : cell.getContext()
                             if (!element) {
-                              const positionAsd = determinatedPositionMenu({ e, height: options.length * 32, width: 200 })
-                              setShowDotsOptionsMenu({
-                                state: false, values: {
-                                  info: info ?? infoAsd,
-                                  aling: positionAsd.aling,
-                                  justify: positionAsd.justify,
-                                  options
-                                }, control: "ok"
-                              })
-                              e.preventDefault()
+                              e.preventDefault();
+                              // Usar directamente el tipo de objeto de la celda actual
+                              const objectType = cell.row.original?.object || "categoria";
+
+                              console.log(3232, objectType)
+                              openOptionsModal(info || infoAsd, objectType);
                             }
                           }}
                         >
@@ -793,6 +826,60 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
         </div>
       </div>
 
+      {/* Modal de opciones flotante dentro de la tabla (similar a EventInfoModal) */}
+      {showOptionsModal.show && (
+        <ClickAwayListener onClickAway={() => setShowOptionsModal({ show: false })}>
+          <div className="absolute top-12 right-3 bg-white shadow-lg rounded border z-50 w-48 max-w-[calc(100vw-24px)]">
+            <div className="p-3 border-b">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-gray-800 text-sm">Opciones disponibles</h3>
+                <button
+                  onClick={() => setShowOptionsModal({ show: false })}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <IoCloseOutline className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-3 space-y-3">
+              {showOptionsModal.availableOptions?.map((option, index) => (
+                <div key={index}>
+                  {option.icon && typeof option.icon !== 'boolean' && !option.onClick ? (
+                    // Header con icono (similar al estilo del EventInfoModal)
+                    <div className="flex items-center gap-2 py-2 px-3 bg-gray-50 rounded border">
+                      <div className="text-gray-500 text-sm">
+                        {option.icon}
+                      </div>
+                      <span className="text-xs font-medium text-gray-700">{option.title}</span>
+                    </div>
+                  ) : option.onClick ? (
+                    // Opción clickeable con estilo similar al modal de evento
+                    <button
+                      onClick={() => {
+                        option.onClick(showOptionsModal.info);
+                        setShowOptionsModal({ show: false });
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-gray-50 rounded transition-colors border border-transparent hover:border-gray-200"
+                    >
+                      <div className="text-gray-500 text-sm">
+                        {option.icon && typeof option.icon !== 'boolean' && option.icon}
+                      </div>
+                      <span className="text-xs text-gray-700">{option.title}</span>
+                    </button>
+                  ) : (
+                    // Título simple
+                    <div className="text-xs text-gray-600 font-medium px-2">
+                      {option.title}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </ClickAwayListener>
+      )}
+
       {/* Modal de información del evento */}
       {showEventInfoModal && (
         <EventInfoModal
@@ -841,7 +928,8 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
         </ClickAwayListener>
       )}
 
-      {showFloatOptionsMenu?.state && (
+      {/* Componente FloatOptionsMenu original - solo se muestra si no hay modal */}
+      {showFloatOptionsMenu?.state && !showOptionsModal.show && (
         <FloatOptionsMenu showOptionsMenu={showFloatOptionsMenu} setShowOptionsMenu={setShowFloatOptionsMenu} />
       )}
     </div>
