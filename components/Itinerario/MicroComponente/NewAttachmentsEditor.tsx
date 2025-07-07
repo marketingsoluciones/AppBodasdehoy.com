@@ -15,7 +15,7 @@ interface Props {
   taskId: string;
   eventId: string;
   itinerarioId: string;
-  readOnly?: boolean; // NUEVA PROP AGREGADA
+  readOnly?: boolean;
 }
 
 interface UploadingFile {
@@ -60,7 +60,7 @@ export const NewAttachmentsEditor: React.FC<Props> = ({
   taskId,
   eventId,
   itinerarioId,
-  readOnly = false // VALOR POR DEFECTO AGREGADO
+  readOnly = false
 }) => {
   const { t } = useTranslation();
   const { config } = AuthContextProvider();
@@ -72,22 +72,6 @@ export const NewAttachmentsEditor: React.FC<Props> = ({
   const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [deletingFiles, setDeletingFiles] = useState<string[]>([]);
-
-  useEffect(() => {
-    // Escuchar cambios en el evento global para actualizar adjuntos
-    if (event?.itinerarios_array) {
-      const currentItinerary = event.itinerarios_array.find(it => it._id === itinerarioId);
-      if (currentItinerary) {
-        const currentTask = currentItinerary.tasks.find(t => t._id === taskId);
-        if (currentTask && currentTask.attachments) {
-          // Solo actualizar si hay cambios reales
-          if (JSON.stringify(currentTask.attachments) !== JSON.stringify(attachments)) {
-            onUpdate(currentTask.attachments);
-          }
-        }
-      }
-    }
-  }, [event, itinerarioId, taskId]);
 
   const handleFileSelect = (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -114,6 +98,7 @@ export const NewAttachmentsEditor: React.FC<Props> = ({
         status: 'uploading'
       }]);
 
+      // IMPORTANTE: Usar doble barra como en InputAttachments
       const storageRef = ref(storage, `${taskId}//${file.name}`);
       const uploadTask = uploadBytesResumable(storageRef, file);
 
@@ -134,7 +119,6 @@ export const NewAttachmentsEditor: React.FC<Props> = ({
           
           toast("error", t(`Error al subir ${file.name}`));
           
-          // Remover después de 3 segundos
           setTimeout(() => {
             setUploadingFiles(prev => prev.filter(uf => uf.id !== uploadId));
           }, 3000);
@@ -152,15 +136,28 @@ export const NewAttachmentsEditor: React.FC<Props> = ({
           const newAttachments = [...attachments, newFileData];
           
           try {
-            // Actualizar en la base de datos
+            // IMPORTANTE: Actualizar la tarea completa como en InputAttachments
+            const currentItinerary = event.itinerarios_array.find(it => it._id === itinerarioId);
+            const currentTask = currentItinerary?.tasks.find(t => t._id === taskId);
+            
+            if (!currentTask) {
+              throw new Error('Task not found');
+            }
+
+            // Actualizar con la estructura completa de la tarea
+            const updatedTask = {
+              ...currentTask,
+              attachments: newAttachments
+            };
+
             await fetchApiEventos({
               query: queries.editTask,
               variables: {
                 eventID: eventId,
                 itinerarioID: itinerarioId,
                 taskID: taskId,
-                variable: "attachments",
-                valor: JSON.stringify(newAttachments)
+                variable: "all", // IMPORTANTE: Usar "all" como en InputAttachments
+                valor: JSON.stringify(updatedTask)
               },
               domain: config.domain
             });
@@ -168,11 +165,26 @@ export const NewAttachmentsEditor: React.FC<Props> = ({
             // Actualizar estado local
             onUpdate(newAttachments);
             
+            // Actualizar el evento global
+            setEvent((oldEvent) => {
+              if (!oldEvent) return oldEvent;
+              const newEvent = { ...oldEvent };
+              const itineraryIndex = newEvent.itinerarios_array?.findIndex(it => it._id === itinerarioId);
+              if (itineraryIndex !== undefined && itineraryIndex > -1) {
+                const taskIndex = newEvent.itinerarios_array[itineraryIndex].tasks?.findIndex(t => t._id === taskId);
+                if (taskIndex !== undefined && taskIndex > -1) {
+                  newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex].attachments = newAttachments;
+                }
+              }
+              return newEvent;
+            });
+            
             setUploadingFiles(prev => prev.map(uf => 
               uf.id === uploadId ? { ...uf, status: 'success' } : uf
             ));
             
-            // Remover de la lista después de 2 segundos
+            toast("success", t("Archivo subido correctamente"));
+            
             setTimeout(() => {
               setUploadingFiles(prev => prev.filter(uf => uf.id !== uploadId));
             }, 2000);
@@ -189,6 +201,10 @@ export const NewAttachmentsEditor: React.FC<Props> = ({
             ));
             
             toast("error", t("Error al actualizar adjuntos"));
+            
+            setTimeout(() => {
+              setUploadingFiles(prev => prev.filter(uf => uf.id !== uploadId));
+            }, 3000);
           }
         }
       );
@@ -201,29 +217,55 @@ export const NewAttachmentsEditor: React.FC<Props> = ({
     setDeletingFiles(prev => [...prev, file.name]);
     
     try {
-      // Eliminar del storage
+      // Eliminar del storage con doble barra
       const storageRef = ref(storage, `${taskId}//${file.name}`);
-      await deleteObject(storageRef).catch(() => {
-        // Ignorar error si el archivo no existe
+      await deleteObject(storageRef).catch((error) => {
+        console.log('Archivo no existe en storage o ya fue eliminado:', error);
       });
 
       // Actualizar lista de adjuntos
       const newAttachments = attachments.filter(a => a.name !== file.name);
       
-      await fetchApiEventos({
-        query: queries.editTask,
-        variables: {
-          eventID: eventId,
-          itinerarioID: itinerarioId,
-          taskID: taskId,
-          variable: "attachments",
-          valor: JSON.stringify(newAttachments)
-        },
-        domain: config.domain
-      });
+      // Obtener la tarea actual
+      const currentItinerary = event.itinerarios_array.find(it => it._id === itinerarioId);
+      const currentTask = currentItinerary?.tasks.find(t => t._id === taskId);
+      
+      if (currentTask) {
+        const updatedTask = {
+          ...currentTask,
+          attachments: newAttachments
+        };
 
-      onUpdate(newAttachments);
-      toast("success", t("Archivo eliminado"));
+        await fetchApiEventos({
+          query: queries.editTask,
+          variables: {
+            eventID: eventId,
+            itinerarioID: itinerarioId,
+            taskID: taskId,
+            variable: "all", // Usar "all" como en InputAttachments
+            valor: JSON.stringify(updatedTask)
+          },
+          domain: config.domain
+        });
+
+        onUpdate(newAttachments);
+        
+        // Actualizar el evento global
+        setEvent((oldEvent) => {
+          if (!oldEvent) return oldEvent;
+          const newEvent = { ...oldEvent };
+          const itineraryIndex = newEvent.itinerarios_array?.findIndex(it => it._id === itinerarioId);
+          if (itineraryIndex !== undefined && itineraryIndex > -1) {
+            const taskIndex = newEvent.itinerarios_array[itineraryIndex].tasks?.findIndex(t => t._id === taskId);
+            if (taskIndex !== undefined && taskIndex > -1) {
+              newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex].attachments = newAttachments;
+            }
+          }
+          return newEvent;
+        });
+        
+        toast("success", t("Archivo eliminado"));
+      }
       
     } catch (error) {
       console.error('Error deleting file:', error);
@@ -235,6 +277,7 @@ export const NewAttachmentsEditor: React.FC<Props> = ({
 
   const handleDownload = async (file: FileData) => {
     try {
+      // Usar doble barra en la ruta
       await downloadFile(storage, `${taskId}//${file.name}`);
     } catch (error) {
       console.error('Error downloading file:', error);
