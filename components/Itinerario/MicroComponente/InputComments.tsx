@@ -371,6 +371,7 @@ export const InputComments: FC<props> = ({
   const { t } = useTranslation()
   const { user, config } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
+  const [comments, setComments] = useState<Comment[]>([]);
   const [value, setValue] = useState<string>("<p><br></p>")
   const [valir, setValir] = useState(false)
   const [pastedAndDropFiles, setPastedAndDropFiles] = useState<PastedAndDropFile[]>([]);
@@ -477,6 +478,8 @@ export const InputComments: FC<props> = ({
         if (onCommentAdded && typeof onCommentAdded === 'function') {
           onCommentAdded(results);
         }
+        // También actualizar el estado local de comentarios
+        setComments(prevComments => [...prevComments, results]);
 
         // Manejo de archivos adjuntos
         if (pastedAndDropFiles?.length && tempPastedAndDropFiles && setTempPastedAndDropFiles) {
@@ -548,7 +551,7 @@ export const InputComments: FC<props> = ({
   };
 
   // MOSTRAR MENSAJE DE SOLO LECTURA SI ESTÁ DESHABILITADO
-  if (disabled) {
+   if (disabled) {
     return (
       <div className='bg-gray-50 flex items-center justify-center pt-2 px-2 py-4 border-t border-gray-200'>
         <div className="flex items-center space-x-2 text-gray-500">
@@ -557,7 +560,7 @@ export const InputComments: FC<props> = ({
         </div>
       </div>
     );
-  }
+  } 
 
   return (
     <div className='bg-white flex items-center pt-2 px-2 relative'>

@@ -19,7 +19,9 @@ export const SelectModeView: FC<props> = ({ value, setValue }) => {
   const [show, setShow] = useState<boolean>(false)
   const [isAllowed, ht] = useAllowed()
 
-  const options = [
+  const pathname = window?.location?.pathname;
+
+  let options = [
     {
       value: "cards",
       icon: <LiaIdCardSolid className="w-5 h-5" />,
@@ -50,12 +52,24 @@ export const SelectModeView: FC<props> = ({ value, setValue }) => {
     });
   }
   
-  if (["/itinerario"].includes(window?.location?.pathname)) {
-    options.push({
-      value: "schema",
-      icon: <TbSchema className="w-5 h-5" />,
-      title: t("schema")
-    });
+  // Lógica de filtrado según la ruta
+  if (pathname === "/itinerario") {
+    // Solo mostrar "cards" y "schema"
+    options = [
+      {
+        value: "cards",
+        icon: <LiaIdCardSolid className="w-5 h-5" />,
+        title: t("card")
+      },
+      {
+        value: "schema",
+        icon: <TbSchema className="w-5 h-5" />,
+        title: t("schema")
+      }
+    ];
+  } else if (pathname === "/servicios") {
+    // Mostrar todas menos "schema"
+    options = options.filter(opt => opt.value !== "schema");
   }
   
   return (

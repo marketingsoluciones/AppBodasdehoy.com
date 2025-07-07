@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Upload, X, FileText, FileImage, FileVideo, FileAudio, File, Check, Loader2, Download, Trash2, Lock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getStorage, ref, uploadBytesResumable, deleteObject } from "firebase/storage";
@@ -72,6 +72,22 @@ export const NewAttachmentsEditor: React.FC<Props> = ({
   const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [deletingFiles, setDeletingFiles] = useState<string[]>([]);
+
+  useEffect(() => {
+    // Escuchar cambios en el evento global para actualizar adjuntos
+    if (event?.itinerarios_array) {
+      const currentItinerary = event.itinerarios_array.find(it => it._id === itinerarioId);
+      if (currentItinerary) {
+        const currentTask = currentItinerary.tasks.find(t => t._id === taskId);
+        if (currentTask && currentTask.attachments) {
+          // Solo actualizar si hay cambios reales
+          if (JSON.stringify(currentTask.attachments) !== JSON.stringify(attachments)) {
+            onUpdate(currentTask.attachments);
+          }
+        }
+      }
+    }
+  }, [event, itinerarioId, taskId]);
 
   const handleFileSelect = (files: FileList | null) => {
     if (!files || files.length === 0) return;

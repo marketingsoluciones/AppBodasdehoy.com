@@ -639,7 +639,7 @@ const fetchEventFromApi = async () => {
           </div>}
           {el?.tasks?.map((elem, idx) => {
             return (
-<PermissionTaskActionWrapper 
+            <PermissionTaskActionWrapper 
             key={idx}
             task={elem}
             isTaskVisible={elem.spectatorView}
@@ -647,7 +647,7 @@ const fetchEventFromApi = async () => {
             showEditTask={showEditTask}
             setShowEditTask={setShowEditTask}
             itinerario={itinerario}
-        >
+                >
                 <TaskNew
                   id={elem._id}
                   key={idx}

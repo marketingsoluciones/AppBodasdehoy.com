@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
+import { useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import * as XLSX from 'xlsx';
 import {
@@ -56,10 +57,11 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const { t } = useTranslation();
 
+  // Configurar sortable para la columna (para mover columnas)
   const {
     attributes,
     listeners,
-    setNodeRef,
+    setNodeRef: setSortableNodeRef,
     transform,
     transition,
     isDragging,
@@ -70,6 +72,21 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
       column,
     },
   });
+
+  // Configurar droppable para recibir tareas
+  const { setNodeRef: setDroppableNodeRef, isOver } = useDroppable({
+    id: `column-${column.id}`,
+    data: {
+      type: 'column',
+      columnId: column.id,
+    },
+  });
+
+  // Combinar refs
+  const setNodeRef = (node: HTMLElement | null) => {
+    setSortableNodeRef(node);
+    setDroppableNodeRef(node);
+  };
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -190,6 +207,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
         ${isCompact ? 'w-64' : 'w-80'}
         ${isList ? 'w-full max-w-4xl' : ''}
         ${column.isCollapsed ? 'h-16' : ''}
+        ${isOver ? 'ring-2 ring-primary ring-opacity-50' : ''}
       `}
       {...attributes}
     >
@@ -271,12 +289,14 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
 
       {/* Contenido de la columna */}
       {!column.isCollapsed && (
-        <div className={`
-          flex-1 w-full max-h-full min-h-0 p-3 space-y-3 overflow-y-auto
-          ${isCompact ? 'max-h-72' : 'max-h-96'}
-          ${isList ? 'max-h-full' : ''}
-        `}
-        style={{ height: '100%' }}
+        <div 
+          className={`
+            flex-1 w-full p-3 space-y-3 overflow-y-auto
+            ${isCompact ? 'max-h-72' : 'max-h-96'}
+            ${isList ? 'max-h-full' : ''}
+            ${column.tasks.length === 0 ? 'min-h-[200px]' : 'min-h-[100px]'}
+          `}
+          style={{ height: '100%' }}
         >
           {/* Formulario para crear nueva tarea */}
           {isCreatingTask && (
@@ -309,40 +329,42 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
           )}
 
           {/* Lista de tareas */}
-          <SortableContext
-            items={column.tasks.filter(task => task && task._id).map(task => task._id)}
-            strategy={verticalListSortingStrategy}
-          >
-            {column.tasks
-              .filter(task => task && task._id)
-              .map((task) => (
-                <TaskCard
-                  key={task._id}
-                  task={task}
-                  column={column}
-                  onTaskClick={onTaskClick}
-                  onTaskUpdate={onTaskUpdate}
-                  onTaskDelete={onTaskDelete}
-                  onCreateSubTask={onCreateSubTask}
-                  onTaskCreate={onTaskCreate}
-                  isSelected={selectedTask === task._id}
-                  isDragging={false}
-                  itinerario={itinerario}
-                />
-              ))}
-          </SortableContext>
-
-          {/* Botón para agregar tarea cuando no hay tareas */}
-          {column.tasks.length === 0 && !isCreatingTask && (
-            <button
-              onClick={() => setIsCreatingTask(true)}
-              className="flex w-full flex-col items-center space-y-2 border-2 border-dashed border-gray-300 rounded-md text-gray-500 hover:text-gray-700 hover:border-gray-400 transition-colors group px-6 py-4 mx-auto"
+          {column.tasks.length > 0 && (
+            <SortableContext
+              items={column.tasks.filter(task => task && task._id).map(task => task._id)}
+              strategy={verticalListSortingStrategy}
             >
-              <div className="flex flex-col items-center space-y-2">
+              {column.tasks
+                .filter(task => task && task._id)
+                .map((task) => (
+                  <TaskCard
+                    key={task._id}
+                    task={task}
+                    column={column}
+                    onTaskClick={onTaskClick}
+                    onTaskUpdate={onTaskUpdate}
+                    onTaskDelete={onTaskDelete}
+                    onCreateSubTask={onCreateSubTask}
+                    onTaskCreate={onTaskCreate}
+                    isSelected={selectedTask === task._id}
+                    isDragging={false}
+                    itinerario={itinerario}
+                  />
+                ))}
+            </SortableContext>
+          )}
+
+          {/* Área de drop cuando no hay tareas */}
+          {column.tasks.length === 0 && !isCreatingTask && (
+            <div className="flex items-center justify-center h-auto">
+              <button
+                onClick={() => setIsCreatingTask(true)}
+                className="flex w-full h-full min-h-[150px] flex-col items-center justify-center space-y-2 border-2 border-dashed border-gray-300 rounded-md text-gray-500 hover:text-gray-700 hover:border-gray-400 transition-colors group"
+              >
                 <Plus className="w-6 h-6 group-hover:scale-110 transition-transform" />
                 <span className="text-sm">{t("Agregar una tarea")}</span>
-              </div>
-            </button>
+              </button>
+            </div>
           )}
         </div>
       )}

@@ -236,7 +236,7 @@ task,
         {showActions && !isDragging && !isSortableDragging && (
           <div className="absolute top-2 right-2 flex bg-white rounded-md shadow-md items-center space-x-1 z-50">
             {/* Botón de completar */}
-            <button
+{/*             <button
               onClick={handleToggleComplete}
               className={`
               p-1 rounded-md transition-colors
@@ -252,7 +252,7 @@ task,
               ) : (
                 <Circle className="w-4 h-4" />
               )}
-            </button>
+            </button> */}
 
             {/* Botón de sub-tarea */}
 {/*             <button

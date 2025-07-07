@@ -25,6 +25,8 @@ import { useAllowed } from '../../../hooks/useAllowed';
 import {
   X, MessageSquare, Tag, Calendar, Clock, User, Flag, ChevronDown, Copy, Link, MoreHorizontal, Trash2, Archive, Bell, Plus, Eye, EyeOff, Lock, Unlock, AlertCircle, PlayCircle, StopCircle
 } from 'lucide-react';
+import { Interweave } from "interweave";
+import { HashtagMatcher, UrlMatcher } from "interweave-autolink";
 
 // Tipos mejorados
 interface TaskFormValues {
@@ -55,7 +57,7 @@ const stripHtml = (html: string): string => {
 interface Props extends HTMLAttributes<HTMLDivElement> {
   itinerario: Itinerary;
   task: Task;
-  view: ViewItinerary;
+  view?: ViewItinerary;
   optionsItineraryButtonBox?: OptionsSelect[];
   isSelect?: boolean;
   showModalCompartir?: any;
@@ -270,16 +272,26 @@ export const TaskNew: FC<Props> = memo(({
   }, [task]);
 
   // Efecto para ordenar comentarios
-  useEffect(() => {
-    if (task?.comments && Array.isArray(task.comments)) {
-      const sortedComments = [...task.comments].sort((a, b) => {
-        const dateA = a?.createdAt ? new Date(a.createdAt).getTime() : 0;
-        const dateB = b?.createdAt ? new Date(b.createdAt).getTime() : 0;
-        return dateA - dateB;
-      });
-      setComments(sortedComments);
-    }
-  }, [task?.comments]);
+useEffect(() => {
+  if (task?.comments && Array.isArray(task.comments)) {
+    const sortedComments = [...task.comments].sort((a, b) => {
+      const dateA = a?.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b?.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateA - dateB;
+    });
+    
+    // Solo actualizar si hay cambios reales
+    setComments(prevComments => {
+      const prevIds = prevComments.map(c => c._id).sort().join(',');
+      const newIds = sortedComments.map(c => c._id).sort().join(',');
+      
+      if (prevIds !== newIds) {
+        return sortedComments;
+      }
+      return prevComments;
+    });
+  }
+}, [task?.comments]);
 
   // Auto-scroll al agregar nuevos comentarios
   useEffect(() => {
@@ -294,11 +306,32 @@ export const TaskNew: FC<Props> = memo(({
     setPreviousCountComments(comments.length);
   }, [comments, previousCountComments]);
 
+
+
   // Función para manejar actualización de campos
   const handleUpdate = async (fieldName: string, value: any) => {
     if (!canEdit) {
       ht();
       return;
+    }
+
+    // En la función handleUpdate, agregar lógica especial para spectatorView
+    if (fieldName === 'spectatorView') {
+      // Si se está ocultando la tarea, notificar a otros usuarios
+      if (!value) {
+        // La tarea se está ocultando
+        setEvent((oldEvent) => {
+          const newEvent = { ...oldEvent };
+          const itineraryIndex = newEvent.itinerarios_array.findIndex(it => it._id === itinerario._id);
+          if (itineraryIndex > -1) {
+            const taskIndex = newEvent.itinerarios_array[itineraryIndex].tasks.findIndex(t => t._id === task._id);
+            if (taskIndex > -1) {
+              newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex].spectatorView = false;
+            }
+          }
+          return newEvent;
+        });
+      }
     }
 
     try {
@@ -413,33 +446,136 @@ export const TaskNew: FC<Props> = memo(({
   };
 
   // Función para duplicar tarea
-  const handleDuplicate = () => {
-    if (!canEdit) {
-      ht();
-      return;
+const handleDuplicate = async () => {
+  if (!canEdit) {
+    ht();
+    return;
+  }
+  
+  try {
+    const fecha = new Date();
+    const response = await fetchApiEventos({
+      query: queries.createTask,
+      variables: {
+        eventID: event._id,
+        itinerarioID: itinerario._id,
+        descripcion: `${localTask.descripcion} (copia)`,
+        fecha: fecha.toISOString(),
+        hora: formatTime(fecha),
+        duracion: localTask.duracion || 30,
+        tags: JSON.stringify(localTask.tags || []),
+        responsable: JSON.stringify(localTask.responsable || []),
+        tips: localTask.tips || '',
+        estado: localTask.estado || 'pending',
+        prioridad: localTask.prioridad || 'media'
+      },
+      domain: config.domain
+    });
+
+    if (response && typeof response === 'object' && '_id' in response) {
+      toast('success', t('Tarea duplicada correctamente'));
+      // Actualizar el evento global
+      setEvent((oldEvent) => {
+        const newEvent = { ...oldEvent };
+        const itineraryIndex = newEvent.itinerarios_array.findIndex(it => it._id === itinerario._id);
+        if (itineraryIndex !== -1) {
+          newEvent.itinerarios_array[itineraryIndex].tasks.push(response as Task);
+        }
+        return newEvent;
+      });
     }
-    // Implementar lógica de duplicación
-    console.log('Duplicar tarea');
-  };
+  } catch (error) {
+    console.error('Error al duplicar tarea:', error);
+    toast('error', t('Error al duplicar la tarea'));
+  }
+};
 
   // Función para copiar enlace
-  const handleCopyLink = (task: Task) => {
-    const link = `${window.location.origin}/services/servicios-${event?._id}-${itinerario?._id}-${task?._id}`;
+const handleCopyLink = (task: Task) => {
+  const link = `${window.location.origin}/services/servicios-${event?._id}-${itinerario?._id}-${task?._id}`;
+  
+  // Usar la API moderna del portapapeles con fallback
+  if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(link).then(() => {
       toast('success', t('Enlace copiado al portapapeles'));
+    }).catch(() => {
+      // Fallback para navegadores antiguos
+      const textArea = document.createElement("textarea");
+      textArea.value = link;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      toast('success', t('Enlace copiado al portapapeles'));
     });
-  };
+  } else {
+    // Fallback directo
+    const textArea = document.createElement("textarea");
+    textArea.value = link;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    toast('success', t('Enlace copiado al portapapeles'));
+  }
+};
 
-  // Función para eliminar comentario
-  const handleDeleteComment = (commentId: string) => {
-    if (!canEdit) {
-      ht();
-      return;
-    }
+// Función para manejar la eliminación de comentarios
+const handleDeleteComment = async (commentId: string) => {
+  if (!canEdit) {
+    ht();
+    return;
+  }
+
+  try {
+    // 1. Llama a la API para eliminar el comentario en el backend
+    await fetchApiEventos({
+      query: queries.deleteComment, // Asegúrate de tener esta query en tu backend
+      variables: {
+        eventID: event._id,
+        itinerarioID: itinerario._id,
+        taskID: task._id,
+        commentID: commentId,
+      },
+      domain: config.domain,
+    });
+
+    // 2. Actualiza el estado local de comentarios
     const updatedComments = comments.filter(comment => comment._id !== commentId);
     setComments(updatedComments);
-    handleUpdate('comments', updatedComments);
-  };
+
+    // 3. Actualiza el estado global del evento
+    setEvent((oldEvent) => {
+      const newEvent = { ...oldEvent };
+      const itineraryIndex = newEvent.itinerarios_array.findIndex(it => it._id === itinerario._id);
+      if (itineraryIndex > -1) {
+        const taskIndex = newEvent.itinerarios_array[itineraryIndex].tasks.findIndex(t => t._id === task._id);
+        if (taskIndex > -1) {
+          newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex].comments = updatedComments;
+        }
+      }
+      return newEvent;
+    });
+
+    // 4. (Opcional) Actualiza el backend con el nuevo array de comentarios si tu API lo requiere
+    await fetchApiEventos({
+      query: queries.editTask,
+      variables: {
+        eventID: event._id,
+        itinerarioID: itinerario._id,
+        taskID: task._id,
+        variable: "comments",
+        valor: JSON.stringify(updatedComments),
+      },
+      domain: config.domain,
+    });
+
+    toast("success", t("Comentario eliminado"));
+  } catch (error) {
+    console.error("Error al eliminar comentario:", error);
+    toast("error", t("Error al eliminar comentario"));
+  }
+};
 
   // Función para manejar la actualización de comentarios
   const handleUpdateComments = useCallback((taskId: string, newComments: Comment[]) => {
@@ -455,6 +591,117 @@ export const TaskNew: FC<Props> = memo(({
       return newEvent;
     });
   }, [itinerario._id, setEvent]);
+
+  const handleCommentAdded = useCallback((newComment: Comment) => {
+  // Actualizar el estado local de comentarios inmediatamente
+  setComments(prevComments => {
+    // Evitar duplicados
+    const exists = prevComments.some(c => c._id === newComment._id);
+    if (exists) return prevComments;
+    
+    // Agregar el nuevo comentario y ordenar por fecha
+    const updatedComments = [...prevComments, newComment].sort((a, b) => {
+      const dateA = a?.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b?.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateA - dateB;
+    });
+    
+    return updatedComments;
+  });
+  
+  // También actualizar localTask
+  setLocalTask(prev => ({
+    ...prev,
+    comments: [...(prev.comments || []), newComment]
+  }));
+}, []);
+
+  // Vista schema
+  if (view === "schema" && localTask.spectatorView) {
+    return (
+      <div {...props} className="w-full flex">
+        <div className="flex w-[55%] md:w-[45%] lg:w-[40%] p-2 items-start justify-start border-t-[1px] border-r-[1px] border-primary border-dotted relative">
+          <div className="w-12 h-12 md:w-16 md:h-16 md:min-w-16 flex items-center justify-center">
+            {showIconSelector ? (
+              <NewSelectIcon
+                value={tempIcon}
+                onChange={handleIconChange}
+                onClose={() => setShowIconSelector(false)}
+              />
+            ) : (
+              <button
+                onClick={() => canEdit ? setShowIconSelector(true) : ht()}
+                className={`w-full h-full flex items-center justify-center rounded-full transition-colors ${
+                  canEdit ? 'hover:bg-gray-100 cursor-pointer' : 'opacity-60 cursor-not-allowed'
+                }`}
+                title={canEdit ? "Cambiar ícono" : "No tienes permisos para editar"}
+              >
+                <Formik
+                      initialValues={{ icon: tempIcon }}
+                      onSubmit={(values) => {
+                        handleIconChange(values.icon);
+                      }}
+                    >
+                      {({ setFieldValue }) => (
+                        <Form>
+                          <Field name="icon">
+                            {({ field }) => (
+                              <SelectIcon
+                                {...field}
+                                name="icon"
+                                value={field.value || tempIcon}
+                                className="w-8 h-8"
+                                handleChange={(value) => {
+                                  setFieldValue('icon', value);
+                                  handleIconChange(value);
+                                }}
+                                data={localTask}
+                              />
+                            )}
+                          </Field>
+                        </Form>
+                      )}
+                    </Formik>
+              </button>
+            )}
+          </div>
+          <div className="flex-1">
+            <div className="inline-flex flex-col justify-start items-start">
+              <span className="text-xl md:text-2xl text-gray-900">
+                {localTask.fecha ? formatTime(localTask.fecha) : '00:00'}
+              </span>
+              <div className="w-full flex justify-end items-end text-xs -mt-1">
+                <span>{t("duration")}</span>
+                <span className="text-[12px] md:text-[14px] lg:text-[16px] text-center bg-transparent px-1">
+                  {localTask.duracion}
+                </span>
+                <span>min</span>
+              </div>
+            </div>
+            <div className="flex items-start space-x-2 font-title text-primary text-2xl">
+              <div className="min-w-2 h-2 bg-primary rounded-full translate-y-2.5" />
+              <strong className="leading-[1] mt-1">{localTask.descripcion}</strong>
+            </div>
+            <div className="grid grid-flow-dense w-full space-x-2 text-[12px] mt-2">
+              <p>
+                {t("responsible")}: {localTask.responsable.join(", ")}
+              </p>
+            </div>
+          </div>
+          <div className="bg-white w-3 h-3 rounded-full border-[1px] border-primary border-dotted absolute right-0 top-0 translate-x-1/2 -translate-y-1/2" />
+        </div>
+        <div className="flex-1 flex flex-col px-4 md:px-0 border-primary border-dotted w-[10%] md:w-[50%] border-t-[1px]">
+          {!!localTask.tips && (
+            <Interweave
+              className="md:text-xs text-sm text-justify transition-all m-1 p-1 break-words"
+              content={localTask.tips}
+              matchers={[new UrlMatcher('url'), new HashtagMatcher('hashtag')]}
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
 
   if (minimalView) {
     return (
@@ -503,10 +750,11 @@ export const TaskNew: FC<Props> = memo(({
                         </Form>
                       )}
                     </Formik>
-                  </button>
+                  </button> 
                 )}
               </div>
             </PermissionWrapper>
+
             {editingField === 'descripcion' ? (
               <input
                 type="text"
@@ -850,7 +1098,7 @@ export const TaskNew: FC<Props> = memo(({
     <div {...props} className="w-full bg-white rounded-lg shadow-lg">
       <div className="flex min-h-[600px]">
         {/* Panel principal */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex md:w-[75%] flex-col">
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
             <div className="flex items-center space-x-4 flex-1">
@@ -966,7 +1214,7 @@ export const TaskNew: FC<Props> = memo(({
                   </div>
 
                   {/* Bloqueo - Con color rojo cuando está activo */}
-                  <div className="relative group">
+{/*                   <div className="relative group">
                     <button
                       onClick={() => {
                         const newValue = !localTask.estatus;
@@ -985,7 +1233,7 @@ export const TaskNew: FC<Props> = memo(({
                       ) : (
                         <Unlock className="w-4 h-4 transition-transform duration-200" />
                       )}
-                      {/* Indicador de estado con animación pulsante roja */}
+                      
                       {localTask.estatus && (
                         <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#ef4444] opacity-75"></span>
@@ -993,11 +1241,11 @@ export const TaskNew: FC<Props> = memo(({
                         </span>
                       )}
                     </button>
-                    {/* Tooltip informativo */}
+                    
                     <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
                       {t(localTask.estatus ? 'Bloqueada' : 'Desbloqueada')}
                     </div>
-                  </div>
+                  </div> */}
 
                   {/* Separador visual sutil */}
                   <div className="w-px h-4 bg-gray-300 mx-1 opacity-50"></div>
@@ -1604,7 +1852,7 @@ export const TaskNew: FC<Props> = memo(({
                           </p>
                         )}
                       </div>
-                    )}  
+                                       )}  
                   </div>
 
                   {/* Adjuntos mejorados */}
@@ -1625,84 +1873,85 @@ export const TaskNew: FC<Props> = memo(({
           </div>
         </div>
 
-        {/* Panel lateral - Chat/Comentarios */}
-        <div className="w-96 border-l border-gray-200 flex flex-col bg-gray-50">
-          {/* Header del chat */}
-          <div className="p-4 border-b border-gray-200 bg-white">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-lg">{t('Actividad')}</h3>
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-500">{comments.length} {t('comentarios')}</span>
-                <Bell className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600" />
+          {/* Panel lateral - Chat/Comentarios */}
+          <div className="w-96 border-l border-gray-200 flex flex-col bg-gray-50">
+            {/* Header del chat */}
+            <div className="p-4 border-b border-gray-200 bg-white">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-lg">{t('Actividad')}</h3>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-500">{comments.length} {t('comentarios')}</span>
+                  <Bell className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600" />
+                </div>
               </div>
+            </div>
+
+            {/* Lista de comentarios - scroll desde abajo hacia arriba */}
+            <div 
+              ref={commentsContainerRef}
+              className="flex-1 overflow-y-auto p-4 space-y-2 flex flex-col-reverse"
+            >
+              {comments.length === 0 ? (
+                <div className="text-center py-8 flex-1 flex items-center justify-center">
+                  <div>
+                    <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                    <p className="text-sm text-gray-500">{t('No hay comentarios aún')}</p>
+                    <p className="text-xs text-gray-400 mt-1">{t('Sé el primero en comentar')}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {comments.map((comment) => (
+                    <div key={comment._id} className="relative group">
+                      <ListComments
+                        id={comment._id}
+                        itinerario={itinerario}
+                        task={task}
+                        item={comment}
+                        tempPastedAndDropFiles={tempPastedAndDropFiles}
+                      />
+                      {canEdit && (
+                        <button
+                          onClick={() => handleDeleteComment(comment._id)}
+                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-white rounded shadow-sm hover:bg-gray-100"
+                          title={t('Eliminar comentario')}
+                        >
+                          <Trash2 className="w-4 h-4 text-gray-500 hover:text-[#ef4444]" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Input de comentarios */}
+            <div className="border-t border-gray-200 bg-white min-h-[105px] px-4 py-2">
+              <InputComments
+                itinerario={itinerario}
+                task={task}
+                tempPastedAndDropFiles={tempPastedAndDropFiles || []}
+                setTempPastedAndDropFiles={setTempPastedAndDropFiles}
+                disabled={false}
+                onCommentAdded={handleCommentAdded}
+              />
             </div>
           </div>
 
-          {/* Lista de comentarios - scroll desde abajo hacia arriba */}
-          <div 
-            ref={commentsContainerRef}
-            className="flex-1 overflow-y-auto p-4 space-y-2 flex flex-col-reverse"
-          >
-            {comments.length === 0 ? (
-              <div className="text-center py-8 flex-1 flex items-center justify-center">
-                <div>
-                  <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                  <p className="text-sm text-gray-500">{t('No hay comentarios aún')}</p>
-                  <p className="text-xs text-gray-400 mt-1">{t('Sé el primero en comentar')}</p>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {comments.map((comment) => (
-                  <div key={comment._id} className="relative group">
-                    <ListComments
-                      id={comment._id}
-                      itinerario={itinerario}
-                      task={task}
-                      item={comment}
-                      tempPastedAndDropFiles={tempPastedAndDropFiles}
-                    />
-                    {canEdit && (
-                      <button
-                        onClick={() => handleDeleteComment(comment._id)}
-                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-white rounded shadow-sm hover:bg-gray-100"
-                        title={t('Eliminar comentario')}
-                      >
-                        <Trash2 className="w-4 h-4 text-gray-500 hover:text-[#ef4444]" />
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Input de comentarios */}
-          <div className="border-t border-gray-200 bg-white min-h-[105px] px-4 py-2">
-            <InputComments
-              itinerario={itinerario}
-              task={task}
-              tempPastedAndDropFiles={tempPastedAndDropFiles || []}
-              setTempPastedAndDropFiles={setTempPastedAndDropFiles}
-              disabled={!canEdit}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Estilos CSS para animaciones */}
-      <style jsx>{`
-        @keyframes ping {
-          75%, 100% {
-            transform: scale(2);
-            opacity: 0;
+        {/* Estilos CSS para animaciones */}
+        <style jsx>{`
+          @keyframes ping {
+            75%, 100% {
+              transform: scale(2);
+              opacity: 0;
+            }
           }
-        }
-        
-        .animate-ping {
-          animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
-        }
-      `}</style>
+          
+          .animate-ping {
+            animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+          }
+        `}</style>
+    </div>
     </div>
   );
 });
