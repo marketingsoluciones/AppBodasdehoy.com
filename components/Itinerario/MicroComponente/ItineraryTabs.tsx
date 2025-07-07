@@ -63,14 +63,14 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             const fm = f.getUTCMonth()
             const fd = f.getUTCDate()
             let newEpoch = new Date(fy, fm + 1, fd).getTime() + 7 * 60 * 60 * 1000
-            
+
             const tasks = itinerario.tasks || [];
             if (tasks.length) {
                 const item = tasks[tasks.length - 1]
                 const epoch = new Date(item.fecha).getTime()
                 newEpoch = epoch + item.duracion * 60 * 1000
             }
-            
+
             const fecha = new Date(newEpoch)
             const addNewTask = await fetchApiEventos({
                 query: queries.createTask,
@@ -83,7 +83,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                 },
                 domain: config.domain
             })
-            
+
             const task = addNewTask as Task
             const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
             event.itinerarios_array[f1].tasks.push(task as Task)
@@ -232,6 +232,12 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                 })
             }
             event.itinerarios_array.push(result)
+            const f2 = event.itinerarios_array.findIndex(elem => elem._id === result._id)
+            if (event.itinerarios_array[f2]) {
+                console.log("entro porque no tiene vews", event.itinerarios_array[f2])
+                event.itinerarios_array[f2].viewers = []
+            }
+
             setEvent({ ...event })
             setItinerario({ ...result })
             setEditTitle(true)
@@ -544,27 +550,27 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                                 )
                             })}
                         </div>
-<PermissionAddButton
-  onClick={handleCreateItinerario} // ✅ función real
-  className="flex w-8 items-center justify-start bg-white"
-  iconClassName="w-4 h-4 text-primary cursor-pointer"
-/>
+                        <PermissionAddButton
+                            onClick={handleCreateItinerario} // ✅ función real
+                            className="flex w-8 items-center justify-start bg-white"
+                            iconClassName="w-4 h-4 text-primary cursor-pointer"
+                        />
                     </>}
                 </div>
                 {isAllowed() && <div className="inline-flex space-x-4">
                     {view === "cards" && (
                         <>
                             {/* Reemplazar el botón de agregar servicio */}
-<PermissionAddButton
-  onClick={addTask} // ✅ función real
-  text={itinerario?.tipo === "itinerario" ? "" : ""}
-  showText={true}
-/>
+                            <PermissionAddButton
+                                onClick={addTask} // ✅ función real
+                                text={itinerario?.tipo === "itinerario" ? "" : ""}
+                                showText={true}
+                            />
                             <SelectModeSort value={orderAndDirection} setValue={setOrderAndDirection} />
                         </>
                     )}
                     {/* Reemplazar SelectModeView */}
-                   <PermissionSelectModeView view={view} setView={setView} />
+                    <PermissionSelectModeView view={view} setView={setView} />
                 </div>
                 }
             </div>
