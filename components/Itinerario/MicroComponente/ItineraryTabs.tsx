@@ -86,6 +86,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
 
             const task = addNewTask as Task
             const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
+            task.spectatorView = false 
             event.itinerarios_array[f1].tasks.push(task as Task)
             setEvent({ ...event })
             setSelectTask(task._id)

@@ -124,10 +124,10 @@ const PermissionWrapper: FC<{
 // Conversor de minutos a formato legible
 const minutesToReadableFormat = (minutes: number): string => {
   if (!minutes || minutes === 0) return "0 min";
-  
+
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;
-  
+
   if (hours === 0) return `${mins} min`;
   if (mins === 0) return `${hours} h`;
   return `${hours} h ${mins} min`;
@@ -137,10 +137,10 @@ const minutesToReadableFormat = (minutes: number): string => {
 const readableFormatToMinutes = (value: string): number => {
   const hoursMatch = value.match(/(\d+)\s*h/);
   const minsMatch = value.match(/(\d+)\s*min/);
-  
+
   const hours = hoursMatch ? parseInt(hoursMatch[1]) : 0;
   const mins = minsMatch ? parseInt(minsMatch[1]) : 0;
-  
+
   return hours * 60 + mins;
 };
 
@@ -186,7 +186,7 @@ export const TaskNew: FC<Props> = memo(({
   const router = useRouter();
   const commentsContainerRef = useRef<HTMLDivElement>(null);
   const [previousCountComments, setPreviousCountComments] = useState(0);
-  
+
   // Estados para la edición
   const [editingField, setEditingField] = useState<string | null>(null);
   const [tempValue, setTempValue] = useState<string>('');
@@ -201,13 +201,17 @@ export const TaskNew: FC<Props> = memo(({
     responsable: task.responsable || [],
     tips: task.tips || '',
     attachments: task.attachments || [],
-    spectatorView: task.spectatorView ?? true,
+    spectatorView: task.spectatorView !== undefined ? task.spectatorView : false,
     comments: task.comments || [],
     commentsViewers: task.commentsViewers || [],
     estatus: task.estatus ?? false,
     estado: task.estado || 'pending',
     prioridad: task.prioridad || 'media'
   });
+
+  console.log('Local Task:', localTask);
+  console.log('Local Task:', task.spectatorView);
+
 
   // Estados para dropdowns y selectores
   const [showIconSelector, setShowIconSelector] = useState(false);
@@ -236,7 +240,7 @@ export const TaskNew: FC<Props> = memo(({
     if (!text) return '';
     const lines = text.split('\n');
     const limitedLines = lines.slice(0, maxLines);
-    return limitedLines.map(line => 
+    return limitedLines.map(line =>
       line.length > maxChars ? line.substring(0, maxChars) + '...' : line
     ).join('\n');
   };
@@ -272,148 +276,148 @@ export const TaskNew: FC<Props> = memo(({
   }, [task]);
 
   // Efecto para ordenar comentarios
-useEffect(() => {
-  if (task?.comments && Array.isArray(task.comments)) {
-    const sortedComments = [...task.comments].sort((a, b) => {
-      const dateA = a?.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const dateB = b?.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return dateA - dateB;
-    });
-    
-    // Solo actualizar si hay cambios reales
-    setComments(prevComments => {
-      const prevIds = prevComments.map(c => c._id).sort().join(',');
-      const newIds = sortedComments.map(c => c._id).sort().join(',');
-      
-      if (prevIds !== newIds) {
-        return sortedComments;
-      }
-      return prevComments;
-    });
-  }
-}, [task?.comments]);
+  useEffect(() => {
+    if (task?.comments && Array.isArray(task.comments)) {
+      const sortedComments = [...task.comments].sort((a, b) => {
+        const dateA = a?.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b?.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateA - dateB;
+      });
+
+      // Solo actualizar si hay cambios reales
+      setComments(prevComments => {
+        const prevIds = prevComments.map(c => c._id).sort().join(',');
+        const newIds = sortedComments.map(c => c._id).sort().join(',');
+
+        if (prevIds !== newIds) {
+          return sortedComments;
+        }
+        return prevComments;
+      });
+    }
+  }, [task?.comments]);
 
   // Auto-scroll al agregar nuevos comentarios
   useEffect(() => {
     if (comments.length > previousCountComments && commentsContainerRef.current) {
       setTimeout(() => {
-        commentsContainerRef.current?.scrollTo({ 
-          top: commentsContainerRef.current.scrollHeight, 
-          behavior: 'smooth' 
+        commentsContainerRef.current?.scrollTo({
+          top: commentsContainerRef.current.scrollHeight,
+          behavior: 'smooth'
         });
       }, 100);
     }
     setPreviousCountComments(comments.length);
   }, [comments, previousCountComments]);
 
-useEffect(() => {
-  // Sincronizar comentarios desde el evento global
-  if (event?.itinerarios_array) {
-    const currentItinerary = event.itinerarios_array.find(it => it._id === itinerario._id);
-    if (currentItinerary) {
-      const currentTask = currentItinerary.tasks.find(t => t._id === task._id);
-      if (currentTask && currentTask.comments) {
-        // Ordenar comentarios por fecha
-        const sortedComments = [...currentTask.comments].sort((a, b) => {
-          const dateA = a?.createdAt ? new Date(a.createdAt).getTime() : 0;
-          const dateB = b?.createdAt ? new Date(b.createdAt).getTime() : 0;
-          return dateA - dateB;
-        });
-        
-        // Actualizar solo si hay cambios reales
-        setComments(prevComments => {
-          const prevIds = prevComments.map(c => c._id).sort().join(',');
-          const newIds = sortedComments.map(c => c._id).sort().join(',');
-          
-          // Si los IDs son diferentes o las longitudes son diferentes, actualizar
-          if (prevIds !== newIds || prevComments.length !== sortedComments.length) {
-            return sortedComments;
-          }
-          
-          // Verificar si algún comentario individual ha cambiado
-          const hasChanges = sortedComments.some((newComment, index) => {
-            const oldComment = prevComments[index];
-            return !oldComment || 
-                   oldComment._id !== newComment._id ||
-                   oldComment.comment !== newComment.comment ||
-                   oldComment.attachments?.length !== newComment.attachments?.length;
-          });
-          
-          return hasChanges ? sortedComments : prevComments;
-        });
-      }
-    }
-  }
-}, [event?.itinerarios_array, itinerario._id, task._id]); // Dependencias correctas
-
-
-// Detectar cuando la pestaña se vuelve activa para actualizar
-useEffect(() => {
-  const handleVisibilityChange = () => {
-    if (!document.hidden) {
-      // Recargar comentarios cuando la pestaña vuelve a estar activa
-      const currentItinerary = event?.itinerarios_array?.find(it => it._id === itinerario._id);
+  useEffect(() => {
+    // Sincronizar comentarios desde el evento global
+    if (event?.itinerarios_array) {
+      const currentItinerary = event.itinerarios_array.find(it => it._id === itinerario._id);
       if (currentItinerary) {
         const currentTask = currentItinerary.tasks.find(t => t._id === task._id);
-        if (currentTask?.comments) {
-          setComments([...currentTask.comments].sort((a, b) => {
+        if (currentTask && currentTask.comments) {
+          // Ordenar comentarios por fecha
+          const sortedComments = [...currentTask.comments].sort((a, b) => {
             const dateA = a?.createdAt ? new Date(a.createdAt).getTime() : 0;
             const dateB = b?.createdAt ? new Date(b.createdAt).getTime() : 0;
             return dateA - dateB;
-          }));
+          });
+
+          // Actualizar solo si hay cambios reales
+          setComments(prevComments => {
+            const prevIds = prevComments.map(c => c._id).sort().join(',');
+            const newIds = sortedComments.map(c => c._id).sort().join(',');
+
+            // Si los IDs son diferentes o las longitudes son diferentes, actualizar
+            if (prevIds !== newIds || prevComments.length !== sortedComments.length) {
+              return sortedComments;
+            }
+
+            // Verificar si algún comentario individual ha cambiado
+            const hasChanges = sortedComments.some((newComment, index) => {
+              const oldComment = prevComments[index];
+              return !oldComment ||
+                oldComment._id !== newComment._id ||
+                oldComment.comment !== newComment.comment ||
+                oldComment.attachments?.length !== newComment.attachments?.length;
+            });
+
+            return hasChanges ? sortedComments : prevComments;
+          });
         }
       }
     }
-  };
+  }, [event?.itinerarios_array, itinerario._id, task._id]); // Dependencias correctas
 
-  document.addEventListener('visibilitychange', handleVisibilityChange);
-  return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-}, [event, itinerario._id, task._id]);
 
-// Efecto para sincronizar adjuntos desde el evento global
-useEffect(() => {
-  // Sincronizar adjuntos desde el evento global
-  if (event?.itinerarios_array) {
-    const currentItinerary = event.itinerarios_array.find(it => it._id === itinerario._id);
-    if (currentItinerary) {
-      const currentTask = currentItinerary.tasks.find(t => t._id === task._id);
-      if (currentTask) {
-        // Actualizar adjuntos si hay cambios
-        setLocalTask(prev => {
-          const prevAttachmentIds = (prev.attachments || []).map(a => a._id).sort().join(',');
-          const newAttachmentIds = (currentTask.attachments || []).map(a => a._id).sort().join(',');
-          
-          // Si los IDs son diferentes o las longitudes son diferentes, actualizar
-          if (prevAttachmentIds !== newAttachmentIds || 
+  // Detectar cuando la pestaña se vuelve activa para actualizar
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // Recargar comentarios cuando la pestaña vuelve a estar activa
+        const currentItinerary = event?.itinerarios_array?.find(it => it._id === itinerario._id);
+        if (currentItinerary) {
+          const currentTask = currentItinerary.tasks.find(t => t._id === task._id);
+          if (currentTask?.comments) {
+            setComments([...currentTask.comments].sort((a, b) => {
+              const dateA = a?.createdAt ? new Date(a.createdAt).getTime() : 0;
+              const dateB = b?.createdAt ? new Date(b.createdAt).getTime() : 0;
+              return dateA - dateB;
+            }));
+          }
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [event, itinerario._id, task._id]);
+
+  // Efecto para sincronizar adjuntos desde el evento global
+  useEffect(() => {
+    // Sincronizar adjuntos desde el evento global
+    if (event?.itinerarios_array) {
+      const currentItinerary = event.itinerarios_array.find(it => it._id === itinerario._id);
+      if (currentItinerary) {
+        const currentTask = currentItinerary.tasks.find(t => t._id === task._id);
+        if (currentTask) {
+          // Actualizar adjuntos si hay cambios
+          setLocalTask(prev => {
+            const prevAttachmentIds = (prev.attachments || []).map(a => a._id).sort().join(',');
+            const newAttachmentIds = (currentTask.attachments || []).map(a => a._id).sort().join(',');
+
+            // Si los IDs son diferentes o las longitudes son diferentes, actualizar
+            if (prevAttachmentIds !== newAttachmentIds ||
               prev.attachments?.length !== currentTask.attachments?.length) {
-            return {
-              ...prev,
-              attachments: currentTask.attachments || []
-            };
-          }
-          
-          // Verificar si algún adjunto individual ha cambiado
-          const hasChanges = (currentTask.attachments || []).some((newAttachment, index) => {
-            const oldAttachment = prev.attachments?.[index];
-            return !oldAttachment || 
-                   oldAttachment._id !== newAttachment._id ||
-                   oldAttachment.name !== newAttachment.name ||
-                   oldAttachment.size !== newAttachment.size;
+              return {
+                ...prev,
+                attachments: currentTask.attachments || []
+              };
+            }
+
+            // Verificar si algún adjunto individual ha cambiado
+            const hasChanges = (currentTask.attachments || []).some((newAttachment, index) => {
+              const oldAttachment = prev.attachments?.[index];
+              return !oldAttachment ||
+                oldAttachment._id !== newAttachment._id ||
+                oldAttachment.name !== newAttachment.name ||
+                oldAttachment.size !== newAttachment.size;
+            });
+
+            if (hasChanges) {
+              return {
+                ...prev,
+                attachments: currentTask.attachments || []
+              };
+            }
+
+            return prev;
           });
-          
-          if (hasChanges) {
-            return {
-              ...prev,
-              attachments: currentTask.attachments || []
-            };
-          }
-          
-          return prev;
-        });
+        }
       }
     }
-  }
-}, [event?.itinerarios_array, itinerario._id, task._id]); // Sincronización de adjuntos
+  }, [event?.itinerarios_array, itinerario._id, task._id]); // Sincronización de adjuntos
 
   // Función para manejar actualización de campos
   const handleUpdate = async (fieldName: string, value: any) => {
@@ -421,26 +425,6 @@ useEffect(() => {
       ht();
       return;
     }
-
-    // En la función handleUpdate, agregar lógica especial para spectatorView
-    if (fieldName === 'spectatorView') {
-      // Si se está ocultando la tarea, notificar a otros usuarios
-      if (!value) {
-        // La tarea se está ocultando
-        setEvent((oldEvent) => {
-          const newEvent = { ...oldEvent };
-          const itineraryIndex = newEvent.itinerarios_array.findIndex(it => it._id === itinerario._id);
-          if (itineraryIndex > -1) {
-            const taskIndex = newEvent.itinerarios_array[itineraryIndex].tasks.findIndex(t => t._id === task._id);
-            if (taskIndex > -1) {
-              newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex].spectatorView = false;
-            }
-          }
-          return newEvent;
-        });
-      }
-    }
-
     try {
       let apiValue: string;
 
@@ -451,6 +435,8 @@ useEffect(() => {
       } else if (fieldName === 'fecha' && value) {
         const dateObj = new Date(value);
         apiValue = dateObj.toISOString();
+      } else if (fieldName === 'spectatorView') {
+        apiValue = `${value}`
       } else {
         apiValue = String(value || "");
       }
@@ -465,20 +451,18 @@ useEffect(() => {
           valor: apiValue,
         },
         domain: config.domain,
-      });
-
-      setEvent((oldEvent) => {
-        const newEvent = { ...oldEvent };
-        const itineraryIndex = newEvent.itinerarios_array.findIndex(it => it._id === itinerario._id);
-        if (itineraryIndex > -1) {
-          const taskIndex = newEvent.itinerarios_array[itineraryIndex].tasks.findIndex(t => t._id === task._id);
-          if (taskIndex > -1) {
-            newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex][fieldName] = value;
-          }
+      }).then((result) => {
+        const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
+        const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === task._id);
+        if (fieldName === 'spectatorView') {
+          console.log('value', value)
+          event.itinerarios_array[f1].tasks[f2].spectatorView = value;
+          setEvent({ ...event })
+        } else {
+          event.itinerarios_array[f1].tasks[f2][fieldName] = value;
+          setEvent({ ...event })
         }
-        return newEvent;
-      });
-
+      })
       setLocalTask(prev => ({ ...prev, [fieldName]: value }));
       toast("success", t("Campo actualizado"));
     } catch (error) {
@@ -553,60 +537,70 @@ useEffect(() => {
   };
 
   // Función para duplicar tarea
-const handleDuplicate = async () => {
-  if (!canEdit) {
-    ht();
-    return;
-  }
-  
-  try {
-    const fecha = new Date();
-    const response = await fetchApiEventos({
-      query: queries.createTask,
-      variables: {
-        eventID: event._id,
-        itinerarioID: itinerario._id,
-        descripcion: `${localTask.descripcion} (copia)`,
-        fecha: fecha.toISOString(),
-        hora: formatTime(fecha),
-        duracion: localTask.duracion || 30,
-        tags: JSON.stringify(localTask.tags || []),
-        responsable: JSON.stringify(localTask.responsable || []),
-        tips: localTask.tips || '',
-        estado: localTask.estado || 'pending',
-        prioridad: localTask.prioridad || 'media'
-      },
-      domain: config.domain
-    });
-
-    if (response && typeof response === 'object' && '_id' in response) {
-      toast('success', t('Tarea duplicada correctamente'));
-      // Actualizar el evento global
-      setEvent((oldEvent) => {
-        const newEvent = { ...oldEvent };
-        const itineraryIndex = newEvent.itinerarios_array.findIndex(it => it._id === itinerario._id);
-        if (itineraryIndex !== -1) {
-          newEvent.itinerarios_array[itineraryIndex].tasks.push(response as Task);
-        }
-        return newEvent;
-      });
+  const handleDuplicate = async () => {
+    if (!canEdit) {
+      ht();
+      return;
     }
-  } catch (error) {
-    console.error('Error al duplicar tarea:', error);
-    toast('error', t('Error al duplicar la tarea'));
-  }
-};
+
+    try {
+      const fecha = new Date();
+      const response = await fetchApiEventos({
+        query: queries.createTask,
+        variables: {
+          eventID: event._id,
+          itinerarioID: itinerario._id,
+          descripcion: `${localTask.descripcion} (copia)`,
+          fecha: fecha.toISOString(),
+          hora: formatTime(fecha),
+          duracion: localTask.duracion || 30,
+          tags: JSON.stringify(localTask.tags || []),
+          responsable: JSON.stringify(localTask.responsable || []),
+          tips: localTask.tips || '',
+          estado: localTask.estado || 'pending',
+          prioridad: localTask.prioridad || 'media'
+        },
+        domain: config.domain
+      });
+
+      if (response && typeof response === 'object' && '_id' in response) {
+        toast('success', t('Tarea duplicada correctamente'));
+        // Actualizar el evento global
+        setEvent((oldEvent) => {
+          const newEvent = { ...oldEvent };
+          const itineraryIndex = newEvent.itinerarios_array.findIndex(it => it._id === itinerario._id);
+          if (itineraryIndex !== -1) {
+            newEvent.itinerarios_array[itineraryIndex].tasks.push(response as Task);
+          }
+          return newEvent;
+        });
+      }
+    } catch (error) {
+      console.error('Error al duplicar tarea:', error);
+      toast('error', t('Error al duplicar la tarea'));
+    }
+  };
 
   // Función para copiar enlace
-const handleCopyLink = (task: Task) => {
-  const link = `${window.location.origin}/services/servicios-${event?._id}-${itinerario?._id}-${task?._id}`;
-  
-  // Usar la API moderna del portapapeles con fallback
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(link).then(() => {
-      toast('success', t('Enlace copiado al portapapeles'));
-    }).catch(() => {
-      // Fallback para navegadores antiguos
+  const handleCopyLink = (task: Task) => {
+    const link = `${window.location.origin}/services/servicios-${event?._id}-${itinerario?._id}-${task?._id}`;
+
+    // Usar la API moderna del portapapeles con fallback
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(link).then(() => {
+        toast('success', t('Enlace copiado al portapapeles'));
+      }).catch(() => {
+        // Fallback para navegadores antiguos
+        const textArea = document.createElement("textarea");
+        textArea.value = link;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        toast('success', t('Enlace copiado al portapapeles'));
+      });
+    } else {
+      // Fallback directo
       const textArea = document.createElement("textarea");
       textArea.value = link;
       document.body.appendChild(textArea);
@@ -614,75 +608,65 @@ const handleCopyLink = (task: Task) => {
       document.execCommand('copy');
       document.body.removeChild(textArea);
       toast('success', t('Enlace copiado al portapapeles'));
-    });
-  } else {
-    // Fallback directo
-    const textArea = document.createElement("textarea");
-    textArea.value = link;
-    document.body.appendChild(textArea);
-    textArea.select();
-    document.execCommand('copy');
-    document.body.removeChild(textArea);
-    toast('success', t('Enlace copiado al portapapeles'));
-  }
-};
+    }
+  };
 
-// Función para manejar la eliminación de comentarios
-const handleDeleteComment = async (commentId: string) => {
-  if (!canEdit) {
-    ht();
-    return;
-  }
+  // Función para manejar la eliminación de comentarios
+  const handleDeleteComment = async (commentId: string) => {
+    if (!canEdit) {
+      ht();
+      return;
+    }
 
-  try {
-    // 1. Llama a la API para eliminar el comentario en el backend
-    await fetchApiEventos({
-      query: queries.deleteComment, // Asegúrate de tener esta query en tu backend
-      variables: {
-        eventID: event._id,
-        itinerarioID: itinerario._id,
-        taskID: task._id,
-        commentID: commentId,
-      },
-      domain: config.domain,
-    });
+    try {
+      // 1. Llama a la API para eliminar el comentario en el backend
+      await fetchApiEventos({
+        query: queries.deleteComment, // Asegúrate de tener esta query en tu backend
+        variables: {
+          eventID: event._id,
+          itinerarioID: itinerario._id,
+          taskID: task._id,
+          commentID: commentId,
+        },
+        domain: config.domain,
+      });
 
-    // 2. Actualiza el estado local de comentarios
-    const updatedComments = comments.filter(comment => comment._id !== commentId);
-    setComments(updatedComments);
+      // 2. Actualiza el estado local de comentarios
+      const updatedComments = comments.filter(comment => comment._id !== commentId);
+      setComments(updatedComments);
 
-    // 3. Actualiza el estado global del evento
-    setEvent((oldEvent) => {
-      const newEvent = { ...oldEvent };
-      const itineraryIndex = newEvent.itinerarios_array.findIndex(it => it._id === itinerario._id);
-      if (itineraryIndex > -1) {
-        const taskIndex = newEvent.itinerarios_array[itineraryIndex].tasks.findIndex(t => t._id === task._id);
-        if (taskIndex > -1) {
-          newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex].comments = updatedComments;
+      // 3. Actualiza el estado global del evento
+      setEvent((oldEvent) => {
+        const newEvent = { ...oldEvent };
+        const itineraryIndex = newEvent.itinerarios_array.findIndex(it => it._id === itinerario._id);
+        if (itineraryIndex > -1) {
+          const taskIndex = newEvent.itinerarios_array[itineraryIndex].tasks.findIndex(t => t._id === task._id);
+          if (taskIndex > -1) {
+            newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex].comments = updatedComments;
+          }
         }
-      }
-      return newEvent;
-    });
+        return newEvent;
+      });
 
-    // 4. (Opcional) Actualiza el backend con el nuevo array de comentarios si tu API lo requiere
-    await fetchApiEventos({
-      query: queries.editTask,
-      variables: {
-        eventID: event._id,
-        itinerarioID: itinerario._id,
-        taskID: task._id,
-        variable: "comments",
-        valor: JSON.stringify(updatedComments),
-      },
-      domain: config.domain,
-    });
+      // 4. (Opcional) Actualiza el backend con el nuevo array de comentarios si tu API lo requiere
+      await fetchApiEventos({
+        query: queries.editTask,
+        variables: {
+          eventID: event._id,
+          itinerarioID: itinerario._id,
+          taskID: task._id,
+          variable: "comments",
+          valor: JSON.stringify(updatedComments),
+        },
+        domain: config.domain,
+      });
 
-    toast("success", t("Comentario eliminado"));
-  } catch (error) {
-    console.error("Error al eliminar comentario:", error);
-    toast("error", t("Error al eliminar comentario"));
-  }
-};
+      toast("success", t("Comentario eliminado"));
+    } catch (error) {
+      console.error("Error al eliminar comentario:", error);
+      toast("error", t("Error al eliminar comentario"));
+    }
+  };
 
   // Función para manejar la actualización de comentarios
   const handleUpdateComments = useCallback((taskId: string, newComments: Comment[]) => {
@@ -700,28 +684,28 @@ const handleDeleteComment = async (commentId: string) => {
   }, [itinerario._id, setEvent]);
 
   const handleCommentAdded = useCallback((newComment: Comment) => {
-  // Actualizar el estado local de comentarios inmediatamente
-  setComments(prevComments => {
-    // Evitar duplicados
-    const exists = prevComments.some(c => c._id === newComment._id);
-    if (exists) return prevComments;
-    
-    // Agregar el nuevo comentario y ordenar por fecha
-    const updatedComments = [...prevComments, newComment].sort((a, b) => {
-      const dateA = a?.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const dateB = b?.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return dateA - dateB;
+    // Actualizar el estado local de comentarios inmediatamente
+    setComments(prevComments => {
+      // Evitar duplicados
+      const exists = prevComments.some(c => c._id === newComment._id);
+      if (exists) return prevComments;
+
+      // Agregar el nuevo comentario y ordenar por fecha
+      const updatedComments = [...prevComments, newComment].sort((a, b) => {
+        const dateA = a?.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b?.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateA - dateB;
+      });
+
+      return updatedComments;
     });
-    
-    return updatedComments;
-  });
-  
-  // También actualizar localTask
-  setLocalTask(prev => ({
-    ...prev,
-    comments: [...(prev.comments || []), newComment]
-  }));
-}, []);
+
+    // También actualizar localTask
+    setLocalTask(prev => ({
+      ...prev,
+      comments: [...(prev.comments || []), newComment]
+    }));
+  }, []);
 
   // Vista schema
   if (view === "schema" && localTask.spectatorView) {
@@ -738,37 +722,36 @@ const handleDeleteComment = async (commentId: string) => {
             ) : (
               <button
                 onClick={() => canEdit ? setShowIconSelector(true) : ht()}
-                className={`w-full h-full flex items-center justify-center rounded-full transition-colors ${
-                  canEdit ? 'hover:bg-gray-100 cursor-pointer' : 'opacity-60 cursor-not-allowed'
-                }`}
+                className={`w-full h-full flex items-center justify-center rounded-full transition-colors ${canEdit ? 'hover:bg-gray-100 cursor-pointer' : 'opacity-60 cursor-not-allowed'
+                  }`}
                 title={canEdit ? "Cambiar ícono" : "No tienes permisos para editar"}
               >
                 <Formik
-                      initialValues={{ icon: tempIcon }}
-                      onSubmit={(values) => {
-                        handleIconChange(values.icon);
-                      }}
-                    >
-                      {({ setFieldValue }) => (
-                        <Form>
-                          <Field name="icon">
-                            {({ field }) => (
-                              <SelectIcon
-                                {...field}
-                                name="icon"
-                                value={field.value || tempIcon}
-                                className="w-8 h-8"
-                                handleChange={(value) => {
-                                  setFieldValue('icon', value);
-                                  handleIconChange(value);
-                                }}
-                                data={localTask}
-                              />
-                            )}
-                          </Field>
-                        </Form>
-                      )}
-                    </Formik>
+                  initialValues={{ icon: tempIcon }}
+                  onSubmit={(values) => {
+                    handleIconChange(values.icon);
+                  }}
+                >
+                  {({ setFieldValue }) => (
+                    <Form>
+                      <Field name="icon">
+                        {({ field }) => (
+                          <SelectIcon
+                            {...field}
+                            name="icon"
+                            value={field.value || tempIcon}
+                            className="w-8 h-8"
+                            handleChange={(value) => {
+                              setFieldValue('icon', value);
+                              handleIconChange(value);
+                            }}
+                            data={localTask}
+                          />
+                        )}
+                      </Field>
+                    </Form>
+                  )}
+                </Formik>
               </button>
             )}
           </div>
@@ -857,7 +840,7 @@ const handleDeleteComment = async (commentId: string) => {
                         </Form>
                       )}
                     </Formik>
-                  </button> 
+                  </button>
                 )}
               </div>
             </PermissionWrapper>
@@ -897,7 +880,7 @@ const handleDeleteComment = async (commentId: string) => {
                   let isActive = false;
                   let activeColorClass = '';
                   let hoverColorClass = '';
-                  switch(option.value) {
+                  switch (option.value) {
                     case 'status':
                       isActive = localTask.spectatorView;
                       activeColorClass = 'text-primary bg-primary/10';
@@ -937,7 +920,7 @@ const handleDeleteComment = async (commentId: string) => {
             </div>
           )}
         </div>
-        
+
         {/* Asignados (ClickUpResponsableSelector) */}
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
@@ -1221,9 +1204,8 @@ const handleDeleteComment = async (commentId: string) => {
                   ) : (
                     <button
                       onClick={() => canEdit ? setShowIconSelector(true) : ht()}
-                      className={`w-12 h-12 flex items-center justify-center rounded-full transition-colors ${
-                        canEdit ? 'hover:bg-gray-100 cursor-pointer' : 'opacity-60 cursor-not-allowed'
-                      }`}
+                      className={`w-12 h-12 flex items-center justify-center rounded-full transition-colors ${canEdit ? 'hover:bg-gray-100 cursor-pointer' : 'opacity-60 cursor-not-allowed'
+                        }`}
                       title={canEdit ? "Cambiar ícono" : "No tienes permisos para editar"}
                     >
                       <Formik
@@ -1270,9 +1252,8 @@ const handleDeleteComment = async (commentId: string) => {
                 />
               ) : (
                 <h2
-                  className={`text-2xl font-semibold flex-1 ${
-                    canEdit ? 'cursor-pointer hover:text-gray-700' : 'cursor-default opacity-80'
-                  }`}
+                  className={`text-2xl font-semibold flex-1 ${canEdit ? 'cursor-pointer hover:text-gray-700' : 'cursor-default opacity-80'
+                    }`}
                   onClick={() => canEdit ? handleFieldClick('descripcion', localTask.descripcion) : ht()}
                   title={canEdit ? "Haz clic para editar" : "No tienes permisos para editar"}
                 >
@@ -1282,249 +1263,209 @@ const handleDeleteComment = async (commentId: string) => {
             </div>
 
             {/* Botones de acción integrados - OCULTOS sin permisos */}
-            {canEdit && (
-              <div className="flex items-center">
-                {/* Grupo de botones principales con indicadores visuales de estado */}
-                <div className="flex items-center bg-gray-50 rounded-lg p-0.5 mr-2">
-                  {/* Visibilidad - Con animación de estado activo */}
-                  <div className="relative group">
-                    <button
-                      onClick={() => {
-                        const newValue = !localTask.spectatorView;
-                        handleUpdate('spectatorView', newValue);
-                        toast('success', t(newValue ? 'Tarea visible' : 'Tarea oculta'));
-                      }}
-                      className={`relative p-1.5 rounded-md transition-all duration-200 ${
-                        localTask.spectatorView 
-                          ? 'text-primary bg-primary/10 shadow-sm' 
+            {canEdit &&
+              (
+                <div className="flex items-center">
+                  <div className="flex items-center bg-gray-50 rounded-lg p-0.5 mr-2">
+                    <div className="relative group">
+                      <button
+                        onClick={() => {
+                          const newValue = !localTask.spectatorView;
+                          handleUpdate('spectatorView', newValue);
+                          toast('success', t(newValue ? 'Tarea visible' : 'Tarea oculta'));
+                        }}
+                        className={`relative p-1.5 rounded-md transition-all duration-200 ${localTask.spectatorView
+                          ? 'text-primary bg-primary/10 shadow-sm'
                           : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
-                      }`}
-                      title={t(localTask.spectatorView ? 'Tarea visible' : 'Tarea oculta')}
-                    >
-                      {localTask.spectatorView ? (
-                        <Eye className="w-4 h-4 transition-transform duration-200" />
-                      ) : (
-                        <EyeOff className="w-4 h-4 transition-transform duration-200" />
-                      )}
-                      {/* Indicador de estado con animación pulsante */}
-                      {localTask.spectatorView && (
-                        <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                        </span>
-                      )}
-                    </button>
-                    {/* Tooltip informativo */}
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
-                      {t(localTask.spectatorView ? 'Visible' : 'Oculta')}
+                          }`}
+                        title={t(localTask.spectatorView ? 'Tarea visible' : 'Tarea oculta')}
+                      >
+                        {
+                          localTask.spectatorView === true ? (
+                            <Eye className="w-4 h-4 transition-transform duration-200" />
+                          ) : (
+                            <EyeOff className="w-4 h-4 transition-transform duration-200" />
+                          )
+                        }
+                        {localTask.spectatorView && (
+                          <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                          </span>
+                        )}
+                      </button>
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
+                        {t(localTask.spectatorView ? 'Visible' : 'Oculta')}
+                      </div>
+                    </div>
+
+                    {/* Separador visual sutil */}
+                    <div className="w-px h-4 bg-gray-300 mx-1 opacity-50"></div>
+
+                    {/* Duplicar - Acción rápida con hover primary */}
+                    <div className="relative group">
+                      <button
+                        onClick={handleDuplicate}
+                        className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-md transition-all duration-200"
+                        title={t('Duplicar tarea')}
+                      >
+                        <Copy className="w-4 h-4" />
+                      </button>
+                      {/* Tooltip informativo */}
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
+                        {t('Duplicar')}
+                      </div>
+                    </div>
+
+                    {/* Compartir enlace - Con feedback visual al copiar */}
+                    <div className="relative group">
+                      <button
+                        onClick={() => {
+                          handleCopyLink(task);
+                        }}
+                        className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-md transition-all duration-200"
+                        title={t('Copiar enlace')}
+                      >
+                        <Link className="w-4 h-4" />
+                      </button>
+                      {/* Tooltip informativo */}
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
+                        {t('Compartir')}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Bloqueo - Con color rojo cuando está activo */}
-{/*                   <div className="relative group">
-                    <button
-                      onClick={() => {
-                        const newValue = !localTask.estatus;
-                        handleUpdate('estatus', newValue);
-                        toast('success', t(newValue ? 'Tarea bloqueada' : 'Tarea desbloqueada'));
-                      }}
-                      className={`relative p-1.5 rounded-md transition-all duration-200 ${
-                        localTask.estatus 
-                          ? 'text-[#ef4444] bg-[#ef4444]/10 shadow-sm' 
-                          : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
-                      }`}
-                      title={t(localTask.estatus ? 'Tarea bloqueada' : 'Tarea desbloqueada')}
-                    >
-                      {localTask.estatus ? (
-                        <Lock className="w-4 h-4 transition-transform duration-200" />
-                      ) : (
-                        <Unlock className="w-4 h-4 transition-transform duration-200" />
-                      )}
-                      
-                      {localTask.estatus && (
-                        <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#ef4444] opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-[#ef4444]"></span>
-                        </span>
-                      )}
-                    </button>
-                    
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
-                      {t(localTask.estatus ? 'Bloqueada' : 'Desbloqueada')}
-                    </div>
-                  </div> */}
-
-                  {/* Separador visual sutil */}
-                  <div className="w-px h-4 bg-gray-300 mx-1 opacity-50"></div>
-
-                  {/* Duplicar - Acción rápida con hover primary */}
-                  <div className="relative group">
-                    <button
-                      onClick={handleDuplicate}
-                      className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-md transition-all duration-200"
-                      title={t('Duplicar tarea')}
-                    >
-                      <Copy className="w-4 h-4" />
-                    </button>
-                    {/* Tooltip informativo */}
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
-                      {t('Duplicar')}
-                    </div>
-                  </div>
-
-                  {/* Compartir enlace - Con feedback visual al copiar */}
-                  <div className="relative group">
-                    <button
-                      onClick={() => {
-                        handleCopyLink(task);
-                      }}
-                      className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-md transition-all duration-200"
-                      title={t('Copiar enlace')}
-                    >
-                      <Link className="w-4 h-4" />
-                    </button>
-                    {/* Tooltip informativo */}
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
-                      {t('Compartir')}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Botones de ItineraryButtonBox - OCULTOS sin permisos */}
-                {optionsItineraryButtonBox && optionsItineraryButtonBox.length > 0 && (
-                  <>
-                    <div className="flex items-center bg-gray-50 rounded-lg p-0.5 mr-2">
-                      {optionsItineraryButtonBox
-                        .filter(option => option.value !== 'estatus' && option.value !== 'status')
-                        .map((option, idx) => {
-                          // Obtener el icono correcto basado en el estado
-                          let icon = option.icon;
-                          if (option.getIcon && typeof option.getIcon === 'function') {
-                            // Para opciones con getIcon dinámico
-                            if (option.value === 'status') {
-                              icon = option.getIcon(localTask.spectatorView);
+                  {/* Botones de ItineraryButtonBox - OCULTOS sin permisos */}
+                  {optionsItineraryButtonBox && optionsItineraryButtonBox.length > 0 && (
+                    <>
+                      <div className="flex items-center bg-gray-50 rounded-lg p-0.5 mr-2">
+                        {optionsItineraryButtonBox
+                          .filter(option => option.value !== 'estatus' && option.value !== 'status')
+                          .map((option, idx) => {
+                            // Obtener el icono correcto basado en el estado
+                            let icon = option.icon;
+                            if (option.getIcon && typeof option.getIcon === 'function') {
+                              // Para opciones con getIcon dinámico
+                              if (option.value === 'status') {
+                                icon = option.getIcon(localTask.spectatorView);
+                              }
                             }
-                          }
 
-                          // Determinar estado activo y colores según el tipo de acción
-                          let isActive = false;
-                          let activeColorClass = '';
-                          let hoverColorClass = '';
-                          
-                          switch(option.value) {
-                            case 'status':
-                              isActive = localTask.spectatorView;
-                              activeColorClass = 'text-primary bg-primary/10';
-                              break;
-                            case 'flujo':
-                              // Lógica personalizada para flujo de trabajo
-                              isActive = false;
-                              activeColorClass = 'text-purple-500 bg-purple-500/10';
-                              hoverColorClass = 'hover:text-purple-600 hover:bg-purple-100';
-                              break;
-                            case 'share':
-                              // Estado para compartir
-                              isActive = false;
-                              activeColorClass = 'text-blue-500 bg-blue-500/10';
-                              hoverColorClass = 'hover:text-blue-600 hover:bg-blue-100';
-                              break;
-                            case 'delete':
-                              // Delete con hover rojo destructivo
-                              isActive = false;
-                              activeColorClass = '';
-                              hoverColorClass = 'hover:text-[#ef4444] hover:bg-[#ef4444]/10';
-                              break;
-                            default:
-                              hoverColorClass = 'hover:text-gray-600 hover:bg-gray-100';
-                          }
+                            // Determinar estado activo y colores según el tipo de acción
+                            let isActive = false;
+                            let activeColorClass = '';
+                            let hoverColorClass = '';
 
-                          return (
-                            <div key={idx} className="relative group">
-                              <button
-                                onClick={() => {
-                                  if (typeof option.onClick === 'function') {
-                                    option.onClick(task, itinerario);
-                                  }
-                                }}
-                                className={`relative p-1.5 rounded-md transition-all duration-200 ${
-                                  isActive
+                            switch (option.value) {
+                              case 'status':
+                                isActive = localTask.spectatorView;
+                                activeColorClass = 'text-primary bg-primary/10';
+                                break;
+                              case 'flujo':
+                                // Lógica personalizada para flujo de trabajo
+                                isActive = false;
+                                activeColorClass = 'text-purple-500 bg-purple-500/10';
+                                hoverColorClass = 'hover:text-purple-600 hover:bg-purple-100';
+                                break;
+                              case 'share':
+                                // Estado para compartir
+                                isActive = false;
+                                activeColorClass = 'text-blue-500 bg-blue-500/10';
+                                hoverColorClass = 'hover:text-blue-600 hover:bg-blue-100';
+                                break;
+                              case 'delete':
+                                // Delete con hover rojo destructivo
+                                isActive = false;
+                                activeColorClass = '';
+                                hoverColorClass = 'hover:text-[#ef4444] hover:bg-[#ef4444]/10';
+                                break;
+                              default:
+                                hoverColorClass = 'hover:text-gray-600 hover:bg-gray-100';
+                            }
+
+                            return (
+                              <div key={idx} className="relative group">
+                                <button
+                                  onClick={() => {
+                                    if (typeof option.onClick === 'function') {
+                                      option.onClick(task, itinerario);
+                                    }
+                                  }}
+                                  className={`relative p-1.5 rounded-md transition-all duration-200 ${isActive
                                     ? `${activeColorClass} shadow-sm`
                                     : `text-gray-400 ${hoverColorClass}`
-                                }`}
-                                title={t(option.title || option.value || '')}
-                                disabled={option.idDisabled}
-                              >
-                                <span className="w-4 h-4 flex items-center justify-center"
-                                  style={{ transform: 'scale(0.8)' }}>
-                                  {icon}
-                                </span>
-                                {/* Indicador de estado con colores específicos por tipo */}
-                                {isActive && (
-                                  <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
-                                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${
-                                      option.value === 'status' ? 'bg-primary' : 
-                                      option.value === 'flujo' ? 'bg-purple-500' : 
-                                      'bg-blue-500'
-                                    } opacity-75`}></span>
-                                    <span className={`relative inline-flex rounded-full h-2 w-2 ${
-                                      option.value === 'status' ? 'bg-primary' : 
-                                      option.value === 'flujo' ? 'bg-purple-500' : 
-                                      'bg-blue-500'
-                                    }`}></span>
+                                    }`}
+                                  title={t(option.title || option.value || '')}
+                                  disabled={option.idDisabled}
+                                >
+                                  <span className="w-4 h-4 flex items-center justify-center"
+                                    style={{ transform: 'scale(0.8)' }}>
+                                    {icon}
                                   </span>
-                                )}
-                              </button>
-                              {/* Tooltip informativo dinámico */}
-                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
-                                {t(option.title || option.value || '')}
+                                  {/* Indicador de estado con colores específicos por tipo */}
+                                  {isActive && (
+                                    <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+                                      <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${option.value === 'status' ? 'bg-primary' :
+                                        option.value === 'flujo' ? 'bg-purple-500' :
+                                          'bg-blue-500'
+                                        } opacity-75`}></span>
+                                      <span className={`relative inline-flex rounded-full h-2 w-2 ${option.value === 'status' ? 'bg-primary' :
+                                        option.value === 'flujo' ? 'bg-purple-500' :
+                                          'bg-blue-500'
+                                        }`}></span>
+                                    </span>
+                                  )}
+                                </button>
+                                {/* Tooltip informativo dinámico */}
+                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
+                                  {t(option.title || option.value || '')}
+                                </div>
                               </div>
-                            </div>
-                          );
-                        })}
-                    </div>
-                  </>
-                )}
-
-                {/* Menú de más opciones - OCULTO sin permisos */}
-                <div className="relative">
-                  <button
-                    onClick={() => setShowMoreOptions(!showMoreOptions)}
-                    className={`p-1.5 rounded-lg transition-all duration-200 ${
-                      showMoreOptions ? 'bg-gray-100 text-gray-700' : 'hover:bg-gray-100 text-gray-500'
-                    }`}
-                  >
-                    <MoreHorizontal className="w-4 h-4" />
-                  </button>
-                  {showMoreOptions && (
-                    <ClickAwayListener onClickAway={() => setShowMoreOptions(false)}>
-                      <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
-                        <div className="py-1">
-                          <button
-                            className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                          >
-                            <Archive className="w-4 h-4 mr-3" />
-                            {t('Archivar')}
-                          </button>
-                          <button
-                            className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                          >
-                            <Bell className="w-4 h-4 mr-3" />
-                            {t('Notificaciones')}
-                          </button>
-                          <div className="border-t border-gray-100 my-1"></div>
-                          <button
-                            className="flex items-center w-full px-4 py-2.5 text-sm text-[#ef4444] hover:bg-[#ef4444]/10 transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4 mr-3" />
-                            {t('Eliminar')}
-                          </button>
-                        </div>
+                            );
+                          })}
                       </div>
-                    </ClickAwayListener>
+                    </>
                   )}
+
+                  {/* Menú de más opciones - OCULTO sin permisos */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowMoreOptions(!showMoreOptions)}
+                      className={`p-1.5 rounded-lg transition-all duration-200 ${showMoreOptions ? 'bg-gray-100 text-gray-700' : 'hover:bg-gray-100 text-gray-500'
+                        }`}
+                    >
+                      <MoreHorizontal className="w-4 h-4" />
+                    </button>
+                    {showMoreOptions && (
+                      <ClickAwayListener onClickAway={() => setShowMoreOptions(false)}>
+                        <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
+                          <div className="py-1">
+                            <button
+                              className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                            >
+                              <Archive className="w-4 h-4 mr-3" />
+                              {t('Archivar')}
+                            </button>
+                            <button
+                              className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                            >
+                              <Bell className="w-4 h-4 mr-3" />
+                              {t('Notificaciones')}
+                            </button>
+                            <div className="border-t border-gray-100 my-1"></div>
+                            <button
+                              className="flex items-center w-full px-4 py-2.5 text-sm text-[#ef4444] hover:bg-[#ef4444]/10 transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4 mr-3" />
+                              {t('Eliminar')}
+                            </button>
+                          </div>
+                        </div>
+                      </ClickAwayListener>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
           </div>
 
           {/* Contenido principal */}
@@ -1539,9 +1480,8 @@ const handleDeleteComment = async (commentId: string) => {
                   <div className="relative">
                     <button
                       onClick={() => canEdit ? setShowStatusDropdown(!showStatusDropdown) : ht()}
-                      className={`px-3 py-1 rounded text-white text-sm flex items-center space-x-1 ${currentStatus.color} ${
-                        canEdit ? 'hover:opacity-80 cursor-pointer' : 'opacity-70 cursor-not-allowed'
-                      }`}
+                      className={`px-3 py-1 rounded text-white text-sm flex items-center space-x-1 ${currentStatus.color} ${canEdit ? 'hover:opacity-80 cursor-pointer' : 'opacity-70 cursor-not-allowed'
+                        }`}
                       title={canEdit ? "Cambiar estado" : "No tienes permisos para editar"}
                     >
                       <span>{currentStatus.label}</span>
@@ -1575,9 +1515,8 @@ const handleDeleteComment = async (commentId: string) => {
                   <div className="relative">
                     <button
                       onClick={() => canEdit ? setShowPriorityDropdown(!showPriorityDropdown) : ht()}
-                      className={`px-3 py-1 rounded text-white text-sm flex items-center space-x-1 ${currentPriority.color} ${
-                        canEdit ? 'hover:opacity-80 cursor-pointer' : 'opacity-70 cursor-not-allowed'
-                      }`}
+                      className={`px-3 py-1 rounded text-white text-sm flex items-center space-x-1 ${currentPriority.color} ${canEdit ? 'hover:opacity-80 cursor-pointer' : 'opacity-70 cursor-not-allowed'
+                        }`}
                       title={canEdit ? "Cambiar prioridad" : "No tienes permisos para editar"}
                     >
                       <Flag className="w-3 h-3" />
@@ -1596,11 +1535,10 @@ const handleDeleteComment = async (commentId: string) => {
                               }}
                               className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100"
                             >
-                              <Flag className={`w-4 h-4 mr-3 ${
-                                priority.value === 'alta' ? 'text-[#ef4444]' :
+                              <Flag className={`w-4 h-4 mr-3 ${priority.value === 'alta' ? 'text-[#ef4444]' :
                                 priority.value === 'media' ? 'text-yellow-500' :
-                                'text-gray-400'
-                              }`} />
+                                  'text-gray-400'
+                                }`} />
                               <span>{priority.label}</span>
                             </button>
                           ))}
@@ -1696,9 +1634,8 @@ const handleDeleteComment = async (commentId: string) => {
                     </div>
                   ) : (
                     <span
-                      className={`text-sm ${
-                        canEdit ? 'cursor-pointer hover:text-primary' : 'cursor-default opacity-60'
-                      }`}
+                      className={`text-sm ${canEdit ? 'cursor-pointer hover:text-primary' : 'cursor-default opacity-60'
+                        }`}
                       onClick={() => canEdit ? handleFieldClick('fecha', localTask.fecha) : ht()}
                       title={canEdit ? "Haz clic para editar fecha" : "No tienes permisos para editar"}
                     >
@@ -1729,9 +1666,8 @@ const handleDeleteComment = async (commentId: string) => {
                     <div className="flex items-center space-x-1">
                       <Clock className="w-4 h-4 text-gray-500" />
                       <span
-                        className={`text-sm ${
-                          canEdit ? 'cursor-pointer hover:text-primary' : 'cursor-default opacity-60'
-                        }`}
+                        className={`text-sm ${canEdit ? 'cursor-pointer hover:text-primary' : 'cursor-default opacity-60'
+                          }`}
                         onClick={() => canEdit ? handleFieldClick('hora', localTask.fecha ? formatTime(localTask.fecha) : '') : ht()}
                         title={canEdit ? "Haz clic para editar hora" : "No tienes permisos para editar"}
                       >
@@ -1768,9 +1704,8 @@ const handleDeleteComment = async (commentId: string) => {
                     </div>
                   ) : (
                     <span
-                      className={`text-sm ${
-                        canEdit ? 'cursor-pointer hover:text-primary' : 'cursor-default opacity-60'
-                      }`}
+                      className={`text-sm ${canEdit ? 'cursor-pointer hover:text-primary' : 'cursor-default opacity-60'
+                        }`}
                       onClick={() => {
                         if (canEdit) {
                           setEditingDuration(true);
@@ -1813,7 +1748,7 @@ const handleDeleteComment = async (commentId: string) => {
                     </div>
                   </div>
                   {/* Duración total */}
-{/*                   <div className="flex items-center space-x-2">
+                  {/*                   <div className="flex items-center space-x-2">
                     <Clock className="w-5 h-5 text-blue-600" />
                     <div>
                       <span className="text-xs text-gray-500 block">{t('Duración')}</span>
@@ -1934,9 +1869,8 @@ const handleDeleteComment = async (commentId: string) => {
                       </div>
                     ) : (
                       <div
-                        className={`border border-gray-200 rounded-lg p-4 min-h-[100px] ${
-                          canEdit ? 'cursor-pointer hover:border-gray-300' : 'cursor-default opacity-60'
-                        }`}
+                        className={`border border-gray-200 rounded-lg p-4 min-h-[100px] ${canEdit ? 'cursor-pointer hover:border-gray-300' : 'cursor-default opacity-60'
+                          }`}
                         onClick={() => {
                           if (canEdit) {
                             setCustomDescription(stripHtml(localTask.tips || '')); // Limpiar HTML antes de editar
@@ -1959,7 +1893,7 @@ const handleDeleteComment = async (commentId: string) => {
                           </p>
                         )}
                       </div>
-                                       )}  
+                    )}
                   </div>
 
                   {/* Adjuntos mejorados */}
@@ -1980,70 +1914,70 @@ const handleDeleteComment = async (commentId: string) => {
           </div>
         </div>
 
-          {/* Panel lateral - Chat/Comentarios */}
-          <div className="w-96 border-l border-gray-200 flex flex-col bg-gray-50">
-            {/* Header del chat */}
-            <div className="p-4 border-b border-gray-200 bg-white">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-lg">{t('Actividad')}</h3>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-500">{comments.length} {t('comentarios')}</span>
-                  <Bell className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600" />
-                </div>
+        {/* Panel lateral - Chat/Comentarios */}
+        <div className="w-96 border-l border-gray-200 flex flex-col bg-gray-50">
+          {/* Header del chat */}
+          <div className="p-4 border-b border-gray-200 bg-white">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-lg">{t('Actividad')}</h3>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-500">{comments.length} {t('comentarios')}</span>
+                <Bell className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600" />
               </div>
             </div>
-
-            {/* Lista de comentarios - scroll desde abajo hacia arriba */}
-            <div 
-              ref={commentsContainerRef}
-              className="flex-1 overflow-y-auto p-4 space-y-2 flex flex-col-reverse"
-            >
-              {comments.length === 0 ? (
-                <div className="text-center py-8 flex-1 flex items-center justify-center">
-                  <div>
-                    <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500">{t('No hay comentarios aún')}</p>
-                    <p className="text-xs text-gray-400 mt-1">{t('Sé el primero en comentar')}</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {comments.map((comment) => (
-                    <div key={comment._id} className="relative group">
-                      <ListComments
-                        id={comment._id}
-                        itinerario={itinerario}
-                        task={task}
-                        item={comment}
-                        tempPastedAndDropFiles={tempPastedAndDropFiles}
-                      />
-                      {canEdit && (
-                        <button
-                          onClick={() => handleDeleteComment(comment._id)}
-                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-white rounded shadow-sm hover:bg-gray-100"
-                          title={t('Eliminar comentario')}
-                        >
-                          <Trash2 className="w-4 h-4 text-gray-500 hover:text-[#ef4444]" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Input de comentarios */}
-            <div className="border-t border-gray-200 bg-white min-h-[105px] px-4 py-2">
-              <InputComments
-                itinerario={itinerario}
-                task={task}
-                tempPastedAndDropFiles={tempPastedAndDropFiles || []}
-                setTempPastedAndDropFiles={setTempPastedAndDropFiles}
-                disabled={false}
-                onCommentAdded={handleCommentAdded}
-              />
-            </div>
           </div>
+
+          {/* Lista de comentarios - scroll desde abajo hacia arriba */}
+          <div
+            ref={commentsContainerRef}
+            className="flex-1 overflow-y-auto p-4 space-y-2 flex flex-col-reverse"
+          >
+            {comments.length === 0 ? (
+              <div className="text-center py-8 flex-1 flex items-center justify-center">
+                <div>
+                  <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                  <p className="text-sm text-gray-500">{t('No hay comentarios aún')}</p>
+                  <p className="text-xs text-gray-400 mt-1">{t('Sé el primero en comentar')}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {comments.map((comment) => (
+                  <div key={comment._id} className="relative group">
+                    <ListComments
+                      id={comment._id}
+                      itinerario={itinerario}
+                      task={task}
+                      item={comment}
+                      tempPastedAndDropFiles={tempPastedAndDropFiles}
+                    />
+                    {canEdit && (
+                      <button
+                        onClick={() => handleDeleteComment(comment._id)}
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-white rounded shadow-sm hover:bg-gray-100"
+                        title={t('Eliminar comentario')}
+                      >
+                        <Trash2 className="w-4 h-4 text-gray-500 hover:text-[#ef4444]" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Input de comentarios */}
+          <div className="border-t border-gray-200 bg-white min-h-[105px] px-4 py-2">
+            <InputComments
+              itinerario={itinerario}
+              task={task}
+              tempPastedAndDropFiles={tempPastedAndDropFiles || []}
+              setTempPastedAndDropFiles={setTempPastedAndDropFiles}
+              disabled={false}
+              onCommentAdded={handleCommentAdded}
+            />
+          </div>
+        </div>
 
         {/* Estilos CSS para animaciones */}
         <style jsx>{`
@@ -2058,7 +1992,7 @@ const handleDeleteComment = async (commentId: string) => {
             animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
           }
         `}</style>
-    </div>
+      </div>
     </div>
   );
 });
