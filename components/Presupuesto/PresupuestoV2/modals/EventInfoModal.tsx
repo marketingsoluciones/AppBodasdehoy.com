@@ -1,8 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { IoCloseOutline, IoPeopleOutline, IoPersonOutline } from "react-icons/io5";
-import { HiOutlineUsers } from "react-icons/hi2";
-import { BsToggle2Off, BsToggle2On } from "react-icons/bs";
-import { TableTotals } from '../types';
+import { IoCloseOutline} from "react-icons/io5";
+import { TableTotals } from '../../../../utils/Interfaces';
 import { fetchApiEventos, queries } from '../../../../utils/Fetching';
 import { useToast } from '../../../../hooks/useToast';
 
