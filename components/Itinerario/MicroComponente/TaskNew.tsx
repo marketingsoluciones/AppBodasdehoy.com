@@ -209,10 +209,6 @@ export const TaskNew: FC<Props> = memo(({
     prioridad: task.prioridad || 'media'
   });
 
-  console.log('Local Task:', localTask);
-  console.log('Local Task:', task.spectatorView);
-
-
   // Estados para dropdowns y selectores
   const [showIconSelector, setShowIconSelector] = useState(false);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
@@ -455,7 +451,6 @@ export const TaskNew: FC<Props> = memo(({
         const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
         const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === task._id);
         if (fieldName === 'spectatorView') {
-          console.log('value', value)
           event.itinerarios_array[f1].tasks[f2].spectatorView = value;
           setEvent({ ...event })
         } else {

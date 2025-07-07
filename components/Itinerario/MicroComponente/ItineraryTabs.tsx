@@ -160,10 +160,8 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                 if (firsItinerary?.next_id) {
                     pushNextElem({ _id: firsItinerary.next_id })
                 }
-                console.log(100031, newItineraries)
                 const fListIdentifiers = event?.listIdentifiers?.findIndex(elem => elem.table === window?.location?.pathname.slice(1))
                 const lastListIdentifiers = { ...event.listIdentifiers[fListIdentifiers] }
-                console.log(100032, "lastListIdentifiers.end_Id", lastListIdentifiers.end_Id)
                 setItineraries([...newItineraries])
             }
         }
@@ -235,7 +233,6 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             event.itinerarios_array.push(result)
             const f2 = event.itinerarios_array.findIndex(elem => elem._id === result._id)
             if (event.itinerarios_array[f2]) {
-                console.log("entro porque no tiene vews", event.itinerarios_array[f2])
                 event.itinerarios_array[f2].viewers = []
             }
 
@@ -405,9 +402,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             vecinoNewNextId: null,
             movidoNextId: null,
         }
-        console.log(1000310, ubi, itineraries.length)
 
-        ///// moviemientos en el medio funciona /////
 
         ///// moviemientos del medio al extremo derecho funciona /////
         const fListIdentifiers = event?.listIdentifiers?.findIndex(elem => elem.table === window?.location?.pathname.slice(1))
