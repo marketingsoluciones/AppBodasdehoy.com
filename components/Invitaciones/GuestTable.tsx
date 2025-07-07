@@ -1,177 +1,77 @@
-import { FC } from "react";
-import { useEffect, useMemo, useState, } from "react";
-import { InvitacionesIcon } from "../../components/icons";
-import useHover from "../../hooks/useHover";
-import { ConfirmationBlock } from "../../components/Invitaciones/ConfirmationBlock"
-import { DataTable } from "../../components/Invitaciones/DataTable"
-import { getRelativeTime } from "../../utils/FormatTime";
+import { FC, useState, useMemo } from "react";
 import { useTranslation } from 'react-i18next';
-import { useRouter } from "next/router";
-import { useToast } from "../../hooks/useToast";
+import { ConfirmationBlock } from "./ConfirmationBlock";
+import { DataTableInvitaciones } from "./DataTableInvitaciones";
+import { GuestTableProps, ColumnConfig } from "./types";
+import { GuestNameCell } from "./cells/GuestNameCell";
+import { GuestEmailCell } from "./cells/GuestEmailCell";
+import { GuestInvitationCell } from "./cells/GuestInvitationCell";
+import { GuestCompanionsCell } from "./cells/GuestCompanionsCell";
+import { GuestDateCell } from "./cells/GuestDateCell";
 
-export const GuestTable: FC<any> = ({ data, multiSeled, reenviar, activeFunction }) => {
+export const GuestTable: FC<GuestTableProps> = ({
+  data,
+  multiSeled = false,
+  reenviar = false,
+  activeFunction
+}) => {
   const { t } = useTranslation();
-  const [arrEnviarInvitaciones, setArrEnviatInvitaciones] = useState([]);
-  const router = useRouter()
-  const toast = useToast()
+  const [arrEnviarInvitaciones, setArrEnviatInvitaciones] = useState<string[]>([]);
 
-  const Columna = useMemo(
-    () => [
-      {
-        Header: t("name"),
-        accessor: "nombre",
-        id: "nombre",
-        isVisible: false,
-        Cell: (props) => {
-          const [value, setValue] = useState(props.cell.value);
-          useEffect(() => {
-            setValue(props.cell.value);
-          }, [props.cell.value]);
-          const { sexo } = props?.row?.original;
-          const image = {
-            hombre: {
-              image: "/profile_men.png",
-              alt: "Hombre",
-            },
-            mujer: {
-              image: "profile_woman.png",
-              alt: "Mujer",
-            },
-          };
-          return (
-
-            <div className="flex gap-1 items-center justify-center md:justify-start ">
-              <img
-                src={image[sexo]?.image ? image[sexo]?.image : "/placeholder/user.png"}
-                className="rounded-full object-cover md:w-10 md:h-10 w-7 h-7"
-              />
-              <p className="font-display text-sm capitalize overflow-ellipsis text-black truncate">
-                {value}
-              </p>
-            </div>
-          );
-        },
-      },
-      {
-        Header: t("mail"),
-        accessor: "correo",
-        id: "correo",
-        Cell: (props) => {
-          if (props.value != "") {
-            return (
-              <div>
-                {props.value}
-              </div>
-
-            )
-          } else {
-            return (
-              <button onClick={() => router.push("invitados")} >
-                Agregar Email
-              </button>
-            )
-          }
-        }
-      },
-      {
-        Header: t("phone"),
-        accessor: "telefono",
-        id: "telefono",
-      },
-      {
-        Header: t("invitation"),
-        accessor: "invitacion",
-        id: "invitacion",
-        Cell: (props) => {
-          const [value, setValue] = useState(props);
-          const [hoverRef, isHovered] = useHover();
-          useEffect(() => {
-            setValue(props.value);
-          }, [props.value]);
-
-          const handleClick = () => {
-            if (props.row.original.correo != "") {
-              if (!value) {
-                setArrEnviatInvitaciones([props?.row?.original?._id]);
-              }
-            } else {
-              toast("error", "No tiene Correo asignado")
-            }
-          };
-
-          return (
-            <>
-              <div
-                ref={hoverRef}
-                className={`truncate relative w-full h-full flex items-center justify-center pl-3 gap-1 text-${value
-                  ? "green"
-                  : "red cursor-pointer transform transition hover:scale-105"
-                  }`}
-                onClick={handleClick}
-              >
-                <InvitacionesIcon className="w-5 h-5 " />
-                <p className="font-display text-md text-black truncate first-letter:capitalize">{value ? t("enviado") : t("no enviado")}</p>
-              </div>
-            </>
-          );
-        },
-      },
-      {
-        Header: t("companions"),
-        accessor: "acompañantes",
-        id: "acompañantes",
-        Cell: (props) => {
-          const [value, setValue] = useState(props.value);
-          const [hoverRef, isHovered] = useHover();
-
-          return (
-            <>
-              <div
-                ref={hoverRef}
-                className={`truncate relative w-full h-full flex items-center justify-center pl-3 gap-1  cursor-pointer transform transition hover:scale-105"`}
-              >
-                0
-              </div>
-            </>
-          );
-        },
-      },
-      {
-        Header: t("envoy"),
-        accessor: "date",
-        id: "date",
-        Cell: (props) => {
-          const [value, setValue] = useState(props.value);
-          useEffect(() => {
-            setValue(props.value);
-          }, [props.value]);
-          return (
-            <>
-              <div
-                className={`group truncate relative w-full h-full flex items-center justify-center pl-3 gap-1 `}
-              >
-                <p className="font-display text-md text-black truncate hidden md:block first-letter:capitalize">
-                  {value ? getRelativeTime(value) : t("sin enviar")}
-                </p>
-              </div>
-            </>
-          );
-        },
-      },
-    ],
-    []
-  );
+  const columns = useMemo((): ColumnConfig[] => [
+    {
+      Header: t("name"),
+      accessor: "nombre",
+      id: "nombre",
+      isVisible: false,
+      Cell: (props: any) => <GuestNameCell {...props} />
+    },
+    {
+      Header: t("mail"),
+      accessor: "correo",
+      id: "correo",
+      Cell: (props: any) => <GuestEmailCell {...props} />
+    },
+    {
+      Header: t("phone"),
+      accessor: "telefono",
+      id: "telefono",
+    },
+    {
+      Header: t("invitation"),
+      accessor: "invitacion",
+      id: "invitacion",
+      Cell: (props: any) => (
+        <GuestInvitationCell
+          {...props}
+          setArrEnviatInvitaciones={setArrEnviatInvitaciones}
+        />
+      )
+    },
+    {
+      Header: t("companions"),
+      accessor: "acompañantes",
+      id: "acompañantes",
+      Cell: (props: any) => <GuestCompanionsCell {...props} />
+    },
+    {
+      Header: t("envoy"),
+      accessor: "date",
+      id: "date",
+      Cell: (props: any) => <GuestDateCell {...props} />
+    },
+  ], [t, setArrEnviatInvitaciones]);
 
   return (
-    <div className="">
+    <div className="bg-white rounded-lg shadow-sm">
       {arrEnviarInvitaciones.length > 0 && (
         <ConfirmationBlock
           arrEnviarInvitaciones={arrEnviarInvitaciones}
-          set={(act) => setArrEnviatInvitaciones(act)}
+          set={setArrEnviatInvitaciones}
         />
       )}
-      <DataTable
-        columns={Columna}
+      <DataTableInvitaciones
+        columns={columns}
         data={data}
         multiSeled={multiSeled}
         setArrEnviatInvitaciones={setArrEnviatInvitaciones}
