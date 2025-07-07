@@ -306,7 +306,69 @@ useEffect(() => {
     setPreviousCountComments(comments.length);
   }, [comments, previousCountComments]);
 
+useEffect(() => {
+  // Sincronizar comentarios desde el evento global
+  if (event?.itinerarios_array) {
+    const currentItinerary = event.itinerarios_array.find(it => it._id === itinerario._id);
+    if (currentItinerary) {
+      const currentTask = currentItinerary.tasks.find(t => t._id === task._id);
+      if (currentTask && currentTask.comments) {
+        // Ordenar comentarios por fecha
+        const sortedComments = [...currentTask.comments].sort((a, b) => {
+          const dateA = a?.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const dateB = b?.createdAt ? new Date(b.createdAt).getTime() : 0;
+          return dateA - dateB;
+        });
+        
+        // Actualizar solo si hay cambios reales
+        setComments(prevComments => {
+          const prevIds = prevComments.map(c => c._id).sort().join(',');
+          const newIds = sortedComments.map(c => c._id).sort().join(',');
+          
+          // Si los IDs son diferentes o las longitudes son diferentes, actualizar
+          if (prevIds !== newIds || prevComments.length !== sortedComments.length) {
+            return sortedComments;
+          }
+          
+          // Verificar si algún comentario individual ha cambiado
+          const hasChanges = sortedComments.some((newComment, index) => {
+            const oldComment = prevComments[index];
+            return !oldComment || 
+                   oldComment._id !== newComment._id ||
+                   oldComment.comment !== newComment.comment ||
+                   oldComment.attachments?.length !== newComment.attachments?.length;
+          });
+          
+          return hasChanges ? sortedComments : prevComments;
+        });
+      }
+    }
+  }
+}, [event?.itinerarios_array, itinerario._id, task._id]); // Dependencias correctas
 
+
+// Detectar cuando la pestaña se vuelve activa para actualizar
+useEffect(() => {
+  const handleVisibilityChange = () => {
+    if (!document.hidden) {
+      // Recargar comentarios cuando la pestaña vuelve a estar activa
+      const currentItinerary = event?.itinerarios_array?.find(it => it._id === itinerario._id);
+      if (currentItinerary) {
+        const currentTask = currentItinerary.tasks.find(t => t._id === task._id);
+        if (currentTask?.comments) {
+          setComments([...currentTask.comments].sort((a, b) => {
+            const dateA = a?.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const dateB = b?.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return dateA - dateB;
+          }));
+        }
+      }
+    }
+  };
+
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+}, [event, itinerario._id, task._id]);
 
   // Función para manejar actualización de campos
   const handleUpdate = async (fieldName: string, value: any) => {
