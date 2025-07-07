@@ -561,13 +561,12 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                     {view === "cards" && (
                         <>
                             {/* Reemplazar el botón de agregar servicio */}
-                            {window?.location?.pathname !== "/itinerario" && (
+                            
                             <PermissionAddButton
                                 onClick={addTask} // ✅ función real
                                 text={itinerario?.tipo === "itinerario" ? "" : ""}
                                 showText={true}
                             />
-                              )}
                             <SelectModeSort value={orderAndDirection} setValue={setOrderAndDirection} />
                         </>
                     )}
