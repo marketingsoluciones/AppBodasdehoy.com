@@ -130,7 +130,7 @@ export const en = {
     'coordinates': "Coordinate",
     'copiedlink': "Link copied",
     'nameTemplate': "Template name",
-    'subject': "Subject of the email",
+    'subject': "Subject",
     'copylink': "Copy link",
     'corporateevents': "Corporate events",
     'CORREO': "MAIL",

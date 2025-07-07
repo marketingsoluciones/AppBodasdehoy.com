@@ -96,7 +96,7 @@ const Invitaciones = () => {
         setPreviewEmail(res?.preview)
       })
     }
-  }, [event?.templateInvitacionSelect, event?.fecha_actualizacion, event?.updatedAt]);
+  }, [event?.templateInvitacionSelect, event?.fecha_actualizacion, event?.updatedAt, event?.invitados_array]);
 
   if (verificationDone) {
     if (!user) {

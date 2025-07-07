@@ -12,7 +12,6 @@ import { GuestDateCell } from "./cells/GuestDateCell";
 export const GuestTable: FC<GuestTableProps> = ({
   data,
   multiSeled = false,
-  reenviar = false,
   activeFunction
 }) => {
   const { t } = useTranslation();
@@ -75,7 +74,6 @@ export const GuestTable: FC<GuestTableProps> = ({
         data={data}
         multiSeled={multiSeled}
         setArrEnviatInvitaciones={setArrEnviatInvitaciones}
-        reenviar={reenviar}
         activeFunction={activeFunction}
       />
     </div>

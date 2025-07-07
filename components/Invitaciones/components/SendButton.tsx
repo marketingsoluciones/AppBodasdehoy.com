@@ -21,8 +21,8 @@ export const SendButton: FC<SendButtonProps> = ({
         disabled={isDisabled}
         onClick={onClick}
         className={`focus:outline-none ${isDisabled
-            ? "bg-gray-300"
-            : "hover:opacity-70 transition bg-primary"
+          ? "bg-gray-300"
+          : "hover:opacity-70 transition bg-primary"
           } text-white py-1 px-2 rounded-lg text-center text-[10px] md:text-sm capitalize`}
       >
         {buttonText}

@@ -15,6 +15,8 @@ import { EmailDesign } from '../../utils/Interfaces';
 import { EditableLabelWithInput } from '../Forms/EditableLabelWithInput';
 import ButtonPrimary from './ButtonPrimary';
 import { IoIosClose } from 'react-icons/io';
+import { MdOutlineShortText } from 'react-icons/md';
+import { Textarea } from '../Itinerario/MicroComponente/Textarea';
 
 interface props {
     setShowEmailEditorModal: (value: boolean) => void
@@ -32,6 +34,11 @@ type showUnsavedModalType = {
 type postActionType = {
     state: boolean,
     action: () => void
+}
+
+type showSubjectModalType = {
+    state: boolean,
+    value: string
 }
 
 export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, showEmailEditorModal, previewEmailReactEditor, ...props }) => {
@@ -53,6 +60,7 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
     const [postAction, setPostAction] = useState<postActionType>();
     const [nameNewtemplate, setNameNewTemplate] = useState<string>("new template");
+    const [showSubjectModal, setShowSubjectModal] = useState<showSubjectModalType>({ state: false, value: '' });
 
     useEffect(() => {
         if (!previewEmailReactEditor) {
@@ -320,6 +328,15 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
                     </div>
                 </ModalDefault>
             )}
+            {showSubjectModal.state && (
+                <div className='bg-blue-300 flex items-center space-x-3 w-[500px] p-2 absolute top-10 left-40 border-2 border-gray-300 rounded-lg'>
+                    <Textarea value={showSubjectModal.value} setValue={(value) => setShowSubjectModal({ state: true, value: value })} />
+                    <ButtonPrimary onClick={() => {
+                        setTemplate({ ...template, configTemplate: { ...template?.configTemplate, subject: showSubjectModal.value } })
+                        setShowSubjectModal({ state: false, value: '' })
+                    }}>Guardar</ButtonPrimary>
+                </div>
+            )}
             {!isLoading && <div className="absolute z-50  top-[calc(50%-20px)] left-[calc(50%-20px)] loader ease-linear rounded-full border-[7px] border-black border-opacity-35 w-10 h-10" />}
             <div className={`h-full ${isLoading ? "opacity-100" : "opacity-0"} transition-all duration-300`} >
                 {editorReady && <div className='absolute flex w-[604px]'>
@@ -352,7 +369,7 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
                                     textAlign="left" />
                             </div>
                         </div>
-                        <div className={"bg-blue-500* flex flex-col flex-1 h-[38px] items-start justify-end cursor-pointer border-l"} >
+                        {/* <div className={"bg-blue-500* flex flex-col flex-1 h-[38px] items-start justify-end cursor-pointer border-l"} >
                             <label className='text-[10px] font-semibold text-gray-600 translate-y-0.5 px-1'>{t('subject')}</label>
                             <div className='pb-0.5 w-full flex justify-start text-sm relative px-2'>
                                 <EditableLabelWithInput
@@ -364,12 +381,13 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
                                     accessor={null}
                                     textAlign="left" />
                             </div>
-                        </div>
-                        {/* <div onClick={handleSaveDesign} className={"flex w-[50px] h-[38px] flex-col items-center justify-center cursor-pointer border-x hover:bg-[#F4F4F4]"} >
-                            <div className='pt-[2px] text-xs font-semibold text-gray-800'>
-                                {asd}
-                            </div>
                         </div> */}
+                        <div onClick={() => setShowSubjectModal({ state: true, value: template?.configTemplate?.subject })} className={"flex w-[50px] h-[38px] flex-col items-center justify-center cursor-pointer border-x hover:bg-[#F4F4F4]"} >
+                            <div className='pt-[2px] flex flex-col items-center justify-center'>
+                                <label className='text-[10px] font-semibold text-gray-600 translate-y-0.5 px-1'>{t('subject')}</label>
+                                <MdOutlineShortText className='h-5 w-5' />
+                            </div>
+                        </div>
                     </>}
                 </div>}
                 {previewEmailReactEditor && <div className='absolute flex right-0 bg-white'>

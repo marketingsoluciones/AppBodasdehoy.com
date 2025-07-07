@@ -79,7 +79,6 @@ const MyComponent = () => {
     <GuestTable 
       data={guestData}
       multiSeled={true}
-      reenviar={false}
     />
   );
 };

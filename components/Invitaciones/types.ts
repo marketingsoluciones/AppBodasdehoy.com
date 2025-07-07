@@ -12,7 +12,6 @@ export interface Guest {
 export interface GuestTableProps {
   data: Guest[];
   multiSeled?: boolean;
-  reenviar?: boolean;
   activeFunction?: () => void;
 }
 
@@ -29,7 +28,6 @@ export interface DataTableProps {
   data: Guest[];
   multiSeled?: boolean;
   setArrEnviatInvitaciones: (ids: string[]) => void;
-  reenviar?: boolean;
   activeFunction?: () => void;
 }
 

@@ -1,8 +1,7 @@
-import { FC, useEffect } from "react";
+import { FC, useEffect, useState } from "react";
 import { useRowSelect, useSortBy, useTable } from "react-table";
 import { IndeterminateCheckbox } from "./IndeterminateCheckbox";
 import { DataTableGroupContextProvider } from "../../context/DataTableGroupContext";
-import { useTranslation } from 'react-i18next';
 import { DataTableProps } from "./types";
 import { COLUMN_SPAN_CONFIG } from "./constants";
 import { TableHeader } from "./components/TableHeader";
@@ -15,13 +14,8 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({
   data = [],
   multiSeled = false,
   setArrEnviatInvitaciones,
-  reenviar,
-  activeFunction
 }) => {
-  const { t } = useTranslation();
   const { dataTableGroup: { arrIDs } } = DataTableGroupContextProvider();
-
-
 
   const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows } =
     useTable({ columns, data }, useSortBy, useRowSelect, (hooks) => {
@@ -65,7 +59,7 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({
         <SendButton
           isDisabled={isSendButtonDisabled}
           onClick={handleSendInvitations}
-          isResend={reenviar}
+          isResend={data?.length && data[0]?.invitacion}
         />
       )}
 

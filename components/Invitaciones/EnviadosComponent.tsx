@@ -2,11 +2,13 @@ import { GuestTable } from "./GuestTable"
 import { AuthContextProvider } from "../../context/AuthContext"
 import { useState } from "react"
 import { useTranslation } from 'react-i18next';
+import { DataTableGroupContextProvider } from "../../context/DataTableGroupContext";
 
 export const EnviadosComponent = ({ dataInvitationSent, dataInvitationNotSent, event }) => {
     const { t } = useTranslation();
     const { config } = AuthContextProvider()
     const [stateTable, setStateTable] = useState("noenviados")
+    const { dispatch, dataTableGroup: { arrIDs } } = DataTableGroupContextProvider();
 
     return (
         <>
@@ -18,18 +20,24 @@ export const EnviadosComponent = ({ dataInvitationSent, dataInvitationNotSent, e
                     <div className="w-[calc(100%-80px)] md:w-96 mx-auto inset-x-0 flex my-2 mt-4 rounded-2xl overflow-hidden border">
                         <button
                             className={`w-1/2 md:w-[270px] py-1 ${stateTable == "noenviados" ? "bg-primary text-white" : "bg-white text-primary"} h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
-                            onClick={() => setStateTable("noenviados")}>
+                            onClick={() => {
+                                dispatch({ type: "RESET_STATE" });
+                                setStateTable("noenviados")
+                            }}>
                             {t("earrings")}
                         </button>
                         <button
                             className={`w-1/2 md:w-[270px] py-1 ${stateTable == "enviados" ? "bg-primary text-white" : "bg-white text-primary"} h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
-                            onClick={() => setStateTable("enviados")}>
+                            onClick={() => {
+                                dispatch({ type: "RESET_STATE" });
+                                setStateTable("enviados")
+                            }}>
                             {t("sent")}
                         </button>
                     </div>
                     <div className="w-full overflow-auto">
                         <div className="w-[200%] md:w-full">
-                            <GuestTable data={stateTable === "noenviados" ? dataInvitationNotSent : dataInvitationSent} multiSeled={true} reenviar={false} />
+                            <GuestTable data={stateTable === "noenviados" ? dataInvitationNotSent : dataInvitationSent} multiSeled={true} />
                         </div>
                     </div>
                 </div>

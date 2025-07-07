@@ -44,7 +44,7 @@ export const GuestInvitationCell: FC<GuestInvitationCellProps> = ({
       className={`truncate relative w-full h-full flex items-center justify-center pl-3 gap-1 ${statusColor} ${cursorClass}`}
       onClick={handleClick}
     >
-      <InvitacionesIcon className="w-5 h-5" />
+      <InvitacionesIcon className="w-5 h-5 text-red" />
       <p className="font-display text-md truncate first-letter:capitalize">
         {statusText}
       </p>
