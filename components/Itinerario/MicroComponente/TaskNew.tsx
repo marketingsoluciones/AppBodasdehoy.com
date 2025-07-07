@@ -370,6 +370,51 @@ useEffect(() => {
   return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
 }, [event, itinerario._id, task._id]);
 
+// Efecto para sincronizar adjuntos desde el evento global
+useEffect(() => {
+  // Sincronizar adjuntos desde el evento global
+  if (event?.itinerarios_array) {
+    const currentItinerary = event.itinerarios_array.find(it => it._id === itinerario._id);
+    if (currentItinerary) {
+      const currentTask = currentItinerary.tasks.find(t => t._id === task._id);
+      if (currentTask) {
+        // Actualizar adjuntos si hay cambios
+        setLocalTask(prev => {
+          const prevAttachmentIds = (prev.attachments || []).map(a => a._id).sort().join(',');
+          const newAttachmentIds = (currentTask.attachments || []).map(a => a._id).sort().join(',');
+          
+          // Si los IDs son diferentes o las longitudes son diferentes, actualizar
+          if (prevAttachmentIds !== newAttachmentIds || 
+              prev.attachments?.length !== currentTask.attachments?.length) {
+            return {
+              ...prev,
+              attachments: currentTask.attachments || []
+            };
+          }
+          
+          // Verificar si algún adjunto individual ha cambiado
+          const hasChanges = (currentTask.attachments || []).some((newAttachment, index) => {
+            const oldAttachment = prev.attachments?.[index];
+            return !oldAttachment || 
+                   oldAttachment._id !== newAttachment._id ||
+                   oldAttachment.name !== newAttachment.name ||
+                   oldAttachment.size !== newAttachment.size;
+          });
+          
+          if (hasChanges) {
+            return {
+              ...prev,
+              attachments: currentTask.attachments || []
+            };
+          }
+          
+          return prev;
+        });
+      }
+    }
+  }
+}, [event?.itinerarios_array, itinerario._id, task._id]); // Sincronización de adjuntos
+
   // Función para manejar actualización de campos
   const handleUpdate = async (fieldName: string, value: any) => {
     if (!canEdit) {
