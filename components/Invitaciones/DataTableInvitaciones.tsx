@@ -8,7 +8,7 @@ import { COLUMN_SPAN_CONFIG } from "./constants";
 import { TableHeader } from "./components/TableHeader";
 import { TableBody } from "./components/TableBody";
 import { SendButton } from "./components/SendButton";
-import { useRowSelection, useRowSelectionCell } from "./hooks/useRowSelection";
+import { useRowSelectionCell } from "./hooks/useRowSelection";
 
 export const DataTableInvitaciones: FC<DataTableProps> = ({
   columns,
@@ -19,7 +19,9 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({
   activeFunction
 }) => {
   const { t } = useTranslation();
-  const { selectedData, setSelectedData } = useRowSelection();
+  const { dataTableGroup: { arrIDs } } = DataTableGroupContextProvider();
+
+
 
   const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows } =
     useTable({ columns, data }, useSortBy, useRowSelect, (hooks) => {
@@ -36,12 +38,6 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({
             );
           },
           Header: ({ getToggleAllRowsSelectedProps }) => {
-            const { dataTableGroup: { arrIDs } } = DataTableGroupContextProvider();
-
-            useEffect(() => {
-              setSelectedData({ arrIDs, getToggleAllRowsSelectedProps });
-            }, [arrIDs, getToggleAllRowsSelectedProps, setSelectedData]);
-
             return (
               <div className="absolute z-10 -translate-y-11 -translate-x-1">
                 <IndeterminateCheckbox {...getToggleAllRowsSelectedProps()} />
@@ -56,12 +52,12 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({
   const getColumnSpan = (columnId: string) => `col-span-${COLUMN_SPAN_CONFIG[columnId] || 1}`;
 
   const handleSendInvitations = () => {
-    if (selectedData?.arrIDs?.length) {
-      setArrEnviatInvitaciones(selectedData.arrIDs);
+    if (arrIDs?.length) {
+      setArrEnviatInvitaciones(arrIDs);
     }
   };
 
-  const isSendButtonDisabled = !selectedData?.arrIDs?.length;
+  const isSendButtonDisabled = !arrIDs?.length;
 
   return (
     <div className="relative">

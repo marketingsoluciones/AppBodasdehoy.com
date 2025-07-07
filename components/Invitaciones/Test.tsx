@@ -1,5 +1,6 @@
 import { Formik, Form, useFormikContext } from "formik";
-import { AuthContextProvider, EventContextProvider } from "../../context";
+import { AuthContextProvider } from "../../context/AuthContext";
+import { EventContextProvider } from "../../context/EventContext";
 import InputField from "../Forms/InputField";
 import { IconLightBulb16 } from "../icons";
 import * as yup from "yup";

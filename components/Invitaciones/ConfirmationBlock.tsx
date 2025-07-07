@@ -1,5 +1,5 @@
 import { FC, useState } from "react";
-import { EventContextProvider } from "../../context";
+import { EventContextProvider } from "../../context/EventContext";
 import { api } from "../../api";
 import { OptionsMenu } from "./OptionsMenu";
 import { EmailIcon, IconLightBulb16, SmsIcon, WhatsappIcon } from "../icons";

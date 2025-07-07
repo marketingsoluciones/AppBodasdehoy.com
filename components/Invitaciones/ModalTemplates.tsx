@@ -1,7 +1,7 @@
 import { FC, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
-import { EventContextProvider } from "../../context";
+import { EventContextProvider } from "../../context/EventContext";
 import { EmailDesign, ModalInterface } from "../../utils/Interfaces";
 import { IoTrashOutline } from "react-icons/io5";
 import { SimpleDeleteConfirmation } from "../Utils/SimpleDeleteConfirmation";
