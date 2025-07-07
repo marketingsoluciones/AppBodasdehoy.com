@@ -15,6 +15,7 @@ import ButtonPrimary from "./ButtonPrimary";
 import ModalDefault from "./ModalDefault";
 import { ModalTemplates } from "./ModalTemplates";
 import { EmailDesign } from "../../utils/Interfaces";
+import ButtonSecondary from "./ButtonSecondary";
 
 export type TitleComponent = "email" | "whatsapp" | "sms" | "diseño"
 
@@ -34,12 +35,10 @@ export const Test = ({ TitleComponent, setEmailEditorModal, emailEditorModal, se
       fetchApiEventos({
         query: queries.getVariableEmailTemplate,
         variables: {
-          evento_id: event?._id,
           template_id: event?.templateInvitacionSelect,
           selectVariable: "configTemplate"
         },
       }).then((res: any) => {
-        console.log(100066, res)
         setTemplateName(res?.configTemplate?.name)
       })
     }
@@ -87,11 +86,10 @@ export const Test = ({ TitleComponent, setEmailEditorModal, emailEditorModal, se
 
   const handleClick = async (values) => {
     try {
-      console.log("click",)
       fetchApiEventos({
         query: queries.testInvitacion,
         variables: {
-          eventoID: event?._id,
+          evento_id: event?._id,
           email: [values.email]
         }
       })
@@ -185,14 +183,19 @@ export const Test = ({ TitleComponent, setEmailEditorModal, emailEditorModal, se
                   label={t("firstyoumust")}
                   icon={<IconLightBulb16 className="w-6 h-6" />}
                   disabled={TitleComponent !== "email" || !!event?.imgInvitacion}>
-                  <button
+                  <ButtonSecondary
                     onClick={() => !isAllowed() ? ht() : null}
                     type="submit"
-                    disabled={TitleComponent !== "email" || !event?.imgInvitacion}
-                    className={`${TitleComponent !== "email" ? "bg-gray-300" : "focus:outline-none hover:opacity-70 transition bg-primary"} text-white rounded-xl text-sm px-5 py-2 mt-4 w-full`}
+                    disabled={
+                      TitleComponent === "email"
+                        ? !event?.templateInvitacionSelect
+                        : TitleComponent === "whatsapp"
+                          ? true
+                          : !event?.imgInvitacion
+                    }
                   >
                     Enviar {TitleComponent} de prueba
-                  </button>
+                  </ButtonSecondary>
                 </Tooltip>
               </>
             </Form>

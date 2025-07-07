@@ -28,7 +28,18 @@ export const ModalTemplates: FC<props> = ({ action, use }) => {
     }).then((res) => {
       setMyTemplates(res as EmailDesign[]);
     })
-    setTemplates([]);
+    fetchApiEventos({
+      query: queries.getPreviewsEmailTemplates,
+      variables: {},
+    }).then((res) => {
+      const templates = res as EmailDesign[] ?? [];
+      setTemplates(templates.map((elem) => {
+        return {
+          ...elem,
+          isTemplate: true
+        }
+      }));
+    })
   }, []);
 
   const handleDelete = () => {

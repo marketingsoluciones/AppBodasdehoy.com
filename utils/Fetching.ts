@@ -129,14 +129,14 @@ export const queries = {
     }
   }`,
 
-  getEmailTemplate: `query ($evento_id:String, $template_id:String){
-    getEmailTemplate(evento_id:$evento_id, template_id:$template_id){
+  getEmailTemplate: `query ($template_id:String){
+    getEmailTemplate(template_id:$template_id){
       design
     }
   }`,
 
-  getVariableEmailTemplate: `query ($evento_id:String, $template_id:String, $selectVariable:String){
-    getVariableEmailTemplate(evento_id:$evento_id, template_id:$template_id, selectVariable:$selectVariable){
+  getVariableEmailTemplate: `query ($template_id:String, $selectVariable:String){
+    getVariableEmailTemplate(template_id:$template_id, selectVariable:$selectVariable){
       _id
       configTemplate{
         name
@@ -2065,7 +2065,7 @@ export const queries = {
   signOut: `mutation ($sessionCookie :String){
     signOut(sessionCookie:$sessionCookie)
   }`,
-  testInvitacion: `mutation ($eventoID: String, $email: [String]){
-    testInvitacion(evento_id:$eventoID, email:$email)
+  testInvitacion: `mutation ($evento_id: String, $email: [String]){
+    testInvitacion(evento_id:$evento_id, email:$email)
   }`,
 };

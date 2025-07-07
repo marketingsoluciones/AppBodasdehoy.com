@@ -7,6 +7,9 @@ export interface Event {
     fecha_actualizacion: string
     updatedAt: Date
     tipo: string
+    temporada: string,
+    estilo: string,
+    tematica: string,
     nombre: string
     usuario_id: string
     detalles_usuario_id: detalle_compartidos_array
@@ -27,6 +30,7 @@ export interface Event {
     grupos_array: string[]
     notificaciones_array: notification[]
     imgInvitacion: image
+    imgEvento: image
     templateInvitacionSelect: string
     presupuesto_objeto: estimate
     listaRegalos: string
@@ -51,6 +55,7 @@ export interface EmailDesign {
     design: JSON
     html: string
     preview: string
+    isTemplate?: boolean
     createdAt: Date
     updatedAt: Date
 }

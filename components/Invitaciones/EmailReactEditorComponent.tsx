@@ -239,17 +239,21 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
             fetchApiEventos({
                 query: queries.getEmailTemplate,
                 variables: {
-                    evento_id: event?._id,
                     template_id: emailDesign._id
                 }
             }).then((res) => {
                 unlayer.loadDesign(res[0].design as any)
-                !previewEmailReactEditor && setTemplate({ ...emailDesign, design: res[0].design })
+                !previewEmailReactEditor && setTemplate({
+                    ...emailDesign,
+                    design: res[0].design,
+                    ...(emailDesign.isTemplate ? { _id: undefined } : {})
+                })
             })
         } catch (error) {
             console.log('error', error)
         }
     }
+
     useEffect(() => {
         if (template?._id) {
             fetchApiEventos({
@@ -386,17 +390,47 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
                         tag1: {
                             name: "tipo de evento",
                             value: "{{params.typeEvent}}",
-                            sample: event?.tipo
-                        },
-                        tag3: {
-                            name: "nombre del evento",
-                            value: "{{params.nameEvent}}",
-                            sample: event?.nombre
+                            sample: event?.tipo?.toUpperCase()
                         },
                         tag2: {
+                            name: "nombre del evento",
+                            value: "{{params.nameEvent}}",
+                            sample: event?.nombre?.toUpperCase()
+                        },
+                        tag3: {
                             name: "invitado",
                             value: "{{params.nameGuest}}",
                             sample: event?.invitados_array[0]?.nombre || "sin invitados cargados"
+                        },
+                        tag4: {
+                            name: "fecha",
+                            value: "{{params.dateEvent}}",
+                            sample: new Date(parseInt(event?.fecha)).toLocaleDateString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                        },
+                        tag5: {
+                            name: "estilo",
+                            value: "{{params.styleEvent}}",
+                            sample: event?.estilo
+                        },
+                        tag6: {
+                            name: "tematica",
+                            value: "{{params.themeEvent}}",
+                            sample: event?.tematica.toUpperCase()
+                        },
+                        tag7: {
+                            name: "usuario_nombre",
+                            value: "{{params.userEvent}}",
+                            sample: event?.usuario_nombre
+                        },
+                        tag8: {
+                            name: "imgEvento",
+                            value: "{{params.imgEvent}}",
+                            sample: event?.imgEvento?.i640 ? `https://apiapp.bodasdehoy.com/${event?.imgEvento?.i640}` : "sin imagen cargada"
+                        },
+                        tag9: {
+                            name: "lugar",
+                            value: "{{params.placeEvent}}",
+                            sample: event?.lugar?.title || "sin lugar cargado"
                         },
                     },
                     appearance: {

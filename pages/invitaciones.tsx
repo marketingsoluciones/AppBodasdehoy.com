@@ -89,7 +89,6 @@ const Invitaciones = () => {
       fetchApiEventos({
         query: queries.getVariableEmailTemplate,
         variables: {
-          evento_id: event?._id,
           template_id: event?.templateInvitacionSelect,
           selectVariable: "preview"
         },
