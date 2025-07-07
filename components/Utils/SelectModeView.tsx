@@ -62,10 +62,16 @@ export const SelectModeView: FC<props> = ({ value, setValue }) => {
         title: t("card")
       },
       {
+        value: "table",
+        icon: <HiOutlineViewList className="w-5 h-5" />,
+        title: t("board")
+      },
+      {
         value: "schema",
         icon: <TbSchema className="w-5 h-5" />,
         title: t("schema")
       }
+
     ];
   } else if (pathname === "/servicios") {
     // Mostrar todas menos "schema"

@@ -562,6 +562,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                     {view === "cards" && (
                         <>
                             {/* Reemplazar el botón de agregar servicio */}
+                            
                             <PermissionAddButton
                                 onClick={addTask} // ✅ función real
                                 text={itinerario?.tipo === "itinerario" ? "" : ""}
