@@ -38,6 +38,7 @@ import { Event as EventInterface } from '../../../utils/Interfaces';
 import { TableView } from "./NewTableView";
 import { PermissionTaskWrapper } from "./PermissionTaskWrapper";
 import { PermissionTaskActionWrapper } from "./PermissionTaskActionWrapper";
+import useSWR from 'swr'; 
 
 
 interface props {
@@ -511,38 +512,34 @@ const handleTaskCreate = async (taskData: Partial<Task>) => {
   }
 };
 
-useEffect(() => {
-  const interval = setInterval(() => {
-    fetchEventFromApi();
-  }, 300); // 30 segundos
-
-  return () => clearInterval(interval);
-}, [event?._id]); // O [] si el id no cambia
-
-const fetchEventFromApi = async () => {
+const fetcher = async () => {
   const data = await fetchApiEventos({
     query: queries.getEventsByID,
     variables: { variable: "_id", valor: event._id, development: config?.development || "" }
   });
-
-  if (Array.isArray(data) && data.length === 0) return;
-
+  if (Array.isArray(data) && data.length === 0) return null;
   if (data && typeof data === "object" && "queryenEvento" in data) {
     const evento = Array.isArray((data as any).queryenEvento)
       ? (data as any).queryenEvento[0]
       : (data as any).queryenEvento;
-    if (evento && evento._id) setEvent(evento as EventInterface);
-    return;
+    return evento;
   }
-
   if (data && typeof data === "object" && (data as any)._id) {
-    setEvent(data as EventInterface);
-    return;
+    return data;
   }
-
-  // Si no es válido, no hagas nada o muestra un error
-  console.error("La respuesta de la API no contiene un evento válido", data);
+  return null;
 };
+
+const { data: swrEvent } = useSWR(event?._id ? ["event", event._id] : null, fetcher, {
+  revalidateOnFocus: true,
+  refreshInterval: 0,
+});
+
+useEffect(() => {
+  if (swrEvent && swrEvent._id && JSON.stringify(swrEvent) !== JSON.stringify(event)) {
+    setEvent(swrEvent as EventInterface);
+  }
+}, [swrEvent]);
 
     return (
         <div className="w-full flex-1 flex flex-col overflow-auto">
