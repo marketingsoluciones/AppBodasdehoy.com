@@ -12,10 +12,14 @@ import { useMounted } from "../hooks/useMounted"
 import { OptionsMenu } from "../components/Invitaciones/OptionsMenu";
 import { EnviadosComponent } from "../components/Invitaciones/EnviadosComponent";
 import { DiseñoComponent } from "../components/Invitaciones/DiseñoComponent";
-import Test from "../components/Invitaciones/Test";
+import { Test, TitleComponent } from "../components/Invitaciones/Test";
 import { PlantillaTextos } from "../components/Invitaciones/PlantillaTextos";
 import { GoChevronDown } from "react-icons/go";
 import { useTranslation } from 'react-i18next';
+import { OpenModal } from "../components/Home/OpenModal";
+import { Modal } from "../components/Utils/Modal";
+import { EmailReactEditorComponent } from "../components/Invitaciones/EmailReactEditorComponent";
+import { fetchApiEventos, queries } from "../utils/Fetching";
 
 export type optionArryOptions = {
   title: string;
@@ -30,8 +34,11 @@ const Invitaciones = () => {
   const [hoverRef, isHovered] = useHover();
   const [dataInvitationSent, setDataInvitationSent] = useState([]);
   const [dataInvitationNotSent, setDataInvitationNotSent] = useState([]);
-  const [optionSelect, setOptionSelect] = useState("email")
+  const [optionSelect, setOptionSelect] = useState<TitleComponent>("email")
   const [stateConfi, setStateConfi] = useState(true)
+  const [ShowEmailEditorModal, setShowEmailEditorModal] = useState(false)
+  const [previewEmailReactEditor, setPreviewEmailReactEditor] = useState(false)
+  const [previewEmail, setPreviewEmail] = useState<string>()
 
   const arryOptions: optionArryOptions[] = [
     {
@@ -78,7 +85,18 @@ const Invitaciones = () => {
 
     reduce?.sent?.length != dataInvitationSent?.length && setDataInvitationSent(InvitationSent);
     reduce?.notSent.length != dataInvitationNotSent?.length && setDataInvitationNotSent(InvitationNotSent);
-  }, [event]);
+    if (event?.templateInvitacionSelect) {
+      fetchApiEventos({
+        query: queries.getVariableEmailTemplate,
+        variables: {
+          template_id: event?.templateInvitacionSelect,
+          selectVariable: "preview"
+        },
+      }).then((res: any) => {
+        setPreviewEmail(res?.preview)
+      })
+    }
+  }, [event?.templateInvitacionSelect, event?.fecha_actualizacion, event?.updatedAt, event?.invitados_array]);
 
   if (verificationDone) {
     if (!user) {
@@ -94,30 +112,48 @@ const Invitaciones = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 gap-4 h-full "
+            className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 gap-4 h-full"
           >
+            {
+              ShowEmailEditorModal && <Modal classe={" md:w-[90%] h-[90%] "} >
+                <EmailReactEditorComponent setShowEmailEditorModal={setShowEmailEditorModal} showEmailEditorModal={ShowEmailEditorModal} previewEmailReactEditor={previewEmailReactEditor} />
+              </Modal>
+            }
             <BlockTitle title="Invitaciones" />
             <CounterInvitations />
-            <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full md:px-6 pt-2 md:pt-6 pb-28 mb-32 md:mb-0 md:p-12 relative">
-              <button className="text-primary flex items-center text-[20px] first-letter:capitalize ml-3 " onClick={() => setStateConfi(!stateConfi)}>
+            <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full py-2 relative">
+              <button className="text-primary flex items-center text-[20px] first-letter:capitalize ml-3" onClick={() => setStateConfi(!stateConfi)}>
                 {t("invitationsettings")}
-                <span> <GoChevronDown className={` h-6 w-6 text-azulCorporativo cursor-pointer transition-all ml-2 ${stateConfi && "rotate-180"}`} /></span>
+                <span> <GoChevronDown className={`h-6 w-6 text-azulCorporativo cursor-pointer transition-all ml-2 ${stateConfi && "rotate-180"}`} /></span>
               </button>
-              <div className={`${stateConfi ? "" : "hidden"}`}>
-                <div className="w-full flex flex-col md:flex-row mt-3">
-                  <div className={`w-full md:w-1/3 flex px-14 md:px-10`}>
-                    <div ref={hoverRef} className="relative w-full h-72 md:h-80">
-                      <ModuloSubida event={event} use={"imgInvitacion"} />
+              <div className={`${stateConfi ? "" : "hidden"} md:h-96`}>
+                <div className="w-full h-full flex flex-col md:flex-row mt-3">
+                  <div className={`w-full h-96 md:w-1/3 flex justify-center`}>
+                    <div ref={hoverRef} className="relative w-60 h-80 bg-[#808080] rounded-lg border-[1px] border-gray-300">
+                      {optionSelect === "email"
+                        ? previewEmail
+                          ? <img
+                            src={previewEmail}
+                            alt="imgInvitacion"
+                            className="w-full h-full object-contain rounded-lg"
+                            style={{ maxWidth: "100%", maxHeight: "100%", display: "block" }} />
+                          : <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-lg">
+                            <p className="text-gray-500 text-xs">No hay template seleccionado</p>
+                          </div>
+                        : <ModuloSubida event={event} use={"imgInvitacion"} />
+                      }
                     </div>
                   </div>
-                  <div className={`w-full md:w-2/3  md:h-80 mt-3 md:mt-0 transition-all delay-150  `}>
+                  <div className={`flex-1 h-[352px] flex flex-col shadow-md rounded-2xl overflow-hidden`}>
                     <OptionsMenu
                       arryOptions={arryOptions}
                       optionSelect={optionSelect}
                       setOptionSelect={setOptionSelect}
                     />
-                    <div className="col-span-3 pt-4 md:p-6 w-full">
-                      {optionSelect !== "diseño" ? <Test TitelComponent={optionSelect} /> : <DiseñoComponent />}
+                    <div className="col-span-3 w-full h-[280px] md:h-full">
+                      {optionSelect !== "diseño"
+                        ? <Test TitleComponent={optionSelect} setEmailEditorModal={setShowEmailEditorModal} emailEditorModal={ShowEmailEditorModal} setPreviewEmailReactEditor={setPreviewEmailReactEditor} />
+                        : <DiseñoComponent setEmailEditorModal={setShowEmailEditorModal} EmailEditorModal={ShowEmailEditorModal} />}
                     </div>
                   </div>
                 </div>
@@ -125,7 +161,7 @@ const Invitaciones = () => {
                   <PlantillaTextos optionSelect={optionSelect} />
                 </div>
               </div>
-              <div className={`${["email", "diseño"].includes(optionSelect) ? !stateConfi ? "" : "md:pt-14" : null} pt-3`}>
+              <div className={`${["email", "diseño"].includes(optionSelect) ? !stateConfi ? "" : "md:pt-3" : null} pt-3`}>
                 <EnviadosComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent} event={event} />
               </div>
             </div>

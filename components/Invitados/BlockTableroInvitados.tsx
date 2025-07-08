@@ -426,7 +426,7 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
     return (
         <>
             {modal.state &&
-                <Modal set={setModal} state={modal.state} classe={"w-[95%] md:w-[450px] h-[200px]"}>
+                <Modal set={setModal} state={modal.state} classe={"w-[95%] md:w-[450px] h-[200px] flex items-center justify-center"}>
                     <DeleteConfirmation setModal={setModal} modal={modal} />
                 </Modal>}
             {

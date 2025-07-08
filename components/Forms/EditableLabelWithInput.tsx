@@ -22,6 +22,10 @@ export const EditableLabelWithInput: FC<props> = ({ value, type, handleChange, a
   const { t } = useTranslation();
   let timeoutId = null
 
+  useEffect(() => {
+    setNewValue(value)
+  }, [value])
+
   const keyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     let tecla = e.key.toLowerCase();
 

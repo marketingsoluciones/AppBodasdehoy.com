@@ -560,6 +560,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       {["/itinerario"].includes(window?.location?.pathname) && <SubHeader view={view} itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} title={title} setTitle={setTitle} />}
       <div className="w-full flex-1 flex flex-col pt-2 md:px-2 lg:px-6 z-0">
         {
+
           tasksReduce?.length > 0 ?
             view === "boardView" ? (
               <div className="w-full flex-1">

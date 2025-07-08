@@ -207,6 +207,7 @@ export const BoddyIter = () => {
     }, [event, router, orderAndDirection]) */
 
     return (
+
         <PermissionWrapper>
 <div
   className={`bg-white ${
@@ -214,6 +215,7 @@ export const BoddyIter = () => {
   } h-[calc(100vh-212px)] flex flex-col items-center rounded-t-lg mt-3 relative overflow-hidden`}
 >
             {modal.state && <Modal set={setModal} classe={"w-[95%] md:w-[450px] h-[250px]"} loading={loadingModal} >
+
                 <DeleteConfirmation setModal={setModal} modal={modal} />
             </Modal>}
             {

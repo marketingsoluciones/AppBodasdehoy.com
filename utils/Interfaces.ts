@@ -11,7 +11,11 @@ export interface Event {
     fecha_creacion: string
     estatus: string
     fecha_actualizacion: string
+    updatedAt: Date
     tipo: string
+    temporada: string,
+    estilo: string,
+    tematica: string,
     nombre: string
     usuario_id: string
     detalles_usuario_id: detalle_compartidos_array
@@ -33,6 +37,8 @@ export interface Event {
     notificaciones_array: notification[]
     imgEvento: image
     imgInvitacion: image
+    imgEvento: image
+    templateInvitacionSelect: string
     presupuesto_objeto: estimate
     listaRegalos: string
     listIdentifiers: ListIdentifiers[]
@@ -43,6 +49,22 @@ export interface Event {
     tarta: string
     color: string[]
     //permission: boolean
+}
+
+export interface ConfigTemplate {
+    name: string
+    subject: string
+}
+
+export interface EmailDesign {
+    _id: string
+    configTemplate: ConfigTemplate
+    design: JSON
+    html: string
+    preview: string
+    isTemplate?: boolean
+    createdAt: Date
+    updatedAt: Date
 }
 
 export interface ListIdentifiers {

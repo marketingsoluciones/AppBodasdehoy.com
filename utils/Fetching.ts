@@ -102,6 +102,53 @@ export const fetchApiEventos = async ({ query, variables, token }: argsFetchApi)
 };
 
 export const queries = {
+  createEmailTemplate: `mutation($evento_id:String, $design:JSON, $configTemplate:inputCongigTemplate, $html:String){
+    createEmailTemplate(evento_id:$evento_id, design:$design, configTemplate:$configTemplate, html:$html){
+      _id
+      createdAt
+      updatedAt
+    }
+  }`,
+
+  updateEmailTemplate: `mutation($evento_id:String, $template_id:String, $design:JSON, $configTemplate:inputCongigTemplate, $html:String){
+    updateEmailTemplate(evento_id:$evento_id, template_id:$template_id, design:$design, configTemplate:$configTemplate, html:$html)
+  }`,
+  deleteEmailTemplate: `mutation($evento_id:String, $template_id:String){
+    deleteEmailTemplate(evento_id:$evento_id, template_id:$template_id)
+  }`,
+  getPreviewsEmailTemplates: `query ($evento_id:String){
+    getPreviewsEmailTemplates(evento_id:$evento_id){
+      _id
+      configTemplate{
+        name
+        subject
+      }
+      preview
+      createdAt
+      updatedAt
+    }
+  }`,
+
+  getEmailTemplate: `query ($template_id:String){
+    getEmailTemplate(template_id:$template_id){
+      design
+    }
+  }`,
+
+  getVariableEmailTemplate: `query ($template_id:String, $selectVariable:String){
+    getVariableEmailTemplate(template_id:$template_id, selectVariable:$selectVariable){
+      _id
+      configTemplate{
+        name
+        subject
+      }
+      preview
+      html
+      design
+      createdAt
+      updatedAt
+    }
+  }`,
 
   getAllBusiness: `query ($criteria :searchCriteriaBusiness, $sort : sortCriteriaBusiness, $skip :Int, $limit : Int, $development: String!) {
     getAllBusinesses(searchCriteria:$criteria, sort: $sort, skip: $skip, limit: $limit, development: $development){
@@ -691,6 +738,7 @@ createTask: `mutation ($eventID:String, $itinerarioID:String, $fecha:String, $de
       }
       poblacion
       pais
+      templateInvitacionSelect
       imgEvento{
         _id
         i1024
@@ -1613,6 +1661,7 @@ createTask: `mutation ($eventID:String, $itinerarioID:String, $fecha:String, $de
         title
         slug
       }
+      templateInvitacionSelect
       imgEvento{
         _id
         i1024
@@ -1621,6 +1670,7 @@ createTask: `mutation ($eventID:String, $itinerarioID:String, $fecha:String, $de
         i320
         createdAt
       }
+
       imgInvitacion{
         _id
         i1024
@@ -2140,5 +2190,8 @@ createTask: `mutation ($eventID:String, $itinerarioID:String, $fecha:String, $de
   }`,
   signOut: `mutation ($sessionCookie :String){
     signOut(sessionCookie:$sessionCookie)
+  }`,
+  testInvitacion: `mutation ($evento_id: String, $email: [String], $lang: String){
+    testInvitacion(evento_id:$evento_id, email:$email, lang:$lang)
   }`,
 };
