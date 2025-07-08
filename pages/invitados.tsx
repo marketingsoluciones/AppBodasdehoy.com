@@ -14,7 +14,7 @@ import { BlockTableroInvitados } from "../components/Invitados/BlockTableroInvit
 import { SelectModeView } from "../components/Utils/SelectModeView";
 import { NextSeo } from "next-seo";
 
-export type ViewItinerary = "table" | "cards" | "schema"
+export type ViewItinerary = "table" | "schema" | "cards" | "extraTable" | "boardView" | "newTable"; // Agregar "extraTable"
 
 const Invitados: FC = () => {
   const [isMounted, setIsMounted] = useState<boolean>(false);
@@ -136,7 +136,7 @@ const Invitados: FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 gap-4 relative"
+              className="flex mx-auto inset-x-0 w-full px-8 md:px-8 gap-4 relative"
             >
               <BlockCabecera />
               <div className="absolute z-10  right-5 md:right-[155px] translate-y-3 md:top-[170px]">

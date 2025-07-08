@@ -43,7 +43,7 @@ const Itinerario: FC<any> = (props) => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="max-w-screen-lg mx-auto inset-x-0 w-full pl-2 pr-[1px] md:px-0 gap-4 relative">
+                    className="mx-auto inset-x-0 w-full pl-2 pr-[1px] md:px-4 gap-4 relative">
                     <BlockTitle title={"Tasks"} />{/*task planning o task management*/} {/* Flujo de tareas */}
                     <BoddyIter />
 

@@ -32,10 +32,10 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
     );
     if (event?.usuario_id === user?.uid || event?.permissions?.find(elem => elem?.title === "presupuesto").value === "edit") {
       const data = event?.presupuesto_objeto?.categorias_array?.find((item) => item._id == showCategoria?._id)?.gastos_array
-      setData([...data]);
+      setData([...(data ?? [])]);
     } else {
       const data = event?.presupuesto_objeto?.categorias_array?.find((item) => item._id == showCategoria?._id)?.gastos_array.filter(el => el?.estatus !== false)
-      setData([...data]);
+      setData([...(data ?? [])]);
     }
     setGastoID(old => ({ ...old, crear: false }))
   }, [showCategoria, event, event?.presupuesto_objeto?.currency]);
@@ -114,22 +114,32 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
         Cell: props => {
           props.row.original.object = "gasto";
           props.row.original.categoriaID = categoria?._id;
-          props.row.original.gastoID = props.row.original._id;
-          let value = props.row.original.coste_final;
-          return (
-            <div className="flex justify-end  ">
-              <EditableLabelWithInput
-                accessor="coste_final"
-                handleChange={(values) => {
-                  handleChange({ values, info: props, event, setEvent });
-                }}
-                type="float"
-                value={value}
-                textAlign="end"
-                isLabelDisabled
-              />
-            </div>
-          );
+          props.row.original.gastoID = props?.row?.original?._id;
+          let value = props?.row?.original?.coste_final;
+          if (props?.row?.original?.items_array?.length === 0) {
+
+            return (
+              <div className="flex justify-end  ">
+                <EditableLabelWithInput
+                  accessor="coste_final"
+                  handleChange={(values) => {
+                    handleChange({ values, info: props, event, setEvent });
+                  }}
+                  type="float"
+                  value={value}
+                  textAlign="end"
+                  isLabelDisabled
+                />
+              </div>
+            );
+          } else {
+            return (
+              <div className="flex justify-end  ">
+                {getCurrency(parseFloat(value))}
+              </div>
+            );
+          }
+
         },
       },
       {
@@ -145,9 +155,6 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
         Cell: (props) => {
           const [value, setValue] = useState(0);
           const total = props?.row?.values?.pagado - props?.row?.values?.coste_final
-          console.log(15, props?.row?.values?.pagado)
-          console.log(16, props?.row?.values?.coste_final)
-          console.log(17, total)
 
           useEffect(() => {
             if (props?.row?.values?.coste_final === 0) {
@@ -248,7 +255,7 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
         <div className="relative bg-white w-full  h-max grid place-items-center z-20 rounded-xl white shadow-lg top-0 left-0 p-8 ">
           <div className="font-display text-gray-500 hover:text-gray-300 transition text-lg absolute top-5 right-5 cursor-pointer hover:scale-125" onClick={() => setGastoID("")}>X</div>
 
-          <FormAddPago GastoID={GastoID?.id} cate={categoria?._id} />
+          <FormAddPago GastoID={GastoID?.id} cate={categoria?._id}  setGastoID={setGastoID}  />
 
         </div>
       )}

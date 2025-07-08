@@ -131,7 +131,6 @@ const InputAttachments: FC<Partial<props>> = ({ label, task, itinerarioID, class
           type="file"
           multiple
           name="attachments"
-          required
           onChange={(e) => handleOnChange(e)}
           className="hidden"
           //accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"

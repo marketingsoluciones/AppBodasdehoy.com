@@ -37,7 +37,7 @@ export const SelectVisiblesColumns: FC<props> = ({ columns, table, handleChangeC
       </button>
       {dropdownOpen && <div className="absolute w-52 bg-white border border-gray-300 rounded shadow-lg overflow-y-auto z-10  right-10 top-0 text-xs py-2">
         <div
-          className="flex hover:bg-basePage items-center px-4 py-1 text-gray-700"
+          className="flex hover:bg-basePage items-center px-4 py-1 text-gray-700  border-b-[1px] border-primary pb-2"
         >
           <input
             id={`checkbox-U`}
@@ -50,7 +50,7 @@ export const SelectVisiblesColumns: FC<props> = ({ columns, table, handleChangeC
             {!showDataState ? 'Mostrar items no visibles' : 'Ocultar items no visibles'}
           </label>
         </div>
-        <div
+        {/* <div
           className="flex hover:bg-basePage items-center px-4 py-1 text-gray-700 border-b-[1px] border-primary pb-2"
         >
           <input
@@ -64,7 +64,7 @@ export const SelectVisiblesColumns: FC<props> = ({ columns, table, handleChangeC
           <label htmlFor={`checkbox-U`} className="cursor-pointer px-2 w-full capitalize">
             {"Ver todas"}
           </label>
-        </div>
+        </div> */}
         {columns.map((elem, idx) => {
           if (!elem?.isHidden) {
             return (

@@ -300,10 +300,46 @@ export const queries = {
     }
   }`,
 
+  updateTasksOrder: `
+    mutation($eventID: String, $itinerarioID: String, $tasksOrder: String) {
+      updateTasksOrder(
+        eventID: $eventID,
+        itinerarioID: $itinerarioID,
+        tasksOrder: $tasksOrder
+      )
+    }
+  `,
+
   editTask: `mutation ($eventID:String, $itinerarioID:String, $taskID:String, $variable:String, $valor:String){
     editTask(eventID:$eventID itinerarioID:$itinerarioID  taskID:$taskID  variable:$variable  valor:$valor )
   }`,
-  createTask: `mutation ($eventID:String, $itinerarioID:String, $fecha:String, $descripcion:String, $hora:String, $duracion:Int){
+  
+      saveViewConfig: `
+    mutation saveViewConfig($eventID: String, $itinerarioID: String, $viewConfig: String) {
+      saveViewConfig(
+        eventID: $eventID,
+        itinerarioID: $itinerarioID,
+        viewConfig: $viewConfig
+      )
+    }
+  `,
+  
+  getViewConfigs: `
+    query getViewConfigs($eventID: String, $itinerarioID: String) {
+      getViewConfigs(
+        eventID: $eventID,
+        itinerarioID: $itinerarioID
+      ) {
+        id
+        name
+        columns
+        filters
+        sortBy
+      }
+    }
+  `,  
+
+createTask: `mutation ($eventID:String, $itinerarioID:String, $fecha:String, $descripcion:String, $hora:String, $duracion:Int){
     createTask(eventID:$eventID, itinerarioID:$itinerarioID, fecha:$fecha, descripcion:$descripcion, hora:$hora, duracion:$duracion ){
       _id
       fecha
@@ -337,9 +373,12 @@ export const queries = {
         }
       }
       commentsViewers
+      estado
+      prioridad
       fecha_creacion
     }
   }`,
+
   deleteTask: `
   mutation  ( $eventID:String, $itinerarioID:String, $taskID:String  ) {
     deleteTask ( eventID:$eventID  itinerarioID:$itinerarioID  taskID:$taskID)
@@ -401,6 +440,8 @@ export const queries = {
           }
         }
         commentsViewers
+        estado
+        prioridad
       }
       tipo
       fecha_creacion
@@ -444,6 +485,8 @@ export const queries = {
           }
         }
         commentsViewers
+        estado
+        prioridad
       }
       tipo
     }
@@ -500,7 +543,13 @@ export const queries = {
             }
           }
           commentsViewers
+          estado
+          prioridad
           fecha_creacion
+        }
+        columnsOrder{
+          columnId
+          order
         }
         viewers
         tipo
@@ -690,6 +739,14 @@ export const queries = {
       poblacion
       pais
       templateInvitacionSelect
+      imgEvento{
+        _id
+        i1024
+        i800
+        i640
+        i320
+        createdAt
+      }
       imgInvitacion{
         _id
         i1024
@@ -741,6 +798,12 @@ export const queries = {
             }
           }
           commentsViewers
+          estado
+          prioridad
+        }
+        columnsOrder{
+          columnId
+          order
         }
         viewers
         tipo
@@ -1065,6 +1128,14 @@ export const queries = {
         }
         items_array{
           _id
+          next_id
+          unidad
+          cantidad
+          nombre
+          valor_unitario
+          total
+          estatus
+          fecha_creacion
          }
      }
   }
@@ -1166,6 +1237,46 @@ export const queries = {
                     }
                   }
                 }`,
+
+  editPago: `mutation($evento_id:String, $categoria_id:String, $gasto_id: String, $pago_id:String,$pagos_array:pagos_arrayAinput){
+                  editPago(evento_id:$evento_id, categoria_id:$categoria_id, gasto_id:$gasto_id,pago_id:$pago_id, pagos_array:$pagos_array){
+                    categorias_array{
+                      pagado
+                      gastos_array{
+                        pagado 
+                        pagos_array{
+                          _id
+                          estado
+                          fecha_creacion
+                          fecha_pago
+                          fecha_vencimiento
+                          medio_pago
+                          importe
+                          pagado_por
+                          concepto
+                          soporte{
+                            image_url
+                            medium_url
+                            thumb_url
+                            delete_url
+                          }
+                        }
+                        items_array{
+                          _id
+                          next_id
+                          unidad
+                          cantidad
+                          nombre
+                          valor_unitario
+                          total
+                          estatus
+                          fecha_creacion
+                        }
+                      }
+                    }
+                  }
+                }`,
+
   borrarGasto: `mutation($evento_id: String, $categoria_id: String, $gasto_id: String){
                 borraGasto(evento_id:$evento_id, categoria_id:$categoria_id,gasto_id:$gasto_id){
                   coste_final
@@ -1551,6 +1662,15 @@ export const queries = {
         slug
       }
       templateInvitacionSelect
+      imgEvento{
+        _id
+        i1024
+        i800
+        i640
+        i320
+        createdAt
+      }
+
       imgInvitacion{
         _id
         i1024
@@ -1602,6 +1722,12 @@ export const queries = {
             }
           }
           commentsViewers
+          estado
+          prioridad
+        }
+        columnsOrder{
+          columnId
+          order
         }
         viewers
         tipo

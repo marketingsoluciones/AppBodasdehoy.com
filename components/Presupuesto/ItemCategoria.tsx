@@ -36,12 +36,13 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
         variables: {
           evento_id: event?._id,
           categoria_id: item._id,
-          nombre: value,
+          nombre: value !== "" ? value : "nueva categoria"
         }
       }).then(() => {
         setEvent(old => {
+          console.log("value", value)
           const index = old?.presupuesto_objeto?.categorias_array?.findIndex(item => item._id == item._id)
-          old.presupuesto_objeto.categorias_array[index].nombre = value
+          old.presupuesto_objeto.categorias_array[index].nombre = value !== "" ? value : "nueva categoria"
           return { ...old }
         });
         toast("success", t("suscess"))
@@ -50,6 +51,7 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
       console.log(error);
     }
   }
+
 
   return (
     <>
@@ -73,11 +75,14 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
         className={`text-xs w-full py-0.5 md:py-0 md:h-11 justify-center items-center flex pl-5 md:pl-2 transition hover:bg-base ${showCategoria?._id == item._id ? "bg-slate-200" : "bg-white"}`}
       >
         <div className="grid grid-cols-10 text-xs w-full">
-          <div className="col-span-4 flex capitalize"
+          <div className="col-span-4 flex capitalize break-all "
             onClick={(e) => e.stopPropagation()}
           >
+
             <EditableLabelWithInput
-              value={item?.nombre}
+              value={item?.nombre && item.nombre.length > 15
+                ? item.nombre.slice(0, 30) + "..."
+                : item.nombre}
               type={null}
               handleChange={handleOnBlur}
               accessor={null}

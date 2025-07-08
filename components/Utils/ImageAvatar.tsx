@@ -1,7 +1,6 @@
 import { FC, useState } from "react"
 import { detalle_compartidos_array } from "../../utils/Interfaces"
 import { useRouter } from "next/router"
-import { GruposResponsablesArry } from "../Itinerario/MicroComponente"
 
 interface props {
   user: detalle_compartidos_array
@@ -23,32 +22,29 @@ export const ImageAvatar: FC<props> = ({ user, disabledTooltip }) => {
     <div onMouseOver={() => {
       setShowName(true)
     }} onMouseOut={() => setShowName(false)} className="w-full h-full relative">
-      {
-
-        !!(user?.photoURL || user?.icon)
-          ?
-          <div className={`flex items-center justify-center text-white uppercase w-full h-full rounded-full overflow-hidden`}>
-            <img src={
-              user?.photoURL ? user?.photoURL : user?.icon
-            }
+      {!!(user?.photoURL || user?.icon)
+        ?
+        <div className={`flex items-center justify-center text-white uppercase w-full h-full rounded-full overflow-hidden`}>
+          <img src={
+            user?.photoURL ? user?.photoURL : user?.icon
+          }
             alt="Photo perfil"
-              className="rounded-full truncate overflow-hidden"
-            />
-          </div>
-          :
-          <div
-            style={{ backgroundColor: h(user?.uid?.slice(-11)) }}
-            className={`flex items-center justify-center text-white uppercase w-full h-full rounded-full text-[14px]*`}
-          >
-            {
-              user?.displayName
-                ? (user?.displayName.split(" ").map(elem => elem.slice(0, 1).toUpperCase())).join("")
-                : user?.email?.slice(0, 1)
-            }
-          </div>
+            className="rounded-full truncate overflow-hidden"
+          />
+        </div>
+        :
+        <div
+          style={{ backgroundColor: h(user?.uid?.slice(-11)) }}
+          className={`flex items-center justify-center text-white uppercase w-full h-full rounded-full text-[14px]*`}
+        >
+          {
+            user?.displayName
+              ? (user?.displayName.split(" ").map(elem => elem.slice(0, 1).toUpperCase())).join("")
+              : user?.email?.slice(0, 1)
+          }
+        </div>
       }
-
-      {(!["/itinerario", "/lista-de-mis-eventos"].includes(window?.location?.pathname) && showName && !disabledTooltip) && <div style={{ right: 10, top: 30 }} className="absolute z-20 bg-black rounded-md flex items-center justify-center leading-[1.2] opacity-75">
+      {(!["/itinerario", "/eventos"].includes(window?.location?.pathname) && showName && !disabledTooltip) && <div style={{ right: 10, top: 30 }} className="absolute z-20 bg-black rounded-md flex items-center justify-center leading-[1.2] opacity-75">
         <span className="text-white text-[10px] py-1 px-2">
           {user?.displayName ? user?.displayName : user?.email}
         </span>

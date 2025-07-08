@@ -8,7 +8,7 @@ import { TaskNew } from "../../components/Itinerario/MicroComponente/TaskNew";
 import { openGraphData } from "../_app";
 import { AuthContextProvider } from "../../context/AuthContext";
 import { EventContextProvider } from "../../context";
-import { TempPastedAndDropFiles } from "../../components/Itinerario/MicroComponente/ItineraryPanel";
+import { TempPastedAndDropFile } from "../../components/Itinerario/MicroComponente/ItineraryPanel";
 import { useRouter } from "next/router";
 
 interface props {
@@ -19,9 +19,10 @@ interface props {
 }
 
 const Slug: FC<props> = (props) => {
+  console.log("propsnew", props)
   if (!props?.evento?.itinerarios_array?.length)
     return (
-      <div className="bg-red-200 text-blue-700 w-full h-full text-center mt-20">
+      <div className="bg-[#ffbfbf] text-blue-700 w-full h-full text-center mt-20">
         Page not found error 404
       </div>
     )
@@ -36,7 +37,7 @@ const ServicesVew = (props) => {
   const router = useRouter()
   const { event, setEvent } = EventContextProvider()
   const { user, setUser, verificationDone } = AuthContextProvider()
-  const [tempPastedAndDropFiles, setTempPastedAndDropFiles] = useState<TempPastedAndDropFiles[]>([]);
+  const [tempPastedAndDropFiles, setTempPastedAndDropFiles] = useState<TempPastedAndDropFile[]>([]);
 
   useEffect(() => {
     if (verificationDone) {
@@ -66,7 +67,7 @@ const ServicesVew = (props) => {
           </div>
           <div className='flex-1 md:flex-none md:w-[35%] h-[100%] flex flex-row-reverse md:flex-row items-center '>
             <img
-              src={defaultImagenes[event?.tipo]}
+              src={event?.imgEvento ? `https://apiapp.bodasdehoy.com/${event.imgEvento.i800}` : defaultImagenes[event?.tipo]}
               className=" h-[90%] object-cover object-top rounded-md border-1 border-gray-600  hidden md:block"
               alt={event?.nombre}
             />
@@ -130,14 +131,17 @@ export async function getServerSideProps(context) {
         itinerario_id
       }
     }) as any
+
     const itinerary = evento.itinerarios_array.find(elem => elem._id === query.itinerary)
     const task = itinerary?.tasks?.find(elem => elem._id === query.task)
     const development = getDevelopment(req.headers.host)
+
     const users = await fetchApiBodas({
       query: queries?.getUsers,
       variables: { uids: task.comments.filter(elem => !!elem.uid).map(elem => elem.uid) },
       development: !/^\d+$/.test(development) ? development : "champagne-events"
     })
+
     const usersMap = users?.map(elem => {
       return {
         uid: elem.uid,
@@ -145,15 +149,17 @@ export async function getServerSideProps(context) {
         photoURL: elem.photoURL
       }
     })
-    evento._id = evento_id,
-      itinerary.tasks = [task]
+
+    evento._id = evento_id
+    itinerary.tasks = [task]
     evento.itinerarios_array = [itinerary]
     evento.detalles_compartidos_array = users
     evento.fecha_actualizacion = new Date().toLocaleString()
+
     if (evento) {
       openGraphData.openGraph.title = `${evento.itinerarios_array[0].tasks[0].descripcion}`
-      openGraphData.openGraph.description = ` El Evento ${evento.tipo}, de ${evento.nombre}, ${new Date(parseInt(evento?.itinerarios_array[0].fecha_creacion)).toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}
-${evento.itinerarios_array[0].tasks[0].tips.replace(/<[^>]*>/g, "").replace(".", ". ")}`
+      openGraphData.openGraph.description = ` El Evento ${evento.tipo}, de ${evento.nombre}, ${new Date(parseInt(evento?.itinerarios_array[0].fecha_creacion))?.toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}
+`
     }
     return {
       props: { ...params, query, evento, users: usersMap },
@@ -166,6 +172,8 @@ ${evento.itinerarios_array[0].tasks[0].tips.replace(/<[^>]*>/g, "").replace(".",
 
   }
 }
+
+/* ${evento.itinerarios_array[0].tasks[0].tips.replace(/<[^>]*>/g, "").replace(".", ". ")} */
 
 const getDevelopment = (host) => {
   let domain = '';

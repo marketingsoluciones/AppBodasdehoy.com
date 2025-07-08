@@ -664,9 +664,12 @@ export const en = {
     'importBudget': "import budget",
     'importInto': "import into",
     'from': "from",
-
-
-
+    'importWarning': "The import will overwrite the current budget",
+    'endTime': 'end time',
+    'startTime':' start time',
+    asc: "ascending",
+    desc: "descending",
+    toOrder: "to order",
     maxLimitedItineraries: "The maximum limit for creating or duplicating was reached",
     importCorrect: "guests imported successfully",
     fileErrors: "The file contains errors",

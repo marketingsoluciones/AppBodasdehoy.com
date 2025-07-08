@@ -15,14 +15,46 @@ interface props {
   categorias_array: estimateCategory[]
   setShowCategoria: Dispatch<SetStateAction<{ state: boolean, _id?: string }>>
   showCategoria: { state: boolean, _id: string }
+  showDataState: boolean
 }
 
-export const BlockListaCategorias: FC<props> = ({ categorias_array, setShowCategoria, showCategoria }) => {
+export const BlockListaCategorias: FC<props> = ({ categorias_array, setShowCategoria, showCategoria, showDataState }) => {
   const { event } = EventContextProvider()
   const { t } = useTranslation();
   const [showCreateCategorie, setShowCreateCategorie] = useState(false);
   const [isAllowed, ht] = useAllowed()
   const [showOptionsModal, setShowOptionsModal] = useState(false)
+
+  const categorias = event.presupuesto_objeto.categorias_array
+
+  /* useEffect(() => {
+    calcularCosteFinal(categorias_array);
+  }, [categorias_array, showDataState])
+
+  function calcularCosteFinal(categorias_array) {
+    categorias_array?.forEach(categoria => {
+      categoria.gastos_array?.forEach(gasto => {
+        if (Array.isArray(gasto.items_array) && gasto.items_array.length > 0) {
+          const totalInvitados = event?.presupuesto_objeto?.totalStimatedGuests?.adults + event?.presupuesto_objeto?.totalStimatedGuests?.children;
+          gasto.coste_final = gasto.items_array
+            ?.filter(item => showDataState ? true : item.estatus === false)
+            ?.reduce(
+              (total, item) =>
+
+                total + (item.valor_unitario * item.cantidad),
+
+              0
+            );
+        }
+      });
+      categoria.coste_final = categoria.gastos_array
+        ?.filter(gasto => showDataState ? true : gasto.estatus === true)
+        ?.reduce(
+          (total, gasto) => total + (gasto.coste_final || 0),
+          0
+        );
+    });
+  } */
 
   return (
     <>
@@ -44,7 +76,7 @@ export const BlockListaCategorias: FC<props> = ({ categorias_array, setShowCateg
             <PlusIcon className="text-white w-4 h-4" />
             {t("newcategory")}
           </button>
-          <button onClick={()=> setShowOptionsModal(!showOptionsModal)} className="flex items-center gap-1">
+          <button onClick={() => setShowOptionsModal(!showOptionsModal)} className="flex items-center gap-1">
             <BsThreeDotsVertical />
           </button>
         </div>
@@ -58,7 +90,7 @@ export const BlockListaCategorias: FC<props> = ({ categorias_array, setShowCateg
 
         </div>
         <ul className={`w-full flex flex-col text-sm h-44 overflow-y-auto md:h-[400px] divide-y text-gray-600 cursor-pointer`}>
-          {categorias_array?.map((item, idx) => (
+          {categorias?.map((item, idx) => (
             <ItemCategoria key={idx} item={item} setShowCategoria={setShowCategoria} showCategoria={showCategoria} />
           ))}
         </ul>
@@ -96,9 +128,9 @@ export const ModalOptionsCategoria = ({ showOptionsModal, setShowOptionsModal })
   return (
     <ClickAwayListener onClickAway={() => showOptionsModal && setShowOptionsModal(false)}>
       <div className="absolute top-10 right-5 bg-white shadow-lg rounded-lg  z-50">
-        <div className="text-xs flex justify-center border-b py-2 ">
+        {/* <div className="text-xs flex justify-center border-b py-2 ">
           Opciones
-        </div>
+        </div> */}
         <div className="flex items-center gap-2 px-4 py-2">
           <input
             type="checkbox"

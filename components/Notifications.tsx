@@ -27,10 +27,14 @@ export const Notifications = () => {
   const router = useRouter()
   const detallesUsuarioIds = eventsGroup?.flatMap(event => [...event.detalles_compartidos_array, event.detalles_usuario_id])?.filter(id => id !== undefined);
 
-
-
+  let skip = 0
   const handleScroll = (e) => {
-    if (e.target.scrollTop + e.target.offsetHeight === e.target.scrollHeight && notifications.results.length < notifications.total) {
+    const zoomFactor = window.devicePixelRatio;
+    const scrollHeight = e.target.scrollHeight / zoomFactor;
+    const offsetHeight = e.target.offsetHeight / zoomFactor;
+    const scrollTop = e.target.scrollTop / zoomFactor;
+    if (scrollTop + offsetHeight >= scrollHeight - 5 && notifications.results.length < notifications.total && skip !== 8 * countScroll.count) {
+      skip = (8 * countScroll.count)
       setShowLoad(true)
       fetchApiBodas({
         query: queries.getNotifications,
@@ -154,14 +158,14 @@ export const Notifications = () => {
                   const itineraryID = item?.focused?.split("itinerary=")[1]?.split("&")[0];
                   const taskID = item?.focused?.split("task=")[1]?.split("&")[0];
                   const eventExist = eventsGroup.find(event => event._id === eventID)
-                  const itineraryExist = eventExist?.itinerarios_array?.find(itinerary=> itinerary._id === itineraryID)
+                  const itineraryExist = eventExist?.itinerarios_array?.find(itinerary => itinerary._id === itineraryID)
                   const taskExist = itineraryExist?.tasks?.find(task => task._id === taskID)
                   const path = item?.focused?.split("/").pop()?.split("?")[0].slice(0, -1);
-                
+
                   return (
                     <li key={idx} onClick={() => {
                       if (item?.focused) {
-                        if (eventExist  ) {
+                        if (eventExist) {
                           router.push(`${window.location.origin}${item.focused}`)
                         }
                       }
