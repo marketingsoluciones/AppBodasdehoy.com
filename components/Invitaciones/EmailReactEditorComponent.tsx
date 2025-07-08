@@ -329,8 +329,8 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
                 </ModalDefault>
             )}
             {showSubjectModal.state && (
-                <div className='bg-blue-300 flex items-center space-x-3 w-[500px] p-2 absolute top-10 left-40 border-2 border-gray-300 rounded-lg'>
-                    <Textarea value={showSubjectModal.value} setValue={(value) => setShowSubjectModal({ state: true, value: value })} />
+                <div className='bg-blue-300 flex items-start space-x-3 w-[500px] p-2 absolute top-10 left-40 border-2 border-gray-300 rounded-lg'>
+                    <Textarea value={showSubjectModal.value} setValue={(value) => setShowSubjectModal({ state: true, value: value })} allowEnter={false} />
                     <ButtonPrimary onClick={() => {
                         setTemplate({ ...template, configTemplate: { ...template?.configTemplate, subject: showSubjectModal.value } })
                         setShowSubjectModal({ state: false, value: '' })
@@ -382,9 +382,9 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
                                     textAlign="left" />
                             </div>
                         </div> */}
-                        <div onClick={() => setShowSubjectModal({ state: true, value: template?.configTemplate?.subject })} className={"flex w-[50px] h-[38px] flex-col items-center justify-center cursor-pointer border-x hover:bg-[#F4F4F4]"} >
+                        <div onClick={() => setShowSubjectModal({ state: !showSubjectModal.state, value: template?.configTemplate?.subject })} className={"flex w-[50px] h-[38px] flex-col items-center justify-center cursor-pointer border-x hover:bg-[#F4F4F4]"} >
                             <div className='pt-[2px] flex flex-col items-center justify-center'>
-                                <label className='text-[10px] font-semibold text-gray-600 translate-y-0.5 px-1'>{t('subject')}</label>
+                                <span className='text-[10px] font-semibold text-gray-600 translate-y-0.5 px-1'>{t('subject')}</span>
                                 <MdOutlineShortText className='h-5 w-5' />
                             </div>
                         </div>
