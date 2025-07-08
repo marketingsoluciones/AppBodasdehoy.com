@@ -127,9 +127,9 @@ const Invitaciones = () => {
                 <span> <GoChevronDown className={`h-6 w-6 text-azulCorporativo cursor-pointer transition-all ml-2 ${stateConfi && "rotate-180"}`} /></span>
               </button>
               <div className={`${stateConfi ? "" : "hidden"} md:h-96`}>
-                <div className="w-full h-full flex flex-col md:flex-row mt-3">
-                  <div className={`w-full h-96 md:w-1/3 flex justify-center`}>
-                    <div ref={hoverRef} className="relative w-60 h-80 bg-[#808080] rounded-lg border-[1px] border-gray-300">
+                <div className="w-full h-full flex flex-col md:flex-row mt-3 md:space-x-6 md:px-4">
+                  <div className={`w-full h-96 md:w-auto flex justify-center`}>
+                    <div ref={hoverRef} className={`relative w-60 h-80 ${optionSelect === "email" ? "bg-[#808080] rounded-lg border-[1px] border-gray-300" : "bg-white"}`}>
                       {optionSelect === "email"
                         ? previewEmail
                           ? <img
@@ -151,9 +151,8 @@ const Invitaciones = () => {
                       setOptionSelect={setOptionSelect}
                     />
                     <div className="col-span-3 w-full h-[280px] md:h-full">
-                      {optionSelect !== "diseño"
-                        ? <Test TitleComponent={optionSelect} setEmailEditorModal={setShowEmailEditorModal} emailEditorModal={ShowEmailEditorModal} setPreviewEmailReactEditor={setPreviewEmailReactEditor} />
-                        : <DiseñoComponent setEmailEditorModal={setShowEmailEditorModal} EmailEditorModal={ShowEmailEditorModal} />}
+                      {optionSelect === "diseño" && <DiseñoComponent setEmailEditorModal={setShowEmailEditorModal} EmailEditorModal={ShowEmailEditorModal} />}
+                      {optionSelect === "email" && <Test TitleComponent={optionSelect} setEmailEditorModal={setShowEmailEditorModal} emailEditorModal={ShowEmailEditorModal} setPreviewEmailReactEditor={setPreviewEmailReactEditor} />}
                     </div>
                   </div>
                 </div>
