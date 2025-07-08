@@ -48,7 +48,8 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
     const emailEditorRef = useRef<EditorRef>(null);
     const unlayer = emailEditorRef.current?.editor;
     const [editorReady, setEditorReady] = useState<boolean>(false);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isLoad, setIsLoad] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(false);
     const [html, setHtml] = useState<string>('');
     const [designASD, setDesignASD] = useState<EmailDesign>();
     const [template, setTemplate] = useState<EmailDesign>();
@@ -59,8 +60,9 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
     const [showLoadDraftModal, setShowLoadDraftModal] = useState<boolean>(false);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
     const [postAction, setPostAction] = useState<postActionType>();
-    const [nameNewtemplate, setNameNewTemplate] = useState<string>("new template");
     const [showSubjectModal, setShowSubjectModal] = useState<showSubjectModalType>({ state: false, value: '' });
+    const [dispatchStorage, setDispatchStorage] = useState({ updatedAt: new Date, design: undefined });
+    const nameNewtemplate = "new template";
 
     useEffect(() => {
         if (!previewEmailReactEditor) {
@@ -72,16 +74,25 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
     }, []);
 
     useEffect(() => {
+        if (template) {
+            localStorage.setItem('emailEditorDesign', JSON.stringify({
+                ...template,
+                design: dispatchStorage.design,
+                updatedAt: dispatchStorage.updatedAt
+            }));
+        }
+    }, [dispatchStorage])
+
+    useEffect(() => {
         if (unlayer) {
             if (!previewEmailReactEditor) {
                 unlayer.addEventListener('design:updated', function (updates) {
                     unlayer.exportHtml(function (data) {
-                        localStorage.setItem('emailEditorDesign', JSON.stringify({
-                            design: data.design,
-                            name: template?.configTemplate.name ?? nameNewtemplate,
-                            _id: template?._id,
-                            updatedAt: new Date()
-                        }));
+
+                        setDispatchStorage({
+                            updatedAt: new Date(),
+                            design: data.design
+                        })
                         setHasUnsavedChanges(true);
                     });
                 });
@@ -166,12 +177,17 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
 
     const handleLoadDraft = () => {
         const draft = localStorage.getItem('emailEditorDesign');
+        setLoading(true)
+        setHasUnsavedChanges(true)
         if (draft && unlayer) {
             const template = JSON.parse(draft);
             unlayer.loadDesign(template.design);
             setTemplate(template);
         }
         setShowLoadDraftModal(false);
+        setTimeout(() => {
+            setLoading(false)
+        }, 1000)
     };
 
     const handleDiscardDraft = () => {
@@ -191,12 +207,13 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
     const onReady: EmailEditorProps['onReady'] = (unlayer) => {
         setEditorReady(true);//ver que hace
         setTimeout(() => {
-            setIsLoading(true)
+            setIsLoad(true)
         }, previewEmailReactEditor ? 800 : 0);
     };
 
     const handleNextSaveDesign = async () => {
         try {
+            setLoading(true)
             if (!template?._id) {
                 fetchApiEventos({
                     query: queries.createEmailTemplate,
@@ -215,6 +232,9 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
                     localStorage.removeItem('emailEditorDesign');
                     setHasUnsavedChanges(false);
                     postAction?.state && postAction.action();
+                    setShowSaveModal(false);
+                    setHtml('');
+                    setLoading(false)
                 })
             } else {
                 fetchApiEventos({
@@ -234,10 +254,12 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
                         const newEvent = { ...event, fecha_actualizacion: new Date().toLocaleString() }
                         setEvent({ ...newEvent })
                     }
+                    setShowSaveModal(false);
+                    setHtml('');
+                    setLoading(false)
                 })
             }
-            setShowSaveModal(false);
-            setHtml('');
+
         } catch (error) {
             console.log('error', error)
         }
@@ -337,8 +359,9 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
                     }}>Guardar</ButtonPrimary>
                 </div>
             )}
-            {!isLoading && <div className="absolute z-50  top-[calc(50%-20px)] left-[calc(50%-20px)] loader ease-linear rounded-full border-[7px] border-black border-opacity-35 w-10 h-10" />}
-            <div className={`h-full ${isLoading ? "opacity-100" : "opacity-0"} transition-all duration-300`} >
+            {(!isLoad || loading) && <div className="absolute z-50 w-full h-full bg-white opacity-30" />}
+            {(!isLoad || loading) && <div className="absolute z-50  top-[calc(50%-20px)] left-[calc(50%-20px)] loader ease-linear rounded-full border-[7px] border-black border-opacity-35 w-10 h-10" />}
+            <div className={`h-full ${isLoad ? "opacity-100" : "opacity-0"} transition-all duration-300`} >
                 {editorReady && <div className='absolute flex w-[604px]'>
                     <div onClick={handleCloseEditor} className={"flex w-16 h-[38px] flex-col items-center justify-center cursor-pointer border-l hover:bg-[#F4F4F4]"} >
                         <div className='pt-[2px]'>
