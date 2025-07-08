@@ -452,12 +452,12 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
                         tag5: {
                             name: "estilo",
                             value: "{{params.styleEvent}}",
-                            sample: event?.estilo
+                            sample: event?.estilo?.toUpperCase() || "sin estilo cargado"
                         },
                         tag6: {
                             name: "tematica",
                             value: "{{params.themeEvent}}",
-                            sample: event?.tematica.toUpperCase()
+                            sample: event?.tematica?.toUpperCase() || "sin tematica cargada"
                         },
                         tag7: {
                             name: "usuario_nombre",
