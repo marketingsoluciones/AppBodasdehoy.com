@@ -8,8 +8,7 @@ import Resizer from "react-image-file-resizer";
 import { useTranslation } from 'react-i18next';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { PiCheckFatThin } from "react-icons/pi";
-import { LiaLinkSolid } from "react-icons/lia";
-
+import { LiaLinkSolid, LiaTrashSolid } from "react-icons/lia";
 
 const resizeImage = (file) => {
   try {
@@ -29,54 +28,7 @@ const resizeImage = (file) => {
     console.error("Error resizing image:", error);
     return error;
   }
-
 }
-
-const ModuloSubida = ({ event, use }) => {
-  const { t } = useTranslation();
-  const [cargado, setCargado] = useState({ titulo: "esperando archivo" });
-  const [imagePreviewUrl, setImagePreviewUrl] = useState({
-    file: {},
-    preview: false,
-    image: `${process.env.NEXT_PUBLIC_BASE_URL}${event?.imgInvitacion?.i800}`,
-  });
-  const toast = useToast()
-  const { setEvent } = EventContextProvider()
-  const [showAddImg, setShowAddImg] = useState(true)
-  const [sendedImg, setSendedImg] = useState(false)
-  const [isAllowed, ht] = useAllowed()
-  const [copied, setCopied] = useState(false)
-  useEffect(() => {
-    if (copied) {
-      setTimeout(() => {
-        setCopied(false)
-      }, 3000);
-    }
-  }, [copied])
-
-  const subir_archivo = async () => {
-    try {
-      if (imagePreviewUrl?.file?.type && !sendedImg) {
-        const newFile = new FormData();
-        const params = {
-          query: `mutation ($file: Upload!, $_id : String, $use : String) {
-                singleUpload(file: $file, _id:$_id, use : $use){
-                  _id
-                  i1024
-                  i800
-                  i640
-                  i320
-                  createdAt
-                }
-              }
-            `,
-          variables: {
-            file: null,
-            _id: event?._id,
-            use: use,
-          },
-        };
-
 
 export const subir_archivo = async ({ imagePreviewUrl, event, use }) => {
   try {
@@ -84,16 +36,16 @@ export const subir_archivo = async ({ imagePreviewUrl, event, use }) => {
       const newFile = new FormData();
       const params = {
         query: `mutation ($file: Upload!, $_id : String, $use : String) {
-                    singleUpload(file: $file, _id:$_id, use : $use){
-                      _id
-                      i1024
-                      i800
-                      i640
-                      i320
-                      createdAt
-                    }
+                  singleUpload(file: $file, _id:$_id, use : $use){
+                    _id
+                    i1024
+                    i800
+                    i640
+                    i320
+                    createdAt
                   }
-                `,
+                }
+              `,
         variables: {
           file: null,
           _id: event?._id,
@@ -128,8 +80,17 @@ const ModuloSubida = (props) => {
   const toast = useToast();
   const { setEvent } = EventContextProvider();
   const [isAllowed, ht] = useAllowed();
+  const [copied, setCopied] = useState(false);
 
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (copied) {
+      setTimeout(() => {
+        setCopied(false)
+      }, 3000);
+    }
+  }, [copied])
 
   useEffect(() => {
     if (imagePreviewUrl?.file) {
@@ -219,16 +180,16 @@ const ModuloSubida = (props) => {
       </div>
       <style jsx>
         {`
-          .background-image {
-            background-image: url('${imagePreviewUrl?.image}');
-            background-size: contain;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-color: ${imagePreviewUrl.preview ? "white" : "gray"};
-            width: 100%;
-            height: 100%; /* Asegúrate de que el contenedor tenga una altura definida */
-          }
-        `}
+        .background-image {
+          background-image: url('${imagePreviewUrl?.image}');
+          background-size: contain;
+          background-position: center;
+          background-repeat: no-repeat;
+          background-color: ${imagePreviewUrl.preview ? "white" : "gray"};
+          width: 100%;
+          height: 100%; /* Asegúrate de que el contenedor tenga una altura definida */
+        }
+      `}
       </style>
     </>
   );

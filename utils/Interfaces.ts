@@ -1,9 +1,9 @@
 import { Dispatch, ReactNode, SetStateAction } from "react"
 
 export interface TableTotals {
-  estimado: number;
-  total: number;
-  pagado: number;
+    estimado: number;
+    total: number;
+    pagado: number;
 }
 
 export interface Event {
@@ -37,7 +37,6 @@ export interface Event {
     notificaciones_array: notification[]
     imgEvento: image
     imgInvitacion: image
-    imgEvento: image
     templateInvitacionSelect: string
     presupuesto_objeto: estimate
     listaRegalos: string
@@ -114,24 +113,24 @@ export interface ColumnOrder {
 }
 
 export interface Task {
-  _id: string
-  fecha: Date
-  //hora: string // No es un campo separado, se incluye en fecha
-  icon: string
-  descripcion: string
-  responsable: string[]
-  duracion: number
-  tags: string[]
-  tips: string
-  attachments: FileData[]
-  spectatorView: boolean
-  comments: Comment[]
-  commentsViewers: string[]
-  estado: string // Campo local para manejar el estado en el cliente
-  prioridad: string
-  estatus: boolean // Campo que determina si está completada
-  order?: number; // Campo local para mantener el orden en el cliente
-  columnId?: string; // Campo local para saber a qué columna pertenece
+    _id: string
+    fecha: Date
+    //hora: string // No es un campo separado, se incluye en fecha
+    icon: string
+    descripcion: string
+    responsable: string[]
+    duracion: number
+    tags: string[]
+    tips: string
+    attachments: FileData[]
+    spectatorView: boolean
+    comments: Comment[]
+    commentsViewers: string[]
+    estado: string // Campo local para manejar el estado en el cliente
+    prioridad: string
+    estatus: boolean // Campo que determina si está completada
+    order?: number; // Campo local para mantener el orden en el cliente
+    columnId?: string; // Campo local para saber a qué columna pertenece
 }
 
 export interface TaskDateTimeAsString extends Omit<Task, 'fecha'> {
