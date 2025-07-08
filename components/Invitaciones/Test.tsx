@@ -17,6 +17,7 @@ import ModalDefault from "./ModalDefault";
 import { ModalTemplates } from "./ModalTemplates";
 import { EmailDesign } from "../../utils/Interfaces";
 import ButtonSecondary from "./ButtonSecondary";
+import i18next from "i18next";
 
 export type TitleComponent = "email" | "whatsapp" | "sms" | "diseño"
 
@@ -91,7 +92,8 @@ export const Test = ({ TitleComponent, setEmailEditorModal, emailEditorModal, se
         query: queries.testInvitacion,
         variables: {
           evento_id: event?._id,
-          email: [values.email]
+          email: [values.email],
+          lang: i18next.language
         }
       })
       setValirReset(true)

@@ -2065,7 +2065,7 @@ export const queries = {
   signOut: `mutation ($sessionCookie :String){
     signOut(sessionCookie:$sessionCookie)
   }`,
-  testInvitacion: `mutation ($evento_id: String, $email: [String]){
-    testInvitacion(evento_id:$evento_id, email:$email)
+  testInvitacion: `mutation ($evento_id: String, $email: [String], $lang: String){
+    testInvitacion(evento_id:$evento_id, email:$email, lang:$lang)
   }`,
 };

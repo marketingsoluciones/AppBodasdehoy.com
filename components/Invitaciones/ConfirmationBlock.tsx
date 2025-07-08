@@ -7,6 +7,7 @@ import { optionArryOptions } from "../../pages/invitaciones";
 import { ActivatorPremium } from "../ActivatorPremium";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
+import i18next from "i18next";
 
 
 export const ConfirmationBlock: FC<any> = ({ arrEnviarInvitaciones, set }) => {
@@ -44,12 +45,14 @@ export const ConfirmationBlock: FC<any> = ({ arrEnviarInvitaciones, set }) => {
           $invitados_ids_array : [String],
           $dominio: String,
           $transport: String
+          $lang: String
         ){
           enviaInvitacion(
             evento_id:$evento_id,
             invitados_ids_array:$invitados_ids_array,
             dominio:$dominio,
-            transport:$transport
+            transport:$transport,
+            lang:$lang
           ){
             _id,
             invitados_array{
@@ -70,7 +73,8 @@ export const ConfirmationBlock: FC<any> = ({ arrEnviarInvitaciones, set }) => {
         evento_id: event?._id,
         invitados_ids_array: arrEnviarInvitaciones,
         dominio: process.env.NEXT_PUBLIC_BASE_URL,
-        transport: optionSelect
+        transport: optionSelect,
+        lang: i18next.language
       },
     };
     if (event?.imgInvitacion) {
