@@ -23,7 +23,7 @@ import { Task, Itinerary } from '../../../utils/Interfaces';
 import { ImageAvatar } from '../../Utils/ImageAvatar';
 import { GruposResponsablesArry } from '../MicroComponente/ResponsableSelector';
 import { PriorityBadge, Priority } from './PriorityBadge'
-import { BoardColumn } from './BoardView';
+import { BoardColumn } from './types';
 
 
 interface TaskCardProps {

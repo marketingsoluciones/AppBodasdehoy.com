@@ -19,7 +19,7 @@ import {
 import { Task, Itinerary } from '../../../utils/Interfaces';
 import { TaskCard } from './TaskCard';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { BoardColumn as IBoardColumn } from './BoardView';
+import { BoardColumn as IBoardColumn } from './types';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 

@@ -20,7 +20,7 @@ import {
   TrendingUp,
   ChevronDown
 } from 'lucide-react';
-import { BoardColumn } from './BoardView';
+import { BoardColumn } from './types';
 import { useTranslation } from 'react-i18next';
 
 interface AddColumnModalProps {
