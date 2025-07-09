@@ -1,6 +1,6 @@
 import { TaskNew } from "./TaskNew"
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
-import { FC, useEffect, useState } from "react";
+import { FC, useCallback, useEffect, useState } from "react";
 import { AuthContextProvider } from "../../../context/AuthContext";
 import { EventContextProvider } from "../../../context/EventContext";
 import { Modal } from "../../Utils/Modal";
@@ -335,7 +335,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
 
   // Función handleTaskUpdate corregida en ItineraryPanel.tsx
 
-  const handleTaskUpdate = async (taskId: string, updates: Partial<Task>) => {
+  const handleTaskUpdate = useCallback(async (taskId: string, updates: Partial<Task>) => {
     try {
       // Encontrar la tarea que se va a actualizar
       const taskIndex = tasks?.findIndex(task => task._id === taskId);
@@ -390,10 +390,10 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       console.error('Error al actualizar la tarea:', error);
       toast("error", t("Error al actualizar la tarea"));
     }
-  };
+  }, [tasks, itinerario?._id, !event?._id, t]);
 
   // Función handleTaskCreate corregida
-  const handleTaskCreate = async (taskData: Partial<Task>) => {
+  const handleTaskCreate = useCallback(async (taskData: Partial<Task>) => {
     try {
       // Si la tarea tiene un _id, significa que ya fue creada (viene de BoardView)
       if (taskData._id) {
@@ -509,9 +509,9 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       console.error('Error al crear la tarea:', error);
       toast("error", t("Error al crear la tarea"));
     }
-  };
+  }, [!event?._id, itinerario?._id, tasks, config.domain, t]);
 
-  const fetcher = async () => {
+  const fetcher = useCallback(async () => {
     const data = await fetchApiEventos({
       query: queries.getEventsByID,
       variables: { variable: "_id", valor: event._id, development: config?.development || "" }
@@ -527,18 +527,24 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       return data;
     }
     return null;
-  };
+  }, [event._id, config?.development]);
 
-  const { data: swrEvent } = useSWR(event?._id ? ["event", event._id] : null, fetcher, {
-    revalidateOnFocus: true,
-    refreshInterval: 0,
-  });
+  const { data: swrEvent } = useSWR(
+    event?._id ? ["event", event._id] : null, 
+    fetcher, 
+    {
+      revalidateOnFocus: false,    // Deshabilitar fetch en focus
+      revalidateOnReconnect: true, // Solo en reconexión
+      refreshInterval: 0,
+      dedupingInterval: 5000,      // Evitar fetches duplicados por 5 segundos
+    }
+  );
 
   useEffect(() => {
-    if (swrEvent && swrEvent._id && JSON.stringify(swrEvent) !== JSON.stringify(event)) {
+    if (swrEvent && swrEvent._id && swrEvent._id !== event._id) {
       setEvent(swrEvent as EventInterface);
     }
-  }, [swrEvent]);
+  }, [swrEvent, event._id]); // Comparar solo IDs para evitar bucles
 
   return (
     <div className="w-full flex-1 flex flex-col overflow-auto">
