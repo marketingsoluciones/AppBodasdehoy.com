@@ -488,12 +488,6 @@ export const NewAttachmentsEditor: React.FC<Props> = ({
             /* MENSAJE PARA MODO EDICIÓN */
             <div className="flex flex-col items-center space-y-2">
               <p className="text-sm text-gray-500">{t('No hay archivos adjuntos')}</p>
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="text-primary hover:text-primary/80 text-sm font-medium"
-              >
-                {t('Agregar el primer archivo')}
-              </button>
             </div>
           )}
         </div>
