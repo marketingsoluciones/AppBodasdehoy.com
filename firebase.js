@@ -339,15 +339,15 @@ export const developments = [
     pathDomain: "https://theweddingplanner.com/",
     pathLogin: "",
     pathDirectory: "theweddingplanner.mx",
-    logoDirectory: <img className="hover:opacity-80 transition text-primary h-full object-contain bg-primary p-1" src="https://www.theweddingplanner.mx/assets/imgs/theweddingplanner.mx-logo.png" />,
+    logoDirectory: <img className="hover:opacity-80 transition text-primary h-full object-contain p-1" src="https://www.theweddingplanner.mx/assets/imgs/theweddingplanner.mx-logo.png" />,
     headTitle: "Desde una elegante boda hasta una íntima ceremonia!",
     favicon: "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://www.theweddingplanner.mx/&size=16",
     theme: {
-      primaryColor: "#c1bba3",// c1bba3 8f867a
-      secondaryColor: "#deab38",
-      tertiaryColor: "#e0d6b2",
-      baseColor: "#fff6fa",//fff6fa
-      colorScroll: "#e0d6b2"
+      primaryColor: "#eba696",// c1bba3 8f867a
+      secondaryColor: "#ee976c",
+      tertiaryColor: "#eec6ba",
+      baseColor: "#f4f4f4",//fff6fa
+      colorScroll: "#eba696"
     },
   },
 ]
