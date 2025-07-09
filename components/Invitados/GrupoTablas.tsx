@@ -692,7 +692,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
 
           return (
             <>
-              {modal.state && <Modal set={setModal} state={modal} classe={"w-[95%] md:w-[450px] h-[200px]"}>
+              {modal.state && <Modal set={setModal} state={modal} classe={"w-[95%] md:w-[450px] h-[200px] flex items-center justify-center"}>
                 <DeleteConfirmation setModal={setModal} modal={modal} />
               </Modal>}
               <ClickAwayListener onClickAway={() => show && setShow(false)}>

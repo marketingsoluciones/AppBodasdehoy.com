@@ -50,7 +50,7 @@ const SubComponentePagos = ({ row, cate, gasto, wantCreate, getId }) => {
       </div>
       {
         showSoporte.state &&
-        <Modal set={setShowSoporte} state={showSoporte.state} classe={"w-[95%] md:w-[450px] max-h-[600px] min-h-[100px]"}>
+        <Modal set={setShowSoporte} state={showSoporte.state} classe={"w-[95%] md:w-[450px] max-h-[600px] min-h-[100px] flex items-center justify-center"}>
           <div className="flex flex-col items-center h-full">
             <div className="self-end pr-3 cursor-pointer" onClick={() => setShowSoporte({ state: false, data: null })}>
               x

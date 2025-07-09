@@ -1,45 +1,76 @@
-import { FC, useEffect, useRef } from "react";
+import { FC, useEffect, useRef, ChangeEvent } from "react";
 
-interface props {
-  value: string
-  setValue: any
+interface TextareaProps {
+  value: string;
+  setValue: (value: string) => void;
+  placeholder?: string;
+  className?: string;
+  maxRows?: number;
+  minRows?: number;
+  allowEnter?: boolean;
 }
 
-export const Textarea: FC<props> = ({ value, setValue, }) => {
-  const refInput: any = useRef()
+const DEFAULT_MAX_ROWS = 8;
+const DEFAULT_MIN_ROWS = 1;
 
-  const handleChange = (e) => {
-    console.log(e.target)
-    e.target.rows = 1
-    let rowT = (refInput?.current.scrollHeight - 16) / 20
-    if (rowT < 9) {
-      e.target.rows = rowT
+export const Textarea: FC<TextareaProps> = ({
+  value,
+  setValue,
+  placeholder,
+  className = "",
+  maxRows = DEFAULT_MAX_ROWS,
+  minRows = DEFAULT_MIN_ROWS,
+  allowEnter = true
+}) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const calculateRows = (text: string): number => {
+    if (!text?.trim()) return minRows;
+    const lines = text.split('\n');
+    let totalLines = 0;
+    for (const line of lines) {
+      const estimatedCharsPerLine = 50; // Aproximación basada en el ancho del textarea
+      const lineCount = Math.ceil(line.length / estimatedCharsPerLine);
+      totalLines += Math.max(1, lineCount);
     }
-    else {
-      e.target.rows = 8
+    return Math.max(minRows, Math.min(maxRows, totalLines));
+  };
+
+  const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    const target = e.target;
+    const newValue = target.value;
+    setValue(newValue);
+    const newRows = calculateRows(newValue);
+    target.rows = newRows;
+  };
+
+  const updateRows = () => {
+    if (textareaRef.current) {
+      const newRows = calculateRows(value);
+      textareaRef.current.rows = newRows;
     }
-    setValue(e.target.value)
-  }
+  };
 
   useEffect(() => {
-    if (!value) {
-      refInput.current.rows = 1
+    updateRows();
+  }, [value]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !allowEnter) {
+      e.preventDefault();
     }
-  }, [value])
+  };
 
   return (
     <textarea
-      style={{ resize: 'none' }}
-      rows={
-        refInput?.current
-          ? (refInput?.current.scrollHeight - 16) / 20 < 9
-            ? (refInput?.current.scrollHeight - 16) / 20
-            : 8
-          : 1
-      }
-      ref={refInput}
+      ref={textareaRef}
       value={value}
-      onChange={(e) => { handleChange(e) }}
-      className={`rounded-lg border-[1px] border-gray-300 text-xs w-[100%] overflow-y-scroll focus:ring-0 focus:outline-none focus:border-primary pr-8`} />
-  )
-}
+      onChange={handleChange}
+      onKeyDown={handleKeyDown}
+      placeholder={placeholder}
+      rows={minRows}
+      style={{ resize: 'none' }}
+      className={`rounded-lg border-[1px] border-gray-300 text-xs w-[100%] overflow-y-scroll focus:ring-0 focus:outline-none focus:border-primary pr-8 ${className}`}
+    />
+  );
+};

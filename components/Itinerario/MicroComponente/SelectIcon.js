@@ -93,7 +93,7 @@ const IconArray = [
 export const SelectIcon = ({ handleChange, ...props }) => {
     const { config, geoInfo, user } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
-    const [field] = useField({ name: props?.name });
+    const [field] = useField({ name: props.name ?? '' })
     const [selectIcon, setSelectIcon] = useState()
     const [openIcon, setOpenIcon] = useState(false)
     const [isAllowed, ht] = useAllowed()
@@ -122,7 +122,7 @@ export const SelectIcon = ({ handleChange, ...props }) => {
                                     setOpenIcon(!openIcon)
 
                     }} {...props}>
-                    {IconArray.find((elem) => elem?.title === field?.value).icon}
+{IconArray.find((elem) => elem?.title === field?.value)?.icon ?? <span className="text-gray-400">?</span>}
                 </div >
                 : <div className={` ${ ["/public-card/servicios", "/public-Itinerary"].includes(window?.location?.pathname) ? "" : "cursor-pointer hover:text-gray-800"} w-full h-full flex items-center justify-center text-gray-600  `}
                     onClick={() => {
@@ -142,7 +142,7 @@ export const SelectIcon = ({ handleChange, ...props }) => {
             }
             {
                 openIcon
-                    ? <Modal openIcon={openIcon} setOpenIcon={setOpenIcon} classe={"h-max md:w-[30%]"} >
+                    ? <Modal openIcon={openIcon} setOpenIcon={setOpenIcon} classe={"h-max md:w-[30%] flex items-center justify-center"} >
                         <IconList IterArry={IconArray} openIcon={openIcon} setOpenIcon={setOpenIcon} setSelectIcon={setSelectIcon} />
                     </Modal>
                     : null

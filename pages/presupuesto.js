@@ -15,7 +15,6 @@ import { MontoPresupuesto } from "../components/Presupuesto/MontoPresupuesto";
 import BlockCategoria from "../components/Presupuesto/BlockCategoria";
 import { DuplicatePresupuesto } from "../components/Presupuesto/DuplicatePesupuesto";
 import { useAllowed } from "../hooks/useAllowed";
-import { SmartSpreadsheetView2 } from "../components/Presupuesto/PresupuestoV2/IndexPresupuesto";
 
 const Presupuesto = () => {
   useMounted()
@@ -28,7 +27,6 @@ const Presupuesto = () => {
   const [getId, setGetId] = useState()
   const [showModalDuplicate, setShowModalDuplicate] = useState(false)
   const [isAllowed, ht] = useAllowed()
-  const [showModalPresupuesto, setShowModalPresupuesto] = useState(false)
 
   const totalCosteFinal = categorias?.reduce((sum, categoria) => {
     return sum + (categoria.coste_final || 0);
@@ -55,27 +53,7 @@ const Presupuesto = () => {
                 <DuplicatePresupuesto showModalDuplicate={showModalDuplicate} setModal={setShowModalDuplicate} />
               </div>
             )}
-            {
-              showModalPresupuesto && (
-                <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex justify-center items-center">
-                  <div className="bg-white w-[90%] h-[90%] rounded-lg overflow-auto shadow-lg relative">
-                    <button
-                      onClick={() => setShowModalPresupuesto(false)}
-                      className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
-                    >
-                      ✕
-                    </button>
-                    <SmartSpreadsheetView2
-                      categorias_array={categorias}
-                      event={event}
-                      setShowCategoria={setShowCategoria}
-                      showCategoria={showCategoria}
-                    />
-                    {/* <ResumenPresupuestoModal categorias={categorias} presupuesto={event.presupuesto_objeto} estimadoState={event?.presupuesto_objeto?.viewEstimates} /> */}
-                  </div>
-                </div>
-              )
-            }
+           
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -146,7 +124,7 @@ const Presupuesto = () => {
                               <MontoPresupuesto />
                             </div>
                             <div className=" bg-white shadow-md rounded-xl grid place-items-center py-4 px-2 relative">
-                              <div className={`${showModalPresupuesto ? "hidden" : " absolute"}  right-2 -top-11 `}>
+                              {/* <div className={`${showModalPresupuesto ? "hidden" : " absolute"}  right-2 -top-11 `}>
                                 <button
                                   onClick={() => setShowModalPresupuesto(true)}
                                   className={`z-[60] bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 text-white font-bold py-1 px-3 rounded-full shadow-lg flex items-center relative hover:scale-105 transition `}
@@ -160,7 +138,7 @@ const Presupuesto = () => {
                                   </span>
                                   <span className="uppercase tracking-wider text-xs">New</span>
                                 </button>
-                              </div>
+                              </div> */}
                               <DineroIcon className="w-12 h-12 text-primary " />
                               <p className="font-display text-gray-500 font-light text-md grid place-items-center">
                                 {t("finalcost")} <br />
@@ -239,7 +217,7 @@ const Presupuesto = () => {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="w-full h-full gap-6 pt-2 md:pr-0"
+                      className=" w-full h-full gap-6 pt-2 md:pr-0"
                     >
                       <ExcelView setShowCategoria={setShowCategoria} categorias_array={categorias} showCategoria={showCategoria} />
                     </motion.div>

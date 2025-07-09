@@ -1,6 +1,6 @@
 import { Dispatch, FC, LegacyRef, MouseEvent, SetStateAction, useEffect, useRef, useState } from "react"
 import { PlusIcon } from "../../icons"
-import { Event, Info, Itinerary, SelectModeSortType } from "../../../utils/Interfaces"
+import { Event, Info, Itinerary, SelectModeSortType, Task } from "../../../utils/Interfaces"
 import { fetchApiEventos, queries } from "../../../utils/Fetching"
 import { AuthContextProvider, EventContextProvider } from "../../../context"
 import { ViewItinerary } from "../../../pages/invitados"
@@ -11,6 +11,9 @@ import { useAllowed, useAllowedViewer } from "../../../hooks/useAllowed"
 import { useTranslation } from "react-i18next"
 import { useToast } from "../../../hooks/useToast"
 import { SelectModeSort } from "../../Utils/SelectModeSort"
+import { AddTaskButton } from "./AddTaskButton"
+import { PermissionAddButton } from './PermissionAddButton';
+import { PermissionSelectModeView } from './PermissionSelectModeView';
 
 interface props {
     itinerario: Itinerary
@@ -46,6 +49,53 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
     const refTabs: LegacyRef<HTMLDivElement> = useRef()
     const [reverse, setReverse] = useState<{ direction: string, position: number }[]>([])
     const toast = useToast()
+
+    // Función para agregar nueva tarea
+    const addTask = async () => {
+        try {
+            if (!itinerario) {
+                toast("warning", t("Selecciona un itinerario primero"));
+                return;
+            }
+
+            const f = new Date(parseInt(event.fecha))
+            const fy = f.getUTCFullYear()
+            const fm = f.getUTCMonth()
+            const fd = f.getUTCDate()
+            let newEpoch = new Date(fy, fm + 1, fd).getTime() + 7 * 60 * 60 * 1000
+
+            const tasks = itinerario.tasks || [];
+            if (tasks.length) {
+                const item = tasks[tasks.length - 1]
+                const epoch = new Date(item.fecha).getTime()
+                newEpoch = epoch + item.duracion * 60 * 1000
+            }
+
+            const fecha = new Date(newEpoch)
+            const addNewTask = await fetchApiEventos({
+                query: queries.createTask,
+                variables: {
+                    eventID: event._id,
+                    itinerarioID: itinerario._id,
+                    descripcion: itinerario.tipo === "itinerario" ? "Tarea nueva" : "Servicio nuevo",
+                    ...(itinerario.tipo === "itinerario" && { fecha: fecha }),
+                    ...(itinerario.tipo === "itinerario" && { duracion: 30 })
+                },
+                domain: config.domain
+            })
+
+            const task = addNewTask as Task
+            const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
+            task.spectatorView = false 
+            event.itinerarios_array[f1].tasks.push(task as Task)
+            setEvent({ ...event })
+            setSelectTask(task._id)
+            toast("success", t(itinerario.tipo === "itinerario" ? "Actividad añadida" : "Servicio añadido"));
+        } catch (error) {
+            console.log(error)
+            toast("error", t("Error al añadir"));
+        }
+    }
 
     useEffect(() => {
         const itineraries = event?.itinerarios_array?.filter(elem => elem?.tipo === window?.location?.pathname.slice(1))
@@ -110,10 +160,8 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                 if (firsItinerary?.next_id) {
                     pushNextElem({ _id: firsItinerary.next_id })
                 }
-                console.log(100031, newItineraries)
                 const fListIdentifiers = event?.listIdentifiers?.findIndex(elem => elem.table === window?.location?.pathname.slice(1))
                 const lastListIdentifiers = { ...event.listIdentifiers[fListIdentifiers] }
-                console.log(100032, "lastListIdentifiers.end_Id", lastListIdentifiers.end_Id)
                 setItineraries([...newItineraries])
             }
         }
@@ -183,6 +231,11 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                 })
             }
             event.itinerarios_array.push(result)
+            const f2 = event.itinerarios_array.findIndex(elem => elem._id === result._id)
+            if (event.itinerarios_array[f2]) {
+                event.itinerarios_array[f2].viewers = []
+            }
+
             setEvent({ ...event })
             setItinerario({ ...result })
             setEditTitle(true)
@@ -349,9 +402,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             vecinoNewNextId: null,
             movidoNextId: null,
         }
-        console.log(1000310, ubi, itineraries.length)
 
-        ///// moviemientos en el medio funciona /////
 
         ///// moviemientos del medio al extremo derecho funciona /////
         const fListIdentifiers = event?.listIdentifiers?.findIndex(elem => elem.table === window?.location?.pathname.slice(1))
@@ -438,7 +489,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
 
 
     return (
-        <div className="flex max-w-[100%] min-w-[100%] overflow-x-auto. h-10 items-center justify-center border-b md:px-4 md:py-2 shadow-md z-10">
+        <div className="flex max-w-[100%] min-w-[100%] overflow-x-auto. h-10 items-center justify-center border-b md:px-4 md:py-2 shadow-md">
             <div id="content" className="flex-1 h-full  flex justify-between">
                 <div className="inline-flex max-w-full h-full items-center  mr-2">
                     {showTabs && <>
@@ -495,14 +546,28 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                                 )
                             })}
                         </div>
-                        {isAllowed() && <div id="plusIcon" onClick={() => handleCreateItinerario()} className="flex w-8 items-center justify-start bg-white">
-                            <PlusIcon className="w-4 h-4 text-primary cursor-pointer" />
-                        </div>}
+                        <PermissionAddButton
+                            onClick={handleCreateItinerario} // ✅ función real
+                            className="flex w-8 items-center justify-start bg-white"
+                            iconClassName="w-4 h-4 text-primary cursor-pointer"
+                        />
                     </>}
                 </div>
                 {isAllowed() && <div className="inline-flex space-x-4">
-                    {view === "cards" && <SelectModeSort value={orderAndDirection} setValue={setOrderAndDirection} />}
-                    <SelectModeView value={view} setValue={setView} />
+                    {view === "cards" && (
+                        <>
+                            {/* Reemplazar el botón de agregar servicio */}
+                            
+                            <PermissionAddButton
+                                onClick={addTask} // ✅ función real
+                                text={itinerario?.tipo === "itinerario" ? "" : ""}
+                                showText={true}
+                            />
+                            <SelectModeSort value={orderAndDirection} setValue={setOrderAndDirection} />
+                        </>
+                    )}
+                    {/* Reemplazar SelectModeView */}
+                    <PermissionSelectModeView view={view} setView={setView} />
                 </div>
                 }
             </div>

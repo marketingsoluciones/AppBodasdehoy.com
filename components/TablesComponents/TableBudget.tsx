@@ -106,11 +106,6 @@ export const TableBudget: FC<props> = ({ data }) => {
     { columns: visibleColumns, data }, useSortBy, useExpanded,
   );
 
-  const renderRowSubComponent = useCallback(({ row }) => {
-    return (
-      <div>hola</div>
-    )
-  }, [visibleColumns]);
 
 
   return (

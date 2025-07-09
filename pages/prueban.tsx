@@ -13,10 +13,8 @@ const PruebaN: FC = () => {
     interact('.invitadoPrueba').draggable({
       listeners: {
         start(event) {
-          console.log(event.type, event.target)
         },
         move(event) {
-          console.log(position)
           position.x += event.dx
           position.y += event.dy
 

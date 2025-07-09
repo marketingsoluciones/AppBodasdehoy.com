@@ -1,11 +1,21 @@
 import { Dispatch, ReactNode, SetStateAction } from "react"
 
+export interface TableTotals {
+    estimado: number;
+    total: number;
+    pagado: number;
+}
+
 export interface Event {
     _id: string
     fecha_creacion: string
     estatus: string
     fecha_actualizacion: string
+    updatedAt: Date
     tipo: string
+    temporada: string,
+    estilo: string,
+    tematica: string,
     nombre: string
     usuario_id: string
     detalles_usuario_id: detalle_compartidos_array
@@ -27,6 +37,7 @@ export interface Event {
     notificaciones_array: notification[]
     imgEvento: image
     imgInvitacion: image
+    templateInvitacionSelect: string
     presupuesto_objeto: estimate
     listaRegalos: string
     listIdentifiers: ListIdentifiers[]
@@ -37,6 +48,22 @@ export interface Event {
     tarta: string
     color: string[]
     //permission: boolean
+}
+
+export interface ConfigTemplate {
+    name: string
+    subject: string
+}
+
+export interface EmailDesign {
+    _id: string
+    configTemplate: ConfigTemplate
+    design: JSON
+    html: string
+    preview: string
+    isTemplate?: boolean
+    createdAt: Date
+    updatedAt: Date
 }
 
 export interface ListIdentifiers {
@@ -74,10 +101,21 @@ export type Info = {
     info: JSX.Element | null,
 }
 
+export interface TaskOrder {
+    taskId: string;
+    order: number;
+    columnId: string;
+}
+
+export interface ColumnOrder {
+    columnId: string;
+    order: number;
+}
+
 export interface Task {
     _id: string
     fecha: Date
-    //hora: string
+    //hora: string // No es un campo separado, se incluye en fecha
     icon: string
     descripcion: string
     responsable: string[]
@@ -88,7 +126,11 @@ export interface Task {
     spectatorView: boolean
     comments: Comment[]
     commentsViewers: string[]
-    estatus: boolean
+    estado: string // Campo local para manejar el estado en el cliente
+    prioridad: string
+    estatus: boolean // Campo que determina si está completada
+    order?: number; // Campo local para mantener el orden en el cliente
+    columnId?: string; // Campo local para saber a qué columna pertenece
 }
 
 export interface TaskDateTimeAsString extends Omit<Task, 'fecha'> {
@@ -96,10 +138,13 @@ export interface TaskDateTimeAsString extends Omit<Task, 'fecha'> {
     hora: string
 }
 
+
+
 export interface Itinerary {
     _id: string
     title: string
     tasks: Task[]
+    columnsOrder: ColumnOrder[]
     viewers: string[]
     tipo: string
     estatus: boolean //activo, borrado

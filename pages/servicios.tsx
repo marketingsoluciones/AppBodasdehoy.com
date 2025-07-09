@@ -43,16 +43,11 @@ const Itinerario: FC<any> = (props) => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="max-w-screen-lg mx-auto inset-x-0 w-full pl-2 pr-[1px] md:px-0 gap-4 relative">
+                    className="mx-auto inset-x-0 w-full pl-2 pr-[1px] md:px-4 gap-4 relative">
                     <BlockTitle title={"Tasks"} />{/*task planning o task management*/} {/* Flujo de tareas */}
                     <BoddyIter />
 
-                    {/* {createPdf
-                        ? <Modal openIcon={createPdf} setOpenIcon={setCreatePdf} classe={"h-[50%] w-[85%]"} >
-                            <MyDocument IterArryst={IterArryst} />
-                        </Modal>
-                        : null
-                    } */}
+                   
                 </motion.div>
             </section>
         )
@@ -60,43 +55,6 @@ const Itinerario: FC<any> = (props) => {
 }
 
 export default Itinerario
-
-/* export async function getServerSideProps({ params, query }) {
-    try {
-        const p = params?.slug[0]?.split("-")
-        const evento_id = p?.[1] || query?.event;
-        const itinerario_id = p?.[2] || query?.itinerary;
-
-        const evento = await fetchApiEventos({
-            query: queries.getItinerario,
-            variables: {
-                evento_id,
-                itinerario_id
-            }
-        }) as any
-        const itinerary = evento?.itinerarios_array?.find(elem => elem?._id === query?.itinerary)
-        const task = itinerary?.tasks?.find(elem => elem?._id === query?.task)
-        if (evento_id) {
-            evento._id = evento_id
-            itinerary.tasks = [task]
-            evento.itinerarios_array = [itinerary]
-            evento.fecha_actualizacion = new Date().toLocaleString()
-        }
-
-        openGraphData.openGraph.title = `${evento?.itinerarios_array[0]?.tasks[0]?.descripcion}`
-        openGraphData.openGraph.description = ` El Evento ${evento.tipo}, de ${evento.nombre}, ${new Date(parseInt(evento?.itinerarios_array[0].fecha_creacion)).toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}
-${evento.itinerarios_array[0].tasks[0].tips.replace(/<[^>]*>/g, "").replace(".", ". ")}`
-
-        return {
-            props: { ...params, query, evento },
-        };
-    } catch (error) {
-        return {
-            props: params,
-        };
-
-    }
-} */
 
     export async function getServerSideProps({ params, query }) {
     try {

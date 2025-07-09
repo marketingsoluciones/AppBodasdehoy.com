@@ -52,6 +52,7 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
     }
   }
 
+
   return (
     <>
       {showModalDelete.state &&
