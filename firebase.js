@@ -95,6 +95,16 @@ const firebaseConfigCorporativozr = {
   measurementId: "G-M58YVQJ0LS"
 };
 
+const firebaseConfigTheweddingplanner = {
+  apiKey: "AIzaSyDaJcojMTSdMkjxCLY3rEtL0Htf51sFUik",
+  authDomain: "theweddingplanner-app.firebaseapp.com",
+  projectId: "theweddingplanner-app",
+  storageBucket: "theweddingplanner-app.firebasestorage.app",
+  messagingSenderId: "557540930291",
+  appId: "1:557540930291:web:518494e9c89789ffbcfd86",
+  measurementId: "G-FW08N94PTL"
+};
+
 export const developments = [
   {
     name: "bodasdehoy",
@@ -317,6 +327,27 @@ export const developments = [
       tertiaryColor: "#e0d6b2",
       baseColor: "#fff6fa",//fff6fa
       colorScroll: "#e0d6b2"
+    },
+  },
+  {
+    name: "theweddingplanner",
+    development: "theweddingplanner",
+    fileConfig: firebaseConfigTheweddingplanner,
+    cookie: "sessionTheweddingplanner",
+    domain: ".theweddingplanner.mx",
+    cookieGuest: "guesttheweddingplanner",
+    pathDomain: "https://theweddingplanner.com/",
+    pathLogin: "",
+    pathDirectory: "theweddingplanner.mx",
+    logoDirectory: <img className="hover:opacity-80 transition text-primary h-full object-contain p-1" src="https://www.theweddingplanner.mx/assets/imgs/theweddingplanner.mx-logo.png" />,
+    headTitle: "Desde una elegante boda hasta una íntima ceremonia!",
+    favicon: "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://www.theweddingplanner.mx/&size=16",
+    theme: {
+      primaryColor: "#eba696",// c1bba3 8f867a
+      secondaryColor: "#ee976c",
+      tertiaryColor: "#eec6ba",
+      baseColor: "#f4f4f4",//fff6fa
+      colorScroll: "#eba696"
     },
   },
 ]
