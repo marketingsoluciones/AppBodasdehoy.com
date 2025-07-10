@@ -327,7 +327,6 @@ export const BoardView: React.FC<BoardViewProps> = ({ data, itinerario, event, s
                 .map(columnId => {
                   const column = filteredColumns[columnId];
                   if (!column) return null;
-                  console.log("column", columnId)
                   return (
                     <BoardColumn
                       key={columnId}
