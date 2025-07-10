@@ -1,33 +1,15 @@
 import React, { useState, useCallback } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-// En TaskCard.tsx, verifica la importación
 import { TaskEditModal } from './TaskEditModal';
-import { TaskDetailModal } from './TaskDetailModal';
-import {
-  Check,
-  PlusCircle,
-  Edit3,
-  MoreHorizontal,
-  Calendar,
-  Clock,
-  User,
-  Tag,
-  Paperclip,
-  AlertCircle,
-  CheckCircle2,
-  Circle,
-  MessageSquare,
-} from 'lucide-react';
+import { Edit3, MoreHorizontal, Calendar, Clock, Tag, Paperclip, AlertCircle, CheckCircle2, MessageSquare } from 'lucide-react';
 import { Task, Itinerary } from '../../../utils/Interfaces';
-import { ImageAvatar } from '../../Utils/ImageAvatar';
 import { GruposResponsablesArry } from '../MicroComponente/ResponsableSelector';
 import { PriorityBadge, Priority } from './PriorityBadge'
 import { BoardColumn } from './types';
 
-
 interface TaskCardProps {
- task: Task;
+  task: Task;
   onTaskClick: (taskId: string) => void;
   onTaskUpdate: (taskId: string, updates: Partial<Task>) => void;
   onTaskDelete: (taskId: string) => void;
@@ -39,40 +21,12 @@ interface TaskCardProps {
   column?: BoardColumn;
 }
 
-export const TaskCard: React.FC<TaskCardProps> = ({
-task,
-  onTaskClick,
-  onTaskUpdate,
-  onTaskDelete,
-  onCreateSubTask,
-  onTaskCreate,
-  isSelected,
-  isDragging,
-  itinerario,
-  column
-}) => {
+export const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskClick, onTaskUpdate, onTaskDelete, onTaskCreate, isSelected, isDragging, itinerario, column }) => {
   const [showActions, setShowActions] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
-  // Agregar el estado para el modal
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPriorityMenu, setShowPriorityMenu] = useState(false);
-
-
-
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging: isSortableDragging,
-  } = useSortable({
-    id: task._id,
-    data: {
-      type: 'task',
-      task,
-    },
-  });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging: isSortableDragging, } = useSortable({ id: task._id, data: { type: 'task', task }, });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -85,19 +39,19 @@ task,
   const isBlocked = column?.id === 'blocked';
 
   // Función para alternar completado
-  const handleToggleComplete = useCallback((e: React.MouseEvent) => {
+  /* const handleToggleComplete = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     onTaskUpdate(task._id, {
       estatus: !task.estatus
     });
-  }, [task._id, task.estatus, onTaskUpdate]);
+  }, [task._id, task.estatus, onTaskUpdate]); */
 
   // Función para crear sub-tarea
-  const handleCreateSubTask = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    onCreateSubTask(task._id);
-    setShowActions(false);
-  }, [task._id, onCreateSubTask]);
+  /*  const handleCreateSubTask = useCallback((e: React.MouseEvent) => {
+     e.stopPropagation();
+     onCreateSubTask(task._id);
+     setShowActions(false);
+   }, [task._id, onCreateSubTask]); */
 
   // Modificar el handleEdit
   const handleEdit = useCallback((e: React.MouseEvent) => {
@@ -114,14 +68,14 @@ task,
   }, []);
 
   // Formatear fecha
-  const formatDate = useCallback((dateString: string | Date) => {
-    if (!dateString) return null;
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: '2-digit'
-    });
-  }, []);
+  /*   const formatDate = useCallback((dateString: string | Date) => {
+      if (!dateString) return null;
+      const date = new Date(dateString);
+      return date.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit'
+      });
+    }, []); */
 
   // Calcular días restantes
   const getDaysRemaining = useCallback(() => {
@@ -142,10 +96,10 @@ task,
     return tags.find(tag => tag.startsWith('prioridad:'));
   };
 
-  const updatePriority = (taskId: string, priority: string) => {
+  /* const updatePriority = (taskId: string, priority: string) => {
     const newTags = [...task.tags.filter(tag => !tag.startsWith('prioridad:')), `prioridad:${priority}`];
     onTaskUpdate(taskId, { tags: newTags });
-  };
+  }; */
 
 
   // Funciones auxiliares para manejar subtareas
@@ -169,7 +123,7 @@ task,
     return 'media'; // valor por defecto
   };
 
-  
+
   // Función para duplicar tarea
   const handleDuplicateTask = useCallback(async () => {
     try {
@@ -177,7 +131,7 @@ task,
         console.warn('onTaskCreate no está definido');
         return;
       }
-      
+
       // Crear una copia de la tarea
       const duplicatedTask = {
         ...task,
@@ -189,15 +143,15 @@ task,
         comments: [], // Limpiar comentarios
         commentsViewers: []
       };
-      
+
       // Eliminar propiedades que no deben duplicarse
       delete duplicatedTask._id;
       delete duplicatedTask.createdAt;
       delete duplicatedTask.updatedAt;
-      
+
       // Llamar a la función de crear tarea con los datos duplicados
       onTaskCreate(duplicatedTask);
-      
+
     } catch (error) {
       console.error('Error al duplicar tarea:', error);
     }
@@ -235,33 +189,6 @@ task,
         {/* Botones de acción en hover */}
         {showActions && !isDragging && !isSortableDragging && (
           <div className="absolute top-2 right-2 flex bg-white rounded-md shadow-md items-center space-x-1 z-50">
-            {/* Botón de completar */}
-{/*             <button
-              onClick={handleToggleComplete}
-              className={`
-              p-1 rounded-md transition-colors
-              ${isCompleted
-                  ? 'text-green hover:bg-[#dafdda]'
-                  : 'text-gray-400 hover:text-green hover:bg-[#eeffee]'
-                }
-            `}
-              title={isCompleted ? 'Marcar como pendiente' : 'Marcar como completada'}
-            >
-              {isCompleted ? (
-                <CheckCircle2 className="w-4 h-4" />
-              ) : (
-                <Circle className="w-4 h-4" />
-              )}
-            </button> */}
-
-            {/* Botón de sub-tarea */}
-{/*             <button
-              onClick={handleCreateSubTask}
-              className="p-1 text-gray-400 hover:text-primary hover:bg-pink-50 rounded-md transition-colors"
-              title="Crear sub-tarea"
-            >
-              <PlusCircle className="w-4 h-4" />
-            </button> */}
 
             {/* Botón de editar */}
             <button
@@ -286,18 +213,7 @@ task,
               {showMoreMenu && (
                 <div className="absolute right-0 top-8 w-40 bg-white border border-gray-200 rounded-md shadow-lg z-20">
                   <div className="py-1">
-                    {/* <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      updatePriority(task._id, 'alta');
-                      setShowMoreMenu(false);
-                    }}
-                    className="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    <AlertCircle className="w-4 h-4 mr-2" />
-                    Prioridad alta
-                  </button> */}
-                      <button
+                    <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDuplicateTask();
@@ -324,19 +240,14 @@ task,
           </div>
         )}
 
-
-
         {/* Contenido principal de la tarjeta */}
         <div className="p-3">
           {/* Título de la tarea */}
-<h4 className={`
-  font-medium text-sm mb-2 pr-8
-  ${isBlocked ? 'line-through text-gray-500' : 'text-gray-800'}
-`}>
-  {(task.descripcion && task.descripcion.length > 30)
-    ? `${task.descripcion.slice(0, 30)}...`
-    : (task.descripcion || 'Sin título')}
-</h4>
+          <h4 className={` font-medium text-sm mb-2 pr-8 ${isBlocked ? 'line-through text-gray-500' : 'text-gray-800'}`}>
+            {(task.descripcion && task.descripcion.length > 30)
+              ? `${task.descripcion.slice(0, 30)}...`
+              : (task.descripcion || 'Sin título')}
+          </h4>
 
           {/* Indicadores de estado */}
           <div className="flex items-center space-x-2 mb-2">
@@ -364,18 +275,18 @@ task,
             )}
 
             {/* Indicador de bloqueo */}
-{isCompleted && (
-  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-[#e9fdf1] text-green">
-    <CheckCircle2 className="w-3 h-3 mr-1" />
-    Completado
-  </span>
-)}
-{isBlocked && (
-  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-[#ffdada] text-red">
-    <AlertCircle className="w-3 h-3 mr-1" />
-    Bloqueado
-  </span>
-)}
+            {isCompleted && (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-[#e9fdf1] text-green">
+                <CheckCircle2 className="w-3 h-3 mr-1" />
+                Completado
+              </span>
+            )}
+            {isBlocked && (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-[#ffdada] text-red">
+                <AlertCircle className="w-3 h-3 mr-1" />
+                Bloqueado
+              </span>
+            )}
 
             {/* Indicador de prioridad */}
             {getPriorityTag(task.tags)?.split(':')[1] === 'alta' && (

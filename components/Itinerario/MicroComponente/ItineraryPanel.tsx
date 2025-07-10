@@ -172,7 +172,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       if (found) setCurrentItinerario(found);
     }
   }, [event, itinerario?._id]);
-
   useEffect(() => {
     if (currentItinerario?.tasks?.length > 0) {
       const sortedTasks = [...currentItinerario.tasks].sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
@@ -215,7 +214,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       setTasksReduce(prev => (prev && prev.length === 0 ? prev : []));
     }
   }, [itinerario, event, view, user?.uid, isAllowed]);
-
   const handleAddSpectatorView = async (values: Task) => {
     try {
       fetchApiEventos({
@@ -241,7 +239,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       console.log(error)
     }
   }
-
   const handleChangeStatus = async (values: Task) => {
     try {
       fetchApiEventos({
@@ -281,7 +278,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     }
 
   }
-
   const deleteTask = (values: Task, itinerario: Itinerary) => {
     try {
       setLoading(true)
@@ -318,7 +314,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       console.log(1000501, error)
     }
   }
-
   useEffect(() => {
     if (router?.query?.task) {
       setSelectTask(`${router.query.task}`)
@@ -332,186 +327,180 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       info: <ItineraryDetails itinerario={itinerario} selectTask={selectTask} view={view} />
     },
   ]
-
-  // Función handleTaskUpdate corregida en ItineraryPanel.tsx
-
-const handleTaskUpdate = useCallback(async (taskId: string, updates: Partial<Task>) => {
-  try {
-    // Encontrar la tarea que se va a actualizar
-    const taskIndex = tasks?.findIndex(task => task._id === taskId);
-    if (taskIndex === -1 || taskIndex === undefined) {
-      console.error('Tarea no encontrada:', taskId);
-      return;
-    }
-
-    // Actualizar el estado global del evento inmediatamente
-    setEvent((oldEvent) => {
-      const newEvent = { ...oldEvent };
-      const f1 = newEvent.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
-
-      if (f1 > -1) {
-        const f2 = newEvent.itinerarios_array[f1].tasks.findIndex(elem => elem._id === taskId);
-
-        if (f2 > -1) {
-          // Actualizar la tarea con los nuevos valores
-          newEvent.itinerarios_array[f1].tasks[f2] = {
-            ...newEvent.itinerarios_array[f1].tasks[f2],
-            ...updates
-          };
-        }
+  const handleTaskUpdate = useCallback(async (taskId: string, updates: Partial<Task>) => {
+    try {
+      // Encontrar la tarea que se va a actualizar
+      const taskIndex = tasks?.findIndex(task => task._id === taskId);
+      if (taskIndex === -1 || taskIndex === undefined) {
+        console.error('Tarea no encontrada:', taskId);
+        return;
       }
 
-      return newEvent;
-    });
+      // Actualizar el estado global del evento inmediatamente
+      setEvent((oldEvent) => {
+        const newEvent = { ...oldEvent };
+        const f1 = newEvent.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
 
-    // Actualizar el estado local de las tareas
-    setTasks(prevTasks => {
-      if (!prevTasks) return prevTasks;
-      return prevTasks.map(task =>
-        task._id === taskId ? { ...task, ...updates } : task
-      );
-    });
+        if (f1 > -1) {
+          const f2 = newEvent.itinerarios_array[f1].tasks.findIndex(elem => elem._id === taskId);
 
-    // Actualizar tasksReduce también
-    setTasksReduce(prevTasksReduce => {
-      if (!prevTasksReduce) return prevTasksReduce;
+          if (f2 > -1) {
+            // Actualizar la tarea con los nuevos valores
+            newEvent.itinerarios_array[f1].tasks[f2] = {
+              ...newEvent.itinerarios_array[f1].tasks[f2],
+              ...updates
+            };
+          }
+        }
 
-      return prevTasksReduce.map(group => ({
-        ...group,
-        tasks: group.tasks?.map(task =>
+        return newEvent;
+      });
+
+      // Actualizar el estado local de las tareas
+      setTasks(prevTasks => {
+        if (!prevTasks) return prevTasks;
+        return prevTasks.map(task =>
           task._id === taskId ? { ...task, ...updates } : task
-        )
-      }));
-    });
-
-  } catch (error) {
-    console.error('Error al actualizar la tarea:', error);
-    toast("error", t("Error al actualizar la tarea"));
-  }
-}, [tasks, itinerario?._id, event?._id, t]); // ✅ Corregido
-
-const handleTaskCreate = useCallback(async (taskData: Partial<Task>) => {
-  try {
-    // Si la tarea tiene un _id, significa que ya fue creada (viene de BoardView)
-    if (taskData._id) {
-      return;
-    }
-
-    // Calcular fecha por defecto
-    const f = new Date(parseInt(event.fecha));
-    const fy = f.getUTCFullYear();
-    const fm = f.getUTCMonth();
-    const fd = f.getUTCDate();
-    let newEpoch = new Date(fy, fm + 1, fd).getTime() + 7 * 60 * 60 * 1000;
-
-    if (tasks?.length) {
-      const item = tasks[tasks.length - 1];
-      const epoch = new Date(item.fecha).getTime();
-      newEpoch = epoch + (item.duracion || 30) * 60 * 1000;
-    }
-
-    const defaultDate = taskData.fecha ? new Date(taskData.fecha) : new Date(newEpoch);
-
-    // Formatear fecha correctamente
-    const year = defaultDate.getFullYear();
-    const month = defaultDate.getMonth() + 1;
-    const day = defaultDate.getDate();
-    const fechaString = `${year}-${month < 10 ? '0' : ''}${month}-${day < 10 ? '0' : ''}${day}`;
-    const horaString = `${defaultDate.getHours().toString().padStart(2, '0')}:${defaultDate.getMinutes().toString().padStart(2, '0')}`;
-
-    const response = await fetchApiEventos({
-      query: queries.createTask,
-      variables: {
-        eventID: event._id,
-        itinerarioID: itinerario._id,
-        descripcion: taskData.descripcion || "Nueva tarea",
-        fecha: fechaString,
-        hora: horaString,
-        duracion: taskData.duracion || 30
-      },
-      domain: config.domain
-    });
-
-    // Validar respuesta de forma segura
-    if (!response) {
-      throw new Error('No se recibió respuesta del servidor');
-    }
-
-    // ✅ Agregar esta línea que faltaba
-    const responseObj = response as any;
-    
-    // Verificar que la respuesta sea un objeto válido con _id
-    if (typeof responseObj !== 'object' || !responseObj._id || typeof responseObj._id !== 'string') {
-      console.error('Respuesta inválida del servidor:', response);
-      throw new Error('La respuesta del servidor no contiene un ID válido');
-    }
-
-    // Ahora podemos usar la respuesta como Task de forma segura
-    const newTask = responseObj as Task;
-
-    // Asignar estado localmente para el manejo en el cliente
-    newTask.estado = taskData.estado || 'pending';
-
-    // Si la tarea debe estar completada, actualizar su estatus
-    if (taskData.estado === 'completed' && newTask._id) {
-      try {
-        await fetchApiEventos({
-          query: queries.editTask,
-          variables: {
-            eventID: event._id,
-            itinerarioID: itinerario._id,
-            taskID: newTask._id,
-            variable: "estatus",
-            valor: "true"
-          },
-          domain: config.domain
-        });
-        newTask.estatus = true;
-      } catch (error) {
-        console.error('Error al actualizar estatus:', error);
-      }
-    }
-
-    // Actualizar el estado global (event)
-    setEvent((oldEvent) => {
-      const newEvent = { ...oldEvent };
-      const f1 = newEvent.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
-      if (f1 !== -1) {
-        if (!newEvent.itinerarios_array[f1].tasks) {
-          newEvent.itinerarios_array[f1].tasks = [];
-        }
-        // Verificar que la tarea no exista ya
-        const taskExists = newEvent.itinerarios_array[f1].tasks.some(
-          t => t._id === newTask._id
         );
-        if (!taskExists) {
-          newEvent.itinerarios_array[f1].tasks.push(newTask);
+      });
+
+      // Actualizar tasksReduce también
+      setTasksReduce(prevTasksReduce => {
+        if (!prevTasksReduce) return prevTasksReduce;
+
+        return prevTasksReduce.map(group => ({
+          ...group,
+          tasks: group.tasks?.map(task =>
+            task._id === taskId ? { ...task, ...updates } : task
+          )
+        }));
+      });
+
+    } catch (error) {
+      console.error('Error al actualizar la tarea:', error);
+      toast("error", t("Error al actualizar la tarea"));
+    }
+  }, [tasks, itinerario?._id, event?._id, t]);
+
+  const handleTaskCreate = useCallback(async (taskData: Partial<Task>) => {
+    try {
+      // Si la tarea tiene un _id, significa que ya fue creada (viene de BoardView)
+      if (taskData._id) {
+        return;
+      }
+
+      // Calcular fecha por defecto
+      const f = new Date(parseInt(event.fecha));
+      const fy = f.getUTCFullYear();
+      const fm = f.getUTCMonth();
+      const fd = f.getUTCDate();
+      let newEpoch = new Date(fy, fm + 1, fd).getTime() + 7 * 60 * 60 * 1000;
+
+      if (tasks?.length) {
+        const item = tasks[tasks.length - 1];
+        const epoch = new Date(item.fecha).getTime();
+        newEpoch = epoch + (item.duracion || 30) * 60 * 1000;
+      }
+
+      const defaultDate = taskData.fecha ? new Date(taskData.fecha) : new Date(newEpoch);
+
+      // Formatear fecha correctamente
+      const year = defaultDate.getFullYear();
+      const month = defaultDate.getMonth() + 1;
+      const day = defaultDate.getDate();
+      const fechaString = `${year}-${month < 10 ? '0' : ''}${month}-${day < 10 ? '0' : ''}${day}`;
+      const horaString = `${defaultDate.getHours().toString().padStart(2, '0')}:${defaultDate.getMinutes().toString().padStart(2, '0')}`;
+
+      const response = await fetchApiEventos({
+        query: queries.createTask,
+        variables: {
+          eventID: event._id,
+          itinerarioID: itinerario._id,
+          descripcion: taskData.descripcion || "Nueva tarea",
+          fecha: fechaString,
+          hora: horaString,
+          duracion: taskData.duracion || 30
+        },
+        domain: config.domain
+      });
+
+      // Validar respuesta de forma segura
+      if (!response) {
+        throw new Error('No se recibió respuesta del servidor');
+      }
+
+      // ✅ Agregar esta línea que faltaba
+      const responseObj = response as any;
+
+      // Verificar que la respuesta sea un objeto válido con _id
+      if (typeof responseObj !== 'object' || !responseObj._id || typeof responseObj._id !== 'string') {
+        console.error('Respuesta inválida del servidor:', response);
+        throw new Error('La respuesta del servidor no contiene un ID válido');
+      }
+
+      // Ahora podemos usar la respuesta como Task de forma segura
+      const newTask = responseObj as Task;
+
+      // Asignar estado localmente para el manejo en el cliente
+      newTask.estado = taskData.estado || 'pending';
+
+      // Si la tarea debe estar completada, actualizar su estatus
+      if (taskData.estado === 'completed' && newTask._id) {
+        try {
+          await fetchApiEventos({
+            query: queries.editTask,
+            variables: {
+              eventID: event._id,
+              itinerarioID: itinerario._id,
+              taskID: newTask._id,
+              variable: "estatus",
+              valor: "true"
+            },
+            domain: config.domain
+          });
+          newTask.estatus = true;
+        } catch (error) {
+          console.error('Error al actualizar estatus:', error);
         }
       }
-      return newEvent;
-    }); // ✅ Agregar llave de cierre faltante
 
-    // Actualizar el estado local (tasks) - verificar que no exista
-    setTasks(prev => {
-      if (!prev) return [newTask];
-      const taskExists = prev.some(t => t._id === newTask._id);
-      if (taskExists) return prev;
-      return [...prev, newTask];
-    });
+      // Actualizar el estado global (event)
+      setEvent((oldEvent) => {
+        const newEvent = { ...oldEvent };
+        const f1 = newEvent.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
+        if (f1 !== -1) {
+          if (!newEvent.itinerarios_array[f1].tasks) {
+            newEvent.itinerarios_array[f1].tasks = [];
+          }
+          // Verificar que la tarea no exista ya
+          const taskExists = newEvent.itinerarios_array[f1].tasks.some(
+            t => t._id === newTask._id
+          );
+          if (!taskExists) {
+            newEvent.itinerarios_array[f1].tasks.push(newTask);
+          }
+        }
+        return newEvent;
+      }); // ✅ Agregar llave de cierre faltante
 
-    // Seleccionar la nueva tarea
-    setSelectTask(newTask._id);
+      // Actualizar el estado local (tasks) - verificar que no exista
+      setTasks(prev => {
+        if (!prev) return [newTask];
+        const taskExists = prev.some(t => t._id === newTask._id);
+        if (taskExists) return prev;
+        return [...prev, newTask];
+      });
 
-    // Notificar éxito
-    toast("success", t("Tarea creada con éxito"));
-  } catch (error) {
-    console.error('Error al crear la tarea:', error);
-    toast("error", t("Error al crear la tarea"));
-  }
-}, [event?._id, itinerario?._id, tasks, config?.domain, t]); // ✅ Corregido
+      // Seleccionar la nueva tarea
+      setSelectTask(newTask._id);
 
-
-
+      // Notificar éxito
+      toast("success", t("Tarea creada con éxito"));
+    } catch (error) {
+      console.error('Error al crear la tarea:', error);
+      toast("error", t("Error al crear la tarea"));
+    }
+  }, [event?._id, itinerario?._id, tasks, config?.domain, t]);
 
   const fetcher = useCallback(async () => {
     const data = await fetchApiEventos({
@@ -532,8 +521,8 @@ const handleTaskCreate = useCallback(async (taskData: Partial<Task>) => {
   }, [event?._id, config?.development]);
 
   const { data: swrEvent } = useSWR(
-    event?._id ? ["event", event._id] : null, 
-    fetcher, 
+    event?._id ? ["event", event._id] : null,
+    fetcher,
     {
       revalidateOnFocus: false,    // Deshabilitar fetch en focus
       revalidateOnReconnect: true, // Solo en reconexión
@@ -546,7 +535,7 @@ const handleTaskCreate = useCallback(async (taskData: Partial<Task>) => {
     if (swrEvent && swrEvent._id && swrEvent._id !== event._id) {
       setEvent(swrEvent as EventInterface);
     }
-  }, [swrEvent, event._id]); // Comparar solo IDs para evitar bucles
+  }, [swrEvent, event._id]); 
 
   return (
     <div className="w-full flex-1 flex flex-col overflow-auto">

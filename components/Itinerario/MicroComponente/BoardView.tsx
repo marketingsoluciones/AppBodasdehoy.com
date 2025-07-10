@@ -1,61 +1,23 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import {
-  DndContext,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  closestCorners,
-} from '@dnd-kit/core';
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-  horizontalListSortingStrategy,
-} from '@dnd-kit/sortable';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { DndContext, PointerSensor, useSensor, useSensors, closestCorners, } from '@dnd-kit/core';
+import { SortableContext, horizontalListSortingStrategy, } from '@dnd-kit/sortable';
 import { Task, Itinerary, Event as EventInterface } from '../../../utils/Interfaces';
 import { BoardFilters } from './BoardFilters';
-import { AddColumnModal } from './BoardModals';
 import { SubTaskModal } from './SubTaskModal';
 import { toast } from "react-toastify";
 import { useTranslation } from 'react-i18next';
 import TaskDetailModal from './TaskDetailModal';
 import { AuthContextProvider } from '../../../context';
-
-// Importar tipos e interfaces
 import { BoardState, DragItem, BoardColumn as IBoardColumn } from './types';
-
-// Importar constantes
 import { DEFAULT_COLUMNS } from './constants';
-
-// Importar utilidades
-import {
-  useDebounce,
-  isValidTask,
-  getTaskStatus,
-  exportBoardData,
-  saveColumnOrderToAPI,
-  filterTasks
-} from './boardViewUtils';
-
-// Importar manejadores
-import {
-  createHandleDragStart,
-  createHandleDragEnd,
-  createHandleDragOver
-} from './dragDropHandlers';
-
-import {
-  createHandleTaskCreate,
-  createHandleTaskUpdate,
-  createHandleCreateSubTask
-} from './taskHandlers';
-
-// Importar componentes
+import { useDebounce, getTaskStatus, exportBoardData, saveColumnOrderToAPI, filterTasks } from './boardViewUtils';
+import { createHandleDragStart, createHandleDragEnd, createHandleDragOver } from './dragDropHandlers';
+import { createHandleTaskCreate, createHandleTaskUpdate, createHandleCreateSubTask } from './taskHandlers';
 import { BoardHeader } from './BoardHeader';
 import { ShortcutsModal } from './ShortcutsModal';
 import { BoardDragOverlay } from './BoardDragOverlay';
 import { BoardColumn } from './BoardColumn';
 
-// Props del componente
 interface BoardViewProps {
   data: Task[];
   itinerario: Itinerary;
@@ -70,50 +32,21 @@ interface BoardViewProps {
   setTempPastedAndDropFiles?: any;
 }
 
-export const BoardView: React.FC<BoardViewProps> = ({
-  data,
-  itinerario,
-  event,
-  selectTask,
-  setSelectTask,
-  onTaskUpdate,
-  onTaskDelete,
-  onTaskCreate,
-  setEvent,
-  tempPastedAndDropFiles,
-  setTempPastedAndDropFiles,
-}) => {
-  // Estados
-  const [boardState, setBoardState] = useState<BoardState>({
-    columns: {},
-    columnOrder: [],
-    deletedColumns: [],
-    isGlobalCollapsed: false,
-    viewMode: 'board'
-  });
+export const BoardView: React.FC<BoardViewProps> = ({ data, itinerario, event, selectTask, setSelectTask, onTaskUpdate, onTaskDelete, onTaskCreate, setEvent, tempPastedAndDropFiles, setTempPastedAndDropFiles, }) => {
 
+  const { config } = AuthContextProvider();
+  const { t } = useTranslation();
+  const [boardState, setBoardState] = useState<BoardState>({ columns: {}, columnOrder: [], deletedColumns: [], isGlobalCollapsed: false, viewMode: 'board' });
   const [draggedItem, setDraggedItem] = useState<DragItem | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [showFilters, setShowFilters] = useState(false);
-  const [showAddColumn, setShowAddColumn] = useState(false);
-  const [showColumnManager, setShowColumnManager] = useState(false);
-  const [showDeletedColumns, setShowDeletedColumns] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showTaskDetail, setShowTaskDetail] = useState<{ show: boolean; task?: Task }>({ show: false });
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const { t } = useTranslation();
-  const { config } = AuthContextProvider();
+  const [showSubTaskModal, setShowSubTaskModal] = useState<{ show: boolean; parentTaskId?: string; }>({ show: false });
 
-  const [showSubTaskModal, setShowSubTaskModal] = useState<{
-    show: boolean;
-    parentTaskId?: string;
-  }>({ show: false });
-
-  const [hiddenEmptyColumns, setHiddenEmptyColumns] = useState<string[]>([]);
-
-  // Configuración de sensores para drag & drop
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -122,20 +55,17 @@ export const BoardView: React.FC<BoardViewProps> = ({
     })
   );
 
-  // Callbacks con las funciones importadas
-  const getTaskStatusCallback = useCallback((task: Task) => 
+  const getTaskStatusCallback = useCallback((task: Task) =>
     getTaskStatus(task, DEFAULT_COLUMNS), []);
 
   const saveOrderToAPI = useCallback(async () => {
     if (!hasUnsavedChanges) return;
-    
     setIsSaving(true);
     try {
       await saveColumnOrderToAPI(boardState, event, itinerario, config, setEvent);
       setHasUnsavedChanges(false);
       toast.success(t('Cambios guardados correctamente'));
     } catch (error) {
-      console.error('Error al guardar orden de columnas:', error);
       toast.error(t('Error al guardar los cambios'));
     } finally {
       setIsSaving(false);
@@ -144,7 +74,6 @@ export const BoardView: React.FC<BoardViewProps> = ({
 
   const debouncedSave = useDebounce(saveOrderToAPI, 2000);
 
-  // Efectos
   useEffect(() => {
     if (hasUnsavedChanges && !isSaving) {
       debouncedSave();
@@ -153,8 +82,6 @@ export const BoardView: React.FC<BoardViewProps> = ({
 
   useEffect(() => {
     const columns: Record<string, IBoardColumn> = {};
-
-    // Crear columnas por defecto
     Object.entries(DEFAULT_COLUMNS).forEach(([id, column]) => {
       columns[id] = {
         ...column,
@@ -175,7 +102,7 @@ export const BoardView: React.FC<BoardViewProps> = ({
     if (data && data.length > 0) {
       data.forEach(task => {
         const status = task.estado || getTaskStatusCallback(task);
-        
+
         if (columns[status]) {
           columns[status].tasks.push({
             ...task,
@@ -212,12 +139,12 @@ export const BoardView: React.FC<BoardViewProps> = ({
   }, [data, getTaskStatusCallback, itinerario.columnsOrder]);
 
   // Manejadores usando las funciones importadas
-  const handleDragStart = useMemo(() => 
-    createHandleDragStart(boardState, setDraggedItem), 
+  const handleDragStart = useMemo(() =>
+    createHandleDragStart(boardState, setDraggedItem),
     [boardState]
   );
 
-  const handleDragEnd = useMemo(() => 
+  const handleDragEnd = useMemo(() =>
     createHandleDragEnd(
       draggedItem,
       boardState,
@@ -228,16 +155,16 @@ export const BoardView: React.FC<BoardViewProps> = ({
       config,
       setEvent,
       t
-    ), 
+    ),
     [draggedItem, boardState, event, itinerario, config, setEvent, t]
   );
 
-  const handleDragOver = useMemo(() => 
-    createHandleDragOver(draggedItem, boardState), 
+  const handleDragOver = useMemo(() =>
+    createHandleDragOver(draggedItem, boardState),
     [draggedItem, boardState]
   );
 
-  const handleTaskCreate = useMemo(() => 
+  const handleTaskCreate = useMemo(() =>
     createHandleTaskCreate(
       event,
       itinerario,
@@ -248,11 +175,11 @@ export const BoardView: React.FC<BoardViewProps> = ({
       data,
       boardState,
       setBoardState
-    ), 
+    ),
     [event, itinerario, config, setEvent, setSelectTask, t, data, boardState]
   );
 
-  const handleTaskUpdate = useMemo(() => 
+  const handleTaskUpdate = useMemo(() =>
     createHandleTaskUpdate(
       event,
       itinerario,
@@ -260,12 +187,12 @@ export const BoardView: React.FC<BoardViewProps> = ({
       setBoardState,
       onTaskUpdate,
       t
-    ), 
+    ),
     [event, itinerario, config, onTaskUpdate, t]
   );
 
-  const handleCreateSubTask = useMemo(() => 
-    createHandleCreateSubTask(onTaskCreate, setShowSubTaskModal), 
+  const handleCreateSubTask = useMemo(() =>
+    createHandleCreateSubTask(onTaskCreate, setShowSubTaskModal),
     [onTaskCreate]
   );
 
@@ -315,8 +242,8 @@ export const BoardView: React.FC<BoardViewProps> = ({
       .filter(Boolean);
   }, [boardState]);
 
-  const filteredColumns = useMemo(() => 
-    filterTasks(boardState.columns, searchTerm, activeFilters), 
+  const filteredColumns = useMemo(() =>
+    filterTasks(boardState.columns, searchTerm, activeFilters),
     [boardState.columns, searchTerm, activeFilters]
   );
 
@@ -349,7 +276,8 @@ export const BoardView: React.FC<BoardViewProps> = ({
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [toggleGlobalCollapse, handleManualSave]);
-
+  
+  
   return (
     <div className="h-full flex flex-col bg-gray-50">
       {/* Header del tablero */}
