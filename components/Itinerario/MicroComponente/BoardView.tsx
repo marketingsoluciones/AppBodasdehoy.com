@@ -276,8 +276,7 @@ export const BoardView: React.FC<BoardViewProps> = ({ data, itinerario, event, s
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [toggleGlobalCollapse, handleManualSave]);
-  
-  
+
   return (
     <div className="h-full flex flex-col bg-gray-50">
       {/* Header del tablero */}
@@ -328,7 +327,7 @@ export const BoardView: React.FC<BoardViewProps> = ({ data, itinerario, event, s
                 .map(columnId => {
                   const column = filteredColumns[columnId];
                   if (!column) return null;
-
+                  console.log("column", columnId)
                   return (
                     <BoardColumn
                       key={columnId}

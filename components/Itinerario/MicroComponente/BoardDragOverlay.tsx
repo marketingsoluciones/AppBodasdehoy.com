@@ -17,8 +17,7 @@ export const BoardDragOverlay: React.FC<BoardDragOverlayProps> = ({
   itinerario,
 }) => {
   if (!draggedItem) return null;
-  console.log('tarjeta que selecciono', draggedItem)
-  console.log('columna', boardState)
+
   return (
     <DragOverlay>
       {draggedItem.type === 'task' ? (

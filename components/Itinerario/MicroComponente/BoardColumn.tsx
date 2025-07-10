@@ -114,7 +114,6 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
         commentsViewers: []
       };
 
-      console.log('Creando tarea en columna:', column.id, newTask);
       onTaskCreate(newTask);
       setNewTaskTitle('');
       setIsCreatingTask(false);
@@ -172,7 +171,6 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
   // Manejar el clic en agregar tarea desde el header
   const handleAddTaskClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log('Botón agregar tarea clickeado');
     setIsCreatingTask(true);
   }, []);
 

@@ -12,6 +12,7 @@ export const createHandleDragStart = (
   const { active } = dragEvent;
   const activeId = active.id as string;
 
+
   // Buscar si es una tarea
   for (const [columnId, column] of Object.entries(boardState.columns)) {
     const task = column.tasks.find(t => t._id === activeId);
@@ -43,7 +44,7 @@ export const createHandleDragOver = (
   boardState: BoardState
 ) => (dragEvent: DragOverEvent) => {
   const { active, over } = dragEvent;
-  
+
   if (!over) return;
 
   const activeId = active.id as string;
@@ -76,6 +77,7 @@ export const createHandleDragEnd = (
   setEvent: Function,
   t: (key: string) => string
 ) => async (dragEvent: DragEndEvent) => {
+  
   const { active, over } = dragEvent;
 
   if (!over || !draggedItem) {
@@ -87,7 +89,7 @@ export const createHandleDragEnd = (
   const overId = over.id as string;
 
   if (draggedItem.type === 'task') {
-    let sourceColumnId = draggedItem.sourceColumnId || '';
+    let sourceColumnId = draggedItem?.sourceColumnId;
     let targetColumnId = '';
     let movedTask = draggedItem.data as Task;
 
@@ -107,11 +109,34 @@ export const createHandleDragEnd = (
     }
 
     // Determinar la columna destino
-    if (overId.startsWith('column-')) {
-      targetColumnId = overId.replace('column-', '');
-    } else if (boardState.columns[overId]) {
+    const validColumnIds = Object.keys(boardState.columns);
+
+    if (validColumnIds.includes(overId)) {
       targetColumnId = overId;
+    } else if (dragEvent.collisions) {
+      // Buscar la primera colisión que sea una columna válida
+      const collision = dragEvent.collisions.find(c =>
+        validColumnIds.includes(String(c.id))
+      );
+      if (collision) {
+        targetColumnId = String(collision.id);
+      } else {
+        // Buscar si el overId corresponde a una tarea dentro de alguna columna
+        for (const [columnId, column] of Object.entries(boardState.columns)) {
+          if (column.tasks.some(t => String(t._id) === overId)) {
+            targetColumnId = columnId;
+            break;
+          }
+        }
+      }
+    } else if (overId.startsWith('column-')) {
+      // Extraer el id real después de 'column-'
+      const columnId = overId.replace('column-', '');
+      if (boardState.columns.hasOwnProperty(columnId) && isNaN(Number(columnId))) {
+        targetColumnId = columnId;
+      }
     } else {
+      // Buscar si el overId corresponde a una tarea dentro de alguna columna
       for (const [columnId, column] of Object.entries(boardState.columns)) {
         if (column.tasks.some(t => t._id === overId)) {
           targetColumnId = columnId;
@@ -121,7 +146,7 @@ export const createHandleDragEnd = (
     }
 
     // Validar que tenemos una columna destino válida
-    if (!targetColumnId || !boardState.columns[targetColumnId]) {
+    if (!targetColumnId || !boardState.columns.hasOwnProperty(targetColumnId)) {
       console.error('No se pudo determinar la columna destino:', { overId, targetColumnId });
       setDraggedItem(null);
       return;
@@ -133,25 +158,26 @@ export const createHandleDragEnd = (
       return;
     }
 
+
     // Preparar los cambios
     const tasksToUpdate: TaskOrder[] = [];
-    
+
     // Actualizar el estado local inmediatamente
     setBoardState(prevState => {
       const newColumns = { ...prevState.columns };
-      
+
       // Clonar las columnas afectadas
-      const sourceColumn = { 
+      const sourceColumn = {
         ...newColumns[sourceColumnId],
         tasks: [...newColumns[sourceColumnId].tasks]
       };
-      
-      const targetColumn = sourceColumnId === targetColumnId 
-        ? sourceColumn 
-        : { 
-            ...newColumns[targetColumnId],
-            tasks: [...newColumns[targetColumnId].tasks]
-          };
+
+      const targetColumn = sourceColumnId === targetColumnId
+        ? sourceColumn
+        : {
+          ...newColumns[targetColumnId],
+          tasks: [...newColumns[targetColumnId].tasks]
+        };
 
       // Encontrar y remover la tarea de la columna origen
       const taskIndex = sourceColumn.tasks.findIndex(t => t._id === activeId);
@@ -254,7 +280,7 @@ export const createHandleDragEnd = (
       }
 
       // Actualizar el orden de todas las tareas afectadas
-      const updatePromises = tasksToUpdate.map(taskOrder => 
+      const updatePromises = tasksToUpdate.map(taskOrder =>
         fetchApiEventos({
           query: queries.editTask,
           variables: {
@@ -276,7 +302,7 @@ export const createHandleDragEnd = (
         const itineraryIndex = newEvent.itinerarios_array.findIndex(
           (it: any) => it._id === itinerario._id
         );
-        
+
         if (itineraryIndex !== -1) {
           tasksToUpdate.forEach(taskOrder => {
             const taskIndex = newEvent.itinerarios_array[itineraryIndex].tasks.findIndex(
@@ -291,7 +317,7 @@ export const createHandleDragEnd = (
             }
           });
         }
-        
+
         return newEvent;
       });
 
@@ -304,6 +330,8 @@ export const createHandleDragEnd = (
       toast.error(t('Error al mover la tarea'));
     }
   }
+
+  
 
   setDraggedItem(null);
 };
