@@ -498,7 +498,7 @@ export const TableBudgetV8: FC<props> = ({ data, setShowModalDelete, showDataSta
                 />
               : elem.type === "float"
                 ? typeof info.getValue() === "number"
-                  ? formatNumber(info.getValue())
+                  ? getCurrency(parseFloat(info.getValue()))
                   : null
                 : info.getValue()
           },
@@ -619,7 +619,7 @@ export const TableBudgetV8: FC<props> = ({ data, setShowModalDelete, showDataSta
     <div className="h-full bg-gray-50 flex flex-col relative w-full">
       <div className="bg-white shadow-sm border-b px-2 py-1.5 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h2 className="text-sm font-semibold text-gray-800">Presupuesto</h2>
+          {/* <h2 className="text-sm font-semibold text-gray-800">Presupuesto</h2> */}
           <div className="flex items-center gap-1.5">
             <div className="flex items-center gap-1.5 bg-gray-50 rounded px-2 py-1 border">
               <HiOutlineSearch className="w-3.5 h-3.5 text-gray-400" />
@@ -646,8 +646,8 @@ export const TableBudgetV8: FC<props> = ({ data, setShowModalDelete, showDataSta
               data-filters-button="true"
               onClick={() => setShowFiltersModal(!showFiltersModal)}
               className={`p-1 rounded transition-colors flex items-center gap-1 ${showFiltersModal || hasActiveFilters()
-                  ? 'text-blue-600 bg-blue-50 hover:bg-blue-100'
-                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                ? 'text-blue-600 bg-blue-50 hover:bg-blue-100'
+                : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                 }`}
               title="Filtros"
             >
@@ -699,7 +699,7 @@ export const TableBudgetV8: FC<props> = ({ data, setShowModalDelete, showDataSta
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        {/* <div className="flex items-center gap-2">
           <div className="relative">
             <SelectVisiblesColumns
               columns={initialColumn}
@@ -709,32 +709,32 @@ export const TableBudgetV8: FC<props> = ({ data, setShowModalDelete, showDataSta
               setShowDataState={setShowDataState}
             />
           </div>
-        </div>
-        <div className="flex items-center gap-3">
+        </div> */}
+        <div className={`flex items-center gap-3. mr-6 ${event?.presupuesto_objeto?.viewEstimates ? "w-[38%]" : "w-[33.7%]"}`}>
+          <div className={`text-center ${!event?.presupuesto_objeto?.viewEstimates ? "w-[27%]" : "w-[22%]"} `}>
+            <div className="text-xs text-gray-500">Total</div>
+            <div className="font-semibold text-gray-800 text-xs">
+              {getCurrency(parseFloat(getTotalFinal()))}
+            </div>
+          </div>
           {event?.presupuesto_objeto?.viewEstimates && (
-            <div className="text-center">
-              <div className="text-xs text-gray-500">Estimado</div>
+            <div className="text-center  w-[22%] ">
+              <div className="text-xs text-gray-500 ">Estimado</div>
               <div className="font-semibold text-blue-600 text-xs">
                 {formatNumber(getTotalEstimado())}
               </div>
             </div>
           )}
-          <div className="text-center">
-            <div className="text-xs text-gray-500">Total</div>
-            <div className="font-semibold text-gray-800 text-xs">
-              {formatNumber(getTotalFinal())}
-            </div>
-          </div>
-          <div className="text-center">
+          <div className={`text-center ${!event?.presupuesto_objeto?.viewEstimates ? "w-[27%]" : "w-[22%]"} `}>
             <div className="text-xs text-gray-500">Pagado</div>
             <div className="font-semibold text-green text-xs">
-              {formatNumber(getTotalPagado())}
+              {getCurrency(parseFloat(getTotalPagado()))}
             </div>
           </div>
-          <div className="text-center">
+          <div className={`text-center ${!event?.presupuesto_objeto?.viewEstimates ? "w-[27%]" : "w-[22%]"} `}>
             <div className="text-xs text-gray-500">Pendiente</div>
             <div className="font-semibold text-red text-xs">
-              {formatNumber(getTotalPendiente())}
+              {getCurrency(parseFloat(getTotalPendiente()))}
             </div>
           </div>
         </div>
@@ -748,6 +748,7 @@ export const TableBudgetV8: FC<props> = ({ data, setShowModalDelete, showDataSta
             }
           }
         }}>
+
           <table className="w-full">
             <thead className="bg-gray-100 sticky top-0 z-20">
               {table.getHeaderGroups().map(headerGroup => (
@@ -894,9 +895,13 @@ export const TableBudgetV8: FC<props> = ({ data, setShowModalDelete, showDataSta
       </div>
       <div className="bg-gray-100 px-2 py-1.5 border-t flex justify-end items-center text-xs text-gray-600">
         <div className="flex items-center gap-3">
-          <span>Total: {formatNumber(getTotalFinal())}</span>
+          <span>Total:
+            {getCurrency(parseFloat(getTotalFinal()))}
+          </span>
           <span>|</span>
-          <span>Pendiente: {formatNumber(getTotalPendiente())}</span>
+          <span>Pendiente:
+            {getCurrency(parseFloat(getTotalPendiente()))}
+          </span>
           {hasActiveFilters() && (
             <>
               <span>|</span>
@@ -905,100 +910,110 @@ export const TableBudgetV8: FC<props> = ({ data, setShowModalDelete, showDataSta
           )}
         </div>
       </div>
-      {showOptionsModal.show && (
-        <ClickAwayListener onClickAway={() => setShowOptionsModal({ show: false })}>
-          <div className="absolute top-12 right-3 bg-white shadow-lg rounded border z-50 w-48 max-w-[calc(100vw-24px)]">
-            <div className="p-3 border-b">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-gray-800 text-sm">Opciones disponibles</h3>
-                <button
-                  onClick={() => setShowOptionsModal({ show: false })}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <IoCloseOutline className="w-3 h-3" />
-                </button>
+      {
+        showOptionsModal.show && (
+          <ClickAwayListener onClickAway={() => setShowOptionsModal({ show: false })}>
+            <div className="absolute top-12 right-3 bg-white shadow-lg rounded border z-50 w-48 max-w-[calc(100vw-24px)]">
+              <div className="p-3 border-b">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-gray-800 text-sm">Opciones disponibles</h3>
+                  <button
+                    onClick={() => setShowOptionsModal({ show: false })}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <IoCloseOutline className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+              <div className="p-3 space-y-3">
+                {showOptionsModal.availableOptions?.map((option, index) => (
+                  <div key={index}>
+                    {option.icon && typeof option.icon !== 'boolean' && !option.onClick ? (
+                      <div className="flex items-center gap-2 py-2 px-3 bg-gray-50 rounded border">
+                        <div className="text-gray-500 text-sm">
+                          {option.icon}
+                        </div>
+                        <span className="text-xs font-medium text-gray-700">{option.title}</span>
+                      </div>
+                    ) : option.onClick ? (
+                      <button
+                        onClick={() => {
+                          option.onClick(showOptionsModal.info);
+                          setShowOptionsModal({ show: false });
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-gray-50 rounded transition-colors border border-transparent hover:border-gray-200"
+                      >
+                        <div className="text-gray-500 text-sm">
+                          {option.icon && typeof option.icon !== 'boolean' && option.icon}
+                        </div>
+                        <span className="text-xs text-gray-700">{option.title}</span>
+                      </button>
+                    ) : (
+                      <div className="text-xs text-gray-600 font-medium px-2">
+                        {option.title}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
-            <div className="p-3 space-y-3">
-              {showOptionsModal.availableOptions?.map((option, index) => (
-                <div key={index}>
-                  {option.icon && typeof option.icon !== 'boolean' && !option.onClick ? (
-                    <div className="flex items-center gap-2 py-2 px-3 bg-gray-50 rounded border">
-                      <div className="text-gray-500 text-sm">
-                        {option.icon}
-                      </div>
-                      <span className="text-xs font-medium text-gray-700">{option.title}</span>
-                    </div>
-                  ) : option.onClick ? (
-                    <button
-                      onClick={() => {
-                        option.onClick(showOptionsModal.info);
-                        setShowOptionsModal({ show: false });
-                      }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-gray-50 rounded transition-colors border border-transparent hover:border-gray-200"
-                    >
-                      <div className="text-gray-500 text-sm">
-                        {option.icon && typeof option.icon !== 'boolean' && option.icon}
-                      </div>
-                      <span className="text-xs text-gray-700">{option.title}</span>
-                    </button>
-                  ) : (
-                    <div className="text-xs text-gray-600 font-medium px-2">
-                      {option.title}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+          </ClickAwayListener>
+        )
+      }
+      {
+        showEventInfoModal && (
+          <EventInfoModal
+            event={event}
+            currency={event?.presupuesto_objeto?.currency}
+            categorias_array={getCategoriasForModal()}
+            totalStimatedGuests={event?.presupuesto_objeto?.totalStimatedGuests || { adults: 0, children: 0 }}
+            totals={getModalTotals()}
+            formatNumber={formatNumber}
+            onClose={() => setShowEventInfoModal(false)}
+          />
+        )
+      }
+      {
+        RelacionarPagoModal.crear && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <ClickAwayListener onClickAway={() => RelacionarPagoModal.crear && setRelacionarPagoModal({ id: "", crear: false, categoriaID: "" })}>
+              <div className="relative bg-white rounded-xl shadow-lg p-8 w-full max-w-xl h-[90%] overflow-auto">
+                <button
+                  className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition transform hover:scale-110"
+                  onClick={() => setRelacionarPagoModal({ id: "", crear: false, categoriaID: "" })}
+                >
+                  ✕
+                </button>
+                <FormAddPago
+                  GastoID={RelacionarPagoModal?.id}
+                  cate={RelacionarPagoModal?.categoriaID}
+                  setGastoID={setRelacionarPagoModal}
+                />
+              </div>
+            </ClickAwayListener>
           </div>
-        </ClickAwayListener>
-      )}
-      {showEventInfoModal && (
-        <EventInfoModal
-          event={event}
-          currency={event?.presupuesto_objeto?.currency}
-          categorias_array={getCategoriasForModal()}
-          totalStimatedGuests={event?.presupuesto_objeto?.totalStimatedGuests || { adults: 0, children: 0 }}
-          totals={getModalTotals()}
-          formatNumber={formatNumber}
-          onClose={() => setShowEventInfoModal(false)}
-        />
-      )}
-      {RelacionarPagoModal.crear && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <ClickAwayListener onClickAway={() => RelacionarPagoModal.crear && setRelacionarPagoModal({ id: "", crear: false, categoriaID: "" })}>
-            <div className="relative bg-white rounded-xl shadow-lg p-8 w-full max-w-xl h-[90%] overflow-auto">
-              <button
-                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition transform hover:scale-110"
-                onClick={() => setRelacionarPagoModal({ id: "", crear: false, categoriaID: "" })}
-              >
-                ✕
-              </button>
-              <FormAddPago
-                GastoID={RelacionarPagoModal?.id}
-                cate={RelacionarPagoModal?.categoriaID}
-                setGastoID={setRelacionarPagoModal}
+        )
+      }
+      {
+        ServisiosListModal.crear && (
+          <ClickAwayListener onClickAway={() => ServisiosListModal.crear && setServisiosListModal({ id: "", crear: false, categoriaID: "" })}>
+            <div>
+              <ModalTaskList
+                setModal={setServisiosListModal}
+                categoria={ServisiosListModal?.categoriaID}
+                gasto={ServisiosListModal?.id}
+                event={event}
+                setEvent={setEvent}
               />
             </div>
           </ClickAwayListener>
-        </div>
-      )}
-      {ServisiosListModal.crear && (
-        <ClickAwayListener onClickAway={() => ServisiosListModal.crear && setServisiosListModal({ id: "", crear: false, categoriaID: "" })}>
-          <div>
-            <ModalTaskList
-              setModal={setServisiosListModal}
-              categoria={ServisiosListModal?.categoriaID}
-              gasto={ServisiosListModal?.id}
-              event={event}
-              setEvent={setEvent}
-            />
-          </div>
-        </ClickAwayListener>
-      )}
-      {showFloatOptionsMenu?.state && !showOptionsModal.show && (
-        <FloatOptionsMenu showOptionsMenu={showFloatOptionsMenu} setShowOptionsMenu={setShowFloatOptionsMenu} />
-      )}
-    </div>
+        )
+      }
+      {
+        showFloatOptionsMenu?.state && !showOptionsModal.show && (
+          <FloatOptionsMenu showOptionsMenu={showFloatOptionsMenu} setShowOptionsMenu={setShowFloatOptionsMenu} />
+        )
+      }
+    </div >
   )
 }
