@@ -5,7 +5,7 @@ import { EditableLabelWithInput } from '../Forms/EditableLabelWithInput';
 import { EditableSelect } from '../Forms/EditableSelect';
 import { fetchApiEventos, queries } from '../../utils/Fetching';
 import { AuthContextProvider, EventContextProvider } from '../../context';
-import { FloatOptionsMenuInterface, ModalInterface, VisibleColumn } from '../../utils/Interfaces';
+import { FloatOptionsMenuInterface, ModalInterface, VisibleColumn, TableFilters, InitialColumn, ColumnConfig } from '../../utils/Interfaces';
 import { DotsOpcionesIcon } from '../icons';
 import { useAllowed } from '../../hooks/useAllowed';
 import { FloatOptionsMenu } from '../Utils/FloatOptionsMenu';
@@ -29,58 +29,9 @@ import { FiltersModal } from '../Presupuesto/PresupuestoV2/modals/FiltersModal';
 
 interface props {
   data: any
-  showModalDelete: ModalInterface
   setShowModalDelete: Dispatch<SetStateAction<ModalInterface>>
-  setLoading: any
   showDataState: any
   setShowDataState: any
-  setIdItem: any
-}
-
-export interface InitialColumn {
-  accessor: string
-  header?: string
-  size?: number
-  isHidden?: boolean
-  isEditabled?: boolean
-  isSelected?: boolean
-  verticalAlignment?: "start" | "center" | "end"
-  horizontalAlignment?: "start" | "center" | "end"
-  className?: string
-  type?: "string" | "int" | "float" | "select"
-  onClick?: Dispatch<SetStateAction<any>>
-}
-
-// Tipos para filtros
-interface TableFilters {
-  categories: string[];
-  paymentStatus: 'all' | 'paid' | 'pending' | 'partial';
-  visibilityStatus: 'all' | 'visible' | 'hidden';
-  amountRange: {
-    min: string;
-    max: string;
-  };
-}
-
-// Definir el tipo ColumnConfig basado en los accessors reales de la tabla
-interface ColumnConfig {
-  categoria: { visible: boolean };
-  gasto: { visible: boolean };
-  unidad: { visible: boolean };
-  cantidad: { visible: boolean };
-  nombre: { visible: boolean };
-  valor_unitario: { visible: boolean };
-  coste_final: { visible: boolean };
-  coste_estimado: { visible: boolean };
-  pagado: { visible: boolean };
-  pendiente_pagar: { visible: boolean };
-  options: { visible: boolean };
-}
-
-const defaultSize = {
-  int: 70,
-  float: 140,
-  string: 200
 }
 
 const optionsSelect = [
@@ -92,8 +43,7 @@ const optionsSelect = [
 
 
 
-export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDelete, setLoading, showDataState, setShowDataState, setIdItem }) => {
-  const rerender = useReducer(() => ({}), {})[1]
+export const TableBudgetV8: FC<props> = ({ data, setShowModalDelete, showDataState, setShowDataState }) => {
   const { event, setEvent } = EventContextProvider()
   const [isAllowed, ht] = useAllowed()
   const toast = useToast()
@@ -103,27 +53,16 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
   const [showFloatOptionsMenu, setShowFloatOptionsMenu] = useState<FloatOptionsMenuInterface>()
   const [RelacionarPagoModal, setRelacionarPagoModal] = useState({ id: "", crear: false, categoriaID: "" })
   const [ServisiosListModal, setServisiosListModal] = useState({ id: "", crear: false, categoriaID: "" })
-
-  // Estado para el modal de información
   const [showEventInfoModal, setShowEventInfoModal] = useState(false);
-
-  // Estados para el buscador
   const [searchTerm, setSearchTerm] = useState('');
-  const [showSearch, setShowSearch] = useState(false);
-
-  // Estado para el modal de opciones
   const [showOptionsModal, setShowOptionsModal] = useState<{
     show: boolean;
     info?: any;
     availableOptions?: any[];
   }>({ show: false });
-
-  // Estado para el modal de configuración de columnas
   const [showColumnsModal, setShowColumnsModal] = useState(false);
-
-  // NUEVOS ESTADOS PARA FILTROS
   const [showFiltersModal, setShowFiltersModal] = useState(false);
-  const [viewLevel, setViewLevel] = useState(3); // 1: Solo categorías, 2: Cat + Gastos, 3: Completo
+  const [viewLevel, setViewLevel] = useState(3);
   const [filters, setFilters] = useState<TableFilters>({
     categories: [],
     paymentStatus: 'all',
@@ -134,45 +73,34 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     }
   });
 
-  // *** NUEVO: useEffect para manejar clics fuera de los modales ***
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
-      
-      // Para FiltersModal
       if (showFiltersModal) {
         const filtersModal = document.querySelector('.filters-modal');
         const filtersButton = document.querySelector('[data-filters-button]');
-        
-        if (filtersModal && !filtersModal.contains(target) && 
-            filtersButton && !filtersButton.contains(target)) {
+        if (filtersModal && !filtersModal.contains(target) &&
+          filtersButton && !filtersButton.contains(target)) {
           setShowFiltersModal(false);
         }
       }
-      
-      // Para ColumnsModal
       if (showColumnsModal) {
         const columnsModal = document.querySelector('.columns-modal');
         const columnsButton = document.querySelector('[data-columns-button]');
-        
-        if (columnsModal && !columnsModal.contains(target) && 
-            columnsButton && !columnsButton.contains(target)) {
+        if (columnsModal && !columnsModal.contains(target) &&
+          columnsButton && !columnsButton.contains(target)) {
           setShowColumnsModal(false);
         }
       }
-      
-      // Para EventInfoModal
       if (showEventInfoModal) {
         const eventModal = document.querySelector('.event-info-modal');
         const eventButton = document.querySelector('[data-event-button]');
-        
-        if (eventModal && !eventModal.contains(target) && 
-            eventButton && !eventButton.contains(target)) {
+        if (eventModal && !eventModal.contains(target) &&
+          eventButton && !eventButton.contains(target)) {
           setShowEventInfoModal(false);
         }
       }
     };
-
     if (showFiltersModal || showColumnsModal || showEventInfoModal) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -192,7 +120,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     { accessor: "pendiente_pagar", header: t("pendiente por pagar"), size: 90, horizontalAlignment: "end", type: "float" },
   ]
 
-  // FUNCIONES PARA FILTROS
   const handleFilterChange = (filterType: keyof TableFilters, value: any) => {
     setFilters(prev => ({
       ...prev,
@@ -219,7 +146,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     if (viewLevel === 1) {
       filteredData = filteredData.filter(item => item?.fatherCategoria);
     } else if (viewLevel === 2) {
-      filteredData = filteredData.filter(item => 
+      filteredData = filteredData.filter(item =>
         item?.fatherCategoria || item?.fatherGasto
       );
     }
@@ -239,7 +166,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
       filteredData = filteredData.filter(item => {
         const pagado = item.pagado || 0;
         const total = item.coste_final || 0;
-        
+
         switch (filters.paymentStatus) {
           case 'paid':
             return pagado >= total && total > 0;
@@ -255,9 +182,9 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
 
     if (filters.visibilityStatus !== 'all') {
       filteredData = filteredData.filter(item => {
-        const isHidden = (item?.gastoOriginal?.estatus === false) || 
-                         (item?.itemOriginal?.estatus === false);
-        
+        const isHidden = (item?.gastoOriginal?.estatus === false) ||
+          (item?.itemOriginal?.estatus === false);
+
         switch (filters.visibilityStatus) {
           case 'visible':
             return !isHidden;
@@ -274,7 +201,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
         const amount = item.coste_final || 0;
         const min = filters.amountRange.min ? parseFloat(filters.amountRange.min) : 0;
         const max = filters.amountRange.max ? parseFloat(filters.amountRange.max) : Infinity;
-        
+
         return amount >= min && amount <= max;
       });
     }
@@ -293,11 +220,11 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
 
   const hasActiveFilters = () => {
     return filters.categories.length > 0 ||
-           filters.paymentStatus !== 'all' ||
-           filters.visibilityStatus !== 'all' ||
-           filters.amountRange.min ||
-           filters.amountRange.max ||
-           viewLevel !== 3;
+      filters.paymentStatus !== 'all' ||
+      filters.visibilityStatus !== 'all' ||
+      filters.amountRange.min ||
+      filters.amountRange.max ||
+      viewLevel !== 3;
   };
 
   const getColumnVisibility = (accessor: string): boolean => {
@@ -690,12 +617,9 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
 
   return (
     <div className="h-full bg-gray-50 flex flex-col relative w-full">
-      {/* Header con controles */}
       <div className="bg-white shadow-sm border-b px-2 py-1.5 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h2 className="text-sm font-semibold text-gray-800">Presupuesto</h2>
-
-          {/* Buscador */}
           <div className="flex items-center gap-1.5">
             <div className="flex items-center gap-1.5 bg-gray-50 rounded px-2 py-1 border">
               <HiOutlineSearch className="w-3.5 h-3.5 text-gray-400" />
@@ -717,17 +641,14 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
               )}
             </div>
           </div>
-
-          {/* Botón de filtros */}
           <div className="relative">
             <button
               data-filters-button="true"
               onClick={() => setShowFiltersModal(!showFiltersModal)}
-              className={`p-1 rounded transition-colors flex items-center gap-1 ${
-                showFiltersModal || hasActiveFilters()
-                  ? 'text-blue-600 bg-blue-50 hover:bg-blue-100' 
+              className={`p-1 rounded transition-colors flex items-center gap-1 ${showFiltersModal || hasActiveFilters()
+                  ? 'text-blue-600 bg-blue-50 hover:bg-blue-100'
                   : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
-              }`}
+                }`}
               title="Filtros"
             >
               <HiOutlineFilter className="w-3.5 h-3.5" />
@@ -736,8 +657,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                 <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
               )}
             </button>
-
-            {/* Modal de filtros - SIN ClickAwayListener */}
             {showFiltersModal && (
               <FiltersModal
                 filters={filters}
@@ -750,8 +669,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
               />
             )}
           </div>
-
-          {/* Botón de información del evento */}
           <div className="relative">
             <button
               data-event-button="true"
@@ -763,8 +680,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
               <span className="text-xs">Info evento</span>
             </button>
           </div>
-
-          {/* Botón para abrir modal de configuración de columnas */}
           <div className="relative">
             <button
               data-columns-button="true"
@@ -775,8 +690,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
               <TbColumns3 className="w-3.5 h-3.5" />
               <span className="text-xs">Columnas</span>
             </button>
-
-            {/* Modal de configuración de columnas - SIN ClickAwayListener */}
             {showColumnsModal && (
               <ColumnsConfigModal
                 columnConfig={columnConfig}
@@ -786,8 +699,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
             )}
           </div>
         </div>
-
-        {/* Controles de columnas - Selector original */}
         <div className="flex items-center gap-2">
           <div className="relative">
             <SelectVisiblesColumns
@@ -799,8 +710,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
             />
           </div>
         </div>
-
-        {/* Resumen financiero */}
         <div className="flex items-center gap-3">
           {event?.presupuesto_objeto?.viewEstimates && (
             <div className="text-center">
@@ -830,8 +739,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
           </div>
         </div>
       </div>
-
-      {/* Tabla */}
       <div className="flex-1 overflow-auto bg-white relative">
         <div className="min-w-[700px]" onContextMenu={(e) => {
           const element = document.getElementById("ElementEditable")
@@ -884,7 +791,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                       let info = row.getVisibleCells().find(cell => cell.column.id === "categoria")?.getContext() || infoAsd
                       if (!element) {
                         e.preventDefault();
-                        const objectType = row.original?.object ;
+                        const objectType = row.original?.object;
                         openOptionsModal(info, objectType);
                       }
                     }}
@@ -947,8 +854,8 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                       {searchTerm || hasActiveFilters() ? (
                         <>
                           <span className="text-sm">
-                            {searchTerm 
-                              ? `No se encontraron resultados para "${searchTerm}"` 
+                            {searchTerm
+                              ? `No se encontraron resultados para "${searchTerm}"`
                               : "No se encontraron resultados con los filtros aplicados"
                             }
                           </span>
@@ -985,8 +892,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
           </table>
         </div>
       </div>
-
-      {/* Footer */}
       <div className="bg-gray-100 px-2 py-1.5 border-t flex justify-end items-center text-xs text-gray-600">
         <div className="flex items-center gap-3">
           <span>Total: {formatNumber(getTotalFinal())}</span>
@@ -1000,8 +905,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
           )}
         </div>
       </div>
-
-      {/* Modal de opciones flotante dentro de la tabla */}
       {showOptionsModal.show && (
         <ClickAwayListener onClickAway={() => setShowOptionsModal({ show: false })}>
           <div className="absolute top-12 right-3 bg-white shadow-lg rounded border z-50 w-48 max-w-[calc(100vw-24px)]">
@@ -1016,7 +919,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                 </button>
               </div>
             </div>
-
             <div className="p-3 space-y-3">
               {showOptionsModal.availableOptions?.map((option, index) => (
                 <div key={index}>
@@ -1051,8 +953,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
           </div>
         </ClickAwayListener>
       )}
-
-      {/* Modal de información del evento - SIN ClickAwayListener */}
       {showEventInfoModal && (
         <EventInfoModal
           event={event}
@@ -1064,8 +964,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
           onClose={() => setShowEventInfoModal(false)}
         />
       )}
-
-      {/* Modales existentes */}
       {RelacionarPagoModal.crear && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <ClickAwayListener onClickAway={() => RelacionarPagoModal.crear && setRelacionarPagoModal({ id: "", crear: false, categoriaID: "" })}>
@@ -1085,7 +983,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
           </ClickAwayListener>
         </div>
       )}
-
       {ServisiosListModal.crear && (
         <ClickAwayListener onClickAway={() => ServisiosListModal.crear && setServisiosListModal({ id: "", crear: false, categoriaID: "" })}>
           <div>
@@ -1099,8 +996,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
           </div>
         </ClickAwayListener>
       )}
-
-      {/* Componente FloatOptionsMenu original - solo se muestra si no hay modal */}
       {showFloatOptionsMenu?.state && !showOptionsModal.show && (
         <FloatOptionsMenu showOptionsMenu={showFloatOptionsMenu} setShowOptionsMenu={setShowFloatOptionsMenu} />
       )}

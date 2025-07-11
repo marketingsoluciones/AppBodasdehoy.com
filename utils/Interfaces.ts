@@ -6,6 +6,44 @@ export interface TableTotals {
     pagado: number;
 }
 
+export interface TableFilters {
+  categories: string[];
+  paymentStatus: 'all' | 'paid' | 'pending' | 'partial';
+  visibilityStatus: 'all' | 'visible' | 'hidden';
+  amountRange: {
+    min: string;
+    max: string;
+  };
+}
+
+export interface InitialColumn {
+  accessor: string
+  header?: string
+  size?: number
+  isHidden?: boolean
+  isEditabled?: boolean
+  isSelected?: boolean
+  verticalAlignment?: "start" | "center" | "end"
+  horizontalAlignment?: "start" | "center" | "end"
+  className?: string
+  type?: "string" | "int" | "float" | "select"
+  onClick?: Dispatch<SetStateAction<any>>
+}
+
+export interface ColumnConfig {
+  categoria: { visible: boolean };
+  gasto: { visible: boolean };
+  unidad: { visible: boolean };
+  cantidad: { visible: boolean };
+  nombre: { visible: boolean };
+  valor_unitario: { visible: boolean };
+  coste_final: { visible: boolean };
+  coste_estimado: { visible: boolean };
+  pagado: { visible: boolean };
+  pendiente_pagar: { visible: boolean };
+  options: { visible: boolean };
+}
+
 export interface Event {
     _id: string
     fecha_creacion: string
