@@ -15,7 +15,7 @@ import { useTranslation } from 'react-i18next';
 import ButtonPrimary from "./ButtonPrimary";
 import ModalDefault from "./ModalDefault";
 import { ModalTemplates } from "./ModalTemplates";
-import { EmailDesign } from "../../utils/Interfaces";
+import { TemplateDesign } from "../../utils/Interfaces";
 import ButtonSecondary from "./ButtonSecondary";
 import i18next from "i18next";
 
@@ -111,7 +111,7 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
     }
   }
 
-  const handleChangeTemplate = (template: EmailDesign) => {
+  const handleChangeTemplate = (template: TemplateDesign) => {
     fetchApiEventos({
       query: queries.eventUpdate,
       variables: {
@@ -130,7 +130,7 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
     <div className="w-full h-full font-display flex flex-col space-y-2">
       {showModalTemplate && (
         <ModalDefault onClose={() => setShowModalTemplate(false)}>
-          <ModalTemplates action={(template) => { handleChangeTemplate(template) }} use={"load"} />
+          <ModalTemplates action={(template) => { handleChangeTemplate(template) }} use={"load"} optionSelect={optionSelect} />
         </ModalDefault>
       )}
       <div className="md:w-max">

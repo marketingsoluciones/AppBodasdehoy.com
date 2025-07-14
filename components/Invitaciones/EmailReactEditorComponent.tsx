@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 import ModalDefault from './ModalDefault';
 import { ModalHtmlPreview } from './ModalHtmlPreview';
 import { ModalTemplates } from './ModalTemplates';
-import { EmailDesign } from '../../utils/Interfaces';
+import { TemplateDesign } from '../../utils/Interfaces';
 import { EditableLabelWithInput } from '../Forms/EditableLabelWithInput';
 import ButtonPrimary from './ButtonPrimary';
 import { IoIosClose } from 'react-icons/io';
@@ -50,8 +50,8 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEditorModal, previ
     const [isLoad, setIsLoad] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
     const [html, setHtml] = useState<string>('');
-    const [designASD, setDesignASD] = useState<EmailDesign>();
-    const [template, setTemplate] = useState<EmailDesign>();
+    const [designASD, setDesignASD] = useState<TemplateDesign>();
+    const [template, setTemplate] = useState<TemplateDesign>();
     const htmlToImageRef = useRef(null);
     const [showTemplatesModal, setShowTemplatesModal] = useState<boolean>(false);
     const [showSaveModal, setShowSaveModal] = useState<boolean>(false);
@@ -96,7 +96,7 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEditorModal, previ
                     });
                 });
             } else {
-                loadDesign({ _id: event?.templateEmailSelect } as EmailDesign)
+                loadDesign({ _id: event?.templateEmailSelect } as TemplateDesign)
             }
         }
     }, [unlayer]);
@@ -226,7 +226,7 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEditorModal, previ
                         }
                     },
                     domain: config?.domain
-                }).then((res: EmailDesign) => {
+                }).then((res: TemplateDesign) => {
                     setTemplate({ ...template, _id: res._id, updatedAt: new Date() })
                     localStorage.removeItem('emailEditorDesign');
                     setHasUnsavedChanges(false);
@@ -264,7 +264,7 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEditorModal, previ
         }
     };
 
-    const loadDesign = (emailDesign: EmailDesign) => {
+    const loadDesign = (emailDesign: TemplateDesign) => {
         try {
             fetchApiEventos({
                 query: queries.getEmailTemplate,
@@ -312,10 +312,10 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEditorModal, previ
             )}
             {showTemplatesModal && (
                 <ModalDefault onClose={() => { setShowTemplatesModal(false) }} >
-                    <ModalTemplates action={(emailDesign: EmailDesign) => {
+                    <ModalTemplates action={(emailDesign: TemplateDesign) => {
                         loadDesign(emailDesign)
                         postAction?.state && postAction.action();
-                    }} use={"edit"} />
+                    }} use={"edit"} optionSelect={"email"} />
                 </ModalDefault>
             )}
             {showLoadDraftModal && (

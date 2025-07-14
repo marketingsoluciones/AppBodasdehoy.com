@@ -2,44 +2,56 @@ import { FC, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { EventContextProvider } from "../../context/EventContext";
-import { EmailDesign, ModalInterface } from "../../utils/Interfaces";
+import { TemplateDesign, ModalInterface } from "../../utils/Interfaces";
 import { IoTrashOutline } from "react-icons/io5";
 import { SimpleDeleteConfirmation } from "../Utils/SimpleDeleteConfirmation";
 
 interface props {
   use: "load" | "edit"
-  action: (emailDesign: EmailDesign) => void;
+  action: (emailDesign: TemplateDesign) => void;
+  optionSelect: string
 }
 
-export const ModalTemplates: FC<props> = ({ action, use }) => {
+export const ModalTemplates: FC<props> = ({ action, use, optionSelect }) => {
   const { event } = EventContextProvider();
   const { t } = useTranslation();
-  const [templates, setTemplates] = useState<EmailDesign[]>([]);
-  const [myTemplates, setMyTemplates] = useState<EmailDesign[]>([]);
+  const [templates, setTemplates] = useState<TemplateDesign[]>([]);
+  const [myTemplates, setMyTemplates] = useState<TemplateDesign[]>([]);
   const [modal, setModal] = useState<ModalInterface>({ state: false });
   const [folders] = useState<string[]>(use === "edit" ? ["templates", "mytemplates"] : ["mytemplates"]);
 
   useEffect(() => {
-    fetchApiEventos({
-      query: queries.getPreviewsEmailTemplates,
-      variables: {
-        evento_id: event?._id
-      },
-    }).then((res) => {
-      setMyTemplates(res as EmailDesign[]);
-    })
-    fetchApiEventos({
-      query: queries.getPreviewsEmailTemplates,
-      variables: {},
-    }).then((res) => {
-      const templates = res as EmailDesign[] ?? [];
-      setTemplates(templates.map((elem) => {
-        return {
-          ...elem,
-          isTemplate: true
-        }
-      }));
-    })
+    if (optionSelect === "email") {
+      fetchApiEventos({
+        query: queries.getPreviewsEmailTemplates,
+        variables: {
+          evento_id: event?._id
+        },
+      }).then((res) => {
+        setMyTemplates(res as TemplateDesign[]);
+      })
+      fetchApiEventos({
+        query: queries.getPreviewsEmailTemplates,
+        variables: {},
+      }).then((res) => {
+        const templates = res as TemplateDesign[] ?? [];
+        setTemplates(templates.map((elem) => {
+          return {
+            ...elem,
+            isTemplate: true
+          }
+        }));
+      })
+    } else {
+      // fetchApiEventos({
+      //   query: queries.getPreviewsWhatsappTemplates,
+      //   variables: {
+      //     evento_id: event?._id
+      //   },
+      // }).then((res) => {
+      //   setTemplates(res as TemplateDesign[] ?? []);
+      // })
+    }
   }, []);
 
   const handleDelete = () => {
@@ -70,7 +82,7 @@ export const ModalTemplates: FC<props> = ({ action, use }) => {
           </div>
           <div className={`bg-gray-100 w-full flex-1 flex flex-wrap overflow-y-scroll gap-x-3 gap-y-2 p-2 rounded-b-md ${use === "edit" ? "px-9" : "px-34"}`}>
             {(elem === "templates" ? templates : myTemplates).map((template, idx) => (
-              <div key={idx} className={`${use === "edit" ? "w-20 h-[120px] pt-1 text-[10px]" : "w-40 h-[240px] space-y-2 pt-3 text-[11px]"} flex flex-col items-center rounded-md hover:bg-white transition-colors ease-in-out duration-200 cursor-pointer relative ${template._id === event?.templateEmailSelect && use === "load" ? "border-[1px] border-primary" : ""}`} onClick={() => action({ ...template } as EmailDesign)}>
+              <div key={idx} className={`${use === "edit" ? "w-20 h-[120px] pt-1 text-[10px]" : "w-40 h-[240px] space-y-2 pt-3 text-[11px]"} flex flex-col items-center rounded-md hover:bg-white transition-colors ease-in-out duration-200 cursor-pointer relative ${template._id === event?.templateEmailSelect && use === "load" ? "border-[1px] border-primary" : ""}`} onClick={() => action({ ...template } as TemplateDesign)}>
                 {(elem !== "templates" && use === "edit") && <div onClick={e => {
                   e.stopPropagation();
                   setModal({ state: true, title: template.configTemplate.name, values: template })
