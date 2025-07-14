@@ -1,10 +1,10 @@
 import { t } from "i18next";
 import { Form, Formik } from "formik";
-import InputField from "../Forms/InputField";
+import InputField from "../../../Forms/InputField";
 import { useRouter } from "next/router";
 import { PiXBold } from "react-icons/pi";
-import { fetchApiEventos, queries } from "../../utils/Fetching";
-import { useToast } from "../../hooks/useToast";
+import { fetchApiEventos, queries } from "../../../../utils/Fetching";
+import { useToast } from "../../../../hooks/useToast";
 import * as Yup from "yup";
 
 export const ModalTaskList = ({ setModal, event, categoria, gasto, setEvent }) => {

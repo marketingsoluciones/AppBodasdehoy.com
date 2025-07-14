@@ -1,14 +1,12 @@
 import { Dispatch, FC, SetStateAction, useEffect, useReducer, useState, useMemo } from 'react';
 import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import { t } from 'i18next';
-import { EditableLabelWithInput } from '../Forms/EditableLabelWithInput';
-import { EditableSelect } from '../Forms/EditableSelect';
-import { fetchApiEventos, queries } from '../../utils/Fetching';
-import { AuthContextProvider, EventContextProvider } from '../../context';
-import { FloatOptionsMenuInterface, ModalInterface, VisibleColumn, TableFilters, InitialColumn, ColumnConfig } from '../../utils/Interfaces';
-import { DotsOpcionesIcon } from '../icons';
-import { useAllowed } from '../../hooks/useAllowed';
-import { FloatOptionsMenu } from '../Utils/FloatOptionsMenu';
+import { EditableLabelWithInput } from '../../Forms/EditableLabelWithInput';
+import { EditableSelect } from '../../Forms/EditableSelect';
+import { EventContextProvider } from '../../../context';
+import { FloatOptionsMenuInterface, ModalInterface, VisibleColumn, TableFilters, InitialColumn, ColumnConfig } from '../../../utils/Interfaces';
+import { useAllowed } from '../../../hooks/useAllowed';
+import { FloatOptionsMenu } from '../../Utils/FloatOptionsMenu';
 import { GrMoney } from 'react-icons/gr';
 import { GoEye, GoEyeClosed, GoTasklist } from 'react-icons/go';
 import { PiNewspaperClippingLight } from 'react-icons/pi';
@@ -16,16 +14,15 @@ import { MdOutlineDeleteOutline } from 'react-icons/md';
 import { IoCloseOutline, IoSettingsOutline, IoInformationCircleOutline } from 'react-icons/io5';
 import { HiOutlineSearch, HiOutlineX, HiOutlineFilter } from 'react-icons/hi';
 import { TbColumns3 } from 'react-icons/tb';
-import { handleChange, handleCreateItem, handleCreateGasto, handleCreateCategoria, handleChangeEstatus, handleChangeEstatusItem } from "./tableBudgetV8.handles"
-import { useToast } from '../../hooks/useToast';
-import FormAddPago from '../Forms/FormAddPago';
+import { handleChange, handleCreateItem, handleCreateGasto, handleCreateCategoria, handleChangeEstatus, handleChangeEstatusItem } from "../../TablesComponents/tableBudgetV8.handles"
+import { useToast } from '../../../hooks/useToast';
+import FormAddPago from '../../Forms/FormAddPago';
 import ClickAwayListener from 'react-click-away-listener';
-import { SelectVisiblesColumns } from './SelectVisiblesColumns';
-import { getCurrency } from '../../utils/Funciones';
-import { ModalTaskList } from '../Presupuesto/ModalTaskList';
-import { EventInfoModal } from '../Presupuesto/PresupuestoV2/modals/EventInfoModal';
-import { ColumnsConfigModal } from '../Presupuesto/PresupuestoV2/modals/ColumnsConfigModal';
-import { FiltersModal } from '../Presupuesto/PresupuestoV2/modals/FiltersModal';
+import { getCurrency } from '../../../utils/Funciones';
+import { ModalTaskList } from '../PresupuestoV2/modals/ModalTaskList';
+import { EventInfoModal } from '../PresupuestoV2/modals/EventInfoModal';
+import { ColumnsConfigModal } from '../PresupuestoV2/modals/ColumnsConfigModal';
+import { FiltersModal } from '../PresupuestoV2/modals/FiltersModal';
 
 interface props {
   data: any
@@ -41,9 +38,7 @@ const optionsSelect = [
   { title: "xNiños", value: "xNiños." },
 ]
 
-
-
-export const TableBudgetV8: FC<props> = ({ data, setShowModalDelete, showDataState, setShowDataState }) => {
+export const TableBudgetV2: FC<props> = ({ data, setShowModalDelete }) => {
   const { event, setEvent } = EventContextProvider()
   const [isAllowed, ht] = useAllowed()
   const toast = useToast()
@@ -55,23 +50,11 @@ export const TableBudgetV8: FC<props> = ({ data, setShowModalDelete, showDataSta
   const [ServisiosListModal, setServisiosListModal] = useState({ id: "", crear: false, categoriaID: "" })
   const [showEventInfoModal, setShowEventInfoModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [showOptionsModal, setShowOptionsModal] = useState<{
-    show: boolean;
-    info?: any;
-    availableOptions?: any[];
-  }>({ show: false });
+  const [showOptionsModal, setShowOptionsModal] = useState<{ show: boolean; info?: any; availableOptions?: any[]; }>({ show: false });
   const [showColumnsModal, setShowColumnsModal] = useState(false);
   const [showFiltersModal, setShowFiltersModal] = useState(false);
   const [viewLevel, setViewLevel] = useState(3);
-  const [filters, setFilters] = useState<TableFilters>({
-    categories: [],
-    paymentStatus: 'all',
-    visibilityStatus: 'all',
-    amountRange: {
-      min: '',
-      max: ''
-    }
-  });
+  const [filters, setFilters] = useState<TableFilters>({ categories: [], paymentStatus: 'all', visibilityStatus: 'all', amountRange: { min: '', max: '' } });
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -619,7 +602,6 @@ export const TableBudgetV8: FC<props> = ({ data, setShowModalDelete, showDataSta
     <div className="h-full bg-gray-50 flex flex-col relative w-full">
       <div className="bg-white shadow-sm border-b px-2 py-1.5 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {/* <h2 className="text-sm font-semibold text-gray-800">Presupuesto</h2> */}
           <div className="flex items-center gap-1.5">
             <div className="flex items-center gap-1.5 bg-gray-50 rounded px-2 py-1 border">
               <HiOutlineSearch className="w-3.5 h-3.5 text-gray-400" />
@@ -699,17 +681,6 @@ export const TableBudgetV8: FC<props> = ({ data, setShowModalDelete, showDataSta
             )}
           </div>
         </div>
-        {/* <div className="flex items-center gap-2">
-          <div className="relative">
-            <SelectVisiblesColumns
-              columns={initialColumn}
-              table={table}
-              handleChangeColumnVisible={handleChangeColumnVisible}
-              showDataState={showDataState}
-              setShowDataState={setShowDataState}
-            />
-          </div>
-        </div> */}
         <div className={`flex items-center gap-3. mr-6 ${event?.presupuesto_objeto?.viewEstimates ? "w-[38%]" : "w-[33.7%]"}`}>
           <div className={`text-center ${!event?.presupuesto_objeto?.viewEstimates ? "w-[27%]" : "w-[22%]"} `}>
             <div className="text-xs text-gray-500">Total</div>

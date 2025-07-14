@@ -35,7 +35,7 @@ export const EditableSelect: FC<props> = ({ value, optionsSelect, size, handleCh
           }, 100);
         }}
         onClick={() => isAllowed() ? setEdit(true) : ht()}
-        className={` cursor-context-menu relative`}
+        className={` cursor-context-menu relative hover:cursor-pointer`}
       >
         {optionsSelect.find((elem) => elem.value === newValue)?.title}
         {(hovered && !edit) && isAllowed() && <div className="absolute top-0 right-0 w-4 h-full flex translate-x-full justify-end">
@@ -47,7 +47,7 @@ export const EditableSelect: FC<props> = ({ value, optionsSelect, size, handleCh
         <ClickAwayListener onClickAway={() => edit && setEdit(false)}>
           <ul
             style={{ width: size }}
-            className={`bg-white z-10 shadow-md absolute top-5 overflow-hidden border-[1px] border-gray-400 select-none -translate-x-1 cursor-pointer `}>
+            className={`bg-white z-10 shadow-md absolute top-5 overflow-hidden border-[1px] border-gray-400 select-none -translate-x-1 cursor-pointer w-full `}>
             {optionsSelect./*filter(elem => elem.value !== newValue).*/map((elem, idx) => (
               <li
                 key={idx}

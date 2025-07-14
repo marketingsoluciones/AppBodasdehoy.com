@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { AuthContextProvider, EventContextProvider } from '../../context';
-import { GoArrowRight } from 'react-icons/go';
 import { ModalInterface } from "../../utils/Interfaces";
-import { ResumenInvitados } from './ResumenDeInvitadosPresupuesto';
-import { TableBudgetV8 } from '../TablesComponents/TableBudgetV82';
-import { BlockListaCategorias } from './BlockListaCategorias';
 import { handleDelete } from '../TablesComponents/tableBudgetV8.handles';
 import { SimpleDeleteConfirmation } from '../Utils/SimpleDeleteConfirmation';
+import { TableBudgetV2 } from './PresupuestoV2/TableBudgetV2';
 
 interface Categoria {
     _id: string;
@@ -96,7 +93,7 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
                 {
                     true &&
                     <div className={`flex w-full h-full TableWidth pl-2 `}>
-                            <TableBudgetV8 showDataState={showDataState} setShowDataState={setShowDataState} setShowModalDelete={setShowModalDelete}
+                            <TableBudgetV2 showDataState={showDataState} setShowDataState={setShowDataState} setShowModalDelete={setShowModalDelete}
                                 data={data.reduce((acc, item) => {
                                     let coste_final_categoria = 0
                                     let valirFirtsChild = true

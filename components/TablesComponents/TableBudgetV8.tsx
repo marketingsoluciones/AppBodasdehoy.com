@@ -19,7 +19,7 @@ import FormAddPago from '../Forms/FormAddPago';
 import ClickAwayListener from 'react-click-away-listener';
 import { SelectVisiblesColumns } from './SelectVisiblesColumns';
 import { getCurrency } from '../../utils/Funciones';
-import { ModalTaskList } from '../Presupuesto/ModalTaskList';
+import { ModalTaskList } from '../Presupuesto/PresupuestoV2/modals/ModalTaskList';
 
 interface props {
   data: any

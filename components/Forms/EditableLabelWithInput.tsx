@@ -105,7 +105,7 @@ export const EditableLabelWithInput: FC<props> = ({ value, type, handleChange, a
           onClick={() => isAllowed() ? setEdit(true) : ht()}
           className="flex items-center justify-center gap-1 cursor-context-menu w-full"
         >
-          <div className="relative w-full ">
+          <div className="relative w-full hover:cursor-pointer ">
             {
               ["int", "float"].includes(type) && typeof newValue === "string"
                 ? newValue !== ""
