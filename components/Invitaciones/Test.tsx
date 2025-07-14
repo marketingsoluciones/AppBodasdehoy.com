@@ -5,8 +5,8 @@ import InputField from "../Forms/InputField";
 import { IconLightBulb16 } from "../icons";
 import * as yup from "yup";
 import { phoneUtil, useAuthentication } from "../../utils/Authentication";
-import { fetchApiBodas, fetchApiEventos, queries } from "../../utils/Fetching";
-import { useEffect, useState } from "react";
+import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { FC, useEffect, useState } from "react";
 import { ActivatorPremium } from "../ActivatorPremium";
 import { Tooltip } from "../Utils/Tooltip";
 import { useToast } from "../../hooks/useToast";
@@ -21,7 +21,14 @@ import i18next from "i18next";
 
 export type TitleComponent = "email" | "whatsapp" | "sms" | "diseño"
 
-export const Test = ({ TitleComponent, setEmailEditorModal, emailEditorModal, setPreviewEmailReactEditor }: { TitleComponent: TitleComponent, setEmailEditorModal: (value: boolean) => void, emailEditorModal: boolean, setPreviewEmailReactEditor: (value: boolean) => void }) => {
+type Props = {
+  TitleComponent: TitleComponent
+  setEmailEditorModal: (value: boolean) => void
+  setPreviewEmailReactEditor: (value: boolean) => void
+  optionSelect: string
+}
+
+export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPreviewEmailReactEditor, optionSelect }) => {
   const { t } = useTranslation();
   const { geoInfo } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
@@ -32,19 +39,20 @@ export const Test = ({ TitleComponent, setEmailEditorModal, emailEditorModal, se
   const [isAllowed, ht] = useAllowed()
   const [templateName, setTemplateName] = useState<string>()
 
+
   useEffect(() => {
-    if (event?.templateInvitacionSelect) {
+    if (event?.templateEmailSelect) {
       fetchApiEventos({
         query: queries.getVariableEmailTemplate,
         variables: {
-          template_id: event?.templateInvitacionSelect,
+          template_id: event?.templateEmailSelect,
           selectVariable: "configTemplate"
         },
       }).then((res: any) => {
         setTemplateName(res?.configTemplate?.name)
       })
     }
-  }, [event?.templateInvitacionSelect, event?.fecha_actualizacion, event?.updatedAt])
+  }, [event?.templateEmailSelect, event?.fecha_actualizacion, event?.updatedAt])
 
   const initialValues = {
     email: "",
@@ -108,11 +116,11 @@ export const Test = ({ TitleComponent, setEmailEditorModal, emailEditorModal, se
       query: queries.eventUpdate,
       variables: {
         idEvento: event?._id,
-        variable: "templateInvitacionSelect",
+        variable: "templateEmailSelect",
         value: template._id
       }
     })
-    setEvent({ ...event, templateInvitacionSelect: template._id })
+    setEvent({ ...event, templateEmailSelect: template._id })
     setTemplateName(template.configTemplate.name)
   }
   const path = `${process.env.NEXT_PUBLIC_CMS}/facturacion`
@@ -134,23 +142,23 @@ export const Test = ({ TitleComponent, setEmailEditorModal, emailEditorModal, se
         </div>
         <div className="w-full h-10 flex justify-end gap-2 items-center px-2">
           <ButtonPrimary onClick={(e) => !isAllowed() ? ht() : setShowModalTemplate(true)} >
-            {`${event?.templateInvitacionSelect ? t("change") : t("select")} ${t("template")}`}
+            {`${event[optionSelect === "email" ? "templateEmailSelect" : "templateWhatsappSelect"] ? t("change") : t("select")} ${t("template")}`}
           </ButtonPrimary>
           <ButtonPrimary onClick={(e) => {
             if (!isAllowed()) {
               ht()
             } else {
-              setEmailEditorModal(!emailEditorModal)
+              setEmailEditorModal(true)
               setPreviewEmailReactEditor(false)
             }
           }} >
             {t("createOrEdit")}
           </ButtonPrimary>
-          <ButtonPrimary disabled={!event?.templateInvitacionSelect} onClick={(e) => {
+          <ButtonPrimary disabled={!event[optionSelect === "email" ? "templateEmailSelect" : "templateWhatsappSelect"]} onClick={(e) => {
             if (!isAllowed()) {
               ht()
             } else {
-              setEmailEditorModal(!emailEditorModal)
+              setEmailEditorModal(true)
               setPreviewEmailReactEditor(true)
             }
           }} >
@@ -191,7 +199,7 @@ export const Test = ({ TitleComponent, setEmailEditorModal, emailEditorModal, se
                     type="submit"
                     disabled={
                       TitleComponent === "email"
-                        ? !event?.templateInvitacionSelect
+                        ? !event?.templateEmailSelect
                         : TitleComponent === "whatsapp"
                           ? true
                           : !event?.imgInvitacion
@@ -204,11 +212,12 @@ export const Test = ({ TitleComponent, setEmailEditorModal, emailEditorModal, se
             </Form>
           )}
         </Formik>
-        {TitleComponent !== "email" && <div className="text-yellow-500 flex items-center justify-center space-x-1 md:my-2 text-sm cursor-default gap-4">
+        {!["email", "whatsapp"].includes(TitleComponent) && <div className="text-yellow-500 flex items-center justify-center space-x-1 md:my-2 text-sm cursor-default gap-4">
           <ActivatorPremium link={redireccionFacturacion} />
         </div>}
       </div>
     </div>
+
   );
 }
 const AutoSubmitToken = ({ TitelComponent, valirReset, setValirReset }) => {

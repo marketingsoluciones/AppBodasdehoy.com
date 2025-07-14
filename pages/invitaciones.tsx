@@ -36,9 +36,9 @@ const Invitaciones = () => {
   const [dataInvitationNotSent, setDataInvitationNotSent] = useState([]);
   const [optionSelect, setOptionSelect] = useState<TitleComponent>("email")
   const [stateConfi, setStateConfi] = useState(true)
-  const [ShowEmailEditorModal, setShowEmailEditorModal] = useState(false)
+  const [ShowEditorModal, setShowEditorModal] = useState(false)
   const [previewEmailReactEditor, setPreviewEmailReactEditor] = useState(false)
-  const [previewEmail, setPreviewEmail] = useState<string>()
+  const [previewTemplate, setPreviewTemplate] = useState<string>()
 
   const arryOptions: optionArryOptions[] = [
     {
@@ -85,18 +85,18 @@ const Invitaciones = () => {
 
     reduce?.sent?.length != dataInvitationSent?.length && setDataInvitationSent(InvitationSent);
     reduce?.notSent.length != dataInvitationNotSent?.length && setDataInvitationNotSent(InvitationNotSent);
-    if (event?.templateInvitacionSelect) {
+    if (event?.templateEmailSelect && optionSelect === "email") {
       fetchApiEventos({
         query: queries.getVariableEmailTemplate,
         variables: {
-          template_id: event?.templateInvitacionSelect,
+          template_id: event?.templateEmailSelect,
           selectVariable: "preview"
         },
       }).then((res: any) => {
-        setPreviewEmail(res?.preview)
+        setPreviewTemplate(res?.preview)
       })
     }
-  }, [event?.templateInvitacionSelect, event?.fecha_actualizacion, event?.updatedAt, event?.invitados_array]);
+  }, [optionSelect, event?.templateEmailSelect, event?.fecha_actualizacion, event?.updatedAt, event?.invitados_array]);
 
   if (verificationDone) {
     if (!user) {
@@ -114,11 +114,9 @@ const Invitaciones = () => {
             exit={{ opacity: 0 }}
             className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 gap-4 h-full"
           >
-            {
-              ShowEmailEditorModal && <Modal classe={" md:w-[90%] h-[90%] "} >
-                <EmailReactEditorComponent setShowEmailEditorModal={setShowEmailEditorModal} showEmailEditorModal={ShowEmailEditorModal} previewEmailReactEditor={previewEmailReactEditor} />
-              </Modal>
-            }
+            {ShowEditorModal && <Modal classe={" md:w-[90%] h-[90%] "} >
+              {optionSelect === "email" && <EmailReactEditorComponent setShowEditorModal={setShowEditorModal} previewEmailReactEditor={previewEmailReactEditor} />}
+            </Modal>}
             <BlockTitle title="Invitaciones" />
             <CounterInvitations />
             <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full py-2 relative">
@@ -130,15 +128,15 @@ const Invitaciones = () => {
                 <div className="w-full h-full flex flex-col md:flex-row mt-3 md:space-x-6 md:px-4">
                   <div className={`w-full h-96 md:w-auto flex justify-center`}>
                     <div ref={hoverRef} className={`relative w-60 h-80 ${optionSelect === "email" ? "bg-[#808080] rounded-lg border-[1px] border-gray-300" : "bg-white"}`}>
-                      {optionSelect === "email"
-                        ? previewEmail
+                      {["email", "whatsapp"].includes(optionSelect)
+                        ? previewTemplate
                           ? <img
-                            src={previewEmail}
+                            src={previewTemplate}
                             alt="imgInvitacion"
                             className="w-full h-full object-contain rounded-lg"
                             style={{ maxWidth: "100%", maxHeight: "100%", display: "block" }} />
                           : <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-lg">
-                            <p className="text-gray-500 text-xs">No hay template seleccionado</p>
+                            <p className="text-gray-500 text-xs text-center">{`No hay template de ${optionSelect} seleccionado`}</p>
                           </div>
                         : <ModuloSubida event={event} use={"imgInvitacion"} />
                       }
@@ -151,12 +149,12 @@ const Invitaciones = () => {
                       setOptionSelect={setOptionSelect}
                     />
                     <div className="col-span-3 w-full h-[280px] md:h-full">
-                      {optionSelect === "diseño" && <DiseñoComponent setEmailEditorModal={setShowEmailEditorModal} EmailEditorModal={ShowEmailEditorModal} />}
-                      {optionSelect === "email" && <Test TitleComponent={optionSelect} setEmailEditorModal={setShowEmailEditorModal} emailEditorModal={ShowEmailEditorModal} setPreviewEmailReactEditor={setPreviewEmailReactEditor} />}
+                      {optionSelect === "diseño" && <DiseñoComponent setEmailEditorModal={setShowEditorModal} EmailEditorModal={ShowEditorModal} />}
+                      {["email", "whatsapp"].includes(optionSelect) && <Test TitleComponent={optionSelect} setEmailEditorModal={setShowEditorModal} setPreviewEmailReactEditor={setPreviewEmailReactEditor} optionSelect={optionSelect} />}
                     </div>
                   </div>
                 </div>
-                <div className={`${["whatsapp", "sms"].includes(optionSelect) ? null : "hidden"}`}>
+                <div className={`${["sms"].includes(optionSelect) ? null : "hidden"}`}>
                   <PlantillaTextos optionSelect={optionSelect} />
                 </div>
               </div>

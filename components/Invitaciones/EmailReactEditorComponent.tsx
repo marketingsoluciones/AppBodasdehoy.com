@@ -19,8 +19,7 @@ import { MdOutlineShortText } from 'react-icons/md';
 import { Textarea } from '../Servicios/Utils/Textarea';
 
 interface props {
-    setShowEmailEditorModal: (value: boolean) => void
-    showEmailEditorModal: boolean
+    setShowEditorModal: (value: boolean) => void
     previewEmailReactEditor?: boolean
 }
 
@@ -41,7 +40,7 @@ type showSubjectModalType = {
     value: string
 }
 
-export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, showEmailEditorModal, previewEmailReactEditor, ...props }) => {
+export const EmailReactEditorComponent: FC<props> = ({ setShowEditorModal, previewEmailReactEditor, ...props }) => {
     const { config } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
     const { t } = useTranslation();
@@ -97,7 +96,7 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
                     });
                 });
             } else {
-                loadDesign({ _id: event?.templateInvitacionSelect } as EmailDesign)
+                loadDesign({ _id: event?.templateEmailSelect } as EmailDesign)
             }
         }
     }, [unlayer]);
@@ -110,7 +109,7 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
                 actionUnsave: () => {
                     localStorage.removeItem('emailEditorDesign');
                     setHasUnsavedChanges(false);
-                    setShowEmailEditorModal(false);
+                    setShowEditorModal(false);
                     setShowUnsavedModal(undefined);
                 },
                 actionSave: () => {
@@ -119,13 +118,13 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
                     setPostAction({
                         state: true,
                         action: () => {
-                            setShowEmailEditorModal(false);
+                            setShowEditorModal(false);
                         }
                     });
                 }
             });
         } else {
-            setShowEmailEditorModal(false);
+            setShowEditorModal(false);
         }
     };
 
@@ -250,7 +249,7 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
                     localStorage.removeItem('emailEditorDesign');
                     setHasUnsavedChanges(false);
                     postAction?.state && postAction.action();
-                    if (template._id === event.templateInvitacionSelect) {
+                    if (template._id === event?.templateEmailSelect) {
                         const newEvent = { ...event, fecha_actualizacion: new Date().toLocaleString() }
                         setEvent({ ...newEvent })
                     }
@@ -295,7 +294,7 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEmailEditorModal, 
                     configTemplate: template?.configTemplate,
                 }
             })
-            if (template._id === event.templateInvitacionSelect) {
+            if (template._id === event?.templateEmailSelect) {
                 const newEvent = { ...event, fecha_actualizacion: new Date().toLocaleString() }
                 setEvent({ ...newEvent })
             }

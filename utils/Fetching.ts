@@ -313,8 +313,8 @@ export const queries = {
   editTask: `mutation ($eventID:String, $itinerarioID:String, $taskID:String, $variable:String, $valor:String){
     editTask(eventID:$eventID itinerarioID:$itinerarioID  taskID:$taskID  variable:$variable  valor:$valor )
   }`,
-  
-      saveViewConfig: `
+
+  saveViewConfig: `
     mutation saveViewConfig($eventID: String, $itinerarioID: String, $viewConfig: String) {
       saveViewConfig(
         eventID: $eventID,
@@ -323,7 +323,7 @@ export const queries = {
       )
     }
   `,
-  
+
   getViewConfigs: `
     query getViewConfigs($eventID: String, $itinerarioID: String) {
       getViewConfigs(
@@ -337,9 +337,9 @@ export const queries = {
         sortBy
       }
     }
-  `,  
+  `,
 
-createTask: `mutation ($eventID:String, $itinerarioID:String, $fecha:String, $descripcion:String, $hora:String, $duracion:Int){
+  createTask: `mutation ($eventID:String, $itinerarioID:String, $fecha:String, $descripcion:String, $hora:String, $duracion:Int){
     createTask(eventID:$eventID, itinerarioID:$itinerarioID, fecha:$fecha, descripcion:$descripcion, hora:$hora, duracion:$duracion ){
       _id
       fecha
@@ -738,7 +738,8 @@ createTask: `mutation ($eventID:String, $itinerarioID:String, $fecha:String, $de
       }
       poblacion
       pais
-      templateInvitacionSelect
+      templateEmailSelect
+      templateWhatsappSelect
       imgEvento{
         _id
         i1024
@@ -1661,7 +1662,8 @@ createTask: `mutation ($eventID:String, $itinerarioID:String, $fecha:String, $de
         title
         slug
       }
-      templateInvitacionSelect
+      templateEmailSelect
+      templateWhatsappSelect
       imgEvento{
         _id
         i1024
