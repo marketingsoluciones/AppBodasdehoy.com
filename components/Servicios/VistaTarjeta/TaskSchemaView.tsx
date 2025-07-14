@@ -117,5 +117,5 @@ export const TaskSchemaView: FC<TaskSchemaViewProps> = ({
 };
 
 // Importar NewSelectIcon del archivo original
-import { NewSelectIcon } from './NewSelectIcon';
-import { SelectIcon } from './SelectIcon';
+import { NewSelectIcon } from '../VistaTabla/NewSelectIcon';
+import { SelectIcon } from '../Utils/SelectIcon';

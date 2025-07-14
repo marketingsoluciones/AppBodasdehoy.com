@@ -3,18 +3,18 @@ import { DndContext, PointerSensor, useSensor, useSensors, closestCorners, } fro
 import { SortableContext, horizontalListSortingStrategy, } from '@dnd-kit/sortable';
 import { Task, Itinerary, Event as EventInterface } from '../../../utils/Interfaces';
 import { BoardFilters } from './BoardFilters';
-import { SubTaskModal } from './SubTaskModal';
+import { SubTaskModal } from '../Utils/SubTaskModal';
 import { toast } from "react-toastify";
 import { useTranslation } from 'react-i18next';
-import TaskDetailModal from './TaskDetailModal';
+import TaskDetailModal from '../VistaTarjeta/TaskDetailModal';
 import { AuthContextProvider } from '../../../context';
-import { BoardState, DragItem, BoardColumn as IBoardColumn } from './types';
-import { DEFAULT_COLUMNS } from './constants';
+import { BoardState, DragItem, BoardColumn as IBoardColumn } from '../types';
+import { DEFAULT_COLUMNS } from '../constants';
 import { useDebounce, getTaskStatus, exportBoardData, saveColumnOrderToAPI, filterTasks } from './boardViewUtils';
 import { createHandleDragStart, createHandleDragEnd, createHandleDragOver } from './dragDropHandlers';
-import { createHandleTaskCreate, createHandleTaskUpdate, createHandleCreateSubTask } from './taskHandlers';
+import { createHandleTaskCreate, createHandleTaskUpdate, createHandleCreateSubTask } from '../VistaTarjeta/taskHandlers';
 import { BoardHeader } from './BoardHeader';
-import { ShortcutsModal } from './ShortcutsModal';
+import { ShortcutsModal } from '../Utils/ShortcutsModal';
 import { BoardDragOverlay } from './BoardDragOverlay';
 import { BoardColumn } from './BoardColumn';
 

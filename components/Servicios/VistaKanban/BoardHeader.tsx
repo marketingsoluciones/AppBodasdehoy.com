@@ -12,7 +12,7 @@ import {
   X,
 } from 'lucide-react';
 import { Itinerary } from '../../../utils/Interfaces';
-import { BoardColumn } from './types';
+import { BoardColumn } from '../types';
 import { useTranslation } from 'react-i18next';
 
 interface BoardHeaderProps {

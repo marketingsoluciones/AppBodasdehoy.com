@@ -12,8 +12,8 @@ import { useTranslation } from "react-i18next"
 import { useToast } from "../../../hooks/useToast"
 import { SelectModeSort } from "../../Utils/SelectModeSort"
 import { AddTaskButton } from "./AddTaskButton"
-import { PermissionAddButton } from './PermissionAddButton';
-import { PermissionSelectModeView } from './PermissionSelectModeView';
+import { PermissionSelectModeView } from '../../Servicios/Utils/PermissionSelectModeView';
+import { PermissionAddButton } from "../../Servicios/Utils/PermissionAddButton"
 
 interface props {
     itinerario: Itinerary

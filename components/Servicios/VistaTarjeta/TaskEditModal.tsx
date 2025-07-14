@@ -9,10 +9,10 @@ import { useTranslation } from 'react-i18next';
 import { AuthContextProvider, EventContextProvider } from '../../../context';
 
 import InputField from '../../Forms/InputField';
-import { ResponsableSelector } from './ResponsableSelector';
+import { ResponsableSelector } from '../Utils/ResponsableSelector';
 import { InputTags } from '../../Forms/InputTags';
 import InputAttachments from '../../Forms/InputAttachments';
-import { MyEditor } from './QuillText';
+import { MyEditor } from '../Utils/QuillText';
 
 interface TaskEditModalProps {
   task: Task;

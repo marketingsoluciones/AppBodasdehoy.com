@@ -4,9 +4,9 @@ import { CSS } from '@dnd-kit/utilities';
 import { TaskEditModal } from './TaskEditModal';
 import { Edit3, MoreHorizontal, Calendar, Clock, Tag, Paperclip, AlertCircle, CheckCircle2, MessageSquare } from 'lucide-react';
 import { Task, Itinerary } from '../../../utils/Interfaces';
-import { GruposResponsablesArry } from '../MicroComponente/ResponsableSelector';
-import { PriorityBadge, Priority } from './PriorityBadge'
-import { BoardColumn } from './types';
+import { PriorityBadge, Priority } from '../Utils/PriorityBadge'
+import { BoardColumn } from '../types';
+import { GruposResponsablesArry } from '../Utils/ResponsableSelector';
 
 interface TaskCardProps {
   task: Task;

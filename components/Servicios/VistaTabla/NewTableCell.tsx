@@ -32,13 +32,13 @@ import { Interweave } from 'interweave';
 import { HashtagMatcher, UrlMatcher } from 'interweave-autolink';
 import { TagsEditor } from './NewTagsEditor';
 import { TipsEditor } from './NewTipsEditor';
-import { AttachmentsEditor } from './AttachmentsEditor';
+import { AttachmentsEditor } from '../Utils/AttachmentsEditor';
 import { useTranslation } from 'react-i18next';
-import { GruposResponsablesArry } from '../MicroComponente/ResponsableSelector';
 import { getStorage } from 'firebase/storage';
 import { downloadFile } from '../../Utils/storages';
 import { useToast } from '../../../hooks/useToast';
 import { fetchApiEventos, queries } from '../../../utils/Fetching';
+import { GruposResponsablesArry } from '../Utils/ResponsableSelector';
 
 export const TableCell: React.FC<TableCellProps> = ({
   column,

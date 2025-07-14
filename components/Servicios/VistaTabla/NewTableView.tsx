@@ -33,7 +33,7 @@ import {
   Download,
   Upload
 } from 'lucide-react';
-import { CommentModal } from './CommentModal';
+import { CommentModal } from '../CommentModal';
 import { TableEditModal } from './TableEditModal';
 import { customAlphabet } from 'nanoid';
 import * as XLSX from 'xlsx';

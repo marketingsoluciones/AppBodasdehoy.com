@@ -2,7 +2,7 @@ import { ComponentType, FC } from "react";
 import { useMemo, useState, } from "react";
 import { ConfirmationBlock } from "../../Invitaciones/ConfirmationBlock"
 import { useTranslation } from 'react-i18next';
-import { GruposResponsablesArry } from "./ResponsableSelector";
+import { GruposResponsablesArry } from "../../Servicios/Utils/ResponsableSelector";
 import { ItineraryTable } from "./ItineraryTable";
 import { GoEye } from "react-icons/go";
 import { EditTastk } from "./ItineraryPanel";

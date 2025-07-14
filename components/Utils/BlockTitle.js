@@ -6,7 +6,7 @@ import { IoShareSocial } from 'react-icons/io5'
 import { DiGoogleDrive } from "react-icons/di";
 import { Modal } from './Modal'
 import { useTranslation } from 'react-i18next'
-import { PermissionIndicator } from '../Itinerario/MicroComponente/PermissionIndicator'
+import { PermissionIndicator } from '../Servicios/Utils/PermissionIndicator'
 
 
 export const BlockTitle = ({ title }) => {

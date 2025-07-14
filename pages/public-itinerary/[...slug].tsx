@@ -6,7 +6,7 @@ import { motion } from "framer-motion"
 import { AuthContextProvider } from "../../context";
 import { defaultImagenes } from "../../components/Home/Card";
 import { useTranslation } from "react-i18next";
-import { TaskNew } from "../../components/Itinerario/MicroComponente/TaskNew";
+import { TaskNew } from "../../components/Servicios/VistaTarjeta/TaskNew";
 import { openGraphData } from "../_app";
 
 interface props {

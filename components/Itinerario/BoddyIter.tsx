@@ -15,8 +15,8 @@ import { LiaUserClockSolid } from "react-icons/lia";
 import { t } from "i18next";
 import { deleteAllFiles, deleteRecursive } from "../Utils/storages";
 import { getStorage } from "firebase/storage";
-import { ModalDuplicate } from "./MicroComponente/ModalDuplicate";
-import { PermissionWrapper } from "./MicroComponente/PermissionWrapper";
+import { ModalDuplicate } from "../Servicios/Utils/ModalDuplicate";
+import { PermissionWrapper } from "../Servicios/Utils/PermissionWrapper";
 
 interface Modal {
     state: boolean

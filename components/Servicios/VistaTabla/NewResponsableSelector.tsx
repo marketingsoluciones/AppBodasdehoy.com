@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { User, X, Plus, Search } from 'lucide-react';
 import { AuthContextProvider, EventContextProvider } from '../../../context';
-import { GruposResponsablesArry } from '../MicroComponente/ResponsableSelector';
+
 import { ImageAvatar } from '../../Utils/ImageAvatar';
 import { useAllowed } from '../../../hooks/useAllowed';
 import { useTranslation } from 'react-i18next';
 import ClickAwayListener from 'react-click-away-listener';
+import { GruposResponsablesArry } from '../Utils/ResponsableSelector';
 
 interface Props {
   value: string[];

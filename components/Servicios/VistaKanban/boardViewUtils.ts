@@ -1,6 +1,6 @@
 import { useRef, useCallback, useEffect } from 'react';
 import { Task, Itinerary } from '../../../utils/Interfaces';
-import { BoardColumn, BoardState } from './types';
+import { BoardColumn, BoardState } from '../types';
 import { fetchApiEventos, queries } from '../../../utils/Fetching';
 import * as XLSX from 'xlsx';
 

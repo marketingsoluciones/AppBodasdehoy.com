@@ -1,7 +1,7 @@
 import { useField } from "formik";
 import { AddIcon, Anillos, FuegosArtificiales, Baile, Baile2, Brindis, Carro, Cena, Cocteles, Comida, Fotografo, Iglesia, Maquillaje, Merienda, Novios, Salida, SesionFotos, Sol, Torta, Vestido, Dress } from "../../icons"
 import { Modal } from "../../Utils/Modal";
-import { IconList } from "./IconList";
+import { IconList } from "../../Itinerario/MicroComponente/IconList";
 import { useEffect, useState } from "react";
 import { useAllowed } from "../../../hooks/useAllowed";
 import { AuthContextProvider, EventContextProvider } from "../../../context";

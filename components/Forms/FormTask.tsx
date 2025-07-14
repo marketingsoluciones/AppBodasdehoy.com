@@ -7,12 +7,12 @@ import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
 import { useTranslation } from 'react-i18next';
 import { TaskDateTimeAsString } from "../../utils/Interfaces";
-import { MyEditor } from "../Itinerario/MicroComponente/QuillText";
+import { MyEditor } from "../Servicios/Utils/QuillText";
 import { EditTastk } from "../Itinerario/MicroComponente/ItineraryPanel";
 import { useAllowedRouter } from "../../hooks/useAllowed";
 import InputAttachments from "./InputAttachments";
 import { InputTags } from "./InputTags";
-import { ResponsableSelector } from "../Itinerario/MicroComponente/ResponsableSelector";
+import { ResponsableSelector } from "../Servicios/Utils/ResponsableSelector";
 
 interface propsFormTask {
   showEditTask: EditTastk;

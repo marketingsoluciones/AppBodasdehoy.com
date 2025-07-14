@@ -332,11 +332,11 @@ import { PiFileArrowUpThin } from "react-icons/pi"
 import { IoClose } from "react-icons/io5";
 import { SwiperPastedAndDropFiles } from "./SwiperPastedAndDropFiles"
 import { LiaTrashSolid } from "react-icons/lia";
-import { FileIconComponent } from "./FileIconComponent"
+import { FileIconComponent } from "../../Itinerario/MicroComponente/FileIconComponent"
 import { getStorage, ref, uploadBytesResumable } from "firebase/storage"
-import { TempPastedAndDropFile } from "./ItineraryPanel"
+import { TempPastedAndDropFile } from "../../Itinerario/MicroComponente/ItineraryPanel"
 import { customAlphabet } from "nanoid"
-import { SetNickname } from "./SetNickName"
+import { SetNickname } from "../../Itinerario/MicroComponente/SetNickName"
 import { useTranslation } from 'react-i18next'
 import { Lock } from 'lucide-react'
  

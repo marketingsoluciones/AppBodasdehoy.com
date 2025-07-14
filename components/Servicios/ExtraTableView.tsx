@@ -1,36 +1,36 @@
 import { ComponentType, FC, useMemo, useState, useEffect, useRef } from "react";
-import { ConfirmationBlock } from "../../Invitaciones/ConfirmationBlock";
+import { ConfirmationBlock } from "../Invitaciones/ConfirmationBlock";
 import { useTranslation } from "react-i18next";
-import { GruposResponsablesArry, ResponsableSelector } from "./ResponsableSelector";
-import { ItineraryTable } from "./ItineraryTable";
+import { GruposResponsablesArry, ResponsableSelector } from "./Utils/ResponsableSelector";
+import { ItineraryTable } from "../Itinerario/MicroComponente/ItineraryTable";
 import { GoEye } from "react-icons/go";
-import { EditTastk } from "./ItineraryPanel";
-import { useAllowed } from "../../../hooks/useAllowed";
+import { EditTastk } from "../Itinerario/MicroComponente/ItineraryPanel";
+import { useAllowed } from "../../hooks/useAllowed";
 import { CgSoftwareDownload } from "react-icons/cg";
 import { getBytes, getMetadata, getStorage, ref } from "firebase/storage";
-import { Itinerary, OptionsSelect, Event as EventInterface } from "../../../utils/Interfaces";
-import { AuthContextProvider, EventContextProvider } from "../../../context";
+import { Itinerary, OptionsSelect, Event as EventInterface } from "../../utils/Interfaces";
+import { AuthContextProvider, EventContextProvider } from "../../context";
 
-import { ImageAvatar } from "../../Utils/ImageAvatar";
+import { ImageAvatar } from "../Utils/ImageAvatar";
 import { Interweave } from "interweave";
 import { HashtagMatcher, UrlMatcher, UrlProps } from "interweave-autolink";
 import i18next from "i18next";
 import Link from "next/link";
-import { useToast } from "../../../hooks/useToast";
-import { IniterarySelectionMenu } from "./InitinerarySelectionMenu";
+import { useToast } from "../../hooks/useToast";
+import { IniterarySelectionMenu } from "../Itinerario/MicroComponente/InitinerarySelectionMenu";
 import { FaPencilAlt, FaCog } from "react-icons/fa"; // Ícono de lápiz y engranaje
-import { Modal } from "../../Utils/ModalServicios"; // Componente Modal
-import InputField from "../../Forms/InputField"; // Componente InputField
+import { Modal } from "../Utils/ModalServicios"; // Componente Modal
+import InputField from "../Forms/InputField"; // Componente InputField
 import { Formik, Form } from "formik";
 import ReactDOM from "react-dom";
 import { FaCheck, FaTimes } from "react-icons/fa"; // Importa los íconos
 import { t } from "i18next"; // Para traducciones
 import { useContext } from "react";
 
-import { MyEditor } from "./QuillText";
-import InputAttachments from "../../Forms/InputAttachments";
-import { InputTags } from "../../Forms/InputTags";
-import { fetchApiEventos, queries } from "../../../utils/Fetching";
+import { MyEditor } from "./Utils/QuillText";
+import InputAttachments from "../Forms/InputAttachments";
+import { InputTags } from "../Forms/InputTags";
+import { fetchApiEventos, queries } from "../../utils/Fetching";
 
 interface props {
   data?: any[],

@@ -5,17 +5,48 @@ import { useTranslation } from 'react-i18next';
 import { EventContextProvider } from "../../../context/EventContext";
 import { AuthContextProvider } from "../../../context";
 import { ImageAvatar } from "../../Utils/ImageAvatar";
-import { NewAttachmentsEditor } from "./NewAttachmentsEditor";
-import { ClickUpResponsableSelector } from './NewResponsableSelector';
-import { NewSelectIcon } from './NewSelectIcon';
+import { NewAttachmentsEditor } from "../VistaTabla/NewAttachmentsEditor";
+import { ClickUpResponsableSelector } from '../VistaTabla/NewResponsableSelector';
+import { NewSelectIcon } from '../VistaTabla/NewSelectIcon';
 import { PermissionWrapper } from './TaskNewComponents';
 import { formatTime, calculateEndTime, minutesToReadableFormat, readableFormatToMinutes, stripHtml, formatTextWithLineLimit } from './TaskNewUtils';
 import ClickAwayListener from "react-click-away-listener";
 import {
   X, Tag, Clock, User, Plus, Eye, EyeOff, PlayCircle, StopCircle
 } from 'lucide-react';
-import { SelectIcon } from './SelectIcon';
-import { GruposResponsablesArry } from './ResponsableSelector';
+import { SelectIcon } from '../Utils/SelectIcon';
+import { GruposResponsablesArry } from '../Utils/ResponsableSelector';
+import dynamic from 'next/dynamic';
+import 'react-quill/dist/quill.snow.css';
+
+// Importar ReactQuill dinámicamente para evitar problemas de SSR
+const ReactQuill = dynamic(() => import('react-quill'), { 
+  ssr: false,
+  loading: () => <div className="h-40 bg-gray-50 animate-pulse rounded-lg" />
+});
+
+// Configuración del editor Quill
+const quillModules = {
+  toolbar: [
+    [{ 'header': [1, 2, 3, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'color': [] }, { 'background': [] }],
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    [{ 'indent': '-1'}, { 'indent': '+1' }],
+    [{ 'align': [] }],
+    ['link', 'image'],
+    ['clean']
+  ],
+};
+
+const quillFormats = [
+  'header',
+  'bold', 'italic', 'underline', 'strike',
+  'color', 'background',
+  'list', 'bullet', 'indent',
+  'align',
+  'link', 'image'
+];
 
 interface TaskMinimalViewProps {
   task: Task;
@@ -84,6 +115,30 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
   const { user } = AuthContextProvider();
   const [editingDuration, setEditingDuration] = useState(false);
   const [durationInput, setDurationInput] = useState('');
+
+    const quillViewerClasses = `
+  prose prose-sm max-w-none
+  [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:my-3
+  [&_h2]:text-xl [&_h2]:font-bold [&_h2]:my-3
+  [&_h3]:text-lg [&_h3]:font-bold [&_h3]:my-3
+  [&_p]:mb-4
+  [&_ul]:pl-6 [&_ul]:mb-4 [&_ul]:list-disc
+  [&_ol]:pl-6 [&_ol]:mb-4 [&_ol]:list-decimal
+  [&_li]:mb-2
+  [&_pre]:bg-gray-100 [&_pre]:p-3 [&_pre]:rounded [&_pre]:my-2 [&_pre]:whitespace-pre-wrap
+  [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-sm
+  [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-4 [&_blockquote]:my-2 [&_blockquote]:italic
+  [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded
+  [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800
+  [&_.ql-align-center]:text-center
+  [&_.ql-align-right]:text-right
+  [&_.ql-align-justify]:text-justify
+  [&_.ql-size-small]:text-xs
+  [&_.ql-size-large]:text-lg
+  [&_.ql-size-huge]:text-2xl
+  [&_.ql-font-serif]:font-serif
+  [&_.ql-font-monospace]:font-mono
+`;
 
   return (
     <div {...props} className="w-full bg-white rounded-lg shadow-lg p-6 space-y-6">
@@ -387,77 +442,83 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
         </div>
       </div>
 
-      {/* Descripción larga */}
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <label className="text-sm font-medium text-gray-700">
-            {t('Descripción detallada')}
-          </label>
-          {customDescription && !editingDescription && canEdit && (
-            <button
-              onClick={() => setEditingDescription(true)}
-              className="text-sm text-primary hover:text-primary/80"
-            >
-              {t('Editar')}
-            </button>
-          )}
-        </div>
-        {editingDescription ? (
-          <div className="border border-gray-300 rounded-lg p-4">
-            <textarea
-              value={stripHtml(customDescription)}
-              onChange={(e) => setCustomDescription(e.target.value)}
-              className="w-full min-h-[200px] resize-none border-0 focus:ring-0 focus:outline-none"
-              placeholder={t('Escribe una descripción detallada...')}
-            />
-            <div className="flex justify-end space-x-2 mt-2">
-              <button
-                onClick={() => {
-                  setCustomDescription(localTask.tips || '');
-                  setEditingDescription(false);
-                }}
-                className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
-              >
-                {t('Cancelar')}
-              </button>
-              <button
-                onClick={() => {
-                  handleUpdate('tips', customDescription);
-                  setEditingDescription(false);
-                }}
-                className="px-3 py-1 text-sm bg-primary text-white rounded hover:bg-primary/90"
-              >
-                {t('Guardar')}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div
-            className={`border border-gray-200 rounded-lg p-4 min-h-[100px] ${canEdit ? 'cursor-pointer hover:border-gray-300' : 'cursor-default opacity-60'}`}
-            onClick={() => {
-              if (canEdit) {
-                setCustomDescription(stripHtml(localTask.tips || ''));
-                setEditingDescription(true);
-              } else {
-                ht();
-              }
-            }}
-            title={canEdit ? "Haz clic para editar descripción" : "No tienes permisos para editar"}
-          >
-            {customDescription ? (
-              <div className="text-sm text-gray-700 whitespace-pre-wrap break-words">
-                {formatTextWithLineLimit(stripHtml(customDescription), 70, 6).split('\n').map((line, idx) => (
-                  <div key={idx} className="mb-1">{line}</div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-400">
-                {canEdit ? t('Haz clic para agregar una descripción...') : t('Sin descripción')}
-              </p>
-            )}
-          </div>
-        )}
+{/* Descripción larga con Editor Rico */}
+<div>
+  <div className="flex items-center justify-between mb-2">
+    <label className="text-sm font-medium text-gray-700">
+      {t('Descripción detallada')}
+    </label>
+    {localTask.tips && !editingDescription && canEdit && (
+      <button
+        onClick={() => setEditingDescription(true)}
+        className="text-sm text-primary hover:text-primary/80"
+      >
+        {t('Editar')}
+      </button>
+    )}
+  </div>
+
+  {editingDescription ? (
+    <div className="border border-gray-300 rounded-lg overflow-hidden">
+      <ReactQuill
+        value={customDescription}
+        onChange={setCustomDescription}
+        modules={quillModules}
+        formats={quillFormats}
+        theme="snow"
+        placeholder={t('Escribe una descripción detallada...')}
+        className="bg-white"
+        style={{ minHeight: '200px' }}
+      />
+      <div className="flex justify-end space-x-2 p-3 bg-gray-50 border-t border-gray-200">
+        <button
+          onClick={() => {
+            setCustomDescription(localTask.tips || '');
+            setEditingDescription(false);
+          }}
+          className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+        >
+          {t('Cancelar')}
+        </button>
+        <button
+          onClick={() => {
+            handleUpdate('tips', customDescription);
+            setEditingDescription(false);
+          }}
+          className="px-4 py-2 text-sm bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+        >
+          {t('Guardar')}
+        </button>
       </div>
+    </div>
+  ) : (
+    <div
+      className={`border border-gray-200 rounded-lg p-4 min-h-[100px] ${
+        canEdit ? 'cursor-pointer hover:border-gray-300' : 'cursor-default opacity-60'
+      }`}
+      onClick={() => {
+        if (canEdit) {
+          setCustomDescription(localTask.tips || '');
+          setEditingDescription(true);
+        } else {
+          ht();
+        }
+      }}
+      title={canEdit ? "Haz clic para editar descripción" : "No tienes permisos para editar"}
+    >
+      {localTask.tips ? (
+        <div 
+          className="prose prose-sm max-w-none [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:my-3 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:my-3 [&_h3]:text-lg [&_h3]:font-bold [&_h3]:my-3 [&_p]:mb-4 [&_ul]:pl-6 [&_ul]:mb-4 [&_ul]:list-disc [&_ol]:pl-6 [&_ol]:mb-4 [&_ol]:list-decimal [&_li]:mb-2 [&_pre]:bg-gray-100 [&_pre]:p-3 [&_pre]:rounded [&_pre]:my-2 [&_pre]:whitespace-pre-wrap [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-sm [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-4 [&_blockquote]:my-2 [&_blockquote]:italic [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800 [&_.ql-align-center]:text-center [&_.ql-align-right]:text-right [&_.ql-align-justify]:text-justify [&_.ql-size-small]:text-xs [&_.ql-size-large]:text-lg [&_.ql-size-huge]:text-2xl [&_.ql-font-serif]:font-serif [&_.ql-font-monospace]:font-mono"
+          dangerouslySetInnerHTML={{ __html: localTask.tips }}
+        />
+      ) : (
+        <p className="text-sm text-gray-400">
+          {canEdit ? t('Haz clic para agregar una descripción...') : t('Sin descripción')}
+        </p>
+      )}
+    </div>
+  )}
+</div>
 
       {/* Adjuntos */}
       <div>

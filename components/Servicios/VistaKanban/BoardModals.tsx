@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { X, Palette } from 'lucide-react';
-import { BoardColumn } from './types';
+import { BoardColumn } from '../types';
 import { Task } from '../../../utils/Interfaces'; // Añadir esta importación
 
 interface AddColumnModalProps {

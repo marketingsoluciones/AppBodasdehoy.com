@@ -7,7 +7,7 @@ import { Comment, Itinerary, OptionsSelect, Task } from "../../../utils/Interfac
 import { ViewItinerary } from "../../../pages/invitados";
 import { getStorage, ref, listAll, deleteObject } from "firebase/storage";
 import { useRouter } from "next/router";
-import { TempPastedAndDropFile } from "./ItineraryPanel";
+import { TempPastedAndDropFile } from "../../Itinerario/MicroComponente/ItineraryPanel";
 import { useToast } from "../../../hooks/useToast";
 import { useAllowed } from '../../../hooks/useAllowed';
 

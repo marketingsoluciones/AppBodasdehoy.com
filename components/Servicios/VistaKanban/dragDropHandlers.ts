@@ -1,5 +1,5 @@
 import { DragStartEvent, DragEndEvent, DragOverEvent } from '@dnd-kit/core';
-import { BoardState, DragItem, TaskOrder } from './types';
+import { BoardState, DragItem, TaskOrder } from '../types';
 import { Task } from '../../../utils/Interfaces';
 import { fetchApiEventos, queries } from '../../../utils/Fetching';
 import { toast } from 'react-toastify';

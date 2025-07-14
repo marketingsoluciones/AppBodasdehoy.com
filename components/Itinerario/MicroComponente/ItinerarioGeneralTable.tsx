@@ -13,7 +13,7 @@ import { HashtagMatcher, UrlMatcher, UrlProps } from "interweave-autolink";
 import { CgSoftwareDownload } from "react-icons/cg";
 import { getBytes, getMetadata, getStorage, ref } from "firebase/storage";
 import Link from "next/link";
-import { GruposResponsablesArry } from "./ResponsableSelector";
+import { GruposResponsablesArry } from "../../Servicios/Utils/ResponsableSelector";
 import { ImageAvatar } from "../../Utils/ImageAvatar";
 import { EditTastk } from "./ItineraryPanel";
 import { LiaLinkSolid } from "react-icons/lia";

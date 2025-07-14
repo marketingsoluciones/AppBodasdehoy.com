@@ -1,8 +1,8 @@
 import { Task, Itinerary, Event as EventInterface } from '../../../utils/Interfaces';
-import { BoardState } from './types';
+import { BoardState } from '../types';
 import { fetchApiEventos, queries } from '../../../utils/Fetching';
 import { toast } from 'react-toastify';
-import { isValidTask } from './boardViewUtils';
+import { isValidTask } from '../VistaKanban/boardViewUtils';
 
 // Función para manejar la creación de tareas
 export const createHandleTaskCreate = (

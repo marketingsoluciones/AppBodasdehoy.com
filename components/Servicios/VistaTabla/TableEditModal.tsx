@@ -8,10 +8,12 @@ import { useTranslation } from 'react-i18next';
 import { AuthContextProvider, EventContextProvider } from '../../../context';
 
 import InputField from '../../Forms/InputField';
-import { ResponsableSelector } from '../MicroComponente/ResponsableSelector';
+
 import { InputTags } from '../../Forms/InputTags';
 import InputAttachments from '../../Forms/InputAttachments';
-import { MyEditor } from '../MicroComponente/QuillText';
+import { MyEditor } from '../Utils/QuillText';
+import { ResponsableSelector } from '../Utils/ResponsableSelector';
+
 
 interface TableEditModalProps {
   task: Task;

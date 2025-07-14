@@ -1,9 +1,9 @@
 import React from 'react';
 import { DragOverlay } from '@dnd-kit/core';
-import { TaskCard } from './TaskCard';
+import { TaskCard } from '../VistaTarjeta/TaskCard';
 import { BoardColumn as BoardColumnComponent } from './BoardColumn';
 import { Task, Itinerary } from '../../../utils/Interfaces';
-import { DragItem, BoardColumn as BoardColumnType, BoardState } from './types';
+import { DragItem, BoardColumn as BoardColumnType, BoardState } from '../types';
 
 interface BoardDragOverlayProps {
   draggedItem: DragItem | null;

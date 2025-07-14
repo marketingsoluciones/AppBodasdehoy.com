@@ -1,4 +1,4 @@
-import { Task } from '../../../utils/Interfaces';
+import { Task } from '../../utils/Interfaces';
 import React from 'react';
 
 // Interfaces para orden

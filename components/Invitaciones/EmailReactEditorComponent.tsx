@@ -16,7 +16,7 @@ import { EditableLabelWithInput } from '../Forms/EditableLabelWithInput';
 import ButtonPrimary from './ButtonPrimary';
 import { IoIosClose } from 'react-icons/io';
 import { MdOutlineShortText } from 'react-icons/md';
-import { Textarea } from '../Itinerario/MicroComponente/Textarea';
+import { Textarea } from '../Servicios/Utils/Textarea';
 
 interface props {
     setShowEmailEditorModal: (value: boolean) => void

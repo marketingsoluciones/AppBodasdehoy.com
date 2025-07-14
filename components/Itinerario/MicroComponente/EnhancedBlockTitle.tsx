@@ -3,8 +3,8 @@ import { AuthContextProvider, EventContextProvider } from '../../../context'
 import { defaultImagenes } from '../../Home/Card'
 import { IoShareSocial } from 'react-icons/io5'
 import { useTranslation } from 'react-i18next'
-import { PermissionIndicator } from './PermissionIndicator'
-import { PermissionWrapper } from './PermissionWrapper'
+import { PermissionIndicator } from '../../Servicios/Utils/PermissionIndicator'
+import { PermissionWrapper } from '../../Servicios/Utils/PermissionWrapper'
 import { ModalAddUserToEvent, UsuariosCompartidos } from '../../Utils/Compartir'
 
 interface EnhancedBlockTitleProps {

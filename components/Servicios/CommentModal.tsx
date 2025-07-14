@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, MessageSquare, Send } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Task, Comment, Itinerary } from '../../../utils/Interfaces';
-import { ListComments } from './ListComments';
-import { InputComments } from './InputComments';
+import { Task, Comment, Itinerary } from '../../utils/Interfaces';
+import { ListComments } from './Utils/ListComments';
+import { InputComments } from './Utils/InputComments';
 
 
 interface CommentModalProps {

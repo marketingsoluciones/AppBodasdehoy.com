@@ -2,7 +2,7 @@ import { FC, useEffect, useState } from "react"
 import { Swiper, SwiperProps, SwiperSlide, useSwiper } from "swiper/react"
 import { PastedAndDropFile } from "./InputComments";
 import { Mousewheel } from "swiper";
-import { FileIconComponent } from "./FileIconComponent";
+import { FileIconComponent } from "../../Itinerario/MicroComponente/FileIconComponent";
 // import 'swiper/css';
 // import 'swiper/css/pagination';
 

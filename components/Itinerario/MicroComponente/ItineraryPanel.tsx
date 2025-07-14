@@ -1,4 +1,4 @@
-import { TaskNew } from "./TaskNew"
+import { TaskNew } from "../../Servicios/VistaTarjeta/TaskNew"
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
 import { FC, useCallback, useEffect, useState } from "react";
 import { AuthContextProvider } from "../../../context/AuthContext";
@@ -15,7 +15,7 @@ import { GoEye, GoEyeClosed, GoGitBranch } from "react-icons/go";
 import { LiaLinkSolid } from "react-icons/lia";
 import { MdOutlineDeleteOutline } from "react-icons/md";
 import { OptionsSelect, Task, Itinerary, Info, ModalInterface } from "../../../utils/Interfaces"
-import { SubHeader } from "./SubHeader";
+import { SubHeader } from "../../Servicios/Utils/SubHeader";
 import { ViewItinerary } from "../../../pages/invitados";
 import FormTask from "../../Forms/FormTask";
 import { getStorage } from "firebase/storage";
@@ -24,20 +24,20 @@ import { VscFiles } from "react-icons/vsc";
 import { TbLock } from "react-icons/tb";
 import { TbLockOpen } from "react-icons/tb";
 import { useNotification } from "../../../hooks/useNotification";
-import { PastedAndDropFile } from "./InputComments";
+import { PastedAndDropFile } from "../../Servicios/Utils/InputComments";
 import { deleteAllFiles, deleteRecursive } from "../../Utils/storages";
 import { InfoLateral } from "./InfoLateral";
 import { CgInfo } from "react-icons/cg";
 import { ImageAvatar } from "../../Utils/ImageAvatar";
 import { ItineraryDetails } from "../MicroComponente/ItineraryDetails"
 import { SimpleDeleteConfirmation } from "../../Utils/SimpleDeleteConfirmation";
-import { ExtraTableView } from "./ExtraTableView";
-import { BoardView } from "./BoardView";
+import { ExtraTableView } from "../../Servicios/ExtraTableView";
+import { BoardView } from "../../Servicios/VistaKanban/BoardView";
 // Importar el tipo Event con un alias para evitar conflictos
 import { Event as EventInterface } from '../../../utils/Interfaces';
-import { TableView } from "./NewTableView";
-import { PermissionTaskWrapper } from "./PermissionTaskWrapper";
-import { PermissionTaskActionWrapper } from "./PermissionTaskActionWrapper";
+import { TableView } from "../../Servicios/VistaTabla/NewTableView";
+import { PermissionTaskWrapper } from "../../Servicios/Utils/PermissionTaskWrapper";
+import { PermissionTaskActionWrapper } from "../../Servicios/Utils/PermissionTaskActionWrapper";
 import useSWR from 'swr';
 
 

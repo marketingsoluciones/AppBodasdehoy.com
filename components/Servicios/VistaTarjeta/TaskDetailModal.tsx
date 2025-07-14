@@ -22,7 +22,7 @@ import { useNotification } from '../../../hooks/useNotification';
 import { GoEye, GoEyeClosed, GoGitBranch } from "react-icons/go";
 import { LiaLinkSolid } from "react-icons/lia";
 import { Modal } from '../../Utils/Modal';
-import { WarningMessage } from './WarningMessage';
+import { WarningMessage } from '../../Itinerario/MicroComponente/WarningMessage';
 import ModalLeft from '../../Utils/ModalLeft';
 import FormTask from '../../Forms/FormTask';
 import { getStorage, ref, listAll, deleteObject } from "firebase/storage";

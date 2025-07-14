@@ -4,7 +4,7 @@ import { FC, useEffect, useState } from "react";
 import { AuthContextProvider } from "../../../context";
 import { useTranslation } from "react-i18next";
 import { defaultImagenes } from "../../../components/Home/Card";
-import { TaskNew } from "./TaskNew";
+import { TaskNew } from "../../Servicios/VistaTarjeta/TaskNew";
 
 interface TaskReduce {
   fecha: number

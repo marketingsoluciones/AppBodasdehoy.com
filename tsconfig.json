@@ -30,7 +30,7 @@
     "pages/login.js",
     "components/Forms/FormAddUserToEvent.js",
     "pages/RelacionesPublicas/[...slug].tsx",
-    "components/Itinerario/MicroComponente/QuillText.tsx",
+    "components/Servicios/Utils/QuillText.tsx",
     "hooks/useNotificationts",
   ],
   "exclude": [

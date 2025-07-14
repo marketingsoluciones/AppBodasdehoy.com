@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Upload, X, FileText, FileImage, FileVideo, FileAudio, File, Check, Loader2, Download, Trash2, Lock } from 'lucide-react';
+import { Upload, X, FileText, FileImage, FileVideo, FileAudio, File, Check, Loader2, Download, Trash2, Lock, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getStorage, ref, uploadBytesResumable, deleteObject } from "firebase/storage";
 import { FileData } from '../../../utils/Interfaces';
@@ -29,19 +29,19 @@ const getFileIcon = (fileName: string) => {
   const ext = fileName.split('.').pop()?.toLowerCase();
   
   if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(ext || '')) {
-    return <FileImage className="w-8 h-8 text-primary" />;
+    return <FileImage className="w-4 h-4 text-primary" />;
   }
   if (['mp4', 'avi', 'mov', 'wmv'].includes(ext || '')) {
-    return <FileVideo className="w-8 h-8 text-purple-500" />;
+    return <FileVideo className="w-4 h-4 text-purple-500" />;
   }
   if (['mp3', 'wav', 'ogg'].includes(ext || '')) {
-    return <FileAudio className="w-8 h-8 text-green-500" />;
+    return <FileAudio className="w-4 h-4 text-green-500" />;
   }
   if (['pdf', 'doc', 'docx', 'txt'].includes(ext || '')) {
-    return <FileText className="w-8 h-8 text-red-500" />;
+    return <FileText className="w-4 h-4 text-red-500" />;
   }
   
-  return <File className="w-8 h-8 text-gray-500" />;
+  return <File className="w-4 h-4 text-gray-500" />;
 };
 
 const formatFileSize = (bytes: number): string => {
@@ -322,73 +322,79 @@ export const NewAttachmentsEditor: React.FC<Props> = ({
   };
 
   return (
-    <div className="space-y-4">
-      {/* Área de carga - CONDICIONADA PARA MODO SOLO LECTURA */}
-      {!readOnly && (
-        <div
-          onDragEnter={handleDragEnter}
-          onDragLeave={handleDragLeave}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-          className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all ${
-            isDragging 
-              ? 'border-primary bg-primary/5' 
-              : 'border-gray-300 hover:border-gray-400'
-          }`}
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            onChange={(e) => handleFileSelect(e.target.files)}
-            className="hidden"
-          />
-          
-          <Upload className={`w-12 h-12 mx-auto mb-4 ${
-            isDragging ? 'text-primary' : 'text-gray-400'
-          }`} />
-          
-          <p className="text-sm text-gray-600 mb-2">
-            {isDragging ? (
-              <span className="text-primary font-medium">{t('Suelta los archivos aquí')}</span>
-            ) : (
-              <>
-                {t('Arrastra y suelta archivos aquí, o')}{' '}
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="text-primary hover:text-primary/80 font-medium"
-                >
-                  {t('selecciona archivos')}
-                </button>
-              </>
-            )}
-          </p>
-          
-          <p className="text-xs text-gray-500">
-            {t('Tamaño máximo: 10MB por archivo')}
-          </p>
-        </div>
-      )}
-
-      {/* Archivos subiendo - SOLO SI NO ES MODO SOLO LECTURA */}
-      {!readOnly && uploadingFiles.length > 0 && (
-        <div className="space-y-2">
-          <h5 className="text-sm font-medium text-gray-700">{t('Subiendo archivos')}</h5>
-          {uploadingFiles.map(uf => (
-            <div key={uf.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-              {uf.status === 'uploading' ? (
-                <Loader2 className="w-5 h-5 text-primary animate-spin" />
-              ) : uf.status === 'success' ? (
-                <Check className="w-5 h-5 text-green-500" />
+    <div className="space-y-3">
+      {/* Header con título y botón de agregar */}
+      <div className="flex items-center justify-between">
+        <h5 className="text-sm font-medium text-gray-700 flex items-center gap-2">
+          {t('Archivos adjuntos')} 
+          <span className="text-xs text-gray-500">({attachments.length})</span>
+          {readOnly && (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600">
+              <Lock className="w-3 h-3 mr-1" />
+              {t('Solo lectura')}
+            </span>
+          )}
+        </h5>
+        
+        {/* Botón de agregar archivo - Más compacto */}
+        {!readOnly && (
+          <div
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+            className="relative"
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              onChange={(e) => handleFileSelect(e.target.files)}
+              className="hidden"
+            />
+            
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                isDragging 
+                  ? 'bg-primary text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {isDragging ? (
+                <>
+                  <Upload className="w-3.5 h-3.5" />
+                  {t('Suelta aquí')}
+                </>
               ) : (
-                <X className="w-5 h-5 text-red-500" />
+                <>
+                  <Plus className="w-3.5 h-3.5" />
+                  {t('Agregar archivo')}
+                </>
+              )}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Archivos subiendo - Más compacto */}
+      {!readOnly && uploadingFiles.length > 0 && (
+        <div className="space-y-1.5">
+          {uploadingFiles.map(uf => (
+            <div key={uf.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
+              {uf.status === 'uploading' ? (
+                <Loader2 className="w-3.5 h-3.5 text-primary animate-spin flex-shrink-0" />
+              ) : uf.status === 'success' ? (
+                <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+              ) : (
+                <X className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
               )}
               
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-700">{uf.file.name}</p>
-                <div className="mt-1 w-full bg-gray-200 rounded-full h-2">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-gray-700 truncate">{uf.file.name}</p>
+                <div className="mt-0.5 w-full bg-gray-200 rounded-full h-1">
                   <div
-                    className={`h-2 rounded-full transition-all ${
+                    className={`h-1 rounded-full transition-all ${
                       uf.status === 'success' 
                         ? 'bg-green-500' 
                         : uf.status === 'error' 
@@ -400,7 +406,7 @@ export const NewAttachmentsEditor: React.FC<Props> = ({
                 </div>
               </div>
               
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-gray-500 flex-shrink-0">
                 {formatFileSize(uf.file.size)}
               </span>
             </div>
@@ -408,89 +414,89 @@ export const NewAttachmentsEditor: React.FC<Props> = ({
         </div>
       )}
 
-      {/* Lista de archivos */}
+      {/* Lista de archivos - Diseño más compacto */}
       {attachments.length > 0 ? (
-        <div className="space-y-2">
-          <h5 className="text-sm font-medium text-gray-700">
-            {t('Archivos adjuntos')} ({attachments.length})
-            {/* INDICADOR DE MODO SOLO LECTURA */}
-            {readOnly && (
-              <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-600">
-                <Lock className="w-3 h-3 mr-1" />
-                {t('Solo lectura')}
-              </span>
-            )}
-          </h5>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {attachments.map((file) => (
-              <div
-                key={file._id || file.name}
-                className={`group relative flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors ${
-                  deletingFiles.includes(file.name) ? 'opacity-50' : ''
-                }`}
-              >
-                {getFileIcon(file.name)}
+        <div className="space-y-1">
+          {attachments.map((file) => (
+            <div
+              key={file._id || file.name}
+              className={`group flex items-center gap-2 p-2 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors ${
+                deletingFiles.includes(file.name) ? 'opacity-50' : ''
+              }`}
+            >
+              {getFileIcon(file.name)}
+              
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-gray-700 truncate">
+                  {file.name}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {formatFileSize(file.size)}
+                </p>
+              </div>
+              
+              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  onClick={() => handleDownload(file)}
+                  className="p-1 text-gray-500 hover:text-primary rounded"
+                  title={t('Descargar')}
+                  disabled={deletingFiles.includes(file.name)}
+                >
+                  <Download className="w-3.5 h-3.5" />
+                </button>
                 
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-700 truncate">
-                    {file.name}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {formatFileSize(file.size)}
-                  </p>
-                </div>
-                
-                <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {/* Botón de descarga - SIEMPRE DISPONIBLE */}
+                {!readOnly && (
                   <button
-                    onClick={() => handleDownload(file)}
-                    className="p-1 text-gray-500 hover:text-primary rounded"
-                    title={t('Descargar')}
+                    onClick={() => handleDelete(file)}
+                    className="p-1 text-gray-500 hover:text-red-500 rounded"
+                    title={t('Eliminar')}
                     disabled={deletingFiles.includes(file.name)}
                   >
-                    <Download className="w-4 h-4" />
+                    {deletingFiles.includes(file.name) ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-3.5 h-3.5" />
+                    )}
                   </button>
-                  
-                  {/* Botón de eliminar - SOLO SI NO ES MODO SOLO LECTURA */}
-                  {!readOnly && (
-                    <button
-                      onClick={() => handleDelete(file)}
-                      className="p-1 text-gray-500 hover:text-red-500 rounded"
-                      title={t('Eliminar')}
-                      disabled={deletingFiles.includes(file.name)}
-                    >
-                      {deletingFiles.includes(file.name) ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Trash2 className="w-4 h-4" />
-                      )}
-                    </button>
-                  )}
-                </div>
+                )}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       ) : (
-        /* MENSAJE CUANDO NO HAY ADJUNTOS */
-        <div className="text-center py-6">
-          {readOnly ? (
-            /* MENSAJE PARA MODO SOLO LECTURA */
-            <div className="flex flex-col items-center space-y-2">
-              <File className="w-12 h-12 text-gray-300" />
-              <p className="text-sm text-gray-500">{t('Sin adjuntos')}</p>
-              <div className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-600">
-                <Lock className="w-3 h-3 mr-1" />
-                {t('Solo lectura')}
-              </div>
-            </div>
-          ) : (
-            /* MENSAJE PARA MODO EDICIÓN */
-            <div className="flex flex-col items-center space-y-2">
-              <p className="text-sm text-gray-500">{t('No hay archivos adjuntos')}</p>
-            </div>
-          )}
-        </div>
+        /* Estado vacío - Mucho más compacto */
+        !readOnly && (
+          <div 
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+            className={`border border-dashed rounded-md p-3 text-center transition-all ${
+              isDragging 
+                ? 'border-primary bg-primary/5' 
+                : 'border-gray-300'
+            }`}
+          >
+            <p className="text-xs text-gray-500">
+              {isDragging ? (
+                <span className="text-primary font-medium">{t('Suelta los archivos aquí')}</span>
+              ) : (
+                <>
+                  {t('Arrastra archivos o')}{' '}
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="text-primary hover:text-primary/80 font-medium"
+                  >
+                    {t('haz clic aquí')}
+                  </button>
+                </>
+              )}
+            </p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              {t('Máx: 10MB')}
+            </p>
+          </div>
+        )
       )}
     </div>
   );
