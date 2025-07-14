@@ -20,6 +20,7 @@ import { OpenModal } from "../components/Home/OpenModal";
 import { Modal } from "../components/Utils/Modal";
 import { EmailReactEditorComponent } from "../components/Invitaciones/EmailReactEditorComponent";
 import { fetchApiEventos, queries } from "../utils/Fetching";
+import { WhatsappEditorComponent } from "../components/Invitaciones/WhatsappEditorComponent";
 
 export type optionArryOptions = {
   title: string;
@@ -115,7 +116,10 @@ const Invitaciones = () => {
             className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 gap-4 h-full"
           >
             {ShowEditorModal && <Modal classe={" md:w-[90%] h-[90%] "} >
-              {optionSelect === "email" && <EmailReactEditorComponent setShowEditorModal={setShowEditorModal} previewEmailReactEditor={previewEmailReactEditor} />}
+              {optionSelect === "email"
+                ? < EmailReactEditorComponent setShowEditorModal={setShowEditorModal} previewEmailReactEditor={previewEmailReactEditor} />
+                : <WhatsappEditorComponent />
+              }
             </Modal>}
             <BlockTitle title="Invitaciones" />
             <CounterInvitations />
