@@ -20,6 +20,11 @@ const getCurrentFormattedDateTime = () => {
 export const WhatsappPreview = ({ headerType, headerContent, bodyContent, footerContent, buttons, variableMap }) => {
   // Función para reemplazar variables con ejemplos del variableMap
   const replaceVariables = (text, currentVariableMap) => {
+    // Verificar que text sea una cadena válida
+    if (!text || typeof text !== 'string') {
+      return '';
+    }
+
     let processedText = text;
     // Regex para encontrar variables en formato {{params.XYZ}}
     const matches = text.match(/\{\{params\.[a-zA-Z0-9_]+\}\}/g);

@@ -1,4 +1,4 @@
-import { Form, Formik, FormikValues, useField } from "formik";
+import { Form, Formik, FormikValues, useField, useFormikContext } from "formik";
 import { FC, useEffect, useState } from 'react';
 import { AuthContextProvider } from '../../context/AuthContext';
 import { EventContextProvider } from '../../context/EventContext';
@@ -39,6 +39,7 @@ export const WhatsappEditorComponent: FC<props> = ({ ...props }) => {
     const { event, setEvent } = EventContextProvider()
     const { t } = useTranslation();
     const toast = useToast();
+    const [values, setValues] = useState<TemplateFormValues>()
 
     const variables = [
         { id: 1, name: "tipo de evento", value: "{{params.typeEvent}}", sample: "CUMPLEAÑOS" },
@@ -100,9 +101,11 @@ export const WhatsappEditorComponent: FC<props> = ({ ...props }) => {
     };
 
     const handleVariableSelect = (e: React.ChangeEvent<HTMLSelectElement>, setFieldValue: any, fieldName: string) => {
+        console.log(100040, e.target.value, fieldName)
         const selectedValue = e.target.value;
+        console.log(100041, selectedValue)
         if (selectedValue) {
-            setFieldValue(fieldName, (prev: string) => prev + ` ${selectedValue}`);
+            setFieldValue(fieldName, `${values?.[fieldName]}${selectedValue}`);
             e.target.value = "";
         }
     };
@@ -270,6 +273,11 @@ export const WhatsappEditorComponent: FC<props> = ({ ...props }) => {
         }
     };
 
+    useEffect(() => {
+        console.log(100039, values?.bodyContent)
+    }, [values?.bodyContent])
+
+
     return (
         <div className='relative w-full h-full'>
             <div className="min-h-screen bg-gray-100 p-8 font-inter flex flex-col md:flex-row gap-8">
@@ -280,8 +288,9 @@ export const WhatsappEditorComponent: FC<props> = ({ ...props }) => {
                         onSubmit={handleSubmit}
                         validationSchema={validationSchema}
                     >
-                        {({ isSubmitting, values, setFieldValue, errors, touched }) => (
+                        {({ isSubmitting, values, setFieldValue, errors, touched }) => values ? (
                             <Form className="w-full flex flex-col">
+                                <AutoSubmitToken setValues={setValues} />
                                 <div className="border-l-2 border-gray-100 pl-3 my-2 w-full">
                                     <h2 className="font-display text-3xl capitalize text-primary font-light">
                                         {t("create")}
@@ -329,7 +338,7 @@ export const WhatsappEditorComponent: FC<props> = ({ ...props }) => {
                                                         rows={2}
                                                         placeholder="ej. ¡Hola {{params.nameGuest}}!"
                                                         className="font-display text-sm text-gray-500 border border-gray-200 focus:border-gray-400 focus:ring-0 transition w-full py-2 px-4 rounded-xl focus:outline-none"
-                                                        value={values.headerContent}
+                                                        value={values?.headerContent || ''}
                                                         onChange={(e) => setFieldValue('headerContent', e.target.value)}
                                                     />
                                                 </div>
@@ -373,7 +382,7 @@ export const WhatsappEditorComponent: FC<props> = ({ ...props }) => {
                                                 rows={5}
                                                 placeholder="ej. Su pedido #{{params.nameEvent}} ha sido confirmado y será enviado el {{params.dateEvent}}. ¡Gracias por su compra!"
                                                 className="font-display text-sm text-gray-500 border border-gray-200 focus:border-gray-400 focus:ring-0 transition w-full py-2 px-4 rounded-xl focus:outline-none"
-                                                value={values.bodyContent}
+                                                value={values?.bodyContent || ''}
                                                 onChange={(e) => setFieldValue('bodyContent', e.target.value)}
                                             />
                                         </div>
@@ -403,7 +412,7 @@ export const WhatsappEditorComponent: FC<props> = ({ ...props }) => {
                                                 rows={2}
                                                 placeholder="ej. Gracias por su preferencia."
                                                 className="font-display text-sm text-gray-500 border border-gray-200 focus:border-gray-400 focus:ring-0 transition w-full py-2 px-4 rounded-xl focus:outline-none"
-                                                value={values.footerContent}
+                                                value={values?.footerContent || ''}
                                                 onChange={(e) => setFieldValue('footerContent', e.target.value)}
                                             />
                                         </div>
@@ -504,18 +513,9 @@ export const WhatsappEditorComponent: FC<props> = ({ ...props }) => {
                                     >
                                         {isSubmitting ? t("Generating...") : t("Generate Template JSON")}
                                     </button>
-                                    {/* Vista previa dentro del contexto de Formik */}
-                                    <WhatsappPreview
-                                        headerType={values.headerType || 'NONE'}
-                                        headerContent={values.headerContent || ''}
-                                        bodyContent={values.bodyContent || ''}
-                                        footerContent={values.footerContent || ''}
-                                        buttons={values.buttons || []}
-                                        variableMap={variableMap}
-                                    />
                                 </div>
                             </Form>
-                        )}
+                        ) : null}
                     </Formik>
 
                     {/* Área de visualización del JSON */}
@@ -536,7 +536,16 @@ export const WhatsappEditorComponent: FC<props> = ({ ...props }) => {
                 </div>
 
                 {/* Columna de la Vista Previa */}
-                {/* The WhatsappPreview component is now rendered inside Formik */}
+                {values && (
+                    <WhatsappPreview
+                        headerType={values.headerType ?? 'NONE'}
+                        headerContent={values.headerContent ?? ''}
+                        bodyContent={values.bodyContent ?? ''}
+                        footerContent={values.footerContent ?? ''}
+                        buttons={values.buttons ?? []}
+                        variableMap={variableMap}
+                    />
+                )}
             </div>
 
             <style jsx>
@@ -558,4 +567,14 @@ export const WhatsappEditorComponent: FC<props> = ({ ...props }) => {
             </style>
         </div>
     );
+};
+
+const AutoSubmitToken = ({ setValues }) => {
+    const { values } = useFormikContext();
+
+    useEffect(() => {
+        setValues(values)
+    }, [values])
+
+    return null;
 };
