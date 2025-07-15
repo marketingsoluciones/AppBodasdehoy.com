@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 // Función auxiliar para formatear un número añadiendo un cero inicial si es menor que 10.
 const padZero = (num) => {
@@ -18,6 +19,7 @@ const getCurrentFormattedDateTime = () => {
 
 // Componente de vista previa de WhatsApp
 export const WhatsappPreview = ({ headerType, headerContent, bodyContent, footerContent, buttons, variableMap }) => {
+  const { t } = useTranslation();
   // Función para reemplazar variables con ejemplos del variableMap
   const replaceVariables = (text, currentVariableMap) => {
     // Verificar que text sea una cadena válida
@@ -58,7 +60,7 @@ export const WhatsappPreview = ({ headerType, headerContent, bodyContent, footer
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </div>
-            <span className="font-semibold">Invitado</span>
+            <span className="font-semibold">{t("Guest")}</span>
           </div>
           <div className="flex items-center space-x-3">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -92,15 +94,32 @@ export const WhatsappPreview = ({ headerType, headerContent, bodyContent, footer
 
             {buttons.length > 0 && (
               <div className="mt-2 border-t border-gray-200 pt-2 -mx-3 px-3">
-                {buttons.map((btn, idx) => (
-                  <button
-                    key={idx}
-                    className="w-full bg-blue-500 text-white text-sm py-2 px-3 rounded-md mb-1 last:mb-0 hover:bg-blue-600 transition-colors"
-                    style={{ backgroundColor: btn.type === 'QUICK_REPLY' ? '#E0F2F1' : '#34B7F1', color: btn.type === 'QUICK_REPLY' ? '#075E54' : 'white' }}
-                  >
-                    {btn.text}
-                  </button>
-                ))}
+                {buttons.map((btn, idx) => {
+                  const getButtonStyle = (type: string) => {
+                    switch (type) {
+                      case 'QUICK_REPLY':
+                        return { backgroundColor: '#E0F2F1', color: '#075E54' };
+                      case 'URL':
+                        return { backgroundColor: '#34B7F1', color: 'white' };
+                      case 'PHONE_NUMBER':
+                        return { backgroundColor: '#34B7F1', color: 'white' };
+                      case 'WHATSAPP':
+                        return { backgroundColor: '#25D366', color: 'white' };
+                      default:
+                        return { backgroundColor: '#34B7F1', color: 'white' };
+                    }
+                  };
+
+                  return (
+                    <button
+                      key={idx}
+                      className="w-full text-sm py-2 px-3 rounded-md mb-1 last:mb-0 hover:opacity-80 transition-colors"
+                      style={getButtonStyle(btn.type)}
+                    >
+                      {btn.text}
+                    </button>
+                  );
+                })}
               </div>
             )}
             <div className="text-right text-xs text-gray-400 mt-1">{getCurrentFormattedDateTime().split(' ')[1]}</div>
@@ -114,7 +133,7 @@ export const WhatsappPreview = ({ headerType, headerContent, bodyContent, footer
           </svg>
           <input
             type="text"
-            placeholder="Escribe un mensaje..."
+            placeholder={t("Write a message...")}
             className="flex-1 p-2 rounded-full bg-gray-100 border border-gray-300 text-sm focus:outline-none"
             disabled
           />

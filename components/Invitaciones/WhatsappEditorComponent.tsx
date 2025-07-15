@@ -13,11 +13,17 @@ import * as yup from "yup";
 import { GoArrowLeft } from "react-icons/go";
 
 interface Button {
-    type: 'QUICK_REPLY' | 'URL' | 'PHONE_NUMBER';
+    type: 'QUICK_REPLY' | 'URL' | 'PHONE_NUMBER' | 'WHATSAPP';
     text: string;
     url?: string;
     phoneNumber?: string;
     example?: string;
+}
+
+interface ButtonOption {
+    title: string;
+    description: string;
+    type: 'QUICK_REPLY' | 'URL' | 'PHONE_NUMBER' | 'WHATSAPP';
 }
 
 interface TemplateFormValues {
@@ -55,6 +61,28 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
         { id: 9, name: "lugar", value: "{{params.placeEvent}}", sample: "Salón de Fiestas 'El Gran Salón'" },
     ];
 
+    const buttonOptions: ButtonOption[] = [{
+        title: t("Go to website"),
+        description: t("2 buttons maximum"),
+        type: "URL",
+    },
+    {
+        title: t("Call on WhatsApp"),
+        description: t("1 button maximum"),
+        type: "WHATSAPP",
+    },
+    {
+        title: t("Call phone number"),
+        description: t("1 button maximum"),
+        type: "PHONE_NUMBER",
+    },
+    {
+        title: t("Complete process"),
+        description: t("5 buttons maximum"),
+        type: "QUICK_REPLY",
+    },
+    ]
+
     const [generatedJson, setGeneratedJson] = useState('');
     const [variableMap, setVariableMap] = useState<any>({});
 
@@ -67,24 +95,24 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
     }, []);
 
     const validationSchema = yup.object().shape({
-        templateName: yup.string().required(t("Nombre requerido")),
-        bodyContent: yup.string().required(t("El cuerpo del mensaje es obligatorio")),
+        templateName: yup.string().required(t("Name required")),
+        bodyContent: yup.string().required(t("Message body is required")),
         headerContent: yup.string().when('headerType', {
             is: (headerType: string) => headerType === 'TEXT' || headerType === 'IMAGE',
-            then: (schema) => schema.required(t("El contenido del encabezado es obligatorio")),
+            then: (schema) => schema.required(t("Header content is required")),
             otherwise: (schema) => schema.optional(),
         }),
         buttons: yup.array().of(
             yup.object().shape({
-                text: yup.string().required(t("El texto del botón es obligatorio")),
+                text: yup.string().required(t("Button text is required")),
                 url: yup.string().when('type', {
                     is: 'URL',
-                    then: (schema) => schema.required(t("La URL es obligatoria para botones de URL")),
+                    then: (schema) => schema.required(t("URL is required for URL buttons")),
                     otherwise: (schema) => schema.optional(),
                 }),
                 phoneNumber: yup.string().when('type', {
                     is: 'PHONE_NUMBER',
-                    then: (schema) => schema.required(t("El número de teléfono es obligatorio")),
+                    then: (schema) => schema.required(t("Phone number is required")),
                     otherwise: (schema) => schema.optional(),
                 }),
             })
@@ -117,14 +145,33 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
     };
 
     const addEmptyButton = (type: Button['type'], setFieldValue: any) => {
-        if (values?.buttons.length >= 3) {
-            toast("error", t("Máximo 3 botones permitidos"));
+        if (values?.buttons.length >= 5) {
+            toast("error", t("Maximum 5 buttons allowed"));
             return;
         }
         const newButton: Button = { type, text: '', example: '' };
         if (type === 'URL') newButton.url = 'https://example.com';
         if (type === 'PHONE_NUMBER') newButton.phoneNumber = '+1234567890';
+        if (type === 'WHATSAPP') newButton.phoneNumber = '+1234567890';
         setFieldValue('buttons', [...values?.buttons || [], newButton])
+    };
+
+    const isButtonDisabled = (buttonType: string) => {
+        const currentButtons = values?.buttons || [];
+        const buttonCount = currentButtons.filter(btn => btn.type === buttonType).length;
+
+        switch (buttonType) {
+            case 'URL':
+                return buttonCount >= 2; // Máximo 2 botones URL
+            case 'WHATSAPP':
+                return buttonCount >= 1; // Máximo 1 botón WhatsApp
+            case 'PHONE_NUMBER':
+                return buttonCount >= 1; // Máximo 1 botón PHONE_NUMBER
+            case 'QUICK_REPLY':
+                return buttonCount >= 5; // Máximo 5 botones QUICK_REPLY
+            default:
+                return false;
+        }
     };
 
     const removeButton = (index: number, setFieldValue: any) => {
@@ -228,6 +275,12 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                         type: 'QUICK_REPLY',
                         text: btn.text,
                     };
+                } else if (btn.type === 'WHATSAPP') {
+                    return {
+                        type: 'PHONE_NUMBER',
+                        text: btn.text,
+                        phone_number: btn.phoneNumber,
+                    };
                 }
                 return null;
             }).filter(Boolean);
@@ -264,14 +317,14 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
         }
 
         setGeneratedJson(JSON.stringify(templateJson, null, 2));
-        toast("success", t("JSON de plantilla generado exitosamente"));
+        toast("success", t("Template JSON generated successfully"));
     };
 
     const handleSubmit = async (values: TemplateFormValues, actions: any) => {
         try {
             generateTemplateJson(values);
         } catch (error) {
-            toast("error", `${t("Ha ocurrido un error")} ${error}`);
+            toast("error", `${t("An error has occurred")} ${error}`);
             console.log(error);
         } finally {
             actions.setSubmitting(false);
@@ -354,7 +407,7 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                                 <textarea
                                                     name="headerContent"
                                                     rows={2}
-                                                    placeholder={t("headerContent")}
+                                                    placeholder={t("Enter header content")}
                                                     className="font-display text-sm text-gray-500 border border-gray-200 focus:border-gray-400 focus:ring-0 transition w-full py-2 px-4 rounded-xl focus:outline-none"
                                                     value={values?.headerContent || ''}
                                                     onChange={(e) => setFieldValue('headerContent', e.target.value)}
@@ -386,7 +439,7 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                                     name="headerContent"
                                                     label={t("Image URL (example)")}
                                                     type="text"
-                                                    placeholder="https://ejemplo.com/imagen.jpg"
+                                                    placeholder={t("https://example.com/image.jpg")}
                                                 />
                                                 <p className="text-gray-500 text-xs mt-1">{t("Note: In the real API, you will need to upload the image to Meta and use a handle or uri.")}</p>
                                             </div>
@@ -399,7 +452,7 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                         <textarea
                                             name="bodyContent"
                                             rows={5}
-                                            placeholder="ej. Su pedido #{{params.nameEvent}} ha sido confirmado y será enviado el {{params.dateEvent}}. ¡Gracias por su compra!"
+                                            placeholder={t("e.g. Your order #{{params.nameEvent}} has been confirmed and will be shipped on {{params.dateEvent}}. Thank you for your purchase!")}
                                             className="font-display text-sm text-gray-500 border border-gray-200 focus:border-gray-400 focus:ring-0 transition w-full py-2 px-4 rounded-xl focus:outline-none"
                                             value={values?.bodyContent || ''}
                                             onChange={(e) => setFieldValue('bodyContent', e.target.value)}
@@ -430,7 +483,7 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                         <textarea
                                             name="footerContent"
                                             rows={2}
-                                            placeholder={t("enterText")}
+                                            placeholder={t("Enter footer text")}
                                             className="font-display text-sm text-gray-500 border border-gray-200 focus:border-gray-400 focus:ring-0 transition w-full py-2 px-4 rounded-xl focus:outline-none"
                                             value={values?.footerContent || ''}
                                             onChange={(e) => setFieldValue('footerContent', e.target.value)}
@@ -440,29 +493,45 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
 
                                     {/* Buttons */}
                                     <div className="mb-2">
-                                        <h2 className="text-sm font-semibold text-gray-700 mb-4">{t("Buttons (Optional)")}</h2>
-                                        <div className="flex space-x-2 mb-2">
-                                            <button
-                                                type="button"
-                                                onClick={() => addEmptyButton('QUICK_REPLY', setFieldValue)}
-                                                className="w-1/3 px-2 md:px-4 py-2 bg-emerald-500 text-white rounded-md hover:bg-emerald-600 transition-colors text-[10px] md:text-xs"
-                                            >
-                                                {t("Add Quick Reply")}
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => addEmptyButton('URL', setFieldValue)}
-                                                className="w-1/3 px-2 md:px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors text-[10px] md:text-xs"
-                                            >
-                                                {t("Add URL Button")}
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => addEmptyButton('PHONE_NUMBER', setFieldValue)}
-                                                className="w-1/3 px-2 md:px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors text-[10px] md:text-xs"
-                                            >
-                                                {t("Add Call Button")}
-                                            </button>
+                                        <div className="flex gap-2 items-end mb-4">
+                                            <h2 className="text-sm font-semibold text-gray-700">{t("Buttons (Optional)")}</h2>
+                                            <span className="text-xs text-gray-500">{t("You can add up to 5 buttons")}</span>
+                                        </div>
+                                        <div id="buttons-container" className="flex space-x-2 mb-2">
+                                            {buttonOptions.map((buttonOption, index) => {
+                                                const getButtonColor = (type: string) => {
+                                                    switch (type) {
+                                                        case 'QUICK_REPLY':
+                                                            return 'bg-emerald-500 hover:bg-emerald-600';
+                                                        case 'URL':
+                                                            return 'bg-sky-500 hover:bg-sky-600';
+                                                        case 'PHONE_NUMBER':
+                                                            return 'bg-amber-500 hover:bg-amber-600';
+                                                        case 'WHATSAPP':
+                                                            return 'bg-teal-500 hover:bg-teal-600';
+                                                        default:
+                                                            return 'bg-gray-500 hover:bg-gray-600';
+                                                    }
+                                                };
+
+                                                const isDisabled = isButtonDisabled(buttonOption.type);
+                                                const disabledColor = 'bg-gray-400 cursor-not-allowed opacity-50';
+
+                                                return (
+                                                    <button
+                                                        key={index}
+                                                        type="button"
+                                                        onClick={() => !isDisabled && addEmptyButton(buttonOption.type, setFieldValue)}
+                                                        disabled={isDisabled}
+                                                        className={`w-1/3 flex flex-col items-center justify-center px-1 md:px-2 py-2 text-white rounded-md transition-colors text-[10px] md:text-xs ${isDisabled ? disabledColor : getButtonColor(buttonOption.type)
+                                                            }`}
+                                                        title={isDisabled ? t("Maximum limit reached for this button type") : buttonOption.description}
+                                                    >
+                                                        <span className="text-center text-xs">{buttonOption.title}</span>
+                                                        <span className="text-center text-[10px]">{buttonOption.description}</span>
+                                                    </button>
+                                                );
+                                            })}
                                         </div>
 
                                         {values.buttons.map((button, index) => (
@@ -484,7 +553,7 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                                         name={`buttons.${index}.text`}
                                                         label={t("Button Text")}
                                                         type="text"
-                                                        placeholder="ej. Ver Detalles"
+                                                        placeholder={t("e.g. View Details")}
                                                     />
                                                 </div>
 
@@ -494,7 +563,7 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                                             name={`buttons.${index}.url`}
                                                             label={t("URL")}
                                                             type="text"
-                                                            placeholder="ej. https://tudominio.com/pedido/{{params.nameEvent}}"
+                                                            placeholder={t("e.g. https://yourdomain.com/order/{{params.nameEvent}}")}
                                                         />
                                                         <p className="text-gray-500 text-xs mt-1">{t("You can use variables like {{params.nameEvent}} for dynamic URLs.")}</p>
 
@@ -504,7 +573,7 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                                                     name={`buttons.${index}.example`}
                                                                     label={t("Dynamic URL Example")}
                                                                     type="text"
-                                                                    placeholder="ej. https://tudominio.com/pedido/12345"
+                                                                    placeholder={t("e.g. https://yourdomain.com/order/12345")}
                                                                 />
                                                             </div>
                                                         )}
@@ -517,8 +586,20 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                                             name={`buttons.${index}.phoneNumber`}
                                                             label={t("Phone Number")}
                                                             type="text"
-                                                            placeholder="ej. +1234567890"
+                                                            placeholder={t("e.g. +1234567890")}
                                                         />
+                                                    </div>
+                                                )}
+
+                                                {button.type === 'WHATSAPP' && (
+                                                    <div className="mb-2">
+                                                        <InputField
+                                                            name={`buttons.${index}.phoneNumber`}
+                                                            label={t("WhatsApp Number")}
+                                                            type="text"
+                                                            placeholder={t("e.g. +1234567890")}
+                                                        />
+                                                        <p className="text-gray-500 text-xs mt-1">{t("This will open WhatsApp with the specified number.")}</p>
                                                     </div>
                                                 )}
                                             </div>
