@@ -132,7 +132,7 @@ const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled =
           </div>
         }
       </div>
-      {(props?.type != "tel" ? true : meta.touched) && meta.error && <p className="font-display absolute rounded-xl text-xs text-red flex gap-1">{meta.error}</p>}
+      {(props?.type != "tel" ? true : meta.touched) && meta.error && <p className="font-display absolute rounded-xl text-xs text-red flex gap-1 ">{meta.error}</p>}
       <style jsx>
         {`
         input[type=number]::-webkit-inner-spin-button, 

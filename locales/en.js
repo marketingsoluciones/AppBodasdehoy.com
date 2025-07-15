@@ -666,7 +666,7 @@ export const en = {
     'from': "from",
     'importWarning': "The import will overwrite the current budget",
     'endTime': 'end time',
-    'startTime':' start time',
+    'startTime': ' start time',
     asc: "ascending",
     desc: "descending",
     toOrder: "to order",
@@ -689,6 +689,9 @@ export const en = {
     Tasks: "Tasks",
     itinerary: "itinerary",
     'Esta persona no tiene permisos': 'This person does not have permissions',
-
+    templateName: "Template name",
+    hello: "Hello",
+    headerContent: "Header content",
+    enterText: "Enter text",
   }
 }

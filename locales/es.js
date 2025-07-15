@@ -688,6 +688,9 @@ export const es = {
     Tasks: "Tareas",
     itinerary: "itinerario",
     'Esta persona no tiene permisos': 'Esta persona no tiene permisos',
-
+    templateName: "Nombre de la plantilla",
+    hello: "Hola",
+    headerContent: "Texto del encabezado",
+    enterText: "Introduce el texto",
   }
 }

@@ -67,7 +67,7 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
     }, []);
 
     const validationSchema = yup.object().shape({
-        templateName: yup.string().required(t("El nombre de la plantilla es obligatorio")),
+        templateName: yup.string().required(t("Nombre requerido")),
         bodyContent: yup.string().required(t("El cuerpo del mensaje es obligatorio")),
         headerContent: yup.string().when('headerType', {
             is: (headerType: string) => headerType === 'TEXT' || headerType === 'IMAGE',
@@ -97,7 +97,7 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
         category: { _id: "UTILITY", title: "UTILITY" },
         headerType: { _id: "none", title: "NONE" },
         headerContent: '',
-        bodyContent: '',
+        bodyContent: t("hello") + " {{params.nameGuest}}",
         footerContent: '',
         buttons: [],
     };
@@ -324,9 +324,9 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                         <InputField
                                             name="templateName"
-                                            label={t("Template Name")}
+                                            label={t("templateName")}
                                             type="text"
-                                            placeholder="ej. confirmacion_pedido"
+                                            placeholder={t("templateName")}
                                         />
                                         <SelectField
                                             name="language"
@@ -354,7 +354,7 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                                 <textarea
                                                     name="headerContent"
                                                     rows={2}
-                                                    placeholder="ej. ¡Hola {{params.nameGuest}}!"
+                                                    placeholder={t("headerContent")}
                                                     className="font-display text-sm text-gray-500 border border-gray-200 focus:border-gray-400 focus:ring-0 transition w-full py-2 px-4 rounded-xl focus:outline-none"
                                                     value={values?.headerContent || ''}
                                                     onChange={(e) => setFieldValue('headerContent', e.target.value)}
@@ -365,7 +365,7 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                                 <div className="flex items-center gap-2">
                                                     <label className="text-xs font-medium text-gray-700">{t("Add Variable")}:</label>
                                                     <select
-                                                        className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                                        className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm"
                                                         onChange={(e) => handleVariableSelect(e, setFieldValue, 'headerContent')}
                                                         value=""
                                                     >
@@ -410,7 +410,7 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                         <div className="flex items-center gap-2">
                                             <label className="text-xs font-medium text-gray-700">{t("Add Variable")}:</label>
                                             <select
-                                                className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                                className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm"
                                                 onChange={(e) => handleVariableSelect(e, setFieldValue, 'bodyContent')}
                                                 value=""
                                             >
@@ -430,7 +430,7 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                         <textarea
                                             name="footerContent"
                                             rows={2}
-                                            placeholder="ej. Gracias por su preferencia."
+                                            placeholder={t("enterText")}
                                             className="font-display text-sm text-gray-500 border border-gray-200 focus:border-gray-400 focus:ring-0 transition w-full py-2 px-4 rounded-xl focus:outline-none"
                                             value={values?.footerContent || ''}
                                             onChange={(e) => setFieldValue('footerContent', e.target.value)}
