@@ -21,9 +21,9 @@ interface Button {
 
 interface TemplateFormValues {
     templateName: string;
-    language: string;
-    category: string;
-    headerType: string;
+    language: { _id: string, title: string };
+    category: { _id: string, title: string };
+    headerType: { _id: string, title: string };
     headerContent: string;
     bodyContent: string;
     footerContent: string;
@@ -40,6 +40,7 @@ export const WhatsappEditorComponent: FC<props> = ({ ...props }) => {
     const { t } = useTranslation();
     const toast = useToast();
     const [values, setValues] = useState<TemplateFormValues>()
+    const [cursorPosition, setCursorPosition] = useState(0)
 
     const variables = [
         { id: 1, name: "tipo de evento", value: "{{params.typeEvent}}", sample: "CUMPLEAÑOS" },
@@ -91,9 +92,9 @@ export const WhatsappEditorComponent: FC<props> = ({ ...props }) => {
 
     const initialValues: TemplateFormValues = {
         templateName: '',
-        language: 'es',
-        category: 'UTILITY',
-        headerType: 'NONE',
+        language: { _id: "es", title: "ES" },
+        category: { _id: "UTILITY", title: "UTILITY" },
+        headerType: { _id: "none", title: "NONE" },
         headerContent: '',
         bodyContent: '',
         footerContent: '',
@@ -101,30 +102,33 @@ export const WhatsappEditorComponent: FC<props> = ({ ...props }) => {
     };
 
     const handleVariableSelect = (e: React.ChangeEvent<HTMLSelectElement>, setFieldValue: any, fieldName: string) => {
-        console.log(100040, e.target.value, fieldName)
         const selectedValue = e.target.value;
-        console.log(100041, selectedValue)
         if (selectedValue) {
-            setFieldValue(fieldName, `${values?.[fieldName]}${selectedValue}`);
+            const currentContent = values?.[fieldName] || '';
+            const beforeCursor = currentContent.substring(0, cursorPosition);
+            const afterCursor = currentContent.substring(cursorPosition);
+            const newContent = beforeCursor + selectedValue + afterCursor;
+            setFieldValue(fieldName, newContent);
+            // Actualizar la posición del cursor después de insertar la variable
+            setCursorPosition(cursorPosition + selectedValue.length);
             e.target.value = "";
         }
     };
 
     const addEmptyButton = (type: Button['type'], setFieldValue: any) => {
-        setFieldValue('buttons', (prev: Button[]) => {
-            if (prev.length >= 3) {
-                toast("error", t("Máximo 3 botones permitidos"));
-                return prev;
-            }
-            const newButton: Button = { type, text: '', example: '' };
-            if (type === 'URL') newButton.url = 'https://example.com';
-            if (type === 'PHONE_NUMBER') newButton.phoneNumber = '+1234567890';
-            return [...prev, newButton];
-        });
+        if (values?.buttons.length >= 3) {
+            toast("error", t("Máximo 3 botones permitidos"));
+            return;
+        }
+        const newButton: Button = { type, text: '', example: '' };
+        if (type === 'URL') newButton.url = 'https://example.com';
+        if (type === 'PHONE_NUMBER') newButton.phoneNumber = '+1234567890';
+        setFieldValue('buttons', [...values?.buttons || [], newButton])
     };
 
     const removeButton = (index: number, setFieldValue: any) => {
-        setFieldValue('buttons', (prev: Button[]) => prev.filter((_, i) => i !== index));
+        values?.buttons.splice(index, 1)
+        setFieldValue('buttons', [...values?.buttons || []])
     };
 
     const updateButton = (index: number, field: string, value: string, setFieldValue: any) => {
@@ -152,14 +156,14 @@ export const WhatsappEditorComponent: FC<props> = ({ ...props }) => {
         };
 
         // Header
-        if (values.headerType === 'TEXT') {
+        if (values.headerType._id === 'text') {
             const finalHeaderContent = processContentAndCollectExamples(values.headerContent);
             components.push({
                 type: 'HEADER',
                 format: 'TEXT',
                 text: finalHeaderContent,
             });
-        } else if (values.headerType === 'IMAGE') {
+        } else if (values.headerType._id === 'image') {
             components.push({
                 type: 'HEADER',
                 format: 'IMAGE',
@@ -274,15 +278,18 @@ export const WhatsappEditorComponent: FC<props> = ({ ...props }) => {
     };
 
     useEffect(() => {
-        console.log(100039, values?.bodyContent)
-    }, [values?.bodyContent])
+        console.log(100039, values?.buttons)
+    }, [values?.buttons])
 
 
     return (
-        <div className='relative w-full h-full'>
-            <div className="min-h-screen bg-gray-100 p-8 font-inter flex flex-col md:flex-row gap-8">
+        <div className='relative w-full h-full flex flex-col'>
+            <div className="w-full h-[38px] bg-white border-b-[1px] border-gray-300">
+                algo
+            </div>
+            <div className="h-[calc(100%-38px)] bg-gray-100 font-inter flex flex-col md:flex-row">
                 {/* Columna del Editor */}
-                <div className="w-full md:w-1/2 bg-white p-8 rounded-xl shadow-lg">
+                <div className="w-full h-full md:max-h-screen md:w-[55%] px-4 md:px-10 pt-3 pb-8 rounded-xl shadow-lg overflow-y-auto">
                     <Formik
                         initialValues={initialValues}
                         onSubmit={handleSubmit}
@@ -291,18 +298,18 @@ export const WhatsappEditorComponent: FC<props> = ({ ...props }) => {
                         {({ isSubmitting, values, setFieldValue, errors, touched }) => values ? (
                             <Form className="w-full flex flex-col">
                                 <AutoSubmitToken setValues={setValues} />
-                                <div className="border-l-2 border-gray-100 pl-3 my-2 w-full">
+                                {/* <div className="border-l-2 border-gray-100 pl-3 my-2 w-full">
                                     <h2 className="font-display text-3xl capitalize text-primary font-light">
                                         {t("create")}
                                     </h2>
                                     <h2 className="font-display text-5xl capitalize text-gray-500 font-medium">
                                         {t("WhatsApp Template")}
                                     </h2>
-                                </div>
+                                </div> */}
 
-                                <div className="text-gray-500 font-body flex flex-col gap-4 w-full">
+                                <div className="text-gray-500 font-body flex flex-col gap-2 w-full">
                                     {/* Configuración de la Plantilla */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                         <InputField
                                             name="templateName"
                                             label={t("Template Name")}
@@ -312,37 +319,38 @@ export const WhatsappEditorComponent: FC<props> = ({ ...props }) => {
                                         <SelectField
                                             name="language"
                                             label={t("Language")}
-                                            options={["es", "en"]}
+                                            options={[{ _id: "es", title: "ES" }, { _id: "en", title: "EN" }]}
                                         />
                                         <SelectField
                                             name="category"
                                             label={t("Category")}
-                                            options={["UTILITY", "MARKETING", "AUTHENTICATION"]}
+                                            options={[{ _id: "utility", title: t("Utility") }, { _id: "marketing", title: t("Marketing") }, { _id: "authentication", title: t("Authentication") }]}
                                         />
                                     </div>
 
                                     {/* Header */}
-                                    <div className="mb-6 p-4 border border-gray-200 rounded-md bg-gray-50">
+                                    <div className="mb-2 p-4 border border-gray-200 rounded-md bg-gray-50">
                                         <SelectField
                                             name="headerType"
                                             label={t("Header Type")}
-                                            options={["NONE", "TEXT", "IMAGE"]}
+                                            options={[{ _id: "none", title: t("NONE") }, { _id: "text", title: t("TEXT") }, { _id: "image", title: t("IMAGE") }]}
                                         />
 
-                                        {values.headerType === 'TEXT' && (
-                                            <div className="mt-4">
-                                                <div className="mb-4">
-                                                    <label className="font-display text-sm text-primary w-full">{t("Header Content (Text)")}</label>
-                                                    <textarea
-                                                        name="headerContent"
-                                                        rows={2}
-                                                        placeholder="ej. ¡Hola {{params.nameGuest}}!"
-                                                        className="font-display text-sm text-gray-500 border border-gray-200 focus:border-gray-400 focus:ring-0 transition w-full py-2 px-4 rounded-xl focus:outline-none"
-                                                        value={values?.headerContent || ''}
-                                                        onChange={(e) => setFieldValue('headerContent', e.target.value)}
-                                                    />
-                                                </div>
-                                                <div className="mt-2 flex items-center gap-2">
+                                        {values.headerType._id === 'text' && (
+                                            <div>
+                                                <label className="font-display text-sm text-primary w-full">{t("Header Content (Text)")}</label>
+                                                <textarea
+                                                    name="headerContent"
+                                                    rows={2}
+                                                    placeholder="ej. ¡Hola {{params.nameGuest}}!"
+                                                    className="font-display text-sm text-gray-500 border border-gray-200 focus:border-gray-400 focus:ring-0 transition w-full py-2 px-4 rounded-xl focus:outline-none"
+                                                    value={values?.headerContent || ''}
+                                                    onChange={(e) => setFieldValue('headerContent', e.target.value)}
+                                                    onSelect={(e) => setCursorPosition(e.currentTarget.selectionStart)}
+                                                    onClick={(e) => setCursorPosition(e.currentTarget.selectionStart)}
+                                                    onKeyUp={(e) => setCursorPosition(e.currentTarget.selectionStart)}
+                                                />
+                                                <div className="flex items-center gap-2">
                                                     <label className="text-xs font-medium text-gray-700">{t("Add Variable")}:</label>
                                                     <select
                                                         className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
@@ -352,7 +360,7 @@ export const WhatsappEditorComponent: FC<props> = ({ ...props }) => {
                                                         <option value="" disabled>{t("Select a variable")}</option>
                                                         {variables.map(v => (
                                                             <option key={v.id} value={v.value}>
-                                                                {v.name} ({v.value})
+                                                                {v.name}
                                                             </option>
                                                         ))}
                                                     </select>
@@ -360,8 +368,8 @@ export const WhatsappEditorComponent: FC<props> = ({ ...props }) => {
                                             </div>
                                         )}
 
-                                        {values.headerType === 'IMAGE' && (
-                                            <div className="mt-4">
+                                        {values.headerType._id === 'image' && (
+                                            <div className="mt-2">
                                                 <InputField
                                                     name="headerContent"
                                                     label={t("Image URL (example)")}
@@ -374,19 +382,20 @@ export const WhatsappEditorComponent: FC<props> = ({ ...props }) => {
                                     </div>
 
                                     {/* Body */}
-                                    <div className="mb-6">
-                                        <div className="mb-4">
-                                            <label className="font-display text-sm text-primary w-full">{t("Message Body")}</label>
-                                            <textarea
-                                                name="bodyContent"
-                                                rows={5}
-                                                placeholder="ej. Su pedido #{{params.nameEvent}} ha sido confirmado y será enviado el {{params.dateEvent}}. ¡Gracias por su compra!"
-                                                className="font-display text-sm text-gray-500 border border-gray-200 focus:border-gray-400 focus:ring-0 transition w-full py-2 px-4 rounded-xl focus:outline-none"
-                                                value={values?.bodyContent || ''}
-                                                onChange={(e) => setFieldValue('bodyContent', e.target.value)}
-                                            />
-                                        </div>
-                                        <div className="mt-2 flex items-center gap-2">
+                                    <div className="mb-2">
+                                        <label className="font-display text-sm text-primary w-full">{t("Message Body")}</label>
+                                        <textarea
+                                            name="bodyContent"
+                                            rows={5}
+                                            placeholder="ej. Su pedido #{{params.nameEvent}} ha sido confirmado y será enviado el {{params.dateEvent}}. ¡Gracias por su compra!"
+                                            className="font-display text-sm text-gray-500 border border-gray-200 focus:border-gray-400 focus:ring-0 transition w-full py-2 px-4 rounded-xl focus:outline-none"
+                                            value={values?.bodyContent || ''}
+                                            onChange={(e) => setFieldValue('bodyContent', e.target.value)}
+                                            onSelect={(e) => setCursorPosition(e.currentTarget.selectionStart)}
+                                            onClick={(e) => setCursorPosition(e.currentTarget.selectionStart)}
+                                            onKeyUp={(e) => setCursorPosition(e.currentTarget.selectionStart)}
+                                        />
+                                        <div className="flex items-center gap-2">
                                             <label className="text-xs font-medium text-gray-700">{t("Add Variable")}:</label>
                                             <select
                                                 className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
@@ -396,7 +405,7 @@ export const WhatsappEditorComponent: FC<props> = ({ ...props }) => {
                                                 <option value="" disabled>{t("Select a variable")}</option>
                                                 {variables.map(v => (
                                                     <option key={v.id} value={v.value}>
-                                                        {v.name} ({v.value})
+                                                        {v.name}
                                                     </option>
                                                 ))}
                                             </select>
@@ -404,25 +413,23 @@ export const WhatsappEditorComponent: FC<props> = ({ ...props }) => {
                                     </div>
 
                                     {/* Footer */}
-                                    <div className="mb-6">
-                                        <div className="mb-4">
-                                            <label className="font-display text-sm text-primary w-full">{t("Footer (Optional)")}</label>
-                                            <textarea
-                                                name="footerContent"
-                                                rows={2}
-                                                placeholder="ej. Gracias por su preferencia."
-                                                className="font-display text-sm text-gray-500 border border-gray-200 focus:border-gray-400 focus:ring-0 transition w-full py-2 px-4 rounded-xl focus:outline-none"
-                                                value={values?.footerContent || ''}
-                                                onChange={(e) => setFieldValue('footerContent', e.target.value)}
-                                            />
-                                        </div>
+                                    <div className="mb-2">
+                                        <label className="font-display text-sm text-primary w-full">{t("Footer (Optional)")}</label>
+                                        <textarea
+                                            name="footerContent"
+                                            rows={2}
+                                            placeholder="ej. Gracias por su preferencia."
+                                            className="font-display text-sm text-gray-500 border border-gray-200 focus:border-gray-400 focus:ring-0 transition w-full py-2 px-4 rounded-xl focus:outline-none"
+                                            value={values?.footerContent || ''}
+                                            onChange={(e) => setFieldValue('footerContent', e.target.value)}
+                                        />
                                         <p className="text-gray-500 text-xs mt-1">{t("The footer cannot contain variables.")}</p>
                                     </div>
 
                                     {/* Buttons */}
-                                    <div className="mb-6">
-                                        <h2 className="text-2xl font-semibold text-gray-700 mb-6 mt-8">{t("Buttons (Optional)")}</h2>
-                                        <div className="flex space-x-2 mb-4">
+                                    <div className="mb-2">
+                                        <h2 className="text-2xl font-semibold text-gray-700 mb-4 mt-8">{t("Buttons (Optional)")}</h2>
+                                        <div className="flex space-x-2 mb-2">
                                             <button
                                                 type="button"
                                                 onClick={() => addEmptyButton('QUICK_REPLY', setFieldValue)}
@@ -447,7 +454,7 @@ export const WhatsappEditorComponent: FC<props> = ({ ...props }) => {
                                         </div>
 
                                         {values.buttons.map((button, index) => (
-                                            <div key={index} className="mb-4 p-4 border border-gray-300 rounded-md bg-blue-50 relative">
+                                            <div key={index} className="mb-2 p-4 border border-gray-300 rounded-md bg-blue-50 relative">
                                                 <button
                                                     type="button"
                                                     onClick={() => removeButton(index, setFieldValue)}
@@ -527,7 +534,7 @@ export const WhatsappEditorComponent: FC<props> = ({ ...props }) => {
                             </pre>
                             <button
                                 onClick={() => navigator.clipboard.writeText(generatedJson).then(() => toast("success", t("JSON copied to clipboard!")))}
-                                className="mt-4 px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-800 transition-colors"
+                                className="mt-2 px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-800 transition-colors"
                             >
                                 {t("Copy JSON")}
                             </button>
@@ -537,14 +544,16 @@ export const WhatsappEditorComponent: FC<props> = ({ ...props }) => {
 
                 {/* Columna de la Vista Previa */}
                 {values && (
-                    <WhatsappPreview
-                        headerType={values.headerType ?? 'NONE'}
-                        headerContent={values.headerContent ?? ''}
-                        bodyContent={values.bodyContent ?? ''}
-                        footerContent={values.footerContent ?? ''}
-                        buttons={values.buttons ?? []}
-                        variableMap={variableMap}
-                    />
+                    <div className="flex-1 h-full hidden md:flex justify-center items-center">
+                        <WhatsappPreview
+                            headerType={values.headerType ?? 'NONE'}
+                            headerContent={values.headerContent ?? ''}
+                            bodyContent={values.bodyContent ?? ''}
+                            footerContent={values.footerContent ?? ''}
+                            buttons={values.buttons ?? []}
+                            variableMap={variableMap}
+                        />
+                    </div>
                 )}
             </div>
 

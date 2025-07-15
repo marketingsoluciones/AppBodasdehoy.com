@@ -45,7 +45,7 @@ export const WhatsappPreview = ({ headerType, headerContent, bodyContent, footer
   const formattedHeader = headerType === 'TEXT' ? replaceVariables(headerContent, variableMap) : headerContent;
 
   return (
-    <div className="w-full md:w-1/2 p-4 flex justify-center items-center">
+    <div className="w-full md:w-[350px] p-4 flex justify-center items-center">
       <div className="relative w-full max-w-sm h-[600px] bg-gray-200 rounded-3xl shadow-xl overflow-hidden flex flex-col">
         {/* Phone Header */}
         <div className="bg-green-600 text-white p-3 flex items-center justify-between">
