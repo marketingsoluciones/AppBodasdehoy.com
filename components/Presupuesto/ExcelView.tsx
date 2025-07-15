@@ -4,7 +4,8 @@ import { ModalInterface } from "../../utils/Interfaces";
 import { handleDelete } from '../TablesComponents/tableBudgetV8.handles';
 import { SimpleDeleteConfirmation } from '../Utils/SimpleDeleteConfirmation';
 import { TableBudgetV2 } from './PresupuestoV2/TableBudgetV2';
-import TableroPresupuestoMain from './TableroPresupuesto/TableroPresupuestoMain';
+import WeddingFinanceManager from './TableroPresupuesto/WeddingFinanceManager';
+
 
 interface Categoria {
     _id: string;
@@ -234,24 +235,7 @@ export const ExcelView = ({ showCategoria }) => {
                     `}
                 </style>
             </div >
-            <div className="flex  w-full h-[calc(100vh-300px)] md:h-[calc(100vh-266px)]  justify-center items-center" >
-                {
-                    false &&
-                    <TableroPresupuestoMain />
-                }
-                <style>
-                    {`
-                    .TableWidth {
-                        width: full;
-                    }
-                    @media only screen and (min-width: 1930px) {
-                        .TableWidth {
-                        width: 70%
-                        }
-                    }
-                    `}
-                </style>
-            </div >
+           
         </div>
     );
 };
