@@ -1,4 +1,4 @@
-import { Dispatch, FC, SetStateAction, useEffect, useReducer, useState, useMemo } from 'react';
+import { Dispatch, FC, SetStateAction, useEffect, useReducer, useState, useMemo, useCallback } from 'react';
 import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import { t } from 'i18next';
 import { EditableLabelWithInput } from '../../Forms/EditableLabelWithInput';
@@ -23,6 +23,7 @@ import { ModalTaskList } from '../PresupuestoV2/modals/ModalTaskList';
 import { EventInfoModal } from '../PresupuestoV2/modals/EventInfoModal';
 import { ColumnsConfigModal } from '../PresupuestoV2/modals/ColumnsConfigModal';
 import { FiltersModal } from '../PresupuestoV2/modals/FiltersModal';
+import { OptionsTableModal } from './modals/OptionsTableModal';
 
 interface props {
   data: any
@@ -123,7 +124,7 @@ export const TableBudgetV2: FC<props> = ({ data, setShowModalDelete }) => {
     setViewLevel(3);
   };
 
-  const applyFilters = (data: any[]) => {
+  const applyFilters = useCallback((data: any[]) => {
     let filteredData = [...data];
 
     if (viewLevel === 1) {
@@ -190,7 +191,7 @@ export const TableBudgetV2: FC<props> = ({ data, setShowModalDelete }) => {
     }
 
     return filteredData;
-  };
+  }, [filters, viewLevel]);
 
   const getCategorias = () => {
     return data
@@ -279,7 +280,7 @@ export const TableBudgetV2: FC<props> = ({ data, setShowModalDelete }) => {
 
     result = applyFilters(result);
     return result;
-  }, [data, searchTerm, filters, viewLevel]);
+  }, [data, searchTerm, applyFilters]);
 
   useEffect(() => {
     const columnsVisibility = event?.presupuesto_objeto?.visibleColumns?.reduce((acc, item) => {
@@ -639,17 +640,7 @@ export const TableBudgetV2: FC<props> = ({ data, setShowModalDelete }) => {
                 <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
               )}
             </button>
-            {showFiltersModal && (
-              <FiltersModal
-                filters={filters}
-                onFilterChange={handleFilterChange}
-                onClose={() => setShowFiltersModal(false)}
-                onClearFilters={handleClearFilters}
-                categorias_array={getCategorias()}
-                viewLevel={viewLevel}
-                setViewLevel={setViewLevel}
-              />
-            )}
+
           </div>
           <div className="relative">
             <button
@@ -672,13 +663,7 @@ export const TableBudgetV2: FC<props> = ({ data, setShowModalDelete }) => {
               <TbColumns3 className="w-3.5 h-3.5" />
               <span className="text-xs">Columnas</span>
             </button>
-            {showColumnsModal && (
-              <ColumnsConfigModal
-                columnConfig={columnConfig}
-                toggleColumnVisibility={toggleColumnVisibility}
-                onClose={() => setShowColumnsModal(false)}
-              />
-            )}
+
           </div>
         </div>
         <div className={`flex items-center gap-3. mr-6 ${event?.presupuesto_objeto?.viewEstimates ? "w-[38%]" : "w-[33.7%]"}`}>
@@ -881,6 +866,29 @@ export const TableBudgetV2: FC<props> = ({ data, setShowModalDelete }) => {
           )}
         </div>
       </div>
+
+      {
+        showColumnsModal && (
+          <ColumnsConfigModal
+            columnConfig={columnConfig}
+            toggleColumnVisibility={toggleColumnVisibility}
+            onClose={() => setShowColumnsModal(false)}
+          />
+        )
+      }
+      {
+        showFiltersModal && (
+          <FiltersModal
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            onClose={() => setShowFiltersModal(false)}
+            onClearFilters={handleClearFilters}
+            categorias_array={getCategorias()}
+            viewLevel={viewLevel}
+            setViewLevel={setViewLevel}
+          />
+        )
+      }
       {
         showOptionsModal.show && (
           <ClickAwayListener onClickAway={() => setShowOptionsModal({ show: false })}>

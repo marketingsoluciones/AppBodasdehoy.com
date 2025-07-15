@@ -119,7 +119,7 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
           if (props?.row?.original?.items_array?.length === 0) {
 
             return (
-              <div className="flex justify-end  ">
+              <div className="flex w-full ">
                 <EditableLabelWithInput
                   accessor="coste_final"
                   handleChange={(values) => {

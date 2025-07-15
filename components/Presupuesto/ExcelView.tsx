@@ -4,6 +4,7 @@ import { ModalInterface } from "../../utils/Interfaces";
 import { handleDelete } from '../TablesComponents/tableBudgetV8.handles';
 import { SimpleDeleteConfirmation } from '../Utils/SimpleDeleteConfirmation';
 import { TableBudgetV2 } from './PresupuestoV2/TableBudgetV2';
+import TableroPresupuestoMain from './TableroPresupuesto/TableroPresupuestoMain';
 
 interface Categoria {
     _id: string;
@@ -14,7 +15,7 @@ interface Categoria {
     coste_final: number;
 }
 
-export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria }) => {
+export const ExcelView = ({ showCategoria }) => {
     const [windowsWidth, setWindowsWidth] = useState<number>()
     const { user } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
@@ -93,139 +94,157 @@ export const ExcelView = ({ setShowCategoria, categorias_array, showCategoria })
                 {
                     true &&
                     <div className={`flex w-full h-full TableWidth pl-2 `}>
-                            <TableBudgetV2 showDataState={showDataState} setShowDataState={setShowDataState} setShowModalDelete={setShowModalDelete}
-                                data={data.reduce((acc, item) => {
-                                    let coste_final_categoria = 0
-                                    let valirFirtsChild = true
+                        <TableBudgetV2 showDataState={showDataState} setShowDataState={setShowDataState} setShowModalDelete={setShowModalDelete}
+                            data={data.reduce((acc, item) => {
+                                let coste_final_categoria = 0
+                                let valirFirtsChild = true
 
-                                    // PRIMERO: Agregar la categoría
-                                    item?.gastos_array?.map((elem, idxElem) => {
-                                        let coste_final_gasto = !!elem?.items_array?.length ? 0 : elem.coste_final
-                                        let accessorEditables = ["coste_estimado"]
-                                        !elem?.items_array?.length && accessorEditables.push("coste_final")
-                                        let valirFirtsChildGasto = true
+                                // PRIMERO: Agregar la categoría
+                                item?.gastos_array?.map((elem, idxElem) => {
+                                    let coste_final_gasto = !!elem?.items_array?.length ? 0 : elem.coste_final
+                                    let accessorEditables = ["coste_estimado"]
+                                    !elem?.items_array?.length && accessorEditables.push("coste_final")
+                                    let valirFirtsChildGasto = true
 
-                                        elem?.items_array?.map((el, idxEl) => {
-                                            if (
-                                                event?.usuario_id !== user?.uid &&
-                                                el.estatus !== false
-                                            ) {
-                                                return;
-                                            }
-                                            const cantidad = el.unidad === "xUni."
-                                                ? el.cantidad
-                                                : el.unidad === "xNiños."
-                                                    ? event?.presupuesto_objeto?.totalStimatedGuests?.children
-                                                    : el.unidad === "xAdultos."
-                                                        ? event?.presupuesto_objeto?.totalStimatedGuests?.adults
-                                                        : event?.presupuesto_objeto?.totalStimatedGuests?.children + event?.presupuesto_objeto?.totalStimatedGuests?.adults
-                                            let coste_final_item = cantidad * el.valor_unitario
-                                            coste_final_gasto = coste_final_gasto + coste_final_item
-                                            valirFirtsChildGasto = false
-                                            valirFirtsChild = false
-                                        })
-                                        coste_final_categoria = coste_final_categoria + coste_final_gasto
+                                    elem?.items_array?.map((el, idxEl) => {
+                                        if (
+                                            event?.usuario_id !== user?.uid &&
+                                            el.estatus !== false
+                                        ) {
+                                            return;
+                                        }
+                                        const cantidad = el.unidad === "xUni."
+                                            ? el.cantidad
+                                            : el.unidad === "xNiños."
+                                                ? event?.presupuesto_objeto?.totalStimatedGuests?.children
+                                                : el.unidad === "xAdultos."
+                                                    ? event?.presupuesto_objeto?.totalStimatedGuests?.adults
+                                                    : event?.presupuesto_objeto?.totalStimatedGuests?.children + event?.presupuesto_objeto?.totalStimatedGuests?.adults
+                                        let coste_final_item = cantidad * el.valor_unitario
+                                        coste_final_gasto = coste_final_gasto + coste_final_item
+                                        valirFirtsChildGasto = false
+                                        valirFirtsChild = false
+                                    })
+                                    coste_final_categoria = coste_final_categoria + coste_final_gasto
+                                })
+                                acc.push({
+                                    ...item,
+                                    object: "categoria",
+                                    categoria: item.nombre,
+                                    categoriaID: item._id,
+                                    categoriaOriginal: { ...item },
+                                    fatherCategoria: true,
+                                    coste_final: coste_final_categoria,
+                                    pendiente_pagar: coste_final_categoria - item.pagado,
+                                    firstChild: true,
+                                })
+                                item?.gastos_array?.map((elem, idxElem) => {
+                                    let coste_final_gasto = !!elem?.items_array?.length ? 0 : elem.coste_final
+                                    let accessorEditables = ["coste_estimado"]
+                                    !elem?.items_array?.length && accessorEditables.push("coste_final")
+                                    let valirFirtsChildGasto = true
+                                    elem?.items_array?.map((el, idxEl) => {
+                                        if (
+                                            event?.usuario_id !== user?.uid &&
+                                            el.estatus !== false
+                                        ) {
+                                            return;
+                                        }
+                                        const cantidad = el.unidad === "xUni."
+                                            ? el.cantidad
+                                            : el.unidad === "xNiños."
+                                                ? event?.presupuesto_objeto?.totalStimatedGuests?.children
+                                                : el.unidad === "xAdultos."
+                                                    ? event?.presupuesto_objeto?.totalStimatedGuests?.adults
+                                                    : event?.presupuesto_objeto?.totalStimatedGuests?.children + event?.presupuesto_objeto?.totalStimatedGuests?.adults
+                                        let coste_final_item = cantidad * el.valor_unitario
+                                        coste_final_gasto = coste_final_gasto + coste_final_item
+                                        valirFirtsChildGasto = false
                                     })
                                     acc.push({
-                                        ...item,
-                                        object: "categoria",
+                                        ...elem,
+                                        object: "gasto",
                                         categoria: item.nombre,
                                         categoriaID: item._id,
                                         categoriaOriginal: { ...item },
-                                        fatherCategoria: true,
-                                        coste_final: coste_final_categoria,
-                                        pendiente_pagar: coste_final_categoria - item.pagado,
-                                        firstChild: true,
+                                        gasto: elem.nombre,
+                                        gastoID: elem._id,
+                                        gastoOriginal: { ...elem },
+                                        firstChildItem: valirFirtsChildGasto,
+                                        firstChildGasto: idxElem === 0,
+                                        fatherGasto: true,
+                                        coste_final: coste_final_gasto,
+                                        pendiente_pagar: coste_final_gasto - elem.pagado,
+                                        accessorEditables
                                     })
-                                    item?.gastos_array?.map((elem, idxElem) => {
-                                        let coste_final_gasto = !!elem?.items_array?.length ? 0 : elem.coste_final
-                                        let accessorEditables = ["coste_estimado"]
-                                        !elem?.items_array?.length && accessorEditables.push("coste_final")
-                                        let valirFirtsChildGasto = true
-                                        elem?.items_array?.map((el, idxEl) => {
-                                            if (
-                                                event?.usuario_id !== user?.uid &&
-                                                el.estatus !== false
-                                            ) {
-                                                return;
-                                            }
-                                            const cantidad = el.unidad === "xUni."
-                                                ? el.cantidad
-                                                : el.unidad === "xNiños."
-                                                    ? event?.presupuesto_objeto?.totalStimatedGuests?.children
-                                                    : el.unidad === "xAdultos."
-                                                        ? event?.presupuesto_objeto?.totalStimatedGuests?.adults
-                                                        : event?.presupuesto_objeto?.totalStimatedGuests?.children + event?.presupuesto_objeto?.totalStimatedGuests?.adults
-                                            let coste_final_item = cantidad * el.valor_unitario
-                                            coste_final_gasto = coste_final_gasto + coste_final_item
-                                            valirFirtsChildGasto = false
-                                        })
+                                    elem?.items_array?.map((el, idxEl) => {
+                                        if (
+                                            event?.usuario_id !== user?.uid &&
+                                            el.estatus !== false
+                                        ) {
+                                            return;
+                                        }
+                                        let accessorEditables = []
+                                        el.unidad === "xUni." && accessorEditables.push("cantidad")
+                                        const cantidad = el.unidad === "xUni."
+                                            ? el.cantidad
+                                            : el.unidad === "xNiños."
+                                                ? event?.presupuesto_objeto?.totalStimatedGuests?.children
+                                                : el.unidad === "xAdultos."
+                                                    ? event?.presupuesto_objeto?.totalStimatedGuests?.adults
+                                                    : event?.presupuesto_objeto?.totalStimatedGuests?.children + event?.presupuesto_objeto?.totalStimatedGuests?.adults
+                                        let coste_final_item = cantidad * el.valor_unitario
                                         acc.push({
-                                            ...elem,
-                                            object: "gasto",
+                                            ...el,
+                                            object: "item",
                                             categoria: item.nombre,
                                             categoriaID: item._id,
                                             categoriaOriginal: { ...item },
                                             gasto: elem.nombre,
                                             gastoID: elem._id,
                                             gastoOriginal: { ...elem },
-                                            firstChildItem: valirFirtsChildGasto,
-                                            firstChildGasto: idxElem === 0,
-                                            fatherGasto: true,
-                                            coste_final: coste_final_gasto,
-                                            pendiente_pagar: coste_final_gasto - elem.pagado,
+                                            item: el.nombre,
+                                            itemID: el._id,
+                                            itemOriginal: { ...el },
+                                            coste_final: coste_final_item,
+                                            cantidad,
+                                            firstChildItem: idxEl === 0,
+                                            lastChildGasto: idxEl === elem.items_array.length - 1,
+                                            idxElem,
+                                            idxEl,
                                             accessorEditables
                                         })
-                                        elem?.items_array?.map((el, idxEl) => {
-                                            if (
-                                                event?.usuario_id !== user?.uid &&
-                                                el.estatus !== false
-                                            ) {
-                                                return;
-                                            }
-                                            let accessorEditables = []
-                                            el.unidad === "xUni." && accessorEditables.push("cantidad")
-                                            const cantidad = el.unidad === "xUni."
-                                                ? el.cantidad
-                                                : el.unidad === "xNiños."
-                                                    ? event?.presupuesto_objeto?.totalStimatedGuests?.children
-                                                    : el.unidad === "xAdultos."
-                                                        ? event?.presupuesto_objeto?.totalStimatedGuests?.adults
-                                                        : event?.presupuesto_objeto?.totalStimatedGuests?.children + event?.presupuesto_objeto?.totalStimatedGuests?.adults
-                                            let coste_final_item = cantidad * el.valor_unitario
-                                            acc.push({
-                                                ...el,
-                                                object: "item",
-                                                categoria: item.nombre,
-                                                categoriaID: item._id,
-                                                categoriaOriginal: { ...item },
-                                                gasto: elem.nombre,
-                                                gastoID: elem._id,
-                                                gastoOriginal: { ...elem },
-                                                item: el.nombre,
-                                                itemID: el._id,
-                                                itemOriginal: { ...el },
-                                                coste_final: coste_final_item,
-                                                cantidad,
-                                                firstChildItem: idxEl === 0,
-                                                lastChildGasto: idxEl === elem.items_array.length - 1,
-                                                idxElem,
-                                                idxEl,
-                                                accessorEditables
-                                            })
-                                        })
                                     })
+                                })
 
-                                    return acc
-                                }, [])} />
-                        </div>
+                                return acc
+                            }, [])} />
+                    </div>
                 }
-                <style jsx>
+                <style >
                     {`
                     .TableWidth {
                         width: full;
                     }
-                    @media only screen and (min-width: 1920px) {
+                    @media only screen and (min-width: 1930px) {
+                        .TableWidth {
+                        width: 70%
+                        }
+                    }
+                    `}
+                </style>
+            </div >
+            <div className="flex  w-full h-[calc(100vh-300px)] md:h-[calc(100vh-266px)]  justify-center items-center" >
+                {
+                    false &&
+                    <TableroPresupuestoMain />
+                }
+                <style>
+                    {`
+                    .TableWidth {
+                        width: full;
+                    }
+                    @media only screen and (min-width: 1930px) {
                         .TableWidth {
                         width: 70%
                         }
