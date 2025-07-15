@@ -118,7 +118,7 @@ const Invitaciones = () => {
             {ShowEditorModal && <Modal classe={" md:w-[90%] h-[90%] "} >
               {optionSelect === "email"
                 ? < EmailReactEditorComponent setShowEditorModal={setShowEditorModal} previewEmailReactEditor={previewEmailReactEditor} />
-                : <WhatsappEditorComponent />
+                : <WhatsappEditorComponent setShowEditorModal={setShowEditorModal} />
               }
             </Modal>}
             <BlockTitle title="Invitaciones" />

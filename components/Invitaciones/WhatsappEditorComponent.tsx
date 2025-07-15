@@ -10,6 +10,7 @@ import ButtonPrimary from './ButtonPrimary';
 import InputField from '../Forms/InputField';
 import SelectField from '../Forms/SelectField';
 import * as yup from "yup";
+import { GoArrowLeft } from "react-icons/go";
 
 interface Button {
     type: 'QUICK_REPLY' | 'URL' | 'PHONE_NUMBER';
@@ -31,10 +32,10 @@ interface TemplateFormValues {
 }
 
 interface props {
-    // Props específicas si las hay
+    setShowEditorModal: (value: boolean) => void
 }
 
-export const WhatsappEditorComponent: FC<props> = ({ ...props }) => {
+export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...props }) => {
     const { config } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
     const { t } = useTranslation();
@@ -281,11 +282,22 @@ export const WhatsappEditorComponent: FC<props> = ({ ...props }) => {
         console.log(100039, values?.buttons)
     }, [values?.buttons])
 
+    const handleCloseEditor = () => {
+        setShowEditorModal(false)
+    };
+
 
     return (
         <div className='relative w-full h-full flex flex-col'>
-            <div className="w-full h-[38px] bg-white border-b-[1px] border-gray-300">
-                algo
+            <div className="w-full h-[38px] bg-white border-b-[1px] border-gray-300 overflow-hidden relative">
+                <div className='absolute flex w-[604px]'>
+                    <div onClick={handleCloseEditor} className={"flex w-16 h-[38px] flex-col items-center justify-center cursor-pointer border-l hover:bg-[#F4F4F4]"} >
+                        <div className='pt-[2px]'>
+                            <GoArrowLeft className='h-5 w-5' />
+                        </div>
+                    </div>
+                </div>
+
             </div>
             <div className="h-[calc(100%-38px)] bg-gray-100 font-inter flex flex-col md:flex-row">
                 {/* Columna del Editor */}
@@ -428,26 +440,26 @@ export const WhatsappEditorComponent: FC<props> = ({ ...props }) => {
 
                                     {/* Buttons */}
                                     <div className="mb-2">
-                                        <h2 className="text-2xl font-semibold text-gray-700 mb-4 mt-8">{t("Buttons (Optional)")}</h2>
+                                        <h2 className="text-sm font-semibold text-gray-700 mb-4">{t("Buttons (Optional)")}</h2>
                                         <div className="flex space-x-2 mb-2">
                                             <button
                                                 type="button"
                                                 onClick={() => addEmptyButton('QUICK_REPLY', setFieldValue)}
-                                                className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+                                                className="w-1/3 px-2 md:px-4 py-2 bg-emerald-500 text-white rounded-md hover:bg-emerald-600 transition-colors text-[10px] md:text-xs"
                                             >
                                                 {t("Add Quick Reply")}
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={() => addEmptyButton('URL', setFieldValue)}
-                                                className="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors"
+                                                className="w-1/3 px-2 md:px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors text-[10px] md:text-xs"
                                             >
                                                 {t("Add URL Button")}
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={() => addEmptyButton('PHONE_NUMBER', setFieldValue)}
-                                                className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors"
+                                                className="w-1/3 px-2 md:px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors text-[10px] md:text-xs"
                                             >
                                                 {t("Add Call Button")}
                                             </button>
