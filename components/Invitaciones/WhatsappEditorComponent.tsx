@@ -11,6 +11,26 @@ import InputField from '../Forms/InputField';
 import SelectField from '../Forms/SelectField';
 import * as yup from "yup";
 import { GoArrowLeft } from "react-icons/go";
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragEndEvent,
+} from '@dnd-kit/core';
+import { SortableButton } from './SortableButton';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+    useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface Button {
     type: 'QUICK_REPLY' | 'URL' | 'PHONE_NUMBER' | 'WHATSAPP';
@@ -171,6 +191,27 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                 return buttonCount >= 5; // Máximo 5 botones QUICK_REPLY
             default:
                 return false;
+        }
+    };
+
+    const sensors = useSensors(
+        useSensor(PointerSensor),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
+    const handleDragEnd = (event: DragEndEvent, setFieldValue: any) => {
+        const { active, over } = event;
+
+        if (active.id !== over?.id) {
+            const oldIndex = active.id as number;
+            const newIndex = over?.id as number;
+
+            const currentButtons = [...(values?.buttons || [])];
+            const newButtons = arrayMove(currentButtons, oldIndex, newIndex);
+            setFieldValue('buttons', newButtons);
+            toast("success", t("Button order updated"));
         }
     };
 
@@ -363,15 +404,6 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                         {({ isSubmitting, values, setFieldValue, errors, touched }) => values ? (
                             <Form className="w-full flex flex-col">
                                 <AutoSubmitToken setValues={setValues} />
-                                {/* <div className="border-l-2 border-gray-100 pl-3 my-2 w-full">
-                                    <h2 className="font-display text-3xl capitalize text-primary font-light">
-                                        {t("create")}
-                                    </h2>
-                                    <h2 className="font-display text-5xl capitalize text-gray-500 font-medium">
-                                        {t("WhatsApp Template")}
-                                    </h2>
-                                </div> */}
-
                                 <div className="text-gray-500 font-body flex flex-col gap-2 w-full">
                                     {/* Configuración de la Plantilla */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -392,7 +424,6 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                             options={[{ _id: "utility", title: t("Utility") }, { _id: "marketing", title: t("Marketing") }, { _id: "authentication", title: t("Authentication") }]}
                                         />
                                     </div>
-
                                     {/* Header */}
                                     <div className="mb-2 p-4 border border-gray-200 rounded-md bg-gray-50">
                                         <SelectField
@@ -432,7 +463,6 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                                 </div>
                                             </div>
                                         )}
-
                                         {values.headerType._id === 'image' && (
                                             <div className="mt-2">
                                                 <InputField
@@ -445,7 +475,6 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                             </div>
                                         )}
                                     </div>
-
                                     {/* Body */}
                                     <div className="mb-2">
                                         <label className="font-display text-sm text-primary w-full">{t("Message Body")}</label>
@@ -476,7 +505,6 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                             </select>
                                         </div>
                                     </div>
-
                                     {/* Footer */}
                                     <div className="mb-2">
                                         <label className="font-display text-sm text-primary w-full">{t("Footer (Optional)")}</label>
@@ -490,7 +518,6 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                         />
                                         <p className="text-gray-500 text-xs mt-1">{t("The footer cannot contain variables.")}</p>
                                     </div>
-
                                     {/* Buttons */}
                                     <div className="mb-2">
                                         <div className="flex gap-2 items-end mb-4">
@@ -513,10 +540,8 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                                             return 'bg-gray-500 hover:bg-gray-600';
                                                     }
                                                 };
-
                                                 const isDisabled = isButtonDisabled(buttonOption.type);
                                                 const disabledColor = 'bg-gray-400 cursor-not-allowed opacity-50';
-
                                                 return (
                                                     <button
                                                         key={index}
@@ -533,79 +558,28 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                                 );
                                             })}
                                         </div>
-
-                                        {values.buttons.map((button, index) => (
-                                            <div key={index} className="mb-2 p-4 border border-gray-300 rounded-md bg-blue-50 relative">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeButton(index, setFieldValue)}
-                                                    className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-                                                    title={t("Remove button")}
-                                                >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                        <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm2 3a1 1 0 011-1h2a1 1 0 110 2h-2a1 1 0 01-1-1z" clipRule="evenodd" />
-                                                    </svg>
-                                                </button>
-                                                <h3 className="text-lg font-medium text-gray-800 mb-2">{t("Button")} {index + 1} ({button.type.replace('_', ' ')})</h3>
-
-                                                <div className="mb-2">
-                                                    <InputField
-                                                        name={`buttons.${index}.text`}
-                                                        label={t("Button Text")}
-                                                        type="text"
-                                                        placeholder={t("e.g. View Details")}
+                                        <DndContext
+                                            sensors={sensors}
+                                            collisionDetection={closestCenter}
+                                            onDragEnd={(event) => handleDragEnd(event, setFieldValue)}
+                                        >
+                                            <SortableContext
+                                                items={values.buttons.map((_, index) => index)}
+                                                strategy={verticalListSortingStrategy}
+                                            >
+                                                {values.buttons.map((button, index) => (
+                                                    <SortableButton
+                                                        key={index}
+                                                        button={button}
+                                                        index={index}
+                                                        setFieldValue={setFieldValue}
+                                                        removeButton={removeButton}
+                                                        t={t}
                                                     />
-                                                </div>
-
-                                                {button.type === 'URL' && (
-                                                    <div className="mb-2">
-                                                        <InputField
-                                                            name={`buttons.${index}.url`}
-                                                            label={t("URL")}
-                                                            type="text"
-                                                            placeholder={t("e.g. https://yourdomain.com/order/{{params.nameEvent}}")}
-                                                        />
-                                                        <p className="text-gray-500 text-xs mt-1">{t("You can use variables like {{params.nameEvent}} for dynamic URLs.")}</p>
-
-                                                        {button.url?.includes('{{params.') && (
-                                                            <div className="mt-2">
-                                                                <InputField
-                                                                    name={`buttons.${index}.example`}
-                                                                    label={t("Dynamic URL Example")}
-                                                                    type="text"
-                                                                    placeholder={t("e.g. https://yourdomain.com/order/12345")}
-                                                                />
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
-
-                                                {button.type === 'PHONE_NUMBER' && (
-                                                    <div className="mb-2">
-                                                        <InputField
-                                                            name={`buttons.${index}.phoneNumber`}
-                                                            label={t("Phone Number")}
-                                                            type="text"
-                                                            placeholder={t("e.g. +1234567890")}
-                                                        />
-                                                    </div>
-                                                )}
-
-                                                {button.type === 'WHATSAPP' && (
-                                                    <div className="mb-2">
-                                                        <InputField
-                                                            name={`buttons.${index}.phoneNumber`}
-                                                            label={t("WhatsApp Number")}
-                                                            type="text"
-                                                            placeholder={t("e.g. +1234567890")}
-                                                        />
-                                                        <p className="text-gray-500 text-xs mt-1">{t("This will open WhatsApp with the specified number.")}</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
+                                                ))}
+                                            </SortableContext>
+                                        </DndContext>
                                     </div>
-
                                     <button
                                         className={`font-display rounded-full py-2 px-6 text-white font-medium transition w-full hover:opacity-70 ${isSubmitting ? "bg-secondary" : "bg-primary"}`}
                                         disabled={isSubmitting}
@@ -617,7 +591,6 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                             </Form>
                         ) : null}
                     </Formik>
-
                     {/* Área de visualización del JSON */}
                     {generatedJson && (
                         <div className="mt-8 pt-8 border-t-2 border-gray-200">
@@ -634,7 +607,6 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                         </div>
                     )}
                 </div>
-
                 {/* Columna de la Vista Previa */}
                 {values && (
                     <div className="flex-1 h-full hidden md:flex justify-center items-center">
@@ -649,7 +621,6 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                     </div>
                 )}
             </div>
-
             <style jsx>
                 {`
                     .loader {

@@ -755,5 +755,6 @@ export const es = {
     'Maximum limit reached for this button type': 'Límite máximo alcanzado para este tipo de botón',
     'Maximum 5 buttons allowed': 'Máximo 5 botones permitidos',
     'You can add up to 5 buttons': 'Puedes agregar hasta 5 botones',
+    'Button order updated': 'Orden de botones actualizado',
   }
 }
