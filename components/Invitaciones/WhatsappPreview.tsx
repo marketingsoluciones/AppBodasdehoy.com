@@ -42,7 +42,7 @@ export const WhatsappPreview = ({ headerType, headerContent, bodyContent, footer
   };
 
   const formattedBody = replaceVariables(bodyContent, variableMap);
-  const formattedHeader = headerType === 'TEXT' ? replaceVariables(headerContent, variableMap) : headerContent;
+  const formattedHeader = headerType === 'text' ? replaceVariables(headerContent, variableMap) : headerContent;
 
   return (
     <div className="w-full md:w-[350px] p-4 flex justify-center items-center">
@@ -77,17 +77,17 @@ export const WhatsappPreview = ({ headerType, headerContent, bodyContent, footer
         <div className="flex-1 p-4 bg-gray-100 overflow-y-auto">
           {/* Message Bubble */}
           <div className="bg-white p-3 rounded-lg shadow-sm max-w-[85%] ml-auto mr-0 break-words">
-            {headerType === 'TEXT' && headerContent && (
-              <div className="font-bold text-base mb-1" dangerouslySetInnerHTML={{ __html: formattedHeader }}></div>
+            {headerType === 'text' && headerContent && (
+              <div className="font-semibold text-gray-800 text-[14px] mb-1 font-['Helvetica']" dangerouslySetInnerHTML={{ __html: formattedHeader }}></div>
             )}
-            {headerType === 'IMAGE' && headerContent && (
+            {headerType === 'image' && headerContent && (
               <img src={formattedHeader} alt="Header Preview" className="w-full h-auto rounded-md mb-2" />
             )}
 
-            <p className="text-sm" dangerouslySetInnerHTML={{ __html: formattedBody }}></p>
+            <p className="text-[13.5px] font-['Helvetica']" dangerouslySetInnerHTML={{ __html: formattedBody }}></p>
 
             {footerContent && (
-              <p className="text-xs text-gray-500 mt-2">{footerContent}</p>
+              <p className="text-[13px] text-gray-500 mt-2 font-['Helvetica']">{footerContent}</p>
             )}
 
             {buttons.length > 0 && (

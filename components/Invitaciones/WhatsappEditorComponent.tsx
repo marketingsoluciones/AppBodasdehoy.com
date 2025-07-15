@@ -558,7 +558,7 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                 {values && (
                     <div className="flex-1 h-full hidden md:flex justify-center items-center">
                         <WhatsappPreview
-                            headerType={values.headerType ?? 'NONE'}
+                            headerType={values.headerType?._id ?? 'NONE'}
                             headerContent={values.headerContent ?? ''}
                             bodyContent={values.bodyContent ?? ''}
                             footerContent={values.footerContent ?? ''}
