@@ -695,7 +695,7 @@ export const es = {
     // WhatsApp Template Button Translations
     'Go to website': 'Ir al sitio web',
     'Call on WhatsApp': 'Llamar en WhatsApp',
-    'Call phone number': 'Llamar al número de teléfono',
+    'Call phone number': 'Llamar al No. de teléfono',
     'Complete process': 'Completar proceso',
     '2 buttons maximum': '2 botones como máximo',
     '1 button maximum': '1 botón como máximo',
@@ -756,5 +756,8 @@ export const es = {
     'Maximum 5 buttons allowed': 'Máximo 5 botones permitidos',
     'You can add up to 5 buttons': 'Puedes agregar hasta 5 botones',
     'Button order updated': 'Orden de botones actualizado',
+    'Quick reply': 'Respuesta rápida',
+    'PHONE NUMBER': 'Número de teléfono',
+    'QUICK REPLY': 'RESPUESTA RÁPIDA',
   }
 }

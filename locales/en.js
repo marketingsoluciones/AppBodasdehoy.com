@@ -757,5 +757,8 @@ export const en = {
     'Maximum 5 buttons allowed': 'Maximum 5 buttons allowed',
     'You can add up to 5 buttons': 'You can add up to 5 buttons',
     'Button order updated': 'Button order updated',
+    'Quick reply': 'Quick reply',
+    'PHONE NUMBER': 'PHONE NUMBER',
+    'QUICK REPLY': 'QUICK REPLY',
   }
 }

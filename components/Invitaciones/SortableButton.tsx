@@ -72,7 +72,7 @@ export const SortableButton: React.FC<SortableButtonProps> = ({
           name={`buttons.${index}.text`}
           label={t("Button Text")}
           type="text"
-          placeholder={t("e.g. View Details")}
+          maxLength={25}
         />
       </div>
 
@@ -83,6 +83,7 @@ export const SortableButton: React.FC<SortableButtonProps> = ({
             label={t("URL")}
             type="text"
             placeholder={t("e.g. https://yourdomain.com/order/{{params.nameEvent}}")}
+            maxLength={2000}
           />
           <p className="text-gray-500 text-xs mt-1">{t("You can use variables like {{params.nameEvent}} for dynamic URLs.")}</p>
 
@@ -93,6 +94,7 @@ export const SortableButton: React.FC<SortableButtonProps> = ({
                 label={t("Dynamic URL Example")}
                 type="text"
                 placeholder={t("e.g. https://yourdomain.com/order/12345")}
+                maxLength={2000}
               />
             </div>
           )}
@@ -104,8 +106,9 @@ export const SortableButton: React.FC<SortableButtonProps> = ({
           <InputField
             name={`buttons.${index}.phoneNumber`}
             label={t("Phone Number")}
-            type="text"
+            type="telefono"
             placeholder={t("e.g. +1234567890")}
+            maxLength={20}
           />
         </div>
       )}
@@ -117,6 +120,7 @@ export const SortableButton: React.FC<SortableButtonProps> = ({
             label={t("WhatsApp Number")}
             type="text"
             placeholder={t("e.g. +1234567890")}
+            maxLength={20}
           />
           <p className="text-gray-500 text-xs mt-1">{t("This will open WhatsApp with the specified number.")}</p>
         </div>
