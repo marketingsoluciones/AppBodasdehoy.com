@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { DineroIcon } from "../components/icons";
 import BlockPagos from "../components/Presupuesto/BlockPagos";
 import Grafico from "../components/Presupuesto/Grafico";
+import ExportExcelPresupuesto from "../components/Presupuesto/ExportExcelPresupuesto";
 import { AuthContextProvider, EventContextProvider } from "../context";
 import { getCurrency } from "../utils/Funciones";
 import VistaSinCookie from "./vista-sin-cookie";
@@ -124,21 +125,6 @@ const Presupuesto = () => {
                               <MontoPresupuesto />
                             </div>
                             <div className=" bg-white shadow-md rounded-xl grid place-items-center py-4 px-2 relative">
-                              {/* <div className={`${showModalPresupuesto ? "hidden" : " absolute"}  right-2 -top-11 `}>
-                                <button
-                                  onClick={() => setShowModalPresupuesto(true)}
-                                  className={`z-[60] bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 text-white font-bold py-1 px-3 rounded-full shadow-lg flex items-center relative hover:scale-105 transition `}
-                                  title="Ver novedades"
-                                >
-                                  <span className="absolute -top-1 -right-1">
-                                    <span className="relative flex h-3 w-3">
-                                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                      <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-400"></span>
-                                    </span>
-                                  </span>
-                                  <span className="uppercase tracking-wider text-xs">New</span>
-                                </button>
-                              </div> */}
                               <DineroIcon className="w-12 h-12 text-primary " />
                               <p className="font-display text-gray-500 font-light text-md grid place-items-center">
                                 {t("finalcost")} <br />
@@ -167,13 +153,11 @@ const Presupuesto = () => {
                                   </p>
                                 </div>
                               </div>
-                              <div className="flex  justify-between w-full text-sm">
+                              <div className="flex justify-between w-full text-sm">
                                 <div onClick={() => isAllowed() ? setShowModalDuplicate(true) : ht()} className=" capitalize text-gray-500 cursor-pointer flex justify-center items-center  border  border-primary rounded-md px-3 text-xs text-primary">
                                   {t("import")}
                                 </div>
-                                <div className="  cursor-default flex justify-center items-center px-3 text-primary opacity-50 border rounded-md text-xs border-primary">
-                                  {t("export")}
-                                </div>
+                                <ExportExcelPresupuesto />
                               </div>
                             </div>
                           </div>

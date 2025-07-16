@@ -44,6 +44,8 @@ export const TableBudgetV2: FC<props> = ({ data, setShowModalDelete }) => {
   const [isAllowed, ht] = useAllowed()
   const toast = useToast()
   const [columnsVisibility, setColumnVisibility] = useState({});
+  const [columnWidths, setColumnWidths] = useState<{[key: string]: number}>({});
+  const [isResizing, setIsResizing] = useState<{column: string, startX: number, startWidth: number} | null>(null);
   const columnHelper = createColumnHelper<any>()
   const [showDotsOptionsMenu, setShowDotsOptionsMenu] = useState<FloatOptionsMenuInterface>()
   const [showFloatOptionsMenu, setShowFloatOptionsMenu] = useState<FloatOptionsMenuInterface>()
@@ -91,6 +93,39 @@ export const TableBudgetV2: FC<props> = ({ data, setShowModalDelete }) => {
     }
   }, [showFiltersModal, showColumnsModal, showEventInfoModal]);
 
+  // Hook para manejar el redimensionamiento
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return;
+      
+      const deltaX = e.clientX - isResizing.startX;
+      const newWidth = Math.max(50, isResizing.startWidth + deltaX); // Mínimo 50px
+      
+      setColumnWidths(prev => ({
+        ...prev,
+        [isResizing.column]: newWidth
+      }));
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(null);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    if (isResizing) {
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isResizing]);
+
   const initialColumn: InitialColumn[] = [
     { accessor: "categoria", header: t("categoria"), isEditabled: true, size: 140 },
     { accessor: "gasto", header: t("partida de gasto"), isEditabled: true, size: 180 },
@@ -103,6 +138,37 @@ export const TableBudgetV2: FC<props> = ({ data, setShowModalDelete }) => {
     { accessor: "pagado", header: t("pagado"), size: 90, horizontalAlignment: "end", type: "float" },
     { accessor: "pendiente_pagar", header: t("pendiente por pagar"), size: 90, horizontalAlignment: "end", type: "float" },
   ]
+
+  // Función para inicializar los anchos de columnas
+  useEffect(() => {
+    const initialWidths = initialColumn.reduce((acc, col) => {
+      if (col.accessor) {
+        acc[col.accessor] = col.size || 100;
+      }
+      return acc;
+    }, {} as {[key: string]: number});
+    
+    initialWidths['options'] = 60;
+    
+    setColumnWidths(initialWidths);
+  }, []);
+
+  const handleResizeStart = (columnId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const currentWidth = columnWidths[columnId] || 100;
+    
+    setIsResizing({
+      column: columnId,
+      startX: e.clientX,
+      startWidth: currentWidth
+    });
+  };
+
+  const getColumnWidth = (columnId: string) => {
+    return columnWidths[columnId] || 100;
+  };
 
   const handleFilterChange = (filterType: keyof TableFilters, value: any) => {
     setFilters(prev => ({
@@ -711,22 +777,35 @@ export const TableBudgetV2: FC<props> = ({ data, setShowModalDelete }) => {
                 <tr key={headerGroup.id}>
                   {headerGroup.headers.map(header => {
                     const isSticky = header.column.getIndex() < 2;
-                    const leftPosition = header.column.getIndex() === 1 ? initialColumn[0]?.size || 140 : 0;
+                    const leftPosition = header.column.getIndex() === 1 ? getColumnWidth('categoria') : 0;
+                    const columnId = header.column.id;
 
                     return (
                       <th
                         key={header.id}
                         style={{
-                          width: header.getContext().column.columnDef.size || 'auto',
-                          left: isSticky ? leftPosition : undefined
+                          width: getColumnWidth(columnId),
+                          left: isSticky ? leftPosition : undefined,
+                          position: isSticky ? 'sticky' : 'relative'
                         }}
-                        className={`text-left p-1.5 font-medium text-gray-700 border-r text-xs ${isSticky ? 'sticky bg-gray-100 z-30' : ''
+                        className={`text-left p-1.5 font-medium text-gray-700 border-r text-xs ${isSticky ? 'bg-gray-100 z-30' : ''
                           }`}
                       >
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(header.column.columnDef.header, header.getContext())
-                        }
+                        <div className="flex items-center justify-between h-full">
+                          <div className="flex-1">
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(header.column.columnDef.header, header.getContext())
+                            }
+                          </div>
+                          {/* Divisor redimensionable */}
+                          <div
+                            className="w-1 h-full cursor-col-resize hover:bg-blue-500 hover:bg-opacity-50 absolute right-0 top-0 flex items-center justify-center group"
+                            onMouseDown={(e) => handleResizeStart(columnId, e)}
+                          >
+                            <div className="w-0.5 h-4 bg-gray-300 group-hover:bg-blue-500 transition-colors"></div>
+                          </div>
+                        </div>
                       </th>
                     )
                   })}
@@ -755,8 +834,9 @@ export const TableBudgetV2: FC<props> = ({ data, setShowModalDelete }) => {
                   >
                     {row.getVisibleCells().map(cell => {
                       const isSticky = cell.column.getIndex() < 2;
-                      const leftPosition = cell.column.getIndex() === 1 ? initialColumn[0]?.size || 140 : 0;
+                      const leftPosition = cell.column.getIndex() === 1 ? getColumnWidth('categoria') : 0;
                       const alignment = initialColumn.find(col => col.accessor === cell.column.id);
+                      const columnId = cell.column.id;
 
                       const alignmentClass = alignment?.horizontalAlignment === "center" ? "text-center" :
                         alignment?.horizontalAlignment === "end" ? "text-right" : "text-left";
@@ -765,10 +845,11 @@ export const TableBudgetV2: FC<props> = ({ data, setShowModalDelete }) => {
                         <td
                           key={cell.id}
                           style={{
-                            width: cell.getContext().column.columnDef.size || 'auto',
-                            left: isSticky ? leftPosition : undefined
+                            width: getColumnWidth(columnId),
+                            left: isSticky ? leftPosition : undefined,
+                            position: isSticky ? 'sticky' : 'relative'
                           }}
-                          className={`p-1.5 border-r text-xs group-hover:bg-gray-100 ${alignmentClass} ${isSticky ? `sticky z-10 ${rowStyles}` : ''
+                          className={`p-1.5 border-r text-xs group-hover:bg-gray-100 ${alignmentClass} ${isSticky ? `z-10 ${rowStyles}` : ''
                             }`}
                           onContextMenu={(e) => {
                             const element = document.getElementById("ElementEditable")
