@@ -45,7 +45,6 @@ export const EditableLabelWithInput: FC<props> = ({ value, type, handleChange, a
     }
   };
 
-  console.log("type", type)
 
   return (
     <>
