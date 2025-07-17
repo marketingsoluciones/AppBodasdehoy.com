@@ -12,14 +12,12 @@ import FormCrearMenu from "../components/Forms/FormCrearMenu";
 import { useMounted } from "../hooks/useMounted";
 import { BlockTableroInvitados } from "../components/Invitados/BlockTableroInvitados";
 import { SelectModeView } from "../components/Utils/SelectModeView";
-import { NextSeo } from "next-seo";
 
 export type ViewItinerary = "table" | "schema" | "cards" | "extraTable" | "boardView" | "newTable"; // Agregar "extraTable"
 
 const Invitados: FC = () => {
   const [isMounted, setIsMounted] = useState<boolean>(false);
   const [formShow, setFormShow] = useState<string | null>(null)
-  const [createPDF, setCreatePDF] = useState(false)
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const { event } = EventContextProvider();
   const { actionModals, setActionModals } = AuthContextProvider()
@@ -71,41 +69,6 @@ const Invitados: FC = () => {
     if (!event) return <></>
     return (
       <>
-        <NextSeo
-          title="Evento organizador | Bodas de Hoy | Invitados"
-          description="Encuentra toda la información sobre el evento, itinerario y tareas relacionadas."
-          canonical="https://testorganizador.bodasdehoy.com"
-          openGraph={{
-            url: 'https://testorganizador.bodasdehoy.com/invitados',
-            siteName: 'Bodas de Hoy',
-            title: 'Tu planificador de eventos preferido organizador.bodasdehoy.com | Invitados',
-            description: 'Haz todas las planificaciones de tu evento perfecto con nosotros.',
-            images: [       // Images must be in a 1.91:1 ratio.            
-              {
-                url: '/Pantalla.png',
-                alt: 'Imagen del evento',
-                type: 'image/png',
-                width: 1200,
-                height: 1200,
-              },
-              {
-                url: '/Pantalla.png',
-                alt: 'Imagen del evento',
-                type: 'image/png',
-                width: 1200,
-                height: 620,
-              },
-              {
-                url: '/Pantalla.png',
-                alt: 'Imagen del evento',
-                type: 'image/png',
-                width: 1200,
-                height: 620,
-              },
-            ],
-            site_name: 'Bodas de Hoy',
-          }}
-        />
         {shouldRenderChild && (
           <ModalLeft state={isMounted} set={setIsMounted}>
             {(() => {
@@ -123,11 +86,6 @@ const Invitados: FC = () => {
                 )
               }
             })()}
-            {
-              /* {formShow == "invitado"
-                ? <FormInvitado state={isMounted} set={setIsMounted} />
-                : <FormCrearGrupo state={isMounted} set={setIsMounted} />} */
-            }
           </ModalLeft>
         )}
         {event &&

@@ -169,28 +169,15 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
                   alt={ImageProfile[values.sexo]?.alt}
                   className="w-14 h-14 rounded-full mr-6 "
                 />
-                {/* <div className="w-1/2 flex items-center justify-center"> */}
                 <InputField
-                  //placeholder="960 66 66 66"
                   name="telefono"
                   label={t("phone")}
                   type="telefono"
                 />
-                {/* </div> */}
               </div>
               <div className="w-full md:grid md:grid-cols-4 items-center justify-center space-x-3">
-                {/* <div className="col-span-1 hidden*">
-                  <SelectField
-                    name={"tituloInvitado"}
-                    label={t("titulo")}
-                    options={titleInvitado}
-                    nullable={true}
-                  />
-                </div> */}
                 <div className="col-span-3">
-
                   <InputField
-                    //placeholder="Ej. Francisco Montilla"
                     name="nombre"
                     label={t("name")}
                     type="text"
@@ -215,7 +202,6 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
               </div>
               <div className="w-full flex items-center justify-center">
                 <InputField
-                  //placeholder="Ej. jhon@doe.com"
                   name="correo"
                   label={t("email")}
                   type="email"

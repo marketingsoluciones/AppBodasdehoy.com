@@ -15,6 +15,17 @@ const ExportExcelPresupuesto = ({ className = "" }) => {
     return value;
   };
 
+  // Función para crear estilos más compatibles
+  const createCellStyle = (style) => {
+    return {
+      font: style.font || {},
+      fill: style.fill || {},
+      border: style.border || {},
+      alignment: style.alignment || {},
+      numFmt: style.numFmt || undefined
+    };
+  };
+
   const exportToExcel = () => {
     try {
       if (!event?.presupuesto_objeto) {
@@ -48,6 +59,44 @@ const ExportExcelPresupuesto = ({ className = "" }) => {
       ];
 
       const wsResumen = XLSX.utils.aoa_to_sheet(resumenData);
+      
+      // Aplicar estilos básicos al resumen
+      const resumenRange = XLSX.utils.decode_range(wsResumen['!ref']);
+      for (let R = resumenRange.s.r; R <= resumenRange.e.r; ++R) {
+        for (let C = resumenRange.s.c; C <= resumenRange.e.c; ++C) {
+          const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+          if (!wsResumen[cellAddress]) continue;
+          
+          // Título principal
+          if (R === 0) {
+            wsResumen[cellAddress].s = createCellStyle({
+              font: { bold: true, sz: 16, color: { rgb: "0D47A1" } },
+              fill: { fgColor: { rgb: "E3F2FD" } },
+              alignment: { horizontal: "center", vertical: "center" }
+            });
+          }
+          // Secciones (TOTALES GENERALES, INVITADOS ESTIMADOS)
+          else if (R === 7 || R === 14) {
+            wsResumen[cellAddress].s = createCellStyle({
+              font: { bold: true, sz: 12, color: { rgb: "1976D2" } },
+              fill: { fgColor: { rgb: "BBDEFB" } },
+              alignment: { vertical: "center" }
+            });
+          }
+          // Datos normales
+          else if (wsResumen[cellAddress].v && R > 1) {
+            wsResumen[cellAddress].s = createCellStyle({
+              font: { sz: 10 },
+              alignment: { vertical: "center" }
+            });
+          }
+        }
+      }
+
+      // Configurar columnas del resumen
+      wsResumen['!cols'] = [{ width: 25 }, { width: 20 }];
+      wsResumen['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }];
+      
       XLSX.utils.book_append_sheet(workbook, wsResumen, 'Resumen');
 
       // Hoja 2: Detalle Jerárquico Completo
@@ -56,7 +105,6 @@ const ExportExcelPresupuesto = ({ className = "" }) => {
         'Valor Unitario', 'Coste Estimado', 'Coste Final'
       ];
       
-      // Agregar encabezado del presupuesto en la parte superior
       const encabezadoData = [
         ['DETALLE COMPLETO DEL PRESUPUESTO'],
         [''],
@@ -69,16 +117,15 @@ const ExportExcelPresupuesto = ({ className = "" }) => {
       
       const detalleData = [...encabezadoData];
 
+      // Procesar categorías, gastos e items
       if (presupuesto.categorias_array && Array.isArray(presupuesto.categorias_array)) {
         presupuesto.categorias_array.forEach(categoria => {
-          // Calcular totales de la categoría
+          // Calcular total de la categoría
           let totalCosteFinalCategoria = 0;
 
-          // Primero calculamos los totales reales de la categoría
           if (categoria.gastos_array && Array.isArray(categoria.gastos_array)) {
             categoria.gastos_array.forEach(gasto => {
               if (gasto.items_array && Array.isArray(gasto.items_array) && gasto.items_array.length > 0) {
-                // Si tiene items, calcular desde los items
                 gasto.items_array.forEach(item => {
                   const cantidad = item.unidad === "xUni." 
                     ? item.cantidad 
@@ -91,7 +138,6 @@ const ExportExcelPresupuesto = ({ className = "" }) => {
                   totalCosteFinalCategoria += cantidad * (item.valor_unitario || 0);
                 });
               } else {
-                // Si no tiene items, usar el coste del gasto directamente
                 totalCosteFinalCategoria += gasto.coste_final || 0;
               }
             });
@@ -106,14 +152,13 @@ const ExportExcelPresupuesto = ({ className = "" }) => {
             formatCurrency(totalCosteFinalCategoria)
           ]);
 
-          // Procesar gastos de la categoría
+          // Procesar gastos
           if (categoria.gastos_array && Array.isArray(categoria.gastos_array)) {
             categoria.gastos_array.forEach(gasto => {
               let totalCosteFinalGasto = 0;
               let hasItems = gasto.items_array && Array.isArray(gasto.items_array) && gasto.items_array.length > 0;
 
               if (hasItems) {
-                // Calcular total del gasto desde sus items
                 gasto.items_array.forEach(item => {
                   const cantidad = item.unidad === "xUni." 
                     ? item.cantidad 
@@ -139,7 +184,7 @@ const ExportExcelPresupuesto = ({ className = "" }) => {
                 formatCurrency(totalCosteFinalGasto)
               ]);
 
-              // Agregar items si existen
+              // Agregar items
               if (hasItems) {
                 gasto.items_array.forEach(item => {
                   const cantidad = item.unidad === "xUni." 
@@ -158,7 +203,7 @@ const ExportExcelPresupuesto = ({ className = "" }) => {
                     item.nombre || 'Sin nombre',
                     cantidad,
                     formatCurrency(item.valor_unitario || 0),
-                    '', // Los items no tienen coste estimado
+                    '',
                     formatCurrency(costeTotal)
                   ]);
                 });
@@ -170,134 +215,95 @@ const ExportExcelPresupuesto = ({ className = "" }) => {
 
       const wsDetalle = XLSX.utils.aoa_to_sheet(detalleData);
       
-      // Aplicar estilos y formato
+      // Aplicar estilos al detalle con método más simple
       if (wsDetalle['!ref']) {
         const range = XLSX.utils.decode_range(wsDetalle['!ref']);
         
-        // Definir estilos
-        const borderStyle = {
-          top: { style: 'medium', color: { rgb: '666666' } },
-          bottom: { style: 'medium', color: { rgb: '666666' } },
-          left: { style: 'medium', color: { rgb: '666666' } },
-          right: { style: 'medium', color: { rgb: '666666' } }
-        };
+        // Definir estilos simplificados
+        const titleStyle = createCellStyle({
+          font: { bold: true, sz: 16, color: { rgb: "0D47A1" } },
+          fill: { fgColor: { rgb: "E3F2FD" } },
+          alignment: { horizontal: "center", vertical: "center" }
+        });
 
-        const headerStyle = {
-          font: { bold: true, color: { rgb: '000000' }, size: 11 },
-          fill: { fgColor: { rgb: 'B3D9FF' } }, // Azul más intenso
-          border: borderStyle,
-          alignment: { horizontal: 'center', vertical: 'center' }
-        };
+        const headerStyle = createCellStyle({
+          font: { bold: true, sz: 11 },
+          fill: { fgColor: { rgb: "B3D9FF" } },
+          alignment: { horizontal: "center", vertical: "center" }
+        });
 
-        const categoriaStyle = {
-          font: { bold: true, color: { rgb: '0D47A1' }, size: 11 },
-          fill: { fgColor: { rgb: 'BBDEFB' } }, // Azul claro más visible
-          border: borderStyle,
-          alignment: { vertical: 'center' }
-        };
+        const categoriaStyle = createCellStyle({
+          font: { bold: true, sz: 11, color: { rgb: "0D47A1" } },
+          fill: { fgColor: { rgb: "BBDEFB" } },
+          alignment: { vertical: "center" }
+        });
 
-        const gastoStyle = {
-          font: { color: { rgb: '212121' }, size: 10 },
-          fill: { fgColor: { rgb: 'E0E0E0' } }, // Gris más visible
-          border: borderStyle,
-          alignment: { vertical: 'center' }
-        };
+        const gastoStyle = createCellStyle({
+          font: { sz: 10 },
+          fill: { fgColor: { rgb: "E0E0E0" } },
+          alignment: { vertical: "center" }
+        });
 
-        const itemStyle = {
-          font: { color: { rgb: '424242' }, size: 10 },
-          fill: { fgColor: { rgb: 'F0F0F0' } }, // Gris claro más definido
-          border: borderStyle,
-          alignment: { vertical: 'center' }
-        };
-
-        const titleStyle = {
-          font: { bold: true, size: 16, color: { rgb: '0D47A1' } },
-          fill: { fgColor: { rgb: 'E3F2FD' } },
-          border: {
-            top: { style: 'thick', color: { rgb: '1976D2' } },
-            bottom: { style: 'thick', color: { rgb: '1976D2' } },
-            left: { style: 'thick', color: { rgb: '1976D2' } },
-            right: { style: 'thick', color: { rgb: '1976D2' } }
-          },
-          alignment: { horizontal: 'center', vertical: 'center' }
-        };
-
-        const infoStyle = {
-          font: { color: { rgb: '424242' }, size: 10 },
-          fill: { fgColor: { rgb: 'F8F9FA' } },
-          border: {
-            top: { style: 'thin', color: { rgb: 'CCCCCC' } },
-            bottom: { style: 'thin', color: { rgb: 'CCCCCC' } },
-            left: { style: 'thin', color: { rgb: 'CCCCCC' } },
-            right: { style: 'thin', color: { rgb: 'CCCCCC' } }
-          },
-          alignment: { vertical: 'center' }
-        };
+        const itemStyle = createCellStyle({
+          font: { sz: 10 },
+          fill: { fgColor: { rgb: "F5F5F5" } },
+          alignment: { vertical: "center" }
+        });
 
         // Aplicar estilos fila por fila
         for (let R = range.s.r; R <= range.e.r; ++R) {
           for (let C = range.s.c; C <= range.e.c; ++C) {
             const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-            if (!wsDetalle[cellAddress]) wsDetalle[cellAddress] = {};
+            if (!wsDetalle[cellAddress]) wsDetalle[cellAddress] = { v: "", t: "s" };
             
             // Título principal
-            if (R === 0 && C === 0) {
+            if (R === 0) {
               wsDetalle[cellAddress].s = titleStyle;
-            }
-            // Información del evento
-            else if (R >= 2 && R <= 4) {
-              wsDetalle[cellAddress].s = infoStyle;
             }
             // Headers de la tabla
             else if (R === 6) {
               wsDetalle[cellAddress].s = headerStyle;
             }
-            // Filas de datos (después del header)
+            // Filas de datos
             else if (R > 6) {
               const cellCategoria = wsDetalle[XLSX.utils.encode_cell({ r: R, c: 0 })];
               const cellGasto = wsDetalle[XLSX.utils.encode_cell({ r: R, c: 1 })];
               const cellItem = wsDetalle[XLSX.utils.encode_cell({ r: R, c: 2 })];
               
-              if (cellCategoria && cellCategoria.v && (!cellGasto || !cellGasto.v)) {
+              if (cellCategoria && cellCategoria.v && cellCategoria.v.toString().trim() !== '') {
                 // Es una fila de categoría
                 wsDetalle[cellAddress].s = categoriaStyle;
-              } else if (cellGasto && cellGasto.v && (!cellItem || !cellItem.v)) {
+              } else if (cellGasto && cellGasto.v && cellGasto.v.toString().trim() !== '') {
                 // Es una fila de gasto
                 wsDetalle[cellAddress].s = gastoStyle;
-              } else if (cellItem && cellItem.v) {
+              } else if (cellItem && cellItem.v && cellItem.v.toString().trim() !== '') {
                 // Es una fila de item
                 wsDetalle[cellAddress].s = itemStyle;
-              } else {
-                // Celda vacía con borde
-                wsDetalle[cellAddress].s = { 
-                  border: borderStyle,
-                  fill: { fgColor: { rgb: 'FFFFFF' } }
-                };
               }
             }
           }
         }
 
-        // Configurar rangos combinados para el título
+        // Configurar rangos combinados
         wsDetalle['!merges'] = [
-          { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } }, // Título principal
+          { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } }
         ];
 
-        // Configurar altura de filas
-        wsDetalle['!rows'] = [
-          { hpt: 30 }, // Título
-          { hpt: 12 }, // Espacio
-          { hpt: 18 }, // Información
-          { hpt: 18 }, // Información
-          { hpt: 18 }, // Información
-          { hpt: 12 }, // Espacio
-          { hpt: 25 }, // Headers
+        // Configurar columnas
+        wsDetalle['!cols'] = [
+          { width: 25 }, // Categoría
+          { width: 30 }, // Partida de Gasto
+          { width: 25 }, // Item
+          { width: 12 }, // Cantidad
+          { width: 18 }, // Valor Unitario
+          { width: 18 }, // Coste Estimado
+          { width: 18 }  // Coste Final
         ];
       }
       
       XLSX.utils.book_append_sheet(workbook, wsDetalle, 'Detalle Completo');
 
-      // Hoja 3: Pagos
+      // Hoja 3: Pagos (simplificada)
       const pagosHeaders = ['Categoría', 'Gasto', 'Fecha', 'Importe', 'Estado', 'Método de Pago', 'Concepto'];
       const pagosData = [pagosHeaders];
       let hasPagos = false;
@@ -327,43 +333,38 @@ const ExportExcelPresupuesto = ({ className = "" }) => {
 
       if (hasPagos) {
         const wsPagos = XLSX.utils.aoa_to_sheet(pagosData);
+        
+        // Aplicar estilo simple al header de pagos
+        if (wsPagos['!ref']) {
+          const pagosRange = XLSX.utils.decode_range(wsPagos['!ref']);
+          for (let C = pagosRange.s.c; C <= pagosRange.e.c; ++C) {
+            const cellAddress = XLSX.utils.encode_cell({ r: 0, c: C });
+            if (wsPagos[cellAddress]) {
+              wsPagos[cellAddress].s = createCellStyle({
+                font: { bold: true, sz: 11 },
+                fill: { fgColor: { rgb: "B3D9FF" } },
+                alignment: { horizontal: "center", vertical: "center" }
+              });
+            }
+          }
+        }
+        
+        // Configurar columnas de pagos
+        wsPagos['!cols'] = pagosHeaders.map(() => ({ width: 15 }));
+        
         XLSX.utils.book_append_sheet(workbook, wsPagos, 'Pagos');
       }
 
-      // Configurar estilos básicos para las hojas
-      const sheets = ['Resumen', 'Detalle Completo'];
-      if (hasPagos) sheets.push('Pagos');
-
-      sheets.forEach(sheetName => {
-        const ws = workbook.Sheets[sheetName];
-        if (ws) {
-          // Ajustar ancho de columnas
-          const cols = [];
-          if (sheetName === 'Resumen') {
-            cols.push({ width: 25 }, { width: 20 });
-          } else if (sheetName === 'Detalle Completo') {
-            // Columnas para la hoja de detalle jerárquico con estilos
-            cols.push(
-              { width: 25 }, // Categoría
-              { width: 30 }, // Partida de Gasto
-              { width: 25 }, // Item
-              { width: 12 }, // Cantidad
-              { width: 18 }, // Valor Unitario
-              { width: 18 }, // Coste Estimado
-              { width: 18 }  // Coste Final
-            );
-          } else {
-            // Para la hoja de pagos
-            const headers = pagosHeaders;
-            headers.forEach(() => cols.push({ width: 15 }));
-          }
-          ws['!cols'] = cols;
-        }
+      // Generar archivo con configuración específica para estilos
+      const excelBuffer = XLSX.write(workbook, { 
+        bookType: 'xlsx', 
+        type: 'array',
+        cellStyles: true // Importante para que se apliquen los estilos
       });
-
-      // Generar y descargar el archivo
-      const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-      const data = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      
+      const data = new Blob([excelBuffer], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      });
       
       const fileName = `presupuesto_${event.nombre || 'evento'}_${new Date().toISOString().split('T')[0]}.xlsx`;
       
@@ -387,7 +388,7 @@ const ExportExcelPresupuesto = ({ className = "" }) => {
   return (
     <button
       onClick={exportToExcel}
-      className={`capitalize text-gray-500 cursor-pointer flex justify-center items-center  border  border-primary rounded-md px-3 text-xs text-primary`}
+      className={`capitalize text-gray-500 cursor-pointer flex justify-center items-center border border-primary rounded-md px-3 text-xs text-primary ${className}`}
       title="Exportar presupuesto a Excel"
     >
       
