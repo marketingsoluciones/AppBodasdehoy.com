@@ -909,7 +909,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                       attachments={localTask.attachments || []}
                       onUpdate={(files) => handleUpdate('attachments', files)}
                       taskId={task._id}
-                      eventId={event._id}
+                      eventId={event?._id}
                       itinerarioId={itinerario._id}
                       readOnly={!canEdit}
                     />
