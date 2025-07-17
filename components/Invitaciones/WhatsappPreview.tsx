@@ -19,6 +19,7 @@ const getCurrentFormattedDateTime = () => {
 
 // Componente de vista previa de WhatsApp
 export const WhatsappPreview = ({ headerType, headerContent, bodyContent, footerContent, buttons, variableMap }) => {
+  console.log(buttons);
   const { t } = useTranslation();
   // Función para reemplazar variables con ejemplos del variableMap
   const replaceVariables = (text, currentVariableMap) => {
@@ -74,7 +75,6 @@ export const WhatsappPreview = ({ headerType, headerContent, bodyContent, footer
             </svg>
           </div>
         </div>
-
         {/* Chat Area */}
         <div className="flex-1 p-4 bg-gray-100 overflow-y-auto">
           {/* Message Bubble */}
@@ -125,7 +125,6 @@ export const WhatsappPreview = ({ headerType, headerContent, bodyContent, footer
             <div className="text-right text-xs text-gray-400 mt-1">{getCurrentFormattedDateTime().split(' ')[1]}</div>
           </div>
         </div>
-
         {/* Phone Footer (Input Area) */}
         <div className="bg-white p-3 flex items-center border-t border-gray-200">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">

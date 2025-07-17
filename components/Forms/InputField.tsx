@@ -89,6 +89,11 @@ const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled =
     <div className="w-full h-max relative">
       <label className={`font-display ${labelClass ? "text-primary" : "text-gray-500"} text-sm w-full`}>{label}</label>
       <div className="w-full relative flex items-center">
+        {props?.maxLength && <div className="h-10 absolute top-0 right-2  flex items-center justify-center" >
+          <span id='masStr' className="text-sm text-gray-500">
+            {field.value?.length}/{props?.maxLength}
+          </span>
+        </div>}
         {deleted && <div className="absolute right-0">
           <MdClose onClick={() => { helpers.setValue("") }} className="hover:text-gray-700 cursor-pointer mr-0.5" />
         </div>}
@@ -127,7 +132,7 @@ const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled =
           </>
         }
         {props?.type != "tel"
-          ? <input id={props?.type} /* autoFocus={props?.type === "telefono"} */ disabled={!isAllowed() || disabled} className={`${props?.type === "telefono" && "pl-14"} font-display text-sm text-gray-500 border-[1px] ${(props?.type !== "tel" ? true : meta.touched) && meta.error ? "border-rose-300" : "border-gray-200"} focus:border-gray-400 w-full py-2 px-4 rounded-xl focus:ring-0 focus:outline-none transition ${className}`} {...field} {...props} type={props?.type === "telefono" ? "tel" : props?.type} />
+          ? <input id={props?.type} /* autoFocus={props?.type === "telefono"} */ disabled={!isAllowed() || disabled} className={`${props?.type === "telefono" && "pl-14"} font-display text-sm text-gray-500 border-[1px] ${(props?.type !== "tel" ? true : meta.touched) && meta.error ? "border-rose-300" : "border-gray-200"} focus:border-gray-400 w-full py-2 px-4 rounded-xl focus:ring-0 focus:outline-none transition ${className}`} {...field} {...props} type={props?.type === "telefono" ? "tel" : props?.type} maxLength={props?.maxLength} />
           : <div onBlur={() => helpers.setTouched(true)} >
           </div>
         }
@@ -147,3 +152,4 @@ const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled =
 }
 
 export default React.memo(InputField)
+

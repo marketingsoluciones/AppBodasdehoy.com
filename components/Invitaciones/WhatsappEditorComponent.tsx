@@ -97,7 +97,7 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
         type: "PHONE_NUMBER",
     },
     {
-        title: t("Complete process"),
+        title: t("Quick reply"),
         description: t("5 buttons maximum"),
         type: "QUICK_REPLY",
     },
@@ -169,7 +169,12 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
             toast("error", t("Maximum 5 buttons allowed"));
             return;
         }
-        const newButton: Button = { type, text: '', example: '' };
+
+        // Encontrar el título correspondiente al tipo de botón
+        const buttonOption = buttonOptions.find(option => option.type === type);
+        const buttonTitle = buttonOption ? buttonOption.title : '';
+
+        const newButton: Button = { type, text: buttonTitle };
         if (type === 'URL') newButton.url = 'https://example.com';
         if (type === 'PHONE_NUMBER') newButton.phoneNumber = '+1234567890';
         if (type === 'WHATSAPP') newButton.phoneNumber = '+1234567890';
@@ -492,7 +497,7 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                         <div className="flex items-center gap-2">
                                             <label className="text-xs font-medium text-gray-700">{t("Add Variable")}:</label>
                                             <select
-                                                className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                                className="p-2 flex-1 md:mr-20 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm"
                                                 onChange={(e) => handleVariableSelect(e, setFieldValue, 'bodyContent')}
                                                 value=""
                                             >
