@@ -27,6 +27,8 @@ const Slug: FC<props> = (props) => {
   const { geoInfo } = AuthContextProvider()
   const [end, setEnd] = useState(false)
   const [tasksReduce, setTasksReduce] = useState<TaskReduce[]>()
+
+  console.log("props", props)
   console.log("evento",event)
 
   useEffect(() => {
@@ -58,12 +60,12 @@ const Slug: FC<props> = (props) => {
     }
   }, [])
 
-  /* if (!event.itinerarios_array?.length)
+  if (!event.itinerarios_array?.length)
     return (
       <div className="bg-[#ffbfbf] text-blue-700 w-full h-full text-center mt-20">
         Page not found error 404
       </div>
-    ) */
+    )
 
   return (
     <section className={"absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4 bg-white"}>
@@ -129,6 +131,7 @@ export default Slug;
 
 
 export async function getServerSideProps({ params }) {
+  console.log("params",params)
   try {
     const p = params?.slug[0]?.split("-")
     const evento_id = p[1]
