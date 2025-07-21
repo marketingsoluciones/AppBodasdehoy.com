@@ -143,12 +143,18 @@ export async function getServerSideProps({ params }) {
         itinerario_id
       }
     }) as any
+
+    console.log("fetch de evento en el servidor", evento)
+    
     if (evento) {
       openGraphData.openGraph.title = `${evento.itinerarios_array[0].title}`
       openGraphData.openGraph.description = `Mira el itinerario del evento ${evento.nombre} y no te pierdas de nada`
     }
     return {
-      props: { ...params, evento },
+      props: {
+        evento,
+        slug: params.slug || null,
+      },
     };
   } catch (error) {
     return {
