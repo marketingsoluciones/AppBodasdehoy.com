@@ -15,20 +15,15 @@ import { TASK_STATUSES, TASK_PRIORITIES } from '../VistaTabla/NewTypes';
 import { 
   formatTime, 
   formatDate, 
-  calculateEndTime, 
   minutesToReadableFormat, 
   readableFormatToMinutes, 
-  stripHtml, 
-  formatTextWithLineLimit 
 } from './TaskNewUtils';
 import ClickAwayListener from "react-click-away-listener";
 import { useToast } from "../../../hooks/useToast";
-import { fetchApiEventos, queries } from "../../../utils/Fetching";
 import { TempPastedAndDropFile } from "../../Itinerario/MicroComponente/ItineraryPanel";
 import {
   X, MessageSquare, Tag, Calendar, Clock, User, Flag, ChevronDown, Copy, Link, 
-  MoreHorizontal, Trash2, Archive, Bell, Plus, Eye, EyeOff, AlertCircle, 
-  PlayCircle, StopCircle
+  MoreHorizontal, Trash2, Archive, Bell, Plus, Eye, EyeOff
 } from 'lucide-react';
 import { SelectIcon } from '../Utils/SelectIcon';
 import { GruposResponsablesArry } from '../Utils/ResponsableSelector';
@@ -908,9 +903,9 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                     <NewAttachmentsEditor
                       attachments={localTask.attachments || []}
                       onUpdate={(files) => handleUpdate('attachments', files)}
-                      taskId={task._id}
+                      taskId={task?._id}
                       eventId={event?._id}
-                      itinerarioId={itinerario._id}
+                      itinerarioId={itinerario?._id}
                       readOnly={!canEdit}
                     />
                   </div>

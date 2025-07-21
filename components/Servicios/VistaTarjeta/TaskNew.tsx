@@ -94,39 +94,33 @@ export const TaskNew: FC<Props> = memo(({
   const [editingField, setEditingField] = useState<string | null>(null);
   const [tempValue, setTempValue] = useState<string>('');
   const [localTask, setLocalTask] = useState<TaskFormValues>({
-    _id: task._id,
-    icon: task.icon || '',
-    fecha: task.fecha || new Date(),
+    _id: task?._id,
+    icon: task?.icon || '',
+    fecha: task?.fecha || new Date(),
     hora: '',
-    duracion: task.duracion || 30,
-    tags: task.tags || [],
-    descripcion: task.descripcion || '',
-    responsable: task.responsable || [],
-    tips: task.tips || '',
-    attachments: task.attachments || [],
-    spectatorView: task.spectatorView !== undefined ? task.spectatorView : false,
-    comments: task.comments || [],
-    commentsViewers: task.commentsViewers || [],
-    estatus: task.estatus ?? false,
-    estado: task.estado || 'pending',
-    prioridad: task.prioridad || 'media'
+    duracion: task?.duracion || 30,
+    tags: task?.tags || [],
+    descripcion: task?.descripcion || '',
+    responsable: task?.responsable || [],
+    tips: task?.tips || '',
+    attachments: task?.attachments || [],
+    spectatorView: task?.spectatorView !== undefined ? task?.spectatorView : false,
+    comments: task?.comments || [],
+    commentsViewers: task?.commentsViewers || [],
+    estatus: task?.estatus ?? false,
+    estado: task?.estado || 'pending',
+    prioridad: task?.prioridad || 'media'
   });
 
   // Estados para dropdowns y selectores
   const [showIconSelector, setShowIconSelector] = useState(false);
   const [editingResponsable, setEditingResponsable] = useState(false);
-  const [editingTags, setEditingTags] = useState(false);
-  const [editingDate, setEditingDate] = useState(false);
   const [editingDescription, setEditingDescription] = useState(false);
-  const [editingDuration, setEditingDuration] = useState(false);
-  const [durationInput, setDurationInput] = useState('');
-
   // Estados para descripción personalizada
   const [customDescription, setCustomDescription] = useState(task?.tips || '');
   const [tempIcon, setTempIcon] = useState(task?.icon || '');
   const [comments, setComments] = useState<Comment[]>([]);
   const [tempResponsable, setTempResponsable] = useState<string[]>([]);
-
   // Verificar permisos
   const hasEditPermission = isAllowed();
   const canEdit = hasEditPermission || task.responsable?.includes(user?.uid);
@@ -134,32 +128,32 @@ export const TaskNew: FC<Props> = memo(({
   // Efecto para sincronizar con la tarea
   useEffect(() => {
     setLocalTask({
-      _id: task._id,
-      icon: task.icon || '',
-      fecha: task.fecha || new Date(),
+      _id: task?._id,
+      icon: task?.icon || '',
+      fecha: task?.fecha || new Date(),
       hora: '',
-      duracion: task.duracion || 30,
-      tags: Array.isArray(task.tags) ? task.tags : [],
-      descripcion: task.descripcion || '',
-      responsable: Array.isArray(task.responsable) ? task.responsable : [],
-      tips: task.tips || '',
-      attachments: Array.isArray(task.attachments) ? task.attachments : [],
-      spectatorView: task.spectatorView ?? true,
-      comments: Array.isArray(task.comments) ? task.comments : [],
-      commentsViewers: Array.isArray(task.commentsViewers) ? task.commentsViewers : [],
-      estatus: task.estatus ?? false,
-      estado: task.estado || 'pending',
-      prioridad: task.prioridad || 'media'
+      duracion: task?.duracion || 30,
+      tags: Array.isArray(task?.tags) ? task?.tags : [],
+      descripcion: task?.descripcion || '',
+      responsable: Array.isArray(task?.responsable) ? task?.responsable : [],
+      tips: task?.tips || '',
+      attachments: Array.isArray(task?.attachments) ? task.attachments : [],
+      spectatorView: task?.spectatorView ?? true,
+      comments: Array.isArray(task?.comments) ? task?.comments : [],
+      commentsViewers: Array.isArray(task?.commentsViewers) ? task.commentsViewers : [],
+      estatus: task?.estatus ?? false,
+      estado: task?.estado || 'pending',
+      prioridad: task?.prioridad || 'media'
     });
-    setCustomDescription(task.tips || '');
-    setTempIcon(task.icon || '');
-    setTempResponsable(Array.isArray(task.responsable) ? task.responsable : []);
+    setCustomDescription(task?.tips || '');
+    setTempIcon(task?.icon || '');
+    setTempResponsable(Array.isArray(task?.responsable) ? task.responsable : []);
   }, [task]);
 
   // Efecto para ordenar comentarios
   useEffect(() => {
-    if (task?.comments && Array.isArray(task.comments)) {
-      const sortedComments = sortCommentsByDate(task.comments);
+    if (task?.comments && Array.isArray(task?.comments)) {
+      const sortedComments = sortCommentsByDate(task?.comments);
       
       setComments(prevComments => {
         if (haveCommentsChanged(prevComments, sortedComments)) {
@@ -201,7 +195,7 @@ export const TaskNew: FC<Props> = memo(({
         }
       }
     }
-  }, [event?.itinerarios_array, itinerario._id, task._id]);
+  }, [event?.itinerarios_array, itinerario?._id, task?._id]);
 
   // Detectar cuando la pestaña se vuelve activa para actualizar
   useEffect(() => {
@@ -219,7 +213,7 @@ export const TaskNew: FC<Props> = memo(({
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [event, itinerario._id, task._id]);
+  }, [event, itinerario?._id, task?._id]);
 
   // Efecto para sincronizar adjuntos desde el evento global
   useEffect(() => {
@@ -260,7 +254,7 @@ export const TaskNew: FC<Props> = memo(({
         }
       }
     }
-  }, [event?.itinerarios_array, itinerario._id, task._id]);
+  }, [event?.itinerarios_array, itinerario?._id, task?._id]);
 
   // Función para manejar actualización de campos
   const handleUpdate = async (fieldName: string, value: any) => {
@@ -424,7 +418,7 @@ export const TaskNew: FC<Props> = memo(({
 
   // Función para copiar enlace
   const handleCopyLink = (task: Task) => {
-    const link = `${window.location.origin}/services/servicios-${event?._id}-${itinerario?._id}-${task?._id}`;
+    const link = `${window.location.origin}/servicios?event=${event?._id}&itinerary=${itinerario?._id}&task=${task?._id}`;
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(link).then(() => {
@@ -515,7 +509,7 @@ export const TaskNew: FC<Props> = memo(({
       }
       return newEvent;
     });
-  }, [itinerario._id, setEvent]);
+  }, [itinerario?._id, setEvent]);
 
   const handleCommentAdded = useCallback((newComment: Comment) => {
     setComments(prevComments => {

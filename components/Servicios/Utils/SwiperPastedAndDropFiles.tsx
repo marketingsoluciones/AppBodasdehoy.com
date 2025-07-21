@@ -3,8 +3,7 @@ import { Swiper, SwiperProps, SwiperSlide, useSwiper } from "swiper/react"
 import { PastedAndDropFile } from "./InputComments";
 import { Mousewheel } from "swiper";
 import { FileIconComponent } from "../../Itinerario/MicroComponente/FileIconComponent";
-// import 'swiper/css';
-// import 'swiper/css/pagination';
+
 
 interface props {
   pastedAndDropFiles: PastedAndDropFile[]

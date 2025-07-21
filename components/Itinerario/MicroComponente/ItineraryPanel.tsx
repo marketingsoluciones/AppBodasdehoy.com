@@ -172,6 +172,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       if (found) setCurrentItinerario(found);
     }
   }, [event, itinerario?._id]);
+  
   useEffect(() => {
     if (currentItinerario?.tasks?.length > 0) {
       const sortedTasks = [...currentItinerario.tasks].sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
@@ -214,6 +215,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       setTasksReduce(prev => (prev && prev.length === 0 ? prev : []));
     }
   }, [itinerario, event, view, user?.uid, isAllowed]);
+
   const handleAddSpectatorView = async (values: Task) => {
     try {
       fetchApiEventos({
