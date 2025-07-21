@@ -27,6 +27,7 @@ const Slug: FC<props> = (props) => {
   const { geoInfo } = AuthContextProvider()
   const [end, setEnd] = useState(false)
   const [tasksReduce, setTasksReduce] = useState<TaskReduce[]>()
+  console.log("evento",event)
 
   useEffect(() => {
     setTimeout(() => {
@@ -57,7 +58,7 @@ const Slug: FC<props> = (props) => {
     }
   }, [])
 
-  if (!props?.evento?.itinerarios_array?.length)
+  if (!event.itinerarios_array?.length)
     return (
       <div className="bg-[#ffbfbf] text-blue-700 w-full h-full text-center mt-20">
         Page not found error 404
