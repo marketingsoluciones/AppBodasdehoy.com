@@ -58,12 +58,12 @@ const Slug: FC<props> = (props) => {
     }
   }, [])
 
-  if (!event.itinerarios_array?.length)
+  /* if (!event.itinerarios_array?.length)
     return (
       <div className="bg-[#ffbfbf] text-blue-700 w-full h-full text-center mt-20">
         Page not found error 404
       </div>
-    )
+    ) */
 
   return (
     <section className={"absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4 bg-white"}>
