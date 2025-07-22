@@ -16,7 +16,8 @@ interface props {
   users: any
   slug?: any
   query?: any
-  error?: string
+  error?: any
+  development?: string
 }
 
 const Slug: FC<props> = (props) => {
@@ -27,7 +28,7 @@ const Slug: FC<props> = (props) => {
     return (
       <div className="bg-[#ffbfbf] text-red-700 w-full h-full text-center mt-20">
         <h1 className="text-xl font-bold mb-4">Error al cargar la tarjeta</h1>
-        <p className="text-sm">Error: {props.error}</p>
+        <p className="text-sm">Error: {props.error.message}</p>
         <p className="text-sm mt-2">Por favor, intenta de nuevo más tarde.</p>
       </div>
     )
@@ -149,7 +150,7 @@ export async function getServerSideProps(context) {
       evento = data.getItinerario;
     } catch (error) {
       try {
-        evento = await fetchApiEventos({
+        evento = await fetchApiEventosServer({
           query: queries.getItinerario,
           variables: {
             evento_id,
@@ -201,7 +202,7 @@ export async function getServerSideProps(context) {
 `
     }
     return {
-      props: { ...params, query, evento, users: usersMap },
+      props: { ...params, query, evento, users: usersMap, development },
     };
   } catch (error) {
     console.log(error)
@@ -211,7 +212,8 @@ export async function getServerSideProps(context) {
         query,
         evento: null,
         users: null,
-        error: error.message || 'Error desconocido'
+        error: error,
+        development: getDevelopment(req.headers.host)
       },
     };
   }
