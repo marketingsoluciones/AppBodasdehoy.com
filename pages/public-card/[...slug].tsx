@@ -1,6 +1,6 @@
 
 import { FC, useEffect, useState } from "react";
-import { fetchApiBodas, fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiBodas, fetchApiEventos, fetchApiEventosServer, queries } from "../../utils/Fetching";
 import { Event } from "../../utils/Interfaces";
 import { motion } from "framer-motion"
 import { defaultImagenes } from "../../components/Home/Card";
@@ -16,10 +16,23 @@ interface props {
   users: any
   slug?: any
   query?: any
+  error?: string
 }
 
 const Slug: FC<props> = (props) => {
   console.log("propsnew", props)
+
+  // Manejar error de getServerSideProps
+  if (props?.error) {
+    return (
+      <div className="bg-[#ffbfbf] text-red-700 w-full h-full text-center mt-20">
+        <h1 className="text-xl font-bold mb-4">Error al cargar la tarjeta</h1>
+        <p className="text-sm">Error: {props.error}</p>
+        <p className="text-sm mt-2">Por favor, intenta de nuevo más tarde.</p>
+      </div>
+    )
+  }
+
   if (!props?.evento?.itinerarios_array?.length)
     return (
       <div className="bg-[#ffbfbf] text-blue-700 w-full h-full text-center mt-20">
@@ -124,23 +137,47 @@ export async function getServerSideProps(context) {
     const evento_id = p?.[1] || query?.event;
     const itinerario_id = p?.[2] || query?.itinerary;
 
-    const evento = await fetchApiEventos({
-      query: queries.getItinerario,
-      variables: {
-        evento_id,
-        itinerario_id
+    let evento: Event | null = null;
+    try {
+      const data = await fetchApiEventosServer({
+        query: queries.getItinerario,
+        variables: {
+          evento_id,
+          itinerario_id
+        }
+      });
+      evento = data.getItinerario;
+    } catch (error) {
+      try {
+        evento = await fetchApiEventos({
+          query: queries.getItinerario,
+          variables: {
+            evento_id,
+            itinerario_id
+          }
+        }) as any;
+      } catch (error2) {
+        throw error2;
       }
-    }) as any
+    }
 
     const itinerary = evento.itinerarios_array.find(elem => elem._id === query.itinerary)
     const task = itinerary?.tasks?.find(elem => elem._id === query.task)
     const development = getDevelopment(req.headers.host)
 
-    const users = await fetchApiBodas({
-      query: queries?.getUsers,
-      variables: { uids: task.comments.filter(elem => !!elem.uid).map(elem => elem.uid) },
-      development: !/^\d+$/.test(development) ? development : "champagne-events"
-    })
+    let users = [];
+    if (task?.comments?.length > 0) {
+      try {
+        users = await fetchApiBodas({
+          query: queries?.getUsers,
+          variables: { uids: task.comments.filter(elem => !!elem.uid).map(elem => elem.uid) },
+          development: !/^\d+$/.test(development) ? development : "champagne-events"
+        });
+      } catch (error) {
+        console.log('Error fetching users:', error);
+        users = [];
+      }
+    }
 
     const usersMap = users?.map(elem => {
       return {
@@ -151,14 +188,16 @@ export async function getServerSideProps(context) {
     })
 
     evento._id = evento_id
-    itinerary.tasks = [task]
-    evento.itinerarios_array = [itinerary]
+    if (itinerary && task) {
+      itinerary.tasks = [task]
+      evento.itinerarios_array = [itinerary]
+    }
     evento.detalles_compartidos_array = users
     evento.fecha_actualizacion = new Date().toLocaleString()
 
     if (evento) {
       openGraphData.openGraph.title = `${evento.itinerarios_array[0].tasks[0].descripcion}`
-      openGraphData.openGraph.description = ` El Evento ${evento.tipo}, de ${evento.nombre}, ${new Date(parseInt(evento?.itinerarios_array[0].fecha_creacion))?.toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}
+      openGraphData.openGraph.description = ` El Evento ${evento.tipo}, de ${evento.nombre}, ${new Date(parseInt(evento?.itinerarios_array[0].fecha_creacion?.toString() || '0'))?.toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}
 `
     }
     return {
@@ -167,9 +206,14 @@ export async function getServerSideProps(context) {
   } catch (error) {
     console.log(error)
     return {
-      props: params,
+      props: {
+        ...params,
+        query,
+        evento: null,
+        users: null,
+        error: error.message || 'Error desconocido'
+      },
     };
-
   }
 }
 
