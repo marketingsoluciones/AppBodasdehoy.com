@@ -41,10 +41,17 @@ const Slug: FC<props> = (props) => {
     }, 2000);
   }, [])
 
+  // bodasdehoy.com
   //public_card en development > FUNCIONA
-  //public_card en production > NO FUNCIONA
+  //public_card en production > FUNCIONA
   //public_itinerary en development > NO FUNCIONA
   //public_itinerary en production > NO FUNCIONA
+
+  //whitelabel
+  //public_card en development > FUNCIONA
+  //public_card en production > FUNCIONA
+  //public_itinerary en development > FUNCIONA
+  //public_itinerary en production > FUNCIONA
 
   useEffect(() => {
     if (event?.itinerarios_array[0]?.tasks?.length > 0) {

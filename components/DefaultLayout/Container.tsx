@@ -19,7 +19,7 @@ const Container = (props) => {
 
   return (
     <>
-      {(!["RelacionesPublicas", "event"].includes(router?.route.split("/")[1])) && <>
+      {(!["RelacionesPublicas", "event", "public-card", "public-itinerary"].includes(router?.route.split("/")[1])) && <>
         <NavigationMobile />
         {!forCms && <motion.div
           initial={{ opacity: 0 }}
