@@ -28,6 +28,8 @@ export const EventInfoModal: React.FC<EventInfoModalProps> = ({
   const [estimatedChildren, setEstimatedChildren] = useState(totalStimatedGuests.children);
   const [isUpdating, setIsUpdating] = useState(false);
   const toast = useToast();
+  const link = `${window?.location?.origin}/presupuesto`
+  console.log("link", link)
 
   // Calcular invitados confirmados desde event.invitados_array
   const confirmedGuests = useMemo(() => {
@@ -85,6 +87,26 @@ export const EventInfoModal: React.FC<EventInfoModalProps> = ({
     updateEstimatedGuests(estimatedAdults, numValue);
   };
 
+  const copyToClipboard = (text: string) => {
+    // Intentar con navigator.clipboard primero
+    if (navigator?.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text);
+      return;
+    }
+    // Fallback para navegadores antiguos o sin HTTPS
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";  // Evita que haga scroll
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    try {
+      document.execCommand('copy');
+    } catch (err) {
+      // Puedes manejar el error si quieres
+    }
+    document.body.removeChild(textarea);
+  };
 
   const ExternalTabsDesign = () => (
     <div className="space-y-3">
@@ -185,9 +207,23 @@ export const EventInfoModal: React.FC<EventInfoModalProps> = ({
       <div className="p-3 border-b">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-gray-800 text-sm">Información del Evento</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            <IoCloseOutline className="w-3 h-3" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                copyToClipboard(link);
+                toast("success", "¡Enlace copiado!");
+              }}
+              className="text-gray-400 hover:text-gray-600"
+              title="Copiar enlace de la página"
+            >
+              {/* Puedes cambiar el ícono si prefieres otro */}
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 17v1a3 3 0 003 3h6a3 3 0 003-3v-6a3 3 0 00-3-3h-1M16 7V6a3 3 0 00-3-3H7a3 3 0 00-3 3v6a3 3 0 003 3h1" /></svg>
+              
+            </button>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+              <IoCloseOutline className="w-3 h-3" />
+            </button>
+          </div>
         </div>
       </div>
 
