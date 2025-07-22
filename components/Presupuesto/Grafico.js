@@ -31,22 +31,11 @@ const Grafico = ({ categorias }) => {
 
   const options = {
     plugins: {
-      // datalabels: {
-      //   font: {
-      //     size: 16, // Define el tamaño de la fuente aquí (en píxeles)
-      //   },
-      //   color: '#fff', // Opcional: Cambiar el color del texto
-      //   formatter: (value, context) => {
-      //     // Opcional: Formatear el texto de la etiqueta
-      //     const total = context.dataset.data.reduce((a, b) => a + b, 0);
-      //     return `${((value / total) * 100).toFixed(1)}%`;
-      //   },
-      // },
       legend: {
         position: 'bottom',
         labels: {
           font: {
-            size: 10, // Opcional: Cambiar el tamaño de la fuente de la leyenda
+            size: 10,
           },
         },
       },
@@ -56,19 +45,12 @@ const Grafico = ({ categorias }) => {
           family: "Poppins"
         }
       },
-      // title: {
-      //   display: true,
-      //   text: 'Gráfico de Donut',
-      //   font: {
-      //     size: 18, // Opcional: Cambiar el tamaño de la fuente del título
-      //   },
-      // },
     },
   };
 
   return (
     <>
-      <div className="w-full flex-1 md:mb-2 md:h-max bg-white rounded-xl shadow-md flex justify-center md:py-6 pt-6">
+      <div className="w-full  md:mb-2  bg-white rounded-xl shadow-md flex justify-center md:py-6 pt-6">
         <div className="w-[350px]">
           <Doughnut
             type="Doughnut"

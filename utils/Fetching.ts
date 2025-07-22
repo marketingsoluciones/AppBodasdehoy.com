@@ -1,19 +1,29 @@
 import { api } from "../api";
 
 interface propsFetchApiBodas {
-  query: string
-  variables: any
-  type?: string
-  development: string
-  token?: string
+  query: string;
+  variables: any;
+  type?: string;
+  development: string;
+  token?: string;
 }
 
-export const fetchApiBodas = async ({ query = ``, variables = {}, type = "json", token, development }: propsFetchApiBodas): Promise<any> => {
+export const fetchApiBodas = async ({
+  query = ``,
+  variables = {},
+  type = "json",
+  token,
+  development,
+}: propsFetchApiBodas): Promise<any> => {
   try {
     if (type === "json") {
       const {
         data: { data },
-      } = await api.ApiBodas({ data: { query, variables }, development, token });
+      } = await api.ApiBodas({
+        data: { query, variables },
+        development,
+        token,
+      });
       return Object.values(data)[0];
     } else if (type === "formData") {
       const formData = new FormData();
@@ -67,14 +77,11 @@ export const fetchApiBodas = async ({ query = ``, variables = {}, type = "json",
         }
       });
 
-      const { data } = await api.ApiApp(
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+      const { data } = await api.ApiApp(formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
         },
-      );
+      });
 
       if (data.errors) {
         throw new Error(JSON.stringify(data.errors));
@@ -84,7 +91,7 @@ export const fetchApiBodas = async ({ query = ``, variables = {}, type = "json",
     }
   } catch (error) {
     console.log(error);
-    return error
+    return error;
   }
 };
 
@@ -92,9 +99,13 @@ interface argsFetchApi {
   query: string;
   variables: object;
   token?: string;
-  domain?: string
+  domain?: string;
 }
-export const fetchApiEventos = async ({ query, variables, token }: argsFetchApi) => {
+export const fetchApiEventos = async ({
+  query,
+  variables,
+  token,
+}: argsFetchApi) => {
   const {
     data: { data },
   } = await api.ApiApp({ query, variables }, token);
@@ -102,42 +113,52 @@ export const fetchApiEventos = async ({ query, variables, token }: argsFetchApi)
 };
 
 // Función específica para getServerSideProps sin autenticación
-export const fetchApiEventosServer = async ({ query, variables }: { query: string, variables: any }) => {
-  const axios = require('axios');
+export const fetchApiEventosServer = async ({
+  query,
+  variables,
+}: {
+  query: string;
+  variables: any;
+}) => {
+  const axios = require("axios");
 
-  console.log('🔍 Debug fetchApiEventosPublic:');
-  console.log('Base URL:', process.env.NEXT_PUBLIC_BASE_URL);
-  console.log('Development:', process.env.NEXT_PUBLIC_DEVELOPMENT);
-  console.log('Query:', query);
-  console.log('Variables:', variables);
+  console.log("🔍 Debug fetchApiEventosPublic:");
+  console.log("Base URL:", process.env.NEXT_PUBLIC_BASE_URL);
+  console.log("Development:", process.env.NEXT_PUBLIC_DEVELOPMENT);
+  console.log("Query:", query);
+  console.log("Variables:", variables);
 
   const serverInstance = axios.create({
     baseURL: process.env.NEXT_PUBLIC_BASE_URL,
-    timeout: 15000 // 15 segundos de timeout
+    timeout: 15000, // 15 segundos de timeout
   });
 
   try {
-    const response = await serverInstance.post("/graphql", {
-      query,
-      variables
-    }, {
-      headers: {
-        Development: process.env.NEXT_PUBLIC_DEVELOPMENT || "bodasdehoy",
-        'Content-Type': 'application/json',
-        'User-Agent': 'Next.js-Server/1.0',
+    const response = await serverInstance.post(
+      "/graphql",
+      {
+        query,
+        variables,
+      },
+      {
+        headers: {
+          Development: process.env.NEXT_PUBLIC_DEVELOPMENT || "bodasdehoy",
+          "Content-Type": "application/json",
+          "User-Agent": "Next.js-Server/1.0",
+        },
       }
-    });
+    );
 
-    console.log('✅ Respuesta exitosa:', response.status);
+    console.log("✅ Respuesta exitosa:", response.status);
 
     if (response.data.errors) {
-      console.error('❌ Errores GraphQL:', response.data.errors);
+      console.error("❌ Errores GraphQL:", response.data.errors);
       throw new Error(`GraphQL Error: ${JSON.stringify(response.data.errors)}`);
     }
 
     return response.data.data;
   } catch (error) {
-    console.error('❌ Error en fetchApiEventosPublic:', {
+    console.error("❌ Error en fetchApiEventosPublic:", {
       message: error.message,
       status: error.response?.status,
       statusText: error.response?.statusText,
@@ -145,14 +166,26 @@ export const fetchApiEventosServer = async ({ query, variables }: { query: strin
       config: {
         url: error.config?.url,
         method: error.config?.method,
-        headers: error.config?.headers
-      }
+        headers: error.config?.headers,
+      },
     });
     throw error;
   }
 };
 
 export const queries = {
+  deletepayment: `mutation($evento_id:String, $categoria_id:String, $gasto_id:String, $pago_id:String){
+    borraPago(evento_id:$evento_id, categoria_id:$categoria_id, gasto_id:$gasto_id, pago_id:$pago_id){
+      pagado
+      categorias_array{
+        pagado
+        gastos_array{
+          pagado
+        }
+      }
+    }
+  }`,
+
   createEmailTemplate: `mutation($evento_id:String, $design:JSON, $configTemplate:inputCongigTemplate, $html:String){
     createEmailTemplate(evento_id:$evento_id, design:$design, configTemplate:$configTemplate, html:$html){
       _id

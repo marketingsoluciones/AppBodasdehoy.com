@@ -409,7 +409,7 @@ export const en = {
     'paymentconcept': "Payment concept",
     'paymentdate': "Payment date",
     'paymentdetails': "Payment details",
-    'paymentmethod': "Payment method",
+    'paymentmethod': "method",
     'payments': "Payments",
     'payments_error': "The final product cost must be greater than 0 to add payments",
     'paymenttoview': "you have no payment to view",
