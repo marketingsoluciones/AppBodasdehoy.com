@@ -1,6 +1,6 @@
 
 import { FC, useEffect, useState } from "react";
-import { fetchApiBodas, fetchApiEventos, fetchApiEventosServer, queries } from "../../utils/Fetching";
+import { fetchApiBodas, fetchApiEventos, fetchApiEventosServer, fetchApiBodasServer, queries } from "../../utils/Fetching";
 import { Event } from "../../utils/Interfaces";
 import { motion } from "framer-motion"
 import { defaultImagenes } from "../../components/Home/Card";
@@ -28,7 +28,7 @@ const Slug: FC<props> = (props) => {
     return (
       <div className="bg-[#ffbfbf] text-red-700 w-full h-full text-center mt-20">
         <h1 className="text-xl font-bold mb-4">Error al cargar la tarjeta</h1>
-        <p className="text-sm">Error: {props.error.message}</p>
+        <p className="text-sm">Error: {props.error?.message || props.error}</p>
         <p className="text-sm mt-2">Por favor, intenta de nuevo más tarde.</p>
       </div>
     )
@@ -133,6 +133,7 @@ const ServicesVew = (props) => {
 
 export async function getServerSideProps(context) {
   const { params, query, req } = context
+  let error_2 = null
   try {
     const p = params?.slug[0]?.split("-")
     const evento_id = p?.[1] || query?.event;
@@ -169,14 +170,26 @@ export async function getServerSideProps(context) {
     let users = [];
     if (task?.comments?.length > 0) {
       try {
-        users = await fetchApiBodas({
+        // Intentar con fetchApiBodasServer primero
+        const data = await fetchApiBodasServer({
           query: queries?.getUsers,
           variables: { uids: task.comments.filter(elem => !!elem.uid).map(elem => elem.uid) },
           development: !/^\d+$/.test(development) ? development : "champagne-events"
         });
+        users = data.getUsers || [];
       } catch (error) {
-        console.log('Error fetching users:', error);
-        users = [];
+        try {
+          error_2 = error
+          users = await fetchApiBodasServer({
+            query: queries?.getUsers,
+            variables: { uids: task.comments.filter(elem => !!elem.uid).map(elem => elem.uid) },
+            development: !/^\d+$/.test(development) ? development : "champagne-events"
+          });
+        } catch (error2) {
+          error_2 = error2
+          console.log('Error fetching users:', error2);
+          users = [];
+        }
       }
     }
 
@@ -201,21 +214,32 @@ export async function getServerSideProps(context) {
       openGraphData.openGraph.description = ` El Evento ${evento.tipo}, de ${evento.nombre}, ${new Date(parseInt(evento?.itinerarios_array[0].fecha_creacion?.toString() || '0'))?.toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}
 `
     }
-    return {
-      props: { ...params, query, evento, users: usersMap, development },
-    };
+
+    // Solo incluir error_2 en props si no es null
+    const props = { ...params, query, evento, users: usersMap, development };
+    if (error_2 !== null) {
+      props.error_2 = error_2;
+    }
+
+    return { props };
   } catch (error) {
     console.log(error)
-    return {
-      props: {
-        ...params,
-        query,
-        evento: null,
-        users: null,
-        error: error,
-        development: getDevelopment(req.headers.host)
-      },
+
+    // Solo incluir error_2 en props si no es null
+    const props = {
+      ...params,
+      query,
+      evento: null,
+      users: null,
+      error: error,
+      development: getDevelopment(req.headers.host)
     };
+
+    if (error_2 !== null) {
+      props.error_2 = error_2;
+    }
+
+    return { props };
   }
 }
 
