@@ -5,7 +5,6 @@ import { AuthContextProvider } from "../../../context";
 import { useTranslation } from 'react-i18next';
 import { Comment, Itinerary, OptionsSelect, Task } from "../../../utils/Interfaces";
 import { ViewItinerary } from "../../../pages/invitados";
-import { getStorage, ref, listAll, deleteObject } from "firebase/storage";
 import { useRouter } from "next/router";
 import { TempPastedAndDropFile } from "../../Itinerario/MicroComponente/ItineraryPanel";
 import { useToast } from "../../../hooks/useToast";
@@ -13,19 +12,12 @@ import { useAllowed } from '../../../hooks/useAllowed';
 
 // Importar funciones utilitarias
 import {
-  stripHtml,
-  minutesToReadableFormat,
-  readableFormatToMinutes,
-  formatDate,
   formatTime,
-  calculateEndTime,
-  formatTextWithLineLimit,
   sortCommentsByDate,
   haveCommentsChanged
 } from './TaskNewUtils';
 
 // Importar componentes
-import { PermissionWrapper, PermissionTooltip } from './TaskNewComponents';
 import { TaskSchemaView } from './TaskSchemaView';
 import { TaskMinimalView } from './TaskMinimalView';
 import { TaskFullView } from './TaskFullView';

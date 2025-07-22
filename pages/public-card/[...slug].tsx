@@ -64,7 +64,7 @@ const ServicesVew = (props) => {
   }, [verificationDone, props])
 
   return (
-    <section className={` absolute z-[50] w-[calc(100vw)] h-[calc(100vh-63px)] top-[63px] left-4. bg-white`}>
+    <section className={` absolute z-[50] w-full h-[calc(100vh-63px)] top-[63px] bg-white`}>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

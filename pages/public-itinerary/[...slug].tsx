@@ -23,14 +23,17 @@ interface TaskReduce {
 
 
 const Slug: FC<props> = (props) => {
-  const { t } = useTranslation()
   const [event, setEvent] = useState<Partial<Event>>(props?.evento)
   const { geoInfo } = AuthContextProvider()
   const [end, setEnd] = useState(false)
   const [tasksReduce, setTasksReduce] = useState<TaskReduce[]>()
 
-  console.log("props", props)
-  console.log("evento", event)
+
+  useEffect(() => {
+    const tasks = props?.evento.itinerarios_array[0].tasks.filter((task) => task.spectatorView !== false)
+    event.itinerarios_array[0].tasks = tasks
+    setEvent({...event})
+  }, [])
 
   useEffect(() => {
     setTimeout(() => {
@@ -69,7 +72,7 @@ const Slug: FC<props> = (props) => {
     )
   }
   return (
-    <section className={"absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4 bg-white"}>
+    <section className={"absolute z-[50] w-full h-[100vh] top-0 bg-white"}>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -114,7 +117,6 @@ const Slug: FC<props> = (props) => {
                   task={elem}
                   itinerario={event?.itinerarios_array[0]}
                   view={"schema"}
-                  // isSelect={selectTask === elem._id}
                   onClick={() => { }}
                 />
               )
