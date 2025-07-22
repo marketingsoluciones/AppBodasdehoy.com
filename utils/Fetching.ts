@@ -101,6 +101,57 @@ export const fetchApiEventos = async ({ query, variables, token }: argsFetchApi)
   return Object.values(data)[0];
 };
 
+// Función específica para getServerSideProps sin autenticación
+export const fetchApiEventosServer = async ({ query, variables }: { query: string, variables: any }) => {
+  const axios = require('axios');
+
+  console.log('🔍 Debug fetchApiEventosPublic:');
+  console.log('Base URL:', process.env.NEXT_PUBLIC_BASE_URL);
+  console.log('Development:', process.env.NEXT_PUBLIC_DEVELOPMENT);
+  console.log('Query:', query);
+  console.log('Variables:', variables);
+
+  const serverInstance = axios.create({
+    baseURL: process.env.NEXT_PUBLIC_BASE_URL,
+    timeout: 15000 // 15 segundos de timeout
+  });
+
+  try {
+    const response = await serverInstance.post("/graphql", {
+      query,
+      variables
+    }, {
+      headers: {
+        Development: process.env.NEXT_PUBLIC_DEVELOPMENT || "bodasdehoy",
+        'Content-Type': 'application/json',
+        'User-Agent': 'Next.js-Server/1.0',
+      }
+    });
+
+    console.log('✅ Respuesta exitosa:', response.status);
+
+    if (response.data.errors) {
+      console.error('❌ Errores GraphQL:', response.data.errors);
+      throw new Error(`GraphQL Error: ${JSON.stringify(response.data.errors)}`);
+    }
+
+    return response.data.data;
+  } catch (error) {
+    console.error('❌ Error en fetchApiEventosPublic:', {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      config: {
+        url: error.config?.url,
+        method: error.config?.method,
+        headers: error.config?.headers
+      }
+    });
+    throw error;
+  }
+};
+
 export const queries = {
   createEmailTemplate: `mutation($evento_id:String, $design:JSON, $configTemplate:inputCongigTemplate, $html:String){
     createEmailTemplate(evento_id:$evento_id, design:$design, configTemplate:$configTemplate, html:$html){

@@ -1,6 +1,6 @@
 
 import { FC, useEffect, useState } from "react";
-import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiEventos, fetchApiEventosServer, queries } from "../../utils/Fetching";
 import { Event, Task } from "../../utils/Interfaces";
 import { motion } from "framer-motion"
 import { AuthContextProvider } from "../../context";
@@ -12,6 +12,7 @@ import { openGraphData } from "../_app";
 interface props {
   evento: Event
   slug?: any
+  error?: string
 }
 
 interface TaskReduce {
@@ -23,13 +24,13 @@ interface TaskReduce {
 
 const Slug: FC<props> = (props) => {
   const { t } = useTranslation()
-  const event = props.evento
+  const [event, setEvent] = useState<Partial<Event>>(props?.evento)
   const { geoInfo } = AuthContextProvider()
   const [end, setEnd] = useState(false)
   const [tasksReduce, setTasksReduce] = useState<TaskReduce[]>()
 
   console.log("props", props)
-  console.log("evento",event)
+  console.log("evento", event)
 
   useEffect(() => {
     setTimeout(() => {
@@ -58,15 +59,15 @@ const Slug: FC<props> = (props) => {
     } else {
       setTasksReduce([])
     }
-  }, [])
+  }, [event])
 
-  if (!event.itinerarios_array?.length)
+  if (!event.itinerarios_array?.length) {
     return (
       <div className="bg-[#ffbfbf] text-blue-700 w-full h-full text-center mt-20">
         Page not found error 404
       </div>
     )
-
+  }
   return (
     <section className={"absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4 bg-white"}>
       <motion.div
@@ -83,7 +84,7 @@ const Slug: FC<props> = (props) => {
           </div>
           <div className='flex-1 md:flex-none md:w-[35%] h-[100%] flex flex-row-reverse md:flex-row items-center '>
             <img
-              src={event?.imgEvento ? `https://apiapp.bodasdehoy.com/${event.imgEvento.i800}` : defaultImagenes[event?.tipo]}
+              src={event?.imgEvento ? `https://apiapp.bodasdehoy.com/${event?.imgEvento?.i800}` : defaultImagenes[event?.tipo]}
               className=" h-[90%] object-cover object-top rounded-md border-1 border-gray-600  hidden md:block"
               alt={event?.nombre}
             />
@@ -111,7 +112,7 @@ const Slug: FC<props> = (props) => {
                 <TaskNew
                   key={idx}
                   task={elem}
-                  itinerario={event.itinerarios_array[0]}
+                  itinerario={event?.itinerarios_array[0]}
                   view={"schema"}
                   // isSelect={selectTask === elem._id}
                   onClick={() => { }}
@@ -131,24 +132,36 @@ export default Slug;
 
 
 export async function getServerSideProps({ params }) {
-  console.log("params",params)
   try {
     const p = params?.slug[0]?.split("-")
     const evento_id = p[1]
     const itinerario_id = p[2]
-    const evento = await fetchApiEventos({
-      query: queries.getItinerario,
-      variables: {
-        evento_id,
-        itinerario_id
+    let evento: Event | null = null;
+    try {
+      const data = await fetchApiEventosServer({
+        query: queries.getItinerario,
+        variables: {
+          evento_id,
+          itinerario_id
+        }
+      });
+      evento = data.getItinerario;
+    } catch (error) {
+      try {
+        evento = await fetchApiEventos({
+          query: queries.getItinerario,
+          variables: {
+            evento_id,
+            itinerario_id
+          }
+        }) as any;
+      } catch (error2) {
+        throw error2;
       }
-    }) as any
-
-    console.log("fetch de evento en el servidor", evento)
-    
+    }
     if (evento) {
-      openGraphData.openGraph.title = `${evento.itinerarios_array[0].title}`
-      openGraphData.openGraph.description = `Mira el itinerario del evento ${evento.nombre} y no te pierdas de nada`
+      openGraphData.openGraph.title = `${evento?.itinerarios_array[0]?.title}`
+      openGraphData.openGraph.description = `Mira el itinerario del evento ${evento?.nombre} y no te pierdas de nada`
     }
     return {
       props: {
@@ -158,8 +171,11 @@ export async function getServerSideProps({ params }) {
     };
   } catch (error) {
     return {
-      props: params,
+      props: {
+        evento: null,
+        slug: params.slug || null,
+        error: error
+      },
     };
-
   }
 }
