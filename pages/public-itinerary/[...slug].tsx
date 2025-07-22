@@ -32,7 +32,7 @@ const Slug: FC<props> = (props) => {
   useEffect(() => {
     const tasks = props?.evento.itinerarios_array[0].tasks.filter((task) => task.spectatorView !== false)
     event.itinerarios_array[0].tasks = tasks
-    setEvent({...event})
+    setEvent({ ...event })
   }, [])
 
   useEffect(() => {
@@ -40,6 +40,11 @@ const Slug: FC<props> = (props) => {
       setEnd(true)
     }, 2000);
   }, [])
+
+  //public_card en development > FUNCIONA
+  //public_card en production > NO FUNCIONA
+  //public_itinerary en development > NO FUNCIONA
+  //public_itinerary en production > NO FUNCIONA
 
   useEffect(() => {
     if (event?.itinerarios_array[0]?.tasks?.length > 0) {
