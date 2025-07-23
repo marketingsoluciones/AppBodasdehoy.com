@@ -1,4 +1,4 @@
-/* import { ChangeEvent, Dispatch, FC, SetStateAction, useEffect, useState } from "react"
+import { ChangeEvent, Dispatch, FC, SetStateAction, useEffect, useState } from "react"
 import { QuillEditor } from "./QuillEditor"
 import { AuthContextProvider, EventContextProvider } from "../../../context"
 import { fetchApiEventos, queries } from "../../../utils/Fetching"
@@ -11,19 +11,30 @@ import { PiFileArrowUpThin } from "react-icons/pi"
 import { IoClose } from "react-icons/io5";
 import { SwiperPastedAndDropFiles } from "./SwiperPastedAndDropFiles"
 import { LiaTrashSolid } from "react-icons/lia";
-import { FileIconComponent } from "./FileIconComponent"
 import { getStorage, ref, uploadBytesResumable } from "firebase/storage"
-import { TempPastedAndDropFiles } from "./ItineraryPanel"
 import { customAlphabet } from "nanoid"
-import { SetNickname } from "./SetNickName"
+import { SetNickname } from "../../Itinerario/MicroComponente/SetNickName"
+import { FileIconComponent } from "../../Itinerario/MicroComponente/FileIconComponent"
+import { TempPastedAndDropFile } from "../../Itinerario/MicroComponente/ItineraryPanel"
+
+// interface props {
+//   itinerario: Itinerary
+//   task: Task
+//   tempPastedAndDropFiles: TempPastedAndDropFiles[]
+//   setTempPastedAndDropFiles: any
+//   nicknameUnregistered: string
+//   setNicknameUnregistered: Dispatch<SetStateAction<string>>
+// }
 
 interface props {
-  itinerario: Itinerary
-  task: Task
-  tempPastedAndDropFiles: TempPastedAndDropFiles[]
-  setTempPastedAndDropFiles: any
-  nicknameUnregistered: string
-  setNicknameUnregistered: Dispatch<SetStateAction<string>>
+  itinerario?: Itinerary
+  task?: Task
+  tempPastedAndDropFiles?: TempPastedAndDropFile[]
+  setTempPastedAndDropFiles?: any
+  nicknameUnregistered?: string
+  setNicknameUnregistered?: Dispatch<SetStateAction<string>>
+  disabled?: boolean
+  onCommentAdded?: (comment: Comment) => void // Nueva prop para notificar cuando se agrega un comentario
 }
 
 export type PastedAndDropFile = {
@@ -307,18 +318,18 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
           </div>
         </div>
         {(!pastedAndDropFiles.length && (
-  <span
-    onClick={(valir || pastedAndDropFiles.length) ? handleCreateComment : () => { }}
-    className={`${(valir || pastedAndDropFiles.length) ? "cursor-pointer font-semibold" : "text-gray-400"} absolute right-3 bottom-[10.5px]`}
-  >
-    <IoIosSend className={`h-[23px] w-auto ${(valir || pastedAndDropFiles.length) ? "text-teal-500" : "text-gray-200"} select-none`} />
-  </span>
-))}
+          <span
+            onClick={(valir || pastedAndDropFiles.length) ? handleCreateComment : () => { }}
+            className={`${(valir || pastedAndDropFiles.length) ? "cursor-pointer font-semibold" : "text-gray-400"} absolute right-3 bottom-[10.5px]`}
+          >
+            <IoIosSend className={`h-[23px] w-auto ${(valir || pastedAndDropFiles.length) ? "text-teal-500" : "text-gray-200"} select-none`} />
+          </span>
+        ))}
       </div>
     </div>
   )
-} */
-
+}
+{/* 
   import { ChangeEvent, Dispatch, FC, SetStateAction, useEffect, useState } from "react"
 import { QuillEditor } from "./QuillEditor"
 import { AuthContextProvider, EventContextProvider } from "../../../context"
@@ -755,3 +766,4 @@ export const InputComments: FC<props> = ({
     </div>
   )
 }
+   */}

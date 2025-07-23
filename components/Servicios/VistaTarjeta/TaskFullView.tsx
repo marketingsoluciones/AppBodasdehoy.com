@@ -12,17 +12,17 @@ import { ClickUpResponsableSelector } from '../VistaTabla/NewResponsableSelector
 import { NewSelectIcon } from '../VistaTabla/NewSelectIcon';
 import { PermissionWrapper } from './TaskNewComponents';
 import { TASK_STATUSES, TASK_PRIORITIES } from '../VistaTabla/NewTypes';
-import { 
-  formatTime, 
-  formatDate, 
-  minutesToReadableFormat, 
-  readableFormatToMinutes, 
+import {
+  formatTime,
+  formatDate,
+  minutesToReadableFormat,
+  readableFormatToMinutes,
 } from './TaskNewUtils';
 import ClickAwayListener from "react-click-away-listener";
 import { useToast } from "../../../hooks/useToast";
 import { TempPastedAndDropFile } from "../../Itinerario/MicroComponente/ItineraryPanel";
 import {
-  X, MessageSquare, Tag, Calendar, Clock, User, Flag, ChevronDown, Copy, Link, 
+  X, MessageSquare, Tag, Calendar, Clock, User, Flag, ChevronDown, Copy, Link,
   MoreHorizontal, Trash2, Archive, Bell, Plus, Eye, EyeOff
 } from 'lucide-react';
 import { SelectIcon } from '../Utils/SelectIcon';
@@ -31,7 +31,7 @@ import dynamic from 'next/dynamic';
 import 'react-quill/dist/quill.snow.css';
 
 // Importar ReactQuill dinámicamente para evitar problemas de SSR
-const ReactQuill = dynamic(() => import('react-quill'), { 
+const ReactQuill = dynamic(() => import('react-quill'), {
   ssr: false,
   loading: () => <div className="h-40 bg-gray-50 animate-pulse rounded-lg" />
 });
@@ -42,8 +42,8 @@ const quillModules = {
     [{ 'header': [1, 2, 3, false] }],
     ['bold', 'italic', 'underline', 'strike'],
     [{ 'color': [] }, { 'background': [] }],
-    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-    [{ 'indent': '-1'}, { 'indent': '+1' }],
+    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+    [{ 'indent': '-1' }, { 'indent': '+1' }],
     [{ 'align': [] }],
     ['link', 'image'],
     ['clean']
@@ -146,7 +146,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
   const toast = useToast();
   const commentsContainerRef = useRef<HTMLDivElement>(null);
   const [previousCountComments, setPreviousCountComments] = useState(0);
-  
+
   // Estados locales para la vista completa
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [showPriorityDropdown, setShowPriorityDropdown] = useState(false);
@@ -197,9 +197,9 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
 
   return (
     <div {...props} className="w-full bg-white rounded-lg shadow-lg">
-      <div className="flex min-h-[600px]">
+      <div id="task-container" className="flex min-h-[600px] h-full">
         {/* Panel principal */}
-        <div className="flex md:w-[75%] flex-col">
+        <div id='container-left' className="flex md:w-[75%] flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
             <div className="flex items-center space-x-4 flex-1">
@@ -215,9 +215,8 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                   ) : (
                     <button
                       onClick={() => canEdit ? setShowIconSelector(true) : ht()}
-                      className={`w-12 h-12 flex items-center justify-center rounded-full transition-colors ${
-                        canEdit ? 'hover:bg-gray-100 cursor-pointer' : 'opacity-60 cursor-not-allowed'
-                      }`}
+                      className={`w-12 h-12 flex items-center justify-center rounded-full transition-colors ${canEdit ? 'hover:bg-gray-100 cursor-pointer' : 'opacity-60 cursor-not-allowed'
+                        }`}
                       title={canEdit ? "Cambiar ícono" : "No tienes permisos para editar"}
                     >
                       <Formik
@@ -250,7 +249,6 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                   )}
                 </div>
               </PermissionWrapper>
-
               {/* Título con borde primary */}
               {editingField === 'descripcion' ? (
                 <input
@@ -264,9 +262,8 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                 />
               ) : (
                 <h2
-                  className={`text-2xl font-semibold flex-1 ${
-                    canEdit ? 'cursor-pointer hover:text-gray-700' : 'cursor-default opacity-80'
-                  }`}
+                  className={`text-2xl font-semibold flex-1 ${canEdit ? 'cursor-pointer hover:text-gray-700' : 'cursor-default opacity-80'
+                    }`}
                   onClick={() => canEdit ? handleFieldClick('descripcion', localTask.descripcion) : ht()}
                   title={canEdit ? "Haz clic para editar" : "No tienes permisos para editar"}
                 >
@@ -274,7 +271,6 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                 </h2>
               )}
             </div>
-
             {/* Botones de acción integrados - OCULTOS sin permisos */}
             {canEdit && (
               <div className="flex items-center">
@@ -286,11 +282,10 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                         handleUpdate('spectatorView', newValue);
                         toast('success', t(newValue ? 'Tarea visible' : 'Tarea oculta'));
                       }}
-                      className={`relative p-1.5 rounded-md transition-all duration-200 ${
-                        localTask.spectatorView
-                          ? 'text-primary bg-primary/10 shadow-sm'
-                          : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
-                      }`}
+                      className={`relative p-1.5 rounded-md transition-all duration-200 ${localTask.spectatorView
+                        ? 'text-primary bg-primary/10 shadow-sm'
+                        : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                        }`}
                       title={t(localTask.spectatorView ? 'Tarea visible' : 'Tarea oculta')}
                     >
                       {localTask.spectatorView === true ? (
@@ -309,10 +304,8 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                       {t(localTask.spectatorView ? 'Visible' : 'Oculta')}
                     </div>
                   </div>
-
                   {/* Separador visual sutil */}
                   <div className="w-px h-4 bg-gray-300 mx-1 opacity-50"></div>
-
                   {/* Duplicar - Acción rápida con hover primary */}
                   <div className="relative group">
                     <button
@@ -327,7 +320,6 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                       {t('Duplicar')}
                     </div>
                   </div>
-
                   {/* Compartir enlace - Con feedback visual al copiar */}
                   <div className="relative group">
                     <button
@@ -358,7 +350,6 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                               icon = option.getIcon(localTask.spectatorView);
                             }
                           }
-
                           // Determinar estado activo y colores según el tipo de acción
                           let isActive = false;
                           let activeColorClass = '';
@@ -390,7 +381,6 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                             default:
                               hoverColorClass = 'hover:text-gray-600 hover:bg-gray-100';
                           }
-
                           return (
                             <div key={idx} className="relative group">
                               <button
@@ -399,11 +389,10 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                                     option.onClick(task, itinerario);
                                   }
                                 }}
-                                className={`relative p-1.5 rounded-md transition-all duration-200 ${
-                                  isActive
-                                    ? `${activeColorClass} shadow-sm`
-                                    : `text-gray-400 ${hoverColorClass}`
-                                }`}
+                                className={`relative p-1.5 rounded-md transition-all duration-200 ${isActive
+                                  ? `${activeColorClass} shadow-sm`
+                                  : `text-gray-400 ${hoverColorClass}`
+                                  }`}
                                 title={t(option.title || option.value || '')}
                                 disabled={option.idDisabled}
                               >
@@ -414,16 +403,14 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                                 {/* Indicador de estado con colores específicos por tipo */}
                                 {isActive && (
                                   <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
-                                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${
-                                      option.value === 'status' ? 'bg-primary' :
+                                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${option.value === 'status' ? 'bg-primary' :
                                       option.value === 'flujo' ? 'bg-purple-500' :
-                                      'bg-blue-500'
-                                    } opacity-75`}></span>
-                                    <span className={`relative inline-flex rounded-full h-2 w-2 ${
-                                      option.value === 'status' ? 'bg-primary' :
+                                        'bg-blue-500'
+                                      } opacity-75`}></span>
+                                    <span className={`relative inline-flex rounded-full h-2 w-2 ${option.value === 'status' ? 'bg-primary' :
                                       option.value === 'flujo' ? 'bg-purple-500' :
-                                      'bg-blue-500'
-                                    }`}></span>
+                                        'bg-blue-500'
+                                      }`}></span>
                                   </span>
                                 )}
                               </button>
@@ -437,14 +424,12 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                     </div>
                   </>
                 )}
-
                 {/* Menú de más opciones - OCULTO sin permisos */}
 {/*                 <div className="relative">
                   <button
                     onClick={() => setShowMoreOptions(!showMoreOptions)}
-                    className={`p-1.5 rounded-lg transition-all duration-200 ${
-                      showMoreOptions ? 'bg-gray-100 text-gray-700' : 'hover:bg-gray-100 text-gray-500'
-                    }`}
+                    className={`p-1.5 rounded-lg transition-all duration-200 ${showMoreOptions ? 'bg-gray-100 text-gray-700' : 'hover:bg-gray-100 text-gray-500'
+                      }`}
                   >
                     <MoreHorizontal className="w-4 h-4" />
                   </button>
@@ -479,7 +464,6 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               </div>
             )}
           </div>
-
           {/* Contenido principal */}
           <div className="flex-1 overflow-y-auto">
             {/* Información principal de la tarea */}
@@ -492,9 +476,8 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                   <div className="relative">
                     <button
                       onClick={() => canEdit ? setShowStatusDropdown(!showStatusDropdown) : ht()}
-                      className={`px-3 py-1 rounded text-white text-sm flex items-center space-x-1 ${currentStatus.color} ${
-                        canEdit ? 'hover:opacity-80 cursor-pointer' : 'opacity-70 cursor-not-allowed'
-                      }`}
+                      className={`px-3 py-1 rounded text-white text-sm flex items-center space-x-1 ${currentStatus.color} ${canEdit ? 'hover:opacity-80 cursor-pointer' : 'opacity-70 cursor-not-allowed'
+                        }`}
                       title={canEdit ? "Cambiar estado" : "No tienes permisos para editar"}
                     >
                       <span>{currentStatus.label}</span>
@@ -521,16 +504,14 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                     )}
                   </div>
                 </div>
-
                 {/* Prioridad */}
                 <div className="flex items-center space-x-2">
                   <span className="text-sm text-gray-600">{t('Prioridad')}</span>
                   <div className="relative">
                     <button
                       onClick={() => canEdit ? setShowPriorityDropdown(!showPriorityDropdown) : ht()}
-                      className={`px-3 py-1 rounded text-white text-sm flex items-center space-x-1 ${currentPriority.color} ${
-                        canEdit ? 'hover:opacity-80 cursor-pointer' : 'opacity-70 cursor-not-allowed'
-                      }`}
+                      className={`px-3 py-1 rounded text-white text-sm flex items-center space-x-1 ${currentPriority.color} ${canEdit ? 'hover:opacity-80 cursor-pointer' : 'opacity-70 cursor-not-allowed'
+                        }`}
                       title={canEdit ? "Cambiar prioridad" : "No tienes permisos para editar"}
                     >
                       <Flag className="w-3 h-3" />
@@ -549,11 +530,10 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                               }}
                               className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100"
                             >
-                              <Flag className={`w-4 h-4 mr-3 ${
-                                priority.value === 'alta' ? 'text-[#ef4444]' :
+                              <Flag className={`w-4 h-4 mr-3 ${priority.value === 'alta' ? 'text-[#ef4444]' :
                                 priority.value === 'media' ? 'text-yellow-500' :
-                                'text-gray-400'
-                              }`} />
+                                  'text-gray-400'
+                                }`} />
                               <span>{priority.label}</span>
                             </button>
                           ))}
@@ -563,7 +543,6 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                   </div>
                 </div>
               </div>
-
               {/* Asignados con NewResponsableSelector */}
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
@@ -598,7 +577,6 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                               return displayName.toLowerCase() === resp?.toLowerCase();
                             }
                           );
-
                           return (
                             <div
                               key={idx}
@@ -627,13 +605,13 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                   )}
                 </div>
               </div>
-
               {/* Fechas con duración y hora */}
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
                   <Calendar className="w-4 h-4 text-gray-500" />
                   <span className="text-sm text-gray-600">{t('Fecha y hora')}</span>
                 </div>
+                {/* Fecha y hora REVISAR */}
                 <div className="flex items-center space-x-4">
                   {editingField === 'fecha' ? (
   <div className="flex items-center space-x-2">
@@ -717,7 +695,6 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                       </span>
                     </div>
                   )}
-
                   {/* Duración mejorada con conversor */}
                   {editingDuration ? (
                     <div className="flex items-center space-x-1">
@@ -762,9 +739,8 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                   )}
                 </div>
               </div>
-
               {/* NUEVA SECCIÓN: Indicadores de hora inicio y fin (SOLO VISUALES) */}
-{/*               {localTask.fecha && localTask.duracion && (
+              {/*               {localTask.fecha && localTask.duracion && (
                 <div className="flex items-center space-x-6 bg-gray-50 rounded-lg p-3">
                   <div className="flex items-center space-x-2">
                     <PlayCircle className="w-5 h-5 text-green-600" />
@@ -787,7 +763,6 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                   </div>
                 </div>
               )} */}
-
               {/* Etiquetas */}
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
@@ -842,90 +817,86 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                 </div>
               </div>
             </div>
-
             {/* Sección de Detalles */}
             <div className="border-t border-gray-200">
               <div className="px-6 py-4">
 
                 <div className="space-y-6">
-{/* Descripción larga con Editor Rico */}
-<div>
-  <div className="flex items-center justify-between mb-2">
-    <label className="text-sm font-medium text-gray-700">
-      {t('Descripción detallada')}
-    </label>
-    {localTask.tips && !editingDescription && canEdit && (
-      <button
-        onClick={() => setEditingDescription(true)}
-        className="text-sm text-primary hover:text-primary/80"
-      >
-        {t('Editar')}
-      </button>
-    )}
-  </div>
-
-  {editingDescription ? (
-    <div className="border border-gray-300 rounded-lg overflow-hidden">
-      <ReactQuill
-        value={customDescription}
-        onChange={setCustomDescription}
-        modules={quillModules}
-        formats={quillFormats}
-        theme="snow"
-        placeholder={t('Escribe una descripción detallada...')}
-        className="bg-white"
-        style={{ minHeight: '200px' }}
-      />
-      <div className="flex justify-end space-x-2 p-3 bg-gray-50 border-t border-gray-200">
-        <button
-          onClick={() => {
-            setCustomDescription(localTask.tips || '');
-            setEditingDescription(false);
-          }}
-          className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
-        >
-          {t('Cancelar')}
-        </button>
-        <button
-          onClick={() => {
-            handleUpdate('tips', customDescription);
-            setEditingDescription(false);
-          }}
-          className="px-4 py-2 text-sm bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
-        >
-          {t('Guardar')}
-        </button>
-      </div>
-    </div>
-  ) : (
-    <div
-      className={`border border-gray-200 rounded-lg p-4 min-h-[100px] ${
-        canEdit ? 'cursor-pointer hover:border-gray-300' : 'cursor-default opacity-60'
-      }`}
-      onClick={() => {
-        if (canEdit) {
-          setCustomDescription(localTask.tips || '');
-          setEditingDescription(true);
-        } else {
-          ht();
-        }
-      }}
-      title={canEdit ? "Haz clic para editar descripción" : "No tienes permisos para editar"}
-    >
-      {localTask.tips ? (
-        <div 
-          className="prose prose-sm max-w-none [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:my-3 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:my-3 [&_h3]:text-lg [&_h3]:font-bold [&_h3]:my-3 [&_p]:mb-4 [&_ul]:pl-6 [&_ul]:mb-4 [&_ul]:list-disc [&_ol]:pl-6 [&_ol]:mb-4 [&_ol]:list-decimal [&_li]:mb-2 [&_pre]:bg-gray-100 [&_pre]:p-3 [&_pre]:rounded [&_pre]:my-2 [&_pre]:whitespace-pre-wrap [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-sm [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-4 [&_blockquote]:my-2 [&_blockquote]:italic [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800 [&_.ql-align-center]:text-center [&_.ql-align-right]:text-right [&_.ql-align-justify]:text-justify [&_.ql-size-small]:text-xs [&_.ql-size-large]:text-lg [&_.ql-size-huge]:text-2xl [&_.ql-font-serif]:font-serif [&_.ql-font-monospace]:font-mono"
-          dangerouslySetInnerHTML={{ __html: localTask.tips }}
-        />
-      ) : (
-        <p className="text-sm text-gray-400">
-          {canEdit ? t('Haz clic para agregar una descripción...') : t('Sin descripción')}
-        </p>
-      )}
-    </div>
-  )}
-</div>
-
+                  {/* Descripción larga con Editor Rico */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-sm font-medium text-gray-700">
+                        {t('Descripción detallada')}
+                      </label>
+                      {localTask.tips && !editingDescription && canEdit && (
+                        <button
+                          onClick={() => setEditingDescription(true)}
+                          className="text-sm text-primary hover:text-primary/80"
+                        >
+                          {t('Editar')}
+                        </button>
+                      )}
+                    </div>
+                    {editingDescription ? (
+                      <div className="border border-gray-300 rounded-lg overflow-hidden">
+                        <ReactQuill
+                          value={customDescription}
+                          onChange={setCustomDescription}
+                          modules={quillModules}
+                          formats={quillFormats}
+                          theme="snow"
+                          placeholder={t('Escribe una descripción detallada...')}
+                          className="bg-white"
+                          style={{ minHeight: '200px' }}
+                        />
+                        <div className="flex justify-end space-x-2 p-3 bg-gray-50 border-t border-gray-200">
+                          <button
+                            onClick={() => {
+                              setCustomDescription(localTask.tips || '');
+                              setEditingDescription(false);
+                            }}
+                            className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+                          >
+                            {t('Cancelar')}
+                          </button>
+                          <button
+                            onClick={() => {
+                              handleUpdate('tips', customDescription);
+                              setEditingDescription(false);
+                            }}
+                            className="px-4 py-2 text-sm bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+                          >
+                            {t('Guardar')}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        className={`border border-gray-200 rounded-lg p-4 min-h-[100px] ${canEdit ? 'cursor-pointer hover:border-gray-300' : 'cursor-default opacity-60'
+                          }`}
+                        onClick={() => {
+                          if (canEdit) {
+                            setCustomDescription(localTask.tips || '');
+                            setEditingDescription(true);
+                          } else {
+                            ht();
+                          }
+                        }}
+                        title={canEdit ? "Haz clic para editar descripción" : "No tienes permisos para editar"}
+                      >
+                        {localTask.tips ? (
+                          <div
+                            className="prose prose-sm max-w-none [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:my-3 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:my-3 [&_h3]:text-lg [&_h3]:font-bold [&_h3]:my-3 [&_p]:mb-4 [&_ul]:pl-6 [&_ul]:mb-4 [&_ul]:list-disc [&_ol]:pl-6 [&_ol]:mb-4 [&_ol]:list-decimal [&_li]:mb-2 [&_pre]:bg-gray-100 [&_pre]:p-3 [&_pre]:rounded [&_pre]:my-2 [&_pre]:whitespace-pre-wrap [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-sm [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-4 [&_blockquote]:my-2 [&_blockquote]:italic [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800 [&_.ql-align-center]:text-center [&_.ql-align-right]:text-right [&_.ql-align-justify]:text-justify [&_.ql-size-small]:text-xs [&_.ql-size-large]:text-lg [&_.ql-size-huge]:text-2xl [&_.ql-font-serif]:font-serif [&_.ql-font-monospace]:font-mono"
+                            dangerouslySetInnerHTML={{ __html: localTask.tips }}
+                          />
+                        ) : (
+                          <p className="text-sm text-gray-400">
+                            {canEdit ? t('Haz clic para agregar una descripción...') : t('Sin descripción')}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
                   {/* Adjuntos mejorados */}
                   <div>
                     {/* <h4 className="text-sm font-medium text-gray-700 mb-3">{t('Adjuntos')}</h4> */}
@@ -938,16 +909,14 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                       readOnly={!canEdit}
                     />
                   </div>
-
                 </div>
               </div>
             </div>
           </div>
         </div>
-
         {/* Panel lateral - Chat/Comentarios */}
-        <div className="w-96 border-l border-gray-200 flex flex-col bg-gray-50">
-          <div className="p-4 border-b border-gray-200 bg-white">
+        <div id="container-right" className="w-96 flex flex-col bg-gray-50 h-full">
+          <div className="p-4 border-b border-gray-200 bg-white h-[81px]">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-lg">{t('Actividad')}</h3>
               <div className="flex items-center space-x-2">
@@ -956,21 +925,18 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               </div>
             </div>
           </div>
-
           <div
             ref={commentsContainerRef}
-            className="flex-1 overflow-y-auto p-4 space-y-2 flex flex-col-reverse"
-          >
-            {comments.length === 0 ? (
-              <div className="text-center py-8 flex-1 flex items-center justify-center">
+            className="space-y-2 flex flex-col-reverse h-[450px]" >
+            {comments.length === 0
+              ? (<div className="text-center py-8 flex-1 flex items-center justify-center">
                 <div>
                   <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-2" />
                   <p className="text-sm text-gray-500">{t('No hay comentarios aún')}</p>
                   <p className="text-xs text-gray-400 mt-1">{t('Sé el primero en comentar')}</p>
                 </div>
-              </div>
-            ) : (
-              <div className="space-y-2">
+              </div>)
+              : (<div className="space-y-2 h-full overflow-y-auto">
                 {comments.map((comment) => (
                   <div key={comment._id} className="relative group">
                     <ListComments
@@ -991,11 +957,9 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                     )}
                   </div>
                 ))}
-              </div>
-            )}
+              </div>)}
           </div>
-
-          <div className="border-t border-gray-200 bg-white min-h-[105px] px-4 py-2">
+          <div className="border-t border-gray-200 bg-white min-h-[105px]">
             <InputComments
               itinerario={itinerario}
               task={task}
@@ -1006,7 +970,6 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
             />
           </div>
         </div>
-
         {/* Estilos CSS para animaciones */}
         <style jsx>{`
           @keyframes ping {
@@ -1015,7 +978,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               opacity: 0;
             }
           }
-          
+
           .animate-ping {
             animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
           }

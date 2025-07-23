@@ -266,7 +266,7 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
 
   return (
     <>
-      <div className='flex w-full items-center space-x-2'>
+      <div className='flex w-full items-center space-x-0.5'>
         <div className='flex'>
           <div className='flex justify-center items-center select-none'>
             <ClickAwayListener onClickAway={() => { setShowPicker(false) }}>

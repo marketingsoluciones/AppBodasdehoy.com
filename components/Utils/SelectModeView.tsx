@@ -1,10 +1,9 @@
 
-import { FC, useEffect, useState } from "react"
+import { FC, useState } from "react"
 import ClickAwayListener from "react-click-away-listener"
-import { GoMultiSelect } from "react-icons/go"
 import { LiaIdCardSolid } from "react-icons/lia";
 import { HiOutlineViewList } from "react-icons/hi";
-import { TbSchema, TbLayoutKanban } from "react-icons/tb"; // Agregar TbLayoutKanban
+import { TbSchema, TbLayoutKanban } from "react-icons/tb";
 import { ArrowDownBodasIcon } from "../icons";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from "react-i18next";
@@ -27,31 +26,31 @@ export const SelectModeView: FC<props> = ({ value, setValue }) => {
       icon: <LiaIdCardSolid className="w-5 h-5" />,
       title: t("card")
     },
-/*     {
-      value: "extraTable", // Vista de tabla personalizada
-      icon: <HiOutlineViewList className="w-5 h-5" />,
-      title: t("NuevaTabla") // Traducción para la nueva opción
-    }, */
-/*     {
-      value: "newTable", // Vista de tabla personalizada
-      icon: <HiOutlineViewList className="w-5 h-5" />,
-      title: t("NewTabla") // Traducción para la nueva opción
-    }, */
+    /*     {
+          value: "extraTable", // Vista de tabla personalizada
+          icon: <HiOutlineViewList className="w-5 h-5" />,
+          title: t("NuevaTabla") // Traducción para la nueva opción
+        }, */
+    /*     {
+          value: "newTable", // Vista de tabla personalizada
+          icon: <HiOutlineViewList className="w-5 h-5" />,
+          title: t("NewTabla") // Traducción para la nueva opción
+        }, */
     {
       value: "boardView", // Nueva vista de tablero Kanban
       icon: <TbLayoutKanban className="w-5 h-5" />,
       title: t("kanban") // Traducción para vista kanban
     },
   ];
-  
-  if (isAllowed()) {
-    options.push({
-      value: "table",
-      icon: <HiOutlineViewList className="w-5 h-5" />,
-      title: t("board")
-    });
-  }
-  
+  // descomentar para mostrar la tabla
+  // if (isAllowed()) {
+  //   options.push({
+  //     value: "table",
+  //     icon: <HiOutlineViewList className="w-5 h-5" />,
+  //     title: t("board")
+  //   });
+  // }
+
   // Lógica de filtrado según la ruta
   if (pathname === "/itinerario") {
     // Solo mostrar "cards" y "schema"
@@ -61,23 +60,19 @@ export const SelectModeView: FC<props> = ({ value, setValue }) => {
         icon: <LiaIdCardSolid className="w-5 h-5" />,
         title: t("card")
       },
-      {
-        value: "table",
-        icon: <HiOutlineViewList className="w-5 h-5" />,
-        title: t("board")
-      },
+      // {
+      //   value: "table",
+      //   icon: <HiOutlineViewList className="w-5 h-5" />,
+      //   title: t("board")
+      // },
       {
         value: "schema",
         icon: <TbSchema className="w-5 h-5" />,
         title: t("schema")
       }
-
     ];
-  } else if (pathname === "/servicios") {
-    // Mostrar todas menos "schema"
-    options = options.filter(opt => opt.value !== "schema");
   }
-  
+
   return (
     <ClickAwayListener onClickAway={() => setShow(false)} >
       <div className="relative flex cursor-pointer -translate-y-10 md:translate-y-0 z-10">
@@ -86,7 +81,7 @@ export const SelectModeView: FC<props> = ({ value, setValue }) => {
           {t("view")}
           <ArrowDownBodasIcon className="w-4 h-4 rotate-90" />
         </div>
-{show && <div className={`absolute right-0 bg-white top-8 rounded-md shadow-md`}>
+        {show && <div className={`absolute right-0 bg-white top-8 rounded-md shadow-md`}>
           {options?.map((item, idx) =>
             <div key={idx}
               onClick={() => {
@@ -98,8 +93,7 @@ export const SelectModeView: FC<props> = ({ value, setValue }) => {
               {item.icon}
               {item.title}
             </div>
-          )
-          }
+          )}
         </div>}
       </div>
     </ClickAwayListener>

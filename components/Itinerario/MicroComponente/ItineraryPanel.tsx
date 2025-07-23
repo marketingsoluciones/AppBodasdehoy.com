@@ -28,7 +28,6 @@ import { PastedAndDropFile } from "../../Servicios/Utils/InputComments";
 import { deleteAllFiles, deleteRecursive } from "../../Utils/storages";
 import { InfoLateral } from "./InfoLateral";
 import { CgInfo } from "react-icons/cg";
-import { ImageAvatar } from "../../Utils/ImageAvatar";
 import { ItineraryDetails } from "../MicroComponente/ItineraryDetails"
 import { SimpleDeleteConfirmation } from "../../Utils/SimpleDeleteConfirmation";
 import { ExtraTableView } from "../../Servicios/ExtraTableView";
@@ -79,7 +78,7 @@ export type TempPastedAndDropFile = {
 
 export const Details = undefined
 
-export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle, view, handleDeleteItinerario, handleUpdateTitle, title, setTitle, selectTask, setSelectTask,  orderAndDirection, setOrderAndDirection }) => {
+export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle, view, handleDeleteItinerario, handleUpdateTitle, title, setTitle, selectTask, setSelectTask, orderAndDirection, setOrderAndDirection }) => {
   const { t } = useTranslation();
   const { config, geoInfo, user } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
@@ -175,88 +174,88 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       if (found) setCurrentItinerario(found);
     }
   }, [event, itinerario?._id]);
-  
-useEffect(() => {
-  if (currentItinerario?.tasks?.length > 0) {
-    // Primero aplicar el ordenamiento
-    let sortedTasks = [...currentItinerario.tasks];
-    
-    // Aplicar ordenamiento según orderAndDirection
-    if (orderAndDirection) {
-      sortedTasks.sort((a, b) => {
-        let comparison = 0;
-        
-        if (orderAndDirection.order === 'fecha') {
-          comparison = new Date(a.fecha).getTime() - new Date(b.fecha).getTime();
-        } else if (orderAndDirection.order === 'nombre') {
-          comparison = (a.descripcion || '').localeCompare(b.descripcion || '', 'es');
-        }
-        
-        return orderAndDirection.direction === 'desc' ? -comparison : comparison;
-      });
-    }
-    
-    // Luego filtrar
-    const filteredTasks = sortedTasks.filter(elem =>
-      elem && (
-        view === "schema"
-        || ["/itinerario"].includes(window?.location?.pathname)
-        || elem.spectatorView
-        || event.usuario_id === user.uid
-        || isAllowed()
-      )
-    );
 
-    setTasks(prev => {
-      if (JSON.stringify(prev) === JSON.stringify(filteredTasks)) return prev;
-      return filteredTasks;
-    });
+  useEffect(() => {
+    if (currentItinerario?.tasks?.length > 0) {
+      // Primero aplicar el ordenamiento
+      let sortedTasks = [...currentItinerario.tasks];
 
-    // Para la vista de cards, agrupar por fecha pero mantener el orden interno
-    if (view === "cards") {
-      const taskReduce: TaskReduce[] = filteredTasks.reduce((acc: TaskReduce[], item: Task) => {
-        const f = new Date(item.fecha);
-        const y = f.getUTCFullYear();
-        const m = f.getUTCMonth();
-        const d = f.getUTCDate();
-        const date = new Date(y, m, d).getTime();
-        const f1 = acc.findIndex(elem => elem.fecha === date);
-        if (f1 < 0) {
-          acc.push({ fecha: item.fecha ? date : null, tasks: [item] });
-        } else {
-          acc[f1].tasks.push(item);
-        }
-        return acc;
-      }, []);
+      // Aplicar ordenamiento según orderAndDirection
+      if (orderAndDirection) {
+        sortedTasks.sort((a, b) => {
+          let comparison = 0;
 
-      // Si se ordena por fecha, ordenar también los grupos
-      if (orderAndDirection?.order === 'fecha') {
-        taskReduce.sort((a, b) => {
-          const comparison = a.fecha - b.fecha;
+          if (orderAndDirection.order === 'fecha') {
+            comparison = new Date(a.fecha).getTime() - new Date(b.fecha).getTime();
+          } else if (orderAndDirection.order === 'nombre') {
+            comparison = (a.descripcion || '').localeCompare(b.descripcion || '', 'es');
+          }
+
           return orderAndDirection.direction === 'desc' ? -comparison : comparison;
         });
       }
-      setTasks(prev => {
-      // Forzar actualización solo si hay cambios reales
-      const newTasksStr = JSON.stringify(filteredTasks);
-      const prevTasksStr = JSON.stringify(prev);
-      
-      if (newTasksStr !== prevTasksStr) {
-        return filteredTasks;
-      }
-      return prev;
-    });
 
-      setTasksReduce(prev => {
-        if (JSON.stringify(prev) === JSON.stringify(taskReduce)) return prev;
-        return taskReduce;
+      // Luego filtrar
+      const filteredTasks = sortedTasks.filter(elem =>
+        elem && (
+          view === "schema"
+          || ["/itinerario"].includes(window?.location?.pathname)
+          || elem.spectatorView
+          || event.usuario_id === user.uid
+          || isAllowed()
+        )
+      );
+
+      setTasks(prev => {
+        if (JSON.stringify(prev) === JSON.stringify(filteredTasks)) return prev;
+        return filteredTasks;
       });
+
+      // Para la vista de cards, agrupar por fecha pero mantener el orden interno
+      if (view === "cards") {
+        const taskReduce: TaskReduce[] = filteredTasks.reduce((acc: TaskReduce[], item: Task) => {
+          const f = new Date(item.fecha);
+          const y = f.getUTCFullYear();
+          const m = f.getUTCMonth();
+          const d = f.getUTCDate();
+          const date = new Date(y, m, d).getTime();
+          const f1 = acc.findIndex(elem => elem.fecha === date);
+          if (f1 < 0) {
+            acc.push({ fecha: item.fecha ? date : null, tasks: [item] });
+          } else {
+            acc[f1].tasks.push(item);
+          }
+          return acc;
+        }, []);
+
+        // Si se ordena por fecha, ordenar también los grupos
+        if (orderAndDirection?.order === 'fecha') {
+          taskReduce.sort((a, b) => {
+            const comparison = a.fecha - b.fecha;
+            return orderAndDirection.direction === 'desc' ? -comparison : comparison;
+          });
+        }
+        setTasks(prev => {
+          // Forzar actualización solo si hay cambios reales
+          const newTasksStr = JSON.stringify(filteredTasks);
+          const prevTasksStr = JSON.stringify(prev);
+
+          if (newTasksStr !== prevTasksStr) {
+            return filteredTasks;
+          }
+          return prev;
+        });
+
+        setTasksReduce(prev => {
+          if (JSON.stringify(prev) === JSON.stringify(taskReduce)) return prev;
+          return taskReduce;
+        });
+      }
+    } else {
+      setTasks(prev => (prev && prev.length === 0 ? prev : []));
+      setTasksReduce(prev => (prev && prev.length === 0 ? prev : []));
     }
-  } else {
-    setTasks(prev => (prev && prev.length === 0 ? prev : []));
-    setTasksReduce(prev => (prev && prev.length === 0 ? prev : []));
-  }
-}, [currentItinerario, event, view, user?.uid, isAllowed, orderAndDirection]);
+  }, [currentItinerario, event, view, user?.uid, isAllowed, orderAndDirection]);
 
   const handleAddSpectatorView = async (values: Task) => {
     try {
@@ -322,6 +321,7 @@ useEffect(() => {
     }
 
   }
+
   const deleteTask = (values: Task, itinerario: Itinerary) => {
     try {
       setLoading(true)
@@ -358,6 +358,7 @@ useEffect(() => {
       console.log(1000501, error)
     }
   }
+
   useEffect(() => {
     if (router?.query?.task) {
       setSelectTask(`${router.query.task}`)
@@ -379,15 +380,12 @@ useEffect(() => {
         console.error('Tarea no encontrada:', taskId);
         return;
       }
-
       // Actualizar el estado global del evento inmediatamente
       setEvent((oldEvent) => {
         const newEvent = { ...oldEvent };
         const f1 = newEvent.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
-
         if (f1 > -1) {
           const f2 = newEvent.itinerarios_array[f1].tasks.findIndex(elem => elem._id === taskId);
-
           if (f2 > -1) {
             // Actualizar la tarea con los nuevos valores
             newEvent.itinerarios_array[f1].tasks[f2] = {
@@ -396,10 +394,8 @@ useEffect(() => {
             };
           }
         }
-
         return newEvent;
       });
-
       // Actualizar el estado local de las tareas
       setTasks(prevTasks => {
         if (!prevTasks) return prevTasks;
@@ -407,11 +403,9 @@ useEffect(() => {
           task._id === taskId ? { ...task, ...updates } : task
         );
       });
-
       // Actualizar tasksReduce también
       setTasksReduce(prevTasksReduce => {
         if (!prevTasksReduce) return prevTasksReduce;
-
         return prevTasksReduce.map(group => ({
           ...group,
           tasks: group.tasks?.map(task =>
@@ -419,7 +413,6 @@ useEffect(() => {
           )
         }));
       });
-
     } catch (error) {
       console.error('Error al actualizar la tarea:', error);
       toast("error", t("Error al actualizar la tarea"));
@@ -432,29 +425,24 @@ useEffect(() => {
       if (taskData._id) {
         return;
       }
-
       // Calcular fecha por defecto
       const f = new Date(parseInt(event.fecha));
       const fy = f.getUTCFullYear();
       const fm = f.getUTCMonth();
       const fd = f.getUTCDate();
       let newEpoch = new Date(fy, fm + 1, fd).getTime() + 7 * 60 * 60 * 1000;
-
       if (tasks?.length) {
         const item = tasks[tasks.length - 1];
         const epoch = new Date(item.fecha).getTime();
         newEpoch = epoch + (item.duracion || 30) * 60 * 1000;
       }
-
       const defaultDate = taskData.fecha ? new Date(taskData.fecha) : new Date(newEpoch);
-
       // Formatear fecha correctamente
       const year = defaultDate.getFullYear();
       const month = defaultDate.getMonth() + 1;
       const day = defaultDate.getDate();
       const fechaString = `${year}-${month < 10 ? '0' : ''}${month}-${day < 10 ? '0' : ''}${day}`;
       const horaString = `${defaultDate.getHours().toString().padStart(2, '0')}:${defaultDate.getMinutes().toString().padStart(2, '0')}`;
-
       const response = await fetchApiEventos({
         query: queries.createTask,
         variables: {
@@ -467,27 +455,21 @@ useEffect(() => {
         },
         domain: config.domain
       });
-
       // Validar respuesta de forma segura
       if (!response) {
         throw new Error('No se recibió respuesta del servidor');
       }
-
       // ✅ Agregar esta línea que faltaba
       const responseObj = response as any;
-
       // Verificar que la respuesta sea un objeto válido con _id
       if (typeof responseObj !== 'object' || !responseObj._id || typeof responseObj._id !== 'string') {
         console.error('Respuesta inválida del servidor:', response);
         throw new Error('La respuesta del servidor no contiene un ID válido');
       }
-
       // Ahora podemos usar la respuesta como Task de forma segura
       const newTask = responseObj as Task;
-
       // Asignar estado localmente para el manejo en el cliente
       newTask.estado = taskData.estado || 'pending';
-
       // Si la tarea debe estar completada, actualizar su estatus
       if (taskData.estado === 'completed' && newTask._id) {
         try {
@@ -507,7 +489,6 @@ useEffect(() => {
           console.error('Error al actualizar estatus:', error);
         }
       }
-
       // Actualizar el estado global (event)
       setEvent((oldEvent) => {
         const newEvent = { ...oldEvent };
@@ -526,7 +507,6 @@ useEffect(() => {
         }
         return newEvent;
       }); // ✅ Agregar llave de cierre faltante
-
       // Actualizar el estado local (tasks) - verificar que no exista
       setTasks(prev => {
         if (!prev) return [newTask];
@@ -537,7 +517,6 @@ useEffect(() => {
 
       // Seleccionar la nueva tarea
       setSelectTask(newTask._id);
-
       // Notificar éxito
       toast("success", t("Tarea creada con éxito"));
     } catch (error) {
@@ -579,7 +558,7 @@ useEffect(() => {
     if (swrEvent && swrEvent._id && swrEvent._id !== event._id) {
       setEvent(swrEvent as EventInterface);
     }
-  }, [swrEvent, event._id]); 
+  }, [swrEvent, event._id]);
 
   return (
     <div className="w-full flex-1 flex flex-col overflow-auto">
@@ -601,7 +580,6 @@ useEffect(() => {
       {["/itinerario"].includes(window?.location?.pathname) && <SubHeader view={view} itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} title={title} setTitle={setTitle} />}
       <div className="w-full flex-1 flex flex-col pt-2 md:px-2 lg:px-6 z-0">
         {
-
           tasksReduce?.length > 0 ?
             view === "boardView" ? (
               <div className="w-full flex-1">

@@ -11,9 +11,9 @@ interface PermissionWrapperProps {
   customMessage?: string
 }
 
-export const PermissionWrapper: FC<PermissionWrapperProps> = ({ 
-  children, 
-  fallback = null, 
+export const PermissionWrapper: FC<PermissionWrapperProps> = ({
+  children,
+  fallback = null,
   requireEdit = false,
   showNoPermissionMessage = true,
   customMessage = ""
@@ -45,7 +45,7 @@ export const PermissionWrapper: FC<PermissionWrapperProps> = ({
         </div>
       )
     }
-return <>{fallback}</>
+    return <>{fallback}</>
   }
 
   // Si requiere edición pero solo tiene permisos de vista
@@ -60,8 +60,7 @@ return <>{fallback}</>
         </div>
       )
     }
-return <>{fallback}</>
+    return <>{fallback}</>
   }
-
   return <>{children}</>
 }

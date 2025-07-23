@@ -146,7 +146,7 @@ export const TaskNew: FC<Props> = memo(({
   useEffect(() => {
     if (task?.comments && Array.isArray(task?.comments)) {
       const sortedComments = sortCommentsByDate(task?.comments);
-      
+
       setComments(prevComments => {
         if (haveCommentsChanged(prevComments, sortedComments)) {
           return sortedComments;
@@ -177,7 +177,7 @@ export const TaskNew: FC<Props> = memo(({
         const currentTask = currentItinerary.tasks.find(t => t._id === task._id);
         if (currentTask && currentTask.comments) {
           const sortedComments = sortCommentsByDate(currentTask.comments);
-          
+
           setComments(prevComments => {
             if (haveCommentsChanged(prevComments, sortedComments)) {
               return sortedComments;
@@ -202,7 +202,6 @@ export const TaskNew: FC<Props> = memo(({
         }
       }
     };
-
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [event, itinerario?._id, task?._id]);
@@ -385,7 +384,6 @@ const handleFieldSave = async (fieldName: string) => {
       ht();
       return;
     }
-
     try {
       const fecha = new Date();
       const response = await fetchApiEventos({
@@ -405,7 +403,6 @@ const handleFieldSave = async (fieldName: string) => {
         },
         domain: config.domain
       });
-
       if (response && typeof response === 'object' && '_id' in response) {
         toast('success', t('Tarea duplicada correctamente'));
         setEvent((oldEvent) => {
@@ -456,7 +453,6 @@ const handleFieldSave = async (fieldName: string) => {
       ht();
       return;
     }
-
     try {
       await fetchApiEventos({
         query: queries.deleteComment,
@@ -468,10 +464,8 @@ const handleFieldSave = async (fieldName: string) => {
         },
         domain: config.domain,
       });
-
       const updatedComments = comments.filter(comment => comment._id !== commentId);
       setComments(updatedComments);
-
       setEvent((oldEvent) => {
         const newEvent = { ...oldEvent };
         const itineraryIndex = newEvent.itinerarios_array.findIndex(it => it._id === itinerario._id);
@@ -483,7 +477,6 @@ const handleFieldSave = async (fieldName: string) => {
         }
         return newEvent;
       });
-
       await fetchApiEventos({
         query: queries.editTask,
         variables: {
@@ -495,7 +488,6 @@ const handleFieldSave = async (fieldName: string) => {
         },
         domain: config.domain,
       });
-
       toast("success", t("Comentario eliminado"));
     } catch (error) {
       console.error("Error al eliminar comentario:", error);
@@ -550,7 +542,7 @@ const handleFieldSave = async (fieldName: string) => {
     );
   }
 
-  // Vista minimal
+  // Vista Card minimal usada para itinerario
   if (minimalView) {
     return (
       <TaskMinimalView
@@ -587,7 +579,7 @@ const handleFieldSave = async (fieldName: string) => {
     );
   }
 
-  // Vista completa (por defecto)
+  // Vista Card completa usada para servicios
   return (
     <TaskFullView
       {...props}

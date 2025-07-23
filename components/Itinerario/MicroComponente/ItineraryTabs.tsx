@@ -1,17 +1,14 @@
 import { Dispatch, FC, LegacyRef, MouseEvent, SetStateAction, useEffect, useRef, useState } from "react"
-import { PlusIcon } from "../../icons"
-import { Event, Info, Itinerary, SelectModeSortType, Task } from "../../../utils/Interfaces"
+import { Event, Itinerary, SelectModeSortType, Task } from "../../../utils/Interfaces"
 import { fetchApiEventos, queries } from "../../../utils/Fetching"
 import { AuthContextProvider, EventContextProvider } from "../../../context"
 import { ViewItinerary } from "../../../pages/invitados"
-import { SelectModeView } from "../../Utils/SelectModeView"
 import { ItineraryTabsMenu } from "./ItineraryTabsMenu"
 import { FaCheck } from "react-icons/fa"
 import { useAllowed, useAllowedViewer } from "../../../hooks/useAllowed"
 import { useTranslation } from "react-i18next"
 import { useToast } from "../../../hooks/useToast"
 import { SelectModeSort } from "../../Utils/SelectModeSort"
-import { AddTaskButton } from "./AddTaskButton"
 import { PermissionSelectModeView } from '../../Servicios/Utils/PermissionSelectModeView';
 import { PermissionAddButton } from "../../Servicios/Utils/PermissionAddButton"
 
@@ -57,20 +54,17 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                 toast("warning", t("Selecciona un itinerario primero"));
                 return;
             }
-
             const f = new Date(parseInt(event.fecha))
             const fy = f.getUTCFullYear()
             const fm = f.getUTCMonth()
             const fd = f.getUTCDate()
             let newEpoch = new Date(fy, fm + 1, fd).getTime() + 7 * 60 * 60 * 1000
-
             const tasks = itinerario.tasks || [];
             if (tasks.length) {
                 const item = tasks[tasks.length - 1]
                 const epoch = new Date(item.fecha).getTime()
                 newEpoch = epoch + item.duracion * 60 * 1000
             }
-
             const fecha = new Date(newEpoch)
             const addNewTask = await fetchApiEventos({
                 query: queries.createTask,
@@ -83,10 +77,9 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                 },
                 domain: config.domain
             })
-
             const task = addNewTask as Task
             const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
-            task.spectatorView = false 
+            task.spectatorView = false
             event.itinerarios_array[f1].tasks.push(task as Task)
             setEvent({ ...event })
             setSelectTask(task._id)
@@ -235,7 +228,6 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             if (event.itinerarios_array[f2]) {
                 event.itinerarios_array[f2].viewers = []
             }
-
             setEvent({ ...event })
             setItinerario({ ...result })
             setEditTitle(true)
@@ -294,7 +286,6 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                         : positionInTabs - 1)
             )?._id
             const elementColition = document.getElementById(elementColitionId)
-
             const colition = elementColition?.getBoundingClientRect()[`${direction === "right" ? "right" : "left"}`]
             if (direction === "right") {
                 if (e.currentTarget.getBoundingClientRect().right > colition - 36) {
@@ -354,6 +345,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             setShowTabs(false)
         }
     }
+
     const handleLeave = (e: MouseEvent<HTMLDivElement, globalThis.MouseEvent>, item: Itinerary) => {
         if (item?._id === itinerario?._id && isClidked) {
             setIsClicked(false)
@@ -402,8 +394,6 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             vecinoNewNextId: null,
             movidoNextId: null,
         }
-
-
         ///// moviemientos del medio al extremo derecho funciona /////
         const fListIdentifiers = event?.listIdentifiers?.findIndex(elem => elem.table === window?.location?.pathname.slice(1))
         if (ubi.movido === itineraries.length - 1 && ubi.vecinoLast !== -1) {
@@ -412,19 +402,16 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             updatedNextId(item)
             updatedListIdentifiers(event)
         }
-
         ///// moviemientos del medio al extremo izquierdo funciona /////
         if (ubi.movido === 0) {
             event.listIdentifiers[fListIdentifiers].start_Id = item._id
             updatedListIdentifiers(event)
         }
-
         ///// moviemientos del extremo izquierdo al medio funciona /////
         if (ubi.vecinoLast === -1 && ubi.movido !== itineraries.length - 1) {
             event.listIdentifiers[fListIdentifiers].start_Id = item.next_id
             updatedListIdentifiers(event)
         }
-
         ///// moviemientos del extremo izquierdo al extremo derecho funciona /////
         if (ubi.vecinoLast === -1 && ubi.movido === itineraries.length - 1) {
             event.listIdentifiers[fListIdentifiers].start_Id = item.next_id
@@ -433,7 +420,6 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             updatedNextId(item)
             updatedListIdentifiers(event)
         }
-
         ///// moviemientos del extremo derecho al medio funciona /////
         if (ubi.vecinoLast === itineraries.length - 1 && ubi.movido !== 0) {
             const previous = itineraries.find(elem => elem.next_id === item._id)
@@ -442,7 +428,6 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             updatedNextId(previous)
             updatedListIdentifiers(event)
         }
-
         ///// moviemientos del extremo derecho al exttremo izquierdo funciona /////
         if (ubi.movido === 0 && ubi.vecinoLast === itineraries.length - 1) {
             const previous = itineraries.find(elem => elem.next_id === item._id)
@@ -452,23 +437,17 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             updatedNextId(previous)
             updatedListIdentifiers(event)
         }
-
-
         itineraries.splice(parseInt(e.currentTarget.getAttribute("itemID")), 1)
         itineraries.splice(positionInTabs, 0, item)
         const vL = { ...itineraries[ubi.vecinoLast + 1] }
         const vN = { ...itineraries[ubi.vecinoNew + 1] }
         const mo = { ...itineraries[ubi.movido + 1] }
-
-
         ubi.vecinoLastNextId = ubi.vecinoLast > -1 && ubi.vecinoLast < itineraries.length - 1 ? vL._id : null
         ubi.vecinoNewNextId = ubi.vecinoNew > -1 && ubi.vecinoNew < itineraries.length - 1 ? vN._id : null
         ubi.movidoNextId = ubi.movido > -1 && ubi.movido < itineraries.length - 1 ? mo._id : null
-
         const vecinoLast_ = { ...itineraries[ubi.vecinoLast], next_id: ubi.vecinoLastNextId }
         const vecinoNew_ = { ...itineraries[ubi.vecinoNew], next_id: ubi.vecinoNewNextId }
         const movido_ = { ...itineraries[ubi.movido], next_id: ubi.movidoNextId }
-
         if (ubi.vecinoLastNextId) {
             itineraries.splice(ubi.vecinoLast, 1, { ...vecinoLast_ })
             updatedNextId(vecinoLast_)
@@ -481,15 +460,13 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             itineraries.splice(ubi.movido, 1, { ...movido_ })
             updatedNextId(movido_)
         }
-
         const eventNew = { ...event, itinerarios_array: [...itineraries] }
         setEvent({ ...eventNew })
         setShowTabs(false)
     }
 
-
     return (
-        <div className="flex max-w-[100%] min-w-[100%] overflow-x-auto. h-10 items-center justify-center border-b md:px-4 md:py-2 shadow-md">
+        <div className="flex w-full max-w-[1050px] h-10 items-center justify-center border-b md:px-4 md:py-2 shadow-md">
             <div id="content" className="flex-1 h-full  flex justify-between">
                 <div className="inline-flex max-w-full h-full items-center  mr-2">
                     {showTabs && <>
@@ -542,7 +519,6 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                                             </div>}
                                         </div>
                                     </div>
-
                                 )
                             })}
                         </div>
@@ -557,7 +533,6 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                     {view === "cards" && (
                         <>
                             {/* Reemplazar el botón de agregar servicio */}
-                            
                             <PermissionAddButton
                                 onClick={addTask} // ✅ función real
                                 text={itinerario?.tipo === "itinerario" ? "" : ""}
