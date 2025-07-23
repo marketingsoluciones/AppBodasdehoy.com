@@ -98,6 +98,7 @@ interface TaskFullViewProps {
   optionsItineraryButtonBox?: OptionsSelect[];
   tempPastedAndDropFiles?: TempPastedAndDropFile[];
   setTempPastedAndDropFiles?: any;
+  isSelect: boolean;
 }
 
 export const TaskFullView: FC<TaskFullViewProps> = ({
@@ -201,7 +202,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
 
   return (
     <div {...props} className="w-full bg-white rounded-lg shadow-lg">
-      <div id="task-container" className="flex min-h-[600px] h-full">
+      <div id="task-container" className={`flex min-h-[600px] h-full ${props.isSelect ? "rounded-xl outline outline-2 outline-primary" : ""}`}>
         {/* Panel principal */}
         <div id='container-left' className="flex md:w-[75%] flex-col h-full">
           {/* Header */}
@@ -924,6 +925,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
           </div>
         </div>
         {/* Panel lateral - Chat/Comentarios */}
+<<<<<<< HEAD
 <div id="container-right" className="w-96 flex flex-col bg-gray-50 h-full max-h-[750px] overflow-hidden">
   <div className="p-4 border-b border-gray-200 bg-white flex-shrink-0">
     <div className="flex items-center justify-between">
@@ -946,6 +948,62 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
           <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-2" />
           <p className="text-sm text-gray-500">{t('No hay comentarios aún')}</p>
           <p className="text-xs text-gray-400 mt-1">{t('Sé el primero en comentar')}</p>
+=======
+        <div id="container-right" className="w-96 flex flex-col bg-gray-50 h-full border-l border-gray-200">
+          <div className="p-4 border-b border-gray-200 bg-white h-[81px]">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-lg">{t('Actividad')}</h3>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-500">{comments.length} {t('comentarios')}</span>
+                <Bell className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600" />
+              </div>
+            </div>
+          </div>
+          <div
+            ref={commentsContainerRef}
+            className="space-y-2 flex flex-col-reverse h-[450px]" >
+            {comments.length === 0
+              ? (<div className="text-center py-8 flex-1 flex items-center justify-center">
+                <div>
+                  <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                  <p className="text-sm text-gray-500">{t('No hay comentarios aún')}</p>
+                  <p className="text-xs text-gray-400 mt-1">{t('Sé el primero en comentar')}</p>
+                </div>
+              </div>)
+              : (<div id='comments-container' className="space-y-2 h-full overflow-y-auto">
+                {comments.map((comment) => (
+                  <div key={comment._id} className="relative group">
+                    <ListComments
+                      id={comment._id}
+                      itinerario={itinerario}
+                      task={task}
+                      item={comment}
+                      tempPastedAndDropFiles={tempPastedAndDropFiles}
+                    />
+                    {canEdit && (
+                      <button
+                        onClick={() => handleDeleteComment(comment._id)}
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-white rounded shadow-sm hover:bg-gray-100"
+                        title={t('Eliminar comentario')}
+                      >
+                        <Trash2 className="w-4 h-4 text-gray-500 hover:text-[#ef4444]" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>)}
+          </div>
+          <div className="border-t border-gray-200 bg-white min-h-[105px]">
+            <InputComments
+              itinerario={itinerario}
+              task={task}
+              tempPastedAndDropFiles={tempPastedAndDropFiles || []}
+              setTempPastedAndDropFiles={setTempPastedAndDropFiles}
+              disabled={false}
+              onCommentAdded={handleCommentAdded}
+            />
+          </div>
+>>>>>>> 1f36c531ad722fb0e5916a1b608cdf4c05fbaeb5
         </div>
       </div>
     ) : (

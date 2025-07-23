@@ -248,65 +248,65 @@ export const TaskNew: FC<Props> = memo(({
   }, [event?.itinerarios_array, itinerario?._id, task?._id]);
 
   // Función para manejar actualización de campos
-const handleUpdate = async (fieldName: string, value: any) => {
-  if (!canEdit) {
-    ht();
-    return;
-  }
-  try {
-    let apiValue: string;
-
-    if (['responsable', 'tags', 'attachments'].includes(fieldName)) {
-      apiValue = JSON.stringify(value || []);
-    } else if (fieldName === 'duracion') {
-      apiValue = String(value || "0");
-    } else if (fieldName === 'fecha' && value) {
-      // Manejar fecha para evitar problemas de zona horaria
-      if (value instanceof Date) {
-        apiValue = value.toISOString();
-      } else if (typeof value === 'string' && value.includes('-')) {
-        // Si viene en formato YYYY-MM-DD
-        const [year, month, day] = value.split('-');
-        const localDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 12, 0, 0);
-        apiValue = localDate.toISOString();
-      } else {
-        apiValue = new Date(value).toISOString();
-      }
-    } else if (fieldName === 'spectatorView') {
-      apiValue = `${value}`;
-    } else {
-      apiValue = String(value || "");
+  const handleUpdate = async (fieldName: string, value: any) => {
+    if (!canEdit) {
+      ht();
+      return;
     }
+    try {
+      let apiValue: string;
 
-    await fetchApiEventos({
-      query: queries.editTask,
-      variables: {
-        eventID: event._id,
-        itinerarioID: itinerario._id,
-        taskID: task._id,
-        variable: fieldName,
-        valor: apiValue,
-      },
-      domain: config.domain,
-    }).then((result) => {
-      const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
-      const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === task._id);
-      if (fieldName === 'spectatorView') {
-        event.itinerarios_array[f1].tasks[f2].spectatorView = value;
-        setEvent({ ...event });
+      if (['responsable', 'tags', 'attachments'].includes(fieldName)) {
+        apiValue = JSON.stringify(value || []);
+      } else if (fieldName === 'duracion') {
+        apiValue = String(value || "0");
+      } else if (fieldName === 'fecha' && value) {
+        // Manejar fecha para evitar problemas de zona horaria
+        if (value instanceof Date) {
+          apiValue = value.toISOString();
+        } else if (typeof value === 'string' && value.includes('-')) {
+          // Si viene en formato YYYY-MM-DD
+          const [year, month, day] = value.split('-');
+          const localDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 12, 0, 0);
+          apiValue = localDate.toISOString();
+        } else {
+          apiValue = new Date(value).toISOString();
+        }
+      } else if (fieldName === 'spectatorView') {
+        apiValue = `${value}`;
       } else {
-        event.itinerarios_array[f1].tasks[f2][fieldName] = value;
-        setEvent({ ...event });
+        apiValue = String(value || "");
       }
-    });
-    
-    setLocalTask(prev => ({ ...prev, [fieldName]: value }));
-    toast("success", t("Campo actualizado"));
-  } catch (error) {
-    console.error('Error al actualizar:', error);
-    toast("error", t("Error al actualizar"));
-  }
-};
+
+      await fetchApiEventos({
+        query: queries.editTask,
+        variables: {
+          eventID: event._id,
+          itinerarioID: itinerario._id,
+          taskID: task._id,
+          variable: fieldName,
+          valor: apiValue,
+        },
+        domain: config.domain,
+      }).then((result) => {
+        const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
+        const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === task._id);
+        if (fieldName === 'spectatorView') {
+          event.itinerarios_array[f1].tasks[f2].spectatorView = value;
+          setEvent({ ...event });
+        } else {
+          event.itinerarios_array[f1].tasks[f2][fieldName] = value;
+          setEvent({ ...event });
+        }
+      });
+
+      setLocalTask(prev => ({ ...prev, [fieldName]: value }));
+      toast("success", t("Campo actualizado"));
+    } catch (error) {
+      console.error('Error al actualizar:', error);
+      toast("error", t("Error al actualizar"));
+    }
+  };
 
   // Manejadores de edición de campos
   const handleFieldClick = (fieldName: string, currentValue: any) => {
@@ -318,18 +318,18 @@ const handleUpdate = async (fieldName: string, value: any) => {
     setTempValue(String(currentValue || ''));
   };
 
-const handleFieldSave = async (fieldName: string) => {
-  if (fieldName === 'fecha' && tempValue) {
-    // Para fechas, crear un Date object que preserve la fecha local
-    const [year, month, day] = tempValue.split('-');
-    const localDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 12, 0, 0);
-    await handleUpdate(fieldName, localDate);
-  } else if (tempValue !== String(localTask[fieldName] || '')) {
-    await handleUpdate(fieldName, tempValue);
-  }
-  setEditingField(null);
-  setTempValue('');
-};
+  const handleFieldSave = async (fieldName: string) => {
+    if (fieldName === 'fecha' && tempValue) {
+      // Para fechas, crear un Date object que preserve la fecha local
+      const [year, month, day] = tempValue.split('-');
+      const localDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 12, 0, 0);
+      await handleUpdate(fieldName, localDate);
+    } else if (tempValue !== String(localTask[fieldName] || '')) {
+      await handleUpdate(fieldName, tempValue);
+    }
+    setEditingField(null);
+    setTempValue('');
+  };
 
   const handleKeyPress = (e: React.KeyboardEvent, fieldName: string) => {
     if (e.key === 'Enter') {
@@ -575,6 +575,7 @@ const handleFieldSave = async (fieldName: string) => {
         customDescription={customDescription}
         setCustomDescription={setCustomDescription}
         optionsItineraryButtonBox={optionsItineraryButtonBox}
+        isSelect={isSelect}
       />
     );
   }
@@ -620,6 +621,7 @@ const handleFieldSave = async (fieldName: string) => {
       optionsItineraryButtonBox={optionsItineraryButtonBox}
       tempPastedAndDropFiles={tempPastedAndDropFiles}
       setTempPastedAndDropFiles={setTempPastedAndDropFiles}
+      isSelect={isSelect}
     />
   );
 });

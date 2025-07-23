@@ -560,6 +560,22 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     }
   }, [swrEvent, event._id]);
 
+  useEffect(() => {
+    if (selectTask) {
+      // Esperar un poco para que el DOM se actualice
+      setTimeout(() => {
+        const element = document.getElementById(selectTask);
+        if (element) {
+          element.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+            inline: 'nearest'
+          });
+        }
+      }, 100);
+    }
+  }, [selectTask])
+
   return (
     <div className="w-full flex-1 flex flex-col overflow-auto">
       <InfoLateral ubication="left" infoOptions={infoLeftOptions} />

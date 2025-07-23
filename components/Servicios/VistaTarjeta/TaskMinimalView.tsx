@@ -75,6 +75,7 @@ interface TaskMinimalViewProps {
   customDescription: string;
   setCustomDescription: (value: string) => void;
   optionsItineraryButtonBox?: OptionsSelect[];
+  isSelect: boolean;
 }
 
 export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
@@ -106,6 +107,7 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
   customDescription,
   setCustomDescription,
   optionsItineraryButtonBox,
+  isSelect,
   ...props
 }) => {
   const { t } = useTranslation();
@@ -139,7 +141,7 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
 `;
 
   return (
-    <div {...props} className="w-full bg-white rounded-lg shadow-lg p-6 space-y-6">
+    <div {...props} className={`w-full bg-white rounded-lg shadow-lg p-6 space-y-6 ${isSelect ? "rounded-xl outline outline-2 outline-primary" : ""}`}>
       {/* Header reducido con botones de optionsItineraryButtonBox (excepto 'link' y 'flow') */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-4 flex-1">
