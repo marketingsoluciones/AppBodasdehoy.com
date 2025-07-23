@@ -5,7 +5,6 @@ import { Event, Task } from "../../utils/Interfaces";
 import { motion } from "framer-motion"
 import { AuthContextProvider } from "../../context";
 import { defaultImagenes } from "../../components/Home/Card";
-import { useTranslation } from "react-i18next";
 import { TaskNew } from "../../components/Servicios/VistaTarjeta/TaskNew";
 import { openGraphData } from "../_app";
 
@@ -21,13 +20,11 @@ interface TaskReduce {
 
 }
 
-
 const Slug: FC<props> = (props) => {
   const [event, setEvent] = useState<Partial<Event>>(props?.evento)
   const { geoInfo } = AuthContextProvider()
   const [end, setEnd] = useState(false)
   const [tasksReduce, setTasksReduce] = useState<TaskReduce[]>()
-
 
   useEffect(() => {
     const tasks = props?.evento.itinerarios_array[0].tasks.filter((task) => task.spectatorView !== false)
@@ -40,18 +37,6 @@ const Slug: FC<props> = (props) => {
       setEnd(true)
     }, 2000);
   }, [])
-
-  // bodasdehoy.com
-  //public_card en development > FUNCIONA
-  //public_card en production > FUNCIONA
-  //public_itinerary en development > NO FUNCIONA
-  //public_itinerary en production > NO FUNCIONA
-
-  //whitelabel
-  //public_card en development > FUNCIONA
-  //public_card en production > FUNCIONA
-  //public_itinerary en development > FUNCIONA
-  //public_itinerary en production > FUNCIONA
 
   useEffect(() => {
     if (event?.itinerarios_array[0]?.tasks?.length > 0) {
@@ -83,6 +68,7 @@ const Slug: FC<props> = (props) => {
       </div>
     )
   }
+
   return (
     <section className={"absolute z-[50] w-full h-[100vh] top-0 bg-white"}>
       <motion.div
@@ -134,8 +120,7 @@ const Slug: FC<props> = (props) => {
               )
             })}
           </div>
-        )
-        }
+        )}
         {end && <span id="elementControl" className="text-xs">~</span>}
       </motion.div>
     </section>

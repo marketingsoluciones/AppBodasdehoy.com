@@ -62,14 +62,6 @@ export const api = {
     const manager = new Manager(process.env.NEXT_PUBLIC_BASE_API_BODAS ?? "", {
       closeOnBeforeunload: true,
     })
-    console.log(
-      {
-        reconnectionAttempts: manager.reconnectionAttempts(),
-        reconnectionDelay: manager.reconnectionDelay(),
-        reconnectionDelayMax: manager.reconnectionDelayMax(),
-        timeout: manager.timeout(),
-      }
-    )
     const socket = manager.socket("/", {
       auth: {
         token: token ? `Bearer ${token}` : "anonymous",

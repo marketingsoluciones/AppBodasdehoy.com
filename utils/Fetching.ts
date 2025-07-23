@@ -121,18 +121,10 @@ export const fetchApiEventosServer = async ({
   variables: any;
 }) => {
   const axios = require("axios");
-
-  console.log('🔍 Debug fetchApiEventosServer:');
-  console.log('Base URL:', process.env.NEXT_PUBLIC_BASE_URL);
-  console.log('Development:', process.env.NEXT_PUBLIC_DEVELOPMENT);
-  console.log('Query:', query);
-  console.log('Variables:', variables);
-
   const serverInstance = axios.create({
     baseURL: process.env.NEXT_PUBLIC_BASE_URL,
     timeout: 15000, // 15 segundos de timeout
   });
-
   try {
     const response = await serverInstance.post(
       "/graphql",
@@ -148,27 +140,11 @@ export const fetchApiEventosServer = async ({
         },
       }
     );
-
-    console.log("✅ Respuesta exitosa:", response.status);
-
     if (response.data.errors) {
-      console.error("❌ Errores GraphQL:", response.data.errors);
       throw new Error(`GraphQL Error: ${JSON.stringify(response.data.errors)}`);
     }
-
     return response.data.data;
   } catch (error) {
-    console.error('❌ Error en fetchApiEventosServer:', {
-      message: error.message,
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      config: {
-        url: error.config?.url,
-        method: error.config?.method,
-        headers: error.config?.headers
-      }
-    });
     throw error;
   }
 };
@@ -176,18 +152,10 @@ export const fetchApiEventosServer = async ({
 // Función específica para getServerSideProps para fetchApiBodas
 export const fetchApiBodasServer = async ({ query, variables, development }: { query: string, variables: any, development: string }) => {
   const axios = require('axios');
-
-  console.log('🔍 Debug fetchApiBodasServer:');
-  console.log('Base URL:', process.env.NEXT_PUBLIC_BASE_API_BODAS);
-  console.log('Development:', development);
-  console.log('Query:', query);
-  console.log('Variables:', variables);
-
   const serverInstance = axios.create({
     baseURL: process.env.NEXT_PUBLIC_BASE_API_BODAS,
     timeout: 15000 // 15 segundos de timeout
   });
-
   try {
     const response = await serverInstance.post("/graphql", {
       query,
@@ -199,27 +167,11 @@ export const fetchApiBodasServer = async ({ query, variables, development }: { q
         'User-Agent': 'Next.js-Server/1.0',
       }
     });
-
-    console.log('✅ Respuesta exitosa fetchApiBodasServer:', response.status);
-
     if (response.data.errors) {
-      console.error('❌ Errores GraphQL fetchApiBodasServer:', response.data.errors);
       throw new Error(`GraphQL Error: ${JSON.stringify(response.data.errors)}`);
     }
-
     return response.data.data;
   } catch (error) {
-    console.error('❌ Error en fetchApiBodasServer:', {
-      message: error.message,
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      config: {
-        url: error.config?.url,
-        method: error.config?.method,
-        headers: error.config?.headers,
-      },
-    });
     throw error;
   }
 };

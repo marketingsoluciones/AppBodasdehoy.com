@@ -1,6 +1,6 @@
 
 import { FC, useEffect, useState } from "react";
-import { fetchApiBodas, fetchApiEventos, fetchApiEventosServer, fetchApiBodasServer, queries } from "../../utils/Fetching";
+import { fetchApiEventosServer, fetchApiBodasServer, queries } from "../../utils/Fetching";
 import { Event } from "../../utils/Interfaces";
 import { motion } from "framer-motion"
 import { defaultImagenes } from "../../components/Home/Card";
@@ -21,8 +21,6 @@ interface props {
 }
 
 const Slug: FC<props> = (props) => {
-  console.log("propsnew", props)
-
   // Manejar error de getServerSideProps
   if (props?.error) {
     return (
@@ -170,7 +168,6 @@ export async function getServerSideProps(context) {
     let users = [];
     if (task?.comments?.length > 0) {
       try {
-        // Intentar con fetchApiBodasServer primero
         const data = await fetchApiBodasServer({
           query: queries?.getUsers,
           variables: { uids: task.comments.filter(elem => !!elem.uid).map(elem => elem.uid) },
@@ -192,7 +189,6 @@ export async function getServerSideProps(context) {
         }
       }
     }
-
     const usersMap = users?.map(elem => {
       return {
         uid: elem.uid,
@@ -200,7 +196,6 @@ export async function getServerSideProps(context) {
         photoURL: elem.photoURL
       }
     })
-
     evento._id = evento_id
     if (itinerary && task) {
       itinerary.tasks = [task]
@@ -208,12 +203,10 @@ export async function getServerSideProps(context) {
     }
     evento.detalles_compartidos_array = users
     evento.fecha_actualizacion = new Date().toLocaleString()
-
     if (evento) {
       openGraphData.openGraph.title = `${evento.itinerarios_array[0].tasks[0].descripcion}`
       openGraphData.openGraph.description = ` El Evento ${evento.tipo}, de ${evento.nombre}, ${new Date(parseInt(evento?.itinerarios_array[0].fecha_creacion?.toString() || '0'))?.toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}
-`
-    }
+`    }
 
     // Solo incluir error_2 en props si no es null
     const props = { ...params, query, evento, users: usersMap, development };
@@ -223,9 +216,6 @@ export async function getServerSideProps(context) {
 
     return { props };
   } catch (error) {
-    console.log(error)
-
-    // Solo incluir error_2 en props si no es null
     const props = {
       ...params,
       query,
@@ -234,26 +224,20 @@ export async function getServerSideProps(context) {
       error: error,
       development: getDevelopment(req.headers.host)
     };
-
     if (error_2 !== null) {
       props.error_2 = error_2;
     }
-
     return { props };
   }
 }
 
-/* ${evento.itinerarios_array[0].tasks[0].tips.replace(/<[^>]*>/g, "").replace(".", ". ")} */
-
 const getDevelopment = (host) => {
   let domain = '';
-
   if (host) {
     // Eliminar el puerto si existe (ej: localhost:3000)
     const hostWithoutPort = host.split(':')[0];
     const parts = hostWithoutPort.split('.');
     const numParts = parts.length;
-
     if (numParts >= 2) {
       domain = parts.slice(-2).join('.');
       // Caso especial para dominios como co.uk, com.ar, etc.
