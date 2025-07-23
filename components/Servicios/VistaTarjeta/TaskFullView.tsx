@@ -98,6 +98,7 @@ interface TaskFullViewProps {
   optionsItineraryButtonBox?: OptionsSelect[];
   tempPastedAndDropFiles?: TempPastedAndDropFile[];
   setTempPastedAndDropFiles?: any;
+  isSelect: boolean;
 }
 
 export const TaskFullView: FC<TaskFullViewProps> = ({
@@ -200,7 +201,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
 
   return (
     <div {...props} className="w-full bg-white rounded-lg shadow-lg">
-      <div id="task-container" className="flex min-h-[600px] h-full">
+      <div id="task-container" className={`flex min-h-[600px] h-full ${props.isSelect ? "rounded-xl outline outline-2 outline-primary" : ""}`}>
         {/* Panel principal */}
         <div id='container-left' className="flex md:w-[75%] flex-col h-full">
           {/* Header */}
