@@ -170,6 +170,7 @@ export interface Task {
     estatus: boolean // Campo que determina si está completada
     order?: number; // Campo local para mantener el orden en el cliente
     columnId?: string; // Campo local para saber a qué columna pertenece
+    _lastUpdated?: number; // Campo local para tracking de actualizaciones
 }
 
 export interface TaskDateTimeAsString extends Omit<Task, 'fecha'> {
