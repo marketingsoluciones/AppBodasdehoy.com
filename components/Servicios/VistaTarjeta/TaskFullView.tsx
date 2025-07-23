@@ -919,7 +919,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
           </div>
         </div>
         {/* Panel lateral - Chat/Comentarios */}
-        <div id="container-right" className="w-96 flex flex-col bg-gray-50 h-full">
+        <div id="container-right" className="w-96 flex flex-col bg-gray-50 h-full border-l border-gray-200">
           <div className="p-4 border-b border-gray-200 bg-white h-[81px]">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-lg">{t('Actividad')}</h3>

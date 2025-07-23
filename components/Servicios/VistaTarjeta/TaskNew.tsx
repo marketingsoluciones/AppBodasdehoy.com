@@ -575,6 +575,7 @@ export const TaskNew: FC<Props> = memo(({
         customDescription={customDescription}
         setCustomDescription={setCustomDescription}
         optionsItineraryButtonBox={optionsItineraryButtonBox}
+        isSelect={isSelect}
       />
     );
   }
