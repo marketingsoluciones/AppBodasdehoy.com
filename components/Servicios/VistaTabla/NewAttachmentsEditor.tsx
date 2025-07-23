@@ -322,9 +322,9 @@ export const NewAttachmentsEditor: React.FC<Props> = ({
   };
 
   return (
-    <div className="space-y-3">
-      {/* Header con título y botón de agregar */}
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col h-[110px] bg-white rounded-lg border border-gray-200">
+      {/* Header fijo con título y botón de agregar */}
+      <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 bg-gray-50 flex-shrink-0">
         <h5 className="text-sm font-medium text-gray-700 flex items-center gap-2">
           {t('Archivos adjuntos')} 
           <span className="text-xs text-gray-500">({attachments.length})</span>
@@ -377,127 +377,133 @@ export const NewAttachmentsEditor: React.FC<Props> = ({
         )}
       </div>
 
-      {/* Archivos subiendo - Más compacto */}
-      {!readOnly && uploadingFiles.length > 0 && (
-        <div className="space-y-1.5">
-          {uploadingFiles.map(uf => (
-            <div key={uf.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
-              {uf.status === 'uploading' ? (
-                <Loader2 className="w-3.5 h-3.5 text-primary animate-spin flex-shrink-0" />
-              ) : uf.status === 'success' ? (
-                <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
-              ) : (
-                <X className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
-              )}
-              
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-gray-700 truncate">{uf.file.name}</p>
-                <div className="mt-0.5 w-full bg-gray-200 rounded-full h-1">
-                  <div
-                    className={`h-1 rounded-full transition-all ${
-                      uf.status === 'success' 
-                        ? 'bg-green-500' 
-                        : uf.status === 'error' 
-                        ? 'bg-red-500' 
-                        : 'bg-primary'
-                    }`}
-                    style={{ width: `${uf.progress}%` }}
-                  />
-                </div>
-              </div>
-              
-              <span className="text-xs text-gray-500 flex-shrink-0">
-                {formatFileSize(uf.file.size)}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Lista de archivos - Diseño más compacto */}
-      {attachments.length > 0 ? (
-        <div className="space-y-1">
-          {attachments.map((file) => (
-            <div
-              key={file._id || file.name}
-              className={`group flex items-center gap-2 p-2 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors ${
-                deletingFiles.includes(file.name) ? 'opacity-50' : ''
-              }`}
-            >
-              {getFileIcon(file.name)}
-              
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-gray-700 truncate">
-                  {file.name}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {formatFileSize(file.size)}
-                </p>
-              </div>
-              
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={() => handleDownload(file)}
-                  className="p-1 text-gray-500 hover:text-primary rounded"
-                  title={t('Descargar')}
-                  disabled={deletingFiles.includes(file.name)}
-                >
-                  <Download className="w-3.5 h-3.5" />
-                </button>
+      {/* Contenedor con scroll para archivos */}
+      <div className="flex-1 overflow-y-auto p-3 space-y-2"
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+      >
+        {/* Archivos subiendo - Más compacto */}
+        {!readOnly && uploadingFiles.length > 0 && (
+          <>
+            {uploadingFiles.map(uf => (
+              <div key={uf.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
+                {uf.status === 'uploading' ? (
+                  <Loader2 className="w-3.5 h-3.5 text-primary animate-spin flex-shrink-0" />
+                ) : uf.status === 'success' ? (
+                  <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+                ) : (
+                  <X className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
+                )}
                 
-                {!readOnly && (
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-gray-700 truncate">{uf.file.name}</p>
+                  <div className="mt-0.5 w-full bg-gray-200 rounded-full h-1">
+                    <div
+                      className={`h-1 rounded-full transition-all ${
+                        uf.status === 'success' 
+                          ? 'bg-green-500' 
+                          : uf.status === 'error' 
+                          ? 'bg-red-500' 
+                          : 'bg-primary'
+                      }`}
+                      style={{ width: `${uf.progress}%` }}
+                    />
+                  </div>
+                </div>
+                
+                <span className="text-xs text-gray-500 flex-shrink-0">
+                  {formatFileSize(uf.file.size)}
+                </span>
+              </div>
+            ))}
+          </>
+        )}
+
+        {/* Lista de archivos - Diseño más compacto */}
+        {attachments.length > 0 ? (
+          <>
+            {attachments.map((file) => (
+              <div
+                key={file._id || file.name}
+                className={`group flex items-center gap-2 p-2 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors ${
+                  deletingFiles.includes(file.name) ? 'opacity-50' : ''
+                }`}
+              >
+                {getFileIcon(file.name)}
+                
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-gray-700 truncate">
+                    {file.name}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {formatFileSize(file.size)}
+                  </p>
+                </div>
+                
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
-                    onClick={() => handleDelete(file)}
-                    className="p-1 text-gray-500 hover:text-red-500 rounded"
-                    title={t('Eliminar')}
+                    onClick={() => handleDownload(file)}
+                    className="p-1 text-gray-500 hover:text-primary rounded"
+                    title={t('Descargar')}
                     disabled={deletingFiles.includes(file.name)}
                   >
-                    {deletingFiles.includes(file.name) ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <Trash2 className="w-3.5 h-3.5" />
-                    )}
+                    <Download className="w-3.5 h-3.5" />
                   </button>
-                )}
+                  
+                  {!readOnly && (
+                    <button
+                      onClick={() => handleDelete(file)}
+                      className="p-1 text-gray-500 hover:text-red-500 rounded"
+                      title={t('Eliminar')}
+                      disabled={deletingFiles.includes(file.name)}
+                    >
+                      {deletingFiles.includes(file.name) ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-3.5 h-3.5" />
+                      )}
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </>
+        ) : (
+          /* Estado vacío - Mucho más compacto */
+          !readOnly && uploadingFiles.length === 0 && (
+            <div 
+              className={`h-full flex items-center justify-center min-h-[40px] border border-dashed rounded-md text-center transition-all ${
+                isDragging 
+                  ? 'border-primary bg-primary/5' 
+                  : 'border-gray-300'
+              }`}
+            >
+              <div>
+                <p className="text-xs text-gray-500">
+                  {isDragging ? (
+                    <span className="text-primary font-medium">{t('Suelta los archivos aquí')}</span>
+                  ) : (
+                    <>
+                      {t('Arrastra archivos o')}{' '}
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="text-primary hover:text-primary/80 font-medium"
+                      >
+                        {t('haz clic aquí')}
+                      </button>
+                    </>
+                  )}
+                </p>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {t('Máx: 10MB')}
+                </p>
               </div>
             </div>
-          ))}
-        </div>
-      ) : (
-        /* Estado vacío - Mucho más compacto */
-        !readOnly && (
-          <div 
-            onDragEnter={handleDragEnter}
-            onDragLeave={handleDragLeave}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            className={`border border-dashed rounded-md p-3 text-center transition-all ${
-              isDragging 
-                ? 'border-primary bg-primary/5' 
-                : 'border-gray-300'
-            }`}
-          >
-            <p className="text-xs text-gray-500">
-              {isDragging ? (
-                <span className="text-primary font-medium">{t('Suelta los archivos aquí')}</span>
-              ) : (
-                <>
-                  {t('Arrastra archivos o')}{' '}
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="text-primary hover:text-primary/80 font-medium"
-                  >
-                    {t('haz clic aquí')}
-                  </button>
-                </>
-              )}
-            </p>
-            <p className="text-xs text-gray-400 mt-0.5">
-              {t('Máx: 10MB')}
-            </p>
-          </div>
-        )
-      )}
+          )
+        )}
+      </div>
     </div>
   );
 };

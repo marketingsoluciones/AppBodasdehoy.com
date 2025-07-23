@@ -39,13 +39,13 @@ const ReactQuill = dynamic(() => import('react-quill'), {
 // Configuración del editor Quill
 const quillModules = {
   toolbar: [
-    [{ 'header': [1, 2, 3, false] }],
+  /*   [{ 'header': [1, 2, 3, false] }], */
     ['bold', 'italic', 'underline', 'strike'],
     [{ 'color': [] }, { 'background': [] }],
     [{ 'list': 'ordered' }, { 'list': 'bullet' }],
     [{ 'indent': '-1' }, { 'indent': '+1' }],
     [{ 'align': [] }],
-    ['link', 'image'],
+/*     ['link', 'image'], */
     ['clean']
   ],
 };
@@ -158,6 +158,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
   const currentStatus = TASK_STATUSES.find(s => s.value === localTask.estado) || TASK_STATUSES[0];
   const currentPriority = TASK_PRIORITIES.find(p => p.value === localTask.prioridad) || TASK_PRIORITIES[1];
 
+   
   const quillViewerClasses = `
   prose prose-sm max-w-none
   [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:my-3
@@ -825,81 +826,86 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               <div className="px-6 py-4">
 
                 <div className="space-y-6">
-                  {/* Descripción larga con Editor Rico */}
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="text-sm font-medium text-gray-700">
-                        {t('Descripción detallada')}
-                      </label>
-                      {localTask.tips && !editingDescription && canEdit && (
-                        <button
-                          onClick={() => setEditingDescription(true)}
-                          className="text-sm text-primary hover:text-primary/80"
-                        >
-                          {t('Editar')}
-                        </button>
-                      )}
-                    </div>
-                    {editingDescription ? (
-                      <div className="border border-gray-300 rounded-lg overflow-hidden">
-                        <ReactQuill
-                          value={customDescription}
-                          onChange={setCustomDescription}
-                          modules={quillModules}
-                          formats={quillFormats}
-                          theme="snow"
-                          placeholder={t('Escribe una descripción detallada...')}
-                          className="bg-white"
-                          style={{ minHeight: '200px' }}
-                        />
-                        <div className="flex justify-end space-x-2 p-3 bg-gray-50 border-t border-gray-200">
-                          <button
-                            onClick={() => {
-                              setCustomDescription(localTask.tips || '');
-                              setEditingDescription(false);
-                            }}
-                            className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
-                          >
-                            {t('Cancelar')}
-                          </button>
-                          <button
-                            onClick={() => {
-                              handleUpdate('tips', customDescription);
-                              setEditingDescription(false);
-                            }}
-                            className="px-4 py-2 text-sm bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
-                          >
-                            {t('Guardar')}
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div
-                        className={`border border-gray-200 rounded-lg p-4 min-h-[100px] ${canEdit ? 'cursor-pointer hover:border-gray-300' : 'cursor-default opacity-60'
-                          }`}
-                        onClick={() => {
-                          if (canEdit) {
-                            setCustomDescription(localTask.tips || '');
-                            setEditingDescription(true);
-                          } else {
-                            ht();
-                          }
-                        }}
-                        title={canEdit ? "Haz clic para editar descripción" : "No tienes permisos para editar"}
-                      >
-                        {localTask.tips ? (
-                          <div
-                            className="prose prose-sm max-w-none [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:my-3 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:my-3 [&_h3]:text-lg [&_h3]:font-bold [&_h3]:my-3 [&_p]:mb-4 [&_ul]:pl-6 [&_ul]:mb-4 [&_ul]:list-disc [&_ol]:pl-6 [&_ol]:mb-4 [&_ol]:list-decimal [&_li]:mb-2 [&_pre]:bg-gray-100 [&_pre]:p-3 [&_pre]:rounded [&_pre]:my-2 [&_pre]:whitespace-pre-wrap [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-sm [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-4 [&_blockquote]:my-2 [&_blockquote]:italic [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800 [&_.ql-align-center]:text-center [&_.ql-align-right]:text-right [&_.ql-align-justify]:text-justify [&_.ql-size-small]:text-xs [&_.ql-size-large]:text-lg [&_.ql-size-huge]:text-2xl [&_.ql-font-serif]:font-serif [&_.ql-font-monospace]:font-mono"
-                            dangerouslySetInnerHTML={{ __html: localTask.tips }}
-                          />
-                        ) : (
-                          <p className="text-sm text-gray-400">
-                            {canEdit ? t('Haz clic para agregar una descripción...') : t('Sin descripción')}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                  {/* Descripción larga con Editor */}
+<div>
+  <div className="flex items-center justify-between mb-2">
+    <label className="text-sm font-medium text-gray-700">
+      {t('Descripción detallada')}
+    </label>
+    {localTask.tips && !editingDescription && canEdit && (
+      <button
+        onClick={() => setEditingDescription(true)}
+        className="text-xs text-primary hover:text-primary/80"
+      >
+        {t('Editar')}
+      </button>
+    )}
+  </div>
+  
+  {editingDescription ? (
+    <div className="border border-gray-300 rounded-lg overflow-hidden">
+      {/* Contenedor del editor con altura fija y overflow */}
+      <div className="h-[300px] overflow-y-auto">
+        <ReactQuill
+          value={customDescription}
+          onChange={setCustomDescription}
+          modules={quillModules}
+          formats={quillFormats}
+          theme="snow"
+          placeholder={t('Escribe una descripción detallada...')}
+          className="bg-white"
+        />
+      </div>
+      {/* Botones fuera del área con scroll */}
+      <div className="flex justify-end space-x-2 p-3 bg-gray-50 border-t border-gray-200">
+        <button
+          onClick={() => {
+            setCustomDescription(localTask.tips || '');
+            setEditingDescription(false);
+          }}
+          className="px-4 py-2 text-xs text-gray-600 hover:text-gray-800 transition-colors"
+        >
+          {t('Cancelar')}
+        </button>
+        <button
+          onClick={() => {
+            handleUpdate('tips', customDescription);
+            setEditingDescription(false);
+          }}
+          className="px-4 py-2 text-xs bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+        >
+          {t('Guardar')}
+        </button>
+      </div>
+    </div>
+  ) : (
+    <div
+      className={`h-[300px] overflow-y-auto border border-gray-200 rounded-lg p-4 ${
+        canEdit ? 'cursor-pointer hover:border-gray-300' : 'cursor-default opacity-60'
+      }`}
+      onClick={() => {
+        if (canEdit) {
+          setCustomDescription(localTask.tips || '');
+          setEditingDescription(true);
+        } else {
+          ht();
+        }
+      }}
+      title={canEdit ? "Haz clic para editar descripción" : "No tienes permisos para editar"}
+    >
+      {localTask.tips ? (
+        <div
+          className="prose prose-xs max-w-none [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:my-3 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:my-3 [&_h3]:text-lg [&_h3]:font-bold [&_h3]:my-3 [&_p]:mb-4 [&_ul]:pl-6 [&_ul]:mb-4 [&_ul]:list-disc [&_ol]:pl-6 [&_ol]:mb-4 [&_ol]:list-decimal [&_li]:mb-2 [&_pre]:bg-gray-100 [&_pre]:p-3 [&_pre]:rounded [&_pre]:my-2 [&_pre]:whitespace-pre-wrap [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-sm [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-4 [&_blockquote]:my-2 [&_blockquote]:italic [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800 [&_.ql-align-center]:text-center [&_.ql-align-right]:text-right [&_.ql-align-justify]:text-justify [&_.ql-size-small]:text-xs [&_.ql-size-large]:text-lg [&_.ql-size-huge]:text-2xl [&_.ql-font-serif]:font-serif [&_.ql-font-monospace]:font-mono"
+          dangerouslySetInnerHTML={{ __html: localTask.tips }}
+        />
+      ) : (
+        <p className="text-xs text-gray-400">
+          {canEdit ? t('Haz clic para agregar una descripción...') : t('Sin descripción')}
+        </p>
+      )}
+    </div>
+  )}
+</div>
                   {/* Adjuntos mejorados */}
                   <div>
                     {/* <h4 className="text-sm font-medium text-gray-700 mb-3">{t('Adjuntos')}</h4> */}
@@ -918,61 +924,73 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
           </div>
         </div>
         {/* Panel lateral - Chat/Comentarios */}
-        <div id="container-right" className="w-96 flex flex-col bg-gray-50 h-full">
-          <div className="p-4 border-b border-gray-200 bg-white h-[81px]">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-lg">{t('Actividad')}</h3>
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-500">{comments.length} {t('comentarios')}</span>
-                <Bell className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600" />
-              </div>
-            </div>
-          </div>
-          <div
-            ref={commentsContainerRef}
-            className="space-y-2 flex flex-col-reverse h-[450px]" >
-            {comments.length === 0
-              ? (<div className="text-center py-8 flex-1 flex items-center justify-center">
-                <div>
-                  <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                  <p className="text-sm text-gray-500">{t('No hay comentarios aún')}</p>
-                  <p className="text-xs text-gray-400 mt-1">{t('Sé el primero en comentar')}</p>
-                </div>
-              </div>)
-              : (<div id='comments-container' className="space-y-2 h-full overflow-y-auto">
-                {comments.map((comment) => (
-                  <div key={comment._id} className="relative group">
-                    <ListComments
-                      id={comment._id}
-                      itinerario={itinerario}
-                      task={task}
-                      item={comment}
-                      tempPastedAndDropFiles={tempPastedAndDropFiles}
-                    />
-                    {canEdit && (
-                      <button
-                        onClick={() => handleDeleteComment(comment._id)}
-                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-white rounded shadow-sm hover:bg-gray-100"
-                        title={t('Eliminar comentario')}
-                      >
-                        <Trash2 className="w-4 h-4 text-gray-500 hover:text-[#ef4444]" />
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>)}
-          </div>
-          <div className="border-t border-gray-200 bg-white min-h-[105px]">
-            <InputComments
-              itinerario={itinerario}
-              task={task}
-              tempPastedAndDropFiles={tempPastedAndDropFiles || []}
-              setTempPastedAndDropFiles={setTempPastedAndDropFiles}
-              disabled={false}
-              onCommentAdded={handleCommentAdded}
-            />
-          </div>
+<div id="container-right" className="w-96 flex flex-col bg-gray-50 h-full max-h-[750px] overflow-hidden">
+  <div className="p-4 border-b border-gray-200 bg-white flex-shrink-0">
+    <div className="flex items-center justify-between">
+      <h3 className="font-semibold text-lg">{t('Actividad')}</h3>
+      <div className="flex items-center space-x-2">
+        <span className="text-sm text-gray-500">{comments.length} {t('comentarios')}</span>
+        <Bell className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600" />
+      </div>
+    </div>
+  </div>
+  
+  <div
+    id="comments-container"
+    ref={commentsContainerRef}
+    className="flex-1 overflow-y-auto min-h-0"
+  >
+    {comments.length === 0 ? (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center">
+          <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+          <p className="text-sm text-gray-500">{t('No hay comentarios aún')}</p>
+          <p className="text-xs text-gray-400 mt-1">{t('Sé el primero en comentar')}</p>
         </div>
+      </div>
+    ) : (
+      <div className="flex flex-col h-full">
+        {/* Spacer para empujar los comentarios hacia abajo cuando hay pocos */}
+        <div className="flex-1 min-h-0" />
+        
+        {/* Lista de comentarios */}
+        <div className="space-y-2 p-4 flex-shrink-0">
+          {comments.map((comment) => (
+            <div key={comment._id} className="relative group">
+              <ListComments
+                id={comment._id}
+                itinerario={itinerario}
+                task={task}
+                item={comment}
+                tempPastedAndDropFiles={tempPastedAndDropFiles}
+              />
+              {canEdit && (
+                <button
+                  onClick={() => handleDeleteComment(comment._id)}
+                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-white rounded shadow-sm hover:bg-gray-100"
+                  title={t('Eliminar comentario')}
+                >
+                  <Trash2 className="w-4 h-4 text-gray-500 hover:text-[#ef4444]" />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+  
+  <div className="border-t border-gray-200 bg-white flex-shrink-0">
+    <InputComments
+      itinerario={itinerario}
+      task={task}
+      tempPastedAndDropFiles={tempPastedAndDropFiles || []}
+      setTempPastedAndDropFiles={setTempPastedAndDropFiles}
+      disabled={false}
+      onCommentAdded={handleCommentAdded}
+    />
+  </div>
+</div>
         {/* Estilos CSS para animaciones */}
         <style jsx>{`
           @keyframes ping {
