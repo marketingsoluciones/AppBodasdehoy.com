@@ -1,6 +1,6 @@
 import { TaskNew } from "../../Servicios/VistaTarjeta/TaskNew"
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
-import { FC, useCallback, useEffect, useState } from "react";
+import { Dispatch, FC, SetStateAction, useCallback, useEffect, useState } from "react";
 import { AuthContextProvider } from "../../../context/AuthContext";
 import { EventContextProvider } from "../../../context/EventContext";
 import { Modal } from "../../Utils/Modal";
@@ -14,7 +14,7 @@ import { PencilEdit } from "../../icons";
 import { GoEye, GoEyeClosed, GoGitBranch } from "react-icons/go";
 import { LiaLinkSolid } from "react-icons/lia";
 import { MdOutlineDeleteOutline } from "react-icons/md";
-import { OptionsSelect, Task, Itinerary, Info, ModalInterface } from "../../../utils/Interfaces"
+import { OptionsSelect, Task, Itinerary, Info, ModalInterface, SelectModeSortType } from "../../../utils/Interfaces"
 import { SubHeader } from "../../Servicios/Utils/SubHeader";
 import { ViewItinerary } from "../../../pages/invitados";
 import FormTask from "../../Forms/FormTask";
@@ -52,6 +52,8 @@ interface props {
   setTitle: any
   selectTask: string
   setSelectTask: any
+  orderAndDirection?: SelectModeSortType  // Agregar esta línea
+  setOrderAndDirection?: Dispatch<SetStateAction<SelectModeSortType>>  // Agregar esta línea
 }
 
 export interface EditTastk {
@@ -77,7 +79,7 @@ export type TempPastedAndDropFile = {
 
 export const Details = undefined
 
-export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle, view, handleDeleteItinerario, handleUpdateTitle, title, setTitle, selectTask, setSelectTask }) => {
+export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle, view, handleDeleteItinerario, handleUpdateTitle, title, setTitle, selectTask, setSelectTask,  orderAndDirection, setOrderAndDirection }) => {
   const { t } = useTranslation();
   const { config, geoInfo, user } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
@@ -98,6 +100,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   const [tempPastedAndDropFiles, setTempPastedAndDropFiles] = useState<TempPastedAndDropFile[]>([]);
   const [loading, setLoading] = useState<boolean>(false)
   const [task, setTask] = useState<Task>()
+
 
   const optionsItineraryButtonBox: OptionsSelect[] = [
     {
@@ -173,24 +176,44 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     }
   }, [event, itinerario?._id]);
   
-  useEffect(() => {
-    if (currentItinerario?.tasks?.length > 0) {
-      const sortedTasks = [...currentItinerario.tasks].sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
-      const filteredTasks = sortedTasks.filter(elem =>
-        elem && (
-          view === "schema"
-          || ["/itinerario"].includes(window?.location?.pathname)
-          || elem.spectatorView
-          || event.usuario_id === user.uid
-          || isAllowed()
-        )
-      );
-
-      setTasks(prev => {
-        if (JSON.stringify(prev) === JSON.stringify(filteredTasks)) return prev;
-        return filteredTasks;
+useEffect(() => {
+  if (currentItinerario?.tasks?.length > 0) {
+    // Primero aplicar el ordenamiento
+    let sortedTasks = [...currentItinerario.tasks];
+    
+    // Aplicar ordenamiento según orderAndDirection
+    if (orderAndDirection) {
+      sortedTasks.sort((a, b) => {
+        let comparison = 0;
+        
+        if (orderAndDirection.order === 'fecha') {
+          comparison = new Date(a.fecha).getTime() - new Date(b.fecha).getTime();
+        } else if (orderAndDirection.order === 'nombre') {
+          comparison = (a.descripcion || '').localeCompare(b.descripcion || '', 'es');
+        }
+        
+        return orderAndDirection.direction === 'desc' ? -comparison : comparison;
       });
+    }
+    
+    // Luego filtrar
+    const filteredTasks = sortedTasks.filter(elem =>
+      elem && (
+        view === "schema"
+        || ["/itinerario"].includes(window?.location?.pathname)
+        || elem.spectatorView
+        || event.usuario_id === user.uid
+        || isAllowed()
+      )
+    );
 
+    setTasks(prev => {
+      if (JSON.stringify(prev) === JSON.stringify(filteredTasks)) return prev;
+      return filteredTasks;
+    });
+
+    // Para la vista de cards, agrupar por fecha pero mantener el orden interno
+    if (view === "cards") {
       const taskReduce: TaskReduce[] = filteredTasks.reduce((acc: TaskReduce[], item: Task) => {
         const f = new Date(item.fecha);
         const y = f.getUTCFullYear();
@@ -206,15 +229,24 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         return acc;
       }, []);
 
+      // Si se ordena por fecha, ordenar también los grupos
+      if (orderAndDirection?.order === 'fecha') {
+        taskReduce.sort((a, b) => {
+          const comparison = a.fecha - b.fecha;
+          return orderAndDirection.direction === 'desc' ? -comparison : comparison;
+        });
+      }
+
       setTasksReduce(prev => {
         if (JSON.stringify(prev) === JSON.stringify(taskReduce)) return prev;
         return taskReduce;
       });
-    } else {
-      setTasks(prev => (prev && prev.length === 0 ? prev : []));
-      setTasksReduce(prev => (prev && prev.length === 0 ? prev : []));
     }
-  }, [itinerario, event, view, user?.uid, isAllowed]);
+  } else {
+    setTasks(prev => (prev && prev.length === 0 ? prev : []));
+    setTasksReduce(prev => (prev && prev.length === 0 ? prev : []));
+  }
+}, [currentItinerario, event, view, user?.uid, isAllowed, orderAndDirection]);
 
   const handleAddSpectatorView = async (values: Task) => {
     try {
