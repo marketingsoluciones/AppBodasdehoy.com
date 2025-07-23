@@ -668,11 +668,25 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                           const fecha = new Date(localTask.fecha);
                           const [hours, minutes] = tempValue.split(':');
                           fecha.setHours(parseInt(hours), parseInt(minutes));
-                          handleUpdate('fecha', fecha);
+                          // Convertir a ISO string o al formato que espere tu backend
+                          handleUpdate('fecha', fecha.toISOString());
                         }
                         setEditingField(null);
                       }}
-                      onKeyDown={(e) => handleKeyPress(e, 'hora')}
+                      
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          if (localTask.fecha && tempValue) {
+                            const fecha = new Date(localTask.fecha);
+                            const [hours, minutes] = tempValue.split(':');
+                            fecha.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                            handleUpdate('fecha', fecha.toISOString());
+                            setEditingField(null);
+                          }
+                        } else {
+                          handleKeyPress(e, 'hora');
+                        }
+                      }}
                       className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                       autoFocus
                     />
