@@ -1,4 +1,4 @@
-import { ChangeEvent, Dispatch, FC, SetStateAction, useEffect, useState } from "react"
+{/*import { ChangeEvent, Dispatch, FC, SetStateAction, useEffect, useState } from "react"
 import { QuillEditor } from "./QuillEditor"
 import { AuthContextProvider, EventContextProvider } from "../../../context"
 import { fetchApiEventos, queries } from "../../../utils/Fetching"
@@ -44,7 +44,7 @@ export type PastedAndDropFile = {
   loading: boolean
 }
 
-export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFiles, setTempPastedAndDropFiles, nicknameUnregistered, setNicknameUnregistered }) => {
+export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFiles, setTempPastedAndDropFiles, nicknameUnregistered, setNicknameUnregistered, disabled = false, onCommentAdded }) => {
   const { user, config } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
   const [value, setValue] = useState<string>("<p><br></p>")
@@ -98,6 +98,11 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
   }, [nicknameUnregistered])
 
   const handleCreateComment = () => {
+    // VALIDACIÓN DE PERMISOS AGREGADA
+    if (disabled) {
+      return;
+    }
+
     setValir(false)
     if ((user || nicknameUnregistered) && (value || pastedAndDropFiles.length)) {
       const valueSend = value?.replace(/ id="selected"/g, "")?.replace(/ focusoffset="[^"]*"/g, '')
@@ -154,6 +159,11 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
   }
 
   const handleFileChange = async ({ event, saveType }: asd) => {
+    // VALIDACIÓN DE PERMISOS AGREGADA
+    if (disabled) {
+      return;
+    }
+
     const files = [...Array.from(event.currentTarget.files)]
     const pastedAndDropFiles = files.map(elem => {
       return {
@@ -226,6 +236,8 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
           <div className='bg-gray-50 absolute z-[20] -translate-y-[calc(100%-90px)] w-full md:w-[90%] border-gray-200 border-[1px] rounded-md shadow-md flex flex-col items-center justify-center'>
             <div className='bg-gray-300 w-full h-8 flex justify-end items-center px-2'>
               <div onClick={() => {
+                if (disabled) return; // VALIDACIÓN DE PERMISOS
+
                 if (slideSelect === pastedAndDropFiles.length - 1 && pastedAndDropFiles.length > 1) {
                   setSlideSelect(slideSelect - 1)
                 }
@@ -234,12 +246,14 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
                 }
                 pastedAndDropFiles.splice(slideSelect, 1)
                 setPastedAndDropFiles([...pastedAndDropFiles])
-              }} className="cursor-pointer">
+              }} className={disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}>
                 <LiaTrashSolid className="w-6 h-6 mr-6" />
               </div>
               <div onClick={() => {
-                handleClosePasteImages()
-              }} className="text-gray-700 cursor-pointer">
+                if (!disabled) {
+                  handleClosePasteImages()
+                }
+              }} className={`text-gray-700 ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}>
                 <IoClose className="w-6 h-6" />
               </div>
             </div>
@@ -262,34 +276,40 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
               <div className="flex-1 h-full flex justify-center items-center">
                 {pastedAndDropFiles.length > 1 && <SwiperPastedAndDropFiles pastedAndDropFiles={pastedAndDropFiles} setSlideSelect={setSlideSelect} slideSelect={slideSelect} />}
               </div>
-              <span onClick={
-                true
-                  ? () => {
-                    if (user?.displayName === "anonymous" && !nicknameUnregistered) {
-                      setShowModalNickname(true)
-                      return
-                    }
-                    handleCreateComment()
-                  }
-                  : () => { }} className={`${true ? "cursor-pointer font-semibold" : "text-gray-400"} w-10 flex justify-center items-center right-3 bottom-[10.5px]`} >
+              <span onClick={() => {
+                if (disabled) return; // VALIDACIÓN DE PERMISOS
+
+                if (user?.displayName === "anonymous" && !nicknameUnregistered) {
+                  setShowModalNickname(true)
+                  return
+                }
+                handleCreateComment()
+              }} className={`w-10 flex justify-center items-center right-3 bottom-[10.5px] ${disabled
+                ? "cursor-not-allowed opacity-50"
+                : "cursor-pointer font-semibold"
+                }`} >
                 <IoIosSend className={`h-[23px] w-auto ${true ? "text-teal-500" : "text-gray-200"} select-none`} />
               </span>
             </div>
           </div>
         )}
         <div className='flex justify-center items-center'>
-          {enabledInput && <>
-            <input type="file" accept='image/*' onChange={(event) => handleFileChange({ event, saveType: "image" })} id={`file-upload-img-${task?._id}`} className="hidden" multiple />
-            <input type="file" onChange={(event) => handleFileChange({ event, saveType: "doc" })} id={`file-upload-doc-${task?._id}`} className="hidden" multiple />
+          {enabledInput && !disabled && <>
+            <input type="file" accept='image/*' onChange={(event) => handleFileChange({ event, saveType: "image" })} id={`file-upload-img-${task?._id}`} className="hidden" multiple disabled={disabled} />
+            <input type="file" onChange={(event) => handleFileChange({ event, saveType: "doc" })} id={`file-upload-doc-${task?._id}`} className="hidden" multiple disabled={disabled} />
           </>}
           <div id={`contenedorAttachment0-${task?._id}`}>
             <div id={`attachment-${task?._id}`}>
-              <ClickAwayListener onClickAway={() => { setAttachment(false) }}>
-                <div className='cursor-pointer select-none'>
+              <ClickAwayListener onClickAway={() => {
+                if (!disabled) {
+                  setAttachment(false)
+                }
+              }}>
+                <div className={`select-none ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}>
                   <div className='translate-y-[4px]'>
-                    {attachment && (
+                    {attachment && !disabled && (
                       <div className='bg-white w-40 absolute z-50 -translate-y-full -translate-x-4 border-gray-200 border-[1px] rounded-md shadow-md'>
-                        <ul onClick={() => { }} className='py-2 px-1 text-[11px]'>
+                        <ul className='py-2 px-1 text-[11px]'>
                           <li onClickCapture={() => setEnabledInput(true)} className='cursor-pointer hover:bg-gray-100 rounded-md items-center'>
                             <label htmlFor={`file-upload-doc-${task?._id}`} className='font-semibold cursor-pointer flex items-center space-x-1 p-1'>
                               <PiFileArrowUpThin className='w-6 h-6' />
@@ -301,10 +321,17 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
                     )}
                   </div>
                   <div onClick={() => {
+                    if (disabled) return; // VALIDACIÓN DE PERMISOS
+
                     setTimeout(() => {
                       setAttachment(!attachment)
                     }, 10);
-                  }} className={`w-10 h-10 flex justify-center items-center ${pastedAndDropFiles?.length ? "hover:bg-white" : "hover:bg-gray-100"} rounded-full`}>
+                  }} className={`w-10 h-10 flex justify-center items-center rounded-full ${disabled
+                    ? "opacity-50"
+                    : pastedAndDropFiles?.length
+                      ? "hover:bg-white"
+                      : "hover:bg-gray-100"
+                    }`}>
                     <PlusIcon className="w-5 h-5 text-gray-700" />
                   </div>
                 </div>
@@ -319,18 +346,34 @@ export const InputComments: FC<props> = ({ itinerario, task, tempPastedAndDropFi
         </div>
         {(!pastedAndDropFiles.length && (
           <span
-            onClick={(valir || pastedAndDropFiles.length) ? handleCreateComment : () => { }}
-            className={`${(valir || pastedAndDropFiles.length) ? "cursor-pointer font-semibold" : "text-gray-400"} absolute right-3 bottom-[10.5px]`}
+            onClick={valir && !disabled
+              ? () => {
+                if (user?.displayName === "anonymous" && !nicknameUnregistered) {
+                  setShowModalNickname(true)
+                  return
+                }
+                handleCreateComment()
+              }
+              : () => { }}
+            className={`absolute right-3 bottom-[10.5px] ${valir && !disabled
+                ? "cursor-pointer font-semibold"
+                : "text-gray-400"
+              } ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
+            title={disabled ? "No tienes permisos para comentar" : ""}
           >
-            <IoIosSend className={`h-[23px] w-auto ${(valir || pastedAndDropFiles.length) ? "text-teal-500" : "text-gray-200"} select-none`} />
+            <IoIosSend className={`h-[23px] w-auto select-none ${valir && !disabled ? "text-teal-500" : "text-gray-200"
+              }`} />
           </span>
         ))}
       </div>
     </div>
   )
-}
-{/* 
-  import { ChangeEvent, Dispatch, FC, SetStateAction, useEffect, useState } from "react"
+}*/}
+
+
+
+
+import { ChangeEvent, Dispatch, FC, SetStateAction, useEffect, useState } from "react"
 import { QuillEditor } from "./QuillEditor"
 import { AuthContextProvider, EventContextProvider } from "../../../context"
 import { fetchApiEventos, queries } from "../../../utils/Fetching"
@@ -350,7 +393,7 @@ import { customAlphabet } from "nanoid"
 import { SetNickname } from "../../Itinerario/MicroComponente/SetNickName"
 import { useTranslation } from 'react-i18next'
 import { Lock } from 'lucide-react'
- 
+
 interface props {
   itinerario?: Itinerary
   task?: Task
@@ -446,7 +489,7 @@ export const InputComments: FC<props> = ({
       const attachments = pastedAndDropFiles?.map((elem): FileData => {
         return { name: elem.file.name, size: elem.file.size }
       })
-      
+
       try {
         const results = await fetchApiEventos({
           query: queries.createComment,
@@ -462,18 +505,18 @@ export const InputComments: FC<props> = ({
         }) as Comment;
 
         if (!results || typeof results !== 'object' || !('_id' in results)) {
-        console.error('La respuesta de la API no es válida:', results);
-        return;
-}
+          console.error('La respuesta de la API no es válida:', results);
+          return;
+        }
 
         // Actualizar estado global
         setEvent((prevEvent) => {
           const newEvent = { ...prevEvent };
           const f1 = newEvent?.itinerarios_array.findIndex(elm => elm?._id === itinerario?._id);
-          
+
           if (f1 !== -1) {
             const f2 = newEvent?.itinerarios_array[f1]?.tasks.findIndex(elm => elm?._id === task?._id);
-            
+
             if (f2 !== -1) {
               if (!newEvent.itinerarios_array[f1].tasks[f2].comments) {
                 newEvent.itinerarios_array[f1].tasks[f2].comments = [];
@@ -481,7 +524,7 @@ export const InputComments: FC<props> = ({
               newEvent.itinerarios_array[f1].tasks[f2].comments.push(results);
             }
           }
-          
+
           return newEvent;
         });
 
@@ -505,19 +548,19 @@ export const InputComments: FC<props> = ({
         }
 
         // Notificaciones
-        const asd = event?.detalles_compartidos_array?.filter(elem => 
+        const asd = event?.detalles_compartidos_array?.filter(elem =>
           ["edit", "view"].includes(elem?.permissions?.find(el => el.title === "servicios")?.value)
         )?.map(elem => elem.uid) ?? [];
-        
+
         let qwe = [...asd, event?.usuario_id];
         const af1 = qwe?.findIndex(elem => elem === user?.uid);
-        
+
         if (af1 > -1) {
           qwe.splice(af1, 1);
         }
 
         const focused = `${window.location.pathname}?event=${event._id}&itinerary=${itinerario._id}&task=${task?._id}&comment=${results?._id}`;
-        
+
         notification({
           type: "user",
           message: ` ha escrito un comentario: ${valueSend?.slice(0, 50)}${valueSend?.length > 50 ? "..." : ""} | Evento ${event?.tipo}: <strong>${event?.nombre?.toUpperCase()}</strong>`,
@@ -528,7 +571,7 @@ export const InputComments: FC<props> = ({
         // Limpiar formulario
         setValue("<p><br></p>");
         setPastedAndDropFiles([]);
-        
+
       } catch (error) {
         console.error('Error al crear comentario:', error);
       }
@@ -562,7 +605,7 @@ export const InputComments: FC<props> = ({
   };
 
   // MOSTRAR MENSAJE DE SOLO LECTURA SI ESTÁ DESHABILITADO
-   if (disabled) {
+  if (disabled) {
     return (
       <div className='bg-gray-50 flex items-center justify-center pt-2 px-2 py-4 border-t border-gray-200'>
         <div className="flex items-center space-x-2 text-gray-500">
@@ -571,7 +614,7 @@ export const InputComments: FC<props> = ({
         </div>
       </div>
     );
-  } 
+  }
 
   return (
     <div className='bg-white flex items-center pt-2 px-2 relative'>
@@ -590,7 +633,7 @@ export const InputComments: FC<props> = ({
             <div className='bg-gray-300 w-full h-8 flex justify-end items-center px-2'>
               <div onClick={() => {
                 if (disabled) return; // VALIDACIÓN DE PERMISOS
-                
+
                 if (slideSelect === pastedAndDropFiles.length - 1 && pastedAndDropFiles.length > 1) {
                   setSlideSelect(slideSelect - 1)
                 }
@@ -620,11 +663,11 @@ export const InputComments: FC<props> = ({
               </div>
             }
             <div className={`w-full min-h-[52px] flex items-center px-2 ${disabled ? 'bg-gray-100' : 'bg-gray-200'}`}>
-              <QuillEditor 
-                value={value} 
-                setValue={disabled ? () => {} : setValue} 
-                setPastedAndDropFiles={disabled ? () => {} : setPastedAndDropFiles} 
-                pastedAndDropFiles={pastedAndDropFiles} 
+              <QuillEditor
+                value={value}
+                setValue={disabled ? () => { } : setValue}
+                setPastedAndDropFiles={disabled ? () => { } : setPastedAndDropFiles}
+                pastedAndDropFiles={pastedAndDropFiles}
               />
             </div>
             <div className='bg-gray-100 flex w-full h-10'>
@@ -634,57 +677,73 @@ export const InputComments: FC<props> = ({
                   <SwiperPastedAndDropFiles pastedAndDropFiles={pastedAndDropFiles} setSlideSelect={setSlideSelect} slideSelect={slideSelect} />
                 )}
               </div>
-              <span 
+              <span
                 onClick={() => {
                   if (disabled) return; // VALIDACIÓN DE PERMISOS
-                  
+
                   if (user?.displayName === "anonymous" && !nicknameUnregistered) {
                     setShowModalNickname(true)
                     return
                   }
                   handleCreateComment()
-                }} 
-                className={`w-10 flex justify-center items-center right-3 bottom-[10.5px] ${
-                  disabled 
-                    ? "cursor-not-allowed opacity-50" 
-                    : "cursor-pointer font-semibold"
-                }`}
+                }}
+                className={`w-10 flex justify-center items-center right-3 bottom-[10.5px] ${disabled
+                  ? "cursor-not-allowed opacity-50"
+                  : "cursor-pointer font-semibold"
+                  }`}
               >
-                <IoIosSend className={`h-[23px] w-auto select-none ${
-                  disabled ? "text-gray-300" : "text-teal-500"
-                }`} />
+                <IoIosSend className={`h-[23px] w-auto select-none ${disabled ? "text-gray-300" : "text-teal-500"
+                  }`} />
               </span>
             </div>
           </div>
         )}
         {!pastedAndDropFiles.length && (
-          <>
+          <div className="w-full flex flex-row-reverse">
+            <div className='w-full min-h-[52px] flex items-center relative'>
+              <div className={`w-full ${disabled ? 'opacity-60' : ''}`}>
+                <QuillEditor
+                  value={value}
+                  setValue={disabled ? () => { } : setValue}
+                  setPastedAndDropFiles={disabled ? () => { } : setPastedAndDropFiles}
+                  pastedAndDropFiles={pastedAndDropFiles}
+                />
+              </div>
+              {disabled && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-50 bg-opacity-50 rounded">
+                  <div className="text-center">
+                    <Lock className="w-6 h-6 text-gray-400 mx-auto mb-2" />
+                    <p className="text-xs text-gray-500">{t('Comentarios deshabilitados')}</p>
+                  </div>
+                </div>
+              )}
+            </div>
             <div className='flex justify-center items-center'>
               {enabledInput && !disabled && (
                 <>
-                  <input 
-                    type="file" 
-                    accept='image/*' 
-                    onChange={(event) => handleFileChange({ event, saveType: "image" })} 
-                    id={`file-upload-img-${task?._id}`} 
-                    className="hidden" 
-                    multiple 
+                  <input
+                    type="file"
+                    accept='image/*'
+                    onChange={(event) => handleFileChange({ event, saveType: "image" })}
+                    id={`file-upload-img-${task?._id}`}
+                    className="hidden"
+                    multiple
                     disabled={disabled}
                   />
-                  <input 
-                    type="file" 
-                    onChange={(event) => handleFileChange({ event, saveType: "doc" })} 
-                    id={`file-upload-doc-${task?._id}`} 
-                    className="hidden" 
-                    multiple 
+                  <input
+                    type="file"
+                    onChange={(event) => handleFileChange({ event, saveType: "doc" })}
+                    id={`file-upload-doc-${task?._id}`}
+                    className="hidden"
+                    multiple
                     disabled={disabled}
                   />
                 </>
               )}
-              <div>
-                <ClickAwayListener onClickAway={() => { 
+              <div className="">
+                <ClickAwayListener onClickAway={() => {
                   if (!disabled) {
-                    setAttachment(false) 
+                    setAttachment(false)
                   }
                 }}>
                   <div className={`select-none ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}>
@@ -704,42 +763,23 @@ export const InputComments: FC<props> = ({
                     </div>
                     <div onClick={() => {
                       if (disabled) return; // VALIDACIÓN DE PERMISOS
-                      
+
                       setTimeout(() => {
                         setAttachment(!attachment)
                       }, 10);
-                    }} className={`w-10 h-10 flex justify-center items-center rounded-full ${
-                      disabled 
-                        ? "opacity-50" 
-                        : pastedAndDropFiles?.length 
-                          ? "hover:bg-white" 
-                          : "hover:bg-gray-100"
-                    }`}>
+                    }} className={`w-10 h-10 flex justify-center items-center rounded-full ${disabled
+                      ? "opacity-50"
+                      : pastedAndDropFiles?.length
+                        ? "hover:bg-white"
+                        : "hover:bg-gray-100"
+                      }`}>
                       <PlusIcon className="w-5 h-5 text-gray-700" />
                     </div>
                   </div>
                 </ClickAwayListener>
               </div>
             </div>
-            <div className='w-full min-h-[52px] flex items-center relative'>
-              <div className={`w-full ${disabled ? 'opacity-60' : ''}`}>
-                <QuillEditor 
-                  value={value} 
-                  setValue={disabled ? () => {} : setValue} 
-                  setPastedAndDropFiles={disabled ? () => {} : setPastedAndDropFiles} 
-                  pastedAndDropFiles={pastedAndDropFiles} 
-                />
-              </div>
-              {disabled && (
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-50 bg-opacity-50 rounded">
-                  <div className="text-center">
-                    <Lock className="w-6 h-6 text-gray-400 mx-auto mb-2" />
-                    <p className="text-xs text-gray-500">{t('Comentarios deshabilitados')}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-            <span 
+            <span
               onClick={valir && !disabled
                 ? () => {
                   if (user?.displayName === "anonymous" && !nicknameUnregistered) {
@@ -748,22 +788,19 @@ export const InputComments: FC<props> = ({
                   }
                   handleCreateComment()
                 }
-                : () => { }} 
-              className={`absolute right-3 bottom-[10.5px] ${
-                valir && !disabled 
-                  ? "cursor-pointer font-semibold" 
-                  : "text-gray-400"
-              } ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
+                : () => { }}
+              className={`absolute right-3 bottom-[10.5px] ${valir && !disabled
+                ? "cursor-pointer font-semibold"
+                : "text-gray-400"
+                } ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
               title={disabled ? t("No tienes permisos para comentar") : ""}
             >
-              <IoIosSend className={`h-[23px] w-auto select-none ${
-                valir && !disabled ? "text-teal-500" : "text-gray-200"
-              }`} />
+              <IoIosSend className={`h-[23px] w-auto select-none ${valir && !disabled ? "text-teal-500" : "text-gray-200"
+                }`} />
             </span>
-          </>
+          </div>
         )}
       </div>
     </div>
   )
 }
-   */}

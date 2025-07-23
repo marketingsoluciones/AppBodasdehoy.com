@@ -184,12 +184,15 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
 
   // Auto-scroll al agregar nuevos comentarios
   useEffect(() => {
-    if (comments.length > previousCountComments && commentsContainerRef.current) {
+    if (comments.length > previousCountComments) {
       setTimeout(() => {
-        commentsContainerRef.current?.scrollTo({
-          top: commentsContainerRef.current.scrollHeight,
-          behavior: 'smooth'
-        });
+        const commentsContainer = document.getElementById('comments-container');
+        if (commentsContainer) {
+          commentsContainer.scrollTo({
+            top: commentsContainer.scrollHeight,
+            behavior: 'smooth'
+          });
+        }
       }, 100);
     }
     setPreviousCountComments(comments.length);
@@ -425,7 +428,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                   </>
                 )}
                 {/* Menú de más opciones - OCULTO sin permisos */}
-{/*                 <div className="relative">
+                {/*                 <div className="relative">
                   <button
                     onClick={() => setShowMoreOptions(!showMoreOptions)}
                     className={`p-1.5 rounded-lg transition-all duration-200 ${showMoreOptions ? 'bg-gray-100 text-gray-700' : 'hover:bg-gray-100 text-gray-500'
@@ -614,41 +617,41 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                 {/* Fecha y hora REVISAR */}
                 <div className="flex items-center space-x-4">
                   {editingField === 'fecha' ? (
-  <div className="flex items-center space-x-2">
-    <input
-      type="date"
-      value={tempValue ? tempValue : ''}
-      onChange={(e) => setTempValue(e.target.value)}
-      onBlur={() => handleFieldSave('fecha')}
-      onKeyDown={(e) => handleKeyPress(e, 'fecha')}
-      className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-      autoFocus
-    />
-  </div>
-) : (
-  <span
-    className={`text-sm ${canEdit ? 'cursor-pointer hover:text-primary' : 'cursor-default opacity-60'}`}
-    onClick={() => {
-      if (canEdit) {
-        // Formatear la fecha correctamente para el input tipo date
-        if (localTask.fecha) {
-          const date = new Date(localTask.fecha);
-          const year = date.getFullYear();
-          const month = String(date.getMonth() + 1).padStart(2, '0');
-          const day = String(date.getDate()).padStart(2, '0');
-          handleFieldClick('fecha', `${year}-${month}-${day}`);
-        } else {
-          handleFieldClick('fecha', '');
-        }
-      } else {
-        ht();
-      }
-    }}
-    title={canEdit ? "Haz clic para editar fecha" : "No tienes permisos para editar"}
-  >
-    {localTask.fecha ? formatDate(localTask.fecha) : t('Sin fecha')}
-  </span>
-)}
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="date"
+                        value={tempValue ? tempValue : ''}
+                        onChange={(e) => setTempValue(e.target.value)}
+                        onBlur={() => handleFieldSave('fecha')}
+                        onKeyDown={(e) => handleKeyPress(e, 'fecha')}
+                        className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                        autoFocus
+                      />
+                    </div>
+                  ) : (
+                    <span
+                      className={`text-sm ${canEdit ? 'cursor-pointer hover:text-primary' : 'cursor-default opacity-60'}`}
+                      onClick={() => {
+                        if (canEdit) {
+                          // Formatear la fecha correctamente para el input tipo date
+                          if (localTask.fecha) {
+                            const date = new Date(localTask.fecha);
+                            const year = date.getFullYear();
+                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                            const day = String(date.getDate()).padStart(2, '0');
+                            handleFieldClick('fecha', `${year}-${month}-${day}`);
+                          } else {
+                            handleFieldClick('fecha', '');
+                          }
+                        } else {
+                          ht();
+                        }
+                      }}
+                      title={canEdit ? "Haz clic para editar fecha" : "No tienes permisos para editar"}
+                    >
+                      {localTask.fecha ? formatDate(localTask.fecha) : t('Sin fecha')}
+                    </span>
+                  )}
 
                   {/* Hora */}
                   {editingField === 'hora' ? (
@@ -666,7 +669,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                         }
                         setEditingField(null);
                       }}
-                      
+
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           if (localTask.fecha && tempValue) {
@@ -936,7 +939,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                   <p className="text-xs text-gray-400 mt-1">{t('Sé el primero en comentar')}</p>
                 </div>
               </div>)
-              : (<div className="space-y-2 h-full overflow-y-auto">
+              : (<div id='comments-container' className="space-y-2 h-full overflow-y-auto">
                 {comments.map((comment) => (
                   <div key={comment._id} className="relative group">
                     <ListComments

@@ -29,16 +29,16 @@ interface props extends HTMLAttributes<HTMLDivElement> {
   showDeleteButton?: boolean // Nueva prop para controlar si mostrar el botón de eliminar
 }
 
-export const ListComments: FC<props> = ({ 
-  itinerario, 
-  task, 
-  item, 
-  identifierDisabled, 
-  tempPastedAndDropFiles, 
-  nicknameUnregistered, 
+export const ListComments: FC<props> = ({
+  itinerario,
+  task,
+  item,
+  identifierDisabled,
+  tempPastedAndDropFiles,
+  nicknameUnregistered,
   onCommentDeleted,
   showDeleteButton = false, // Por defecto no mostrar el botón (se maneja desde el padre)
-  ...props 
+  ...props
 }) => {
   const { user, config } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
@@ -71,7 +71,7 @@ export const ListComments: FC<props> = ({
     try {
       // Eliminar archivos del storage
       const storageRef = ref(storage, `event-${event?._id}//itinerary-${itinerario?._id}//task-${task._id}//comment-${item?._id}`)
-      
+
       try {
         const res = await listAll(storageRef);
         await Promise.all(res.items.map(itemRef => deleteObject(itemRef)));
@@ -96,19 +96,19 @@ export const ListComments: FC<props> = ({
       setEvent((prevEvent) => {
         const newEvent = { ...prevEvent };
         const f1 = newEvent.itinerarios_array.findIndex(elm => elm._id === itinerario._id);
-        
+
         if (f1 !== -1) {
           const f2 = newEvent.itinerarios_array[f1].tasks.findIndex(elm => elm._id === task._id);
-          
+
           if (f2 !== -1) {
             const f3 = newEvent.itinerarios_array[f1].tasks[f2].comments.findIndex(elm => elm._id === item?._id);
-            
+
             if (f3 !== -1) {
               newEvent.itinerarios_array[f1].tasks[f2].comments.splice(f3, 1);
             }
           }
         }
-        
+
         return newEvent;
       });
 
@@ -138,21 +138,21 @@ export const ListComments: FC<props> = ({
     // 1. Tiene permisos generales (isAllowed)
     // 2. Es el autor del comentario y está autenticado
     // 3. Es el autor del comentario con nickname y han pasado menos de 5 minutos
-    
+
     if (isAllowed()) {
       return true;
     }
-    
+
     if (user && user.uid === item?.uid && user?.displayName !== "anonymous") {
       return true;
     }
-    
-    if (item?.nicknameUnregistered === nicknameUnregistered && 
-        (new Date().getTime() - new Date(item.createdAt).getTime()) / 1000 < 300 && 
-        user?.displayName === "anonymous") {
+
+    if (item?.nicknameUnregistered === nicknameUnregistered &&
+      (new Date().getTime() - new Date(item.createdAt).getTime()) / 1000 < 300 &&
+      user?.displayName === "anonymous") {
       return true;
     }
-    
+
     return false;
   };
 
@@ -209,9 +209,9 @@ export const ListComments: FC<props> = ({
             />
           </div>
         </div>
-        
+
         {/* Botón de eliminar - Solo mostrar si showDeleteButton es true O si canDeleteComment */}
-{/*         <div className="w-5">
+        {/*         <div className="w-5">
           {(showDeleteButton || canDeleteComment()) && (
             <MdOutlineDeleteOutline 
               onClick={handleDelete} 
