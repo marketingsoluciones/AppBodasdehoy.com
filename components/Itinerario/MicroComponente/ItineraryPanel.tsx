@@ -236,6 +236,16 @@ useEffect(() => {
           return orderAndDirection.direction === 'desc' ? -comparison : comparison;
         });
       }
+      setTasks(prev => {
+      // Forzar actualización solo si hay cambios reales
+      const newTasksStr = JSON.stringify(filteredTasks);
+      const prevTasksStr = JSON.stringify(prev);
+      
+      if (newTasksStr !== prevTasksStr) {
+        return filteredTasks;
+      }
+      return prev;
+    });
 
       setTasksReduce(prev => {
         if (JSON.stringify(prev) === JSON.stringify(taskReduce)) return prev;

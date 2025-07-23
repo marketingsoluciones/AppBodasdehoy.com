@@ -6,7 +6,7 @@ import { BoardFilters } from './BoardFilters';
 import { SubTaskModal } from '../Utils/SubTaskModal';
 import { toast } from "react-toastify";
 import { useTranslation } from 'react-i18next';
-import TaskDetailModal from '../VistaTarjeta/TaskDetailModal';
+import TaskDetailModal from './TaskDetailModal';
 import { AuthContextProvider } from '../../../context';
 import { BoardState, DragItem, BoardColumn as IBoardColumn } from '../types';
 import { DEFAULT_COLUMNS } from '../constants';
@@ -80,6 +80,8 @@ export const BoardView: React.FC<BoardViewProps> = ({ data, itinerario, event, s
     }
   }, [hasUnsavedChanges, debouncedSave, isSaving]);
 
+
+
   useEffect(() => {
     const columns: Record<string, IBoardColumn> = {};
     Object.entries(DEFAULT_COLUMNS).forEach(([id, column]) => {
@@ -137,6 +139,67 @@ export const BoardView: React.FC<BoardViewProps> = ({ data, itinerario, event, s
       viewMode: prev.viewMode || 'board'
     }));
   }, [data, getTaskStatusCallback, itinerario.columnsOrder]);
+
+useEffect(() => {
+  // Solo actualizar si ya tenemos un boardState inicializado
+  if (!boardState.columnOrder.length) return;
+
+  // Sincronizar cambios del evento global con el boardState local
+  const columns: Record<string, IBoardColumn> = {};
+  
+  // Copiar la estructura de columnas existente
+  Object.entries(boardState.columns).forEach(([id, column]) => {
+    columns[id] = {
+      ...column,
+      tasks: [] // Limpiar tareas, las vamos a repoblar
+    };
+  });
+
+  // Distribuir tareas actualizadas del evento global
+  if (data && data.length > 0) {
+    data.forEach(task => {
+      const status = task.estado || getTaskStatusCallback(task);
+      
+      if (columns[status]) {
+        columns[status].tasks.push({
+          ...task,
+          estado: status,
+          order: task.order ?? columns[status].tasks.length
+        });
+      } else if (columns.pending) {
+        columns.pending.tasks.push({
+          ...task,
+          estado: 'pending',
+          order: task.order ?? columns.pending.tasks.length
+        });
+      }
+    });
+
+    // Ordenar las tareas dentro de cada columna
+    Object.keys(columns).forEach(columnId => {
+      columns[columnId].tasks.sort((a, b) => {
+        if (a.order !== undefined && b.order !== undefined) {
+          return a.order - b.order;
+        }
+        return new Date(a.fecha).getTime() - new Date(b.fecha).getTime();
+      });
+    });
+  }
+
+  // Actualizar solo si hay cambios reales
+  setBoardState(prev => {
+    // Comparar si realmente cambió algo
+    const hasChanges = JSON.stringify(prev.columns) !== JSON.stringify(columns);
+    
+    if (hasChanges) {
+      return {
+        ...prev,
+        columns
+      };
+    }
+    return prev;
+  });
+}, [data]); // Dependencia en 'data' que viene de props y se actualiza cuando cambia el evento
 
   // Manejadores usando las funciones importadas
   const handleDragStart = useMemo(() =>

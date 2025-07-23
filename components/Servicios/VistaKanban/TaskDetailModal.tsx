@@ -15,7 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { AuthContextProvider, EventContextProvider } from '../../../context';
 import { fetchApiEventos, queries } from '../../../utils/Fetching';
 import { useToast } from '../../../hooks/useToast';
-import { TaskNew } from './TaskNew';
+import { TaskNew } from '../VistaTarjeta/TaskNew';
 import ClickAwayListener from 'react-click-away-listener';
 import { useAllowed } from '../../../hooks/useAllowed';
 import { useNotification } from '../../../hooks/useNotification';
@@ -103,59 +103,65 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   }, [event, itinerario._id, task._id]);
 
   // Función para manejar actualizaciones de la tarea en tiempo real
-  const handleTaskUpdate = useCallback(async (taskId: string, updates: Partial<Task>) => {
-    try {
-      // Actualizar primero en la API
-      const updatePromises = Object.entries(updates).map(([key, value]) => {
-        return fetchApiEventos({
-          query: queries.editTask,
-          variables: {
-            eventID: event._id,
-            itinerarioID: itinerario._id,
-            taskID: taskId,
-            variable: key,
-            valor: typeof value === 'boolean' ? value.toString() : 
-                   typeof value === 'object' ? JSON.stringify(value) : 
-                   String(value)
-          },
-          domain: config.domain
-        });
+const handleTaskUpdate = useCallback(async (taskId: string, updates: Partial<Task>) => {
+  try {
+    // Actualizar primero en la API
+    const updatePromises = Object.entries(updates).map(([key, value]) => {
+      return fetchApiEventos({
+        query: queries.editTask,
+        variables: {
+          eventID: event._id,
+          itinerarioID: itinerario._id,
+          taskID: taskId,
+          variable: key,
+          valor: typeof value === 'boolean' ? value.toString() : 
+                 typeof value === 'object' ? JSON.stringify(value) : 
+                 String(value)
+        },
+        domain: config.domain
       });
+    });
 
-      await Promise.all(updatePromises);
+    await Promise.all(updatePromises);
 
-      // Actualizar el estado global del evento
-      setEvent((prevEvent) => {
-        const newEvent = { ...prevEvent };
-        const itineraryIndex = newEvent.itinerarios_array.findIndex(it => it._id === itinerario._id);
+    // Actualizar el estado global del evento de forma inmersiva
+    setEvent((prevEvent) => {
+      const newEvent = { ...prevEvent };
+      const itineraryIndex = newEvent.itinerarios_array.findIndex(it => it._id === itinerario._id);
+      
+      if (itineraryIndex !== -1) {
+        const taskIndex = newEvent.itinerarios_array[itineraryIndex].tasks.findIndex(t => t._id === taskId);
         
-        if (itineraryIndex !== -1) {
-          const taskIndex = newEvent.itinerarios_array[itineraryIndex].tasks.findIndex(t => t._id === taskId);
+        if (taskIndex !== -1) {
+          // Crear nueva referencia de la tarea para forzar re-render
+          newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex] = {
+            ...newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex],
+            ...updates,
+          };
           
-          if (taskIndex !== -1) {
-            // Actualizar la tarea con las nuevas propiedades
-            newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex] = {
-              ...newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex],
-              ...updates
-            };
-          }
+          // Crear nueva referencia del array de tareas
+          newEvent.itinerarios_array[itineraryIndex].tasks = [...newEvent.itinerarios_array[itineraryIndex].tasks];
         }
-        
-        return newEvent;
-      });
+      }
+      
+      // Crear nueva referencia del array de itinerarios
+      newEvent.itinerarios_array = [...newEvent.itinerarios_array];
+      
+      return newEvent;
+    });
 
-      // Actualizar el estado local
-      setLocalTask(prev => ({ ...prev, ...updates }));
+    // Actualizar el estado local
+    setLocalTask(prev => ({ ...prev, ...updates }));
 
-      // Llamar al callback padre
-      onUpdate(taskId, updates);
+    // Llamar al callback padre
+    onUpdate(taskId, updates);
 
-      toast('success', t('Tarea actualizada correctamente'));
-    } catch (error) {
-      console.error('Error al actualizar la tarea:', error);
-      toast('error', t('Error al actualizar la tarea'));
-    }
-  }, [event, itinerario, onUpdate, t, config.domain, setEvent]);
+    toast('success', t('Tarea actualizada correctamente'));
+  } catch (error) {
+    console.error('Error al actualizar la tarea:', error);
+    toast('error', t('Error al actualizar la tarea'));
+  }
+}, [event._id, itinerario._id, onUpdate, t, config.domain, setEvent]);
 
   // Función para manejar eliminación de comentarios en tiempo real
   const handleDeleteComment = useCallback(async (commentId: string) => {
@@ -312,27 +318,13 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
 
   // Opciones del menú
   const optionsItineraryButtonBox: OptionsSelect[] = [
-    {
-      value: "edit",
-      icon: <Pencil className="w-5 h-5" />,
-      title: "editar",
-      onClick: (values: Task) => !isAllowed() ? ht() : user.uid === event.usuario_id ? setShowEditTask({ values, state: !showEditTask.state }) : setShowEditTask({ values, state: ["/itinerario"].includes(window?.location?.pathname) ? values?.estatus === false || values?.estatus === null || values?.estatus === undefined ? !showEditTask.state : null : !showEditTask.state }),
-      vew: "all"
-    },
-    {
-      value: "flujo",
-      icon: <GoGitBranch className="w-5 h-5" />,
-      title: "flow",
-      onClick: () => !isAllowed() ? ht() : setModalWorkFlow(!modalWorkFlow),
-      vew: "tasks"
-    },
-    {
-      value: "share",
-      icon: <LiaLinkSolid className="w-5 h-5" />,
-      title: "Link calendario",
-      onClick: () => !isAllowed() ? ht() : setModalCompartirTask(!modalCompartirTask),
-      vew: "tasks"
-    },
+{
+    value: "delete",
+    icon: <Trash2 className="w-5 h-5" />,
+    title: "borrar",
+    onClick: (values: Task, itinerario: Itinerary) => !isAllowed() ? ht() : user.uid === event.usuario_id ? setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }) : ["/itinerario"].includes(window?.location?.pathname) ? values?.estatus === false || values?.estatus === null || values?.estatus === undefined ? setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }) : null : setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }),
+    vew: "all"
+  }
   ];
 
   return (

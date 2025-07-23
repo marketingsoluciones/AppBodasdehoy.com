@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { TaskEditModal } from './TaskEditModal';
+import { TaskEditModal } from '../VistaTarjeta/TaskEditModal';
 import { Edit3, MoreHorizontal, Calendar, Clock, Tag, Paperclip, AlertCircle, CheckCircle2, MessageSquare } from 'lucide-react';
 import { Task, Itinerary } from '../../../utils/Interfaces';
 import { PriorityBadge, Priority } from '../Utils/PriorityBadge'
@@ -191,13 +191,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskClick, onTaskUpd
           <div className="absolute top-2 right-2 flex bg-white rounded-md shadow-md items-center space-x-1 z-50">
 
             {/* Botón de editar */}
-            <button
+{/*             <button
               onClick={handleEdit}
               className="p-1 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-md transition-colors"
               title="Editar tarea"
             >
               <Edit3 className="w-4 h-4" />
-            </button>
+            </button> */}
 
             {/* Botón de más opciones */}
             <div className="relative">

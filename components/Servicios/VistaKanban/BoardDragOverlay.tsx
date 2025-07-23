@@ -1,6 +1,6 @@
 import React from 'react';
 import { DragOverlay } from '@dnd-kit/core';
-import { TaskCard } from '../VistaTarjeta/TaskCard';
+import { TaskCard } from './TaskCard';
 import { BoardColumn as BoardColumnComponent } from './BoardColumn';
 import { Task, Itinerary } from '../../../utils/Interfaces';
 import { DragItem, BoardColumn as BoardColumnType, BoardState } from '../types';

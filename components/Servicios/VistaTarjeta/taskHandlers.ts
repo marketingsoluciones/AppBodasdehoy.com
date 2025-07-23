@@ -187,7 +187,9 @@ export const createHandleTaskUpdate = (
           itinerarioID: itinerario._id,
           taskID: taskId,
           variable: key,
-          valor: typeof value === 'boolean' ? value.toString() : String(value)
+          valor: typeof value === 'boolean' ? value.toString() : 
+                 typeof value === 'object' ? JSON.stringify(value) : 
+                 String(value)
         },
         domain: config.domain
       });
@@ -195,23 +197,117 @@ export const createHandleTaskUpdate = (
 
     await Promise.all(updatePromises);
 
-    // Actualizar el estado local
+    // Actualizar el estado local del BoardView inmediatamente
     setBoardState(prev => {
       const newColumns = { ...prev.columns };
+      let sourceColumnId: string | null = null;
+      let taskToUpdate: Task | null = null;
 
-      Object.keys(newColumns).forEach(columnId => {
+      // Primero encontrar la tarea y su columna actual
+      for (const columnId in newColumns) {
         const taskIndex = newColumns[columnId].tasks.findIndex(t => t._id === taskId);
         if (taskIndex !== -1) {
-          newColumns[columnId].tasks[taskIndex] = {
-            ...newColumns[columnId].tasks[taskIndex],
-            ...updates
-          };
+          sourceColumnId = columnId;
+          taskToUpdate = { ...newColumns[columnId].tasks[taskIndex] };
+          break;
         }
-      });
+      }
+
+      // Si encontramos la tarea, aplicar las actualizaciones
+      if (sourceColumnId && taskToUpdate) {
+        // Aplicar todas las actualizaciones a la tarea
+        const updatedTask = {
+          ...taskToUpdate,
+          ...updates,
+          _lastUpdated: Date.now() // Forzar detección de cambios
+        };
+
+        // Si el estado cambió y es diferente de la columna actual
+        if (updates.estado && updates.estado !== sourceColumnId && newColumns[updates.estado]) {
+          // Remover de la columna actual
+          newColumns[sourceColumnId].tasks = newColumns[sourceColumnId].tasks.filter(
+            t => t._id !== taskId
+          );
+
+          // Agregar a la nueva columna manteniendo el orden
+          newColumns[updates.estado].tasks.push(updatedTask);
+          
+          // Re-ordenar las tareas en ambas columnas
+          newColumns[sourceColumnId].tasks.forEach((task, index) => {
+            task.order = index;
+          });
+          newColumns[updates.estado].tasks.forEach((task, index) => {
+            task.order = index;
+          });
+          
+          // Crear nuevas referencias de arrays
+          newColumns[sourceColumnId].tasks = [...newColumns[sourceColumnId].tasks];
+          newColumns[updates.estado].tasks = [...newColumns[updates.estado].tasks];
+        } else {
+          // Si no cambió de columna, solo actualizar en su lugar
+          const taskIndex = newColumns[sourceColumnId].tasks.findIndex(t => t._id === taskId);
+          if (taskIndex !== -1) {
+            newColumns[sourceColumnId].tasks[taskIndex] = updatedTask;
+            // Crear nueva referencia del array
+            newColumns[sourceColumnId].tasks = [...newColumns[sourceColumnId].tasks];
+          }
+        }
+
+        // Si se actualizó el estatus y no se especificó un cambio de estado
+        if (updates.estatus !== undefined && !updates.estado) {
+          // Determinar si debe moverse automáticamente basado en el estatus
+          if (updates.estatus === true && sourceColumnId !== 'completed') {
+            // Mover a completado
+            newColumns[sourceColumnId].tasks = newColumns[sourceColumnId].tasks.filter(
+              t => t._id !== taskId
+            );
+            if (newColumns['completed']) {
+              newColumns['completed'].tasks.push({
+                ...updatedTask,
+                estado: 'completed'
+              });
+              newColumns['completed'].tasks = [...newColumns['completed'].tasks];
+            }
+          } else if (updates.estatus === false && sourceColumnId === 'completed') {
+            // Mover de vuelta a pendiente si estaba en completado
+            newColumns[sourceColumnId].tasks = newColumns[sourceColumnId].tasks.filter(
+              t => t._id !== taskId
+            );
+            if (newColumns['pending']) {
+              newColumns['pending'].tasks.push({
+                ...updatedTask,
+                estado: 'pending'
+              });
+              newColumns['pending'].tasks = [...newColumns['pending'].tasks];
+            }
+          }
+          
+          // Crear nueva referencia del array en la columna origen
+          newColumns[sourceColumnId].tasks = [...newColumns[sourceColumnId].tasks];
+        }
+      } else if (!taskToUpdate && updates.estado && newColumns[updates.estado]) {
+        // Si no encontramos la tarea en el boardState pero tenemos un estado,
+        // significa que es una tarea nueva o que viene de otra vista
+        // Buscarla en el evento global y agregarla
+        const globalTask = event.itinerarios_array
+          .find(it => it._id === itinerario._id)
+          ?.tasks.find(t => t._id === taskId);
+          
+        if (globalTask) {
+          newColumns[updates.estado].tasks.push({
+            ...globalTask,
+            ...updates,
+            estado: updates.estado,
+            _lastUpdated: Date.now()
+          });
+          newColumns[updates.estado].tasks = [...newColumns[updates.estado].tasks];
+        }
+      }
 
       return {
         ...prev,
-        columns: newColumns
+        columns: newColumns,
+        _lastUpdate: Date.now() // Forzar re-render del board completo
       };
     });
 

@@ -17,7 +17,7 @@ import {
   Upload,
 } from 'lucide-react';
 import { Task, Itinerary } from '../../../utils/Interfaces';
-import { TaskCard } from '../VistaTarjeta/TaskCard';
+import { TaskCard } from './TaskCard';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { BoardColumn as IBoardColumn } from '../types';
 import { toast } from 'react-toastify';

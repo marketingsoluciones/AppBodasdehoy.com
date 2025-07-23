@@ -439,7 +439,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                 )}
 
                 {/* Menú de más opciones - OCULTO sin permisos */}
-                <div className="relative">
+{/*                 <div className="relative">
                   <button
                     onClick={() => setShowMoreOptions(!showMoreOptions)}
                     className={`p-1.5 rounded-lg transition-all duration-200 ${
@@ -463,7 +463,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                           >
                             <Bell className="w-4 h-4 mr-3" />
                             {t('Notificaciones')}
-                          </button>
+                          </button> 
                           <div className="border-t border-gray-100 my-1"></div>
                           <button
                             className="flex items-center w-full px-4 py-2.5 text-sm text-[#ef4444] hover:bg-[#ef4444]/10 transition-colors"
@@ -475,7 +475,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                       </div>
                     </ClickAwayListener>
                   )}
-                </div>
+                </div> */}
               </div>
             )}
           </div>
@@ -636,26 +636,41 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                 </div>
                 <div className="flex items-center space-x-4">
                   {editingField === 'fecha' ? (
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="date"
-                        value={tempValue ? new Date(tempValue).toISOString().split('T')[0] : ''}
-                        onChange={(e) => setTempValue(e.target.value)}
-                        onBlur={() => handleFieldSave('fecha')}
-                        onKeyDown={(e) => handleKeyPress(e, 'fecha')}
-                        className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                        autoFocus
-                      />
-                    </div>
-                  ) : (
-                    <span
-                      className={`text-sm ${canEdit ? 'cursor-pointer hover:text-primary' : 'cursor-default opacity-60'}`}
-                      onClick={() => canEdit ? handleFieldClick('fecha', localTask.fecha) : ht()}
-                      title={canEdit ? "Haz clic para editar fecha" : "No tienes permisos para editar"}
-                    >
-                      {localTask.fecha ? formatDate(localTask.fecha) : t('Sin fecha')}
-                    </span>
-                  )}
+  <div className="flex items-center space-x-2">
+    <input
+      type="date"
+      value={tempValue ? tempValue : ''}
+      onChange={(e) => setTempValue(e.target.value)}
+      onBlur={() => handleFieldSave('fecha')}
+      onKeyDown={(e) => handleKeyPress(e, 'fecha')}
+      className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+      autoFocus
+    />
+  </div>
+) : (
+  <span
+    className={`text-sm ${canEdit ? 'cursor-pointer hover:text-primary' : 'cursor-default opacity-60'}`}
+    onClick={() => {
+      if (canEdit) {
+        // Formatear la fecha correctamente para el input tipo date
+        if (localTask.fecha) {
+          const date = new Date(localTask.fecha);
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          handleFieldClick('fecha', `${year}-${month}-${day}`);
+        } else {
+          handleFieldClick('fecha', '');
+        }
+      } else {
+        ht();
+      }
+    }}
+    title={canEdit ? "Haz clic para editar fecha" : "No tienes permisos para editar"}
+  >
+    {localTask.fecha ? formatDate(localTask.fecha) : t('Sin fecha')}
+  </span>
+)}
 
                   {/* Hora */}
                   {editingField === 'hora' ? (
