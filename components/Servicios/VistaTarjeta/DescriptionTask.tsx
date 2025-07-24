@@ -1,5 +1,5 @@
 import dynamic from "next/dynamic";
-import { FC } from "react";
+import { FC, useState } from "react";
 import { useTranslation } from "react-i18next";
 import 'react-quill/dist/quill.snow.css';
 
@@ -50,14 +50,14 @@ export const DescriptionTask: FC<Props> = ({ canEdit, localTask, editingDescript
           <label className="text-xs font-medium text-gray-700">
             {t('Descripción detallada')}
           </label>
-          {localTask.tips && !editingDescription && canEdit && (
-            <button
+          {canEdit &&
+            <button id="edit-description"
               onClick={() => setEditingDescription(true)}
               className="text-xs text-primary hover:text-primary/80"
             >
               {t('Editar')}
             </button>
-          )}
+          }
         </div>
         <div className="w-full relative">
           {editingDescription
@@ -111,7 +111,7 @@ export const DescriptionTask: FC<Props> = ({ canEdit, localTask, editingDescript
                 dangerouslySetInnerHTML={{ __html: localTask.tips }}
               />
               : <p className="text-xs text-gray-400">
-                {canEdit ? t('Haz clic para agregar una descripción...') : t('Sin descripción')}
+                {canEdit ? t('Haz doble clic para agregar una descripción...') : t('Sin descripción')}
               </p>
             }
           </div>

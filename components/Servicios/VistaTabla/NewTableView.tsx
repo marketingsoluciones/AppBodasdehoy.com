@@ -1,9 +1,9 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useTable, useSortBy, useRowSelect, useGlobalFilter } from 'react-table';
-import { 
-  TableProps, 
-  TableColumn, 
-  TableState, 
+import {
+  TableProps,
+  TableColumn,
+  TableState,
   TableFilter,
   ViewConfig,
   TASK_STATUSES,
@@ -17,10 +17,10 @@ import { AuthContextProvider, EventContextProvider } from '../../../context';
 import { fetchApiEventos, queries } from '../../../utils/Fetching';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../../../hooks/useToast';
-import { 
-  MessageSquare, 
-  Edit2, 
-  Paperclip, 
+import {
+  MessageSquare,
+  Edit2,
+  Paperclip,
   MoreHorizontal,
   Eye,
   EyeOff,
@@ -208,7 +208,7 @@ const getRowActions = (task: any, optionsItineraryButtonBox: any[], handlers: an
       onClick: () => handlers.handleCopyLink(task),
       className: 'text-gray-400 hover:text-primary'
     },
-    ...(optionsItineraryButtonBox || []).filter(opt => 
+    ...(optionsItineraryButtonBox || []).filter(opt =>
       !['estatus', 'status'].includes(opt.value)
     )
   ];
@@ -276,22 +276,22 @@ export const TableView: React.FC<TableProps> = ({
   // Filtrar datos mejorado
   const filteredData = useMemo(() => {
     if (!data || !Array.isArray(data)) return [];
-    
+
     let filtered = [...data];
 
     // Aplicar filtros
     const activeFilters = tableState.filters.filter(f => f.isActive && f.value);
-    
+
     if (activeFilters.length > 0) {
       filtered = filtered.filter(item => {
         return activeFilters.every(filter => {
           const value = item[filter.columnId];
           const filterValue = filter.value;
-          
+
           // Convertir valores a string para comparación
           const valueStr = String(value || '').toLowerCase();
           const filterStr = String(filterValue || '').toLowerCase();
-          
+
           switch (filter.operator) {
             case 'contains':
               return valueStr.includes(filterStr);
@@ -311,14 +311,14 @@ export const TableView: React.FC<TableProps> = ({
               return Number(value || 0) <= Number(filterValue || 0);
             case 'in':
               if (Array.isArray(filterValue)) {
-                return filterValue.some(fv => 
+                return filterValue.some(fv =>
                   String(fv).toLowerCase() === valueStr
                 );
               }
               return false;
             case 'notIn':
               if (Array.isArray(filterValue)) {
-                return !filterValue.some(fv => 
+                return !filterValue.some(fv =>
                   String(fv).toLowerCase() === valueStr
                 );
               }
@@ -337,14 +337,14 @@ export const TableView: React.FC<TableProps> = ({
         // Buscar en todos los campos, incluyendo arrays
         return Object.entries(item).some(([key, value]) => {
           if (value === null || value === undefined) return false;
-          
+
           if (Array.isArray(value)) {
             // Para arrays, buscar en cada elemento
-            return value.some(v => 
+            return value.some(v =>
               String(v).toLowerCase().includes(searchTerm)
             );
           }
-          
+
           // Para valores simples
           return String(value).toLowerCase().includes(searchTerm);
         });
@@ -386,10 +386,10 @@ export const TableView: React.FC<TableProps> = ({
   const handleCellUpdate = useCallback(async (rowIndex: number, columnId: string, value: any) => {
     const task = filteredData[rowIndex];
     if (!task) return;
-    
+
     // Verificar si el valor realmente cambió
     const currentValue = task[columnId];
-    
+
     // Comparación profunda para arrays
     if (Array.isArray(currentValue) && Array.isArray(value)) {
       if (JSON.stringify(currentValue) === JSON.stringify(value)) {
@@ -398,11 +398,11 @@ export const TableView: React.FC<TableProps> = ({
     } else if (currentValue === value) {
       return; // No hay cambios
     }
-    
+
     try {
       let processedValue = value;
       let actualColumnId = columnId;
-      
+
       // Procesar según el tipo de columna
       switch (columnId) {
         case 'responsable':
@@ -477,12 +477,12 @@ export const TableView: React.FC<TableProps> = ({
 
       // Actualizar a través del callback padre
       await onTaskUpdate(task._id, { [columnId]: updatedValue });
-      
+
       // Forzar actualización de la tabla
       setForceUpdate(prev => prev + 1);
-      
+
       toast('success', t('Campo actualizado'));
-      
+
     } catch (error) {
       console.error('Error al actualizar tarea:', error);
       toast('error', t('Error al actualizar la tarea'));
@@ -507,7 +507,7 @@ export const TableView: React.FC<TableProps> = ({
       // Calcular fecha por defecto
       const currentDate = new Date();
       const eventDate = event.fecha ? new Date(event.fecha) : currentDate;
-      
+
       let defaultDate = eventDate;
       if (data && data.length > 0) {
         const lastTask = data[data.length - 1];
@@ -515,7 +515,7 @@ export const TableView: React.FC<TableProps> = ({
           const lastDate = new Date(lastTask.fecha);
           defaultDate = new Date(lastDate.getTime() + (lastTask.duracion || 30) * 60000);
         }
-      } 
+      }
 
       // Formatear fecha para el API
       const year = defaultDate.getFullYear();
@@ -533,10 +533,10 @@ export const TableView: React.FC<TableProps> = ({
           descripcion: t('Nueva tarea'),
           fecha: `${year}-${month}-${day}`,
           hora: `${hours}:${minutes}`,
-          duracion: 30 
+          duracion: 30
         },
         domain: config.domain
-      }); 
+      });
 
       // Validar la respuesta usando el type guard
       if (isValidTaskResponse(apiResponse)) {
@@ -565,14 +565,14 @@ export const TableView: React.FC<TableProps> = ({
           const itineraryIndex = newEvent.itinerarios_array.findIndex(
             it => it._id === itinerario._id
           );
-          
+
           if (itineraryIndex > -1) {
             if (!newEvent.itinerarios_array[itineraryIndex].tasks) {
               newEvent.itinerarios_array[itineraryIndex].tasks = [];
             }
             newEvent.itinerarios_array[itineraryIndex].tasks.push(newTask);
           }
-          
+
           return newEvent;
         });
 
@@ -585,7 +585,7 @@ export const TableView: React.FC<TableProps> = ({
       console.error('Error al crear tarea:', error);
       toast('error', t('Error al crear la tarea'));
     }
-  }; 
+  };
 
   // Funciones de exportación e importación
   const handleExport = () => {
@@ -613,11 +613,11 @@ export const TableView: React.FC<TableProps> = ({
       // Generar archivo
       const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
       const blob = new Blob([wbout], { type: 'application/octet-stream' });
-      
+
       // Descargar archivo
       const fileName = `${itinerario.title}_tareas_${new Date().toISOString().split('T')[0]}.xlsx`;
       downloadFile(blob, fileName);
-      
+
       toast('success', t('Datos exportados correctamente'));
     } catch (error) {
       console.error('Error al exportar:', error);
@@ -630,14 +630,14 @@ export const TableView: React.FC<TableProps> = ({
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.xlsx,.xls';
-    
+
     input.onchange = async (e: any) => {
       const file = e.target.files[0];
       if (!file) return;
 
       try {
         const reader = new FileReader();
-        
+
         reader.onload = async (evt) => {
           try {
             const bstr = evt.target?.result;
@@ -668,7 +668,7 @@ export const TableView: React.FC<TableProps> = ({
 
             // Recargar datos
             window.location.reload();
-            
+
             toast('success', t('Datos importados correctamente'));
           } catch (error) {
             console.error('Error procesando archivo:', error);
@@ -705,14 +705,14 @@ export const TableView: React.FC<TableProps> = ({
   const handleSaveView = (view: ViewConfig) => {
     const newViews = [...savedViews, view];
     setSavedViews(newViews);
-    
+
     // Guardar en localStorage
     const savedViewsKey = `tableViews_${event._id}_${itinerario._id}`;
     localStorage.setItem(savedViewsKey, JSON.stringify(newViews));
-    
+
     // TODO: Guardar en base de datos
     // Agregar campo viewConfigs al itinerario en la base de datos
-    
+
     toast('success', 'Vista guardada correctamente');
   };
 
@@ -758,7 +758,7 @@ export const TableView: React.FC<TableProps> = ({
         filteredData.findIndex(t => t._id === task._id),
         'estatus',
         !task.estatus
-      ); 
+      );
     },
     handleDuplicate: async (task: any) => {
       try {
@@ -803,14 +803,14 @@ export const TableView: React.FC<TableProps> = ({
             const itineraryIndex = newEvent.itinerarios_array.findIndex(
               it => it._id === itinerario._id
             );
-            
+
             if (itineraryIndex > -1) {
               if (!newEvent.itinerarios_array[itineraryIndex].tasks) {
                 newEvent.itinerarios_array[itineraryIndex].tasks = [];
               }
               newEvent.itinerarios_array[itineraryIndex].tasks.push(newTask);
             }
-            
+
             return newEvent;
           });
 
@@ -829,7 +829,7 @@ export const TableView: React.FC<TableProps> = ({
 
     handleCopyLink: useCallback(async (task: any) => {
       const link = `${window.location.origin}/services/servicios-${event._id}-${itinerario._id}-${task._id}`;
-      
+
       try {
         if (navigator.clipboard && window.isSecureContext) {
           await navigator.clipboard.writeText(link);
@@ -858,7 +858,7 @@ export const TableView: React.FC<TableProps> = ({
         toast('error', t('Error al copiar el enlace'));
       }
     }, [event._id, itinerario._id, t, toast])
-    
+
   };
 
   const activeFiltersCount = tableState.filters.filter(f => f.isActive && f.value).length;
@@ -911,9 +911,9 @@ export const TableView: React.FC<TableProps> = ({
             {/* Header de la tabla */}
             <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
               {headerGroups.map((headerGroup, headerGroupIndex) => (
-                <tr 
-                  key={`header-group-${headerGroupIndex}`} 
-                  {...headerGroup.getHeaderGroupProps()} 
+                <tr
+                  key={`header-group-${headerGroupIndex}`}
+                  {...headerGroup.getHeaderGroupProps()}
                   className="divide-x divide-gray-200"
                 >
                   {headerGroup.headers.map((column, columnIndex) => {
@@ -929,7 +929,7 @@ export const TableView: React.FC<TableProps> = ({
                         }}
                       >
                         <div className="flex items-center justify-between">
-                          <div 
+                          <div
                             {...(column.canSort ? column.getSortByToggleProps() : {})}
                             className={`flex items-center space-x-1 ${column.canSort ? 'cursor-pointer' : ''}`}
                           >
@@ -940,7 +940,7 @@ export const TableView: React.FC<TableProps> = ({
                               </span>
                             )}
                           </div>
-                          
+
                           {column.id !== 'select' && (
                             <ColumnMenu
                               column={column as any}
@@ -967,7 +967,7 @@ export const TableView: React.FC<TableProps> = ({
                 prepareRow(row);
                 const isSelected = selectTask === row.original._id;
                 const isHovered = hoveredRow === row.original._id;
-                
+
                 return (
                   <tr
                     key={row.original._id || `row-${rowIndex}`}
@@ -998,11 +998,11 @@ export const TableView: React.FC<TableProps> = ({
                         >
                           {/* Barra de acciones flotante - Solo en la primera columna */}
                           {cellIndex === 0 && hoveredRow === row.original._id && (
-                            <div 
+                            <div
                               className="absolute -top-0 left-0 z-50 pointer-events-none"
                               style={{ transform: 'translateY(-100%)' }}
                             >
-                              <div 
+                              <div
                                 className="flex items-center bg-white border border-gray-200 rounded-lg shadow-lg p-1 space-x-1 pointer-events-auto"
                                 onMouseEnter={() => setHoveredRow(row.original._id)}
                                 onMouseLeave={() => setHoveredRow(null)}
@@ -1023,7 +1023,7 @@ export const TableView: React.FC<TableProps> = ({
                               </div>
                             </div>
                           )}
-                          
+
                           <TableCell
                             column={cell.column as any}
                             row={row}
@@ -1099,29 +1099,29 @@ export const TableView: React.FC<TableProps> = ({
         </div>
       )}
 
-{/* Modal de edición con z-index más alto y estructura corregida */}
-    {showEditModal.show && showEditModal.task && (
-      <>
-        {/* Backdrop para bloquear interacciones */}
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-[100]" onClick={() => setShowEditModal({ show: false })} />
-        
-        {/* Modal container con z-index superior */}
-        <div className="fixed inset-0 z-[101] flex items-center justify-center p-4 pointer-events-none">
-          <div className="pointer-events-auto">
-            <TableEditModal
-              task={showEditModal.task}
-              itinerario={itinerario}
-              onClose={() => setShowEditModal({ show: false })}
-              onSave={async (taskId, updates) => {
-                await onTaskUpdate(taskId, updates);
-                setShowEditModal({ show: false });
-                setForceUpdate(prev => prev + 1);
-              }}
-            />
+      {/* Modal de edición con z-index más alto y estructura corregida */}
+      {showEditModal.show && showEditModal.task && (
+        <>
+          {/* Backdrop para bloquear interacciones */}
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-[100]" onClick={() => setShowEditModal({ show: false })} />
+
+          {/* Modal container con z-index superior */}
+          <div className="fixed inset-0 z-[101] flex items-center justify-center p-4 pointer-events-none">
+            <div className="pointer-events-auto">
+              <TableEditModal
+                task={showEditModal.task}
+                itinerario={itinerario}
+                onClose={() => setShowEditModal({ show: false })}
+                onSave={async (taskId, updates) => {
+                  await onTaskUpdate(taskId, updates);
+                  setShowEditModal({ show: false });
+                  setForceUpdate(prev => prev + 1);
+                }}
+              />
+            </div>
           </div>
-        </div>
-      </>
-    )}
+        </>
+      )}
     </div>
   );
 };
