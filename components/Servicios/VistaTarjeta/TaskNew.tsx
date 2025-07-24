@@ -525,11 +525,6 @@ export const TaskNew: FC<Props> = memo(({
     }));
   }, []);
 
-  useEffect(() => {
-    console.log(10040, itinerario.title, itinerario.tasks.length)
-    console.log(10041, localTask.spectatorView, task.descripcion, view)
-  }, [view, itinerario])
-
   return (
     view === "schema"
       ? <TaskSchemaView

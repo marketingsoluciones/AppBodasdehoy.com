@@ -70,7 +70,7 @@ export const DescriptionTask: FC<Props> = ({ canEdit, localTask, editingDescript
                   formats={quillFormats}
                   theme="snow"
                   placeholder={t('Escribe una descripción detallada...')}
-                  className="bg-white"
+                  className="bg-white border-none"
                 />
               </div>
               <div className="flex justify-end space-x-2 p-3 bg-gray-50 border-t border-gray-200">
@@ -95,7 +95,7 @@ export const DescriptionTask: FC<Props> = ({ canEdit, localTask, editingDescript
               </div>
             </div>}
           <div className={`w-full h-[180px] overflow-y-auto border border-gray-200 rounded-lg p-4 ${canEdit ? 'cursor-pointer hover:border-gray-300' : 'cursor-default opacity-60'}`}
-            onClick={() => {
+            onDoubleClick={() => {
               if (canEdit) {
                 setCustomDescription(localTask.tips || '');
                 setEditingDescription(true);
@@ -123,6 +123,10 @@ export const DescriptionTask: FC<Props> = ({ canEdit, localTask, editingDescript
         font-family: inherit;
         font-size: 0.875rem;
         line-height: 1.5rem;
+        border: none !important;
+      }
+      .ql-container.ql-snow {
+        border: none !important;
       }
       .ql-editor {
         min-height: 200px;
@@ -130,8 +134,13 @@ export const DescriptionTask: FC<Props> = ({ canEdit, localTask, editingDescript
       }
       .ql-toolbar {
         background-color: #f9fafb;
-        border-bottom: 1px solid #e5e7eb;
+        border: none !important;
+        border-bottom: 1px solid #e5e7eb !important;
         font-family: inherit;
+      }
+      .ql-toolbar.ql-snow {
+        border: none !important;
+        border-bottom: 1px solid #e5e7eb !important;
       }
       .ql-toolbar button:hover {
         background-color: #e5e7eb !important;
