@@ -1,64 +1,21 @@
 import React, { FC, useState, useRef, useEffect } from 'react';
-import { Formik, Form, Field } from 'formik';
 import { Task, Itinerary, OptionsSelect, Comment } from '../../../utils/Interfaces';
 import { useTranslation } from 'react-i18next';
 import { EventContextProvider } from "../../../context/EventContext";
 import { AuthContextProvider } from "../../../context";
-import { ImageAvatar } from "../../Utils/ImageAvatar";
 import { InputComments } from "../Utils/InputComments"
 import { ListComments } from "../Utils/ListComments"
 import { NewAttachmentsEditor } from "../VistaTabla/NewAttachmentsEditor";
-import { ClickUpResponsableSelector } from '../VistaTabla/NewResponsableSelector';
-import { NewSelectIcon } from '../VistaTabla/NewSelectIcon';
-import { PermissionWrapper } from './TaskNewComponents';
 import { TASK_STATUSES, TASK_PRIORITIES } from '../VistaTabla/NewTypes';
-import {
-  formatTime,
-  formatDate,
-  minutesToReadableFormat,
-  readableFormatToMinutes,
-} from './TaskNewUtils';
+import { formatTime, formatDate, minutesToReadableFormat, readableFormatToMinutes } from './TaskNewUtils';
 import ClickAwayListener from "react-click-away-listener";
 import { useToast } from "../../../hooks/useToast";
 import { TempPastedAndDropFile } from "../../Itinerario/MicroComponente/ItineraryPanel";
-import {
-  X, MessageSquare, Tag, Calendar, Clock, User, Flag, ChevronDown, Copy, Link,
-  MoreHorizontal, Trash2, Archive, Bell, Plus, Eye, EyeOff
-} from 'lucide-react';
-import { SelectIcon } from '../Utils/SelectIcon';
-import { GruposResponsablesArry } from '../Utils/ResponsableSelector';
-import dynamic from 'next/dynamic';
-import 'react-quill/dist/quill.snow.css';
-
-// Importar ReactQuill dinámicamente para evitar problemas de SSR
-const ReactQuill = dynamic(() => import('react-quill'), {
-  ssr: false,
-  loading: () => <div className="h-40 bg-gray-50 animate-pulse rounded-lg" />
-});
-
-// Configuración del editor Quill
-const quillModules = {
-  toolbar: [
-  /*   [{ 'header': [1, 2, 3, false] }], */
-    ['bold', 'italic', 'underline', 'strike'],
-    [{ 'color': [] }, { 'background': [] }],
-    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-    [{ 'indent': '-1' }, { 'indent': '+1' }],
-    [{ 'align': [] }],
-/*     ['link', 'image'], */
-    ['clean']
-  ],
-};
-
-const quillFormats = [
-  'header',
-  'bold', 'italic', 'underline', 'strike',
-  'color', 'background',
-  'list', 'bullet', 'indent',
-  'align',
-  'link', 'image'
-];
-
+import { MessageSquare, Calendar, Clock, Flag, ChevronDown, Copy, Link, Trash2, Bell, Eye, EyeOff } from 'lucide-react';
+import { TitleTask } from './TitleTask';
+import { AssignedTask } from './AssignedTask';
+import { TagsTask } from './TagsTask';
+import { DescriptionTask } from './DescriptionTask';
 
 interface TaskFullViewProps {
   task: Task;
@@ -151,38 +108,11 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
   // Estados locales para la vista completa
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [showPriorityDropdown, setShowPriorityDropdown] = useState(false);
-  const [showMoreOptions, setShowMoreOptions] = useState(false);
-  const [editingDate, setEditingDate] = useState(false);
   const [editingDuration, setEditingDuration] = useState(false);
   const [durationInput, setDurationInput] = useState('');
 
   const currentStatus = TASK_STATUSES.find(s => s.value === localTask.estado) || TASK_STATUSES[0];
   const currentPriority = TASK_PRIORITIES.find(p => p.value === localTask.prioridad) || TASK_PRIORITIES[1];
-
-   
-  const quillViewerClasses = `
-  prose prose-sm max-w-none
-  [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:my-3
-  [&_h2]:text-xl [&_h2]:font-bold [&_h2]:my-3
-  [&_h3]:text-lg [&_h3]:font-bold [&_h3]:my-3
-  [&_p]:mb-4
-  [&_ul]:pl-6 [&_ul]:mb-4 [&_ul]:list-disc
-  [&_ol]:pl-6 [&_ol]:mb-4 [&_ol]:list-decimal
-  [&_li]:mb-2
-  [&_pre]:bg-gray-100 [&_pre]:p-3 [&_pre]:rounded [&_pre]:my-2 [&_pre]:whitespace-pre-wrap
-  [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-sm
-  [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-4 [&_blockquote]:my-2 [&_blockquote]:italic
-  [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded
-  [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800
-  [&_.ql-align-center]:text-center
-  [&_.ql-align-right]:text-right
-  [&_.ql-align-justify]:text-justify
-  [&_.ql-size-small]:text-xs
-  [&_.ql-size-large]:text-lg
-  [&_.ql-size-huge]:text-2xl
-  [&_.ql-font-serif]:font-serif
-  [&_.ql-font-monospace]:font-mono
-`;
 
   // Auto-scroll al agregar nuevos comentarios
   useEffect(() => {
@@ -202,82 +132,28 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
 
   return (
     <div {...props} className="w-full bg-white rounded-lg shadow-lg">
-      <div id="task-container" className={`flex min-h-[600px] h-full ${props.isSelect ? "rounded-xl outline outline-2 outline-primary" : ""}`}>
+      <div id="task-container" className={`flex min-h-[600px] h-full rounded-xl outline ${props.isSelect ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200"}`}>
         {/* Panel principal */}
         <div id='container-left' className="flex md:w-[75%] flex-col h-full">
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-            <div className="flex items-center space-x-4 flex-1">
-              {/* Icono de la tarea - Mejorado con NewSelectIcon */}
-              <PermissionWrapper hasPermission={canEdit}>
-                <div className="flex items-center justify-center">
-                  {showIconSelector ? (
-                    <NewSelectIcon
-                      value={tempIcon}
-                      onChange={handleIconChange}
-                      onClose={() => setShowIconSelector(false)}
-                    />
-                  ) : (
-                    <button
-                      onClick={() => canEdit ? setShowIconSelector(true) : ht()}
-                      className={`w-12 h-12 flex items-center justify-center rounded-full transition-colors ${canEdit ? 'hover:bg-gray-100 cursor-pointer' : 'opacity-60 cursor-not-allowed'
-                        }`}
-                      title={canEdit ? "Cambiar ícono" : "No tienes permisos para editar"}
-                    >
-                      <Formik
-                        initialValues={{ icon: tempIcon }}
-                        onSubmit={(values) => {
-                          handleIconChange(values.icon);
-                        }}
-                      >
-                        {({ setFieldValue }) => (
-                          <Form>
-                            <Field name="icon">
-                              {({ field }) => (
-                                <SelectIcon
-                                  {...field}
-                                  name="icon"
-                                  value={field.value || tempIcon}
-                                  className="w-8 h-8"
-                                  handleChange={(value) => {
-                                    setFieldValue('icon', value);
-                                    handleIconChange(value);
-                                  }}
-                                  data={localTask}
-                                />
-                              )}
-                            </Field>
-                          </Form>
-                        )}
-                      </Formik>
-                    </button>
-                  )}
-                </div>
-              </PermissionWrapper>
-              {/* Título con borde primary */}
-              {editingField === 'descripcion' ? (
-                <input
-                  type="text"
-                  value={tempValue}
-                  onChange={(e) => setTempValue(e.target.value)}
-                  onBlur={() => handleFieldSave('descripcion')}
-                  onKeyDown={(e) => handleKeyPress(e, 'descripcion')}
-                  className="text-2xl font-semibold px-2 py-1 border-b-2 border-primary focus:outline-none flex-1"
-                  autoFocus
-                />
-              ) : (
-                <h2
-                  className={`text-2xl font-semibold flex-1 ${canEdit ? 'cursor-pointer hover:text-gray-700' : 'cursor-default opacity-80'
-                    }`}
-                  onClick={() => canEdit ? handleFieldClick('descripcion', localTask.descripcion) : ht()}
-                  title={canEdit ? "Haz clic para editar" : "No tienes permisos para editar"}
-                >
-                  {localTask.descripcion || t('Sin título')}
-                </h2>
-              )}
-            </div>
+          <div className="flex items-center justify-between px-6 py-1 border-b border-gray-200">
+            <TitleTask
+              canEdit={canEdit}
+              showIconSelector={showIconSelector}
+              setShowIconSelector={setShowIconSelector}
+              handleIconChange={handleIconChange}
+              ht={ht}
+              setTempValue={setTempValue}
+              handleFieldSave={handleFieldSave}
+              handleKeyPress={handleKeyPress}
+              handleFieldClick={handleFieldClick}
+              editingField={editingField}
+              tempValue={tempValue}
+              tempIcon={tempIcon}
+              localTask={localTask}
+            />
             {/* Botones de acción integrados - OCULTOS sin permisos */}
-            {canEdit && (
+            {canEdit &&
               <div className="flex items-center">
                 <div className="flex items-center bg-gray-50 rounded-lg p-0.5 mr-2">
                   <div className="relative group">
@@ -298,12 +174,12 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                       ) : (
                         <EyeOff className="w-4 h-4 transition-transform duration-200" />
                       )}
-                      {localTask.spectatorView && (
+                      {localTask.spectatorView &&
                         <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                         </span>
-                      )}
+                      }
                     </button>
                     <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
                       {t(localTask.spectatorView ? 'Visible' : 'Oculta')}
@@ -341,7 +217,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                   </div>
                 </div>
                 {/* Botones de ItineraryButtonBox - OCULTOS sin permisos */}
-                {optionsItineraryButtonBox && optionsItineraryButtonBox.length > 0 && (
+                {(optionsItineraryButtonBox && optionsItineraryButtonBox.length > 0) &&
                   <>
                     <div className="flex items-center bg-gray-50 rounded-lg p-0.5 mr-2">
                       {optionsItineraryButtonBox
@@ -406,7 +282,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                                   {icon}
                                 </span>
                                 {/* Indicador de estado con colores específicos por tipo */}
-                                {isActive && (
+                                {isActive &&
                                   <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
                                     <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${option.value === 'status' ? 'bg-primary' :
                                       option.value === 'flujo' ? 'bg-purple-500' :
@@ -417,7 +293,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                                         'bg-blue-500'
                                       }`}></span>
                                   </span>
-                                )}
+                                }
                               </button>
                               {/* Tooltip informativo dinámico */}
                               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
@@ -428,7 +304,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                         })}
                     </div>
                   </>
-                )}
+                }
                 {/* Menú de más opciones - OCULTO sin permisos */}
                 {/*                 <div className="relative">
                   <button
@@ -467,285 +343,224 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                   )}
                 </div> */}
               </div>
-            )}
+            }
           </div>
           {/* Contenido principal */}
-          <div className="flex-1 overflow-y-auto">
-            {/* Información principal de la tarea */}
-            <div className="px-6 py-4 space-y-4">
-              {/* Fila de Estado y Prioridad */}
-              <div className="flex items-center space-x-4">
-                {/* Estado */}
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-600">{t('Estado')}</span>
-                  <div className="relative">
-                    <button
-                      onClick={() => canEdit ? setShowStatusDropdown(!showStatusDropdown) : ht()}
-                      className={`px-3 py-1 rounded text-white text-sm flex items-center space-x-1 ${currentStatus.color} ${canEdit ? 'hover:opacity-80 cursor-pointer' : 'opacity-70 cursor-not-allowed'
-                        }`}
-                      title={canEdit ? "Cambiar estado" : "No tienes permisos para editar"}
-                    >
-                      <span>{currentStatus.label}</span>
-                      {canEdit && <ChevronDown className="w-3 h-3" />}
-                    </button>
-                    {showStatusDropdown && canEdit && (
-                      <ClickAwayListener onClickAway={() => setShowStatusDropdown(false)}>
-                        <div className="absolute mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                          {TASK_STATUSES.map(status => (
-                            <button
-                              key={status.value}
-                              onClick={() => {
-                                handleUpdate('estado', status.value);
-                                setShowStatusDropdown(false);
-                              }}
-                              className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100"
-                            >
-                              <div className={`w-3 h-3 rounded-full ${status.color} mr-3`}></div>
-                              <span>{status.label}</span>
-                            </button>
-                          ))}
-                        </div>
-                      </ClickAwayListener>
-                    )}
-                  </div>
-                </div>
-                {/* Prioridad */}
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-600">{t('Prioridad')}</span>
-                  <div className="relative">
-                    <button
-                      onClick={() => canEdit ? setShowPriorityDropdown(!showPriorityDropdown) : ht()}
-                      className={`px-3 py-1 rounded text-white text-sm flex items-center space-x-1 ${currentPriority.color} ${canEdit ? 'hover:opacity-80 cursor-pointer' : 'opacity-70 cursor-not-allowed'
-                        }`}
-                      title={canEdit ? "Cambiar prioridad" : "No tienes permisos para editar"}
-                    >
-                      <Flag className="w-3 h-3" />
-                      <span>{currentPriority.label}</span>
-                      {canEdit && <ChevronDown className="w-3 h-3" />}
-                    </button>
-                    {showPriorityDropdown && canEdit && (
-                      <ClickAwayListener onClickAway={() => setShowPriorityDropdown(false)}>
-                        <div className="absolute mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                          {TASK_PRIORITIES.map(priority => (
-                            <button
-                              key={priority.value}
-                              onClick={() => {
-                                handleUpdate('prioridad', priority.value);
-                                setShowPriorityDropdown(false);
-                              }}
-                              className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100"
-                            >
-                              <Flag className={`w-4 h-4 mr-3 ${priority.value === 'alta' ? 'text-[#ef4444]' :
-                                priority.value === 'media' ? 'text-yellow-500' :
-                                  'text-gray-400'
-                                }`} />
-                              <span>{priority.label}</span>
-                            </button>
-                          ))}
-                        </div>
-                      </ClickAwayListener>
-                    )}
-                  </div>
-                </div>
-              </div>
-              {/* Asignados con NewResponsableSelector */}
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <User className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm text-gray-600">{t('Asignados')}</span>
-                </div>
-                <div className="flex items-center flex-wrap gap-2 relative">
-                  {editingResponsable && canEdit ? (
-                    <div className="relative">
-                      <ClickUpResponsableSelector
-                        value={tempResponsable}
-                        onChange={(newValue) => {
-                          setTempResponsable(newValue);
-                          handleUpdate('responsable', newValue);
-                          setEditingResponsable(false);
-                        }}
-                        onClose={() => {
-                          setEditingResponsable(false);
-                          setTempResponsable(localTask.responsable || []);
-                        }}
-                      />
-                    </div>
-                  ) : (
-                    <PermissionWrapper hasPermission={canEdit}>
-                      <div className="flex items-center flex-wrap gap-2">
-                        {(localTask.responsable || []).map((resp, idx) => {
-                          const userInfo = GruposResponsablesArry.find(
-                            (el) => el.title?.toLowerCase() === resp?.toLowerCase()
-                          ) || [user, event?.detalles_usuario_id, ...(event?.detalles_compartidos_array || [])].find(
-                            (el) => {
-                              const displayName = el?.displayName || el?.email || 'Sin nombre';
-                              return displayName.toLowerCase() === resp?.toLowerCase();
-                            }
-                          );
-                          return (
-                            <div
-                              key={idx}
-                              className="flex items-center bg-gray-100 border-[1px] border-gray-300 rounded-full px-3 py-1"
-                            >
-                              <div className="w-6 h-6 rounded-full mr-2 overflow-hidden">
-                                <ImageAvatar user={userInfo} />
-                              </div>
-                              <span className="text-sm">{resp}</span>
-                            </div>
-                          );
-                        })}
-                        {canEdit && (
+          <div className="flex-1 px-6 py-2 space-y-2">
+            {/* Fila de Estado y Prioridad */}
+            <div className="flex items-center space-x-4">
+              {/* Estado */}
+              <div className="flex items-center space-x-2">
+                <span className="text-xs text-gray-600">{t('Estado')}</span>
+                <div className="relative">
+                  <button
+                    onClick={() => canEdit ? setShowStatusDropdown(!showStatusDropdown) : ht()}
+                    className={`px-3 py-1 rounded text-white text-sm flex items-center space-x-1 ${currentStatus.color} ${canEdit ? 'hover:opacity-80 cursor-pointer' : 'opacity-70 cursor-not-allowed'
+                      }`}
+                    title={canEdit ? "Cambiar estado" : "No tienes permisos para editar"}
+                  >
+                    <span>{currentStatus.label}</span>
+                    {canEdit && <ChevronDown className="w-3 h-3" />}
+                  </button>
+                  {(showStatusDropdown && canEdit) &&
+                    <ClickAwayListener onClickAway={() => setShowStatusDropdown(false)}>
+                      <div className="absolute mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                        {TASK_STATUSES.map(status => (
                           <button
+                            key={status.value}
                             onClick={() => {
-                              setEditingResponsable(true);
-                              setTempResponsable(localTask.responsable || []);
+                              handleUpdate('estado', status.value);
+                              setShowStatusDropdown(false);
                             }}
-                            className="text-gray-500 hover:text-gray-700 border border-gray-300 rounded-full px-3 py-1 text-sm"
+                            className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100"
                           >
-                            {localTask.responsable?.length > 0 ? t('Editar') : t('Asignar')}
+                            <div className={`w-3 h-3 rounded-full ${status.color} mr-3`}></div>
+                            <span>{status.label}</span>
                           </button>
-                        )}
+                        ))}
                       </div>
-                    </PermissionWrapper>
-                  )}
+                    </ClickAwayListener>
+                  }
                 </div>
               </div>
-              {/* Fechas con duración y hora */}
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <Calendar className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm text-gray-600">{t('Fecha y hora')}</span>
+              {/* Prioridad */}
+              <div className="flex items-center space-x-2">
+                <span className="text-xs text-gray-600">{t('Prioridad')}</span>
+                <div className="relative">
+                  <button
+                    onClick={() => canEdit ? setShowPriorityDropdown(!showPriorityDropdown) : ht()}
+                    className={`px-3 py-1 rounded text-white text-sm flex items-center space-x-1 ${currentPriority.color} ${canEdit ? 'hover:opacity-80 cursor-pointer' : 'opacity-70 cursor-not-allowed'
+                      }`}
+                    title={canEdit ? "Cambiar prioridad" : "No tienes permisos para editar"}
+                  >
+                    <Flag className="w-3 h-3" />
+                    <span>{currentPriority.label}</span>
+                    {canEdit && <ChevronDown className="w-3 h-3" />}
+                  </button>
+                  {(showPriorityDropdown && canEdit) &&
+                    <ClickAwayListener onClickAway={() => setShowPriorityDropdown(false)}>
+                      <div className="absolute mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                        {TASK_PRIORITIES.map(priority => (
+                          <button
+                            key={priority.value}
+                            onClick={() => {
+                              handleUpdate('prioridad', priority.value);
+                              setShowPriorityDropdown(false);
+                            }}
+                            className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100"
+                          >
+                            <Flag className={`w-4 h-4 mr-3 ${priority.value === 'alta' ? 'text-[#ef4444]' :
+                              priority.value === 'media' ? 'text-yellow-500' :
+                                'text-gray-400'
+                              }`} />
+                            <span>{priority.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </ClickAwayListener>
+                  }
                 </div>
-                {/* Fecha y hora REVISAR */}
-                <div className="flex items-center space-x-4">
-                  {editingField === 'fecha' ? (
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="date"
-                        value={tempValue ? tempValue : ''}
-                        onChange={(e) => setTempValue(e.target.value)}
-                        onBlur={() => handleFieldSave('fecha')}
-                        onKeyDown={(e) => handleKeyPress(e, 'fecha')}
-                        className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                        autoFocus
-                      />
-                    </div>
-                  ) : (
-                    <span
-                      className={`text-sm ${canEdit ? 'cursor-pointer hover:text-primary' : 'cursor-default opacity-60'}`}
-                      onClick={() => {
-                        if (canEdit) {
-                          // Formatear la fecha correctamente para el input tipo date
-                          if (localTask.fecha) {
-                            const date = new Date(localTask.fecha);
-                            const year = date.getFullYear();
-                            const month = String(date.getMonth() + 1).padStart(2, '0');
-                            const day = String(date.getDate()).padStart(2, '0');
-                            handleFieldClick('fecha', `${year}-${month}-${day}`);
-                          } else {
-                            handleFieldClick('fecha', '');
-                          }
-                        } else {
-                          ht();
-                        }
-                      }}
-                      title={canEdit ? "Haz clic para editar fecha" : "No tienes permisos para editar"}
-                    >
-                      {localTask.fecha ? formatDate(localTask.fecha) : t('Sin fecha')}
-                    </span>
-                  )}
-
-                  {/* Hora */}
-                  {editingField === 'hora' ? (
+              </div>
+            </div>
+            {/* Asignados con NewResponsableSelector */}
+            <AssignedTask
+              canEdit={canEdit}
+              editingResponsable={editingResponsable}
+              setEditingResponsable={setEditingResponsable}
+              tempResponsable={tempResponsable}
+              setTempResponsable={setTempResponsable}
+              localTask={localTask}
+              handleUpdate={handleUpdate}
+            />
+            {/* Fechas con duración y hora */}
+            <div className="bg-red flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Calendar className="w-4 h-4 text-gray-500" />
+                <span className="text-sm text-gray-600">{t('Fecha y hora')}</span>
+              </div>
+              <div className="flex items-center space-x-4">
+                {editingField === 'fecha'
+                  ? <div className="flex items-center space-x-2">
                     <input
-                      type="time"
-                      value={tempValue || ''}
+                      type="date"
+                      value={tempValue ? tempValue : ''}
                       onChange={(e) => setTempValue(e.target.value)}
-                      onBlur={() => {
-                        if (localTask.fecha && tempValue) {
-                          const fecha = new Date(localTask.fecha);
-                          const [hours, minutes] = tempValue.split(':');
-                          fecha.setHours(parseInt(hours), parseInt(minutes));
-                          // Convertir a ISO string o al formato que espere tu backend
-                          handleUpdate('fecha', fecha.toISOString());
-                        }
-                        setEditingField(null);
-                      }}
-
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          if (localTask.fecha && tempValue) {
-                            const fecha = new Date(localTask.fecha);
-                            const [hours, minutes] = tempValue.split(':');
-                            fecha.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-                            handleUpdate('fecha', fecha.toISOString());
-                            setEditingField(null);
-                          }
-                        } else {
-                          handleKeyPress(e, 'hora');
-                        }
-                      }}
+                      onBlur={() => handleFieldSave('fecha')}
+                      onKeyDown={(e) => handleKeyPress(e, 'fecha')}
                       className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                       autoFocus
                     />
-                  ) : (
-                    <div className="flex items-center space-x-1">
-                      <Clock className="w-4 h-4 text-gray-500" />
-                      <span
-                        className={`text-sm ${canEdit ? 'cursor-pointer hover:text-primary' : 'cursor-default opacity-60'}`}
-                        onClick={() => canEdit ? handleFieldClick('hora', localTask.fecha ? formatTime(localTask.fecha) : '') : ht()}
-                        title={canEdit ? "Haz clic para editar hora" : "No tienes permisos para editar"}
-                      >
-                        {localTask.fecha ? formatTime(localTask.fecha) : t('Sin hora')}
-                      </span>
-                    </div>
-                  )}
-                  {/* Duración mejorada con conversor */}
-                  {editingDuration ? (
-                    <div className="flex items-center space-x-1">
-                      <input
-                        type="text"
-                        value={durationInput}
-                        onChange={(e) => setDurationInput(e.target.value)}
-                        onBlur={() => {
+                  </div>
+                  : <span
+                    className={`text-sm ${canEdit ? 'cursor-pointer hover:text-primary' : 'cursor-default opacity-60'}`}
+                    onClick={() => {
+                      if (canEdit) {
+                        // Formatear la fecha correctamente para el input tipo date
+                        if (localTask.fecha) {
+                          const date = new Date(localTask.fecha);
+                          const year = date.getFullYear();
+                          const month = String(date.getMonth() + 1).padStart(2, '0');
+                          const day = String(date.getDate()).padStart(2, '0');
+                          handleFieldClick('fecha', `${year}-${month}-${day}`);
+                        } else {
+                          handleFieldClick('fecha', '');
+                        }
+                      } else {
+                        ht();
+                      }
+                    }}
+                    title={canEdit ? "Haz clic para editar fecha" : "No tienes permisos para editar"}
+                  >
+                    {localTask.fecha ? formatDate(localTask.fecha) : t('Sin fecha')}
+                  </span>
+                }
+                {editingField === 'hora'
+                  ? <input
+                    type="time"
+                    value={tempValue || ''}
+                    onChange={(e) => setTempValue(e.target.value)}
+                    onBlur={() => {
+                      if (localTask.fecha && tempValue) {
+                        const fecha = new Date(localTask.fecha);
+                        const [hours, minutes] = tempValue.split(':');
+                        fecha.setHours(parseInt(hours), parseInt(minutes));
+                        // Convertir a ISO string o al formato que espere tu backend
+                        handleUpdate('fecha', fecha.toISOString());
+                      }
+                      setEditingField(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        if (localTask.fecha && tempValue) {
+                          const fecha = new Date(localTask.fecha);
+                          const [hours, minutes] = tempValue.split(':');
+                          fecha.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                          handleUpdate('fecha', fecha.toISOString());
+                          setEditingField(null);
+                        }
+                      } else {
+                        handleKeyPress(e, 'hora');
+                      }
+                    }}
+                    className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                    autoFocus
+                  />
+                  : <div className="flex items-center space-x-1">
+                    <Clock className="w-4 h-4 text-gray-500" />
+                    <span
+                      className={`text-sm ${canEdit ? 'cursor-pointer hover:text-primary' : 'cursor-default opacity-60'}`}
+                      onClick={() => canEdit ? handleFieldClick('hora', localTask.fecha ? formatTime(localTask.fecha) : '') : ht()}
+                      title={canEdit ? "Haz clic para editar hora" : "No tienes permisos para editar"}
+                    >
+                      {localTask.fecha ? formatTime(localTask.fecha) : t('Sin hora')}
+                    </span>
+                  </div>
+                }
+                {/* Duración mejorada con conversor */}
+                {editingDuration
+                  ? <div className="flex items-center space-x-1">
+                    <input
+                      type="text"
+                      value={durationInput}
+                      onChange={(e) => setDurationInput(e.target.value)}
+                      onBlur={() => {
+                        const minutes = readableFormatToMinutes(durationInput);
+                        handleUpdate('duracion', minutes);
+                        setEditingDuration(false);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
                           const minutes = readableFormatToMinutes(durationInput);
                           handleUpdate('duracion', minutes);
                           setEditingDuration(false);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            const minutes = readableFormatToMinutes(durationInput);
-                            handleUpdate('duracion', minutes);
-                            setEditingDuration(false);
-                          } else if (e.key === 'Escape') {
-                            setEditingDuration(false);
-                          }
-                        }}
-                        placeholder="Ej: 1h 30min"
-                        className="w-24 px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                        autoFocus
-                      />
-                    </div>
-                  ) : (
-                    <span
-                      className={`text-sm ${canEdit ? 'cursor-pointer hover:text-primary' : 'cursor-default opacity-60'}`}
-                      onClick={() => {
-                        if (canEdit) {
-                          setEditingDuration(true);
-                          setDurationInput(minutesToReadableFormat(localTask.duracion as number));
-                        } else {
-                          ht();
+                        } else if (e.key === 'Escape') {
+                          setEditingDuration(false);
                         }
                       }}
-                      title={canEdit ? "Haz clic para editar duración" : "No tienes permisos para editar"}
-                    >
-                      {minutesToReadableFormat(localTask.duracion as number)}
-                    </span>
-                  )}
-                </div>
+                      placeholder="Ej: 1h 30min"
+                      className="w-24 px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                      autoFocus
+                    />
+                  </div>
+                  : <span
+                    className={`text-sm ${canEdit ? 'cursor-pointer hover:text-primary' : 'cursor-default opacity-60'}`}
+                    onClick={() => {
+                      if (canEdit) {
+                        setEditingDuration(true);
+                        setDurationInput(minutesToReadableFormat(localTask.duracion as number));
+                      } else {
+                        ht();
+                      }
+                    }}
+                    title={canEdit ? "Haz clic para editar duración" : "No tienes permisos para editar"}
+                  >
+                    {minutesToReadableFormat(localTask.duracion as number)}
+                  </span>
+                }
               </div>
-              {/* NUEVA SECCIÓN: Indicadores de hora inicio y fin (SOLO VISUALES) */}
-              {/*               {localTask.fecha && localTask.duracion && (
+            </div>
+            {/* NUEVA SECCIÓN: Indicadores de hora inicio y fin (SOLO VISUALES) */}
+            {/*               {(localTask.fecha && localTask.duracion) && 
                 <div className="flex items-center space-x-6 bg-gray-50 rounded-lg p-3">
                   <div className="flex items-center space-x-2">
                     <PlayCircle className="w-5 h-5 text-green-600" />
@@ -767,279 +582,122 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                     </div>
                   </div>
                 </div>
-              )} */}
-              {/* Etiquetas */}
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <Tag className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm text-gray-600">{t('Etiquetas')}</span>
-                </div>
-                <div className="flex items-center flex-wrap gap-2">
-                  {(localTask.tags || []).map((tag, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center bg-primary text-white border-[1px] border-gray-200 rounded-full px-3 py-1 group"
-                    >
-                      <span className="text-sm">{tag}</span>
-                      {canEdit && (
-                        <button
-                          onClick={() => handleRemoveTag(tag)}
-                          className="ml-2 hover:text-[#ef4444]  group-hover:opacity-100 transition-opacity"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                  {editingField === 'tags' ? (
-                    <ClickAwayListener onClickAway={handleFieldCancel}>
-                      <input
-                        type="text"
-                        placeholder={t('Agregar etiqueta...')}
-                        onKeyPress={(e) => {
-                          if (e.key === 'Enter') {
-                            const input = e.target as HTMLInputElement;
-                            if (input.value.trim()) {
-                              handleAddTag(input.value.trim());
-                              input.value = '';
-                            }
-                          }
-                        }}
-                        className="px-3 py-1 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                        autoFocus
-                      />
-                    </ClickAwayListener>
-                  ) : (
-                    canEdit && (
-                      <button
-                        onClick={() => handleFieldClick('tags', '')}
-                        className="p-[1.5px] rounded-full text-gray-500 hover:text-gray-700 border-[1px] border-gray-300 hover:border-gray-500 "
-                      >
-                        <Plus className="w-4 h-4" />
-                      </button>
-                    )
-                  )}
-                </div>
-              </div>
-            </div>
+              } */}
+            {/* Etiquetas */}
+            <TagsTask
+              canEdit={canEdit}
+              localTask={localTask}
+              handleRemoveTag={handleRemoveTag}
+              handleAddTag={handleAddTag}
+              handleFieldCancel={handleFieldCancel}
+              handleFieldClick={handleFieldClick}
+              editingField={editingField}
+            />
             {/* Sección de Detalles */}
-            <div className="border-t border-gray-200">
-              <div className="px-6 py-4">
 
-                <div className="space-y-6">
-                  {/* Descripción larga con Editor */}
-<div>
-  <div className="flex items-center justify-between mb-2">
-    <label className="text-sm font-medium text-gray-700">
-      {t('Descripción detallada')}
-    </label>
-    {localTask.tips && !editingDescription && canEdit && (
-      <button
-        onClick={() => setEditingDescription(true)}
-        className="text-xs text-primary hover:text-primary/80"
-      >
-        {t('Editar')}
-      </button>
-    )}
-  </div>
-  
-  {editingDescription ? (
-    <div className="border border-gray-300 rounded-lg overflow-hidden">
-      {/* Contenedor del editor con altura fija y overflow */}
-      <div className="h-[300px] overflow-y-auto">
-        <ReactQuill
-          value={customDescription}
-          onChange={setCustomDescription}
-          modules={quillModules}
-          formats={quillFormats}
-          theme="snow"
-          placeholder={t('Escribe una descripción detallada...')}
-          className="bg-white"
-        />
-      </div>
-      {/* Botones fuera del área con scroll */}
-      <div className="flex justify-end space-x-2 p-3 bg-gray-50 border-t border-gray-200">
-        <button
-          onClick={() => {
-            setCustomDescription(localTask.tips || '');
-            setEditingDescription(false);
-          }}
-          className="px-4 py-2 text-xs text-gray-600 hover:text-gray-800 transition-colors"
-        >
-          {t('Cancelar')}
-        </button>
-        <button
-          onClick={() => {
-            handleUpdate('tips', customDescription);
-            setEditingDescription(false);
-          }}
-          className="px-4 py-2 text-xs bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
-        >
-          {t('Guardar')}
-        </button>
-      </div>
-    </div>
-  ) : (
-    <div
-      className={`h-[300px] overflow-y-auto border border-gray-200 rounded-lg p-4 ${
-        canEdit ? 'cursor-pointer hover:border-gray-300' : 'cursor-default opacity-60'
-      }`}
-      onClick={() => {
-        if (canEdit) {
-          setCustomDescription(localTask.tips || '');
-          setEditingDescription(true);
-        } else {
-          ht();
-        }
-      }}
-      title={canEdit ? "Haz clic para editar descripción" : "No tienes permisos para editar"}
-    >
-      {localTask.tips ? (
-        <div
-          className="prose prose-xs max-w-none [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:my-3 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:my-3 [&_h3]:text-lg [&_h3]:font-bold [&_h3]:my-3 [&_p]:mb-4 [&_ul]:pl-6 [&_ul]:mb-4 [&_ul]:list-disc [&_ol]:pl-6 [&_ol]:mb-4 [&_ol]:list-decimal [&_li]:mb-2 [&_pre]:bg-gray-100 [&_pre]:p-3 [&_pre]:rounded [&_pre]:my-2 [&_pre]:whitespace-pre-wrap [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-sm [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-4 [&_blockquote]:my-2 [&_blockquote]:italic [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800 [&_.ql-align-center]:text-center [&_.ql-align-right]:text-right [&_.ql-align-justify]:text-justify [&_.ql-size-small]:text-xs [&_.ql-size-large]:text-lg [&_.ql-size-huge]:text-2xl [&_.ql-font-serif]:font-serif [&_.ql-font-monospace]:font-mono"
-          dangerouslySetInnerHTML={{ __html: localTask.tips }}
-        />
-      ) : (
-        <p className="text-xs text-gray-400">
-          {canEdit ? t('Haz clic para agregar una descripción...') : t('Sin descripción')}
-        </p>
-      )}
-    </div>
-  )}
-</div>
-                  {/* Adjuntos mejorados */}
-                  <div>
-                    {/* <h4 className="text-sm font-medium text-gray-700 mb-3">{t('Adjuntos')}</h4> */}
-                    <NewAttachmentsEditor
-                      attachments={localTask.attachments || []}
-                      onUpdate={(files) => handleUpdate('attachments', files)}
-                      taskId={task?._id}
-                      eventId={event?._id}
-                      itinerarioId={itinerario?._id}
-                      readOnly={!canEdit}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* Descripción larga con Editor */}
+            <DescriptionTask
+              canEdit={canEdit}
+              localTask={localTask}
+              editingDescription={editingDescription}
+              setEditingDescription={setEditingDescription}
+              customDescription={customDescription}
+              setCustomDescription={setCustomDescription}
+              handleUpdate={handleUpdate}
+              ht={ht}
+            />
+            {/* Adjuntos mejorados */}
+            <NewAttachmentsEditor
+              attachments={localTask.attachments || []}
+              onUpdate={(files) => handleUpdate('attachments', files)}
+              taskId={task?._id}
+              eventId={event?._id}
+              itinerarioId={itinerario?._id}
+              readOnly={!canEdit}
+            />
+
           </div>
         </div>
         {/* Panel lateral - Chat/Comentarios */}
-<div id="container-right" className="w-96 flex flex-col bg-gray-50 h-full max-h-[750px] overflow-hidden">
-  <div className="p-4 border-b border-gray-200 bg-white flex-shrink-0">
-    <div className="flex items-center justify-between">
-      <h3 className="font-semibold text-lg">{t('Actividad')}</h3>
-      <div className="flex items-center space-x-2">
-        <span className="text-sm text-gray-500">{comments.length} {t('comentarios')}</span>
-        <Bell className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600" />
-      </div>
-    </div>
-  </div>
-  
-  <div
-    id="comments-container"
-    ref={commentsContainerRef}
-    className="flex-1 overflow-y-auto min-h-0"
-  >
-    {comments.length === 0 ? (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-center">
-          <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-          <p className="text-sm text-gray-500">{t('No hay comentarios aún')}</p>
-          <p className="text-xs text-gray-400 mt-1">{t('Sé el primero en comentar')}</p>
-        </div>
-      </div>
-    ) : (
-      <div className="flex flex-col h-full">
-        {/* Spacer para empujar los comentarios hacia abajo cuando hay pocos */}
-        <div className="flex-1 min-h-0" />
-        
-        {/* Lista de comentarios */}
-        <div className="space-y-2 p-4 flex-shrink-0">
-          {comments.map((comment) => (
-            <div key={comment._id} className="relative group">
-              <ListComments
-                id={comment._id}
-                itinerario={itinerario}
-                task={task}
-                item={comment}
-                tempPastedAndDropFiles={tempPastedAndDropFiles}
-              />
-              {canEdit && (
-                <button
-                  onClick={() => handleDeleteComment(comment._id)}
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-white rounded shadow-sm hover:bg-gray-100"
-                  title={t('Eliminar comentario')}
-                >
-                  <Trash2 className="w-4 h-4 text-gray-500 hover:text-[#ef4444]" />
-                </button>
-              )}
+        <div id="container-right" className="w-96 flex flex-col bg-gray-50 h-full max-h-[750px] overflow-hidden">
+          <div className="p-4 border-b border-gray-200 bg-white flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-lg">{t('Actividad')}</h3>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-500">{comments.length} {t('comentarios')}</span>
+                <Bell className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600" />
+              </div>
             </div>
-          ))}
+          </div>
+
+          <div
+            id="comments-container"
+            ref={commentsContainerRef}
+            className="flex-1 overflow-y-auto min-h-0"
+          >
+            {comments.length === 0
+              ? <div className="h-full flex items-center justify-center">
+                <div className="text-center">
+                  <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                  <p className="text-sm text-gray-500">{t('No hay comentarios aún')}</p>
+                  <p className="text-xs text-gray-400 mt-1">{t('Sé el primero en comentar')}</p>
+                </div>
+              </div>
+              : <div className="flex flex-col h-full">
+                {/* Spacer para empujar los comentarios hacia abajo cuando hay pocos */}
+                <div className="flex-1 min-h-0" />
+
+                {/* Lista de comentarios */}
+                <div className="space-y-2 p-4 flex-shrink-0">
+                  {comments.map((comment) => (
+                    <div key={comment._id} className="relative group">
+                      <ListComments
+                        id={comment._id}
+                        itinerario={itinerario}
+                        task={task}
+                        item={comment}
+                        tempPastedAndDropFiles={tempPastedAndDropFiles}
+                      />
+                      {canEdit &&
+                        <button
+                          onClick={() => handleDeleteComment(comment._id)}
+                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-white rounded shadow-sm hover:bg-gray-100"
+                          title={t('Eliminar comentario')}
+                        >
+                          <Trash2 className="w-4 h-4 text-gray-500 hover:text-[#ef4444]" />
+                        </button>
+                      }
+                    </div>
+                  ))}
+                </div>
+              </div>
+            }
+          </div>
+
+          <div className="border-t border-gray-200 bg-white flex-shrink-0">
+            <InputComments
+              itinerario={itinerario}
+              task={task}
+              tempPastedAndDropFiles={tempPastedAndDropFiles || []}
+              setTempPastedAndDropFiles={setTempPastedAndDropFiles}
+              disabled={false}
+              onCommentAdded={handleCommentAdded}
+            />
+          </div>
         </div>
       </div>
-    )}
-  </div>
-  
-  <div className="border-t border-gray-200 bg-white flex-shrink-0">
-    <InputComments
-      itinerario={itinerario}
-      task={task}
-      tempPastedAndDropFiles={tempPastedAndDropFiles || []}
-      setTempPastedAndDropFiles={setTempPastedAndDropFiles}
-      disabled={false}
-      onCommentAdded={handleCommentAdded}
-    />
-  </div>
-</div>
-        {/* Estilos CSS para animaciones */}
-        <style jsx>{`
+      <style jsx>{`
           @keyframes ping {
             75%, 100% {
               transform: scale(2);
               opacity: 0;
             }
           }
-
           .animate-ping {
             animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
           }
-        `}</style>
-
-        <style jsx global>{`
-  /* Estilos del editor Quill */
-  .ql-container {
-    font-family: inherit;
-    font-size: 0.875rem;
-    line-height: 1.5rem;
-  }
-  
-  .ql-editor {
-    min-height: 200px;
-    padding: 1rem;
-  }
-  
-  .ql-toolbar {
-    background-color: #f9fafb;
-    border-bottom: 1px solid #e5e7eb;
-    font-family: inherit;
-  }
-  
-  .ql-toolbar button:hover {
-    background-color: #e5e7eb !important;
-  }
-  
-  .ql-toolbar button.ql-active {
-    background-color: #ddd6fe !important;
-    color: #6b21a8 !important;
-  }
-  
-  .ql-editor.ql-blank::before {
-    color: #9ca3af;
-    font-style: normal;
-  }
-`}</style>
-      </div>
+        `}
+      </style>
     </div>
   );
 };
