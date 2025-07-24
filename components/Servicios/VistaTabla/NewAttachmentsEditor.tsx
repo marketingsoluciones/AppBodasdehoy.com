@@ -322,9 +322,9 @@ export const NewAttachmentsEditor: React.FC<Props> = ({
   };
 
   return (
-    <div className="flex flex-col h-[110px] bg-white rounded-lg border border-gray-200">
+    <div className="flex flex-col w-full bg-white h-[144px]">
       {/* Header fijo con título y botón de agregar */}
-      <div className="flex items-center justify-between px-3 py-1 border-b border-gray-200 bg-gray-50 flex-shrink-0">
+      <div className="flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-500">{t('Archivos adjuntos')}</span>
           <span className="text-xs text-gray-500">({attachments.length})</span>
@@ -355,9 +355,9 @@ export const NewAttachmentsEditor: React.FC<Props> = ({
 
             <button
               onClick={() => fileInputRef.current?.click()}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all ${isDragging
-                ? 'bg-primary text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              className={`flex items-center text-xs text-primary ${isDragging
+                ? 'text-primary'
+                : ''
                 }`}
             >
               {isDragging ? (
@@ -375,9 +375,8 @@ export const NewAttachmentsEditor: React.FC<Props> = ({
           </div>
         )}
       </div>
-
       {/* Contenedor con scroll para archivos */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-2"
+      <div className="flex-1 overflow-y-auto px-3 py-1 space-y-0.5 border-[1px] border-gray-200 rounded-lg"
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDragOver={handleDragOver}
@@ -425,16 +424,16 @@ export const NewAttachmentsEditor: React.FC<Props> = ({
             {attachments.map((file) => (
               <div
                 key={file._id || file.name}
-                className={`group flex items-center gap-2 p-2 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors ${deletingFiles.includes(file.name) ? 'opacity-50' : ''
+                className={`group flex items-center gap-1 px-2 py-1 bg-gray-100 rounded-md hover:bg-gray-100 transition-colors ${deletingFiles.includes(file.name) ? 'opacity-50' : ''
                   }`}
               >
                 {getFileIcon(file.name)}
 
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 -space-y-0.5">
                   <p className="text-xs font-medium text-gray-700 truncate">
                     {file.name}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-[10px] text-gray-500">
                     {formatFileSize(file.size)}
                   </p>
                 </div>

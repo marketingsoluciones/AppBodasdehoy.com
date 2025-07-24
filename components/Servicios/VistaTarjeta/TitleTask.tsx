@@ -35,7 +35,7 @@ export const TitleTask: FC<Props> = ({ canEdit, showIconSelector, setShowIconSel
             />
             : <button
               onClick={() => canEdit ? setShowIconSelector(true) : ht()}
-              className={`w-12 h-12 flex items-center justify-center rounded-full transition-colors ${canEdit ? 'hover:bg-gray-100 cursor-pointer' : 'opacity-60 cursor-not-allowed'
+              className={`w-12 h-11 flex items-center justify-center rounded-full transition-colors ${canEdit ? 'hover:bg-gray-100 cursor-pointer' : 'opacity-60 cursor-not-allowed'
                 }`}
               title={canEdit ? "Cambiar ícono" : "No tienes permisos para editar"}
             >
@@ -79,14 +79,14 @@ export const TitleTask: FC<Props> = ({ canEdit, showIconSelector, setShowIconSel
           className="text-2xl font-semibold px-2 py-1 border-b-2 border-primary focus:outline-none flex-1"
           autoFocus
         />
-        : <h2
-          className={`text-2xl font-semibold flex-1 ${canEdit ? 'cursor-pointer hover:text-gray-700' : 'cursor-default opacity-80'
+        : <div
+          className={`text-xl font-semibold flex-1 ${canEdit ? 'cursor-pointer hover:text-gray-700' : 'cursor-default opacity-80'
             }`}
           onClick={() => canEdit ? handleFieldClick('descripcion', localTask.descripcion) : ht()}
           title={canEdit ? "Haz clic para editar" : "No tienes permisos para editar"}
         >
           {localTask.descripcion || t('Sin título')}
-        </h2>
+        </div>
       }
     </div>
   )

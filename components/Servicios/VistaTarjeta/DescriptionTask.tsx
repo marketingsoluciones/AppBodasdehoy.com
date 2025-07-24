@@ -59,45 +59,42 @@ export const DescriptionTask: FC<Props> = ({ canEdit, localTask, editingDescript
             </button>
           )}
         </div>
-        {editingDescription
-          ? <div className="border border-gray-300 rounded-lg overflow-hidden">
-            {/* Contenedor del editor con altura fija y overflow */}
-            <div className="h-[300px] overflow-y-auto">
-              <ReactQuill
-                value={customDescription}
-                onChange={setCustomDescription}
-                modules={quillModules}
-                formats={quillFormats}
-                theme="snow"
-                placeholder={t('Escribe una descripción detallada...')}
-                className="bg-white"
-              />
-            </div>
-            {/* Botones fuera del área con scroll */}
-            <div className="flex justify-end space-x-2 p-3 bg-gray-50 border-t border-gray-200">
-              <button
-                onClick={() => {
-                  setCustomDescription(localTask.tips || '');
-                  setEditingDescription(false);
-                }}
-                className="px-4 py-2 text-xs text-gray-600 hover:text-gray-800 transition-colors"
-              >
-                {t('Cancelar')}
-              </button>
-              <button
-                onClick={() => {
-                  handleUpdate('tips', customDescription);
-                  setEditingDescription(false);
-                }}
-                className="px-4 py-2 text-xs bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
-              >
-                {t('Guardar')}
-              </button>
-            </div>
-          </div>
-          : <div
-            className={`h-[300px] overflow-y-auto border border-gray-200 rounded-lg p-4 ${canEdit ? 'cursor-pointer hover:border-gray-300' : 'cursor-default opacity-60'
-              }`}
+        <div className="w-full relative">
+          {editingDescription
+            && <div className="absolute z-10 w-full bg-white border border-green rounded-lg overflow-hidden">
+              <div className="h-[300px] overflow-y-auto">
+                <ReactQuill
+                  value={customDescription}
+                  onChange={setCustomDescription}
+                  modules={quillModules}
+                  formats={quillFormats}
+                  theme="snow"
+                  placeholder={t('Escribe una descripción detallada...')}
+                  className="bg-white"
+                />
+              </div>
+              <div className="flex justify-end space-x-2 p-3 bg-gray-50 border-t border-gray-200">
+                <button
+                  onClick={() => {
+                    setCustomDescription(localTask.tips || '');
+                    setEditingDescription(false);
+                  }}
+                  className="px-4 py-2 text-xs text-gray-600 hover:text-gray-800 transition-colors"
+                >
+                  {t('Cancelar')}
+                </button>
+                <button
+                  onClick={() => {
+                    handleUpdate('tips', customDescription);
+                    setEditingDescription(false);
+                  }}
+                  className="px-4 py-2 text-xs bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+                >
+                  {t('Guardar')}
+                </button>
+              </div>
+            </div>}
+          <div className={`w-full h-[180px] overflow-y-auto border border-gray-200 rounded-lg p-4 ${canEdit ? 'cursor-pointer hover:border-gray-300' : 'cursor-default opacity-60'}`}
             onClick={() => {
               if (canEdit) {
                 setCustomDescription(localTask.tips || '');
@@ -118,7 +115,7 @@ export const DescriptionTask: FC<Props> = ({ canEdit, localTask, editingDescript
               </p>
             }
           </div>
-        }
+        </div>
       </div>
       <style jsx global>{`
       /* Estilos del editor Quill */

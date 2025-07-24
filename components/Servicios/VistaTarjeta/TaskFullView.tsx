@@ -132,11 +132,11 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
 
   return (
     <div {...props} className="w-full bg-white rounded-lg shadow-lg">
-      <div id="task-container" className={`flex min-h-[600px] h-full rounded-xl outline ${props.isSelect ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200"}`}>
+      <div id="task-container" className={`flex h-full rounded-xl outline ${props.isSelect ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200"}`}>
         {/* Panel principal */}
         <div id='container-left' className="flex md:w-[75%] flex-col h-full">
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-1 border-b border-gray-200">
+          <div className="flex items-center justify-between px-6 py-0.5 border-b border-gray-200">
             <TitleTask
               canEdit={canEdit}
               showIconSelector={showIconSelector}
@@ -433,10 +433,10 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               handleUpdate={handleUpdate}
             />
             {/* Fechas con duración y hora */}
-            <div className="bg-red flex items-center space-x-4">
+            <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <Calendar className="w-4 h-4 text-gray-500" />
-                <span className="text-sm text-gray-600">{t('Fecha y hora')}</span>
+                <span className="text-xs text-gray-600">{t('Fecha y hora')}</span>
               </div>
               <div className="flex items-center space-x-4">
                 {editingField === 'fecha'
@@ -452,7 +452,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                     />
                   </div>
                   : <span
-                    className={`text-sm ${canEdit ? 'cursor-pointer hover:text-primary' : 'cursor-default opacity-60'}`}
+                    className={`text-sm ${canEdit ? 'cursor-pointer text-gray-700 hover:text-gray-900' : 'cursor-default text-gray-600'}`}
                     onClick={() => {
                       if (canEdit) {
                         // Formatear la fecha correctamente para el input tipo date
@@ -505,13 +505,10 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                     className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                     autoFocus
                   />
-                  : <div className="flex items-center space-x-1">
-                    <Clock className="w-4 h-4 text-gray-500" />
-                    <span
-                      className={`text-sm ${canEdit ? 'cursor-pointer hover:text-primary' : 'cursor-default opacity-60'}`}
-                      onClick={() => canEdit ? handleFieldClick('hora', localTask.fecha ? formatTime(localTask.fecha) : '') : ht()}
-                      title={canEdit ? "Haz clic para editar hora" : "No tienes permisos para editar"}
-                    >
+                  : <div onClick={() => canEdit ? handleFieldClick('hora', localTask.fecha ? formatTime(localTask.fecha) : '') : ht()}
+                    title={canEdit ? "Haz clic para editar hora" : "No tienes permisos para editar"} className={`flex items-center space-x-1 ${canEdit ? 'cursor-pointer text-gray-700 hover:text-gray-900' : 'cursor-default text-gray-600'}`}>
+                    <Clock className="w-4 h-4" />
+                    <span className={`flex items-center space-x-1 text-sm`}>
                       {localTask.fecha ? formatTime(localTask.fecha) : t('Sin hora')}
                     </span>
                   </div>
@@ -543,7 +540,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                     />
                   </div>
                   : <span
-                    className={`text-sm ${canEdit ? 'cursor-pointer hover:text-primary' : 'cursor-default opacity-60'}`}
+                    className={`text-sm ${canEdit ? 'cursor-pointer text-gray-700 hover:text-gray-900' : 'cursor-default text-gray-500'}`}
                     onClick={() => {
                       if (canEdit) {
                         setEditingDuration(true);
@@ -619,10 +616,10 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
           </div>
         </div>
         {/* Panel lateral - Chat/Comentarios */}
-        <div id="container-right" className="w-96 flex flex-col bg-gray-50 h-full max-h-[750px] overflow-hidden">
-          <div className="p-4 border-b border-gray-200 bg-white flex-shrink-0">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-lg">{t('Actividad')}</h3>
+        <div id="container-right" className="w-96 flex flex-col bg-gray-50 h-full max-h-[554px] overflow-hidden border-l-[1px] border-gray-200 pb-2">
+          <div className="h-[49px] px-2 border-b border-gray-200 bg-white flex items-center">
+            <div className="w-full flex items-center justify-between">
+              <div className="text-xl font-semibold">{t('Actividad')}</div>
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-gray-500">{comments.length} {t('comentarios')}</span>
                 <Bell className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600" />

@@ -185,7 +185,7 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
         </div>
       )}
       {/* Duración */}
-      <div className="bg-red flex items-center space-x-4">
+      <div className="flex items-center space-x-4">
         <Clock className="w-4 h-4 text-blue-600" />
         <span className="text-xs text-gray-500 block">{t('Duración')}</span>
         {editingDuration ? (
@@ -213,7 +213,7 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
           />
         ) : (
           <span
-            className={`text-sm ${canEdit ? 'cursor-pointer hover:text-primary' : 'cursor-default opacity-60'}`}
+            className={`text-sm ${canEdit ? 'cursor-pointer text-gray-700 hover:text-gray-900' : 'cursor-default text-gray-600'}`}
             onClick={() => {
               if (canEdit) {
                 setEditingDuration(true);
