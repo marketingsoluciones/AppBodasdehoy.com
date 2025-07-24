@@ -525,105 +525,101 @@ export const TaskNew: FC<Props> = memo(({
     }));
   }, []);
 
-  // Vista schema
-  if (view === "schema" && localTask.spectatorView) {
-    return (
-      <TaskSchemaView
-        {...props}
-        task={task}
-        localTask={localTask}
-        tempIcon={tempIcon}
-        canEdit={canEdit}
-        showIconSelector={showIconSelector}
-        setShowIconSelector={setShowIconSelector}
-        handleIconChange={handleIconChange}
-        ht={ht}
-      />
-    );
-  }
+  useEffect(() => {
+    console.log(10040, itinerario.title, itinerario.tasks.length)
+    console.log(10041, localTask.spectatorView, task.descripcion, view)
+  }, [view, itinerario])
 
-  // Vista Card minimal usada para itinerario
-  if (minimalView) {
-    return (
-      <TaskMinimalView
-        {...props}
-        task={task}
-        itinerario={itinerario}
-        localTask={localTask}
-        tempIcon={tempIcon}
-        canEdit={canEdit}
-        showIconSelector={showIconSelector}
-        setShowIconSelector={setShowIconSelector}
-        handleIconChange={handleIconChange}
-        handleUpdate={handleUpdate}
-        handleFieldClick={handleFieldClick}
-        handleFieldSave={handleFieldSave}
-        handleKeyPress={handleKeyPress}
-        handleFieldCancel={handleFieldCancel}
-        handleAddTag={handleAddTag}
-        handleRemoveTag={handleRemoveTag}
-        ht={ht}
-        editingField={editingField}
-        tempValue={tempValue}
-        setTempValue={setTempValue}
-        editingResponsable={editingResponsable}
-        setEditingResponsable={setEditingResponsable}
-        tempResponsable={tempResponsable}
-        setTempResponsable={setTempResponsable}
-        editingDescription={editingDescription}
-        setEditingDescription={setEditingDescription}
-        customDescription={customDescription}
-        setCustomDescription={setCustomDescription}
-        optionsItineraryButtonBox={optionsItineraryButtonBox}
-        isSelect={isSelect}
-      />
-    );
-  }
-
-  // Vista Card completa usada para servicios
   return (
-    <TaskFullView
-      {...props}
-      task={task}
-      itinerario={itinerario}
-      localTask={localTask}
-      tempIcon={tempIcon}
-      canEdit={canEdit}
-      showIconSelector={showIconSelector}
-      setShowIconSelector={setShowIconSelector}
-      handleIconChange={handleIconChange}
-      handleUpdate={handleUpdate}
-      handleFieldClick={handleFieldClick}
-      handleFieldSave={handleFieldSave}
-      handleKeyPress={handleKeyPress}
-      handleFieldCancel={handleFieldCancel}
-      handleAddTag={handleAddTag}
-      handleRemoveTag={handleRemoveTag}
-      handleDuplicate={handleDuplicate}
-      handleCopyLink={handleCopyLink}
-      handleDeleteComment={handleDeleteComment}
-      handleCommentAdded={handleCommentAdded}
-      ht={ht}
-      editingField={editingField}
-      tempValue={tempValue}
-      setTempValue={setTempValue}
-      setEditingField={setEditingField}
-      editingResponsable={editingResponsable}
-      setEditingResponsable={setEditingResponsable}
-      tempResponsable={tempResponsable}
-      setTempResponsable={setTempResponsable}
-      editingDescription={editingDescription}
-      setEditingDescription={setEditingDescription}
-      customDescription={customDescription}
-      setCustomDescription={setCustomDescription}
-      comments={comments}
-      setComments={setComments}
-      optionsItineraryButtonBox={optionsItineraryButtonBox}
-      tempPastedAndDropFiles={tempPastedAndDropFiles}
-      setTempPastedAndDropFiles={setTempPastedAndDropFiles}
-      isSelect={isSelect}
-    />
-  );
+    view === "schema"
+      ? <TaskSchemaView
+        {...props}
+        task={task}
+        localTask={localTask}
+        tempIcon={tempIcon}
+        canEdit={canEdit}
+        showIconSelector={showIconSelector}
+        setShowIconSelector={setShowIconSelector}
+        handleIconChange={handleIconChange}
+        ht={ht}
+      />
+
+      : minimalView
+        ? <TaskMinimalView
+          {...props}
+          task={task}
+          itinerario={itinerario}
+          localTask={localTask}
+          tempIcon={tempIcon}
+          canEdit={canEdit}
+          showIconSelector={showIconSelector}
+          setShowIconSelector={setShowIconSelector}
+          handleIconChange={handleIconChange}
+          handleUpdate={handleUpdate}
+          handleFieldClick={handleFieldClick}
+          handleFieldSave={handleFieldSave}
+          handleKeyPress={handleKeyPress}
+          handleFieldCancel={handleFieldCancel}
+          handleAddTag={handleAddTag}
+          handleRemoveTag={handleRemoveTag}
+          ht={ht}
+          editingField={editingField}
+          tempValue={tempValue}
+          setTempValue={setTempValue}
+          editingResponsable={editingResponsable}
+          setEditingResponsable={setEditingResponsable}
+          tempResponsable={tempResponsable}
+          setTempResponsable={setTempResponsable}
+          editingDescription={editingDescription}
+          setEditingDescription={setEditingDescription}
+          customDescription={customDescription}
+          setCustomDescription={setCustomDescription}
+          optionsItineraryButtonBox={optionsItineraryButtonBox}
+          isSelect={isSelect}
+        />
+        : view === "cards" ? <TaskFullView
+          {...props}
+          task={task}
+          itinerario={itinerario}
+          localTask={localTask}
+          tempIcon={tempIcon}
+          canEdit={canEdit}
+          showIconSelector={showIconSelector}
+          setShowIconSelector={setShowIconSelector}
+          handleIconChange={handleIconChange}
+          handleUpdate={handleUpdate}
+          handleFieldClick={handleFieldClick}
+          handleFieldSave={handleFieldSave}
+          handleKeyPress={handleKeyPress}
+          handleFieldCancel={handleFieldCancel}
+          handleAddTag={handleAddTag}
+          handleRemoveTag={handleRemoveTag}
+          handleDuplicate={handleDuplicate}
+          handleCopyLink={handleCopyLink}
+          handleDeleteComment={handleDeleteComment}
+          handleCommentAdded={handleCommentAdded}
+          ht={ht}
+          editingField={editingField}
+          tempValue={tempValue}
+          setTempValue={setTempValue}
+          setEditingField={setEditingField}
+          editingResponsable={editingResponsable}
+          setEditingResponsable={setEditingResponsable}
+          tempResponsable={tempResponsable}
+          setTempResponsable={setTempResponsable}
+          editingDescription={editingDescription}
+          setEditingDescription={setEditingDescription}
+          customDescription={customDescription}
+          setCustomDescription={setCustomDescription}
+          comments={comments}
+          setComments={setComments}
+          optionsItineraryButtonBox={optionsItineraryButtonBox}
+          tempPastedAndDropFiles={tempPastedAndDropFiles}
+          setTempPastedAndDropFiles={setTempPastedAndDropFiles}
+          isSelect={isSelect}
+        />
+          : null
+  )
 });
 
 TaskNew.displayName = 'TaskNew';
