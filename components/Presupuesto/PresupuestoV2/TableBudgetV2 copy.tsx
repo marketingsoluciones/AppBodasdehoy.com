@@ -1,26 +1,29 @@
-import { Dispatch, FC, SetStateAction, useEffect, useState, useMemo, useCallback } from 'react';
-import { createColumnHelper,  getCoreRowModel, useReactTable } from '@tanstack/react-table'
+import { Dispatch, FC, SetStateAction, useEffect, useReducer, useState, useMemo, useCallback } from 'react';
+import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import { t } from 'i18next';
 import { EditableLabelWithInput } from '../../Forms/EditableLabelWithInput';
 import { EditableSelect } from '../../Forms/EditableSelect';
 import { EventContextProvider } from '../../../context';
 import { FloatOptionsMenuInterface, ModalInterface, VisibleColumn, TableFilters, InitialColumn, ColumnConfig } from '../../../utils/Interfaces';
 import { useAllowed } from '../../../hooks/useAllowed';
+import { FloatOptionsMenu } from '../../Utils/FloatOptionsMenu';
+import { GrMoney } from 'react-icons/gr';
+import { GoEye, GoEyeClosed, GoTasklist } from 'react-icons/go';
+import { PiNewspaperClippingLight } from 'react-icons/pi';
+import { MdOutlineDeleteOutline } from 'react-icons/md';
+import { IoCloseOutline, IoSettingsOutline, IoInformationCircleOutline } from 'react-icons/io5';
+import { HiOutlineSearch, HiOutlineX, HiOutlineFilter } from 'react-icons/hi';
+import { TbColumns3 } from 'react-icons/tb';
 import { handleChange, handleCreateItem, handleCreateGasto, handleCreateCategoria, handleChangeEstatus, handleChangeEstatusItem } from "../../TablesComponents/tableBudgetV8.handles"
 import { useToast } from '../../../hooks/useToast';
 import FormAddPago from '../../Forms/FormAddPago';
+import ClickAwayListener from 'react-click-away-listener';
 import { getCurrency } from '../../../utils/Funciones';
 import { ModalTaskList } from '../PresupuestoV2/modals/ModalTaskList';
-import { TableBudgetToolbar } from './TableBudgetToolbar';
-import { TableBudgetTable } from './TableBudgetTable';
-import { TableBudgetFooter } from './TableBudgetFooter';
-import { TableBudgetModals } from './TableBudgetModals';
-import { PiNewspaperClippingLight } from 'react-icons/pi';
-import { GrMoney } from 'react-icons/gr';
-import { GoEye, GoEyeClosed, GoTasklist } from 'react-icons/go';
-import { MdOutlineDeleteOutline } from 'react-icons/md';
-import { IoSettingsOutline } from 'react-icons/io5';
-
+import { EventInfoModal } from '../PresupuestoV2/modals/EventInfoModal';
+import { ColumnsConfigModal } from '../PresupuestoV2/modals/ColumnsConfigModal';
+import { FiltersModal } from '../PresupuestoV2/modals/FiltersModal';
+import { OptionsTableModal } from './modals/OptionsTableModal';
 
 interface props {
   data: any
@@ -662,75 +665,415 @@ export const TableBudgetV2: FC<props> = ({ data, setShowModalDelete }) => {
     setSearchTerm('');
   };
 
-  // --- RENDER ---
   return (
     <div className="h-full bg-gray-50 flex flex-col relative w-full">
-      <TableBudgetToolbar
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        clearSearch={clearSearch}
-        showFiltersModal={showFiltersModal}
-        setShowFiltersModal={setShowFiltersModal}
-        hasActiveFilters={hasActiveFilters}
-        showEventInfoModal={showEventInfoModal}
-        setShowEventInfoModal={setShowEventInfoModal}
-        showColumnsModal={showColumnsModal}
-        setShowColumnsModal={setShowColumnsModal}
-        event={event}
-        handleClearFilters={handleClearFilters}
-      />
-      <TableBudgetTable
-        table={table}
-        initialColumn={initialColumn}
-        getColumnWidth={getColumnWidth}
-        handleResizeStart={handleResizeStart}
-        getRowStyles={getRowStyles}
-        openOptionsModal={openOptionsModal}
-        showOptionsModal={showOptionsModal}
-        setShowOptionsModal={setShowOptionsModal}
-        clearSearch={clearSearch}
-        hasActiveFilters={hasActiveFilters}
-        handleClearFilters={handleClearFilters}
-        searchTerm={searchTerm}
-      />
-      <TableBudgetFooter
-        getCurrency={getCurrency}
-        getTotalFinal={getTotalFinal}
-        getTotalPendiente={getTotalPendiente}
-        hasActiveFilters={hasActiveFilters}
-      />
-      <TableBudgetModals
-        showColumnsModal={showColumnsModal}
-        setShowColumnsModal={setShowColumnsModal}
-        columnConfig={columnConfig}
-        toggleColumnVisibility={toggleColumnVisibility}
-        showFiltersModal={showFiltersModal}
-        setShowFiltersModal={setShowFiltersModal}
-        filters={filters}
-        handleFilterChange={handleFilterChange}
-        handleClearFilters={handleClearFilters}
-        categorias_array={getCategorias()}
-        viewLevel={viewLevel}
-        setViewLevel={setViewLevel}
-        showOptionsModal={showOptionsModal}
-        setShowOptionsModal={setShowOptionsModal}
-        showEventInfoModal={showEventInfoModal}
-        setShowEventInfoModal={setShowEventInfoModal}
-        event={event}
-        getCategoriasForModal={getCategoriasForModal}
-        getModalTotals={getModalTotals}
-        formatNumber={formatNumber}
-        RelacionarPagoModal={RelacionarPagoModal}
-        setRelacionarPagoModal={setRelacionarPagoModal}
-        FormAddPago={FormAddPago}
-        ServisiosListModal={ServisiosListModal}
-        setServisiosListModal={setServisiosListModal}
-        ModalTaskList={ModalTaskList}
-        showFloatOptionsMenu={showFloatOptionsMenu}
-        setShowFloatOptionsMenu={setShowFloatOptionsMenu}
-        FloatOptionsMenu={showFloatOptionsMenu}
-        options={options}
-      />
-    </div>
+      <div className="bg-white shadow-sm border-b px-2 py-1.5 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 bg-gray-50 rounded px-2 py-1 border">
+              <HiOutlineSearch className="w-3.5 h-3.5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Buscar..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-transparent border-none outline-none text-xs placeholder-gray-400 w-40 h-5"
+                autoFocus
+              />
+              {searchTerm && (
+                <button
+                  onClick={clearSearch}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <HiOutlineX className="w-2.5 h-2.5" />
+                </button>
+              )}
+            </div>
+          </div>
+          <div className="relative">
+            <button
+              data-filters-button="true"
+              onClick={() => setShowFiltersModal(!showFiltersModal)}
+              className={`p-1 rounded transition-colors flex items-center gap-1 ${showFiltersModal || hasActiveFilters()
+                ? 'text-blue-600 bg-blue-50 hover:bg-blue-100'
+                : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                }`}
+              title="Filtros"
+            >
+              <HiOutlineFilter className="w-3.5 h-3.5" />
+              <span className="text-xs">Filtros</span>
+              {hasActiveFilters() && (
+                <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
+              )}
+            </button>
+
+          </div>
+          <div className="relative">
+            <button
+              data-event-button="true"
+              onClick={() => setShowEventInfoModal(true)}
+              className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors group flex items-center gap-1"
+              title="Información del evento"
+            >
+              <IoInformationCircleOutline className="w-3.5 h-3.5" />
+              <span className="text-xs">Info evento</span>
+            </button>
+          </div>
+          <div className="relative">
+            <button
+              data-columns-button="true"
+              onClick={() => setShowColumnsModal(true)}
+              className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors flex items-center gap-1"
+              title="Configurar columnas"
+            >
+              <TbColumns3 className="w-3.5 h-3.5" />
+              <span className="text-xs">Columnas</span>
+            </button>
+
+          </div>
+        </div>
+        <div className={`flex items-center gap-3. mr-6 ${event?.presupuesto_objeto?.viewEstimates ? "w-[38%]" : "w-[33.7%]"}`}>
+          <div className={`text-center ${!event?.presupuesto_objeto?.viewEstimates ? "w-[27%]" : "w-[22%]"} `}>
+            <div className="text-xs text-gray-500">Total</div>
+            <div className="font-semibold text-gray-800 text-xs">
+              {getCurrency(parseFloat(getTotalFinal()))}
+            </div>
+          </div>
+          {event?.presupuesto_objeto?.viewEstimates && (
+            <div className="text-center  w-[22%] ">
+              <div className="text-xs text-gray-500 ">Estimado</div>
+              <div className="font-semibold text-blue-600 text-xs">
+                {formatNumber(getTotalEstimado())}
+              </div>
+            </div>
+          )}
+          <div className={`text-center ${!event?.presupuesto_objeto?.viewEstimates ? "w-[27%]" : "w-[22%]"} `}>
+            <div className="text-xs text-gray-500">Pagado</div>
+            <div className="font-semibold text-green text-xs">
+              {getCurrency(parseFloat(getTotalPagado()))}
+            </div>
+          </div>
+          <div className={`text-center ${!event?.presupuesto_objeto?.viewEstimates ? "w-[27%]" : "w-[22%]"} `}>
+            <div className="text-xs text-gray-500">Pendiente</div>
+            <div className="font-semibold text-red text-xs">
+              {getCurrency(parseFloat(getTotalPendiente()))}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="flex-1 overflow-auto bg-white relative">
+        <div className="min-w-[700px]" onContextMenu={(e) => {
+          const element = document.getElementById("ElementEditable")
+          if (isAllowed()) {
+            if (!element) {
+              e.preventDefault();
+            }
+          }
+        }}>
+
+          <table className="w-full">
+            <thead className="bg-gray-100 sticky top-0 z-20">
+              {table.getHeaderGroups().map(headerGroup => (
+                <tr key={headerGroup.id}>
+                  {headerGroup.headers.map(header => {
+                    const isSticky = header.column.getIndex() < 2;
+                    const leftPosition = header.column.getIndex() === 1 ? getColumnWidth('categoria') : 0;
+                    const columnId = header.column.id;
+
+                    return (
+                      <th
+                        key={header.id}
+                        style={{
+                          width: getColumnWidth(columnId),
+                          left: isSticky ? leftPosition : undefined,
+                          position: isSticky ? 'sticky' : 'relative'
+                        }}
+                        className={`text-left p-1.5 font-medium text-gray-700 border-r text-xs ${isSticky ? 'bg-gray-100 z-30' : ''
+                          }`}
+                      >
+                        <div className="flex items-center justify-between h-full">
+                          <div className="flex-1">
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(header.column.columnDef.header, header.getContext())
+                            }
+                          </div>
+                          {/* Divisor redimensionable */}
+                          <div
+                            className="w-1 h-full cursor-col-resize hover:bg-blue-500 hover:bg-opacity-50 absolute right-0 top-0 flex items-center justify-center group"
+                            onMouseDown={(e) => handleResizeStart(columnId, e)}
+                          >
+                            <div className="w-0.5 h-4 bg-gray-300 group-hover:bg-blue-500 transition-colors"></div>
+                          </div>
+                        </div>
+                      </th>
+                    )
+                  })}
+                </tr>
+              ))}
+            </thead>
+
+            <tbody>
+              {table.getRowModel().rows.length > 0 ? table.getRowModel().rows.map((row, index) => {
+                const rowStyles = getRowStyles(row);
+
+                return (
+                  <tr
+                    key={row.id}
+                    className={`${rowStyles} border-b transition-colors group hover:bg-gray-100`}
+                    onContextMenu={(e) => {
+                      const element = document.getElementById("ElementEditable")
+                      let infoAsd = row.getVisibleCells()[0].getContext()
+                      let info = row.getVisibleCells().find(cell => cell.column.id === "categoria")?.getContext() || infoAsd
+                      if (!element) {
+                        e.preventDefault();
+                        const objectType = row.original?.object;
+                        openOptionsModal(info, objectType);
+                      }
+                    }}
+                  >
+                    {row.getVisibleCells().map(cell => {
+                      const isSticky = cell.column.getIndex() < 2;
+                      const leftPosition = cell.column.getIndex() === 1 ? getColumnWidth('categoria') : 0;
+                      const alignment = initialColumn.find(col => col.accessor === cell.column.id);
+                      const columnId = cell.column.id;
+
+                      const alignmentClass = alignment?.horizontalAlignment === "center" ? "text-center" :
+                        alignment?.horizontalAlignment === "end" ? "text-right" : "text-left";
+
+                      return (
+                        <td
+                          key={cell.id}
+                          style={{
+                            width: getColumnWidth(columnId),
+                            left: isSticky ? leftPosition : undefined,
+                            position: isSticky ? 'sticky' : 'relative'
+                          }}
+                          className={`p-1.5 border-r text-xs group-hover:bg-gray-100 ${alignmentClass} ${isSticky ? `z-10 ${rowStyles}` : ''
+                            }`}
+                          onContextMenu={(e) => {
+                            const element = document.getElementById("ElementEditable")
+                            let infoAsd = cell.getContext()
+                            let info = cell.column.id === "categoria"
+                              ? table.getRowModel().rows.find(elem => elem.original._id === infoAsd.row.original.categoriaID)?.getVisibleCells().find(elem => elem.column.id === cell.column.id)
+                              : cell.column.id === "gasto"
+                                ? table.getRowModel().rows.find(elem => elem.original._id === infoAsd.row.original.gastoID)?.getVisibleCells().find(elem => elem.column.id === cell.column.id)
+                                : cell.getContext()
+                            if (!element) {
+                              e.preventDefault();
+                              const objectType = cell.row.original?.object || "categoria";
+                              openOptionsModal(info || infoAsd, objectType);
+                            }
+                          }}
+                        >
+                          {cell.column.id === "categoria"
+                            ? row.original.object === "categoria"
+                              ? flexRender(cell.column.columnDef.cell, cell.getContext())
+                              : ""
+                            : cell.column.id === "gasto"
+                              ? row.original.object === "gasto"
+                                ? flexRender(cell.column.columnDef.cell, cell.getContext())
+                                : ""
+                              : cell.column.id === "nombre"
+                                ? row.original.object === "item"
+                                  ? flexRender(cell.column.columnDef.cell, cell.getContext())
+                                  : ""
+                                : flexRender(cell.column.columnDef.cell, cell.getContext())
+                          }
+                        </td>
+                      )
+                    })}
+                  </tr>
+                )
+              }) : (
+                <tr>
+                  <td colSpan={table.getAllLeafColumns().length} className="p-6 text-center text-gray-500 italic">
+                    <div className="flex flex-col items-center gap-1.5">
+                      {searchTerm || hasActiveFilters() ? (
+                        <>
+                          <span className="text-sm">
+                            {searchTerm
+                              ? `No se encontraron resultados para "${searchTerm}"`
+                              : "No se encontraron resultados con los filtros aplicados"
+                            }
+                          </span>
+                          <div className="flex gap-2">
+                            {searchTerm && (
+                              <button
+                                onClick={clearSearch}
+                                className="text-blue-600 hover:text-blue-800 text-xs underline"
+                              >
+                                Limpiar búsqueda
+                              </button>
+                            )}
+                            {hasActiveFilters() && (
+                              <button
+                                onClick={handleClearFilters}
+                                className="text-blue-600 hover:text-blue-800 text-xs underline"
+                              >
+                                Limpiar filtros
+                              </button>
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-sm">No hay datos disponibles</span>
+                          <span className="text-xs">Haz clic derecho para agregar una categoría</span>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div className="bg-gray-100 px-2 py-1.5 border-t flex justify-end items-center text-xs text-gray-600">
+        <div className="flex items-center gap-3">
+          <span>Total:
+            {getCurrency(parseFloat(getTotalFinal()))}
+          </span>
+          <span>|</span>
+          <span>Pendiente:
+            {getCurrency(parseFloat(getTotalPendiente()))}
+          </span>
+          {hasActiveFilters() && (
+            <>
+              <span>|</span>
+              <span className="text-blue-600">Filtros aplicados</span>
+            </>
+          )}
+        </div>
+      </div>
+
+      {
+        showColumnsModal && (
+          <ColumnsConfigModal
+            columnConfig={columnConfig}
+            toggleColumnVisibility={toggleColumnVisibility}
+            onClose={() => setShowColumnsModal(false)}
+          />
+        )
+      }
+      {
+        showFiltersModal && (
+          <FiltersModal
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            onClose={() => setShowFiltersModal(false)}
+            onClearFilters={handleClearFilters}
+            categorias_array={getCategorias()}
+            viewLevel={viewLevel}
+            setViewLevel={setViewLevel}
+          />
+        )
+      }
+      {
+        showOptionsModal.show && (
+          <ClickAwayListener onClickAway={() => setShowOptionsModal({ show: false })}>
+            <div className="absolute top-12 right-3 bg-white shadow-lg rounded border z-50 w-48 max-w-[calc(100vw-24px)]">
+              <div className="p-3 border-b">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-gray-800 text-sm">Opciones disponibles</h3>
+                  <button
+                    onClick={() => setShowOptionsModal({ show: false })}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <IoCloseOutline className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+              <div className="p-3 space-y-3">
+                {showOptionsModal.availableOptions?.map((option, index) => (
+                  <div key={index}>
+                    {option.icon && typeof option.icon !== 'boolean' && !option.onClick ? (
+                      <div className="flex items-center gap-2 py-2 px-3 bg-gray-50 rounded border">
+                        <div className="text-gray-500 text-sm">
+                          {option.icon}
+                        </div>
+                        <span className="text-xs font-medium text-gray-700">{option.title}</span>
+                      </div>
+                    ) : option.onClick ? (
+                      <button
+                        onClick={() => {
+                          option.onClick(showOptionsModal.info);
+                          setShowOptionsModal({ show: false });
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-gray-50 rounded transition-colors border border-transparent hover:border-gray-200"
+                      >
+                        <div className="text-gray-500 text-sm">
+                          {option.icon && typeof option.icon !== 'boolean' && option.icon}
+                        </div>
+                        <span className="text-xs text-gray-700">{option.title}</span>
+                      </button>
+                    ) : (
+                      <div className="text-xs text-gray-600 font-medium px-2">
+                        {option.title}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </ClickAwayListener>
+        )
+      }
+      {
+        showEventInfoModal && (
+          <EventInfoModal
+            event={event}
+            currency={event?.presupuesto_objeto?.currency}
+            categorias_array={getCategoriasForModal()}
+            totalStimatedGuests={event?.presupuesto_objeto?.totalStimatedGuests || { adults: 0, children: 0 }}
+            totals={getModalTotals()}
+            formatNumber={formatNumber}
+            onClose={() => setShowEventInfoModal(false)}
+          />
+        )
+      }
+      {
+        RelacionarPagoModal.crear && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <ClickAwayListener onClickAway={() => RelacionarPagoModal.crear && setRelacionarPagoModal({ id: "", crear: false, categoriaID: "" })}>
+              <div className="relative bg-white rounded-xl shadow-lg p-8 w-full max-w-xl h-[90%] overflow-auto">
+                <button
+                  className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition transform hover:scale-110"
+                  onClick={() => setRelacionarPagoModal({ id: "", crear: false, categoriaID: "" })}
+                >
+                  ✕
+                </button>
+                <FormAddPago
+                  GastoID={RelacionarPagoModal?.id}
+                  cate={RelacionarPagoModal?.categoriaID}
+                  setGastoID={setRelacionarPagoModal}
+                />
+              </div>
+            </ClickAwayListener>
+          </div>
+        )
+      }
+      {
+        ServisiosListModal.crear && (
+          <ClickAwayListener onClickAway={() => ServisiosListModal.crear && setServisiosListModal({ id: "", crear: false, categoriaID: "" })}>
+            <div>
+              <ModalTaskList
+                setModal={setServisiosListModal}
+                categoria={ServisiosListModal?.categoriaID}
+                gasto={ServisiosListModal?.id}
+                event={event}
+                setEvent={setEvent}
+              />
+            </div>
+          </ClickAwayListener>
+        )
+      }
+      {
+        showFloatOptionsMenu?.state && !showOptionsModal.show && (
+          <FloatOptionsMenu showOptionsMenu={showFloatOptionsMenu} setShowOptionsMenu={setShowFloatOptionsMenu} />
+        )
+      }
+    </div >
   )
 }
