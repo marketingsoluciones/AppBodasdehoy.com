@@ -13,7 +13,7 @@ import { useMounted } from "../hooks/useMounted";
 import { BlockTableroInvitados } from "../components/Invitados/BlockTableroInvitados";
 import { SelectModeView } from "../components/Utils/SelectModeView";
 
-export type ViewItinerary = "table" | "schema" | "cards" | "extraTable" | "boardView" | "newTable"; // Agregar "extraTable"
+export type ViewItinerary = "table" | "schema" | "cards" | "extraTable" | "boardView" | "newTable" | "kanban"; // Agregar "extraTable"
 
 const Invitados: FC = () => {
   const [isMounted, setIsMounted] = useState<boolean>(false);

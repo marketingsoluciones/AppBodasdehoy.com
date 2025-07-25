@@ -102,7 +102,6 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
   const { event } = EventContextProvider();
   const { user } = AuthContextProvider();
   const toast = useToast();
-  const commentsContainerRef = useRef<HTMLDivElement>(null);
   const [previousCountComments, setPreviousCountComments] = useState(0);
 
   // Estados locales para la vista completa
@@ -132,7 +131,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
 
   return (
     <div {...props} className="w-full bg-white rounded-lg shadow-lg">
-      <div id="task-container" className={`flex h-full rounded-xl outline ${props.isSelect ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200"}`}>
+      <div id="task-container" className={`flex h-[553px] rounded-xl outline ${props.isSelect ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200"}`}>
         {/* Panel principal */}
         <div id='container-left' className="flex md:w-[75%] flex-col h-full">
           {/* Header */}
@@ -629,7 +628,6 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
 
           <div
             id="comments-container"
-            ref={commentsContainerRef}
             className="flex-1 overflow-y-auto min-h-0"
           >
             {comments.length === 0
