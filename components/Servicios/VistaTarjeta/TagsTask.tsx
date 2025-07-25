@@ -5,14 +5,14 @@ import ClickAwayListener from "react-click-away-listener";
 
 interface Props {
   canEdit: boolean;
-  localTask: any;
+  task: any;
   handleRemoveTag: (tag: string) => void;
   handleAddTag: (tag: string) => void;
   handleFieldCancel: () => void;
   handleFieldClick: (field: string, value: any) => void;
   editingField: string | null;
 }
-export const TagsTask: FC<Props> = ({ canEdit, localTask, handleRemoveTag, handleAddTag, handleFieldCancel, handleFieldClick, editingField }) => {
+export const TagsTask: FC<Props> = ({ canEdit, task: localTask, handleRemoveTag, handleAddTag, handleFieldCancel, handleFieldClick, editingField }) => {
   const { t } = useTranslation();
   return (
     <div className="flex items-center space-x-4">

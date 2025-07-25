@@ -14,7 +14,6 @@ import { DescriptionTask } from './DescriptionTask';
 interface TaskMinimalViewProps {
   task: Task;
   itinerario: Itinerary;
-  localTask: any;
   tempIcon: string;
   canEdit: boolean;
   showIconSelector: boolean;
@@ -46,7 +45,6 @@ interface TaskMinimalViewProps {
 export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
   task,
   itinerario,
-  localTask,
   tempIcon,
   canEdit,
   showIconSelector,
@@ -97,7 +95,7 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
           editingField={editingField}
           tempValue={tempValue}
           tempIcon={tempIcon}
-          localTask={localTask}
+          task={task}
         />
         {/* Botones de optionsItineraryButtonBox (excepto 'link' y 'flow') */}
         {optionsItineraryButtonBox && optionsItineraryButtonBox.length > 0 && (
@@ -108,7 +106,7 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
                 let icon = option.icon;
                 if (option.getIcon && typeof option.getIcon === 'function') {
                   if (option.value === 'status') {
-                    icon = option.getIcon(localTask.spectatorView);
+                    icon = option.getIcon(task.spectatorView);
                   }
                 }
                 let isActive = false;
@@ -116,7 +114,7 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
                 let hoverColorClass = '';
                 switch (option.value) {
                   case 'status':
-                    isActive = localTask.spectatorView;
+                    isActive = task.spectatorView;
                     activeColorClass = 'text-primary bg-primary/10';
                     break;
                   case 'delete':
@@ -161,17 +159,17 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
         setEditingResponsable={setEditingResponsable}
         tempResponsable={tempResponsable}
         setTempResponsable={setTempResponsable}
-        localTask={localTask}
+        task={task}
         handleUpdate={handleUpdate}
       />
       {/* Indicadores de hora inicio y fin (solo visuales) */}
-      {localTask.fecha && localTask.duracion && (
+      {task.fecha && task.duracion && (
         <div className="flex items-center space-x-6 bg-gray-50 rounded-lg p-3">
           <div className="flex items-center space-x-2">
             <PlayCircle className="w-5 h-5 text-green-600" />
             <div>
               <span className="text-xs text-gray-500 block">{t('Inicio')}</span>
-              <span className="text-sm font-medium text-gray-900">{formatTime(localTask.fecha)}</span>
+              <span className="text-sm font-medium text-gray-900">{formatTime(task.fecha)}</span>
             </div>
           </div>
           <div className="w-px h-8 bg-gray-300"></div>
@@ -179,7 +177,7 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
             <StopCircle className="w-5 h-5 text-red-600" />
             <div>
               <span className="text-xs text-gray-500 block">{t('Final')}</span>
-              <span className="text-sm font-medium text-gray-900">{calculateEndTime(localTask.fecha, localTask.duracion as number)}</span>
+              <span className="text-sm font-medium text-gray-900">{calculateEndTime(task.fecha, task.duracion as number)}</span>
             </div>
           </div>
         </div>
@@ -217,21 +215,21 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
             onClick={() => {
               if (canEdit) {
                 setEditingDuration(true);
-                setDurationInput(minutesToReadableFormat(localTask.duracion as number));
+                setDurationInput(minutesToReadableFormat(task.duracion as number));
               } else {
                 ht();
               }
             }}
             title={canEdit ? "Haz clic para editar duración" : "No tienes permisos para editar"}
           >
-            {minutesToReadableFormat(localTask.duracion as number)}
+            {minutesToReadableFormat(task.duracion as number)}
           </span>
         )}
       </div>
       {/* Etiquetas */}
       <TagsTask
         canEdit={canEdit}
-        localTask={localTask}
+        task={task}
         handleRemoveTag={handleRemoveTag}
         handleAddTag={handleAddTag}
         handleFieldCancel={handleFieldCancel}
@@ -241,7 +239,7 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
       {/* Descripción larga con Editor Rico */}
       <DescriptionTask
         canEdit={canEdit}
-        localTask={localTask}
+        task={task}
         editingDescription={editingDescription}
         setEditingDescription={setEditingDescription}
         customDescription={customDescription}
@@ -253,7 +251,7 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
       <div>
         <h4 className="text-xs font-medium text-gray-700">{t('Adjuntos')}</h4>
         <NewAttachmentsEditor
-          attachments={localTask.attachments || []}
+          attachments={task.attachments || []}
           onUpdate={(files) => handleUpdate('attachments', files)}
           taskId={task._id}
           eventId={event._id}

@@ -33,7 +33,7 @@ const quillFormats = [
 
 interface Props {
   canEdit: boolean;
-  localTask: any;
+  task: any;
   editingDescription: boolean;
   setEditingDescription: (editing: boolean) => void;
   customDescription: string;
@@ -41,7 +41,7 @@ interface Props {
   handleUpdate: (field: string, value: any) => Promise<void>;
   ht: () => void;
 }
-export const DescriptionTask: FC<Props> = ({ canEdit, localTask, editingDescription, setEditingDescription, customDescription, setCustomDescription, handleUpdate, ht }) => {
+export const DescriptionTask: FC<Props> = ({ canEdit, task: localTask, editingDescription, setEditingDescription, customDescription, setCustomDescription, handleUpdate, ht }) => {
   const { t } = useTranslation();
   return (
     <>
