@@ -133,7 +133,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
     <div {...props} className="w-full bg-white rounded-lg shadow-lg">
       <div id="task-container" className={`flex h-[553px] rounded-xl outline ${props.isSelect ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200"}`}>
         {/* Panel principal */}
-        <div id='container-left' className="flex md:w-[75%] flex-col h-full overflow-auto">
+        <div id='container-left' className="flex-1 flex flex-col h-full overflow-auto">
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-0.5 border-b border-gray-200">
             <TitleTask
@@ -615,7 +615,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
           </div>
         </div>
         {/* Panel lateral - Chat/Comentarios */}
-        <div id="container-right" className="w-96 flex flex-col bg-gray-50 h-full max-h-[554px] overflow-hidden border-l-[1px] border-gray-200 pb-2">
+        <div id="container-right" className="w-[350px] flex flex-col bg-gray-50 h-full max-h-[554px] overflow-hidden border-l-[1px] border-gray-200 pb-2">
           <div className="h-[49px] px-2 border-b border-gray-200 bg-white flex items-center">
             <div className="w-full flex items-center justify-between">
               <div className="text-xl font-semibold">{t('Actividad')}</div>
