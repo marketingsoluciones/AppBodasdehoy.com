@@ -133,7 +133,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
     <div {...props} className="w-full bg-white rounded-lg shadow-lg">
       <div id="task-container" className={`flex h-[553px] rounded-xl outline ${props.isSelect ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200"}`}>
         {/* Panel principal */}
-        <div id='container-left' className="flex md:w-[75%] flex-col h-full">
+        <div id='container-left' className="flex md:w-[75%] flex-col h-full overflow-auto">
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-0.5 border-b border-gray-200">
             <TitleTask
