@@ -50,7 +50,7 @@ export const SelectModeSort: FC<props> = ({ value, setValue }) => {
 
   return (
     <ClickAwayListener onClickAway={() => setShow(false)} >
-      <div className="relative flex cursor-pointer -translate-y-10 md:translate-y-0 select-none z-50">
+      <div className={`relative flex cursor-pointer -translate-y-10 md:translate-y-0 select-none ${show && "z-50"}`}>
         <div onClick={() => { setShow(!show) }} className="inline-flex text-sm gap-0.5 text-gray-700 items-center capitalize">
           {t("toOrder")}
           <ArrowDownBodasIcon className="w-4 h-4 rotate-90" />
