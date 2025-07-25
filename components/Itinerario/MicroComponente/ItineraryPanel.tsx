@@ -566,11 +566,25 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       setTimeout(() => {
         const element = document.getElementById(selectTask);
         if (element) {
-          element.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center',
-            inline: 'nearest'
-          });
+          const elementRect = element.getBoundingClientRect();
+          const container = element.closest('.overflow-auto') as HTMLElement | null;
+          const previousScrollTop = ["/itinerario"].includes(window?.location?.pathname) ? 48 : 24;
+          if (container) {
+            // Si hay un contenedor con overflow-auto, usar scrollTo en ese contenedor
+            const containerRect = container.getBoundingClientRect();
+            const targetScrollTop = container.scrollTop + elementRect.top - containerRect.top - previousScrollTop;
+            container.scrollTo({
+              top: targetScrollTop,
+              behavior: 'smooth'
+            });
+          } else {
+            // Si no hay contenedor, usar scrollTo en window
+            const targetScrollTop = window.pageYOffset + elementRect.top - previousScrollTop;
+            window.scrollTo({
+              top: targetScrollTop,
+              behavior: 'smooth'
+            });
+          }
         }
       }, 100);
     }

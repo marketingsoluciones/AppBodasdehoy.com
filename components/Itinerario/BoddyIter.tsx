@@ -45,6 +45,10 @@ export const BoddyIter = () => {
     const [orderAndDirection, setOrderAndDirection] = useState<SelectModeSortType>()
 
     useEffect(() => {
+        console.log(100045, selectTask)
+    }, [selectTask])
+
+    useEffect(() => {
         console.log(orderAndDirection)
     }, [orderAndDirection])
 

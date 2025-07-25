@@ -45,7 +45,7 @@ interface TaskFormValues {
 interface Props extends HTMLAttributes<HTMLDivElement> {
   itinerario: Itinerary;
   task: Task;
-  view?: ViewItinerary;
+  view: ViewItinerary;
   optionsItineraryButtonBox?: OptionsSelect[];
   isSelect?: boolean;
   showModalCompartir?: any;
@@ -525,11 +525,6 @@ export const TaskNew: FC<Props> = memo(({
     }));
   }, []);
 
-  useEffect(() => {
-    console.log(10040, itinerario.title, itinerario.tasks.length)
-    console.log(10041, localTask.spectatorView, task.descripcion, view)
-  }, [view, itinerario])
-
   return (
     view === "schema"
       ? <TaskSchemaView
@@ -577,7 +572,7 @@ export const TaskNew: FC<Props> = memo(({
           optionsItineraryButtonBox={optionsItineraryButtonBox}
           isSelect={isSelect}
         />
-        : view === "cards" ? <TaskFullView
+        : view === "cards" || view === "kanban" ? <TaskFullView
           {...props}
           task={task}
           itinerario={itinerario}
