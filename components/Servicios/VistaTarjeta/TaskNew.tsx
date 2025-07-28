@@ -530,7 +530,6 @@ export const TaskNew: FC<Props> = memo(({
       ? <TaskSchemaView
         {...props}
         task={task}
-        localTask={localTask}
         tempIcon={tempIcon}
         canEdit={canEdit}
         showIconSelector={showIconSelector}
@@ -544,7 +543,6 @@ export const TaskNew: FC<Props> = memo(({
           {...props}
           task={task}
           itinerario={itinerario}
-          localTask={localTask}
           tempIcon={tempIcon}
           canEdit={canEdit}
           showIconSelector={showIconSelector}
@@ -576,7 +574,6 @@ export const TaskNew: FC<Props> = memo(({
           {...props}
           task={task}
           itinerario={itinerario}
-          localTask={localTask}
           tempIcon={tempIcon}
           canEdit={canEdit}
           showIconSelector={showIconSelector}

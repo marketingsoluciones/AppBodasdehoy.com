@@ -20,7 +20,6 @@ import { DescriptionTask } from './DescriptionTask';
 interface TaskFullViewProps {
   task: Task;
   itinerario: Itinerary;
-  localTask: any;
   tempIcon: string;
   canEdit: boolean;
   showIconSelector: boolean;
@@ -61,7 +60,6 @@ interface TaskFullViewProps {
 export const TaskFullView: FC<TaskFullViewProps> = ({
   task,
   itinerario,
-  localTask,
   tempIcon,
   canEdit,
   showIconSelector,
@@ -110,8 +108,8 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
   const [editingDuration, setEditingDuration] = useState(false);
   const [durationInput, setDurationInput] = useState('');
 
-  const currentStatus = TASK_STATUSES.find(s => s.value === localTask.estado) || TASK_STATUSES[0];
-  const currentPriority = TASK_PRIORITIES.find(p => p.value === localTask.prioridad) || TASK_PRIORITIES[1];
+  const currentStatus = TASK_STATUSES.find(s => s.value === task.estado) || TASK_STATUSES[0];
+  const currentPriority = TASK_PRIORITIES.find(p => p.value === task.prioridad) || TASK_PRIORITIES[1];
 
   // Auto-scroll al agregar nuevos comentarios
   useEffect(() => {
@@ -149,7 +147,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               editingField={editingField}
               tempValue={tempValue}
               tempIcon={tempIcon}
-              localTask={localTask}
+              task={task}
             />
             {/* Botones de acción integrados - OCULTOS sin permisos */}
             {canEdit &&
@@ -158,22 +156,22 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                   <div className="relative group">
                     <button
                       onClick={() => {
-                        const newValue = !localTask.spectatorView;
+                        const newValue = !task.spectatorView;
                         handleUpdate('spectatorView', newValue);
                         toast('success', t(newValue ? 'Tarea visible' : 'Tarea oculta'));
                       }}
-                      className={`relative p-1.5 rounded-md transition-all duration-200 ${localTask.spectatorView
+                      className={`relative p-1.5 rounded-md transition-all duration-200 ${task.spectatorView
                         ? 'text-primary bg-primary/10 shadow-sm'
                         : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                         }`}
-                      title={t(localTask.spectatorView ? 'Tarea visible' : 'Tarea oculta')}
+                      title={t(task.spectatorView ? 'Tarea visible' : 'Tarea oculta')}
                     >
-                      {localTask.spectatorView === true ? (
+                      {task.spectatorView === true ? (
                         <Eye className="w-4 h-4 transition-transform duration-200" />
                       ) : (
                         <EyeOff className="w-4 h-4 transition-transform duration-200" />
                       )}
-                      {localTask.spectatorView &&
+                      {task.spectatorView &&
                         <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
@@ -181,7 +179,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                       }
                     </button>
                     <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
-                      {t(localTask.spectatorView ? 'Visible' : 'Oculta')}
+                      {t(task.spectatorView ? 'Visible' : 'Oculta')}
                     </div>
                   </div>
                   {/* Separador visual sutil */}
@@ -227,7 +225,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                           if (option.getIcon && typeof option.getIcon === 'function') {
                             // Para opciones con getIcon dinámico
                             if (option.value === 'status') {
-                              icon = option.getIcon(localTask.spectatorView);
+                              icon = option.getIcon(task.spectatorView);
                             }
                           }
                           // Determinar estado activo y colores según el tipo de acción
@@ -237,7 +235,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
 
                           switch (option.value) {
                             case 'status':
-                              isActive = localTask.spectatorView;
+                              isActive = task.spectatorView;
                               activeColorClass = 'text-primary bg-primary/10';
                               break;
                             case 'flujo':
@@ -428,7 +426,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               setEditingResponsable={setEditingResponsable}
               tempResponsable={tempResponsable}
               setTempResponsable={setTempResponsable}
-              localTask={localTask}
+              task={task}
               handleUpdate={handleUpdate}
             />
             {/* Fechas con duración y hora */}
@@ -455,8 +453,8 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                     onClick={() => {
                       if (canEdit) {
                         // Formatear la fecha correctamente para el input tipo date
-                        if (localTask.fecha) {
-                          const date = new Date(localTask.fecha);
+                        if (task.fecha) {
+                          const date = new Date(task.fecha);
                           const year = date.getFullYear();
                           const month = String(date.getMonth() + 1).padStart(2, '0');
                           const day = String(date.getDate()).padStart(2, '0');
@@ -470,7 +468,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                     }}
                     title={canEdit ? "Haz clic para editar fecha" : "No tienes permisos para editar"}
                   >
-                    {localTask.fecha ? formatDate(localTask.fecha) : t('Sin fecha')}
+                    {task.fecha ? formatDate(task.fecha) : t('Sin fecha')}
                   </span>
                 }
                 {editingField === 'hora'
@@ -479,8 +477,8 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                     value={tempValue || ''}
                     onChange={(e) => setTempValue(e.target.value)}
                     onBlur={() => {
-                      if (localTask.fecha && tempValue) {
-                        const fecha = new Date(localTask.fecha);
+                      if (task.fecha && tempValue) {
+                        const fecha = new Date(task.fecha);
                         const [hours, minutes] = tempValue.split(':');
                         fecha.setHours(parseInt(hours), parseInt(minutes));
                         // Convertir a ISO string o al formato que espere tu backend
@@ -490,8 +488,8 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                     }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
-                        if (localTask.fecha && tempValue) {
-                          const fecha = new Date(localTask.fecha);
+                        if (task.fecha && tempValue) {
+                          const fecha = new Date(task.fecha);
                           const [hours, minutes] = tempValue.split(':');
                           fecha.setHours(parseInt(hours), parseInt(minutes), 0, 0);
                           handleUpdate('fecha', fecha.toISOString());
@@ -504,11 +502,11 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                     className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                     autoFocus
                   />
-                  : <div onClick={() => canEdit ? handleFieldClick('hora', localTask.fecha ? formatTime(localTask.fecha) : '') : ht()}
+                  : <div onClick={() => canEdit ? handleFieldClick('hora', task.fecha ? formatTime(task.fecha) : '') : ht()}
                     title={canEdit ? "Haz clic para editar hora" : "No tienes permisos para editar"} className={`flex items-center space-x-1 ${canEdit ? 'cursor-pointer text-gray-700 hover:text-gray-900' : 'cursor-default text-gray-600'}`}>
                     <Clock className="w-4 h-4" />
                     <span className={`flex items-center space-x-1 text-sm`}>
-                      {localTask.fecha ? formatTime(localTask.fecha) : t('Sin hora')}
+                      {task.fecha ? formatTime(task.fecha) : t('Sin hora')}
                     </span>
                   </div>
                 }
@@ -543,27 +541,27 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                     onClick={() => {
                       if (canEdit) {
                         setEditingDuration(true);
-                        setDurationInput(minutesToReadableFormat(localTask.duracion as number));
+                        setDurationInput(minutesToReadableFormat(task.duracion as number));
                       } else {
                         ht();
                       }
                     }}
                     title={canEdit ? "Haz clic para editar duración" : "No tienes permisos para editar"}
                   >
-                    {minutesToReadableFormat(localTask.duracion as number)}
+                    {minutesToReadableFormat(task.duracion as number)}
                   </span>
                 }
               </div>
             </div>
             {/* NUEVA SECCIÓN: Indicadores de hora inicio y fin (SOLO VISUALES) */}
-            {/*               {(localTask.fecha && localTask.duracion) && 
+            {/*               {(task.fecha && task.duracion) && 
                 <div className="flex items-center space-x-6 bg-gray-50 rounded-lg p-3">
                   <div className="flex items-center space-x-2">
                     <PlayCircle className="w-5 h-5 text-green-600" />
                     <div>
                       <span className="text-xs text-gray-500 block">{t('Inicio')}</span>
                       <span className="text-sm font-medium text-gray-900">
-                        {formatTime(localTask.fecha)}
+                        {formatTime(task.fecha)}
                       </span>
                     </div>
                   </div>
@@ -573,7 +571,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                     <div>
                       <span className="text-xs text-gray-500 block">{t('Final')}</span>
                       <span className="text-sm font-medium text-gray-900">
-                        {calculateEndTime(localTask.fecha, localTask.duracion as number)}
+                        {calculateEndTime(task.fecha, task.duracion as number)}
                       </span>
                     </div>
                   </div>
@@ -582,7 +580,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
             {/* Etiquetas */}
             <TagsTask
               canEdit={canEdit}
-              localTask={localTask}
+              task={task}
               handleRemoveTag={handleRemoveTag}
               handleAddTag={handleAddTag}
               handleFieldCancel={handleFieldCancel}
@@ -594,7 +592,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
             {/* Descripción larga con Editor */}
             <DescriptionTask
               canEdit={canEdit}
-              localTask={localTask}
+              task={task}
               editingDescription={editingDescription}
               setEditingDescription={setEditingDescription}
               customDescription={customDescription}
@@ -604,7 +602,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
             />
             {/* Adjuntos mejorados */}
             <NewAttachmentsEditor
-              attachments={localTask.attachments || []}
+              attachments={task.attachments || []}
               onUpdate={(files) => handleUpdate('attachments', files)}
               taskId={task?._id}
               eventId={event?._id}

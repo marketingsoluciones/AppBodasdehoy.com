@@ -14,10 +14,10 @@ interface Props {
   setEditingResponsable: (editing: boolean) => void;
   tempResponsable: string[];
   setTempResponsable: (value: string[]) => void;
-  localTask: any;
+  task: any;
   handleUpdate: (field: string, value: any) => Promise<void>;
 }
-export const AssignedTask: FC<Props> = ({ canEdit, editingResponsable, setEditingResponsable, tempResponsable, setTempResponsable, localTask, handleUpdate }) => {
+export const AssignedTask: FC<Props> = ({ canEdit, editingResponsable, setEditingResponsable, tempResponsable, setTempResponsable, task: localTask, handleUpdate }) => {
   const { t } = useTranslation();
   const { user } = AuthContextProvider();
   const { event } = EventContextProvider();

@@ -18,10 +18,10 @@ interface Props {
   editingField: string | null;
   tempValue: string;
   tempIcon: string;
-  localTask: any;
+  task: any;
 }
 
-export const TitleTask: FC<Props> = ({ canEdit, showIconSelector, setShowIconSelector, handleIconChange, ht, setTempValue, handleFieldSave, handleKeyPress, handleFieldClick, editingField, tempValue, tempIcon, localTask }) => {
+export const TitleTask: FC<Props> = ({ canEdit, showIconSelector, setShowIconSelector, handleIconChange, ht, setTempValue, handleFieldSave, handleKeyPress, handleFieldClick, editingField, tempValue, tempIcon, task: localTask }) => {
   const { t } = useTranslation();
   return (
     <div className="flex items-center space-x-4 flex-1">

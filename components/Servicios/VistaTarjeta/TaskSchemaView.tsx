@@ -9,7 +9,6 @@ import { HashtagMatcher, UrlMatcher } from "interweave-autolink";
 
 interface TaskSchemaViewProps {
   task: Task;
-  localTask: any;
   tempIcon: string;
   canEdit: boolean;
   showIconSelector: boolean;
@@ -20,7 +19,6 @@ interface TaskSchemaViewProps {
 
 export const TaskSchemaView: FC<TaskSchemaViewProps> = ({
   task,
-  localTask,
   tempIcon,
   canEdit,
   showIconSelector,
@@ -44,9 +42,8 @@ export const TaskSchemaView: FC<TaskSchemaViewProps> = ({
           ) : (
             <button
               onClick={() => canEdit ? setShowIconSelector(true) : ht()}
-              className={`w-full h-full flex items-center justify-center rounded-full transition-colors ${
-                canEdit ? 'hover:bg-gray-100 cursor-pointer' : 'opacity-60 cursor-not-allowed'
-              }`}
+              className={`w-full h-full flex items-center justify-center rounded-full transition-colors ${canEdit ? 'hover:bg-gray-100 cursor-pointer' : 'opacity-60 cursor-not-allowed'
+                }`}
               title={canEdit ? "Cambiar ícono" : "No tienes permisos para editar"}
             >
               <Formik
@@ -68,7 +65,7 @@ export const TaskSchemaView: FC<TaskSchemaViewProps> = ({
                             setFieldValue('icon', value);
                             handleIconChange(value);
                           }}
-                          data={localTask}
+                          data={task}
                         />
                       )}
                     </Field>
@@ -81,33 +78,33 @@ export const TaskSchemaView: FC<TaskSchemaViewProps> = ({
         <div className="flex-1">
           <div className="inline-flex flex-col justify-start items-start">
             <span className="text-xl md:text-2xl text-gray-900">
-              {localTask.fecha ? formatTime(localTask.fecha) : '00:00'}
+              {task.fecha ? formatTime(task.fecha) : '00:00'}
             </span>
             <div className="w-full flex justify-end items-end text-xs -mt-1">
               <span>{t("duration")}</span>
               <span className="text-[12px] md:text-[14px] lg:text-[16px] text-center bg-transparent px-1">
-                {localTask.duracion}
+                {task.duracion}
               </span>
               <span>min</span>
             </div>
           </div>
           <div className="flex items-start space-x-2 font-title text-primary text-2xl">
             <div className="min-w-2 h-2 bg-primary rounded-full translate-y-2.5" />
-            <strong className="leading-[1] mt-1">{localTask.descripcion}</strong>
+            <strong className="leading-[1] mt-1">{task.descripcion}</strong>
           </div>
           <div className="grid grid-flow-dense w-full space-x-2 text-[12px] mt-2">
             <p>
-              {t("responsible")}: {localTask.responsable.join(", ")}
+              {t("responsible")}: {task.responsable.join(", ")}
             </p>
           </div>
         </div>
         <div className="bg-white w-3 h-3 rounded-full border-[1px] border-primary border-dotted absolute right-0 top-0 translate-x-1/2 -translate-y-1/2" />
       </div>
       <div className="flex-1 flex flex-col px-4 md:px-0 border-primary border-dotted w-[10%] md:w-[50%] border-t-[1px]">
-        {!!localTask.tips && (
+        {!!task.tips && (
           <Interweave
             className="md:text-xs text-sm text-justify transition-all m-1 p-1 break-words"
-            content={localTask.tips}
+            content={task.tips}
             matchers={[new UrlMatcher('url'), new HashtagMatcher('hashtag')]}
           />
         )}
