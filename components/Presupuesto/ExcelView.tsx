@@ -4,7 +4,6 @@ import { ModalInterface } from "../../utils/Interfaces";
 import { handleDelete } from '../TablesComponents/tableBudgetV8.handles';
 import { SimpleDeleteConfirmation } from '../Utils/SimpleDeleteConfirmation';
 import { TableBudgetV2 } from './PresupuestoV2/TableBudgetV2 copy';
-import WeddingFinanceManager from './TableroPresupuesto/WeddingFinanceManager';
 
 
 interface Categoria {
