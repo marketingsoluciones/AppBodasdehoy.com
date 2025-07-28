@@ -306,7 +306,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
         <div 
           className={`
             flex-1 w-full p-3 space-y-3 overflow-y-auto
-            ${isCompact ? 'max-h-72' : 'max-h-96'}
+            ${isCompact ? 'max-h-full' : 'max-h-full'}
             ${isList ? 'max-h-full' : ''}
             ${column.tasks.length === 0 ? 'min-h-[200px]' : 'min-h-[100px]'}
           `}
