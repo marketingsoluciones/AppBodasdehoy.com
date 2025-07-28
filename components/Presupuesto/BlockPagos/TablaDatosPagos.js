@@ -21,6 +21,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate, showSoporte, setShowSo
     const categorias = event?.presupuesto_objeto?.categorias_array;
     const [PagosOrFormAdd, setShowPagos] = useState(true)
     const [PagoID, setPagoID] = useState("")
+    const [GastoID, setGastoID] = useState("")
     const [isAllowed, ht] = useAllowed()
 
     const Columna = useMemo(
@@ -151,6 +152,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate, showSoporte, setShowSo
                             } finally {
                                 setPagoID(props?.row?.original?._id)
                                 setGetId(props?.row?.original?.idGasto)
+                                setGastoID(props?.row?.original?.idGasto)
                             }
                         }
                         const handleDelete = async () => {
@@ -456,6 +458,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate, showSoporte, setShowSo
     }, []);
 
     const dataFilter = data.filter((elemnt) => elemnt.estado == estado)
+    console.log("cate main", data)
 
     return (
         <>
@@ -464,7 +467,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate, showSoporte, setShowSo
                 : (
                     <div className="bg-white  p-6">
                         <p onClick={() => setShowPagos(!PagosOrFormAdd)} className="absolute font-display text-xl transform transition top-5 right-5 text-gray-500 hover:scale-125 cursor-pointer">X</p>
-                        <FormEditarPago getId={getId} categorias={cate} ListaPagos={data} IDPagoAModificar={PagoID} set={act => setShowPagos(act)} state={PagosOrFormAdd} />
+                        <FormEditarPago getId={getId} categorias={cate} ListaPagos={data} IDPagoAModificar={PagoID} IDGastoAModificar={GastoID} set={act => setShowPagos(act)} state={PagosOrFormAdd} />
                     </div>
                 )
             }
