@@ -5,9 +5,10 @@ import { useRouter } from "next/router"
 interface props {
   user: detalle_compartidos_array
   disabledTooltip?: boolean
+  size?: "xs" | "sm" | "md" | "lg" | "xl"
 }
 
-export const ImageAvatar: FC<props> = ({ user, disabledTooltip }) => {
+export const ImageAvatar: FC<props> = ({ user, disabledTooltip, size = "lg" }) => {
   const [showName, setShowName] = useState<boolean>()
   const router = useRouter()
   const h = (str: string): string => {
@@ -35,7 +36,7 @@ export const ImageAvatar: FC<props> = ({ user, disabledTooltip }) => {
         :
         <div
           style={{ backgroundColor: h(user?.uid?.slice(-11)) }}
-          className={`flex items-center justify-center text-white uppercase w-full h-full rounded-full text-[14px]*`}
+          className={`flex items-center justify-center text-white uppercase w-full h-full rounded-full ${size === "xs" ? "text-[10px]" : size === "sm" ? "text-[12px]" : size === "md" ? "text-[14px]" : size === "lg" ? "text-[16px]" : "text-[18px]"}`}
         >
           {
             user?.displayName

@@ -94,7 +94,7 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task: localTask, editingDe
                 </button>
               </div>
             </div>}
-          <div className={`w-full h-[180px] overflow-y-auto border border-gray-200 rounded-lg p-4 ${canEdit ? 'cursor-pointer hover:border-gray-300' : 'cursor-default opacity-60'}`}
+          <div className={`w-full h-[158px] overflow-y-auto border border-gray-200 rounded-lg p-4 ${canEdit ? 'cursor-pointer hover:border-gray-300' : 'cursor-default opacity-60'}`}
             onDoubleClick={() => {
               if (canEdit) {
                 setCustomDescription(localTask.tips || '');

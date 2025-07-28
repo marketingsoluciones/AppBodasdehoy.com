@@ -1,21 +1,22 @@
-import React, { FC, useState, useRef, useEffect } from 'react';
+import React, { FC, useState, useEffect } from 'react';
 import { Task, Itinerary, OptionsSelect, Comment } from '../../../utils/Interfaces';
 import { useTranslation } from 'react-i18next';
 import { EventContextProvider } from "../../../context/EventContext";
-import { AuthContextProvider } from "../../../context";
 import { InputComments } from "../Utils/InputComments"
 import { ListComments } from "../Utils/ListComments"
 import { NewAttachmentsEditor } from "../VistaTabla/NewAttachmentsEditor";
-import { TASK_STATUSES, TASK_PRIORITIES } from '../VistaTabla/NewTypes';
-import { formatTime, formatDate, minutesToReadableFormat, readableFormatToMinutes } from './TaskNewUtils';
-import ClickAwayListener from "react-click-away-listener";
-import { useToast } from "../../../hooks/useToast";
 import { TempPastedAndDropFile } from "../../Itinerario/MicroComponente/ItineraryPanel";
-import { MessageSquare, Calendar, Clock, Flag, ChevronDown, Copy, Link, Trash2, Bell, Eye, EyeOff } from 'lucide-react';
+import { MessageSquare, Calendar, Trash2, Bell, } from 'lucide-react';
 import { TitleTask } from './TitleTask';
 import { AssignedTask } from './AssignedTask';
 import { TagsTask } from './TagsTask';
 import { DescriptionTask } from './DescriptionTask';
+import { DateTask } from './DateTask';
+import { TimeTask } from './TimeTask';
+import { DurationTask } from './DurationTask';
+import { IntegrateButtonsBox } from './IntegrateButtonsBox';
+import { ItineraryButtonBox } from './ItineraryButtonBox';
+import { StatusPriorityTask } from './StatusPriorityTask';
 
 interface TaskFullViewProps {
   task: Task;
@@ -98,18 +99,15 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
 }) => {
   const { t } = useTranslation();
   const { event } = EventContextProvider();
-  const { user } = AuthContextProvider();
-  const toast = useToast();
   const [previousCountComments, setPreviousCountComments] = useState(0);
 
   // Estados locales para la vista completa
-  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
-  const [showPriorityDropdown, setShowPriorityDropdown] = useState(false);
   const [editingDuration, setEditingDuration] = useState(false);
   const [durationInput, setDurationInput] = useState('');
 
-  const currentStatus = TASK_STATUSES.find(s => s.value === task.estado) || TASK_STATUSES[0];
-  const currentPriority = TASK_PRIORITIES.find(p => p.value === task.prioridad) || TASK_PRIORITIES[1];
+  useEffect(() => {
+    console.log('tempValue', tempValue);
+  }, [tempValue])
 
   // Auto-scroll al agregar nuevos comentarios
   useEffect(() => {
@@ -129,11 +127,11 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
 
   return (
     <div {...props} className="w-full bg-white rounded-lg shadow-lg">
-      <div id="task-container" className={`flex h-[553px] rounded-xl outline ${props.isSelect ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200"}`}>
+      <div id="task-container" className={`flex h-[553px] rounded-xl outline ${props?.isSelect ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200"}`}>
         {/* Panel principal */}
-        <div id='container-left' className="flex-1 flex flex-col h-full overflow-auto">
+        <div id='container-left' className="flex-1 flex flex-col h-full px-2">
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-0.5 border-b border-gray-200">
+          <div className="w-full flex items-center justify-between py-0.5 border-b border-gray-200">
             <TitleTask
               canEdit={canEdit}
               showIconSelector={showIconSelector}
@@ -149,276 +147,34 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               tempIcon={tempIcon}
               task={task}
             />
-            {/* Botones de acción integrados - OCULTOS sin permisos */}
             {canEdit &&
               <div className="flex items-center">
-                <div className="flex items-center bg-gray-50 rounded-lg p-0.5 mr-2">
-                  <div className="relative group">
-                    <button
-                      onClick={() => {
-                        const newValue = !task.spectatorView;
-                        handleUpdate('spectatorView', newValue);
-                        toast('success', t(newValue ? 'Tarea visible' : 'Tarea oculta'));
-                      }}
-                      className={`relative p-1.5 rounded-md transition-all duration-200 ${task.spectatorView
-                        ? 'text-primary bg-primary/10 shadow-sm'
-                        : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
-                        }`}
-                      title={t(task.spectatorView ? 'Tarea visible' : 'Tarea oculta')}
-                    >
-                      {task.spectatorView === true ? (
-                        <Eye className="w-4 h-4 transition-transform duration-200" />
-                      ) : (
-                        <EyeOff className="w-4 h-4 transition-transform duration-200" />
-                      )}
-                      {task.spectatorView &&
-                        <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                        </span>
-                      }
-                    </button>
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
-                      {t(task.spectatorView ? 'Visible' : 'Oculta')}
-                    </div>
-                  </div>
-                  {/* Separador visual sutil */}
-                  <div className="w-px h-4 bg-gray-300 mx-1 opacity-50"></div>
-                  {/* Duplicar - Acción rápida con hover primary */}
-                  <div className="relative group">
-                    <button
-                      onClick={handleDuplicate}
-                      className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-md transition-all duration-200"
-                      title={t('Duplicar tarea')}
-                    >
-                      <Copy className="w-4 h-4" />
-                    </button>
-                    {/* Tooltip informativo */}
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
-                      {t('Duplicar')}
-                    </div>
-                  </div>
-                  {/* Compartir enlace - Con feedback visual al copiar */}
-                  <div className="relative group">
-                    <button
-                      onClick={() => handleCopyLink(task)}
-                      className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-md transition-all duration-200"
-                      title={t('Copiar enlace')}
-                    >
-                      <Link className="w-4 h-4" />
-                    </button>
-                    {/* Tooltip informativo */}
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
-                      {t('Compartir')}
-                    </div>
-                  </div>
-                </div>
+                {/* Botones de acción integrados - OCULTOS sin permisos */}
+                <IntegrateButtonsBox
+                  task={task}
+                  handleUpdate={handleUpdate}
+                  handleDuplicate={handleDuplicate}
+                  handleCopyLink={handleCopyLink}
+                />
                 {/* Botones de ItineraryButtonBox - OCULTOS sin permisos */}
                 {(optionsItineraryButtonBox && optionsItineraryButtonBox.length > 0) &&
-                  <>
-                    <div className="flex items-center bg-gray-50 rounded-lg p-0.5 mr-2">
-                      {optionsItineraryButtonBox
-                        .filter(option => option.value !== 'estatus' && option.value !== 'status')
-                        .map((option, idx) => {
-                          // Obtener el icono correcto basado en el estado
-                          let icon = option.icon;
-                          if (option.getIcon && typeof option.getIcon === 'function') {
-                            // Para opciones con getIcon dinámico
-                            if (option.value === 'status') {
-                              icon = option.getIcon(task.spectatorView);
-                            }
-                          }
-                          // Determinar estado activo y colores según el tipo de acción
-                          let isActive = false;
-                          let activeColorClass = '';
-                          let hoverColorClass = '';
-
-                          switch (option.value) {
-                            case 'status':
-                              isActive = task.spectatorView;
-                              activeColorClass = 'text-primary bg-primary/10';
-                              break;
-                            case 'flujo':
-                              // Lógica personalizada para flujo de trabajo
-                              isActive = false;
-                              activeColorClass = 'text-purple-500 bg-purple-500/10';
-                              hoverColorClass = 'hover:text-purple-600 hover:bg-purple-100';
-                              break;
-                            case 'share':
-                              // Estado para compartir
-                              isActive = false;
-                              activeColorClass = 'text-blue-500 bg-blue-500/10';
-                              hoverColorClass = 'hover:text-blue-600 hover:bg-blue-100';
-                              break;
-                            case 'delete':
-                              // Delete con hover rojo destructivo
-                              isActive = false;
-                              activeColorClass = '';
-                              hoverColorClass = 'hover:text-[#ef4444] hover:bg-[#ef4444]/10';
-                              break;
-                            default:
-                              hoverColorClass = 'hover:text-gray-600 hover:bg-gray-100';
-                          }
-                          return (
-                            <div key={idx} className="relative group">
-                              <button
-                                onClick={() => {
-                                  if (typeof option.onClick === 'function') {
-                                    option.onClick(task, itinerario);
-                                  }
-                                }}
-                                className={`relative p-1.5 rounded-md transition-all duration-200 ${isActive
-                                  ? `${activeColorClass} shadow-sm`
-                                  : `text-gray-400 ${hoverColorClass}`
-                                  }`}
-                                title={t(option.title || option.value || '')}
-                                disabled={option.idDisabled}
-                              >
-                                <span className="w-4 h-4 flex items-center justify-center"
-                                  style={{ transform: 'scale(0.8)' }}>
-                                  {icon}
-                                </span>
-                                {/* Indicador de estado con colores específicos por tipo */}
-                                {isActive &&
-                                  <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
-                                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${option.value === 'status' ? 'bg-primary' :
-                                      option.value === 'flujo' ? 'bg-purple-500' :
-                                        'bg-blue-500'
-                                      } opacity-75`}></span>
-                                    <span className={`relative inline-flex rounded-full h-2 w-2 ${option.value === 'status' ? 'bg-primary' :
-                                      option.value === 'flujo' ? 'bg-purple-500' :
-                                        'bg-blue-500'
-                                      }`}></span>
-                                  </span>
-                                }
-                              </button>
-                              {/* Tooltip informativo dinámico */}
-                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
-                                {t(option.title || option.value || '')}
-                              </div>
-                            </div>
-                          );
-                        })}
-                    </div>
-                  </>
+                  <ItineraryButtonBox
+                    optionsItineraryButtonBox={optionsItineraryButtonBox}
+                    task={task}
+                    itinerario={itinerario}
+                  />
                 }
-                {/* Menú de más opciones - OCULTO sin permisos */}
-                {/*                 <div className="relative">
-                  <button
-                    onClick={() => setShowMoreOptions(!showMoreOptions)}
-                    className={`p-1.5 rounded-lg transition-all duration-200 ${showMoreOptions ? 'bg-gray-100 text-gray-700' : 'hover:bg-gray-100 text-gray-500'
-                      }`}
-                  >
-                    <MoreHorizontal className="w-4 h-4" />
-                  </button>
-                  {showMoreOptions && (
-                    <ClickAwayListener onClickAway={() => setShowMoreOptions(false)}>
-                      <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
-                        <div className="py-1">
-                          <button
-                            className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                          >
-                            <Archive className="w-4 h-4 mr-3" />
-                            {t('Archivar')}
-                          </button>
-                          <button
-                            className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                          >
-                            <Bell className="w-4 h-4 mr-3" />
-                            {t('Notificaciones')}
-                          </button> 
-                          <div className="border-t border-gray-100 my-1"></div>
-                          <button
-                            className="flex items-center w-full px-4 py-2.5 text-sm text-[#ef4444] hover:bg-[#ef4444]/10 transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4 mr-3" />
-                            {t('Eliminar')}
-                          </button>
-                        </div>
-                      </div>
-                    </ClickAwayListener>
-                  )}
-                </div> */}
-              </div>
-            }
+              </div>}
           </div>
           {/* Contenido principal */}
           <div className="flex-1 px-6 py-2 space-y-2">
             {/* Fila de Estado y Prioridad */}
-            <div className="flex items-center space-x-4">
-              {/* Estado */}
-              <div className="flex items-center space-x-2">
-                <span className="text-xs text-gray-600">{t('Estado')}</span>
-                <div className="relative">
-                  <button
-                    onClick={() => canEdit ? setShowStatusDropdown(!showStatusDropdown) : ht()}
-                    className={`px-3 py-1 rounded text-white text-sm flex items-center space-x-1 ${currentStatus.color} ${canEdit ? 'hover:opacity-80 cursor-pointer' : 'opacity-70 cursor-not-allowed'
-                      }`}
-                    title={canEdit ? "Cambiar estado" : "No tienes permisos para editar"}
-                  >
-                    <span>{currentStatus.label}</span>
-                    {canEdit && <ChevronDown className="w-3 h-3" />}
-                  </button>
-                  {(showStatusDropdown && canEdit) &&
-                    <ClickAwayListener onClickAway={() => setShowStatusDropdown(false)}>
-                      <div className="absolute mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                        {TASK_STATUSES.map(status => (
-                          <button
-                            key={status.value}
-                            onClick={() => {
-                              handleUpdate('estado', status.value);
-                              setShowStatusDropdown(false);
-                            }}
-                            className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100"
-                          >
-                            <div className={`w-3 h-3 rounded-full ${status.color} mr-3`}></div>
-                            <span>{status.label}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </ClickAwayListener>
-                  }
-                </div>
-              </div>
-              {/* Prioridad */}
-              <div className="flex items-center space-x-2">
-                <span className="text-xs text-gray-600">{t('Prioridad')}</span>
-                <div className="relative">
-                  <button
-                    onClick={() => canEdit ? setShowPriorityDropdown(!showPriorityDropdown) : ht()}
-                    className={`px-3 py-1 rounded text-white text-sm flex items-center space-x-1 ${currentPriority.color} ${canEdit ? 'hover:opacity-80 cursor-pointer' : 'opacity-70 cursor-not-allowed'
-                      }`}
-                    title={canEdit ? "Cambiar prioridad" : "No tienes permisos para editar"}
-                  >
-                    <Flag className="w-3 h-3" />
-                    <span>{currentPriority.label}</span>
-                    {canEdit && <ChevronDown className="w-3 h-3" />}
-                  </button>
-                  {(showPriorityDropdown && canEdit) &&
-                    <ClickAwayListener onClickAway={() => setShowPriorityDropdown(false)}>
-                      <div className="absolute mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                        {TASK_PRIORITIES.map(priority => (
-                          <button
-                            key={priority.value}
-                            onClick={() => {
-                              handleUpdate('prioridad', priority.value);
-                              setShowPriorityDropdown(false);
-                            }}
-                            className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100"
-                          >
-                            <Flag className={`w-4 h-4 mr-3 ${priority.value === 'alta' ? 'text-[#ef4444]' :
-                              priority.value === 'media' ? 'text-yellow-500' :
-                                'text-gray-400'
-                              }`} />
-                            <span>{priority.label}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </ClickAwayListener>
-                  }
-                </div>
-              </div>
-            </div>
+            <StatusPriorityTask
+              task={task}
+              canEdit={canEdit}
+              handleUpdate={handleUpdate}
+              ht={ht}
+            />
             {/* Asignados con NewResponsableSelector */}
             <AssignedTask
               canEdit={canEdit}
@@ -435,149 +191,43 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                 <Calendar className="w-4 h-4 text-gray-500" />
                 <span className="text-xs text-gray-600">{t('Fecha y hora')}</span>
               </div>
-              <div className="flex items-center space-x-4">
-                {editingField === 'fecha'
-                  ? <div className="flex items-center space-x-2">
-                    <input
-                      type="date"
-                      value={tempValue ? tempValue : ''}
-                      onChange={(e) => setTempValue(e.target.value)}
-                      onBlur={() => handleFieldSave('fecha')}
-                      onKeyDown={(e) => handleKeyPress(e, 'fecha')}
-                      className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                      autoFocus
-                    />
-                  </div>
-                  : <span
-                    className={`text-sm ${canEdit ? 'cursor-pointer text-gray-700 hover:text-gray-900' : 'cursor-default text-gray-600'}`}
-                    onClick={() => {
-                      if (canEdit) {
-                        // Formatear la fecha correctamente para el input tipo date
-                        if (task.fecha) {
-                          const date = new Date(task.fecha);
-                          const year = date.getFullYear();
-                          const month = String(date.getMonth() + 1).padStart(2, '0');
-                          const day = String(date.getDate()).padStart(2, '0');
-                          handleFieldClick('fecha', `${year}-${month}-${day}`);
-                        } else {
-                          handleFieldClick('fecha', '');
-                        }
-                      } else {
-                        ht();
-                      }
-                    }}
-                    title={canEdit ? "Haz clic para editar fecha" : "No tienes permisos para editar"}
-                  >
-                    {task.fecha ? formatDate(task.fecha) : t('Sin fecha')}
-                  </span>
-                }
-                {editingField === 'hora'
-                  ? <input
-                    type="time"
-                    value={tempValue || ''}
-                    onChange={(e) => setTempValue(e.target.value)}
-                    onBlur={() => {
-                      if (task.fecha && tempValue) {
-                        const fecha = new Date(task.fecha);
-                        const [hours, minutes] = tempValue.split(':');
-                        fecha.setHours(parseInt(hours), parseInt(minutes));
-                        // Convertir a ISO string o al formato que espere tu backend
-                        handleUpdate('fecha', fecha.toISOString());
-                      }
-                      setEditingField(null);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        if (task.fecha && tempValue) {
-                          const fecha = new Date(task.fecha);
-                          const [hours, minutes] = tempValue.split(':');
-                          fecha.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-                          handleUpdate('fecha', fecha.toISOString());
-                          setEditingField(null);
-                        }
-                      } else {
-                        handleKeyPress(e, 'hora');
-                      }
-                    }}
-                    className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                    autoFocus
-                  />
-                  : <div onClick={() => canEdit ? handleFieldClick('hora', task.fecha ? formatTime(task.fecha) : '') : ht()}
-                    title={canEdit ? "Haz clic para editar hora" : "No tienes permisos para editar"} className={`flex items-center space-x-1 ${canEdit ? 'cursor-pointer text-gray-700 hover:text-gray-900' : 'cursor-default text-gray-600'}`}>
-                    <Clock className="w-4 h-4" />
-                    <span className={`flex items-center space-x-1 text-sm`}>
-                      {task.fecha ? formatTime(task.fecha) : t('Sin hora')}
-                    </span>
-                  </div>
-                }
+              <div className="h-5 flex items-center space-x-4">
+                <DateTask
+                  editingField={editingField}
+                  tempValue={tempValue}
+                  setTempValue={setTempValue}
+                  handleFieldSave={handleFieldSave}
+                  handleKeyPress={handleKeyPress}
+                  canEdit={canEdit}
+                  task={task}
+                  handleFieldClick={handleFieldClick}
+                  ht={ht}
+                />
+                <TimeTask
+                  editingField={editingField}
+                  tempValue={tempValue}
+                  setTempValue={setTempValue}
+                  handleUpdate={handleUpdate}
+                  handleKeyPress={handleKeyPress}
+                  canEdit={canEdit}
+                  task={task}
+                  handleFieldClick={handleFieldClick}
+                  ht={ht}
+                  setEditingField={setEditingField}
+                />
                 {/* Duración mejorada con conversor */}
-                {editingDuration
-                  ? <div className="flex items-center space-x-1">
-                    <input
-                      type="text"
-                      value={durationInput}
-                      onChange={(e) => setDurationInput(e.target.value)}
-                      onBlur={() => {
-                        const minutes = readableFormatToMinutes(durationInput);
-                        handleUpdate('duracion', minutes);
-                        setEditingDuration(false);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          const minutes = readableFormatToMinutes(durationInput);
-                          handleUpdate('duracion', minutes);
-                          setEditingDuration(false);
-                        } else if (e.key === 'Escape') {
-                          setEditingDuration(false);
-                        }
-                      }}
-                      placeholder="Ej: 1h 30min"
-                      className="w-24 px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                      autoFocus
-                    />
-                  </div>
-                  : <span
-                    className={`text-sm ${canEdit ? 'cursor-pointer text-gray-700 hover:text-gray-900' : 'cursor-default text-gray-500'}`}
-                    onClick={() => {
-                      if (canEdit) {
-                        setEditingDuration(true);
-                        setDurationInput(minutesToReadableFormat(task.duracion as number));
-                      } else {
-                        ht();
-                      }
-                    }}
-                    title={canEdit ? "Haz clic para editar duración" : "No tienes permisos para editar"}
-                  >
-                    {minutesToReadableFormat(task.duracion as number)}
-                  </span>
-                }
+                <DurationTask
+                  editingDuration={editingDuration}
+                  durationInput={durationInput}
+                  setDurationInput={setDurationInput}
+                  handleUpdate={handleUpdate}
+                  setEditingDuration={setEditingDuration}
+                  ht={ht}
+                  canEdit={canEdit}
+                  task={task}
+                />
               </div>
             </div>
-            {/* NUEVA SECCIÓN: Indicadores de hora inicio y fin (SOLO VISUALES) */}
-            {/*               {(task.fecha && task.duracion) && 
-                <div className="flex items-center space-x-6 bg-gray-50 rounded-lg p-3">
-                  <div className="flex items-center space-x-2">
-                    <PlayCircle className="w-5 h-5 text-green-600" />
-                    <div>
-                      <span className="text-xs text-gray-500 block">{t('Inicio')}</span>
-                      <span className="text-sm font-medium text-gray-900">
-                        {formatTime(task.fecha)}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="w-px h-8 bg-gray-300"></div>
-                  <div className="flex items-center space-x-2">
-                    <StopCircle className="w-5 h-5 text-red-600" />
-                    <div>
-                      <span className="text-xs text-gray-500 block">{t('Final')}</span>
-                      <span className="text-sm font-medium text-gray-900">
-                        {calculateEndTime(task.fecha, task.duracion as number)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              } */}
-            {/* Etiquetas */}
             <TagsTask
               canEdit={canEdit}
               task={task}
@@ -588,7 +238,6 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               editingField={editingField}
             />
             {/* Sección de Detalles */}
-
             {/* Descripción larga con Editor */}
             <DescriptionTask
               canEdit={canEdit}
@@ -609,7 +258,6 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               itinerarioId={itinerario?._id}
               readOnly={!canEdit}
             />
-
           </div>
         </div>
         {/* Panel lateral - Chat/Comentarios */}
@@ -623,11 +271,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               </div>
             </div>
           </div>
-
-          <div
-            id="comments-container"
-            className="flex-1 overflow-y-auto min-h-0"
-          >
+          <div id="comments-container" className="flex-1 overflow-y-auto min-h-0">
             {comments.length === 0
               ? <div className="h-full flex items-center justify-center">
                 <div className="text-center">
@@ -663,7 +307,6 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               </div>
             }
           </div>
-
           <div className="border-t border-gray-200 bg-white flex-shrink-0">
             <InputComments
               itinerario={itinerario}

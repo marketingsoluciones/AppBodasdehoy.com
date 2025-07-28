@@ -4,6 +4,7 @@ import { NewSelectIcon } from "../VistaTabla/NewSelectIcon";
 import { Field, Form, Formik } from "formik";
 import { useTranslation } from "react-i18next";
 import { SelectIcon } from "../Utils/SelectIcon";
+import { Task } from "../../../utils/Interfaces";
 
 interface Props {
   canEdit: boolean;
@@ -18,13 +19,13 @@ interface Props {
   editingField: string | null;
   tempValue: string;
   tempIcon: string;
-  task: any;
+  task: Task;
 }
 
-export const TitleTask: FC<Props> = ({ canEdit, showIconSelector, setShowIconSelector, handleIconChange, ht, setTempValue, handleFieldSave, handleKeyPress, handleFieldClick, editingField, tempValue, tempIcon, task: localTask }) => {
+export const TitleTask: FC<Props> = ({ canEdit, showIconSelector, setShowIconSelector, handleIconChange, ht, setTempValue, handleFieldSave, handleKeyPress, handleFieldClick, editingField, tempValue, tempIcon, task }) => {
   const { t } = useTranslation();
   return (
-    <div className="flex items-center space-x-4 flex-1">
+    <div className="flex items-center space-x-2 flex-1">
       <PermissionWrapper hasPermission={canEdit}>
         <div className="flex items-center justify-center">
           {showIconSelector
@@ -58,7 +59,7 @@ export const TitleTask: FC<Props> = ({ canEdit, showIconSelector, setShowIconSel
                             setFieldValue('icon', value);
                             handleIconChange(value);
                           }}
-                          data={localTask}
+                          data={task}
                         />
                       )}
                     </Field>
@@ -69,25 +70,33 @@ export const TitleTask: FC<Props> = ({ canEdit, showIconSelector, setShowIconSel
           }
         </div>
       </PermissionWrapper>
-      {editingField === 'descripcion'
-        ? <input
-          type="text"
-          value={tempValue}
-          onChange={(e) => setTempValue(e.target.value)}
-          onBlur={() => handleFieldSave('descripcion')}
-          onKeyDown={(e) => handleKeyPress(e, 'descripcion')}
-          className="text-2xl font-semibold px-2 py-1 border-b-2 border-primary focus:outline-none flex-1"
-          autoFocus
-        />
-        : <div
-          className={`text-xl font-semibold flex-1 ${canEdit ? 'cursor-pointer hover:text-gray-700' : 'cursor-default opacity-80'
-            }`}
-          onClick={() => canEdit ? handleFieldClick('descripcion', localTask.descripcion) : ht()}
-          title={canEdit ? "Haz clic para editar" : "No tienes permisos para editar"}
-        >
-          {localTask.descripcion || t('Sin título')}
-        </div>
-      }
+      <div className="flex-1 h-10 relative flex items-center">
+        {editingField === 'descripcion'
+          ? <textarea
+            id="descripcion"
+            value={tempValue}
+            onChange={(e) => setTempValue(e.target.value)}
+            onBlur={() => handleFieldSave('descripcion')}
+            onKeyDown={(e) => handleKeyPress(e, 'descripcion')}
+            onPaste={(e) => {
+              e.preventDefault();
+              const pastedText = e.clipboardData.getData('text/plain');
+              const cleanText = pastedText.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ');
+              setTempValue(cleanText);
+            }}
+            className="absolute z-10 w-full h-24 text-[17px] font-semibold font-display text-gray-500 border-[1px] border-primary focus:border-gray-400 py-1 px-2 rounded-xl focus:ring-0 focus:outline-none transition"
+            autoFocus
+          />
+          : <div
+            className={`text-[17px] font-semibold flex-1 leading-[1.1] line-clamp-2 text-gray-700 ${canEdit ? 'cursor-pointer hover:text-gray-900' : 'cursor-default opacity-80'
+              }`}
+            onClick={() => canEdit ? handleFieldClick('descripcion', task.descripcion) : ht()}
+            title={canEdit ? "Haz clic para editar" : "No tienes permisos para editar"}
+          >
+            {task.descripcion || t('Sin título')}
+          </div>
+        }
+      </div>
     </div>
   )
 }

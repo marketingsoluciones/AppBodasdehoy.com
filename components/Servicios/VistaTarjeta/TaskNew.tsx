@@ -255,7 +255,6 @@ export const TaskNew: FC<Props> = memo(({
     }
     try {
       let apiValue: string;
-
       if (['responsable', 'tags', 'attachments'].includes(fieldName)) {
         apiValue = JSON.stringify(value || []);
       } else if (fieldName === 'duracion') {
@@ -277,7 +276,6 @@ export const TaskNew: FC<Props> = memo(({
       } else {
         apiValue = String(value || "");
       }
-
       await fetchApiEventos({
         query: queries.editTask,
         variables: {
@@ -299,7 +297,6 @@ export const TaskNew: FC<Props> = memo(({
           setEvent({ ...event });
         }
       });
-
       setLocalTask(prev => ({ ...prev, [fieldName]: value }));
       toast("success", t("Campo actualizado"));
     } catch (error) {

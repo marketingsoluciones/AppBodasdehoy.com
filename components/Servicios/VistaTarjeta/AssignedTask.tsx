@@ -21,59 +21,61 @@ export const AssignedTask: FC<Props> = ({ canEdit, editingResponsable, setEditin
   const { t } = useTranslation();
   const { user } = AuthContextProvider();
   const { event } = EventContextProvider();
+
   return (
-    <div className="flex items-center space-x-4">
-      <div className="flex items-center space-x-2">
-        <User className="w-4 h-4 text-gray-500" />
-        <span className="text-xs text-gray-600">{t('Asignados')}</span>
+    <div className="flex items-start space-x-2 w-full relative">
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center space-x-2">
+          <User className="w-4 h-4 text-gray-500" />
+          <span className="text-xs text-gray-600">{t('Asignados')}</span>
+        </div>
+        {canEdit && (
+          <button
+            onClick={() => {
+              setEditingResponsable(true);
+              setTempResponsable(localTask.responsable || []);
+            }}
+            className="bg-primary rounded-full px-3 py-0.5 text-xs text-white"
+          >
+            {localTask.responsable?.length > 0 ? t('Editar') : t('Asignar')}
+          </button>
+        )}
       </div>
-      <div className="flex items-center flex-wrap gap-2 relative">
-        {editingResponsable && canEdit
-          ? <div className="relative">
-            <ClickUpResponsableSelector
-              value={tempResponsable}
-              onChange={(newValue) => {
-                setTempResponsable(newValue);
-                handleUpdate('responsable', newValue);
-                setEditingResponsable(false);
-              }}
-              onClose={() => {
-                setEditingResponsable(false);
-                setTempResponsable(localTask.responsable || []);
-              }}
-            />
-          </div>
-          : <PermissionWrapper hasPermission={canEdit}>
-            <div className="flex items-center flex-wrap gap-2">
-              {(localTask.responsable || []).map((resp, idx) => {
-                const userInfo = GruposResponsablesArry.find((el) => el.title?.toLowerCase() === resp?.toLowerCase()) || [user, event?.detalles_usuario_id, ...(event?.detalles_compartidos_array || [])].find((el) => {
-                  const displayName = el?.displayName || el?.email || 'Sin nombre';
-                  return displayName.toLowerCase() === resp?.toLowerCase();
-                }
-                );
-                return (
-                  <div key={idx} className="flex items-center bg-gray-100 rounded-full px-3 py-1">
-                    <div className="w-6 h-6 rounded-full mr-2 overflow-hidden">
-                      <ImageAvatar user={userInfo} />
-                    </div>
-                    <span className="text-sm">{resp}</span>
+      <div className="flex items-center flex-wrap w-full border border-gray-200 rounded-md relative p-0.5">
+        {(editingResponsable && canEdit) && <div className="absolute z-10 top-0 left-0">
+          <ClickUpResponsableSelector
+            value={tempResponsable}
+            onChange={(newValue) => {
+              setTempResponsable(newValue);
+              handleUpdate('responsable', newValue);
+              setEditingResponsable(false);
+            }}
+            onClose={() => {
+              setEditingResponsable(false);
+              setTempResponsable(localTask.responsable || []);
+            }}
+          />
+        </div>}
+        <PermissionWrapper hasPermission={canEdit}>
+          <div className="flex items-center flex-wrap gap-1 h-[52px] min-h-[26px] overflow-y-auto relative">
+            {(localTask.responsable || []).map((resp, idx) => {
+              const userInfo = GruposResponsablesArry.find((el) => el.title?.toLowerCase() === resp?.toLowerCase()) || [user, event?.detalles_usuario_id, ...(event?.detalles_compartidos_array || [])].find((el) => {
+                const displayName = el?.displayName || el?.email || 'Sin nombre';
+                return displayName.toLowerCase() === resp?.toLowerCase();
+              }
+              );
+              return (
+                <div key={idx} className="flex items-center bg-gray-200 rounded-full pl-1 pr-2 py-0.5 gap-1">
+                  <div className="w-5 h-5 rounded-full overflow-hidden">
+                    <ImageAvatar user={userInfo} size="md" />
                   </div>
-                );
-              })}
-              {canEdit && (
-                <button
-                  onClick={() => {
-                    setEditingResponsable(true);
-                    setTempResponsable(localTask.responsable || []);
-                  }}
-                  className="text-gray-500 hover:text-gray-700 border border-gray-300 rounded-full px-3 py-1 text-sm"
-                >
-                  {localTask.responsable?.length > 0 ? t('Editar') : t('Asignar')}
-                </button>
-              )}
-            </div>
-          </PermissionWrapper>
-        }
+                  <span className="text-xs">{resp}</span>
+                </div>
+              );
+            })}
+
+          </div>
+        </PermissionWrapper>
       </div>
     </div>
   )

@@ -88,9 +88,8 @@ export const ClickUpResponsableSelector: React.FC<Props> = ({
           <div
             key={`person-${index}`}
             onClick={() => handleToggleSelection(name)}
-            className={`flex items-center space-x-3 p-2 rounded-md cursor-pointer transition-colors ${
-              isSelected ? 'bg-pink-50 border border-pink-200' : 'hover:bg-gray-50'
-            }`}
+            className={`flex items-center space-x-3 p-2 rounded-md cursor-pointer transition-colors ${isSelected ? 'bg-pink-50 border border-pink-200' : 'hover:bg-gray-50'
+              }`}
           >
             <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200">
               <ImageAvatar user={person} />
@@ -127,9 +126,8 @@ export const ClickUpResponsableSelector: React.FC<Props> = ({
           <div
             key={`grupo-${index}`}
             onClick={() => handleToggleSelection(grupo.title)}
-            className={`flex items-center space-x-3 p-2 rounded-md cursor-pointer transition-colors ${
-              isSelected ? 'bg-pink-50 border border-pink-200' : 'hover:bg-gray-50'
-            }`}
+            className={`flex items-center space-x-3 p-2 rounded-md cursor-pointer transition-colors ${isSelected ? 'bg-pink-50 border border-pink-200' : 'hover:bg-gray-50'
+              }`}
           >
             <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200">
               <img src={grupo.icon} alt={grupo.title} className="w-full h-full object-cover" />
@@ -162,7 +160,7 @@ export const ClickUpResponsableSelector: React.FC<Props> = ({
     <ClickAwayListener onClickAway={onClose}>
       <div
         ref={dropdownRef}
-        className="absolute z-50 w-80 bg-white border border-gray-200 rounded-lg shadow-lg"
+        className="w-80 bg-white border border-gray-200 rounded-lg shadow-lg"
         style={{ top: '100%', left: 0 }}
       >
         {/* Header */}
@@ -192,21 +190,19 @@ export const ClickUpResponsableSelector: React.FC<Props> = ({
           <div className="flex mt-3 bg-gray-100 rounded-md p-1">
             <button
               onClick={() => setActiveTab('personas')}
-              className={`flex-1 px-3 py-1 text-sm rounded transition-colors ${
-                activeTab === 'personas'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
+              className={`flex-1 px-3 py-1 text-sm rounded transition-colors ${activeTab === 'personas'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+                }`}
             >
               {t('Personas')}
             </button>
             <button
               onClick={() => setActiveTab('grupos')}
-              className={`flex-1 px-3 py-1 text-sm rounded transition-colors ${
-                activeTab === 'grupos'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
+              className={`flex-1 px-3 py-1 text-sm rounded transition-colors ${activeTab === 'grupos'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+                }`}
             >
               {t('Grupos')}
             </button>
