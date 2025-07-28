@@ -109,36 +109,29 @@ export const createHandleDragEnd = (
     }
 
     // Determinar la columna destino
+    const overId = over.id as string;
+    let normalizedOverId = overId.startsWith('column-') ? overId.replace('column-', '') : overId;
     const validColumnIds = Object.keys(boardState.columns);
 
-    if (validColumnIds.includes(overId)) {
-      targetColumnId = overId;
+    if (validColumnIds.includes(normalizedOverId)) {
+      targetColumnId = normalizedOverId;
     } else if (dragEvent.collisions) {
-      // Buscar la primera colisión que sea una columna válida
       const collision = dragEvent.collisions.find(c =>
-        validColumnIds.includes(String(c.id))
+        validColumnIds.includes(String(c.id).replace('column-', ''))
       );
       if (collision) {
-        targetColumnId = String(collision.id);
+        targetColumnId = String(collision.id).replace('column-', '');
       } else {
-        // Buscar si el overId corresponde a una tarea dentro de alguna columna
         for (const [columnId, column] of Object.entries(boardState.columns)) {
-          if (column.tasks.some(t => String(t._id) === overId)) {
+          if (column.tasks.some(t => String(t._id) === normalizedOverId)) {
             targetColumnId = columnId;
             break;
           }
         }
       }
-    } else if (overId.startsWith('column-')) {
-      // Extraer el id real después de 'column-'
-      const columnId = overId.replace('column-', '');
-      if (boardState.columns.hasOwnProperty(columnId) && isNaN(Number(columnId))) {
-        targetColumnId = columnId;
-      }
     } else {
-      // Buscar si el overId corresponde a una tarea dentro de alguna columna
       for (const [columnId, column] of Object.entries(boardState.columns)) {
-        if (column.tasks.some(t => t._id === overId)) {
+        if (column.tasks.some(t => t._id === normalizedOverId)) {
           targetColumnId = columnId;
           break;
         }

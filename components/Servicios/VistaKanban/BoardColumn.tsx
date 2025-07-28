@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { useSortable } from '@dnd-kit/sortable';
+/* import { useSortable } from '@dnd-kit/sortable'; */
 import { useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import * as XLSX from 'xlsx';
@@ -22,6 +22,8 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { BoardColumn as IBoardColumn } from '../types';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
+import { AuthContextProvider } from '../../../context'; // Importar el contexto de autenticación
+import { EventContextProvider } from '../../../context/EventContext'; // Importar el contexto de evento
 
 interface BoardColumnProps {
   column: IBoardColumn;
@@ -56,9 +58,11 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
   const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const { t } = useTranslation();
+  const { user } = AuthContextProvider(); // Obtener el usuario actual
+  const { event } = EventContextProvider(); // Obtener el evento actual
 
   // Configurar sortable para la columna (para mover columnas)
-  const {
+/*   const {
     attributes,
     listeners,
     setNodeRef: setSortableNodeRef,
@@ -71,7 +75,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
       type: 'column',
       column,
     },
-  });
+  }); */
 
   // Configurar droppable para recibir tareas
   const { setNodeRef: setDroppableNodeRef, isOver } = useDroppable({
@@ -83,7 +87,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
   });
 
   // Combinar refs
-  const setNodeRef = (node: HTMLElement | null) => {
+/*   const setNodeRef = (node: HTMLElement | null) => {
     setSortableNodeRef(node);
     setDroppableNodeRef(node);
   };
@@ -92,7 +96,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-  };
+  }; */
 
   // Crear nueva tarea con validación
   const handleCreateTask = useCallback(() => {
@@ -194,24 +198,36 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
     }
   };
 
+  // Filtrar tareas según permisos de visualización
+  // Si el usuario es el propietario, ve todas las tareas. Si no, solo las que tienen spectatorView !== false
+  const filteredTasks = column.tasks.filter(task => {
+    if (user && event && user.uid === event.usuario_id) return true; // El propietario ve todas
+    return task.spectatorView !== false; // Otros solo ven si spectatorView está activo
+  });
+
   return (
     <div
-      ref={setNodeRef}
-      style={style}
+/*       ref={setNodeRef}
+      style={style} */
+      ref={setDroppableNodeRef}
       className={`
         flex flex-col bg-white rounded-lg shadow-sm border-2 transition-all duration-200
         ${columnColors.border} ${columnColors.bg}
-        ${isDragging ? 'shadow-lg rotate-1' : ''}
+         
         ${isCompact ? 'w-64' : 'w-80'}
         ${isList ? 'w-full max-w-4xl' : ''}
         ${column.isCollapsed ? 'h-16' : ''}
         ${isOver ? 'ring-2 ring-primary ring-opacity-50' : ''}
       `}
-      {...attributes}
+      /* {...attributes} */
     >
+     {/* 
+        esto va en el div de arriba
+        ${isDragging ? 'shadow-lg rotate-1' : ''} 
+       */} 
       {/* Header de la columna */}
       <div
-        {...listeners}
+       /*  {...listeners} */
         className={`
           flex items-center justify-between p-3 border-b cursor-grab active:cursor-grabbing
           ${columnColors.bg} ${columnColors.border}
@@ -327,12 +343,12 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
           )}
 
           {/* Lista de tareas */}
-          {column.tasks.length > 0 && (
+          {filteredTasks.length > 0 && (
             <SortableContext
-              items={column.tasks.filter(task => task && task._id).map(task => task._id)}
+              items={filteredTasks.filter(task => task && task._id).map(task => task._id)}
               strategy={verticalListSortingStrategy}
             >
-              {column.tasks
+              {filteredTasks
                 .filter(task => task && task._id)
                 .map((task) => (
                   <TaskCard

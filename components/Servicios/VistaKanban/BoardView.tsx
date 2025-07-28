@@ -46,6 +46,7 @@ export const BoardView: React.FC<BoardViewProps> = ({ data, itinerario, event, s
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showSubTaskModal, setShowSubTaskModal] = useState<{ show: boolean; parentTaskId?: string; }>({ show: false });
+  
 
   const sensors = useSensors(
     useSensor(PointerSensor, {

@@ -206,10 +206,11 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         )
       );
 
-      setTasks(prev => {
+      /* setTasks(prev => {
         if (JSON.stringify(prev) === JSON.stringify(filteredTasks)) return prev;
         return filteredTasks;
-      });
+      }); */
+      setTasks(filteredTasks);
 
       // Para la vista de cards, agrupar por fecha pero mantener el orden interno
       if (view === "cards") {
