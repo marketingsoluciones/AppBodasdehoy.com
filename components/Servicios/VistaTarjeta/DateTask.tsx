@@ -2,6 +2,9 @@ import { FC, useState } from 'react';
 import { formatDate } from './TaskNewUtils';
 import { Task } from '../../../utils/Interfaces';
 import { useTranslation } from 'react-i18next';
+import { X } from 'lucide-react';
+import ClickAwayListener from 'react-click-away-listener';
+import i18n from '../../../utils/i18n';
 
 interface Props {
   handleUpdate: (field: string, value: any) => Promise<void>;
@@ -14,6 +17,7 @@ export const DateTask: FC<Props> = ({ handleUpdate, canEdit, task, ht }) => {
   const { t } = useTranslation();
   const [editing, setEditing] = useState<boolean>(false);
   const [value, setValue] = useState<string>();
+  const [blockUpdate, setBlockUpdate] = useState<boolean>(false);
 
   const getDateString = (value: Date | string) => {
     const d = new Date(value);
@@ -26,55 +30,64 @@ export const DateTask: FC<Props> = ({ handleUpdate, canEdit, task, ht }) => {
   return (
     <div className="w-[120px] h-full flex items-center">
       {editing
-        ? <div className="flex items-center space-x-2">
-          <input
-            type="date"
-            value={task?.fecha ? getDateString(task.fecha) : ''}
-            onChange={(e) => {
-              console.log(100046, "aqui cambio");
-              handleUpdate('fecha', e.currentTarget.value)
-            }}
-            onBlur={(e) => {
+        ? <ClickAwayListener onClickAway={() => setEditing(false)}>
+          <div className="w-full flex items-center relative">
+            <div onClick={async () => {
+              setValue(null);
+              await handleUpdate('fecha', null)
               setEditing(false);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handleUpdate('fecha', e.currentTarget.value)
-              } else if (e.key === 'Escape') {
-                setEditing(false);
-              }
-            }}
-            className="px-1 py-[1px] border-none rounded text-xs focus:ring-gray-400 focus:ring-
-                      [1px] focus:outline-none transition"
-            autoFocus
-          />
-        </div>
+            }} className="absolute z-10 -right-[6px] cursor-pointer p-[2px]">
+              <div className='relative group'>
+                <X className="w-3 h-3" />
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
+                  {t('Eliminar fecha')}
+                </div>
+              </div>
+            </div>
+            <input
+              type="date"
+              value={value ? value : task?.fecha ? getDateString(task.fecha) : ''}
+              onChange={(e) => {
+                setValue(e.currentTarget.value);
+                if (!blockUpdate) {
+                  const value = new Date(new Date(e.currentTarget.value).getTime() + new Date().getTimezoneOffset() * 60000)
+                  if (typeof value !== "string") {
+                    handleUpdate('fecha', value)
+                  }
+                }
+                setBlockUpdate(false);
+              }}
+              onKeyDown={async (e) => {
+                setBlockUpdate(true);
+                if (e.key === 'Enter') {
+                  await handleUpdate('fecha', new Date(new Date(e.currentTarget.value).getTime() + new Date().getTimezoneOffset() * 60000))
+                  setEditing(false);
+                } else if (e.key === 'Escape') {
+                  setEditing(false);
+                }
+              }}
+              className="px-1 py-[1px] border-none rounded text-xs focus:ring-gray-400 focus:ring-[1px] focus:outline-none transition [&::-webkit-calendar-picker-indicator]:relative [&::-webkit-calendar-picker-indicator]:-left-[11px] [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+              autoFocus
+            />
+          </div>
+        </ClickAwayListener>
         : <span
           className={`text-xs ${canEdit ? 'cursor-pointer text-gray-700 hover:text-gray-900' : 'cursor-default text-gray-600'}`}
           onClick={() => {
             if (canEdit) {
-              console.log(100044, task.fecha);
               setEditing(true);
-              if (!task?.fecha) {
-
-              }
-              // Formatear la fecha correctamente para el input tipo date
-              // if (task.fecha) {
-              //   const date = new Date(task.fecha);
-              //   const year = date.getFullYear();
-              //   const month = String(date.getMonth() + 1).padStart(2, '0');
-              //   const day = String(date.getDate()).padStart(2, '0');
-              //   handleFieldClick('fecha', `${year}-${month}-${day}`);
-              // } else {
-              //   handleFieldClick('fecha', '');
-              // }
+              console.log(100047, {
+                browserLanguage: navigator.language,
+                systemLanguage: navigator.languages,
+                i18nLanguage: i18n.language
+              });
             } else {
               ht();
             }
           }}
           title={canEdit ? "Haz clic para editar fecha" : "No tienes permisos para editar"}
         >
-          {task.fecha ? formatDate(task.fecha) : t('Sin fecha')}
+          {task.fecha ? formatDate({ locale: navigator.language, date: task.fecha }) : t('Sin fecha')}
         </span>
       }
     </div>

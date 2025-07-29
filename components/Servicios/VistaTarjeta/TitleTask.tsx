@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useState, useRef, useEffect } from "react";
 import { PermissionWrapper } from './TaskNewComponents';
 import { NewSelectIcon } from "../VistaTabla/NewSelectIcon";
 import { Field, Form, Formik } from "formik";
@@ -19,6 +19,7 @@ export const TitleTask: FC<Props> = ({ canEdit, ht, handleUpdate, task }) => {
   const [editing, setEditing] = useState<boolean>(false);
   const [showIconSelector, setShowIconSelector] = useState<boolean>(false);
   const [tempIcon, setTempIcon] = useState<string>(task.icon);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleIconChange = (newIcon: string) => {
     if (!canEdit) {
@@ -29,6 +30,19 @@ export const TitleTask: FC<Props> = ({ canEdit, ht, handleUpdate, task }) => {
     handleUpdate('icon', newIcon);
     setShowIconSelector(false);
   };
+
+  const adjustTextareaHeight = () => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  };
+
+  useEffect(() => {
+    if (editing) {
+      adjustTextareaHeight();
+    }
+  }, [editing, value]);
 
   return (
     <div className="flex items-center space-x-2 flex-1">
@@ -79,11 +93,19 @@ export const TitleTask: FC<Props> = ({ canEdit, ht, handleUpdate, task }) => {
       <div className="flex-1 h-10 relative flex items-center">
         {editing
           ? <textarea
+            ref={textareaRef}
+            rows={1}
             id="descripcion"
             value={value}
-            onChange={(e) => setValue(e.target.value)}
+            onChange={(e) => {
+              setValue(e.target.value);
+              adjustTextareaHeight();
+            }}
             onBlur={(e) => {
-              handleUpdate('descripcion', e.currentTarget.value);
+              // if (e.currentTarget.value.trim() !== task.descripcion) {
+              handleUpdate('descripcion', e.currentTarget.value.trim());
+              setValue(e.currentTarget.value.trim());
+              // }
               setEditing(false);
             }}
             onKeyDown={(e) => {
@@ -100,7 +122,7 @@ export const TitleTask: FC<Props> = ({ canEdit, ht, handleUpdate, task }) => {
               const cleanText = pastedText.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ');
               setValue(cleanText);
             }}
-            className="absolute z-10 w-full h-24 text-[17px] font-semibold font-display text-gray-500 border-[1px] border-primary focus:border-gray-400 py-1 px-2 rounded-xl focus:ring-0 focus:outline-none transition"
+            className="absolute z-10 w-[calc(100%+16px)] max-h-24 text-[17px] font-semibold font-display text-gray-500 border-[1px] border-primary focus:border-gray-400 py-1 px-2 rounded-xl focus:ring-0 focus:outline-none transition resize-none overflow-hidden"
             autoFocus
           />
           : <div

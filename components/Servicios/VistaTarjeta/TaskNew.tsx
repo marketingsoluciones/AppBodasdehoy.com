@@ -224,6 +224,9 @@ export const TaskNew: FC<Props> = memo(({ itinerario, task, view, optionsItinera
       ht();
       return;
     }
+    if (task[fieldName] === value) {
+      return;
+    }
     try {
       let apiValue: string;
       if (['responsable', 'tags', 'attachments'].includes(fieldName)) {
@@ -264,6 +267,7 @@ export const TaskNew: FC<Props> = memo(({ itinerario, task, view, optionsItinera
           event.itinerarios_array[f1].tasks[f2].spectatorView = value;
           setEvent({ ...event });
         } else {
+          console.log(100048, new Date(value), apiValue);
           event.itinerarios_array[f1].tasks[f2][fieldName] = value;
           setEvent({ ...event });
         }

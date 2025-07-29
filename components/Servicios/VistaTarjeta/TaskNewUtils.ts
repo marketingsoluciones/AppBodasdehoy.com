@@ -31,9 +31,13 @@ export const readableFormatToMinutes = (value: string): number => {
 };
 
 // Función para formatear fecha
-export const formatDate = (date: string | Date): string => {
+export const formatDate = ({ locale, date }: { locale: string, date: string | Date }): string => {
   const d = new Date(date);
-  return d.toLocaleDateString();
+  return d.toLocaleDateString(locale, {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
 };
 
 // Función para formatear hora
