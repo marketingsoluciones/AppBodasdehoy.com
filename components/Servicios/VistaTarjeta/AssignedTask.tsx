@@ -1,5 +1,5 @@
 import { User } from "lucide-react";
-import { FC } from "react";
+import { FC, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ClickUpResponsableSelector } from "../VistaTabla/NewResponsableSelector";
 import { PermissionWrapper } from "./TaskNewComponents";
@@ -10,17 +10,20 @@ import { ImageAvatar } from "../../Utils/ImageAvatar";
 
 interface Props {
   canEdit: boolean;
-  editingResponsable: boolean;
-  setEditingResponsable: (editing: boolean) => void;
-  tempResponsable: string[];
-  setTempResponsable: (value: string[]) => void;
   task: any;
   handleUpdate: (field: string, value: any) => Promise<void>;
 }
-export const AssignedTask: FC<Props> = ({ canEdit, editingResponsable, setEditingResponsable, tempResponsable, setTempResponsable, task: localTask, handleUpdate }) => {
+export const AssignedTask: FC<Props> = ({ canEdit, task, handleUpdate }) => {
   const { t } = useTranslation();
   const { user } = AuthContextProvider();
   const { event } = EventContextProvider();
+  const [editing, setEditing] = useState<boolean>(false);
+  const [tempResponsable, setTempResponsable] = useState<string[]>(task.responsable || []);
+
+  useEffect(() => {
+    setTempResponsable(Array.isArray(task?.responsable) ? task.responsable : []);
+  }, [task])
+
 
   return (
     <div className="flex items-start space-x-2 w-full relative">
@@ -32,33 +35,33 @@ export const AssignedTask: FC<Props> = ({ canEdit, editingResponsable, setEditin
         {canEdit && (
           <button
             onClick={() => {
-              setEditingResponsable(true);
-              setTempResponsable(localTask.responsable || []);
+              setEditing(true);
+              setTempResponsable(task.responsable || []);
             }}
             className="bg-primary rounded-full px-3 py-0.5 text-xs text-white"
           >
-            {localTask.responsable?.length > 0 ? t('Editar') : t('Asignar')}
+            {task.responsable?.length > 0 ? t('Editar') : t('Asignar')}
           </button>
         )}
       </div>
       <div className="flex items-center flex-wrap w-full border border-gray-200 rounded-md relative p-0.5">
-        {(editingResponsable && canEdit) && <div className="absolute z-10 top-0 left-0">
+        {(editing && canEdit) && <div className="absolute z-10 top-0 left-0">
           <ClickUpResponsableSelector
             value={tempResponsable}
             onChange={(newValue) => {
               setTempResponsable(newValue);
               handleUpdate('responsable', newValue);
-              setEditingResponsable(false);
+              setEditing(false);
             }}
             onClose={() => {
-              setEditingResponsable(false);
-              setTempResponsable(localTask.responsable || []);
+              setEditing(false);
+              setTempResponsable(task.responsable || []);
             }}
           />
         </div>}
         <PermissionWrapper hasPermission={canEdit}>
           <div className="flex items-center flex-wrap gap-1 h-[52px] min-h-[26px] overflow-y-auto relative">
-            {(localTask.responsable || []).map((resp, idx) => {
+            {(task.responsable || []).map((resp, idx) => {
               const userInfo = GruposResponsablesArry.find((el) => el.title?.toLowerCase() === resp?.toLowerCase()) || [user, event?.detalles_usuario_id, ...(event?.detalles_compartidos_array || [])].find((el) => {
                 const displayName = el?.displayName || el?.email || 'Sin nombre';
                 return displayName.toLowerCase() === resp?.toLowerCase();

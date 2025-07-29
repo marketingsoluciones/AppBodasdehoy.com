@@ -14,30 +14,9 @@ import { DescriptionTask } from './DescriptionTask';
 interface TaskMinimalViewProps {
   task: Task;
   itinerario: Itinerary;
-  tempIcon: string;
   canEdit: boolean;
-  showIconSelector: boolean;
-  setShowIconSelector: (show: boolean) => void;
-  handleIconChange: (icon: string) => void;
   handleUpdate: (field: string, value: any) => Promise<void>;
-  handleFieldClick: (field: string, value: any) => void;
-  handleFieldSave: (field: string) => Promise<void>;
-  handleKeyPress: (e: React.KeyboardEvent, field: string) => void;
-  handleFieldCancel: () => void;
-  handleAddTag: (tag: string) => void;
-  handleRemoveTag: (tag: string) => void;
   ht: () => void;
-  editingField: string | null;
-  tempValue: string;
-  setTempValue: (value: string) => void;
-  editingResponsable: boolean;
-  setEditingResponsable: (editing: boolean) => void;
-  tempResponsable: string[];
-  setTempResponsable: (value: string[]) => void;
-  editingDescription: boolean;
-  setEditingDescription: (editing: boolean) => void;
-  customDescription: string;
-  setCustomDescription: (value: string) => void;
   optionsItineraryButtonBox?: OptionsSelect[];
   isSelect: boolean;
 }
@@ -45,30 +24,9 @@ interface TaskMinimalViewProps {
 export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
   task,
   itinerario,
-  tempIcon,
   canEdit,
-  showIconSelector,
-  setShowIconSelector,
-  handleIconChange,
   handleUpdate,
-  handleFieldClick,
-  handleFieldSave,
-  handleKeyPress,
-  handleFieldCancel,
-  handleAddTag,
-  handleRemoveTag,
   ht,
-  editingField,
-  tempValue,
-  setTempValue,
-  editingResponsable,
-  setEditingResponsable,
-  tempResponsable,
-  setTempResponsable,
-  editingDescription,
-  setEditingDescription,
-  customDescription,
-  setCustomDescription,
   optionsItineraryButtonBox,
   isSelect,
   ...props
@@ -84,17 +42,8 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
       <div className="flex items-center justify-between mb-4">
         <TitleTask
           canEdit={canEdit}
-          showIconSelector={showIconSelector}
-          setShowIconSelector={setShowIconSelector}
-          handleIconChange={handleIconChange}
           ht={ht}
-          setTempValue={setTempValue}
-          handleFieldSave={handleFieldSave}
-          handleKeyPress={handleKeyPress}
-          handleFieldClick={handleFieldClick}
-          editingField={editingField}
-          tempValue={tempValue}
-          tempIcon={tempIcon}
+          handleUpdate={handleUpdate}
           task={task}
         />
         {/* Botones de optionsItineraryButtonBox (excepto 'link' y 'flow') */}
@@ -155,10 +104,6 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
       {/* Asignados (ClickUpResponsableSelector) */}
       <AssignedTask
         canEdit={canEdit}
-        editingResponsable={editingResponsable}
-        setEditingResponsable={setEditingResponsable}
-        tempResponsable={tempResponsable}
-        setTempResponsable={setTempResponsable}
         task={task}
         handleUpdate={handleUpdate}
       />
@@ -230,20 +175,12 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
       <TagsTask
         canEdit={canEdit}
         task={task}
-        handleRemoveTag={handleRemoveTag}
-        handleAddTag={handleAddTag}
-        handleFieldCancel={handleFieldCancel}
-        handleFieldClick={handleFieldClick}
-        editingField={editingField}
+        handleUpdate={handleUpdate}
       />
       {/* Descripción larga con Editor Rico */}
       <DescriptionTask
         canEdit={canEdit}
         task={task}
-        editingDescription={editingDescription}
-        setEditingDescription={setEditingDescription}
-        customDescription={customDescription}
-        setCustomDescription={setCustomDescription}
         handleUpdate={handleUpdate}
         ht={ht}
       />

@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, useState } from 'react';
 import { Formik, Form, Field } from 'formik';
 
 import { Task, Itinerary } from '../../../utils/Interfaces';
@@ -9,25 +9,25 @@ import { HashtagMatcher, UrlMatcher } from "interweave-autolink";
 
 interface TaskSchemaViewProps {
   task: Task;
-  tempIcon: string;
   canEdit: boolean;
-  showIconSelector: boolean;
-  setShowIconSelector: (show: boolean) => void;
-  handleIconChange: (icon: string) => void;
   ht: () => void;
+  handleUpdate: (field: string, value: any) => Promise<void>;
 }
 
-export const TaskSchemaView: FC<TaskSchemaViewProps> = ({
-  task,
-  tempIcon,
-  canEdit,
-  showIconSelector,
-  setShowIconSelector,
-  handleIconChange,
-  ht,
-  ...props
-}) => {
+export const TaskSchemaView: FC<TaskSchemaViewProps> = ({ task, canEdit, ht, handleUpdate, ...props }) => {
   const { t } = useTranslation();
+  const [showIconSelector, setShowIconSelector] = useState<boolean>(false);
+  const [tempIcon, setTempIcon] = useState<string>(task.icon);
+
+  const handleIconChange = (newIcon: string) => {
+    if (!canEdit) {
+      ht();
+      return;
+    }
+    setTempIcon(newIcon);
+    handleUpdate('icon', newIcon);
+    setShowIconSelector(false);
+  };
 
   return (
     <div {...props} className="w-full flex">

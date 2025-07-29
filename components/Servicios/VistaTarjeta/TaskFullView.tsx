@@ -21,35 +21,13 @@ import { StatusPriorityTask } from './StatusPriorityTask';
 interface TaskFullViewProps {
   task: Task;
   itinerario: Itinerary;
-  tempIcon: string;
   canEdit: boolean;
-  showIconSelector: boolean;
-  setShowIconSelector: (show: boolean) => void;
-  handleIconChange: (icon: string) => void;
   handleUpdate: (field: string, value: any) => Promise<void>;
-  handleFieldClick: (field: string, value: any) => void;
-  handleFieldSave: (field: string) => Promise<void>;
-  handleKeyPress: (e: React.KeyboardEvent, field: string) => void;
-  handleFieldCancel: () => void;
-  handleAddTag: (tag: string) => void;
-  handleRemoveTag: (tag: string) => void;
   handleDuplicate: () => Promise<void>;
   handleCopyLink: (task: Task) => void;
   handleDeleteComment: (commentId: string) => Promise<void>;
   handleCommentAdded: (comment: Comment) => void;
   ht: () => void;
-  editingField: string | null;
-  tempValue: string;
-  setTempValue: (value: string) => void;
-  setEditingField: (field: string | null) => void;
-  editingResponsable: boolean;
-  setEditingResponsable: (editing: boolean) => void;
-  tempResponsable: string[];
-  setTempResponsable: (value: string[]) => void;
-  editingDescription: boolean;
-  setEditingDescription: (editing: boolean) => void;
-  customDescription: string;
-  setCustomDescription: (value: string) => void;
   comments: Comment[];
   setComments: (comments: Comment[]) => void;
   optionsItineraryButtonBox?: OptionsSelect[];
@@ -61,35 +39,13 @@ interface TaskFullViewProps {
 export const TaskFullView: FC<TaskFullViewProps> = ({
   task,
   itinerario,
-  tempIcon,
   canEdit,
-  showIconSelector,
-  setShowIconSelector,
-  handleIconChange,
   handleUpdate,
-  handleFieldClick,
-  handleFieldSave,
-  handleKeyPress,
-  handleFieldCancel,
-  handleAddTag,
-  handleRemoveTag,
   handleDuplicate,
   handleCopyLink,
   handleDeleteComment,
   handleCommentAdded,
   ht,
-  editingField,
-  tempValue,
-  setTempValue,
-  setEditingField,
-  editingResponsable,
-  setEditingResponsable,
-  tempResponsable,
-  setTempResponsable,
-  editingDescription,
-  setEditingDescription,
-  customDescription,
-  setCustomDescription,
   comments,
   setComments,
   optionsItineraryButtonBox,
@@ -104,10 +60,6 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
   // Estados locales para la vista completa
   const [editingDuration, setEditingDuration] = useState(false);
   const [durationInput, setDurationInput] = useState('');
-
-  useEffect(() => {
-    console.log('tempValue', tempValue);
-  }, [tempValue])
 
   // Auto-scroll al agregar nuevos comentarios
   useEffect(() => {
@@ -134,17 +86,8 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
           <div className="w-full flex items-center justify-between py-0.5 border-b border-gray-200">
             <TitleTask
               canEdit={canEdit}
-              showIconSelector={showIconSelector}
-              setShowIconSelector={setShowIconSelector}
-              handleIconChange={handleIconChange}
               ht={ht}
-              setTempValue={setTempValue}
-              handleFieldSave={handleFieldSave}
-              handleKeyPress={handleKeyPress}
-              handleFieldClick={handleFieldClick}
-              editingField={editingField}
-              tempValue={tempValue}
-              tempIcon={tempIcon}
+              handleUpdate={handleUpdate}
               task={task}
             />
             {canEdit &&
@@ -178,10 +121,6 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
             {/* Asignados con NewResponsableSelector */}
             <AssignedTask
               canEdit={canEdit}
-              editingResponsable={editingResponsable}
-              setEditingResponsable={setEditingResponsable}
-              tempResponsable={tempResponsable}
-              setTempResponsable={setTempResponsable}
               task={task}
               handleUpdate={handleUpdate}
             />
@@ -193,27 +132,16 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               </div>
               <div className="h-5 flex items-center space-x-4">
                 <DateTask
-                  editingField={editingField}
-                  tempValue={tempValue}
-                  setTempValue={setTempValue}
-                  handleFieldSave={handleFieldSave}
-                  handleKeyPress={handleKeyPress}
+                  handleUpdate={handleUpdate}
                   canEdit={canEdit}
                   task={task}
-                  handleFieldClick={handleFieldClick}
                   ht={ht}
                 />
                 <TimeTask
-                  editingField={editingField}
-                  tempValue={tempValue}
-                  setTempValue={setTempValue}
                   handleUpdate={handleUpdate}
-                  handleKeyPress={handleKeyPress}
                   canEdit={canEdit}
                   task={task}
-                  handleFieldClick={handleFieldClick}
                   ht={ht}
-                  setEditingField={setEditingField}
                 />
                 {/* Duración mejorada con conversor */}
                 <DurationTask
@@ -231,21 +159,13 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
             <TagsTask
               canEdit={canEdit}
               task={task}
-              handleRemoveTag={handleRemoveTag}
-              handleAddTag={handleAddTag}
-              handleFieldCancel={handleFieldCancel}
-              handleFieldClick={handleFieldClick}
-              editingField={editingField}
+              handleUpdate={handleUpdate}
             />
             {/* Sección de Detalles */}
             {/* Descripción larga con Editor */}
             <DescriptionTask
               canEdit={canEdit}
               task={task}
-              editingDescription={editingDescription}
-              setEditingDescription={setEditingDescription}
-              customDescription={customDescription}
-              setCustomDescription={setCustomDescription}
               handleUpdate={handleUpdate}
               ht={ht}
             />

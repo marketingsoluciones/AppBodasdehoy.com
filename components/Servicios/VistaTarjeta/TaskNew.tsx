@@ -5,7 +5,6 @@ import { AuthContextProvider } from "../../../context";
 import { useTranslation } from 'react-i18next';
 import { Comment, Itinerary, OptionsSelect, Task } from "../../../utils/Interfaces";
 import { ViewItinerary } from "../../../pages/invitados";
-import { useRouter } from "next/router";
 import { TempPastedAndDropFile } from "../../Itinerario/MicroComponente/ItineraryPanel";
 import { useToast } from "../../../hooks/useToast";
 import { useAllowed } from '../../../hooks/useAllowed';
@@ -59,32 +58,20 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
   minimalView?: boolean;
 }
 
-export const TaskNew: FC<Props> = memo(({
-  itinerario,
-  task,
-  view,
-  optionsItineraryButtonBox,
-  isSelect = false,
-  showModalCompartir,
-  setShowModalCompartir,
-  tempPastedAndDropFiles,
-  setTempPastedAndDropFiles,
-  isTaskPublic = false,
-  minimalView = false,
-  ...props
-}) => {
+export const TaskNew: FC<Props> = memo(({ itinerario, task, view, optionsItineraryButtonBox, isSelect = false, showModalCompartir, setShowModalCompartir, tempPastedAndDropFiles, setTempPastedAndDropFiles, isTaskPublic = false, minimalView = false, ...props }) => {
   const { t } = useTranslation();
-  const { config, user, geoInfo } = AuthContextProvider();
+  const { config, user } = AuthContextProvider();
   const { event, setEvent } = EventContextProvider();
   const [isAllowed, ht] = useAllowed();
   const toast = useToast();
-  const router = useRouter();
   const commentsContainerRef = useRef<HTMLDivElement>(null);
   const [previousCountComments, setPreviousCountComments] = useState(0);
+  const [comments, setComments] = useState<Comment[]>([]);
+  // Verificar permisos
+  const hasEditPermission = isAllowed();
+  const canEdit = hasEditPermission || task.responsable?.includes(user?.uid);
 
   // Estados para la edición
-  const [editingField, setEditingField] = useState<string | null>(null);
-  const [tempValue, setTempValue] = useState<string>('');
   const [localTask, setLocalTask] = useState<TaskFormValues>({
     _id: task?._id,
     icon: task?.icon || '',
@@ -103,19 +90,6 @@ export const TaskNew: FC<Props> = memo(({
     estado: task?.estado || 'pending',
     prioridad: task?.prioridad || 'media'
   });
-
-  // Estados para dropdowns y selectores
-  const [showIconSelector, setShowIconSelector] = useState(false);
-  const [editingResponsable, setEditingResponsable] = useState(false);
-  const [editingDescription, setEditingDescription] = useState(false);
-  // Estados para descripción personalizada
-  const [customDescription, setCustomDescription] = useState(task?.tips || '');
-  const [tempIcon, setTempIcon] = useState(task?.icon || '');
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [tempResponsable, setTempResponsable] = useState<string[]>([]);
-  // Verificar permisos
-  const hasEditPermission = isAllowed();
-  const canEdit = hasEditPermission || task.responsable?.includes(user?.uid);
 
   // Efecto para sincronizar con la tarea
   useEffect(() => {
@@ -137,9 +111,6 @@ export const TaskNew: FC<Props> = memo(({
       estado: task?.estado || 'pending',
       prioridad: task?.prioridad || 'media'
     });
-    setCustomDescription(task?.tips || '');
-    setTempIcon(task?.icon || '');
-    setTempResponsable(Array.isArray(task?.responsable) ? task.responsable : []);
   }, [task]);
 
   // Efecto para ordenar comentarios
@@ -305,76 +276,6 @@ export const TaskNew: FC<Props> = memo(({
     }
   };
 
-  // Manejadores de edición de campos
-  const handleFieldClick = (fieldName: string, currentValue: any) => {
-    if (!canEdit) {
-      ht();
-      return;
-    }
-    setEditingField(fieldName);
-    setTempValue(String(currentValue || ''));
-  };
-
-  const handleFieldSave = async (fieldName: string) => {
-    if (fieldName === 'fecha' && tempValue) {
-      // Para fechas, crear un Date object que preserve la fecha local
-      const [year, month, day] = tempValue.split('-');
-      const localDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 12, 0, 0);
-      await handleUpdate(fieldName, localDate);
-    } else if (tempValue !== String(localTask[fieldName] || '')) {
-      await handleUpdate(fieldName, tempValue);
-    }
-    setEditingField(null);
-    setTempValue('');
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent, fieldName: string) => {
-    if (e.key === 'Enter') {
-      handleFieldSave(fieldName);
-    } else if (e.key === 'Escape') {
-      setEditingField(null);
-      setTempValue('');
-    }
-  };
-
-  // Manejador de cambio de ícono
-  const handleIconChange = (newIcon: string) => {
-    if (!canEdit) {
-      ht();
-      return;
-    }
-    setTempIcon(newIcon);
-    handleUpdate('icon', newIcon);
-    setShowIconSelector(false);
-  };
-
-  // Función para cancelar edición
-  const handleFieldCancel = () => {
-    setEditingField(null);
-    setTempValue('');
-  };
-
-  // Función para agregar etiqueta
-  const handleAddTag = (newTag: string) => {
-    if (!canEdit) {
-      ht();
-      return;
-    }
-    const updatedTags = [...(localTask.tags || []), newTag];
-    handleUpdate('tags', updatedTags);
-    setEditingField(null);
-  };
-
-  // Función para eliminar etiqueta
-  const handleRemoveTag = (tagToRemove: string) => {
-    if (!canEdit) {
-      ht();
-      return;
-    }
-    const updatedTags = (localTask.tags || []).filter(tag => tag !== tagToRemove);
-    handleUpdate('tags', updatedTags);
-  };
-
   // Función para duplicar tarea
   const handleDuplicate = async () => {
     if (!canEdit) {
@@ -492,21 +393,6 @@ export const TaskNew: FC<Props> = memo(({
     }
   };
 
-  // Función para manejar la actualización de comentarios
-  const handleUpdateComments = useCallback((taskId: string, newComments: Comment[]) => {
-    setEvent((oldEvent) => {
-      const newEvent = { ...oldEvent };
-      const itineraryIndex = newEvent.itinerarios_array.findIndex(it => it._id === itinerario._id);
-      if (itineraryIndex > -1) {
-        const taskIndex = newEvent.itinerarios_array[itineraryIndex].tasks.findIndex(t => t._id === taskId);
-        if (taskIndex > -1) {
-          newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex].comments = newComments;
-        }
-      }
-      return newEvent;
-    });
-  }, [itinerario?._id, setEvent]);
-
   const handleCommentAdded = useCallback((newComment: Comment) => {
     setComments(prevComments => {
       const exists = prevComments.some(c => c._id === newComment._id);
@@ -527,12 +413,9 @@ export const TaskNew: FC<Props> = memo(({
       ? <TaskSchemaView
         {...props}
         task={task}
-        tempIcon={tempIcon}
         canEdit={canEdit}
-        showIconSelector={showIconSelector}
-        setShowIconSelector={setShowIconSelector}
-        handleIconChange={handleIconChange}
         ht={ht}
+        handleUpdate={handleUpdate}
       />
 
       : minimalView
@@ -540,30 +423,9 @@ export const TaskNew: FC<Props> = memo(({
           {...props}
           task={task}
           itinerario={itinerario}
-          tempIcon={tempIcon}
           canEdit={canEdit}
-          showIconSelector={showIconSelector}
-          setShowIconSelector={setShowIconSelector}
-          handleIconChange={handleIconChange}
           handleUpdate={handleUpdate}
-          handleFieldClick={handleFieldClick}
-          handleFieldSave={handleFieldSave}
-          handleKeyPress={handleKeyPress}
-          handleFieldCancel={handleFieldCancel}
-          handleAddTag={handleAddTag}
-          handleRemoveTag={handleRemoveTag}
           ht={ht}
-          editingField={editingField}
-          tempValue={tempValue}
-          setTempValue={setTempValue}
-          editingResponsable={editingResponsable}
-          setEditingResponsable={setEditingResponsable}
-          tempResponsable={tempResponsable}
-          setTempResponsable={setTempResponsable}
-          editingDescription={editingDescription}
-          setEditingDescription={setEditingDescription}
-          customDescription={customDescription}
-          setCustomDescription={setCustomDescription}
           optionsItineraryButtonBox={optionsItineraryButtonBox}
           isSelect={isSelect}
         />
@@ -571,35 +433,13 @@ export const TaskNew: FC<Props> = memo(({
           {...props}
           task={task}
           itinerario={itinerario}
-          tempIcon={tempIcon}
           canEdit={canEdit}
-          showIconSelector={showIconSelector}
-          setShowIconSelector={setShowIconSelector}
-          handleIconChange={handleIconChange}
           handleUpdate={handleUpdate}
-          handleFieldClick={handleFieldClick}
-          handleFieldSave={handleFieldSave}
-          handleKeyPress={handleKeyPress}
-          handleFieldCancel={handleFieldCancel}
-          handleAddTag={handleAddTag}
-          handleRemoveTag={handleRemoveTag}
           handleDuplicate={handleDuplicate}
           handleCopyLink={handleCopyLink}
           handleDeleteComment={handleDeleteComment}
           handleCommentAdded={handleCommentAdded}
           ht={ht}
-          editingField={editingField}
-          tempValue={tempValue}
-          setTempValue={setTempValue}
-          setEditingField={setEditingField}
-          editingResponsable={editingResponsable}
-          setEditingResponsable={setEditingResponsable}
-          tempResponsable={tempResponsable}
-          setTempResponsable={setTempResponsable}
-          editingDescription={editingDescription}
-          setEditingDescription={setEditingDescription}
-          customDescription={customDescription}
-          setCustomDescription={setCustomDescription}
           comments={comments}
           setComments={setComments}
           optionsItineraryButtonBox={optionsItineraryButtonBox}

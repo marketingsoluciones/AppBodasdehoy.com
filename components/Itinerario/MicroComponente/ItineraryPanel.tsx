@@ -256,7 +256,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       setTasks(prev => (prev && prev.length === 0 ? prev : []));
       setTasksReduce(prev => (prev && prev.length === 0 ? prev : []));
     }
-  }, [currentItinerario, event, view, user?.uid, isAllowed, orderAndDirection]);
+  }, [currentItinerario, event, view,]);
 
   const handleAddSpectatorView = async (values: Task) => {
     try {
