@@ -76,11 +76,6 @@ export const DateTask: FC<Props> = ({ handleUpdate, canEdit, task, ht }) => {
           onClick={() => {
             if (canEdit) {
               setEditing(true);
-              console.log(100047, {
-                browserLanguage: navigator.language,
-                systemLanguage: navigator.languages,
-                i18nLanguage: i18n.language
-              });
             } else {
               ht();
             }
