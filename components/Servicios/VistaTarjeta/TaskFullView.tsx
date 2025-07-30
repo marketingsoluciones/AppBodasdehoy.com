@@ -78,7 +78,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
   }, [comments, previousCountComments]);
 
   return (
-    <div {...props} className="w-full bg-white rounded-lg shadow-lg">
+    <div {...props} className="w-full bg-white rounded-lg shadow-lg cursor-default">
       <div id="task-container" className={`flex h-[553px] rounded-xl outline ${props?.isSelect ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200"}`}>
         {/* Panel principal */}
         <div id='container-left' className="flex-1 flex flex-col h-full px-2">
@@ -128,7 +128,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <Calendar className="w-4 h-4 text-gray-500" />
-                <span className="text-xs text-gray-600">{t('Fecha y hora')}</span>
+                {/* <span className="text-xs text-gray-600">{t('Fecha y hora')}</span> */}
               </div>
               <div className="h-5 flex items-center space-x-4">
                 <DateTask
@@ -145,11 +145,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                 />
                 {/* Duración mejorada con conversor */}
                 <DurationTask
-                  editingDuration={editingDuration}
-                  durationInput={durationInput}
-                  setDurationInput={setDurationInput}
                   handleUpdate={handleUpdate}
-                  setEditingDuration={setEditingDuration}
                   ht={ht}
                   canEdit={canEdit}
                   task={task}

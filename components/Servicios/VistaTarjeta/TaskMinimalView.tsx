@@ -37,7 +37,7 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
   const [durationInput, setDurationInput] = useState('');
 
   return (
-    <div {...props} className={`w-full bg-white shadow-lg px-6 py-3 space-y-2  rounded-xl outline ${isSelect ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200"}`}>
+    <div {...props} className={`w-full bg-white shadow-lg px-6 py-3 space-y-2  rounded-xl outline cursor-default ${isSelect ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200"}`}>
       {/* Header reducido con botones de optionsItineraryButtonBox (excepto 'link' y 'flow') */}
       <div className="flex items-center justify-between mb-4">
         <TitleTask
