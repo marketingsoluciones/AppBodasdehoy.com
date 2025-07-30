@@ -60,7 +60,7 @@ export const AssignedTask: FC<Props> = ({ canEdit, task, handleUpdate }) => {
           />
         </div>}
         <PermissionWrapper hasPermission={canEdit}>
-          <div className="flex items-center flex-wrap gap-1 h-[52px] min-h-[26px] overflow-y-auto relative">
+          <div className="flex items-center flex-wrap gap-1 h-[52px] overflow-y-auto relative">
             {(task.responsable || []).map((resp, idx) => {
               const userInfo = GruposResponsablesArry.find((el) => el.title?.toLowerCase() === resp?.toLowerCase()) || [user, event?.detalles_usuario_id, ...(event?.detalles_compartidos_array || [])].find((el) => {
                 const displayName = el?.displayName || el?.email || 'Sin nombre';

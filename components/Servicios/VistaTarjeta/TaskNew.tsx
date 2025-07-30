@@ -229,7 +229,9 @@ export const TaskNew: FC<Props> = memo(({ itinerario, task, view, optionsItinera
     }
     try {
       let apiValue: string;
-      if (['responsable', 'tags', 'attachments'].includes(fieldName)) {
+      if (fieldName === 'hora') {
+        apiValue = value ? "true" : "false";
+      } else if (['responsable', 'tags', 'attachments'].includes(fieldName)) {
         apiValue = JSON.stringify(value || []);
       } else if (fieldName === 'duracion') {
         apiValue = String(value || "0");
@@ -267,13 +269,12 @@ export const TaskNew: FC<Props> = memo(({ itinerario, task, view, optionsItinera
           event.itinerarios_array[f1].tasks[f2].spectatorView = value;
           setEvent({ ...event });
         } else {
-          console.log(100048, new Date(value), apiValue);
           event.itinerarios_array[f1].tasks[f2][fieldName] = value;
           setEvent({ ...event });
         }
       });
       setLocalTask(prev => ({ ...prev, [fieldName]: value }));
-      toast("success", t("Campo actualizado"));
+      !['hora'].includes(fieldName) && toast("success", t("Campo actualizado"));
     } catch (error) {
       console.error('Error al actualizar:', error);
       toast("error", t("Error al actualizar"));

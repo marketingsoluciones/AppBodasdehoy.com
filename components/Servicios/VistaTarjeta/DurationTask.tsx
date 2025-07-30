@@ -2,6 +2,8 @@ import { FC, useState } from 'react';
 import { Task } from '../../../utils/Interfaces';
 import { useTranslation } from 'react-i18next';
 import ClickAwayListener from 'react-click-away-listener';
+import { getDateString } from './DateTask';
+import { X } from 'lucide-react';
 
 interface Props {
   handleUpdate: (field: string, value: any) => Promise<void>;
@@ -15,6 +17,7 @@ export const DurationTask: FC<Props> = ({ handleUpdate, ht, canEdit, task }) => 
   const [editing, setEditing] = useState<boolean>(false);
   const [hours, setHours] = useState<string>('');
   const [minutes, setMinutes] = useState<string>('');
+  const [value, setValue] = useState<string>();
 
   // Función para convertir minutos a formato "01 h 20 m"
   const formatDuration = (totalMinutes: number): string => {
@@ -52,7 +55,7 @@ export const DurationTask: FC<Props> = ({ handleUpdate, ht, canEdit, task }) => 
     <ClickAwayListener onClickAway={() => setEditing(false)}>
       <div onClick={() => {
         if (canEdit) {
-          setEditing(true);
+          task?.hora !== false && setEditing(true);
           // Inicializar los inputs con los valores actuales
           const totalMinutes = task.duracion as number || 0;
           const currentHours = Math.floor(totalMinutes / 60);
@@ -62,12 +65,12 @@ export const DurationTask: FC<Props> = ({ handleUpdate, ht, canEdit, task }) => 
         } else {
           ht();
         }
-      }} className=" h-full flex items-center space-x-1 cursor-pointer">
+      }} className={`h-full flex items-center space-x-1  ${task?.hora !== false && "cursor-pointer"}`}>
         <span className="text-xs text-gray-500">{t('Duración')}</span>
         {editing
-          ? <div className="flex items-center space-x-1">
+          ? <div className="flex items-center rounded px-0.5 border-[1px] border-gray-400 focus:border-gray-400">
             {inputOptions.map((option, index) => (
-              <div key={option.id} className="flex items-center space-x-1">
+              <div key={option.id} className="flex items-center">
                 <input
                   id={option.id}
                   type="number"
@@ -87,6 +90,9 @@ export const DurationTask: FC<Props> = ({ handleUpdate, ht, canEdit, task }) => 
                         setMinutes(value);
                       }
                     }
+                  }}
+                  onFocus={(e) => {
+                    e.target.select();
                   }}
                   onBlur={async () => {
                     const totalMinutes = parseDuration(hours, minutes);
@@ -110,18 +116,32 @@ export const DurationTask: FC<Props> = ({ handleUpdate, ht, canEdit, task }) => 
                   }}
                   placeholder="00"
                   maxLength={2}
-                  className="w-6 px-0.5 py-0.5 border-gray-300 rounded text-xs border-[1px] focus:outline-none focus:ring-0 focus:border-gray-400 text-center"
+                  className="w-[18px] px-0.5 py-0.5 text-xs focus:outline-none focus:ring-0 border-none focus:border-none text-center"
                   autoFocus={index === 0}
                 />
-                <span className="text-xs text-gray-500">{option.accessor === 'hours' ? 'h' : 'm'}</span>
+                <span className="text-xs text-gray-800">{option.accessor === 'hours' ? 'h' : 'm'}</span>
               </div>
             ))}
+            <div onClick={() => {
+              setValue(null);
+              handleUpdate('duracion', null)
+                .then(() => {
+                  setEditing(false);
+                })
+            }} className="-right-[6px] cursor-pointer p-[2px]">
+              <div className='relative group'>
+                <X className="w-3 h-3" />
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
+                  {t('Eliminar duración')}
+                </div>
+              </div>
+            </div>
           </div>
           : <div
-            className={`text-xs ${canEdit ? 'text-gray-800 hover:text-gray-900' : 'text-gray-500'}`}
+            className={`text-xs ${canEdit && task?.hora !== false ? 'text-gray-800 hover:text-gray-900' : 'text-gray-500'}`}
             title={canEdit ? "Haz clic para editar duración" : "No tienes permisos para editar"}
           >
-            {formatDuration(task.duracion as number)}
+            {task?.fecha && task?.hora !== false ? formatDuration(task.duracion as number) : t('Sin duración')}
           </div>
         }
       </div>

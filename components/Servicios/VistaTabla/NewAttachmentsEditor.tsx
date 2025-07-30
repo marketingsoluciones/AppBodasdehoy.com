@@ -326,8 +326,8 @@ export const NewAttachmentsEditor: React.FC<Props> = ({
       {/* Header fijo con título y botón de agregar */}
       <div className="flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500">{t('Archivos adjuntos')}</span>
-          <span className="text-xs text-gray-500">({attachments.length})</span>
+          <span className="text-xs text-gray-700">{t('Archivos adjuntos')}</span>
+          <span className="text-xs text-gray-900">({attachments.length})</span>
           {readOnly && (
             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600">
               <Lock className="w-3 h-3 mr-1" />

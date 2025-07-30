@@ -13,19 +13,26 @@ interface Props {
   ht: () => void;
 }
 
+export const getDateString = (value: Date | string) => {
+  const d = new Date(value);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+export const getTimeString = (value: Date | string) => {
+  const d = new Date(value);
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
+}
+
 export const DateTask: FC<Props> = ({ handleUpdate, canEdit, task, ht }) => {
   const { t } = useTranslation();
   const [editing, setEditing] = useState<boolean>(false);
   const [value, setValue] = useState<string>();
   const [blockUpdate, setBlockUpdate] = useState<boolean>(false);
-
-  const getDateString = (value: Date | string) => {
-    const d = new Date(value);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  }
 
   return (
     <div className="w-[120px] h-full flex items-center">
@@ -34,8 +41,11 @@ export const DateTask: FC<Props> = ({ handleUpdate, canEdit, task, ht }) => {
           <div className="w-full flex items-center relative">
             <div onClick={async () => {
               setValue(null);
-              await handleUpdate('fecha', null)
-              setEditing(false);
+              handleUpdate('fecha', null)
+                .then(() => {
+                  setEditing(false);
+                  handleUpdate('hora', false)
+                })
             }} className="absolute z-10 -right-[6px] cursor-pointer p-[2px]">
               <div className='relative group'>
                 <X className="w-3 h-3" />
@@ -47,21 +57,28 @@ export const DateTask: FC<Props> = ({ handleUpdate, canEdit, task, ht }) => {
             <input
               type="date"
               value={value ? value : task?.fecha ? getDateString(task.fecha) : ''}
-              onChange={async (e) => {
+              onChange={(e) => {
                 setValue(e.currentTarget.value);
                 if (!blockUpdate) {
-                  const value = new Date(new Date(e.currentTarget.value).getTime() + new Date().getTimezoneOffset() * 60000)
+                  const value = task?.hora !== false
+                    ? new Date(`${e.currentTarget.value}T${getTimeString(task.fecha)}`)
+                    : new Date(new Date(e.currentTarget.value).getTime() + new Date().getTimezoneOffset() * 60000)
                   if (typeof value !== "string") {
-                    await handleUpdate('fecha', value)
+                    handleUpdate('fecha', value)
                   }
                 }
                 setBlockUpdate(false);
               }}
-              onKeyDown={async (e) => {
+              onKeyDown={(e) => {
                 setBlockUpdate(true);
                 if (e.key === 'Enter') {
-                  await handleUpdate('fecha', new Date(new Date(e.currentTarget.value).getTime() + new Date().getTimezoneOffset() * 60000))
-                  setEditing(false);
+                  const value = task?.hora !== false
+                    ? new Date(`${e.currentTarget.value}T${getTimeString(task.fecha)}`)
+                    : new Date(new Date(e.currentTarget.value).getTime() + new Date().getTimezoneOffset() * 60000)
+                  handleUpdate('fecha', value)
+                    .then(() => {
+                      setEditing(false);
+                    })
                 } else if (e.key === 'Escape') {
                   setEditing(false);
                 }

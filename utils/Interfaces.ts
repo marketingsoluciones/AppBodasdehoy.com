@@ -154,7 +154,7 @@ export interface ColumnOrder {
 export interface Task {
     _id: string
     fecha: Date
-    //hora: string // No es un campo separado, se incluye en fecha
+    hora?: boolean // Campo que determina si se muestra la hora en la tarjeta
     icon: string
     descripcion: string
     responsable: string[]
@@ -175,7 +175,6 @@ export interface Task {
 
 export interface TaskDateTimeAsString extends Omit<Task, 'fecha'> {
     fecha: string
-    hora: string
 }
 
 

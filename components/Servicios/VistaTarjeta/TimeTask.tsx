@@ -4,6 +4,7 @@ import { formatTime } from './TaskNewUtils';
 import { Clock, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ClickAwayListener from 'react-click-away-listener';
+import { getDateString, getTimeString } from './DateTask';
 
 
 interface TimeTaskProps {
@@ -20,57 +21,57 @@ export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task, ht })
   const [editing, setEditing] = useState<boolean>(false);
   const [blockUpdate, setBlockUpdate] = useState<boolean>(false);
 
-  const getDateString = (value: Date | string) => {
-    const d = new Date(value);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  }
-
-  const getTimeString = (value: Date | string) => {
-    const d = new Date(value);
-    const hours = String(d.getHours()).padStart(2, '0');
-    const minutes = String(d.getMinutes()).padStart(2, '0');
-    return `${hours}:${minutes}`;
-  }
-
   return (
     <div className="w-[100px] h-full flex items-center">
       {editing
-        ? <ClickAwayListener onClickAway={() => setEditing(false)}>
+        ? <ClickAwayListener onClickAway={() => {
+          setEditing(false)
+          setValue(null);
+        }}>
           <div className="w-full flex items-center relative">
-            <div onClick={async () => {
+            <div onClick={() => {
               setValue(null);
-              // await handleUpdate('fecha', null)
-              setEditing(false);
+              if (task?.hora !== false) {
+                handleUpdate('hora', false)
+                  .then(() => {
+                    setEditing(false);
+                  })
+                const value = new Date(`${getDateString(task.fecha)}T00:00`)
+                handleUpdate('fecha', value)
+              } else {
+                setEditing(false);
+              }
             }} className="absolute z-10 -right-[6px] cursor-pointer p-[2px]">
               <div className='relative group'>
                 <X className="w-3 h-3" />
                 <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
-                  {t('Eliminar fecha')}
+                  {t('Eliminar hora')}
                 </div>
               </div>
             </div>
             <input
               type="time"
-              value={value ? value : task?.fecha ? getTimeString(task.fecha) : ''}
-              onChange={async (e) => {
+              value={value ? value : task?.hora !== false ? getTimeString(task.fecha) : undefined}
+              defaultValue={'00:00'}
+              onChange={(e) => {
                 setValue(e.currentTarget.value);
                 if (!blockUpdate) {
                   const value = new Date(`${getDateString(task.fecha)}T${e.currentTarget.value}`)
-                  console.log(100047, value);
+                  setValue(e.currentTarget.value);
                   if (typeof value !== "string") {
-                    await handleUpdate('fecha', value)
+                    handleUpdate('hora', true)
+                    handleUpdate('fecha', value)
                   }
                 }
                 setBlockUpdate(false);
               }}
-              onKeyDown={async (e) => {
+              onKeyDown={(e) => {
                 setBlockUpdate(true);
                 if (e.key === 'Enter') {
-                  await handleUpdate('fecha', new Date(`${getDateString(task.fecha)}T${e.currentTarget.value}`))
-                  setEditing(false);
+                  handleUpdate('fecha', new Date(`${getDateString(task?.fecha)}T${e.currentTarget.value}`))
+                    .then(() => {
+                      setEditing(false);
+                    })
                 } else if (e.key === 'Escape') {
                   setEditing(false);
                 }
@@ -81,12 +82,14 @@ export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task, ht })
           </div>
         </ClickAwayListener>
         : <div onClick={() => {
-          canEdit ? setEditing(true) : ht()
+          if (task?.fecha) {
+            canEdit ? setEditing(true) : ht()
+          }
         }}
-          title={canEdit ? "Haz clic para editar hora" : "No tienes permisos para editar"} className={`flex items-center space-x-1 ${canEdit ? 'cursor-pointer text-gray-700 hover:text-gray-900' : 'cursor-default text-gray-600'}`}>
+          title={canEdit ? "Haz clic para editar hora" : "No tienes permisos para editar"} className={`flex items-center space-x-1 ${canEdit && task?.fecha ? 'cursor-pointer text-gray-700 hover:text-gray-900' : task?.fecha ? `text-gray-00` : 'text-gray-400'}`}>
           <Clock className="w-4 h-4" />
           <span className={`flex items-center space-x-1 text-xs`}>
-            {task.fecha ? formatTime(task.fecha) : t('Sin hora')}
+            {task?.fecha && task?.hora !== false ? formatTime(task.fecha) : t('Sin hora')}
           </span>
         </div>
       }
