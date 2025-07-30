@@ -55,13 +55,13 @@ export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task, ht })
             <input
               type="time"
               value={value ? value : task?.fecha ? getTimeString(task.fecha) : ''}
-              onChange={(e) => {
+              onChange={async (e) => {
                 setValue(e.currentTarget.value);
                 if (!blockUpdate) {
                   const value = new Date(`${getDateString(task.fecha)}T${e.currentTarget.value}`)
                   console.log(100047, value);
                   if (typeof value !== "string") {
-                    handleUpdate('fecha', value)
+                    await handleUpdate('fecha', value)
                   }
                 }
                 setBlockUpdate(false);

@@ -47,12 +47,12 @@ export const DateTask: FC<Props> = ({ handleUpdate, canEdit, task, ht }) => {
             <input
               type="date"
               value={value ? value : task?.fecha ? getDateString(task.fecha) : ''}
-              onChange={(e) => {
+              onChange={async (e) => {
                 setValue(e.currentTarget.value);
                 if (!blockUpdate) {
                   const value = new Date(new Date(e.currentTarget.value).getTime() + new Date().getTimezoneOffset() * 60000)
                   if (typeof value !== "string") {
-                    handleUpdate('fecha', value)
+                    await handleUpdate('fecha', value)
                   }
                 }
                 setBlockUpdate(false);

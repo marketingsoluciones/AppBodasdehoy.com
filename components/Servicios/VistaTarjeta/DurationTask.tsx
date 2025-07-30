@@ -33,6 +33,21 @@ export const DurationTask: FC<Props> = ({ handleUpdate, ht, canEdit, task }) => 
     return h * 60 + m;
   };
 
+  const inputOptions = [
+    {
+      id: 'hours-input',
+      max: '99',
+      accessor: 'hours',
+      nextTab: 'minutes-input',
+    },
+    {
+      id: 'minutes-input',
+      max: '59',
+      accessor: 'minutes',
+      nextTab: 'hours-input',
+    }
+  ]
+
   return (
     <ClickAwayListener onClickAway={() => setEditing(false)}>
       <div onClick={() => {
@@ -51,71 +66,56 @@ export const DurationTask: FC<Props> = ({ handleUpdate, ht, canEdit, task }) => 
         <span className="text-xs text-gray-500">{t('Duración')}</span>
         {editing
           ? <div className="flex items-center space-x-1">
-            <input
-              type="number"
-              min="0"
-              max="99"
-              value={hours}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (value === '' || (parseInt(value) >= 0 && parseInt(value) <= 99)) {
-                  setHours(value);
-                }
-              }}
-              onBlur={() => {
-                const totalMinutes = parseDuration(hours, minutes);
-                handleUpdate('duracion', totalMinutes);
-              }}
-              onKeyDown={async (e) => {
-                if (e.key === 'Enter') {
-                  const totalMinutes = parseDuration(hours, minutes);
-                  await handleUpdate('duracion', totalMinutes);
-                  setEditing(false);
-                } else if (e.key === 'Escape') {
-                  setEditing(false);
-                } else if (e.key === 'Tab' && e.shiftKey === false) {
-                  e.preventDefault();
-                  document.getElementById('minutes-input')?.focus();
-                }
-              }}
-              placeholder="00"
-              //px-1 py-[1px] border-none rounded text-xs focus:ring-gray-400 focus:ring-[1px] focus:outline-none transition
-              className="w-8 px-1 py-0.5 border-gray-300 rounded text-xs border-[1px] focus:outline-none focus:ring-0 focus:border-gray-400 text-center"
-              autoFocus
-            />
-            <span className="text-xs text-gray-500">h</span>
-            <input
-              id="minutes-input"
-              type="number"
-              min="0"
-              max="59"
-              value={minutes}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (value === '' || (parseInt(value) >= 0 && parseInt(value) <= 59)) {
-                  setMinutes(value);
-                }
-              }}
-              onBlur={() => {
-                const totalMinutes = parseDuration(hours, minutes);
-                handleUpdate('duracion', totalMinutes);
-              }}
-              onKeyDown={async (e) => {
-                if (e.key === 'Enter') {
-                  const totalMinutes = parseDuration(hours, minutes);
-                  await handleUpdate('duracion', totalMinutes);
-                  setEditing(false);
-                } else if (e.key === 'Escape') {
-                  setEditing(false);
-                } else if (e.key === 'Tab' && e.shiftKey) {
-                  e.preventDefault();
-                  (document.querySelector('input[type="number"]') as HTMLInputElement)?.focus();
-                }
-              }}
-              placeholder="00"
-              className="w-8 px-1 py-0.5 border-gray-300 rounded text-xs border-[1px] focus:outline-none focus:ring-0 focus:border-gray-400 text-center"
-            />
-            <span className="text-xs text-gray-500">m</span>
+            {inputOptions.map((option, index) => (
+              <div key={option.id} className="flex items-center space-x-1">
+                <input
+                  id={option.id}
+                  type="number"
+                  min="0"
+                  max={option.max}
+                  value={option.accessor === 'hours' ? hours : minutes}
+                  onChange={(e) => {
+                    if (e.target.value.length > 2) {
+                      e.target.value = e.target.value.slice(1, 3);
+                    }
+                    const value = e.target.value;
+                    const maxValue = parseInt(option.max);
+                    if (value === '' || (parseInt(value) >= 0 && parseInt(value) <= maxValue)) {
+                      if (option.accessor === 'hours') {
+                        setHours(value);
+                      } else {
+                        setMinutes(value);
+                      }
+                    }
+                  }}
+                  onBlur={async () => {
+                    const totalMinutes = parseDuration(hours, minutes);
+                    await handleUpdate('duracion', totalMinutes);
+                  }}
+                  onKeyDown={async (e) => {
+                    if (e.key === 'Enter') {
+                      const totalMinutes = parseDuration(hours, minutes);
+                      await handleUpdate('duracion', totalMinutes);
+                      setEditing(false);
+                    } else if (e.key === 'Escape') {
+                      setEditing(false);
+                    } else if (e.key === 'Tab' && e.shiftKey === false) {
+                      e.preventDefault();
+                      document.getElementById(option.nextTab)?.focus();
+                    } else if (e.key === 'Tab' && e.shiftKey) {
+                      e.preventDefault();
+                      const prevIndex = index === 0 ? inputOptions.length - 1 : index - 1;
+                      document.getElementById(inputOptions[prevIndex].id)?.focus();
+                    }
+                  }}
+                  placeholder="00"
+                  maxLength={2}
+                  className="w-6 px-0.5 py-0.5 border-gray-300 rounded text-xs border-[1px] focus:outline-none focus:ring-0 focus:border-gray-400 text-center"
+                  autoFocus={index === 0}
+                />
+                <span className="text-xs text-gray-500">{option.accessor === 'hours' ? 'h' : 'm'}</span>
+              </div>
+            ))}
           </div>
           : <div
             className={`text-xs ${canEdit ? 'text-gray-800 hover:text-gray-900' : 'text-gray-500'}`}
