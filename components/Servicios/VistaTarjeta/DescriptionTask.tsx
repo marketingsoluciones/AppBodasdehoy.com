@@ -103,7 +103,7 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate }) => {
                 setEditing(true);
               }
             }}
-            title={canEdit && "Haz clic para editar descripción"}
+            title={canEdit && "Haz doble clic para editar descripción"}
           >
             {task.tips
               ? <div

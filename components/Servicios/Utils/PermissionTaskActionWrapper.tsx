@@ -9,19 +9,13 @@ interface PermissionTaskActionWrapperProps {
   task?: Task
   isTaskVisible?: boolean
   optionsItineraryButtonBox?: OptionsSelect[]
-  showEditTask?: any
-  setShowEditTask?: any
-  itinerario?: any
 }
 
-export const PermissionTaskActionWrapper: FC<PermissionTaskActionWrapperProps> = ({ 
+export const PermissionTaskActionWrapper: FC<PermissionTaskActionWrapperProps> = ({
   children,
   task,
   isTaskVisible,
   optionsItineraryButtonBox = [],
-  showEditTask,
-  setShowEditTask,
-  itinerario
 }) => {
   const { user } = AuthContextProvider()
   const { event } = EventContextProvider()
@@ -63,7 +57,7 @@ export const PermissionTaskActionWrapper: FC<PermissionTaskActionWrapperProps> =
 
   // Si solo tiene permisos de vista, modificar las opciones disponibles
   const hasViewAccess = isAllowedRouter() && !isAllowed()
-  
+
   if (hasViewAccess) {
     // Filtrar opciones para usuarios con solo permisos de vista
     const filteredOptions = optionsItineraryButtonBox.filter(option => {

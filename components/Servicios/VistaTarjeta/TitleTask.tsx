@@ -5,20 +5,25 @@ import { Field, Form, Formik } from "formik";
 import { useTranslation } from "react-i18next";
 import { SelectIcon } from "../Utils/SelectIcon";
 import { Task } from "../../../utils/Interfaces";
+import { init } from "react-facebook-pixel";
 
-interface Props {
+interface TitleTaskProps {
   canEdit: boolean;
   handleUpdate: (field: string, value: any) => Promise<void>;
   task: Task;
 }
 
-export const TitleTask: FC<Props> = ({ canEdit, handleUpdate, task }) => {
+export const TitleTask: FC<TitleTaskProps> = ({ canEdit, handleUpdate, task }) => {
   const { t } = useTranslation();
-  const [value, setValue] = useState<string>(task.descripcion);
+  const [value, setValue] = useState<string>();
   const [editing, setEditing] = useState<boolean>(false);
-  const [showIconSelector, setShowIconSelector] = useState<boolean>(false);
-  const [tempIcon, setTempIcon] = useState<string>(task.icon);
+  const [tempIcon, setTempIcon] = useState<string>();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    setValue(null);
+    setTempIcon(null);
+  }, [task, task.icon])
 
   const handleIconChange = (newIcon: string) => {
     if (!canEdit) {
@@ -27,7 +32,6 @@ export const TitleTask: FC<Props> = ({ canEdit, handleUpdate, task }) => {
     }
     setTempIcon(newIcon);
     handleUpdate('icon', newIcon);
-    setShowIconSelector(false);
   };
 
   const adjustTextareaHeight = () => {
@@ -46,45 +50,20 @@ export const TitleTask: FC<Props> = ({ canEdit, handleUpdate, task }) => {
   return (
     <div className="flex h-[44px] items-center space-x-2 flex-1">
       <div className="flex items-center justify-center">
-        {showIconSelector
-          ? <NewSelectIcon
-            value={tempIcon}
-            onChange={handleIconChange}
-            onClose={() => setShowIconSelector(false)}
+        <div className={`w-11 h-11 flex items-center justify-center rounded-full transition-colors ${canEdit ? ' hover:bg-gray-100 cursor-pointer' : 'cursor-default'
+          }`}
+          title={canEdit && "Cambiar ícono"} >
+          <SelectIcon
+            task={task}
+            value={tempIcon ? tempIcon : task.icon}
+            className="w-8 h-8"
+            handleChange={(value) => {
+              console.log(100046, value);
+              handleIconChange(value);
+            }}
+            data={task}
           />
-          : <button
-            onClick={() => canEdit ? setShowIconSelector(false) : null}
-            className={`w-11 h-11 flex items-center justify-center rounded-full transition-colors ${canEdit ? ' hover:bg-gray-100 cursor-pointer' : 'cursor-default'
-              }`}
-            title={canEdit ? "Cambiar ícono" : "No tienes permisos para editar"} >
-            <Formik
-              initialValues={{ icon: tempIcon }}
-              onSubmit={(values) => {
-                handleIconChange(values.icon);
-              }}
-            >
-              {({ setFieldValue }) => (
-                <Form>
-                  <Field name="icon">
-                    {({ field }) => (
-                      <SelectIcon
-                        {...field}
-                        name="icon"
-                        value={field.value || tempIcon}
-                        className="w-8 h-8"
-                        handleChange={(value) => {
-                          setFieldValue('icon', value);
-                          handleIconChange(value);
-                        }}
-                        data={task}
-                      />
-                    )}
-                  </Field>
-                </Form>
-              )}
-            </Formik>
-          </button>
-        }
+        </div>
       </div>
       <div className="flex-1 h-10 relative flex items-center">
         {editing
@@ -92,7 +71,7 @@ export const TitleTask: FC<Props> = ({ canEdit, handleUpdate, task }) => {
             ref={textareaRef}
             rows={1}
             id="descripcion"
-            value={value}
+            value={value ? value : task.descripcion || ''}
             onChange={(e) => {
               setValue(e.target.value);
               adjustTextareaHeight();
@@ -124,7 +103,9 @@ export const TitleTask: FC<Props> = ({ canEdit, handleUpdate, task }) => {
           : <div
             className={`text-[17px] font-semibold flex-1 leading-[1.1] line-clamp-2 text-gray-700 ${canEdit ? 'cursor-pointer hover:text-gray-900' : ''
               }`}
-            onClick={() => canEdit ? setEditing(true) : null}
+            onClick={() => {
+              canEdit ? setEditing(true) : null
+            }}
             title={canEdit ? "Haz clic para editar" : "No tienes permisos para editar"}
           >
             {task.descripcion || t('Sin título')}

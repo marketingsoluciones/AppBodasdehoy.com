@@ -17,6 +17,7 @@ import { DurationTask } from './DurationTask';
 import { IntegrateButtonsBox } from './IntegrateButtonsBox';
 import { ItineraryButtonBox } from './ItineraryButtonBox';
 import { StatusPriorityTask } from './StatusPriorityTask';
+import { AuthContextProvider } from '../../../context';
 
 interface TaskFullViewProps {
   task: Task;
@@ -56,10 +57,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
   const { t } = useTranslation();
   const { event } = EventContextProvider();
   const [previousCountComments, setPreviousCountComments] = useState(0);
-
-  // Estados locales para la vista completa
-  const [editingDuration, setEditingDuration] = useState(false);
-  const [durationInput, setDurationInput] = useState('');
+  const { user } = AuthContextProvider();
 
   // Auto-scroll al agregar nuevos comentarios
   useEffect(() => {
@@ -203,7 +201,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                         item={comment}
                         tempPastedAndDropFiles={tempPastedAndDropFiles}
                       />
-                      {canEdit &&
+                      {comment.uid === user?.uid &&
                         <button
                           onClick={() => handleDeleteComment(comment._id)}
                           className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-white rounded shadow-sm hover:bg-gray-100"

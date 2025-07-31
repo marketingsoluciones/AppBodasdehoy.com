@@ -90,19 +90,23 @@ const IconArray = [
     },
 ]
 
-export const SelectIcon = ({ handleChange, ...props }) => {
-    const { config, geoInfo, user } = AuthContextProvider()
+export const SelectIcon = ({ handleChange, task, ...props }) => {
+    const { user } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
-    const [field] = useField({ name: props.name ?? '' })
+    const [field, setField] = props.name ? useField({ name: props.name ?? '' }) : useState({})
     const [selectIcon, setSelectIcon] = useState()
     const [openIcon, setOpenIcon] = useState(false)
     const [isAllowed, ht] = useAllowed()
     const r = useRouter()
 
     useEffect(() => {
+        setField({ value: task.icon })
+    }, [task.icon])
+
+    useEffect(() => {
         if (selectIcon) {
             /* helpers?.setValue(selectIcon) */
-            handleChange("icon", selectIcon)
+            handleChange(selectIcon)
         }
     }, [selectIcon])
 
