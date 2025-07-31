@@ -202,7 +202,7 @@ const AuthProvider = ({ children }) => {
       const devDomain = ["bodasdehoy", "eventosplanificador", "eventosorganizador", "vivetuboda", "champagne-events", "annloevents", "miamorcitocorazon", "eventosintegrados", "ohmaratilano", "corporativozr", "theweddingplanner"]
       const devSubdomain = [undefined, "invitado", "ticket"]
 
-      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[4]
+      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[3]
       const subdomainDevelop = idx === -1 && devSubdomain[0]
       /*--------------------------------------------------------------------*/
       resp = developments.filter(elem => elem.name === domainDevelop)[0]
