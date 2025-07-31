@@ -45,11 +45,20 @@ const Slug: FC<props> = (props) => {
 export default Slug;
 
 const ServicesVew = (props) => {
-
   const router = useRouter()
   const { event, setEvent } = EventContextProvider()
   const { user, setUser, verificationDone } = AuthContextProvider()
   const [tempPastedAndDropFiles, setTempPastedAndDropFiles] = useState<TempPastedAndDropFile[]>([]);
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    if (!isMounted) {
+      setIsMounted(true)
+    }
+    return () => {
+      setIsMounted(false)
+    }
+  }, [])
 
   useEffect(() => {
     if (verificationDone) {
@@ -96,7 +105,7 @@ const ServicesVew = (props) => {
           </div>
         </div >
         <div className="w-full  mt-4">
-          <TaskNew
+          {isMounted && <TaskNew
             task={event?.itinerarios_array[0]?.tasks[0]}
             itinerario={event?.itinerarios_array[0]}
             view={"cards"}
@@ -104,7 +113,7 @@ const ServicesVew = (props) => {
             onClick={() => { }}
             tempPastedAndDropFiles={tempPastedAndDropFiles}
             setTempPastedAndDropFiles={setTempPastedAndDropFiles}
-          />
+          />}
         </div>
       </motion.div>
       <style jsx>

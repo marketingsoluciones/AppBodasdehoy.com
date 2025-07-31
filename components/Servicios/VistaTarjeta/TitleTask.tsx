@@ -23,7 +23,7 @@ export const TitleTask: FC<TitleTaskProps> = ({ canEdit, handleUpdate, task }) =
   useEffect(() => {
     setValue(null);
     setTempIcon(null);
-  }, [task, task.icon])
+  }, [task, task?.icon])
 
   const handleIconChange = (newIcon: string) => {
     if (!canEdit) {
@@ -55,10 +55,9 @@ export const TitleTask: FC<TitleTaskProps> = ({ canEdit, handleUpdate, task }) =
           title={canEdit && "Cambiar ícono"} >
           <SelectIcon
             task={task}
-            value={tempIcon ? tempIcon : task.icon}
+            value={tempIcon ? tempIcon : task?.icon}
             className="w-8 h-8"
             handleChange={(value) => {
-              console.log(100046, value);
               handleIconChange(value);
             }}
             data={task}
@@ -71,16 +70,14 @@ export const TitleTask: FC<TitleTaskProps> = ({ canEdit, handleUpdate, task }) =
             ref={textareaRef}
             rows={1}
             id="descripcion"
-            value={value ? value : task.descripcion || ''}
+            value={value ? value : task?.descripcion || ''}
             onChange={(e) => {
               setValue(e.target.value);
               adjustTextareaHeight();
             }}
             onBlur={(e) => {
-              // if (e.currentTarget.value.trim() !== task.descripcion) {
               handleUpdate('descripcion', e.currentTarget.value.trim());
               setValue(e.currentTarget.value.trim());
-              // }
               setEditing(false);
             }}
             onKeyDown={(e) => {
@@ -108,7 +105,7 @@ export const TitleTask: FC<TitleTaskProps> = ({ canEdit, handleUpdate, task }) =
             }}
             title={canEdit ? "Haz clic para editar" : "No tienes permisos para editar"}
           >
-            {task.descripcion || t('Sin título')}
+            {task?.descripcion || t('Sin título')}
           </div>
         }
       </div>

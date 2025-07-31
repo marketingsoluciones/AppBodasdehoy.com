@@ -100,8 +100,8 @@ export const SelectIcon = ({ handleChange, task, ...props }) => {
     const r = useRouter()
 
     useEffect(() => {
-        setField({ value: task.icon })
-    }, [task.icon])
+        setField({ value: task?.icon })
+    }, [task?.icon])
 
     useEffect(() => {
         if (selectIcon) {

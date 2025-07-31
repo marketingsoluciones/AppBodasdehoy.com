@@ -160,7 +160,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
             />
             {/* Adjuntos mejorados */}
             <NewAttachmentsEditor
-              attachments={task.attachments || []}
+              attachments={task?.attachments || []}
               onUpdate={(files) => handleUpdate('attachments', files)}
               taskId={task?._id}
               eventId={event?._id}
