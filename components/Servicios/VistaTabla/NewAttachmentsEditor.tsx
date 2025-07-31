@@ -441,17 +441,16 @@ export const NewAttachmentsEditor: React.FC<Props> = ({
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => handleDownload(file)}
-                    className="p-1 text-gray-500 hover:text-primary rounded"
+                    className="p-1 text-gray-500 hover:text-gray-900 rounded"
                     title={t('Descargar')}
                     disabled={deletingFiles.includes(file.name)}
                   >
                     <Download className="w-3.5 h-3.5" />
                   </button>
-
                   {!readOnly && (
                     <button
                       onClick={() => handleDelete(file)}
-                      className="p-1 text-gray-500 hover:text-red-500 rounded"
+                      className="p-1 text-gray-500 hover:text-gray-900 rounded"
                       title={t('Eliminar')}
                       disabled={deletingFiles.includes(file.name)}
                     >

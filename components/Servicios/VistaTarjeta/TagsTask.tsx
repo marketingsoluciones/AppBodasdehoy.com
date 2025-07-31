@@ -11,12 +11,10 @@ interface Props {
 }
 export const TagsTask: FC<Props> = ({ canEdit, task, handleUpdate }) => {
   const { t } = useTranslation();
-  const [isAllowed, ht] = useAllowed()
   const [editing, setEditing] = useState<boolean>(false);
 
   const handleAddTag = (newTag: string) => {
     if (!canEdit) {
-      ht();
       return;
     }
     const updatedTags = [...(task.tags || []), newTag];
@@ -26,7 +24,6 @@ export const TagsTask: FC<Props> = ({ canEdit, task, handleUpdate }) => {
 
   const handleRemoveTag = (tagToRemove: string) => {
     if (!canEdit) {
-      ht();
       return;
     }
     const updatedTags = (task.tags || []).filter(tag => tag !== tagToRemove);

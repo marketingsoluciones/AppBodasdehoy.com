@@ -113,7 +113,7 @@ export const SelectIcon = ({ handleChange, ...props }) => {
                     onClick={() => {
                         ["/public-card/servicios", "/public-Itinerary"].includes(window?.location?.pathname) ?
                             null :
-                            !isAllowed() ? ht() :
+                            !isAllowed() ? null :
                                 ["/itinerario"].includes(window?.location?.pathname) ?
                                     user?.uid === event?.usuario_id ?
                                         setOpenIcon(!openIcon) :
@@ -122,9 +122,9 @@ export const SelectIcon = ({ handleChange, ...props }) => {
                                     setOpenIcon(!openIcon)
 
                     }} {...props}>
-{IconArray.find((elem) => elem?.title === field?.value)?.icon ?? <span className="text-gray-400">?</span>}
+                    {IconArray.find((elem) => elem?.title === field?.value)?.icon ?? <span className="text-gray-400">?</span>}
                 </div >
-                : <div className={` ${ ["/public-card/servicios", "/public-Itinerary"].includes(window?.location?.pathname) ? "" : "cursor-pointer hover:text-gray-800"} w-full h-full flex items-center justify-center text-gray-600  `}
+                : <div className={` ${["/public-card/servicios", "/public-Itinerary"].includes(window?.location?.pathname) ? "" : "cursor-pointer hover:text-gray-800"} w-full h-full flex items-center justify-center text-gray-600  `}
                     onClick={() => {
                         ["/public-card/servicios", "/public-Itinerary"].includes(window?.location?.pathname) ?
                             null :

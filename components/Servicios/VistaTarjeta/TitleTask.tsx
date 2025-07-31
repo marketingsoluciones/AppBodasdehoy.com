@@ -8,12 +8,11 @@ import { Task } from "../../../utils/Interfaces";
 
 interface Props {
   canEdit: boolean;
-  ht: () => void;
   handleUpdate: (field: string, value: any) => Promise<void>;
   task: Task;
 }
 
-export const TitleTask: FC<Props> = ({ canEdit, ht, handleUpdate, task }) => {
+export const TitleTask: FC<Props> = ({ canEdit, handleUpdate, task }) => {
   const { t } = useTranslation();
   const [value, setValue] = useState<string>(task.descripcion);
   const [editing, setEditing] = useState<boolean>(false);
@@ -23,7 +22,7 @@ export const TitleTask: FC<Props> = ({ canEdit, ht, handleUpdate, task }) => {
 
   const handleIconChange = (newIcon: string) => {
     if (!canEdit) {
-      ht();
+      null;
       return;
     }
     setTempIcon(newIcon);
@@ -45,51 +44,48 @@ export const TitleTask: FC<Props> = ({ canEdit, ht, handleUpdate, task }) => {
   }, [editing, value]);
 
   return (
-    <div className="flex items-center space-x-2 flex-1">
-      <PermissionWrapper hasPermission={canEdit}>
-        <div className="flex items-center justify-center">
-          {showIconSelector
-            ? <NewSelectIcon
-              value={tempIcon}
-              onChange={handleIconChange}
-              onClose={() => setShowIconSelector(false)}
-            />
-            : <button
-              onClick={() => canEdit ? setShowIconSelector(true) : ht()}
-              className={`w-12 h-11 flex items-center justify-center rounded-full transition-colors ${canEdit ? 'hover:bg-gray-100 cursor-pointer' : 'opacity-60 cursor-not-allowed'
-                }`}
-              title={canEdit ? "Cambiar ícono" : "No tienes permisos para editar"}
+    <div className="flex h-[44px] items-center space-x-2 flex-1">
+      <div className="flex items-center justify-center">
+        {showIconSelector
+          ? <NewSelectIcon
+            value={tempIcon}
+            onChange={handleIconChange}
+            onClose={() => setShowIconSelector(false)}
+          />
+          : <button
+            onClick={() => canEdit ? setShowIconSelector(false) : null}
+            className={`w-11 h-11 flex items-center justify-center rounded-full transition-colors ${canEdit ? ' hover:bg-gray-100 cursor-pointer' : 'cursor-default'
+              }`}
+            title={canEdit ? "Cambiar ícono" : "No tienes permisos para editar"} >
+            <Formik
+              initialValues={{ icon: tempIcon }}
+              onSubmit={(values) => {
+                handleIconChange(values.icon);
+              }}
             >
-              <Formik
-                initialValues={{ icon: tempIcon }}
-                onSubmit={(values) => {
-                  handleIconChange(values.icon);
-                }}
-              >
-                {({ setFieldValue }) => (
-                  <Form>
-                    <Field name="icon">
-                      {({ field }) => (
-                        <SelectIcon
-                          {...field}
-                          name="icon"
-                          value={field.value || tempIcon}
-                          className="w-8 h-8"
-                          handleChange={(value) => {
-                            setFieldValue('icon', value);
-                            handleIconChange(value);
-                          }}
-                          data={task}
-                        />
-                      )}
-                    </Field>
-                  </Form>
-                )}
-              </Formik>
-            </button>
-          }
-        </div>
-      </PermissionWrapper>
+              {({ setFieldValue }) => (
+                <Form>
+                  <Field name="icon">
+                    {({ field }) => (
+                      <SelectIcon
+                        {...field}
+                        name="icon"
+                        value={field.value || tempIcon}
+                        className="w-8 h-8"
+                        handleChange={(value) => {
+                          setFieldValue('icon', value);
+                          handleIconChange(value);
+                        }}
+                        data={task}
+                      />
+                    )}
+                  </Field>
+                </Form>
+              )}
+            </Formik>
+          </button>
+        }
+      </div>
       <div className="flex-1 h-10 relative flex items-center">
         {editing
           ? <textarea
@@ -126,9 +122,9 @@ export const TitleTask: FC<Props> = ({ canEdit, ht, handleUpdate, task }) => {
             autoFocus
           />
           : <div
-            className={`text-[17px] font-semibold flex-1 leading-[1.1] line-clamp-2 text-gray-700 ${canEdit ? 'cursor-pointer hover:text-gray-900' : 'cursor-default opacity-80'
+            className={`text-[17px] font-semibold flex-1 leading-[1.1] line-clamp-2 text-gray-700 ${canEdit ? 'cursor-pointer hover:text-gray-900' : ''
               }`}
-            onClick={() => canEdit ? setEditing(true) : ht()}
+            onClick={() => canEdit ? setEditing(true) : null}
             title={canEdit ? "Haz clic para editar" : "No tienes permisos para editar"}
           >
             {task.descripcion || t('Sin título')}

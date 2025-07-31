@@ -36,7 +36,7 @@ export const StatusPriorityTask: FC<StatusPriorityTaskProps> = ({
         <div className="relative">
           <button
             onClick={() => canEdit ? setShowStatusDropdown(!showStatusDropdown) : ht()}
-            className={`px-3 py-1 rounded text-white text-sm flex items-center space-x-1 ${currentStatus.color} ${canEdit ? 'hover:opacity-80 cursor-pointer' : 'opacity-70 cursor-not-allowed'
+            className={`px-3 py-1 rounded text-white text-sm flex items-center space-x-1 ${currentStatus.color} ${canEdit ? 'hover:opacity-80 cursor-pointer' : 'cursor-default'
               }`}
             title={canEdit ? "Cambiar estado" : "No tienes permisos para editar"}
           >
@@ -71,7 +71,7 @@ export const StatusPriorityTask: FC<StatusPriorityTaskProps> = ({
         <div className="relative">
           <button
             onClick={() => canEdit ? setShowPriorityDropdown(!showPriorityDropdown) : ht()}
-            className={`px-3 py-1 rounded text-white text-sm flex items-center space-x-1 ${currentPriority.color} ${canEdit ? 'hover:opacity-80 cursor-pointer' : 'opacity-70 cursor-not-allowed'
+            className={`px-3 py-1 rounded text-white text-sm flex items-center space-x-1 ${currentPriority.color} ${canEdit ? 'hover:opacity-80 cursor-pointer' : 'cursor-default'
               }`}
             title={canEdit ? "Cambiar prioridad" : "No tienes permisos para editar"}
           >

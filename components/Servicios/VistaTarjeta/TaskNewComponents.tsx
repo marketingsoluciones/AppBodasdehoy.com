@@ -33,10 +33,10 @@ export const PermissionWrapper: FC<{
 }> = ({ hasPermission, showTooltip = true, tooltipMessage, children, className = "" }) => {
   const { t } = useTranslation();
   const defaultMessage = t("No tienes permisos para editar");
-  
+
   if (!hasPermission) {
     return (
-      <div className={`relative ${className}`}>
+      <div className={`bg-red h-full relative ${className}`}>
         <div className="opacity-60 pointer-events-none">
           {children}
         </div>
@@ -50,5 +50,7 @@ export const PermissionWrapper: FC<{
       </div>
     );
   }
-  return <div className={className}>{children}</div>;
+  return <div className={className}>
+    {children}
+  </div>;
 };

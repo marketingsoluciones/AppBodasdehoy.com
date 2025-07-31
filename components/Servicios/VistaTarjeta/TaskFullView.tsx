@@ -81,12 +81,11 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
     <div {...props} className="w-full bg-white rounded-lg shadow-lg cursor-default">
       <div id="task-container" className={`flex h-[553px] rounded-xl outline ${props?.isSelect ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200"}`}>
         {/* Panel principal */}
-        <div id='container-left' className="flex-1 flex flex-col h-full px-2">
+        <div id='container-left' className="flex-1 flex flex-col h-full">
           {/* Header */}
           <div className="w-full flex items-center justify-between py-0.5 border-b border-gray-200">
             <TitleTask
               canEdit={canEdit}
-              ht={ht}
               handleUpdate={handleUpdate}
               task={task}
             />
@@ -135,18 +134,15 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                   handleUpdate={handleUpdate}
                   canEdit={canEdit}
                   task={task}
-                  ht={ht}
                 />
                 <TimeTask
                   handleUpdate={handleUpdate}
                   canEdit={canEdit}
                   task={task}
-                  ht={ht}
                 />
                 {/* Duración mejorada con conversor */}
                 <DurationTask
                   handleUpdate={handleUpdate}
-                  ht={ht}
                   canEdit={canEdit}
                   task={task}
                 />
@@ -163,7 +159,6 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               canEdit={canEdit}
               task={task}
               handleUpdate={handleUpdate}
-              ht={ht}
             />
             {/* Adjuntos mejorados */}
             <NewAttachmentsEditor

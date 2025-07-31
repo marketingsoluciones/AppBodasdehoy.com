@@ -26,7 +26,7 @@ export const AssignedTask: FC<Props> = ({ canEdit, task, handleUpdate }) => {
 
 
   return (
-    <div className="flex items-start space-x-2 w-full relative">
+    <div className="flex items-center space-x-2 w-full relative">
       <div className="flex flex-col gap-1">
         <div className="flex items-center space-x-2">
           <User className="w-4 h-4 text-gray-500" />
@@ -59,26 +59,24 @@ export const AssignedTask: FC<Props> = ({ canEdit, task, handleUpdate }) => {
             }}
           />
         </div>}
-        <PermissionWrapper hasPermission={canEdit}>
-          <div className="flex items-center flex-wrap gap-1 h-[52px] overflow-y-auto relative">
-            {(task.responsable || []).map((resp, idx) => {
-              const userInfo = GruposResponsablesArry.find((el) => el.title?.toLowerCase() === resp?.toLowerCase()) || [user, event?.detalles_usuario_id, ...(event?.detalles_compartidos_array || [])].find((el) => {
-                const displayName = el?.displayName || el?.email || 'Sin nombre';
-                return displayName.toLowerCase() === resp?.toLowerCase();
-              }
-              );
-              return (
-                <div key={idx} className="flex items-center bg-gray-200 rounded-full pl-1 pr-2 py-0.5 gap-1">
-                  <div className="w-5 h-5 rounded-full overflow-hidden">
-                    <ImageAvatar user={userInfo} size="md" />
-                  </div>
-                  <span className="text-xs">{resp}</span>
+        <div className="flex items-center flex-wrap gap-1 h-[52px] overflow-y-auto relative">
+          {(task.responsable || []).map((resp, idx) => {
+            const userInfo = GruposResponsablesArry.find((el) => el.title?.toLowerCase() === resp?.toLowerCase()) || [user, event?.detalles_usuario_id, ...(event?.detalles_compartidos_array || [])].find((el) => {
+              const displayName = el?.displayName || el?.email || 'Sin nombre';
+              return displayName.toLowerCase() === resp?.toLowerCase();
+            }
+            );
+            return (
+              <div key={idx} className="flex items-center bg-gray-200 rounded-full pl-1 pr-2 py-0.5 gap-1">
+                <div className="w-5 h-5 rounded-full overflow-hidden">
+                  <ImageAvatar user={userInfo} size="md" />
                 </div>
-              );
-            })}
+                <span className="text-xs">{resp}</span>
+              </div>
+            );
+          })}
 
-          </div>
-        </PermissionWrapper>
+        </div>
       </div>
     </div>
   )

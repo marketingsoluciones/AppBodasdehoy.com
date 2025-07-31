@@ -19,7 +19,7 @@ interface IconData {
 const IconArray: IconData[] = [
   {
     title: "Anillos",
-    icon: <Anillos  className="w-full h-full" />,
+    icon: <Anillos className="w-full h-full" />,
     category: "ceremonia",
     keywords: ["anillos", "boda", "compromiso", "matrimonio"]
   },
@@ -175,12 +175,12 @@ export const NewSelectIcon: React.FC<Props> = ({ value, onChange, onClose }) => 
 
   // Filter icons based on search and category
   const filteredIcons = IconArray.filter(icon => {
-    const matchesSearch = searchTerm === '' || 
+    const matchesSearch = searchTerm === '' ||
       icon.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       icon.keywords.some(keyword => keyword.toLowerCase().includes(searchTerm.toLowerCase()));
-    
+
     const matchesCategory = selectedCategory === 'todos' || icon.category === selectedCategory;
-    
+
     return matchesSearch && matchesCategory;
   });
 
@@ -192,7 +192,7 @@ export const NewSelectIcon: React.FC<Props> = ({ value, onChange, onClose }) => 
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onKeyDown={handleKeyDown}>
-      <div 
+      <div
         ref={modalRef}
         className="bg-white rounded-lg shadow-2xl w-[600px] max-h-[80vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
       >
@@ -229,11 +229,10 @@ export const NewSelectIcon: React.FC<Props> = ({ value, onChange, onClose }) => 
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
-                  selectedCategory === category.id
+                className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${selectedCategory === category.id
                     ? 'bg-primary text-white shadow-sm'
                     : 'bg-white text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-gray-200'
-                }`}
+                  }`}
               >
                 {category.name}
               </button>
@@ -251,18 +250,16 @@ export const NewSelectIcon: React.FC<Props> = ({ value, onChange, onClose }) => 
                   onClick={() => onChange(iconData.title)}
                   onMouseEnter={() => setHoveredIcon(iconData.title)}
                   onMouseLeave={() => setHoveredIcon(null)}
-                  className={`relative group aspect-square p-3 rounded-lg transition-all duration-200 ${
-                    value === iconData.title
+                  className={`relative group aspect-square p-3 rounded-lg transition-all duration-200 ${value === iconData.title
                       ? 'bg-primary text-white shadow-lg scale-105'
                       : 'bg-gray-50 hover:bg-primary hover:scale-105 text-white'
-                  }`}
+                    }`}
                 >
-                  <div className={`w-full h-full transition-colors ${
-                    value === iconData.title ? 'text-white' : 'text-primary'
-                  }`}>
+                  <div className={`w-full h-full transition-colors ${value === iconData.title ? 'text-white' : 'text-primary'
+                    }`}>
                     {iconData.icon}
                   </div>
-                  
+
                   {/* Tooltip */}
                   {hoveredIcon === iconData.title && (
                     <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap z-10">
@@ -272,7 +269,7 @@ export const NewSelectIcon: React.FC<Props> = ({ value, onChange, onClose }) => 
                       </div>
                     </div>
                   )}
-                  
+
                   {/* Selected indicator */}
                   {value === iconData.title && (
                     <div className="absolute top-1 right-1 w-2 h-2 bg-white rounded-full"></div>
@@ -302,7 +299,7 @@ export const NewSelectIcon: React.FC<Props> = ({ value, onChange, onClose }) => 
                 </span>
               )}
             </div>
-{/*             <div className="flex gap-2">
+            {/*             <div className="flex gap-2">
               <button
                 onClick={onClose}
                 className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"

@@ -11,11 +11,10 @@ interface TimeTaskProps {
   handleUpdate: (field: string, value: any) => Promise<void>;
   canEdit: boolean;
   task: Task;
-  ht: () => void;
 }
 
 
-export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task, ht }) => {
+export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task }) => {
   const { t } = useTranslation();
   const [value, setValue] = useState<string>();
   const [editing, setEditing] = useState<boolean>(false);
@@ -83,11 +82,11 @@ export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task, ht })
         </ClickAwayListener>
         : <div onClick={() => {
           if (task?.fecha) {
-            canEdit ? setEditing(true) : ht()
+            canEdit && setEditing(true)
           }
         }}
-          title={canEdit ? "Haz clic para editar hora" : "No tienes permisos para editar"} className={`flex items-center space-x-1 ${canEdit && task?.fecha ? 'cursor-pointer text-gray-700 hover:text-gray-900' : task?.fecha ? `text-gray-00` : 'text-gray-400'}`}>
-          <Clock className="w-4 h-4" />
+          title={canEdit && "Haz clic para editar hora"} className={`flex items-center space-x-1 ${canEdit && task?.fecha ? 'cursor-pointer hover:text-gray-900' : task?.fecha ? `text-gray-00` : ''}`}>
+          <Clock className="w-4 h-4 text-gray-600" />
           <span className={`flex items-center space-x-1 text-xs`}>
             {task?.fecha && task?.hora !== false ? formatTime(task.fecha) : t('Sin hora')}
           </span>

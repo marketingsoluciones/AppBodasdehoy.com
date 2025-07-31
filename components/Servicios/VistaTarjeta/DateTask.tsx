@@ -10,7 +10,6 @@ interface Props {
   handleUpdate: (field: string, value: any) => Promise<void>;
   canEdit: boolean;
   task: Task;
-  ht: () => void;
 }
 
 export const getDateString = (value: Date | string) => {
@@ -28,7 +27,7 @@ export const getTimeString = (value: Date | string) => {
   return `${hours}:${minutes}`;
 }
 
-export const DateTask: FC<Props> = ({ handleUpdate, canEdit, task, ht }) => {
+export const DateTask: FC<Props> = ({ handleUpdate, canEdit, task }) => {
   const { t } = useTranslation();
   const [editing, setEditing] = useState<boolean>(false);
   const [value, setValue] = useState<string>();
@@ -89,15 +88,13 @@ export const DateTask: FC<Props> = ({ handleUpdate, canEdit, task, ht }) => {
           </div>
         </ClickAwayListener>
         : <span
-          className={`text-xs ${canEdit ? 'cursor-pointer text-gray-700 hover:text-gray-900' : 'cursor-default text-gray-600'}`}
+          className={`text-xs ${canEdit ? 'cursor-pointer text-gray-700 hover:text-gray-900' : 'cursor-default'}`}
           onClick={() => {
             if (canEdit) {
               setEditing(true);
-            } else {
-              ht();
             }
           }}
-          title={canEdit ? "Haz clic para editar fecha" : "No tienes permisos para editar"}
+          title={canEdit && "Haz clic para editar fecha"}
         >
           {task.fecha ? formatDate({ locale: navigator.language, date: task.fecha }) : t('Sin fecha')}
         </span>

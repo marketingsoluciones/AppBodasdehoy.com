@@ -35,9 +35,8 @@ interface Props {
   canEdit: boolean;
   task: any;
   handleUpdate: (field: string, value: any) => Promise<void>;
-  ht: () => void;
 }
-export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, ht }) => {
+export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate }) => {
   const { t } = useTranslation();
   const [editing, setEditing] = useState<boolean>(false);
   const [customDescription, setCustomDescription] = useState(task?.tips || '');
@@ -102,11 +101,9 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, ht }) 
               if (canEdit) {
                 setCustomDescription(task.tips || '');
                 setEditing(true);
-              } else {
-                ht();
               }
             }}
-            title={canEdit ? "Haz clic para editar descripción" : "No tienes permisos para editar"}
+            title={canEdit && "Haz clic para editar descripción"}
           >
             {task.tips
               ? <div

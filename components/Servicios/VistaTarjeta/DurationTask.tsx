@@ -7,12 +7,11 @@ import { X } from 'lucide-react';
 
 interface Props {
   handleUpdate: (field: string, value: any) => Promise<void>;
-  ht: () => void;
   canEdit: boolean;
   task: Task;
 }
 
-export const DurationTask: FC<Props> = ({ handleUpdate, ht, canEdit, task }) => {
+export const DurationTask: FC<Props> = ({ handleUpdate, canEdit, task }) => {
   const { t } = useTranslation();
   const [editing, setEditing] = useState<boolean>(false);
   const [hours, setHours] = useState<string>('');
@@ -62,10 +61,8 @@ export const DurationTask: FC<Props> = ({ handleUpdate, ht, canEdit, task }) => 
           const currentMinutes = totalMinutes % 60;
           setHours(currentHours.toString());
           setMinutes(currentMinutes.toString());
-        } else {
-          ht();
         }
-      }} className={`h-full flex items-center space-x-1  ${task?.hora !== false && "cursor-pointer"}`}>
+      }} className={`h-full flex items-center space-x-1  ${(task?.hora !== false && canEdit) && "cursor-pointer"}`}>
         <span className="text-xs text-gray-500">{t('Duración')}</span>
         {editing
           ? <div className="flex items-center rounded px-0.5 border-[1px] border-gray-400 focus:border-gray-400">
@@ -138,7 +135,7 @@ export const DurationTask: FC<Props> = ({ handleUpdate, ht, canEdit, task }) => 
             </div>
           </div>
           : <div
-            className={`text-xs ${canEdit && task?.hora !== false ? 'text-gray-800 hover:text-gray-900' : 'text-gray-500'}`}
+            className={`text-xs ${canEdit && task?.hora !== false ? 'text-gray-800 hover:text-gray-900' : ''}`}
             title={canEdit ? "Haz clic para editar duración" : "No tienes permisos para editar"}
           >
             {task?.fecha && task?.hora !== false ? formatDuration(task.duracion as number) : t('Sin duración')}
