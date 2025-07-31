@@ -76,7 +76,7 @@ const EventsGroupProvider = ({ children }) => {
   }, [])
 
   useEffect(() => {
-    if (!["servicios", "credic-card"].includes(router?.route.split("/")[1]) || (user?.displayName !== "anonymous" && user?.displayName !== "guest")) {
+    if (!["servicios", "credic-card", "public-card"].includes(router?.route.split("/")[1]) || (user?.displayName !== "anonymous" && user?.displayName !== "guest")) {
       if (verificationDone) {
         if (user) {
           fetchApiEventos({

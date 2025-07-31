@@ -68,9 +68,7 @@ export const TaskNew: FC<Props> = memo(({ itinerario, task, view, optionsItinera
   const [previousCountComments, setPreviousCountComments] = useState(0);
   const [comments, setComments] = useState<Comment[]>([]);
   // Verificar permisos
-  const hasEditPermission = isAllowed();
-  const canEdit = hasEditPermission || task.responsable?.includes(user?.uid);
-
+  const canEdit = !user?.uid ? false : isAllowed() || task.responsable?.includes(user?.uid);
   // Estados para la edición
   const [localTask, setLocalTask] = useState<TaskFormValues>({
     _id: task?._id,
