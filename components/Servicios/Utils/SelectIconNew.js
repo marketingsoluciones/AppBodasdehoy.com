@@ -1,4 +1,3 @@
-import { useField } from "formik";
 import { AddIcon, Anillos, FuegosArtificiales, Baile, Baile2, Brindis, Carro, Cena, Cocteles, Comida, Fotografo, Iglesia, Maquillaje, Merienda, Novios, Salida, SesionFotos, Sol, Torta, Vestido, Dress } from "../../icons"
 import { Modal } from "../../Utils/Modal";
 import { IconList } from "../../Itinerario/MicroComponente/IconList";
@@ -90,10 +89,10 @@ const IconArray = [
     },
 ]
 
-export const SelectIcon = ({ handleChange, ...props }) => {
+export const SelectIconNew = ({ handleChange, ...props }) => {
+    console.log(props)
     const { config, geoInfo, user } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
-    const [field] = useField({ name: props.name ?? '' })
     const [selectIcon, setSelectIcon] = useState()
     const [openIcon, setOpenIcon] = useState(false)
     const [isAllowed, ht] = useAllowed()
@@ -108,12 +107,12 @@ export const SelectIcon = ({ handleChange, ...props }) => {
 
     return (
         <>
-            {field?.value
+            {false
                 ? <div className={`${["/public-card/servicios", "/public-Itinerary"].includes(window?.location?.pathname) ? "" : "cursor-pointer hover:text-gray-800"} w-full h-full flex items-center justify-center text-gray-600 `}
                     onClick={() => {
                         ["/public-card/servicios", "/public-Itinerary"].includes(window?.location?.pathname) ?
                             null :
-                            !isAllowed() ? ht() :
+                            !isAllowed() ? null :
                                 ["/itinerario"].includes(window?.location?.pathname) ?
                                     user?.uid === event?.usuario_id ?
                                         setOpenIcon(!openIcon) :

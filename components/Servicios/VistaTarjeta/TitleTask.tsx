@@ -3,7 +3,7 @@ import { PermissionWrapper } from './TaskNewComponents';
 import { NewSelectIcon } from "../VistaTabla/NewSelectIcon";
 import { Field, Form, Formik } from "formik";
 import { useTranslation } from "react-i18next";
-import { SelectIcon } from "../Utils/SelectIcon";
+import { SelectIconNew } from "../Utils/SelectIconNew";
 import { Task } from "../../../utils/Interfaces";
 import { init } from "react-facebook-pixel";
 
@@ -53,7 +53,7 @@ export const TitleTask: FC<TitleTaskProps> = ({ canEdit, handleUpdate, task }) =
         <div className={`w-11 h-11 flex items-center justify-center rounded-full transition-colors ${canEdit ? ' hover:bg-gray-100 cursor-pointer' : 'cursor-default'
           }`}
           title={canEdit && "Cambiar ícono"} >
-          <SelectIcon
+          <SelectIconNew
             task={task}
             value={tempIcon ? tempIcon : task?.icon}
             className="w-8 h-8"
