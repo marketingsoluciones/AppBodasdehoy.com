@@ -428,7 +428,6 @@ export const TaskNew: FC<Props> = memo(({ itinerario, task, view, optionsItinera
           itinerario={itinerario}
           canEdit={canEdit}
           handleUpdate={handleUpdate}
-          ht={ht}
           optionsItineraryButtonBox={optionsItineraryButtonBox}
           isSelect={isSelect}
         />

@@ -10,13 +10,14 @@ import { TitleTask } from './TitleTask';
 import { AssignedTask } from './AssignedTask';
 import { TagsTask } from './TagsTask';
 import { DescriptionTask } from './DescriptionTask';
+import { useAllowed } from "../../../hooks/useAllowed";
+
 
 interface TaskMinimalViewProps {
   task: Task;
   itinerario: Itinerary;
   canEdit: boolean;
   handleUpdate: (field: string, value: any) => Promise<void>;
-  ht: () => void;
   optionsItineraryButtonBox?: OptionsSelect[];
   isSelect: boolean;
 }
@@ -26,7 +27,6 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
   itinerario,
   canEdit,
   handleUpdate,
-  ht,
   optionsItineraryButtonBox,
   isSelect,
   ...props
@@ -35,6 +35,7 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
   const { event } = EventContextProvider();
   const [editingDuration, setEditingDuration] = useState(false);
   const [durationInput, setDurationInput] = useState('');
+  const [isAllowed, ht] = useAllowed()
 
   return (
     <div {...props} className={`w-full bg-white shadow-lg px-6 py-3 space-y-2  rounded-xl outline cursor-default ${isSelect ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200"}`}>
@@ -42,7 +43,6 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
       <div className="flex items-center justify-between mb-4">
         <TitleTask
           canEdit={canEdit}
-          ht={ht}
           handleUpdate={handleUpdate}
           task={task}
         />
@@ -182,7 +182,6 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
         canEdit={canEdit}
         task={task}
         handleUpdate={handleUpdate}
-        ht={ht}
       />
       {/* Adjuntos */}
       <div>

@@ -93,7 +93,7 @@ const IconArray = [
 export const SelectIcon = ({ handleChange, task, ...props }) => {
     const { user } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
-    const [field, setField] = props.name ? useField({ name: props.name ?? '' }) : useState({})
+    const [field, setField] = useField({ name: props.name ?? '' })
     const [selectIcon, setSelectIcon] = useState()
     const [openIcon, setOpenIcon] = useState(false)
     const [isAllowed, ht] = useAllowed()
