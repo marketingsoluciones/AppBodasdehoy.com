@@ -54,7 +54,7 @@ export const DurationTask: FC<Props> = ({ handleUpdate, canEdit, task }) => {
     <ClickAwayListener onClickAway={() => setEditing(false)}>
       <div onClick={() => {
         if (canEdit) {
-          task?.hora !== false && setEditing(true);
+          task?.horaActiva !== false && setEditing(true);
           // Inicializar los inputs con los valores actuales
           const totalMinutes = task.duracion as number || 0;
           const currentHours = Math.floor(totalMinutes / 60);
@@ -62,7 +62,7 @@ export const DurationTask: FC<Props> = ({ handleUpdate, canEdit, task }) => {
           setHours(currentHours.toString());
           setMinutes(currentMinutes.toString());
         }
-      }} className={`h-full flex items-center space-x-1  ${(task?.hora !== false && canEdit) && "cursor-pointer"}`}>
+      }} className={`h-full flex items-center space-x-1  ${(task?.horaActiva !== false && canEdit) && "cursor-pointer"}`}>
         <span className="text-xs text-gray-500">{t('Duración')}</span>
         {editing
           ? <div className="flex items-center rounded px-0.5 border-[1px] border-gray-400 focus:border-gray-400">
@@ -135,10 +135,10 @@ export const DurationTask: FC<Props> = ({ handleUpdate, canEdit, task }) => {
             </div>
           </div>
           : <div
-            className={`text-xs ${canEdit && task?.hora !== false ? 'text-gray-800 hover:text-gray-900' : ''}`}
+            className={`text-xs ${canEdit && task?.horaActiva !== false ? 'text-gray-800 hover:text-gray-900' : ''}`}
             title={canEdit ? "Haz clic para editar duración" : "No tienes permisos para editar"}
           >
-            {task?.fecha && task?.hora !== false ? formatDuration(task.duracion as number) : t('Sin duración')}
+            {task?.fecha && task?.horaActiva !== false ? formatDuration(task.duracion as number) : t('Sin duración')}
           </div>
         }
       </div>

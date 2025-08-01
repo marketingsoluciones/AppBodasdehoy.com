@@ -90,7 +90,6 @@ const IconArray = [
 ]
 
 export const SelectIconNew = ({ handleChange, ...props }) => {
-    console.log(props)
     const { config, geoInfo, user } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
     const [selectIcon, setSelectIcon] = useState()

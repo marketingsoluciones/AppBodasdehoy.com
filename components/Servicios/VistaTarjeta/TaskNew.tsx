@@ -26,7 +26,7 @@ interface TaskFormValues {
   _id: string;
   icon: string;
   fecha: string | Date;
-  hora: string;
+  horaActiva: boolean;
   duracion: string | number;
   tags: string[];
   descripcion: string;
@@ -74,7 +74,7 @@ export const TaskNew: FC<Props> = memo(({ itinerario, task, view, optionsItinera
     _id: task?._id,
     icon: task?.icon || '',
     fecha: task?.fecha || new Date(),
-    hora: '',
+    horaActiva: task?.horaActiva || false,
     duracion: task?.duracion || 30,
     tags: task?.tags || [],
     descripcion: task?.descripcion || '',
@@ -95,8 +95,8 @@ export const TaskNew: FC<Props> = memo(({ itinerario, task, view, optionsItinera
       _id: task?._id,
       icon: task?.icon || '',
       fecha: task?.fecha || new Date(),
-      hora: '',
       duracion: task?.duracion || 30,
+      horaActiva: task?.horaActiva || false,
       tags: Array.isArray(task?.tags) ? task?.tags : [],
       descripcion: task?.descripcion || '',
       responsable: Array.isArray(task?.responsable) ? task?.responsable : [],
@@ -227,7 +227,7 @@ export const TaskNew: FC<Props> = memo(({ itinerario, task, view, optionsItinera
     }
     try {
       let apiValue: string;
-      if (fieldName === 'hora') {
+      if (fieldName === 'horaActiva') {
         apiValue = value ? "true" : "false";
       } else if (['responsable', 'tags', 'attachments'].includes(fieldName)) {
         apiValue = JSON.stringify(value || []);
@@ -272,7 +272,7 @@ export const TaskNew: FC<Props> = memo(({ itinerario, task, view, optionsItinera
         }
       });
       setLocalTask(prev => ({ ...prev, [fieldName]: value }));
-      !['hora'].includes(fieldName) && toast("success", t("Campo actualizado"));
+      !['horaActiva'].includes(fieldName) && toast("success", t("Campo actualizado"));
     } catch (error) {
       console.error('Error al actualizar:', error);
       toast("error", t("Error al actualizar"));
@@ -294,7 +294,6 @@ export const TaskNew: FC<Props> = memo(({ itinerario, task, view, optionsItinera
           itinerarioID: itinerario._id,
           descripcion: `${localTask.descripcion} (copia)`,
           fecha: fecha.toISOString(),
-          hora: formatTime(fecha),
           duracion: localTask.duracion || 30,
           tags: JSON.stringify(localTask.tags || []),
           responsable: JSON.stringify(localTask.responsable || []),

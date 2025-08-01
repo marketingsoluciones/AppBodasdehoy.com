@@ -132,7 +132,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     {
       value: "share",
       icon: <LiaLinkSolid className="w-5 h-5" />,
-      title: "Link calendario",
+      title: "Link calendario1",
       vew: "tasks"
     },
     {

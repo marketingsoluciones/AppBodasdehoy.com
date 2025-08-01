@@ -43,7 +43,7 @@ export const DateTask: FC<Props> = ({ handleUpdate, canEdit, task }) => {
               handleUpdate('fecha', null)
                 .then(() => {
                   setEditing(false);
-                  handleUpdate('hora', false)
+                  handleUpdate('horaActiva', false)
                 })
             }} className="absolute z-10 -right-[6px] cursor-pointer p-[2px]">
               <div className='relative group'>
@@ -59,7 +59,7 @@ export const DateTask: FC<Props> = ({ handleUpdate, canEdit, task }) => {
               onChange={(e) => {
                 setValue(e.currentTarget.value);
                 if (!blockUpdate) {
-                  const value = task?.hora !== false
+                  const value = task?.horaActiva !== false
                     ? new Date(`${e.currentTarget.value}T${getTimeString(task.fecha)}`)
                     : new Date(new Date(e.currentTarget.value).getTime() + new Date().getTimezoneOffset() * 60000)
                   if (typeof value !== "string") {
@@ -71,7 +71,7 @@ export const DateTask: FC<Props> = ({ handleUpdate, canEdit, task }) => {
               onKeyDown={(e) => {
                 setBlockUpdate(true);
                 if (e.key === 'Enter') {
-                  const value = task?.hora !== false
+                  const value = task?.horaActiva !== false
                     ? new Date(`${e.currentTarget.value}T${getTimeString(task.fecha)}`)
                     : new Date(new Date(e.currentTarget.value).getTime() + new Date().getTimezoneOffset() * 60000)
                   handleUpdate('fecha', value)

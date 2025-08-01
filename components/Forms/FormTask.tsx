@@ -42,10 +42,10 @@ const FormTask: FC<propsFormTask> = ({ showEditTask, setShowEditTask, itinerario
   const m = f.getMonth() + 1
   const d = f.getDate()
 
-  const initialValues: TaskDateTimeAsString & { duracionUnidad?: string, hora?: boolean } = {
+  const initialValues: TaskDateTimeAsString & { duracionUnidad?: string, horaActiva?: boolean } = {
     ...showEditTask?.values,
     fecha: f ? `${y}-${m < 10 ? "0" : ""}${m}-${d < 10 ? "0" : ""}${d}` : "",
-    hora: true,
+    horaActiva: true,
     duracion: initialDuration,
     duracionUnidad: durationUnit,
   };

@@ -431,6 +431,7 @@ export const queries = {
       _id
       fecha
       hora
+      horaActiva
       icon
       descripcion
       responsable
@@ -498,6 +499,7 @@ export const queries = {
         _id
         fecha
         hora
+        horaActiva
         icon
         descripcion
         responsable
@@ -543,6 +545,7 @@ export const queries = {
         _id
         fecha
         hora
+        horaActiva
         icon
         descripcion
         responsable
@@ -601,6 +604,7 @@ export const queries = {
           _id
           fecha
           hora
+          horaActiva
           icon
           descripcion
           responsable
@@ -857,6 +861,7 @@ export const queries = {
           _id
           fecha
           hora
+          horaActiva
           icon
           descripcion
           responsable
@@ -1782,6 +1787,7 @@ export const queries = {
           _id
           fecha
           hora
+          horaActiva
           icon
           descripcion
           responsable

@@ -98,7 +98,7 @@ export const TitleTask: FC<TitleTaskProps> = ({ canEdit, handleUpdate, task }) =
             autoFocus
           />
           : <div
-            className={`text-[17px] font-semibold flex-1 leading-[1.1] line-clamp-2 text-gray-700 ${canEdit ? 'cursor-pointer hover:text-gray-900' : ''
+            className={`text-[17px] font-semibold flex-1 leading-[1.1] line-clamp-2 break-all text-gray-700 ${canEdit ? 'cursor-pointer hover:text-gray-900' : ''
               }`}
             onClick={() => {
               canEdit ? setEditing(true) : null

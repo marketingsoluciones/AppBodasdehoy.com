@@ -154,7 +154,8 @@ export interface ColumnOrder {
 export interface Task {
     _id: string
     fecha: Date
-    hora?: boolean // Campo que determina si se muestra la hora en la tarjeta
+    hora?: string
+    horaActiva?: boolean
     icon: string
     descripcion: string
     responsable: string[]

@@ -30,8 +30,8 @@ export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task }) => 
           <div className="w-full flex items-center relative">
             <div onClick={() => {
               setValue(null);
-              if (task?.hora !== false) {
-                handleUpdate('hora', false)
+              if (task?.horaActiva !== false) {
+                handleUpdate('horaActiva', false)
                   .then(() => {
                     setEditing(false);
                   })
@@ -50,7 +50,7 @@ export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task }) => 
             </div>
             <input
               type="time"
-              value={value ? value : task?.hora !== false ? getTimeString(task.fecha) : undefined}
+              value={value ? value : task?.horaActiva !== false ? getTimeString(task.fecha) : undefined}
               defaultValue={'00:00'}
               onChange={(e) => {
                 setValue(e.currentTarget.value);
@@ -58,7 +58,7 @@ export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task }) => 
                   const value = new Date(`${getDateString(task.fecha)}T${e.currentTarget.value}`)
                   setValue(e.currentTarget.value);
                   if (typeof value !== "string") {
-                    handleUpdate('hora', true)
+                    handleUpdate('horaActiva', true)
                     handleUpdate('fecha', value)
                   }
                 }
@@ -88,7 +88,7 @@ export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task }) => 
           title={canEdit && "Haz clic para editar hora"} className={`flex items-center space-x-1 ${canEdit && task?.fecha ? 'cursor-pointer hover:text-gray-900' : task?.fecha ? `text-gray-00` : ''}`}>
           <Clock className="w-4 h-4 text-gray-600" />
           <span className={`flex items-center space-x-1 text-xs`}>
-            {task?.fecha && task?.hora !== false ? formatTime(task.fecha) : t('Sin hora')}
+            {task?.fecha && task?.horaActiva !== false ? formatTime(task.fecha) : t('Sin hora')}
           </span>
         </div>
       }
