@@ -16,7 +16,7 @@ import { GrDocumentPdf } from "react-icons/gr";
 import { LiaLinkSolid } from "react-icons/lia";
 import ClickAwayListener from "react-click-away-listener";
 import { CopiarLink } from "../../Utils/Compartir";
-import { generatePdf, GeneratePdfOptions } from "../../../pages/api/services/pdfGenerator";
+
 import axios from "axios";
 
 interface props {
@@ -53,37 +53,21 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
 
     const downloadPdf = async () => {
         try {
-            console.log("aqui")
             setLoading(true);
-            const pdfOptions: GeneratePdfOptions = {
-                html: `${window.location.origin}/public-itinerary/itinerary-${event._id}-${itinerario._id}`,
-                filename: `${event.nombre} ${itinerario.title}`.replace(/ /g, "_"),
-                format: "letter"
-            }
-            await axios.post('/api/generate-pdf', pdfOptions);
-            // console.log(response.data);
-            setLoading(false);
-            // setLoading(true)
-            // const result = await fetchApiEventos({
-            //     query: queries.generatePdf,
-            //     variables: {
-            //         url: `${window.location.origin}/event/itinerary-${event._id}-${itinerario._id}`,
-            //         nameFile
-            //     },
-            //     domain: config.domain
-            // })
-            // if (result) {
-            //     setLoading(false)
-            //     const link = document.createElement('a');
-            //     link.href = result as string;
-            //     link.download = pdfOptions.filename;
-            //     link.target = '_blank';
-            //     document.body.appendChild(link);
-            //     link.click();
-            //     document.body.removeChild(link);
-            // }
+            const response = await axios.post('/api/generate-pdf', {
+                html: `${window.location.origin}/public-itinerary/itinerary-${event._id}-${itinerario._id}`
+            });
+            const blob = new Blob([Uint8Array.from(atob(response.data.base64), c => c.charCodeAt(0))], { type: 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${event.nombre} ${itinerario.title}`.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, "_") + '.pdf';
+            link.click();
+            window.URL.revokeObjectURL(url);
         } catch (error) {
-            console.log(error)
+            toast("error", "Error al generar PDF");
+        } finally {
+            setLoading(false);
         }
     }
 
