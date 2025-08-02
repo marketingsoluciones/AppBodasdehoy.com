@@ -3,11 +3,14 @@ import { generatePdf } from './services/pdfGenerator';
 import axios from 'axios';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { html } = req.body;
+  const { url, format } = req.body;
   try {
     const response = await axios.post(
-      "https://api-convert.bodasdehoy.com/html-to-pdf",
-      { html },
+      "https://api-convert.bodasdehoy.com/url-to-pdf",
+      {
+        url,
+        format
+      },
       { responseType: "arraybuffer" }
     );
     const base64 = btoa(
