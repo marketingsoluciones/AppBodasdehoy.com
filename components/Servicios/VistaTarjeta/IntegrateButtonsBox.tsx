@@ -1,19 +1,22 @@
-import { Task } from '../../../utils/Interfaces';
+import { Itinerary, Task } from '../../../utils/Interfaces';
 import { useToast } from "../../../hooks/useToast";
 import { useTranslation } from 'react-i18next';
 import { Eye, EyeOff, Copy, Link } from 'lucide-react';
 import { FC } from 'react';
+import { handleCopyLink } from './TaskNewUtils';
+import { EventContextProvider } from '../../../context';
 
 interface Props {
   task: Task;
   handleUpdate: (field: string, value: any) => Promise<void>;
   handleDuplicate: () => Promise<void>;
-  handleCopyLink: (task: Task, type: "task" | "calendar") => void;
+  itinerario: Itinerary
 }
 
-export const IntegrateButtonsBox: FC<Props> = ({ task, handleUpdate, handleDuplicate, handleCopyLink }) => {
+export const IntegrateButtonsBox: FC<Props> = ({ task, handleUpdate, handleDuplicate, itinerario }) => {
   const { t } = useTranslation();
   const toast = useToast();
+  const { event } = EventContextProvider()
 
   return (
     <div className="flex items-center bg-gray-50 rounded-lg p-0.5 mr-2">
@@ -65,7 +68,7 @@ export const IntegrateButtonsBox: FC<Props> = ({ task, handleUpdate, handleDupli
       {/* Compartir enlace - Con feedback visual al copiar */}
       <div className="relative group">
         <button
-          onClick={() => handleCopyLink(task, "task")}
+          onClick={() => handleCopyLink({ task, type: "task", event, navigator, toast, t, document, itinerario })}
           className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-md transition-all duration-200"
           title={t('Copiar enlace')}
         >

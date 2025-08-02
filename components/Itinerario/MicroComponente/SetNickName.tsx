@@ -1,7 +1,13 @@
-import { useState } from "react"
+import { FC, useState, Dispatch, SetStateAction } from "react"
 
-export const SetNickname = ({ setShowModalNickname, setNicknameUnregistered }) => {
+interface Props {
+    setShowModalNickname: (value: boolean) => void
+    setNicknameUnregistered: Dispatch<SetStateAction<string>>
+}
+
+export const SetNickname: FC<Props> = ({ setShowModalNickname, setNicknameUnregistered }) => {
     const [value, setValue] = useState<string>()
+
 
     return (
         <div className="flex flex-col space-y-2 w-full">

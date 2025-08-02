@@ -319,24 +319,24 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
               setValue(value)
             }}
             modules={modules}
-            className=''
+            className='comment-editor'
           />}
         </div>
       </div>
       <style>{`
-      .custom-style-editor{
+      .comment-editor .custom-style-editor{
         #background: red !important;
         min-height: 16px !important;
         max-height: 98px !important;
         word-break: break-all;
       }
-      .ql-editor{
+      .comment-editor .ql-editor{
         scrollbar-width: none;
       }
-      .ql-tooltip{
-        transform: translateY(-320%) !important;
+      .comment-editor .ql-tooltip{
+        transform: translateY(-220%) !important;
       }
-      .ql-tooltip-arrow{
+      .comment-editor .ql-tooltip-arrow{
         visibility: hidden ;
       }
       `}</style>

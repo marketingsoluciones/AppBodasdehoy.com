@@ -2,7 +2,6 @@ import { FC, useState } from 'react';
 import { Task } from '../../../utils/Interfaces';
 import { useTranslation } from 'react-i18next';
 import ClickAwayListener from 'react-click-away-listener';
-import { getDateString } from './DateTask';
 import { X } from 'lucide-react';
 
 interface Props {

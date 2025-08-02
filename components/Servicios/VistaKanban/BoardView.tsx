@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, Dispatch, SetStateAction } from 'react';
 import { DndContext, PointerSensor, useSensor, useSensors, closestCorners, } from '@dnd-kit/core';
 import { SortableContext, horizontalListSortingStrategy, } from '@dnd-kit/sortable';
 import { Task, Itinerary, Event as EventInterface } from '../../../utils/Interfaces';
@@ -32,7 +32,7 @@ interface BoardViewProps {
   setTempPastedAndDropFiles?: any;
 }
 
-export const BoardView: React.FC<BoardViewProps> = ({ data, itinerario, event, selectTask, setSelectTask, onTaskUpdate, onTaskDelete, onTaskCreate, setEvent, tempPastedAndDropFiles, setTempPastedAndDropFiles, }) => {
+export const BoardView: React.FC<BoardViewProps> = ({ data, itinerario, event, selectTask, setSelectTask, onTaskUpdate, onTaskDelete, onTaskCreate, setEvent, tempPastedAndDropFiles, setTempPastedAndDropFiles }) => {
 
   const { config } = AuthContextProvider();
   const { t } = useTranslation();
@@ -46,7 +46,7 @@ export const BoardView: React.FC<BoardViewProps> = ({ data, itinerario, event, s
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showSubTaskModal, setShowSubTaskModal] = useState<{ show: boolean; parentTaskId?: string; }>({ show: false });
-  
+
 
   const sensors = useSensors(
     useSensor(PointerSensor, {

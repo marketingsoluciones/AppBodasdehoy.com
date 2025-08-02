@@ -66,13 +66,14 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate }) => {
             && <div className="absolute z-10 w-full bg-white border border-green rounded-lg overflow-hidden">
               <div className="h-[300px] overflow-y-auto">
                 <ReactQuill
+                  id="editor-description"
                   value={customDescription}
                   onChange={setCustomDescription}
                   modules={quillModules}
                   formats={quillFormats}
                   theme="snow"
                   placeholder={t('Escribe una descripción detallada...')}
-                  className="bg-white border-none"
+                  className="bg-white border-none description-editor"
                 />
               </div>
               <div className="flex justify-end space-x-2 p-3 bg-gray-50 border-t border-gray-200">
@@ -119,37 +120,37 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate }) => {
       </div>
       <style jsx global>{`
       /* Estilos del editor Quill */
-      .ql-container {
+      .description-editor .ql-container {
         font-family: inherit;
         font-size: 0.875rem;
         line-height: 1.5rem;
         border: none !important;
       }
-      .ql-container.ql-snow {
+      .description-editor .ql-container.ql-snow {
         border: none !important;
       }
-      .ql-editor {
+      .description-editor .ql-editor {
         min-height: 200px;
         padding: 1rem;
       }
-      .ql-toolbar {
+      .description-editor .ql-toolbar {
         background-color: #f9fafb;
         border: none !important;
         border-bottom: 1px solid #e5e7eb !important;
         font-family: inherit;
       }
-      .ql-toolbar.ql-snow {
+      .description-editor .ql-toolbar.ql-snow {
         border: none !important;
         border-bottom: 1px solid #e5e7eb !important;
       }
-      .ql-toolbar button:hover {
+      .description-editor .ql-toolbar button:hover {
         background-color: #e5e7eb !important;
       }
-      .ql-toolbar button.ql-active {
+      .description-editor .ql-toolbar button.ql-active {
         background-color: #ddd6fe !important;
         color: #6b21a8 !important;
       }
-      .ql-editor.ql-blank::before {
+      .description-editor .ql-editor.ql-blank::before {
         color: #9ca3af;
         font-style: normal;
       }

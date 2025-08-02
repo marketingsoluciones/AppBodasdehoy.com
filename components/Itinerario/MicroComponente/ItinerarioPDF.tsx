@@ -106,7 +106,6 @@ export const ItinerarioPDF = (props) => {
                   task={elem}
                   itinerario={event.itinerarios_array[0]}
                   view={"schema"}
-                  // isSelect={selectTask === elem._id}
                   onClick={() => { }}
                 />
               )

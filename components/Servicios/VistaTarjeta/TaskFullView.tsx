@@ -1,4 +1,4 @@
-import React, { FC, useState, useEffect } from 'react';
+import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react';
 import { Task, Itinerary, OptionsSelect, Comment } from '../../../utils/Interfaces';
 import { useTranslation } from 'react-i18next';
 import { EventContextProvider } from "../../../context/EventContext";
@@ -26,7 +26,6 @@ interface TaskFullViewProps {
   canEdit: boolean;
   handleUpdate: (field: string, value: any) => Promise<void>;
   handleDuplicate: () => Promise<void>;
-  handleCopyLink: (task: Task, type: "task" | "calendar") => void;
   handleDeleteComment: (commentId: string) => Promise<void>;
   handleCommentAdded: (comment: Comment) => void;
   ht: () => void;
@@ -44,7 +43,6 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
   canEdit,
   handleUpdate,
   handleDuplicate,
-  handleCopyLink,
   handleDeleteComment,
   handleCommentAdded,
   ht,
@@ -95,7 +93,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                   task={task}
                   handleUpdate={handleUpdate}
                   handleDuplicate={handleDuplicate}
-                  handleCopyLink={handleCopyLink}
+                  itinerario={itinerario}
                 />
                 {/* Botones de ItineraryButtonBox - OCULTOS sin permisos */}
                 {(optionsItineraryButtonBox && optionsItineraryButtonBox.length > 0) &&
@@ -171,7 +169,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
           </div>
         </div>
         {/* Panel lateral - Chat/Comentarios */}
-        <div id="container-right" className="w-[350px] flex flex-col bg-gray-50 h-full max-h-[554px] overflow-hidden border-l-[1px] border-gray-200 pb-2">
+        <div id="container-right" className="w-[350px] flex flex-col bg-gray-50 h-full max-h-[554px] border-l-[1px] border-gray-200 pb-2">
           <div className="h-[49px] px-2 border-b border-gray-200 bg-white flex items-center">
             <div className="w-full flex items-center justify-between">
               <div className="text-xl font-semibold">{t('Actividad')}</div>

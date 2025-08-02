@@ -1,4 +1,4 @@
-import { FC, HTMLAttributes, useEffect, useRef, useState, useCallback, memo } from "react";
+import { FC, HTMLAttributes, useEffect, useRef, useState, useCallback, memo, Dispatch, SetStateAction } from "react";
 import { EventContextProvider } from "../../../context/EventContext";
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
 import { AuthContextProvider } from "../../../context";
@@ -51,10 +51,9 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
   onUpdateComments?: (taskId: string, newComments: Comment[]) => void;
   onDeleteComment?: (commentId: string) => void;
   minimalView?: boolean;
-  handleCopyLink: (task: Task, type: "task" | "calendar") => void;
 }
 
-export const TaskNew: FC<Props> = memo(({ itinerario, task, view, optionsItineraryButtonBox, isSelect = false, showModalCompartir, setShowModalCompartir, tempPastedAndDropFiles, setTempPastedAndDropFiles, isTaskPublic = false, minimalView = false, handleCopyLink, ...props }) => {
+export const TaskNew: FC<Props> = memo(({ itinerario, task, view, optionsItineraryButtonBox, isSelect = false, showModalCompartir, setShowModalCompartir, tempPastedAndDropFiles, setTempPastedAndDropFiles, isTaskPublic = false, minimalView = false, ...props }) => {
   const { t } = useTranslation();
   const { config, user } = AuthContextProvider();
   const { event, setEvent } = EventContextProvider();
@@ -408,7 +407,6 @@ export const TaskNew: FC<Props> = memo(({ itinerario, task, view, optionsItinera
           canEdit={canEdit}
           handleUpdate={handleUpdate}
           handleDuplicate={handleDuplicate}
-          handleCopyLink={handleCopyLink}
           handleDeleteComment={handleDeleteComment}
           handleCommentAdded={handleCommentAdded}
           ht={ht}

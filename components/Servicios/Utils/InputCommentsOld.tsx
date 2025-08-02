@@ -16,23 +16,13 @@ import { customAlphabet } from "nanoid"
 import { SetNickname } from "../../Itinerario/MicroComponente/SetNickName"
 import { FileIconComponent } from "../../Itinerario/MicroComponente/FileIconComponent"
 import { TempPastedAndDropFile } from "../../Itinerario/MicroComponente/ItineraryPanel"
-
-// interface props {
-//   itinerario: Itinerary
-//   task: Task
-//   tempPastedAndDropFiles: TempPastedAndDropFiles[]
-//   setTempPastedAndDropFiles: any
-//   nicknameUnregistered: string
-//   setNicknameUnregistered: Dispatch<SetStateAction<string>>
-// }
+import { Modal } from "../../Utils/Modal"
 
 interface props {
   itinerario?: Itinerary
   task?: Task
   tempPastedAndDropFiles?: TempPastedAndDropFile[]
   setTempPastedAndDropFiles?: any
-  nicknameUnregistered?: string
-  setNicknameUnregistered?: Dispatch<SetStateAction<string>>
   disabled?: boolean
   onCommentAdded?: (comment: Comment) => void // Nueva prop para notificar cuando se agrega un comentario
 }
@@ -44,7 +34,7 @@ export type PastedAndDropFile = {
   loading: boolean
 }
 
-export const InputCommentsOld: FC<props> = ({ itinerario, task, tempPastedAndDropFiles, setTempPastedAndDropFiles, nicknameUnregistered, setNicknameUnregistered, disabled = false, onCommentAdded }) => {
+export const InputCommentsOld: FC<props> = ({ itinerario, task, tempPastedAndDropFiles, setTempPastedAndDropFiles, disabled = false, onCommentAdded }) => {
   const { user, config } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
   const [value, setValue] = useState<string>("<p><br></p>")
@@ -56,6 +46,8 @@ export const InputCommentsOld: FC<props> = ({ itinerario, task, tempPastedAndDro
   const storage = getStorage();
   const [enabledInput, setEnabledInput] = useState(false);
   const [showModalNickname, setShowModalNickname] = useState(false)
+  const [nicknameUnregistered, setNicknameUnregistered] = useState('');
+
 
   useEffect(() => {
     const valir = value?.replace(/ id="selected"/g, "")?.replace(/ focusoffset="[^"]*"/g, '').split("<p><br></p>").find(elem => elem !== "")
@@ -218,18 +210,12 @@ export const InputCommentsOld: FC<props> = ({ itinerario, task, tempPastedAndDro
 
   return (
     <div className='bg-white flex items-center pt-2 px-2 relative'>
-      {
-        showModalNickname && <ClickAwayListener onClickAway={() => showModalNickname && setShowModalNickname(false)}>
-          <ul
-            className={`${showModalNickname ? "block opacity-100" : "hidden opacity-0"} absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-[-150px] right-20 w-[300px] z-50`}
-          >
-            <li
-              className="flex items-center py-4 px-6 font-display text-sm text-gray-500 bg-base transition w-full capitalize"
-            >
-              <SetNickname setShowModalNickname={setShowModalNickname} setNicknameUnregistered={setNicknameUnregistered} />
-            </li>
-          </ul>
-        </ClickAwayListener>
+      {showModalNickname &&
+        <Modal set={setShowModalNickname} state={showModalNickname} classe={"w-[95%] md:w-[350px] h-[200px] bg-red flex items-center justify-center"}>
+          <div className="flex h-full items-center py-4 px-6 font-display text-sm text-gray-500 bg-base transition w-full capitalize" >
+            <SetNickname setShowModalNickname={setShowModalNickname} setNicknameUnregistered={setNicknameUnregistered} />
+          </div>
+        </Modal>
       }
       <div className='flex flex-1 relative'>
         {!!pastedAndDropFiles?.length && (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, SetStateAction, Dispatch } from 'react';
 import {
   X,
   Trash2,
@@ -60,7 +60,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   onDelete,
   onTaskCreate,
   tempPastedAndDropFiles,
-  setTempPastedAndDropFiles
+  setTempPastedAndDropFiles,
 }) => {
   const { t } = useTranslation();
   const { config, user, geoInfo } = AuthContextProvider();
@@ -71,7 +71,6 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   const [isAllowed, ht] = useAllowed();
 
   const [showModalCompartir, setShowModalCompartir] = useState({ state: false, id: null });
-  const [nicknameUnregistered, setNicknameUnregistered] = useState('');
   const [showEditTask, setShowEditTask] = useState<EditTask>({ state: false });
   const [modalWorkFlow, setModalWorkFlow] = useState(false);
   const [modalCompartirTask, setModalCompartirTask] = useState(false);

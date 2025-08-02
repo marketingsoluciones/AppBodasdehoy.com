@@ -1,5 +1,5 @@
 import { getAuth } from "firebase/auth";
-import { Comment, Event, Task } from "../../../utils/Interfaces";
+import { Comment, Event, Itinerary, Task } from "../../../utils/Interfaces";
 
 export const getDateString = (value: Date | string) => {
   const d = new Date(value);
@@ -53,6 +53,56 @@ export const generateGoogleCalendarLink = (task: Task, event: Event): string => 
   const attendeesParam = attendees ? `&add=${encodeURIComponent(attendees.filter(email => email).join(','))}` : '';
   const link = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDateStr}/${endDateStr}&details=${details}&location=${location}${attendeesParam}`;
   return link;
+};
+
+interface CopyToClipboard {
+  link: string
+  navigator: any
+  toast: any
+  t: any
+  document: any
+}
+const copyToClipboard = ({ link, navigator, toast, t, document }: CopyToClipboard) => {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(link).then(() => {
+      toast('success', t('Enlace copiado al portapapeles'));
+    }).catch(() => {
+      const textArea = document.createElement("textarea");
+      textArea.value = link;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      toast('success', t('Enlace copiado al portapapeles'));
+    });
+  } else {
+    const textArea = document.createElement("textarea");
+    textArea.value = link;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    toast('success', t('Enlace copiado al portapapeles'));
+  }
+}
+interface HandleCopyLink {
+  task: Task
+  type: "task" | "calendar"
+  event: Event
+  navigator: any
+  toast: any
+  t: any
+  document: any
+  itinerario: Itinerary
+}
+export const handleCopyLink = ({ task, type, event, navigator, toast, t, document, itinerario }: HandleCopyLink) => {
+  if (type === "calendar") {
+    const calendarLink = generateGoogleCalendarLink(task, event);
+    console.log(calendarLink);
+    copyToClipboard({ link: calendarLink, navigator, toast, t, document });
+  } else {
+    copyToClipboard({ link: `${window.location.origin}/servicios?event=${event?._id}&itinerario=${itinerario?._id}&task=${task?._id}`, navigator, toast, t, document });
+  }
 };
 
 // Función para limpiar HTML
