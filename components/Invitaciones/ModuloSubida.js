@@ -6,7 +6,9 @@ import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
 import Resizer from "react-image-file-resizer";
 import { useTranslation } from 'react-i18next';
-import { LiaTrashSolid } from "react-icons/lia";
+import { CopyToClipboard } from 'react-copy-to-clipboard';
+import { PiCheckFatThin } from "react-icons/pi";
+import { LiaLinkSolid, LiaTrashSolid } from "react-icons/lia";
 
 const resizeImage = (file) => {
   try {
@@ -26,7 +28,7 @@ const resizeImage = (file) => {
     console.error("Error resizing image:", error);
     return error;
   }
-};
+}
 
 export const subir_archivo = async ({ imagePreviewUrl, event, use }) => {
   try {
@@ -34,16 +36,16 @@ export const subir_archivo = async ({ imagePreviewUrl, event, use }) => {
       const newFile = new FormData();
       const params = {
         query: `mutation ($file: Upload!, $_id : String, $use : String) {
-                    singleUpload(file: $file, _id:$_id, use : $use){
-                      _id
-                      i1024
-                      i800
-                      i640
-                      i320
-                      createdAt
-                    }
+                  singleUpload(file: $file, _id:$_id, use : $use){
+                    _id
+                    i1024
+                    i800
+                    i640
+                    i320
+                    createdAt
                   }
-                `,
+                }
+              `,
         variables: {
           file: null,
           _id: event?._id,
@@ -78,8 +80,17 @@ const ModuloSubida = (props) => {
   const toast = useToast();
   const { setEvent } = EventContextProvider();
   const [isAllowed, ht] = useAllowed();
+  const [copied, setCopied] = useState(false);
 
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (copied) {
+      setTimeout(() => {
+        setCopied(false)
+      }, 3000);
+    }
+  }, [copied])
 
   useEffect(() => {
     if (imagePreviewUrl?.file) {
@@ -154,30 +165,31 @@ const ModuloSubida = (props) => {
             {imagePreviewUrl.preview ? t("processing") : use === "imgInvitacion" ? t("addinvitation") : ""}
           </label>
         )}
-        <div className="w-full flex flex-col text-gray-500 bottom-0 translate-y-full absolute">
-          <label
-            onClick={() => (!isAllowed() ? ht() : null)}
-            htmlFor={!isAllowed() ? "null" : "file"}
-            className="gap-1 flex items-center justify-center w-full bg-gray-200 px-3 py-1 cursor-pointer rounded-b-xl shadow-sm hover:z-10"
-          >
-            <div className="flex hover:scale-105 transition transform">
-              {t("change")} <EditarIcon className="w-6 h-6" />
-            </div>
+
+        <div className="w-full flex text-gray-500 bottom-0 translate-y-full absolute rounded-b-xl text-xs overflow-hidden border-[1px] border-gray-300">
+          <label onClick={() => !isAllowed() ? ht() : null} htmlFor={!isAllowed() ? "null" : "file"} className="bg-gray-200 gap-1 flex items-center justify-center w-1/2 py-1 cursor-pointer">
+            {t("change")} <EditarIcon className="w-6 h-6" />
           </label>
+          <CopyToClipboard text={`${process.env.NEXT_PUBLIC_BASE_URL}${event?.imgInvitacion?.i800}`}>
+            <label onClick={() => { setCopied(true) }} className="flex items-center justify-center w-1/2 py-1 cursor-pointer">
+              {t("copylink")} {copied ? <PiCheckFatThin className="w-6 h-6" /> : <LiaLinkSolid className="w-6 h-6" />}
+            </label>
+          </CopyToClipboard>
+
         </div>
       </div>
       <style jsx>
         {`
-          .background-image {
-            background-image: url('${imagePreviewUrl?.image}');
-            background-size: contain;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-color: ${imagePreviewUrl.preview ? "white" : "gray"};
-            width: 100%;
-            height: 100%; /* Asegúrate de que el contenedor tenga una altura definida */
-          }
-        `}
+        .background-image {
+          background-image: url('${imagePreviewUrl?.image}');
+          background-size: contain;
+          background-position: center;
+          background-repeat: no-repeat;
+          background-color: ${imagePreviewUrl.preview ? "white" : "gray"};
+          width: 100%;
+          height: 100%; /* Asegúrate de que el contenedor tenga una altura definida */
+        }
+      `}
       </style>
     </>
   );

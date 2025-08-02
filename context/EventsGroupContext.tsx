@@ -76,7 +76,7 @@ const EventsGroupProvider = ({ children }) => {
   }, [])
 
   useEffect(() => {
-    if (!["servicios", "credic-card"].includes(router?.route.split("/")[1]) || (user?.displayName !== "anonymous" && user?.displayName !== "guest")) {
+    if (!["servicios", "credic-card", "public-card"].includes(router?.route.split("/")[1]) || (user?.displayName !== "anonymous" && user?.displayName !== "guest")) {
       if (verificationDone) {
         if (user) {
           fetchApiEventos({
@@ -84,7 +84,7 @@ const EventsGroupProvider = ({ children }) => {
             variables: { variable: "usuario_id", valor: user?.uid, development: config?.development },
           })
             .then((events: Event[]) => {
-              if (!["RelacionesPublicas", "facturacion", "event"].includes(router?.route.split("/")[1])) {
+              if (!["RelacionesPublicas", "facturacion", "event", "public-card", "public-itinerary"].includes(router?.route.split("/")[1])) {
                 setTimeout(() => {
                   if (events.length === 0) router.push("/")
                 }, 100);

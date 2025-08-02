@@ -187,7 +187,7 @@ export const Notifications = () => {
                                 : item?.message
                             }
                           />
-                          {
+                          {/* {
                             !eventExist &&
                             <span className="capitalize bg-red w-max text-white rounded-md px-0.5 text-center">
                               evento eliminado
@@ -202,7 +202,7 @@ export const Notifications = () => {
                             <span className="capitalize bg-red w-max text-white rounded-md px-0.5 text-center">
                               Tarjeta eliminada
                             </span>
-                          }
+                          } */}
                           <span className="text-[10px] flex-1 text-right italic">
                             Hace {formatDistanceStrict(
                               new Date(item.createdAt),

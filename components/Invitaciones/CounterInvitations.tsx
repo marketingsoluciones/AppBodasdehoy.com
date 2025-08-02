@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { InvitacionesIcon } from "../icons";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { EventContextProvider } from "../../context";
+import { EventContextProvider } from "../../context/EventContext";
 import { useTranslation } from 'react-i18next';
 
 export const CounterInvitations: FC = () => {

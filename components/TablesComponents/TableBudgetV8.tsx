@@ -4,7 +4,7 @@ import { t } from 'i18next';
 import { EditableLabelWithInput } from '../Forms/EditableLabelWithInput';
 import { EditableSelect } from '../Forms/EditableSelect';
 import { fetchApiEventos, queries } from '../../utils/Fetching';
-import { EventContextProvider } from '../../context';
+import { AuthContextProvider, EventContextProvider } from '../../context';
 import { FloatOptionsMenuInterface, ModalInterface, VisibleColumn } from '../../utils/Interfaces';
 import { DotsOpcionesIcon } from '../icons';
 import { useAllowed } from '../../hooks/useAllowed';
@@ -19,7 +19,7 @@ import FormAddPago from '../Forms/FormAddPago';
 import ClickAwayListener from 'react-click-away-listener';
 import { SelectVisiblesColumns } from './SelectVisiblesColumns';
 import { getCurrency } from '../../utils/Funciones';
-import { ModalTaskList } from '../Presupuesto/ModalTaskList';
+import { ModalTaskList } from '../Presupuesto/PresupuestoV2/modals/ModalTaskList';
 
 interface props {
   data: any
@@ -69,6 +69,8 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
   const [showFloatOptionsMenu, setShowFloatOptionsMenu] = useState<FloatOptionsMenuInterface>()
   const [RelacionarPagoModal, setRelacionarPagoModal] = useState({ id: "", crear: false, categoriaID: "" })
   const [ServisiosListModal, setServisiosListModal] = useState({ id: "", crear: false, categoriaID: "" })
+  
+
 
   const initialColumn: InitialColumn[] = [
     { accessor: "categoria", header: t("categoria"), isEditabled: true },
@@ -82,7 +84,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     { accessor: "pagado", header: t("pagado"), size: defaultSize.float, horizontalAlignment: "end", type: "float" },
     { accessor: "pendiente_pagar", header: t("pendiente por pagar"), size: defaultSize.float, horizontalAlignment: "end", type: "float" },
   ]
-  
+
   useEffect(() => {
     const columnsVisibility = event?.presupuesto_objeto?.visibleColumns?.reduce((acc, item) => {
       acc = {
@@ -93,12 +95,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
     }, {})
     setColumnVisibility({ ...columnsVisibility })
   }, [event])
-
- /*  useEffect(() => {
-    if (data) {
-      console.log(100080, data)
-    }
-  }, [data]) */
 
   const options = [
     {
@@ -143,13 +139,14 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
       icon: true ? <GoEye className="w-4 h-4" /> : <GoEyeClosed className="w-4 h-4" />,
       title: "Estado",
       onClick: (info) => {
-        if (info.column.id === "gasto") {
+        if (info.row.original.object === 'gasto') {
           handleChangeEstatus({ event, categoriaID: info.row.original.categoriaID, gastoId: info.row.original.gastoID, setEvent })
-            .catch(error => toast("error", "ha ocurrido un error"))
+            .catch(error => { toast("error", "ha ocurrido un error"), console.log(error) })
         }
-        if (info.column.id === "nombre") {
+
+        if (info.row.original.object === 'item') {
           handleChangeEstatusItem({ event, categoriaID: info.row.original.categoriaID, gastoId: info.row.original.gastoID, itemId: info.row.original.itemID, setEvent })
-            .catch(error => toast("error", "ha ocurrido un error"))
+            .catch(error => { toast("error", "ha ocurrido un error"), console.log(error) })
         }
       },
       object: ["gasto", "item"]
@@ -329,7 +326,11 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
               >
                 X
               </button>
-              <FormAddPago GastoID={RelacionarPagoModal?.id} cate={RelacionarPagoModal?.categoriaID} />
+              <FormAddPago 
+                GastoID={RelacionarPagoModal?.id} 
+                cate={RelacionarPagoModal?.categoriaID} 
+                setGastoID={setRelacionarPagoModal} 
+              /> 
             </div>
           </ClickAwayListener>
         </div>
@@ -419,17 +420,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                       ${horizontalAlignment === "start" ? "justify-start" : horizontalAlignment === "center" ? "justify-center" : horizontalAlignment === "end" ? "justify-end" : ""}
                       ${verticalAlignment === "start" ? "items-start" : verticalAlignment === "center" ? "items-center" : verticalAlignment === "end" ? "items-end" : ""}
                     `.replace(/\s+/g, ' ').replace(/\n+/g, ' ')
-                    // const value = cell.column.id === "categoria"
-                    //   ? row.original.firstChildGasto || row.original.firstChild
-                    //     ? cell.getValue()
-                    //     : ""
-                    //   : cell.column.id === "gasto"
-                    //     ? !row.original?.fatherCategoria
-                    //       ? row.original?.firstChildItem && cell.getValue()
-                    //       : ""
-                    //     : (cell.column.id === "nombre" && row.original?.fatherCategoria) || (cell.column.id === "nombre" && row.original?.fatherGasto)
-                    //       ? ""
-                    //       : cell.getValue()
                     return (
                       <td
                         id={`${cell.column.id}-${row.original._id}`}
@@ -455,7 +445,6 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                           }
                         }}
                         key={cell.id}
-                        //onDoubleClick={() => console.log(row.original)}
                         onClick={() => {
                           const initialValue = initialColumn.find(elem => elem.accessor === cell.getContext().column.columnDef.id)
                           !!initialValue && !!initialValue["onClick"] && initialValue.onClick(cell.getContext())
@@ -465,7 +454,7 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                             ? { maxWidth: cell.getContext().column.columnDef.size, width: cell.getContext().column.columnDef.size }
                             : { flex: 1 })
                         }}
-                        className={`p-2 cursor-context-menu flex justify-start items-center text-left ${cell.column.getIndex() < 2
+                        className={`p-2 cursor-context-menu flex justify-start items-center text-left  ${cell.column.getIndex() < 2
                           ? "sticky z-10 left-0"
                           : ""}
                         ${cell.column.id === "categoria" || row.original?.fatherCategoria
@@ -473,8 +462,8 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                               ? "bg-[#e6e6d7]"
                               : "bg-[#d1dae3]"} ${!["gasto", "unidad", "cantidad", "nombre", "valor_unitario"].includes(cell.column.id) && "Cc border-l-[1px] border-gray-300"}`
                             : `Cb ${cell.column.id === "gasto" && `Cd ${row.original?.gastoID !== showDotsOptionsMenu?.values?.info?.row?.original?._id
-                              ? "bg-[#eaeeee]"
-                              : "!bg-[#d8dcde]"} border-l-[1px] border-gray-300`} ${row.original?.fatherGasto
+                              ? "bg-[#eaeeee] "
+                              : "!bg-[#d8dcde]"} border-l-[1px] border-gray-300 `} ${row.original?.fatherGasto
                                 ? `Ce ${row.original?.gastoID !== showDotsOptionsMenu?.values?.info?.row?.original?._id
                                   ? "bg-[#eaeeee]"
                                   : "!bg-[#d8dcde]"} border-b-[1px] border-gray-300 ${!["unidad", "cantidad", "nombre", "valor_unitario",].includes(cell.column.id)
@@ -483,9 +472,9 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
                                   ? `Ch ${row.original?.itemID !== showDotsOptionsMenu?.values?.info?.row?.original?._id
                                     ? "bg-white" : "!bg-[#f5f2ea]"} CI ${["unidad", "cantidad", "nombre", "valor_unitario", "coste_final", "coste_estimado", "options"].includes(cell.column.id)
                                       ? "border-l-[1px] border-gray-300"
-                                      : ""}` : ""} CJ ${["unidad", "cantidad", "nombre", "valor_unitario", "coste_final", "coste_estimado", "pagado", "pendiente_pagar", "options"].includes(cell.column.id) || (row.original?.lastChildGasto && cell.column.id !== "gasto")
-                                        ? "border-b-[1px] border-gray-300"
-                                        : ""}`}`} CK ${className
+                                      : ""}` : "columna de gastos"} CJ ${["unidad", "cantidad", "nombre", "valor_unitario", "coste_final", "coste_estimado", "pagado", "pendiente_pagar", "options"].includes(cell.column.id) || (row.original?.lastChildGasto && cell.column.id !== "gasto")
+                                        ? "border-b-[1px] border-gray-300 "
+                                        : "break-all "}`}`} CK ${className
                                           ? className
                                           : ""} ${cell.column.id === "coste_estimado"
                                             ? "text-primary"

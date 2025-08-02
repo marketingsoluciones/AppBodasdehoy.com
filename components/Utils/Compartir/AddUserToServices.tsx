@@ -63,7 +63,7 @@ export const AddUserToServices: FC<props> = ({ openModal, setOpenModal, itinerar
                                         {event?.detalles_compartidos_array?.map((item, idx) => {
                                             return (
                                                 <div key={idx}>
-                                                    <div className={`${itinerario.viewers.includes(item.uid) && "bg-gray-100"} w-full flex items-start py-1 px-2 space-x-2 text-xs text-gray-700`}>
+                                                    <div className={`${itinerario?.viewers?.includes(item.uid) && "bg-gray-100"} w-full flex items-start py-1 px-2 space-x-2 text-xs text-gray-700`}>
                                                         <div className="flex-none w-8 md:w-10 h-8 md:h-10">
                                                             <img
                                                                 src={item?.photoURL != null ? item?.photoURL : "/placeholder/user.png"}
@@ -81,16 +81,16 @@ export const AddUserToServices: FC<props> = ({ openModal, setOpenModal, itinerar
                                                                 {item.permissions.find(el => el.title === "servicios").value === "none"
                                                                     ? <span>{t("Esta persona no tiene permisos")}</span>
                                                                     : item.permissions.find(el => el.title === "servicios").value === "view"
-                                                                        ? itinerario.viewers.includes(item.uid)
+                                                                        ? itinerario?.viewers?.includes(item.uid)
                                                                             ? <span>{t("ver")}</span>
                                                                             : <span>{t("click en el ojo para ver")}</span>
                                                                         : <span>{t("ver y editar")}</span>}
                                                             </div>
                                                         </div>
-                                                        <div className={`bg-gray-200* w-9 h-9 rounded-full* flex items-center justify-center ${item.permissions.find(el => el.title === "servicios").value !== "view" && "hidden cursor-not-allowed"}`}
+                                                        <div className={`bg-gray-200* w-9 h-9 rounded-full* flex items-center justify-center ${item?.permissions?.find(el => el.title === "servicios").value !== "view" && "hidden cursor-not-allowed"}`}
                                                             onClick={() => { item.permissions.find(el => el.title === "servicios").value === "view" && handleAddUser(item) }} >
-                                                            {itinerario.viewers.includes(item.uid) || item.permissions.find(el => el.title === "servicios").value === "edit"
-                                                                ? <GoEye className={`w-5 h-5 ${item.permissions.find(el => el.title === "servicios").value === "edit" ? "text-gray-400" : "text-gray-600"}`} />
+                                                            {itinerario?.viewers?.includes(item.uid) || item?.permissions?.find(el => el.title === "servicios").value === "edit"
+                                                                ? <GoEye className={`w-5 h-5 ${item?.permissions?.find(el => el.title === "servicios").value === "edit" ? "text-gray-400" : "text-gray-600"}`} />
                                                                 : <GoEyeClosed className="w-5 h-5 text-gray-400" />
                                                             }
                                                         </div>

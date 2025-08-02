@@ -7,12 +7,12 @@ import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
 import { useTranslation } from 'react-i18next';
 import { TaskDateTimeAsString } from "../../utils/Interfaces";
-import { ResponsableSelector } from "../Itinerario/MicroComponente";
-import { MyEditor } from "../Itinerario/MicroComponente/QuillText";
+import { MyEditor } from "../Servicios/Utils/QuillText";
 import { EditTastk } from "../Itinerario/MicroComponente/ItineraryPanel";
 import { useAllowedRouter } from "../../hooks/useAllowed";
 import InputAttachments from "./InputAttachments";
 import { InputTags } from "./InputTags";
+import { ResponsableSelector } from "../Servicios/Utils/ResponsableSelector";
 
 interface propsFormTask {
   showEditTask: EditTastk;
@@ -42,10 +42,10 @@ const FormTask: FC<propsFormTask> = ({ showEditTask, setShowEditTask, itinerario
   const m = f.getMonth() + 1
   const d = f.getDate()
 
-  const initialValues: TaskDateTimeAsString & { duracionUnidad?: string } = {
+  const initialValues: TaskDateTimeAsString & { duracionUnidad?: string, horaActiva?: boolean } = {
     ...showEditTask?.values,
     fecha: f ? `${y}-${m < 10 ? "0" : ""}${m}-${d < 10 ? "0" : ""}${d}` : "",
-    hora: f ? f.toTimeString().split(' ')[0] : "",
+    horaActiva: true,
     duracion: initialDuration,
     duracionUnidad: durationUnit,
   };

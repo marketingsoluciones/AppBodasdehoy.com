@@ -1,17 +1,17 @@
 
 import { FC, useEffect, useState } from "react";
-import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiEventos, fetchApiEventosServer, queries } from "../../utils/Fetching";
 import { Event, Task } from "../../utils/Interfaces";
 import { motion } from "framer-motion"
 import { AuthContextProvider } from "../../context";
 import { defaultImagenes } from "../../components/Home/Card";
-import { useTranslation } from "react-i18next";
-import { TaskNew } from "../../components/Itinerario/MicroComponente/TaskNew";
+import { TaskNew } from "../../components/Servicios/VistaTarjeta/TaskNew";
 import { openGraphData } from "../_app";
 
 interface props {
   evento: Event
   slug?: any
+  error?: string
 }
 
 interface TaskReduce {
@@ -20,13 +20,17 @@ interface TaskReduce {
 
 }
 
-
 const Slug: FC<props> = (props) => {
-  const { t } = useTranslation()
-  const event = props.evento
+  const [event, setEvent] = useState<Partial<Event>>(props?.evento)
   const { geoInfo } = AuthContextProvider()
   const [end, setEnd] = useState(false)
   const [tasksReduce, setTasksReduce] = useState<TaskReduce[]>()
+
+  useEffect(() => {
+    const tasks = props?.evento.itinerarios_array[0].tasks.filter((task) => task.spectatorView !== false)
+    event.itinerarios_array[0].tasks = tasks
+    setEvent({ ...event })
+  }, [])
 
   useEffect(() => {
     setTimeout(() => {
@@ -55,17 +59,18 @@ const Slug: FC<props> = (props) => {
     } else {
       setTasksReduce([])
     }
-  }, [])
+  }, [event])
 
-  if (!props?.evento?.itinerarios_array?.length)
+  if (!event.itinerarios_array?.length) {
     return (
-      <div className="bg-red-200 text-blue-700 w-full h-full text-center mt-20">
+      <div className="bg-[#ffbfbf] text-blue-700 w-full h-full text-center mt-20">
         Page not found error 404
       </div>
     )
+  }
 
   return (
-    <section className={"absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4 bg-white"}>
+    <section className={"absolute z-[50] w-full h-[100vh] top-0 bg-white"}>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -80,7 +85,7 @@ const Slug: FC<props> = (props) => {
           </div>
           <div className='flex-1 md:flex-none md:w-[35%] h-[100%] flex flex-row-reverse md:flex-row items-center '>
             <img
-              src={event?.imgEvento ? `https://apiapp.bodasdehoy.com/${event.imgEvento.i800}` : defaultImagenes[event?.tipo]}
+              src={event?.imgEvento ? `https://apiapp.bodasdehoy.com/${event?.imgEvento?.i800}` : defaultImagenes[event?.tipo]}
               className=" h-[90%] object-cover object-top rounded-md border-1 border-gray-600  hidden md:block"
               alt={event?.nombre}
             />
@@ -108,16 +113,14 @@ const Slug: FC<props> = (props) => {
                 <TaskNew
                   key={idx}
                   task={elem}
-                  itinerario={event.itinerarios_array[0]}
+                  itinerario={event?.itinerarios_array[0]}
                   view={"schema"}
-                  // isSelect={selectTask === elem._id}
                   onClick={() => { }}
                 />
               )
             })}
           </div>
-        )
-        }
+        )}
         {end && <span id="elementControl" className="text-xs">~</span>}
       </motion.div>
     </section>
@@ -132,24 +135,46 @@ export async function getServerSideProps({ params }) {
     const p = params?.slug[0]?.split("-")
     const evento_id = p[1]
     const itinerario_id = p[2]
-    const evento = await fetchApiEventos({
-      query: queries.getItinerario,
-      variables: {
-        evento_id,
-        itinerario_id
+    let evento: Event | null = null;
+    try {
+      const data = await fetchApiEventosServer({
+        query: queries.getItinerario,
+        variables: {
+          evento_id,
+          itinerario_id
+        }
+      });
+      evento = data.getItinerario;
+    } catch (error) {
+      try {
+        evento = await fetchApiEventos({
+          query: queries.getItinerario,
+          variables: {
+            evento_id,
+            itinerario_id
+          }
+        }) as any;
+      } catch (error2) {
+        throw error2;
       }
-    }) as any
+    }
     if (evento) {
-      openGraphData.openGraph.title = `${evento.itinerarios_array[0].title}`
-      openGraphData.openGraph.description = `Mira el itinerario del evento ${evento.nombre} y no te pierdas de nada`
+      openGraphData.openGraph.title = `${evento?.itinerarios_array[0]?.title}`
+      openGraphData.openGraph.description = `Mira el itinerario del evento ${evento?.nombre} y no te pierdas de nada`
     }
     return {
-      props: { ...params, evento },
+      props: {
+        evento,
+        slug: params.slug || null,
+      },
     };
   } catch (error) {
     return {
-      props: params,
+      props: {
+        evento: null,
+        slug: params.slug || null,
+        error: error
+      },
     };
-
   }
 }

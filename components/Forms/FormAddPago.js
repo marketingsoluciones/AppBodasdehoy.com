@@ -27,6 +27,7 @@ const validacion = (values) => {
 
   return errors
 }
+
 const validacion2 = (values) => {
   let errors = {}
   if (!values.importe) {
@@ -38,7 +39,7 @@ const validacion2 = (values) => {
   return errors
 }
 
-const FormAddPago = ({ GastoID, cate }) => {
+const FormAddPago = ({ GastoID, cate, setGastoID }) => {
   const { event, setEvent } = EventContextProvider()
   const [ischecked, setCheck] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -106,7 +107,6 @@ const FormAddPago = ({ GastoID, cate }) => {
     <Formik
       initialValues={initialValues}
       onSubmit={async (values) => {
-        console.log(444, values)
         try {
           if (!isSubmitting) {
             setIsSubmitting(true)
@@ -134,7 +134,7 @@ const FormAddPago = ({ GastoID, cate }) => {
               return
             }
             saveData(values)
-
+             setGastoID("")
           }
         } catch (error) {
           console.log(error)
@@ -148,7 +148,6 @@ const FormAddPago = ({ GastoID, cate }) => {
 }
 
 export default FormAddPago
-
 
 export const BasicFormLogin = ({ ischecked, setCheck, handleChange, handleSubmit, isSubmitting, values, setValues, Proveedor, Categoria }) => {
   const { event } = EventContextProvider()
@@ -178,65 +177,76 @@ export const BasicFormLogin = ({ ischecked, setCheck, handleChange, handleSubmit
   };
 
   return (
-    <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6 py-6 w-full  bg-white " >
-      <div className="col-span-2 grid grid-cols-6 border-gray-100 pl-3 w-full ">
-        <div className="col-span-6  md:col-span-4">
-          <div className="flex items-center space-x-1 capitalize text-2xl text-gray-500">
-            <h2 className="col-sapn-5 text-3xl text-primary truncate">{Categoria}</h2>
-            <h2> {"//"}</h2>
-            <h2 className="truncate">{Proveedor?.nombre}</h2>
+    <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4 py-4 w-full bg-white" >
+      {/* Header Section - Reducido */}
+      <div className="col-span-2 grid grid-cols-6 border-gray-100 pl-2 w-full ">
+        <div className="col-span-6 md:col-span-4">
+          <div className="flex items-center space-x-1 capitalize text-lg text-gray-500">
+            <h2 className="col-span-5 text-xl text-primary truncate">{Categoria}</h2>
+            <h2 className="text-sm"> {"//"}</h2>
+            <h2 className="truncate text-base">{Proveedor?.nombre}</h2>
           </div>
-          <div className=" md:col-span-2 w-full flex space-x-2 ">
-            <h2 className="font-display text-2xl capitalize text-primary font-light">{t("Add")}</h2>
-            <h2 className="font-display text-2xl capitalize text-gray-500 font-medium">{t("Payment")}</h2>
+          <div className="md:col-span-2 w-full flex space-x-2">
+            <h2 className="font-display text-lg capitalize text-primary font-light">{t("Add")}</h2>
+            <h2 className="font-display text-lg capitalize text-gray-500 font-medium">{t("Payment")}</h2>
           </div>
         </div>
-        <div className="self-center col-span-6 md:col-span-2 text-azulCorporativo text-[13px] md:ml-10 mt-3 md:mt-0">
-          <div className="relative flex items-center gap-2 justify-items-center mt-2">
+        
+        {/* Checkbox Section - Reducido */}
+        <div className="self-center col-span-6 md:col-span-2 text-azulCorporativo text-xs md:ml-6 mt-2 md:mt-0">
+          <div className="relative flex items-center gap-2 justify-items-center mt-1">
             <input type="checkbox" className="hidden" name="pagado" checked={ischecked} onChange={() => setCheck(!ischecked)} />
-            <div onClick={() => setCheck(!ischecked)} className={`w-6 h-6 rounded-md border border-gray-200 transition ${ischecked && "bg-primary border-none"} cursor-pointer`}>
-              {ischecked && <CheckIcon className="text-white " />}
+            <div onClick={() => setCheck(!ischecked)} className={`w-5 h-5 rounded-md border border-gray-200 transition ${ischecked && "bg-primary border-none"} cursor-pointer`}>
+              {ischecked && <CheckIcon className="text-white w-3 h-3" />}
             </div>
-            <p className="font-display text-md font-medium text-gray-500">{t("addpayments")}</p>
+            <p className="font-display text-sm font-medium text-gray-500">{t("addpayments")}</p>
           </div>
-          <div className="relative flex items-center gap-2 justify-items-center mt-2">
+          <div className="relative flex items-center gap-2 justify-items-center mt-1">
             <input type="checkbox" className="hidden" name="pendiente" onChange={() => setCheck(!ischecked)} />
-            <div onClick={() => setCheck(!ischecked)} className={`w-6 h-6 rounded-md border border-gray-200 transition ${!ischecked && "bg-primary border-none"} cursor-pointer`}>
-              {!ischecked && <CheckIcon className="text-white " />}
+            <div onClick={() => setCheck(!ischecked)} className={`w-5 h-5 rounded-md border border-gray-200 transition ${!ischecked && "bg-primary border-none"} cursor-pointer`}>
+              {!ischecked && <CheckIcon className="text-white w-3 h-3" />}
             </div>
-            <p className="font-display text-md font-medium text-gray-500">{t("addnextpayments")}</p>
+            <p className="font-display text-sm font-medium text-gray-500">{t("addnextpayments")}</p>
           </div>
         </div>
       </div>
-      <div className="flex flex-col md:flex-row justify-center space-y-1 md:space-y-0  md:space-x-7  col-span-2">
-        {event?.presupuesto_objeto?.viewEstimates && <div className="text-azulCorporativo text-[14px] cursor-default select-none">
-          <h1 className="text-primary">{t("estimatedcost")}</h1>
-          <div className="border rounded-lg py-0.5  text-right px-2">
-            {getCurrency(Proveedor?.coste_estimado)}
+      
+      {/* Cost Summary Section - Reducido */}
+      <div className="flex flex-col md:flex-row justify-center space-y-1 md:space-y-0 md:space-x-4 col-span-2">
+        {event?.presupuesto_objeto?.viewEstimates && (
+          <div className="text-azulCorporativo text-xs cursor-default select-none">
+            <h1 className="text-primary text-sm">{t("estimatedcost")}</h1>
+            <div className="border rounded py-1 text-right px-2 text-sm">
+              {getCurrency(Proveedor?.coste_estimado)}
+            </div>
           </div>
-        </div>}
-        <div className="text-azulCorporativo text-[14px] cursor-default select-none">
-          <h1 className="text-primary">{t("finalcost")}</h1>
-          <div className="border rounded-lg py-0.5  text-right px-2">
+        )}
+        <div className="text-azulCorporativo text-xs cursor-default select-none">
+          <h1 className="text-primary text-sm">{t("finalcost")}</h1>
+          <div className="border rounded py-1 text-right px-2 text-sm">
             {getCurrency(Proveedor?.coste_final)}
           </div>
         </div>
-        <div className="text-azulCorporativo text-[14px] cursor-default select-none">
-          <h1 className="text-primary">{t("paid")}</h1>
-          <div className="border rounded-lg py-0.5  text-right px-2">
+        <div className="text-azulCorporativo text-xs cursor-default select-none">
+          <h1 className="text-primary text-sm">{t("paid")}</h1>
+          <div className="border rounded py-1 text-right px-2 text-sm">
             {getCurrency(Proveedor?.pagado)}
           </div>
         </div>
       </div>
+      
+      {/* Form Fields Section - Reducido */}
       {ischecked && (
-        <div className="col-span-2 space-y-5">
+        <div className="col-span-2 space-y-3">
           <InputField
             name="fechaPago"
             label={`${ischecked ? t("paymentdate") : t("futurepaymentdate")}`}
             onChange={handleChange}
             value={values.fechaPago}
             type="date"
-            autoComplete="off" />
+            autoComplete="off" 
+            className="text-sm h-9"
+          />
           <InputField
             name="importe"
             label={t("amount")}
@@ -245,103 +255,121 @@ export const BasicFormLogin = ({ ischecked, setCheck, handleChange, handleSubmit
             type="number"
             min="0"
             step="0.10"
-            autoComplete="off" />
+            autoComplete="off" 
+            className="text-sm h-9"
+          />
           <InputField
             name="medio_pago"
             label={t("paymentmethod")}
             disabled={!ischecked}
-            className={`${ischecked ? "" : "bg-slate-200"}`}
+            className={`text-sm h-9 ${ischecked ? "" : "bg-slate-200"}`}
             onChange={handleChange}
             value={values.medio_pago}
             type="text"
-            autoComplete="off" />
+            autoComplete="off" 
+          />
           <InputField
             name="pagado_por"
             label={t("paidby")}
             onChange={handleChange}
             value={values.pagado_por}
             disabled={!ischecked}
-            className={`${ischecked ? "" : "bg-slate-200"}`}
+            className={`text-sm h-9 ${ischecked ? "" : "bg-slate-200"}`}
             type="text"
-            autoComplete="off" />
+            autoComplete="off" 
+          />
           <InputField
             name="concepto"
             label={t("paymentconcept")}
             onChange={handleChange}
             value={values.concepto}
             type="text"
-            autoComplete="off" />
+            autoComplete="off" 
+            className="text-sm h-9"
+          />
         </div>
-      )
-      }
-      {
-        !ischecked && (
-          <div className="col-span-2 space-y-5">
-            <InputField
-              name="fechaPago"
-              label={`${ischecked ? t("paymentdate") : t("futurepaymentdate")}`}
-              onChange={handleChange}
-              value={values.fechaPago}
-              type="date"
-              autoComplete="off" />
-            <InputField
-              name="importe"
-              label={t("amount")}
-              onChange={handleChange}
-              value={values.importe}
-              type="number"
-              min="0"
-              step="0.10"
-              autoComplete="off" />
-            <InputField
-              name="concepto"
-              label={t("paymentconcept")}
-              onChange={handleChange}
-              value={values.concepto}
-              type="text"
-              autoComplete="off" />
+      )}
+      
+      {!ischecked && (
+        <div className="col-span-2 space-y-3">
+          <InputField
+            name="fechaPago"
+            label={`${ischecked ? t("paymentdate") : t("futurepaymentdate")}`}
+            onChange={handleChange}
+            value={values.fechaPago}
+            type="date"
+            autoComplete="off" 
+            className="text-sm h-9"
+          />
+          <InputField
+            name="importe"
+            label={t("amount")}
+            onChange={handleChange}
+            value={values.importe}
+            type="number"
+            min="0"
+            step="0.10"
+            autoComplete="off" 
+            className="text-sm h-9"
+          />
+          <InputField
+            name="concepto"
+            label={t("paymentconcept")}
+            onChange={handleChange}
+            value={values.concepto}
+            type="text"
+            autoComplete="off" 
+            className="text-sm h-9"
+          />
+        </div>
+      )}
+      
+      {/* File Upload Section - Reducido */}
+      <div className="col-span-2 flex flex-col space-y-2 transition-all duration-500">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <h2 className="text-lg text-azulCorporativo">{t("prooptions")}</h2>
           </div>
-        )
-      }
-      <div className="col-span-2 h-[400px]* flex flex-col space-y-2 transition-all duration-500 ">
-        <div className="flex  items-center justify-between">
-          <div className="flex  items-center space-x-2  decoration-azulCorporativo ">
-            <h2 className="text-2xl text-azulCorporativo"> {t("prooptions")}</h2>
-            <div className="text-yellow-200 h-auto w-5">
+        </div>
+        
+        {showProOptions && (
+          <div className="space-y-2 transition-all duration-200">
+            <div className="h-[140px] flex flex-col space-y-2">
+              <h2 className="text-primary text-sm">{t("uploaddocument")}</h2>
+              <label htmlFor="file-upload" className="cursor-pointer self-center flex items-center justify-center bg-slate-200 border-dotted border-2 border-slate-600 h-full w-[80%] rounded-md">
+                {selectedFile ? (
+                  <div className="w-full h-full p-2">
+                    {selectedFile.type.startsWith('image/') && (
+                      <img src={URL.createObjectURL(selectedFile)} alt="Vista previa" className="w-full h-full object-contain" />
+                    )}
+                    <p className="text-gray-600 pt-1 text-xs truncate">Archivo: {selectedFile.name}</p>
+                  </div>
+                ) : (
+                  <GoFileDiff className="h-10 w-10 text-gray-400" />
+                )}
+              </label>
+              <input
+                type="file"
+                onChange={handleFileChange}
+                id="file-upload"
+                name="file"
+                className="hidden"
+              />
             </div>
           </div>
-        </div>
-        {
-          showProOptions ?
-            <div className={`space-y-2 transition-all duration-200`}>
-              <div className="h-[200px] flex flex-col space-y-2 ">
-                <h2 className="text-primary text-[14px]"> {t("uploaddocument")}</h2>
-                <label htmlFor="file-upload" className="cursor-pointer self-center flex items-center justify-center bg-slate-200  border-dotted border-2 border-slate-600  h-full  w-[80%] rounded-md ">
-                  {
-                    selectedFile ? (
-                      <div className="w-full h-full">
-                        {selectedFile.type.startsWith('image/') && (
-                          <img src={URL.createObjectURL(selectedFile)} alt="Vista previa" className="w-full h-full object-contain" />
-                        )}
-                        <p className="text-gray-600 pt-1 text-xs">Archivo: {selectedFile.name}</p>
-                      </div>
-                    ) : <GoFileDiff className="h-14 w-14 text-gray-400" />
-                  }
-                </label>
-                <input
-                  type="file"
-                  onChange={handleFileChange}
-                  id="file-upload"
-                  name="file"
-                  className="hidden"
-                />
-              </div>
-            </div> :
-            null
-        }
+        )}
       </div>
-      <button disabled={isSubmitting} type="submit" className={`col-span-2 font-display rounded-full mt-8 py-2 px-6 text-white font-medium transition w-full hover:opacity-70 ${isSubmitting ? "bg-secondary" : "bg-primary"
-        }`} >{t("addpayment")}</button>
+      
+      {/* Submit Button - Reducido */}
+      <button 
+        disabled={isSubmitting} 
+        type="submit" 
+        className={`col-span-2 font-display rounded-full mt-4 py-2 px-4 text-white font-medium transition w-full hover:opacity-70 text-sm ${
+          isSubmitting ? "bg-secondary" : "bg-primary"
+        }`} 
+      >
+        {isSubmitting ? t("processing") || "Procesando..." : t("addpayment")}
+      </button>
     </form>
   )
 }

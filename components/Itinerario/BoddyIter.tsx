@@ -15,7 +15,8 @@ import { LiaUserClockSolid } from "react-icons/lia";
 import { t } from "i18next";
 import { deleteAllFiles, deleteRecursive } from "../Utils/storages";
 import { getStorage } from "firebase/storage";
-import { ModalDuplicate } from "./MicroComponente/ModalDuplicate";
+import { ModalDuplicate } from "../Servicios/Utils/ModalDuplicate";
+import { PermissionWrapper } from "../Servicios/Utils/PermissionWrapper";
 
 interface Modal {
     state: boolean
@@ -44,6 +45,10 @@ export const BoddyIter = () => {
     const [orderAndDirection, setOrderAndDirection] = useState<SelectModeSortType>()
 
     useEffect(() => {
+        console.log(100045, selectTask)
+    }, [selectTask])
+
+    useEffect(() => {
         console.log(orderAndDirection)
     }, [orderAndDirection])
 
@@ -59,6 +64,7 @@ export const BoddyIter = () => {
             domain: config.domain
         })
     }
+
     async function updatedListIdentifiers(event: Event) {
         return await fetchApiEventos({
             query: queries.eventUpdate,
@@ -127,7 +133,6 @@ export const BoddyIter = () => {
                                                     const f1next_id = event.itinerarios_array?.findIndex(elem => elem.next_id === itinerario._id)
                                                     lastListIdentifiers.end_Id = event.itinerarios_array[f1next_id]._id
                                                     updatedListIdentifiers(event)
-                                                    // event.listIdentifiers[fListIdentifiers] = lastListIdentifiers
                                                 }
                                                 const f1next_id = event.itinerarios_array?.findIndex(elem => elem.next_id === itinerario._id)
                                                 event.itinerarios_array[f1next_id].next_id = itinerario?.next_id ?? null
@@ -174,11 +179,9 @@ export const BoddyIter = () => {
         const itinerarios = event?.itinerarios_array.filter(elem => elem?.tipo === window?.location?.pathname.slice(1))
         if (itinerarios.length) {
             let nuevoItinerario = itinerario;
-            // Si hay un itinerario en la URL, priorízalo
             if (router?.query?.itinerary) {
                 nuevoItinerario = itinerarios.find(elem => elem?._id === router.query?.itinerary)
             } else if (!itinerario || !itinerarios.some(elem => elem._id === itinerario._id)) {
-                // Si no hay seleccionado o el actual ya no existe, selecciona el primero
                 nuevoItinerario = itinerarios[0]
             }
             setItinerario(nuevoItinerario)
@@ -187,59 +190,50 @@ export const BoddyIter = () => {
         }
     }, [event, router, orderAndDirection])
 
-    /* useEffect(() => {
-        const itinerarios = event?.itinerarios_array.filter(elem => elem?.tipo === window?.location?.pathname.slice(1))
-        if (itinerarios.length) {
-            const f1 = itinerarios.findIndex(elem =>
-                !!router.query?.itinerary
-                    ? elem?._id === router.query?.itinerary
-                    : elem?._id === itinerario?._id)
-            let itinerario = f1 < 0
-                ? itinerarios[0]
-                : itinerarios[f1]
-            // aquí hacer la rutina para ordenar
-            //itinerario.sort... bla bla bla
-            setItinerario(itinerario)
-        } else {
-            setItinerario(null)
-        }
-    }, [event, router, orderAndDirection]) */
-
     return (
-        <div className="bg-white w-full h-[calc(100vh-212px)] flex flex-col items-center rounded-t-lg mt-3 relative overflow-hidden">
-            {modal.state && <Modal set={setModal} classe={"w-[95%] md:w-[450px] h-[250px]"} loading={loadingModal} >
-                <DeleteConfirmation setModal={setModal} modal={modal} />
-            </Modal>}
-            {
-                modalDuplicate.state &&
-                <div className={"absolute top-0 left-0 w-full h-full. z-50 flex justify-center"}>
-                    <ModalDuplicate setModalDuplicate={setModalDuplicate} modalDuplicate={modalDuplicate} />
-                </div>
-            }
-            <ItineraryTabs
-                itinerario={itinerario}
-                setItinerario={setItinerario}
-                setEditTitle={setEditTitle}
-                title={title}
-                setTitle={setTitle}
-                view={view}
-                setView={setView}
-                handleDeleteItinerario={handleDeleteItinerario}
-                handleUpdateTitle={handleUpdateTitle}
-                editTitle={editTitle}
-                setModalDuplicate={setModalDuplicate}
-                selectTask={selectTask}
-                setSelectTask={setSelectTask}
-                orderAndDirection={orderAndDirection}
-                setOrderAndDirection={setOrderAndDirection}
-            />
-            {(isAllowedViewer(itinerario?.viewers ?? []) || window?.location?.pathname === "/itinerario" || isAllowed())
-                ? <ItineraryPanel itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} title={title} setTitle={setTitle} view={view} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} selectTask={selectTask} setSelectTask={setSelectTask} />
-                : <div className="h-full">
-                    <ViewWihtoutData />
-                </div>
-            }
-        </div>
+        <PermissionWrapper>
+            <div
+                className={`bg-white ${view === "cards" ? "max-w-[1050px] mx-auto" : "w-auto"
+                    } h-[calc(100vh-212px)] flex flex-col items-center rounded-t-lg mt-3 relative overflow-hidden`}
+            >
+                {
+                    modal.state &&
+                    <Modal set={setModal} classe={"w-[95%] md:w-[450px] h-[250px]"} loading={loadingModal} >
+                        <DeleteConfirmation setModal={setModal} modal={modal} />
+                    </Modal>
+                }
+                {
+                    modalDuplicate.state &&
+                    <div className={"absolute top-0 left-0 w-full h-full. z-50 flex justify-center"}>
+                        <ModalDuplicate setModalDuplicate={setModalDuplicate} modalDuplicate={modalDuplicate} />
+                    </div>
+                }
+                <ItineraryTabs
+                    itinerario={itinerario}
+                    setItinerario={setItinerario}
+                    setEditTitle={setEditTitle}
+                    title={title}
+                    setTitle={setTitle}
+                    view={view}
+                    setView={setView}
+                    handleDeleteItinerario={handleDeleteItinerario}
+                    handleUpdateTitle={handleUpdateTitle}
+                    editTitle={editTitle}
+                    setModalDuplicate={setModalDuplicate}
+                    selectTask={selectTask}
+                    setSelectTask={setSelectTask}
+                    orderAndDirection={orderAndDirection}
+                    setOrderAndDirection={setOrderAndDirection}
+                />
+                {
+                    (isAllowedViewer(itinerario?.viewers ?? []) || window?.location?.pathname === "/itinerario" || isAllowed())
+                        ? <ItineraryPanel itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} title={title} setTitle={setTitle} view={view} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} selectTask={selectTask} setSelectTask={setSelectTask} />
+                        : <div className="h-full">
+                            <ViewWihtoutData />
+                        </div>
+                }
+            </div>
+        </PermissionWrapper>
     )
 }
 

@@ -195,31 +195,26 @@ const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (isMounted) {
-      /* console.log(window.location) */
       const path = window.location.hostname
-      //  const path = "https://www.eventosplanificador.com"
-      /*  console.log("hostname:", path) */
       const c = path?.split(".")
       const idx = c?.findIndex(el => el === "com" || el === "mx")
-      /* console.log("isProduction:", idx) */
       /*--------------------------------------------------------------------*/
       const devDomain = ["bodasdehoy", "eventosplanificador", "eventosorganizador", "vivetuboda", "champagne-events", "annloevents", "miamorcitocorazon", "eventosintegrados", "ohmaratilano", "corporativozr", "theweddingplanner"]
       const devSubdomain = [undefined, "invitado", "ticket"]
 
+
       const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[4]
+
       const subdomainDevelop = idx === -1 && devSubdomain[0]
       /*--------------------------------------------------------------------*/
       resp = developments.filter(elem => elem.name === domainDevelop)[0]
       resp.subdomain = ["ticket", "testticket", "invitado", "testinvitado", "dev"].includes(c[0]) ? c[0] : subdomainDevelop
-
       //redireccion a: /RelacionesPublicas
       if (["ticket", "testticket"].includes(resp.subdomain) && window.location.pathname.split("/")[1] === "") {
         router.push("/RelacionesPublicas")
       }
-
       if (idx === -1 || window.origin.includes("://test")) {
         const directory = window.origin.includes("://test") ? process.env.NEXT_PUBLIC_DIRECTORY.replace("//", "//test.") : process.env.NEXT_PUBLIC_DIRECTORY
-        /* console.log(window.origin, window.location.hostname, directory) */
         resp = {
           ...resp,
           domain: process.env.NEXT_PUBLIC_PRODUCTION ? resp?.domain : process.env.NEXT_PUBLIC_DOMINIO,
@@ -228,16 +223,13 @@ const AuthProvider = ({ children }) => {
           pathSignout: resp?.pathSignout ? `${directory}/signout` : undefined,
           pathPerfil: resp?.pathPerfil ? `${directory}/configuracion` : undefined
         }
-        /* console.log(222215, { domain: resp?.domain }) */
       }
-
       varGlobalDomain = resp?.domain
       varGlobalSubdomain = resp?.subdomain
       varGlobalDevelopment = resp?.development
       setConfig(resp)
       try {
         initializeApp(resp?.fileConfig)
-        console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaqui", getStorage())
       } catch (error) {
         console.log(90001, error)
       }
@@ -264,7 +256,6 @@ const AuthProvider = ({ children }) => {
   }, [triggerAuthStateChanged])
 
   const moreInfo = async (user) => {
-    /* console.log("moreInfo") */
     let idToken = Cookies.get("idTokenV0.1.0")
     if (!idToken) {
       idToken = await getAuth().currentUser?.getIdToken(true)
@@ -276,73 +267,52 @@ const AuthProvider = ({ children }) => {
       variables: { uid: user?.uid },
       development: config?.development
     });
-    /* moreInfo && console.info("Tengo datos de la base de datos"); */
-    /* console.log(100.004) */
     setUser({ ...user, ...moreInfo });
     updateActivity("accessed")
-    //aqui fetch de accesed
     setVerificationDone(true)
-    /* console.info("Guardo datos en contexto react"); */
   }
 
   const verificator = async ({ user, sessionCookie }) => {
     try {
-      /* console.log(80000301, { "user?.uid": user?.uid }) */
       const sessionCookieParsed = parseJwt(sessionCookie)
-      /* console.log(80000302, { "sessionCookieParsed?.user_id": sessionCookieParsed?.user_id }) */
-
       if (!sessionCookieParsed?.user_id && user?.uid) {
-        /* console.log(0.00001) */
         getAuth().signOut().then(() => {
           setVerificationDone(true)
         })
       }
-
       if (sessionCookieParsed?.user_id && user?.uid) {
         if (sessionCookieParsed?.user_id !== user?.uid) {
-          /*  console.log(0.00002) */
           getAuth().signOut().then(() => {
-            /*  console.log(8000043, "signOut con éxito") */
             setVerificationDone(true)
           })
             .catch((error) => {
               console.log(error);
             });
         }
-
         if (sessionCookieParsed?.user_id === user?.uid) {
-          /*  console.log(0.00003) */
           setUser(user)
           moreInfo(user)
         }
       }
-
       if (sessionCookieParsed?.user_id && !user?.uid) {
-        /*  console.log(0.00004) */
         const resp = await fetchApiBodas({
           query: queries.authStatus,
           variables: { sessionCookie },
           development: config?.development
         });
-        /* console.info("Llamo con mi sessionCookie para traerme customToken"); */
         if (resp?.customToken) {
-          /* console.info("customTokenParse", parseJwt(resp.customToken)) */
           setIsStartingRegisterOrLogin(true)
           await signInWithCustomToken(getAuth(), resp.customToken)
             .then(result => {
-              /* console.log(100.002) */
               setUser(result?.user)
               moreInfo(result?.user)
             }).catch(error => {
               console.log(error)
             })
         } else {
-          /* console.log(0.00006) */
-          //cambiar el tiempo duracion de sessioncookie y una semana, hacerlo coincidir expiracion de la cookie para que se borre y evaluarlo como se hace con los idtoken que si no exite se renueve
           setVerificationDone(true)
         }
       }
-
       if (["bodasdehoy"].includes(config?.development) && !sessionCookie) {
         const cookieContent = JSON.parse(Cookies.get(config?.cookieGuest) ?? "{}")
         let guestUid = cookieContent?.guestUid
@@ -351,16 +321,12 @@ const AuthProvider = ({ children }) => {
           guestUid = nanoid(28)
           Cookies.set(config?.cookieGuest, JSON.stringify({ guestUid }), { domain: `${config?.domain}`, expires: dateExpire })
         }
-        /* console.log(100.003) */
         setUser({ uid: guestUid, displayName: "guest" })
         setVerificationDone(true)
       }
-
       if (!sessionCookieParsed?.user_id && !user?.uid) {
-        /*   console.log(0.00005) */
         setVerificationDone(true)
       }
-
     } catch (error) {
       console.log(90002, error)
     }
@@ -372,8 +338,6 @@ const AuthProvider = ({ children }) => {
       variables: {},
     }).then(geoInfo => setGeoInfo(geoInfo)).catch(err => console.log(err))
   }, [])
-
-
 
   return (
     <AuthContext.Provider value={{

@@ -1,10 +1,8 @@
-// importaciones librerias
 import { Formik } from "formik";
 import { useEffect, useState } from "react";
-import { api } from "../../api";
 import { GoFileDiff } from "react-icons/go";
 import { AuthContextProvider, EventContextProvider } from "../../context";
-import { CheckIcon, DiamanteIcon } from "../icons";
+import { CheckIcon } from "../icons";
 import InputField from "./InputField";
 import { useToast } from "../../hooks/useToast";
 import { getCurrency } from "../../utils/Funciones";
@@ -27,18 +25,19 @@ const validacion = (values) => {
   if (!values.medio_pago) {
     errors.medio_pago = "Modo de pago requerido"
   }
-
   return errors
 }
 
 
-const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categorias, getId }) => {
+const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categorias, getId, }) => {
   const { event, setEvent } = EventContextProvider()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [pago, setPago] = useState(ListaPagos?.find(item => item._id == IDPagoAModificar))
   const toast = useToast()
   const { t } = useTranslation()
   const [isLoadingImage, setIsLoadingImage] = useState(false); // Nuevo estado
+
+  console.log("pego", pago)
 
 
   useEffect(() => {
@@ -144,7 +143,7 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categor
       }}
       validate={validacion}
     >
-      {(props) => <BasicFormLogin getId={getId} categorias={categorias} isLoadingImage={isLoadingImage} {...props} />}
+      {(props) => <BasicFormLogin getId={getId} categorias={categorias} isLoadingImage={isLoadingImage} pago={pago} {...props} />}
     </Formik>
   );
 }
@@ -160,17 +159,19 @@ export const BasicFormLogin = ({
   setValues,
   categorias,
   getId,
-  isLoadingImage
+  isLoadingImage,
+  pago
 }) => {
+
+  console.log("categoria", categorias)
 
   const { event } = EventContextProvider()
   const { config } = AuthContextProvider()
   const [ischecked, setCheck] = useState(values.pagado)
-  const toast = useToast()
   const { currency } = AuthContextProvider()
   const [showProOptions, setShowProOptions] = useState(true)
-  const Categoria = event?.presupuesto_objeto?.categorias_array?.find(item => item?._id == categorias)?.nombre
-  const idxCate = event?.presupuesto_objeto?.categorias_array?.findIndex(item => item?._id == categorias)
+  const Categoria = event?.presupuesto_objeto?.categorias_array?.find(item => item?._id == pago.idCategoria)?.nombre
+  const idxCate = event?.presupuesto_objeto?.categorias_array?.findIndex(item => item?._id == pago.idCategoria)
   const Proveedor = event?.presupuesto_objeto?.categorias_array[idxCate]?.gastos_array?.find(item => item?._id == getId)
   const { t } = useTranslation();
   const [selectedFile, setSelectedFile] = useState(null);
@@ -223,14 +224,17 @@ export const BasicFormLogin = ({
       <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6 pt-6 w-full " >
         <div className="col-span-2 grid grid-cols-6 border-gray-100 pl-3 w-full ">
           <div className="col-span-6  md:col-span-4">
-            <div className="flex items-center space-x-1 capitalize text-2xl text-gray-500">
-              <h2 className="col-sapn-5 text-3xl text-primary truncate">{Categoria}</h2>
-              <h2> {"//"}</h2>
-              <h2 className="truncate">{Proveedor?.nombre}</h2>
+            <div className="flex items-center space-x-1 capitalize text-gray-500">
+              <h2 className="font-display text-2xl capitalize text-gray-500 font-medium">Categoria //</h2>
+              <h2 className="col-sapn-5 text-xl text-primary truncate">{Categoria}</h2>
+            </div>
+            <div className="flex items-center space-x-1 capitalize text-gray-500">
+              <h2 className="font-display text-2xl capitalize text-gray-500 font-medium">Partida //</h2>
+              <h2 className="truncate text-xl text-primary">{Proveedor?.nombre}</h2>
             </div>
             <div className=" md:col-span-2 w-full flex space-x-2 ">
-              <h2 className="font-display text-2xl capitalize text-primary font-light">{t("add")}</h2>
-              <h2 className="font-display text-2xl capitalize text-gray-500 font-medium">{t("payments")}</h2>
+              <h2 className="font-display capitalize text-primary font-light">{t("add")}</h2>
+              <h2 className="font-display capitalize text-gray-500 font-medium">{t("payments")}</h2>
             </div>
           </div>
 

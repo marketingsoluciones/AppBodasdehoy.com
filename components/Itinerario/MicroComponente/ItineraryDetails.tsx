@@ -47,7 +47,7 @@ export const ItineraryDetails: FC<props> = ({ itinerario, selectTask, view }) =>
     event?.usuario_id === user?.uid && editUsers.push(user)
     event?.usuario_id !== user?.uid && editUsers.push(event.detalles_usuario_id)
     event?.permissions?.find(elem => elem.title === window?.location?.pathname.slice(1))?.value === "edit" && editUsers.push(user)
-    editUsers = [...editUsers, ...event.detalles_compartidos_array.filter(elem => elem.permissions.find(el => el.title === window?.location?.pathname.slice(1)).value === "edit")]
+    editUsers = [...editUsers, ...event.detalles_compartidos_array.filter(elem => elem.permissions.find(el => el.title === window?.location?.pathname.slice(1))?.value === "edit")]
     setEditUsers(editUsers)
     let viewUsers = []
     event?.usuario_id !== user?.uid && event?.permissions?.find(elem => elem.title === window?.location?.pathname.slice(1))?.value === "view" && viewUsers.push(user)

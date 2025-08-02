@@ -1,9 +1,9 @@
 
-import { FC } from "react";
+import { FC, useEffect, useState } from "react";
 import { EventContextProvider } from "../../context";
 import { CanceladoIcon, ConfirmadosIcon, PendienteIcon } from "../icons";
 import { RowString } from "./RowString";
-import { guests } from "../../utils/Interfaces";
+import { guests, table } from "../../utils/Interfaces";
 import { RowObject } from "./RowObject";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useTranslation } from 'react-i18next';
@@ -13,11 +13,47 @@ interface propsSubTabla {
     getId?: string,
 }
 
+interface guestsExt extends guests {
+    tableNameRecepcion: Partial<table>
+    tableNameCeremonia: Partial<table>
+}
+
 export const SubTabla: FC<propsSubTabla> = ({ row, getId }) => {
-    
-    const { event } = EventContextProvider();
+
+    const { event, allFilterGuests } = EventContextProvider();
     const GuestsByFather = event?.invitados_array?.filter((invitado) => invitado?.father === getId)
-    
+    const [data, setData] = useState<{ titulo: string; data: guestsExt[] }[]>([]);
+
+
+    useEffect(() => {
+        let asd = {}
+        for (let i = 0; i < event?.grupos_array?.length; i++) {
+            asd = { ...asd, [event?.grupos_array[i]]: { titulo: event?.grupos_array[i], data: [] } }
+        }
+        const tablesRecepcion = event?.planSpace.find(elem => elem?.title === "recepción")?.tables
+        const tablesCeremonia = event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables
+        const Data = GuestsByFather.reduce((acc, item: guestsExt) => {
+            const guestRecepcion = allFilterGuests[0]?.sentados.find(elem => elem._id === item._id)
+            const guestCeremonia = allFilterGuests[1]?.sentados.find(elem => elem._id === item._id)
+            const tableRecepcion = tablesRecepcion?.find(elem => elem._id === guestRecepcion?.tableID)
+            const tableCeremonia = tablesCeremonia?.find(elem => elem._id === guestCeremonia?.tableID)
+            item.chairs = [
+                { planSpaceName: "recepción", chair: guestRecepcion?.chair, table: tableRecepcion },
+                { planSpaceName: "ceremmonia", chair: guestCeremonia?.chair, table: tableCeremonia },
+            ]
+            item.tableNameRecepcion = tableRecepcion?.title ? tableRecepcion : { title: "no asignado" }
+            item.tableNameCeremonia = tableCeremonia?.title ? tableCeremonia : { title: "no asignado" }
+
+            if (event?.grupos_array?.includes(item?.rol)) {
+                acc[item.rol] = { titulo: item.rol, data: acc[item.rol]?.data ? [...acc[item.rol]?.data, item] : [item] }
+            } else {
+                acc["no asignado"] = { titulo: "no asignado", data: acc["no asignado"]?.data ? [...acc["no asignado"]?.data, item] : [item] }
+            }
+            return acc;
+        }, asd);
+        Data && setData(Object.values(Data));
+    }, [allFilterGuests]);
+
     return (
         <div className=" bg-base px-10 pb-12 pt-6 relative">
             <ListadoComponent
@@ -117,7 +153,7 @@ const ListadoComponent: FC<props> = ({ row, GuestsByFather }) => {
                     return table
 
                 }
-                
+
                 return (
                     <div
                         key={idx}

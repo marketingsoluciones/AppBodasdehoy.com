@@ -4,7 +4,7 @@ import { FC, useEffect, useState } from "react";
 import { AuthContextProvider } from "../../../context";
 import { useTranslation } from "react-i18next";
 import { defaultImagenes } from "../../../components/Home/Card";
-import { TaskNew } from "./TaskNew";
+import { TaskNew } from "../../Servicios/VistaTarjeta/TaskNew";
 
 interface TaskReduce {
   fecha: number
@@ -43,7 +43,7 @@ export const ItinerarioPDF = (props) => {
 
   if (props?.evento?.itinerarios_array?.length < 1)
     return (
-      <div className="bg-red-200 text-blue-700 w-full h-full text-center mt-20">
+      <div className="bg-[#ffbfbf] text-primary w-full h-full text-center mt-20">
         Page not found error 404
       </div>
     )
@@ -65,7 +65,7 @@ export const ItinerarioPDF = (props) => {
           </div>
           <div className='flex-1 md:flex-none md:w-[35%] h-[100%] flex flex-row-reverse md:flex-row items-center '>
             <img
-              src={event?.imgEvento ? `https://apiapp.bodasdehoy.com/${event.imgEvento.i800}` : defaultImagenes[event?.tipo]}
+              src={defaultImagenes[event?.tipo]}
               className=" h-[90%] object-cover object-top rounded-md border-1 border-gray-600  hidden md:block"
               alt={event?.nombre}
             />
@@ -73,6 +73,17 @@ export const ItinerarioPDF = (props) => {
               <span className='text-sm translate-y-2 text-primary text-[12px] first-letter:capitalize'>{event?.tipo}</span>
               <span className='uppercase w-64 truncate '>{event?.nombre}</span>
             </div>
+          </div>
+        </div>
+        <div className='flex-1 md:flex-none md:w-[35%] h-[100%] flex flex-row-reverse md:flex-row items-center '>
+          <img
+            src={event?.imgEvento ? `https://apiapp.bodasdehoy.com/${event.imgEvento.i800}` : defaultImagenes[event?.tipo]}
+            className=" h-[90%] object-cover object-top rounded-md border-1 border-gray-600  hidden md:block"
+            alt={event?.nombre}
+          />
+          <div className='hidden md:flex flex-col font-display font-semibold text-md text-gray-500 px-2 md:pt-2 gap-2'>
+            <span className='text-sm translate-y-2 text-primary text-[12px] first-letter:capitalize'>{event?.tipo}</span>
+            <span className='uppercase w-64 truncate '>{event?.nombre}</span>
           </div>
         </div>
         <div className="w-full px-4 md:px-10 py-4" >
@@ -95,7 +106,6 @@ export const ItinerarioPDF = (props) => {
                   task={elem}
                   itinerario={event.itinerarios_array[0]}
                   view={"schema"}
-                  // isSelect={selectTask === elem._id}
                   onClick={() => { }}
                 />
               )
@@ -105,6 +115,6 @@ export const ItinerarioPDF = (props) => {
         }
         {end && <span id="elementControl" className="text-xs">~</span>}
       </motion.div>
-    </section>
+    </section >
   )
 }

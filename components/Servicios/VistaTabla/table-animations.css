@@ -1,0 +1,267 @@
+/* Animaciones y transiciones para la tabla */
+
+/* Animación de entrada para filas */
+@keyframes fadeInRow {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animación de highlight para cambios */
+@keyframes highlightChange {
+  0% {
+    background-color: rgba(236, 72, 153, 0.2);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+/* Animación de pulse para elementos interactivos */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(236, 72, 153, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(236, 72, 153, 0);
+  }
+}
+
+/* Clases de utilidad para la tabla */
+
+/* Filas de la tabla */
+.table-row-enter {
+  animation: fadeInRow 0.3s ease-out;
+}
+
+/* Celdas en edición */
+.table-cell-editing {
+  position: relative;
+  overflow: visible;
+}
+
+.table-cell-editing::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border: 2px solid #ec4899;
+  border-radius: 0.375rem;
+  pointer-events: none;
+  animation: pulse 2s infinite;
+}
+
+/* Cambios guardados */
+.table-cell-saved {
+  animation: highlightChange 1s ease-out;
+}
+
+/* Transiciones suaves para hover */
+.table-cell-hover {
+  transition: all 0.2s ease;
+}
+
+.table-cell-hover:hover {
+  background-color: rgba(249, 250, 251, 0.8);
+  transform: scale(1.01);
+}
+
+/* Dropdowns mejorados */
+.table-dropdown {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: top center;
+}
+
+.table-dropdown-enter {
+  opacity: 0;
+  transform: scaleY(0.95) translateY(-10px);
+}
+
+.table-dropdown-enter-active {
+  opacity: 1;
+  transform: scaleY(1) translateY(0);
+}
+
+/* Tags con animación */
+.tag-item {
+  transition: all 0.2s ease;
+}
+
+.tag-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Botones con efecto ripple */
+.btn-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-ripple::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn-ripple:active::after {
+  width: 300px;
+  height: 300px;
+}
+
+/* Scrollbar personalizado para la tabla */
+.table-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.table-scrollbar::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 4px;
+}
+
+.table-scrollbar::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+.table-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Indicadores de arrastre */
+.table-draggable {
+  cursor: move;
+  transition: all 0.2s ease;
+}
+
+.table-draggable:hover {
+  background-color: #f9fafb;
+}
+
+.table-dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+
+/* Tooltips mejorados */
+.tooltip-content {
+  animation: tooltipFadeIn 0.2s ease-out;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Estados de carga */
+.table-loading {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.table-loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid #f3f4f6;
+  border-radius: 50%;
+  border-top-color: #ec4899;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Efectos de foco mejorados */
+.table-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+}
+
+/* Transiciones para modales */
+.modal-backdrop {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mejoras de accesibilidad */
+.table-cell:focus-within {
+  outline: 2px solid #ec4899;
+  outline-offset: -2px;
+}
+
+/* Estados de error */
+.table-error {
+  background-color: #fee2e2 !important;
+  border-color: #ef4444 !important;
+}
+
+.table-error-message {
+  color: #dc2626;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  animation: fadeInRow 0.2s ease-out;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .table-cell {
+    font-size: 0.875rem;
+  }
+  
+  .table-header {
+    font-size: 0.75rem;
+  }
+}

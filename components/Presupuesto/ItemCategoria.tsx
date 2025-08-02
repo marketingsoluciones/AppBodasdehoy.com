@@ -4,10 +4,6 @@ import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from "react-i18next";
 import { getCurrency } from "../../utils/Funciones";
-import { DotsOpcionesIcon } from "../icons";
-import ClickAwayListener from "react-click-away-listener";
-import FormEditarCategoria from "../Forms/FormEditarCategoria";
-import ModalLeft from "../Utils/ModalLeft";
 import { estimateCategory, ModalInterface } from "../../utils/Interfaces";
 import { SimpleDeleteConfirmation } from "../Utils/SimpleDeleteConfirmation";
 import { handleDelete } from "../TablesComponents/tableBudgetV8.handles";
@@ -29,7 +25,8 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
   const [loading, setLoading] = useState<boolean>(false);
   const [showModalDelete, setShowModalDelete] = useState<ModalInterface>({ state: false, title: null, values: null })
 
-  const handleOnBlur = ({ value, accessor }) => {
+
+  const handleOnBlur = ({ value, id }) => {
     try {
       fetchApiEventos({
         query: queries.editCategoria,
@@ -40,8 +37,8 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
         }
       }).then(() => {
         setEvent(old => {
-          console.log("value", value)
-          const index = old?.presupuesto_objeto?.categorias_array?.findIndex(item => item._id == item._id)
+          const index = old?.presupuesto_objeto?.categorias_array?.findIndex(item => item._id == id)
+          
           old.presupuesto_objeto.categorias_array[index].nombre = value !== "" ? value : "nueva categoria"
           return { ...old }
         });
@@ -51,6 +48,7 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
       console.log(error);
     }
   }
+
 
   return (
     <>
@@ -77,13 +75,12 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
           <div className="col-span-4 flex capitalize break-all "
             onClick={(e) => e.stopPropagation()}
           >
-
             <EditableLabelWithInput
               value={item?.nombre && item.nombre.length > 15
                 ? item.nombre.slice(0, 30) + "..."
                 : item.nombre}
               type={null}
-              handleChange={handleOnBlur}
+              handleChange={({ value }) => handleOnBlur({ value, id: item._id })}
               accessor={null}
               textAlign="left" />
           </div>
@@ -113,26 +110,3 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
 
 
 
-{/* <span className={`flex justify-end w-full ${event?.presupuesto_objeto?.coste_estimado?.toString()?.length < 9 ? "text-[11px]" : "text-[10px]"}`} >
-            <div className="flex w-[97%] space-x-3">
-              <div className="w-[160px]. flex justify-end space-x-1">
-                {event?.presupuesto_objeto?.viewEstimates && <>
-                  <span >
-                    {getCurrency(item?.coste_estimado)}
-                  </span>
-                  {/* <span className={`text-[10px] ${event?.presupuesto_objeto?.coste_estimado?.toString().length < 9 ? "translate-y-[1.3px]" : ""}`}>
-                    Estimado
-                  </span> 
-                </>
-                }
-              </div>
-              <div className="w-[80px]. flex justify-end space-x-1">
-                <span >
-                  {getCurrency(item.coste_final)}
-                </span>
-                {/* <span className={`text-[10px] ${event?.presupuesto_objeto?.coste_estimado?.toString().length < 9 ? "translate-y-[1.3px]" : ""}`}>
-                  Total
-                </span> *
-              </div>
-            </div>
-          </span> */}

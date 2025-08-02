@@ -6,6 +6,8 @@ import { IoShareSocial } from 'react-icons/io5'
 import { DiGoogleDrive } from "react-icons/di";
 import { Modal } from './Modal'
 import { useTranslation } from 'react-i18next'
+import { PermissionIndicator } from '../Servicios/Utils/PermissionIndicator'
+
 
 export const BlockTitle = ({ title }) => {
   const { t } = useTranslation()
@@ -18,7 +20,10 @@ export const BlockTitle = ({ title }) => {
     <div className={`w-full h-14 bg-white rounded-xl shadow-lg ${forCms ? "hidden" : "flex"} items-center justify-between max-w-screen-lg mx-auto`}>
       <ModalAddUserToEvent openModal={openModal} setOpenModal={setOpenModal} event={event} />
       <div className='flex md:flex-1 flex-col px-2 md:px-6 font-display'>
-        <span className="text-gray-500 text-[18px] leading-[20px] font-bold">{t(title)}</span>
+        <div className="flex items-center space-x-2">
+          <span className="text-gray-500 text-[18px] leading-[20px] font-bold">{t(title)}</span>
+          <PermissionIndicator />
+        </div>
         <div className='space-x-1'>
           <span className='md:hidden capitalize text-primary text-[12px] leading-[12px]'>{event?.tipo}</span>
           <span className='md:hidden capitalize text-gray-600 text-[12px] leading-[20px] font-medium'>{event?.nombre}</span>
@@ -41,7 +46,7 @@ export const BlockTitle = ({ title }) => {
               <UsuariosCompartidos event={event} />
             </div>
             <span
-              className={`transition transform ${event?.usuario_id === user?.uid && user?.displayName !== "guest" ? "hover:scale-110 cursor-pointer text-primary" : "text-gray-300"} z-30 translate-y-2* -translate-x-1.5 md:-translate-y-3* ${title === "Presupuesto" ? "md:-translate-x-12" : "md:-translate-x-6"}`}
+              className={`transition transform ${event?.usuario_id === user?.uid && user?.displayName !== "guest" ? "hover:scale-110 cursor-pointer text-primary" : "text-gray-300"} translate-y-2* -translate-x-1.5 md:-translate-y-3* ${title === "Presupuesto" ? "md:-translate-x-12" : "md:-translate-x-6"}`}
               onClick={() => { event?.usuario_id === user?.uid && user?.displayName !== "guest" && setOpenModal(!openModal) }}
             >
               <IoShareSocial className="w-6 h-6" />
@@ -58,7 +63,7 @@ export const BlockTitle = ({ title }) => {
       </div>
       {
         openModalDrive ?
-          <Modal openIcon={openModalDrive} setOpenIcon={setOpenModalDrive} classe={"h-max w-[40%]"}>
+          <Modal openIcon={openModalDrive} setOpenIcon={setOpenModalDrive} classe={"h-max w-[40%] flex items-center justify-center"}>
             <div className='my-10 mx-32'>
               <img src='/WIP.png' />
             </div>

@@ -50,15 +50,23 @@ const SubComponentePagos = ({ row, cate, gasto, wantCreate, getId }) => {
       </div>
       {
         showSoporte.state &&
-        <Modal set={setShowSoporte} state={showSoporte.state} classe={"w-[95%] md:w-[450px] max-h-[600px] min-h-[100px]"}>
-          <div className="flex flex-col items-center h-full">
-            <div className="self-end pr-3 cursor-pointer" onClick={() => setShowSoporte({ state: false, data: null })}>
-              x
+        <Modal set={setShowSoporte} state={showSoporte.state} classe={"w-[95%] md:w-[450px] max-h-[600px] min-h-[100px] flex items-center justify-center"}>
+          <div className="relative bg-white rounded-xl shadow-2xl w-full max-h-[550px] flex flex-col items-center justify-center p-6">
+            <button
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-2xl font-bold transition-colors rounded-full focus:outline-none focus:ring-2 focus:ring-gray-300"
+              onClick={() => setShowSoporte({ state: false, data: null })}
+              aria-label="Cerrar"
+            >
+              ×
+            </button>
+            <span className="font-display text-lg text-gray-700 mb-4">Factura de soporte</span>
+            <div className="flex items-center justify-center w-full h-full max-h-[400px]">
+              <img
+                src={showSoporte?.data}
+                alt="Factura de soporte"
+                className="object-contain max-h-[400px] w-auto rounded-md border border-gray-100 shadow"
+              />
             </div>
-            <div className="h-full flex items-center ">
-              <img src={showSoporte?.data} alt="Factura de soporte" className="" />
-            </div>
-
           </div>
         </Modal>
       }

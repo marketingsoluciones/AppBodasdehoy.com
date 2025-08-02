@@ -22,6 +22,10 @@ export const EditableLabelWithInput: FC<props> = ({ value, type, handleChange, a
   const { t } = useTranslation();
   let timeoutId = null
 
+  useEffect(() => {
+    setNewValue(value)
+  }, [value])
+
   const keyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     let tecla = e.key.toLowerCase();
 
@@ -41,6 +45,7 @@ export const EditableLabelWithInput: FC<props> = ({ value, type, handleChange, a
     }
   };
 
+
   return (
     <>
       {edit ?
@@ -48,19 +53,50 @@ export const EditableLabelWithInput: FC<props> = ({ value, type, handleChange, a
           <input
             id={"ElementEditable"}
             type={["int", "float"].includes(type) ? "number" : "text"}
+            step={type === "int" ? "1" : "0.01"}
             min={0}
             max={1000}
             onBlur={() => {
-              (["int", "float"].includes(type) && typeof newValue === "string" ? newValue !== "" ? parseFloat(newValue) : 0 : newValue) !== value && handleChange({ value: ["int", "float"].includes(type) && typeof newValue === "string" ? newValue !== "" ? type === "float" ? parseFloat(newValue) : parseInt(newValue) : 0 : newValue, accessor })
+              (["int", "float"].includes(type) && typeof newValue === "string"
+                ? newValue !== ""
+                  ? type === "float"
+                    ? parseFloat(newValue)
+                    : parseInt(newValue)
+                  : 0
+                : newValue) !== value
+                &&
+                handleChange({
+                  value: ["int", "float"].includes(type) && typeof newValue === "string"
+                    ? newValue !== ""
+                      ? type === "float"
+                        ? parseFloat(newValue)
+                        : parseInt(newValue)
+                      : 0
+                    : newValue, accessor
+                })
               setHovered(false)
             }}
             onChange={(e) => {
               setNewValue(e.target.value.replace(/^0+$/, "0").replace(/^0+(?=\d)/, ""))
             }}
             onKeyDown={(e) => keyDown(e)}
-            value={typeof newValue === "number" ? newValue.toFixed(2) : `${newValue}`.replace(/\+/g, "").replace(/\-/g, "")}
+            value={typeof newValue === "number"
+              ? type === "float"
+                ? newValue.toFixed(2)
+                : newValue.toString()
+              : `${newValue}`.replace(/\+/g, "").replace(/\-/g, "")
+            }
             autoFocus
-            className={`text-sm outline-none ring-0 border-none focus:outline-none focus:ring-0 focus:border-none w-full ${["start", "left"].includes(textAlign) ? "text-left" : ["center"].includes(textAlign) ? "text-center" : ["right", "end"].includes(textAlign) ? "text-right" : ``}`}
+            className={`
+              text-sm outline-none ring-0 border-none focus:outline-none focus:ring-0 focus:border-none w-full 
+              ${["start", "left"].includes(textAlign)
+                ? "text-left"
+                : ["center"].includes(textAlign)
+                  ? "text-center"
+                  : ["right", "end"].includes(textAlign)
+                    ? "text-right"
+                    : ``
+              }`}
           />
 
         </ClickAwayListener>
@@ -75,24 +111,28 @@ export const EditableLabelWithInput: FC<props> = ({ value, type, handleChange, a
             }, 100);
           }}
           onClick={() => isAllowed() ? setEdit(true) : ht()}
-          className="flex items-center justify-center gap-1 cursor-context-menu"
+          className="flex items-center justify-center gap-1 cursor-context-menu w-full"
         >
-          <div className="relative">
-            {["int", "float"].includes(type) && typeof newValue === "string"
-              ? newValue !== ""
-                ? type === "float"
-                  ? getCurrency(parseFloat(newValue))
-                  : new Intl.NumberFormat().format(parseInt(newValue))
-                : 0
-              : typeof newValue === "number"
-                ? type === "float"
-                  ? getCurrency(newValue)
-                  : new Intl.NumberFormat().format(newValue)
-                : newValue}
+          <div className={`relative w-full hover:cursor-pointer ${textAlign === "end" ? "text-right" : ""}`}>
+            {
+              ["int", "float"].includes(type) && typeof newValue === "string"
+                ? newValue !== ""
+                  ? type === "float"
+                    ? getCurrency(parseFloat(newValue))
+                    : new Intl.NumberFormat().format(parseInt(newValue))
+                  : 0
+                : typeof newValue === "number"
+                  ? type === "float"
+                    ? getCurrency(newValue)
+                    : new Intl.NumberFormat().format(newValue)
+                  : newValue
+            }
             {!isLabelDisabled && <span className="ml-1">{t(accessor)}</span>}
-            {hovered && isAllowed() && <div className="absolute right-0 w-6 h-full flex translate-x-[calc(100%+6px)] -translate-y-[calc(100%+4px)]">
-              <FaPencilAlt className="hover:scale-105" />
-            </div>
+            {
+              hovered && isAllowed() &&
+              <div className="absolute right-0 w-6 h-full flex translate-x-[calc(100%+6px)] -translate-y-[calc(100%+4px)]">
+                <FaPencilAlt className="hover:scale-105" />
+              </div>
             }
           </div>
         </span >}

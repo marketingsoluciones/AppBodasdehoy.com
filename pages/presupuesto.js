@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { DineroIcon } from "../components/icons";
 import BlockPagos from "../components/Presupuesto/BlockPagos";
 import Grafico from "../components/Presupuesto/Grafico";
+import ExportExcelPresupuesto from "../components/Presupuesto/ExportExcelPresupuesto";
 import { AuthContextProvider, EventContextProvider } from "../context";
 import { getCurrency } from "../utils/Funciones";
 import VistaSinCookie from "./vista-sin-cookie";
@@ -15,7 +16,6 @@ import { MontoPresupuesto } from "../components/Presupuesto/MontoPresupuesto";
 import BlockCategoria from "../components/Presupuesto/BlockCategoria";
 import { DuplicatePresupuesto } from "../components/Presupuesto/DuplicatePesupuesto";
 import { useAllowed } from "../hooks/useAllowed";
-import { SmartSpreadsheetView2 } from "../components/Presupuesto/PresupuestoV2/IndexPresupuesto";
 
 const Presupuesto = () => {
   useMounted()
@@ -28,7 +28,6 @@ const Presupuesto = () => {
   const [getId, setGetId] = useState()
   const [showModalDuplicate, setShowModalDuplicate] = useState(false)
   const [isAllowed, ht] = useAllowed()
-  const [showModalPresupuesto, setShowModalPresupuesto] = useState(false)
 
   const totalCosteFinal = categorias?.reduce((sum, categoria) => {
     return sum + (categoria.coste_final || 0);
@@ -55,27 +54,7 @@ const Presupuesto = () => {
                 <DuplicatePresupuesto showModalDuplicate={showModalDuplicate} setModal={setShowModalDuplicate} />
               </div>
             )}
-            {
-              showModalPresupuesto && (
-                <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex justify-center items-center">
-                  <div className="bg-white w-[90%] h-[90%] rounded-lg overflow-auto shadow-lg relative">
-                    <button
-                      onClick={() => setShowModalPresupuesto(false)}
-                      className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
-                    >
-                      ✕
-                    </button>
-                    <SmartSpreadsheetView2
-                      categorias_array={categorias}
-                      event={event}
-                      setShowCategoria={setShowCategoria}
-                      showCategoria={showCategoria}
-                    />
-                    {/* <ResumenPresupuestoModal categorias={categorias} presupuesto={event.presupuesto_objeto} estimadoState={event?.presupuesto_objeto?.viewEstimates} /> */}
-                  </div>
-                </div>
-              )
-            }
+           
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -146,21 +125,6 @@ const Presupuesto = () => {
                               <MontoPresupuesto />
                             </div>
                             <div className=" bg-white shadow-md rounded-xl grid place-items-center py-4 px-2 relative">
-                              <div className={`${showModalPresupuesto ? "hidden" : " absolute"}  right-2 -top-11 `}>
-                                <button
-                                  onClick={() => setShowModalPresupuesto(true)}
-                                  className={`z-[60] bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 text-white font-bold py-1 px-3 rounded-full shadow-lg flex items-center relative hover:scale-105 transition `}
-                                  title="Ver novedades"
-                                >
-                                  <span className="absolute -top-1 -right-1">
-                                    <span className="relative flex h-3 w-3">
-                                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                      <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-400"></span>
-                                    </span>
-                                  </span>
-                                  <span className="uppercase tracking-wider text-xs">New</span>
-                                </button>
-                              </div>
                               <DineroIcon className="w-12 h-12 text-primary " />
                               <p className="font-display text-gray-500 font-light text-md grid place-items-center">
                                 {t("finalcost")} <br />
@@ -189,13 +153,11 @@ const Presupuesto = () => {
                                   </p>
                                 </div>
                               </div>
-                              <div className="flex  justify-between w-full text-sm">
+                              <div className="flex justify-between w-full text-sm">
                                 <div onClick={() => isAllowed() ? setShowModalDuplicate(true) : ht()} className=" capitalize text-gray-500 cursor-pointer flex justify-center items-center  border  border-primary rounded-md px-3 text-xs text-primary">
                                   {t("import")}
                                 </div>
-                                <div className="  cursor-default flex justify-center items-center px-3 text-primary opacity-50 border rounded-md text-xs border-primary">
-                                  {t("export")}
-                                </div>
+                                <ExportExcelPresupuesto />
                               </div>
                             </div>
                           </div>
@@ -239,7 +201,7 @@ const Presupuesto = () => {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="w-full h-full gap-6 pt-2 md:pr-0"
+                      className=" w-full h-full gap-6 pt-2 md:pr-0"
                     >
                       <ExcelView setShowCategoria={setShowCategoria} categorias_array={categorias} showCategoria={showCategoria} />
                     </motion.div>

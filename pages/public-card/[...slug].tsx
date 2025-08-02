@@ -1,14 +1,14 @@
 
 import { FC, useEffect, useState } from "react";
-import { fetchApiBodas, fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiEventosServer, fetchApiBodasServer, queries } from "../../utils/Fetching";
 import { Event } from "../../utils/Interfaces";
 import { motion } from "framer-motion"
 import { defaultImagenes } from "../../components/Home/Card";
-import { TaskNew } from "../../components/Itinerario/MicroComponente/TaskNew";
+import { TaskNew } from "../../components/Servicios/VistaTarjeta/TaskNew";
 import { openGraphData } from "../_app";
 import { AuthContextProvider } from "../../context/AuthContext";
 import { EventContextProvider } from "../../context";
-import { TempPastedAndDropFiles } from "../../components/Itinerario/MicroComponente/ItineraryPanel";
+import { TempPastedAndDropFile } from "../../components/Itinerario/MicroComponente/ItineraryPanel";
 import { useRouter } from "next/router";
 
 interface props {
@@ -16,13 +16,25 @@ interface props {
   users: any
   slug?: any
   query?: any
+  error?: any
+  development?: string
 }
 
 const Slug: FC<props> = (props) => {
-  console.log("propsnew", props)
+  // Manejar error de getServerSideProps
+  if (props?.error) {
+    return (
+      <div className="bg-[#ffbfbf] text-red-700 w-full h-full text-center mt-20">
+        <h1 className="text-xl font-bold mb-4">Error al cargar la tarjeta</h1>
+        <p className="text-sm">Error: {props.error?.message || props.error}</p>
+        <p className="text-sm mt-2">Por favor, intenta de nuevo más tarde.</p>
+      </div>
+    )
+  }
+
   if (!props?.evento?.itinerarios_array?.length)
     return (
-      <div className="bg-red-200 text-blue-700 w-full h-full text-center mt-20">
+      <div className="bg-[#ffbfbf] text-blue-700 w-full h-full text-center mt-20">
         Page not found error 404
       </div>
     )
@@ -33,11 +45,21 @@ const Slug: FC<props> = (props) => {
 export default Slug;
 
 const ServicesVew = (props) => {
-
   const router = useRouter()
   const { event, setEvent } = EventContextProvider()
   const { user, setUser, verificationDone } = AuthContextProvider()
-  const [tempPastedAndDropFiles, setTempPastedAndDropFiles] = useState<TempPastedAndDropFiles[]>([]);
+  const [tempPastedAndDropFiles, setTempPastedAndDropFiles] = useState<TempPastedAndDropFile[]>([]);
+  const [isMounted, setIsMounted] = useState(false)
+  const [validated, setValidated] = useState(false)
+
+  useEffect(() => {
+    if (!isMounted) {
+      setIsMounted(true)
+    }
+    return () => {
+      setIsMounted(false)
+    }
+  }, [])
 
   useEffect(() => {
     if (verificationDone) {
@@ -49,9 +71,15 @@ const ServicesVew = (props) => {
       }
     }
   }, [verificationDone, props])
+  useEffect(() => {
+    setTimeout(() => {
+      setValidated(true)
+    }, 1000);
+  }, [isMounted])
 
   return (
-    <section className={` absolute z-[50] w-[calc(100vw)] h-[calc(100vh-63px)] top-[63px] left-4. bg-white`}>
+    validated &&
+    <section className={` absolute z-[50] w-full h-[calc(100vh-63px)] top-[63px] bg-white`}>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -84,7 +112,7 @@ const ServicesVew = (props) => {
           </div>
         </div >
         <div className="w-full  mt-4">
-          <TaskNew
+          {isMounted && <TaskNew
             task={event?.itinerarios_array[0]?.tasks[0]}
             itinerario={event?.itinerarios_array[0]}
             view={"cards"}
@@ -92,7 +120,7 @@ const ServicesVew = (props) => {
             onClick={() => { }}
             tempPastedAndDropFiles={tempPastedAndDropFiles}
             setTempPastedAndDropFiles={setTempPastedAndDropFiles}
-          />
+          />}
         </div>
       </motion.div>
       <style jsx>
@@ -119,29 +147,64 @@ const ServicesVew = (props) => {
 
 export async function getServerSideProps(context) {
   const { params, query, req } = context
+  let error_2 = null
   try {
     const p = params?.slug[0]?.split("-")
     const evento_id = p?.[1] || query?.event;
     const itinerario_id = p?.[2] || query?.itinerary;
 
-    const evento = await fetchApiEventos({
-      query: queries.getItinerario,
-      variables: {
-        evento_id,
-        itinerario_id
+    let evento: Event | null = null;
+    try {
+      const data = await fetchApiEventosServer({
+        query: queries.getItinerario,
+        variables: {
+          evento_id,
+          itinerario_id
+        }
+      });
+      evento = data.getItinerario;
+    } catch (error) {
+      try {
+        evento = await fetchApiEventosServer({
+          query: queries.getItinerario,
+          variables: {
+            evento_id,
+            itinerario_id
+          }
+        }) as any;
+      } catch (error2) {
+        throw error2;
       }
-    }) as any
+    }
 
     const itinerary = evento.itinerarios_array.find(elem => elem._id === query.itinerary)
     const task = itinerary?.tasks?.find(elem => elem._id === query.task)
     const development = getDevelopment(req.headers.host)
 
-    const users = await fetchApiBodas({
-      query: queries?.getUsers,
-      variables: { uids: task.comments.filter(elem => !!elem.uid).map(elem => elem.uid) },
-      development: !/^\d+$/.test(development) ? development : "champagne-events"
-    })
-
+    let users = [];
+    if (task?.comments?.length > 0) {
+      try {
+        const data = await fetchApiBodasServer({
+          query: queries?.getUsers,
+          variables: { uids: task.comments.filter(elem => !!elem.uid).map(elem => elem.uid) },
+          development: !/^\d+$/.test(development) ? development : "champagne-events"
+        });
+        users = data.getUsers || [];
+      } catch (error) {
+        try {
+          error_2 = error
+          users = await fetchApiBodasServer({
+            query: queries?.getUsers,
+            variables: { uids: task.comments.filter(elem => !!elem.uid).map(elem => elem.uid) },
+            development: !/^\d+$/.test(development) ? development : "champagne-events"
+          });
+        } catch (error2) {
+          error_2 = error2
+          console.log('Error fetching users:', error2);
+          users = [];
+        }
+      }
+    }
     const usersMap = users?.map(elem => {
       return {
         uid: elem.uid,
@@ -149,41 +212,48 @@ export async function getServerSideProps(context) {
         photoURL: elem.photoURL
       }
     })
-
     evento._id = evento_id
-    itinerary.tasks = [task]
-    evento.itinerarios_array = [itinerary]
+    if (itinerary && task) {
+      itinerary.tasks = [task]
+      evento.itinerarios_array = [itinerary]
+    }
     evento.detalles_compartidos_array = users
     evento.fecha_actualizacion = new Date().toLocaleString()
-
     if (evento) {
       openGraphData.openGraph.title = `${evento.itinerarios_array[0].tasks[0].descripcion}`
-      openGraphData.openGraph.description = ` El Evento ${evento.tipo}, de ${evento.nombre}, ${new Date(parseInt(evento?.itinerarios_array[0].fecha_creacion))?.toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}
-`
-    }
-    return {
-      props: { ...params, query, evento, users: usersMap },
-    };
-  } catch (error) {
-    console.log(error)
-    return {
-      props: params,
-    };
+      openGraphData.openGraph.description = ` El Evento ${evento.tipo}, de ${evento.nombre}, ${new Date(parseInt(evento?.itinerarios_array[0].fecha_creacion?.toString() || '0'))?.toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}
+`    }
 
+    // Solo incluir error_2 en props si no es null
+    const props = { ...params, query, evento, users: usersMap, development };
+    if (error_2 !== null) {
+      props.error_2 = error_2;
+    }
+
+    return { props };
+  } catch (error) {
+    const props = {
+      ...params,
+      query,
+      evento: null,
+      users: null,
+      error: error,
+      development: getDevelopment(req.headers.host)
+    };
+    if (error_2 !== null) {
+      props.error_2 = error_2;
+    }
+    return { props };
   }
 }
 
-/* ${evento.itinerarios_array[0].tasks[0].tips.replace(/<[^>]*>/g, "").replace(".", ". ")} */
-
 const getDevelopment = (host) => {
   let domain = '';
-
   if (host) {
     // Eliminar el puerto si existe (ej: localhost:3000)
     const hostWithoutPort = host.split(':')[0];
     const parts = hostWithoutPort.split('.');
     const numParts = parts.length;
-
     if (numParts >= 2) {
       domain = parts.slice(-2).join('.');
       // Caso especial para dominios como co.uk, com.ar, etc.
