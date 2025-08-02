@@ -55,7 +55,8 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
         try {
             setLoading(true);
             const response = await axios.post('/api/generate-pdf', {
-                html: `${window.location.origin}/public-itinerary/itinerary-${event._id}-${itinerario._id}`
+                url: `${window.location.origin}/public-itinerary/itinerary-${event._id}-${itinerario._id}`,
+                // format: "legal"
             });
             const blob = new Blob([Uint8Array.from(atob(response.data.base64), c => c.charCodeAt(0))], { type: 'application/pdf' });
             const url = window.URL.createObjectURL(blob);
