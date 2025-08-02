@@ -25,7 +25,7 @@ interface TaskFullViewProps {
   canEdit: boolean;
   handleUpdate: (field: string, value: any) => Promise<void>;
   handleDuplicate: () => Promise<void>;
-  handleCopyLink: (task: Task) => void;
+  handleCopyLink: (task: Task, type: "task" | "calendar") => void;
   handleDeleteComment: (commentId: string) => Promise<void>;
   handleCommentAdded: (comment: Comment) => void;
   ht: () => void;

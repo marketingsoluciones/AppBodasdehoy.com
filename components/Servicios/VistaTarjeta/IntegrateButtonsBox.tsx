@@ -8,7 +8,7 @@ interface Props {
   task: Task;
   handleUpdate: (field: string, value: any) => Promise<void>;
   handleDuplicate: () => Promise<void>;
-  handleCopyLink: (task: Task) => void;
+  handleCopyLink: (task: Task, type: "task" | "calendar") => void;
 }
 
 export const IntegrateButtonsBox: FC<Props> = ({ task, handleUpdate, handleDuplicate, handleCopyLink }) => {
@@ -65,7 +65,7 @@ export const IntegrateButtonsBox: FC<Props> = ({ task, handleUpdate, handleDupli
       {/* Compartir enlace - Con feedback visual al copiar */}
       <div className="relative group">
         <button
-          onClick={() => handleCopyLink(task)}
+          onClick={() => handleCopyLink(task, "task")}
           className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-md transition-all duration-200"
           title={t('Copiar enlace')}
         >

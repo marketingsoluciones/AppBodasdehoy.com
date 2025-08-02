@@ -1,5 +1,5 @@
 import { FC, useState } from 'react';
-import { formatDate } from './TaskNewUtils';
+import { formatDate, getDateString, getTimeString } from './TaskNewUtils';
 import { Task } from '../../../utils/Interfaces';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
@@ -10,21 +10,6 @@ interface Props {
   handleUpdate: (field: string, value: any) => Promise<void>;
   canEdit: boolean;
   task: Task;
-}
-
-export const getDateString = (value: Date | string) => {
-  const d = new Date(value);
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-export const getTimeString = (value: Date | string) => {
-  const d = new Date(value);
-  const hours = String(d.getHours()).padStart(2, '0');
-  const minutes = String(d.getMinutes()).padStart(2, '0');
-  return `${hours}:${minutes}`;
 }
 
 export const DateTask: FC<Props> = ({ handleUpdate, canEdit, task }) => {

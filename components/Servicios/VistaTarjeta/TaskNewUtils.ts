@@ -1,4 +1,59 @@
-import { Comment } from "../../../utils/Interfaces";
+import { getAuth } from "firebase/auth";
+import { Comment, Event, Task } from "../../../utils/Interfaces";
+
+export const getDateString = (value: Date | string) => {
+  const d = new Date(value);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+export const getTimeString = (value: Date | string) => {
+  const d = new Date(value);
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
+}
+
+// Función para generar enlace de Google Calendar
+export const generateGoogleCalendarLink = (task: Task, event: Event): string => {
+  // Formatear la fecha y hora
+  const taskDate = new Date(task.fecha);
+  // Formatear fechas para Google Calendar (formato: YYYYMMDDTHHMMSSZ)
+  const formatDateForGoogle = (date: Date) => {
+    return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  };
+  let startDateStr: string;
+  let endDateStr: string;
+  if (task.horaActiva) {
+    // Evento con hora específica
+    const startTime = new Date(task.fecha);
+    const endTime = new Date(startTime.getTime() + (task.duracion || 30) * 60000); // duración en minutos
+    startDateStr = formatDateForGoogle(startTime);
+    endDateStr = formatDateForGoogle(endTime);
+  } else {
+    // Evento de día completo
+    const startOfDay = new Date(taskDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(taskDate);
+    endOfDay.setHours(23, 59, 59, 999);
+    startDateStr = formatDateForGoogle(startOfDay);
+    endDateStr = formatDateForGoogle(endOfDay);
+  }
+  // Codificar los parámetros para URL
+  const title = encodeURIComponent(task.descripcion || 'Tarea del evento');
+  const details = encodeURIComponent(task.tips || task.descripcion || '');
+  const location = encodeURIComponent(event?.nombre || 'Evento');
+  const attendees = task.responsable?.map(elem => {
+    const userDetail = event?.detalles_compartidos_array?.find(user => user.displayName === elem || user.email === elem);
+    return userDetail?.email || '';
+  });
+  attendees.unshift(getAuth().currentUser?.email || '');
+  const attendeesParam = attendees ? `&add=${encodeURIComponent(attendees.filter(email => email).join(','))}` : '';
+  const link = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDateStr}/${endDateStr}&details=${details}&location=${location}${attendeesParam}`;
+  return link;
+};
 
 // Función para limpiar HTML
 export const stripHtml = (html: string): string => {

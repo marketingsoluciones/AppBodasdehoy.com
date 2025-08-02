@@ -4,15 +4,13 @@ import { formatTime } from './TaskNewUtils';
 import { Clock, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ClickAwayListener from 'react-click-away-listener';
-import { getDateString, getTimeString } from './DateTask';
-
+import { getDateString, getTimeString } from './TaskNewUtils';
 
 interface TimeTaskProps {
   handleUpdate: (field: string, value: any) => Promise<void>;
   canEdit: boolean;
   task: Task;
 }
-
 
 export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task }) => {
   const { t } = useTranslation();

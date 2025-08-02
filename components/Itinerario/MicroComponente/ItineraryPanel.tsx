@@ -38,6 +38,7 @@ import { TableView } from "../../Servicios/VistaTabla/NewTableView";
 import { PermissionTaskWrapper } from "../../Servicios/Utils/PermissionTaskWrapper";
 import { PermissionTaskActionWrapper } from "../../Servicios/Utils/PermissionTaskActionWrapper";
 import useSWR from 'swr';
+import { generateGoogleCalendarLink } from "../../Servicios/VistaTarjeta/TaskNewUtils";
 
 
 interface props {
@@ -133,6 +134,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       value: "share",
       icon: <LiaLinkSolid className="w-5 h-5" />,
       title: "Link calendario1",
+      onClick: (values: Task) => !isAllowed() ? ht() : handleCopyLink(values, "calendar"),
       vew: "tasks"
     },
     {
@@ -256,6 +258,41 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       setTasksReduce(prev => (prev && prev.length === 0 ? prev : []));
     }
   }, [currentItinerario, event, view,]);
+
+  // Funciones para copiar enlace
+  const copyToClipboard = (link: string) => {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(link).then(() => {
+        toast('success', t('Enlace copiado al portapapeles'));
+      }).catch(() => {
+        const textArea = document.createElement("textarea");
+        textArea.value = link;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        toast('success', t('Enlace copiado al portapapeles'));
+      });
+    } else {
+      const textArea = document.createElement("textarea");
+      textArea.value = link;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      toast('success', t('Enlace copiado al portapapeles'));
+    }
+  }
+
+  const handleCopyLink = (task: Task, type: "task" | "calendar") => {
+    if (type === "calendar") {
+      const calendarLink = generateGoogleCalendarLink(task, event);
+      console.log(calendarLink);
+      copyToClipboard(calendarLink);
+    } else {
+      copyToClipboard(`${window.location.origin}/servicios?event=${event?._id}&itinerary=${itinerario?._id}&task=${task?._id}`);
+    }
+  };
 
   const handleAddSpectatorView = async (values: Task) => {
     try {
@@ -706,6 +743,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                             tempPastedAndDropFiles={tempPastedAndDropFiles}
                             setTempPastedAndDropFiles={setTempPastedAndDropFiles}
                             minimalView={window?.location?.pathname === "/itinerario"}
+                            handleCopyLink={handleCopyLink}
                           />
                         </PermissionTaskActionWrapper>
                       )

@@ -8,14 +8,8 @@ import { ViewItinerary } from "../../../pages/invitados";
 import { TempPastedAndDropFile } from "../../Itinerario/MicroComponente/ItineraryPanel";
 import { useToast } from "../../../hooks/useToast";
 import { useAllowed } from '../../../hooks/useAllowed';
-
 // Importar funciones utilitarias
-import {
-  formatTime,
-  sortCommentsByDate,
-  haveCommentsChanged
-} from './TaskNewUtils';
-
+import { sortCommentsByDate, haveCommentsChanged, } from './TaskNewUtils';
 // Importar componentes
 import { TaskSchemaView } from './TaskSchemaView';
 import { TaskMinimalView } from './TaskMinimalView';
@@ -39,6 +33,7 @@ interface TaskFormValues {
   estatus: boolean;
   estado: string;
   prioridad: string;
+
 }
 
 interface Props extends HTMLAttributes<HTMLDivElement> {
@@ -56,9 +51,10 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
   onUpdateComments?: (taskId: string, newComments: Comment[]) => void;
   onDeleteComment?: (commentId: string) => void;
   minimalView?: boolean;
+  handleCopyLink: (task: Task, type: "task" | "calendar") => void;
 }
 
-export const TaskNew: FC<Props> = memo(({ itinerario, task, view, optionsItineraryButtonBox, isSelect = false, showModalCompartir, setShowModalCompartir, tempPastedAndDropFiles, setTempPastedAndDropFiles, isTaskPublic = false, minimalView = false, ...props }) => {
+export const TaskNew: FC<Props> = memo(({ itinerario, task, view, optionsItineraryButtonBox, isSelect = false, showModalCompartir, setShowModalCompartir, tempPastedAndDropFiles, setTempPastedAndDropFiles, isTaskPublic = false, minimalView = false, handleCopyLink, ...props }) => {
   const { t } = useTranslation();
   const { config, user } = AuthContextProvider();
   const { event, setEvent } = EventContextProvider();
@@ -320,32 +316,7 @@ export const TaskNew: FC<Props> = memo(({ itinerario, task, view, optionsItinera
     }
   };
 
-  // Función para copiar enlace
-  const handleCopyLink = (task: Task) => {
-    const link = `${window.location.origin}/servicios?event=${event?._id}&itinerary=${itinerario?._id}&task=${task?._id}`;
 
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(link).then(() => {
-        toast('success', t('Enlace copiado al portapapeles'));
-      }).catch(() => {
-        const textArea = document.createElement("textarea");
-        textArea.value = link;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        toast('success', t('Enlace copiado al portapapeles'));
-      });
-    } else {
-      const textArea = document.createElement("textarea");
-      textArea.value = link;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-      toast('success', t('Enlace copiado al portapapeles'));
-    }
-  };
 
   // Función para manejar la eliminación de comentarios
   const handleDeleteComment = async (commentId: string) => {
