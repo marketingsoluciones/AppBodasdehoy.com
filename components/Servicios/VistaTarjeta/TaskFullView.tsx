@@ -18,6 +18,7 @@ import { IntegrateButtonsBox } from './IntegrateButtonsBox';
 import { ItineraryButtonBox } from './ItineraryButtonBox';
 import { StatusPriorityTask } from './StatusPriorityTask';
 import { AuthContextProvider } from '../../../context';
+import { InputCommentsOld } from '../Utils/InputCommentsOld';
 
 interface TaskFullViewProps {
   task: Task;
@@ -185,8 +186,8 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               ? <div className="h-full flex items-center justify-center">
                 <div className="text-center">
                   <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                  <p className="text-sm text-gray-500">{t('No hay comentarios aún')}</p>
-                  <p className="text-xs text-gray-400 mt-1">{t('Sé el primero en comentar')}</p>
+                  <p className="text-sm text-gray-500">{t('No hay comentarios')}</p>
+                  {/* <p className="text-xs text-gray-400 mt-1">{t('Sé el primero en comentar')}</p> */}
                 </div>
               </div>
               : <div className="flex flex-col h-full">
@@ -217,7 +218,15 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
             }
           </div>
           <div className="border-t border-gray-200 bg-white flex-shrink-0">
-            <InputComments
+            {/* <InputComments
+              itinerario={itinerario}
+              task={task}
+              tempPastedAndDropFiles={tempPastedAndDropFiles || []}
+              setTempPastedAndDropFiles={setTempPastedAndDropFiles}
+              disabled={false}
+              onCommentAdded={handleCommentAdded}
+            /> */}
+            <InputCommentsOld
               itinerario={itinerario}
               task={task}
               tempPastedAndDropFiles={tempPastedAndDropFiles || []}
