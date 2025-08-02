@@ -50,6 +50,7 @@ const ServicesVew = (props) => {
   const { user, setUser, verificationDone } = AuthContextProvider()
   const [tempPastedAndDropFiles, setTempPastedAndDropFiles] = useState<TempPastedAndDropFile[]>([]);
   const [isMounted, setIsMounted] = useState(false)
+  const [validated, setValidated] = useState(false)
 
   useEffect(() => {
     if (!isMounted) {
@@ -70,8 +71,14 @@ const ServicesVew = (props) => {
       }
     }
   }, [verificationDone, props])
+  useEffect(() => {
+    setTimeout(() => {
+      setValidated(true)
+    }, 1000);
+  }, [isMounted])
 
   return (
+    validated &&
     <section className={` absolute z-[50] w-full h-[calc(100vh-63px)] top-[63px] bg-white`}>
       <motion.div
         initial={{ opacity: 0 }}

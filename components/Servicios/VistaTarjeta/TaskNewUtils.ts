@@ -101,7 +101,7 @@ export const handleCopyLink = ({ task, type, event, navigator, toast, t, documen
     console.log(calendarLink);
     copyToClipboard({ link: calendarLink, navigator, toast, t, document });
   } else {
-    copyToClipboard({ link: `${window.location.origin}/servicios?event=${event?._id}&itinerario=${itinerario?._id}&task=${task?._id}`, navigator, toast, t, document });
+    copyToClipboard({ link: `${window.location.origin}/servicios?event=${event?._id}&itinerary=${itinerario?._id}&task=${task?._id}`, navigator, toast, t, document });
   }
 };
 
