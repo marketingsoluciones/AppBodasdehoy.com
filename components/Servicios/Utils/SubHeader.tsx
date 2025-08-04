@@ -44,10 +44,7 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
     const [isAllowed, ht] = useAllowed()
     const [loading, setLoading] = useState<boolean>()
     const [showModalCompartir, setShowModalCompartir] = useState(false);
-
     const link = `${window.location.origin}/public-itinerary/itinerary-${event?._id}-${itinerario?._id}`
-
-    console.log(title)
 
     useEffect(() => {
         setTitle(itinerario?.title)

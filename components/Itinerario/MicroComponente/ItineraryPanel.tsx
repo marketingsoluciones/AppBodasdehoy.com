@@ -39,6 +39,7 @@ import { PermissionTaskWrapper } from "../../Servicios/Utils/PermissionTaskWrapp
 import { PermissionTaskActionWrapper } from "../../Servicios/Utils/PermissionTaskActionWrapper";
 import useSWR from 'swr';
 import { handleCopyLink } from "../../Servicios/VistaTarjeta/TaskNewUtils";
+import { el } from "date-fns/locale";
 
 
 interface props {
@@ -113,14 +114,25 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       value: "status",
       icon: <GoEyeClosed className="w-5 h-5" />,
       getIcon: (value: boolean) => {
-
-        if (value) {
-          return <GoEyeClosed className="w-5 h-5" />
+        if (["/itinerario"].includes(window?.location?.pathname)) {
+          if (value !== true) {
+            return <GoEyeClosed className="w-5 h-5" />
+          } else {
+            return <GoEye className="w-5 h-5" />
+          }
+        } else {
+          if (value) {
+            return <GoEyeClosed className="w-5 h-5" />
+          }
+          return <GoEye className="w-5 h-5" />
         }
-        return <GoEye className="w-5 h-5" />
       },
       title: "estado",
-      onClick: (values: Task) => !isAllowed() ? ht() : user.uid === event.usuario_id ? handleAddSpectatorView(values) : ["/itinerario"].includes(window?.location?.pathname) ? values?.estatus === false || values?.estatus === null || values?.estatus === undefined ? handleAddSpectatorView(values) : null : handleAddSpectatorView(values),
+      onClick: (values: Task) => {
+        !isAllowed()
+          ? ht()
+          : handleAddSpectatorView(values)
+      },
       vew: "all"
     },
     {
@@ -263,6 +275,9 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
 
   const handleAddSpectatorView = async (values: Task) => {
     try {
+
+      const newSpectatorViewValue = values?.spectatorView === null ? true : !values?.spectatorView
+
       fetchApiEventos({
         query: queries.editTask,
         variables: {
@@ -270,14 +285,14 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
           itinerarioID: itinerario._id,
           taskID: values._id,
           variable: "spectatorView",
-          valor: JSON.stringify(!values?.spectatorView)
+          valor: JSON.stringify(newSpectatorViewValue)
         },
         domain: config.domain
       })
         .then(() => {
           const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
           const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === values._id)
-          event.itinerarios_array[f1].tasks[f2].spectatorView = !values?.spectatorView
+          event.itinerarios_array[f1].tasks[f2].spectatorView = newSpectatorViewValue
           setEvent({ ...event })
           toast("success", t("Item guardado con exito"))
           setShowEditTask({ state: false })
