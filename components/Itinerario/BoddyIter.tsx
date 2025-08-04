@@ -159,7 +159,6 @@ export const BoddyIter = () => {
     const handleUpdateTitle = async () => {
 
         await fetchApiEventos({
-
             query: queries.editItinerario,
             variables: {
                 eventID: event._id,
