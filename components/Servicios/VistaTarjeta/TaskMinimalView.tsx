@@ -57,6 +57,9 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
                   if (option.value === 'status') {
                     icon = option.getIcon(task.spectatorView);
                   }
+                  if (option.value === 'estatus') {
+                    icon = option.getIcon(task.estatus);
+                  }
                 }
                 let isActive = false;
                 let activeColorClass = '';
@@ -68,6 +71,10 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
                     break;
                   case 'delete':
                     hoverColorClass = 'hover:text-[#ef4444] hover:bg-[#ef4444]/10';
+                    break;
+                  case 'estatus':
+                    isActive = task.estatus;
+                    activeColorClass = 'text-primary bg-primary/10';
                     break;
                   default:
                     hoverColorClass = 'hover:text-gray-600 hover:bg-gray-100';
@@ -87,8 +94,8 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
                       <span className="w-4 h-4 flex items-center justify-center" style={{ transform: 'scale(0.8)' }}>{icon}</span>
                       {isActive && (
                         <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
-                          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${option.value === 'status' ? 'bg-primary' : 'bg-blue-500'} opacity-75`}></span>
-                          <span className={`relative inline-flex rounded-full h-2 w-2 ${option.value === 'status' ? 'bg-primary' : 'bg-blue-500'}`}></span>
+                          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${option.value === 'status' || option.value === 'estatus' ? 'bg-primary' : 'bg-primary'} opacity-75`}></span>
+                          <span className={`relative inline-flex rounded-full h-2 w-2 ${option.value === 'status' || option.value === 'estatus' ? 'bg-primary' : 'bg-primary'}`}></span>
                         </span>
                       )}
                     </button>

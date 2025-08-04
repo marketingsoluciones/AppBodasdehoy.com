@@ -161,11 +161,15 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     {
       value: "estatus",
       icon: <TbLock className="w-5 h-5" />,
-      getIcon: (valor: boolean) => {
-        if (valor) {
-          return <TbLock className="w-5 h-5" />
+      getIcon: (values: boolean) => {
+        console.log("=aaS", values)
+        if (values ===false || values === null ) {
+          console.log("cerrado")
+          return <TbLock className="w-8 h-8" />
+        } else {
+          console.log("abierto")
+          return <TbLockOpen className="w-8 h-8" />
         }
-        return <TbLockOpen className="w-5 h-5" />
       },
       title: "estatus",
       onClick: (values: Task) => !isAllowed() ? ht() : user.uid === event.usuario_id ? handleChangeStatus(values) : null,
@@ -302,6 +306,9 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     }
   }
   const handleChangeStatus = async (values: Task) => {
+
+    
+    
     try {
       fetchApiEventos({
         query: queries.editTask,
@@ -321,7 +328,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
           setEvent({ ...event })
           toast("success", t("Item guardado con exito"))
           setShowEditTask({ state: false })
-          const asd = event.detalles_compartidos_array.filter(elem => ["edit", "view"].includes(elem.permissions.find(el => el.title === "itinerari").value)).map(elem => elem.uid)
+          const asd = event?.detalles_compartidos_array?.filter(elem => ["edit", "view"]?.includes(elem?.permissions?.find(el => el.title === "itinerari")?.value))?.map(elem => elem.uid)
           let qwe = [...asd, event.usuario_id]
           const af1 = qwe.findIndex(elem => elem === user?.uid)
           if (af1 > -1) {
