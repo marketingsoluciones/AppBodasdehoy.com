@@ -136,8 +136,10 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
       )}
       {/* Duración */}
       <div className="flex items-center space-x-4">
-        <Clock className="w-4 h-4 text-blue-600" />
-        <span className="text-xs text-gray-500 block">{t('Duración')}</span>
+        <Clock className="w-4 h-4 text-blue-600 mt-0.5" />
+        <div className="text-xs text-gray-500 pt-1">
+          {t('Duración')}
+        </div>
         {editingDuration ? (
           <input
             type="text"
@@ -163,13 +165,15 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
           />
         ) : (
           <span
-            className={`text-sm ${canEdit ? 'cursor-pointer text-gray-700 hover:text-gray-900' : 'cursor-default text-gray-600'}`}
+            className={`text-sm ${task.estatus && canEdit ? 'cursor-pointer text-gray-700 hover:text-gray-900' : 'cursor-default text-gray-600'}`}
             onClick={() => {
-              if (canEdit) {
-                setEditingDuration(true);
-                setDurationInput(minutesToReadableFormat(task.duracion as number));
-              } else {
-                ht();
+              if (task.estatus) {
+                if (canEdit) {
+                  setEditingDuration(true);
+                  setDurationInput(minutesToReadableFormat(task.duracion as number));
+                } else {
+                  ht();
+                }
               }
             }}
             title={canEdit ? "Haz clic para editar duración" : "No tienes permisos para editar"}
