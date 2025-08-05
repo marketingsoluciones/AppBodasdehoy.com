@@ -35,15 +35,30 @@ interface Props {
   canEdit: boolean;
   task: any;
   handleUpdate: (field: string, value: any) => Promise<void>;
+  owner: boolean;
 }
-export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate }) => {
+export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner }) => {
   const { t } = useTranslation();
   const [editing, setEditing] = useState<boolean>(false);
   const [customDescription, setCustomDescription] = useState(task?.tips || '');
+  const ruta = window.location.pathname;
+
 
   useEffect(() => {
     setCustomDescription(task?.tips || '');
   }, [task])
+
+  const isItinerarioRoute = ["/itinerario"].includes(ruta);
+  const isOwner = Boolean(owner);
+  const canUserEdit = Boolean(canEdit);
+  const hasTaskStatus = Boolean(task.estatus);
+  const canShowEditButton = isItinerarioRoute
+    ? isOwner
+      ? canUserEdit
+      : (hasTaskStatus && canUserEdit)
+    : canUserEdit;
+
+  const shouldShowEditor = editing && canShowEditButton;
 
   return (
     <>
@@ -52,18 +67,18 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate }) => {
           <label className="text-xs font-medium text-gray-700">
             {t('Descripción detallada')}
           </label>
-          {task.estatus && canEdit &&
+          {canShowEditButton && (
             <button id="edit-description"
               onClick={() => setEditing(true)}
               className="text-xs text-primary hover:text-primary/80"
             >
               {t('Editar')}
             </button>
-          }
+          )}
         </div>
         <div className="w-full relative">
-          {task.estatus && editing
-            && <div className="absolute z-10 w-full bg-white border border-green rounded-lg overflow-hidden">
+          {shouldShowEditor && (
+            <div className="absolute z-10 w-full bg-white border border-green rounded-lg overflow-hidden">
               <div className="h-[300px] overflow-y-auto">
                 <ReactQuill
                   id="editor-description"
@@ -96,10 +111,11 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate }) => {
                   {t('Guardar')}
                 </button>
               </div>
-            </div>}
+            </div>
+          )}
           <div className={`w-full h-[130px] overflow-y-auto border border-gray-200 rounded-lg p-4 ${canEdit ? 'cursor-pointer hover:border-gray-300' : 'cursor-default opacity-60'}`}
             onDoubleClick={() => {
-              if (canEdit) {
+              if (canShowEditButton) {
                 setCustomDescription(task.tips || '');
                 setEditing(true);
               }

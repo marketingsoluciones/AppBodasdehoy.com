@@ -126,6 +126,7 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
         canEdit={canEdit}
         task={task}
         handleUpdate={handleUpdate}
+        owner={owner}
       />
       {/* Indicadores de hora inicio y fin (solo visuales) */}
       {task.fecha && task.duracion && (
@@ -178,14 +179,23 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
           />
         ) : (
           <span
-            className={`text-sm ${task.estatus && canEdit ? 'cursor-pointer text-gray-700 hover:text-gray-900' : 'cursor-default text-gray-600'}`}
+            className={`text-sm ${owner ? canEdit ? 'cursor-pointer text-gray-700 hover:text-gray-900' : 'cursor-default text-gray-600' : task.estatus && canEdit ? 'cursor-pointer text-gray-700 hover:text-gray-900' : 'cursor-default text-gray-600'}`}
             onClick={() => {
-              if (task.estatus) {
+              if (owner) {
                 if (canEdit) {
                   setEditingDuration(true);
                   setDurationInput(minutesToReadableFormat(task.duracion as number));
                 } else {
                   ht();
+                }
+              } else {
+                if (task.estatus) {
+                  if (canEdit) {
+                    setEditingDuration(true);
+                    setDurationInput(minutesToReadableFormat(task.duracion as number));
+                  } else {
+                    ht();
+                  }
                 }
               }
             }}
@@ -200,12 +210,14 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
         canEdit={canEdit}
         task={task}
         handleUpdate={handleUpdate}
+        owner={owner}
       />
       {/* Descripción larga con Editor Rico */}
       <DescriptionTask
         canEdit={canEdit}
         task={task}
         handleUpdate={handleUpdate}
+        owner={owner}
       />
       {/* Adjuntos */}
       <div>
@@ -217,6 +229,7 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
           eventId={event._id}
           itinerarioId={itinerario._id}
           readOnly={!canEdit}
+         
         />
       </div>
     </div>
