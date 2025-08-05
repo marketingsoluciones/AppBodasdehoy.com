@@ -50,8 +50,7 @@ export const TitleTask: FC<TitleTaskProps> = ({ canEdit, handleUpdate, task }) =
   return (
     <div className="flex h-[44px] items-center space-x-2 flex-1">
       <div className="flex items-center justify-center">
-        <div className={`w-11 h-11 flex items-center justify-center rounded-full transition-colors ${canEdit ? ' hover:bg-gray-100 cursor-pointer' : 'cursor-default'
-          }`}
+        <div className={`w-11 h-11 flex items-center justify-center rounded-full transition-colors`}
           title={canEdit && "Cambiar ícono"} >
           <SelectIconNew
             task={task}
@@ -98,10 +97,14 @@ export const TitleTask: FC<TitleTaskProps> = ({ canEdit, handleUpdate, task }) =
             autoFocus
           />
           : <div
-            className={`text-[17px] font-semibold flex-1 leading-[1.1] line-clamp-2 break-all text-gray-700 ${canEdit ? 'cursor-pointer hover:text-gray-900' : ''
+            className={`text-[17px] font-semibold flex-1 leading-[1.1] line-clamp-2 break-all text-gray-700 ${task.estatus ? 'cursor-pointer hover:text-gray-900' : ''
               }`}
             onClick={() => {
-              canEdit ? setEditing(true) : null
+              task.estatus ?
+                canEdit
+                  ? setEditing(true)
+                  : null
+                : null
             }}
             title={canEdit ? "Haz clic para editar" : "No tienes permisos para editar"}
           >

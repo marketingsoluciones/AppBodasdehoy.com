@@ -107,32 +107,40 @@ export const SelectIconNew = ({ handleChange, ...props }) => {
     return (
         <>
             {false
-                ? <div className={`${["/public-card/servicios", "/public-Itinerary"].includes(window?.location?.pathname) ? "" : "cursor-pointer hover:text-gray-800"} w-full h-full flex items-center justify-center text-gray-600 `}
+                ? <div className={`${["/public-card/servicios", "/public-Itinerary"].includes(window?.location?.pathname) || !props?.task?.estatus  ? "" : "cursor-pointer hover:text-gray-800"} w-full h-full flex items-center justify-center text-gray-600 `}
                     onClick={() => {
-                        ["/public-card/servicios", "/public-Itinerary"].includes(window?.location?.pathname) ?
-                            null :
-                            !isAllowed() ? null :
-                                ["/itinerario"].includes(window?.location?.pathname) ?
-                                    user?.uid === event?.usuario_id ?
-                                        setOpenIcon(!openIcon) :
-                                        props?.data?.estatus === false || props?.data?.estatus === null || props?.data?.estatus === undefined ? setOpenIcon(!openIcon) :
-                                            null :
-                                    setOpenIcon(!openIcon)
+                        ["/public-card/servicios", "/public-Itinerary"].includes(window?.location?.pathname)
+                            ? null
+                            : !isAllowed()
+                                ? null
+                                : ["/itinerario"].includes(window?.location?.pathname)
+                                    ? user?.uid === event?.usuario_id
+                                        ? setOpenIcon(!openIcon)
+                                        : props?.data?.estatus === false || props?.data?.estatus === null || props?.data?.estatus === undefined
+                                            ? null
+                                            : setOpenIcon(!openIcon)
+                                    : setOpenIcon(!openIcon)
 
-                    }} {...props}>
+                    }}
+                    {...props}
+                >
                     {IconArray.find((elem) => elem?.title === field?.value)?.icon ?? <span className="text-gray-400">?</span>}
                 </div >
-                : <div className={` ${["/public-card/servicios", "/public-Itinerary"].includes(window?.location?.pathname) ? "" : "cursor-pointer hover:text-gray-800"} w-full h-full flex items-center justify-center text-gray-600  `}
+                : <div className={` ${["/public-card/servicios", "/public-Itinerary"].includes(window?.location?.pathname) || !props?.data?.estatus ? "" : "cursor-pointer hover:text-gray-800"} w-full h-full flex items-center justify-center text-gray-600  `}
                     onClick={() => {
-                        ["/public-card/servicios", "/public-Itinerary"].includes(window?.location?.pathname) ?
-                            null :
-                            !isAllowed() ? ht() :
-                                ["/itinerario"].includes(window?.location?.pathname) ?
-                                    user?.uid === event?.usuario_id ?
-                                        setOpenIcon(!openIcon) :
-                                        props?.data?.estatus === false || props?.data?.estatus === null || props?.data?.estatus === undefined ? setOpenIcon(!openIcon) :
-                                            null :
-                                    setOpenIcon(!openIcon)
+                        ["/public-card/servicios", "/public-Itinerary"].includes(window?.location?.pathname)
+                            ? null
+                            : !isAllowed()
+                                ? ht()
+                                : props?.data?.estatus
+                                    ?["/itinerario"].includes(window?.location?.pathname)
+                                    ? user?.uid === event?.usuario_id
+                                        ? setOpenIcon(!openIcon)
+                                        : props?.data?.estatus === false || props?.data?.estatus === null || props?.data?.estatus === undefined
+                                            ? null
+                                            : setOpenIcon(!openIcon)
+                                    : setOpenIcon(!openIcon)
+                                    : null
 
                     }}>
                     <AddIcon />
