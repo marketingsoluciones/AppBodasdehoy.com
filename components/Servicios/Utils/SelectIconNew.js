@@ -3,7 +3,6 @@ import { Modal } from "../../Utils/Modal";
 import { IconList } from "../../Itinerario/MicroComponente/IconList";
 import { useEffect, useState } from "react";
 import { useAllowed } from "../../../hooks/useAllowed";
-import { AuthContextProvider, EventContextProvider } from "../../../context";
 import { useRouter } from "next/router";
 
 const IconArray = [
@@ -89,9 +88,7 @@ const IconArray = [
     },
 ]
 
-export const SelectIconNew = ({ handleChange, ...props }) => {
-    const { config, geoInfo, user } = AuthContextProvider()
-    const { event, setEvent } = EventContextProvider()
+export const SelectIconNew = ({ handleChange, owner, ...props }) => {
     const [selectIcon, setSelectIcon] = useState()
     const [openIcon, setOpenIcon] = useState(false)
     const [isAllowed, ht] = useAllowed()
@@ -107,20 +104,19 @@ export const SelectIconNew = ({ handleChange, ...props }) => {
     return (
         <>
             {false
-                ? <div className={`${["/public-card/servicios", "/public-Itinerary"].includes(window?.location?.pathname) || !props?.task?.estatus  ? "" : "cursor-pointer hover:text-gray-800"} w-full h-full flex items-center justify-center text-gray-600 `}
+                ? <div className={`${["/public-card/servicios", "/public-Itinerary"].includes(window?.location?.pathname) || !props?.task?.estatus ? "" : "cursor-pointer hover:text-gray-800"} w-full h-full flex items-center justify-center text-gray-600 `}
                     onClick={() => {
                         ["/public-card/servicios", "/public-Itinerary"].includes(window?.location?.pathname)
                             ? null
                             : !isAllowed()
                                 ? null
                                 : ["/itinerario"].includes(window?.location?.pathname)
-                                    ? user?.uid === event?.usuario_id
+                                    ? owner
                                         ? setOpenIcon(!openIcon)
                                         : props?.data?.estatus === false || props?.data?.estatus === null || props?.data?.estatus === undefined
                                             ? null
                                             : setOpenIcon(!openIcon)
                                     : setOpenIcon(!openIcon)
-
                     }}
                     {...props}
                 >
@@ -132,16 +128,13 @@ export const SelectIconNew = ({ handleChange, ...props }) => {
                             ? null
                             : !isAllowed()
                                 ? ht()
-                                : props?.data?.estatus
-                                    ?["/itinerario"].includes(window?.location?.pathname)
-                                    ? user?.uid === event?.usuario_id
+                                : ["/itinerario"].includes(window?.location?.pathname)
+                                    ? owner
                                         ? setOpenIcon(!openIcon)
                                         : props?.data?.estatus === false || props?.data?.estatus === null || props?.data?.estatus === undefined
                                             ? null
                                             : setOpenIcon(!openIcon)
                                     : setOpenIcon(!openIcon)
-                                    : null
-
                     }}>
                     <AddIcon />
                 </div>

@@ -12,6 +12,7 @@ interface Props {
 export const TagsTask: FC<Props> = ({ canEdit, task, handleUpdate }) => {
   const { t } = useTranslation();
   const [editing, setEditing] = useState<boolean>(false);
+  const ruta = window.location.pathname;
 
   const handleAddTag = (newTag: string) => {
     if (!canEdit) {
@@ -66,7 +67,14 @@ export const TagsTask: FC<Props> = ({ canEdit, task, handleUpdate }) => {
               autoFocus
             />
           </ClickAwayListener>
-          : task.estatus && canEdit && (
+          : canEdit && ["/itinerario"].includes(ruta) ? task.estatus && (
+            <button
+              onClick={() => setEditing(true)}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <Plus className="w-4 h-4 text-primary" />
+            </button>
+          ) : (
             <button
               onClick={() => setEditing(true)}
               className="text-gray-500 hover:text-gray-700"

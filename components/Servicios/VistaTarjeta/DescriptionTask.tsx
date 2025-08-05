@@ -52,7 +52,7 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate }) => {
           <label className="text-xs font-medium text-gray-700">
             {t('Descripción detallada')}
           </label>
-          {canEdit &&
+          {task.estatus && canEdit &&
             <button id="edit-description"
               onClick={() => setEditing(true)}
               className="text-xs text-primary hover:text-primary/80"
@@ -62,7 +62,7 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate }) => {
           }
         </div>
         <div className="w-full relative">
-          {editing
+          {task.estatus && editing
             && <div className="absolute z-10 w-full bg-white border border-green rounded-lg overflow-hidden">
               <div className="h-[300px] overflow-y-auto">
                 <ReactQuill

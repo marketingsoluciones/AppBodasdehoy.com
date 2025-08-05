@@ -33,9 +33,13 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
 }) => {
   const { t } = useTranslation();
   const { event } = EventContextProvider();
+  const { user } = AuthContextProvider()
   const [editingDuration, setEditingDuration] = useState(false);
   const [durationInput, setDurationInput] = useState('');
   const [isAllowed, ht] = useAllowed()
+  const owner = user?.uid === event?.usuario_id
+
+  console.log("task", task)
 
   return (
     <div {...props} className={`w-full bg-white shadow-lg px-6 py-3 space-y-2  rounded-xl outline cursor-default ${isSelect ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200"}`}>
@@ -45,6 +49,7 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
           canEdit={canEdit}
           handleUpdate={handleUpdate}
           task={task}
+          owner={owner}
         />
         {/* Botones de optionsItineraryButtonBox (excepto 'link' y 'flow') */}
         {optionsItineraryButtonBox && optionsItineraryButtonBox.length > 0 && (
@@ -83,8 +88,16 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
                   <div key={idx} className="relative group">
                     <button
                       onClick={() => {
-                        if (typeof option.onClick === 'function') {
-                          option.onClick(task, itinerario);
+                        if(owner){
+                          if (typeof option.onClick === 'function') {
+                            option.onClick(task, itinerario);
+                          }
+                        } else {
+                          if (task.estatus) {
+                            if (typeof option.onClick === 'function') {
+                              option.onClick(task, itinerario);
+                            }
+                          }
                         }
                       }}
                       className={`relative p-1.5 rounded-md transition-all duration-200 ${isActive ? `${activeColorClass} shadow-sm` : `text-gray-400 ${hoverColorClass}`}`}
