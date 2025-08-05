@@ -32,7 +32,7 @@ export const AssignedTask: FC<Props> = ({ canEdit, task, handleUpdate }) => {
           <User className="w-4 h-4 text-gray-500" />
           <span className="text-xs text-gray-600">{t('Asignados')}</span>
         </div>
-        {canEdit && (
+        {task.estatus && canEdit && (
           <button
             onClick={() => {
               setEditing(true);
