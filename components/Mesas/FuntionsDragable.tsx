@@ -30,8 +30,9 @@ interface propsDropzone {
   filterGuests?: any
   isAllowed?: any
   ht?: any
+  user: any
 }
-export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, event: eventAsd, planSpaceActive, setPlanSpaceActive, filterGuests, isAllowed, ht }: propsDropzone) => {
+export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, event: eventAsd, planSpaceActive, setPlanSpaceActive, filterGuests, isAllowed, ht, user }: propsDropzone) => {
   if (target == ".js-dropTables") {
     let values: any = {}
     interact(target)
@@ -142,7 +143,7 @@ export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, event: e
               const prefijo = draggableElement.id.slice(0, 5)
               const tableID = dropzoneElement.id.split('-@-')[0]
               const chair = parseInt(dropzoneElement.id.split('-@-')[1])
-              !isAllowed() ? ht() : moveGuest({ event: eventAsd, chair, invitadoID, tableID, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo })
+              !isAllowed() ? ht() : moveGuest({ event: eventAsd, chair, invitadoID, tableID, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo, user })
               // console.log("--------------------------------------")
               // console.log("draggableElement:", draggableElement.id, invitadoID)
               // console.log("dropped:", dropped)
@@ -246,8 +247,9 @@ type propsMoveInvitado = {
   setPlanSpaceActive: Dispatch<SetStateAction<planSpace>>
   filterGuests?: any
   prefijo?: string
+  user: any
 }
-export const moveGuest = async ({ invitadoID, chair, tableID, event, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo }: propsMoveInvitado): Promise<void> => {
+export const moveGuest = async ({ invitadoID, chair, tableID, event, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo, user }: propsMoveInvitado): Promise<void> => {
   try {
     const eventID = event?._id
     let table: table = planSpaceActive?.tables?.find(elem => elem._id === tableID)
@@ -258,7 +260,7 @@ export const moveGuest = async ({ invitadoID, chair, tableID, event, setEvent, p
         let f1 = planSpaceActive.tables.findIndex(elem => elem._id === tableID)
         //planSpaceActive.tables.splice(f1, 1, table)
         setPlanSpaceActive({ ...planSpaceActive })
-        f1 = event.planSpace.findIndex(elem => elem._id === event.planSpaceSelect)
+        f1 = event.planSpace.findIndex(elem => elem._id === user?.planSpaceSelect)
         event.planSpace[f1] = planSpaceActive
         setEvent({ ...event })
         fetchApiEventos({
@@ -288,7 +290,7 @@ export const moveGuest = async ({ invitadoID, chair, tableID, event, setEvent, p
           },
         });
         setPlanSpaceActive({ ...planSpaceActive })
-        f1 = event.planSpace.findIndex(elem => elem._id === event.planSpaceSelect)
+        f1 = event.planSpace.findIndex(elem => elem._id === user?.planSpaceSelect)
         event.planSpace[f1] = planSpaceActive
         setEvent({ ...event })
       }
@@ -327,7 +329,7 @@ export const ActualizarPosicion = async ({ x, y, targetID, event, setEvent, plan
       });
       const index: number = planSpaceActive?.tables.findIndex((elem) => elem._id === ID)
       planSpaceActive.tables[index].position = { x, y }
-      // event.planSpace[event.planSpaceSelect] = planSpaceActive
+      // event.planSpace[user?.planSpaceSelect] = planSpaceActive
       setPlanSpaceActive({ ...planSpaceActive })
       setEvent({ ...event })
     }
@@ -344,7 +346,7 @@ export const ActualizarPosicion = async ({ x, y, targetID, event, setEvent, plan
       });
       const index: number = planSpaceActive?.elements.findIndex((elem) => elem._id === ID)
       planSpaceActive.elements[index].position = { x, y }
-      // event.planSpace[event.planSpaceSelect] = planSpaceActive
+      // event.planSpace[user?.planSpaceSelect] = planSpaceActive
       setPlanSpaceActive({ ...planSpaceActive })
       setEvent({ ...event })
     }

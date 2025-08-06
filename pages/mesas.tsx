@@ -1,5 +1,5 @@
 
-import React, { FC, useEffect, useRef, useState } from "react";
+import React, { FC, useEffect, useState } from "react";
 import { AuthContextProvider, EventContextProvider } from "../context";
 import FormCrearMesa from "../components/Forms/FormCrearMesa";
 import BlockPanelMesas, { ListTables } from "../components/Mesas/BlockPanelMesas";
@@ -10,7 +10,7 @@ import { useDelayUnmount } from "../utils/Funciones";
 import ModalLeft from "../components/Utils/ModalLeft";
 import FormInvitado from "../components/Forms/FormInvitado";
 import VistaSinCookie from "./vista-sin-cookie";
-import SwiperCore, { Pagination, Navigation } from 'swiper';
+import SwiperCore, { Pagination } from 'swiper';
 import Prueba from "../components/Mesas/prueba";
 import FormEditarMesa from "../components/Forms/FormEditarMesa";
 import BlockTitle from "../components/Utils/BlockTitle";
@@ -19,7 +19,7 @@ import ModalBottomSinAway from "../components/Utils/ModalBottomSinAway";
 import FormEditarInvitado from "../components/Forms/FormEditarInvitado";
 import { motion } from "framer-motion";
 import { SubMenu } from "../components/Utils/SubMenu";
-import BlockPlanos from "../components/Mesas/BlockPlanos";
+import { BlockPlanos } from "../components/Mesas/BlockPlanos";
 import { setupDropzone } from "../components/Mesas/FuntionsDragable";
 import BlockPanelElements, { ListElements } from "../components/Mesas/BlockPanelElements";
 import { fetchApiEventos, queries } from "../utils/Fetching";
@@ -29,7 +29,6 @@ import { useRouter } from "next/router";
 import BlockZonas from "../components/Mesas/BlockZonas";
 import { useAllowed } from "../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
-
 
 SwiperCore.use([Pagination]);
 
@@ -50,6 +49,7 @@ const Mesas: FC = () => {
   const [isAllowed, ht] = useAllowed()
   const [isAllowedState, setIsAllowedState] = useState<boolean>(false)
   const [isHtState, setIsHtState] = useState<boolean>(false)
+  const { user, verificationDone } = AuthContextProvider()
 
   useEffect(() => {
     setIsAllowedState(isAllowed())
@@ -90,7 +90,7 @@ const Mesas: FC = () => {
         }).then((result: any) => {
           planSpaceActive.elements.push({ ...result })
           setPlanSpaceActive({ ...planSpaceActive })
-          event.planSpace[event.planSpaceSelect] = planSpaceActive
+          event.planSpace[user?.planSpaceSelect] = planSpaceActive
           setEvent({ ...event })
           setCreaElement(false)
         })
@@ -104,12 +104,12 @@ const Mesas: FC = () => {
   useEffect(() => {
     const defaultTablesDraggable = ListTables.map(elem => `#dragN${elem.title}_${elem.tipo}`)
     const defaultElementsDraggable = ListElements.map(elem => `#dragN${elem.title}_${elem.tipo}`)
-    setupDropzone({ target: '.js-dropTables', accept: `${[...defaultTablesDraggable, ...defaultElementsDraggable]}`, handleOnDrop, setEvent, event, planSpaceActive, setPlanSpaceActive })
+    setupDropzone({ target: '.js-dropTables', accept: `${[...defaultTablesDraggable, ...defaultElementsDraggable]}`, handleOnDrop, setEvent, event, planSpaceActive, setPlanSpaceActive, user })
   }, [planSpaceActive])
 
   useEffect(() => {
     if (allFilterGuests) {
-      setFilterGuests(allFilterGuests[event?.planSpace?.findIndex(elem => elem._id === planSpaceActive._id)])
+      setFilterGuests(allFilterGuests[event?.planSpace?.findIndex(elem => elem._id === planSpaceActive?._id)])
     }
   }, [allFilterGuests])
 
@@ -119,7 +119,6 @@ const Mesas: FC = () => {
     }
   }, [showFormEditar])
 
-  const { user, verificationDone } = AuthContextProvider()
   if (verificationDone) {
     if (!user) {
       return (

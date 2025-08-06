@@ -1,6 +1,6 @@
 import interact from 'interactjs'
 import { FC, RefObject, useEffect, useRef, useState } from 'react'
-import { EventContextProvider } from '../../context'
+import { AuthContextProvider, EventContextProvider } from '../../context'
 import { ActualizarPosicion, setupDropzone } from './FuntionsDragable'
 import { size, table, element } from '../../utils/Interfaces';
 import { DragableDefault } from './DragableDefault';
@@ -38,10 +38,11 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
   const [dragPositions, setDragPositions] = useState<any>();
   const [dragables, setDragables] = useState<any>([]);
   const [isAllowed, ht] = useAllowed()
+  const { user } = AuthContextProvider()
 
   useEffect(() => {
     if (dragables?.length > 0) {
-      setupDropzone({ target: '.js-dropGuests', accept: `${dragables}`, setEvent, event, planSpaceActive, setPlanSpaceActive, filterGuests, isAllowed, ht })
+      setupDropzone({ target: '.js-dropGuests', accept: `${dragables}`, setEvent, event, planSpaceActive, setPlanSpaceActive, filterGuests, isAllowed, ht, user })
     }
   }, [dragables, filterGuests])
 
@@ -116,7 +117,6 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
     manualStart: false,
     listeners: {
       start(e) {
-        //  console.log(e)
         const element = document.getElementById(e.target.id.replace(/dragN/, "dragM"))
         if (element) {
           position.x = parseInt(element.getAttribute("data-x"), 10) || 0
@@ -148,7 +148,6 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
     manualStart: false,
     listeners: {
       start(e) {
-        //console.log(e)
         const element = document.getElementById(e.target.id.replace(/dragS/, "dragM"))
         if (element) {
           position.x = parseInt(element.getAttribute("data-x"), 10) || 0

@@ -19,6 +19,7 @@ export const SocketControlator = () => {
   const [reconet, setReconet] = useState(null)
   const [received, setReceived] = useState({ channel: "", msg: null, d: null })
   const router = useRouter()
+  let senderPlanSpaceActive = false
 
   useEffect(() => {
     if (!isMounted) {
@@ -65,6 +66,7 @@ export const SocketControlator = () => {
     if (user?.displayName !== "anonymous") {
       if (received.channel === "app:message") {
         if (received?.msg?.payload?.action === "setEvent") {
+          console.log(100022, "RECEIVED event")
           const eventOld = {
             planSpaceSelect: event?.planSpaceSelect,
             updatedAt: new Date()
@@ -99,7 +101,14 @@ export const SocketControlator = () => {
           }
         }
         if (received?.msg?.payload?.action === "setPlanSpaceActive") {
-          setPlanSpaceActive(received?.msg?.payload?.value)
+          console.log(100021, "RECEIVED planSpaceActive", received?.msg?.payload?.value, event?.planSpace)
+          if (received?.msg?.payload?.value._id === user?.planSpaceSelect) {
+            setPlanSpaceActive(received?.msg?.payload?.value)
+          }
+          const f1 = event?.planSpace?.findIndex(elem => elem._id === received?.msg?.payload?.value._id)
+          event?.planSpace?.splice(f1, 1, received?.msg?.payload?.value)
+          setEvent({ ...event })
+          // setPlanSpaceActive(received?.msg?.payload?.value)
         }
       }
       if (received.channel === "cms:message") {
@@ -154,25 +163,10 @@ export const SocketControlator = () => {
   }, [event?._id, reconet])
 
   useEffect(() => {
-    if (!valirRemoteEvent && !valirRemotePlanSpaceActive) {
-      socket?.emit(`app:message`, {
-        event: event?._id,
-        emit: user?.uid,
-        receiver: event?._id,
-        type: "event",
-        payload: {
-          action: "setEvent",
-          value: event?._id
-        }
-      })
-    } else {
-      setValirRemoteEvent(false)
-      setValirRemotePlanSpaceActive(false)
-    }
-  }, [event])
-
-  useEffect(() => {
+    console.log(100010)
     if (!valirRemotePlanSpaceActive) {
+      senderPlanSpaceActive = true
+      console.log(100011, "SOCKET planSpaceActive")
       socket?.emit(`app:message`, {
         event: event?._id,
         emit: user?.uid,
@@ -188,6 +182,30 @@ export const SocketControlator = () => {
       setValirRemotePlanSpaceActive(false)
     }
   }, [planSpaceActive])
+
+  useEffect(() => {
+    if (!valirRemoteEvent && !valirRemotePlanSpaceActive && !senderPlanSpaceActive) {
+      console.log(100012, "SOCKET event")
+      socket?.emit(`app:message`, {
+        event: event?._id,
+        emit: user?.uid,
+        receiver: event?._id,
+        type: "event",
+        payload: {
+          action: "setEvent",
+          value: event?._id
+        }
+      })
+    } else {
+      if (senderPlanSpaceActive) {
+        senderPlanSpaceActive = false
+      }
+      setValirRemoteEvent(false)
+      setValirRemotePlanSpaceActive(false)
+    }
+  }, [event])
+
+
 
 
   return (

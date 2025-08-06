@@ -1,15 +1,12 @@
 import { Form, Formik, FormikValues } from "formik";
-import { api } from "../../api";
-import { EventContextProvider } from "../../context";
+import { AuthContextProvider, EventContextProvider } from "../../context";
 import { MesaCuadrada, MesaImperial, MesaPodio, MesaRedonda, LineaBancos, Banco, MesaMilitar } from "../icons";
 import InputField from "./InputField";
 import * as yup from 'yup'
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
 import { Dispatch, FC, SetStateAction } from "react";
-import { table } from "../../utils/Interfaces";
 import { useTranslation } from 'react-i18next';
-
 
 interface propsFormCrearMesa {
   values: any,
@@ -68,6 +65,7 @@ export const dicc = {
 const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
   const { t } = useTranslation();
   const { modelo, offsetX, offsetY } = values
+  const { user } = AuthContextProvider()
 
   const { event, setEvent, planSpaceActive, setPlanSpaceActive } = EventContextProvider();
   const toast = useToast()
@@ -90,8 +88,6 @@ const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
     tipo: modelo,
   }
 
-
-
   const handleSubmit = async (values: FormikValues, actions: any) => {
     try {
       const result: any = await fetchApiEventos({
@@ -111,7 +107,7 @@ const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
       })
       planSpaceActive.tables.push({ ...result })
       setPlanSpaceActive({ ...planSpaceActive })
-      event.planSpace[event.planSpaceSelect] = planSpaceActive
+      event.planSpace[user.planSpaceSelect] = planSpaceActive
       setEvent({ ...event })
       toast("success", t("Mesa creada con exito"))
     } catch (err) {
@@ -122,13 +118,14 @@ const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
       set(!state)
     }
   }
+
   return (
     <Formik
       initialValues={initialValues}
       validationSchema={validationSchema}
       onSubmit={handleSubmit}
     >
-      {({ values, isSubmitting }) => {
+      {({ isSubmitting }) => {
         return (
           <Form className="text-gray-900 grid gap-4 pt-2">
             <div className="grid-cols-3 grid gap-2 w-full">
@@ -153,8 +150,6 @@ const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
                 />
               </div>
             </div>
-
-
             <div className="w-full grid grid-cols-2 gap-4 px-4 pt-4">
               <button
                 disabled={isSubmitting}
@@ -163,7 +158,6 @@ const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
               >
                 {t("createtable")}
               </button>
-
               <button
                 className=" bg-gray-200 transition w-full text-white font-semibold mx-auto inset-x-0 rounded-xl py-1 focus:outline-none hover:opacity-80 "
                 onClick={() => set(false)}

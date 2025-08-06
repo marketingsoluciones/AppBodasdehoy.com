@@ -73,7 +73,7 @@ const EventProvider = ({ children }) => {
   const [filterGuests, setFilterGuests] = useState<filterGuests>({ sentados: [], noSentados: [], update: 0 })
   const [allFilterGuests, setAllFilterGuests] = useState<filterGuests>({ sentados: [], noSentados: [], update: 0 })
   const [editDefault, setEditDefault] = useState<EditDefaultTableAndElement>()
-  const { user } = AuthContextProvider()
+  const { user, setUser } = AuthContextProvider()
 
   // Capturar eventos del cumulo y seleccionar uno
   useEffect(() => {
@@ -95,10 +95,17 @@ const EventProvider = ({ children }) => {
   }, [eventsGroup, valir]);
 
   useEffect(() => {
-    if (event?.planSpaceSelect) {
-      setPlanSpaceActive(event?.planSpace?.find(elem => elem?._id === event?.planSpaceSelect))
+    console.log(100082, event?.planSpace?.find(elem => elem?._id === user?.planSpaceSelect))
+    if (user?.planSpaceSelect) {
+      setPlanSpaceActive(event?.planSpace?.find(elem => elem?._id === user?.planSpaceSelect))
+    } else {
+      if (event?.planSpace?.length > 0) {
+        user.planSpaceSelect = event?.planSpace[0]?._id
+        setUser({ ...user })
+      }
     }
-  }, [event?.planSpaceSelect])
+    console.log("seteado planSpaceActive")
+  }, [user?.planSpaceSelect, event?.planSpace])
 
   useEffect(() => {
     if (event) {

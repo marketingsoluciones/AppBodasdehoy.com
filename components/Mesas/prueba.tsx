@@ -1,8 +1,7 @@
 import { FC, useEffect, useRef, useState } from "react"
 import { TransformWrapper } from "react-zoom-pan-pinch";
-import { useToast } from "../../hooks/useToast";
 import { ComponenteTransformWrapper } from "./ComponenteTransformWrapper";
-import { EventContextProvider } from "../../context";
+import { AuthContextProvider, EventContextProvider } from "../../context";
 import { size } from "../../utils/Interfaces";
 import { EditDefault } from "./EditDefault";
 import ClickAwayListener from "react-click-away-listener";
@@ -14,22 +13,19 @@ type propsPrueba = {
   setFullScreen: any
 }
 
-
-
-
 const Prueba: FC<propsPrueba> = ({ setShowFormEditar, fullScreen, setFullScreen }) => {
+  const { user } = AuthContextProvider()
   const refDiv = useRef(null)
   const [scaleIni, setScaleIni] = useState(0)
   const [disableWrapper, setDisableWrapper] = useState(false)
   const [disableDrag, setDisableDrag] = useState(true)
-  const toast = useToast()
-  const { event, setEvent, planSpaceActive, editDefault, setEditDefault } = EventContextProvider()
-  const [lienzo, setLienzo] = useState<size>(event?.planSpace?.find(elem => elem?._id === event?.planSpaceSelect)?.size)
+  const { event, editDefault, setEditDefault } = EventContextProvider()
+  const [lienzo, setLienzo] = useState<size>(event?.planSpace?.find(elem => elem?._id === user?.planSpaceSelect)?.size)
   const [isAllowed, ht] = useAllowed()
 
   useEffect(() => {
-    setLienzo(event?.planSpace?.find(elem => elem?._id === event?.planSpaceSelect)?.size)
-  }, [event.planSpaceSelect])
+    setLienzo(event?.planSpace?.find(elem => elem?._id === user?.planSpaceSelect)?.size)
+  }, [user?.planSpaceSelect])
 
 
   const handleSetDisableDrag: any = () => {

@@ -1,5 +1,4 @@
-import { FC, ReactNode, forwardRef, useEffect, useState } from "react";
-import ClickAwayListener from "react-click-away-listener";
+import { FC, forwardRef, useEffect, useState } from "react";
 import { EventContextProvider } from "../../context";
 import { MesaContent } from "./MesaContent";
 import { ElementContent } from "./ElementContent";

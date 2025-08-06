@@ -7,10 +7,8 @@ import { LiezoDragable } from "./LienzoDragable";
 import { useToast } from "../../hooks/useToast";
 import { InputMini } from "./InputMini";
 import { MdSaveAlt } from "react-icons/md"
-import { MdOutlineRotate90DegreesCw } from "react-icons/md"
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../context";
 import ClickAwayListener from "react-click-away-listener";
-import { planSpace } from "../../utils/Interfaces";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
@@ -43,14 +41,12 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
   }
 
   useEffect(() => {
-    console.log("aqui", fullScreen)
     centerView(scaleIni)
   }, [fullScreen])
 
   useEffect(() => {
     handleReset(centerView)
   }, [lienzo])
-
 
   const handleSetDisableDrag: any = () => {
     setDisableDrag(!disableDrag)
@@ -98,7 +94,6 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
                     <span className="flex flex-col text-[9px] md:text-[11px]">
                       <span className="capitalize">{t("names")}</span>
                       <div className="relative">
-
                         {!valir && <p className="w-[75%] font-display absolute rounded-xl text-xs left-0 bottom-0 transform translate-y-full text-red flex gap-1"><WarningIcon className="w-4 h-4" />{t("saveitreplaces")}</p>}
                       </div>
                       <div className="w-full flex justify-end mt-2 ">
@@ -131,7 +126,6 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
                           }
                           setValue("")
                           toast("success", t("savedtemplate"))
-
                         }}
                           className="bg-primary w-16 h-5 rounded-lg text-white capitalize">{t("save")}</button>
                       </div>
@@ -163,14 +157,11 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
           }
         </div>
       </div>
-
-
       <div className="bg-gray-200 w-80 *h-5 grid grid-cols-3 absolute z-[10] top-0 left-2 md:left-8 rounded-b-md opacity-70 *items-center text-[9px] md:text-[10px] px-2 text-gray-800">
         <span className="font-bold capitalize truncate">{`${t("plan")}: ${t(planSpaceActive?.title)}`}</span>
         <span>{`${t("Size")} ${lienzo?.width / 100}x${lienzo?.height / 100}mts`}</span>
         <span>{`${t("zoom")} ${state.previousScale.toFixed(2)}X`}</span>
       </div>
-
       {/* <Cuadricula className="w-100 h-100 text-black" /> */}
       <TransformComponent
         wrapperStyle={{ width: "100%", height: "100%", background: "gray" }}
@@ -178,7 +169,6 @@ export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransf
       >
         <div
           id={"lienzo-drop"}
-          onClick={(e) => { console.log(e.clientX, e.clientY) }}
           className="js-dropTables bg-gray-300 paper lienzo flex justify-center items-center">
           <div className="lienzo border-4 border-indigo-600"></div>
           <LiezoDragable scale={state.scale} lienzo={lienzo} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} setShowFormEditar={setShowFormEditar} />

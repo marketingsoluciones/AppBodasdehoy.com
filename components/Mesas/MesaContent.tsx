@@ -21,7 +21,6 @@ export const MesaContent: FC<propsTable> = ({ table, DefinePosition, setDisableW
     }));
   }, [table?.title, filterGuests]);
 
-
   return (
     <>
       <MesaComponent

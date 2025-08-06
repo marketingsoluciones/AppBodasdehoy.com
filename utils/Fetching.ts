@@ -766,6 +766,7 @@ export const queries = {
           signUpProgress
           status
           eventSelected
+          planSpaceSelect
           createdAt
           updatedAt
         }
