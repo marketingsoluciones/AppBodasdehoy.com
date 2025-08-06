@@ -59,7 +59,6 @@ const DragTable: FC<propsDragTable> = ({ item }) => {
           <PlusIcon className={`absolute inset-0 m-auto text-primary w-3 h-3`} />
         </div>
       </div>
-
       <span className="w-full h-full flex items-center ">
         <div className="w-full h-full p-2 flex-col justify-center items-center *cursor-pointer relative">
           <div className="w-full h-full flex transform hover:scale-105 transition justify-center items-center relative">
@@ -74,13 +73,6 @@ const DragTable: FC<propsDragTable> = ({ item }) => {
           </div>
         </div>
       </span>
-
-      <style>{`
-        .listTables {
-          touch - action: none;
-          user-select: none;
-        }
-      `}</style>
     </div>
   );
 };
