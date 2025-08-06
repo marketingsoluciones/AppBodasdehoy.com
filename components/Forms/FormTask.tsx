@@ -13,6 +13,13 @@ import { useAllowedRouter } from "../../hooks/useAllowed";
 import InputAttachments from "./InputAttachments";
 import { InputTags } from "./InputTags";
 import { ResponsableSelector } from "../Servicios/Utils/ResponsableSelector";
+import { getDateString, getTimeString } from "../Servicios/VistaTarjeta/TaskNewUtils";
+import { DurationTask } from "../Servicios/VistaTarjeta/DurationTask";
+
+interface initialValuesType extends TaskDateTimeAsString {
+  duracionUnidad?: string,
+  horaActiva?: boolean
+}
 
 interface propsFormTask {
   showEditTask: EditTastk;
@@ -22,51 +29,30 @@ interface propsFormTask {
 
 const FormTask: FC<propsFormTask> = ({ showEditTask, setShowEditTask, itinerarioID }) => {
   const { t } = useTranslation();
-  const { geoInfo, config } = AuthContextProvider();
+  const { config } = AuthContextProvider();
   const { event, setEvent } = EventContextProvider();
   const toast = useToast()
   const [isAllowedRouter, ht] = useAllowedRouter()
-  const [durationUnit, setDurationUnit] = useState(
-    showEditTask?.values?.duracion && showEditTask?.values?.duracion % 60 === 0
-      ? "h"
-      : "min"
-  );
 
-  const initialDuration =
-    durationUnit === "h"
-      ? (showEditTask?.values?.duracion || 0) / 60
-      : showEditTask?.values?.duracion || 0;
-
-  const f = new Date(showEditTask?.values?.fecha)
-  const y = f.getFullYear()
-  const m = f.getMonth() + 1
-  const d = f.getDate()
-
-  const initialValues: TaskDateTimeAsString & { duracionUnidad?: string, horaActiva?: boolean } = {
+  const initialValues: initialValuesType = {
     ...showEditTask?.values,
-    fecha: f ? `${y}-${m < 10 ? "0" : ""}${m}-${d < 10 ? "0" : ""}${d}` : "",
-    horaActiva: true,
-    duracion: initialDuration,
-    duracionUnidad: durationUnit,
+    fecha: showEditTask?.values.fecha ? getDateString(showEditTask?.values?.fecha) : "",
+    hora: showEditTask?.values.fecha && showEditTask?.values.horaActiva ? getTimeString(showEditTask?.values?.fecha) : "",
+    duracion: showEditTask?.values.fecha && showEditTask?.values.horaActiva && showEditTask?.values.duracion ? showEditTask?.values.duracion : undefined,
   };
 
   const handleSubmit = async (values: any, actions: any) => {
     try {
-      let dataSend
       const d = values?.fecha?.split("-")
-      const h = values?.hora?.split(":")
-
+      const h = getTimeString(values.fecha)?.split(":").map(elem => Number(elem))
       let duracionEnMinutos =
         values.duracionUnidad === "h"
           ? Number(values.duracion) * 60
           : Number(values.duracion);
-
-      dataSend = {
+      let dataSend = {
         ...values,
+        fecha: new Date(`${values.fecha}T${values.hora ? values.hora : "00:00"}`),
         duracion: duracionEnMinutos,
-        ...(new Date(d[0], d[1] - 1, d[2], h[0], h[1]).getTime() > 0
-          ? { fecha: new Date(d[0], d[1] - 1, d[2], h[0], h[1]) }
-          : { fecha: "" }),
       };
       delete dataSend.hora;
       delete dataSend.duracionUnidad;
@@ -77,7 +63,7 @@ const FormTask: FC<propsFormTask> = ({ showEditTask, setShowEditTask, itinerario
           itinerarioID,
           taskID: values._id,
           variable: "all",
-          valor: JSON.stringify(dataSend)
+          valor: JSON.stringify({ ...dataSend })
         },
         domain: config.domain
       })
@@ -96,31 +82,8 @@ const FormTask: FC<propsFormTask> = ({ showEditTask, setShowEditTask, itinerario
   };
 
   const handleBlurData = async (variable, valor) => {
-    /*  try {
-       const result = await fetchApiEventos({
-         query: queries.editTask,
-         variables: {
-           eventID: event._id,
-           itinerarioID:  itinerario._id,
-           taskID:  task._id ,
-           variable,
-           valor: variable == "responsable" ? JSON.stringify(valor) : valor
-         },
-         domain
-       })
-       setEvent((old) => {
-         const f1 = old.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
-         if (f1 > -1) {
-           const f2 = old.itinerarios_array[f1].tasks.findIndex(elem => elem._id === task._id)
-           old.itinerarios_array[f1].tasks[f2][`${variable}`] = valor
-         }
-         return { ...old }
-       })
-     } catch (error) {
-       console.log(error)
-     } */
-  }
 
+  }
 
   return (
     <Formik
@@ -128,7 +91,7 @@ const FormTask: FC<propsFormTask> = ({ showEditTask, setShowEditTask, itinerario
       onSubmit={handleSubmit}
     // validationSchema={validationSchema}
     >
-      {({ isSubmitting, values }) => {
+      {({ isSubmitting, values, setFieldValue }) => {
         return (
           <Form className="w-full flex flex-col">
             <AutoSubmitToken />
@@ -161,28 +124,17 @@ const FormTask: FC<propsFormTask> = ({ showEditTask, setShowEditTask, itinerario
                     deleted={window?.location?.pathname === "/servicios"}
                   />
                 </div>
-                <div className="col-span-2">
-                  <InputField
-                    name="duracion"
-                    label={t("duraction")}
-                    type="number"
-                    deleted={window?.location?.pathname === "/servicios"}
-                  />
-                </div>
-                <div className="col-span-2 flex  items-end">
-                  <select
-                    name="duracionUnidad"
-                    className="border rounded-xl px-2 py-1 text-sm h-[38px] w-[80px] border-gray-300 focus:ring-0 focus:outline-none focus:border-gray-500  "
-                    value={values.duracionUnidad}
-                    onChange={e => {
-                      setDurationUnit(e.target.value);
-                      // Actualiza el valor en Formik
-                      values.duracionUnidad = e.target.value;
-                    }}
-                  >
-                    <option value="min">min</option>
-                    <option value="h">hrs</option>
-                  </select>
+                <div className="col-span-4 flex  items-end">
+                  <div className="border* rounded-xl px-2 py-1 text-sm h-[38px] w-[180px] border-gray-300 focus:ring-0 focus:outline-none focus:border-gray-500"                  >
+                    <DurationTask
+                      handleUpdate={(field: string, value: any) => {
+                        return new Promise((resolve) => {
+                          setFieldValue(field, value)
+                          resolve()
+                        })
+                      }}
+                      canEdit={true} task={{ ...values, duracion: values.duracion }} />
+                  </div>
                   {/* <span className="-translate-y-2">min</span> */}
                 </div>
 
@@ -236,13 +188,18 @@ const FormTask: FC<propsFormTask> = ({ showEditTask, setShowEditTask, itinerario
 export default FormTask;
 
 const AutoSubmitToken = () => {
-  const { values, errors } = useFormikContext();
+  const { values, errors, setFieldValue } = useFormikContext<initialValuesType>();
   useEffect(() => {
     console.log("errors", errors)
   }, [errors]);
 
   useEffect(() => {
     // console.log(100030, values)
+    if (values.hora && values.fecha) {
+      setFieldValue("horaActiva", true)
+    } else {
+      setFieldValue("horaActiva", false)
+    }
   }, [values]);
 
   return null;
