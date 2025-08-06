@@ -16,6 +16,8 @@ interface Props {
   eventId: string;
   itinerarioId: string;
   readOnly?: boolean;
+  owner: boolean;
+  cardBlock: boolean;
 }
 
 interface UploadingFile {
@@ -60,7 +62,9 @@ export const NewAttachmentsEditor: React.FC<Props> = ({
   taskId,
   eventId,
   itinerarioId,
-  readOnly = false
+  readOnly = false,
+  owner,
+  cardBlock
 }) => {
   const { t } = useTranslation();
   const { config } = AuthContextProvider();
@@ -68,10 +72,11 @@ export const NewAttachmentsEditor: React.FC<Props> = ({
   const storage = getStorage();
   const toast = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [deletingFiles, setDeletingFiles] = useState<string[]>([]);
+  const ruta = window.location.pathname;
+  const isItinerarioRoute = ["/itinerario"].includes(ruta);
 
   const handleFileSelect = (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -449,7 +454,15 @@ export const NewAttachmentsEditor: React.FC<Props> = ({
                   </button>
                   {!readOnly && (
                     <button
-                      onClick={() => handleDelete(file)}
+                      onClick={() =>
+                        isItinerarioRoute
+                          ? owner
+                            ? handleDelete(file)
+                            : cardBlock
+                              ? handleDelete(file)
+                              : null
+                          : handleDelete(file)
+                      }
                       className="p-1 text-gray-500 hover:text-gray-900 rounded"
                       title={t('Eliminar')}
                       disabled={deletingFiles.includes(file.name)}
@@ -457,7 +470,15 @@ export const NewAttachmentsEditor: React.FC<Props> = ({
                       {deletingFiles.includes(file.name) ? (
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
                       ) : (
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <>
+                          {isItinerarioRoute
+                            ? owner
+                              ? <Trash2 className="w-3.5 h-3.5" />
+                              : cardBlock
+                                ? <Trash2 className="w-3.5 h-3.5" />
+                                : null
+                            : <Trash2 className="w-3.5 h-3.5" />}
+                        </>
                       )}
                     </button>
                   )}
