@@ -51,9 +51,10 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
   onUpdateComments?: (taskId: string, newComments: Comment[]) => void;
   onDeleteComment?: (commentId: string) => void;
   minimalView?: boolean;
+  setSelectTask?: (taskId: string) => void; 
 }
 
-export const TaskNew: FC<Props> = memo(({ itinerario, task, view, optionsItineraryButtonBox, isSelect = false, showModalCompartir, setShowModalCompartir, tempPastedAndDropFiles, setTempPastedAndDropFiles, isTaskPublic = false, minimalView = false, ...props }) => {
+export const TaskNew: FC<Props> = memo(({ itinerario, task, view, optionsItineraryButtonBox, isSelect = false, showModalCompartir, setShowModalCompartir, tempPastedAndDropFiles, setTempPastedAndDropFiles, isTaskPublic = false, minimalView = false, setSelectTask, ...props }) => {
   const { t } = useTranslation();
   const { config, user } = AuthContextProvider();
   const { event, setEvent } = EventContextProvider();
@@ -308,6 +309,9 @@ export const TaskNew: FC<Props> = memo(({ itinerario, task, view, optionsItinera
           }
           return newEvent;
         });
+        if (setSelectTask && response._id && typeof response._id === 'string') {
+          setSelectTask(response._id);
+        }
       }
     } catch (error) {
       console.error('Error al duplicar tarea:', error);
