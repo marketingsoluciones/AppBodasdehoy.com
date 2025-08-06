@@ -36,7 +36,7 @@ interface Modal {
 }
 
 export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle, handleDeleteItinerario, handleUpdateTitle, title, setTitle }) => {
-    const { event, setEvent } = EventContextProvider()
+    const { event } = EventContextProvider()
     const { config } = AuthContextProvider()
     const toast = useToast()
     const { t } = useTranslation();
@@ -44,7 +44,6 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
     const [isAllowed, ht] = useAllowed()
     const [loading, setLoading] = useState<boolean>()
     const [showModalCompartir, setShowModalCompartir] = useState(false);
-
     const link = `${window.location.origin}/public-itinerary/itinerary-${event?._id}-${itinerario?._id}`
 
     useEffect(() => {
@@ -125,7 +124,7 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
             </div>
             <div className="flex flex-col justify-center items-center">
                 {!editTitle
-                    ? <span className="text-3xl md:text-[40px] font-title text-primary">{itinerario?.title}</span>
+                    ? <span className="text-3xl md:text-[40px] font-title text-primary">{title }</span>
                     : <div className="flex space-x-2 w-[85%] md:w-[60%] translate-x-5">
                         <input onChange={(e) => setTitle(e.target.value)} type="text" value={title} autoFocus className={`font-display text-center text-sm text-gray-500 border-[1px] border-rose-300 focus:border-gray-400 w-full py-2 px-4 rounded-xl focus:ring-0 focus:outline-none transition`} />
                         <button type="button" onClick={() => handleUpdateTitle()} className="border-primary border font-display focus:outline-none text-primary hover:text-white text-xs bg-white hover:bg-primary px-3 py-1 rounded-lg my-2 transition">

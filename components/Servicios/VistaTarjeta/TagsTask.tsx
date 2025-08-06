@@ -8,10 +8,24 @@ interface Props {
   canEdit: boolean;
   task: any;
   handleUpdate: (field: string, value: any) => Promise<void>;
+  owner: boolean;
 }
-export const TagsTask: FC<Props> = ({ canEdit, task, handleUpdate }) => {
+export const TagsTask: FC<Props> = ({ canEdit, task, handleUpdate, owner }) => {
   const { t } = useTranslation();
   const [editing, setEditing] = useState<boolean>(false);
+  const ruta = window.location.pathname;
+
+  // Lógica de validación extraída fuera del return
+  const isItinerarioRoute = ["/itinerario"].includes(ruta);
+  const isOwner = Boolean(owner);
+  const canUserEdit = Boolean(canEdit);
+  const hasTaskStatus = Boolean(task.estatus);
+  
+  const canShowAddButton = isItinerarioRoute
+    ? isOwner
+      ? canUserEdit  // Si es owner, solo necesita canEdit
+      : (hasTaskStatus && canUserEdit)  // Si no es owner, necesita task.estatus Y canEdit
+    : canUserEdit;  // En otras rutas, solo necesita canEdit
 
   const handleAddTag = (newTag: string) => {
     if (!canEdit) {
@@ -48,8 +62,8 @@ export const TagsTask: FC<Props> = ({ canEdit, task, handleUpdate }) => {
             )}
           </div>
         ))}
-        {editing
-          ? <ClickAwayListener onClickAway={() => setEditing(false)}>
+        {editing ? (
+          <ClickAwayListener onClickAway={() => setEditing(false)}>
             <input
               type="text"
               placeholder={t('Agregar etiqueta...')}
@@ -66,7 +80,8 @@ export const TagsTask: FC<Props> = ({ canEdit, task, handleUpdate }) => {
               autoFocus
             />
           </ClickAwayListener>
-          : canEdit && (
+        ) : (
+          canShowAddButton && (
             <button
               onClick={() => setEditing(true)}
               className="text-gray-500 hover:text-gray-700"
@@ -74,7 +89,7 @@ export const TagsTask: FC<Props> = ({ canEdit, task, handleUpdate }) => {
               <Plus className="w-4 h-4 text-primary" />
             </button>
           )
-        }
+        )}
       </div>
     </div>
   )

@@ -400,23 +400,24 @@ export const TaskNew: FC<Props> = memo(({ itinerario, task, view, optionsItinera
           optionsItineraryButtonBox={optionsItineraryButtonBox}
           isSelect={isSelect}
         />
-        : view === "cards" || view === "kanban" ? <TaskFullView
-          {...props}
-          task={task}
-          itinerario={itinerario}
-          canEdit={canEdit}
-          handleUpdate={handleUpdate}
-          handleDuplicate={handleDuplicate}
-          handleDeleteComment={handleDeleteComment}
-          handleCommentAdded={handleCommentAdded}
-          ht={ht}
-          comments={comments}
-          setComments={setComments}
-          optionsItineraryButtonBox={optionsItineraryButtonBox}
-          tempPastedAndDropFiles={tempPastedAndDropFiles}
-          setTempPastedAndDropFiles={setTempPastedAndDropFiles}
-          isSelect={isSelect}
-        />
+        : view === "cards" || view === "kanban"
+          ? <TaskFullView
+            {...props}
+            task={task}
+            itinerario={itinerario}
+            canEdit={canEdit}
+            handleUpdate={handleUpdate}
+            handleDuplicate={handleDuplicate}
+            handleDeleteComment={handleDeleteComment}
+            handleCommentAdded={handleCommentAdded}
+            ht={ht}
+            comments={comments}
+            setComments={setComments}
+            optionsItineraryButtonBox={optionsItineraryButtonBox}
+            tempPastedAndDropFiles={tempPastedAndDropFiles}
+            setTempPastedAndDropFiles={setTempPastedAndDropFiles}
+            isSelect={isSelect}
+          />
           : null
   )
 });

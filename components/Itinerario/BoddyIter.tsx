@@ -44,13 +44,6 @@ export const BoddyIter = () => {
     const [selectTask, setSelectTask] = useState<string>()
     const [orderAndDirection, setOrderAndDirection] = useState<SelectModeSortType>()
 
-    useEffect(() => {
-        console.log(100045, selectTask)
-    }, [selectTask])
-
-    useEffect(() => {
-        console.log(orderAndDirection)
-    }, [orderAndDirection])
 
     async function updatedNextId(itinerary: Itinerary) {
         return await fetchApiEventos({
@@ -159,7 +152,6 @@ export const BoddyIter = () => {
     const handleUpdateTitle = async () => {
 
         await fetchApiEventos({
-
             query: queries.editItinerario,
             variables: {
                 eventID: event._id,

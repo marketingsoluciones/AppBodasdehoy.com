@@ -26,8 +26,10 @@ const Slug: FC<props> = (props) => {
   const [end, setEnd] = useState(false)
   const [tasksReduce, setTasksReduce] = useState<TaskReduce[]>()
 
+  console.log(props?.evento.itinerarios_array[0].tasks)
+
   useEffect(() => {
-    const tasks = props?.evento.itinerarios_array[0].tasks.filter((task) => task.spectatorView !== false)
+    const tasks = props?.evento.itinerarios_array[0].tasks.filter((task) => task.spectatorView === true)
     event.itinerarios_array[0].tasks = tasks
     setEvent({ ...event })
   }, [])

@@ -33,9 +33,13 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
 }) => {
   const { t } = useTranslation();
   const { event } = EventContextProvider();
+  const { user } = AuthContextProvider()
   const [editingDuration, setEditingDuration] = useState(false);
   const [durationInput, setDurationInput] = useState('');
   const [isAllowed, ht] = useAllowed()
+  const owner = user?.uid === event?.usuario_id
+
+  console.log("task", task)
 
   return (
     <div {...props} className={`w-full bg-white shadow-lg px-6 py-3 space-y-2  rounded-xl outline cursor-default ${isSelect ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200"}`}>
@@ -45,6 +49,7 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
           canEdit={canEdit}
           handleUpdate={handleUpdate}
           task={task}
+          owner={owner}
         />
         {/* Botones de optionsItineraryButtonBox (excepto 'link' y 'flow') */}
         {optionsItineraryButtonBox && optionsItineraryButtonBox.length > 0 && (
@@ -56,6 +61,9 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
                 if (option.getIcon && typeof option.getIcon === 'function') {
                   if (option.value === 'status') {
                     icon = option.getIcon(task.spectatorView);
+                  }
+                  if (option.value === 'estatus') {
+                    icon = option.getIcon(task.estatus);
                   }
                 }
                 let isActive = false;
@@ -69,6 +77,10 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
                   case 'delete':
                     hoverColorClass = 'hover:text-[#ef4444] hover:bg-[#ef4444]/10';
                     break;
+                  case 'estatus':
+                    isActive = task.estatus;
+                    activeColorClass = 'text-primary bg-primary/10';
+                    break;
                   default:
                     hoverColorClass = 'hover:text-gray-600 hover:bg-gray-100';
                 }
@@ -76,8 +88,16 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
                   <div key={idx} className="relative group">
                     <button
                       onClick={() => {
-                        if (typeof option.onClick === 'function') {
-                          option.onClick(task, itinerario);
+                        if(owner){
+                          if (typeof option.onClick === 'function') {
+                            option.onClick(task, itinerario);
+                          }
+                        } else {
+                          if (task.estatus) {
+                            if (typeof option.onClick === 'function') {
+                              option.onClick(task, itinerario);
+                            }
+                          }
                         }
                       }}
                       className={`relative p-1.5 rounded-md transition-all duration-200 ${isActive ? `${activeColorClass} shadow-sm` : `text-gray-400 ${hoverColorClass}`}`}
@@ -87,8 +107,8 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
                       <span className="w-4 h-4 flex items-center justify-center" style={{ transform: 'scale(0.8)' }}>{icon}</span>
                       {isActive && (
                         <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
-                          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${option.value === 'status' ? 'bg-primary' : 'bg-blue-500'} opacity-75`}></span>
-                          <span className={`relative inline-flex rounded-full h-2 w-2 ${option.value === 'status' ? 'bg-primary' : 'bg-blue-500'}`}></span>
+                          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${option.value === 'status' || option.value === 'estatus' ? 'bg-primary' : 'bg-primary'} opacity-75`}></span>
+                          <span className={`relative inline-flex rounded-full h-2 w-2 ${option.value === 'status' || option.value === 'estatus' ? 'bg-primary' : 'bg-primary'}`}></span>
                         </span>
                       )}
                     </button>
@@ -106,6 +126,7 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
         canEdit={canEdit}
         task={task}
         handleUpdate={handleUpdate}
+        owner={owner}
       />
       {/* Indicadores de hora inicio y fin (solo visuales) */}
       {task.fecha && task.duracion && (
@@ -129,8 +150,10 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
       )}
       {/* Duración */}
       <div className="flex items-center space-x-4">
-        <Clock className="w-4 h-4 text-blue-600" />
-        <span className="text-xs text-gray-500 block">{t('Duración')}</span>
+        <Clock className="w-4 h-4 text-blue-600 mt-0.5" />
+        <div className="text-xs text-gray-500 pt-1">
+          {t('Duración')}
+        </div>
         {editingDuration ? (
           <input
             type="text"
@@ -156,13 +179,24 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
           />
         ) : (
           <span
-            className={`text-sm ${canEdit ? 'cursor-pointer text-gray-700 hover:text-gray-900' : 'cursor-default text-gray-600'}`}
+            className={`text-sm ${owner ? canEdit ? 'cursor-pointer text-gray-700 hover:text-gray-900' : 'cursor-default text-gray-600' : task.estatus && canEdit ? 'cursor-pointer text-gray-700 hover:text-gray-900' : 'cursor-default text-gray-600'}`}
             onClick={() => {
-              if (canEdit) {
-                setEditingDuration(true);
-                setDurationInput(minutesToReadableFormat(task.duracion as number));
+              if (owner) {
+                if (canEdit) {
+                  setEditingDuration(true);
+                  setDurationInput(minutesToReadableFormat(task.duracion as number));
+                } else {
+                  ht();
+                }
               } else {
-                ht();
+                if (task.estatus) {
+                  if (canEdit) {
+                    setEditingDuration(true);
+                    setDurationInput(minutesToReadableFormat(task.duracion as number));
+                  } else {
+                    ht();
+                  }
+                }
               }
             }}
             title={canEdit ? "Haz clic para editar duración" : "No tienes permisos para editar"}
@@ -176,12 +210,14 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
         canEdit={canEdit}
         task={task}
         handleUpdate={handleUpdate}
+        owner={owner}
       />
       {/* Descripción larga con Editor Rico */}
       <DescriptionTask
         canEdit={canEdit}
         task={task}
         handleUpdate={handleUpdate}
+        owner={owner}
       />
       {/* Adjuntos */}
       <div>
@@ -193,6 +229,7 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
           eventId={event._id}
           itinerarioId={itinerario._id}
           readOnly={!canEdit}
+         
         />
       </div>
     </div>

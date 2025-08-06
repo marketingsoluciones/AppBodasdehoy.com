@@ -12,13 +12,15 @@ interface Props {
   canEdit: boolean;
   task: any;
   handleUpdate: (field: string, value: any) => Promise<void>;
+  owner: boolean;
 }
-export const AssignedTask: FC<Props> = ({ canEdit, task, handleUpdate }) => {
+export const AssignedTask: FC<Props> = ({ canEdit, task, handleUpdate, owner }) => {
   const { t } = useTranslation();
   const { user } = AuthContextProvider();
   const { event } = EventContextProvider();
   const [editing, setEditing] = useState<boolean>(false);
   const [tempResponsable, setTempResponsable] = useState<string[]>(task.responsable || []);
+  const ruta = window.location.pathname;
 
   useEffect(() => {
     setTempResponsable(Array.isArray(task?.responsable) ? task.responsable : []);
@@ -32,17 +34,42 @@ export const AssignedTask: FC<Props> = ({ canEdit, task, handleUpdate }) => {
           <User className="w-4 h-4 text-gray-500" />
           <span className="text-xs text-gray-600">{t('Asignados')}</span>
         </div>
-        {canEdit && (
-          <button
-            onClick={() => {
-              setEditing(true);
-              setTempResponsable(task.responsable || []);
-            }}
-            className="bg-primary rounded-full px-3 py-0.5 text-xs text-white"
-          >
-            {task.responsable?.length > 0 ? t('Editar') : t('Asignar')}
-          </button>
-        )}
+        {
+          canEdit && ["/itinerario"].includes(ruta)
+            ? owner
+              ? (
+                <button
+                  onClick={() => {
+                    setEditing(true);
+                    setTempResponsable(task.responsable || []);
+                  }}
+                  className="bg-primary rounded-full px-3 py-0.5 text-xs text-white"
+                >
+                  {task.responsable?.length > 0 ? t('Editar') : t('Asignar')}
+                </button>
+              )
+              : task.estatus && (
+                <button
+                  onClick={() => {
+                    setEditing(true);
+                    setTempResponsable(task.responsable || []);
+                  }}
+                  className="bg-primary rounded-full px-3 py-0.5 text-xs text-white"
+                >
+                  {task.responsable?.length > 0 ? t('Editar') : t('Asignar')}
+                </button>
+              )
+            : (
+              <button
+                onClick={() => {
+                  setEditing(true);
+                  setTempResponsable(task.responsable || []);
+                }}
+                className="bg-primary rounded-full px-3 py-0.5 text-xs text-white"
+              >
+                {task.responsable?.length > 0 ? t('Editar') : t('Asignar')}
+              </button>
+            )}
       </div>
       <div className="flex items-center flex-wrap w-full border border-gray-200 rounded-md relative p-0.5">
         {(editing && canEdit) && <div className="absolute z-10 top-0 left-0">

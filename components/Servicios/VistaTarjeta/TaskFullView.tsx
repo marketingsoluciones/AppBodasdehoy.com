@@ -57,6 +57,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
   const { event } = EventContextProvider();
   const [previousCountComments, setPreviousCountComments] = useState(0);
   const { user } = AuthContextProvider();
+  const owner = user?.uid === event?.usuario_id;
 
   // Auto-scroll al agregar nuevos comentarios
   useEffect(() => {
@@ -85,6 +86,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               canEdit={canEdit}
               handleUpdate={handleUpdate}
               task={task}
+              owner={owner}
             />
             {canEdit &&
               <div className="flex items-center">
@@ -119,6 +121,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               canEdit={canEdit}
               task={task}
               handleUpdate={handleUpdate}
+              owner={owner}
             />
             {/* Fechas con duración y hora */}
             <div className="flex items-center space-x-4">
@@ -149,6 +152,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               canEdit={canEdit}
               task={task}
               handleUpdate={handleUpdate}
+              owner={owner}
             />
             {/* Sección de Detalles */}
             {/* Descripción larga con Editor */}
@@ -156,6 +160,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               canEdit={canEdit}
               task={task}
               handleUpdate={handleUpdate}
+              owner={owner}
             />
             {/* Adjuntos mejorados */}
             <NewAttachmentsEditor
