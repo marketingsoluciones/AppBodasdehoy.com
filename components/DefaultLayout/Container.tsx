@@ -33,7 +33,7 @@ const Container = (props) => {
       }
 
       <div className={`w-[100%] ${router.pathname === "/" ? "" : "bg-base"} overflow-auto overflow-y-scroll ${urls.includes(router?.pathname) ? "" : forCms ? "h-[100vh]" : "h-[calc(100vh-144px)]"}`}>
-        <main className="w-full h-full">
+        <main id="rootElementMain" className="w-full h-full">
           {children}
         </main>
       </div>

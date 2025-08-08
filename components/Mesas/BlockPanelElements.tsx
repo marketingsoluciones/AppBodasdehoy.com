@@ -1,9 +1,9 @@
 import { Arbol, Arbol2, Dj, Group83, Layer2, Piano, PlusIcon, } from "../icons";
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import BlockDefault from "./BlockDefault";
 import DragTable from "./DragTable"
 import SvgFromString from '../SvgFromString';
-
 import { getSvgOptimizationInfo, SVG_SIZE_LIMITS } from '../../utils/svgSizeUtils';
 
 interface propsBlockPanelElements {
@@ -31,6 +31,12 @@ const BlockPanelElements: FC<propsBlockPanelElements> = () => {
   const [showModal, setShowModal] = useState(false);
   const [svgUrl, setSvgUrl] = useState("");
   const [svgTitle, setSvgTitle] = useState("");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -145,74 +151,79 @@ const BlockPanelElements: FC<propsBlockPanelElements> = () => {
     return { isValid: true };
   };
 
+  // Componente del modal
+  const Modal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+        <h3 className="text-lg font-semibold mb-4">Agregar SVG</h3>
+
+        {/* Información sobre límites de tamaño */}
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
+          <p className="text-sm text-blue-800">
+            <strong>Límites de tamaño:</strong><br />
+            • Máximo: {SVG_SIZE_LIMITS.MAX_FILE_SIZE / 1024}KB<br />
+            • Recomendado: {SVG_SIZE_LIMITS.RECOMMENDED_SIZE / 1024}KB o menos
+          </p>
+        </div>
+
+        {/* Opción 1: Cargar desde archivo */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-2">Cargar desde archivo:</label>
+          <input
+            type="file"
+            accept=".svg"
+            onChange={handleFileUpload}
+            className="w-full p-2 border border-gray-300 rounded"
+            disabled={isLoading}
+          />
+        </div>
+
+        {/* Opción 2: Cargar desde URL */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-2">Cargar desde URL:</label>
+          <input
+            type="text"
+            placeholder="URL del SVG (ej: https://ejemplo.com/icono.svg)"
+            value={svgUrl}
+            onChange={(e) => setSvgUrl(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded mb-2"
+            disabled={isLoading}
+          />
+          <input
+            type="text"
+            placeholder="Nombre del elemento"
+            value={svgTitle}
+            onChange={(e) => setSvgTitle(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded"
+            disabled={isLoading}
+          />
+          <button
+            onClick={handleUrlSubmit}
+            disabled={isLoading}
+            className="w-full mt-2 bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+          >
+            {isLoading ? 'Cargando...' : 'Agregar desde URL'}
+          </button>
+        </div>
+
+        <button
+          onClick={() => setShowModal(false)}
+          disabled={isLoading}
+          className="w-full bg-gray-500 text-white p-2 rounded hover:bg-gray-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+        >
+          Cancelar
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <>
-      {/* Modal para cargar SVG */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold mb-4">Agregar SVG</h3>
-
-            {/* Información sobre límites de tamaño */}
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
-              <p className="text-sm text-blue-800">
-                <strong>Límites de tamaño:</strong><br />
-                • Máximo: {SVG_SIZE_LIMITS.MAX_FILE_SIZE / 1024}KB<br />
-                • Recomendado: {SVG_SIZE_LIMITS.RECOMMENDED_SIZE / 1024}KB o menos
-              </p>
-            </div>
-
-            {/* Opción 1: Cargar desde archivo */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-2">Cargar desde archivo:</label>
-              <input
-                type="file"
-                accept=".svg"
-                onChange={handleFileUpload}
-                className="w-full p-2 border border-gray-300 rounded"
-                disabled={isLoading}
-              />
-            </div>
-
-            {/* Opción 2: Cargar desde URL */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-2">Cargar desde URL:</label>
-              <input
-                type="text"
-                placeholder="URL del SVG (ej: https://ejemplo.com/icono.svg)"
-                value={svgUrl}
-                onChange={(e) => setSvgUrl(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded mb-2"
-                disabled={isLoading}
-              />
-              <input
-                type="text"
-                placeholder="Nombre del elemento"
-                value={svgTitle}
-                onChange={(e) => setSvgTitle(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded"
-                disabled={isLoading}
-              />
-              <button
-                onClick={handleUrlSubmit}
-                disabled={isLoading}
-                className="w-full mt-2 bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
-              >
-                {isLoading ? 'Cargando...' : 'Agregar desde URL'}
-              </button>
-            </div>
-
-            <button
-              onClick={() => setShowModal(false)}
-              disabled={isLoading}
-              className="w-full bg-gray-500 text-white p-2 rounded hover:bg-gray-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
-            >
-              Cancelar
-            </button>
-          </div>
-        </div>
+      {/* Modal usando Portal de react-dom */}
+      {mounted && showModal && createPortal(
+        <Modal />,
+        document.getElementById('rootElementMain') || document.body
       )}
-
       <div id="listTables" className="w-full h-full">
         <BlockDefault listaLength={listElements.length}>
           {listElements.map((item, idx) => (
