@@ -60,14 +60,6 @@ const SvgWrapper: React.FC<SvgWrapperProps> = ({
       const svgElement = containerRef.current.querySelector('svg');
       if (svgElement) {
         const vb = getViewBox(svgElement);
-        console.log('🔍 SVG Debug:', {
-          element: svgElement,
-          viewBox: vb,
-          viewBoxAttr: svgElement.getAttribute('viewBox'),
-          widthAttr: svgElement.getAttribute('width'),
-          heightAttr: svgElement.getAttribute('height'),
-          className: svgElement.className,
-        });
         if (vb) {
           setViewBox(vb);
           return vb;

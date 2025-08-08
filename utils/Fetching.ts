@@ -822,6 +822,7 @@ export const queries = {
       usuario_id
       usuario_nombre
       fecha
+      galerySvgVersion
       listaRegalos
       listIdentifiers{
         table
@@ -1742,6 +1743,7 @@ export const queries = {
       usuario_id
       usuario_nombre
       fecha
+      galerySvgVersion
       listaRegalos
       listIdentifiers{
         table
@@ -2289,5 +2291,30 @@ export const queries = {
   }`,
   testInvitacion: `mutation ($evento_id: String, $email: [String], $lang: String){
     testInvitacion(evento_id:$evento_id, email:$email, lang:$lang)
+  }`,
+  getGalerySvgs: `query ($evento_id: ID, $tipo: String) {
+    getGalerySvgs(evento_id: $evento_id, tipo: $tipo) {
+      total
+      results{
+        _id
+        title
+        icon
+        tipo
+      }
+    }
+  }`,
+  createGalerySvgs: `mutation ($evento_id: ID, $galerySvgs:[inputGalerySvg]) {
+    createGalerySvgs(evento_id: $evento_id, galerySvgs: $galerySvgs) {
+      total
+      results{
+        _id
+        title
+        icon
+        tipo
+      }
+    }
+  }`,
+  deleteGalerySvg: `mutation ($evento_id: ID, $icon_id: ID) {
+    deleteGalerySvg(evento_id: $evento_id, icon_id: $icon_id) 
   }`,
 };

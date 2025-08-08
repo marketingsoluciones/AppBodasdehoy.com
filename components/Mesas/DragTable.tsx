@@ -1,11 +1,12 @@
 import { FC, TouchEvent, MouseEvent } from "react";
 import { PlusIcon } from "../icons";
-import { ElementItem } from "./BlockPanelElements";
 import SvgWrapper from "../SvgWrapper";
+import { GalerySvg } from "../../utils/Interfaces";
 
-const onMouseDown = (e: MouseEvent<HTMLDivElement>, item: ElementItem) => {
-  console.log("DOWN")
+const onMouseDown = (e: MouseEvent<HTMLDivElement>, item: GalerySvg) => {
+  console.log("DOWN1")
   const child = document.getElementById(`icon${item.title}_${item.tipo}`)
+  console.log(child)
   const rootElement = document.getElementById('areaDrag');
   const element = document.createElement('div');
   element.id = `dragM${item.title}_${item.tipo}`
@@ -22,7 +23,7 @@ const onMouseDown = (e: MouseEvent<HTMLDivElement>, item: ElementItem) => {
   rootElement.appendChild(element)
 }
 
-const onTouchStart = (e: TouchEvent<HTMLDivElement>, item: ElementItem) => {
+const onTouchStart = (e: TouchEvent<HTMLDivElement>, item: GalerySvg) => {
   console.log("DOWN")
   const child = document.getElementById(`icon${item.title}_${item.tipo}`)
   const rootElement = document.getElementById('areaDrag');
@@ -40,7 +41,7 @@ const onTouchStart = (e: TouchEvent<HTMLDivElement>, item: ElementItem) => {
   rootElement.appendChild(element)
 }
 
-const onUp = (item: ElementItem) => {
+const onUp = (item: GalerySvg) => {
   console.log("UP")
   const rootElement = document.getElementById('areaDrag');
   const element = document.getElementById(`dragM${item.title}_${item.tipo}`)
@@ -48,7 +49,7 @@ const onUp = (item: ElementItem) => {
 }
 
 interface propsDragTable {
-  item: ElementItem
+  item: GalerySvg
 }
 
 const DragTable: FC<propsDragTable> = ({ item }) => {

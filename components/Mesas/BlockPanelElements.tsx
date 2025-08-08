@@ -5,19 +5,18 @@ import BlockDefault from "./BlockDefault";
 import DragTable from "./DragTable"
 import SvgFromString from '../SvgFromString';
 import { getSvgOptimizationInfo, SVG_SIZE_LIMITS } from '../../utils/svgSizeUtils';
+import { nanoid } from "nanoid";
+import { fetchApiBodas, fetchApiEventos, queries } from "../../utils/Fetching";
+import { AuthContextProvider } from "../../context/AuthContext";
+import { EventContextProvider } from "../../context";
+import { useToast } from "../../hooks/useToast";
+import { GalerySvg } from "../../utils/Interfaces";
 
 interface propsBlockPanelElements {
 
 }
 
-export interface ElementItem {
-  icon: React.ReactElement;
-  title: string;
-  tipo: string;
-  size?: { width: number; height: number };
-}
-
-export const ListElements: ElementItem[] = [
+export const ListElements: GalerySvg[] = [
   { icon: <Arbol className="" />, title: "arbol", tipo: "element", size: { width: 60, height: 120 } },
   { icon: <Arbol2 className="" />, title: "arbol2", tipo: "element", size: { width: 60, height: 120 } },
   { icon: <Dj className="" />, title: "dj", tipo: "element", size: { width: 140, height: 110 } },
@@ -26,24 +25,64 @@ export const ListElements: ElementItem[] = [
 ];
 
 const BlockPanelElements: FC<propsBlockPanelElements> = () => {
-  const [listElements, setListElements] = useState<ElementItem[]>(ListElements);
+  const { config } = AuthContextProvider()
+  const { event, setEvent } = EventContextProvider()
+  const [listElements, setListElements] = useState<GalerySvg[]>(ListElements);
   const [isLoading, setIsLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [svgUrl, setSvgUrl] = useState("");
-  const [svgTitle, setSvgTitle] = useState("");
   const [mounted, setMounted] = useState(false);
+  const toast = useToast()
 
   useEffect(() => {
     setMounted(true);
     return () => setMounted(false);
   }, []);
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  // Función helper para convertir SVGs del backend en elementos React
+  const convertBackendSvgsToReact = (backendSvgs: any[]): GalerySvg[] => {
+    return backendSvgs.map((svgItem: any) => ({
+      ...svgItem,
+      // Convertir el string SVG del backend en un componente React usando SvgFromString
+      icon: <SvgFromString svgString={svgItem.icon} className="relative w-max" />,
+      size: { width: 60, height: 60 }
+    }));
+  };
+
+  useEffect(() => {
+    // if (event && mounted) {
+    console.log("aquiiiiii")
+    if (event?.galerySvgVersion) {
+      fetchApiEventos({
+        query: queries.getGalerySvgs,
+        variables: {
+          evento_id: event?._id,
+          tipo: "element"
+        }
+      }).then((result: any) => {
+        // Convertir los SVGs del backend en elementos React
+        const svgsWithReactIcons = convertBackendSvgsToReact(result.results);
+
+        event.galerySvgs = svgsWithReactIcons;
+        setEvent({ ...event });
+
+        // Actualizar también la lista local
+        setListElements(prev => {
+          // Mantener los elementos estáticos (Arbol, Arbol2, etc.)
+          const staticElements = prev.filter(item => !item._id);
+          return [...staticElements, ...svgsWithReactIcons];
+        });
+      })
+    }
+    // }
+  }, [event?.galerySvgVersion])
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file && file.type === "image/svg+xml") {
       const validation = validateSvgSize(file);
       if (!validation.isValid) {
-        alert(validation.message);
+        toast("success", validation.message);
         return;
       }
       if (validation.message) {
@@ -51,14 +90,14 @@ const BlockPanelElements: FC<propsBlockPanelElements> = () => {
       }
       setIsLoading(true);
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         try {
           const svgContent = e.target?.result as string;
           const optimizationInfo = getSvgOptimizationInfo(svgContent);
           if (optimizationInfo.canOptimize) {
             console.log('💡 Sugerencias de optimización:', optimizationInfo.optimizationTips);
           }
-          const newElement: ElementItem = {
+          const newElement: GalerySvg = {
             icon: <SvgFromString svgString={svgContent} className="relative w-max" />,
             title: file.name.replace('.svg', ''),
             tipo: "element",
@@ -69,22 +108,22 @@ const BlockPanelElements: FC<propsBlockPanelElements> = () => {
           setIsLoading(false);
         } catch (error) {
           console.error('Error al procesar el SVG:', error);
-          alert("Error al procesar el archivo SVG");
+          toast("error", "Error al procesar el archivo SVG");
           setIsLoading(false);
         }
       };
       reader.onerror = () => {
-        alert("Error al leer el archivo");
+        toast("error", "Error al leer el archivo");
         setIsLoading(false);
       };
       reader.readAsText(file);
     } else {
-      alert("Por favor selecciona un archivo SVG válido");
+      toast("error", "Por favor selecciona un archivo SVG válido");
     }
   };
 
   const handleUrlSubmit = async () => {
-    if (svgUrl && svgTitle) {
+    if (svgUrl) {
       setIsLoading(true);
       try {
         console.log('Intentando cargar SVG desde:', svgUrl);
@@ -107,26 +146,47 @@ const BlockPanelElements: FC<propsBlockPanelElements> = () => {
           console.log('💡 Sugerencias de optimización:', optimizationInfo.optimizationTips);
         }
 
-        const newElement: ElementItem = {
+        // Crear título basado en la URL
+        const urlTitle = svgUrl.split('/').pop()?.replace('.svg', '') || nanoid();
+
+        const newElement: GalerySvg = {
           icon: <SvgFromString svgString={svgContent} className="relative w-max" />,
-          title: svgTitle,
+          title: urlTitle,
           tipo: "element",
           size: { width: 60, height: 60 }
         };
+        const result: any = await fetchApiEventos({
+          query: queries.createGalerySvgs,
+          variables: {
+            evento_id: event?._id,
+            galerySvgs: [{
+              title: newElement.title,
+              icon: svgContent.replace(/\r?\n|\r/g, ' ').replace(/\s{2,}/g, ' '),
+              tipo: "element"
+            }]
+          },
+        })
+        console.log(result)
 
-        setListElements(prev => [...prev, newElement]);
+        // Convertir los resultados del backend en elementos React
+        const svgsWithReactIcons = convertBackendSvgsToReact(result.results);
+
+        event.galerySvgs = event.galerySvgs ? [...event.galerySvgs, ...svgsWithReactIcons] : svgsWithReactIcons;
+        setEvent({ ...event });
+
+        // Agregar a la lista local usando los elementos convertidos
+        setListElements(prev => [...prev, ...svgsWithReactIcons]);
         setShowModal(false);
         setSvgUrl("");
-        setSvgTitle("");
         setIsLoading(false);
 
       } catch (error) {
         console.error('Error completo al cargar SVG:', error);
-        alert(`Error al cargar el SVG: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+        toast("error", `Error al cargar el SVG: ${error instanceof Error ? error.message : 'Error desconocido'}`);
         setIsLoading(false);
       }
     } else {
-      alert("Por favor completa todos los campos");
+      toast("warning", "Por favor completa todos los campos");
     }
   };
 
@@ -187,14 +247,6 @@ const BlockPanelElements: FC<propsBlockPanelElements> = () => {
             value={svgUrl}
             onChange={(e) => setSvgUrl(e.target.value)}
             className="w-full p-2 border border-gray-300 rounded mb-2"
-            disabled={isLoading}
-          />
-          <input
-            type="text"
-            placeholder="Nombre del elemento"
-            value={svgTitle}
-            onChange={(e) => setSvgTitle(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded"
             disabled={isLoading}
           />
           <button

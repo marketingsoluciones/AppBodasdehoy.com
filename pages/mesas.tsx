@@ -73,7 +73,10 @@ const Mesas: FC = () => {
 
   useEffect(() => {
     if (creaElement) {
-      const element = ListElements.find(elem => elem.title === values.modelo)
+      console.log("**********", values)
+      const element = event?.galerySvgs
+        ? [...event?.galerySvgs, ...ListElements].find(elem => elem.title === values.modelo)
+        : ListElements.find(elem => elem.title === values.modelo)
       try {
         const inputValues = {
           position: { x: (values.offsetX - element.size.width / 2).toFixed(0), y: (values.offsetY - element.size.height / 2).toFixed(0) },
@@ -103,7 +106,10 @@ const Mesas: FC = () => {
 
   useEffect(() => {
     const defaultTablesDraggable = ListTables.map(elem => `#dragN${elem.title}_${elem.tipo}`)
-    const defaultElementsDraggable = ListElements.map(elem => `#dragN${elem.title}_${elem.tipo}`)
+    const defaultElementsDraggable = event?.galerySvgs
+      ? [...event?.galerySvgs, ...ListElements].map(elem => `#dragN${elem.title}_${elem.tipo}`)
+      : ListElements.map(elem => `#dragN${elem.title}_${elem.tipo}`)
+    console.log(defaultElementsDraggable)
     setupDropzone({ target: '.js-dropTables', accept: `${[...defaultTablesDraggable, ...defaultElementsDraggable]}`, handleOnDrop, setEvent, event, planSpaceActive, setPlanSpaceActive, user })
   }, [planSpaceActive])
 

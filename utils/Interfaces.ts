@@ -1,4 +1,4 @@
-import { Dispatch, ReactNode, SetStateAction } from "react"
+import { Dispatch, ReactElement, ReactNode, SetStateAction } from "react"
 
 export interface TableTotals {
     estimado: number;
@@ -44,6 +44,15 @@ export interface ColumnConfig {
     options: { visible: boolean };
 }
 
+export interface GalerySvg {
+    _id?: string
+    title: string
+    icon: ReactElement
+    svg?: string // Para el contenido SVG como string desde el backend
+    tipo: string
+    size?: { width: number; height: number }
+}
+
 export interface Event {
     _id: string
     fecha_creacion: string
@@ -69,10 +78,12 @@ export interface Event {
     invitados_array: guests[]
     menus_array: menu[]
     planSpaceSelect: string
+    galerySvgs: GalerySvg[]
     planSpace: planSpace[]
     mesas_array: tableOld[]
     grupos_array: string[]
     notificaciones_array: notification[]
+    galerySvgVersion: string
     imgEvento: image
     imgInvitacion: image
     templateEmailSelect: string

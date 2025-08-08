@@ -69,9 +69,11 @@ export const SocketControlator = () => {
           console.log(100022, "RECEIVED event")
           const eventOld = {
             planSpaceSelect: event?.planSpaceSelect,
+            galerySvgs: event?.galerySvgs,
             updatedAt: new Date()
           }
           let eventNew: Event = received.msg?.payload?.value
+          console.log(100023, "eventNew", eventNew)
           eventNew.fecha = new Date(eventNew.fecha).getTime().toString()
           if (eventNew?.compartido_array?.length) {
             const fMyUid = eventNew?.compartido_array?.findIndex(elem => elem === user?.uid)
