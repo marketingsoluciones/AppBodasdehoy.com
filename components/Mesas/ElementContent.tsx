@@ -9,7 +9,7 @@ interface propsElement {
 }
 
 export const ElementContent: FC<propsElement> = ({ item }) => {
-  const [invitados, setInvitados] = useState<any>();
+  const [reactElement, setReactElement] = useState<React.ReactElement>();
   const { event } = EventContextProvider()
 
   useEffect(() => {
@@ -19,16 +19,16 @@ export const ElementContent: FC<propsElement> = ({ item }) => {
         : ListElements.find(elem => elem.title === item.tipo)
       if (element?.icon) {
         console.log(100024, item)
-        setInvitados(cloneElement(element?.icon, { style: item?.size ? item?.size : element?.size }))
+        setReactElement(cloneElement(element?.icon, { style: item?.size ? item?.size : element?.size }))
       } else {
-        setInvitados(<Question width={100} height={100} fill="gray" />)
+        setReactElement(<Question width={100} height={100} fill="gray" />)
       }
     }
   }, [item]);
 
   return (
     <>
-      {invitados}
+      {reactElement}
     </>
   );
 };

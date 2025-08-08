@@ -77,7 +77,6 @@ export const DragableDefault: FC<propsTable> = forwardRef(({ item, setDisableWra
             setShowFormEditar={setShowFormEditar}
           />
           : <ElementContent item={item} />
-          //<div className="bg-red w-[80px] h-[80px]"></div>
         }
       </div>
     </div>
