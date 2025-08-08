@@ -2,10 +2,11 @@ import { FC, forwardRef, useEffect, useState } from "react";
 import { EventContextProvider } from "../../context";
 import { MesaContent } from "./MesaContent";
 import { ElementContent } from "./ElementContent";
+import { element, table } from "../../utils/Interfaces";
 
 interface propsTable extends Partial<HTMLDivElement> {
   ref: any
-  item: any
+  item: table | element
   setDisableWrapper?: any
   disableDrag: any
   prefijo: string
@@ -69,7 +70,7 @@ export const DragableDefault: FC<propsTable> = forwardRef(({ item, setDisableWra
       <div className="relative">
         {prefijo === "table"
           ? <MesaContent
-            table={item}
+            table={item as table}
             DefinePosition={DefinePosition}
             setDisableWrapper={setDisableWrapper}
             disableDrag={disableDrag}

@@ -491,7 +491,7 @@ export interface signalItem {
 }
 
 export interface EditDefaultState {
-    item?: table
+    item?: table | element
     itemTipo?: string
     setShowFormEditar?: any
 }
