@@ -1,6 +1,7 @@
 import { FC, cloneElement, useEffect, useState } from "react";
 import { EventContextProvider } from "../../context";
 import { ListElements } from "./BlockPanelElements";
+import SvgExample from '../../public/svgs/question.svg';
 
 interface propsElement {
   item: any
@@ -12,7 +13,11 @@ export const ElementContent: FC<propsElement> = ({ item }) => {
   useEffect(() => {
     if (item?.tipo) {
       const element = ListElements.find(elem => elem.title === item.tipo)
-      setInvitados(cloneElement(element?.icon, { style: element?.size }))
+      if (element?.icon) {
+        setInvitados(cloneElement(element?.icon, { style: element?.size }))
+      } else {
+        setInvitados(<SvgExample width={100} height={100} fill="gray" />)
+      }
     }
   }, [item]);
 

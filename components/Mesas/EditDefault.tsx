@@ -27,7 +27,7 @@ export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, ite
       }
       if (itemTipo == "element") {
         data = await fetchApiEventos({
-          query: queries.deleteTable,
+          query: queries.deleteElement,
           variables: {
             eventID: event._id,
             planSpaceID: planSpaceActive._id,
