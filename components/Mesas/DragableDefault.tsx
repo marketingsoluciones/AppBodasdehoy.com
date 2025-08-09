@@ -23,7 +23,6 @@ export const DragableDefault: FC<propsTable> = forwardRef(({ item, setDisableWra
     setRot(item?.rotation)
   }, [item?.rotation])
 
-
   //Setear posicion
   useEffect(() => {
     const el = document.getElementById(`${prefijo}_${item._id}`)
@@ -65,7 +64,7 @@ export const DragableDefault: FC<propsTable> = forwardRef(({ item, setDisableWra
         })
         !disableDrag && setDisableWrapper(false)
       }}
-      className={`${!disableDrag && "js-drag"} ${editDefault?.clicked === item?._id && "bg-gray-200 bg-opacity-50 border-gray-300 shadow-md"} draggable-touch absolute hover:bg-gray-300 hover:bg-opacity-50 border border-transparent hover:border-gray-200 hover:shadow-md ${prefijo === "table" ? "p-10" : "p-3"} rounded-2xl`}
+      className={`${!disableDrag ? prefijo === "table" ? "js-drag" : "js-dragElement" : ""} ${editDefault?.clicked === item?._id ? "bg-gray-200 bg-opacity-50 border-gray-300 shadow-md" : ""} draggable-touch absolute hover:bg-gray-300 hover:bg-opacity-50 border border-transparent hover:border-gray-200 hover:shadow-md ${prefijo === "table" ? "p-10" : "p-3"} rounded-2xl`}
       style={{ rotate: `${rot}deg` }}>
       <div className="relative">
         {prefijo === "table"

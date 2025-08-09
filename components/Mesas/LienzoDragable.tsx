@@ -187,7 +187,7 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
   let valirStart = false
   let valirMove = false
   // setup draggable elements.
-  interact('.js-drag').draggable({
+  const optionsDrag = {
     ignoreFrom: '.ign',
     manualStart: false,
     listeners: {
@@ -234,7 +234,59 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
         }
       },
     },
-  })
+  }
+  interact('.js-drag')
+    .draggable(optionsDrag)
+
+  interact('.js-dragElement')
+    .draggable(optionsDrag)
+    .resizable({
+      onstart: function (event) { },
+      onmove: function (event) {
+        const divElement = event.currentTarget;
+        const relativeElement = divElement.firstElementChild;
+        const svgElement = relativeElement.firstElementChild;
+        let { x, y } = divElement.dataset
+
+        x = (parseFloat(x) / scale || 0) + event.deltaRect.left / scale
+        y = (parseFloat(y) / scale || 0) + event.deltaRect.top / scale
+
+        Object.assign(divElement.style, {
+          width: `${event.rect.width / scale}px`,
+          height: `${event.rect.height / scale}px`,
+          //transform: `translate(${x}px, ${y}px)`
+        })
+
+        //Object.assign(padre.dataset, { x, y })
+      },
+      onend: function (event) { },
+
+      edges: {
+        top: true,
+        left: true,
+        bottom: true,
+        right: true
+      },
+
+      // Width and height can be adjusted independently. When `true`, width and
+      // height are adjusted at a 1:1 ratio.
+      square: false,
+
+      // Width and height can be adjusted independently. When `true`, width and
+      // height maintain the aspect ratio they had when resizing started.
+      preserveAspectRatio: false,
+
+      // a value of 'none' will limit the resize rect to a minimum of 0x0
+      // 'negate' will allow the rect to have negative width/height
+      // 'reposition' will keep the width/height positive by swapping
+      // the top and bottom edges and/or swapping the left and right edges
+      //invert: 'none' || 'negate' || 'reposition'
+
+      // limit multiple resizes.
+      // See the explanation in the {@link Interactable.draggable} example
+      max: Infinity,
+      maxPerElement: 1,
+    })
 
   /* eslint-disable multiline-ternary */
   // interact(document).on('ready', () => {
