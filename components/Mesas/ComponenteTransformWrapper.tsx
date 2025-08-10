@@ -122,7 +122,6 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
                             setValir(true)
                             if (!valir) {
                               //aqui actualizo en vez de guarda
-                              console.log("aqui actualizo en vez de guarda")
                             } else {
                               const resp = await fetchApiEventos({
                                 query: queries.createPsTemplate,

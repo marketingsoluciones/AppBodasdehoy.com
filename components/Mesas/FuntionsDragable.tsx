@@ -56,18 +56,8 @@ export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, event: e
           // only allow drops into empty dropzone elements
           if (event.type == "pointerup") {
             if (dropped) {
-              console.log(100905, values,
-                dragEvent.page, dragEvent.rect,
-                // event,
-                // dropped,
-                // dropzone,
-                // dropzoneElement,
-                // draggable,
-                // draggableElement,
-              )
               const { layerX, layerY, offsetX, offsetY, pageX, pageY } = event
               values = { layerX, layerY, offsetX, offsetY, pageX, pageY }
-              //console.log("AL SOLTAR_0", { layerX, layerY, offsetX, offsetY, pageX, pageY })
             }
           }
           return dropped && dropzoneElement.hasChildNodes();
@@ -84,16 +74,13 @@ export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, event: e
       //cuando ENTRA a una zona drogleable
       .on('dragenter', (event) => {
         // // // console.log("cuando ENTRA a la zona drogleable", event.target.id)
-
       })
       //cuando SALE de una zona drogleable sin haber soltado
       .on('dragleave', (event) => {
         // // // console.log("cuando SALE de la zona drogleable", event.target.id)
-
       })
       //cuando SUELTA sobre una zona drogleable
       .on('drop', (event) => {
-        // console.log("SOLTADO2", event.currentTarget.id)
         if (event.currentTarget.id === "lienzo-drop") {
           const asd = event.relatedTarget.id.replace(/dragN/, "").split("_")
           values = { ...values, modelo: asd[0], tipo: asd[1] }
@@ -112,18 +99,6 @@ export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, event: e
     interact(target)
       .dropzone({
         accept: accept,
-        ondropactivate: function (event) {
-          //console.log(1001)
-          //addClass(event.relatedTarget, '-drop-possible')
-
-          //agrega texto al div
-          //event.target.textContent = '1'
-        },
-        ondropdeactivate: function (event) {
-          //console.log(1002)
-
-          //removeClass(event.relatedTarget, '-drop-possible')
-        },
         checker: function (
           dragEvent,         // related dragmove or dragend
           event,             // Touch, Pointer or Mouse Event
@@ -133,10 +108,6 @@ export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, event: e
           draggable,         // draggable Interactable
           draggableElement   // draggable element
         ) {
-
-          // only allow drops into empty dropzone elements
-          //console.log("dragEvent:", dragEvent)
-          //console.log("event:", event.button, event.buttons, event.type)
           if (event.type == "pointerup") {
             if (dropped) {
               const invitadoID = draggableElement.id.slice(5, draggableElement.id.length)
@@ -144,31 +115,17 @@ export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, event: e
               const tableID = dropzoneElement.id.split('-@-')[0]
               const chair = parseInt(dropzoneElement.id.split('-@-')[1])
               !isAllowed() ? ht() : moveGuest({ event: eventAsd, chair, invitadoID, tableID, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo, user })
-              // console.log("--------------------------------------")
-              // console.log("draggableElement:", draggableElement.id, invitadoID)
-              // console.log("dropped:", dropped)
-              // console.log("dropzone:", dropzone.target)
-              // console.log("dropzoneElement:", dropzoneElement.id, "mesa:", nombre_mesa, "index:", index)
-              // console.log("--------------------------------------")
             }
           }
-          //console.log("dropzoneElement:", dropzoneElement)
-          //console.log("draggable:", draggable)
-          //console.log("draggableElement:", draggableElement)
-          //console.log("--------------------------------------")
           return dropped && dropzoneElement.hasChildNodes();
         },
       })
       //cuando se ACTIVA la zona drogleable
       .on('dropactivate', (event) => {
-        //console.log("dropactivate")
         const active = event.target.getAttribute('active') | 0
-
         // change style if it was previously not active
         if (active === 0) {
           addClass(event.target, '-drop-possible')
-          //addClass(event.target, '-drop-possibleHover')
-          //event.target.textContent = 'Drop me here!'
         }
 
         event.target.setAttribute('active', active + 1)
@@ -176,24 +133,13 @@ export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, event: e
       //cuando se DESACTIVA la zona drogleable
       .on('dropdeactivate', (event) => {
         const active = event.target.getAttribute('active') | 0
-        // change style if it was previously active
-        // but will no longer be active
         if (active === 1) {
-          //remueve texto del div
-          //event.target.removeChild(event.target.childNodes[0])
-
           removeClass(event.target, '-drop-possible')
-          //removeClass(event.target, '-drop-possibleHover')
-          //event.target.textContent = 'Dropzone'
-          //event.target.appendChild(document.getElementById("cuadro"))
         }
-
         event.target.setAttribute('active', active - 1)
       })
       //cuando esta SOBRE una zona drogleable
       .on('dragenter', (event) => {
-        // console.log("sobre", event.target.id, " elemen: ", event.relatedTarget.id.slice(0, 5), event.target)
-
         if (event.target.id != "listInvitados") {
           addClass(event.target, 'bg-secondary')
         }
@@ -312,7 +258,6 @@ interface PropsActualizarPosicion {
 }
 export const ActualizarPosicion = async ({ x, y, targetID, event, setEvent, planSpaceActive, setPlanSpaceActive }): Promise<void> => {
   try {
-    console.log(targetID, x, y)
     const asd = targetID.split("_")
     const target = asd[0]
     const ID = asd[1]

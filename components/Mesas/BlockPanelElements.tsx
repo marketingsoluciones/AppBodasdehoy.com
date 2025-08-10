@@ -83,29 +83,18 @@ const BlockPanelElements: FC<propsBlockPanelElements> = ({ listElements, setList
     if (svgUrl) {
       setIsLoading(true);
       try {
-        console.log('Intentando cargar SVG desde:', svgUrl);
-
-        // Usar la nueva API para descargar el SVG
         const apiUrl = `/api/fetch-svg?url=${encodeURIComponent(svgUrl)}`;
         const response = await fetch(apiUrl);
-
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
         }
-
         const svgContent = await response.text();
-        console.log('SVG cargado exitosamente desde API:', (svgContent.length / 1024).toFixed(1) + 'KB');
-
-        // Mostrar información de optimización
         const optimizationInfo = getSvgOptimizationInfo(svgContent);
         if (optimizationInfo.canOptimize) {
           console.log('💡 Sugerencias de optimización:', optimizationInfo.optimizationTips);
         }
-
-        // Crear título basado en la URL
         const urlTitle = svgUrl.split('/').pop()?.replace('.svg', '') || nanoid();
-
         const newElement: GalerySvg = {
           icon: <SvgFromString svgString={svgContent} className="relative w-max" />,
           title: urlTitle,
@@ -123,21 +112,14 @@ const BlockPanelElements: FC<propsBlockPanelElements> = ({ listElements, setList
             }]
           },
         })
-        console.log(result)
-
-        // Convertir los resultados del backend en elementos React
         const svgsWithReactIcons = convertBackendSvgsToReact(result.results);
-
         event.galerySvgs = event.galerySvgs ? [...event.galerySvgs, ...svgsWithReactIcons] : svgsWithReactIcons;
         setEvent({ ...event });
-
-        // Agregar a la lista local usando los elementos convertidos
         const newListElements = [...listElements, ...svgsWithReactIcons]
         setListElements(newListElements);
         setShowModal(false);
         setSvgUrl("");
         setIsLoading(false);
-
       } catch (error) {
         console.error('Error completo al cargar SVG:', error);
         toast("error", `Error al cargar el SVG: ${error instanceof Error ? error.message : 'Error desconocido'}`);
@@ -151,30 +133,25 @@ const BlockPanelElements: FC<propsBlockPanelElements> = ({ listElements, setList
   const validateSvgSize = (file: File) => {
     const sizeInKB = file.size / 1024;
     const maxSizeKB = SVG_SIZE_LIMITS.MAX_FILE_SIZE / 1024;
-
     if (file.size > SVG_SIZE_LIMITS.MAX_FILE_SIZE) {
       return {
         isValid: false,
         message: `El archivo es demasiado grande. Tamaño máximo: ${maxSizeKB}KB. Tamaño del archivo: ${sizeInKB.toFixed(1)}KB`
       };
     }
-
     if (file.size > SVG_SIZE_LIMITS.RECOMMENDED_SIZE) {
       return {
         isValid: true,
         message: `El archivo es grande (${sizeInKB.toFixed(1)}KB). Considera optimizarlo para mejor rendimiento.`
       };
     }
-
     return { isValid: true };
   };
 
-  // Componente del modal
   const Modal = () => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
         <h3 className="text-lg font-semibold mb-4">Agregar SVG</h3>
-
         {/* Información sobre límites de tamaño */}
         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
           <p className="text-sm text-blue-800">
@@ -183,7 +160,6 @@ const BlockPanelElements: FC<propsBlockPanelElements> = ({ listElements, setList
             • Recomendado: {SVG_SIZE_LIMITS.RECOMMENDED_SIZE / 1024}KB o menos
           </p>
         </div>
-
         {/* Opción 1: Cargar desde archivo */}
         <div className="mb-4">
           <label className="block text-sm font-medium mb-2">Cargar desde archivo:</label>
@@ -195,7 +171,6 @@ const BlockPanelElements: FC<propsBlockPanelElements> = ({ listElements, setList
             disabled={isLoading}
           />
         </div>
-
         {/* Opción 2: Cargar desde URL */}
         <div className="mb-4">
           <label className="block text-sm font-medium mb-2">Cargar desde URL:</label>
@@ -215,7 +190,6 @@ const BlockPanelElements: FC<propsBlockPanelElements> = ({ listElements, setList
             {isLoading ? 'Cargando...' : 'Agregar desde URL'}
           </button>
         </div>
-
         <button
           onClick={() => setShowModal(false)}
           disabled={isLoading}

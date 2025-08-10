@@ -25,7 +25,6 @@ import BlockPanelElements from "../components/Mesas/BlockPanelElements";
 import { fetchApiEventos, queries } from "../utils/Fetching";
 import { useToast } from "../hooks/useToast";
 import BlockPlantillas from "../components/Mesas/BlockPlantillas";
-import { useRouter } from "next/router";
 import BlockZonas from "../components/Mesas/BlockZonas";
 import { useAllowed } from "../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
@@ -69,15 +68,8 @@ const Mesas: FC = () => {
   const [fullScreen, setFullScreen] = useState<boolean>(false)
   const [creaElement, setCreaElement] = useState<boolean>(false)
   const [isAllowed, ht] = useAllowed()
-  const [isAllowedState, setIsAllowedState] = useState<boolean>(false)
-  const [isHtState, setIsHtState] = useState<boolean>(false)
   const { user, verificationDone } = AuthContextProvider()
   const [listElements, setListElements] = useState<GalerySvg[]>(ListElements);
-
-  useEffect(() => {
-    setIsAllowedState(isAllowed())
-  }, [])
-
 
   const toast = useToast()
   useMounted()
@@ -124,11 +116,9 @@ const Mesas: FC = () => {
 
   useEffect(() => {
     if (creaElement) {
-      console.log("**********", values)
       const element = event?.galerySvgs
         ? [...event?.galerySvgs, ...ListElements].find(elem => elem.title === values.modelo)
         : ListElements.find(elem => elem.title === values.modelo)
-      console.log(100061, "element", element)
       try {
         const inputValues = {
           position: { x: (values.offsetX - element.size.width / 2).toFixed(0), y: (values.offsetY - element.size.height / 2).toFixed(0) },
@@ -159,11 +149,9 @@ const Mesas: FC = () => {
 
   useEffect(() => {
     const defaultTablesDraggable = ListTables.map(elem => `#dragN${elem.title}_${elem.tipo}`)
-    console.log(1000661, event?.galerySvgs)
     const defaultElementsDraggable = event?.galerySvgs
       ? [...event?.galerySvgs, ...ListElements].map(elem => `#dragN${elem.title}_${elem.tipo}`)
       : ListElements.map(elem => `#dragN${elem.title}_${elem.tipo}`)
-    console.log(1000662, defaultElementsDraggable)
     setupDropzone({ target: '.js-dropTables', accept: `${[...defaultTablesDraggable, ...defaultElementsDraggable]}`, handleOnDrop, setEvent, event, planSpaceActive, setPlanSpaceActive, user })
   }, [planSpaceActive, event?.galerySvgs])
 

@@ -69,7 +69,7 @@ export const SocketControlator = () => {
     if (user?.displayName !== "anonymous") {
       if (received.channel === "app:message") {
         if (received?.msg?.payload?.action === "setEvent") {
-          console.log(100020, "RECEIVED event")
+          // console.log(100020, "RECEIVED event")
           const eventOld = {
             planSpaceSelect: event?.planSpaceSelect,
             galerySvgs: event?.galerySvgs,
@@ -105,7 +105,7 @@ export const SocketControlator = () => {
           }
         }
         if (received?.msg?.payload?.action === "setPlanSpaceActive") {
-          console.log(100020, "RECEIVED planSpaceActive", received?.msg?.payload?.value, event?.planSpace)
+          // console.log(100020, "RECEIVED planSpaceActive", received?.msg?.payload?.value, event?.planSpace)
           if (received?.msg?.payload?.value._id === user?.planSpaceSelect) {
             setPlanSpaceActive(received?.msg?.payload?.value)
           }
@@ -168,7 +168,7 @@ export const SocketControlator = () => {
 
   useEffect(() => {
     if (!valirRemotePlanSpaceActive) {
-      console.log(100010, "EMIT planSpaceActive")
+      // console.log(100010, "EMIT planSpaceActive")
       senderPlanSpaceActive = true
       socket?.emit(countPlanSpaceActive > 2 ? `app:message` : `undefined`, {
         event: event?._id,
@@ -189,7 +189,7 @@ export const SocketControlator = () => {
 
   useEffect(() => {
     if (!valirRemoteEvent && !valirRemotePlanSpaceActive && !senderPlanSpaceActive) {
-      console.log(100010, "EMIT event")
+      // console.log(100010, "EMIT event")
       socket?.emit(countEvent > 2 ? `app:message` : `undefined`, {
         event: event?._id,
         emit: user?.uid,

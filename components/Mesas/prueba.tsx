@@ -73,14 +73,7 @@ const Prueba: FC<propsPrueba> = ({ setShowFormEditar, fullScreen, setFullScreen 
             wheel={{ step: 0.25 }}
             pinch={{ step: 5 }}
             doubleClick={{ step: 0.5 }}
-            //initialPositionX={500}
-            //initialPositionY={500}
-            //centerZoomedOut={true}
             centerOnInit={false}
-          //minPositionX={0}
-          //minPositionY={0}
-          //maxPositionX={0}
-          //maxPositionY={0}
           >
             {(params) => {
               return <ComponenteTransformWrapper {...params} fullScreen={fullScreen} setFullScreen={setFullScreen} disableWrapper={disableWrapper} setDisableWrapper={setDisableWrapper} lienzo={lienzo} setLienzo={setLienzo} setShowFormEditar={setShowFormEditar} scaleIni={scaleIni} />

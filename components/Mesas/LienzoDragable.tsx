@@ -34,8 +34,6 @@ interface propsLienzoDragable {
 
 export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisableWrapper, disableDrag, setShowFormEditar }) => {
   const { event, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, editDefault, setEditDefault } = EventContextProvider();
-  const [disableLayout, setDisableLayout] = useState<boolean>(false);
-  const [dragPositions, setDragPositions] = useState<any>();
   const [dragables, setDragables] = useState<any>([]);
   const [isAllowed, ht] = useAllowed()
   const { user } = AuthContextProvider()
@@ -45,8 +43,6 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
       setupDropzone({ target: '.js-dropGuests', accept: `${dragables}`, setEvent, event, planSpaceActive, setPlanSpaceActive, filterGuests, isAllowed, ht, user })
     }
   }, [dragables, filterGuests])
-
-  let transformProp: any
 
   useEffect(() => {
     const tablesDrag = planSpaceActive?.tables?.reduce((acc, item) => {
@@ -68,13 +64,6 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
     }, {})
 
     setDragables([...dragablesNoSentados, ...dragablesSentados])
-    setDragPositions({
-      ...tablesDrag,
-      ...elementsDrag,
-      ...positionsSentados,
-      ...positionsNoSentados,
-      pdrag1: { x: 0, y: 0 },
-    })
   }, [filterGuests])
 
   let sizeElement = { w: 0, h: 0 }
@@ -229,13 +218,17 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
           ActualizarPosicion({ x: Math.trunc(i.x), y: Math.trunc(i.y), event: event, targetID: e.target.getAttribute('id'), setEvent: setEvent, planSpaceActive, setPlanSpaceActive })
         } else {
           console.log("////////////////////////////////////////////////////////////////////////fallo")
-
         }
       },
     },
   }
   interact('.js-drag')
     .draggable(optionsDrag)
+
+  function getMarginResize(x: number) {
+    const resultado = 1.5464 * x + 0.7216;
+    return Math.round(resultado);
+  }
 
   interact('.js-dragElement')
     .draggable(optionsDrag)
@@ -245,6 +238,7 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
         minSpeed: 200,
         endSpeed: 100
       },
+      margin: getMarginResize(scale),
       listeners: {
         move: (e) => {
           //propiedades a manipular de divElement
@@ -341,24 +335,6 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
       max: Infinity,
       maxPerElement: 1,
     })
-
-  /* eslint-disable multiline-ternary */
-  // interact(document).on('ready', () => {
-  //   console.log("!aqui")
-  //   transformProp =
-  //     'transform' in document.body.style
-  //       ? 'transform'
-  //       : 'webkitTransform' in document.body.style
-  //         ? 'webkitTransform'
-  //         : 'mozTransform' in document.body.style
-  //           ? 'mozTransform'
-  //           : 'oTransform' in document.body.style
-  //             ? 'oTransform'
-  //             : 'msTransform' in document.body.style
-  //               ? 'msTransform'
-  //               : null
-  // })
-  /* eslint-enable multiline-ternary */
 
   interact('.resizable')
     .resizable({

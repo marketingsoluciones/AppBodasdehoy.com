@@ -18,12 +18,11 @@ export const ElementContent: FC<propsElement> = ({ item }) => {
         ? [...event?.galerySvgs, ...ListElements].find(elem => elem.title === item.tipo)
         : ListElements.find(elem => elem.title === item.tipo)
       if (element?.icon) {
-        console.log(100024, item)
         const size = item?.size ? item?.size : element?.size
         setReactElement(cloneElement(element?.icon, { style: size, "data-width": size?.width, "data-height": size?.height }))
       }
     }
-  }, [item]);
+  }, [item, event?.galerySvgs]);
 
   return (
     <>
