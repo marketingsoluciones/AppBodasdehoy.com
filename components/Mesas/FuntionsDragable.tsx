@@ -355,6 +355,61 @@ export const ActualizarPosicion = async ({ x, y, targetID, event, setEvent, plan
   }
 };
 
+// Guardar en BD y estado nuevo tamaño del elemento/mesa
+interface PropsActualizarSize {
+  width: number;
+  height: number;
+  targetID: string;
+  event: Event;
+  setEvent: any;
+  planSpaceActive: planSpace;
+  setPlanSpaceActive: any;
+}
+
+export const ActualizarSize = async ({ width, height, targetID, event, setEvent, planSpaceActive, setPlanSpaceActive }: PropsActualizarSize): Promise<void> => {
+  try {
+    const [target, ID] = targetID.split("_");
+    if (target === "table") {
+      await fetchApiEventos({
+        query: queries.editTable,
+        variables: {
+          eventID: event._id,
+          planSpaceID: planSpaceActive._id,
+          tableID: ID,
+          variable: "size",
+          valor: JSON.stringify({ width, height })
+        },
+      });
+      const index: number = planSpaceActive?.tables.findIndex((elem) => elem._id === ID);
+      if (index >= 0) {
+        planSpaceActive.tables[index].size = { width, height } as any;
+        setPlanSpaceActive({ ...planSpaceActive });
+        setEvent({ ...event });
+      }
+    }
+    if (target === "element") {
+      await fetchApiEventos({
+        query: queries.editElement,
+        variables: {
+          eventID: event._id,
+          planSpaceID: planSpaceActive._id,
+          elementID: ID,
+          variable: "size",
+          valor: JSON.stringify({ width, height })
+        },
+      });
+      const index: number = planSpaceActive?.elements.findIndex((elem) => elem._id === ID);
+      if (index >= 0) {
+        planSpaceActive.elements[index].size = { width, height } as any;
+        setPlanSpaceActive({ ...planSpaceActive });
+        setEvent({ ...event });
+      }
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 export const useScreenSize = () => {
   const [width, setWidth] = useState(0);
   const [height, setHeight] = useState(0);
