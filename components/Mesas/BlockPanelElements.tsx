@@ -11,7 +11,7 @@ import { AuthContextProvider } from "../../context/AuthContext";
 import { EventContextProvider } from "../../context";
 import { useToast } from "../../hooks/useToast";
 import { GalerySvg } from "../../utils/Interfaces";
-import { convertBackendSvgsToReact, ListElements } from "../../pages/mesas";
+import { convertBackendSvgsToReact } from "../../pages/mesas";
 
 interface propsBlockPanelElements {
   listElements: GalerySvg[]

@@ -159,12 +159,13 @@ const Mesas: FC = () => {
 
   useEffect(() => {
     const defaultTablesDraggable = ListTables.map(elem => `#dragN${elem.title}_${elem.tipo}`)
+    console.log(1000661, event?.galerySvgs)
     const defaultElementsDraggable = event?.galerySvgs
       ? [...event?.galerySvgs, ...ListElements].map(elem => `#dragN${elem.title}_${elem.tipo}`)
       : ListElements.map(elem => `#dragN${elem.title}_${elem.tipo}`)
-    console.log(defaultElementsDraggable)
+    console.log(1000662, defaultElementsDraggable)
     setupDropzone({ target: '.js-dropTables', accept: `${[...defaultTablesDraggable, ...defaultElementsDraggable]}`, handleOnDrop, setEvent, event, planSpaceActive, setPlanSpaceActive, user })
-  }, [planSpaceActive])
+  }, [planSpaceActive, event?.galerySvgs])
 
   useEffect(() => {
     if (allFilterGuests) {
