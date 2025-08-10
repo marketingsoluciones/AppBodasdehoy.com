@@ -6,6 +6,7 @@ import { useToast } from "../../hooks/useToast";
 import { useTranslation } from 'react-i18next';
 import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { detalle_compartidos_array, Event } from "../../utils/Interfaces";
+import { el } from "date-fns/locale";
 
 export const SocketControlator = () => {
   const { t } = useTranslation();
@@ -20,6 +21,8 @@ export const SocketControlator = () => {
   const [received, setReceived] = useState({ channel: "", msg: null, d: null })
   const router = useRouter()
   let senderPlanSpaceActive = false
+  const [countEvent, setCountEvent] = useState(0)
+  const [countPlanSpaceActive, setCountPlanSpaceActive] = useState(0)
 
   useEffect(() => {
     if (!isMounted) {
@@ -66,14 +69,13 @@ export const SocketControlator = () => {
     if (user?.displayName !== "anonymous") {
       if (received.channel === "app:message") {
         if (received?.msg?.payload?.action === "setEvent") {
-          console.log(100022, "RECEIVED event")
+          console.log(100020, "RECEIVED event")
           const eventOld = {
             planSpaceSelect: event?.planSpaceSelect,
             galerySvgs: event?.galerySvgs,
             updatedAt: new Date()
           }
           let eventNew: Event = received.msg?.payload?.value
-          console.log(100023, "eventNew", eventNew)
           eventNew.fecha = new Date(eventNew.fecha).getTime().toString()
           if (eventNew?.compartido_array?.length) {
             const fMyUid = eventNew?.compartido_array?.findIndex(elem => elem === user?.uid)
@@ -103,7 +105,7 @@ export const SocketControlator = () => {
           }
         }
         if (received?.msg?.payload?.action === "setPlanSpaceActive") {
-          console.log(100021, "RECEIVED planSpaceActive", received?.msg?.payload?.value, event?.planSpace)
+          console.log(100020, "RECEIVED planSpaceActive", received?.msg?.payload?.value, event?.planSpace)
           if (received?.msg?.payload?.value._id === user?.planSpaceSelect) {
             setPlanSpaceActive(received?.msg?.payload?.value)
           }
@@ -165,11 +167,11 @@ export const SocketControlator = () => {
   }, [event?._id, reconet])
 
   useEffect(() => {
-    console.log(100010)
+    console.log(100010, "countPlanSpaceActive", countPlanSpaceActive)
     if (!valirRemotePlanSpaceActive) {
+      console.log(100010, "EMIT planSpaceActive")
       senderPlanSpaceActive = true
-      console.log(100011, "SOCKET planSpaceActive")
-      socket?.emit(`app:message`, {
+      socket?.emit(countPlanSpaceActive > 2 ? `app:message` : `undefined`, {
         event: event?._id,
         emit: user?.uid,
         receiver: event?._id,
@@ -183,12 +185,14 @@ export const SocketControlator = () => {
       setValirRemoteEvent(false)
       setValirRemotePlanSpaceActive(false)
     }
+    countPlanSpaceActive < 5 && setCountPlanSpaceActive(countPlanSpaceActive + 1)
   }, [planSpaceActive])
 
   useEffect(() => {
+    console.log(100010, "countEvent", countEvent)
     if (!valirRemoteEvent && !valirRemotePlanSpaceActive && !senderPlanSpaceActive) {
-      console.log(100012, "SOCKET event")
-      socket?.emit(`app:message`, {
+      console.log(100010, "EMIT event")
+      socket?.emit(countEvent > 2 ? `app:message` : `undefined`, {
         event: event?._id,
         emit: user?.uid,
         receiver: event?._id,
@@ -205,6 +209,7 @@ export const SocketControlator = () => {
       setValirRemoteEvent(false)
       setValirRemotePlanSpaceActive(false)
     }
+    countEvent < 5 && setCountEvent(countEvent + 1)
   }, [event])
 
 
