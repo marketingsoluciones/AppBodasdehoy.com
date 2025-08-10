@@ -11,23 +11,17 @@ import { AuthContextProvider } from "../../context/AuthContext";
 import { EventContextProvider } from "../../context";
 import { useToast } from "../../hooks/useToast";
 import { GalerySvg } from "../../utils/Interfaces";
+import { convertBackendSvgsToReact, ListElements } from "../../pages/mesas";
 
 interface propsBlockPanelElements {
-
+  listElements: GalerySvg[]
+  setListElements: (listElements: GalerySvg[]) => void
 }
 
-export const ListElements: GalerySvg[] = [
-  { icon: <Arbol className="" />, title: "arbol", tipo: "element", size: { width: 60, height: 120 } },
-  { icon: <Arbol2 className="" />, title: "arbol2", tipo: "element", size: { width: 60, height: 120 } },
-  { icon: <Dj className="" />, title: "dj", tipo: "element", size: { width: 140, height: 110 } },
-  { icon: <Layer2 className="" />, title: "layer2", tipo: "element", size: { width: 280, height: 250 } },
-  { icon: <Piano className="" />, title: "piano", tipo: "element", size: { width: 120, height: 120 } },
-];
-
-const BlockPanelElements: FC<propsBlockPanelElements> = () => {
+const BlockPanelElements: FC<propsBlockPanelElements> = ({ listElements, setListElements }) => {
   const { config } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
-  const [listElements, setListElements] = useState<GalerySvg[]>(ListElements);
+
   const [isLoading, setIsLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [svgUrl, setSvgUrl] = useState("");
@@ -38,44 +32,6 @@ const BlockPanelElements: FC<propsBlockPanelElements> = () => {
     setMounted(true);
     return () => setMounted(false);
   }, []);
-
-  // Función helper para convertir SVGs del backend en elementos React
-  const convertBackendSvgsToReact = (backendSvgs: any[]): GalerySvg[] => {
-    return backendSvgs.map((svgItem: any) => ({
-      ...svgItem,
-      // Convertir el string SVG del backend en un componente React usando SvgFromString
-      icon: <SvgFromString svgString={svgItem.icon} className="relative w-max" />,
-      size: { width: 60, height: 60 }
-    }));
-  };
-
-  useEffect(() => {
-    // if (event && mounted) {
-    console.log("aquiiiiii")
-    if (event?.galerySvgVersion) {
-      fetchApiEventos({
-        query: queries.getGalerySvgs,
-        variables: {
-          evento_id: event?._id,
-          tipo: "element"
-        }
-      }).then((result: any) => {
-        // Convertir los SVGs del backend en elementos React
-        const svgsWithReactIcons = convertBackendSvgsToReact(result.results);
-
-        event.galerySvgs = svgsWithReactIcons;
-        setEvent({ ...event });
-
-        // Actualizar también la lista local
-        setListElements(prev => {
-          // Mantener los elementos estáticos (Arbol, Arbol2, etc.)
-          const staticElements = prev.filter(item => !item._id);
-          return [...staticElements, ...svgsWithReactIcons];
-        });
-      })
-    }
-    // }
-  }, [event?.galerySvgVersion])
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -103,7 +59,8 @@ const BlockPanelElements: FC<propsBlockPanelElements> = () => {
             tipo: "element",
             size: { width: 60, height: 60 }
           };
-          setListElements(prev => [...prev, newElement]);
+          const newListElements = [...listElements, newElement]
+          setListElements(newListElements);
           setShowModal(false);
           setIsLoading(false);
         } catch (error) {
@@ -175,7 +132,8 @@ const BlockPanelElements: FC<propsBlockPanelElements> = () => {
         setEvent({ ...event });
 
         // Agregar a la lista local usando los elementos convertidos
-        setListElements(prev => [...prev, ...svgsWithReactIcons]);
+        const newListElements = [...listElements, ...svgsWithReactIcons]
+        setListElements(newListElements);
         setShowModal(false);
         setSvgUrl("");
         setIsLoading(false);

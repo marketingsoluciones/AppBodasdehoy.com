@@ -1,6 +1,6 @@
 import { FC, cloneElement, useEffect, useState } from "react";
 import { EventContextProvider } from "../../context";
-import { ListElements } from "./BlockPanelElements";
+import { ListElements } from "../../pages/mesas";
 import { element } from "../../utils/Interfaces";
 import { RxQuestionMark } from "react-icons/rx";
 

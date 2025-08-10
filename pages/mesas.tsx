@@ -21,7 +21,7 @@ import { motion } from "framer-motion";
 import { SubMenu } from "../components/Utils/SubMenu";
 import { BlockPlanos } from "../components/Mesas/BlockPlanos";
 import { setupDropzone } from "../components/Mesas/FuntionsDragable";
-import BlockPanelElements, { ListElements } from "../components/Mesas/BlockPanelElements";
+import BlockPanelElements from "../components/Mesas/BlockPanelElements";
 import { fetchApiEventos, queries } from "../utils/Fetching";
 import { useToast } from "../hooks/useToast";
 import BlockPlantillas from "../components/Mesas/BlockPlantillas";
@@ -29,8 +29,30 @@ import { useRouter } from "next/router";
 import BlockZonas from "../components/Mesas/BlockZonas";
 import { useAllowed } from "../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
+import { GalerySvg } from "../utils/Interfaces";
+import { Arbol, Arbol2, Dj, Layer2, Piano } from "../components/icons";
+import SvgFromString from "../components/SvgFromString";
 
 SwiperCore.use([Pagination]);
+
+export const ListElements: GalerySvg[] = [
+  { icon: <Arbol className="" />, title: "arbol", tipo: "element", size: { width: 60, height: 120 } },
+  { icon: <Arbol2 className="" />, title: "arbol2", tipo: "element", size: { width: 60, height: 120 } },
+  { icon: <Dj className="" />, title: "dj", tipo: "element", size: { width: 140, height: 110 } },
+  { icon: <Layer2 className="" />, title: "layer2", tipo: "element", size: { width: 280, height: 250 } },
+  { icon: <Piano className="" />, title: "piano", tipo: "element", size: { width: 120, height: 120 } },
+];
+
+// Función helper para convertir SVGs del backend en elementos React
+export const convertBackendSvgsToReact = (backendSvgs: any[]): GalerySvg[] => {
+  return backendSvgs.map((svgItem: any) => ({
+    ...svgItem,
+    // Convertir el string SVG del backend en un componente React usando SvgFromString
+    icon: <SvgFromString svgString={svgItem.icon} className="relative w-max" />,
+    size: { width: 60, height: 60 }
+  }));
+};
+
 
 const Mesas: FC = () => {
   const { t } = useTranslation();
@@ -50,6 +72,7 @@ const Mesas: FC = () => {
   const [isAllowedState, setIsAllowedState] = useState<boolean>(false)
   const [isHtState, setIsHtState] = useState<boolean>(false)
   const { user, verificationDone } = AuthContextProvider()
+  const [listElements, setListElements] = useState<GalerySvg[]>(ListElements);
 
   useEffect(() => {
     setIsAllowedState(isAllowed())
@@ -58,6 +81,34 @@ const Mesas: FC = () => {
 
   const toast = useToast()
   useMounted()
+
+  useEffect(() => {
+    // if (event && mounted) {
+    console.log("aquiiiiii")
+    if (event?.galerySvgVersion) {
+      fetchApiEventos({
+        query: queries.getGalerySvgs,
+        variables: {
+          evento_id: event?._id,
+          tipo: "element"
+        }
+      }).then((result: any) => {
+        // Convertir los SVGs del backend en elementos React
+        const svgsWithReactIcons = convertBackendSvgsToReact(result.results);
+
+        event.galerySvgs = svgsWithReactIcons;
+        setEvent({ ...event });
+
+        // Actualizar también la lista local
+        setListElements(prev => {
+          // Mantener los elementos estáticos (Arbol, Arbol2, etc.)
+          const staticElements = prev.filter(item => !item._id);
+          return [...staticElements, ...svgsWithReactIcons];
+        });
+      })
+    }
+    // }
+  }, [event?.galerySvgVersion])
 
   const handleOnDrop = (values: any) => {
     if (!isAllowed()) { ht() } else {
@@ -188,7 +239,7 @@ const Mesas: FC = () => {
                           <BlockPanelMesas />
                         }
                         {itemSelect == "mobiliario" &&
-                          <BlockPanelElements />
+                          <BlockPanelElements listElements={listElements} setListElements={setListElements} />
                         }
                         {itemSelect == "zonas" &&
                           <BlockZonas />
