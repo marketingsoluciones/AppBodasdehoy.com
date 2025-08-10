@@ -167,7 +167,6 @@ export const SocketControlator = () => {
   }, [event?._id, reconet])
 
   useEffect(() => {
-    console.log(100010, "countPlanSpaceActive", countPlanSpaceActive)
     if (!valirRemotePlanSpaceActive) {
       console.log(100010, "EMIT planSpaceActive")
       senderPlanSpaceActive = true
@@ -189,7 +188,6 @@ export const SocketControlator = () => {
   }, [planSpaceActive])
 
   useEffect(() => {
-    console.log(100010, "countEvent", countEvent)
     if (!valirRemoteEvent && !valirRemotePlanSpaceActive && !senderPlanSpaceActive) {
       console.log(100010, "EMIT event")
       socket?.emit(countEvent > 2 ? `app:message` : `undefined`, {

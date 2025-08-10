@@ -128,11 +128,13 @@ const Mesas: FC = () => {
       const element = event?.galerySvgs
         ? [...event?.galerySvgs, ...ListElements].find(elem => elem.title === values.modelo)
         : ListElements.find(elem => elem.title === values.modelo)
+      console.log(100061, "element", element)
       try {
         const inputValues = {
           position: { x: (values.offsetX - element.size.width / 2).toFixed(0), y: (values.offsetY - element.size.height / 2).toFixed(0) },
           tipo: values.modelo,
-          rotation: 0
+          rotation: 0,
+          size: element.size
         }
         fetchApiEventos({
           query: queries.createElement,

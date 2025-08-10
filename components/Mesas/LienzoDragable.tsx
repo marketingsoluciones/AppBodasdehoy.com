@@ -183,7 +183,6 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
     x: 1,
     y: 1
   }
-  scale = scale
   let valirStart = false
   let valirMove = false
   // setup draggable elements.
@@ -241,26 +240,44 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
   interact('.js-dragElement')
     .draggable(optionsDrag)
     .resizable({
-      onstart: function (event) { },
-      onmove: function (event) {
-        const divElement = event.currentTarget;
-        const relativeElement = divElement.firstElementChild;
-        const svgElement = relativeElement.firstElementChild;
-        let { x, y } = divElement.dataset
-
-        x = (parseFloat(x) / scale || 0) + event.deltaRect.left / scale
-        y = (parseFloat(y) / scale || 0) + event.deltaRect.top / scale
-
-        Object.assign(divElement.style, {
-          width: `${event.rect.width / scale}px`,
-          height: `${event.rect.height / scale}px`,
-          //transform: `translate(${x}px, ${y}px)`
-        })
-
-        //Object.assign(padre.dataset, { x, y })
+      inertia: {
+        resistance: 30,
+        minSpeed: 200,
+        endSpeed: 100
       },
-      onend: function (event) { },
+      // modifiers: [
+      //   interact.modifiers.restrictEdges({
+      //     outer: 'html',
+      //   }),
+      //   interact.modifiers.restrictEdges({
+      //     min: { width: 200, height: 200 }
+      //   })
+      // ],
+      listeners: {
+        move: function (event) {
+          //propiedades a manipular de divElement
+          // data-x data-y obtenidas del dataset
+          // propiedades a manipular de svgElement
+          // width height obtenidas del dataset
+          const divElement = event.currentTarget;
+          const relativeElement = divElement.firstElementChild;
+          const svgElement = relativeElement.firstElementChild;
+          let { x, y } = divElement.dataset
+          let { width, height } = svgElement.dataset
 
+          console.log(100062, scale)
+          // x = (parseFloat(x) / scale || 0) + event.deltaRect.left / scale
+          // y = (parseFloat(y) / scale || 0) + event.deltaRect.top / scale
+
+          Object.assign(divElement.style, {
+            width: `${event.rect.width / scale}px`,
+            height: `${event.rect.height / scale}px`,
+            //transform: `translate(${x}px, ${y}px)`
+          })
+
+          //Object.assign(padre.dataset, { x, y })
+        }
+      },
       edges: {
         top: true,
         left: true,

@@ -13,8 +13,23 @@ import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
 
-export const ComponenteTransformWrapper: FC<any> = ({ zoomIn, zoomOut, setTransform, resetTransform, centerView, state, setFullScreen, disableWrapper,
-  setDisableWrapper, fullScreen, lienzo, setLienzo, scale, setScale, setShowFormEditar, scaleIni, ...rest }) => {
+interface propsComponenteTransformWrapper {
+  zoomIn: any
+  zoomOut: any
+  resetTransform: any
+  centerView: any
+  state: any
+  setFullScreen: any
+  disableWrapper: any
+  setDisableWrapper: any
+  fullScreen: any
+  lienzo: any
+  setLienzo: any
+  setShowFormEditar: any
+  scaleIni: any
+}
+
+export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = ({ zoomIn, zoomOut, resetTransform, centerView, setFullScreen, disableWrapper, setDisableWrapper, fullScreen, lienzo, setLienzo, setShowFormEditar, scaleIni, state, ...params }) => {
   const { t } = useTranslation();
   const [reset, setReset] = useState(false)
   const [disableDrag, setDisableDrag] = useState(true)
