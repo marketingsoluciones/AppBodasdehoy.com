@@ -1,8 +1,8 @@
 import { FC, cloneElement, useEffect, useState } from "react";
 import { EventContextProvider } from "../../context";
 import { ListElements } from "./BlockPanelElements";
-import Question from '../../public/svgs/question.svg';
 import { element } from "../../utils/Interfaces";
+import { RxQuestionMark } from "react-icons/rx";
 
 interface propsElement {
   item: element
@@ -20,15 +20,15 @@ export const ElementContent: FC<propsElement> = ({ item }) => {
       if (element?.icon) {
         console.log(100024, item)
         setReactElement(cloneElement(element?.icon, { style: item?.size ? item?.size : element?.size }))
-      } else {
-        setReactElement(<Question width={100} height={100} fill="gray" />)
       }
     }
   }, [item]);
 
   return (
     <>
-      {reactElement}
+      {reactElement ? reactElement : <div className="flex items-center justify-center bg-gray-100 rounded-full w-full h-full p-3">
+        <RxQuestionMark className="w-12 h-12 text-gray-500" />
+      </div>}
     </>
   );
 };

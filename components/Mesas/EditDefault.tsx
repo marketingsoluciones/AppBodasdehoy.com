@@ -18,11 +18,8 @@ export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, ite
       const f1 = planSpaceActive[`${itemTipo}s`].findIndex(elem => elem._id === item._id)
       planSpaceActive[`${itemTipo}s`].splice(f1, 1)
       setPlanSpaceActive({ ...planSpaceActive })
-      setEvent((old) => {
-        const f1 = old.planSpace.findIndex(elem => elem._id === old.planSpaceSelect)
-        old.planSpace[f1] = planSpaceActive
-        return { ...old }
-      })
+      event.galerySvgs = event.galerySvgs.filter(elem => elem._id !== item._id)
+      setEvent({ ...event })
       if (itemTipo == "table") {
         await fetchApiEventos({
           query: queries.deleteTable,
@@ -59,11 +56,10 @@ export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, ite
     const f1 = planSpaceActive[`${itemTipo}s`].findIndex(elem => elem._id === item._id)
     planSpaceActive[`${itemTipo}s`][f1].rotation = item?.rotation
     setPlanSpaceActive({ ...planSpaceActive })
-    setEvent((old) => {
-      const f1 = old.planSpace.findIndex(elem => elem._id === old.planSpaceSelect)
-      old.planSpace[f1] = planSpaceActive
-      return { ...old }
-    })
+    const f1e = event.planSpace.findIndex(elem => elem._id === planSpaceActive._id)
+    const f2e = event.planSpace[f1e].elements.findIndex(elem => elem._id === item._id)
+    event.planSpace[f1e].elements[f2e].rotation = item?.rotation
+    setEvent({ ...event })
     if (itemTipo === "table") {
       await fetchApiEventos({
         query: queries.editTable,
