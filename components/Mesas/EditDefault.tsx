@@ -57,8 +57,8 @@ export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, ite
     planSpaceActive[`${itemTipo}s`][f1].rotation = item?.rotation
     setPlanSpaceActive({ ...planSpaceActive })
     const f1e = event.planSpace.findIndex(elem => elem._id === planSpaceActive._id)
-    const f2e = event.planSpace[f1e].elements.findIndex(elem => elem._id === item._id)
-    event.planSpace[f1e].elements[f2e].rotation = item?.rotation
+    const f2e = event.planSpace[f1e][itemTipo === "table" ? "tables" : "elements"].findIndex(elem => elem._id === item._id)
+    event.planSpace[f1e][itemTipo === "table" ? "tables" : "elements"][f2e].rotation = item?.rotation
     setEvent({ ...event })
     if (itemTipo === "table") {
       await fetchApiEventos({

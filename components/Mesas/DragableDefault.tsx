@@ -21,14 +21,21 @@ export const DragableDefault: FC<propsTable> = forwardRef(({ item, setDisableWra
 
   useEffect(() => {
     setRot(item?.rotation)
+    if (prefijo !== "table") {
+      const divElement = document.getElementById(`${prefijo}_${item._id}`)
+      const relativeElement = divElement.firstElementChild as HTMLElement | null;
+      const svgElement = (relativeElement?.firstElementChild || undefined) as HTMLElement | undefined;
+      const { width, height, rotation } = svgElement?.dataset
+      svgElement.setAttribute('style', `width: ${width}px; height: ${height}px; rotate: ${item?.rotation}deg`)
+    }
   }, [item?.rotation])
 
   //Setear posicion
   useEffect(() => {
-    const el = document.getElementById(`${prefijo}_${item._id}`)
-    el.setAttribute('style', `left: ${item.position.x}px; top: ${item.position.y}px; rotate: ${rot}deg`)
-    el.setAttribute('data-x', `${item.position.x}`)
-    el.setAttribute('data-y', `${item.position.y}`)
+    const divElement = document.getElementById(`${prefijo}_${item._id}`)
+    divElement.setAttribute('style', `left: ${item.position.x}px; top: ${item.position.y}px; ${prefijo === "table" ? `rotate: ${rot}deg` : ""}`)
+    divElement.setAttribute('data-x', `${item.position.x}`)
+    divElement.setAttribute('data-y', `${item.position.y}`)
   }, [item.position.x, item.position.y, item._id])
 
   return (
@@ -64,8 +71,7 @@ export const DragableDefault: FC<propsTable> = forwardRef(({ item, setDisableWra
         })
         !disableDrag && setDisableWrapper(false)
       }}
-      className={`${!disableDrag ? prefijo === "table" ? "js-drag" : "js-dragElement" : ""} ${editDefault?.clicked === item?._id ? "bg-gray-200 bg-opacity-50 border-gray-300 shadow-md" : ""} draggable-touch absolute hover:bg-gray-300 hover:bg-opacity-50 border border-transparent hover:border-gray-200 hover:shadow-md ${prefijo === "table" ? "p-10" : "p-3"} rounded-2xl`}
-      style={{ rotate: `${rot}deg` }}>
+      className={`${!disableDrag ? prefijo === "table" ? "js-drag" : "js-dragElement" : ""} ${editDefault?.clicked === item?._id ? "bg-gray-200 bg-opacity-50 border-gray-300 shadow-md" : ""} draggable-touch absolute hover:bg-gray-300 hover:bg-opacity-50 border border-transparent hover:border-gray-200 hover:shadow-md ${prefijo === "table" ? "p-10" : "p-3"} rounded-2xl`} style={prefijo === "table" ? { rotate: `${rot}deg` } : {}} >
       <div className="relative">
         {prefijo === "table"
           ? <MesaContent

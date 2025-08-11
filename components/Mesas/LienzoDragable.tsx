@@ -237,7 +237,7 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
         minSpeed: 200,
         endSpeed: 100
       },
-      margin: getMarginResize(scale),
+      // margin: getMarginResize(scale),
       listeners: {
         move: (e) => {
           //propiedades a manipular de divElement

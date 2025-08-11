@@ -19,7 +19,7 @@ export const ElementContent: FC<propsElement> = ({ item }) => {
         : ListElements.find(elem => elem.title === item.tipo)
       if (element?.icon) {
         const size = item?.size ? item?.size : element?.size
-        setReactElement(cloneElement(element?.icon, { style: size, "data-width": size?.width, "data-height": size?.height }))
+        setReactElement(cloneElement(element?.icon, { style: { ...size, rotate: `${item?.rotation}deg` }, "data-width": size?.width, "data-height": size?.height, "data-rotation": item?.rotation }))
       }
     }
   }, [item, event?.galerySvgs]);
