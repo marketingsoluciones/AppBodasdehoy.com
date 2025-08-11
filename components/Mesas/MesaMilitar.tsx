@@ -1,4 +1,4 @@
-import { FC, useEffect } from "react";
+import { FC } from "react";
 import { Chair } from "./Chair";
 import { SentadoItem } from "./SentadoItem";
 import { propsTableType } from "./MesaComponent";
@@ -32,7 +32,6 @@ export const MesaMilitar: FC<propsMesaMilitar> = ({ table, invitados, setDisable
         style={{ width: size, height: spaceChairs }}
         className="bg-white shadow border border-gray-500 flex items-center justify-center relative">
         <span style={{ rotate: `-${table?.rotation}deg` }} className="font-display text-xs tracking-tight">{table.title}</span>
-
         <div
           style={{
             paddingLeft: `${(spaceChairs - 45 + (idxsSide?.a?.length == numberChairForSide ? 0 : spaceChairs / idxsSide?.a?.length)) / 2}px`,
@@ -46,7 +45,7 @@ export const MesaMilitar: FC<propsMesaMilitar> = ({ table, invitados, setDisable
               key={idx}
               index={item}
             >
-              {invitados.filter(element => element.chair == item.toString())[0] && <SentadoItem
+              {invitados?.filter(element => element.chair == item.toString())[0] && <SentadoItem
                 invitado={invitados.filter(element => element.chair == item.toString())[0]}
                 setDisableWrapper={setDisableWrapper}
               />}
@@ -54,7 +53,6 @@ export const MesaMilitar: FC<propsMesaMilitar> = ({ table, invitados, setDisable
             </Chair>
           ))}
         </div>
-
         <div
           style={{
             paddingLeft: `${(spaceChairs - 45 + (idxsSide?.b?.length == numberChairForSide ? 0 : spaceChairs / idxsSide?.b?.length)) / 2}px`,
@@ -68,7 +66,7 @@ export const MesaMilitar: FC<propsMesaMilitar> = ({ table, invitados, setDisable
               key={idx}
               index={item}
             >
-              {invitados.filter(element => element.chair == item.toString())[0] && <SentadoItem
+              {invitados?.filter(element => element.chair == item.toString())[0] && <SentadoItem
                 invitado={invitados.filter(element => element.chair == item.toString())[0]}
                 setDisableWrapper={setDisableWrapper}
               />}

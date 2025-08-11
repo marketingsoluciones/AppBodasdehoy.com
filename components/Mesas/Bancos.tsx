@@ -9,13 +9,12 @@ interface propsBancos extends propsTableType {
   setDisableWrapper: any
 }
 export const Bancos: FC<propsBancos> = ({ table, invitados, setDisableWrapper, setShowFormEditar, disableDrag, spaceChairs }) => {
-
   const idxsSide = { a: [] }
   for (let i = 0; i < table?.numberChair; i++) {
     idxsSide?.a?.push(i)
   }
   const { t } = useTranslation();
-  
+
   return (
     <>
       <div
@@ -36,7 +35,7 @@ export const Bancos: FC<propsBancos> = ({ table, invitados, setDisableWrapper, s
               key={idx}
               index={item}
             >
-              {invitados.filter(element => element.chair == item.toString())[0] && <SentadoItem
+              {invitados?.filter(element => element.chair == item.toString())[0] && <SentadoItem
                 invitado={invitados.filter(element => element.chair == item.toString())[0]}
                 setDisableWrapper={setDisableWrapper}
               />}

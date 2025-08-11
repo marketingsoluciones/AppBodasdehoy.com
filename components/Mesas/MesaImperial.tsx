@@ -27,7 +27,7 @@ export const MesaImperial: FC<propsMesaImperial> = ({ table, invitados, setDisab
           className="absolute flex my-auto inset-y-0 left-1 transform -translate-x-full"
           index={0}
         >
-          {invitados.filter(element => element.chair == "0")[0] && <SentadoItem
+          {invitados?.filter(element => element.chair == "0")[0] && <SentadoItem
             invitado={invitados.filter(element => element.chair == "0")[0]}
             setDisableWrapper={setDisableWrapper}
           />}
@@ -38,7 +38,7 @@ export const MesaImperial: FC<propsMesaImperial> = ({ table, invitados, setDisab
           className="absolute my-auto inset-y-0 right-1 transform translate-x-full"
           index={1}
         >
-          {invitados.filter(element => element.chair == "1")[0] && <SentadoItem
+          {invitados?.filter(element => element.chair == "1")[0] && <SentadoItem
             invitado={invitados.filter(element => element.chair == "1")[0]}
             setDisableWrapper={setDisableWrapper}
           />}
@@ -52,7 +52,7 @@ export const MesaImperial: FC<propsMesaImperial> = ({ table, invitados, setDisab
               key={idx}
               index={item}
             >
-              {invitados.filter(element => element.chair == item.toString())[0] && <SentadoItem
+              {invitados?.filter(element => element.chair == item.toString())[0] && <SentadoItem
                 invitado={invitados.filter(element => element.chair == item.toString())[0]}
                 setDisableWrapper={setDisableWrapper}
               />}
@@ -68,7 +68,7 @@ export const MesaImperial: FC<propsMesaImperial> = ({ table, invitados, setDisab
               key={idx}
               index={item}
             >
-              {invitados.filter(element => element.chair == item.toString())[0] && <SentadoItem
+              {invitados?.filter(element => element.chair == item.toString())[0] && <SentadoItem
                 invitado={invitados.filter(element => element.chair == item.toString())[0]}
                 setDisableWrapper={setDisableWrapper}
               />}

@@ -170,6 +170,8 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               eventId={event?._id}
               itinerarioId={itinerario?._id}
               readOnly={!canEdit}
+              owner={owner}
+              cardBlock={task.estatus}
             />
           </div>
         </div>

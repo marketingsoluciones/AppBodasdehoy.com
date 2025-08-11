@@ -12,8 +12,6 @@ export const MesaRedondaNew: FC<propsRedonda> = ({ table, invitados, setDisableW
 
   for (let i = 0; i < table?.numberChair; i++) {
     idxs?.push(i)
-
-
   }
 
   function getTanDeg(deg: number) {
@@ -22,7 +20,6 @@ export const MesaRedondaNew: FC<propsRedonda> = ({ table, invitados, setDisableW
   }
   const anguloOpuesto = 360 / table.numberChair / 2
   const adyacente = (spaceChairs / 2) / getTanDeg(anguloOpuesto)
-  const hipotenusa = Math.hypot(adyacente, spaceChairs / 2)
   return (
     <>
       <div style={{ width: (adyacente * 2), height: (adyacente * 2) }} className="rounded-full transform bg-white shadow border border-gray-500 relative flex items-center justify-center">

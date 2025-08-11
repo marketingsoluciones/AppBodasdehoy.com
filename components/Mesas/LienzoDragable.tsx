@@ -1,7 +1,7 @@
 import interact from 'interactjs'
 import { FC, RefObject, useEffect, useRef, useState } from 'react'
-import { EventContextProvider } from '../../context'
-import { ActualizarPosicion, setupDropzone } from './FuntionsDragable'
+import { AuthContextProvider, EventContextProvider } from '../../context'
+import { ActualizarPosicion, setupDropzone, ActualizarSize } from './FuntionsDragable'
 import { size, table, element } from '../../utils/Interfaces';
 import { DragableDefault } from './DragableDefault';
 import ClickAwayListener from 'react-click-away-listener';
@@ -33,19 +33,15 @@ interface propsLienzoDragable {
 }
 
 export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisableWrapper, disableDrag, setShowFormEditar }) => {
-  const { event, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, editDefault, setEditDefault } = EventContextProvider();
-  const [disableLayout, setDisableLayout] = useState<boolean>(false);
-  const [dragPositions, setDragPositions] = useState<any>();
+  const { event, setEvent, planSpaceActive, setPlanSpaceActive, planSpaceSelect, filterGuests, editDefault, setEditDefault } = EventContextProvider();
   const [dragables, setDragables] = useState<any>([]);
   const [isAllowed, ht] = useAllowed()
 
   useEffect(() => {
     if (dragables?.length > 0) {
-      setupDropzone({ target: '.js-dropGuests', accept: `${dragables}`, setEvent, event, planSpaceActive, setPlanSpaceActive, filterGuests, isAllowed, ht })
+      setupDropzone({ target: '.js-dropGuests', accept: `${dragables}`, setEvent, event, planSpaceActive, setPlanSpaceActive, filterGuests, isAllowed, ht, planSpaceSelect })
     }
   }, [dragables, filterGuests])
-
-  let transformProp: any
 
   useEffect(() => {
     const tablesDrag = planSpaceActive?.tables?.reduce((acc, item) => {
@@ -67,13 +63,6 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
     }, {})
 
     setDragables([...dragablesNoSentados, ...dragablesSentados])
-    setDragPositions({
-      ...tablesDrag,
-      ...elementsDrag,
-      ...positionsSentados,
-      ...positionsNoSentados,
-      pdrag1: { x: 0, y: 0 },
-    })
   }, [filterGuests])
 
   let sizeElement = { w: 0, h: 0 }
@@ -116,7 +105,6 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
     manualStart: false,
     listeners: {
       start(e) {
-        //  console.log(e)
         const element = document.getElementById(e.target.id.replace(/dragN/, "dragM"))
         if (element) {
           position.x = parseInt(element.getAttribute("data-x"), 10) || 0
@@ -148,7 +136,6 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
     manualStart: false,
     listeners: {
       start(e) {
-        //console.log(e)
         const element = document.getElementById(e.target.id.replace(/dragS/, "dragM"))
         if (element) {
           position.x = parseInt(element.getAttribute("data-x"), 10) || 0
@@ -184,11 +171,10 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
     x: 1,
     y: 1
   }
-  scale = scale
   let valirStart = false
   let valirMove = false
   // setup draggable elements.
-  interact('.js-drag').draggable({
+  const optionsDrag = {
     ignoreFrom: '.ign',
     manualStart: false,
     listeners: {
@@ -231,29 +217,123 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
           ActualizarPosicion({ x: Math.trunc(i.x), y: Math.trunc(i.y), event: event, targetID: e.target.getAttribute('id'), setEvent: setEvent, planSpaceActive, setPlanSpaceActive })
         } else {
           console.log("////////////////////////////////////////////////////////////////////////fallo")
-
         }
       },
     },
-  })
+  }
+  interact('.js-drag')
+    .draggable(optionsDrag)
 
-  /* eslint-disable multiline-ternary */
-  // interact(document).on('ready', () => {
-  //   console.log("!aqui")
-  //   transformProp =
-  //     'transform' in document.body.style
-  //       ? 'transform'
-  //       : 'webkitTransform' in document.body.style
-  //         ? 'webkitTransform'
-  //         : 'mozTransform' in document.body.style
-  //           ? 'mozTransform'
-  //           : 'oTransform' in document.body.style
-  //             ? 'oTransform'
-  //             : 'msTransform' in document.body.style
-  //               ? 'msTransform'
-  //               : null
-  // })
-  /* eslint-enable multiline-ternary */
+  function getMarginResize(x: number) {
+    const resultado = 1.5464 * x + 0.7216;
+    return Math.round(resultado);
+  }
+
+  interact('.js-dragElement')
+    .draggable(optionsDrag)
+    .resizable({
+      inertia: {
+        resistance: 30,
+        minSpeed: 200,
+        endSpeed: 100
+      },
+      // margin: getMarginResize(scale),
+      listeners: {
+        move: (e) => {
+          //propiedades a manipular de divElement
+          // data-x data-y obtenidas del dataset
+          // propiedades a manipular de svgElement
+          // width height obtenidas del dataset
+
+          // Mantener posición acumulada en el dataset del contenedor
+          const divElement = e.currentTarget as HTMLElement;
+          const relativeElement = divElement.firstElementChild as HTMLElement | null;
+          const svgElement = (relativeElement?.firstElementChild || undefined) as HTMLElement | undefined;
+          let x = parseFloat(divElement.dataset.x || '0');
+          let y = parseFloat(divElement.dataset.y || '0');
+          // Aplicar deltas compensando el scale
+          x = x + (e.deltaRect.left / scale);
+          y = y + (e.deltaRect.top / scale);
+          const newWidth = e.rect.width / scale;
+          const newHeight = e.rect.height / scale;
+          // Actualizar estilos visibles
+          Object.assign(divElement.style, {
+            left: `${x}px`,
+            top: `${y}px`,
+          });
+          Object.assign(svgElement.style, {
+            width: `${newWidth}px`,
+            height: `${newHeight}px`,
+          });
+          // Sincronizar datasets para futuras interacciones de drag/resize
+          divElement.dataset.x = String(x);
+          divElement.dataset.y = String(y);
+          if (svgElement) {
+            svgElement.dataset.width = String(newWidth);
+            svgElement.dataset.height = String(newHeight);
+            // Si el SVG respeta width/height CSS, opcionalmente se puede reflejar:
+            (svgElement as any).style && Object.assign((svgElement as any).style, { width: `${newWidth}px`, height: `${newHeight}px` });
+          }
+        },
+        end: (e) => {
+          //propiedades a manipular de divElement
+          // data-x data-y obtenidas del dataset
+          // propiedades a manipular de svgElement
+          // width height obtenidas del dataset
+          // Persistir en estado/BD al finalizar el resize
+          const divElement = e.currentTarget as HTMLElement;
+          const relativeElement = divElement.firstElementChild as HTMLElement | null;
+          const svgElement = (relativeElement?.firstElementChild || undefined) as HTMLElement | undefined;
+          const target = e.currentTarget as HTMLElement;
+          const width = parseFloat(svgElement.style.width || '0');
+          const height = parseFloat(svgElement.style.height || '0');
+          const x = parseFloat(divElement.dataset.x || '0');
+          const y = parseFloat(divElement.dataset.y || '0');
+          // Guardar tamaño
+          ActualizarSize({
+            width: Math.max(0, Math.trunc(width)),
+            height: Math.max(0, Math.trunc(height)),
+            targetID: e.target.getAttribute('id'),
+            event,
+            setEvent,
+            planSpaceActive,
+            setPlanSpaceActive,
+          } as any);
+          // Guardar posición si cambió por los bordes top/left
+          ActualizarPosicion({
+            x: Math.trunc(x),
+            y: Math.trunc(y),
+            targetID: e.target.getAttribute('id'),
+            event,
+            setEvent,
+            planSpaceActive,
+            setPlanSpaceActive,
+          } as any);
+        },
+      },
+      edges: {
+        top: true,
+        left: true,
+        bottom: true,
+        right: true
+      },
+      // Width and height can be adjusted independently. When `true`, width and
+      // height are adjusted at a 1:1 ratio.
+      square: false,
+      // Width and height can be adjusted independently. When `true`, width and
+      // height maintain the aspect ratio they had when resizing started.
+      preserveAspectRatio: false,
+      // a value of 'none' will limit the resize rect to a minimum of 0x0
+      // 'negate' will allow the rect to have negative width/height
+      // 'reposition' will keep the width/height positive by swapping
+      // the top and bottom edges and/or swapping the left and right edges
+      //invert: 'none' || 'negate' || 'reposition'
+
+      // limit multiple resizes.
+      // See the explanation in the {@link Interactable.draggable} example
+      max: Infinity,
+      maxPerElement: 1,
+    })
 
   interact('.resizable')
     .resizable({

@@ -732,6 +732,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                             tempPastedAndDropFiles={tempPastedAndDropFiles}
                             setTempPastedAndDropFiles={setTempPastedAndDropFiles}
                             minimalView={window?.location?.pathname === "/itinerario"}
+                            setSelectTask={setSelectTask}
                           />
                         </PermissionTaskActionWrapper>
                       )

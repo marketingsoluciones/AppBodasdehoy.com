@@ -6,11 +6,12 @@ import { useToast } from "../../hooks/useToast";
 import { useTranslation } from 'react-i18next';
 import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { detalle_compartidos_array, Event } from "../../utils/Interfaces";
+import { el } from "date-fns/locale";
 
 export const SocketControlator = () => {
   const { t } = useTranslation();
   const { user, setUser, config } = AuthContextProvider()
-  const { event, setEvent, planSpaceActive, setPlanSpaceActive } = EventContextProvider()
+  const { event, setEvent, planSpaceActive, setPlanSpaceActive, planSpaceSelect } = EventContextProvider()
   const { socket, notifications, setNotifications } = SocketContextProvider()
   const [isMounted, setIsMounted] = useState<any>(false)
   const { eventsGroup } = EventsGroupContextProvider()
@@ -19,6 +20,9 @@ export const SocketControlator = () => {
   const [reconet, setReconet] = useState(null)
   const [received, setReceived] = useState({ channel: "", msg: null, d: null })
   const router = useRouter()
+  let senderPlanSpaceActive = false
+  const [countEvent, setCountEvent] = useState(0)
+  const [countPlanSpaceActive, setCountPlanSpaceActive] = useState(0)
 
   useEffect(() => {
     if (!isMounted) {
@@ -65,8 +69,9 @@ export const SocketControlator = () => {
     if (user?.displayName !== "anonymous") {
       if (received.channel === "app:message") {
         if (received?.msg?.payload?.action === "setEvent") {
+          // console.log(100020, "RECEIVED event")
           const eventOld = {
-            planSpaceSelect: event?.planSpaceSelect,
+            galerySvgs: event?.galerySvgs,
             updatedAt: new Date()
           }
           let eventNew: Event = received.msg?.payload?.value
@@ -99,7 +104,14 @@ export const SocketControlator = () => {
           }
         }
         if (received?.msg?.payload?.action === "setPlanSpaceActive") {
-          setPlanSpaceActive(received?.msg?.payload?.value)
+          // console.log(100020, "RECEIVED planSpaceActive", received?.msg?.payload?.value, event?.planSpace)
+          if (received?.msg?.payload?.value._id === planSpaceSelect) {
+            setPlanSpaceActive(received?.msg?.payload?.value)
+          }
+          const f1 = event?.planSpace?.findIndex(elem => elem._id === received?.msg?.payload?.value._id)
+          event?.planSpace?.splice(f1, 1, received?.msg?.payload?.value)
+          setEvent({ ...event })
+          // setPlanSpaceActive(received?.msg?.payload?.value)
         }
       }
       if (received.channel === "cms:message") {
@@ -154,26 +166,10 @@ export const SocketControlator = () => {
   }, [event?._id, reconet])
 
   useEffect(() => {
-    if (!valirRemoteEvent && !valirRemotePlanSpaceActive) {
-      socket?.emit(`app:message`, {
-        event: event?._id,
-        emit: user?.uid,
-        receiver: event?._id,
-        type: "event",
-        payload: {
-          action: "setEvent",
-          value: event?._id
-        }
-      })
-    } else {
-      setValirRemoteEvent(false)
-      setValirRemotePlanSpaceActive(false)
-    }
-  }, [event])
-
-  useEffect(() => {
     if (!valirRemotePlanSpaceActive) {
-      socket?.emit(`app:message`, {
+      // console.log(100010, "EMIT planSpaceActive")
+      senderPlanSpaceActive = true
+      socket?.emit(countPlanSpaceActive > 2 ? `app:message` : `undefined`, {
         event: event?._id,
         emit: user?.uid,
         receiver: event?._id,
@@ -187,7 +183,33 @@ export const SocketControlator = () => {
       setValirRemoteEvent(false)
       setValirRemotePlanSpaceActive(false)
     }
+    countPlanSpaceActive < 5 && setCountPlanSpaceActive(countPlanSpaceActive + 1)
   }, [planSpaceActive])
+
+  useEffect(() => {
+    if (!valirRemoteEvent && !valirRemotePlanSpaceActive && !senderPlanSpaceActive) {
+      // console.log(100010, "EMIT event")
+      socket?.emit(countEvent > 2 ? `app:message` : `undefined`, {
+        event: event?._id,
+        emit: user?.uid,
+        receiver: event?._id,
+        type: "event",
+        payload: {
+          action: "setEvent",
+          value: event?._id
+        }
+      })
+    } else {
+      if (senderPlanSpaceActive) {
+        senderPlanSpaceActive = false
+      }
+      setValirRemoteEvent(false)
+      setValirRemotePlanSpaceActive(false)
+    }
+    countEvent < 5 && setCountEvent(countEvent + 1)
+  }, [event])
+
+
 
 
   return (

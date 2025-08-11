@@ -1,5 +1,5 @@
 import { cloneElement, FC, ReactNode, useEffect, useState } from "react";
-import { guests, table } from '../../utils/Interfaces';
+import { table } from '../../utils/Interfaces';
 import { Chair } from "./Chair";
 import { SentadoItem } from "./SentadoItem";
 import { MesaImperial } from "./MesaImperial";
@@ -95,7 +95,6 @@ const MesaComponent: FC<propsMesaComponent> = ({ posicionRedonda, table, invitad
   useEffect(() => {
     setNSillas(posiciones[table?.tipo]);
   }, []);
-  //console.log(table.tipo)
 
   if (["imperial"].includes(table.tipo)) {
     return (

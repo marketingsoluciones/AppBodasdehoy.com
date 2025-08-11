@@ -30,8 +30,9 @@ interface propsDropzone {
   filterGuests?: any
   isAllowed?: any
   ht?: any
+  planSpaceSelect: string
 }
-export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, event: eventAsd, planSpaceActive, setPlanSpaceActive, filterGuests, isAllowed, ht }: propsDropzone) => {
+export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, event: eventAsd, planSpaceActive, setPlanSpaceActive, filterGuests, isAllowed, ht, planSpaceSelect }: propsDropzone) => {
   if (target == ".js-dropTables") {
     let values: any = {}
     interact(target)
@@ -55,18 +56,8 @@ export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, event: e
           // only allow drops into empty dropzone elements
           if (event.type == "pointerup") {
             if (dropped) {
-              console.log(100905, values,
-                dragEvent.page, dragEvent.rect,
-                // event,
-                // dropped,
-                // dropzone,
-                // dropzoneElement,
-                // draggable,
-                // draggableElement,
-              )
               const { layerX, layerY, offsetX, offsetY, pageX, pageY } = event
               values = { layerX, layerY, offsetX, offsetY, pageX, pageY }
-              //console.log("AL SOLTAR_0", { layerX, layerY, offsetX, offsetY, pageX, pageY })
             }
           }
           return dropped && dropzoneElement.hasChildNodes();
@@ -83,16 +74,13 @@ export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, event: e
       //cuando ENTRA a una zona drogleable
       .on('dragenter', (event) => {
         // // // console.log("cuando ENTRA a la zona drogleable", event.target.id)
-
       })
       //cuando SALE de una zona drogleable sin haber soltado
       .on('dragleave', (event) => {
         // // // console.log("cuando SALE de la zona drogleable", event.target.id)
-
       })
       //cuando SUELTA sobre una zona drogleable
       .on('drop', (event) => {
-        // console.log("SOLTADO2", event.currentTarget.id)
         if (event.currentTarget.id === "lienzo-drop") {
           const asd = event.relatedTarget.id.replace(/dragN/, "").split("_")
           values = { ...values, modelo: asd[0], tipo: asd[1] }
@@ -111,18 +99,6 @@ export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, event: e
     interact(target)
       .dropzone({
         accept: accept,
-        ondropactivate: function (event) {
-          //console.log(1001)
-          //addClass(event.relatedTarget, '-drop-possible')
-
-          //agrega texto al div
-          //event.target.textContent = '1'
-        },
-        ondropdeactivate: function (event) {
-          //console.log(1002)
-
-          //removeClass(event.relatedTarget, '-drop-possible')
-        },
         checker: function (
           dragEvent,         // related dragmove or dragend
           event,             // Touch, Pointer or Mouse Event
@@ -132,42 +108,24 @@ export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, event: e
           draggable,         // draggable Interactable
           draggableElement   // draggable element
         ) {
-
-          // only allow drops into empty dropzone elements
-          //console.log("dragEvent:", dragEvent)
-          //console.log("event:", event.button, event.buttons, event.type)
           if (event.type == "pointerup") {
             if (dropped) {
               const invitadoID = draggableElement.id.slice(5, draggableElement.id.length)
               const prefijo = draggableElement.id.slice(0, 5)
               const tableID = dropzoneElement.id.split('-@-')[0]
               const chair = parseInt(dropzoneElement.id.split('-@-')[1])
-              !isAllowed() ? ht() : moveGuest({ event: eventAsd, chair, invitadoID, tableID, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo })
-              // console.log("--------------------------------------")
-              // console.log("draggableElement:", draggableElement.id, invitadoID)
-              // console.log("dropped:", dropped)
-              // console.log("dropzone:", dropzone.target)
-              // console.log("dropzoneElement:", dropzoneElement.id, "mesa:", nombre_mesa, "index:", index)
-              // console.log("--------------------------------------")
+              !isAllowed() ? ht() : moveGuest({ event: eventAsd, chair, invitadoID, tableID, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo, planSpaceSelect })
             }
           }
-          //console.log("dropzoneElement:", dropzoneElement)
-          //console.log("draggable:", draggable)
-          //console.log("draggableElement:", draggableElement)
-          //console.log("--------------------------------------")
           return dropped && dropzoneElement.hasChildNodes();
         },
       })
       //cuando se ACTIVA la zona drogleable
       .on('dropactivate', (event) => {
-        //console.log("dropactivate")
         const active = event.target.getAttribute('active') | 0
-
         // change style if it was previously not active
         if (active === 0) {
           addClass(event.target, '-drop-possible')
-          //addClass(event.target, '-drop-possibleHover')
-          //event.target.textContent = 'Drop me here!'
         }
 
         event.target.setAttribute('active', active + 1)
@@ -175,24 +133,13 @@ export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, event: e
       //cuando se DESACTIVA la zona drogleable
       .on('dropdeactivate', (event) => {
         const active = event.target.getAttribute('active') | 0
-        // change style if it was previously active
-        // but will no longer be active
         if (active === 1) {
-          //remueve texto del div
-          //event.target.removeChild(event.target.childNodes[0])
-
           removeClass(event.target, '-drop-possible')
-          //removeClass(event.target, '-drop-possibleHover')
-          //event.target.textContent = 'Dropzone'
-          //event.target.appendChild(document.getElementById("cuadro"))
         }
-
         event.target.setAttribute('active', active - 1)
       })
       //cuando esta SOBRE una zona drogleable
       .on('dragenter', (event) => {
-        // console.log("sobre", event.target.id, " elemen: ", event.relatedTarget.id.slice(0, 5), event.target)
-
         if (event.target.id != "listInvitados") {
           addClass(event.target, 'bg-secondary')
         }
@@ -246,8 +193,9 @@ type propsMoveInvitado = {
   setPlanSpaceActive: Dispatch<SetStateAction<planSpace>>
   filterGuests?: any
   prefijo?: string
+  planSpaceSelect: string
 }
-export const moveGuest = async ({ invitadoID, chair, tableID, event, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo }: propsMoveInvitado): Promise<void> => {
+export const moveGuest = async ({ invitadoID, chair, tableID, event, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo, planSpaceSelect }: propsMoveInvitado): Promise<void> => {
   try {
     const eventID = event?._id
     let table: table = planSpaceActive?.tables?.find(elem => elem._id === tableID)
@@ -258,7 +206,7 @@ export const moveGuest = async ({ invitadoID, chair, tableID, event, setEvent, p
         let f1 = planSpaceActive.tables.findIndex(elem => elem._id === tableID)
         //planSpaceActive.tables.splice(f1, 1, table)
         setPlanSpaceActive({ ...planSpaceActive })
-        f1 = event.planSpace.findIndex(elem => elem._id === event.planSpaceSelect)
+        f1 = event.planSpace.findIndex(elem => elem._id === planSpaceSelect)
         event.planSpace[f1] = planSpaceActive
         setEvent({ ...event })
         fetchApiEventos({
@@ -288,7 +236,7 @@ export const moveGuest = async ({ invitadoID, chair, tableID, event, setEvent, p
           },
         });
         setPlanSpaceActive({ ...planSpaceActive })
-        f1 = event.planSpace.findIndex(elem => elem._id === event.planSpaceSelect)
+        f1 = event.planSpace.findIndex(elem => elem._id === planSpaceSelect)
         event.planSpace[f1] = planSpaceActive
         setEvent({ ...event })
       }
@@ -308,9 +256,9 @@ interface PropsActualizarPosicion {
   planSpaceActive: planSpace
   setPlanSpaceActive: any
 }
-export const ActualizarPosicion = async ({ x, y, targetID, event, setEvent, planSpaceActive, setPlanSpaceActive }): Promise<void> => {
+export const ActualizarPosicion = async ({ x, y, targetID, event, setEvent, planSpaceActive, setPlanSpaceActive }):
+  Promise<void> => {
   try {
-    console.log(targetID, x, y)
     const asd = targetID.split("_")
     const target = asd[0]
     const ID = asd[1]
@@ -327,7 +275,6 @@ export const ActualizarPosicion = async ({ x, y, targetID, event, setEvent, plan
       });
       const index: number = planSpaceActive?.tables.findIndex((elem) => elem._id === ID)
       planSpaceActive.tables[index].position = { x, y }
-      // event.planSpace[event.planSpaceSelect] = planSpaceActive
       setPlanSpaceActive({ ...planSpaceActive })
       setEvent({ ...event })
     }
@@ -344,9 +291,63 @@ export const ActualizarPosicion = async ({ x, y, targetID, event, setEvent, plan
       });
       const index: number = planSpaceActive?.elements.findIndex((elem) => elem._id === ID)
       planSpaceActive.elements[index].position = { x, y }
-      // event.planSpace[event.planSpaceSelect] = planSpaceActive
       setPlanSpaceActive({ ...planSpaceActive })
       setEvent({ ...event })
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+// Guardar en BD y estado nuevo tamaño del elemento/mesa
+interface PropsActualizarSize {
+  width: number;
+  height: number;
+  targetID: string;
+  event: Event;
+  setEvent: any;
+  planSpaceActive: planSpace;
+  setPlanSpaceActive: any;
+}
+
+export const ActualizarSize = async ({ width, height, targetID, event, setEvent, planSpaceActive, setPlanSpaceActive }: PropsActualizarSize): Promise<void> => {
+  try {
+    const [target, ID] = targetID.split("_");
+    if (target === "table") {
+      await fetchApiEventos({
+        query: queries.editTable,
+        variables: {
+          eventID: event._id,
+          planSpaceID: planSpaceActive._id,
+          tableID: ID,
+          variable: "size",
+          valor: JSON.stringify({ width, height })
+        },
+      });
+      const index: number = planSpaceActive?.tables.findIndex((elem) => elem._id === ID);
+      if (index >= 0) {
+        planSpaceActive.tables[index].size = { width, height } as any;
+        setPlanSpaceActive({ ...planSpaceActive });
+        setEvent({ ...event });
+      }
+    }
+    if (target === "element") {
+      await fetchApiEventos({
+        query: queries.editElement,
+        variables: {
+          eventID: event._id,
+          planSpaceID: planSpaceActive._id,
+          elementID: ID,
+          variable: "size",
+          valor: JSON.stringify({ width, height })
+        },
+      });
+      const index: number = planSpaceActive?.elements.findIndex((elem) => elem._id === ID);
+      if (index >= 0) {
+        planSpaceActive.elements[index].size = { width, height } as any;
+        setPlanSpaceActive({ ...planSpaceActive });
+        setEvent({ ...event });
+      }
     }
   } catch (error) {
     console.log(error);

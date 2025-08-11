@@ -1,25 +1,19 @@
-import React, { useState, useMemo, useEffect } from 'react'
-import Select from 'react-select'
+import React, { useState, useEffect } from 'react'
 import * as yup from 'yup'
 import InputField from "./InputField";
 import { Form, Formik, FormikValues } from "formik";
-import { EventContextProvider } from "../../context";
+import { AuthContextProvider, EventContextProvider } from "../../context";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
 import { Dispatch, FC, SetStateAction } from "react";
-import { ArrowDown, BorrarIcon, MesaCuadrada, MesaImperial, MesaPodio, MesaRedonda, PlusIcon, XpersonIcon } from "../icons";
-import { guest, guests } from "../../utils/Interfaces"
+import { PlusIcon, XpersonIcon } from "../icons";
+import { guest } from "../../utils/Interfaces"
 import { ImageProfile } from "../../utils/Funciones";
 import ClickAwayListener from "react-click-away-listener"
 import { moveGuest } from '../Mesas/FuntionsDragable';
 import { BsBoxArrowInDown, BsBoxArrowUp } from 'react-icons/bs'
 import { dicc } from './FormCrearMesa';
 import { useTranslation } from 'react-i18next';
-
-
-
-
-
 
 interface propsFormEditarMesa {
   set: Dispatch<SetStateAction<boolean>>
@@ -33,16 +27,13 @@ type initialValues = {
 
 const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
   const { t } = useTranslation();
-  // console.log(10041, state)
-  const { event, setEvent, planSpaceActive, setPlanSpaceActive, setEditDefault, filterGuests } = EventContextProvider();
+  const { user } = AuthContextProvider()
+  const { event, setEvent, planSpaceActive, setPlanSpaceActive, setEditDefault, filterGuests, planSpaceSelect } = EventContextProvider();
   const [selectInvitado, setSelectedInvitado] = useState(false);
   const [sentadosTable, setSentadosTable] = useState([]);
   const [showGuest, setShowGuest] = useState([]);
   const [active, setActive] = useState(false);
-
   const toast = useToast()
-  const arryInvitados = event.invitados_array
-
 
   const validationSchema = yup.object().shape({
     nombre_mesa: yup.string().required().test("Unico", "El nombre debe ser unico", values => {
@@ -60,31 +51,67 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
 
   const handleSubmit = async (values: FormikValues, actions: any) => {
     try {
-      await fetchApiEventos({
-        query: queries.editTable,
-        variables: {
-          eventID: event._id,
-          planSpaceID: planSpaceActive?._id,
-          tableID: state.table._id,
-          variable: "title",
-          valor: JSON.stringify(values.nombre_mesa)
+      let table = state.table
+      if (values.nombre_mesa !== state.table.title) {
+        table = await fetchApiEventos({
+          query: queries.editTable,
+          variables: {
+            eventID: event._id,
+            planSpaceID: planSpaceActive?._id,
+            tableID: state.table._id,
+            variable: "title",
+            valor: JSON.stringify(values.nombre_mesa)
+          }
+        })
+      }
+      if (values.cantidad_sillas !== state.table.numberChair) {
+        if (values.cantidad_sillas < state.table.numberChair) {
+          const quantityMoveOrDelete = state.table.numberChair - values.cantidad_sillas
+          for (let i = quantityMoveOrDelete; i > 0; i--) {
+            const f1 = state.table.guests.findIndex(elem => elem.chair === state.table.numberChair - i)
+            if (f1 !== -1) {
+              let moved = false
+              for (let j = 0; j < values.cantidad_sillas; j++) {
+                const fj1 = state.table.guests.findIndex(elem => elem.chair === j)
+                if (fj1 === -1) {
+                  state.table.guests[f1].chair = j
+                  moved = true
+                  break
+                }
+              }
+              if (!moved) {
+                state.table.guests.splice(f1, 1)
+              }
+            }
+          }
+          table = await fetchApiEventos({
+            query: queries.editTable,
+            variables: {
+              eventID: event._id,
+              planSpaceID: planSpaceActive?._id,
+              tableID: state.table._id,
+              variable: "guests",
+              valor: JSON.stringify([...state.table.guests])
+            },
+          });
+          // const desasignar = 
         }
-      })
-      const table: any = await fetchApiEventos({
-        query: queries.editTable,
-        variables: {
-          eventID: event._id,
-          planSpaceID: planSpaceActive?._id,
-          tableID: state.table._id,
-          variable: "numberChair",
-          valor: JSON.stringify(values.cantidad_sillas)
-        }
-      })
+        table = await fetchApiEventos({
+          query: queries.editTable,
+          variables: {
+            eventID: event._id,
+            planSpaceID: planSpaceActive?._id,
+            tableID: state.table._id,
+            variable: "numberChair",
+            valor: JSON.stringify(values.cantidad_sillas)
+          }
+        })
+      }
       const f1 = planSpaceActive.tables.findIndex(elem => elem._id === state.table._id)
       planSpaceActive.tables.splice(f1, 1, table)
       setPlanSpaceActive({ ...planSpaceActive })
       setEvent((old) => {
-        const f1 = old.planSpace.findIndex(elem => elem._id === old.planSpaceSelect)
+        const f1 = old.planSpace.findIndex(elem => elem._id === planSpaceSelect)
         old.planSpace[f1] = planSpaceActive
         return { ...old }
       })
@@ -105,7 +132,6 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
     setShowGuest(active ? sentadosTable : filterGuests.noSentados)
   }, [active, filterGuests, sentadosTable])
 
-
   useEffect(() => {
     setSentadosTable(filterGuests?.sentados?.filter(elem => elem.tableID === state?.table?._id))
   }, [filterGuests])
@@ -113,7 +139,7 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
   const handleMoveGuest = (item) => {
     try {
       if (active) {
-        moveGuest({ event, chair: NaN, invitadoID: item._id, tableID: state?.table?._id, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo: "dragS" })
+        moveGuest({ event, chair: NaN, invitadoID: item._id, tableID: state?.table?._id, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo: "dragS", planSpaceSelect })
         toast("success", t("El invitado fue levantado de la mesa"))
         return
       }
@@ -122,7 +148,7 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
       }
       for (let i = 0; i < state?.table?.numberChair; i++) {
         if (!state?.table?.guests?.map(el => el.chair).includes(i)) {
-          moveGuest({ event, chair: i, invitadoID: item._id, tableID: state?.table?._id, setEvent, planSpaceActive, setPlanSpaceActive })
+          moveGuest({ event, chair: i, invitadoID: item._id, tableID: state?.table?._id, setEvent, planSpaceActive, setPlanSpaceActive, planSpaceSelect })
           toast("success", t("El invitado fue sentado en la mesa"))
           break
         }
@@ -185,7 +211,7 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
                               onClick={() => {
                                 for (let i = 0; i < state?.table?.numberChair; i++) {
                                   if (!state?.table?.guest?.find((elem: guest) => elem?.chair == 0)) {
-                                    moveGuest({ event, chair: i, invitadoID: item._id, tableID: state?.table?._id, setEvent, planSpaceActive, setPlanSpaceActive })
+                                    moveGuest({ event, chair: i, invitadoID: item._id, tableID: state?.table?._id, setEvent, planSpaceActive, setPlanSpaceActive, planSpaceSelect })
                                     break
                                   }
                                 }
@@ -212,7 +238,6 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
                       </div>
                     </ClickAwayListener>
                   ) : null}
-
                   <div className={`h-[190px]  w-[100%] flex flex-col overflow-y-scroll`}>
                     {
                       showGuest?.length != 0

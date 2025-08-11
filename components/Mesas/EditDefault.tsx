@@ -1,7 +1,7 @@
-import { FC, useState } from "react"
+import { FC } from "react"
 import { EventContextProvider } from "../../context"
 import { fetchApiEventos, queries } from "../../utils/Fetching"
-import { EditDefaultState, table } from "../../utils/Interfaces"
+import { EditDefaultState } from "../../utils/Interfaces"
 import { BorrarIcon, EditarIcon } from "../icons"
 
 import { MdRotateRight, MdRotateLeft } from 'react-icons/md'
@@ -14,9 +14,14 @@ export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, ite
 
   const handleDeleteItem = async () => {
     try {
-      let data: any
+      setEditDefault({})
+      const f1 = planSpaceActive[`${itemTipo}s`].findIndex(elem => elem._id === item._id)
+      planSpaceActive[`${itemTipo}s`].splice(f1, 1)
+      setPlanSpaceActive({ ...planSpaceActive })
+      event.galerySvgs = event.galerySvgs.filter(elem => elem._id !== item._id)
+      setEvent({ ...event })
       if (itemTipo == "table") {
-        data = await fetchApiEventos({
+        await fetchApiEventos({
           query: queries.deleteTable,
           variables: {
             eventID: event._id,
@@ -26,8 +31,8 @@ export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, ite
         })
       }
       if (itemTipo == "element") {
-        data = await fetchApiEventos({
-          query: queries.deleteTable,
+        await fetchApiEventos({
+          query: queries.deleteElement,
           variables: {
             eventID: event._id,
             planSpaceID: planSpaceActive._id,
@@ -35,15 +40,6 @@ export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, ite
           }
         })
       }
-      setEditDefault({})
-      const f1 = planSpaceActive[`${itemTipo}s`].findIndex(elem => elem._id === item._id)
-      planSpaceActive[`${itemTipo}s`].splice(f1, 1)
-      setPlanSpaceActive({ ...planSpaceActive })
-      setEvent((old) => {
-        const f1 = old.planSpace.findIndex(elem => elem._id === old.planSpaceSelect)
-        old.planSpace[f1] = planSpaceActive
-        return { ...old }
-      })
     } catch (error) {
       console.log(error)
     }
@@ -57,9 +53,15 @@ export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, ite
         item.rotation = 0
       }
     }
-    let data: any
+    const f1 = planSpaceActive[`${itemTipo}s`].findIndex(elem => elem._id === item._id)
+    planSpaceActive[`${itemTipo}s`][f1].rotation = item?.rotation
+    setPlanSpaceActive({ ...planSpaceActive })
+    const f1e = event.planSpace.findIndex(elem => elem._id === planSpaceActive._id)
+    const f2e = event.planSpace[f1e][itemTipo === "table" ? "tables" : "elements"].findIndex(elem => elem._id === item._id)
+    event.planSpace[f1e][itemTipo === "table" ? "tables" : "elements"][f2e].rotation = item?.rotation
+    setEvent({ ...event })
     if (itemTipo === "table") {
-      data = await fetchApiEventos({
+      await fetchApiEventos({
         query: queries.editTable,
         variables: {
           eventID: event._id,
@@ -70,9 +72,8 @@ export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, ite
         }
       })
     }
-
     if (itemTipo === "element") {
-      data = await fetchApiEventos({
+      await fetchApiEventos({
         query: queries.editElement,
         variables: {
           eventID: event._id,
@@ -83,15 +84,6 @@ export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, ite
         }
       })
     }
-
-    const f1 = planSpaceActive[`${itemTipo}s`].findIndex(elem => elem._id === item._id)
-    planSpaceActive[`${itemTipo}s`].splice(f1, 1, data)
-    setPlanSpaceActive({ ...planSpaceActive })
-    setEvent((old) => {
-      const f1 = old.planSpace.findIndex(elem => elem._id === old.planSpaceSelect)
-      old.planSpace[f1] = planSpaceActive
-      return { ...old }
-    })
   }
 
   return (

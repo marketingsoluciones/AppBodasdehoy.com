@@ -1,6 +1,6 @@
-import { Dispatch, FC, SetStateAction, useEffect, useState } from "react"
+import { Dispatch, FC, SetStateAction, useState } from "react"
 import { size } from "../../utils/Interfaces"
-import { EventContextProvider } from "../../context"
+import { AuthContextProvider, EventContextProvider } from "../../context"
 import { fetchApiEventos, queries } from "../../utils/Fetching"
 import { useAllowed } from "../../hooks/useAllowed"
 import { useTranslation } from "react-i18next"
@@ -15,8 +15,9 @@ interface propsInputMini {
 
 export const InputMini: FC<propsInputMini> = ({ label, lienzo, setLienzo, centerView, resetTransform, }) => {
   const [isAllowed, ht] = useAllowed()
-  const { event, setEvent, planSpaceActive } = EventContextProvider()
-  const [idxPlanSpace, setIdxPlanSpace] = useState(event.planSpace.findIndex(elem => elem._id === event.planSpaceSelect))
+  const { user } = AuthContextProvider()
+  const { event, setEvent, planSpaceActive, setPlanSpaceActive, planSpaceSelect } = EventContextProvider()
+  const [idxPlanSpace, setIdxPlanSpace] = useState(event.planSpace.findIndex(elem => elem._id === planSpaceSelect))
   const [value, setValue] = useState(
     label === "alto" || label === "ancho"
       ? `${lienzo[`${label == "alto" ? "height" : "width"}`] / 100}`
@@ -28,19 +29,20 @@ export const InputMini: FC<propsInputMini> = ({ label, lienzo, setLienzo, center
     try {
       setValue(e.target.value)
       if (e.target.value !== "") {
-        const asd = { ...event }
         if (label === "alto" || label === "ancho") {
-          asd.planSpace[idxPlanSpace].size[`${label == "alto" ? "height" : "width"}`] = e?.target.value ? parseFloat(e.target.value) * 100 : 0
+          event.planSpace[idxPlanSpace].size[`${label == "alto" ? "height" : "width"}`] = e?.target.value ? parseFloat(e.target.value) * 100 : 0
           setLienzo({ ...lienzo, [`${label == "alto" ? "height" : "width"}`]: e?.target.value ? parseFloat(e.target.value) * 100 : 0 })
         }
         if (label === "espacio") {
-          asd.planSpace[idxPlanSpace].spaceChairs = e?.target.value ? parseFloat(e.target.value) * 100 : 0
+          event.planSpace[idxPlanSpace].spaceChairs = e?.target.value ? parseFloat(e.target.value) * 100 : 0
+          setPlanSpaceActive({ ...event.planSpace[idxPlanSpace] })
+          setEvent({ ...event })
         }
         fetchApiEventos({
           query: queries.eventUpdate,
-          variables: { idEvento: event._id, variable: "planSpace", value: JSON.stringify(asd.planSpace) }, token: null
+          variables: { idEvento: event._id, variable: "planSpace", value: JSON.stringify(event.planSpace) }, token: null
         })
-        setEvent({ ...asd })
+        setEvent({ ...event })
       }
     } catch (error) {
       console.log(error)
