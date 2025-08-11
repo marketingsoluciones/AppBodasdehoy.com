@@ -59,6 +59,20 @@ const BlockPanelElements: FC<propsBlockPanelElements> = ({ listElements, setList
             tipo: "element",
             size: { width: 60, height: 60 }
           };
+          const result: any = await fetchApiEventos({
+            query: queries.createGalerySvgs,
+            variables: {
+              evento_id: event?._id,
+              galerySvgs: [{
+                title: newElement.title,
+                icon: svgContent.replace(/\r?\n|\r/g, ' ').replace(/\s{2,}/g, ' '),
+                tipo: "element"
+              }]
+            },
+          })
+          const svgsWithReactIcons = convertBackendSvgsToReact(result.results);
+          event.galerySvgs = event.galerySvgs ? [...event.galerySvgs, ...svgsWithReactIcons] : svgsWithReactIcons;
+          setEvent({ ...event });
           const newListElements = [...listElements, newElement]
           setListElements(newListElements);
           setShowModal(false);
@@ -149,7 +163,7 @@ const BlockPanelElements: FC<propsBlockPanelElements> = ({ listElements, setList
   };
 
   const Modal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 text-gray-700">
       <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
         <h3 className="text-lg font-semibold mb-4">Agregar SVG</h3>
         {/* Información sobre límites de tamaño */}
@@ -185,7 +199,7 @@ const BlockPanelElements: FC<propsBlockPanelElements> = ({ listElements, setList
           <button
             onClick={handleUrlSubmit}
             disabled={isLoading}
-            className="w-full mt-2 bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="w-full mt-2 bg-primary text-white p-2 rounded-full disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             {isLoading ? 'Cargando...' : 'Agregar desde URL'}
           </button>
@@ -193,7 +207,7 @@ const BlockPanelElements: FC<propsBlockPanelElements> = ({ listElements, setList
         <button
           onClick={() => setShowModal(false)}
           disabled={isLoading}
-          className="w-full bg-gray-500 text-white p-2 rounded hover:bg-gray-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+          className="w-full bg-gray-400 text-white p-2 rounded-full disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
           Cancelar
         </button>
