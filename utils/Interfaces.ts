@@ -289,6 +289,7 @@ export interface detalle_compartidos_array {
     displayName: string
     photoURL: string
     onLine: onLine
+    planSpaceSelect: string
     permissions?: permission[]
     owner?: boolean
     createdAt?: Date

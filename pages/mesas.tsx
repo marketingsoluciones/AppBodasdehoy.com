@@ -56,7 +56,7 @@ export const convertBackendSvgsToReact = (backendSvgs: any[]): GalerySvg[] => {
 const Mesas: FC = () => {
   const { t } = useTranslation();
   const { forCms } = AuthContextProvider()
-  const { event, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, setFilterGuests, allFilterGuests, setEditDefault } = EventContextProvider();
+  const { event, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, setFilterGuests, allFilterGuests, setEditDefault, planSpaceSelect } = EventContextProvider();
   const [values, setValues] = useState<any>({});
   const [showFormCreateTable, setShowFormCreateTable] = useState<boolean>(false);
   const [showFormEditar, setShowFormEditar] = useState<any>({ table: {}, visible: false });
@@ -75,8 +75,6 @@ const Mesas: FC = () => {
   useMounted()
 
   useEffect(() => {
-    // if (event && mounted) {
-    console.log("aquiiiiii")
     if (event?.galerySvgVersion) {
       fetchApiEventos({
         query: queries.getGalerySvgs,
@@ -87,10 +85,8 @@ const Mesas: FC = () => {
       }).then((result: any) => {
         // Convertir los SVGs del backend en elementos React
         const svgsWithReactIcons = convertBackendSvgsToReact(result.results);
-
         event.galerySvgs = svgsWithReactIcons;
         setEvent({ ...event });
-
         // Actualizar también la lista local
         setListElements(prev => {
           // Mantener los elementos estáticos (Arbol, Arbol2, etc.)
@@ -99,7 +95,6 @@ const Mesas: FC = () => {
         });
       })
     }
-    // }
   }, [event?.galerySvgVersion])
 
   const handleOnDrop = (values: any) => {
@@ -136,7 +131,7 @@ const Mesas: FC = () => {
         }).then((result: any) => {
           planSpaceActive.elements.push({ ...result })
           setPlanSpaceActive({ ...planSpaceActive })
-          event.planSpace[user?.planSpaceSelect] = planSpaceActive
+          event.planSpace[planSpaceSelect] = planSpaceActive
           setEvent({ ...event })
           setCreaElement(false)
         })
@@ -152,7 +147,7 @@ const Mesas: FC = () => {
     const defaultElementsDraggable = event?.galerySvgs
       ? [...event?.galerySvgs, ...ListElements].map(elem => `#dragN${elem.title}_${elem.tipo}`)
       : ListElements.map(elem => `#dragN${elem.title}_${elem.tipo}`)
-    setupDropzone({ target: '.js-dropTables', accept: `${[...defaultTablesDraggable, ...defaultElementsDraggable]}`, handleOnDrop, setEvent, event, planSpaceActive, setPlanSpaceActive, user })
+    setupDropzone({ target: '.js-dropTables', accept: `${[...defaultTablesDraggable, ...defaultElementsDraggable]}`, handleOnDrop, setEvent, event, planSpaceActive, setPlanSpaceActive, planSpaceSelect })
   }, [planSpaceActive, event?.galerySvgs])
 
   useEffect(() => {

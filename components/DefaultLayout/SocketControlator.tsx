@@ -11,7 +11,7 @@ import { el } from "date-fns/locale";
 export const SocketControlator = () => {
   const { t } = useTranslation();
   const { user, setUser, config } = AuthContextProvider()
-  const { event, setEvent, planSpaceActive, setPlanSpaceActive } = EventContextProvider()
+  const { event, setEvent, planSpaceActive, setPlanSpaceActive, planSpaceSelect } = EventContextProvider()
   const { socket, notifications, setNotifications } = SocketContextProvider()
   const [isMounted, setIsMounted] = useState<any>(false)
   const { eventsGroup } = EventsGroupContextProvider()
@@ -71,7 +71,6 @@ export const SocketControlator = () => {
         if (received?.msg?.payload?.action === "setEvent") {
           // console.log(100020, "RECEIVED event")
           const eventOld = {
-            planSpaceSelect: event?.planSpaceSelect,
             galerySvgs: event?.galerySvgs,
             updatedAt: new Date()
           }
@@ -106,7 +105,7 @@ export const SocketControlator = () => {
         }
         if (received?.msg?.payload?.action === "setPlanSpaceActive") {
           // console.log(100020, "RECEIVED planSpaceActive", received?.msg?.payload?.value, event?.planSpace)
-          if (received?.msg?.payload?.value._id === user?.planSpaceSelect) {
+          if (received?.msg?.payload?.value._id === planSpaceSelect) {
             setPlanSpaceActive(received?.msg?.payload?.value)
           }
           const f1 = event?.planSpace?.findIndex(elem => elem._id === received?.msg?.payload?.value._id)

@@ -766,7 +766,6 @@ export const queries = {
           signUpProgress
           status
           eventSelected
-          planSpaceSelect
           createdAt
           updatedAt
         }
@@ -802,6 +801,7 @@ export const queries = {
       detalles_compartidos_array{
         email
         uid
+        planSpaceSelect
         permissions{
           title
           value
@@ -1723,6 +1723,7 @@ export const queries = {
       detalles_compartidos_array{
         email
         uid
+        planSpaceSelect
         permissions{
           title
           value
@@ -2316,5 +2317,11 @@ export const queries = {
   }`,
   deleteGalerySvg: `mutation ($evento_id: ID, $icon_id: ID) {
     deleteGalerySvg(evento_id: $evento_id, icon_id: $icon_id) 
+  }`,
+  setPlanSpaceSelect: `mutation ($evento_id: ID, $planSpaceSelect: ID, $isOwner: Boolean) {
+    setPlanSpaceSelect(evento_id: $evento_id, planSpaceSelect: $planSpaceSelect, isOwner: $isOwner)
+  }`,
+  getPlanSpaceSelect: `query ($evento_id: ID, $isOwner: Boolean) {
+    getPlanSpaceSelect(evento_id: $evento_id, isOwner: $isOwner)
   }`,
 };

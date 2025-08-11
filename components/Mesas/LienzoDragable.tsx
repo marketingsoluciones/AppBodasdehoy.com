@@ -33,14 +33,13 @@ interface propsLienzoDragable {
 }
 
 export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisableWrapper, disableDrag, setShowFormEditar }) => {
-  const { event, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, editDefault, setEditDefault } = EventContextProvider();
+  const { event, setEvent, planSpaceActive, setPlanSpaceActive, planSpaceSelect, filterGuests, editDefault, setEditDefault } = EventContextProvider();
   const [dragables, setDragables] = useState<any>([]);
   const [isAllowed, ht] = useAllowed()
-  const { user } = AuthContextProvider()
 
   useEffect(() => {
     if (dragables?.length > 0) {
-      setupDropzone({ target: '.js-dropGuests', accept: `${dragables}`, setEvent, event, planSpaceActive, setPlanSpaceActive, filterGuests, isAllowed, ht, user })
+      setupDropzone({ target: '.js-dropGuests', accept: `${dragables}`, setEvent, event, planSpaceActive, setPlanSpaceActive, filterGuests, isAllowed, ht, planSpaceSelect })
     }
   }, [dragables, filterGuests])
 

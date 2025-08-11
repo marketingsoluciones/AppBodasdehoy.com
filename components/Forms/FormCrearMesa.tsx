@@ -65,9 +65,7 @@ export const dicc = {
 const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
   const { t } = useTranslation();
   const { modelo, offsetX, offsetY } = values
-  const { user } = AuthContextProvider()
-
-  const { event, setEvent, planSpaceActive, setPlanSpaceActive } = EventContextProvider();
+  const { event, setEvent, planSpaceActive, setPlanSpaceActive, planSpaceSelect } = EventContextProvider();
   const toast = useToast()
 
   const validationSchema = yup.object().shape({
@@ -107,7 +105,7 @@ const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
       })
       planSpaceActive.tables.push({ ...result })
       setPlanSpaceActive({ ...planSpaceActive })
-      event.planSpace[user.planSpaceSelect] = planSpaceActive
+      event.planSpace[planSpaceSelect] = planSpaceActive
       setEvent({ ...event })
       toast("success", t("Mesa creada con exito"))
     } catch (err) {

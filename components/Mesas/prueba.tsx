@@ -15,17 +15,18 @@ type propsPrueba = {
 
 const Prueba: FC<propsPrueba> = ({ setShowFormEditar, fullScreen, setFullScreen }) => {
   const { user } = AuthContextProvider()
+  const { planSpaceSelect } = EventContextProvider()
   const refDiv = useRef(null)
   const [scaleIni, setScaleIni] = useState(0)
   const [disableWrapper, setDisableWrapper] = useState(false)
   const [disableDrag, setDisableDrag] = useState(true)
   const { event, editDefault, setEditDefault } = EventContextProvider()
-  const [lienzo, setLienzo] = useState<size>(event?.planSpace?.find(elem => elem?._id === user?.planSpaceSelect)?.size)
+  const [lienzo, setLienzo] = useState<size>(event?.planSpace?.find(elem => elem?._id === planSpaceSelect)?.size)
   const [isAllowed, ht] = useAllowed()
 
   useEffect(() => {
-    setLienzo(event?.planSpace?.find(elem => elem?._id === user?.planSpaceSelect)?.size)
-  }, [user?.planSpaceSelect])
+    setLienzo(event?.planSpace?.find(elem => elem?._id === planSpaceSelect)?.size)
+  }, [planSpaceSelect])
 
 
   const handleSetDisableDrag: any = () => {

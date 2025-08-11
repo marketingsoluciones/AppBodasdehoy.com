@@ -16,8 +16,8 @@ interface propsInputMini {
 export const InputMini: FC<propsInputMini> = ({ label, lienzo, setLienzo, centerView, resetTransform, }) => {
   const [isAllowed, ht] = useAllowed()
   const { user } = AuthContextProvider()
-  const { event, setEvent, planSpaceActive, setPlanSpaceActive } = EventContextProvider()
-  const [idxPlanSpace, setIdxPlanSpace] = useState(event.planSpace.findIndex(elem => elem._id === user?.planSpaceSelect))
+  const { event, setEvent, planSpaceActive, setPlanSpaceActive, planSpaceSelect } = EventContextProvider()
+  const [idxPlanSpace, setIdxPlanSpace] = useState(event.planSpace.findIndex(elem => elem._id === planSpaceSelect))
   const [value, setValue] = useState(
     label === "alto" || label === "ancho"
       ? `${lienzo[`${label == "alto" ? "height" : "width"}`] / 100}`

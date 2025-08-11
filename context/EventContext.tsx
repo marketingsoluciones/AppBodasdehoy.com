@@ -3,6 +3,7 @@ import { EditDefaultState, Event, filterGuest, planSpace } from "../utils/Interf
 import { EventsGroupContextProvider } from "./EventsGroupContext";
 import { getAllFilterGuest } from "../utils/Funciones";
 import { AuthContextProvider } from "./AuthContext";
+import { fetchApiEventos, queries } from "../utils/Fetching";
 
 interface idxGroupEvent {
   idx: number
@@ -41,6 +42,8 @@ type Context = {
   setAllFilterGuests: Dispatch<SetStateAction<filterGuests>>
   editDefault: EditDefaultTableAndElement | null
   setEditDefault: Dispatch<SetStateAction<EditDefaultTableAndElement>>
+  planSpaceSelect: string
+  setPlanSpaceSelect: Dispatch<SetStateAction<string>>
 }
 
 const EventContext = createContext<Context>({
@@ -57,7 +60,9 @@ const EventContext = createContext<Context>({
   allFilterGuests: { sentados: [], noSentados: [], update: 0 },
   setAllFilterGuests: () => { },
   editDefault: null,
-  setEditDefault: () => { }
+  setEditDefault: () => { },
+  planSpaceSelect: "",
+  setPlanSpaceSelect: () => { }
 })
 
 export let GlobalCurrency = ""
@@ -74,6 +79,7 @@ const EventProvider = ({ children }) => {
   const [allFilterGuests, setAllFilterGuests] = useState<filterGuests>({ sentados: [], noSentados: [], update: 0 })
   const [editDefault, setEditDefault] = useState<EditDefaultTableAndElement>()
   const { user, setUser } = AuthContextProvider()
+  const [planSpaceSelect, setPlanSpaceSelect] = useState<string>("")
 
   // Capturar eventos del cumulo y seleccionar uno
   useEffect(() => {
@@ -95,17 +101,21 @@ const EventProvider = ({ children }) => {
   }, [eventsGroup, valir]);
 
   useEffect(() => {
-    console.log(100082, event?.planSpace?.find(elem => elem?._id === user?.planSpaceSelect))
-    if (user?.planSpaceSelect) {
-      setPlanSpaceActive(event?.planSpace?.find(elem => elem?._id === user?.planSpaceSelect))
-    } else {
-      if (event?.planSpace?.length > 0) {
-        user.planSpaceSelect = event?.planSpace[0]?._id
-        setUser({ ...user })
-      }
-    }
+    setPlanSpaceActive(event?.planSpace?.find(elem => elem?._id === planSpaceSelect))
     console.log("seteado planSpaceActive")
-  }, [user?.planSpaceSelect, event?.planSpace])
+  }, [event?.planSpace, planSpaceSelect])
+
+  useEffect(() => {
+    fetchApiEventos({
+      query: queries.getPlanSpaceSelect,
+      variables: {
+        evento_id: event?._id,
+        isOwner: user?.uid === event?.usuario_id
+      },
+    }).then(res => {
+      setPlanSpaceSelect(res ? res as string : event?.planSpace[0]?._id)
+    })
+  }, [event?._id])
 
   useEffect(() => {
     if (event) {
@@ -121,7 +131,7 @@ const EventProvider = ({ children }) => {
   }, [event])
 
   return (
-    <EventContext.Provider value={{ event, setEvent, invitadoCero, setInvitadoCero, idxGroupEvent, setIdxGroupEvent, planSpaceActive, setPlanSpaceActive, filterGuests, setFilterGuests, allFilterGuests, setAllFilterGuests, editDefault, setEditDefault }}>
+    <EventContext.Provider value={{ event, setEvent, invitadoCero, setInvitadoCero, idxGroupEvent, setIdxGroupEvent, planSpaceActive, setPlanSpaceActive, filterGuests, setFilterGuests, allFilterGuests, setAllFilterGuests, editDefault, setEditDefault, planSpaceSelect, setPlanSpaceSelect }}>
       {children}
     </EventContext.Provider>
   );

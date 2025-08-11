@@ -28,7 +28,7 @@ type initialValues = {
 const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
   const { t } = useTranslation();
   const { user } = AuthContextProvider()
-  const { event, setEvent, planSpaceActive, setPlanSpaceActive, setEditDefault, filterGuests } = EventContextProvider();
+  const { event, setEvent, planSpaceActive, setPlanSpaceActive, setEditDefault, filterGuests, planSpaceSelect } = EventContextProvider();
   const [selectInvitado, setSelectedInvitado] = useState(false);
   const [sentadosTable, setSentadosTable] = useState([]);
   const [showGuest, setShowGuest] = useState([]);
@@ -111,7 +111,7 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
       planSpaceActive.tables.splice(f1, 1, table)
       setPlanSpaceActive({ ...planSpaceActive })
       setEvent((old) => {
-        const f1 = old.planSpace.findIndex(elem => elem._id === old.planSpaceSelect)
+        const f1 = old.planSpace.findIndex(elem => elem._id === planSpaceSelect)
         old.planSpace[f1] = planSpaceActive
         return { ...old }
       })
@@ -139,7 +139,7 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
   const handleMoveGuest = (item) => {
     try {
       if (active) {
-        moveGuest({ event, chair: NaN, invitadoID: item._id, tableID: state?.table?._id, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo: "dragS", user })
+        moveGuest({ event, chair: NaN, invitadoID: item._id, tableID: state?.table?._id, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo: "dragS", planSpaceSelect })
         toast("success", t("El invitado fue levantado de la mesa"))
         return
       }
@@ -148,7 +148,7 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
       }
       for (let i = 0; i < state?.table?.numberChair; i++) {
         if (!state?.table?.guests?.map(el => el.chair).includes(i)) {
-          moveGuest({ event, chair: i, invitadoID: item._id, tableID: state?.table?._id, setEvent, planSpaceActive, setPlanSpaceActive, user })
+          moveGuest({ event, chair: i, invitadoID: item._id, tableID: state?.table?._id, setEvent, planSpaceActive, setPlanSpaceActive, planSpaceSelect })
           toast("success", t("El invitado fue sentado en la mesa"))
           break
         }
@@ -211,7 +211,7 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
                               onClick={() => {
                                 for (let i = 0; i < state?.table?.numberChair; i++) {
                                   if (!state?.table?.guest?.find((elem: guest) => elem?.chair == 0)) {
-                                    moveGuest({ event, chair: i, invitadoID: item._id, tableID: state?.table?._id, setEvent, planSpaceActive, setPlanSpaceActive, user })
+                                    moveGuest({ event, chair: i, invitadoID: item._id, tableID: state?.table?._id, setEvent, planSpaceActive, setPlanSpaceActive, planSpaceSelect })
                                     break
                                   }
                                 }
