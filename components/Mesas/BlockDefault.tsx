@@ -31,7 +31,7 @@ const BlockDefault: FC<propsBlockDefault> = ({ children, listaLength }) => {
 
   return (
     <div className="w-full h-full overflow-auto text-sm">
-      <div ref={refDiv} className={`w-full truncate flex flex-wrap`}>
+      <div ref={refDiv} className={`w-full truncate flex flex-wrap gap-1.5`}>
         {children}
       </div>
     </div>

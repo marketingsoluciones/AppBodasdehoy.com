@@ -51,15 +51,15 @@ const onUp = (item: GalerySvg) => {
 interface propsDragTable {
   item: GalerySvg
 }
-
 const DragTable: FC<propsDragTable> = ({ item }) => {
+
   return (
-    <div className="w-20 h-16 static">
+    <div className="w-14 h-14 static border-[1px] border-gray-300 hover:border-gray-400 rounded-lg">
       <div id={`icon${item.title}_${item.tipo}`} className="hidden">
-        <div className="bg-gray-100 opacity-80 p-2 rounded-lg w-16 h-16 flex justify-center items-center">
+        <div className="bg-gray-100 opacity-80 rounded-lg w-16 h-16 flex justify-center items-center">
           <SvgWrapper
-            width={"100%"}
-            height={"100%"}
+            width={"75%"}
+            height={"75%"}
             autoScale={true}
           >
             {item.icon}
@@ -67,26 +67,24 @@ const DragTable: FC<propsDragTable> = ({ item }) => {
           <PlusIcon className={`absolute inset-0 m-auto text-primary w-3 h-3`} />
         </div>
       </div>
-      <span className="w-full h-full flex items-center ">
-        <div className="w-full h-full p-2 flex-col justify-center items-center *cursor-pointer relative">
-          <div className="w-full h-full flex transform hover:scale-105 transition justify-center items-center relative">
-            <div id={`dragN${item.title}_${item.tipo}`} className="js-dragDefault w-full h-12 flex justify-center items-center"
-              onMouseDown={(e) => { onMouseDown(e, item) }}
-              onMouseUp={() => { onUp(item) }}
-              onTouchStart={(e) => { onTouchStart(e, item) }}
-              onTouchEnd={() => { onUp(item) }} >
-              <SvgWrapper
-                width={"100%"}
-                height={"100%"}
-                autoScale={true}
-              >
-                {item.icon}
-              </SvgWrapper>
-              <PlusIcon className={`absolute inset-0 m-auto text-primary w-3 h-3 `} />
-            </div>
+      <div className="w-full h-full flex-col justify-center items-center *cursor-pointer relative">
+        <div className="w-full h-full flex transform hover:scale-105 transition justify-center items-center relative">
+          <div id={`dragN${item.title}_${item.tipo}`} className="js-dragDefault w-full h-12 flex justify-center items-center"
+            onMouseDown={(e) => { onMouseDown(e, item) }}
+            onMouseUp={() => { onUp(item) }}
+            onTouchStart={(e) => { onTouchStart(e, item) }}
+            onTouchEnd={() => { onUp(item) }} >
+            <SvgWrapper
+              width={"85%"}
+              height={"85%"}
+              autoScale={true}
+            >
+              {item.icon}
+            </SvgWrapper>
+            {item.tipo === "table" && <PlusIcon className={`absolute inset-0 m-auto text-primary w-3 h-3 `} />}
           </div>
         </div>
-      </span>
+      </div>
     </div>
   );
 };
