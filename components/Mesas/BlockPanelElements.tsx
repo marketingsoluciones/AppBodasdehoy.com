@@ -1,13 +1,12 @@
-import { Arbol, Arbol2, Dj, Group83, Layer2, Piano, PlusIcon, } from "../icons";
+import { Group83, PlusIcon, } from "../icons";
 import { FC, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import BlockDefault from "./BlockDefault";
 import DragTable from "./DragTable"
 import SvgFromString from '../SvgFromString';
 import { getSvgOptimizationInfo, SVG_SIZE_LIMITS } from '../../utils/svgSizeUtils';
-import { nanoid } from "nanoid";
-import { fetchApiBodas, fetchApiEventos, queries } from "../../utils/Fetching";
-import { AuthContextProvider } from "../../context/AuthContext";
+import { customAlphabet } from "nanoid";
+import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { EventContextProvider } from "../../context";
 import { useToast } from "../../hooks/useToast";
 import { GalerySvg } from "../../utils/Interfaces";
@@ -19,7 +18,6 @@ interface propsBlockPanelElements {
 }
 
 const BlockPanelElements: FC<propsBlockPanelElements> = ({ listElements, setListElements }) => {
-  const { config } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
 
   const [isLoading, setIsLoading] = useState(false);
@@ -55,7 +53,7 @@ const BlockPanelElements: FC<propsBlockPanelElements> = ({ listElements, setList
           }
           const newElement: GalerySvg = {
             icon: <SvgFromString svgString={svgContent} className="relative w-max" />,
-            title: file.name.replace('.svg', ''),
+            title: file.name.replace('.svg', '').replace(/_/g, '-') + "-" + customAlphabet('0123456789abcdef', 5)(),
             tipo: "element",
             size: { width: 60, height: 60 }
           };
@@ -108,7 +106,7 @@ const BlockPanelElements: FC<propsBlockPanelElements> = ({ listElements, setList
         if (optimizationInfo.canOptimize) {
           console.log('💡 Sugerencias de optimización:', optimizationInfo.optimizationTips);
         }
-        const urlTitle = svgUrl.split('/').pop()?.replace('.svg', '') || nanoid();
+        const urlTitle = svgUrl.split('/').pop()?.replace('.svg', '').replace(/_/g, '-') || customAlphabet('0123456789abcdef', 8)();
         const newElement: GalerySvg = {
           icon: <SvgFromString svgString={svgContent} className="relative w-max" />,
           title: urlTitle,
