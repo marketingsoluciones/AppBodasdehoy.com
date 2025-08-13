@@ -473,6 +473,21 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEditorModal, previ
                             value: "{{params.placeEvent}}",
                             sample: event?.lugar?.title || "sin lugar cargado"
                         },
+                        tag10: {
+                            name: "Novio 1",
+                            value: "{{params.novio1}}",
+                            sample: event?.invitados_array?.filter(elem => elem.rol === "novios")[0]?.nombre.split(" ")[0] || "Agrega en invitados Novios"
+                        },
+                        tag11: {
+                            name: "Novio 2",
+                            value: "{{params.novio2}}",
+                            sample: event?.invitados_array?.filter(elem => elem.rol === "novios")[1]?.nombre.split(" ")[0] || "Agrega en invitados Novios"
+                        },
+                        tag12: {
+                            name: "Link Confirmacion de Asistencia",
+                            value: "{{params.confirmationAsistain}}",
+                            sample: `${window?.location?.origin}?pGuestEvent=${event?.invitados_array[0]?._id}${event._id?.slice(3, 9)}${event._id}` || "Agrega un invitado"
+                        },
                     },
                     appearance: {
                         actionBar: {
