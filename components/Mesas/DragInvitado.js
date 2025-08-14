@@ -1,21 +1,27 @@
-import { TouchEvent, useEffect, useState } from "react";
-import { ImageProfile, useDelayUnmount } from "../../utils/Funciones";
-import { EditarIcon, MesaIcon, PendienteIcon } from "../icons";
-import ModalBottom from "../Utils/ModalBottom";
-import ModalBottomSinAway from "../Utils/ModalBottomSinAway";
-import FormEditarInvitado from "../Forms/FormEditarInvitado";
+import { ImageProfile } from "../../utils/Funciones";
+import { EditarIcon } from "../icons";
 import { useAllowed } from "../../hooks/useAllowed";
+import { BsArrow90DegUp } from "react-icons/bs";
+
 
 
 const DragInvitado = (props) => {
-  const { tipo, invitado, index, setEditInv, editInv, setSelected } = props;
+  const { invitado, setEditInv, editInv, setSelected } = props;
   /* const shouldRenderChild = useDelayUnmount(isMounted, 500); */
   const [isAllowed, ht] = useAllowed()
 
+  console.log("invitado", invitado)
 
   return (
     <>
       <div className="w-full flex justify-between items-center px-5 py-1 hover:bg-base transition">
+        {
+          invitado.father && invitado.isChild && (
+            <div className=" flex items-center pl-2 py-1  -mt-[11px]">
+              <BsArrow90DegUp />
+            </div>
+          )
+        }
         <span className="w-[90%] flex gap-3 items-center">
           <span
             id={`dragN${invitado._id}`}
@@ -68,14 +74,31 @@ const DragInvitado = (props) => {
               src={ImageProfile[invitado.sexo]?.image}
               alt={ImageProfile[invitado.sexo]?.alt}
             />
-            <p className="w-full font-display text-sm truncate">{invitado?.nombre}</p>
+            <p className="w-full font-display text-sm truncate">{invitado?.nombre} {/* {
+              invitado.father != null &&
+                !invitado?.isChild
+                ? invitado.parentName
+                  ? ''
+                  : `Acompañante de ${invitado?.parentName}`
+                : ''
+            } */}
+            </p>
+            {/* <p className="w-full font-display text-sm truncate">{invitado?.nombre} {
+              invitado.father != null &&
+                !invitado?.isChild
+                ? invitado.parentName
+                  ? ''
+                  : `Acompañante de ${invitado?.parentName}`
+                : ''
+            }
+            </p> */}
           </span>
         </span>
         <EditarIcon
           onClick={() => {
             !isAllowed()
-            ? ht()
-            : [setEditInv(!editInv), setSelected(invitado._id)]
+              ? ht()
+              : [setEditInv(!editInv), setSelected(invitado._id)]
           }}
           className="h-5 w-5 cursor-pointer" />
       </div>
