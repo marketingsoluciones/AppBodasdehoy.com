@@ -214,7 +214,7 @@ export interface OptionsSelect {
     idDisabled?: boolean
     vew?: string
 }
-export type Order = "nombre" | "fecha" | "estado"
+export type Order = "descripcion" | "fecha" | "estado" | "personalizada" | "prioridad" | "estado" | "ninguna" | "nombre"
 export type Direction = "asc" | "desc"
 
 export interface SelectModeSortType {

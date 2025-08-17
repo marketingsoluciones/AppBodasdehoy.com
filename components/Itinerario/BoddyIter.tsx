@@ -44,6 +44,33 @@ export const BoddyIter = () => {
     const [selectTask, setSelectTask] = useState<string>()
     const [orderAndDirection, setOrderAndDirection] = useState<SelectModeSortType>()
 
+    // Hidratar orderAndDirection desde localStorage al montar
+    useEffect(() => {
+        try {
+            if (typeof window !== "undefined") {
+                const saved = window.localStorage.getItem("OADitinerary")
+                if (saved) {
+                    const parsed = JSON.parse(saved)
+                    if (parsed?.order && parsed?.direction) {
+                        setOrderAndDirection(parsed)
+                    }
+                }
+            }
+        } catch (error) {
+            console.warn("No se pudo leer OADitinerary de localStorage", error)
+        }
+    }, [])
+
+    // Persistir orderAndDirection en localStorage al cambiar
+    useEffect(() => {
+        try {
+            if (typeof window !== "undefined" && orderAndDirection) {
+                window.localStorage.setItem("OADitinerary", JSON.stringify(orderAndDirection))
+            }
+        } catch (error) {
+            console.warn("No se pudo guardar OADitinerary en localStorage", error)
+        }
+    }, [orderAndDirection])
 
     async function updatedNextId(itinerary: Itinerary) {
         return await fetchApiEventos({
@@ -176,11 +203,47 @@ export const BoddyIter = () => {
             } else if (!itinerario || !itinerarios.some(elem => elem._id === itinerario._id)) {
                 nuevoItinerario = itinerarios[0]
             }
-            setItinerario(nuevoItinerario)
+            if (view !== "schema") {
+                const statusOrder: Record<string, number> = {
+                    pending: 0,
+                    in_progress: 1,
+                    completed: 2,
+                    blocked: 3
+                }
+                const prioridadOrder: Record<string, number> = {
+                    baja: 0,
+                    media: 1,
+                    alta: 2
+                }
+                orderAndDirection?.order === "descripcion" && nuevoItinerario.tasks.sort((a, b) => {
+                    const comparison = a?.descripcion?.localeCompare(b?.descripcion)
+                    return orderAndDirection?.direction === "desc" ? -comparison : comparison
+                })
+                orderAndDirection?.order === "fecha" && nuevoItinerario.tasks.sort((a, b) => {
+                    const comparison = new Date(a?.fecha)?.getTime() - new Date(b?.fecha)?.getTime()
+                    return orderAndDirection?.direction === "desc" ? -comparison : comparison
+                })
+                orderAndDirection?.order === "estado" &&
+                    nuevoItinerario.tasks.sort((a: any, b: any) => {
+                        const aIdx = a?.estado ? (statusOrder[a.estado] ?? 0) : 0
+                        const bIdx = b?.estado ? (statusOrder[b.estado] ?? 0) : 0
+                        const comparison = aIdx - bIdx
+                        return orderAndDirection?.direction === "desc" ? -comparison : comparison
+                    })
+                orderAndDirection?.order === "prioridad" && nuevoItinerario.tasks.sort((a, b) => {
+                    const aIdx = a?.prioridad ? (prioridadOrder[a.prioridad] ?? 0) : 0
+                    const bIdx = b?.prioridad ? (prioridadOrder[b.prioridad] ?? 0) : 0
+                    const comparison = aIdx - bIdx
+                    return orderAndDirection?.direction === "desc" ? -comparison : comparison
+                })
+                // orderAndDirection.order === "personalizada" && nuevoItinerario.tasks.sort((a, b) => a.personalizada.localeCompare(b.personalizada))
+                // orderAndDirection.order === "ninguna" && nuevoItinerario.tasks.sort((a, b) => a.title.localeCompare(b.title))
+            }
+            setItinerario({ ...nuevoItinerario })
         } else {
             setItinerario(null)
         }
-    }, [event, router, orderAndDirection])
+    }, [event, router, orderAndDirection, itinerario?._id, view])
 
     return (
         <PermissionWrapper>
@@ -219,7 +282,7 @@ export const BoddyIter = () => {
                 />
                 {
                     (isAllowedViewer(itinerario?.viewers ?? []) || window?.location?.pathname === "/itinerario" || isAllowed())
-                        ? <ItineraryPanel itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} title={title} setTitle={setTitle} view={view} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} selectTask={selectTask} setSelectTask={setSelectTask} />
+                        ? <ItineraryPanel itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} title={title} setTitle={setTitle} view={view} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} selectTask={selectTask} setSelectTask={setSelectTask} orderAndDirection={orderAndDirection} />
                         : <div className="h-full">
                             <ViewWihtoutData />
                         </div>

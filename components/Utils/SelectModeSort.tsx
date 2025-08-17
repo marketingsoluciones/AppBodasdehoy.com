@@ -16,6 +16,11 @@ interface props {
   setValue: Dispatch<SetStateAction<SelectModeSortType>>
 }
 
+interface orderOptions {
+  value: Order,
+  title: string
+}
+
 export const SelectModeSort: FC<props> = ({ value, setValue }) => {
   const { t } = useTranslation();
   const [show, setShow] = useState<boolean>(false)
@@ -23,20 +28,40 @@ export const SelectModeSort: FC<props> = ({ value, setValue }) => {
   const [order, setOrder] = useState<Order>(value ? value.order : "fecha")
   const [direction, setDirection] = useState<Direction>(value ? value.direction : "asc")
 
-  const orderOptions: { value: Order, title: string }[] = [
+  let orderOptions: orderOptions[] = [
     {
       value: "fecha",
       title: t("date")
     }, {
-      value: "nombre",
+      value: "descripcion",
       title: t("name")
     },
   ]
+  if (window?.location?.pathname === "/servicios") {
+    orderOptions = [...orderOptions,
+    {
+      value: "estado",
+      title: t("state")
+    },
+    {
+      value: "prioridad",
+      title: t("priority")
+    },
+      // {
+      //   value: "personalizada",
+      //   title: t("custom")
+      // },
+      // {
+      //   value: "ninguna",
+      //   title: t("none")
+      // }
+    ]
+  }
 
   const directionOptions: { value: Direction, title: string }[] = [
     {
       value: "asc",
-      title: t("asd")
+      title: t("asc")
     }, {
       value: "desc",
       title: t("desc")
@@ -63,11 +88,11 @@ export const SelectModeSort: FC<props> = ({ value, setValue }) => {
               ? <div key={idx}
                 onClick={() => {
                   item.type === "order" ? setOrder(item.value as Order) : setDirection(item.value as Direction)
-                  setShow(false)
+                  // setShow(false)
                 }}
-                className={`p-2 text-gray-700 text-sm flex items-center gap-2 capitalize cursor-pointer hover:bg-gray-100 ${[order, direction].includes(item?.value) && "bg-gray-200"}`}
+                className={`py-1 pl-2 pr-8 text-gray-700 text-xs flex items-center gap-2 capitalize cursor-pointer hover:bg-gray-100 ${[order, direction].includes(item?.value) && "bg-gray-200"}`}
               >
-                <div className={`w-2 h-2 rounded-full ${[order, direction].includes(item?.value) && "bg-gray-500"}`} />
+                <div className={`w-2 h-2 rounded-full ${[order, direction].includes(item?.value) && "bg-green"}`} />
                 {item.title}
               </div>
               : <div key={idx} className="w-full border-t-[1px] border-gray-500" />

@@ -60,11 +60,11 @@ export const SelectModeView: FC<props> = ({ value, setValue }) => {
         icon: <LiaIdCardSolid className="w-5 h-5" />,
         title: t("card")
       },
-      // {
-      //   value: "table",
-      //   icon: <HiOutlineViewList className="w-5 h-5" />,
-      //   title: t("board")
-      // },
+      {
+        value: "table",
+        icon: <HiOutlineViewList className="w-5 h-5" />,
+        title: t("board")
+      },
       {
         value: "schema",
         icon: <TbSchema className="w-5 h-5" />,

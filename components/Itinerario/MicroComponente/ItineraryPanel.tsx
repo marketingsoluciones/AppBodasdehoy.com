@@ -53,8 +53,7 @@ interface props {
   setTitle: any
   selectTask: string
   setSelectTask: any
-  orderAndDirection?: SelectModeSortType  // Agregar esta línea
-  setOrderAndDirection?: Dispatch<SetStateAction<SelectModeSortType>>  // Agregar esta línea
+  orderAndDirection: SelectModeSortType  // Agregar esta línea
 }
 
 export interface EditTastk {
@@ -80,7 +79,7 @@ export type TempPastedAndDropFile = {
 
 export const Details = undefined
 
-export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle, view, handleDeleteItinerario, handleUpdateTitle, title, setTitle, selectTask, setSelectTask, orderAndDirection, setOrderAndDirection }) => {
+export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle, view, handleDeleteItinerario, handleUpdateTitle, title, setTitle, selectTask, setSelectTask, orderAndDirection }) => {
   const { t } = useTranslation();
   const { config, geoInfo, user } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
@@ -101,6 +100,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   const [tempPastedAndDropFiles, setTempPastedAndDropFiles] = useState<TempPastedAndDropFile[]>([]);
   const [loading, setLoading] = useState<boolean>(false)
   const [task, setTask] = useState<Task>()
+  const [currentItinerario, setCurrentItinerario] = useState<Itinerary>(itinerario);
 
   const optionsItineraryButtonBox: OptionsSelect[] = [
     {
@@ -162,12 +162,9 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       value: "estatus",
       icon: <TbLock className="w-5 h-5" />,
       getIcon: (values: boolean) => {
-        console.log("=aaS", values)
-        if (values ===false || values === null ) {
-          console.log("cerrado")
+        if (values === false || values === null) {
           return <TbLock className="w-8 h-8" />
         } else {
-          console.log("abierto")
           return <TbLockOpen className="w-8 h-8" />
         }
       },
@@ -177,8 +174,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     },
 
   ]
-
-  const [currentItinerario, setCurrentItinerario] = useState<Itinerary>(itinerario);
 
   useEffect(() => {
     if (
@@ -190,32 +185,13 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       const found = event.itinerarios_array.find(
         (it: Itinerary) => it._id === itinerario._id
       );
-      if (found) setCurrentItinerario(found);
+      if (found) setCurrentItinerario({ ...found });
     }
-  }, [event, itinerario?._id]);
+  }, [event, itinerario?._id, orderAndDirection]);
 
   useEffect(() => {
     if (currentItinerario?.tasks?.length > 0) {
-      // Primero aplicar el ordenamiento
-      let sortedTasks = [...currentItinerario.tasks];
-
-      // Aplicar ordenamiento según orderAndDirection
-      if (orderAndDirection) {
-        sortedTasks.sort((a, b) => {
-          let comparison = 0;
-
-          if (orderAndDirection.order === 'fecha') {
-            comparison = new Date(a.fecha).getTime() - new Date(b.fecha).getTime();
-          } else if (orderAndDirection.order === 'nombre') {
-            comparison = (a.descripcion || '').localeCompare(b.descripcion || '', 'es');
-          }
-
-          return orderAndDirection.direction === 'desc' ? -comparison : comparison;
-        });
-      }
-
-      // Luego filtrar
-      const filteredTasks = sortedTasks.filter(elem =>
+      const filteredTasks = currentItinerario?.tasks?.filter(elem =>
         elem && (
           view === "schema"
           || ["/itinerario"].includes(window?.location?.pathname)
@@ -224,15 +200,11 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
           || isAllowed()
         )
       );
-
-      /* setTasks(prev => {
-        if (JSON.stringify(prev) === JSON.stringify(filteredTasks)) return prev;
-        return filteredTasks;
-      }); */
+      if (view === "schema") {
+        filteredTasks.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
+      }
       setTasks(filteredTasks);
-
-      // Para la vista de cards, agrupar por fecha pero mantener el orden interno
-      if (view === "cards") {
+      if (["cards", "schema"].includes(view)) {
         const taskReduce: TaskReduce[] = filteredTasks.reduce((acc: TaskReduce[], item: Task) => {
           const f = new Date(item.fecha);
           const y = f.getUTCFullYear();
@@ -247,29 +219,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
           }
           return acc;
         }, []);
-
-        // Si se ordena por fecha, ordenar también los grupos
-        if (orderAndDirection?.order === 'fecha') {
-          taskReduce.sort((a, b) => {
-            const comparison = a.fecha - b.fecha;
-            return orderAndDirection.direction === 'desc' ? -comparison : comparison;
-          });
-        }
-        setTasks(prev => {
-          // Forzar actualización solo si hay cambios reales
-          const newTasksStr = JSON.stringify(filteredTasks);
-          const prevTasksStr = JSON.stringify(prev);
-
-          if (newTasksStr !== prevTasksStr) {
-            return filteredTasks;
-          }
-          return prev;
-        });
-
-        setTasksReduce(prev => {
-          if (JSON.stringify(prev) === JSON.stringify(taskReduce)) return prev;
-          return taskReduce;
-        });
+        setTasksReduce(taskReduce);
       }
     } else {
       setTasks(prev => (prev && prev.length === 0 ? prev : []));
@@ -307,8 +257,8 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   }
   const handleChangeStatus = async (values: Task) => {
 
-    
-    
+
+
     try {
       fetchApiEventos({
         query: queries.editTask,
@@ -608,13 +558,13 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             const targetScrollTop = window.pageYOffset + elementRect.top - previousScrollTop;
             window.scrollTo({
               top: targetScrollTop,
-              behavior: 'smooth'
+              behavior: 'smooth',
             });
           }
         }
       }, 100);
     }
-  }, [selectTask])
+  }, [selectTask, currentItinerario])
 
   return (
     <div className="w-full flex-1 flex flex-col overflow-auto">

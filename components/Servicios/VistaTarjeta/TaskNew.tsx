@@ -51,7 +51,7 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
   onUpdateComments?: (taskId: string, newComments: Comment[]) => void;
   onDeleteComment?: (commentId: string) => void;
   minimalView?: boolean;
-  setSelectTask?: (taskId: string) => void; 
+  setSelectTask?: (taskId: string) => void;
 }
 
 export const TaskNew: FC<Props> = memo(({ itinerario, task, view, optionsItineraryButtonBox, isSelect = false, showModalCompartir, setShowModalCompartir, tempPastedAndDropFiles, setTempPastedAndDropFiles, isTaskPublic = false, minimalView = false, setSelectTask, ...props }) => {
