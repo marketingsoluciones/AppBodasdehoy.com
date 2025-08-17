@@ -39,8 +39,6 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
   const [isAllowed, ht] = useAllowed()
   const owner = user?.uid === event?.usuario_id
 
-  console.log("task", task)
-
   return (
     <div {...props} className={`w-full bg-white shadow-lg px-6 py-3 space-y-2  rounded-xl outline cursor-default ${isSelect ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200"}`}>
       {/* Header reducido con botones de optionsItineraryButtonBox (excepto 'link' y 'flow') */}
@@ -88,7 +86,7 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
                   <div key={idx} className="relative group">
                     <button
                       onClick={() => {
-                        if(owner){
+                        if (owner) {
                           if (typeof option.onClick === 'function') {
                             option.onClick(task, itinerario);
                           }

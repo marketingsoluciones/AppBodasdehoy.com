@@ -91,7 +91,7 @@ export interface TableCellProps {
   onStartEdit: () => void;
   onStopEdit: () => void;
   onCommentsClick?: () => void;
-  itinerarioId?: string; 
+  itinerarioId?: string;
 }
 
 export interface TableDropdownProps {
@@ -130,14 +130,14 @@ export interface FiltersProps {
 // Tipos y constantes para las tareas
 
 export interface TaskStatus {
-  value: string;
+  value: "pending" | "in_progress" | "completed" | "blocked";
   label: string;
   color: string;
   description?: string;
 }
 
 export interface TaskPriority {
-  value: string;
+  value: "baja" | "media" | "alta";
   label: string;
   color: string;
   description?: string;
@@ -228,21 +228,21 @@ export const normalizeLegacyStatus = (legacyStatus: any): string => {
   if (typeof legacyStatus === 'boolean') {
     return legacyStatus ? 'completed' : 'pending';
   }
-  
+
   if (legacyStatus === null || legacyStatus === undefined) {
     return 'pending';
   }
-  
+
   if (typeof legacyStatus === 'string') {
     // Si ya es un estado válido, devolverlo
     if (TASK_STATUSES.some(status => status.value === legacyStatus)) {
       return legacyStatus;
     }
-    
+
     // Mapear estados legacy
     return LEGACY_STATUS_MAPPING[legacyStatus] || 'pending';
   }
-  
+
   return 'pending';
 };
 
