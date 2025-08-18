@@ -1,8 +1,7 @@
-import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react';
+import React, { FC, useState, useEffect } from 'react';
 import { Task, Itinerary, OptionsSelect, Comment } from '../../../utils/Interfaces';
 import { useTranslation } from 'react-i18next';
 import { EventContextProvider } from "../../../context/EventContext";
-import { InputComments } from "../Utils/InputComments"
 import { ListComments } from "../Utils/ListComments"
 import { NewAttachmentsEditor } from "../VistaTabla/NewAttachmentsEditor";
 import { TempPastedAndDropFile } from "../../Itinerario/MicroComponente/ItineraryPanel";
@@ -108,7 +107,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               </div>}
           </div>
           {/* Contenido principal */}
-          <div className="flex-1 px-6 py-2 space-y-2">
+          <div className="flex flex-col flex-1 px-6 py-2 space-y-2">
             {/* Fila de Estado y Prioridad */}
             <StatusPriorityTask
               task={task}
