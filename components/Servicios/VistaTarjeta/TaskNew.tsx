@@ -50,7 +50,7 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
   onDeleteComment?: (commentId: string) => void;
   minimalView?: boolean;
   setSelectTask?: (taskId: string) => void;
-  selectTask: string;
+  selectTask?: string;
 }
 
 export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryButtonBox, showModalCompartir, setShowModalCompartir, tempPastedAndDropFiles, setTempPastedAndDropFiles, isTaskPublic = false, minimalView = false, setSelectTask, selectTask, ...props }) => {

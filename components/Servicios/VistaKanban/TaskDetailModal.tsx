@@ -363,7 +363,6 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 task={localTask}
                 itinerario={itinerario}
                 optionsItineraryButtonBox={optionsItineraryButtonBox}
-                isSelect={false}
                 showModalCompartir={showModalCompartir}
                 setShowModalCompartir={setShowModalCompartir}
                 onClick={() => { }}
