@@ -53,6 +53,8 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
   const [previousCountComments, setPreviousCountComments] = useState(0);
   const { user } = AuthContextProvider();
   const owner = user?.uid === event?.usuario_id;
+  const [showAttachments, setShowAttachments] = useState(false);
+
 
   // Auto-scroll al agregar nuevos comentarios
   useEffect(() => {
@@ -156,6 +158,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               task={task}
               handleUpdate={handleUpdate}
               owner={owner}
+              showAttachments={showAttachments}
             />
             {/* Adjuntos mejorados */}
             <NewAttachmentsEditor
@@ -164,6 +167,8 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               itinerarioId={itinerario?._id}
               canEdit={canEdit}
               owner={owner}
+              showAttachments={showAttachments}
+              setShowAttachments={setShowAttachments}
             />
           </div>
         </div>

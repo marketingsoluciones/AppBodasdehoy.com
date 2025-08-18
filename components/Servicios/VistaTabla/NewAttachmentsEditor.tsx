@@ -51,9 +51,11 @@ interface Props {
   itinerarioId: string;
   canEdit?: boolean;
   owner: boolean;
+  showAttachments?: boolean;
+  setShowAttachments?: (showAttachments: boolean) => void;
 }
 
-export const NewAttachmentsEditor: React.FC<Props> = ({ handleUpdate, task, itinerarioId, canEdit = false, owner }) => {
+export const NewAttachmentsEditor: React.FC<Props> = ({ handleUpdate, task, itinerarioId, canEdit = false, owner, showAttachments, setShowAttachments }) => {
   const { t } = useTranslation();
   const { config } = AuthContextProvider();
   const { event, setEvent } = EventContextProvider();
@@ -65,7 +67,6 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ handleUpdate, task, itin
   const [deletingFiles, setDeletingFiles] = useState<string[]>([]);
   const ruta = window.location.pathname;
   const isItinerarioRoute = ["/itinerario"].includes(ruta);
-  const [showAttachments, setShowAttachments] = useState(false);
 
   const handleFileSelect = (files: FileList | null) => {
     if (!files || files.length === 0) return;
