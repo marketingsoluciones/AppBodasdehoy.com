@@ -46,8 +46,9 @@ interface Props {
   task: any;
   handleUpdate: (field: string, value: any) => Promise<void>;
   owner: boolean;
+  showAttachments?: boolean;
 }
-export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner }) => {
+export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner, showAttachments }) => {
   const { t } = useTranslation();
   const [editing, setEditing] = useState<boolean>(false);
   const [customDescription, setCustomDescription] = useState(task?.tips || '');
@@ -123,7 +124,7 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner 
               </div>
             </div>
           )}
-          <div className={`w-full flex-1 overflow-y-auto border border-gray-200 rounded-lg p-4 ${canEdit ? '*cursor-pointer hover:border-gray-300' : 'cursor-default opacity-60'}`}
+          <div className={`w-full flex flex-1 overflow-y-auto border border-gray-200 rounded-lg p-4 ${canEdit ? '*cursor-pointer hover:border-gray-300' : 'cursor-default opacity-60'} ${showAttachments ? 'h-[204px]' : 'h-[250px]'}`}
             onDoubleClick={() => {
               if (canShowEditButton) {
                 setCustomDescription(task.tips || '');
