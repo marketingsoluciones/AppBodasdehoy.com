@@ -73,7 +73,7 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner,
 
   return (
     <>
-      <div className="flex flex-col flex-1">
+      <div className="flex flex-col flex-1 min-h-0">
         <div className="flex items-center justify-between">
           <label className="text-xs font-medium text-gray-700">
             {t('Descripción detallada')}
@@ -87,10 +87,10 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner,
             </button>
           )}
         </div>
-        <div className="w-full relative flex flex-1">
+        <div className="w-full relative flex flex-1 min-h-0">
           {shouldShowEditor && (
             <div className="absolute z-10 w-full bg-white border border-green rounded-lg overflow-hidden">
-              <div className="h-[300px] overflow-y-auto">
+              <div className="h-[293px] overflow-y-auto">
                 <ReactQuill
                   id="editor-description"
                   value={customDescription}
@@ -124,7 +124,7 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner,
               </div>
             </div>
           )}
-          <div className={`w-full flex flex-1 overflow-y-auto border border-gray-200 rounded-lg p-4 ${canEdit ? '*cursor-pointer hover:border-gray-300' : 'cursor-default opacity-60'} ${showAttachments ? 'h-[204px]' : 'h-[250px]'}`}
+          <div id="description-task" className={`w-full flex flex-1 basis-0 min-h-0 max-h-full overflow-y-auto break-words border border-gray-200 rounded-lg p-4 ${canEdit ? '*cursor-pointer hover:border-gray-300' : 'cursor-default opacity-60'} `}
             onDoubleClick={() => {
               if (canShowEditButton) {
                 setCustomDescription(task.tips || '');
