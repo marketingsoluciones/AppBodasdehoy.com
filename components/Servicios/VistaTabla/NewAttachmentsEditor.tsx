@@ -2,23 +2,12 @@ import React, { useState, useRef } from 'react';
 import { Upload, X, FileText, FileImage, FileVideo, FileAudio, File, Check, Loader2, Download, Trash2, Lock, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getStorage, ref, uploadBytesResumable, deleteObject } from "firebase/storage";
-import { FileData } from '../../../utils/Interfaces';
+import { FileData, Task } from '../../../utils/Interfaces';
 import { customAlphabet } from "nanoid";
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
 import { AuthContextProvider, EventContextProvider } from "../../../context";
 import { downloadFile } from "../../Utils/storages";
 import { useToast } from "../../../hooks/useToast";
-
-interface Props {
-  attachments: FileData[];
-  onUpdate: (attachments: FileData[]) => void;
-  taskId: string;
-  eventId: string;
-  itinerarioId: string;
-  readOnly?: boolean;
-  owner: boolean;
-  cardBlock: boolean;
-}
 
 interface UploadingFile {
   id: string;
@@ -56,7 +45,15 @@ const formatFileSize = (bytes: number): string => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
-export const NewAttachmentsEditor: React.FC<Props> = ({ attachments, onUpdate, taskId, eventId, itinerarioId, readOnly = false, owner, cardBlock }) => {
+interface Props {
+  handleUpdate: (attachments: FileData[]) => void;
+  task: Task;
+  itinerarioId: string;
+  canEdit?: boolean;
+  owner: boolean;
+}
+
+export const NewAttachmentsEditor: React.FC<Props> = ({ handleUpdate, task, itinerarioId, canEdit = false, owner }) => {
   const { t } = useTranslation();
   const { config } = AuthContextProvider();
   const { event, setEvent } = EventContextProvider();
@@ -74,7 +71,7 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ attachments, onUpdate, t
     if (!files || files.length === 0) return;
     const filesArray = Array.from(files);
     // Verificar archivos duplicados
-    const existingNames = attachments.map(a => a.name);
+    const existingNames = task.attachments.map(a => a.name);
     const duplicates = filesArray.filter(file => existingNames.includes(file.name));
     if (duplicates.length > 0) {
       toast("error", t(`Archivos duplicados: ${duplicates.map(f => f.name).join(', ')}`));
@@ -90,7 +87,7 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ attachments, onUpdate, t
         status: 'uploading'
       }]);
       // IMPORTANTE: Usar doble barra como en InputAttachments
-      const storageRef = ref(storage, `${taskId}//${file.name}`);
+      const storageRef = ref(storage, `${task._id}//${file.name}`);
       const uploadTask = uploadBytesResumable(storageRef, file);
       uploadTask.on('state_changed',
         (snapshot) => {
@@ -118,11 +115,11 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ attachments, onUpdate, t
             createdAt: new Date(),
             updatedAt: new Date()
           };
-          const newAttachments = [...attachments, newFileData];
+          const newAttachments = [...task.attachments, newFileData];
           try {
             // IMPORTANTE: Actualizar la tarea completa como en InputAttachments
             const currentItinerary = event.itinerarios_array.find(it => it._id === itinerarioId);
-            const currentTask = currentItinerary?.tasks.find(t => t._id === taskId);
+            const currentTask = currentItinerary?.tasks.find(t => t._id === task._id);
             if (!currentTask) {
               throw new Error('Task not found');
             }
@@ -134,23 +131,23 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ attachments, onUpdate, t
             await fetchApiEventos({
               query: queries.editTask,
               variables: {
-                eventID: eventId,
+                eventID: event._id,
                 itinerarioID: itinerarioId,
-                taskID: taskId,
+                taskID: task._id,
                 variable: "all", // IMPORTANTE: Usar "all" como en InputAttachments
                 valor: JSON.stringify(updatedTask)
               },
               domain: config.domain
             });
             // Actualizar estado local
-            onUpdate(newAttachments);
+            handleUpdate(newAttachments);
             // Actualizar el evento global
             setEvent((oldEvent) => {
               if (!oldEvent) return oldEvent;
               const newEvent = { ...oldEvent };
               const itineraryIndex = newEvent.itinerarios_array?.findIndex(it => it._id === itinerarioId);
               if (itineraryIndex !== undefined && itineraryIndex > -1) {
-                const taskIndex = newEvent.itinerarios_array[itineraryIndex].tasks?.findIndex(t => t._id === taskId);
+                const taskIndex = newEvent.itinerarios_array[itineraryIndex].tasks?.findIndex(t => t._id === task._id);
                 if (taskIndex !== undefined && taskIndex > -1) {
                   newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex].attachments = newAttachments;
                 }
@@ -167,7 +164,7 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ attachments, onUpdate, t
           } catch (error) {
             console.error('Error updating attachments:', error);
             // Si falla la actualización, eliminar el archivo del storage
-            const deleteRef = ref(storage, `${taskId}//${file.name}`);
+            const deleteRef = ref(storage, `${task._id}//${file.name}`);
             await deleteObject(deleteRef).catch(() => { });
             setUploadingFiles(prev => prev.map(uf =>
               uf.id === uploadId ? { ...uf, status: 'error' } : uf
@@ -187,15 +184,15 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ attachments, onUpdate, t
     setDeletingFiles(prev => [...prev, file.name]);
     try {
       // Eliminar del storage con doble barra
-      const storageRef = ref(storage, `${taskId}//${file.name}`);
+      const storageRef = ref(storage, `${task._id}//${file.name}`);
       await deleteObject(storageRef).catch((error) => {
         console.log('Archivo no existe en storage o ya fue eliminado:', error);
       });
       // Actualizar lista de adjuntos
-      const newAttachments = attachments.filter(a => a.name !== file.name);
+      const newAttachments = task.attachments.filter(a => a.name !== file.name);
       // Obtener la tarea actual
       const currentItinerary = event.itinerarios_array.find(it => it._id === itinerarioId);
-      const currentTask = currentItinerary?.tasks.find(t => t._id === taskId);
+      const currentTask = currentItinerary?.tasks.find(t => t._id === task._id);
       if (currentTask) {
         const updatedTask = {
           ...currentTask,
@@ -204,22 +201,22 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ attachments, onUpdate, t
         await fetchApiEventos({
           query: queries.editTask,
           variables: {
-            eventID: eventId,
+            eventID: event._id,
             itinerarioID: itinerarioId,
-            taskID: taskId,
+            taskID: task._id,
             variable: "all", // Usar "all" como en InputAttachments
             valor: JSON.stringify(updatedTask)
           },
           domain: config.domain
         });
-        onUpdate(newAttachments);
+        handleUpdate(newAttachments);
         // Actualizar el evento global
         setEvent((oldEvent) => {
           if (!oldEvent) return oldEvent;
           const newEvent = { ...oldEvent };
           const itineraryIndex = newEvent.itinerarios_array?.findIndex(it => it._id === itinerarioId);
           if (itineraryIndex !== undefined && itineraryIndex > -1) {
-            const taskIndex = newEvent.itinerarios_array[itineraryIndex].tasks?.findIndex(t => t._id === taskId);
+            const taskIndex = newEvent.itinerarios_array[itineraryIndex].tasks?.findIndex(t => t._id === task._id);
             if (taskIndex !== undefined && taskIndex > -1) {
               newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex].attachments = newAttachments;
             }
@@ -239,7 +236,7 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ attachments, onUpdate, t
   const handleDownload = async (file: FileData) => {
     try {
       // Usar doble barra en la ruta
-      await downloadFile(storage, `${taskId}//${file.name}`);
+      await downloadFile(storage, `${task._id}//${file.name}`);
     } catch (error) {
       console.error('Error downloading file:', error);
       toast("error", t("Error al descargar archivo"));
@@ -288,11 +285,11 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ attachments, onUpdate, t
       <div className="flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-1 cursor-pointer" onClick={() => setShowAttachments(!showAttachments)}>
           <span className="text-xs text-gray-700">{t('Archivos adjuntos')}</span>
-          <div className={`w-5 h-5 rounded-full ${attachments.length > 0 ? 'bg-emerald-600' : 'bg-gray-300'} flex items-center justify-center`}>
-            <span className="text-xs text-white font-extrabold">{attachments.length}</span>
+          <div className={`w-5 h-5 rounded-full ${task.attachments.length > 0 ? 'bg-emerald-600' : 'bg-gray-300'} flex items-center justify-center`}>
+            <span className="text-xs text-white font-extrabold">{task.attachments.length}</span>
           </div>
-          <span className={`text-xs ${attachments.length > 0 ? 'text-emerald-600' : 'text-gray-500'} font-bold`}>{showAttachments ? t("Ocultar") : t("Ver")}</span>
-          {readOnly && (
+          <span className={`text-xs ${task.attachments.length > 0 ? 'text-emerald-600' : 'text-gray-500'} font-bold`}>{showAttachments ? t("Ocultar") : t("Ver")}</span>
+          {!canEdit && (
             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600">
               <Lock className="w-3 h-3 mr-1" />
               {t('Solo lectura')}
@@ -300,7 +297,7 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ attachments, onUpdate, t
           )}
         </div>
         {/* Botón de agregar archivo - Más compacto */}
-        {!readOnly && (
+        {canEdit && (
           <div
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}
@@ -341,7 +338,7 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ attachments, onUpdate, t
         onDrop={handleDrop}
       >
         {/* Archivos subiendo - Más compacto */}
-        {!readOnly && uploadingFiles.length > 0 && (
+        {canEdit && uploadingFiles.length > 0 && (
           <>
             {uploadingFiles.map(uf => (
               <div key={uf.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
@@ -373,8 +370,8 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ attachments, onUpdate, t
           </>
         )}
         {/* Lista de archivos - Diseño más compacto */}
-        {attachments.length > 0
-          ? attachments.map((file) => (
+        {task.attachments.length > 0
+          ? task.attachments.map((file) => (
             <div
               key={file._id || file.name}
               className={`group flex items-center gap-1 px-2 py-1 bg-gray-100 rounded-md hover:bg-gray-100 transition-colors ${deletingFiles.includes(file.name) ? 'opacity-50' : ''
@@ -398,13 +395,13 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ attachments, onUpdate, t
                 >
                   <Download className="w-3.5 h-3.5" />
                 </button>
-                {!readOnly && (
+                {canEdit && (
                   <button
                     onClick={() =>
                       isItinerarioRoute
                         ? owner
                           ? handleDelete(file)
-                          : cardBlock
+                          : task.estatus
                             ? handleDelete(file)
                             : null
                         : handleDelete(file)
@@ -418,7 +415,7 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ attachments, onUpdate, t
                       : isItinerarioRoute
                         ? owner
                           ? <Trash2 className="w-3.5 h-3.5" />
-                          : cardBlock
+                          : task.estatus
                             ? <Trash2 className="w-3.5 h-3.5" />
                             : null
                         : <Trash2 className="w-3.5 h-3.5" />
@@ -428,7 +425,7 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ attachments, onUpdate, t
               </div>
             </div>
           ))
-          : !readOnly && uploadingFiles.length === 0 && (
+          : canEdit && uploadingFiles.length === 0 && (
             /* Estado vacío - Mucho más compacto */
             <div
               className={`h-full flex items-center justify-center min-h-[40px] border border-dashed rounded-md text-center transition-all ${isDragging

@@ -163,14 +163,11 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
             />
             {/* Adjuntos mejorados */}
             <NewAttachmentsEditor
-              attachments={task?.attachments || []}
-              onUpdate={(files) => handleUpdate('attachments', files)}
-              taskId={task?._id}
-              eventId={event?._id}
+              handleUpdate={(files) => handleUpdate('attachments', files)}
+              task={task}
               itinerarioId={itinerario?._id}
-              readOnly={!canEdit}
+              canEdit={canEdit}
               owner={owner}
-              cardBlock={task.estatus}
             />
           </div>
         </div>
