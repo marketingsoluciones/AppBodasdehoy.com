@@ -1,8 +1,7 @@
-import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react';
+import React, { FC, useState, useEffect } from 'react';
 import { Task, Itinerary, OptionsSelect, Comment } from '../../../utils/Interfaces';
 import { useTranslation } from 'react-i18next';
 import { EventContextProvider } from "../../../context/EventContext";
-import { InputComments } from "../Utils/InputComments"
 import { ListComments } from "../Utils/ListComments"
 import { NewAttachmentsEditor } from "../VistaTabla/NewAttachmentsEditor";
 import { TempPastedAndDropFile } from "../../Itinerario/MicroComponente/ItineraryPanel";
@@ -29,8 +28,6 @@ interface TaskFullViewProps {
   handleDeleteComment: (commentId: string) => Promise<void>;
   handleCommentAdded: (comment: Comment) => void;
   ht: () => void;
-  comments: Comment[];
-  setComments: (comments: Comment[]) => void;
   optionsItineraryButtonBox?: OptionsSelect[];
   tempPastedAndDropFiles?: TempPastedAndDropFile[];
   setTempPastedAndDropFiles?: any;
@@ -46,12 +43,10 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
   handleDeleteComment,
   handleCommentAdded,
   ht,
-  comments,
-  setComments,
   optionsItineraryButtonBox,
   tempPastedAndDropFiles,
   setTempPastedAndDropFiles,
-  ...props
+  isSelect
 }) => {
   const { t } = useTranslation();
   const { event } = EventContextProvider();
@@ -61,7 +56,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
 
   // Auto-scroll al agregar nuevos comentarios
   useEffect(() => {
-    if (comments.length > previousCountComments) {
+    if (task.comments.length > previousCountComments) {
       setTimeout(() => {
         const commentsContainer = document.getElementById('comments-container');
         if (commentsContainer) {
@@ -72,12 +67,12 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
         }
       }, 100);
     }
-    setPreviousCountComments(comments.length);
-  }, [comments, previousCountComments]);
+    setPreviousCountComments(task.comments.length);
+  }, [task.comments, previousCountComments]);
 
   return (
-    <div {...props} className="w-full bg-white rounded-lg shadow-lg cursor-default">
-      <div id="task-container" className={`flex h-[553px] rounded-xl outline ${props?.isSelect ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200"}`}>
+    <div className="w-full bg-white rounded-lg shadow-lg cursor-default">
+      <div id="task-container" className={`flex h-[553px] rounded-xl outline ${isSelect ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200"}`}>
         {/* Panel principal */}
         <div id='container-left' className="flex-1 flex flex-col h-full">
           {/* Header */}
@@ -108,7 +103,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               </div>}
           </div>
           {/* Contenido principal */}
-          <div className="flex-1 px-6 py-2 space-y-2">
+          <div className="flex flex-col flex-1 px-6 py-2 space-y-2">
             {/* Fila de Estado y Prioridad */}
             <StatusPriorityTask
               task={task}
@@ -164,14 +159,11 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
             />
             {/* Adjuntos mejorados */}
             <NewAttachmentsEditor
-              attachments={task?.attachments || []}
-              onUpdate={(files) => handleUpdate('attachments', files)}
-              taskId={task?._id}
-              eventId={event?._id}
+              handleUpdate={(files) => handleUpdate('attachments', files)}
+              task={task}
               itinerarioId={itinerario?._id}
-              readOnly={!canEdit}
+              canEdit={canEdit}
               owner={owner}
-              cardBlock={task.estatus}
             />
           </div>
         </div>
@@ -181,13 +173,13 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
             <div className="w-full flex items-center justify-between">
               <div className="text-xl font-semibold">{t('Actividad')}</div>
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-500">{comments.length} {t('comentarios')}</span>
+                <span className="text-sm text-gray-500">{task.comments.length} {t('comentarios')}</span>
                 <Bell className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600" />
               </div>
             </div>
           </div>
           <div id="comments-container" className="flex-1 overflow-y-auto min-h-0">
-            {comments.length === 0
+            {task.comments.length === 0
               ? <div className="h-full flex items-center justify-center">
                 <div className="text-center">
                   <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-2" />
@@ -198,7 +190,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               : <div className="flex flex-col h-full">
                 {/* Lista de comentarios */}
                 <div className="space-y-2 *p-4 flex-shrink-0">
-                  {comments.map((comment) => (
+                  {task.comments.map((comment) => (
                     <div key={comment._id} className="relative group">
                       <ListComments
                         id={comment._id}

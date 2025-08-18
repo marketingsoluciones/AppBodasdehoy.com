@@ -1,7 +1,17 @@
+import { Interweave } from "interweave";
+import { HashtagMatcher, Link, UrlMatcher, UrlProps } from "interweave-autolink";
 import dynamic from "next/dynamic";
-import { FC, useEffect, useState } from "react";
+import { ComponentType, FC, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import 'react-quill/dist/quill.snow.css';
+
+const replacesLink: ComponentType<UrlProps> = (props) => {
+  return (
+    <Link href={props?.url}>
+      <a className="text-xs break-all underline" target="_blank"  >{props?.children}</a>
+    </Link>
+  )
+};
 
 const ReactQuill = dynamic(() => import('react-quill'), {
   ssr: false,
@@ -62,7 +72,7 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner 
 
   return (
     <>
-      <div>
+      <div className="flex flex-col flex-1">
         <div className="flex items-center justify-between">
           <label className="text-xs font-medium text-gray-700">
             {t('Descripción detallada')}
@@ -76,7 +86,7 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner 
             </button>
           )}
         </div>
-        <div className="w-full relative">
+        <div className="w-full relative flex flex-1">
           {shouldShowEditor && (
             <div className="absolute z-10 w-full bg-white border border-green rounded-lg overflow-hidden">
               <div className="h-[300px] overflow-y-auto">
@@ -113,19 +123,22 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner 
               </div>
             </div>
           )}
-          <div className={`w-full h-[130px] overflow-y-auto border border-gray-200 rounded-lg p-4 ${canEdit ? 'cursor-pointer hover:border-gray-300' : 'cursor-default opacity-60'}`}
+          <div className={`w-full flex-1 overflow-y-auto border border-gray-200 rounded-lg p-4 ${canEdit ? '*cursor-pointer hover:border-gray-300' : 'cursor-default opacity-60'}`}
             onDoubleClick={() => {
               if (canShowEditButton) {
                 setCustomDescription(task.tips || '');
                 setEditing(true);
               }
             }}
-            title={canEdit && "Haz doble clic para editar descripción"}
           >
             {task.tips
-              ? <div
-                className="text-xs prose prose-xs max-w-none [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:my-3 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:my-3 [&_h3]:text-lg [&_h3]:font-bold [&_h3]:my-3 [&_p]:mb-4 [&_ul]:pl-6 [&_ul]:mb-4 [&_ul]:list-disc [&_ol]:pl-6 [&_ol]:mb-4 [&_ol]:list-decimal [&_li]:mb-2 [&_pre]:bg-gray-100 [&_pre]:p-3 [&_pre]:rounded [&_pre]:my-2 [&_pre]:whitespace-pre-wrap [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-sm [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-4 [&_blockquote]:my-2 [&_blockquote]:italic [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800 [&_.ql-align-center]:text-center [&_.ql-align-right]:text-right [&_.ql-align-justify]:text-justify [&_.ql-size-small]:text-xs [&_.ql-size-large]:text-lg [&_.ql-size-huge]:text-2xl [&_.ql-font-serif]:font-serif [&_.ql-font-monospace]:font-mono"
-                dangerouslySetInnerHTML={{ __html: task.tips }}
+              ? <Interweave
+                className="text-xs transition-all my-emoji"
+                content={task.tips}
+                matchers={[
+                  new UrlMatcher('url', {}, replacesLink),
+                  new HashtagMatcher('hashtag')
+                ]}
               />
               : <p className="text-xs text-gray-400">
                 {canEdit ? t('Haz doble clic para agregar una descripción...') : t('Sin descripción')}
@@ -148,16 +161,21 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner 
       .description-editor .ql-editor {
         min-height: 200px;
         padding: 1rem;
+        font-size: 12px;
       }
       .description-editor .ql-toolbar {
         background-color: #f9fafb;
         border: none !important;
         border-bottom: 1px solid #e5e7eb !important;
         font-family: inherit;
+        height: 30px;
       }
       .description-editor .ql-toolbar.ql-snow {
         border: none !important;
         border-bottom: 1px solid #e5e7eb !important;
+      }
+      .description-editor .ql-toolbar.ql-snow .ql-formats {
+       transform: translateY(-5px);
       }
       .description-editor .ql-toolbar button:hover {
         background-color: #e5e7eb !important;
@@ -169,6 +187,7 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner 
       .description-editor .ql-editor.ql-blank::before {
         color: #9ca3af;
         font-style: normal;
+        font-size: 12px;
       }
 `}</style>
     </>

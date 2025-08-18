@@ -221,14 +221,11 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
       <div>
         <h4 className="text-xs font-medium text-gray-700">{t('Adjuntos')}</h4>
         <NewAttachmentsEditor
-          attachments={task.attachments || []}
-          onUpdate={(files) => handleUpdate('attachments', files)}
-          taskId={task._id}
-          eventId={event._id}
+          handleUpdate={(files) => handleUpdate('attachments', files)}
+          task={task}
           itinerarioId={itinerario._id}
-          readOnly={!canEdit}
+          canEdit={canEdit}
           owner={owner}
-          cardBlock={task.estatus}
         />
       </div>
     </div>

@@ -1,19 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  Paperclip, 
-  X, 
-  Download, 
-  Trash2, 
-  Upload,
-  File,
-  Image,
-  FileText,
-  Music,
-  Video,
-  Archive,
-  Plus,
-  Check
-} from 'lucide-react';
+import { Paperclip, X, Download, Trash2, Upload, File, Image, FileText, Music, Video, Archive, Plus, Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getStorage, ref, uploadBytesResumable, deleteObject } from 'firebase/storage';
 import { downloadFile } from '../../Utils/storages';
@@ -37,7 +23,7 @@ interface AttachmentsEditorProps {
 
 const getFileIcon = (fileName: string) => {
   const ext = fileName.split('.').pop()?.toLowerCase() || '';
-  
+
   const iconMap: { [key: string]: JSX.Element } = {
     // Imágenes
     jpg: <Image className="w-4 h-4" />,
@@ -46,29 +32,25 @@ const getFileIcon = (fileName: string) => {
     gif: <Image className="w-4 h-4" />,
     svg: <Image className="w-4 h-4" />,
     webp: <Image className="w-4 h-4" />,
-    
     // Documentos
     pdf: <FileText className="w-4 h-4 text-red-500" />,
     doc: <FileText className="w-4 h-4 text-blue-500" />,
     docx: <FileText className="w-4 h-4 text-blue-500" />,
     txt: <FileText className="w-4 h-4" />,
-    
     // Audio
     mp3: <Music className="w-4 h-4 text-purple-500" />,
     wav: <Music className="w-4 h-4 text-purple-500" />,
     ogg: <Music className="w-4 h-4 text-purple-500" />,
-    
     // Video
     mp4: <Video className="w-4 h-4 text-green" />,
     avi: <Video className="w-4 h-4 text-green" />,
     mov: <Video className="w-4 h-4 text-green" />,
-    
     // Archivos
     zip: <Archive className="w-4 h-4 text-yellow-500" />,
     rar: <Archive className="w-4 h-4 text-yellow-500" />,
     '7z': <Archive className="w-4 h-4 text-yellow-500" />,
   };
-  
+
   return iconMap[ext] || <File className="w-4 h-4" />;
 };
 
@@ -141,7 +123,7 @@ export const AttachmentsEditor: React.FC<AttachmentsEditorProps> = ({
       const rect = cellRef.current.getBoundingClientRect();
       const spaceBelow = window.innerHeight - rect.bottom;
       const spaceAbove = rect.top;
-      
+
       if (spaceBelow < 400 && spaceAbove > spaceBelow) {
         setDropdownPosition('top');
       } else {
@@ -152,11 +134,10 @@ export const AttachmentsEditor: React.FC<AttachmentsEditorProps> = ({
 
   const handleFileSelect = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
-    
     try {
       setUploading(true);
       const filesArray = Array.from(files);
-      
+
       // Crear nuevos attachments con los archivos
       let newAttachments: FileData[] = [
         ...attachments,
@@ -166,11 +147,9 @@ export const AttachmentsEditor: React.FC<AttachmentsEditorProps> = ({
           size: file.size
         }))
       ];
-      
       // Actualizar estado local inmediatamente
       setAttachments(newAttachments);
       onChange(newAttachments);
-      
       // Subir archivos uno por uno
       for (const file of filesArray) {
         // Validar tamaño (máximo 10MB)
@@ -178,10 +157,8 @@ export const AttachmentsEditor: React.FC<AttachmentsEditorProps> = ({
           toast('error', t('El archivo es demasiado grande. Máximo 10MB'));
           continue;
         }
-        
         const storageRef = ref(storage, `${taskId}//${file.name}`);
         const uploadTask = uploadBytesResumable(storageRef, file);
-        
         uploadTask.on('state_changed',
           (snapshot) => {
             const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
@@ -197,7 +174,6 @@ export const AttachmentsEditor: React.FC<AttachmentsEditorProps> = ({
             if (fileIndex !== -1) {
               // Generar ID único para el archivo
               newAttachments[fileIndex]._id = customAlphabet('1234567890abcdef', 24)();
-              
               // Actualizar en el backend
               await fetchApiEventos({
                 query: queries.editTask,
@@ -210,7 +186,6 @@ export const AttachmentsEditor: React.FC<AttachmentsEditorProps> = ({
                 },
                 domain: config.domain
               });
-              
               // Actualizar estado global del evento
               setEvent((prevEvent) => {
                 const newEvent = { ...prevEvent };
@@ -223,7 +198,6 @@ export const AttachmentsEditor: React.FC<AttachmentsEditorProps> = ({
                 }
                 return newEvent;
               });
-              
               // Actualizar estado local
               setAttachments([...newAttachments]);
               onChange([...newAttachments]);
@@ -231,7 +205,6 @@ export const AttachmentsEditor: React.FC<AttachmentsEditorProps> = ({
           }
         );
       }
-      
       toast('success', t('Archivos subidos correctamente'));
     } catch (error) {
       console.error('Error uploading files:', error);
@@ -250,10 +223,8 @@ export const AttachmentsEditor: React.FC<AttachmentsEditorProps> = ({
       await deleteObject(storageRef).catch(() => {
         // Ignorar error si el archivo no existe
       });
-      
       // Actualizar lista local
       const newAttachments = attachments.filter(el => el.name !== attachment.name);
-      
       // Actualizar en el backend
       await fetchApiEventos({
         query: queries.editTask,
@@ -266,7 +237,6 @@ export const AttachmentsEditor: React.FC<AttachmentsEditorProps> = ({
         },
         domain: config.domain
       });
-      
       // Actualizar estado global del evento
       setEvent((prevEvent) => {
         const newEvent = { ...prevEvent };
@@ -279,11 +249,9 @@ export const AttachmentsEditor: React.FC<AttachmentsEditorProps> = ({
         }
         return newEvent;
       });
-      
       // Actualizar estado local
       setAttachments(newAttachments);
       onChange(newAttachments);
-      
       toast('success', t('Archivo eliminado'));
     } catch (error) {
       console.error('Error deleting file:', error);
@@ -324,9 +292,8 @@ export const AttachmentsEditor: React.FC<AttachmentsEditorProps> = ({
 
   if (!isEditing) {
     const attachmentCount = attachments.length;
-    
     return (
-      <div 
+      <div
         ref={cellRef}
         className="flex items-center space-x-2 px-3 py-2 cursor-pointer hover:bg-gray-50 group min-h-[48px]"
         onClick={(e) => {
@@ -356,9 +323,8 @@ export const AttachmentsEditor: React.FC<AttachmentsEditorProps> = ({
           {attachments.length} {t('archivos')}
         </span>
       </div>
-      
       <ClickAwayListener onClickAway={onStopEdit}>
-        <div 
+        <div
           className={`absolute z-50 ${dropdownPosition === 'bottom' ? 'bottom-full mb-2' : 'top-full mt-2'} left-0 w-96 bg-white border border-gray-200 rounded-lg shadow-xl`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -377,7 +343,6 @@ export const AttachmentsEditor: React.FC<AttachmentsEditorProps> = ({
               <X className="w-4 h-4 text-gray-500" />
             </button>
           </div>
-
           {/* Lista de archivos */}
           <div className="max-h-64 overflow-y-auto">
             {attachments.length === 0 ? (
@@ -402,7 +367,6 @@ export const AttachmentsEditor: React.FC<AttachmentsEditorProps> = ({
                           {formatFileSize(attachment.size || 0)}
                         </p>
                       </div>
-                      
                       {/* Indicador de estado */}
                       {attachment._id ? (
                         <Check className="w-4 h-4 text-green" />
@@ -412,7 +376,6 @@ export const AttachmentsEditor: React.FC<AttachmentsEditorProps> = ({
                         </div>
                       )}
                     </div>
-                    
                     <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => handleDownload(attachment)}
@@ -435,11 +398,10 @@ export const AttachmentsEditor: React.FC<AttachmentsEditorProps> = ({
               </div>
             )}
           </div>
-
           {/* Zona de carga */}
           <div className="p-4 border-t border-gray-200">
             {showDropzone && (
-              <div 
+              <div
                 ref={dropzoneRef}
                 className="absolute inset-0 bg-primary/10 border-2 border-dashed border-primary rounded-lg flex items-center justify-center z-10"
               >
@@ -449,7 +411,6 @@ export const AttachmentsEditor: React.FC<AttachmentsEditorProps> = ({
                 </div>
               </div>
             )}
-            
             <input
               ref={fileInputRef}
               type="file"
@@ -457,7 +418,6 @@ export const AttachmentsEditor: React.FC<AttachmentsEditorProps> = ({
               onChange={(e) => handleFileSelect(e.target.files)}
               className="hidden"
             />
-            
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
@@ -475,7 +435,6 @@ export const AttachmentsEditor: React.FC<AttachmentsEditorProps> = ({
                 </>
               )}
             </button>
-            
             <p className="text-xs text-gray-500 text-center mt-2">
               {t('Máximo 10MB por archivo')}
             </p>

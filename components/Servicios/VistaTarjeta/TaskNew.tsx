@@ -54,7 +54,7 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
   setSelectTask?: (taskId: string) => void;
 }
 
-export const TaskNew: FC<Props> = memo(({ itinerario, task, view, optionsItineraryButtonBox, isSelect = false, showModalCompartir, setShowModalCompartir, tempPastedAndDropFiles, setTempPastedAndDropFiles, isTaskPublic = false, minimalView = false, setSelectTask, ...props }) => {
+export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryButtonBox, isSelect = false, showModalCompartir, setShowModalCompartir, tempPastedAndDropFiles, setTempPastedAndDropFiles, isTaskPublic = false, minimalView = false, setSelectTask, ...props }) => {
   const { t } = useTranslation();
   const { config, user } = AuthContextProvider();
   const { event, setEvent } = EventContextProvider();
@@ -406,7 +406,6 @@ export const TaskNew: FC<Props> = memo(({ itinerario, task, view, optionsItinera
         />
         : view === "cards" || view === "kanban"
           ? <TaskFullView
-            {...props}
             task={task}
             itinerario={itinerario}
             canEdit={canEdit}
@@ -415,8 +414,6 @@ export const TaskNew: FC<Props> = memo(({ itinerario, task, view, optionsItinera
             handleDeleteComment={handleDeleteComment}
             handleCommentAdded={handleCommentAdded}
             ht={ht}
-            comments={comments}
-            setComments={setComments}
             optionsItineraryButtonBox={optionsItineraryButtonBox}
             tempPastedAndDropFiles={tempPastedAndDropFiles}
             setTempPastedAndDropFiles={setTempPastedAndDropFiles}
@@ -424,7 +421,7 @@ export const TaskNew: FC<Props> = memo(({ itinerario, task, view, optionsItinera
           />
           : null
   )
-});
+};
 
 TaskNew.displayName = 'TaskNew';
 
