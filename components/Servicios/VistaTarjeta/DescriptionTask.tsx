@@ -73,7 +73,7 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner,
 
   return (
     <>
-      <div className="flex flex-col flex-1 min-h-0">
+      <div className="flex flex-col flex-1 basis-0 min-h-0 max-h-full">
         <div className="flex items-center justify-between">
           <label className="text-xs font-medium text-gray-700">
             {t('Descripción detallada')}
