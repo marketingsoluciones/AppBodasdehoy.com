@@ -31,7 +31,7 @@ interface TaskFullViewProps {
   optionsItineraryButtonBox?: OptionsSelect[];
   tempPastedAndDropFiles?: TempPastedAndDropFile[];
   setTempPastedAndDropFiles?: any;
-  isSelect: boolean;
+  selectTask: string;
 }
 
 export const TaskFullView: FC<TaskFullViewProps> = ({
@@ -46,7 +46,8 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
   optionsItineraryButtonBox,
   tempPastedAndDropFiles,
   setTempPastedAndDropFiles,
-  isSelect
+  selectTask,
+  ...props
 }) => {
   const { t } = useTranslation();
   const { event } = EventContextProvider();
@@ -73,8 +74,8 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
   }, [task.comments, previousCountComments]);
 
   return (
-    <div className="w-full bg-white rounded-lg shadow-lg cursor-default">
-      <div id="task-container" className={`flex h-[553px] rounded-xl outline ${isSelect ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200"}`}>
+    <div {...props} className="w-full bg-white rounded-lg shadow-lg cursor-default">
+      <div id="task-container" className={`flex h-[553px] rounded-xl outline ${selectTask === task._id ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200"}`}>
         {/* Panel principal */}
         <div id='container-left' className="flex-1 flex flex-col h-full">
           {/* Header */}

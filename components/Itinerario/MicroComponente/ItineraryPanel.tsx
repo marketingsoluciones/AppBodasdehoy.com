@@ -52,7 +52,7 @@ interface props {
   title: string
   setTitle: any
   selectTask: string
-  setSelectTask: any
+  setSelectTask: Dispatch<SetStateAction<string>>
   orderAndDirection: SelectModeSortType  // Agregar esta línea
 }
 
@@ -675,7 +675,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                             itinerario={itinerario}
                             view={view}
                             optionsItineraryButtonBox={optionsItineraryButtonBox}
-                            isSelect={selectTask === elem._id}
                             showModalCompartir={showModalCompartir}
                             setShowModalCompartir={setShowModalCompartir}
                             onClick={() => { setSelectTask(elem._id) }}
@@ -683,6 +682,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                             setTempPastedAndDropFiles={setTempPastedAndDropFiles}
                             minimalView={window?.location?.pathname === "/itinerario"}
                             setSelectTask={setSelectTask}
+                            selectTask={selectTask}
                           />
                         </PermissionTaskActionWrapper>
                       )

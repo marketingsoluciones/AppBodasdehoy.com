@@ -33,7 +33,6 @@ interface TaskFormValues {
   estatus: boolean;
   estado: string;
   prioridad: string;
-
 }
 
 interface Props extends HTMLAttributes<HTMLDivElement> {
@@ -41,7 +40,6 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
   task: Task;
   view: ViewItinerary;
   optionsItineraryButtonBox?: OptionsSelect[];
-  isSelect?: boolean;
   showModalCompartir?: any;
   setShowModalCompartir?: any;
   tempPastedAndDropFiles?: TempPastedAndDropFile[];
@@ -52,9 +50,10 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
   onDeleteComment?: (commentId: string) => void;
   minimalView?: boolean;
   setSelectTask?: (taskId: string) => void;
+  selectTask: string;
 }
 
-export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryButtonBox, isSelect = false, showModalCompartir, setShowModalCompartir, tempPastedAndDropFiles, setTempPastedAndDropFiles, isTaskPublic = false, minimalView = false, setSelectTask, ...props }) => {
+export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryButtonBox, showModalCompartir, setShowModalCompartir, tempPastedAndDropFiles, setTempPastedAndDropFiles, isTaskPublic = false, minimalView = false, setSelectTask, selectTask, ...props }) => {
   const { t } = useTranslation();
   const { config, user } = AuthContextProvider();
   const { event, setEvent } = EventContextProvider();
@@ -402,10 +401,11 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
           canEdit={canEdit}
           handleUpdate={handleUpdate}
           optionsItineraryButtonBox={optionsItineraryButtonBox}
-          isSelect={isSelect}
+          isSelect={selectTask === task._id}
         />
         : view === "cards" || view === "kanban"
           ? <TaskFullView
+            {...props}
             task={task}
             itinerario={itinerario}
             canEdit={canEdit}
@@ -417,7 +417,7 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
             optionsItineraryButtonBox={optionsItineraryButtonBox}
             tempPastedAndDropFiles={tempPastedAndDropFiles}
             setTempPastedAndDropFiles={setTempPastedAndDropFiles}
-            isSelect={isSelect}
+            selectTask={selectTask}
           />
           : null
   )
