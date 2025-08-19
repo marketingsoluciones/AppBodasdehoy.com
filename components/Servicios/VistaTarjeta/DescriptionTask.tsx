@@ -90,7 +90,7 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner,
         <div className="w-full relative flex flex-1 min-h-0">
           {shouldShowEditor && (
             <div className="absolute z-10 w-full bg-white border border-green rounded-lg overflow-hidden">
-              <div className="h-[293px] overflow-y-auto">
+              <div className="h-[293px]">
                 <ReactQuill
                   id="editor-description"
                   value={customDescription}
@@ -150,7 +150,16 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner,
       </div>
       <style jsx global>{`
       /* Estilos del editor Quill */
+        /* Forzar layout flexible y altura completa del editor */
+      .description-editor {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
       .description-editor .ql-container {
+        flex: 1 1 auto;
+        height: auto !important;
+        overflow: hidden; /* el scroll ocurre en .ql-editor */
         font-family: inherit;
         font-size: 0.875rem;
         line-height: 1.5rem;
@@ -163,8 +172,11 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner,
         min-height: 200px;
         padding: 1rem;
         font-size: 12px;
+        height: 100%;
+        overflow-y: auto;
       }
       .description-editor .ql-toolbar {
+        flex: 0 0 30px;
         background-color: #f9fafb;
         border: none !important;
         border-bottom: 1px solid #e5e7eb !important;
