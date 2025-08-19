@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { 
-  Check, 
-  X, 
-  Edit3, 
-  Calendar, 
-  Clock, 
-  User, 
-  Flag, 
+import {
+  Check,
+  X,
+  Edit3,
+  Calendar,
+  Clock,
+  User,
+  Flag,
   MessageSquare,
   ChevronRight,
   Tag,
@@ -15,15 +15,15 @@ import {
   Paperclip,
   Download
 } from 'lucide-react';
-import { 
-  TableCellProps, 
-  TASK_STATUSES, 
-  TASK_PRIORITIES 
+import {
+  TableCellProps,
+  TASK_STATUSES,
+  TASK_PRIORITIES
 } from './NewTypes';
-import { 
-  StatusDropdown, 
-  PriorityDropdown, 
-  DateSelector, 
+import {
+  StatusDropdown,
+  PriorityDropdown,
+  DateSelector,
   DateTask
 } from './NewDropdown';
 import { ClickUpResponsableSelector } from './NewResponsableSelector';
@@ -65,7 +65,7 @@ export const TableCell: React.FC<TableCellProps> = ({
   const [showDescriptionModal, setShowDescriptionModal] = useState(false);
   const [showAttachmentsModal, setShowAttachmentsModal] = useState(false);
   const [showCommentsModal, setShowCommentsModal] = useState(false);
-  
+
   const cellRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const selectorRef = useRef<HTMLDivElement>(null);
@@ -137,7 +137,7 @@ export const TableCell: React.FC<TableCellProps> = ({
         const maxLength = column.truncate || 50;
         const displayText = value || '';
         const needsTruncate = displayText.length > maxLength;
-        
+
         return isEditing ? (
           <input
             ref={inputRef}
@@ -146,13 +146,13 @@ export const TableCell: React.FC<TableCellProps> = ({
             onChange={(e) => setEditValue(e.target.value)}
             onKeyDown={handleKeyDown}
             onBlur={handleSave}
-            className="w-full px-3 py-2 border-2 border-primary rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="w-full px-3 py-2 border-2 border-primary rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20"
             placeholder={t('Escribir...')}
           />
         ) : (
           <div className="px-3 py-2 relative">
-            <span 
-              className={`text-sm ${!value ? 'text-gray-400 italic' : 'text-gray-900 font-medium'} ${needsTruncate && !showFullText ? 'cursor-pointer hover:text-primary' : ''}`}
+            <span
+              className={`${!value ? 'text-gray-400 italic' : 'text-gray-900 font-medium'} ${needsTruncate && !showFullText ? 'cursor-pointer hover:text-primary' : ''}`}
               onClick={(e) => {
                 if (needsTruncate && !showFullText) {
                   e.stopPropagation();
@@ -169,7 +169,7 @@ export const TableCell: React.FC<TableCellProps> = ({
                   e.stopPropagation();
                   setShowFullText(false);
                 }}
-                className="ml-2 text-xs text-primary hover:text-primary/80"
+                className="ml-2 text-primary hover:text-primary/80"
               >
                 {t('Ver menos')}
               </button>
@@ -220,26 +220,26 @@ export const TableCell: React.FC<TableCellProps> = ({
           </div>
         );
 
-case 'time':
-  return (
-    <div className="px-3 py-2">
-      <TimeTaskTable
-        value={task.fecha} // Pasar la fecha completa del task
-        onChange={async (newValue, additionalUpdates) => {
-          // Actualizar fecha y horaActiva si es necesario
-          if (additionalUpdates?.horaActiva !== undefined) {
-            // Primero actualizar horaActiva
-            await onUpdate({ horaActiva: additionalUpdates.horaActiva });
-          }
-          // Luego actualizar la fecha
-          await onUpdate({ fecha: newValue });
-        }}
-        canEdit={true}
-        task={task}
-      />
-    </div>
-  );
-  
+      case 'time':
+        return (
+          <div className="px-3 py-2">
+            <TimeTaskTable
+              value={task.fecha} // Pasar la fecha completa del task
+              onChange={async (newValue, additionalUpdates) => {
+                // Actualizar fecha y horaActiva si es necesario
+                if (additionalUpdates?.horaActiva !== undefined) {
+                  // Primero actualizar horaActiva
+                  await onUpdate({ horaActiva: additionalUpdates.horaActiva });
+                }
+                // Luego actualizar la fecha
+                await onUpdate({ fecha: newValue });
+              }}
+              canEdit={true}
+              task={task}
+            />
+          </div>
+        );
+
       case 'number':
         return isEditing ? (
           <input
@@ -249,12 +249,12 @@ case 'time':
             onChange={(e) => setEditValue(e.target.value)}
             onKeyDown={handleKeyDown}
             onBlur={handleSave}
-            className="w-full px-3 py-2 border-2 border-primary rounded-md text-sm focus:outline-none"
+            className="w-full px-3 py-2 border-2 border-primary rounded-md focus:outline-none"
             placeholder="0"
           />
         ) : (
           <div className="px-3 py-2">
-            <span className={`text-sm ${!value ? 'text-gray-400' : ''}`}>
+            <span className={`${!value ? 'text-gray-400' : ''}`}>
               {value ? `${value} min` : t('Sin duración')}
             </span>
           </div>
@@ -266,7 +266,7 @@ case 'time':
 
         return (
           <div className="relative" ref={selectorRef}>
-            <div 
+            <div
               className="flex items-center space-x-2 px-3 py-2 cursor-pointer hover:bg-gray-50 min-h-[48px]"
               onClick={(e) => {
                 e.stopPropagation();
@@ -277,15 +277,15 @@ case 'time':
                 <div className="flex items-center space-x-2 flex-1">
                   <div className="flex -space-x-2">
                     {responsables.slice(0, 3).map((resp, index) => {
-                      const userSelect = GruposResponsablesArry.find(el => 
+                      const userSelect = GruposResponsablesArry.find(el =>
                         el.title.toLowerCase() === resp?.toLowerCase()
-                      ) ?? allUsers.find(el => 
+                      ) ?? allUsers.find(el =>
                         el?.displayName?.toLowerCase() === resp?.toLowerCase()
                       );
 
                       return (
-                        <div 
-                          key={index} 
+                        <div
+                          key={index}
                           className="w-6 h-6 rounded-full border-2 border-gray-300 overflow-hidden hover:z-10 transition-all"
                           title={resp}
                         >
@@ -295,12 +295,12 @@ case 'time':
                     })}
                     {responsables.length > 3 && (
                       <div className="w-6 h-6 rounded-full bg-gray-100 border-2 border-gray-300 flex items-center justify-center">
-                        <span className="text-xs text-gray-600 font-medium">+{responsables.length - 3}</span>
+                        <span className="text-gray-600 font-medium">+{responsables.length - 3}</span>
                       </div>
                     )}
                   </div>
                   {isExpanded && (
-                    <div className="ml-2 text-xs text-gray-600">
+                    <div className="ml-2 text-gray-600">
                       {responsables.join(', ')}
                     </div>
                   )}
@@ -308,11 +308,11 @@ case 'time':
               ) : (
                 <div className="flex items-center space-x-2 text-gray-400">
                   <User className="w-4 h-4" />
-                  <span className="text-sm">{t('Sin asignar')}</span>
+                  <span className="">{t('Sin asignar')}</span>
                 </div>
               )}
             </div>
-            
+
             {showResponsableSelector && (
               <div className="fixed inset-0 z-50 flex items-center justify-center">
                 <div className="absolute inset-0 bg-black/20" onClick={() => setShowResponsableSelector(false)} />
@@ -355,47 +355,47 @@ case 'time':
 
       case 'tips':
         return (
-          <DescriptionCell 
-            value={value} 
+          <DescriptionCell
+            value={value}
             onClick={() => {
               setShowDescriptionModal(false);
               if (onCommentsClick) {
                 onCommentsClick();
               }
-            }} 
+            }}
           />
         );
 
       case 'attachments':
         return (
-          <AttachmentsCell 
-            value={value} 
+          <AttachmentsCell
+            value={value}
             onClick={() => {
               setShowAttachmentsModal(true);
               if (onCommentsClick) {
                 onCommentsClick();
               }
-            }} 
+            }}
           />
         );
 
       case 'comments':
         return (
-          <CommentsCell 
-            value={value} 
+          <CommentsCell
+            value={value}
             onClick={() => {
               setShowCommentsModal(true);
               if (onCommentsClick) {
                 onCommentsClick();
               }
-            }} 
+            }}
           />
         );
 
       default:
         return (
           <div className="px-3 py-2">
-            <span className={`text-sm ${!value ? 'text-gray-400' : ''}`}>
+            <span className={`${!value ? 'text-gray-400' : ''}`}>
               {value || t('Sin información')}
             </span>
           </div>
@@ -427,7 +427,7 @@ case 'time':
       </div>
 
       {/* Controles de edición inline */}
-{/*       {isEditing && canEdit && ['text', 'number', 'time'].includes(column.type) && (
+      {/*       {isEditing && canEdit && ['text', 'number', 'time'].includes(column.type) && (
         <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1 bg-white rounded-md shadow-sm border border-gray-200 p-1 z-10">
           <button
             onClick={(e) => {

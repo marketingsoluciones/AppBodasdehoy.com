@@ -29,17 +29,17 @@ interface TimeTaskTableProps {
   task: Task;
 }
 
-export const TimeTaskTable: FC<TimeTaskTableProps> = ({ 
-  value, 
-  onChange, 
-  canEdit, 
-  task 
+export const TimeTaskTable: FC<TimeTaskTableProps> = ({
+  value,
+  onChange,
+  canEdit,
+  task
 }) => {
   const { t } = useTranslation();
   const [editing, setEditing] = useState<boolean>(false);
   const [localTime, setLocalTime] = useState<string>('');
   const [hasChanges, setHasChanges] = useState<boolean>(false);
-  
+
   // Actualizar el tiempo local cuando cambia el valor o task
   useEffect(() => {
     if (value && task?.horaActiva !== false) {
@@ -51,16 +51,16 @@ export const TimeTaskTable: FC<TimeTaskTableProps> = ({
 
   const handleTimeChange = (newTime: string, shouldSave: boolean = false) => {
     if (!newTime) return;
-    
+
     setLocalTime(newTime);
     setHasChanges(true);
-    
+
     // Si shouldSave es true o si queremos actualizar inmediatamente
     if (shouldSave) {
       // Crear nueva fecha con la hora actualizada
       const dateStr = getDateString(value || task.fecha);
       const newDateTime = new Date(`${dateStr}T${newTime}`);
-      
+
       // Actualizar el valor con horaActiva = true
       onChange(newDateTime, { horaActiva: true });
       setHasChanges(false);
@@ -71,10 +71,10 @@ export const TimeTaskTable: FC<TimeTaskTableProps> = ({
     // Establecer fecha sin hora (00:00)
     const dateStr = getDateString(value || task.fecha);
     const newDateTime = new Date(`${dateStr}T00:00`);
-    
+
     // Actualizar con horaActiva = false
     onChange(newDateTime, { horaActiva: false });
-    
+
     setEditing(false);
     setLocalTime('');
     setHasChanges(false);
@@ -106,7 +106,7 @@ export const TimeTaskTable: FC<TimeTaskTableProps> = ({
     return (
       <div className="flex items-center space-x-1 text-gray-400">
         <Clock className="w-4 h-4" />
-        <span className="text-sm">{t('Sin fecha')}</span>
+        <span className="">{t('Sin fecha')}</span>
       </div>
     );
   }
@@ -147,7 +147,7 @@ export const TimeTaskTable: FC<TimeTaskTableProps> = ({
             style={{ width: '90px' }}
             autoFocus
           />
-{/*           {localTime && (
+          {/*           {localTime && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -165,7 +165,7 @@ export const TimeTaskTable: FC<TimeTaskTableProps> = ({
   }
 
   return (
-    <div 
+    <div
       onClick={() => {
         if (canEdit && (task?.fecha || value)) {
           setEditing(true);
@@ -177,15 +177,14 @@ export const TimeTaskTable: FC<TimeTaskTableProps> = ({
           }
         }
       }}
-      className={`flex items-center space-x-1 ${
-        canEdit && (task?.fecha || value) ? 'cursor-pointer hover:text-primary' : ''
-      }`}
+      className={`flex items-center space-x-1 ${canEdit && (task?.fecha || value) ? 'cursor-pointer hover:text-primary' : ''
+        }`}
       title={canEdit ? t('Haz clic para editar hora') : ''}
     >
       <Clock className="w-4 h-4 text-gray-600" />
-      <span className="text-sm">
-        {value && task?.horaActiva !== false 
-          ? formatTime(value) 
+      <span className="">
+        {value && task?.horaActiva !== false
+          ? formatTime(value)
           : t('Sin hora')
         }
       </span>

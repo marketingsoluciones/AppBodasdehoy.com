@@ -1,50 +1,22 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useTable, useSortBy, useRowSelect, useGlobalFilter } from 'react-table';
-import {
-  TableProps,
-  TableColumn,
-  TableState,
-  TableFilter,
-  ViewConfig,
-  TASK_STATUSES,
-  TASK_PRIORITIES
-} from './NewTypes';
+import { TableProps, TableColumn, TableState, TableFilter, ViewConfig, TASK_STATUSES, TASK_PRIORITIES } from './NewTypes';
 import { TableHeader } from './NewTableHeader';
 import { TableFilters } from './NewTableFilters';
 import { TableCell } from './NewTableCell';
-import { ColumnMenu } from './NewColumnMenu';
 import { AuthContextProvider, EventContextProvider } from '../../../context';
 import { fetchApiEventos, queries } from '../../../utils/Fetching';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../../../hooks/useToast';
-import {
-  MessageSquare,
-  Edit2,
-  Paperclip,
-  MoreHorizontal,
-  Eye,
-  EyeOff,
-  GitBranch,
-  Link,
-  Trash2,
-  Lock,
-  Unlock,
-  Copy,
-  Download,
-  Upload,
-  X,
-  FileText,
-  Bell
-} from 'lucide-react';
+import { Edit2, Eye, EyeOff, Link, Lock, Unlock, Copy } from 'lucide-react';
 import { TableEditModal } from './TableEditModal';
-import { customAlphabet } from 'nanoid';
 import * as XLSX from 'xlsx';
 import { Task } from '../../../utils/Interfaces';
 
 // Importar los nuevos componentes modales
 import { DescriptionModal } from './NewDescriptionModal';
 import { AttachmentsModal } from './NewAttachmentsModal';
-import { CommentsModal } from './NewCommentsModal';
+import { NewCommentsModal } from './NewCommentsModal';
 
 // Función auxiliar para descargar archivos sin file-saver
 const downloadFile = (data: Blob, filename: string) => {
@@ -219,28 +191,17 @@ const getRowActions = (task: any, optionsItineraryButtonBox: any[], handlers: an
       !['estatus', 'status'].includes(opt.value)
     )
   ];
-
   return actions;
 };
 
-export const TableView: React.FC<TableProps> = ({
-  data,
-  itinerario,
-  selectTask,
-  setSelectTask,
-  onTaskUpdate,
-  onTaskDelete,
-  onTaskCreate
-}) => {
+export const TableView: React.FC<TableProps> = ({ data, itinerario, selectTask, setSelectTask, onTaskUpdate, onTaskDelete, onTaskCreate }) => {
   const { t } = useTranslation();
   const { config, user } = AuthContextProvider();
   const { event, setEvent } = EventContextProvider();
   const toast = useToast();
   const tableContainerRef = useRef<HTMLDivElement>(null);
-
   // Definir columnas usando useMemo
   const columns = useMemo(() => defineColumns(t), [t]);
-
   // Estado de la tabla
   const [tableState, setTableState] = useState<TableState>(() => ({
     columns: columns,
@@ -251,7 +212,6 @@ export const TableView: React.FC<TableProps> = ({
     globalFilter: '',
     selectedRows: []
   }));
-
   const [editingCell, setEditingCell] = useState<{ row: number; column: string } | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'table' | 'board'>('table');
@@ -260,20 +220,20 @@ export const TableView: React.FC<TableProps> = ({
   const [hoveredRow, setHoveredRow] = useState<string | null>(null);
 
   // Estados para los modales personalizados
-  const [descriptionModal, setDescriptionModal] = useState<{ 
-    show: boolean; 
-    task?: any; 
-    rowIndex?: number 
+  const [descriptionModal, setDescriptionModal] = useState<{
+    show: boolean;
+    task?: any;
+    rowIndex?: number
   }>({ show: false });
-  
-  const [attachmentsModal, setAttachmentsModal] = useState<{ 
-    show: boolean; 
-    task?: any 
+
+  const [attachmentsModal, setAttachmentsModal] = useState<{
+    show: boolean;
+    task?: any
   }>({ show: false });
-  
-  const [commentsModal, setCommentsModal] = useState<{ 
-    show: boolean; 
-    task?: any 
+
+  const [commentsModal, setCommentsModal] = useState<{
+    show: boolean;
+    task?: any
   }>({ show: false });
 
   // Forzar actualización cuando cambian los datos
@@ -299,22 +259,17 @@ export const TableView: React.FC<TableProps> = ({
   // Filtrar datos mejorado
   const filteredData = useMemo(() => {
     if (!data || !Array.isArray(data)) return [];
-
     let filtered = [...data];
-
     // Aplicar filtros
     const activeFilters = tableState.filters.filter(f => f.isActive && f.value);
-
     if (activeFilters.length > 0) {
       filtered = filtered.filter(item => {
         return activeFilters.every(filter => {
           const value = item[filter.columnId];
           const filterValue = filter.value;
-
           // Convertir valores a string para comparación
           const valueStr = String(value || '').toLowerCase();
           const filterStr = String(filterValue || '').toLowerCase();
-
           switch (filter.operator) {
             case 'contains':
               return valueStr.includes(filterStr);
@@ -352,7 +307,6 @@ export const TableView: React.FC<TableProps> = ({
         });
       });
     }
-
     // Aplicar búsqueda global mejorada
     if (tableState.globalFilter) {
       const searchTerm = tableState.globalFilter.toLowerCase();
@@ -373,7 +327,6 @@ export const TableView: React.FC<TableProps> = ({
         });
       });
     }
-
     return filtered;
   }, [data, tableState.filters, tableState.globalFilter, forceUpdate]);
 
@@ -406,74 +359,68 @@ export const TableView: React.FC<TableProps> = ({
   } = tableInstance;
 
   // Manejar actualización de celda mejorada con verificación de cambios
-const handleCellUpdate = useCallback(async (rowIndex: number, columnId: string, value: any) => {
-  const task = filteredData[rowIndex];
-  if (!task) return;
-
-  // Si value es un objeto con múltiples actualizaciones
-  if (typeof value === 'object' && value !== null && !(value instanceof Date) && !Array.isArray(value)) {
-    // Manejar actualizaciones múltiples
-    for (const [key, val] of Object.entries(value)) {
-      await handleSingleFieldUpdate(task, key, val);
+  const handleCellUpdate = useCallback(async (rowIndex: number, columnId: string, value: any) => {
+    const task = filteredData[rowIndex];
+    if (!task) return;
+    // Si value es un objeto con múltiples actualizaciones
+    if (typeof value === 'object' && value !== null && !(value instanceof Date) && !Array.isArray(value)) {
+      // Manejar actualizaciones múltiples
+      for (const [key, val] of Object.entries(value)) {
+        await handleSingleFieldUpdate(task, key, val);
+      }
+      return;
     }
-    return;
-  }
+    // Actualización simple
+    await handleSingleFieldUpdate(task, columnId, value);
+  }, [filteredData, event._id, itinerario._id, onTaskUpdate, config.domain, t, toast]);
 
-  // Actualización simple
-  await handleSingleFieldUpdate(task, columnId, value);
-}, [filteredData, event._id, itinerario._id, onTaskUpdate, config.domain, t, toast]);
-
-// Función auxiliar para actualizaciones individuales
-const handleSingleFieldUpdate = async (task: any, columnId: string, value: any) => {
-  try {
-    let processedValue = value;
-    let actualColumnId = columnId;
-
-    // Procesar según el tipo de columna
-    switch (columnId) {
-      case 'horaActiva':
-        processedValue = JSON.stringify(Boolean(value));
-        break;
-      case 'fecha':
-        if (value instanceof Date) {
-          processedValue = value.toISOString();
-        } else if (typeof value === 'string') {
-          const date = new Date(value);
-          if (!isNaN(date.getTime())) {
-            processedValue = date.toISOString();
-          } else {
-            toast('error', t('Fecha inválida'));
-            return;
+  // Función auxiliar para actualizaciones individuales
+  const handleSingleFieldUpdate = async (task: any, columnId: string, value: any) => {
+    try {
+      let processedValue = value;
+      let actualColumnId = columnId;
+      // Procesar según el tipo de columna
+      switch (columnId) {
+        case 'horaActiva':
+          processedValue = JSON.stringify(Boolean(value));
+          break;
+        case 'fecha':
+          if (value instanceof Date) {
+            processedValue = value.toISOString();
+          } else if (typeof value === 'string') {
+            const date = new Date(value);
+            if (!isNaN(date.getTime())) {
+              processedValue = date.toISOString();
+            } else {
+              toast('error', t('Fecha inválida'));
+              return;
+            }
           }
-        }
-        break;
-      // ... resto de casos
+          break;
+        // ... resto de casos
+      }
+
+      // Hacer la llamada a la API
+      await fetchApiEventos({
+        query: queries.editTask,
+        variables: {
+          eventID: event._id,
+          itinerarioID: itinerario._id,
+          taskID: task._id,
+          variable: actualColumnId,
+          valor: processedValue
+        },
+        domain: config.domain
+      });
+      // Actualizar el estado local
+      await onTaskUpdate(task._id, { [columnId]: value });
+      // Forzar actualización de la tabla
+      setForceUpdate(prev => prev + 1);
+    } catch (error) {
+      console.error('Error al actualizar tarea:', error);
+      toast('error', t('Error al actualizar la tarea'));
     }
-
-    // Hacer la llamada a la API
-    await fetchApiEventos({
-      query: queries.editTask,
-      variables: {
-        eventID: event._id,
-        itinerarioID: itinerario._id,
-        taskID: task._id,
-        variable: actualColumnId,
-        valor: processedValue
-      },
-      domain: config.domain
-    });
-
-    // Actualizar el estado local
-    await onTaskUpdate(task._id, { [columnId]: value });
-    
-    // Forzar actualización de la tabla
-    setForceUpdate(prev => prev + 1);
-
-  } catch (error) {
-    console.error('Error al actualizar tarea:', error);
-    toast('error', t('Error al actualizar la tarea'));
-  }
-};
+  };
 
   // Primero definimos la validación de la respuesta
   const isValidTaskResponse = (response: unknown): response is Task => {
@@ -493,7 +440,6 @@ const handleSingleFieldUpdate = async (task: any, columnId: string, value: any) 
       // Calcular fecha por defecto
       const currentDate = new Date();
       const eventDate = event.fecha ? new Date(event.fecha) : currentDate;
-
       let defaultDate = eventDate;
       if (data && data.length > 0) {
         const lastTask = data[data.length - 1];
@@ -502,14 +448,12 @@ const handleSingleFieldUpdate = async (task: any, columnId: string, value: any) 
           defaultDate = new Date(lastDate.getTime() + (lastTask.duracion || 30) * 60000);
         }
       }
-
       // Formatear fecha para el API
       const year = defaultDate.getFullYear();
       const month = String(defaultDate.getMonth() + 1).padStart(2, '0');
       const day = String(defaultDate.getDate()).padStart(2, '0');
       const hours = String(defaultDate.getHours()).padStart(2, '0');
       const minutes = String(defaultDate.getMinutes()).padStart(2, '0');
-
       // Hacer la petición con type assertion seguro
       const apiResponse = await fetchApiEventos({
         query: queries.createTask,
@@ -523,7 +467,6 @@ const handleSingleFieldUpdate = async (task: any, columnId: string, value: any) 
         },
         domain: config.domain
       });
-
       // Validar la respuesta usando el type guard
       if (isValidTaskResponse(apiResponse)) {
         // Construir una tarea completa con los valores por defecto
@@ -544,7 +487,6 @@ const handleSingleFieldUpdate = async (task: any, columnId: string, value: any) 
           commentsViewers: [],
           prioridad: 'media'
         };
-
         // Actualizar estado global
         setEvent((oldEvent) => {
           const newEvent = { ...oldEvent };
@@ -558,10 +500,8 @@ const handleSingleFieldUpdate = async (task: any, columnId: string, value: any) 
             }
             newEvent.itinerarios_array[itineraryIndex].tasks.push(newTask);
           }
-
           return newEvent;
         });
-
         setSelectTask(newTask._id);
         toast('success', t('Tarea creada correctamente'));
       } else {
@@ -590,7 +530,6 @@ const handleSingleFieldUpdate = async (task: any, columnId: string, value: any) 
         [t('Visible')]: task.spectatorView ? 'Sí' : 'No',
         [t('Bloqueada')]: task.estatus ? 'Sí' : 'No'
       }));
-
       // Crear libro de Excel
       const ws = XLSX.utils.json_to_sheet(exportData);
       const wb = XLSX.utils.book_new();
@@ -603,7 +542,6 @@ const handleSingleFieldUpdate = async (task: any, columnId: string, value: any) 
       // Descargar archivo
       const fileName = `${itinerario.title}_tareas_${new Date().toISOString().split('T')[0]}.xlsx`;
       downloadFile(blob, fileName);
-
       toast('success', t('Datos exportados correctamente'));
     } catch (error) {
       console.error('Error al exportar:', error);
@@ -616,14 +554,11 @@ const handleSingleFieldUpdate = async (task: any, columnId: string, value: any) 
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.xlsx,.xls';
-
     input.onchange = async (e: any) => {
       const file = e.target.files[0];
       if (!file) return;
-
       try {
         const reader = new FileReader();
-
         reader.onload = async (evt) => {
           try {
             const bstr = evt.target?.result;
@@ -631,13 +566,11 @@ const handleSingleFieldUpdate = async (task: any, columnId: string, value: any) 
             const wsname = wb.SheetNames[0];
             const ws = wb.Sheets[wsname];
             const data = XLSX.utils.sheet_to_json(ws);
-
             // Procesar cada fila e importar
             for (const row of data as any[]) {
               const fecha = row[t('Fecha')] ? new Date(row[t('Fecha')]) : new Date();
               const [hours, minutes] = (row[t('Hora')] || '00:00').split(':');
               fecha.setHours(parseInt(hours), parseInt(minutes));
-
               await fetchApiEventos({
                 query: queries.createTask,
                 variables: {
@@ -651,17 +584,14 @@ const handleSingleFieldUpdate = async (task: any, columnId: string, value: any) 
                 domain: config.domain
               });
             }
-
             // Recargar datos
             window.location.reload();
-
             toast('success', t('Datos importados correctamente'));
           } catch (error) {
             console.error('Error procesando archivo:', error);
             toast('error', t('Error al procesar el archivo'));
           }
         };
-
         reader.readAsBinaryString(file);
       } catch (error) {
         console.error('Error al importar:', error);
@@ -714,25 +644,25 @@ const handleSingleFieldUpdate = async (task: any, columnId: string, value: any) 
   };
 
   // Manejar click en comentarios - modificado para manejar todos los modales
-const handleCommentsClick = useCallback((task: any, rowIndex: number, modalType: 'description' | 'attachments' | 'comments') => {
-  switch (modalType) {
-    case 'description':
-      setDescriptionModal(prev => {
-        // Solo abrir si no está abierto o si la tarea es diferente
-        if (!prev.show || prev.task?._id !== task._id) {
-          return { show: true, task, rowIndex };
-        }
-        return prev;
-      });
-      break;
-    case 'attachments':
-      setAttachmentsModal({ show: true, task });
-      break;
-    case 'comments':
-      setCommentsModal({ show: true, task });
-      break;
-  }
-}, []);
+  const handleCommentsClick = useCallback((task: any, rowIndex: number, modalType: 'description' | 'attachments' | 'comments') => {
+    switch (modalType) {
+      case 'description':
+        setDescriptionModal(prev => {
+          // Solo abrir si no está abierto o si la tarea es diferente
+          if (!prev.show || prev.task?._id !== task._id) {
+            return { show: true, task, rowIndex };
+          }
+          return prev;
+        });
+        break;
+      case 'attachments':
+        setAttachmentsModal({ show: true, task });
+        break;
+      case 'comments':
+        setCommentsModal({ show: true, task });
+        break;
+    }
+  }, []);
 
   // Actualizar comentarios
   const handleUpdateComments = async (taskId: string, comments: any[]) => {
@@ -775,7 +705,6 @@ const handleCommentsClick = useCallback((task: any, rowIndex: number, modalType:
           },
           domain: config.domain
         });
-
         if (isValidTaskResponse(apiResponse)) {
           // Construir la nueva tarea con todos los campos necesarios
           const newTask: Task = {
@@ -795,24 +724,20 @@ const handleCommentsClick = useCallback((task: any, rowIndex: number, modalType:
             commentsViewers: [],
             prioridad: task.prioridad || 'media'
           };
-
           // Actualizar el estado global
           setEvent((prevEvent) => {
             const newEvent = { ...prevEvent };
             const itineraryIndex = newEvent.itinerarios_array.findIndex(
               it => it._id === itinerario._id
             );
-
             if (itineraryIndex > -1) {
               if (!newEvent.itinerarios_array[itineraryIndex].tasks) {
                 newEvent.itinerarios_array[itineraryIndex].tasks = [];
               }
               newEvent.itinerarios_array[itineraryIndex].tasks.push(newTask);
             }
-
             return newEvent;
           });
-
           // Actualizar la vista
           setForceUpdate(prev => prev + 1);
           toast('success', t('Tarea duplicada correctamente'));
@@ -826,7 +751,6 @@ const handleCommentsClick = useCallback((task: any, rowIndex: number, modalType:
     },
     handleCopyLink: useCallback(async (task: any) => {
       const link = `${window.location.origin}/services/servicios-${event._id}-${itinerario._id}-${task._id}`;
-
       try {
         if (navigator.clipboard && window.isSecureContext) {
           await navigator.clipboard.writeText(link);
@@ -864,7 +788,7 @@ const handleCommentsClick = useCallback((task: any, rowIndex: number, modalType:
   }
 
   return (
-    <div className="h-full flex flex-col bg-gray-50 relative">
+    <div className="h-full flex flex-col bg-gray-50 relative text-xs">
       {/* Header principal - fixed para evitar solapamiento */}
       <div className="sticky top-0 z-20 bg-white shadow-sm">
         <TableHeader
@@ -885,7 +809,6 @@ const handleCommentsClick = useCallback((task: any, rowIndex: number, modalType:
           filtersActive={activeFiltersCount > 0}
         />
       </div>
-
       {/* Panel de filtros */}
       {showFilters && (
         <div className="sticky top-[73px] z-20 bg-white shadow-sm">
@@ -899,7 +822,6 @@ const handleCommentsClick = useCallback((task: any, rowIndex: number, modalType:
           />
         </div>
       )}
-
       {/* Tabla principal con contenedor de scroll */}
       <div ref={tableContainerRef} className="flex-1 overflow-auto relative">
         <div className="min-w-full">
@@ -917,7 +839,7 @@ const handleCommentsClick = useCallback((task: any, rowIndex: number, modalType:
                       <th
                         key={`header-${column.id || columnIndex}`}
                         {...column.getHeaderProps()}
-                        className="group relative px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        className="group relative px-4 py-3 text-left  font-medium text-gray-500 uppercase tracking-wider"
                         style={{
                           width: column.width,
                           minWidth: column.minWidth,
@@ -936,8 +858,7 @@ const handleCommentsClick = useCallback((task: any, rowIndex: number, modalType:
                               </span>
                             )}
                           </div>
-
-{/*                           {column.id !== 'select' && (
+                          {/*                           {column.id !== 'select' && (
                             <ColumnMenu
                               column={column as any}
                               onSort={(direction) => console.log('Sort', direction)}
@@ -963,7 +884,6 @@ const handleCommentsClick = useCallback((task: any, rowIndex: number, modalType:
                 prepareRow(row);
                 const isSelected = selectTask === row.original._id;
                 const isHovered = hoveredRow === row.original._id;
-
                 return (
                   <tr
                     key={row.original._id || `row-${rowIndex}`}
@@ -988,9 +908,7 @@ const handleCommentsClick = useCallback((task: any, rowIndex: number, modalType:
                         if (cell.column.id === 'comments') return 'comments';
                         return null;
                       };
-
                       const modalType = getModalType();
-
                       return (
                         <td
                           key={`${row.original._id}-${cell.column.id || cellIndex}`}
@@ -1029,7 +947,6 @@ const handleCommentsClick = useCallback((task: any, rowIndex: number, modalType:
                               </div>
                             </div>
                           )}
-
                           <TableCell
                             column={cell.column as any}
                             row={row}
@@ -1054,20 +971,19 @@ const handleCommentsClick = useCallback((task: any, rowIndex: number, modalType:
               })}
             </tbody>
           </table>
-
           {/* Mensaje cuando no hay datos */}
           {filteredData.length === 0 && (
             <div className="text-center py-12">
               <div className="text-gray-500">
                 {data.length === 0 ? (
                   <div>
-                    <p className="text-lg mb-2">{t('No hay tareas todavía')}</p>
-                    <p className="text-sm">{t('Crea tu primera tarea para comenzar')}</p>
+                    <p className="mb-2">{t('No hay tareas todavía')}</p>
+                    <p className="">{t('Crea tu primera tarea para comenzar')}</p>
                   </div>
                 ) : (
                   <div>
-                    <p className="text-lg mb-2">{t('No se encontraron resultados')}</p>
-                    <p className="text-sm">{t('Intenta ajustar tus filtros o búsqueda')}</p>
+                    <p className="mb-2">{t('No se encontraron resultados')}</p>
+                    <p className="">{t('Intenta ajustar tus filtros o búsqueda')}</p>
                   </div>
                 )}
               </div>
@@ -1075,10 +991,9 @@ const handleCommentsClick = useCallback((task: any, rowIndex: number, modalType:
           )}
         </div>
       </div>
-
       {/* Footer con información */}
       <div className="bg-white border-t border-gray-200 px-4 py-3">
-        <div className="flex items-center justify-between text-sm text-gray-600">
+        <div className="flex items-center justify-between  text-gray-600">
           <div>
             {t('Mostrando')} {filteredData.length} {t('de')} {data.length} {t('tareas')}
           </div>
@@ -1089,49 +1004,45 @@ const handleCommentsClick = useCallback((task: any, rowIndex: number, modalType:
               </span>
             )}
             {activeFiltersCount > 0 && (
-              <span className="px-2 py-1 bg-primary/10 text-primary rounded-full text-xs">
+              <span className="px-2 py-1 bg-primary/10 text-primary rounded-full ">
                 {activeFiltersCount} {t('filtros activos')}
               </span>
             )}
           </div>
         </div>
       </div>
-
       {/* Modales personalizados */}
-      
       {/* Modal de descripción */}
-{descriptionModal.show && descriptionModal.task && (
-  <DescriptionModal
-    isOpen={descriptionModal.show}
-    onClose={() => setDescriptionModal({ show: false })}
-    task={descriptionModal.task}
-    itinerarioId={itinerario._id}
-    onUpdate={async (field: string, value: any) => {
-      if (descriptionModal.rowIndex !== undefined) {
-        try {
-          // Actualizar usando handleCellUpdate existente
-          await handleCellUpdate(
-            descriptionModal.rowIndex,
-            field,
-            value
-          );
-          
-          // Actualizar el task en el estado del modal
-          setDescriptionModal(prev => ({
-            ...prev,
-            task: { ...prev.task, [field]: value }
-          }));
-          
-          // Forzar re-render
-          setForceUpdate(prev => prev + 1);
-        } catch (error) {
-          console.error('Error updating field:', error);
-        }
-      }
-    }}
-  />
-)}
+      {descriptionModal.show && descriptionModal.task && (
+        <DescriptionModal
+          isOpen={descriptionModal.show}
+          onClose={() => setDescriptionModal({ show: false })}
+          task={descriptionModal.task}
+          itinerarioId={itinerario._id}
+          onUpdate={async (field: string, value: any) => {
+            if (descriptionModal.rowIndex !== undefined) {
+              try {
+                // Actualizar usando handleCellUpdate existente
+                await handleCellUpdate(
+                  descriptionModal.rowIndex,
+                  field,
+                  value
+                );
 
+                // Actualizar el task en el estado del modal
+                setDescriptionModal(prev => ({
+                  ...prev,
+                  task: { ...prev.task, [field]: value }
+                }));
+                // Forzar re-render
+                setForceUpdate(prev => prev + 1);
+              } catch (error) {
+                console.error('Error updating field:', error);
+              }
+            }
+          }}
+        />
+      )}
       {/* Modal de archivos adjuntos */}
       {attachmentsModal.show && attachmentsModal.task && (
         <AttachmentsModal
@@ -1143,10 +1054,9 @@ const handleCommentsClick = useCallback((task: any, rowIndex: number, modalType:
           owner={true}
         />
       )}
-
       {/* Modal de comentarios */}
       {commentsModal.show && commentsModal.task && (
-        <CommentsModal
+        <NewCommentsModal
           isOpen={commentsModal.show}
           onClose={() => setCommentsModal({ show: false })}
           task={commentsModal.task}
@@ -1154,13 +1064,11 @@ const handleCommentsClick = useCallback((task: any, rowIndex: number, modalType:
           onUpdateComments={handleUpdateComments}
         />
       )}
-
       {/* Modal de edición completa (existente) */}
       {showEditModal.show && showEditModal.task && (
         <>
           {/* Backdrop para bloquear interacciones */}
           <div className="fixed inset-0 bg-black bg-opacity-50 z-[100]" onClick={() => setShowEditModal({ show: false })} />
-
           {/* Modal container con z-index superior */}
           <div className="fixed inset-0 z-[101] flex items-center justify-center p-4 pointer-events-none">
             <div className="pointer-events-auto">

@@ -15,7 +15,7 @@ interface CommentsModalProps {
   onUpdateComments: (taskId: string, comments: any[]) => void;
 }
 
-export const CommentsModal: React.FC<CommentsModalProps> = ({
+export const NewCommentsModal: React.FC<CommentsModalProps> = ({
   isOpen,
   onClose,
   task,
@@ -59,7 +59,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
         },
         domain: config.domain
       });
-      
+
       const updatedComments = comments.filter((c: any) => c._id !== commentId);
       setComments(updatedComments);
       onUpdateComments(task._id, updatedComments);
@@ -145,9 +145,8 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
             itinerario={itinerario}
             task={task}
             tempPastedAndDropFiles={[]}
-            setTempPastedAndDropFiles={() => {}}
+            setTempPastedAndDropFiles={() => { }}
             disabled={false}
-            onCommentAdded={handleCommentAdded}
           />
         </div>
       </div>

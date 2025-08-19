@@ -90,7 +90,7 @@ export const TagsEditor: React.FC<TagsEditorProps> = ({
   const handleRemoveTag = (tagToRemove: string) => {
     const updatedTags = value.filter(tag => tag !== tagToRemove);
     onChange(updatedTags);
-    
+
     // Remover color asociado
     const newTagColors = { ...tagColors };
     delete newTagColors[tagToRemove];
@@ -131,10 +131,10 @@ export const TagsEditor: React.FC<TagsEditorProps> = ({
             return (
               <div
                 key={index}
-                className={`group relative inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs ${colorInfo.bg} ${colorInfo.text} transition-all`}
+                className={`group relative inline-flex items-center space-x-1 px-2 py-1 rounded-full ${colorInfo.bg} ${colorInfo.text} transition-all`}
               >
                 <span>{tag}</span>
-                
+
                 {/* Botón de color */}
                 <button
                   onClick={() => setShowColorPicker(showColorPicker === index ? null : index)}
@@ -143,7 +143,7 @@ export const TagsEditor: React.FC<TagsEditorProps> = ({
                 >
                   <Palette className="w-3 h-3" />
                 </button>
-                
+
                 {/* Botón de eliminar */}
                 <button
                   onClick={() => handleRemoveTag(tag)}
@@ -155,7 +155,7 @@ export const TagsEditor: React.FC<TagsEditorProps> = ({
 
                 {/* Selector de colores */}
                 {showColorPicker === index && (
-                  <div 
+                  <div
                     ref={dropdownRef}
                     className="absolute top-8 left-0 z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-2"
                   >
@@ -185,10 +185,10 @@ export const TagsEditor: React.FC<TagsEditorProps> = ({
               value={newTag}
               onChange={(e) => setNewTag(e.target.value)}
               placeholder={t('Escribir nueva etiqueta...')}
-              className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              className="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary/20 focus:border-primary"
             />
           </div>
-          
+
           <button
             onClick={handleAddTag}
             disabled={!newTag.trim()}
@@ -202,13 +202,13 @@ export const TagsEditor: React.FC<TagsEditorProps> = ({
         <div className="flex items-center justify-end space-x-2 pt-2">
           <button
             onClick={onCancel}
-            className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+            className="px-3 py-1 text-gray-600 hover:text-gray-800 transition-colors"
           >
             {t('Cancelar')}
           </button>
           <button
             onClick={onSave}
-            className="px-3 py-1 text-sm bg-primary text-white rounded hover:bg-primary/90 transition-colors"
+            className="px-3 py-1 bg-primary text-white rounded hover:bg-primary/90 transition-colors"
           >
             {t('Guardar')}
           </button>
@@ -218,19 +218,19 @@ export const TagsEditor: React.FC<TagsEditorProps> = ({
   }
 
   return (
-    <div 
+    <div
       className="group w-full min-h-[32px] flex items-center cursor-pointer"
       onClick={onStartEdit}
     >
       <div className="flex-1 min-w-0">
         {value.length > 0 ? (
-          <div className="flex flex-wrap items-center gap-1">
+          <div className="flex flex-wrap items-center">
             {displayTags.map((tag, index) => {
               const colorInfo = getTagColor(tag);
               return (
                 <span
                   key={index}
-                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs ${colorInfo.bg} ${colorInfo.text}`}
+                  className={`inline-flex items-center px-2 rounded-full ${colorInfo.bg} ${colorInfo.text}`}
                 >
                   {tag}
                 </span>
@@ -242,7 +242,7 @@ export const TagsEditor: React.FC<TagsEditorProps> = ({
                   e.stopPropagation();
                   setShowAllTags(true);
                 }}
-                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                className="inline-flex items-center px-2 pt-[1px] rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
               >
                 +{remainingCount} más
               </button>
@@ -253,7 +253,7 @@ export const TagsEditor: React.FC<TagsEditorProps> = ({
                   e.stopPropagation();
                   setShowAllTags(false);
                 }}
-                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                className="inline-flex items-center px-2 pt-[1px] rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
               >
                 Ver menos
               </button>
@@ -262,7 +262,7 @@ export const TagsEditor: React.FC<TagsEditorProps> = ({
         ) : (
           <div className="flex items-center space-x-2 text-gray-400">
             <Tag className="w-4 h-4" />
-            <span className="text-sm">{placeholder}</span>
+            <span className="*text-sm">{placeholder}</span>
           </div>
         )}
       </div>
