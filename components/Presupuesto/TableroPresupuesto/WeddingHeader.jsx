@@ -12,7 +12,7 @@ const WeddingHeader = ({
   return (
     <div className="bg-white shadow-md sticky top-0 z-10">
       <div className="max-w-screen-xl mx-auto px-3">
-        <div className="flex items-center justify-between py-2">
+        <div className="flex flex-col md:flex-row items-center justify-between py-2">
           <div className="flex items-center space-x-4">
             <div>
               <h1 className="text-xl font-bold text-gray-800">Wedding Finance Manager</h1>
@@ -24,7 +24,7 @@ const WeddingHeader = ({
               <p className="text-xs text-gray-600 capitalize">{type}: {new Date(parseInt(weddingDate)).toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}</p>
             </div>
           </div>
-          <div className="flex items-center space-x-3">
+          {/* <div className="flex items-center space-x-3">
             <button 
               onClick={onNotificationClick}
               className="relative p-1 text-gray-600 hover:text-gray-800"
@@ -34,11 +34,11 @@ const WeddingHeader = ({
                 <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full"></span>
               )}
             </button>
-            <div className="text-right">
+             <div className="text-right">
               <p className="text-xs text-gray-500">Wedding Planner</p>
-              {/* <p className="font-semibold text-sm">{plannerName}</p> */}
+              <p className="font-semibold text-sm">{plannerName}</p>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

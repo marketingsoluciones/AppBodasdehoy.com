@@ -16,7 +16,7 @@ const FinancialSummary = ({
 
   return (
     <div className="mt-4 bg-white rounded-xl shadow-md p-4">
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex flex-col md:flex-row items-center justify-between mb-3">
         <h3 className="text-xl font-bold">Resumen Financiero Detallado</h3>
         <div className="flex gap-2">
           <button
@@ -36,7 +36,7 @@ const FinancialSummary = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid md:grid-cols-4 gap-4">
         <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-3">
           <p className="text-xs font-medium text-gray-600 mb-1">
             💰 Presupuesto Total
@@ -86,7 +86,7 @@ const FinancialSummary = ({
           <h4 className="text-base. font-semibold mb-2">
             Distribución por Categorías
           </h4>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid md:grid-cols-3 gap-2">
             {categorias.map((item, idx) => (
               <div
                 key={idx}
