@@ -2370,4 +2370,10 @@ export const queries = {
   getPlanSpaceSelect: `query ($evento_id: ID, $isOwner: Boolean) {
     getPlanSpaceSelect(evento_id: $evento_id, isOwner: $isOwner)
   }`,
+  addTaskAttachments: `mutation ($eventID: String, $itinerarioID: String, $taskID: String, $attachment: inputFileData) {
+    addTaskAttachments(eventID: $eventID, itinerarioID: $itinerarioID, taskID: $taskID, attachment: $attachment)
+  }`,
+  deleteTaskAttachment: `mutation ($eventID: String, $itinerarioID: String, $taskID: String, $attachmentID: String) {
+    deleteTaskAttachment(eventID: $eventID, itinerarioID: $itinerarioID, taskID: $taskID, attachmentID: $attachmentID)
+  }`,
 };
