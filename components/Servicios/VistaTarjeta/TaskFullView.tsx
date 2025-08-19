@@ -26,7 +26,6 @@ interface TaskFullViewProps {
   handleUpdate: (field: string, value: any) => Promise<void>;
   handleDuplicate: () => Promise<void>;
   handleDeleteComment: (commentId: string) => Promise<void>;
-  handleCommentAdded: (comment: Comment) => void;
   ht: () => void;
   optionsItineraryButtonBox?: OptionsSelect[];
   tempPastedAndDropFiles?: TempPastedAndDropFile[];
@@ -41,7 +40,6 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
   handleUpdate,
   handleDuplicate,
   handleDeleteComment,
-  handleCommentAdded,
   ht,
   optionsItineraryButtonBox,
   tempPastedAndDropFiles,
@@ -61,7 +59,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
   useEffect(() => {
     if (task.comments.length > previousCountComments) {
       setTimeout(() => {
-        const commentsContainer = document.getElementById('comments-container');
+        const commentsContainer = document.getElementById(`comments-container-${task._id}`);
         if (commentsContainer) {
           commentsContainer.scrollTo({
             top: commentsContainer.scrollHeight,
@@ -71,7 +69,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
       }, 100);
     }
     setPreviousCountComments(task.comments.length);
-  }, [task.comments, previousCountComments]);
+  }, [task.comments.length, previousCountComments]);
 
   return (
     <div {...props} className="w-full bg-white rounded-lg shadow-lg cursor-default">
@@ -184,7 +182,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               </div>
             </div>
           </div>
-          <div id="comments-container" className="flex-1 overflow-y-auto min-h-0">
+          <div id={`comments-container-${task._id}`} className="flex-1 overflow-y-auto min-h-0">
             {task.comments.length === 0
               ? <div className="h-full flex items-center justify-center">
                 <div className="text-center">
@@ -221,21 +219,12 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
             }
           </div>
           <div className="border-t border-gray-200 bg-white flex-shrink-0">
-            {/* <InputComments
-              itinerario={itinerario}
-              task={task}
-              tempPastedAndDropFiles={tempPastedAndDropFiles || []}
-              setTempPastedAndDropFiles={setTempPastedAndDropFiles}
-              disabled={false}
-              onCommentAdded={handleCommentAdded}
-            /> */}
             <InputCommentsOld
               itinerario={itinerario}
               task={task}
               tempPastedAndDropFiles={tempPastedAndDropFiles || []}
               setTempPastedAndDropFiles={setTempPastedAndDropFiles}
               disabled={false}
-              onCommentAdded={handleCommentAdded}
             />
           </div>
         </div>

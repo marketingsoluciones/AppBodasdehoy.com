@@ -102,8 +102,8 @@ export const AddColumnModal: React.FC<AddColumnModalProps> = ({
                   className={`
                     relative p-3 rounded-md transition-all
                     ${color.bg} border-2 ${color.border}
-                    ${selectedColor === color 
-                      ? 'ring-2 ring-primary ring-offset-2' 
+                    ${selectedColor === color
+                      ? 'ring-2 ring-primary ring-offset-2'
                       : 'hover:ring-2 hover:ring-gray-300'
                     }
                   `}
