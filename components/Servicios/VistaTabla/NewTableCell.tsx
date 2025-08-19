@@ -23,7 +23,8 @@ import {
 import { 
   StatusDropdown, 
   PriorityDropdown, 
-  DateSelector 
+  DateSelector, 
+  DateTask
 } from './NewDropdown';
 import { ClickUpResponsableSelector } from './NewResponsableSelector';
 import { ImageAvatar } from '../../Utils/ImageAvatar';
@@ -39,6 +40,9 @@ import { downloadFile } from '../../Utils/storages';
 import { useToast } from '../../../hooks/useToast';
 import { fetchApiEventos, queries } from '../../../utils/Fetching';
 import { GruposResponsablesArry } from '../Utils/ResponsableSelector';
+import { DescriptionCell, AttachmentsCell, CommentsCell } from './NewCellRenderers';
+import { TimeTask } from '../VistaTarjeta/TimeTask';
+import { TimeTaskTable } from './TimeTaskTable';
 
 export const TableCell: React.FC<TableCellProps> = ({
   column,
@@ -58,6 +62,10 @@ export const TableCell: React.FC<TableCellProps> = ({
   const [showFullText, setShowFullText] = useState(false);
   const [showResponsableSelector, setShowResponsableSelector] = useState(false);
   const [previousValue, setPreviousValue] = useState(value);
+  const [showDescriptionModal, setShowDescriptionModal] = useState(false);
+  const [showAttachmentsModal, setShowAttachmentsModal] = useState(false);
+  const [showCommentsModal, setShowCommentsModal] = useState(false);
+  
   const cellRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const selectorRef = useRef<HTMLDivElement>(null);
@@ -67,7 +75,6 @@ export const TableCell: React.FC<TableCellProps> = ({
   const storage = getStorage();
   const toast = useToast();
   const config = (event as any)?.config || {};
-
 
   useEffect(() => {
     setEditValue(value);
@@ -117,6 +124,12 @@ export const TableCell: React.FC<TableCellProps> = ({
     return doc.body.textContent || "";
   };
 
+  // Exportar estados de modales
+  useEffect(() => {
+    if (column.type === 'tips' && showDescriptionModal) {
+      onCommentsClick && onCommentsClick();
+    }
+  }, [showDescriptionModal, column.type, onCommentsClick]);
 
   const renderCellContent = () => {
     switch (column.type) {
@@ -193,71 +206,40 @@ export const TableCell: React.FC<TableCellProps> = ({
       case 'date':
         return (
           <div className="px-3 py-2 flex items-center gap-2">
-            <DateSelector
+            <DateTask
               value={value ? new Date(value).toISOString().split('T')[0] : ''}
               onChange={(newValue) => {
                 if (newValue) {
-                  const newDate = new Date(newValue);
-                  if (!isNaN(newDate.getTime())) {
-                    onUpdate(newDate.toISOString());
-                  }
+                  onUpdate(newValue);
                 } else {
-                  onUpdate(new Date().toISOString());
+                  onUpdate(new Date().toISOString().split('T')[0]);
                 }
               }}
               placeholder={t('Sin fecha')}
-              task={task}
-              event={event}
-              itinerarioId={itinerarioId}
-              config={config}
-              onUpdate={onUpdate}
-              setEvent={setEvent}
-              toast={toast}
-              t={t}
             />
-{/*             {value && (
-              <button
-                type="button"
-                className="ml-2 text-gray-400 hover:text-red-500 transition-colors"
-                title={t('Eliminar fecha')}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDeleteDate();
-                }}
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )} */}
           </div>
         );
 
-      case 'time':
-        const timeValue = value ? new Date(value).toLocaleTimeString('es-ES', { 
-          hour: '2-digit', 
-          minute: '2-digit' 
-        }) : '';
-        
-        return isEditing ? (
-          <div className="px-3 py-2">
-            <input
-              ref={inputRef}
-              type="time"
-              value={editValue || ''}
-              onChange={(e) => setEditValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              onBlur={handleSave}
-              className="w-full px-3 py-2 border-2 border-primary rounded-md text-sm focus:outline-none min-w-[120px]"
-            />
-          </div>
-        ) : (
-          <div className="flex items-center space-x-2 px-3 py-2">
-            <Clock className="w-4 h-4 text-gray-400" />
-            <span className={`text-sm ${!timeValue ? 'text-gray-400' : ''}`}>
-              {timeValue || t('Sin hora')}
-            </span>
-          </div>
-        );
-
+case 'time':
+  return (
+    <div className="px-3 py-2">
+      <TimeTaskTable
+        value={task.fecha} // Pasar la fecha completa del task
+        onChange={async (newValue, additionalUpdates) => {
+          // Actualizar fecha y horaActiva si es necesario
+          if (additionalUpdates?.horaActiva !== undefined) {
+            // Primero actualizar horaActiva
+            await onUpdate({ horaActiva: additionalUpdates.horaActiva });
+          }
+          // Luego actualizar la fecha
+          await onUpdate({ fecha: newValue });
+        }}
+        canEdit={true}
+        task={task}
+      />
+    </div>
+  );
+  
       case 'number':
         return isEditing ? (
           <input
@@ -304,7 +286,7 @@ export const TableCell: React.FC<TableCellProps> = ({
                       return (
                         <div 
                           key={index} 
-                          className="w-6 h-6 rounded-full border-2 border-white overflow-hidden hover:z-10 transition-all"
+                          className="w-6 h-6 rounded-full border-2 border-gray-300 overflow-hidden hover:z-10 transition-all"
                           title={resp}
                         >
                           <ImageAvatar user={userSelect} />
@@ -312,7 +294,7 @@ export const TableCell: React.FC<TableCellProps> = ({
                       );
                     })}
                     {responsables.length > 3 && (
-                      <div className="w-6 h-6 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center">
+                      <div className="w-6 h-6 rounded-full bg-gray-100 border-2 border-gray-300 flex items-center justify-center">
                         <span className="text-xs text-gray-600 font-medium">+{responsables.length - 3}</span>
                       </div>
                     )}
@@ -373,59 +355,41 @@ export const TableCell: React.FC<TableCellProps> = ({
 
       case 'tips':
         return (
-          <div className="p-2">
-            <TipsEditor
-              value={value || ''}
-              onChange={setEditValue}
-              isEditing={isEditing}
-              onStartEdit={onStartEdit}
-              onStopEdit={onStopEdit}
-              onSave={handleSave}
-              onCancel={handleCancel}
-              placeholder={t('Agregar descripción...')}
-              maxTooltipLength={200}
-            />
-          </div>
+          <DescriptionCell 
+            value={value} 
+            onClick={() => {
+              setShowDescriptionModal(false);
+              if (onCommentsClick) {
+                onCommentsClick();
+              }
+            }} 
+          />
         );
 
       case 'attachments':
         return (
-          <div className="relative">
-            <AttachmentsEditor
-              value={value || []}
-              onChange={(newValue) => {
-                if (JSON.stringify(newValue) !== JSON.stringify(value || [])) {
-                  onUpdate(newValue);
-                }
-              }}
-              taskId={task._id}
-              isEditing={isEditing}
-              onStartEdit={onStartEdit}
-              onStopEdit={onStopEdit}
-              task={task}
-              itinerarioId={itinerarioId || ''}
-            />
-          </div>
+          <AttachmentsCell 
+            value={value} 
+            onClick={() => {
+              setShowAttachmentsModal(true);
+              if (onCommentsClick) {
+                onCommentsClick();
+              }
+            }} 
+          />
         );
 
       case 'comments':
-        const commentsCount = Array.isArray(value) ? value.length : 0;
         return (
-          <div 
-            className="flex items-center space-x-2 px-3 py-2 cursor-pointer hover:bg-gray-50 group"
-            onClick={(e) => {
-              e.stopPropagation();
-              onCommentsClick && onCommentsClick();
-            }}
-          >
-            <MessageSquare className="w-4 h-4 text-gray-400 group-hover:text-primary" />
-            <span className={`text-sm ${commentsCount > 0 ? 'text-gray-900 font-medium' : 'text-gray-400'}`}>
-              {commentsCount || '-'}
-            </span>
-            {commentsCount > 0 && (
-              <ChevronRight className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-            )}
-          </div>
+          <CommentsCell 
+            value={value} 
+            onClick={() => {
+              setShowCommentsModal(true);
+              if (onCommentsClick) {
+                onCommentsClick();
+              }
+            }} 
+          />
         );
 
       default:
@@ -448,10 +412,10 @@ export const TableCell: React.FC<TableCellProps> = ({
         relative group h-full min-h-[48px] flex items-center
         ${isEditing ? 'bg-primary/5 ring-2 ring-primary/20' : ''}
         ${canEdit && !isEditing ? 'hover:bg-gray-50' : ''}
-        ${column.type === 'comments' || column.type === 'attachments' || column.type === 'responsable' ? '' : canEdit ? 'cursor-text' : 'cursor-default'}
+        ${column.type === 'comments' || column.type === 'attachments' || column.type === 'responsable' || column.type === 'tips' ? '' : canEdit ? 'cursor-text' : 'cursor-default'}
       `}
       onClick={() => {
-        if (canEdit && !isEditing && column.type !== 'comments' && column.type !== 'responsable' && column.type !== 'attachments') {
+        if (canEdit && !isEditing && column.type !== 'comments' && column.type !== 'responsable' && column.type !== 'attachments' && column.type !== 'tips') {
           onStartEdit();
         }
       }}
@@ -463,7 +427,7 @@ export const TableCell: React.FC<TableCellProps> = ({
       </div>
 
       {/* Controles de edición inline */}
-      {isEditing && canEdit && ['text', 'number', 'time'].includes(column.type) && (
+{/*       {isEditing && canEdit && ['text', 'number', 'time'].includes(column.type) && (
         <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1 bg-white rounded-md shadow-sm border border-gray-200 p-1 z-10">
           <button
             onClick={(e) => {
@@ -486,7 +450,7 @@ export const TableCell: React.FC<TableCellProps> = ({
             <X className="w-4 h-4" />
           </button>
         </div>
-      )}
+      )} */}
 
       {/* Indicador de edición */}
       {!isEditing && canEdit && showEditControls && column.type !== 'comments' && column.type !== 'tips' && column.type !== 'tags' && column.type !== 'responsable' && column.type !== 'attachments' && (
@@ -497,3 +461,11 @@ export const TableCell: React.FC<TableCellProps> = ({
     </div>
   );
 };
+
+// Exportar interface para estados de modales
+export interface TableCellModalStates {
+  showDescriptionModal: boolean;
+  showAttachmentsModal: boolean;
+  showCommentsModal: boolean;
+  task: any;
+}

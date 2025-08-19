@@ -31,13 +31,20 @@ import {
   Unlock,
   Copy,
   Download,
-  Upload
+  Upload,
+  X,
+  FileText,
+  Bell
 } from 'lucide-react';
-import { CommentModal } from '../CommentModal';
 import { TableEditModal } from './TableEditModal';
 import { customAlphabet } from 'nanoid';
 import * as XLSX from 'xlsx';
 import { Task } from '../../../utils/Interfaces';
+
+// Importar los nuevos componentes modales
+import { DescriptionModal } from './NewDescriptionModal';
+import { AttachmentsModal } from './NewAttachmentsModal';
+import { CommentsModal } from './NewCommentsModal';
 
 // Función auxiliar para descargar archivos sin file-saver
 const downloadFile = (data: Blob, filename: string) => {
@@ -249,9 +256,25 @@ export const TableView: React.FC<TableProps> = ({
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'table' | 'board'>('table');
   const [savedViews, setSavedViews] = useState<ViewConfig[]>([]);
-  const [showCommentModal, setShowCommentModal] = useState<{ show: boolean; task?: any; rowIndex?: number }>({ show: false });
   const [showEditModal, setShowEditModal] = useState<{ show: boolean; task?: any }>({ show: false });
   const [hoveredRow, setHoveredRow] = useState<string | null>(null);
+
+  // Estados para los modales personalizados
+  const [descriptionModal, setDescriptionModal] = useState<{ 
+    show: boolean; 
+    task?: any; 
+    rowIndex?: number 
+  }>({ show: false });
+  
+  const [attachmentsModal, setAttachmentsModal] = useState<{ 
+    show: boolean; 
+    task?: any 
+  }>({ show: false });
+  
+  const [commentsModal, setCommentsModal] = useState<{ 
+    show: boolean; 
+    task?: any 
+  }>({ show: false });
 
   // Forzar actualización cuando cambian los datos
   const [forceUpdate, setForceUpdate] = useState(0);
@@ -383,111 +406,74 @@ export const TableView: React.FC<TableProps> = ({
   } = tableInstance;
 
   // Manejar actualización de celda mejorada con verificación de cambios
-  const handleCellUpdate = useCallback(async (rowIndex: number, columnId: string, value: any) => {
-    const task = filteredData[rowIndex];
-    if (!task) return;
+const handleCellUpdate = useCallback(async (rowIndex: number, columnId: string, value: any) => {
+  const task = filteredData[rowIndex];
+  if (!task) return;
 
-    // Verificar si el valor realmente cambió
-    const currentValue = task[columnId];
-
-    // Comparación profunda para arrays
-    if (Array.isArray(currentValue) && Array.isArray(value)) {
-      if (JSON.stringify(currentValue) === JSON.stringify(value)) {
-        return; // No hay cambios
-      }
-    } else if (currentValue === value) {
-      return; // No hay cambios
+  // Si value es un objeto con múltiples actualizaciones
+  if (typeof value === 'object' && value !== null && !(value instanceof Date) && !Array.isArray(value)) {
+    // Manejar actualizaciones múltiples
+    for (const [key, val] of Object.entries(value)) {
+      await handleSingleFieldUpdate(task, key, val);
     }
+    return;
+  }
 
-    try {
-      let processedValue = value;
-      let actualColumnId = columnId;
+  // Actualización simple
+  await handleSingleFieldUpdate(task, columnId, value);
+}, [filteredData, event._id, itinerario._id, onTaskUpdate, config.domain, t, toast]);
 
-      // Procesar según el tipo de columna
-      switch (columnId) {
-        case 'responsable':
-        case 'tags':
-        case 'attachments':
-          processedValue = JSON.stringify(Array.isArray(value) ? value : []);
-          break;
-        case 'tips':
-          processedValue = String(value || '');
-          break;
-        case 'duracion':
-          processedValue = String(value || '0');
-          break;
-        case 'fecha':
-          if (value) {
-            if (value instanceof Date) {
-              processedValue = value.toISOString();
-            } else if (typeof value === 'string') {
-              // Verificar si es una fecha válida
-              const date = new Date(value);
-              if (!isNaN(date.getTime())) {
-                processedValue = date.toISOString();
-              } else {
-                toast('error', t('Fecha inválida'));
-                return;
-              }
-            }
+// Función auxiliar para actualizaciones individuales
+const handleSingleFieldUpdate = async (task: any, columnId: string, value: any) => {
+  try {
+    let processedValue = value;
+    let actualColumnId = columnId;
+
+    // Procesar según el tipo de columna
+    switch (columnId) {
+      case 'horaActiva':
+        processedValue = JSON.stringify(Boolean(value));
+        break;
+      case 'fecha':
+        if (value instanceof Date) {
+          processedValue = value.toISOString();
+        } else if (typeof value === 'string') {
+          const date = new Date(value);
+          if (!isNaN(date.getTime())) {
+            processedValue = date.toISOString();
           } else {
-            // Si se borra la fecha, establecer fecha actual
-            processedValue = new Date().toISOString();
+            toast('error', t('Fecha inválida'));
+            return;
           }
-          break;
-        case 'hora':
-          // Para la hora, actualizamos la fecha completa
-          if (task.fecha && value) {
-            const fecha = new Date(task.fecha);
-            const [hours, minutes] = value.split(':');
-            fecha.setHours(parseInt(hours), parseInt(minutes));
-            processedValue = fecha.toISOString();
-            actualColumnId = 'fecha';
-          }
-          break;
-        case 'estatus':
-        case 'spectatorView':
-          processedValue = JSON.stringify(Boolean(value));
-          break;
-        case 'estado':
-        case 'prioridad':
-          processedValue = String(value);
-          break;
-        default:
-          processedValue = String(value || '');
-      }
-
-      // Hacer la llamada a la API
-      await fetchApiEventos({
-        query: queries.editTask,
-        variables: {
-          eventID: event._id,
-          itinerarioID: itinerario._id,
-          taskID: task._id,
-          variable: actualColumnId,
-          valor: processedValue
-        },
-        domain: config.domain
-      });
-
-      // Actualizar el estado local
-      const updatedValue = ['responsable', 'tags', 'attachments'].includes(columnId)
-        ? (Array.isArray(value) ? value : [])
-        : value;
-
-      // Actualizar a través del callback padre
-      await onTaskUpdate(task._id, { [columnId]: updatedValue });
-
-      // Forzar actualización de la tabla
-      setForceUpdate(prev => prev + 1);
-
-      toast('success', t('Campo actualizado'));
-
-    } catch (error) {
-      console.error('Error al actualizar tarea:', error);
-      toast('error', t('Error al actualizar la tarea'));
+        }
+        break;
+      // ... resto de casos
     }
-  }, [event._id, itinerario._id, filteredData, onTaskUpdate, config.domain, t, toast]);
+
+    // Hacer la llamada a la API
+    await fetchApiEventos({
+      query: queries.editTask,
+      variables: {
+        eventID: event._id,
+        itinerarioID: itinerario._id,
+        taskID: task._id,
+        variable: actualColumnId,
+        valor: processedValue
+      },
+      domain: config.domain
+    });
+
+    // Actualizar el estado local
+    await onTaskUpdate(task._id, { [columnId]: value });
+    
+    // Forzar actualización de la tabla
+    setForceUpdate(prev => prev + 1);
+
+  } catch (error) {
+    console.error('Error al actualizar tarea:', error);
+    toast('error', t('Error al actualizar la tarea'));
+  }
+};
 
   // Primero definimos la validación de la respuesta
   const isValidTaskResponse = (response: unknown): response is Task => {
@@ -710,9 +696,6 @@ export const TableView: React.FC<TableProps> = ({
     const savedViewsKey = `tableViews_${event._id}_${itinerario._id}`;
     localStorage.setItem(savedViewsKey, JSON.stringify(newViews));
 
-    // TODO: Guardar en base de datos
-    // Agregar campo viewConfigs al itinerario en la base de datos
-
     toast('success', 'Vista guardada correctamente');
   };
 
@@ -730,10 +713,26 @@ export const TableView: React.FC<TableProps> = ({
     toast('success', `Vista "${view.name}" cargada`);
   };
 
-  // Manejar click en comentarios
-  const handleCommentsClick = (task: any, rowIndex: number) => {
-    setShowCommentModal({ show: true, task, rowIndex });
-  };
+  // Manejar click en comentarios - modificado para manejar todos los modales
+const handleCommentsClick = useCallback((task: any, rowIndex: number, modalType: 'description' | 'attachments' | 'comments') => {
+  switch (modalType) {
+    case 'description':
+      setDescriptionModal(prev => {
+        // Solo abrir si no está abierto o si la tarea es diferente
+        if (!prev.show || prev.task?._id !== task._id) {
+          return { show: true, task, rowIndex };
+        }
+        return prev;
+      });
+      break;
+    case 'attachments':
+      setAttachmentsModal({ show: true, task });
+      break;
+    case 'comments':
+      setCommentsModal({ show: true, task });
+      break;
+  }
+}, []);
 
   // Actualizar comentarios
   const handleUpdateComments = async (taskId: string, comments: any[]) => {
@@ -825,8 +824,6 @@ export const TableView: React.FC<TableProps> = ({
         toast('error', t('Error al duplicar la tarea'));
       }
     },
-
-
     handleCopyLink: useCallback(async (task: any) => {
       const link = `${window.location.origin}/services/servicios-${event._id}-${itinerario._id}-${task._id}`;
 
@@ -858,7 +855,6 @@ export const TableView: React.FC<TableProps> = ({
         toast('error', t('Error al copiar el enlace'));
       }
     }, [event._id, itinerario._id, t, toast])
-
   };
 
   const activeFiltersCount = tableState.filters.filter(f => f.isActive && f.value).length;
@@ -941,7 +937,7 @@ export const TableView: React.FC<TableProps> = ({
                             )}
                           </div>
 
-                          {column.id !== 'select' && (
+{/*                           {column.id !== 'select' && (
                             <ColumnMenu
                               column={column as any}
                               onSort={(direction) => console.log('Sort', direction)}
@@ -952,7 +948,7 @@ export const TableView: React.FC<TableProps> = ({
                               onInsertLeft={() => console.log('Insert left')}
                               onInsertRight={() => console.log('Insert right')}
                             />
-                          )}
+                          )} */}
                         </div>
                       </th>
                     );
@@ -985,6 +981,16 @@ export const TableView: React.FC<TableProps> = ({
                     }}
                   >
                     {row.cells.map((cell, cellIndex) => {
+                      // Determinar tipo de modal según columna
+                      const getModalType = () => {
+                        if (cell.column.id === 'tips') return 'description';
+                        if (cell.column.id === 'attachments') return 'attachments';
+                        if (cell.column.id === 'comments') return 'comments';
+                        return null;
+                      };
+
+                      const modalType = getModalType();
+
                       return (
                         <td
                           key={`${row.original._id}-${cell.column.id || cellIndex}`}
@@ -1033,7 +1039,11 @@ export const TableView: React.FC<TableProps> = ({
                             isEditing={editingCell?.row === rowIndex && editingCell?.column === cell.column.id}
                             onStartEdit={() => setEditingCell({ row: rowIndex, column: cell.column.id })}
                             onStopEdit={() => setEditingCell(null)}
-                            onCommentsClick={() => handleCommentsClick(row.original, rowIndex)}
+                            onCommentsClick={() => {
+                              if (modalType) {
+                                handleCommentsClick(row.original, rowIndex, modalType as any);
+                              }
+                            }}
                             itinerarioId={itinerario._id}
                           />
                         </td>
@@ -1087,19 +1097,65 @@ export const TableView: React.FC<TableProps> = ({
         </div>
       </div>
 
-      {/* Modal de comentarios con z-index alto */}
-      {showCommentModal.show && showCommentModal.task && (
-        <div className="fixed inset-0 z-50">
-          <CommentModal
-            task={showCommentModal.task}
-            itinerario={itinerario}
-            onClose={() => setShowCommentModal({ show: false })}
-            onUpdateComments={handleUpdateComments}
-          />
-        </div>
+      {/* Modales personalizados */}
+      
+      {/* Modal de descripción */}
+{descriptionModal.show && descriptionModal.task && (
+  <DescriptionModal
+    isOpen={descriptionModal.show}
+    onClose={() => setDescriptionModal({ show: false })}
+    task={descriptionModal.task}
+    itinerarioId={itinerario._id}
+    onUpdate={async (field: string, value: any) => {
+      if (descriptionModal.rowIndex !== undefined) {
+        try {
+          // Actualizar usando handleCellUpdate existente
+          await handleCellUpdate(
+            descriptionModal.rowIndex,
+            field,
+            value
+          );
+          
+          // Actualizar el task en el estado del modal
+          setDescriptionModal(prev => ({
+            ...prev,
+            task: { ...prev.task, [field]: value }
+          }));
+          
+          // Forzar re-render
+          setForceUpdate(prev => prev + 1);
+        } catch (error) {
+          console.error('Error updating field:', error);
+        }
+      }
+    }}
+  />
+)}
+
+      {/* Modal de archivos adjuntos */}
+      {attachmentsModal.show && attachmentsModal.task && (
+        <AttachmentsModal
+          isOpen={attachmentsModal.show}
+          onClose={() => setAttachmentsModal({ show: false })}
+          task={attachmentsModal.task}
+          itinerarioId={itinerario._id}
+          canEdit={true}
+          owner={true}
+        />
       )}
 
-      {/* Modal de edición con z-index más alto y estructura corregida */}
+      {/* Modal de comentarios */}
+      {commentsModal.show && commentsModal.task && (
+        <CommentsModal
+          isOpen={commentsModal.show}
+          onClose={() => setCommentsModal({ show: false })}
+          task={commentsModal.task}
+          itinerario={itinerario}
+          onUpdateComments={handleUpdateComments}
+        />
+      )}
+
+      {/* Modal de edición completa (existente) */}
       {showEditModal.show && showEditModal.task && (
         <>
           {/* Backdrop para bloquear interacciones */}

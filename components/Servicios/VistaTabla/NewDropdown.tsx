@@ -266,6 +266,11 @@ export const DateSelector: React.FC<{
   const [isOpen, setIsOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(value);
 
+  // Sincronizar el estado interno con la prop value
+  useEffect(() => {
+    setSelectedDate(value);
+  }, [value]);
+
   const formatDate = (dateString: string) => {
     if (!dateString) return placeholder;
     const date = new Date(dateString);
@@ -334,7 +339,7 @@ export const DateSelector: React.FC<{
     <div className="relative">
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => setIsOpen(true)}
         className="w-full flex items-center justify-between px-3 py-1.5 border border-gray-300 rounded-md hover:border-gray-400 text-sm transition-colors"
       >
         <span className="flex items-center space-x-2">
@@ -362,8 +367,79 @@ export const DateSelector: React.FC<{
         <div className="absolute z-50 mt-1 p-3 bg-white border border-gray-300 rounded-md shadow-lg">
           <input
             type="date"
-            value={selectedDate}
+            value={selectedDate || ''}
             onChange={handleDateChange}
+            className="w-full p-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary/20"
+            autoFocus
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
+export const DateTask: React.FC<{
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+}> = ({ value, onChange, placeholder = "Sin fecha" }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [editValue, setEditValue] = useState(value);
+
+  useEffect(() => { setEditValue(value); }, [value]);
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return placeholder;
+    const [year, month, day] = dateString.split('-');
+    return `${day}/${month}/${year}`;
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditValue(e.target.value);
+  };
+
+  const handleInputBlur = () => {
+    setIsOpen(false);
+    if (editValue !== value) {
+      onChange(editValue);
+    }
+  };
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      setIsOpen(false);
+      if (editValue !== value) {
+        onChange(editValue);
+      }
+    } else if (e.key === 'Escape') {
+      setIsOpen(false);
+      setEditValue(value);
+    }
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditValue('');
+    onChange('');
+    setIsOpen(false);
+  };
+
+  return (
+    <div className="relative w-full">
+      <div className="px-3 py-2 flex items-center gap-2 cursor-pointer" onClick={() => setIsOpen(true)}>
+        <Calendar className="w-4 h-4 text-gray-400" />
+        <span className={value ? 'text-gray-700' : 'text-gray-500'}>
+          {formatDate(value)}
+        </span>
+      </div>
+      {isOpen && (
+        <div className="absolute z-50 mt-1 p-3 bg-white border border-gray-300 rounded-md shadow-lg">
+          <input
+            type="date"
+            value={editValue || ''}
+            onChange={handleInputChange}
+            onBlur={handleInputBlur}
+            onKeyDown={handleInputKeyDown}
             className="w-full p-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary/20"
             autoFocus
           />
