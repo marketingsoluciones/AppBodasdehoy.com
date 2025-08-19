@@ -13,7 +13,7 @@ const SummaryCards = ({
   currency
 }) => {
   return (
-    <div className="grid grid-cols-3 lg:grid-cols-5 gap-2 mb-4">
+    <div className="grid md:grid-cols-3 lg:grid-cols-5 gap-2 mb-4">
       <SummaryCard
         title="Total Recibido"
         amount={fondosRecibidos}

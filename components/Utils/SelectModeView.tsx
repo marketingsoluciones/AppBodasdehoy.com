@@ -31,11 +31,11 @@ export const SelectModeView: FC<props> = ({ value, setValue }) => {
           icon: <HiOutlineViewList className="w-5 h-5" />,
           title: t("NuevaTabla") // Traducción para la nueva opción
         }, */
-    /*     {
-          value: "newTable", // Vista de tabla personalizada
-          icon: <HiOutlineViewList className="w-5 h-5" />,
-          title: t("NewTabla") // Traducción para la nueva opción
-        }, */
+    // {
+    //   value: "newTable", // Vista de tabla personalizada
+    //   icon: <HiOutlineViewList className="w-5 h-5" />,
+    //   title: t("board") // Traducción para la nueva opción
+    // },
     {
       value: "boardView", // Nueva vista de tablero Kanban
       icon: <TbLayoutKanban className="w-5 h-5" />,

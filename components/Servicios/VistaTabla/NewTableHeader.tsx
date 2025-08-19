@@ -60,15 +60,15 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
 
   return (
     <>
-      <div className="bg-white border-b border-gray-200 px-4 py-3">
+      <div className="bg-white border-b border-gray-200 px-4 py-3 text-xs">
         {/* Primera fila: Título y controles principales */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-4">
-            <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
-            <div className="flex items-center text-sm text-gray-500">
+            <h1 className="text-sm font-semibold text-gray-900">{title}</h1>
+            <div className="flex items-center text-gray-500">
               <span>{totalItems} {t('tareas')}</span>
               {selectedItems > 0 && (
-                <span className="ml-2 px-2 py-1 bg-primary/10 text-primary rounded-full text-xs">
+                <span className="ml-2 px-2 py-1 bg-primary/10 text-primary rounded-full ">
                   {selectedItems} {t('seleccionadas')}
                 </span>
               )}
@@ -102,7 +102,7 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
                         onExport();
                         setShowMoreMenu(false);
                       }}
-                      className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="w-full flex items-center space-x-2 px-3 py-2 text-gray-700 hover:bg-gray-100"
                     >
                       <Download className="w-4 h-4" />
                       <span>{t('Exportar')}</span>
@@ -112,7 +112,7 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
                         onImport();
                         setShowMoreMenu(false);
                       }}
-                      className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="w-full flex items-center space-x-2 px-3 py-2 text-gray-700 hover:bg-gray-100"
                     >
                       <Upload className="w-4 h-4" />
                       <span>{t('Importar')}</span>
@@ -123,7 +123,7 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
                         setShowColumnConfig(true);
                         setShowMoreMenu(false);
                       }}
-                      className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="w-full flex items-center space-x-2 px-3 py-2 text-gray-700 hover:bg-gray-100"
                     >
                       <Settings className="w-4 h-4" />
                       <span>{t('Configurar columnas')}</span>
@@ -146,7 +146,7 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
                 placeholder={t('Buscar tareas...')}
                 value={searchValue}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                className="text-sm w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
               {searchValue && (
                 <button
@@ -163,8 +163,8 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
               onClick={onFiltersToggle}
               className={`
                 flex items-center space-x-2 px-3 py-2 rounded-md transition-colors
-                ${filtersActive 
-                  ? 'bg-primary/10 text-primary border border-primary/20' 
+                ${filtersActive
+                  ? 'bg-primary/10 text-primary border border-primary/20'
                   : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
                 }
               `}
@@ -172,7 +172,7 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
               <Filter className="w-4 h-4" />
               <span>{t('Filtros')}</span>
               {filtersActive && (
-                <span className="bg-primary text-white text-xs px-1.5 py-0.5 rounded-full">
+                <span className="bg-primary text-white px-1.5 py-0.5 rounded-full">
                   !
                 </span>
               )}
@@ -180,7 +180,7 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
           </div>
 
           {/* Información de columnas */}
-          <div className="flex items-center space-x-3 text-sm text-gray-500">
+          <div className="flex items-center space-x-3 text-gray-500">
             <button
               onClick={() => setShowColumnConfig(true)}
               className="flex items-center space-x-1 hover:text-gray-700 transition-colors"
@@ -195,18 +195,18 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
         {selectedItems > 0 && (
           <div className="flex items-center justify-between mt-3 p-3 bg-primary/5 border border-primary/20 rounded-md">
             <div className="flex items-center space-x-3">
-              <span className="text-sm font-medium text-primary">
+              <span className="font-medium text-primary">
                 {selectedItems} {t('tareas seleccionadas')}
               </span>
             </div>
             <div className="flex items-center space-x-2">
-              <button className="px-3 py-1 text-sm text-primary hover:bg-primary/10 rounded transition-colors">
+              <button className="px-3 py-1 text-primary hover:bg-primary/10 rounded transition-colors">
                 {t('Cambiar estado')}
               </button>
-              <button className="px-3 py-1 text-sm text-primary hover:bg-primary/10 rounded transition-colors">
+              <button className="px-3 py-1 text-primary hover:bg-primary/10 rounded transition-colors">
                 {t('Asignar')}
               </button>
-              <button className="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded transition-colors">
+              <button className="px-3 py-1 text-red-600 hover:bg-red-50 rounded transition-colors">
                 {t('Eliminar')}
               </button>
             </div>
@@ -236,7 +236,7 @@ export const TableMiniHeader: React.FC<{
   someSelected: boolean;
 }> = ({ sortBy, onSort, onSelectAll, allSelected, someSelected }) => {
   const { t } = useTranslation();
-  
+
   return (
     <div className="bg-gray-50 border-b border-gray-200 px-4 py-2">
       <div className="flex items-center justify-between">
@@ -252,10 +252,10 @@ export const TableMiniHeader: React.FC<{
               className="rounded border-gray-300 text-primary focus:ring-primary"
             />
           </label>
-          <span className="text-sm text-gray-600">{t('Seleccionar todo')}</span>
+          <span className="text-gray-600">{t('Seleccionar todo')}</span>
         </div>
 
-        <div className="flex items-center space-x-2 text-sm text-gray-500">
+        <div className="flex items-center space-x-2 text-gray-500">
           {sortBy.length > 0 && (
             <div className="flex items-center space-x-1">
               <span>{t('Ordenado por')}:</span>

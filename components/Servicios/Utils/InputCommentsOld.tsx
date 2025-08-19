@@ -1,4 +1,4 @@
-import { ChangeEvent, Dispatch, FC, SetStateAction, useEffect, useState } from "react"
+import { ChangeEvent, FC, useEffect, useState } from "react"
 import { QuillEditor } from "./QuillEditor"
 import { AuthContextProvider, EventContextProvider } from "../../../context"
 import { fetchApiEventos, queries } from "../../../utils/Fetching"
@@ -24,7 +24,6 @@ interface props {
   tempPastedAndDropFiles?: TempPastedAndDropFile[]
   setTempPastedAndDropFiles?: any
   disabled?: boolean
-  onCommentAdded?: (comment: Comment) => void // Nueva prop para notificar cuando se agrega un comentario
 }
 
 export type PastedAndDropFile = {
@@ -34,7 +33,7 @@ export type PastedAndDropFile = {
   loading: boolean
 }
 
-export const InputCommentsOld: FC<props> = ({ itinerario, task, tempPastedAndDropFiles, setTempPastedAndDropFiles, disabled = false, onCommentAdded }) => {
+export const InputCommentsOld: FC<props> = ({ itinerario, task, tempPastedAndDropFiles, setTempPastedAndDropFiles, disabled = false }) => {
   const { user, config } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
   const [value, setValue] = useState<string>("<p><br></p>")
@@ -47,7 +46,6 @@ export const InputCommentsOld: FC<props> = ({ itinerario, task, tempPastedAndDro
   const [enabledInput, setEnabledInput] = useState(false);
   const [showModalNickname, setShowModalNickname] = useState(false)
   const [nicknameUnregistered, setNicknameUnregistered] = useState('');
-
 
   useEffect(() => {
     const valir = value?.replace(/ id="selected"/g, "")?.replace(/ focusoffset="[^"]*"/g, '').split("<p><br></p>").find(elem => elem !== "")

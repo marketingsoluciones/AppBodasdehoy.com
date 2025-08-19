@@ -368,21 +368,6 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
     }
   };
 
-  const handleCommentAdded = useCallback((newComment: Comment) => {
-    setComments(prevComments => {
-      const exists = prevComments.some(c => c._id === newComment._id);
-      if (exists) return prevComments;
-
-      const updatedComments = sortCommentsByDate([...prevComments, newComment]);
-      return updatedComments;
-    });
-
-    setLocalTask(prev => ({
-      ...prev,
-      comments: [...(prev.comments || []), newComment]
-    }));
-  }, []);
-
   return (
     view === "schema"
       ? <TaskSchemaView
@@ -412,7 +397,6 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
             handleUpdate={handleUpdate}
             handleDuplicate={handleDuplicate}
             handleDeleteComment={handleDeleteComment}
-            handleCommentAdded={handleCommentAdded}
             ht={ht}
             optionsItineraryButtonBox={optionsItineraryButtonBox}
             tempPastedAndDropFiles={tempPastedAndDropFiles}
