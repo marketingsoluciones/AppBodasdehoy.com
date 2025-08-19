@@ -16,6 +16,7 @@ import { MontoPresupuesto } from "../components/Presupuesto/MontoPresupuesto";
 import BlockCategoria from "../components/Presupuesto/BlockCategoria";
 import { DuplicatePresupuesto } from "../components/Presupuesto/DuplicatePesupuesto";
 import { useAllowed } from "../hooks/useAllowed";
+import WeddingFinanceManager from "../components/Presupuesto/TableroPresupuesto/WeddingFinanceManager";
 
 const Presupuesto = () => {
   useMounted()
@@ -28,6 +29,9 @@ const Presupuesto = () => {
   const [getId, setGetId] = useState()
   const [showModalDuplicate, setShowModalDuplicate] = useState(false)
   const [isAllowed, ht] = useAllowed()
+
+
+  console.log(event, user)
 
   const totalCosteFinal = categorias?.reduce((sum, categoria) => {
     return sum + (categoria.coste_final || 0);
@@ -54,7 +58,7 @@ const Presupuesto = () => {
                 <DuplicatePresupuesto showModalDuplicate={showModalDuplicate} setModal={setShowModalDuplicate} />
               </div>
             )}
-           
+
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -67,15 +71,15 @@ const Presupuesto = () => {
                 <div
                   onClick={() => setActive("resumen")}
                   className={`px-1 md:w-[150px]  ${active == "resumen" ? "bg-primary text-white" : "bg-white text-primary"
-                    } h-full flex justify-center items-center cursor-pointer capitalize rounded-l-2xl `}
+                    } h-full flex justify-center items-center cursor-pointer capitalize ${event?._uid === user?._id ? "rounded-l-2xl" : ""}`}
                 >
                   <p >{t("budget")}</p>
                 </div>
 
                 <div
                   onClick={() => setActive("excelView")}
-                  className={` w-[30%] md:w-[200px] ${active == "excelView" ? "bg-primary text-white" : "bg-white text-primary"
-                    } h-full flex  justify-center items-center cursor-pointer capitalize `}
+                  className={`w-[30%] md:w-[200px] ${active == "excelView" ? "bg-primary text-white" : "bg-white text-primary"
+                    } h-full flex justify-center items-center cursor-pointer capitalize`}
                 >
                   <p >{t("budgetdetails")}</p>
                 </div>
@@ -83,18 +87,28 @@ const Presupuesto = () => {
                 <div
                   onClick={() => setActive("pagos")}
                   className={`w-[20%] md:w-[100px] py-1 ${active == "pagos" ? "bg-primary text-white" : "bg-white text-primary"
-                    } h-full flex  justify-center items-center cursor-pointer capitalize `}
+                    } h-full flex justify-center items-center cursor-pointer capitalize`}
                 >
                   <p >{t("payments")}</p>
                 </div>
 
                 <div
                   onClick={() => setActive("pendiente")}
-                  className={` px-1 md:w-[180px] py-1  ${active == "pendiente" ? "bg-primary text-white" : "bg-white text-primary"
-                    } h-full flex  justify-center items-center  cursor-pointer rounded-r-2xl`}
+                  className={`w-[20%] md:w-[200px] py-1 ${active == "pendiente" ? "bg-primary text-white" : "bg-white text-primary"
+                    } h-full flex justify-center items-center cursor-pointer capitalize ${event?.usuario_id !== user?.uid ? "rounded-r-2xl" : ""}`}
                 >
                   <p>{t("pendingpayments")}</p>
                 </div>
+
+                {event?.usuario_id === user?.uid && (
+                    <div
+                      onClick={() => setActive("dashboard")}
+                      className={`px-1 md:w-[180px] py-1 ${active == "dashboard" ? "bg-primary text-white" : "bg-white text-primary"
+                        } h-full flex justify-center items-center cursor-pointer capitalize rounded-r-2xl`}
+                    >
+                      <p >{t("dashboard")}</p>
+                    </div>
+                  )}
               </div>
 
               <div className="w-full h-[calc(100vh-260px)]">
@@ -204,6 +218,18 @@ const Presupuesto = () => {
                       className=" w-full h-full gap-6 pt-2 md:pr-0"
                     >
                       <ExcelView setShowCategoria={setShowCategoria} categorias_array={categorias} showCategoria={showCategoria} />
+                    </motion.div>
+                  )
+                }
+                {
+                  active == "dashboard" && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className=" w-full h-full gap-6 pt-2 md:pr-0"
+                    >
+                      <WeddingFinanceManager />
                     </motion.div>
                   )
                 }

@@ -110,7 +110,9 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categor
 
           if (!isSubmitting) {
             setIsSubmitting(true)
-            if (values.file !== initialValues.file) {
+            
+            // Verificar si hay un archivo nuevo (base64 string) para subir
+            if (values.file && typeof values.file === "string" && values.file.startsWith("data:")) {
               const formdata = new FormData();
               formdata.append("image", values.file.split("base64,")[1]);
               const requestOptions = {
@@ -118,27 +120,46 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categor
                 body: formdata,
                 redirect: "follow"
               };
-              fetch("https://api.imgbb.com/1/upload?expiration=15552000&key=c6f787e40fd29dac790a3e42d38c5078", requestOptions)
-                .then((response) => response.text())
-                .then((result) => {
-                  const data = JSON.parse(result)?.data
-                  values.soporte = {
-                    image_url: data?.image?.url,
-                    medium_url: data?.medium?.url,
-                    thumb_url: data?.thumb?.url,
-                    delete_url: data?.delete_url
-                  }
-                  saveData(values)
-                })
-                .catch((error) => console.error(error));
-              return
+              
+              try {
+                const response = await fetch("https://api.imgbb.com/1/upload?expiration=15552000&key=c6f787e40fd29dac790a3e42d38c5078", requestOptions);
+                const result = await response.text();
+                const data = JSON.parse(result)?.data;
+                
+                values.soporte = {
+                  image_url: data?.image?.url,
+                  medium_url: data?.medium?.url,
+                  thumb_url: data?.thumb?.url,
+                  delete_url: data?.delete_url
+                };
+                
+                saveData(values);
+              } catch (uploadError) {
+                console.error("Error uploading image:", uploadError);
+                toast("error", "Error al subir la imagen");
+                setIsLoadingImage(false);
+                setIsSubmitting(false);
+                return;
+              }
+            } else {
+              // Si no hay archivo nuevo, usar el archivo existente o null
+              if (values.file === "") {
+                // Si se eliminó explícitamente el archivo
+                values.soporte = null;
+              } else if (values.file && typeof values.file === "object") {
+                // Si es un archivo existente, usar sus datos
+                values.soporte = values.file;
+              }
+              
+              saveData(values);
             }
-            saveData(values)
-            setIsLoadingImage(false)
-
+            
+            setIsLoadingImage(false);
           }
         } catch (error) {
-          console.log(error)
+          console.log(error);
+          setIsLoadingImage(false);
+          setIsSubmitting(false);
         }
       }}
       validate={validacion}
@@ -175,16 +196,31 @@ export const BasicFormLogin = ({
   const Proveedor = event?.presupuesto_objeto?.categorias_array[idxCate]?.gastos_array?.find(item => item?._id == getId)
   const { t } = useTranslation();
   const [selectedFile, setSelectedFile] = useState(null);
+  const [isWeddingPlanner, setIsWeddingPlanner] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(
     values.file && typeof values.file === "string" && values.file.startsWith("data:")
       ? values.file
       : (values.file?.image_url || values.file || null)
   );
 
-
   useEffect(() => {
     values.pagado = ischecked
   }, [ischecked])
+
+  // Efecto para manejar el checkbox del wedding planner
+  useEffect(() => {
+    if (isWeddingPlanner) {
+      values.pagado_por = "wedding planer";
+      setValues({ ...values });
+    }
+  }, [isWeddingPlanner]);
+
+  // Efecto para inicializar el estado del wedding planner si el valor ya es "wedding planer"
+  useEffect(() => {
+    if (values.pagado_por === "wedding planer") {
+      setIsWeddingPlanner(true);
+    }
+  }, [values.pagado_por]);
 
   useEffect(() => {
     if (!selectedFile) {
@@ -214,6 +250,14 @@ export const BasicFormLogin = ({
       setSelectedFile(file);
     } catch (error) {
       console.log(error)
+    }
+  };
+
+  const handleWeddingPlannerChange = (checked) => {
+    setIsWeddingPlanner(checked);
+    if (!checked) {
+      values.pagado_por = "";
+      setValues({ ...values });
     }
   };
 
@@ -316,15 +360,33 @@ export const BasicFormLogin = ({
                 value={values.medio_pago}
                 type="text"
                 autoComplete="off" />
-              <InputField
-                name="pagado_por"
-                label={t("paidby")}
-                onChange={handleChange}
-                value={values.pagado_por}
-                disabled={!ischecked}
-                className={`${ischecked ? "" : "bg-slate-200"}`}
-                type="text"
-                autoComplete="off" />
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 text-primary">{t("paidby")}</label>
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="wedding-planner-checkbox-edit"
+                      checked={isWeddingPlanner}
+                      onChange={(e) => handleWeddingPlannerChange(e.target.checked)}
+                      disabled={!ischecked}
+                      className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary focus:ring-2"
+                    />
+                    <label htmlFor="wedding-planner-checkbox-edit" className="text-xs text-gray-600 cursor-pointer">
+                      Wedding Planner
+                    </label>
+                  </div>
+                </div>
+                <InputField
+                  name="pagado_por"
+                  label=""
+                  onChange={handleChange}
+                  value={values.pagado_por}
+                  disabled={!ischecked || isWeddingPlanner}
+                  className={`${ischecked ? "" : "bg-slate-200"} ${isWeddingPlanner ? "bg-gray-100 cursor-not-allowed" : ""}`}
+                  type="text"
+                  autoComplete="off" />
+              </div>
               <InputField
                 name="concepto"
                 label={t("paymentconcept")}

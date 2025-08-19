@@ -458,7 +458,6 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate, showSoporte, setShowSo
     }, []);
 
     const dataFilter = data.filter((elemnt) => elemnt.estado == estado)
-    console.log("cate main", data)
 
     return (
         <>

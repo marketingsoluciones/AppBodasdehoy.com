@@ -150,23 +150,35 @@ export const fetchApiEventosServer = async ({
 };
 
 // Función específica para getServerSideProps para fetchApiBodas
-export const fetchApiBodasServer = async ({ query, variables, development }: { query: string, variables: any, development: string }) => {
-  const axios = require('axios');
+export const fetchApiBodasServer = async ({
+  query,
+  variables,
+  development,
+}: {
+  query: string;
+  variables: any;
+  development: string;
+}) => {
+  const axios = require("axios");
   const serverInstance = axios.create({
     baseURL: process.env.NEXT_PUBLIC_BASE_API_BODAS,
-    timeout: 15000 // 15 segundos de timeout
+    timeout: 15000, // 15 segundos de timeout
   });
   try {
-    const response = await serverInstance.post("/graphql", {
-      query,
-      variables
-    }, {
-      headers: {
-        Development: development,
-        'Content-Type': 'application/json',
-        'User-Agent': 'Next.js-Server/1.0',
+    const response = await serverInstance.post(
+      "/graphql",
+      {
+        query,
+        variables,
+      },
+      {
+        headers: {
+          Development: development,
+          "Content-Type": "application/json",
+          "User-Agent": "Next.js-Server/1.0",
+        },
       }
-    });
+    );
     if (response.data.errors) {
       throw new Error(`GraphQL Error: ${JSON.stringify(response.data.errors)}`);
     }
@@ -177,6 +189,22 @@ export const fetchApiBodasServer = async ({ query, variables, development }: { q
 };
 
 export const queries = {
+  addWeddingPlannerIngreso: `mutation($evento_id:String, $weddingPlannerIngreso:WeddingPlannerIngresoInput ){
+    addWeddingPlannerIngreso(evento_id:$evento_id, weddingPlannerIngreso:$weddingPlannerIngreso){
+      _id
+      fecha
+      monto
+      metodo
+      referencia
+      createdAt
+      updatedAt
+    }
+  }`,
+
+  deleteWeddingPlannerIngreso: `mutation($evento_id:String, $weddingPlannerIngreso_id:ID){
+    deleteWeddingPlannerIngreso(evento_id:$evento_id, weddingPlannerIngreso_id:$weddingPlannerIngreso_id)
+  }`,
+
   deletepayment: `mutation($evento_id:String, $categoria_id:String, $gasto_id:String, $pago_id:String){
     borraPago(evento_id:$evento_id, categoria_id:$categoria_id, gasto_id:$gasto_id, pago_id:$pago_id){
       pagado
@@ -1040,6 +1068,15 @@ export const queries = {
         tipo
       }
       presupuesto_objeto{
+        weddingPlannerIngresos{
+          _id
+          fecha
+          monto
+          metodo
+          referencia
+          createdAt
+          updatedAt
+          }
         coste_final
         pagado
         coste_estimado
@@ -1968,6 +2005,15 @@ export const queries = {
         tipo
       }
       presupuesto_objeto{
+       weddingPlannerIngresos{
+          _id
+          fecha
+          monto
+          metodo
+          referencia
+          createdAt
+          updatedAt
+          }
         presupuesto_total
         viewEstimates
         coste_final

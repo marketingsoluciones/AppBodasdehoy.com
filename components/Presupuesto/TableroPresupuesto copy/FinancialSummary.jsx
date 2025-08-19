@@ -5,12 +5,12 @@ import { getCurrency } from "../../../utils/Funciones";
 const FinancialSummary = ({
   presupuestoTotal,
   totalPagado,
-  PagadoPorOtros,
-  PagadoPorWP,
+  porPagarDirectos,
+  porPagarWP,
   categorias,
   onGenerateReport,
   onExportExcel,
-  currency,
+  currency
 }) => {
   const porcentajePagado = ((totalPagado / presupuestoTotal) * 100).toFixed(1);
 
@@ -62,21 +62,23 @@ const FinancialSummary = ({
         </div>
 
         <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-3">
-          <p className="text-xs font-medium text-gray-600 mb-1">💳 Por otros</p>
-          <p className="text-2xl font-bold ">
-            {getCurrency(parseFloat(PagadoPorOtros), currency)}
+          <p className="text-xs font-medium text-gray-600 mb-1">
+            ⏳ Por Pagar (Directos)
           </p>
-          <p className="text-xs text-gray-500 mt-1">Total pagado</p>
+          <p className="text-2xl font-bold ">
+            {getCurrency(parseFloat(porPagarDirectos), currency)}
+          </p>
+          <p className="text-xs text-gray-500 mt-1">Pagos pendientes</p>
         </div>
 
         <div className="bg-gradient-to-br from-[#FFB3B3] to-[#FFB3B3] rounded-xl p-3">
           <p className="text-xs font-medium text-gray-600 mb-1">
-            💳 Por Wedding Planner
+            💳 Por Pagar (WP)
           </p>
           <p className="text-2xl font-bold text-red-700">
-            {getCurrency(parseFloat(PagadoPorWP), currency)}
+            {getCurrency(parseFloat(porPagarWP),currency)}
           </p>
-          <p className="text-xs text-gray-500 mt-1">Total pagado</p>
+          <p className="text-xs text-gray-500 mt-1">Fondos necesarios</p>
         </div>
       </div>
 

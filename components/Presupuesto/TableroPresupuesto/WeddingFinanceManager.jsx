@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { CreditCard, Store } from "lucide-react";
 import WeddingHeader from "./WeddingHeader";
 import SummaryCards from "./SummaryCards";
@@ -9,142 +9,93 @@ import FinancialSummary from "./FinancialSummary";
 import DepositsHistory from "./DepositsHistory";
 import ReportsSection from "./ReportsSection";
 import { EventContextProvider } from "../../../context";
+import { Modal } from "../../Utils/Modal";
+import { PiXBold } from "react-icons/pi";
 
 const WeddingFinanceManager = () => {
   const event = EventContextProvider();
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [fondosRecibidos, setFondosRecibidos] = useState(25000);
+  const [fondosRecibidos, setFondosRecibidos] = useState();
   const [fondosDisponibles, setFondosDisponibles] = useState(12500);
-  console.log(event);
+  const [showPaymentDetails, setShowPaymentDetails] = useState({
+    state: false,
+    data: null,
+  });
 
-  // Datos de ejemplo - estos vendrían de tu backend/estado global
-  const [pagosDirectos] = useState([
-    {
-      id: 1,
-      proveedor: "Vestido de Novia - Boutique Elegance",
-      monto: 3500,
-      fecha: "2025-05-15",
-      estado: "pagado",
-      categoria: "Vestuario",
-      notas: "Incluye ajustes",
+  const data = event?.event?.presupuesto_objeto?.categorias_array?.reduce(
+    (acc, categoria) => {
+      if (categoria?.gastos_array?.length >= 1) {
+        const reduce = categoria?.gastos_array?.reduce((arr, gasto) => {
+          if (gasto?.pagos_array?.length >= 1) {
+            const reducePagos = gasto?.pagos_array?.reduce((arrPagos, pago) => {
+              const objetoNuevo = {
+                ...pago,
+                idCategoria: categoria?._id,
+                nombreCategoria: categoria?.nombre,
+                idGasto: gasto?._id,
+                nombreGasto: gasto?.nombre,
+              };
+              arrPagos?.push(objetoNuevo);
+              return arrPagos;
+            }, []);
+            arr = [...arr, ...reducePagos];
+          }
+          return arr;
+        }, []);
+        if (reduce.length >= 1) {
+          acc = [...acc, ...reduce];
+        }
+      }
+      return acc;
     },
-    {
-      id: 2,
-      proveedor: "Anillos - Joyería Diamante",
-      monto: 2800,
-      fecha: "2025-05-20",
-      estado: "pagado",
-      categoria: "Joyería",
-      notas: "Grabado incluido",
-    },
-    {
-      id: 3,
-      proveedor: "Luna de Miel - Viajes Paradise",
-      monto: 4200,
-      fecha: "2025-06-01",
-      estado: "pendiente",
-      categoria: "Viajes",
-      notas: "Cancún 7 noches",
-    },
-    {
-      id: 4,
-      proveedor: "Zapatos y Accesorios",
-      monto: 850,
-      fecha: "2025-05-25",
-      estado: "pendiente",
-      categoria: "Vestuario",
-      notas: "",
-    },
-  ]);
+    []
+  );
+  const dataFilter = data.filter((elemnt) => elemnt.estado == "pagado");
 
-  const [pagosWP] = useState([
-    {
-      id: 1,
-      proveedor: "Salón de Eventos - Hacienda Real",
-      monto: 8000,
-      fecha: "2025-05-10",
-      estado: "pagado",
-      categoria: "Locación",
-      notas: "300 invitados",
-      contacto: "Carlos Ruiz - 555-0123",
-    },
-    {
-      id: 2,
-      proveedor: "Catering - Sabores Gourmet",
-      monto: 4500,
-      fecha: "2025-05-25",
-      estado: "parcial",
-      pagado: 2000,
-      categoria: "Alimentos",
-      notas: "Menú 3 tiempos",
-      contacto: "Chef María - 555-0124",
-    },
-    {
-      id: 3,
-      proveedor: "Decoración - Arte Floral",
-      monto: 3000,
-      fecha: "2025-06-05",
-      estado: "pendiente",
-      categoria: "Decoración",
-      notas: "Tema: Jardín romántico",
-      contacto: "Laura Flores - 555-0125",
-    },
-  ]);
+  const pagosWeddingPlanner = dataFilter.filter(
+    (pago) => pago.pagado_por === "wedding planer"
+  );
 
-  const [deposits] = useState([
-    {
-      id: 1,
-      fecha: "2025-04-01",
-      monto: 10000,
-      metodo: "Transferencia",
-      referencia: "TRF-001",
-    },
-    {
-      id: 2,
-      fecha: "2025-04-15",
-      monto: 8000,
-      metodo: "Cheque",
-      referencia: "CHQ-2341",
-    },
-    {
-      id: 3,
-      fecha: "2025-05-01",
-      monto: 7000,
-      metodo: "Transferencia",
-      referencia: "TRF-002",
-    },
-  ]);
+  const pagosOtros = dataFilter.filter(
+    (pago) => pago.pagado_por !== "wedding planer"
+  );
 
-  // Cálculos
-  const calcularTotalPagosDirectos = () =>
-    pagosDirectos.reduce((total, pago) => total + pago.monto, 0);
-  const calcularTotalPagosWP = () =>
-    pagosWP.reduce((total, pago) => total + pago.monto, 0);
-  const calcularPagadoWP = () =>
-    pagosWP.reduce((total, pago) => {
-      if (pago.estado === "pagado") return total + pago.monto;
-      if (pago.estado === "parcial") return total + (pago.pagado || 0);
-      return total;
-    }, 0);
+  const totalPagosWP = pagosWeddingPlanner.reduce(
+    (total, pago) => total + (parseFloat(pago.importe) || 0),
+    0
+  );
 
-  const calcularCategorias = () => {
-    const categorias = {};
-    [...pagosDirectos, ...pagosWP].forEach((pago) => {
-      if (!categorias[pago.categoria]) categorias[pago.categoria] = 0;
-      categorias[pago.categoria] += pago.monto;
-    });
-    return categorias;
-  };
+  const totalPagosOtros = pagosOtros.reduce(
+    (total, pago) => total + (parseFloat(pago.importe) || 0),
+    0
+  );
 
-  // Handlers
+
+  useEffect(() => {
+    if (event?.event?.presupuesto_objeto?.weddingPlannerIngresos) {
+      const total = event.event.presupuesto_objeto.weddingPlannerIngresos.reduce(
+        (acc, ingreso) => acc + ingreso.monto, 
+        0
+      );
+      setFondosRecibidos(total);
+    }
+  }, [event?.event?.presupuesto_objeto?.weddingPlannerIngresos]);
+
+  useEffect(() => {
+    setFondosDisponibles(fondosRecibidos - totalPagosWP);
+  }, [fondosRecibidos, totalPagosWP]);
+
   const handleDepositSubmit = (amount) => {
     setFondosRecibidos((prev) => prev + amount);
     setFondosDisponibles((prev) => prev + amount);
-    // Aquí agregarías el depósito al historial
   };
 
   const handleNotificationClick = () => {
     console.log("Notificaciones clickeadas");
+  };
+
+  const handleViewPaymentDetails = (payment) => {
+    setShowPaymentDetails({ state: true, data: payment.soporte });
   };
 
   return (
@@ -162,63 +113,52 @@ const WeddingFinanceManager = () => {
         <SummaryCards
           fondosRecibidos={fondosRecibidos}
           fondosDisponibles={fondosDisponibles}
-          totalComprometido={calcularTotalPagosWP()}
-          pagosDirectos={calcularTotalPagosDirectos()}
+          totalComprometido={totalPagosWP}
+          pagosDirectos={totalPagosOtros}
           presupuestoTotal={event?.event?.presupuesto_objeto?.coste_final}
-          numeroProveedores={pagosWP.length}
-          numeroTransacciones={pagosDirectos.length}
+          numeroProveedores={pagosWeddingPlanner.length}
+          numeroTransacciones={pagosOtros.length}
+          currency={event?.event?.presupuesto_objeto?.currency}
         />
+        <DepositFormSection onDepositSubmit={handleDepositSubmit} />
 
         <NavigationTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
         {activeTab === "dashboard" && (
           <>
-            <DepositFormSection onDepositSubmit={handleDepositSubmit} />
-
             <div className="grid grid-cols-2 gap-4">
               <PaymentsList
-                title="Pagos Directos de la Novia"
-                payments={pagosDirectos}
+                title="Pagos Directos"
+                payments={pagosOtros}
                 icon={CreditCard}
                 iconColor="text-purple-600"
-                total={calcularTotalPagosDirectos()}
+                total={totalPagosOtros}
                 type="directo"
-                onAddPayment={() => console.log("Agregar pago directo")}
+                categorias={event?.event?.presupuesto_objeto?.categorias_array}
+                onViewDetails={(payment) => handleViewPaymentDetails(payment)}
+                currency={event?.event?.presupuesto_objeto?.currency}
               />
 
               <PaymentsList
-                title="Pagos Administrados por WP"
-                payments={pagosWP}
+                title="Pagos por WP"
+                payments={pagosWeddingPlanner}
                 icon={Store}
                 iconColor="text-blue-600"
-                total={calcularTotalPagosWP()}
-                paidAmount={calcularPagadoWP()}
+                total={totalPagosWP}
                 type="wp"
-                onAddPayment={() => console.log("Agregar proveedor")}
-                onViewDetails={(payment) =>
-                  console.log("Ver detalles", payment)
-                }
+                onViewDetails={(payment) => handleViewPaymentDetails(payment)}
                 onMakePayment={(payment) => console.log("Hacer pago", payment)}
+                categorias={event?.event?.presupuesto_objeto?.categorias_array}
+                currency={event?.event?.presupuesto_objeto?.currency}
               />
             </div>
 
             <FinancialSummary
-              presupuestoTotal={
-                calcularTotalPagosDirectos() + calcularTotalPagosWP()
-              }
-              totalPagado={
-                pagosDirectos
-                  .filter((p) => p.estado === "pagado")
-                  .reduce((t, p) => t + p.monto, 0) + calcularPagadoWP()
-              }
-              porPagarDirectos={pagosDirectos
-                .filter((p) => p.estado === "pendiente")
-                .reduce((t, p) => t + p.monto, 0)}
-              porPagarWP={calcularTotalPagosWP() - calcularPagadoWP()}
-              categorias={
-                /* calcularCategorias() */ event?.event?.presupuesto_objeto
-                  ?.categorias_array
-              }
+              presupuestoTotal={event?.event?.presupuesto_objeto?.coste_final}
+              totalPagado={event?.event?.presupuesto_objeto?.pagado}
+              PagadoPorOtros={totalPagosOtros}
+              PagadoPorWP={totalPagosWP}
+              categorias={event?.event?.presupuesto_objeto?.categorias_array}
               onGenerateReport={() => console.log("Generar reporte")}
               onExportExcel={() => console.log("Exportar Excel")}
               currency={event?.event?.presupuesto_objeto?.currency}
@@ -228,11 +168,12 @@ const WeddingFinanceManager = () => {
 
         {activeTab === "depositos" && (
           <DepositsHistory
-            deposits={deposits}
+            deposits={event?.event?.presupuesto_objeto?.weddingPlannerIngresos}
             onViewDeposit={(deposit) => console.log("Ver depósito", deposit)}
             onPrintDeposit={(deposit) =>
               console.log("Imprimir depósito", deposit)
             }
+            currency={event?.event?.presupuesto_objeto?.currency}
           />
         )}
 
@@ -244,6 +185,35 @@ const WeddingFinanceManager = () => {
           />
         )}
       </div>
+
+      {/* Modal de Detalles del Pago */}
+      {showPaymentDetails.state && (
+        <Modal
+          set={setShowPaymentDetails}
+          state={showPaymentDetails.state}
+          classe={
+            "w-[95%] md:w-[600px] max-h-[700px] min-h-[200px] flex items-center justify-center"
+          }
+        >
+          {showPaymentDetails.data && (
+            <div className="flex flex-col items-center h-full w-full relative">
+              <div
+                className="absolute right-3 top-2 cursor-pointer"
+                onClick={() => setShowPaymentDetails({ state: false })}
+              >
+                <PiXBold className="w-5 h-5" />
+              </div>
+              <div className="h-full flex items-center ">
+                <img
+                  src={showPaymentDetails.data.image_url}
+                  alt="Factura de soporte"
+                  className="h-[90%] "
+                />
+              </div>
+            </div>
+          )}
+        </Modal>
+      )}
     </div>
   );
 };

@@ -7,10 +7,7 @@ import { BsArrow90DegUp } from "react-icons/bs";
 
 const DragInvitado = (props) => {
   const { invitado, setEditInv, editInv, setSelected } = props;
-  /* const shouldRenderChild = useDelayUnmount(isMounted, 500); */
   const [isAllowed, ht] = useAllowed()
-
-  console.log("invitado", invitado)
 
   return (
     <>
