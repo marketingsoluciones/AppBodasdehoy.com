@@ -1,5 +1,5 @@
 import { FC, } from "react"
-import WeddingFinanceManager from "../components/Presupuesto/TableroPresupuesto/WeddingFinanceManager";
+import WeddingFinanceManager from "../components/Presupuesto/TableroPresupuesto copy/WeddingFinanceManager";
 
 const PruebaN: FC = () => {
   return (

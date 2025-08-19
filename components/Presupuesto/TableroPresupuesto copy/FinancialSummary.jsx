@@ -5,18 +5,18 @@ import { getCurrency } from "../../../utils/Funciones";
 const FinancialSummary = ({
   presupuestoTotal,
   totalPagado,
-  PagadoPorOtros,
-  PagadoPorWP,
+  porPagarDirectos,
+  porPagarWP,
   categorias,
   onGenerateReport,
   onExportExcel,
-  currency,
+  currency
 }) => {
   const porcentajePagado = ((totalPagado / presupuestoTotal) * 100).toFixed(1);
 
   return (
     <div className="mt-4 bg-white rounded-xl shadow-md p-4">
-      <div className="flex flex-col md:flex-row items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-3">
         <h3 className="text-xl font-bold">Resumen Financiero Detallado</h3>
         <div className="flex gap-2">
           <button
@@ -36,7 +36,7 @@ const FinancialSummary = ({
         </div>
       </div>
 
-      <div className="grid md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-4 gap-4">
         <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-3">
           <p className="text-xs font-medium text-gray-600 mb-1">
             💰 Presupuesto Total
@@ -62,21 +62,23 @@ const FinancialSummary = ({
         </div>
 
         <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-3">
-          <p className="text-xs font-medium text-gray-600 mb-1">💳 Por otros</p>
-          <p className="text-2xl font-bold ">
-            {getCurrency(parseFloat(PagadoPorOtros), currency)}
+          <p className="text-xs font-medium text-gray-600 mb-1">
+            ⏳ Por Pagar (Directos)
           </p>
-          <p className="text-xs text-gray-500 mt-1">Total pagado</p>
+          <p className="text-2xl font-bold ">
+            {getCurrency(parseFloat(porPagarDirectos), currency)}
+          </p>
+          <p className="text-xs text-gray-500 mt-1">Pagos pendientes</p>
         </div>
 
         <div className="bg-gradient-to-br from-[#FFB3B3] to-[#FFB3B3] rounded-xl p-3">
           <p className="text-xs font-medium text-gray-600 mb-1">
-            💳 Por Wedding Planner
+            💳 Por Pagar (WP)
           </p>
           <p className="text-2xl font-bold text-red-700">
-            {getCurrency(parseFloat(PagadoPorWP), currency)}
+            {getCurrency(parseFloat(porPagarWP),currency)}
           </p>
-          <p className="text-xs text-gray-500 mt-1">Total pagado</p>
+          <p className="text-xs text-gray-500 mt-1">Fondos necesarios</p>
         </div>
       </div>
 
@@ -86,7 +88,7 @@ const FinancialSummary = ({
           <h4 className="text-base. font-semibold mb-2">
             Distribución por Categorías
           </h4>
-          <div className="grid md:grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             {categorias.map((item, idx) => (
               <div
                 key={idx}

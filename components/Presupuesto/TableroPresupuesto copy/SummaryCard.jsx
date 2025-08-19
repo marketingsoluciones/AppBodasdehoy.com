@@ -1,18 +1,16 @@
 import router from "next/router";
 import React from "react";
-import { getCurrency } from "../../../utils/Funciones";
 
 const SummaryCard = ({
   title,
   amount,
   subtitle,
   icon: Icon,
-  iconColor,  
+  iconColor,
   bgColor,
   textColor,
   percentage,
   description,
-  currency
 }) => {
 
   const Redirection = () => {
@@ -40,7 +38,7 @@ const SummaryCard = ({
       </div>
       <p className="text-xs text-gray-500 mb-0.5">{title}</p>
       <p className={`text-xl font-bold ${textColor || "text-gray-800"}`}>
-        {getCurrency(parseFloat(amount), currency)}
+        ${amount?.toLocaleString()}
       </p>
       {(percentage || description) && (
         <p className="text-xs text-gray-500 mt-1">

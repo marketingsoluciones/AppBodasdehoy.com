@@ -317,6 +317,18 @@ export interface estimate {
     visibleColumns: VisibleColumn[]
     totalStimatedGuests: TotalStimatedGuests
     categorias_array: estimateCategory[]
+    weddingPlannerIngresos: WeddingPlannerIngreso[]
+
+}
+
+export interface WeddingPlannerIngreso {
+    _id: string
+    fecha: Date
+    monto: number
+    metodo: string
+    referencia: string
+    createdAt: Date
+    updatedAt: Date
 }
 
 export interface StimatedGuests {
