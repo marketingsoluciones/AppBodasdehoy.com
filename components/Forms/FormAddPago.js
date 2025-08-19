@@ -154,6 +154,7 @@ export const BasicFormLogin = ({ ischecked, setCheck, handleChange, handleSubmit
   const [showProOptions, setShowProOptions] = useState(true)
   const { t } = useTranslation();
   const [selectedFile, setSelectedFile] = useState(null);
+  const [isWeddingPlanner, setIsWeddingPlanner] = useState(false);
 
   useEffect(() => {
     values.pagado = ischecked
@@ -161,6 +162,14 @@ export const BasicFormLogin = ({ ischecked, setCheck, handleChange, handleSubmit
   useEffect(() => {
     values.pagado = ischecked
   }, [isSubmitting])
+
+  // Efecto para manejar el checkbox del wedding planner
+  useEffect(() => {
+    if (isWeddingPlanner) {
+      values.pagado_por = "wedding planer";
+      setValues({ ...values });
+    }
+  }, [isWeddingPlanner]);
 
   const handleFileChange = (event) => {
     try {
@@ -173,6 +182,14 @@ export const BasicFormLogin = ({ ischecked, setCheck, handleChange, handleSubmit
       setSelectedFile(event.target.files[0]);
     } catch (error) {
       console.log(error)
+    }
+  };
+
+  const handleWeddingPlannerChange = (checked) => {
+    setIsWeddingPlanner(checked);
+    if (!checked) {
+      values.pagado_por = "";
+      setValues({ ...values });
     }
   };
 
@@ -268,16 +285,34 @@ export const BasicFormLogin = ({ ischecked, setCheck, handleChange, handleSubmit
             type="text"
             autoComplete="off" 
           />
-          <InputField
-            name="pagado_por"
-            label={t("paidby")}
-            onChange={handleChange}
-            value={values.pagado_por}
-            disabled={!ischecked}
-            className={`text-sm h-9 ${ischecked ? "" : "bg-slate-200"}`}
-            type="text"
-            autoComplete="off" 
-          />
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700 text-primary">{t("paidby")}</label>
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="wedding-planner-checkbox"
+                  checked={isWeddingPlanner}
+                  onChange={(e) => handleWeddingPlannerChange(e.target.checked)}
+                  disabled={!ischecked}
+                  className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary focus:ring-2"
+                />
+                <label htmlFor="wedding-planner-checkbox" className="text-xs text-gray-600 cursor-pointer">
+                  Wedding Planner
+                </label>
+              </div>
+            </div>
+            <InputField
+              name="pagado_por"
+              label=""
+              onChange={handleChange}
+              value={values.pagado_por}
+              disabled={!ischecked || isWeddingPlanner}
+              className={`text-sm h-9 ${ischecked ? "" : "bg-slate-200"} ${isWeddingPlanner ? "bg-gray-100 cursor-not-allowed" : ""}`}
+              type="text"
+              autoComplete="off" 
+            />
+          </div>
           <InputField
             name="concepto"
             label={t("paymentconcept")}

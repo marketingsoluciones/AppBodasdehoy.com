@@ -36,7 +36,7 @@ const WeddingHeader = ({
             </button>
             <div className="text-right">
               <p className="text-xs text-gray-500">Wedding Planner</p>
-              {/* <p className="font-semibold text-sm">{plannerName}</p> */}
+              <p className="font-semibold text-sm">{plannerName}</p>
             </div>
           </div>
         </div>

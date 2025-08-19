@@ -9,8 +9,7 @@ const SummaryCards = ({
   pagosDirectos,
   presupuestoTotal,
   numeroProveedores,
-  numeroTransacciones,
-  currency
+  numeroTransacciones 
 }) => {
   return (
     <div className="grid grid-cols-3 lg:grid-cols-5 gap-2 mb-4">
@@ -22,8 +21,7 @@ const SummaryCards = ({
         iconColor="text-blue-500"
         bgColor="bg-blue-100"
         textColor="text-blue-600"
-        description="Del presupuesto total"
-        currency={currency}
+        description="De presupuesto total"
       />
       
       <SummaryCard
@@ -34,33 +32,30 @@ const SummaryCards = ({
         iconColor="text-green"
         bgColor="bg-[#93E6B5]"
         textColor="text-[#0DBD50]"
-        percentage={fondosRecibidos && fondosRecibidos > 0 ? ((fondosDisponibles/fondosRecibidos)*100).toFixed(1) : "0"}
+        percentage={((fondosDisponibles/fondosRecibidos)*100).toFixed(1)}
         description="del total"
-        currency={currency}
       />
       
       <SummaryCard
-        title="Total Utilizado"
+        title="Total Comprometido"
         amount={totalComprometido}
-        subtitle="Utilizado"
+        subtitle="Comprometido"
         icon={AlertCircle}
         iconColor="text-orange-500"
         bgColor="bg-orange-100"
         textColor="text-orange-600"
-        description={`En ${numeroProveedores} pagos`}
-        currency={currency}
+        description={`En ${numeroProveedores} proveedores`}
       />
 
       <SummaryCard
-        title="Pagos Directos"
+        title="Pagos Directos Novia"
         amount={pagosDirectos}
         subtitle="Directos"
         icon={CreditCard}
         iconColor="text-purple-500"
         bgColor="bg-purple-100"
         textColor="text-purple-600"
-        description={`${numeroTransacciones} pagos`}
-        currency={currency}
+        description={`${numeroTransacciones} transacciones`}
       />
 
       <SummaryCard
@@ -72,7 +67,6 @@ const SummaryCards = ({
         bgColor="bg-indigo-100"
         textColor="text-indigo-600"
         description="Todos los gastos"
-        currency={currency}
       />
     </div>
   );
