@@ -78,9 +78,9 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
             </Modal>}
             <div className="flex w-full justify-between items-start relative">
                 <div className="w-1/2 flex flex-col text-xs md:text-[14px] text-azulCorporativo">
-                    <span className="text-primary* text-gray-300 *cursor-pointer *hover:text-pink-500" onClick={() => {/*disable ? ht() : setModalPlantilla(!modalPlantilla)*/ }} >
+                    {/* <span className="text-primary* text-gray-300 *cursor-pointer *hover:text-pink-500" onClick={() => {disable ? ht() : setModalPlantilla(!modalPlantilla) }} >
                         {t("loadtemplate")}
-                    </span>
+                    </span> */}
                 </div>
 
                 {view !== "schema"
