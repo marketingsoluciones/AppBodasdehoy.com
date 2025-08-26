@@ -38,6 +38,7 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
   const [durationInput, setDurationInput] = useState('');
   const [isAllowed, ht] = useAllowed()
   const owner = user?.uid === event?.usuario_id
+  const [showAttachments, setShowAttachments] = useState(false);
 
   return (
     <div {...props} className={`w-full bg-white shadow-lg px-6 py-3 space-y-2  rounded-xl outline cursor-default ${isSelect ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200"}`}>
@@ -226,6 +227,8 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
           itinerarioId={itinerario._id}
           canEdit={canEdit}
           owner={owner}
+          showAttachments={showAttachments}
+          setShowAttachments={setShowAttachments}
         />
       </div>
     </div>
