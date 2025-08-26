@@ -28,7 +28,10 @@ interface Modal {
 export const BoddyIter = () => {
     const { config } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
-    const [itinerario, setItinerario] = useState<Itinerary>()
+    const [itinerario, setItinerario] = useState<Itinerary>(() => {
+        const itinerarioSeleccionado = localStorage.getItem(`E_${event._id}_${window?.location?.pathname.slice(1)}`)
+        return event.itinerarios_array.find(elem => elem._id === itinerarioSeleccionado)
+    })
     const [editTitle, setEditTitle] = useState<boolean>(false)
     const [isAllowedViewer] = useAllowedViewer()
     const [isAllowed] = useAllowed()
@@ -198,14 +201,14 @@ export const BoddyIter = () => {
         const itinerarios = event?.itinerarios_array.filter(elem => elem?.tipo === window?.location?.pathname.slice(1))
         if (itinerarios.length) {
             let nuevoItinerario = itinerario;
-            
+
             // Solo cambiar el itinerario si realmente es necesario
             if (router?.query?.itinerary) {
                 nuevoItinerario = itinerarios.find(elem => elem?._id === router.query?.itinerary)
             } else if (!itinerario || !itinerarios.some(elem => elem._id === itinerario._id)) {
                 nuevoItinerario = itinerarios[0]
             }
-            
+
             // Solo actualizar si es un itinerario diferente o si no hay itinerario actual
             if (!itinerario || nuevoItinerario._id !== itinerario._id) {
                 if (view !== "schema") {
@@ -220,7 +223,7 @@ export const BoddyIter = () => {
                         media: 1,
                         alta: 2
                     }
-                    
+
                     orderAndDirection?.order === "descripcion" && nuevoItinerario.tasks.sort((a, b) => {
                         const comparison = a?.descripcion?.localeCompare(b?.descripcion)
                         return orderAndDirection?.direction === "desc" ? -comparison : comparison
