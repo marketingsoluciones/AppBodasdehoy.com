@@ -177,7 +177,6 @@ export const BoddyIter = () => {
     }
 
     const handleUpdateTitle = async () => {
-
         await fetchApiEventos({
             query: queries.editItinerario,
             variables: {
@@ -189,7 +188,8 @@ export const BoddyIter = () => {
             domain: config.domain
         })
         const f1 = event.itinerarios_array?.findIndex(elem => elem._id === itinerario._id)
-        event.itinerarios_array[f1].title = title
+        const updatedItinerario = { ...event.itinerarios_array[f1], title }
+        event.itinerarios_array[f1] = updatedItinerario
         setEvent({ ...event })
         setEditTitle(false)
     }
@@ -198,48 +198,55 @@ export const BoddyIter = () => {
         const itinerarios = event?.itinerarios_array.filter(elem => elem?.tipo === window?.location?.pathname.slice(1))
         if (itinerarios.length) {
             let nuevoItinerario = itinerario;
+            
+            // Solo cambiar el itinerario si realmente es necesario
             if (router?.query?.itinerary) {
                 nuevoItinerario = itinerarios.find(elem => elem?._id === router.query?.itinerary)
             } else if (!itinerario || !itinerarios.some(elem => elem._id === itinerario._id)) {
                 nuevoItinerario = itinerarios[0]
             }
-            if (view !== "schema") {
-                const statusOrder: Record<string, number> = {
-                    pending: 0,
-                    in_progress: 1,
-                    completed: 2,
-                    blocked: 3
-                }
-                const prioridadOrder: Record<string, number> = {
-                    baja: 0,
-                    media: 1,
-                    alta: 2
-                }
-                orderAndDirection?.order === "descripcion" && nuevoItinerario.tasks.sort((a, b) => {
-                    const comparison = a?.descripcion?.localeCompare(b?.descripcion)
-                    return orderAndDirection?.direction === "desc" ? -comparison : comparison
-                })
-                orderAndDirection?.order === "fecha" && nuevoItinerario.tasks.sort((a, b) => {
-                    const comparison = new Date(a?.fecha)?.getTime() - new Date(b?.fecha)?.getTime()
-                    return orderAndDirection?.direction === "desc" ? -comparison : comparison
-                })
-                orderAndDirection?.order === "estado" &&
-                    nuevoItinerario.tasks.sort((a: any, b: any) => {
-                        const aIdx = a?.estado ? (statusOrder[a.estado] ?? 0) : 0
-                        const bIdx = b?.estado ? (statusOrder[b.estado] ?? 0) : 0
+            
+            // Solo actualizar si es un itinerario diferente o si no hay itinerario actual
+            if (!itinerario || nuevoItinerario._id !== itinerario._id) {
+                if (view !== "schema") {
+                    const statusOrder: Record<string, number> = {
+                        pending: 0,
+                        in_progress: 1,
+                        completed: 2,
+                        blocked: 3
+                    }
+                    const prioridadOrder: Record<string, number> = {
+                        baja: 0,
+                        media: 1,
+                        alta: 2
+                    }
+                    
+                    orderAndDirection?.order === "descripcion" && nuevoItinerario.tasks.sort((a, b) => {
+                        const comparison = a?.descripcion?.localeCompare(b?.descripcion)
+                        return orderAndDirection?.direction === "desc" ? -comparison : comparison
+                    })
+                    orderAndDirection?.order === "fecha" && nuevoItinerario.tasks.sort((a, b) => {
+                        const comparison = new Date(a?.fecha)?.getTime() - new Date(b?.fecha)?.getTime()
+                        return orderAndDirection?.direction === "desc" ? -comparison : comparison
+                    })
+                    orderAndDirection?.order === "estado" &&
+                        nuevoItinerario.tasks.sort((a: any, b: any) => {
+                            const aIdx = a?.estado ? (statusOrder[a.estado] ?? 0) : 0
+                            const bIdx = b?.estado ? (statusOrder[b.estado] ?? 0) : 0
+                            const comparison = aIdx - bIdx
+                            return orderAndDirection?.direction === "desc" ? -comparison : comparison
+                        })
+                    orderAndDirection?.order === "prioridad" && nuevoItinerario.tasks.sort((a, b) => {
+                        const aIdx = a?.prioridad ? (prioridadOrder[a.prioridad] ?? 0) : 0
+                        const bIdx = b?.prioridad ? (prioridadOrder[b.prioridad] ?? 0) : 0
                         const comparison = aIdx - bIdx
                         return orderAndDirection?.direction === "desc" ? -comparison : comparison
                     })
-                orderAndDirection?.order === "prioridad" && nuevoItinerario.tasks.sort((a, b) => {
-                    const aIdx = a?.prioridad ? (prioridadOrder[a.prioridad] ?? 0) : 0
-                    const bIdx = b?.prioridad ? (prioridadOrder[b.prioridad] ?? 0) : 0
-                    const comparison = aIdx - bIdx
-                    return orderAndDirection?.direction === "desc" ? -comparison : comparison
-                })
-                // orderAndDirection.order === "personalizada" && nuevoItinerario.tasks.sort((a, b) => a.personalizada.localeCompare(b.personalizada))
-                // orderAndDirection.order === "ninguna" && nuevoItinerario.tasks.sort((a, b) => a.title.localeCompare(b.title))
+                    // orderAndDirection.order === "personalizada" && nuevoItinerario.tasks.sort((a, b) => a.personalizada.localeCompare(b.personalizada))
+                    // orderAndDirection.order === "ninguna" && nuevoItinerario.tasks.sort((a, b) => a.title.localeCompare(b.title))
+                }
+                setItinerario({ ...nuevoItinerario })
             }
-            setItinerario({ ...nuevoItinerario })
         } else {
             setItinerario(null)
         }
@@ -282,7 +289,19 @@ export const BoddyIter = () => {
                 />
                 {
                     (isAllowedViewer(itinerario?.viewers ?? []) || window?.location?.pathname === "/itinerario" || isAllowed())
-                        ? <ItineraryPanel itinerario={itinerario} editTitle={editTitle} setEditTitle={setEditTitle} title={title} setTitle={setTitle} view={view} handleDeleteItinerario={handleDeleteItinerario} handleUpdateTitle={handleUpdateTitle} selectTask={selectTask} setSelectTask={setSelectTask} orderAndDirection={orderAndDirection} />
+                        ? <ItineraryPanel
+                            itinerario={itinerario}
+                            editTitle={editTitle}
+                            setEditTitle={setEditTitle}
+                            title={title}
+                            setTitle={setTitle}
+                            view={view}
+                            handleDeleteItinerario={handleDeleteItinerario}
+                            handleUpdateTitle={handleUpdateTitle}
+                            selectTask={selectTask}
+                            setSelectTask={setSelectTask}
+                            orderAndDirection={orderAndDirection}
+                        />
                         : <div className="h-full">
                             <ViewWihtoutData />
                         </div>

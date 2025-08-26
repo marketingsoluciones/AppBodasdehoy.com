@@ -46,10 +46,6 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
     const [showModalCompartir, setShowModalCompartir] = useState(false);
     const link = `${window.location.origin}/public-itinerary/itinerary-${event?._id}-${itinerario?._id}`
 
-    useEffect(() => {
-        setTitle(itinerario?.title)
-    }, [itinerario])
-
     const downloadPdf = async () => {
         try {
             setLoading(true);
@@ -70,6 +66,9 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
             setLoading(false);
         }
     }
+
+
+   
 
     return (
         <div className="w-full px-4 md:px-10 py-4" >
