@@ -2333,6 +2333,18 @@ export const queries = {
       }
     }
   }`,
+  getDevelopment: `query {
+    getDevelopment{
+      _id
+      development
+      domain
+      message{
+        _id
+        name
+        message
+      }
+    }
+  }`,
   signOut: `mutation ($sessionCookie :String){
     signOut(sessionCookie:$sessionCookie)
   }`,

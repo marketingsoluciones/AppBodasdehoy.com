@@ -14,9 +14,24 @@ import { BlockRedirection } from '../components/Utils/BlockRedirection';
 import { useRouter } from 'next/router';
 import { NextSeo } from 'next-seo';
 import { dataMetaData } from "../utils/SeoRecurses"
+import { varGlobalDevelopment } from "../context/AuthContext"
+import { fetchApiBodas, queries } from '../utils/Fetching';
 
 const MyApp = ({ Component, pageProps, openGraphData }) => {
   const [valirBlock, setValirBlock] = useState<boolean>()
+  const [message, setMessage] = useState<string>()
+
+  useEffect(() => {
+    if (valirBlock !== undefined) {
+      fetchApiBodas({
+        query: queries.getDevelopment,
+        variables: {},
+        development: varGlobalDevelopment
+      }).then(res => {
+        setMessage(res?.message?.message)
+      })
+    }
+  }, [valirBlock])
 
   return (
     <>
@@ -25,6 +40,9 @@ const MyApp = ({ Component, pageProps, openGraphData }) => {
       />
       <I18nextProvider i18n={i18n}>
         <DefaultLayout>
+          {!!message && <div className='bg-yellow-400 absolute top-[7.5rem] left-0 w-full bg-red-500 z-50 flex items-center justify-center'>
+            <span className='text-center px-10 py-0.5'>{message}</span>
+          </div>}
           <Load setValirBlock={setValirBlock} />
           {valirBlock
             ? <BlockRedirection />
