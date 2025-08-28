@@ -22,14 +22,14 @@ const sutMenus = [
     title: "mobiliario",
     icon: <GiGrandPiano className="w-6 h-6" />,
   },
-  {
+ /*  {
     title: "zonas",
     icon: <BsIntersect className="w-6 h-6" />,
   },
   {
     title: "plantillas",
     icon: <ImInsertTemplate className="w-6 h-6" />,
-  },
+  }, */
   {
     title: "resumen",
     icon: <HiDocumentReport className="w-6 h-6" />,
