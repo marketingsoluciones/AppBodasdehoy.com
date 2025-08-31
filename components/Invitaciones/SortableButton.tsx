@@ -48,12 +48,8 @@ export const SortableButton: React.FC<SortableButtonProps> = ({
       style={style}
       className="mb-2 p-4 border border-gray-300 rounded-md bg-blue-50 relative cursor-move"
     >
-      <div
-        {...attributes}
-        {...listeners}
-        className="absolute top-2 left-2 text-gray-400 hover:text-gray-600 cursor-move p-1"
-      >
-        <MdDragIndicator className="h-5 w-5" />
+      <div {...attributes} {...listeners} className="absolute top-2 left-2 text-gray-400 hover:text-gray-600 cursor-move p-1" >
+        <MdDragIndicator className="h-6 w-6" />
       </div>
       <button
         type="button"
@@ -65,17 +61,16 @@ export const SortableButton: React.FC<SortableButtonProps> = ({
           <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm2 3a1 1 0 011-1h2a1 1 0 110 2h-2a1 1 0 01-1-1z" clipRule="evenodd" />
         </svg>
       </button>
-      <h3 className="text-lg font-medium text-gray-800 mb-2 ml-6">{t("Button")} {index + 1} ({button.type.replace('_', ' ')})</h3>
-
+      <h3 className="text-sm font-bold text-gray-800 mb-2 ml-6">{t("Button")} {index + 1} ({button.type.replace('_', ' ')})</h3>
       <div className="mb-2">
         <InputField
           name={`buttons.${index}.text`}
           label={t("Button Text")}
           type="text"
           maxLength={25}
+          className="text-xs"
         />
       </div>
-
       {button.type === 'URL' && (
         <div className="mb-2">
           <InputField
@@ -84,9 +79,9 @@ export const SortableButton: React.FC<SortableButtonProps> = ({
             type="text"
             placeholder={t("e.g. https://yourdomain.com/order/{{params.nameEvent}}")}
             maxLength={2000}
+            className="text-xs"
           />
           <p className="text-gray-500 text-xs mt-1">{t("You can use variables like {{params.nameEvent}} for dynamic URLs.")}</p>
-
           {button.url?.includes('{{params.') && (
             <div className="mt-2">
               <InputField
@@ -95,12 +90,12 @@ export const SortableButton: React.FC<SortableButtonProps> = ({
                 type="text"
                 placeholder={t("e.g. https://yourdomain.com/order/12345")}
                 maxLength={2000}
+                className="text-xs"
               />
             </div>
           )}
         </div>
       )}
-
       {button.type === 'PHONE_NUMBER' && (
         <div className="mb-2">
           <InputField
@@ -109,10 +104,10 @@ export const SortableButton: React.FC<SortableButtonProps> = ({
             type="telefono"
             placeholder={t("e.g. +1234567890")}
             maxLength={20}
+            className="text-xs"
           />
         </div>
       )}
-
       {button.type === 'WHATSAPP' && (
         <div className="mb-2">
           <InputField
@@ -121,6 +116,7 @@ export const SortableButton: React.FC<SortableButtonProps> = ({
             type="text"
             placeholder={t("e.g. +1234567890")}
             maxLength={20}
+            className="text-xs"
           />
           <p className="text-gray-500 text-xs mt-1">{t("This will open WhatsApp with the specified number.")}</p>
         </div>

@@ -2,7 +2,7 @@ import { Formik, Form, useFormikContext } from "formik";
 import { AuthContextProvider } from "../../context/AuthContext";
 import { EventContextProvider } from "../../context/EventContext";
 import InputField from "../Forms/InputField";
-import { IconLightBulb16 } from "../icons";
+import { EmailIcon, IconLightBulb16, WhatsappIcon } from "../icons";
 import * as yup from "yup";
 import { phoneUtil, useAuthentication } from "../../utils/Authentication";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
@@ -18,6 +18,8 @@ import { ModalTemplates } from "./ModalTemplates";
 import { TemplateDesign } from "../../utils/Interfaces";
 import ButtonSecondary from "./ButtonSecondary";
 import i18next from "i18next";
+import { FaWhatsapp } from "react-icons/fa";
+import { HiOutlineMail } from "react-icons/hi";
 
 export type TitleComponent = "email" | "whatsapp" | "sms" | "diseño"
 
@@ -166,7 +168,11 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
           </ButtonPrimary>
         </div>
       </div>
-      <div className="w-full h-full p-2">
+      <div className="flex w-full h-full p-2">
+        <div className="flex-1 h-full flex items-center justify-center">
+          {TitleComponent === "email" && <HiOutlineMail className="w-2/3 h-2/3 -rotate-12 text-primary -translate-y-4" />}
+          {TitleComponent === "whatsapp" && <FaWhatsapp className="w-2/3 h-2/3 text-emerald-500 -rotate-12 -translate-y-4" />}
+        </div>
         <Formik
           validationSchema={TitleComponent === "email" ? validationSchemaEmail : validationSchemaPhoneNumber}
           onSubmit={(values) => handleClick(values)}
@@ -212,6 +218,9 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
             </Form>
           )}
         </Formik>
+        <div className="flex-1 h-full p-4">
+
+        </div>
         {!["email", "whatsapp"].includes(TitleComponent) && <div className="text-yellow-500 flex items-center justify-center space-x-1 md:my-2 text-sm cursor-default gap-4">
           <ActivatorPremium link={redireccionFacturacion} />
         </div>}

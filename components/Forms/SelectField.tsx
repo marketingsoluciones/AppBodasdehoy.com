@@ -34,7 +34,7 @@ const SelectField: FC<propsSelectField> = ({ label, children, options, colSpan, 
             <div className={`relative* w-full h-full col-span${colSpan && `-${colSpan}`} content-between`}>
                 <label className={`font-display text-sm ${labelClass ? "text-primary" : "text-textGrisClaro"} w-full`}>{label}</label>
                 <div className="relative">
-                    <select className="font-display capitalize cursor-pointer text-sm text-gray-500 border border-gray-300 focus:border-gray-400 focus:ring-0 transition w-full py-2 pr-7 rounded-xl focus:outline-none" value={typeof options[0] === "string" ? field?.value : field?.value?._id} name={field?.name} onChange={field?.onChange} >
+                    <select className={`font-display capitalize cursor-pointer text-sm text-gray-500 border border-gray-300 focus:border-gray-400 focus:ring-0 transition w-full py-2 pr-7 rounded-xl focus:outline-none ${props.className}`} value={typeof options[0] === "string" ? field?.value : field?.value?._id} name={field?.name} onChange={field?.onChange} >
                         {nullable &&
                             <option >
                                 {t("select")}
