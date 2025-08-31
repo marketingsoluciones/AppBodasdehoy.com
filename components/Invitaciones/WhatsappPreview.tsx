@@ -89,6 +89,17 @@ export const WhatsappPreview = ({ headerType, headerContent, bodyContent, footer
               {headerType === 'image' && headerContent && (
                 <img src={formattedHeader} alt="Header Preview" className="w-full h-auto rounded-md mb-2" />
               )}
+              {headerType === 'video' && headerContent && (
+                <div className="w-full rounded-md mb-2 bg-white  overflow-hidden">
+                  <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
+                    <video
+                      src={formattedHeader}
+                      controls
+                      className="absolute top-0 left-0 w-full h-full object-contain"
+                    />
+                  </div>
+                </div>
+              )}
 
               <div className="text-[13.6px] font-segoe-historic leading-[1rem]">
                 <Interweave

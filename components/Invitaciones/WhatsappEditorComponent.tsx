@@ -250,6 +250,14 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                     header_handle: values.headerContent
                 }
             });
+        } else if (values.headerType._id === 'video') {
+            components.push({
+                type: 'HEADER',
+                format: 'VIDEO',
+                example: {
+                    header_handle: values.headerContent
+                }
+            });
         }
         // Body
         const finalBodyContent = processContentAndCollectExamples(values.bodyContent);
@@ -415,7 +423,7 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                         <SelectField
                                             name="headerType"
                                             label={t("Header Type")}
-                                            options={[{ _id: "none", title: t("NONE") }, { _id: "text", title: t("TEXT") }, { _id: "image", title: t("IMAGE") }]}
+                                            options={[{ _id: "none", title: t("NONE") }, { _id: "text", title: t("TEXT") }, { _id: "image", title: t("IMAGE") }, { _id: "video", title: t("VIDEO") }]}
                                             className="text-xs"
                                         />
 
@@ -458,6 +466,18 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                                     className="text-xs"
                                                 />
                                                 <p className="text-gray-500 text-[11px] mt-1">{t("Note: In the real API, you will need to upload the image to Meta and use a handle or uri.")}</p>
+                                            </div>
+                                        )}
+                                        {values.headerType._id === 'video' && (
+                                            <div className="mt-2">
+                                                <InputField
+                                                    name="headerContent"
+                                                    label={t("Video URL (example)")}
+                                                    type="text"
+                                                    placeholder={t("https://example.com/video.mp4")}
+                                                    className="text-xs"
+                                                />
+                                                <p className="text-gray-500 text-[11px] mt-1">{t("Note: In the real API, you will need to upload the video to Meta and use a handle or uri.")}</p>
                                             </div>
                                         )}
                                     </div>
