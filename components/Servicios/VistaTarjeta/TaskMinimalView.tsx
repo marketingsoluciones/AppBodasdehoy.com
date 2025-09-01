@@ -4,14 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { EventContextProvider } from "../../../context/EventContext";
 import { AuthContextProvider } from "../../../context";
 import { NewAttachmentsEditor } from "../VistaTabla/NewAttachmentsEditor";
-import { formatTime, calculateEndTime, minutesToReadableFormat, readableFormatToMinutes } from './TaskNewUtils';
-import { Clock, PlayCircle, StopCircle } from 'lucide-react';
 import { TitleTask } from './TitleTask';
 import { AssignedTask } from './AssignedTask';
 import { TagsTask } from './TagsTask';
 import { DescriptionTask } from './DescriptionTask';
+import { TimeDurationContainer } from './TimeDurationContainer';
 import { useAllowed } from "../../../hooks/useAllowed";
-
 
 interface TaskMinimalViewProps {
   task: Task;
@@ -34,8 +32,6 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
   const { t } = useTranslation();
   const { event } = EventContextProvider();
   const { user } = AuthContextProvider()
-  const [editingDuration, setEditingDuration] = useState(false);
-  const [durationInput, setDurationInput] = useState('');
   const [isAllowed, ht] = useAllowed()
   const owner = user?.uid === event?.usuario_id
   const [showAttachments, setShowAttachments] = useState(false);
@@ -127,83 +123,12 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
         handleUpdate={handleUpdate}
         owner={owner}
       />
-      {/* Indicadores de hora inicio y fin (solo visuales) */}
-      {task.fecha && task.duracion && (
-        <div className="flex items-center space-x-6 bg-gray-50 rounded-lg p-3">
-          <div className="flex items-center space-x-2">
-            <PlayCircle className="w-5 h-5 text-green-600" />
-            <div>
-              <span className="text-xs text-gray-500 block">{t('Inicio')}</span>
-              <span className="text-sm font-medium text-gray-900">{formatTime(task.fecha)}</span>
-            </div>
-          </div>
-          <div className="w-px h-8 bg-gray-300"></div>
-          <div className="flex items-center space-x-2">
-            <StopCircle className="w-5 h-5 text-red-600" />
-            <div>
-              <span className="text-xs text-gray-500 block">{t('Final')}</span>
-              <span className="text-sm font-medium text-gray-900">{calculateEndTime(task.fecha, task.duracion as number)}</span>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* Duración */}
-      <div className="flex items-center space-x-4">
-        <Clock className="w-4 h-4 text-blue-600 mt-0.5" />
-        <div className="text-xs text-gray-500 pt-1">
-          {t('Duración')}
-        </div>
-        {editingDuration ? (
-          <input
-            type="text"
-            value={durationInput}
-            onChange={(e) => setDurationInput(e.target.value)}
-            onBlur={() => {
-              const minutes = readableFormatToMinutes(durationInput);
-              handleUpdate('duracion', minutes);
-              setEditingDuration(false);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                const minutes = readableFormatToMinutes(durationInput);
-                handleUpdate('duracion', minutes);
-                setEditingDuration(false);
-              } else if (e.key === 'Escape') {
-                setEditingDuration(false);
-              }
-            }}
-            placeholder="Ej: 1h 30min"
-            className="w-24 px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            autoFocus
-          />
-        ) : (
-          <span
-            className={`text-sm ${owner ? canEdit ? 'cursor-pointer text-gray-700 hover:text-gray-900' : 'cursor-default text-gray-600' : task.estatus && canEdit ? 'cursor-pointer text-gray-700 hover:text-gray-900' : 'cursor-default text-gray-600'}`}
-            onClick={() => {
-              if (owner) {
-                if (canEdit) {
-                  setEditingDuration(true);
-                  setDurationInput(minutesToReadableFormat(task.duracion as number));
-                } else {
-                  ht();
-                }
-              } else {
-                if (task.estatus) {
-                  if (canEdit) {
-                    setEditingDuration(true);
-                    setDurationInput(minutesToReadableFormat(task.duracion as number));
-                  } else {
-                    ht();
-                  }
-                }
-              }
-            }}
-            title={canEdit ? "Haz clic para editar duración" : "No tienes permisos para editar"}
-          >
-            {minutesToReadableFormat(task.duracion as number)}
-          </span>
-        )}
-      </div>
+      {/* Contenedor integrado de Duración e Indicadores de Hora */}
+      <TimeDurationContainer
+        task={task}
+        canEdit={canEdit}
+        handleUpdate={handleUpdate}
+      />
       {/* Etiquetas */}
       <TagsTask
         canEdit={canEdit}
