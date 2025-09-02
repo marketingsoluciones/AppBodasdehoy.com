@@ -108,7 +108,7 @@ const Invitados: FC = () => {
               className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 gap-4 relative"
             >
               <BlockCabecera />
-              <div className="absolute z-10  right-5 md:right-[155px] translate-y-3 md:top-[170px]">
+              <div className="absolute z-10  right-5 md:right-[155px] translate-y-3 md:top-[170px] md:hidden">
                 <SelectModeView value={viewPreferUser} setValue={setViewPreferUser} />
               </div>
               {view === "cards"
