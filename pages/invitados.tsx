@@ -12,12 +12,14 @@ import FormCrearMenu from "../components/Forms/FormCrearMenu";
 import { useMounted } from "../hooks/useMounted";
 import { BlockTableroInvitados } from "../components/Invitados/BlockTableroInvitados";
 import { SelectModeView } from "../components/Utils/SelectModeView";
+import FormAcompañante from "../components/Forms/FormAcompañante";
 
 export type ViewItinerary = "table" | "schema" | "cards" | "extraTable" | "boardView" | "newTable" | "kanban"; // Agregar "extraTable"
 
 const Invitados: FC = () => {
   const [isMounted, setIsMounted] = useState<boolean>(false);
   const [formShow, setFormShow] = useState<string | null>(null)
+  const [formShowAcompañante, setFormShowAcompañante] = useState<string | null>(null)
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const { event } = EventContextProvider();
   const { actionModals, setActionModals } = AuthContextProvider()
@@ -45,13 +47,18 @@ const Invitados: FC = () => {
   }, []);
 
   const reciboClick = (accion) => {
+    console.log("accion", accion)
     setIsMounted(accion.state)
     setFormShow(accion.click)
+    if (accion.click == "acompañante") {
+      setFormShowAcompañante(accion.id)
+    }
   }
-  const handleClick = (e, click) => {
+  const handleClick = (e, click, id?: string | number) => {
     e.preventDefault();
-    reciboClick({ state: !isMounted, click: click });
-  };
+    reciboClick({ state: !isMounted, click: click, id: id });
+};
+
   const ConditionalAction = ({ e }) => {
     if (event.invitados_array.length >= 200) {
       setActionModals(!actionModals)
@@ -83,6 +90,10 @@ const Invitados: FC = () => {
               } else if (formShow == "menu") {
                 return (
                   <FormCrearMenu state={isMounted} set={setIsMounted} />
+                )
+              }else if (formShow == "acompañante") {
+                return (
+                  <FormAcompañante state={isMounted} set={setIsMounted} guestFather={formShowAcompañante} />
                 )
               }
             })()}

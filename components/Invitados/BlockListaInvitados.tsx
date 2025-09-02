@@ -6,7 +6,6 @@ import FormEditarInvitado from "../Forms/FormEditarInvitado";
 import ModalBottom from "../Utils/ModalBottom";
 import DatatableGroup from "./GrupoTablas";
 import SentarBlock from "./SentarBlock";
-import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
 import { OptionsSubMenu } from "./OptionsSubMenu";
 
@@ -18,11 +17,10 @@ interface propsBlockListaInvitados {
 }
 
 const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ menu, setGetMenu, ConditionalAction, handleClick, }) => {
-  const { event, setEvent } = EventContextProvider();
+  const { event } = EventContextProvider();
   const [isMounted, setIsMounted] = useState(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const [invitadoSelected, setSelected] = useState<string | null>(null);
-  const [isAllowed, ht] = useAllowed()
   const { t } = useTranslation();
 
   return (
@@ -69,6 +67,7 @@ const BlockListaInvitados: FC<propsBlockListaInvitados> = ({ menu, setGetMenu, C
           setIsMounted={setIsMounted}
           menu={menu}
           setGetMenu={setGetMenu}
+          handleClick={handleClick}
         />
       </div>
       <SentarBlock />

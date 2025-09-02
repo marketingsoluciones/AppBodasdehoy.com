@@ -7,10 +7,15 @@ import { guests, table } from "../../utils/Interfaces";
 import { RowObject } from "./RowObject";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useTranslation } from 'react-i18next';
+import { useAllowed } from "../../hooks/useAllowed";
 
 interface propsSubTabla {
     row?: any,
     getId?: string,
+    handleClick?: any,
+    setSelected?: any,
+    isMounted?: any,
+    setIsMounted?: any
 }
 
 interface guestsExt extends guests {
@@ -18,7 +23,7 @@ interface guestsExt extends guests {
     tableNameCeremonia: Partial<table>
 }
 
-export const SubTabla: FC<propsSubTabla> = ({ row, getId }) => {
+export const SubTabla: FC<propsSubTabla> = ({ row, getId, handleClick, setSelected, isMounted, setIsMounted }) => {
 
     const { event, allFilterGuests } = EventContextProvider();
     const GuestsByFather = event?.invitados_array?.filter((invitado) => invitado?.father === getId)
@@ -59,7 +64,11 @@ export const SubTabla: FC<propsSubTabla> = ({ row, getId }) => {
             <ListadoComponent
                 GuestsByFather={GuestsByFather}
                 row={row}
-            />
+                handleClick={handleClick}
+                setSelected={setSelected}
+                isMounted={isMounted}
+                setIsMounted={setIsMounted}
+            />  
         </div>
     );
 };
@@ -68,9 +77,13 @@ export const SubTabla: FC<propsSubTabla> = ({ row, getId }) => {
 interface props {
     row: any
     GuestsByFather: guests[]
+    handleClick?: any
+    setSelected?: any
+    isMounted?: any
+    setIsMounted?: any
 }
 
-const ListadoComponent: FC<props> = ({ row, GuestsByFather }) => {
+const ListadoComponent: FC<props> = ({ row, GuestsByFather, handleClick, setSelected, isMounted, setIsMounted }) => {
     const { t } = useTranslation();
     const { event, setEvent } = EventContextProvider()
     const sexo = row?.original?.sexo;
@@ -84,7 +97,7 @@ const ListadoComponent: FC<props> = ({ row, GuestsByFather }) => {
             alt: "Mujer",
         },
     };
-
+    const [isAllowed] = useAllowed()
     const Lista = [
         {
             title: "pendiente",
@@ -105,6 +118,10 @@ const ListadoComponent: FC<props> = ({ row, GuestsByFather }) => {
         return acc;
     }, {});
 
+    const handleEditInvitado = (id: string) => {
+        setSelected(id)
+        setIsMounted(true)
+    }
     return (
         <>
             <button
@@ -146,7 +163,7 @@ const ListadoComponent: FC<props> = ({ row, GuestsByFather }) => {
                     <p className="font-body text-[15px] font-semibold">{t("ceremonytable")}</p>
                 </span>
             </div>
-            {GuestsByFather.length ? GuestsByFather?.map((item, idx) => {
+            { GuestsByFather?.map((item, idx) => {
                 const getTable = (planSpaceTitle) => {
                     const f1 = event?.planSpace.findIndex(elem => elem?.title === planSpaceTitle)
                     const table = event.planSpace[f1]?.tables.find(el => el.guests.find(elem => elem._id === item._id))
@@ -165,10 +182,10 @@ const ListadoComponent: FC<props> = ({ row, GuestsByFather }) => {
                                     src={image[sexo]?.image}
                                     alt={image[sexo]?.alt}
                                 />
-                                <p className="font-display text-md capitalize ">{item.nombre} </p>
+                                <p className="font-display text-md capitalize  cursor-pointer" onClick={() =>!isAllowed() ? null : handleEditInvitado(item._id)}>{item.nombre} </p>
                             </div>
                         </span>
-                        <div className="col-span-2 flex flex-col h-full justify-center items-center">
+                        <div className="col-span-2 flex flex-col h-full justify-center items-center " >
                             <RowString Lista={Lista} dicc={dicc} initialValue={item.asistencia} variable="asistencia" guestID={item._id} />
                         </div>
 
@@ -183,12 +200,12 @@ const ListadoComponent: FC<props> = ({ row, GuestsByFather }) => {
                         </span>
                     </div>
                 )
-            }) :
-                <span className="items-center col-span-3 flex gap-3 text-gray-500 justify-center pt-5">
-                    {t("noconfirmedcompanions")}
-                </span>
+            }) 
             }
-
+            {
+            row?.original?.passesQuantity > GuestsByFather.length &&
+                <span onClick={(e) => handleClick(e, "acompañante", row?.original?._id)} className="bg-white col-span-2 flex flex-col h-full justify-center items-center py-4 cursor-pointer">Registrar acompañante</span>
+            }
         </>
     );
 };

@@ -26,6 +26,7 @@ interface propsDatatableGroup {
   setIsMounted: Dispatch<SetStateAction<boolean>>;
   menu?: any[]
   setGetMenu?: any
+  handleClick?: any
 }
 
 interface guestsExt extends guests {
@@ -96,7 +97,7 @@ export const handleMoveGuest = (props: handleMoveGuest) => {
   }
 }
 
-const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIsMounted, menu = [] }) => {
+const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIsMounted, menu = [], handleClick }) => {
   const { t } = useTranslation()
   const toast = useToast()
   const { event, setEvent, invitadoCero, setInvitadoCero, allFilterGuests, planSpaceActive, setPlanSpaceActive, filterGuests } = EventContextProvider();
@@ -145,7 +146,14 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
   }, [allFilterGuests]);
 
   const renderRowSubComponent = useCallback(({ row }) => (
-    <SubTabla row={row} getId={acompañanteID?.id} />
+    <SubTabla
+      row={row}
+      getId={acompañanteID?.id}
+      handleClick={handleClick}
+      setSelected={setSelected}
+      isMounted={isMounted}
+      setIsMounted={setIsMounted} 
+      />
   ),
     [acompañanteID]
   )
