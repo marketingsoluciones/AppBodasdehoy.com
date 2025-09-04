@@ -664,6 +664,7 @@ export const es = {
     'importInto': "importar en",
     'from': "desde",
     'importWarning': 'si importas un presupuesto, se eliminará el presupuesto actual',
+    'enterTitle': 'Ingresa el título de tu plantilla',
     'endTime': 'hora de finalización',
     'startTime': 'hora de inicio',
     maxLimitedItineraries: "El límite máximo para crear o duplicar fue alcanzado",

@@ -664,6 +664,7 @@ export const en = {
     'importBudget': "import budget",
     'importInto': "import into",
     'from': "from",
+    'enterTitle': "Enter the title of your template",
     'importWarning': "The import will overwrite the current budget",
     'endTime': 'end time',
     'startTime': ' start time',

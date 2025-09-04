@@ -173,9 +173,6 @@ const Invitaciones = () => {
                     </div>
                   </div>
                 </div>
-                <div className={`${["sms"].includes(optionSelect) ? null : "hidden"}`}>
-                  <PlantillaTextos optionSelect={optionSelect} />
-                </div>
               </div>
               <div className={`${["email", "diseño"].includes(optionSelect) ? !stateConfi ? "" : "md:pt-3" : null} pt-3`}>
                 <EnviadosComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent} event={event} />
