@@ -8,15 +8,18 @@ interface props {
   html: string;
   action: () => void;
   onTitleChange?: (title: string) => void;
+  title: string;
+  setTitle: any;
+  template: any;
 }
 
-export const ModalHtmlPreview: FC<props> = ({ htmlToImageRef, html, action, onTitleChange }) => {
+export const ModalHtmlPreview: FC<props> = ({ htmlToImageRef, html, action, onTitleChange, title, setTitle, template }) => {
   const { t } = useTranslation();
-  const [title, setTitle] = useState<string>("");
+  
 
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newTitle = e.target.value;
-    setTitle(newTitle);
+  const handleTitleChange = (values: any) => {
+    const newTitle = values.target.value;
+    setTitle({ ...template, configTemplate: { ...template?.configTemplate, name: newTitle} });
     onTitleChange?.(newTitle);
   };
 
@@ -33,7 +36,7 @@ export const ModalHtmlPreview: FC<props> = ({ htmlToImageRef, html, action, onTi
           value={title}
           onChange={handleTitleChange}
           placeholder={t('enterTitle') || 'Ingresa un título para la plantilla'}
-          className="w-full px-3 py-2 border border-primary rounded-lg focus:outline-none focus:ring-0 "
+          className="w-full px-3 py-2 border border-primary rounded-lg focus:outline-none focus:ring-0 capitalize "
         />
       </div>
       <div className="flex justify-end gap-2">
