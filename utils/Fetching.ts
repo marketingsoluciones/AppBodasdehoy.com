@@ -265,6 +265,24 @@ export const queries = {
     }
   }`,
 
+  getWhatsappInvitationTemplates: `query($evento_id:ID){
+    getWhatsappInvitationTemplates(evento_id:$evento_id)
+  }`,
+
+  createWhatsappInvitationTemplate: `mutation($evento_id:ID, $data: JSON){
+    createWhatsappInvitationTemplate(evento_id:$evento_id, data:$data)
+  }`,
+
+  updateWhatsappInvitationTemplate: `mutation($evento_id:ID, $template_id: ID, $data: JSON){
+    updateWhatsappInvitationTemplate(evento_id:$evento_id, template_id:$template_id, data:$data){
+      _id
+    }
+  }`,
+
+  deleteWhatsappInvitationTemplate: `mutation($evento_id:ID, $template_id: ID){
+    deleteWhatsappInvitationTemplate(evento_id:$evento_id, template_id:$template_id)
+  }`,
+
   getAllBusiness: `query ($criteria :searchCriteriaBusiness, $sort : sortCriteriaBusiness, $skip :Int, $limit : Int, $development: String!) {
     getAllBusinesses(searchCriteria:$criteria, sort: $sort, skip: $skip, limit: $limit, development: $development){
       total

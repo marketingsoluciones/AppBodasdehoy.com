@@ -43,7 +43,7 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
 
 
   useEffect(() => {
-    if (event?.templateEmailSelect) {
+    if (event?.templateEmailSelect && optionSelect === "email") {
       fetchApiEventos({
         query: queries.getVariableEmailTemplate,
         variables: {
@@ -53,8 +53,19 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
       }).then((res: any) => {
         setTemplateName(res?.configTemplate?.name)
       })
+    } else if (event?.templateWhatsappSelect && optionSelect === "whatsapp") {
+      fetchApiEventos({
+        query: queries.getWhatsappInvitationTemplates,
+        variables: {
+          evento_id: event?._id
+        },
+      }).then((res: any) => {
+        setTemplateName(res?.templateName)
+      })
+    } else {
+      setTemplateName("")
     }
-  }, [event?.templateEmailSelect, event?.fecha_actualizacion, event?.updatedAt])
+  }, [event?.templateEmailSelect, event?.fecha_actualizacion, event?.updatedAt, optionSelect])
 
   const initialValues = {
     email: "",
@@ -114,16 +125,29 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
   }
 
   const handleChangeTemplate = (template: TemplateDesign) => {
-    fetchApiEventos({
-      query: queries.eventUpdate,
-      variables: {
-        idEvento: event?._id,
-        variable: "templateEmailSelect",
-        value: template._id
-      }
-    })
-    setEvent({ ...event, templateEmailSelect: template._id })
-    setTemplateName(template.configTemplate.name)
+    if (optionSelect === "email") {
+      fetchApiEventos({
+        query: queries.eventUpdate,
+        variables: {
+          idEvento: event?._id,
+          variable: "templateEmailSelect",
+          value: template._id
+        }
+      })
+      setEvent({ ...event, templateEmailSelect: template._id })
+      setTemplateName(template.configTemplate.name)
+    }
+    if (optionSelect === "whatsapp") {
+      fetchApiEventos({
+        query: queries.eventUpdate,
+        variables: {
+          idEvento: event?._id,
+          variable: "templateWhatsappSelect",
+          value: template._id
+        }
+      })
+    }
+
   }
   const path = `${process.env.NEXT_PUBLIC_CMS}/facturacion`
   const redireccionFacturacion = window.origin.includes("://test") ? path?.replace("//", "//test") : path
@@ -137,7 +161,7 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
       )}
       <div className="md:w-max">
         <div className="w-full h-10 flex gap-2 items-end px-2">
-          <span className="text-sm text-gray-600 text-primary py-1">{t("template")}</span>
+          <span className="text-sm text-gray-600 text-primary py-1">{t("template")} {optionSelect === "email" ? t("email") : "Whatsapp"}</span>
           <div className="flex-1 h-8 bg-gray-100 rounded-md px-2 py-2 text-sm text-gray-600">
             {templateName}
           </div>

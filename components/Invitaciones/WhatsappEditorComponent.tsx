@@ -31,15 +31,18 @@ interface ButtonOption {
     type: 'QUICK_REPLY' | 'URL' | 'PHONE_NUMBER' | 'WHATSAPP';
 }
 
-interface TemplateFormValues {
+export interface TemplateWathsappValues {
+    _id?: string;
     templateName: string;
-    language: { _id: string, title: string };
-    category: { _id: string, title: string };
-    headerType: { _id: string, title: string };
+    language: { _id: "es" | "en", title: string };
+    category: { _id: "UTILITY" | "WEDDING", title: string };
+    headerType: { _id: "none" | "text" | "image" | "video", title: string };
     headerContent: string;
     bodyContent: string;
     footerContent: string;
     buttons: Button[];
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 
 interface props {
@@ -51,11 +54,11 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
     const { event, setEvent } = EventContextProvider()
     const { t } = useTranslation();
     const toast = useToast();
-    const [values, setValues] = useState<TemplateFormValues>()
+    const [values, setValues] = useState<TemplateWathsappValues>()
     const [cursorPosition, setCursorPosition] = useState(0)
 
     const variables = [
-        { id: 1, name: "tipo de evento", value: "{{params.typeEvent}}", sample: event?.tipo },
+        { id: 1, name: "tipo de evento", value: "{{params.typeEvent}}", sample: [`event`][`tipo`] },
         { id: 2, name: "nombre del evento", value: "{{params.nameEvent}}", sample: event?.nombre },
         { id: 3, name: "invitado", value: "{{params.nameGuest}}", sample: event?.invitados_array[0]?.nombre },
         { id: 4, name: "fecha", value: "{{params.dateEvent}}", sample: new Date(parseInt(event?.fecha)).toLocaleDateString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric' }) },
@@ -124,7 +127,7 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
         ),
     });
 
-    const initialValues: TemplateFormValues = {
+    const initialValues: TemplateWathsappValues = {
         templateName: '',
         language: { _id: "es", title: "ES" },
         category: { _id: "UTILITY", title: "UTILITY" },
@@ -214,14 +217,24 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
         setFieldValue(`buttons.${index}.${field}`, value);
     };
 
-    const generateTemplateJson = (values: TemplateFormValues) => {
+    const generateTemplateJson = (values: TemplateWathsappValues) => {
+        values = { ...values, templateName: values.templateName.trim() }
         console.log(100038, values)
+        fetchApiEventos({
+            query: queries.createWhatsappInvitationTemplate,
+            variables: {
+                evento_id: event?._id,
+                data: values
+            }
+        }).then((res: any) => {
+            toast("success", t("Template created successfully"));
+        })
+        setValues({ ...values })
         const components = [];
         const collectedExamplesMap: any = {};
         const processContentAndCollectExamples = (content: string) => {
             let newContent = content;
             const matches = content.match(/\{\{params\.[a-zA-Z0-9_]+\}\}/g);
-            console.log(100039, matches)
             if (matches) {
                 matches.forEach(match => {
                     const varInfo = variableMap[match];
@@ -356,7 +369,7 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
     }, [generatedJson])
 
 
-    const handleSubmit = async (values: TemplateFormValues, actions: any) => {
+    const handleSubmit = async (values: TemplateWathsappValues, actions: any) => {
         try {
             generateTemplateJson(values);
         } catch (error) {
@@ -625,13 +638,7 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                 {/* Columna de la Vista Previa */}
                 {values && (
                     <div className="flex-1 hidden md:flex justify-center overflow-auto">
-                        <WhatsappPreview
-                            headerType={values.headerType?._id ?? 'NONE'}
-                            headerContent={values.headerContent ?? ''}
-                            bodyContent={values.bodyContent ?? ''}
-                            footerContent={values.footerContent ?? ''}
-                            buttons={values.buttons ?? []}
-                            variableMap={variableMap}
+                        <WhatsappPreview values={{ ...values }} variableMap={variableMap}
                         />
                     </div>
                 )}

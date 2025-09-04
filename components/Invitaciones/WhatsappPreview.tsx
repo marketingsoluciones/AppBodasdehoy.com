@@ -1,10 +1,11 @@
-import React, { useState, useEffect, ComponentType } from 'react';
+import React, { useState, useEffect, ComponentType, FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Interweave } from "interweave"
 import { HashtagMatcher, Link, UrlMatcher, UrlProps } from "interweave-autolink"
 import { IoMdCall } from 'react-icons/io';
 import { BiLinkExternal } from 'react-icons/bi';
 import { PiClipboardTextBold } from 'react-icons/pi';
+import { TemplateWathsappValues } from './WhatsappEditorComponent';
 
 // Función auxiliar para formatear un número añadiendo un cero inicial si es menor que 10.
 const padZero = (num) => {
@@ -22,8 +23,19 @@ const getCurrentFormattedDateTime = () => {
   return `${year}-${month}-${day} ${hours}:${minutes}`;
 };
 
+interface Props {
+  values: TemplateWathsappValues;
+  variableMap: any[];
+}
 // Componente de vista previa de WhatsApp
-export const WhatsappPreview = ({ headerType, headerContent, bodyContent, footerContent, buttons, variableMap }) => {
+export const WhatsappPreview: FC<Props> = ({ values, variableMap }) => {
+
+  const headerType = values?.headerType ?? { _id: "none", title: "NONE" }
+  const headerContent = values?.headerContent ?? ""
+  const bodyContent = values?.bodyContent ?? ""
+  const footerContent = values?.footerContent ?? ""
+  const buttons = values?.buttons ?? []
+
   const { t } = useTranslation();
   // Función para reemplazar variables con ejemplos del variableMap
   const replaceVariables = (text, currentVariableMap) => {
@@ -48,7 +60,7 @@ export const WhatsappPreview = ({ headerType, headerContent, bodyContent, footer
     return processedText;
   };
   const formattedBody = replaceVariables(bodyContent, variableMap);
-  const formattedHeader = headerType === 'text' ? replaceVariables(headerContent, variableMap) : headerContent;
+  const formattedHeader = headerType._id === 'text' ? replaceVariables(headerContent, variableMap) : headerContent;
 
   return (
     <div className="md:w-[332px] h-max flex items-start justify-center pt-4 pb-16">
@@ -83,13 +95,13 @@ export const WhatsappPreview = ({ headerType, headerContent, bodyContent, footer
           {/* Message Bubble */}
           <div className="bg-white rounded-r-lg rounded-b-lg shadow-sm max-w-[85%] mr-auto ml-0 break-words">
             <div className="p-2 pb-0">
-              {headerType === 'text' && headerContent && (
+              {headerType._id === 'text' && headerContent && (
                 <div className="font-semibold text-gray-800 text-[16px] font-optimistic mb-2" >{formattedHeader}</div>
               )}
-              {headerType === 'image' && headerContent && (
+              {headerType._id === 'image' && headerContent && (
                 <img src={formattedHeader} alt="Header Preview" className="w-full h-auto rounded-md mb-2" />
               )}
-              {headerType === 'video' && headerContent && (
+              {headerType._id === 'video' && headerContent && (
                 <div className="w-full rounded-md mb-2 bg-white  overflow-hidden">
                   <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
                     <video

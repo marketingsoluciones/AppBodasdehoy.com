@@ -59,7 +59,6 @@ export const ThumbnailGenerator = () => {
       }
     };
     const rect = templateRef.current.getBoundingClientRect();
-    console.log(100042, rect.width, rect.height);
 
     toPng(templateRef.current, {
       cacheBust: true,

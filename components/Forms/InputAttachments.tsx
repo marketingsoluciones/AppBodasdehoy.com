@@ -39,7 +39,6 @@ const InputAttachments: FC<Partial<props>> = ({ label, task, itinerarioID, class
       let attachments: FileData[] = [...field.value, ...files.map((elem: File): FileData => { return { _id: undefined, name: elem.name, size: elem.size } })]
       helpers.setValue([...attachments])
       files.map((elem) => {
-        console.log(100040, elem)
         const storageRef = ref(storage, `${task._id}//${elem.name}`)
         uploadBytesResumable(storageRef, elem)
           .then(() => {

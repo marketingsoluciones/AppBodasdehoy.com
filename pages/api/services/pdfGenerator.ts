@@ -7,7 +7,6 @@ export interface GeneratePdfOptions {
 }
 
 export async function generatePdf({ html, filename, format = 'LETTER' }: GeneratePdfOptions) {
-  console.log(10004, html)
   // const browser = await puppeteer.launch({
   //   headless: true, // Si deseas ejecutar Chrome en modo headless
   //   args: ['--no-sandbox']
