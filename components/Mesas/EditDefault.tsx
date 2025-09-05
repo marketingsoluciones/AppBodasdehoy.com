@@ -18,7 +18,7 @@ export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, ite
       const f1 = planSpaceActive[`${itemTipo}s`].findIndex(elem => elem._id === item._id)
       planSpaceActive[`${itemTipo}s`].splice(f1, 1)
       setPlanSpaceActive({ ...planSpaceActive })
-      event.galerySvgs = event.galerySvgs.filter(elem => elem._id !== item._id)
+      event.galerySvgs = event?.galerySvgs?.filter(elem => elem._id !== item._id) ?? []
       setEvent({ ...event })
       if (itemTipo == "table") {
         await fetchApiEventos({

@@ -11,9 +11,13 @@ interface propsElement {
 export const ElementContent: FC<propsElement> = ({ item }) => {
   const [reactElement, setReactElement] = useState<React.ReactElement>();
   const { event } = EventContextProvider()
-
   useEffect(() => {
-    if (item?.tipo) {
+    if (item?.tipo === "text") {
+      const reactElement = item?.title
+        ? <div className="text-sm">{item?.title}</div>
+        : <div className="text-sm" style={{ ...item?.size, rotate: `${item?.rotation}deg` }} data-width={item?.size?.width} data-height={item?.size?.height} data-rotation={item?.rotation}>Texto</div>
+      setReactElement(reactElement)
+    } else {
       const element = event?.galerySvgs
         ? [...event?.galerySvgs, ...ListElements].find(elem => elem.title === item.tipo)
         : ListElements.find(elem => elem.title === item.tipo)
@@ -26,9 +30,11 @@ export const ElementContent: FC<propsElement> = ({ item }) => {
 
   return (
     <>
-      {reactElement ? reactElement : <div className="flex items-center justify-center bg-gray-100 rounded-full w-full h-full p-3">
-        <RxQuestionMark className="w-12 h-12 text-gray-500" />
-      </div>}
+      {reactElement
+        ? reactElement
+        : <div className="flex items-center justify-center bg-gray-100 rounded-full w-full h-full p-3">
+          <RxQuestionMark className="w-12 h-12 text-gray-500" />
+        </div>}
     </>
   );
 };

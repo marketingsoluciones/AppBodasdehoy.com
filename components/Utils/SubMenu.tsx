@@ -22,14 +22,14 @@ const sutMenus = [
     title: "mobiliario",
     icon: <GiGrandPiano className="w-6 h-6" />,
   },
- /*  {
-    title: "zonas",
-    icon: <BsIntersect className="w-6 h-6" />,
-  },
-  {
-    title: "plantillas",
-    icon: <ImInsertTemplate className="w-6 h-6" />,
-  }, */
+  /*  {
+     title: "zonas",
+     icon: <BsIntersect className="w-6 h-6" />,
+   },
+   {
+     title: "plantillas",
+     icon: <ImInsertTemplate className="w-6 h-6" />,
+   }, */
   {
     title: "resumen",
     icon: <HiDocumentReport className="w-6 h-6" />,
@@ -45,10 +45,10 @@ export const SubMenu = ({ itemSelect, setItemSelect }) => {
   }
 
   return (
-    <div className="w-full h-full *gap-1 px-[2px] py-[1px] flex">
+    <div className="w-full h-full px-2 py-[1px] flex justify-between">
       {sutMenus.map((elem: any, idx: number) => {
         return (
-          <div key={idx} onClick={() => handleClick(elem)} className={`w-1/6 h-full flex flex-col items-center justify-center rounded-lg ${elem.title == itemSelect ? "bg-base text-primary font-semibold" : "bg-primary text-white"} ${elem?.title == "invitados" && "md:hidden"}`}>
+          <div key={idx} onClick={() => handleClick(elem)} className={`w-1/4 h-full flex flex-col items-center justify-center rounded-lg ${elem.title == itemSelect ? "bg-base text-primary font-semibold" : "bg-primary text-white"} ${elem?.title == "invitados" && "md:hidden"}`}>
             {elem?.icon}
             <span className={`capitalize text-[9.5px] leading-none`}>{t(elem?.title)}</span>
           </div>

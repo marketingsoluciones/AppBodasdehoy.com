@@ -11,6 +11,7 @@ import { EventContextProvider } from "../../context";
 import { useToast } from "../../hooks/useToast";
 import { GalerySvg } from "../../utils/Interfaces";
 import { convertBackendSvgsToReact } from "../../pages/mesas";
+import { CiText } from "react-icons/ci";
 
 interface propsBlockPanelElements {
   listElements: GalerySvg[]
@@ -222,6 +223,12 @@ const BlockPanelElements: FC<propsBlockPanelElements> = ({ listElements, setList
       )}
       <div id="listTables" className="w-full h-full">
         <BlockDefault listaLength={listElements.length}>
+          <DragTable item={{
+            size: { width: 60, height: 120 },
+            tipo: "text",
+            title: "",
+            icon: <CiText className="w-8 h-8 text-gray-400" />
+          }} />
           {listElements.map((item, idx) => (
             <DragTable key={idx} item={item} />
           ))}
@@ -236,13 +243,13 @@ const BlockPanelElements: FC<propsBlockPanelElements> = ({ listElements, setList
                 </div>
               </div>
             </span>
-            <style>{`
-              .listTables {
-                touch - action: none;
-                user-select: none;
-              }
-            `}</style>
           </div>
+          <style>{`
+            .listTables {
+              touch - action: none;
+              user-select: none;
+            }
+          `}</style>
         </BlockDefault>
       </div>
     </>

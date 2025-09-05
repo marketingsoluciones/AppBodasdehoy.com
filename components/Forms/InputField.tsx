@@ -62,7 +62,9 @@ const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled =
 
   useEffect(() => {
     if (!aceptEmogis) {
-      helpers.setValue(field.value.replace(emojiRegex, ''))
+      if (typeof field?.value === "string") {
+        helpers.setValue(field?.value?.replace(emojiRegex, ''))
+      }
     }
     if (props?.type === "telefono") {
       let result: Flag | null = null
