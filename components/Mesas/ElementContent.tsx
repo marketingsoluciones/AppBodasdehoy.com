@@ -20,10 +20,27 @@ export const ElementContent: FC<propsElement> = ({ item, scale, disableDrag }) =
   const { editDefault } = EventContextProvider()
   const [reactElement, setReactElement] = useState<React.ReactElement>();
   const { event } = EventContextProvider()
-  const [fontSize, setFontSize] = useState<number>(20)
-  const [customEditor, setCustomEditor] = useState<string>(item?.title || "texto")
+  const [customEditor, setCustomEditor] = useState<string>(item?.title || `<p class="ql-align-center">texto</p>`)
   const [editDefaultOld, setEditDefaultOld] = useState<any>()
+  const [isMounted, setIsMounted] = useState(false)
+  const [isClickEditor, setIsClickEditor] = useState(false)
 
+  useEffect(() => {
+    if (!disableDrag || editDefault?.clicked !== item._id) {
+      setIsClickEditor(false)
+    }
+  }, [disableDrag, editDefault?.clicked])
+
+  useEffect(() => {
+    if (!isMounted) {
+      setTimeout(() => {
+        setIsMounted(true)
+      }, 500)
+    }
+    return () => {
+      setIsMounted(false)
+    }
+  }, [])
   // Configuración del editor Quill
   const quillModules = {
     toolbar: [
@@ -35,6 +52,32 @@ export const ElementContent: FC<propsElement> = ({ item, scale, disableDrag }) =
 
     ],
   };
+
+  useEffect(() => {
+    if (isMounted && item?.tipo === "text") {
+      const elem = document.getElementById(`editor-textTable_${item._id}`)
+      const editor = elem?.querySelector('.ql-editor') as HTMLElement
+      if (editor) {
+        const handleDoubleClick = (event: Event) => {
+          event.preventDefault()
+          event.stopPropagation()
+          event.stopImmediatePropagation()
+        }
+        const handleClick = (event: Event) => {
+          event.preventDefault()
+          event.stopPropagation()
+          event.stopImmediatePropagation()
+          setIsClickEditor(true)
+        }
+        editor.addEventListener('dblclick', handleDoubleClick, true) // true para captura
+        editor.addEventListener('click', handleClick, true)
+        return () => {
+          editor.removeEventListener('dblclick', handleDoubleClick, true)
+          editor.removeEventListener('click', handleClick, true)
+        }
+      }
+    }
+  }, [isMounted, item?._id, item?.tipo])
 
   const quillFormats = [
     'size', // Agregar el formato de tamaño
@@ -62,7 +105,6 @@ export const ElementContent: FC<propsElement> = ({ item, scale, disableDrag }) =
             rotate: `${item?.rotation}deg`
           }}
           /*data-width={item?.size?.width} data-height={item?.size?.height}*/
-          data-fontSize={fontSize}
           data-type={item.tipo}
           data-rotation={item?.rotation}
         >
@@ -129,7 +171,7 @@ export const ElementContent: FC<propsElement> = ({ item, scale, disableDrag }) =
           position: static !important;
         }
         .textTable-editor_${item._id} .ql-toolbar {
-          ${editDefault?.clicked === item._id && !disableDrag ? "visibility: visible" : "display: none"};
+          ${editDefault?.clicked === item._id && !disableDrag && isClickEditor ? "visibility: visible" : "display: none"};
           width: 400px;
           
           transform:
@@ -167,7 +209,7 @@ export const ElementContent: FC<propsElement> = ({ item, scale, disableDrag }) =
           box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
         }
         .textTable-editor_${item._id} .ql-toolbar.ql-snow {
-          ${editDefault?.clicked === item._id && !disableDrag ? "visibility: visible" : "display: none"};
+          ${editDefault?.clicked === item._id && !disableDrag && isClickEditor ? "visibility: visible" : "display: none"};
           border: 1px solid #e5e7eb !important;
           border-radius: 6px 6px 0 0;
         }
