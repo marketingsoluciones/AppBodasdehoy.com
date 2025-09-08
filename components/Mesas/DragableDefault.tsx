@@ -13,9 +13,11 @@ interface propsTable extends Partial<HTMLDivElement> {
   setShowFormEditar: any
   DefinePosition?: any
   idx?: number
+  scale: number
 }
+
 // eslint-disable-next-line react/display-name
-export const DragableDefault: FC<propsTable> = forwardRef(({ item, setDisableWrapper, disableDrag, prefijo, setShowFormEditar, DefinePosition, idx }, ref: any) => {
+export const DragableDefault: FC<propsTable> = forwardRef(({ item, setDisableWrapper, disableDrag, prefijo, setShowFormEditar, DefinePosition, idx, scale }, ref: any) => {
   const { editDefault, setEditDefault } = EventContextProvider()
   const [rot, setRot] = useState(15)
 
@@ -71,7 +73,7 @@ export const DragableDefault: FC<propsTable> = forwardRef(({ item, setDisableWra
         })
         !disableDrag && setDisableWrapper(false)
       }}
-      className={`${!disableDrag ? prefijo === "table" ? "js-drag" : "js-dragElement" : ""} ${editDefault?.clicked === item?._id ? "bg-gray-200 bg-opacity-50 border-gray-300 shadow-md" : ""} draggable-touch absolute hover:bg-gray-300 hover:bg-opacity-50 border border-transparent hover:border-gray-200 hover:shadow-md ${prefijo === "table" ? "p-10" : "p-3"} rounded-2xl`} style={prefijo === "table" ? { rotate: `${rot}deg` } : {}} >
+      className={`${!disableDrag ? prefijo === "table" || item?.tipo === "text" ? "js-drag" : "js-dragElement" : ""} ${editDefault?.clicked === item?._id ? "bg-gray-200 bg-opacity-50 border-gray-300 shadow-md" : ""} draggable-touch absolute hover:bg-gray-300 hover:bg-opacity-50 border border-transparent hover:border-gray-200 hover:shadow-md ${prefijo === "table" ? "p-10" : "p-3"} rounded-2xl`} style={prefijo === "table" ? { rotate: `${rot}deg` } : {}} >
       <div className="relative">
         {prefijo === "table"
           ? <MesaContent
@@ -81,7 +83,7 @@ export const DragableDefault: FC<propsTable> = forwardRef(({ item, setDisableWra
             disableDrag={disableDrag}
             setShowFormEditar={setShowFormEditar}
           />
-          : <ElementContent item={item} />
+          : <ElementContent item={item} scale={scale} disableDrag={disableDrag} />
         }
       </div>
     </div>

@@ -98,7 +98,6 @@ const Mesas: FC = () => {
   }, [event?.galerySvgVersion])
 
   const handleOnDrop = (values: any) => {
-    console.log(100030, values)
     if (!isAllowed()) { ht() } else {
       setValues(values)
       if (values.tipo === "table") {
@@ -120,7 +119,6 @@ const Mesas: FC = () => {
           ? [...event?.galerySvgs, ...ListElements].find(elem => elem.title === values.modelo)
           : ListElements.find(elem => elem.title === values.modelo)
         : null
-      console.log(100031, element)
       try {
         const inputValues = {
           position: {
@@ -131,7 +129,6 @@ const Mesas: FC = () => {
           rotation: 0,
           size: element?.size ?? { width: 60, height: 60 }
         }
-        console.log(100032, inputValues)
         fetchApiEventos({
           query: queries.createElement,
           variables: {

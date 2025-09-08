@@ -38,7 +38,7 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
   const [showMiniMenu, setShowMiniMenu] = useState(false)
   const { user } = AuthContextProvider()
   const { event, planSpaceActive } = EventContextProvider()
-  const { psTemplates, setPsTemplates } = EventsGroupContextProvider()
+  const { setPsTemplates } = EventsGroupContextProvider()
   const [value, setValue] = useState("")
   const [valir, setValir] = useState(true)
   const [ident, setident] = useState(false)
@@ -73,7 +73,6 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
     }
   }, [ident])
 
-
   !reset ? handleReset(centerView) : () => { }
   return (
     < >
@@ -91,7 +90,10 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
             <SearchIcon className="w-[13px] h-6" />
             <span className="text-sm pb-1">- </span>
           </ButtonConstrolsLienzo>
-          <ButtonConstrolsLienzo onClick={() => { !isAllowed() ? ht() : handleSetDisableDrag() }} pulseButton={disableDrag}>
+          <ButtonConstrolsLienzo onClick={() => {
+            window.getSelection()?.removeAllRanges()
+            !isAllowed() ? ht() : handleSetDisableDrag()
+          }} pulseButton={disableDrag}>
             <span className="text-[10px] w-28 h-6 px-1 pt-[3px]">{disableDrag ? t('unlockfloorplan') : t('lockflat')}</span>
           </ButtonConstrolsLienzo>
           <span className={`${disableDrag ? "block" : "hidden"}  `} onClick={() => { toast("error", t("unlocktables")) }}>

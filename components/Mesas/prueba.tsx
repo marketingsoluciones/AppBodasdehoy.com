@@ -1,11 +1,10 @@
 import { FC, useEffect, useRef, useState } from "react"
 import { TransformWrapper } from "react-zoom-pan-pinch";
 import { ComponenteTransformWrapper } from "./ComponenteTransformWrapper";
-import { AuthContextProvider, EventContextProvider } from "../../context";
+import { EventContextProvider } from "../../context";
 import { size } from "../../utils/Interfaces";
 import { EditDefault } from "./EditDefault";
 import ClickAwayListener from "react-click-away-listener";
-import { useAllowed } from "../../hooks/useAllowed";
 
 type propsPrueba = {
   setShowFormEditar: any
@@ -14,7 +13,6 @@ type propsPrueba = {
 }
 
 const Prueba: FC<propsPrueba> = ({ setShowFormEditar, fullScreen, setFullScreen }) => {
-  const { user } = AuthContextProvider()
   const { planSpaceSelect } = EventContextProvider()
   const refDiv = useRef(null)
   const [scaleIni, setScaleIni] = useState(0)
@@ -22,12 +20,10 @@ const Prueba: FC<propsPrueba> = ({ setShowFormEditar, fullScreen, setFullScreen 
   const [disableDrag, setDisableDrag] = useState(true)
   const { event, editDefault, setEditDefault } = EventContextProvider()
   const [lienzo, setLienzo] = useState<size>(event?.planSpace?.find(elem => elem?._id === planSpaceSelect)?.size)
-  const [isAllowed, ht] = useAllowed()
 
   useEffect(() => {
     setLienzo(event?.planSpace?.find(elem => elem?._id === planSpaceSelect)?.size)
   }, [planSpaceSelect])
-
 
   const handleSetDisableDrag: any = () => {
     setDisableDrag(!disableDrag)
@@ -47,12 +43,12 @@ const Prueba: FC<propsPrueba> = ({ setShowFormEditar, fullScreen, setFullScreen 
   return (
     <>
       <div className="flex *bg-orange-400 divOrange w-[100%] h-[100%] justify-start relative pt-8" >
-        <div ref={refDiv} className="bg-blue-200 flex w-[100%] h-[calc(100%-32px)] relative">
+        <div id="rootElementTables" ref={refDiv} className="bg-blue-200 flex w-[100%] h-[calc(100%-32px)] relative">
           {editDefault?.clicked &&
             <ClickAwayListener
               onClickAway={() => {
                 if (editDefault.activeButtons) {
-                  setEditDefault({ ...editDefault, active: true })
+                  // setEditDefault({ ...editDefault, active: true })
                 }
               }}
               mouseEvent="mousedown"
@@ -60,7 +56,7 @@ const Prueba: FC<propsPrueba> = ({ setShowFormEditar, fullScreen, setFullScreen 
               <div
                 onMouseDown={() => setEditDefault({ ...editDefault, active: false })}
                 onTouchStart={() => setEditDefault({ ...editDefault, active: false })}
-                className={`bg-gray-200 opacity-70 w-10 h-44 absolute z-[20] left-0 top-10 rounded-r-lg`}>
+                className={`bg-gray-200 opacity-70 w-10 h-44 absolute z-[20] left-0 top-12 rounded-r-lg`}>
                 <EditDefault {...editDefault} />
               </div>
             </ClickAwayListener>

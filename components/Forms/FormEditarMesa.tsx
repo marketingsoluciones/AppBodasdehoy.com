@@ -129,7 +129,7 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
   }
 
   useEffect(() => {
-    setShowGuest(active ? sentadosTable : filterGuests.noSentados)
+    setShowGuest(active ? sentadosTable : filterGuests?.noSentados ?? [])
   }, [active, filterGuests, sentadosTable])
 
   useEffect(() => {
