@@ -5,6 +5,7 @@ import { element } from "../../utils/Interfaces";
 import { RxQuestionMark } from "react-icons/rx";
 import 'react-quill/dist/quill.snow.css';
 import dynamic from "next/dynamic";
+import { fetchApiEventos, queries } from "../../utils/Fetching";
 
 interface propsElement {
   item: element
@@ -19,17 +20,63 @@ const ReactQuill = dynamic(() => import('react-quill'), {
 export const ElementContent: FC<propsElement> = ({ item, scale, disableDrag }) => {
   const { editDefault } = EventContextProvider()
   const [reactElement, setReactElement] = useState<React.ReactElement>();
-  const { event } = EventContextProvider()
+  const { event, planSpaceActive, setPlanSpaceActive, setEvent } = EventContextProvider()
   const [customEditor, setCustomEditor] = useState<string>(item?.title || `<p class="ql-align-center">texto</p>`)
   const [editDefaultOld, setEditDefaultOld] = useState<any>()
   const [isMounted, setIsMounted] = useState(false)
   const [isClickEditor, setIsClickEditor] = useState(false)
+  const [triggerClickOutside, setTriggerClickOutside] = useState(new Date())
 
   useEffect(() => {
     if (!disableDrag || editDefault?.clicked !== item._id) {
       setIsClickEditor(false)
     }
   }, [disableDrag, editDefault?.clicked])
+
+  useEffect(() => {
+    if (item?.tipo === "text") {
+      if (item?.title !== customEditor) {
+        fetchApiEventos({
+          query: queries.editElement,
+          variables: {
+            eventID: event._id,
+            planSpaceID: planSpaceActive?._id,
+            elementID: item._id,
+            variable: "title",
+            valor: customEditor
+          }
+        }).then((res) => {
+          const index: number = planSpaceActive?.elements.findIndex((elem) => elem._id === item._id)
+          planSpaceActive.elements[index].title = customEditor
+          setPlanSpaceActive({ ...planSpaceActive })
+          setEvent({ ...event })
+        })
+      }
+    }
+  }, [triggerClickOutside])
+
+  // Manejar clics fuera del editor
+  useEffect(() => {
+    if (isClickEditor && isMounted) {
+      const handleClickOutside = (e: MouseEvent) => {
+        const elem = document.getElementById(`editor-textTable_${item._id}`)
+        const editor = elem?.querySelector('.ql-editor') as HTMLElement
+        const toolbar = elem?.querySelector('.ql-toolbar') as HTMLElement
+        if (editor && toolbar) {
+          const target = e.target as Node
+          const isClickInsideEditor = editor.contains(target)
+          const isClickInsideToolbar = toolbar.contains(target)
+          if (!isClickInsideEditor && !isClickInsideToolbar) {
+            setTriggerClickOutside(new Date())
+          }
+        }
+      }
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside)
+      }
+    }
+  }, [isClickEditor, isMounted, item?._id])
 
   useEffect(() => {
     if (!isMounted) {
@@ -58,15 +105,15 @@ export const ElementContent: FC<propsElement> = ({ item, scale, disableDrag }) =
       const elem = document.getElementById(`editor-textTable_${item._id}`)
       const editor = elem?.querySelector('.ql-editor') as HTMLElement
       if (editor) {
-        const handleDoubleClick = (event: Event) => {
-          event.preventDefault()
-          event.stopPropagation()
-          event.stopImmediatePropagation()
+        const handleDoubleClick = (e: Event) => {
+          e.preventDefault()
+          e.stopPropagation()
+          e.stopImmediatePropagation()
         }
-        const handleClick = (event: Event) => {
-          event.preventDefault()
-          event.stopPropagation()
-          event.stopImmediatePropagation()
+        const handleClick = (e: Event) => {
+          e.preventDefault()
+          e.stopPropagation()
+          e.stopImmediatePropagation()
           setIsClickEditor(true)
         }
         editor.addEventListener('dblclick', handleDoubleClick, true) // true para captura
@@ -95,29 +142,20 @@ export const ElementContent: FC<propsElement> = ({ item, scale, disableDrag }) =
 
   useEffect(() => {
     if (item?.tipo === "text") {
-      const reactElement = item?.title
-        ? <div className="text-sm">{item?.title}</div>
-        : <div
-          className="flex items-center justify-center"
-          style={{
-            /*...item?.size,*/
-            fontSize: 'clamp(1rem, 1vw, 30rem)',//`${fontSize}px`,
-            rotate: `${item?.rotation}deg`
-          }}
-          /*data-width={item?.size?.width} data-height={item?.size?.height}*/
-          data-type={item.tipo}
-          data-rotation={item?.rotation}
-        >
-          <ReactQuill
-            id={`editor-textTable_${item._id}`}
-            value={customEditor}
-            onChange={setCustomEditor}
-            modules={quillModules}
-            formats={quillFormats}
-            theme="snow"
-            className={`bg-white border-none textTable-editor_${item._id}`}
-          />
-        </div>
+      const reactElement = <div
+        className="flex items-center justify-center"
+        data-type={item.tipo}
+      >
+        <ReactQuill
+          id={`editor-textTable_${item._id}`}
+          value={customEditor}
+          onChange={setCustomEditor}
+          modules={quillModules}
+          formats={quillFormats}
+          theme="snow"
+          className={`bg-white border-none textTable-editor_${item._id}`}
+        />
+      </div>
       setReactElement(reactElement)
     } else {
       const element = event?.galerySvgs
