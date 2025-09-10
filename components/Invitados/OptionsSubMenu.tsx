@@ -14,15 +14,16 @@ import axios from "axios";
 interface props {
   ConditionalAction?: any
   handleClick?: any
+  setLoading?: any
 }
 
-export const OptionsSubMenu: FC<props> = ({ ConditionalAction, handleClick }) => {
+export const OptionsSubMenu: FC<props> = ({ ConditionalAction, handleClick, setLoading }) => {
   const { event, setEvent } = EventContextProvider();
   const { config } = AuthContextProvider()
   const [optionImportModal, setOptionImportModal] = useState(false)
   const [optionExportModal, setOptionExportModal] = useState(false)
   const [activeInputUpload, setActiveInputUpload] = useState(false)
-  const [loading, setLoading] = useState<boolean>()
+  
   const toast = useToast()
   const [isAllowed, ht] = useAllowed()
   const { t } = useTranslation();
@@ -206,6 +207,7 @@ export const OptionsSubMenu: FC<props> = ({ ConditionalAction, handleClick }) =>
                 >
                   PDF
                 </button>
+               
               </div>
             </ClickAwayListener>
           }
