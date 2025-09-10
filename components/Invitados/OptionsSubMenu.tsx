@@ -31,7 +31,7 @@ export const OptionsSubMenu: FC<props> = ({ ConditionalAction, handleClick }) =>
     try {
       setLoading(true);
       const response = await axios.post('/api/generate-pdf', {
-        url: `${window.location.origin}/invitados`,
+        url: `${window.location.origin}/invitados-${event?._id}`,
         format: "letter"
       });
       const blob = new Blob([Uint8Array.from(atob(response.data.base64), c => c.charCodeAt(0))], { type: 'application/pdf' });
