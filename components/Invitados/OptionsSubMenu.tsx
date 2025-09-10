@@ -8,6 +8,7 @@ import { ExportarExcel } from "../Utils/ExportarExcel";
 import ClickAwayListener from "react-click-away-listener";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import * as XLSX from 'xlsx';
+import axios from "axios";
 
 
 interface props {
@@ -28,28 +29,22 @@ export const OptionsSubMenu: FC<props> = ({ ConditionalAction, handleClick }) =>
 
   const downloadPdf = async () => {
     try {
-      setLoading(true)
-      const nameFile = `Invitados de ${event.nombre}`.replace(/ /g, "_")
-      const result = await fetchApiEventos({
-        query: queries.generatePdf,
-        variables: {
-          url: `${window.location.origin}/event/guest-${event._id}`,
-          nameFile
-        },
-        domain: config.domain
-      })
-      if (result) {
-        setLoading(false)
-        const link = document.createElement('a');
-        link.href = result as string;
-        link.download = nameFile;
-        link.target = '_blank';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
+      setLoading(true);
+      const response = await axios.post('/api/generate-pdf', {
+        url: `${window.location.origin}/invitados`,
+        format: "letter"
+      });
+      const blob = new Blob([Uint8Array.from(atob(response.data.base64), c => c.charCodeAt(0))], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${event.nombre} invitados`.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, "_") + '.pdf';
+      link.click();
+      window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.log(error)
+      toast("error", "Error al generar PDF");
+    } finally {
+      setLoading(false);
     }
   }
 

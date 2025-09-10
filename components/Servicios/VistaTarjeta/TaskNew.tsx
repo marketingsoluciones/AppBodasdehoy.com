@@ -318,8 +318,6 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
     }
   };
 
-
-
   // Función para manejar la eliminación de comentarios
   const handleDeleteComment = async (commentId: string) => {
     if (!canEdit) {
@@ -377,7 +375,6 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
         ht={ht}
         handleUpdate={handleUpdate}
       />
-
       : minimalView
         ? <TaskMinimalView
           {...props}
