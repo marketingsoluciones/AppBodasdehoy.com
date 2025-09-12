@@ -445,7 +445,7 @@ export const translations = {
   "labels.tags": "Etiquetas",
   "labels.texture": "Textura",
   "labels.text_style": "Estilo del texto",
-  "labels.timezone": "Zona horaria",
+  "labels.timeZone": "Zona horaria",
   "labels.tip": "Consejo",
   "labels.tone": "Tono",
   "labels.undo": "Deshacer",

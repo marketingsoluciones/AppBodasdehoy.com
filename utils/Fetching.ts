@@ -829,6 +829,7 @@ export const queries = {
     $poblacion: String,
     $usuario_id: String!
     $usuario_nombre: String!
+    $timeZone: String,
     $development: String!
   ){
     crearEvento(
@@ -838,7 +839,8 @@ export const queries = {
       pais: $pais,
       poblacion: $poblacion,
       usuario_id: $usuario_id,
-      usuario_nombre: $usuario_nombre
+      usuario_nombre: $usuario_nombre,
+      timeZone: $timeZone,
       development: $development
     ){
       _id
@@ -877,6 +879,7 @@ export const queries = {
       }
       poblacion
       pais
+      timeZone
       templateEmailSelect
       templateWhatsappSelect
       imgEvento{
@@ -1813,6 +1816,7 @@ export const queries = {
         title
         slug
       }
+      timeZone
       templateEmailSelect
       templateWhatsappSelect
       imgEvento{

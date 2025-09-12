@@ -1,5 +1,5 @@
-import { GoogleAuthProvider, FacebookAuthProvider, getAuth, OAuthProvider } from "firebase/auth";
-import { LogoEventosOrganizador, LogoEventosPlanificador, LogoNuevoBodasBlanco, LogoVivetuboda } from "./components/icons";
+import { GoogleAuthProvider, FacebookAuthProvider, OAuthProvider } from "firebase/auth";
+import { LogoEventosOrganizador, LogoNuevoBodasBlanco } from "./components/icons";
 
 
 const firebaseConfigBodas = {
@@ -142,7 +142,8 @@ export const developments = [
       tertiaryColor: "#FBFF4E",
       baseColor: "#F2F2F2",
       colorScroll: "#ffc0cb"
-    }
+    },
+    timeZone: "Europe/Madrid"
   },
   {
     name: "eventosplanificador",
@@ -161,7 +162,8 @@ export const developments = [
       tertiaryColor: "#b3dbb4",
       baseColor: "#F2F2F2",
       colorScroll: "#adb6ed"
-    }
+    },
+    timeZone: "Europe/Madrid"
   },
   {
     name: "eventosorganizador",
@@ -181,6 +183,7 @@ export const developments = [
       baseColor: "#F2F2F2",
       colorScroll: "#adb6ed"
     },
+    timeZone: "Europe/Madrid"
   },
   {
     name: "vivetuboda",
@@ -202,6 +205,7 @@ export const developments = [
       colorScroll: "#adb6ed"
     },
     metaPixel_id: "1104927187970356",
+    timeZone: "America/Mexico_City"
   },
   {
     name: "champagne-events",
@@ -223,6 +227,7 @@ export const developments = [
       baseColor: "#fafae4",
       colorScroll: "#f4d7c5"
     },
+    timeZone: "America/Mexico_City"
   },
   {
     name: "annloevents",
@@ -244,6 +249,7 @@ export const developments = [
       baseColor: "#fdf3ef",
       colorScroll: "#f4cdc5"
     },
+    timeZone: "Europe/Madrid"
   },
   {
     name: "miamorcitocorazon",
@@ -265,6 +271,7 @@ export const developments = [
       baseColor: "#fdf3ef",
       colorScroll: "#f4cdc5"
     },
+    timeZone: "America/Mexico_City"
   },
   {
     name: "eventosintegrados",
@@ -286,6 +293,7 @@ export const developments = [
       baseColor: "#fff6fa",
       colorScroll: "#f4c5ce"
     },
+    timeZone: "Europe/Madrid"
   },
   {
     name: "ohmaratilano",
@@ -307,6 +315,7 @@ export const developments = [
       baseColor: "#fff6fa",//fff6fa
       colorScroll: "#e0d6b2"
     },
+    timeZone: "America/Mexico_City"
   },
   {
     name: "corporativozr",
@@ -328,6 +337,7 @@ export const developments = [
       baseColor: "#fff6fa",//fff6fa
       colorScroll: "#e0d6b2"
     },
+    timeZone: "America/Mexico_City"
   },
   {
     name: "theweddingplanner",
@@ -349,6 +359,7 @@ export const developments = [
       baseColor: "#f4f4f4",//fff6fa
       colorScroll: "#eba696"
     },
+    timeZone: "America/Mexico_City"
   },
 ]
 

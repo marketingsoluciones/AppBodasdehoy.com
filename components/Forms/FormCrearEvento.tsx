@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { Event, image } from "../../utils/Interfaces";
 import ModuloSubida, { subir_archivo } from "../Invitaciones/ModuloSubida";
 import { defaultImagenes } from "../Home/Card";
+import SelectWithSearchField from "./SelectWithSearchField";
 
 // formatear fecha
 const getDate = (f: Date): string => {
@@ -54,13 +55,15 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
           return false
         }
         return true
-      })
+      }),
+    timeZone: yup.string().required(t("Selecciona una zona horaria")),
   });
 
   type MyValues = {
     nombre: string
     tipo: string
     fecha: string
+    timeZone: string
     pais: string
     poblacion: string
     usuario_id: string
@@ -71,12 +74,13 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
   const initialValues: MyValues = EditEvent ?
     {
       ...event,
-      fecha: new Date(parseInt(event.fecha)).toJSON().slice(0, -14)
+      fecha: new Date(parseInt(event.fecha)).toJSON().slice(0, -14),
     }
     : {
       nombre: "",
       tipo: "",
       fecha: "",//new Date().toJSON(),
+      timeZone: "",
       pais: "",
       poblacion: "",
       usuario_id: user?.uid,
@@ -166,7 +170,6 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
     }
   };
 
-
   const ListaTipo: string[] = [
     "cumpleaños",
     "boda",
@@ -217,6 +220,14 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
                 label={t("eventdate")}
                 type="date"
               />
+              <div>
+                <SelectWithSearchField
+                  name="timeZone"
+                  label={t("timeZone")}
+                  options={Intl.supportedValuesOf('timeZone')}
+                  nullable={true}
+                />
+              </div>
               <div className="w-full flex justify-center">
                 <div className="relative w-[304px] h-[140px] mb-4">
                   <ModuloSubida setValueImage={setValueImage} event={EditEvent ? event : undefined} use={"imgEvento"} defaultImagen={defaultImagenes[values.tipo]} />
@@ -257,7 +268,7 @@ export default FormCrearEvento;
 const AutoSubmitToken = ({ valueImage }) => {
   const { values, errors, setValues } = useFormikContext();
   useEffect(() => {
-    console.log("errors", errors)
+    // console.log("errors", errors)
   }, [errors]);
 
   useEffect(() => {

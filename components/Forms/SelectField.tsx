@@ -1,5 +1,5 @@
 import { useField } from "formik"
-import { ChangeEvent, FC, HtmlHTMLAttributes, useEffect } from "react"
+import { ChangeEvent, FC, HtmlHTMLAttributes } from "react"
 import { EventContextProvider } from "../../context"
 import { useTranslation } from 'react-i18next';
 
@@ -34,7 +34,7 @@ const SelectField: FC<propsSelectField> = ({ label, children, options, colSpan, 
             <div className={`relative* w-full h-full col-span${colSpan && `-${colSpan}`} content-between`}>
                 <label className={`font-display text-sm ${labelClass ? "text-primary" : "text-textGrisClaro"} w-full`}>{label}</label>
                 <div className="relative">
-                    <select className={`font-display capitalize cursor-pointer text-sm text-gray-500 border border-gray-300 focus:border-gray-400 focus:ring-0 transition w-full py-2 pr-7 rounded-xl focus:outline-none ${props.className}`} value={typeof options[0] === "string" ? field?.value : field?.value?._id} name={field?.name} onChange={field?.onChange} >
+                    <select id="selector-field" className={`font-display capitalize cursor-pointer text-sm text-gray-500 border border-gray-300 focus:border-gray-400 focus:ring-0 transition w-full py-2 pr-7 rounded-xl focus:outline-none ${props.className}`} value={typeof options[0] === "string" ? field?.value : field?.value?._id} name={field?.name} onChange={field?.onChange} >
                         {nullable &&
                             <option >
                                 {t("select")}
@@ -52,11 +52,28 @@ const SelectField: FC<propsSelectField> = ({ label, children, options, colSpan, 
             </div>
             <style jsx>
                 {`
-            select {
+            select#selector-field {
                 -webkit-appearance: none;
                 -moz-appearance: none;
                 text-indent: 1px;
                 text-overflow: '';
+            }
+            /* Estilos básicos para las opciones del select */
+            select#selector-field option {
+                background-color: white;
+                color: #6b7280;
+                padding: 0.5rem 0.75rem;
+                font-size: 0.875rem;
+                font-family: inherit;
+            }
+            select#selector-field option:hover {
+                background-color: #f3f4f6;
+                color: #374151;
+            }
+            select#selector-field option:checked {
+                background-color: #e5e7eb;
+                color: #374151;
+                font-weight: 500;
             }
             `}
             </style>

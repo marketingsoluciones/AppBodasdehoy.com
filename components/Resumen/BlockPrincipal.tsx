@@ -10,15 +10,17 @@ import { ModalAddUserToEvent, UsuariosCompartidos } from "../Utils/Compartir";
 import { IoShareSocial } from "react-icons/io5";
 import { useAllowed } from "../../hooks/useAllowed"
 import { useTranslation } from 'react-i18next';
+import { RiTimeZoneLine } from "react-icons/ri";
 
 interface propsBlockVista {
   children?: React.ReactNode;
 }
 
 const BlockVista: FC<propsBlockVista> = ({ children }) => {
-  const [state, setState] = useState(0)
+  const [state] = useState(0)
   const { event } = EventContextProvider();
   const { t } = useTranslation();
+  const { config } = AuthContextProvider();
 
   const seatedGuests: number = event?.invitados_array?.filter(
     (item) => item?.nombre_mesa?.toLowerCase() !== "no asignado"
@@ -66,6 +68,11 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
               </p>
               -<p className="text-primary">{event?.tipo == "otro" ? "Mi Evento Especial" : event?.tipo && capitalize(event?.tipo)}</p>
             </span>
+            <div className="text-gray-600 w-full flex justify-center items-center gap-1.5">
+              <RiTimeZoneLine />
+              <span className="text-xs">{t("timeZone")}:</span>
+              <span className="text-xs">{event?.timeZone.split("/")[1]}</span>
+            </div>
           </div>
           <div className="w-full">
             <span className="w-full justify-between flex">

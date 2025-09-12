@@ -80,6 +80,7 @@ const EventProvider = ({ children }) => {
   const [editDefault, setEditDefault] = useState<EditDefaultTableAndElement>()
   const { user, setUser } = AuthContextProvider()
   const [planSpaceSelect, setPlanSpaceSelect] = useState<string>("")
+  const { config } = AuthContextProvider()
 
   // Capturar eventos del cumulo y seleccionar uno
   useEffect(() => {
@@ -91,9 +92,11 @@ const EventProvider = ({ children }) => {
         if (eventsGroup?.length > 1) {
           const eventsPendientes = eventsGroup.filter(item => item.estatus === "pendiente")
           const eventsGroupSort = eventsPendientes?.sort((a: any, b: any) => { return b.fecha_creacion - a.fecha_creacion })
-          setEvent(eventsGroupSort?.find(elem => elem._id === user?.eventSelected));
+          let eventSelected = eventsGroupSort?.find(elem => elem._id === user?.eventSelected)
+          setEvent({ ...eventSelected, timeZone: eventSelected?.timeZone ?? config?.timeZone });
         } else {
-          setEvent(eventsGroup[0])
+          let eventSelected = eventsGroup[0]
+          setEvent({ ...eventSelected, timeZone: eventSelected?.timeZone ?? config?.timeZone });
         }
         eventsGroup[0] && setValir(true)
       }

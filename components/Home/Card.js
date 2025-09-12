@@ -28,6 +28,13 @@ export const defaultImagenes = {
 
 export const handleClickCard = ({ t, final = true, data, user, setUser, config, setEvent, router }) => {
   try {
+    if (!data?.timeZone) {
+      // fetchApiEventos({
+      //   query: queries.updateEvent,
+      //   variables: { idEvento: data?._id, variable: "timeZone", value: config?.timeZone }
+      // })
+      data.timeZone = config?.timeZone
+    }
     fetchApiBodas({
       query: queries.updateUser,
       variables: {

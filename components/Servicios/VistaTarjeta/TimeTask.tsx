@@ -18,6 +18,9 @@ export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task }) => 
   const [editing, setEditing] = useState<boolean>(false);
   const [blockUpdate, setBlockUpdate] = useState<boolean>(false);
 
+  const userLocale = navigator.language;
+  console.log(userLocale);
+
   return (
     <div className="w-[100px] h-full flex items-center">
       {editing
