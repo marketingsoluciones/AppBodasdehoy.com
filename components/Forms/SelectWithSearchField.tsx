@@ -208,7 +208,7 @@ const SelectWithSearchField: FC<propsSelectField> = ({ label, children, options,
                 </div>
                 {/* Dropdown con opciones filtradas */}
                 {isOpen && (
-                    <div className="absolute z-50 w-full bg-white border border-gray-400 max-h-72 overflow-auto">
+                    <div className="absolute z-50 w-full bg-white border border-gray-400 h-72 overflow-auto">
                         {filteredOptions.length === 0 ? (
                             <div className="px-3 py-2 text-sm text-gray-500">
                                 {t("no_results")}

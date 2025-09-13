@@ -170,11 +170,11 @@ const ModuloSubida = (props) => {
           <label onClick={() => !isAllowed() ? ht() : null} htmlFor={!isAllowed() ? "null" : "file"} className="bg-gray-200 gap-1 flex items-center justify-center w-1/2 py-1 cursor-pointer">
             {t("change")} <EditarIcon className="w-6 h-6" />
           </label>
-          <CopyToClipboard text={`${process.env.NEXT_PUBLIC_BASE_URL}${event?.imgInvitacion?.i800}`}>
+          {event[use]?.i1024 && <CopyToClipboard text={`${process.env.NEXT_PUBLIC_BASE_URL}${event[use]?.i1024}`}>
             <label onClick={() => { setCopied(true) }} className="flex items-center justify-center w-1/2 py-1 cursor-pointer">
               {t("copylink")} {copied ? <PiCheckFatThin className="w-6 h-6" /> : <LiaLinkSolid className="w-6 h-6" />}
             </label>
-          </CopyToClipboard>
+          </CopyToClipboard>}
 
         </div>
       </div>
