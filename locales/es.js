@@ -386,6 +386,8 @@ export const es = {
     'Selecciona una zona horaria': 'Selecciona una zona horaria',
     'no_results': 'No hay resultados',
     'timeZone': 'Zona horaria',
+    'Mi Evento Especial': 'Mi Evento Especial',
+    'compartido contigo': 'compartido contigo',
     'nonotifications': 'No hay notificaciones',
     'nonseatedguests': 'Invitados no sentados',
     'nopaymentmethods': 'Sin métodos de pago',

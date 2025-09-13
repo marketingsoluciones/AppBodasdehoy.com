@@ -19,7 +19,7 @@ export const EncabezadoFacturacion = ({ products, currency, setCurrency, stripeC
             }
         })
         const path = router?.query?.show === "iframe"
-            ? window?.origin?.includes("://test.") ? `${process.env.NEXT_PUBLIC_CMS?.replace("//", "//test")}/facturacion` ?? "" : `${process.env.NEXT_PUBLIC_CMS}/facturacion` ?? ""
+            ? window?.origin?.includes("://test.") ? `${process.env.NEXT_PUBLIC_CMS?.replace("//", "//test")}/facturacion` : `${process.env.NEXT_PUBLIC_CMS}/facturacion`
             : `${window.location.href}`
         fetchApiBodas({
             query: queries.createCheckoutSession,

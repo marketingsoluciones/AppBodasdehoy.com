@@ -2,7 +2,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { FC } from "react";
 import { ToastContextProvider } from "../../context";
-import { Toast } from "../../context/ToastContext";
+import { Toast as ToastType } from "../../context/ToastContext";
 import { capitalize } from "../../utils/Capitalize";
 import { CSSTransition, TransitionGroup } from "react-transition-group";
 
@@ -26,7 +26,7 @@ const ToastContainer: FC = () => {
   );
 };
 
-const Toast: FC<Toast> = ({ message, id, type }) => {
+const Toast: FC<ToastType> = ({ message, id, type }) => {
   const { dispatch } = ToastContextProvider()
 
   const colors = {

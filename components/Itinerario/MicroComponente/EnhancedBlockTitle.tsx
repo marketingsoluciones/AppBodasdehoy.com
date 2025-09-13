@@ -16,13 +16,11 @@ export const EnhancedBlockTitle: React.FC<EnhancedBlockTitleProps> = ({ title })
   const { forCms, user } = AuthContextProvider()
   const { event } = EventContextProvider()
   const [openModal, setOpenModal] = useState(false)
-  const [openModalDrive, setOpenModalDrive] = useState(false)
 
   return (
     <PermissionWrapper>
       <div className={`w-full h-14 bg-white rounded-xl shadow-lg ${forCms ? "hidden" : "flex"} items-center justify-between max-w-screen-lg mx-auto`}>
         <ModalAddUserToEvent openModal={openModal} setOpenModal={setOpenModal} event={event} />
-        
         <div className='flex md:flex-1 flex-col px-2 md:px-6 font-display'>
           <div className="flex items-center space-x-2">
             <span className="text-gray-500 text-[18px] leading-[20px] font-bold">{t(title)}</span>
@@ -33,7 +31,6 @@ export const EnhancedBlockTitle: React.FC<EnhancedBlockTitleProps> = ({ title })
             <span className='md:hidden capitalize text-gray-600 text-[12px] leading-[20px] font-medium'>{event?.nombre}</span>
           </div>
         </div>
-        
         <div className='flex-1 md:flex-none md:w-[35%] h-[100%] flex flex-row-reverse md:flex-row items-center '>
           <img
             src={event?.imgEvento ? `https://apiapp.bodasdehoy.com/${event.imgEvento.i800}` : defaultImagenes[event?.tipo]}

@@ -12,14 +12,7 @@ import { Event, image } from "../../utils/Interfaces";
 import ModuloSubida, { subir_archivo } from "../Invitaciones/ModuloSubida";
 import { defaultImagenes } from "../Home/Card";
 import SelectWithSearchField from "./SelectWithSearchField";
-
-// formatear fecha
-const getDate = (f: Date): string => {
-  const y = `${f.getFullYear()}`
-  const m = f.getMonth() < 10 ? `0${f.getMonth() + 1}` : `${f.getMonth() + 1}`
-  const d = f.getDate() < 10 ? `0${f.getDate()}` : `${f.getDate()}`
-  return `${y}-${m}-${d}`
-}
+import { useDateTime } from "../../hooks/useDateTime";
 
 interface propsFromCrearEvento {
   state: boolean
@@ -37,6 +30,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
   const [valir, setValir] = useState(false)
   const [event] = useState(eventData ? eventData : eventOrigin)
   const [valueImage, setValueImage] = useState()
+  const { utcDate } = useDateTime();
 
   const validationSchema = yup.object().shape({
     nombre: yup.string().required(t("Nombre de evento requerido")),
@@ -74,12 +68,12 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
   const initialValues: MyValues = EditEvent ?
     {
       ...event,
-      fecha: new Date(parseInt(event.fecha)).toJSON().slice(0, -14),
+      fecha: utcDate(event.fecha),
     }
     : {
       nombre: "",
       tipo: "",
-      fecha: "",//new Date().toJSON(),
+      fecha: "",
       timeZone: "",
       pais: "",
       poblacion: "",
@@ -224,7 +218,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
                 <SelectWithSearchField
                   name="timeZone"
                   label={t("timeZone")}
-                  options={Intl.supportedValuesOf('timeZone')}
+                  options={Intl?.supportedValuesOf('timeZone')}
                   nullable={true}
                 />
               </div>
