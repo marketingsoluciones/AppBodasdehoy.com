@@ -48,26 +48,30 @@ export const EncabezadoFacturacion = ({ products, currency, setCurrency, stripeC
                         <p className="text-azulCorporativo text-[25px]">
                             {t("getfullaccess")}
                         </p>
-                        <DiamanteIcon className={`text-acento`} />
+                        <DiamanteIcon className={`text-acento w-14 h-14 md:w-5 md:h-5`} />
                     </div>
                     <p className="text-[13px] text-gray-400">{t("improveorganization")}</p>
-                    <p className="text-[13px] text-gray-400 pr-5">{t("billingcycle")}</p>
+                    <p className="text-[13px] text-gray-400 ">{t("billingcycle")}</p>
                 </div>
-                <div className="flex h-max items-center justify-center">
-                    {!stripeCurrency && <select value={currency} className={`font-display text-gray-500 font-semibold text-lg text-center border-none focus:ring-0 ${!products.length && "cursor-pointer"}`} onChange={(e) => setCurrency(e.target.value)}  >
-                        <option value={"eur"}>EUR</option>
-                        <option value={"usd"}>USD</option>
-                    </select>}
-                    <div className="relative flex">
-                        {products?.length > 0 && <span className="bg-primary w-5 h-5 absolute z-10 rounded-full border-2 border-primary flex items-center justify-center text-white translate-x-4 translate-y-1">{products?.length}</span>}
-                        <LiaCartArrowDownSolid className="w-12 h-12 text-primary" />
-                        <button
-                            onClick={handleCheckout}
-                            className={`${products.length ? "bg-primary" : "bg-gray-300"} text-white rounded-lg capitalize px-4 m-2 ml-4 md:ml-0`}
-                            disabled={!products.length}>
-                            pagar
-                        </button>
+                <div className="flex flex-col md:flex-row h-max items-center justify-center">
+                    <div className="flex items-center">
+                        {!stripeCurrency &&
+                            <select value={currency} className={`font-display text-gray-500 font-semibold text-lg text-center border-none focus:ring-0 ${!products.length && "cursor-pointer"}`} onChange={(e) => setCurrency(e.target.value)}  >
+                                <option value={"eur"}>EUR</option>
+                                <option value={"usd"}>USD</option>
+                            </select>
+                        }
+                        <div className="relative flex">
+                            {products?.length > 0 && <span className="bg-primary w-5 h-5 absolute z-10 rounded-full border-2 border-primary flex items-center justify-center text-white translate-x-4 translate-y-1">{products?.length}</span>}
+                            <LiaCartArrowDownSolid className="w-12 h-12 text-primary" />
+                        </div>
                     </div>
+                    <button
+                        onClick={handleCheckout}
+                        className={`${products.length ? "bg-primary" : "bg-gray-300"} text-white rounded-lg capitalize px-4 m-2 ml-4 `}
+                        disabled={!products.length}>
+                        pagar
+                    </button>
                 </div>
             </div>
         </div>

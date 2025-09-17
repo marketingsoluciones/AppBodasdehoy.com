@@ -74,28 +74,15 @@ const Configuration = () => {
   }
 
   return (
-    <>
-      {/* {modal ? (
-        <AlertDesarrollo alertDev={modal} setAlertDev={setModal} />
-      ) : null} */}
-
-      <section className="max-w-screen-lg mx-auto inset-x-0 grid grid-cols-1 md:grid-cols-4* md:pt-10 -mt-4 md:mt-0 md:gap-10">
+      <section className="max-w-screen-lg mx-auto grid grid-cols-1 md:pt-5 md:gap-10">
         <div className="flex flex-col items-center justify-start w-full text-sm gap-6">
           <PerfilFoto />
-          <button onClick={handleSignOut} className="bg-[#fff0f0]0 px-3 py-1 rounded text-white text-sm sm:hidden top-2 left-2 flex items-center gap-2">
+          <button onClick={handleSignOut} className="bg-red px-3 py-1 rounded text-white text-sm sm:hidden flex items-center gap-2">
             <ExitIcon /> {t("logoff")}
           </button>
-          {/* <PerfilOpciones
-            components={components}
-            actived={isActive}
-            onClick={handleClickOption}
-            setAlertDev={setModal}
-            alertDev={modal}
-          /> */}
         </div>
         <div className="col-span-3 p-5 md:p-0">{components[isActive].component}</div>
       </section>
-    </>
   );
 };
 export default Configuration;
