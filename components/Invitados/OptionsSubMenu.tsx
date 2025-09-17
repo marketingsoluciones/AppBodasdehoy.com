@@ -172,7 +172,7 @@ export const OptionsSubMenu: FC<props> = ({ ConditionalAction, handleClick, setL
           {t("importar")}
           {optionImportModal &&
             <ClickAwayListener onClickAway={() => setOptionImportModal(false)}>
-              <div className="absolute left-0 top-8 shadow-md bg-white  p-5 z-50 rounded-md space-y-2 border-gray-100 border-[1px]">
+              <div className="absolute md:left-0 -left-6 top-8 shadow-md bg-white  p-5 z-50 rounded-md space-y-2 border-gray-100 border-[1px]">
                 <button
                   onClickCapture={() => { setActiveInputUpload(true) }}
                   onClick={() => document.getElementById('fileInput').click()}
@@ -199,7 +199,7 @@ export const OptionsSubMenu: FC<props> = ({ ConditionalAction, handleClick, setL
           {t("exportar")}
           {optionExportModal &&
             <ClickAwayListener onClickAway={() => setOptionExportModal(false)}>
-              <div className="absolute left-0 top-8 shadow-md bg-white  p-5 z-50 rounded-md space-y-2 border-gray-100 border-[1px]">
+              <div className="absolute md:left-0 -left-3 top-8 shadow-md bg-white p-5 z-50 rounded-md space-y-2 border-gray-100 border-[1px]">
                 <ExportarExcel />
                 <button
                   onClick={() => downloadPdf()}
