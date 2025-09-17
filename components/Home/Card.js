@@ -14,6 +14,7 @@ import ModalLeft from "../Utils/ModalLeft";
 import FormCrearEvento from "../Forms/FormCrearEvento";
 import { useAllowed } from "../../hooks/useAllowed"
 import { useDelayUnmount } from "../../utils/Funciones";
+import { useDateTime } from "../../hooks/useDateTime";
 
 export const defaultImagenes = {
   boda: "/cards/boda.webp",
@@ -28,6 +29,13 @@ export const defaultImagenes = {
 
 export const handleClickCard = ({ t, final = true, data, user, setUser, config, setEvent, router }) => {
   try {
+    if (!data?.timeZone) {
+      // fetchApiEventos({
+      //   query: queries.updateEvent,
+      //   variables: { idEvento: data?._id, variable: "timeZone", value: config?.timeZone }
+      // })
+      data.timeZone = config?.timeZone
+    }
     fetchApiBodas({
       query: queries.updateUser,
       variables: {
@@ -79,6 +87,7 @@ const Card = ({ data, grupoStatus, idx }) => {
   const [isAllowed, ht] = useAllowed()
   const [isMounted, setIsMounted] = useState(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
+  const { utcDateFormated } = useDateTime();
 
   const toast = useToast()
 
@@ -216,7 +225,7 @@ const Card = ({ data, grupoStatus, idx }) => {
               </span>
               {
                 data[idx]?.usuario_id != user?.uid && <span className="text-xs font-display text-white capitalize">
-                  compartido contigo
+                  {t("compartido contigo")}
                 </span>
               }
             </div>
@@ -225,10 +234,10 @@ const Card = ({ data, grupoStatus, idx }) => {
                 {data[idx]?.nombre?.length > 20 ? `${data[idx]?.nombre.substring(0, 20)}...` : data[idx]?.nombre}
               </span>
               <span className="mt-[-4px] uppercase text-xs font-display text-white">
-                {`${new Date(parseInt(data[idx]?.fecha)).toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}`}
+                {`${utcDateFormated(data[idx]?.fecha)}`}
               </span>
               <span className="mt-[-4px] uppercase text-xs font-display text-white">
-                {data[idx]?.estatus}
+                {t(data[idx]?.estatus)}
               </span>
             </div>
           </div>

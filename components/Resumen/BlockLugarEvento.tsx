@@ -70,28 +70,26 @@ export const BlockLugarEvento = () => {
                 onClick={() => isAllowed() && setOpenList(!openList)}
                 className="bg-primaryOrg space-x-3 rounded-lg text-white flex justify-between items-center pl-1.5 md:pl-5 shadow-lg font-display text-xl select-none h-full"
             >
-                <span>{t("eventvenue")}</span>
+                <span className="text-[12px] md:text-base">{t("eventvenue")}</span>
                 <div
-                    className={`bg-white w-[45.8%] md:w-[62.54%] rounded-lg h-[40px] flex items-center justify-between relative px-2 ${
-                        isAllowed() && "cursor-pointer"
-                    }`}
+                    className={`bg-white w-[45.8%]. md:w-[62.54%] rounded-lg h-[40px] flex items-center justify-between relative px-2 ${isAllowed() && "cursor-pointer"
+                        }`}
                 >
                     {/* Input de búsqueda */}
                     <input
-  type="text"
-  value={searchQuery}
-  onChange={handleSearch}
-  placeholder={lugarEvento?.title || t("search")}
-  className="flex-1 font-display font-base text-sm text-gray-700 leading-3 border-none focus:ring-0 focus:outline-none"
-  onClick={(e) => {
-    e.stopPropagation(); // Evita que el clic cierre el modal
-    setOpenList(true); // Abre la lista al hacer clic en el input
-  }}
-/>
+                        type="text"
+                        value={searchQuery}
+                        onChange={handleSearch}
+                        placeholder={lugarEvento?.title || t("search")}
+                        className="flex-1 font-display font-base md:text-sm text-[13px] text-gray-700 leading-3 border-none focus:ring-0 focus:outline-none w-[210px] md:w-[250px]"
+                        onClick={(e) => {
+                            e.stopPropagation(); // Evita que el clic cierre el modal
+                            setOpenList(true); // Abre la lista al hacer clic en el input
+                        }}
+                    />
                     <GoSearch
-                        className={`w-6 h-6 ${
-                            !isAllowed() ? "text-gray-300" : "text-primaryOrg"
-                        }`}
+                        className={`w-6 h-6 ${!isAllowed() ? "text-gray-300" : "text-primaryOrg"
+                            }`}
                     />
                 </div>
             </div>

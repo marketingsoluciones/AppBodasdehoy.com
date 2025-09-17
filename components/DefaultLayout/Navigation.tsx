@@ -4,17 +4,12 @@ import { AuthContextProvider, EventContextProvider } from "../../context";
 import { Banner, IconLightBulb16, InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, MenuIcon, MesasIcon, MisEventosIcon, PresupuestoIcon, ResumenIcon } from "../icons";
 import { useDelayUnmount } from "../../utils/Funciones";
 import Profile from "./Profile";
-import Sidebar from "../Utils/Sidebar";
 import BlockNotification from "./BlockNotification";
 import NavbarDirectory from "../Utils/NavbarDirectory";
-import Head from "next/head";
 import { Tooltip } from "../Utils/Tooltip";
-import ClickAwayListener from "react-click-away-listener";
 import { useAllowedRouter } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
 import { BsCalendarHeartFill } from "react-icons/bs";
-import Image from "next/image";
-
 
 const Navigation: FC = () => {
   const refBanner = useRef(null)

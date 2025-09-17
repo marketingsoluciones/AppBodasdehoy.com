@@ -23,12 +23,12 @@ const quillModules = {
   toolbar: [
     // [{ 'header': [1, 2, 3, false] }], 
     ['bold', 'italic', 'underline', 'strike'],
+    ['clean'],
     [{ 'color': [] }, { 'background': [] }],
     [{ 'list': 'ordered' }, { 'list': 'bullet' }],
     [{ 'indent': '-1' }, { 'indent': '+1' }],
-    [{ 'align': [] }],
+    // [{ 'align': [] }],
     // // ['link', 'image'], 
-    ['clean']
   ],
 };
 
@@ -37,7 +37,7 @@ const quillFormats = [
   'bold', 'italic', 'underline', 'strike',
   'color', 'background',
   'list', 'bullet', 'indent',
-  'align',
+  // 'align',
   //  'link', 'image' 
 ];
 
@@ -54,7 +54,6 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner,
   const [customDescription, setCustomDescription] = useState(task?.tips || '');
   const ruta = window.location.pathname;
 
-
   useEffect(() => {
     setCustomDescription(task?.tips || '');
   }, [task])
@@ -63,11 +62,11 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner,
   const isOwner = Boolean(owner);
   const canUserEdit = Boolean(canEdit);
   const hasTaskStatus = Boolean(task.estatus);
-  const canShowEditButton = isItinerarioRoute
-    ? isOwner
+  const canShowEditButton =  true /* isItinerarioRoute
+    ? !isOwner
       ? canUserEdit
       : (hasTaskStatus && canUserEdit)
-    : canUserEdit;
+    : canUserEdit; */
 
   const shouldShowEditor = editing && canShowEditButton;
 
@@ -182,6 +181,7 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner,
         border-bottom: 1px solid #e5e7eb !important;
         font-family: inherit;
         height: 30px;
+        z-index: 1000;
       }
       .description-editor .ql-toolbar.ql-snow {
         border: none !important;

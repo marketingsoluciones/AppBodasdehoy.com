@@ -20,10 +20,11 @@ export const Productos = ({ data, setProducts, products }) => {
     !producto.name.includes('Módulo') && !producto.name.includes('Marca')
   );
 
+
   return (
     <div className="space-y-5 pb-5">
       <div>
-        <h1 className="text-primary text-[25px] font-medium">Full acceso a funcionalidades</h1>
+        <h1 className="text-primary md:text-[25px] text-[23px] font-medium">Full acceso a funcionalidades</h1>
         {productosFiltrados?.map((item: any, idx: any) => {
           const status = !!item?.subscriptionId
             ? new Date().getTime() < new Date(item?.current_period_end).getTime()
@@ -90,7 +91,7 @@ export const Productos = ({ data, setProducts, products }) => {
                           products.push(item)
                           setProducts([...products])
                         }}
-                        className={`bg-primary py-1 w-full text-[13px] rounded-lg capitalize hover:opacity-90 cursor-pointer ${products?.findIndex(elem => elem?.id === item?.id) > -1 ? "bg-white border border-primary text-primary" : "bg-primary text-white"} `}>
+                        className={`bg-primary py-1 px-1 w-full text-[12px] rounded-lg capitalize hover:opacity-90 cursor-pointer ${products?.findIndex(elem => elem?.id === item?.id) > -1 ? "bg-white border border-primary text-primary" : "bg-primary text-white"} `}>
                         {products?.findIndex(elem => elem?.id === item?.id) > -1 ? t("removeplugin") : t("addplugin")}
                       </button>
                     </div>
@@ -102,7 +103,7 @@ export const Productos = ({ data, setProducts, products }) => {
         })}
       </div>
 
-      <div>
+      {MarcaBlancaData && <div>
         <h1 className="text-primary text-[25px] font-medium">Marca Blanca</h1>
         <div className="bg-white flex flex-col md:flex-row rounded-lg md:h-max md:p-3 p-10 gap-5 md:gap-0 md:space-x-3 items-center justify-center ">
           <div className=" flex items-center w-32 justify-center rounded-lg">
@@ -171,8 +172,9 @@ export const Productos = ({ data, setProducts, products }) => {
             }
           </div>
         </div>
-      </div>
-      <div>
+      </div>}
+      
+      {ModulosData.length > 0 && <div>
         <h1 className="text-primary text-[25px] font-medium">Módulos especiales</h1>
         {ModulosData?.map((item: any, idx: any) => {
           const status = !!item?.subscriptionId
@@ -250,7 +252,7 @@ export const Productos = ({ data, setProducts, products }) => {
             </div>
           )
         })}
-      </div>
+      </div>}
     </div>
   )
 }

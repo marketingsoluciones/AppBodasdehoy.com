@@ -10,6 +10,8 @@ module.exports = {
       "playfair": ['playfair Display', ...defaultTheme.fontFamily.sans],
       "Clicker": ['Clicker Script', ...defaultTheme.fontFamily.sans],
       'calibri': ['calibri', 'sans-serif'],
+      'segoe-historic': ['"Segoe UI Historic"', '"Segoe UI"', 'Arial', 'sans-serif'],
+      'optimistic': ['"Optimistic 95"', 'sans-serif'],
     },
     extend: {
       colors: {

@@ -8,48 +8,44 @@ import { ExportarExcel } from "../Utils/ExportarExcel";
 import ClickAwayListener from "react-click-away-listener";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import * as XLSX from 'xlsx';
+import axios from "axios";
 
 
 interface props {
   ConditionalAction?: any
   handleClick?: any
+  setLoading?: any
 }
 
-export const OptionsSubMenu: FC<props> = ({ ConditionalAction, handleClick }) => {
+export const OptionsSubMenu: FC<props> = ({ ConditionalAction, handleClick, setLoading }) => {
   const { event, setEvent } = EventContextProvider();
   const { config } = AuthContextProvider()
   const [optionImportModal, setOptionImportModal] = useState(false)
   const [optionExportModal, setOptionExportModal] = useState(false)
   const [activeInputUpload, setActiveInputUpload] = useState(false)
-  const [loading, setLoading] = useState<boolean>()
+  
   const toast = useToast()
   const [isAllowed, ht] = useAllowed()
   const { t } = useTranslation();
 
   const downloadPdf = async () => {
     try {
-      setLoading(true)
-      const nameFile = `Invitados de ${event.nombre}`.replace(/ /g, "_")
-      const result = await fetchApiEventos({
-        query: queries.generatePdf,
-        variables: {
-          url: `${window.location.origin}/event/guest-${event._id}`,
-          nameFile
-        },
-        domain: config.domain
-      })
-      if (result) {
-        setLoading(false)
-        const link = document.createElement('a');
-        link.href = result as string;
-        link.download = nameFile;
-        link.target = '_blank';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
+      setLoading(true);
+      const response = await axios.post('/api/generate-pdf', {
+        url: `${window.location.origin}/invitados-${event?._id}`,
+        format: "letter"
+      });
+      const blob = new Blob([Uint8Array.from(atob(response.data.base64), c => c.charCodeAt(0))], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${event.nombre} invitados`.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, "_") + '.pdf';
+      link.click();
+      window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.log(error)
+      toast("error", "Error al generar PDF");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -176,7 +172,7 @@ export const OptionsSubMenu: FC<props> = ({ ConditionalAction, handleClick }) =>
           {t("importar")}
           {optionImportModal &&
             <ClickAwayListener onClickAway={() => setOptionImportModal(false)}>
-              <div className="absolute left-0 top-8 shadow-md bg-white  p-5 z-50 rounded-md space-y-2 border-gray-100 border-[1px]">
+              <div className="absolute md:left-0 -left-6 top-8 shadow-md bg-white  p-5 z-50 rounded-md space-y-2 border-gray-100 border-[1px]">
                 <button
                   onClickCapture={() => { setActiveInputUpload(true) }}
                   onClick={() => document.getElementById('fileInput').click()}
@@ -196,14 +192,14 @@ export const OptionsSubMenu: FC<props> = ({ ConditionalAction, handleClick }) =>
             </ClickAwayListener>
           }
         </button>
-        <button
+        {/* <button
           onClick={() => setOptionExportModal(!optionExportModal)}
           className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary capitalize relative"
         >
           {t("exportar")}
           {optionExportModal &&
             <ClickAwayListener onClickAway={() => setOptionExportModal(false)}>
-              <div className="absolute left-0 top-8 shadow-md bg-white  p-5 z-50 rounded-md space-y-2 border-gray-100 border-[1px]">
+              <div className="absolute md:left-0 -left-3 top-8 shadow-md bg-white p-5 z-50 rounded-md space-y-2 border-gray-100 border-[1px]">
                 <ExportarExcel />
                 <button
                   onClick={() => downloadPdf()}
@@ -211,10 +207,11 @@ export const OptionsSubMenu: FC<props> = ({ ConditionalAction, handleClick }) =>
                 >
                   PDF
                 </button>
+               
               </div>
             </ClickAwayListener>
           }
-        </button>
+        </button> */}
       </div>
     </div>
   )

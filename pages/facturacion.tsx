@@ -74,12 +74,12 @@ const Facturacion = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="md:max-w-screen-lg mx-auto px-3 inset-x-0 flex-col flex mt-3 pb-20">
-                        <div className="flex md:justify-center md:border-b md:space-x-8 overflow-x-auto md:overflow-x-hidden items-center text-center ">
+                        className="md:max-w-screen-lg mx-auto md:px-3 px-2 flex-col flex mt-3 pb-20">
+                        <div className="flex justify-center md:border-b md:space-x-8 px-0.5 overflow-x-auto md:overflow-x-hidden items-center text-center  ">
                             {ComponentesArray.map((item, idx) => (
                                 <div
                                     key={idx}
-                                    className={`${optionSelect === idx ? "text-primary md:border-b  md:border-primary " : ""}  cursor-pointer md:hover:border-b  md:border-primary text-gray-700 `}
+                                    className={`${optionSelect === idx ? "text-primary md:border-b  md:border-primary " : ""}  cursor-pointer md:hover:border-b  md:border-primary text-gray-700 text-[10px] md:text-[16px] px-5`}
                                     onClick={() => setOptionSelect(idx)}
                                 >
                                     {item.title}

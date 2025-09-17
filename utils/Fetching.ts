@@ -265,6 +265,24 @@ export const queries = {
     }
   }`,
 
+  getWhatsappInvitationTemplates: `query($evento_id:ID){
+    getWhatsappInvitationTemplates(evento_id:$evento_id)
+  }`,
+
+  createWhatsappInvitationTemplate: `mutation($evento_id:ID, $data: JSON){
+    createWhatsappInvitationTemplate(evento_id:$evento_id, data:$data)
+  }`,
+
+  updateWhatsappInvitationTemplate: `mutation($evento_id:ID, $template_id: ID, $data: JSON){
+    updateWhatsappInvitationTemplate(evento_id:$evento_id, template_id:$template_id, data:$data){
+      _id
+    }
+  }`,
+
+  deleteWhatsappInvitationTemplate: `mutation($evento_id:ID, $template_id: ID){
+    deleteWhatsappInvitationTemplate(evento_id:$evento_id, template_id:$template_id)
+  }`,
+
   getAllBusiness: `query ($criteria :searchCriteriaBusiness, $sort : sortCriteriaBusiness, $skip :Int, $limit : Int, $development: String!) {
     getAllBusinesses(searchCriteria:$criteria, sort: $sort, skip: $skip, limit: $limit, development: $development){
       total
@@ -811,6 +829,7 @@ export const queries = {
     $poblacion: String,
     $usuario_id: String!
     $usuario_nombre: String!
+    $timeZone: String,
     $development: String!
   ){
     crearEvento(
@@ -820,7 +839,8 @@ export const queries = {
       pais: $pais,
       poblacion: $poblacion,
       usuario_id: $usuario_id,
-      usuario_nombre: $usuario_nombre
+      usuario_nombre: $usuario_nombre,
+      timeZone: $timeZone,
       development: $development
     ){
       _id
@@ -859,6 +879,7 @@ export const queries = {
       }
       poblacion
       pais
+      timeZone
       templateEmailSelect
       templateWhatsappSelect
       imgEvento{
@@ -1795,6 +1816,7 @@ export const queries = {
         title
         slug
       }
+      timeZone
       templateEmailSelect
       templateWhatsappSelect
       imgEvento{

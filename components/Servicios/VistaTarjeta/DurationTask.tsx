@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, useState, useEffect } from 'react';
 import { Task } from '../../../utils/Interfaces';
 import { useTranslation } from 'react-i18next';
 import ClickAwayListener from 'react-click-away-listener';
@@ -15,7 +15,7 @@ export const DurationTask: FC<Props> = ({ handleUpdate, canEdit, task }) => {
   const [editing, setEditing] = useState<boolean>(false);
   const [hours, setHours] = useState<string>('');
   const [minutes, setMinutes] = useState<string>('');
-  const [value, setValue] = useState<string>();
+  const [hasChanges, setHasChanges] = useState<boolean>(false);
 
   // Función para convertir minutos a formato "01 h 20 m"
   const formatDuration = (totalMinutes: number): string => {
@@ -34,35 +34,64 @@ export const DurationTask: FC<Props> = ({ handleUpdate, canEdit, task }) => {
     return h * 60 + m;
   };
 
+  // Inicializar valores cuando se abre la edición
+  useEffect(() => {
+    if (editing) {
+      const totalMinutes = task.duracion as number || 0;
+      const currentHours = Math.floor(totalMinutes / 60);
+      const currentMinutes = totalMinutes % 60;
+      setHours(currentHours.toString());
+      setMinutes(currentMinutes.toString());
+      setHasChanges(false);
+    }
+  }, [editing, task.duracion]);
+
+  // Función para guardar cambios
+  const saveChanges = async () => {
+    if (hasChanges) {
+      const totalMinutes = parseDuration(hours, minutes);
+      await handleUpdate('duracion', totalMinutes);
+      setHasChanges(false);
+    }
+  };
+
+  // Función para cancelar edición
+  const cancelEditing = () => {
+    setEditing(false);
+    setHasChanges(false);
+  };
+
   const inputOptions = [
     {
       id: 'hours-input',
       max: '99',
       accessor: 'hours',
       nextTab: 'minutes-input',
+      value: hours,
+      setValue: setHours,
     },
     {
       id: 'minutes-input',
       max: '59',
       accessor: 'minutes',
       nextTab: 'hours-input',
+      value: minutes,
+      setValue: setMinutes,
     }
-  ]
+  ];
 
   return (
-    <ClickAwayListener onClickAway={() => setEditing(false)}>
+    <ClickAwayListener onClickAway={() => {
+      if (hasChanges) {
+        saveChanges();
+      }
+      cancelEditing();
+    }}>
       <div onClick={() => {
         if (canEdit) {
           task?.horaActiva !== false && setEditing(true);
-          // Inicializar los inputs con los valores actuales
-          const totalMinutes = task.duracion as number || 0;
-          const currentHours = Math.floor(totalMinutes / 60);
-          const currentMinutes = totalMinutes % 60;
-          setHours(currentHours.toString());
-          setMinutes(currentMinutes.toString());
         }
       }} className={`h-full flex items-center space-x-1  ${(task?.horaActiva !== false && canEdit) && "cursor-pointer"}`}>
-        <span className="text-xs text-gray-500">{t('Duración')}</span>
         {editing
           ? <div className="flex items-center rounded px-0.5 border-[1px] border-gray-400 focus:border-gray-400">
             {inputOptions.map((option, index) => (
@@ -72,7 +101,7 @@ export const DurationTask: FC<Props> = ({ handleUpdate, canEdit, task }) => {
                   type="number"
                   min="0"
                   max={option.max}
-                  value={option.accessor === 'hours' ? hours : minutes}
+                  value={option.value}
                   onChange={(e) => {
                     if (e.target.value.length > 2) {
                       e.target.value = e.target.value.slice(1, 3);
@@ -80,27 +109,19 @@ export const DurationTask: FC<Props> = ({ handleUpdate, canEdit, task }) => {
                     const value = e.target.value;
                     const maxValue = parseInt(option.max);
                     if (value === '' || (parseInt(value) >= 0 && parseInt(value) <= maxValue)) {
-                      if (option.accessor === 'hours') {
-                        setHours(value);
-                      } else {
-                        setMinutes(value);
-                      }
+                      option.setValue(value);
+                      setHasChanges(true);
                     }
                   }}
                   onFocus={(e) => {
                     e.target.select();
                   }}
-                  onBlur={async () => {
-                    const totalMinutes = parseDuration(hours, minutes);
-                    await handleUpdate('duracion', totalMinutes);
-                  }}
                   onKeyDown={async (e) => {
                     if (e.key === 'Enter') {
-                      const totalMinutes = parseDuration(hours, minutes);
-                      await handleUpdate('duracion', totalMinutes);
+                      await saveChanges();
                       setEditing(false);
                     } else if (e.key === 'Escape') {
-                      setEditing(false);
+                      cancelEditing();
                     } else if (e.key === 'Tab' && e.shiftKey === false) {
                       e.preventDefault();
                       document.getElementById(option.nextTab)?.focus();
@@ -119,11 +140,11 @@ export const DurationTask: FC<Props> = ({ handleUpdate, canEdit, task }) => {
               </div>
             ))}
             <div onClick={() => {
-              setValue(null);
+              setHasChanges(false);
               handleUpdate('duracion', null)
                 .then(() => {
                   setEditing(false);
-                })
+                });
             }} className="-right-[6px] cursor-pointer p-[2px]">
               <div className='relative group'>
                 <X className="w-3 h-3" />

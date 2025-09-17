@@ -11,25 +11,10 @@ import InputField from '../Forms/InputField';
 import SelectField from '../Forms/SelectField';
 import * as yup from "yup";
 import { GoArrowLeft } from "react-icons/go";
-import {
-    DndContext,
-    closestCenter,
-    KeyboardSensor,
-    PointerSensor,
-    useSensor,
-    useSensors,
-    DragEndEvent,
-} from '@dnd-kit/core';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, } from '@dnd-kit/core';
 import { SortableButton } from './SortableButton';
-import {
-    arrayMove,
-    SortableContext,
-    sortableKeyboardCoordinates,
-    verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import {
-    useSortable,
-} from '@dnd-kit/sortable';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, } from '@dnd-kit/sortable';
+import { useSortable, } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
 interface Button {
@@ -46,15 +31,18 @@ interface ButtonOption {
     type: 'QUICK_REPLY' | 'URL' | 'PHONE_NUMBER' | 'WHATSAPP';
 }
 
-interface TemplateFormValues {
+export interface TemplateWathsappValues {
+    _id?: string;
     templateName: string;
-    language: { _id: string, title: string };
-    category: { _id: string, title: string };
-    headerType: { _id: string, title: string };
+    language: { _id: "es" | "en", title: string };
+    category: { _id: "UTILITY" | "WEDDING", title: string };
+    headerType: { _id: "none" | "text" | "image" | "video", title: string };
     headerContent: string;
     bodyContent: string;
     footerContent: string;
     buttons: Button[];
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 
 interface props {
@@ -66,19 +54,19 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
     const { event, setEvent } = EventContextProvider()
     const { t } = useTranslation();
     const toast = useToast();
-    const [values, setValues] = useState<TemplateFormValues>()
+    const [values, setValues] = useState<TemplateWathsappValues>()
     const [cursorPosition, setCursorPosition] = useState(0)
 
     const variables = [
-        { id: 1, name: "tipo de evento", value: "{{params.typeEvent}}", sample: "CUMPLEAÑOS" },
-        { id: 2, name: "nombre del evento", value: "{{params.nameEvent}}", sample: "FIESTA DE JAFET" },
-        { id: 3, name: "invitado", value: "{{params.nameGuest}}", sample: "Juan Pérez" },
-        { id: 4, name: "fecha", value: "{{params.dateEvent}}", sample: "25/12/2025" },
-        { id: 5, name: "estilo", value: "{{params.styleEvent}}", sample: "MODERNO" },
-        { id: 6, name: "tematica", value: "{{params.themeEvent}}", sample: "NAVIDAD" },
-        { id: 7, name: "usuario_nombre", value: "{{params.userEvent}}", sample: "Jafet" },
-        { id: 8, name: "imgEvento", value: "{{params.imgEvent}}", sample: "https://placehold.co/600x200/ADD8E6/000000?text=Imagen+del+Evento" },
-        { id: 9, name: "lugar", value: "{{params.placeEvent}}", sample: "Salón de Fiestas 'El Gran Salón'" },
+        { id: 1, name: "tipo de evento", value: "{{params.typeEvent}}", sample: [`event`][`tipo`] },
+        { id: 2, name: "nombre del evento", value: "{{params.nameEvent}}", sample: event?.nombre },
+        { id: 3, name: "invitado", value: "{{params.nameGuest}}", sample: event?.invitados_array[0]?.nombre },
+        { id: 4, name: "fecha", value: "{{params.dateEvent}}", sample: new Date(parseInt(event?.fecha)).toLocaleDateString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric' }) },
+        { id: 5, name: "estilo", value: "{{params.styleEvent}}", sample: event?.estilo },
+        { id: 6, name: "tematica", value: "{{params.themeEvent}}", sample: event?.tematica },
+        { id: 7, name: "usuario_nombre", value: "{{params.userEvent}}", sample: event?.usuario_nombre },
+        { id: 8, name: "imgEvento", value: "{{params.imgEvent}}", sample: event?.imgEvento?.i640 ? `https://apiapp.bodasdehoy.com/${event?.imgEvento?.i640}` : "sin imagen cargada" },
+        { id: 9, name: "lugar", value: "{{params.placeEvent}}", sample: event?.lugar?.title },
     ];
 
     const buttonOptions: ButtonOption[] = [{
@@ -139,7 +127,7 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
         ),
     });
 
-    const initialValues: TemplateFormValues = {
+    const initialValues: TemplateWathsappValues = {
         templateName: '',
         language: { _id: "es", title: "ES" },
         category: { _id: "UTILITY", title: "UTILITY" },
@@ -229,10 +217,21 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
         setFieldValue(`buttons.${index}.${field}`, value);
     };
 
-    const generateTemplateJson = (values: TemplateFormValues) => {
+    const generateTemplateJson = (values: TemplateWathsappValues) => {
+        values = { ...values, templateName: values.templateName.trim() }
+        console.log(100038, values)
+        fetchApiEventos({
+            query: queries.createWhatsappInvitationTemplate,
+            variables: {
+                evento_id: event?._id,
+                data: values
+            }
+        }).then((res: any) => {
+            toast("success", t("Template created successfully"));
+        })
+        setValues({ ...values })
         const components = [];
         const collectedExamplesMap: any = {};
-
         const processContentAndCollectExamples = (content: string) => {
             let newContent = content;
             const matches = content.match(/\{\{params\.[a-zA-Z0-9_]+\}\}/g);
@@ -248,7 +247,6 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
             }
             return newContent;
         };
-
         // Header
         if (values.headerType._id === 'text') {
             const finalHeaderContent = processContentAndCollectExamples(values.headerContent);
@@ -265,15 +263,21 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                     header_handle: values.headerContent
                 }
             });
+        } else if (values.headerType._id === 'video') {
+            components.push({
+                type: 'HEADER',
+                format: 'VIDEO',
+                example: {
+                    header_handle: values.headerContent
+                }
+            });
         }
-
         // Body
         const finalBodyContent = processContentAndCollectExamples(values.bodyContent);
         components.push({
             type: 'BODY',
             text: finalBodyContent,
         });
-
         // Footer
         if (values.footerContent.trim()) {
             components.push({
@@ -281,7 +285,6 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                 text: values.footerContent.trim(),
             });
         }
-
         // Buttons
         if (values.buttons.length > 0) {
             const apiButtons = values.buttons.map(btn => {
@@ -330,7 +333,6 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                 }
                 return null;
             }).filter(Boolean);
-
             if (apiButtons.length > 0) {
                 components.push({
                     type: 'BUTTONS',
@@ -338,21 +340,18 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                 });
             }
         }
-
         // Final examples array
         const finalExamplesArray = [];
         const maxVarId = Math.max(...Object.keys(collectedExamplesMap).map(Number), 0);
         for (let i = 1; i <= maxVarId; i++) {
             finalExamplesArray.push(collectedExamplesMap[i] || `Ejemplo Variable ${i}`);
         }
-
         const templateJson = {
             name: values.templateName.toLowerCase().replace(/[^a-z0-9_]/g, ''),
             language: values.language,
             category: values.category,
             components: components,
         };
-
         if (finalExamplesArray.length > 0) {
             const bodyComp = templateJson.components.find(comp => comp.type === 'BODY');
             if (bodyComp) {
@@ -361,12 +360,16 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                 };
             }
         }
-
         setGeneratedJson(JSON.stringify(templateJson, null, 2));
         toast("success", t("Template JSON generated successfully"));
     };
 
-    const handleSubmit = async (values: TemplateFormValues, actions: any) => {
+    useEffect(() => {
+        console.log("generatedJson", generatedJson)
+    }, [generatedJson])
+
+
+    const handleSubmit = async (values: TemplateWathsappValues, actions: any) => {
         try {
             generateTemplateJson(values);
         } catch (error) {
@@ -377,17 +380,13 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
         }
     };
 
-    useEffect(() => {
-        console.log(100039, values?.buttons)
-    }, [values?.buttons])
-
     const handleCloseEditor = () => {
         setShowEditorModal(false)
     };
 
 
     return (
-        <div className='relative w-full h-full flex flex-col'>
+        <div className='relative w-full h-full flex flex-col overflow-hidden'>
             <div className="w-full h-[38px] bg-white border-b-[1px] border-gray-300 overflow-hidden relative">
                 <div className='absolute flex w-[604px]'>
                     <div onClick={handleCloseEditor} className={"flex w-16 h-[38px] flex-col items-center justify-center cursor-pointer border-l hover:bg-[#F4F4F4]"} >
@@ -396,7 +395,6 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                         </div>
                     </div>
                 </div>
-
             </div>
             <div className="h-[calc(100%-38px)] bg-gray-100 font-inter flex flex-col md:flex-row">
                 {/* Columna del Editor */}
@@ -411,22 +409,26 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                 <AutoSubmitToken setValues={setValues} />
                                 <div className="text-gray-500 font-body flex flex-col gap-2 w-full">
                                     {/* Configuración de la Plantilla */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 text-xs">
                                         <InputField
                                             name="templateName"
                                             label={t("templateName")}
                                             type="text"
                                             placeholder={t("templateName")}
+                                            className="text-xs"
+                                            size={6}
                                         />
                                         <SelectField
                                             name="language"
                                             label={t("Language")}
                                             options={[{ _id: "es", title: "ES" }, { _id: "en", title: "EN" }]}
+                                            className="text-xs"
                                         />
                                         <SelectField
                                             name="category"
                                             label={t("Category")}
                                             options={[{ _id: "utility", title: t("Utility") }, { _id: "marketing", title: t("Marketing") }, { _id: "authentication", title: t("Authentication") }]}
+                                            className="text-xs"
                                         />
                                     </div>
                                     {/* Header */}
@@ -434,29 +436,28 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                         <SelectField
                                             name="headerType"
                                             label={t("Header Type")}
-                                            options={[{ _id: "none", title: t("NONE") }, { _id: "text", title: t("TEXT") }, { _id: "image", title: t("IMAGE") }]}
+                                            options={[{ _id: "none", title: t("NONE") }, { _id: "text", title: t("TEXT") }, { _id: "image", title: t("IMAGE") }, { _id: "video", title: t("VIDEO") }]}
+                                            className="text-xs"
                                         />
 
                                         {values.headerType._id === 'text' && (
                                             <div>
-                                                <label className="font-display text-sm text-primary w-full">{t("Header Content (Text)")}</label>
-                                                <textarea
+                                                <InputField
                                                     name="headerContent"
-                                                    rows={2}
                                                     placeholder={t("Enter header content")}
-                                                    className="font-display text-sm text-gray-500 border border-gray-200 focus:border-gray-400 focus:ring-0 transition w-full py-2 px-4 rounded-xl focus:outline-none"
-                                                    value={values?.headerContent || ''}
-                                                    onChange={(e) => setFieldValue('headerContent', e.target.value)}
-                                                    onSelect={(e) => setCursorPosition(e.currentTarget.selectionStart)}
-                                                    onClick={(e) => setCursorPosition(e.currentTarget.selectionStart)}
-                                                    onKeyUp={(e) => setCursorPosition(e.currentTarget.selectionStart)}
+                                                    label={t("Header Content (Text)")}
+                                                    type="text"
+                                                    maxLength={60}
+                                                    className="text-xs"
                                                 />
-                                                <div className="flex items-center gap-2">
-                                                    <label className="text-xs font-medium text-gray-700">{t("Add Variable")}:</label>
+
+                                                <div className="flex items-center gap-2 mt-2">
+                                                    <label className="text-[11px] font-medium text-gray-700">{t("Add Variable")}:</label>
                                                     <select
-                                                        className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                                        className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-xs"
                                                         onChange={(e) => handleVariableSelect(e, setFieldValue, 'headerContent')}
                                                         value=""
+                                                        disabled={values.headerContent.includes('{{params.')}
                                                     >
                                                         <option value="" disabled>{t("Select a variable")}</option>
                                                         {variables.map(v => (
@@ -475,31 +476,51 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                                     label={t("Image URL (example)")}
                                                     type="text"
                                                     placeholder={t("https://example.com/image.jpg")}
+                                                    className="text-xs"
                                                 />
-                                                <p className="text-gray-500 text-xs mt-1">{t("Note: In the real API, you will need to upload the image to Meta and use a handle or uri.")}</p>
+                                                <p className="text-gray-500 text-[11px] mt-1">{t("Note: In the real API, you will need to upload the image to Meta and use a handle or uri.")}</p>
+                                            </div>
+                                        )}
+                                        {values.headerType._id === 'video' && (
+                                            <div className="mt-2">
+                                                <InputField
+                                                    name="headerContent"
+                                                    label={t("Video URL (example)")}
+                                                    type="text"
+                                                    placeholder={t("https://example.com/video.mp4")}
+                                                    className="text-xs"
+                                                />
+                                                <p className="text-gray-500 text-[11px] mt-1">{t("Note: In the real API, you will need to upload the video to Meta and use a handle or uri.")}</p>
                                             </div>
                                         )}
                                     </div>
                                     {/* Body */}
-                                    <div className="mb-2">
+                                    <div className="mb-2 relative">
                                         <label className="font-display text-sm text-primary w-full">{t("Message Body")}</label>
                                         <textarea
                                             name="bodyContent"
                                             rows={5}
+                                            maxLength={1048}
                                             placeholder={t("e.g. Your order #{{params.nameEvent}} has been confirmed and will be shipped on {{params.dateEvent}}. Thank you for your purchase!")}
-                                            className="font-display text-sm text-gray-500 border border-gray-200 focus:border-gray-400 focus:ring-0 transition w-full py-2 px-4 rounded-xl focus:outline-none"
+                                            className="font-display text-xs text-gray-500 border border-gray-200 focus:border-gray-400 focus:ring-0 transition w-full py-2 px-4 rounded-xl focus:outline-none"
                                             value={values?.bodyContent || ''}
                                             onChange={(e) => setFieldValue('bodyContent', e.target.value)}
                                             onSelect={(e) => setCursorPosition(e.currentTarget.selectionStart)}
                                             onClick={(e) => setCursorPosition(e.currentTarget.selectionStart)}
                                             onKeyUp={(e) => setCursorPosition(e.currentTarget.selectionStart)}
                                         />
+                                        <div className={`h-10 absolute bottom-9 right-2 flex items-center justify-center`}>
+                                            <span id='masStr' className={`text-gray-500 text-xs`}>
+                                                {values?.bodyContent?.length}/{1048}
+                                            </span>
+                                        </div>
                                         <div className="flex items-center gap-2">
-                                            <label className="text-xs font-medium text-gray-700">{t("Add Variable")}:</label>
+                                            <label className="text-[11px] font-medium text-gray-700">{t("Add Variable")}:</label>
                                             <select
-                                                className="p-2 flex-1 md:mr-20 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                                className="p-2 flex-1 md:mr-20 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-xs"
                                                 onChange={(e) => handleVariableSelect(e, setFieldValue, 'bodyContent')}
                                                 value=""
+                                                disabled={values?.bodyContent?.match(/\{\{params\.[a-zA-Z0-9_]+\}\}/g).length > 5}
                                             >
                                                 <option value="" disabled>{t("Select a variable")}</option>
                                                 {variables.map(v => (
@@ -512,22 +533,21 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                     </div>
                                     {/* Footer */}
                                     <div className="mb-2">
-                                        <label className="font-display text-sm text-primary w-full">{t("Footer (Optional)")}</label>
-                                        <textarea
+                                        <InputField
                                             name="footerContent"
-                                            rows={2}
-                                            placeholder={t("Enter footer text")}
-                                            className="font-display text-sm text-gray-500 border border-gray-200 focus:border-gray-400 focus:ring-0 transition w-full py-2 px-4 rounded-xl focus:outline-none"
-                                            value={values?.footerContent || ''}
-                                            onChange={(e) => setFieldValue('footerContent', e.target.value)}
+                                            placeholder={t("Enter header content")}
+                                            label={t("Footer (Optional)")}
+                                            type="text"
+                                            maxLength={60}
+                                            className="text-xs"
                                         />
-                                        <p className="text-gray-500 text-xs mt-1">{t("The footer cannot contain variables.")}</p>
+                                        <p className="text-gray-500 text-[11px] mt-1">{t("The footer cannot contain variables.")}</p>
                                     </div>
                                     {/* Buttons */}
                                     <div className="mb-2">
                                         <div className="flex gap-2 items-end mb-4">
-                                            <h2 className="text-sm font-semibold text-gray-700">{t("Buttons (Optional)")}</h2>
-                                            <span className="text-xs text-gray-500">{t("You can add up to 5 buttons")}</span>
+                                            <h2 className="text-sm font-semibold text-primary">{t("Buttons (Optional)")}</h2>
+                                            <span className="text-[11px] text-gray-500">{t("You can add up to 5 buttons")}</span>
                                         </div>
                                         <div id="buttons-container" className="flex space-x-2 mb-2">
                                             {buttonOptions.map((buttonOption, index) => {
@@ -553,11 +573,11 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                                         type="button"
                                                         onClick={() => !isDisabled && addEmptyButton(buttonOption.type, setFieldValue)}
                                                         disabled={isDisabled}
-                                                        className={`w-1/3 flex flex-col items-center justify-center px-1 md:px-2 py-2 text-white rounded-md transition-colors text-[10px] md:text-xs ${isDisabled ? disabledColor : getButtonColor(buttonOption.type)
+                                                        className={`w-1/3 flex flex-col items-center justify-center px-1 md:px-2 py-2 text-white rounded-md transition-colors text-[10px] md:text-[11px] ${isDisabled ? disabledColor : getButtonColor(buttonOption.type)
                                                             }`}
                                                         title={isDisabled ? t("Maximum limit reached for this button type") : buttonOption.description}
                                                     >
-                                                        <span className="text-center text-xs">{buttonOption.title}</span>
+                                                        <span className="text-center text-[11px]">{buttonOption.title}</span>
                                                         <span className="text-center text-[10px]">{buttonOption.description}</span>
                                                     </button>
                                                 );
@@ -604,7 +624,10 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                 <code>{generatedJson}</code>
                             </pre>
                             <button
-                                onClick={() => navigator.clipboard.writeText(generatedJson).then(() => toast("success", t("JSON copied to clipboard!")))}
+                                onClick={() => {
+                                    console.log("generatedJson")
+                                    navigator.clipboard.writeText(generatedJson).then(() => toast("success", t("JSON copied to clipboard!")))
+                                }}
                                 className="mt-2 px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-800 transition-colors"
                             >
                                 {t("Copy JSON")}
@@ -614,14 +637,8 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                 </div>
                 {/* Columna de la Vista Previa */}
                 {values && (
-                    <div className="flex-1 h-full hidden md:flex justify-center items-center">
-                        <WhatsappPreview
-                            headerType={values.headerType?._id ?? 'NONE'}
-                            headerContent={values.headerContent ?? ''}
-                            bodyContent={values.bodyContent ?? ''}
-                            footerContent={values.footerContent ?? ''}
-                            buttons={values.buttons ?? []}
-                            variableMap={variableMap}
+                    <div className="flex-1 hidden md:flex justify-center overflow-auto">
+                        <WhatsappPreview values={{ ...values }} variableMap={variableMap}
                         />
                     </div>
                 )}

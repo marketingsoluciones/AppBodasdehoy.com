@@ -71,6 +71,7 @@ export interface Event {
     detalles_compartidos_array: detalle_compartidos_array[]
     nonce: string
     fecha: string
+    timeZone: string
     poblacion: string
     pais: string
     lugar: Venue

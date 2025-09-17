@@ -1,6 +1,6 @@
 import interact from 'interactjs'
 import { FC, RefObject, useEffect, useRef, useState } from 'react'
-import { AuthContextProvider, EventContextProvider } from '../../context'
+import { EventContextProvider } from '../../context'
 import { ActualizarPosicion, setupDropzone, ActualizarSize } from './FuntionsDragable'
 import { size, table, element } from '../../utils/Interfaces';
 import { DragableDefault } from './DragableDefault';
@@ -175,7 +175,7 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
   let valirMove = false
   // setup draggable elements.
   const optionsDrag = {
-    ignoreFrom: '.ign',
+    ignoreFrom: '.ign, .ql-editor',
     manualStart: false,
     listeners: {
       start(e) {
@@ -248,7 +248,10 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
           // Mantener posición acumulada en el dataset del contenedor
           const divElement = e.currentTarget as HTMLElement;
           const relativeElement = divElement.firstElementChild as HTMLElement | null;
-          const svgElement = (relativeElement?.firstElementChild || undefined) as HTMLElement | undefined;
+          const svgOrTextElement = (relativeElement?.firstElementChild || undefined) as HTMLElement | undefined;
+          // if (svgOrTextElement.getAttribute("data-type") === "text") {
+          //   return
+          // }
           let x = parseFloat(divElement.dataset.x || '0');
           let y = parseFloat(divElement.dataset.y || '0');
           // Aplicar deltas compensando el scale
@@ -261,18 +264,18 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
             left: `${x}px`,
             top: `${y}px`,
           });
-          Object.assign(svgElement.style, {
+          Object.assign(svgOrTextElement.style, {
             width: `${newWidth}px`,
             height: `${newHeight}px`,
           });
           // Sincronizar datasets para futuras interacciones de drag/resize
           divElement.dataset.x = String(x);
           divElement.dataset.y = String(y);
-          if (svgElement) {
-            svgElement.dataset.width = String(newWidth);
-            svgElement.dataset.height = String(newHeight);
+          if (svgOrTextElement) {
+            svgOrTextElement.dataset.width = String(newWidth);
+            svgOrTextElement.dataset.height = String(newHeight);
             // Si el SVG respeta width/height CSS, opcionalmente se puede reflejar:
-            (svgElement as any).style && Object.assign((svgElement as any).style, { width: `${newWidth}px`, height: `${newHeight}px` });
+            (svgOrTextElement as any).style && Object.assign((svgOrTextElement as any).style, { width: `${newWidth}px`, height: `${newHeight}px` });
           }
         },
         end: (e) => {
@@ -283,10 +286,10 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
           // Persistir en estado/BD al finalizar el resize
           const divElement = e.currentTarget as HTMLElement;
           const relativeElement = divElement.firstElementChild as HTMLElement | null;
-          const svgElement = (relativeElement?.firstElementChild || undefined) as HTMLElement | undefined;
-          const target = e.currentTarget as HTMLElement;
-          const width = parseFloat(svgElement.style.width || '0');
-          const height = parseFloat(svgElement.style.height || '0');
+          const svgOrTextElement = (relativeElement?.firstElementChild || undefined) as HTMLElement | undefined;
+          console.log(svgOrTextElement.getAttribute("data-type"))
+          const width = parseFloat(svgOrTextElement.style.width || '0');
+          const height = parseFloat(svgOrTextElement.style.height || '0');
           const x = parseFloat(divElement.dataset.x || '0');
           const y = parseFloat(divElement.dataset.y || '0');
           // Guardar tamaño
@@ -370,7 +373,7 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
             }}
             mouseEvent="mouseup"
             touchEvent="touchend">
-            <DragableDefault ref={ref} item={item} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} prefijo='table' setShowFormEditar={setShowFormEditar} DefinePosition={DefinePosition} idx={idx} />
+            <DragableDefault ref={ref} item={item} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} prefijo='table' setShowFormEditar={setShowFormEditar} DefinePosition={DefinePosition} idx={idx} scale={scale} />
           </ClickAwayListener>
 
         );
@@ -386,7 +389,7 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
             }}
             mouseEvent="mouseup"
             touchEvent="touchend">
-            <DragableDefault ref={ref} key={item._id} item={item} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} prefijo="element" setShowFormEditar={setShowFormEditar} />
+            <DragableDefault ref={ref} key={item._id} item={item} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} prefijo="element" setShowFormEditar={setShowFormEditar} scale={scale} />
           </ClickAwayListener>
         );
       })}

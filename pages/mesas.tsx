@@ -106,20 +106,28 @@ const Mesas: FC = () => {
       if (values.tipo === "element") {
         setCreaElement(true)
       }
+      if (values.tipo === "text") {
+        setCreaElement(true)
+      }
     }
   }
 
   useEffect(() => {
     if (creaElement) {
-      const element = event?.galerySvgs
-        ? [...event?.galerySvgs, ...ListElements].find(elem => elem.title === values.modelo)
-        : ListElements.find(elem => elem.title === values.modelo)
+      const element = values.tipo === "element"
+        ? event?.galerySvgs
+          ? [...event?.galerySvgs, ...ListElements].find(elem => elem.title === values.modelo)
+          : ListElements.find(elem => elem.title === values.modelo)
+        : null
       try {
         const inputValues = {
-          position: { x: (values.offsetX - element.size.width / 2).toFixed(0), y: (values.offsetY - element.size.height / 2).toFixed(0) },
-          tipo: values.modelo,
+          position: {
+            x: (values.offsetX - (element?.size?.width ?? 60) / 2).toFixed(0),
+            y: (values.offsetY - (element?.size?.height ?? 60) / 2).toFixed(0)
+          },
+          tipo: values.tipo === "text" ? "text" : values.modelo,
           rotation: 0,
-          size: element.size
+          size: element?.size ?? { width: 60, height: 60 }
         }
         fetchApiEventos({
           query: queries.createElement,
@@ -147,7 +155,7 @@ const Mesas: FC = () => {
     const defaultElementsDraggable = event?.galerySvgs
       ? [...event?.galerySvgs, ...ListElements].map(elem => `#dragN${elem.title}_${elem.tipo}`)
       : ListElements.map(elem => `#dragN${elem.title}_${elem.tipo}`)
-    setupDropzone({ target: '.js-dropTables', accept: `${[...defaultTablesDraggable, ...defaultElementsDraggable]}`, handleOnDrop, setEvent, event, planSpaceActive, setPlanSpaceActive, planSpaceSelect })
+    setupDropzone({ target: '.js-dropTables', accept: `${[...defaultTablesDraggable, ...defaultElementsDraggable, "#dragN_text"]}`, handleOnDrop, setEvent, event, planSpaceActive, setPlanSpaceActive, planSpaceSelect })
   }, [planSpaceActive, event?.galerySvgs])
 
   useEffect(() => {
@@ -253,7 +261,7 @@ const Mesas: FC = () => {
                     </div>
                   </div>
                 </div>
-                { /* */}<div className={`bg-base  pt-2 md:pt-0 md:block flex justify-center items-center w-full ${fullScreen ? "md:w-[77%]" : "md:w-[75%]"} h-[calc(70%-0px)] md:h-[100%]`}>
+                <div className={`bg-base  pt-2 md:pt-0 md:block flex justify-center items-center w-full ${fullScreen ? "md:w-[77%]" : "md:w-[75%]"} h-[calc(70%-0px)] md:h-[100%]`}>
                   <Prueba setShowFormEditar={setShowFormEditar} fullScreen={fullScreen} setFullScreen={setFullScreen} />
                 </div>
 

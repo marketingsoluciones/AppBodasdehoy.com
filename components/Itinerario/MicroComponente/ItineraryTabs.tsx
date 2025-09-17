@@ -234,6 +234,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
     }
 
     const handleSelectItinerario = (e: MouseEvent<HTMLDivElement, globalThis.MouseEvent>, item: Itinerary) => {
+        localStorage.setItem(`E_${event._id}_${window?.location?.pathname.slice(1)}`, item._id)
         if (item?._id !== itinerario?._id) {
             setItinerario(item)
             setEditTitle(false)
@@ -459,8 +460,11 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             itineraries.splice(ubi.movido, 1, { ...movido_ })
             updatedNextId(movido_)
         }
-        const eventNew = { ...event, itinerarios_array: [...itineraries] }
-        setEvent({ ...eventNew })
+        const itinerariosNew = event.itinerarios_array.map((elem, index) => {
+            const newElem = itineraries.find(el => el._id === elem._id)
+            return newElem ? newElem : elem
+        })
+        setEvent({ ...event, itinerarios_array: [...itinerariosNew] })
         setShowTabs(false)
     }
 

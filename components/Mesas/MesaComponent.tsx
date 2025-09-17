@@ -233,7 +233,7 @@ const MesaBancos: FC<propsTableType> = ({ children, table, setShowFormEditar, di
 const Banco: FC<propsTableType> = ({ children, table, setShowFormEditar, disableDrag, spaceChairs }) => {
   return (
     <>
-      <div style={{ width: (spaceChairs) * table.numberChair, height: spaceChairs }} className="shadow border border-gray-500 relative bg-white flex items-center justify-center" >
+      <div style={{ width: (spaceChairs) * table.numberChair, height: spaceChairs }} className="shadow border border-gray-500 relative bg-white flex items-center justify-center rounded-full scale-[0.6]" >
         <p className="font-display text-xs text-center mx-2 leading-[12px] tracking-tight text-gray-500">{table?.title}</p>
         {children}
       </div>

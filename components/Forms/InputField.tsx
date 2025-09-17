@@ -15,6 +15,7 @@ interface propsInputField extends InputHTMLAttributes<HTMLInputElement> {
   disabled?: boolean
   labelClass?: boolean
   deleted?: boolean
+  aceptEmogis?: boolean
 }
 
 interface Flag {
@@ -23,7 +24,7 @@ interface Flag {
   cod: number
 }
 
-const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled = false, labelClass = true, deleted = false, ...props }) => {
+const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled = false, labelClass = true, deleted = false, aceptEmogis, ...props }) => {
   const { t } = useTranslation();
   const { geoInfo } = AuthContextProvider()
   const [field, meta, helpers] = useField({ name: props.name })
@@ -60,6 +61,11 @@ const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled =
   }, [optionSelect])
 
   useEffect(() => {
+    if (!aceptEmogis) {
+      if (typeof field?.value === "string") {
+        helpers.setValue(field?.value?.replace(emojiRegex, ''))
+      }
+    }
     if (props?.type === "telefono") {
       let result: Flag | null = null
       let number = field.value ?? ""
@@ -85,12 +91,27 @@ const InputField: FC<Partial<propsInputField>> = ({ label, className, disabled =
     }
   }, [field.value])
 
+  const maxLengthClass = className?.includes("text-xs")
+    ? "text-xs -top-0.5"
+    : className?.includes("text-sm")
+      ? "text-sm top-0"
+      : className?.includes("text-base")
+        ? "text-base top-0.5"
+        : className?.includes("text-lg")
+          ? "text-lg top-1"
+          : "text-xl top-2"
+
+  const emojiRegex = !aceptEmogis
+    ? /(?:[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|\u3299|\u3297|\u303d|\u3030|\u24c2|\ud83c[\udf00-\udfff]|\ud83d[\udc00-\ude4f]|\ud83e[\udd10-\uddff])/g
+    : "";
+
+
   return (
     <div className="w-full h-max relative">
       <label className={`font-display ${labelClass ? "text-primary" : "text-gray-500"} text-sm w-full`}>{label}</label>
       <div className="w-full relative flex items-center">
-        {props?.maxLength && <div className="h-10 absolute top-0 right-2  flex items-center justify-center" >
-          <span id='masStr' className="text-sm text-gray-500">
+        {props?.maxLength && <div className={`h-10 absolute -top-0.5 right-2 flex items-center justify-center ${maxLengthClass}`} >
+          <span id='masStr' className={`text-gray-500`}>
             {field.value?.length}/{props?.maxLength}
           </span>
         </div>}

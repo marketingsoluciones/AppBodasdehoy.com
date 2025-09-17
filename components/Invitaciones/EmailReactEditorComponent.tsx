@@ -307,7 +307,7 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEditorModal, previ
         <div className='relative w-full h-full'>
             {showSaveModal && (
                 <ModalDefault onClose={() => { setShowSaveModal(false); setHtml(''); }} >
-                    <ModalHtmlPreview htmlToImageRef={htmlToImageRef} html={html} action={handleNextSaveDesign} />
+                    <ModalHtmlPreview htmlToImageRef={htmlToImageRef} html={html} action={handleNextSaveDesign} title={template?.configTemplate?.name ? template.configTemplate.name : nameNewtemplate} setTitle={setTemplate}  template={template}/>
                 </ModalDefault>
             )}
             {showTemplatesModal && (

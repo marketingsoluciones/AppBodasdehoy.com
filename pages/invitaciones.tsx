@@ -16,11 +16,11 @@ import { Test, TitleComponent } from "../components/Invitaciones/Test";
 import { PlantillaTextos } from "../components/Invitaciones/PlantillaTextos";
 import { GoChevronDown } from "react-icons/go";
 import { useTranslation } from 'react-i18next';
-import { OpenModal } from "../components/Home/OpenModal";
 import { Modal } from "../components/Utils/Modal";
 import { EmailReactEditorComponent } from "../components/Invitaciones/EmailReactEditorComponent";
 import { fetchApiEventos, queries } from "../utils/Fetching";
-import { WhatsappEditorComponent } from "../components/Invitaciones/WhatsappEditorComponent";
+import { TemplateWathsappValues, WhatsappEditorComponent } from "../components/Invitaciones/WhatsappEditorComponent";
+import { WhatsappPreview } from "../components/Invitaciones/WhatsappPreview";
 
 export type optionArryOptions = {
   title: string;
@@ -39,7 +39,8 @@ const Invitaciones = () => {
   const [stateConfi, setStateConfi] = useState(true)
   const [ShowEditorModal, setShowEditorModal] = useState(false)
   const [previewEmailReactEditor, setPreviewEmailReactEditor] = useState(false)
-  const [previewTemplate, setPreviewTemplate] = useState<string>()
+  const [previewEmailTemplate, setPreviewEmailTemplate] = useState<string>()
+  const [previewWhatsappTemplate, setPreviewWhatsappTemplate] = useState<TemplateWathsappValues>()
 
   const arryOptions: optionArryOptions[] = [
     {
@@ -94,7 +95,17 @@ const Invitaciones = () => {
           selectVariable: "preview"
         },
       }).then((res: any) => {
-        setPreviewTemplate(res?.preview)
+        setPreviewEmailTemplate(res?.preview)
+      })
+    }
+    if (event?.templateWhatsappSelect && optionSelect === "whatsapp") {
+      fetchApiEventos({
+        query: queries.getWhatsappInvitationTemplates,
+        variables: {
+          evento_id: event?._id
+        },
+      }).then((res: any) => {
+        setPreviewWhatsappTemplate(res?.preview as TemplateWathsappValues)
       })
     }
   }, [optionSelect, event?.templateEmailSelect, event?.fecha_actualizacion, event?.updatedAt, event?.invitados_array]);
@@ -132,17 +143,21 @@ const Invitaciones = () => {
                 <div className="w-full h-full flex flex-col md:flex-row mt-3 md:space-x-6 md:px-4">
                   <div className={`w-full h-96 md:w-auto flex justify-center`}>
                     <div ref={hoverRef} className={`relative w-60 h-80 ${optionSelect === "email" ? "bg-[#808080] rounded-lg border-[1px] border-gray-300" : "bg-white"}`}>
-                      {["email", "whatsapp"].includes(optionSelect)
-                        ? previewTemplate
+                      {["email"].includes(optionSelect)
+                        ? previewEmailTemplate
                           ? <img
-                            src={previewTemplate}
+                            src={previewEmailTemplate}
                             alt="imgInvitacion"
                             className="w-full h-full object-contain rounded-lg"
                             style={{ maxWidth: "100%", maxHeight: "100%", display: "block" }} />
                           : <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-lg">
                             <p className="text-gray-500 text-xs text-center">{`No hay template de ${optionSelect} seleccionado`}</p>
                           </div>
-                        : <ModuloSubida event={event} use={"imgInvitacion"} />
+                        : optionSelect === "whatsapp"
+                          ? <div className="w-full h-full flex items-center justify-center translate-y-4 scale-[50%]">
+                            <WhatsappPreview values={previewWhatsappTemplate} variableMap={[]} />
+                          </div>
+                          : <ModuloSubida event={event} use={"imgInvitacion"} />
                       }
                     </div>
                   </div>
@@ -157,9 +172,6 @@ const Invitaciones = () => {
                       {["email", "whatsapp"].includes(optionSelect) && <Test TitleComponent={optionSelect} setEmailEditorModal={setShowEditorModal} setPreviewEmailReactEditor={setPreviewEmailReactEditor} optionSelect={optionSelect} />}
                     </div>
                   </div>
-                </div>
-                <div className={`${["sms"].includes(optionSelect) ? null : "hidden"}`}>
-                  <PlantillaTextos optionSelect={optionSelect} />
                 </div>
               </div>
               <div className={`${["email", "diseño"].includes(optionSelect) ? !stateConfi ? "" : "md:pt-3" : null} pt-3`}>

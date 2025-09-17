@@ -105,10 +105,10 @@ export const SocketControlator = () => {
         }
         if (received?.msg?.payload?.action === "setPlanSpaceActive") {
           // console.log(100020, "RECEIVED planSpaceActive", received?.msg?.payload?.value, event?.planSpace)
-          if (received?.msg?.payload?.value._id === planSpaceSelect) {
+          if (received?.msg?.payload?.value?._id === planSpaceSelect) {
             setPlanSpaceActive(received?.msg?.payload?.value)
           }
-          const f1 = event?.planSpace?.findIndex(elem => elem._id === received?.msg?.payload?.value._id)
+          const f1 = event?.planSpace?.findIndex(elem => elem._id === received?.msg?.payload?.value?._id)
           event?.planSpace?.splice(f1, 1, received?.msg?.payload?.value)
           setEvent({ ...event })
           // setPlanSpaceActive(received?.msg?.payload?.value)

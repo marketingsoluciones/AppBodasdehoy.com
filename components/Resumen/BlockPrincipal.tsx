@@ -10,21 +10,22 @@ import { ModalAddUserToEvent, UsuariosCompartidos } from "../Utils/Compartir";
 import { IoShareSocial } from "react-icons/io5";
 import { useAllowed } from "../../hooks/useAllowed"
 import { useTranslation } from 'react-i18next';
+import { TimeZone } from "../icons";
+import { useDateTime } from "../../hooks/useDateTime";
 
 interface propsBlockVista {
   children?: React.ReactNode;
 }
 
 const BlockVista: FC<propsBlockVista> = ({ children }) => {
-  const [state, setState] = useState(0)
+  const [state] = useState(0)
   const { event } = EventContextProvider();
   const { t } = useTranslation();
+  const { utcDateFormated } = useDateTime();
 
   const seatedGuests: number = event?.invitados_array?.filter(
     (item) => item?.nombre_mesa?.toLowerCase() !== "no asignado"
   )?.length;
-
-  const newDate: Date = new Date(parseInt(event?.fecha));
 
   const options: object = { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" };
   let count: any
@@ -62,10 +63,15 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
             <span className="font-display font-base text-sm flex gap-2 mx-auto w-max inset-x-0">
               <p className="text-gray-500">
                 {/* @ts-ignore */}
-                {newDate.toLocaleDateString("es-VE", options)}
+                {utcDateFormated(event?.fecha)}
               </p>
-              -<p className="text-primary">{event?.tipo == "otro" ? "Mi Evento Especial" : event?.tipo && capitalize(event?.tipo)}</p>
+              -<p className="text-primary">{event?.tipo == "otro" ? t("Mi Evento Especial") : event?.tipo && capitalize(t(event?.tipo))}</p>
             </span>
+            <div className="text-gray-600 w-full flex justify-center items-center gap-1.5">
+              <TimeZone />
+              <span className="text-xs">{t("timeZone")}:</span>
+              <span className="text-xs">{event?.timeZone.split("/")[1]}</span>
+            </div>
           </div>
           <div className="w-full">
             <span className="w-full justify-between flex">

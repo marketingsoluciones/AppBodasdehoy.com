@@ -141,7 +141,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
                 padding: crypto.constants.RSA_PKCS1_PADDING,
                 oaepHash: 'sha256',
               },
-              Buffer.from(data)
+              new Uint8Array(Buffer.from(data))
             );
             const result = await fetchApiBodas({
               query: queries.createUserWithPassword,

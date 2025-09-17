@@ -2,7 +2,7 @@ import { Formik, Form, useFormikContext } from "formik";
 import { AuthContextProvider } from "../../context/AuthContext";
 import { EventContextProvider } from "../../context/EventContext";
 import InputField from "../Forms/InputField";
-import { IconLightBulb16 } from "../icons";
+import { EmailIcon, IconLightBulb16, WhatsappIcon } from "../icons";
 import * as yup from "yup";
 import { phoneUtil, useAuthentication } from "../../utils/Authentication";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
@@ -18,6 +18,8 @@ import { ModalTemplates } from "./ModalTemplates";
 import { TemplateDesign } from "../../utils/Interfaces";
 import ButtonSecondary from "./ButtonSecondary";
 import i18next from "i18next";
+import { FaWhatsapp } from "react-icons/fa";
+import { HiOutlineMail } from "react-icons/hi";
 
 export type TitleComponent = "email" | "whatsapp" | "sms" | "diseño"
 
@@ -41,7 +43,7 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
 
 
   useEffect(() => {
-    if (event?.templateEmailSelect) {
+    if (event?.templateEmailSelect && optionSelect === "email") {
       fetchApiEventos({
         query: queries.getVariableEmailTemplate,
         variables: {
@@ -51,8 +53,19 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
       }).then((res: any) => {
         setTemplateName(res?.configTemplate?.name)
       })
+    } else if (event?.templateWhatsappSelect && optionSelect === "whatsapp") {
+      fetchApiEventos({
+        query: queries.getWhatsappInvitationTemplates,
+        variables: {
+          evento_id: event?._id
+        },
+      }).then((res: any) => {
+        setTemplateName(res?.templateName)
+      })
+    } else {
+      setTemplateName("")
     }
-  }, [event?.templateEmailSelect, event?.fecha_actualizacion, event?.updatedAt])
+  }, [event?.templateEmailSelect, event?.fecha_actualizacion, event?.updatedAt, optionSelect])
 
   const initialValues = {
     email: "",
@@ -112,16 +125,29 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
   }
 
   const handleChangeTemplate = (template: TemplateDesign) => {
-    fetchApiEventos({
-      query: queries.eventUpdate,
-      variables: {
-        idEvento: event?._id,
-        variable: "templateEmailSelect",
-        value: template._id
-      }
-    })
-    setEvent({ ...event, templateEmailSelect: template._id })
-    setTemplateName(template.configTemplate.name)
+    if (optionSelect === "email") {
+      fetchApiEventos({
+        query: queries.eventUpdate,
+        variables: {
+          idEvento: event?._id,
+          variable: "templateEmailSelect",
+          value: template._id
+        }
+      })
+      setEvent({ ...event, templateEmailSelect: template._id })
+      setTemplateName(template.configTemplate.name)
+    }
+    if (optionSelect === "whatsapp") {
+      fetchApiEventos({
+        query: queries.eventUpdate,
+        variables: {
+          idEvento: event?._id,
+          variable: "templateWhatsappSelect",
+          value: template._id
+        }
+      })
+    }
+
   }
   const path = `${process.env.NEXT_PUBLIC_CMS}/facturacion`
   const redireccionFacturacion = window.origin.includes("://test") ? path?.replace("//", "//test") : path
@@ -130,12 +156,12 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
     <div className="w-full h-full font-display flex flex-col space-y-2">
       {showModalTemplate && (
         <ModalDefault onClose={() => setShowModalTemplate(false)}>
-          <ModalTemplates action={(template) => { handleChangeTemplate(template) }} use={"load"} optionSelect={optionSelect} />
+          <ModalTemplates action={(template) => { handleChangeTemplate(template as TemplateDesign) }} use={"load"} optionSelect={optionSelect} />
         </ModalDefault>
       )}
       <div className="md:w-max">
         <div className="w-full h-10 flex gap-2 items-end px-2">
-          <span className="text-sm text-gray-600 text-primary py-1">{t("template")}</span>
+          <span className="text-sm text-gray-600 text-primary py-1">{t("template")} {optionSelect === "email" ? t("email") : "Whatsapp"}</span>
           <div className="flex-1 h-8 bg-gray-100 rounded-md px-2 py-2 text-sm text-gray-600">
             {templateName}
           </div>
@@ -166,7 +192,11 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
           </ButtonPrimary>
         </div>
       </div>
-      <div className="w-full h-full p-2">
+      <div className="flex w-full h-full p-2">
+        <div className="flex-1 h-full flex items-center justify-center">
+          {TitleComponent === "email" && <HiOutlineMail className="w-2/3 h-2/3 -rotate-12 text-primary -translate-y-4" />}
+          {TitleComponent === "whatsapp" && <FaWhatsapp className="w-2/3 h-2/3 text-emerald-500 -rotate-12 -translate-y-4" />}
+        </div>
         <Formik
           validationSchema={TitleComponent === "email" ? validationSchemaEmail : validationSchemaPhoneNumber}
           onSubmit={(values) => handleClick(values)}
@@ -212,6 +242,9 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
             </Form>
           )}
         </Formik>
+        <div className="flex-1 h-full p-4">
+
+        </div>
         {!["email", "whatsapp"].includes(TitleComponent) && <div className="text-yellow-500 flex items-center justify-center space-x-1 md:my-2 text-sm cursor-default gap-4">
           <ActivatorPremium link={redireccionFacturacion} />
         </div>}

@@ -1,5 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, ComponentType, FC } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Interweave } from "interweave"
+import { HashtagMatcher, Link, UrlMatcher, UrlProps } from "interweave-autolink"
+import { IoMdCall } from 'react-icons/io';
+import { BiLinkExternal } from 'react-icons/bi';
+import { PiClipboardTextBold } from 'react-icons/pi';
+import { TemplateWathsappValues } from './WhatsappEditorComponent';
 
 // Función auxiliar para formatear un número añadiendo un cero inicial si es menor que 10.
 const padZero = (num) => {
@@ -17,9 +23,19 @@ const getCurrentFormattedDateTime = () => {
   return `${year}-${month}-${day} ${hours}:${minutes}`;
 };
 
+interface Props {
+  values: TemplateWathsappValues;
+  variableMap: any[];
+}
 // Componente de vista previa de WhatsApp
-export const WhatsappPreview = ({ headerType, headerContent, bodyContent, footerContent, buttons, variableMap }) => {
-  console.log(buttons);
+export const WhatsappPreview: FC<Props> = ({ values, variableMap }) => {
+
+  const headerType = values?.headerType ?? { _id: "none", title: "NONE" }
+  const headerContent = values?.headerContent ?? ""
+  const bodyContent = values?.bodyContent ?? ""
+  const footerContent = values?.footerContent ?? ""
+  const buttons = values?.buttons ?? []
+
   const { t } = useTranslation();
   // Función para reemplazar variables con ejemplos del variableMap
   const replaceVariables = (text, currentVariableMap) => {
@@ -43,13 +59,12 @@ export const WhatsappPreview = ({ headerType, headerContent, bodyContent, footer
     }
     return processedText;
   };
-
   const formattedBody = replaceVariables(bodyContent, variableMap);
-  const formattedHeader = headerType === 'text' ? replaceVariables(headerContent, variableMap) : headerContent;
+  const formattedHeader = headerType._id === 'text' ? replaceVariables(headerContent, variableMap) : headerContent;
 
   return (
-    <div className="w-full md:w-[350px] p-4 flex justify-center items-center">
-      <div className="relative w-full max-w-sm h-[600px] bg-gray-200 rounded-3xl shadow-xl overflow-hidden flex flex-col">
+    <div className="md:w-[332px] h-max flex items-start justify-center pt-4 pb-16">
+      <div className="w-full max-w-sm h-[600px] bg-gray-200 rounded-3xl shadow-xl overflow-hidden flex flex-col">
         {/* Phone Header */}
         <div className="bg-emerald-600 text-white p-3 flex items-center justify-between">
           <div className="flex items-center space-x-2">
@@ -78,51 +93,80 @@ export const WhatsappPreview = ({ headerType, headerContent, bodyContent, footer
         {/* Chat Area */}
         <div className="flex-1 p-4 bg-gray-100 overflow-y-auto">
           {/* Message Bubble */}
-          <div className="bg-white p-3 rounded-lg shadow-sm max-w-[85%] ml-auto mr-0 break-words">
-            {headerType === 'text' && headerContent && (
-              <div className="font-semibold text-gray-800 text-[14px] mb-1 font-['Helvetica']" dangerouslySetInnerHTML={{ __html: formattedHeader }}></div>
-            )}
-            {headerType === 'image' && headerContent && (
-              <img src={formattedHeader} alt="Header Preview" className="w-full h-auto rounded-md mb-2" />
-            )}
+          <div className="bg-white rounded-r-lg rounded-b-lg shadow-sm max-w-[85%] mr-auto ml-0 break-words">
+            <div className="p-2 pb-0">
+              {headerType._id === 'text' && headerContent && (
+                <div className="font-semibold text-gray-800 text-[16px] font-optimistic mb-2" >{formattedHeader}</div>
+              )}
+              {headerType._id === 'image' && headerContent && (
+                <img src={formattedHeader} alt="Header Preview" className="w-full h-auto rounded-md mb-2" />
+              )}
+              {headerType._id === 'video' && headerContent && (
+                <div className="w-full rounded-md mb-2 bg-white  overflow-hidden">
+                  <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
+                    <video
+                      src={formattedHeader}
+                      controls
+                      className="absolute top-0 left-0 w-full h-full object-contain"
+                    />
+                  </div>
+                </div>
+              )}
 
-            <p className="text-[13.5px] font-['Helvetica']" dangerouslySetInnerHTML={{ __html: formattedBody }}></p>
+              <div className="text-[13.6px] font-segoe-historic leading-[1rem]">
+                <Interweave
+                  className="transition-all"
+                  content={formattedBody}
+                />
+              </div>
 
-            {footerContent && (
-              <p className="text-[13px] text-gray-500 mt-2 font-['Helvetica']">{footerContent}</p>
-            )}
+
+              {footerContent && (
+                <p className="text-[13px] text-gray-500 mt-2 font-light font-segoe-historic">{footerContent}</p>
+              )}
+              <div className="text-right text-[11px] font-light font-segoe-historic text-gray-400 mt-1">{getCurrentFormattedDateTime().split(' ')[1]}</div>
+            </div>
 
             {buttons.length > 0 && (
-              <div className="mt-2 border-t border-gray-200 pt-2 -mx-3 px-3">
-                {buttons.map((btn, idx) => {
+              <div className="">
+                {buttons.slice(0, buttons.length > 3 ? 2 : buttons.length).map((btn, idx) => {
                   const getButtonStyle = (type: string) => {
                     switch (type) {
                       case 'QUICK_REPLY':
-                        return { backgroundColor: '#E0F2F1', color: '#075E54' };
+                        return { color: '#34B7F1', borderTop: '1px solid #e5e7eb' };
                       case 'URL':
-                        return { backgroundColor: '#34B7F1', color: 'white' };
+                        return { color: '#34B7F1', borderTop: '1px solid #e5e7eb' };
                       case 'PHONE_NUMBER':
-                        return { backgroundColor: '#34B7F1', color: 'white' };
+                        return { color: '#34B7F1', borderTop: '1px solid #e5e7eb' };
                       case 'WHATSAPP':
-                        return { backgroundColor: '#25D366', color: 'white' };
-                      default:
-                        return { backgroundColor: '#34B7F1', color: 'white' };
+                        return { color: '#25D366', borderTop: '1px solid #e5e7eb' };
                     }
                   };
 
                   return (
-                    <button
+                    <div
                       key={idx}
-                      className="w-full text-sm py-2 px-3 rounded-md mb-1 last:mb-0 hover:opacity-80 transition-colors"
+                      className="w-full text-[14px] font-segoe-historic py-2 text-center flex items-center justify-center gap-1"
                       style={getButtonStyle(btn.type)}
                     >
+                      {["WHATSAPP", "PHONE_NUMBER"].includes(btn.type) && <IoMdCall className="h-4 w-4" />}
+                      {btn.type === "URL" && <BiLinkExternal className="h-4 w-4" />}
+                      {btn.type === "QUICK_REPLY" && < PiClipboardTextBold className="h-4 w-4" />}
+
                       {btn.text}
-                    </button>
+                    </div>
+
                   );
                 })}
+                {buttons.length > 3 && <div
+                  style={{ color: '#34B7F1', borderTop: '1px solid #e5e7eb' }}
+                  className="w-full text-[14px] font-segoe-historic py-2 text-center flex items-center justify-center gap-1"
+                >
+                  < PiClipboardTextBold className="h-4 w-4" />
+                  {t("Ver todas las opciones")}
+                </div>}
               </div>
             )}
-            <div className="text-right text-xs text-gray-400 mt-1">{getCurrentFormattedDateTime().split(' ')[1]}</div>
           </div>
         </div>
         {/* Phone Footer (Input Area) */}
