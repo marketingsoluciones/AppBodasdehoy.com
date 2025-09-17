@@ -669,7 +669,7 @@ export const TableBudgetV2: FC<props> = ({ data, setShowModalDelete }) => {
     <div className="h-full bg-gray-50 flex flex-col relative w-full">
       <div className="bg-white shadow-sm border-b px-2 py-1.5 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5">
+          <div className=" hidden md:flex items-center gap-1.5 ">
             <div className="flex items-center gap-1.5 bg-gray-50 rounded px-2 py-1 border">
               <HiOutlineSearch className="w-3.5 h-3.5 text-gray-400" />
               <input
@@ -732,7 +732,7 @@ export const TableBudgetV2: FC<props> = ({ data, setShowModalDelete }) => {
 
           </div>
         </div>
-        <div className={`flex items-center gap-3. mr-6 ${event?.presupuesto_objeto?.viewEstimates ? "w-[38%]" : "w-[33.7%]"}`}>
+        <div className={`hidden md:flex items-center gap-3. mr-6 ${event?.presupuesto_objeto?.viewEstimates ? "w-[38%]" : "w-[33.7%]"}`}>
           <div className={`text-center ${!event?.presupuesto_objeto?.viewEstimates ? "w-[27%]" : "w-[22%]"} `}>
             <div className="text-xs text-gray-500">Total</div>
             <div className="font-semibold text-gray-800 text-xs">

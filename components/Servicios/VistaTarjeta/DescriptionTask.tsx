@@ -62,11 +62,11 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner,
   const isOwner = Boolean(owner);
   const canUserEdit = Boolean(canEdit);
   const hasTaskStatus = Boolean(task.estatus);
-  const canShowEditButton = isItinerarioRoute
-    ? isOwner
+  const canShowEditButton =  true /* isItinerarioRoute
+    ? !isOwner
       ? canUserEdit
       : (hasTaskStatus && canUserEdit)
-    : canUserEdit;
+    : canUserEdit; */
 
   const shouldShowEditor = editing && canShowEditButton;
 
