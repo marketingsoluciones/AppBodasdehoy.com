@@ -103,7 +103,7 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
         <div className="flex text-red items-center pr-2 md:pr-3 gap-1 md:gap-2">
           <ClickAwayListener onClickAway={() => setShowMiniMenu(false)}>
             <div>
-              <MdSaveAlt className="h-6 w-6 cursor-pointer text-primary" onClick={() => { !isAllowed() ? ht() : setShowMiniMenu(!showMiniMenu) }} />
+              {/* <MdSaveAlt className="h-6 w-6 cursor-pointer text-primary" onClick={() => { !isAllowed() ? ht() : setShowMiniMenu(!showMiniMenu) }} /> */}
               {showMiniMenu &&
                 <div className="bg-white flex flex-col absolute z-[50] top-8 right-18 rounded-b-md shadow-md *items-center text-[9px] px-3 pt-1 pb-3 text-gray-800 gap-y-2">
                   <div className="bg-white flex flex-col absolute z-[10] top-[0px] right-0 rounded-b-md shadow-md min-w-[140px] md:min-w-[120px] *items-center text-[10px] md:text-[12px] px-3 pt-1 pb-2 text-gray-800">

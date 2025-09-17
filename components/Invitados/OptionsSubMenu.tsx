@@ -192,7 +192,7 @@ export const OptionsSubMenu: FC<props> = ({ ConditionalAction, handleClick, setL
             </ClickAwayListener>
           }
         </button>
-        <button
+        {/* <button
           onClick={() => setOptionExportModal(!optionExportModal)}
           className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary capitalize relative"
         >
@@ -211,7 +211,7 @@ export const OptionsSubMenu: FC<props> = ({ ConditionalAction, handleClick, setL
               </div>
             </ClickAwayListener>
           }
-        </button>
+        </button> */}
       </div>
     </div>
   )
