@@ -165,17 +165,17 @@ const ModuloSubida = (props) => {
             {imagePreviewUrl.preview ? t("processing") : use === "imgInvitacion" ? t("addinvitation") : ""}
           </label>
         )}
-
         <div className="w-full flex text-gray-500 bottom-0 translate-y-full absolute rounded-b-xl text-xs overflow-hidden border-[1px] border-gray-300">
           <label onClick={() => !isAllowed() ? ht() : null} htmlFor={!isAllowed() ? "null" : "file"} className="bg-gray-200 gap-1 flex items-center justify-center w-1/2 py-1 cursor-pointer">
             {t("change")} <EditarIcon className="w-6 h-6" />
           </label>
-          <CopyToClipboard text={`${process.env.NEXT_PUBLIC_BASE_URL}${event?.imgInvitacion?.i800}`}>
-            <label onClick={() => { setCopied(true) }} className="flex items-center justify-center w-1/2 py-1 cursor-pointer">
-              {t("copylink")} {copied ? <PiCheckFatThin className="w-6 h-6" /> : <LiaLinkSolid className="w-6 h-6" />}
-            </label>
-          </CopyToClipboard>
-
+          {event?.[use]?.i1024 && (
+            <CopyToClipboard text={`${process.env.NEXT_PUBLIC_BASE_URL}${event[use].i1024}`}>
+              <label onClick={() => { setCopied(true) }} className="flex items-center justify-center w-1/2 py-1 cursor-pointer">
+                {t("copylink")} {copied ? <PiCheckFatThin className="w-6 h-6" /> : <LiaLinkSolid className="w-6 h-6" />}
+              </label>
+            </CopyToClipboard>
+          )}
         </div>
       </div>
       <style jsx>
