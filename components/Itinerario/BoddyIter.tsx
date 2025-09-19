@@ -51,7 +51,7 @@ export const BoddyIter = () => {
     useEffect(() => {
         try {
             if (typeof window !== "undefined") {
-                const saved = window.localStorage.getItem("OADitinerary")
+                const saved = window.localStorage.getItem(`OAD${window?.location?.pathname.slice(1)}`)
                 if (saved) {
                     const parsed = JSON.parse(saved)
                     if (parsed?.order && parsed?.direction) {
@@ -60,20 +60,48 @@ export const BoddyIter = () => {
                 }
             }
         } catch (error) {
-            console.warn("No se pudo leer OADitinerary de localStorage", error)
+            console.warn(`No se pudo leer OAD de localStorage`, error)
         }
     }, [])
 
     // Persistir orderAndDirection en localStorage al cambiar
     useEffect(() => {
         try {
-            if (typeof window !== "undefined" && orderAndDirection) {
-                window.localStorage.setItem("OADitinerary", JSON.stringify(orderAndDirection))
+            if (typeof window !== "undefined" && orderAndDirection && itinerario) {
+                window.localStorage.setItem(`OAD${window?.location?.pathname.slice(1)}`, JSON.stringify(orderAndDirection))
             }
         } catch (error) {
-            console.warn("No se pudo guardar OADitinerary en localStorage", error)
+            console.warn(`No se pudo guardar OAD en localStorage`, error)
         }
     }, [orderAndDirection])
+
+    // Hidratar view desde localStorage al montar
+    useEffect(() => {
+        try {
+            if (typeof window !== "undefined") {
+                const saved = window.localStorage.getItem(`VIEW${window?.location?.pathname.slice(1)}`)
+                if (saved) {
+                    const parsed = JSON.parse(saved)
+                    if (parsed?.view) {
+                        setView(parsed.view)
+                    }
+                }
+            }
+        } catch (error) {
+            console.warn(`No se pudo leer VIEW de localStorage`, error)
+        }
+    }, [])
+
+    // Persistir view en localStorage al cambiar
+    useEffect(() => {
+        try {
+            if (typeof window !== "undefined" && view && itinerario) {
+                window.localStorage.setItem(`VIEW${window?.location?.pathname.slice(1)}`, JSON.stringify({ view: view }))
+            }
+        } catch (error) {
+            console.warn(`No se pudo guardar VIEW en localStorage`, error)
+        }
+    }, [view])
 
     async function updatedNextId(itinerary: Itinerary) {
         return await fetchApiEventos({
@@ -98,10 +126,6 @@ export const BoddyIter = () => {
             }
         })
     }
-
-    useEffect(() => {
-        setView(window.innerWidth > window.innerHeight && isAllowed() ? "cards" : "cards")
-    }, [])
 
     useEffect(() => {
         setTitle(itinerario?.title)
@@ -197,58 +221,87 @@ export const BoddyIter = () => {
         setEditTitle(false)
     }
 
+    // Función para ordenar las tareas según orderAndDirection
+    const sortTasks = (tasks: any[], orderAndDirection: SelectModeSortType | undefined) => {
+        if (!orderAndDirection || !tasks || view === "schema") {
+            return tasks;
+        }
+        const statusOrder: Record<string, number> = {
+            pending: 0,
+            in_progress: 1,
+            completed: 2,
+            blocked: 3
+        };
+        const prioridadOrder: Record<string, number> = {
+            baja: 0,
+            media: 1,
+            alta: 2
+        };
+        const { order, direction } = orderAndDirection;
+        const isDesc = direction === "desc";
+        return [...tasks].sort((a, b) => {
+            let comparison = 0;
+
+            switch (order) {
+                case "descripcion":
+                    comparison = (a?.descripcion || "").localeCompare(b?.descripcion || "");
+                    break;
+
+                case "fecha":
+                    const dateA = new Date(a?.fecha || 0).getTime();
+                    const dateB = new Date(b?.fecha || 0).getTime();
+                    comparison = dateA - dateB;
+                    break;
+
+                case "estado":
+                    const aIdx = a?.estado ? (statusOrder[a.estado] ?? 0) : 0;
+                    const bIdx = b?.estado ? (statusOrder[b.estado] ?? 0) : 0;
+                    comparison = aIdx - bIdx;
+                    break;
+
+                case "prioridad":
+                    const aPrioridad = a?.prioridad ? (prioridadOrder[a.prioridad] ?? 0) : 0;
+                    const bPrioridad = b?.prioridad ? (prioridadOrder[b.prioridad] ?? 0) : 0;
+                    comparison = aPrioridad - bPrioridad;
+                    break;
+
+                case "nombre":
+                    comparison = (a?.title || "").localeCompare(b?.title || "");
+                    break;
+
+                case "personalizada":
+                    comparison = (a?.personalizada || "").localeCompare(b?.personalizada || "");
+                    break;
+
+                case "ninguna":
+                default:
+                    // Sin ordenamiento específico, mantener orden original
+                    return 0;
+            }
+            return isDesc ? -comparison : comparison;
+        });
+    };
+
     useEffect(() => {
         const itinerarios = event?.itinerarios_array.filter(elem => elem?.tipo === window?.location?.pathname.slice(1))
         if (itinerarios.length) {
             let nuevoItinerario = itinerario;
-
             // Solo cambiar el itinerario si realmente es necesario
             if (router?.query?.itinerary) {
                 nuevoItinerario = itinerarios.find(elem => elem?._id === router.query?.itinerary)
             } else if (!itinerario || !itinerarios.some(elem => elem._id === itinerario._id)) {
                 nuevoItinerario = itinerarios[0]
             }
-
             // Solo actualizar si es un itinerario diferente o si no hay itinerario actual
             if (!itinerario || nuevoItinerario._id !== itinerario._id) {
-                if (view !== "schema") {
-                    const statusOrder: Record<string, number> = {
-                        pending: 0,
-                        in_progress: 1,
-                        completed: 2,
-                        blocked: 3
-                    }
-                    const prioridadOrder: Record<string, number> = {
-                        baja: 0,
-                        media: 1,
-                        alta: 2
-                    }
-
-                    orderAndDirection?.order === "descripcion" && nuevoItinerario.tasks.sort((a, b) => {
-                        const comparison = a?.descripcion?.localeCompare(b?.descripcion)
-                        return orderAndDirection?.direction === "desc" ? -comparison : comparison
-                    })
-                    orderAndDirection?.order === "fecha" && nuevoItinerario.tasks.sort((a, b) => {
-                        const comparison = new Date(a?.fecha)?.getTime() - new Date(b?.fecha)?.getTime()
-                        return orderAndDirection?.direction === "desc" ? -comparison : comparison
-                    })
-                    orderAndDirection?.order === "estado" &&
-                        nuevoItinerario.tasks.sort((a: any, b: any) => {
-                            const aIdx = a?.estado ? (statusOrder[a.estado] ?? 0) : 0
-                            const bIdx = b?.estado ? (statusOrder[b.estado] ?? 0) : 0
-                            const comparison = aIdx - bIdx
-                            return orderAndDirection?.direction === "desc" ? -comparison : comparison
-                        })
-                    orderAndDirection?.order === "prioridad" && nuevoItinerario.tasks.sort((a, b) => {
-                        const aIdx = a?.prioridad ? (prioridadOrder[a.prioridad] ?? 0) : 0
-                        const bIdx = b?.prioridad ? (prioridadOrder[b.prioridad] ?? 0) : 0
-                        const comparison = aIdx - bIdx
-                        return orderAndDirection?.direction === "desc" ? -comparison : comparison
-                    })
-                    // orderAndDirection.order === "personalizada" && nuevoItinerario.tasks.sort((a, b) => a.personalizada.localeCompare(b.personalizada))
-                    // orderAndDirection.order === "ninguna" && nuevoItinerario.tasks.sort((a, b) => a.title.localeCompare(b.title))
-                }
-                setItinerario({ ...nuevoItinerario })
+                // Aplicar ordenamiento a las tareas
+                const tasksOrdenadas = sortTasks(nuevoItinerario.tasks, orderAndDirection);
+                nuevoItinerario = { ...nuevoItinerario, tasks: tasksOrdenadas };
+                setItinerario(nuevoItinerario);
+            } else if (itinerario && orderAndDirection) {
+                // Si es el mismo itinerario pero cambió el ordenamiento, solo reordenar las tareas
+                const tasksOrdenadas = sortTasks(itinerario.tasks, orderAndDirection);
+                setItinerario({ ...itinerario, tasks: tasksOrdenadas });
             }
         } else {
             setItinerario(null)

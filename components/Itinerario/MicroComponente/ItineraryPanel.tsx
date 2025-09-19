@@ -191,7 +191,8 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
 
   useEffect(() => {
     if (currentItinerario?.tasks?.length > 0) {
-      const filteredTasks = currentItinerario?.tasks?.filter(elem =>
+      const array = view === "kanban" ? currentItinerario : itinerario
+      const filteredTasks = array?.tasks?.filter(elem =>
         elem && (
           view === "schema"
           || ["/itinerario"].includes(window?.location?.pathname)
@@ -204,28 +205,26 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         filteredTasks.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
       }
       setTasks(filteredTasks);
-      if (["cards", "schema"].includes(view)) {
-        const taskReduce: TaskReduce[] = filteredTasks.reduce((acc: TaskReduce[], item: Task) => {
-          const f = new Date(item.fecha);
-          const y = f.getUTCFullYear();
-          const m = f.getUTCMonth();
-          const d = f.getUTCDate();
-          const date = new Date(y, m, d).getTime();
-          const f1 = acc.findIndex(elem => elem.fecha === date);
-          if (f1 < 0) {
-            acc.push({ fecha: item.fecha ? date : null, tasks: [item] });
-          } else {
-            acc[f1].tasks.push(item);
-          }
-          return acc;
-        }, []);
-        setTasksReduce(taskReduce);
-      }
+      const taskReduce: TaskReduce[] = filteredTasks.reduce((acc: TaskReduce[], item: Task) => {
+        const f = new Date(item.fecha);
+        const y = f.getUTCFullYear();
+        const m = f.getUTCMonth();
+        const d = f.getUTCDate();
+        const date = new Date(y, m, d).getTime();
+        const f1 = acc.findIndex(elem => elem.fecha === date);
+        if (f1 < 0) {
+          acc.push({ fecha: item.fecha ? date : null, tasks: [item] });
+        } else {
+          acc[f1].tasks.push(item);
+        }
+        return acc;
+      }, []);
+      setTasksReduce(taskReduce);
     } else {
       setTasks(prev => (prev && prev.length === 0 ? prev : []));
       setTasksReduce(prev => (prev && prev.length === 0 ? prev : []));
     }
-  }, [currentItinerario, event, view,]);
+  }, [currentItinerario, itinerario]);
 
   const handleAddSpectatorView = async (values: Task) => {
     try {
@@ -597,9 +596,9 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       }
       <div className="w-full flex-1 flex flex-col pt-2 md:px-2 lg:px-6 z-0">
         {
-          tasksReduce?.length > 0 ?
-            view === "boardView" ? (
-              <div className="w-full flex-1">
+          tasksReduce?.length > 0
+            ? view === "boardView"
+              ? (<div className="w-full flex-1">
                 <PermissionTaskWrapper task={task} isTaskVisible={true}>
                   <BoardView
                     data={tasks}
@@ -620,94 +619,33 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                     setTempPastedAndDropFiles={setTempPastedAndDropFiles}
                   />
                 </PermissionTaskWrapper>
-              </div>
-            ) : view === "newTable" ? (
-              <div className="w-full flex-1">
-                <PermissionTaskWrapper task={task} isTaskVisible={true}>
-                  <TableView
-                    data={tasks}
-                    itinerario={itinerario}
-                    selectTask={selectTask}
-                    setSelectTask={setSelectTask}
-                    onTaskUpdate={handleTaskUpdate}
-                    onTaskDelete={(taskId) => {
-                      const task = tasks.find(t => t._id === taskId);
-                      if (task) {
-                        deleteTask(task, itinerario);
-                      }
-                    }}
-                    onTaskCreate={handleTaskCreate}
-                  />
-                </PermissionTaskWrapper>
-              </div>
-            ) : view === "extraTable" ? (
-              <div className="w-full flex-1">
-                <PermissionTaskWrapper task={task} isTaskVisible={true}>
-                  <ExtraTableView
-                    data={tasks}
-                    setModalStatus={setModalStatus}
-                    event={event as EventInterface}
-                    modalStatus={modalStatus}
-                    setModalWorkFlow={setModalWorkFlow}
-                    modalWorkFlow={modalWorkFlow}
-                    setModalCompartirTask={setModalCompartirTask}
-                    modalCompartirTask={modalCompartirTask}
-                    deleteTask={deleteTask}
-                    showEditTask={showEditTask}
-                    setShowEditTask={setShowEditTask}
-                    optionsItineraryButtonBox={optionsItineraryButtonBox}
-                    selectTask={selectTask}
-                    setSelectTask={setSelectTask}
-                    itinerario={itinerario}
-                  />
-                </PermissionTaskWrapper>
-              </div>
-            ) : view !== "table"
-              ? tasksReduce?.map((el, i) => {
-                return (
-                  <div key={i} className="w-full mt-4 flex flex-col gap-4">
-                    {["/itinerario"].includes(window?.location?.pathname) && <div className={`w-full flex ${view === "schema" ? "justify-start" : "justify-center"}`}>
-                      <span className={`${view === "schema" ? "border-primary border-dotted mb-1" : "border-gray-300 mb-1"} border-[1px] px-5 py-[1px] rounded-full text-[12px] font-semibold`}>
-                        {new Date(el?.fecha).toLocaleString(geoInfo?.acceptLanguage?.split(",")[0], { year: "numeric", month: "long", day: "2-digit" })}
-                      </span>
-                    </div>}
-                    {el?.tasks?.map((elem, idx) => {
-                      return (
-                        <PermissionTaskActionWrapper
-                          key={idx}
-                          task={elem}
-                          isTaskVisible={elem.spectatorView}
-                          optionsItineraryButtonBox={optionsItineraryButtonBox}
-                        >
-                          <TaskNew
-                            id={elem._id}
-                            key={idx}
-                            task={elem}
-                            itinerario={itinerario}
-                            view={view}
-                            optionsItineraryButtonBox={optionsItineraryButtonBox}
-                            showModalCompartir={showModalCompartir}
-                            setShowModalCompartir={setShowModalCompartir}
-                            onClick={() => { setSelectTask(elem._id) }}
-                            tempPastedAndDropFiles={tempPastedAndDropFiles}
-                            setTempPastedAndDropFiles={setTempPastedAndDropFiles}
-                            minimalView={window?.location?.pathname === "/itinerario"}
-                            setSelectTask={setSelectTask}
-                            selectTask={selectTask}
-                          />
-                        </PermissionTaskActionWrapper>
-                      )
-                    })}
-                  </div>
-                )
-              })
-              : <div className="relative overflow-x-auto md:overflow-x-visible h-full">
-                <div className="w-[250%] md:w-[100%]">
-                  <div className="w-full">
+              </div>)
+              : view === "newTable"
+                ? (<div className="w-full flex-1">
+                  <PermissionTaskWrapper task={task} isTaskVisible={true}>
+                    <TableView
+                      data={tasks}
+                      itinerario={itinerario}
+                      selectTask={selectTask}
+                      setSelectTask={setSelectTask}
+                      onTaskUpdate={handleTaskUpdate}
+                      onTaskDelete={(taskId) => {
+                        const task = tasks.find(t => t._id === taskId);
+                        if (task) {
+                          deleteTask(task, itinerario);
+                        }
+                      }}
+                      onTaskCreate={handleTaskCreate}
+                    />
+                  </PermissionTaskWrapper>
+                </div>)
+                : view === "extraTable"
+                  ? (<div className="w-full flex-1">
                     <PermissionTaskWrapper task={task} isTaskVisible={true}>
-                      <ItineraryColumns
+                      <ExtraTableView
                         data={tasks}
                         setModalStatus={setModalStatus}
+                        event={event as EventInterface}
                         modalStatus={modalStatus}
                         setModalWorkFlow={setModalWorkFlow}
                         modalWorkFlow={modalWorkFlow}
@@ -722,10 +660,72 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                         itinerario={itinerario}
                       />
                     </PermissionTaskWrapper>
-                  </div>
-                </div>
-              </div>
-            : isAllowed() ?
+                  </div>)
+                  : view !== "table"
+                    ? tasksReduce?.map((el, i) => {
+                      return (
+                        <div key={i} className="w-full mt-4 flex flex-col gap-4">
+                          {["/itinerario"].includes(window?.location?.pathname) && <div className={`w-full flex ${view === "schema" ? "justify-start" : "justify-center"}`}>
+                            <span className={`${view === "schema" ? "border-primary border-dotted mb-1" : "border-gray-300 mb-1"} border-[1px] px-5 py-[1px] rounded-full text-[12px] font-semibold`}>
+                              {new Date(el?.fecha).toLocaleString(geoInfo?.acceptLanguage?.split(",")[0], { year: "numeric", month: "long", day: "2-digit" })}
+                            </span>
+                          </div>}
+                          {el?.tasks?.map((elem, idx) => {
+                            return (
+                              <PermissionTaskActionWrapper
+                                key={idx}
+                                task={elem}
+                                isTaskVisible={elem.spectatorView}
+                                optionsItineraryButtonBox={optionsItineraryButtonBox}
+                              >
+                                <TaskNew
+                                  id={elem._id}
+                                  key={idx}
+                                  task={elem}
+                                  itinerario={itinerario}
+                                  view={view}
+                                  optionsItineraryButtonBox={optionsItineraryButtonBox}
+                                  showModalCompartir={showModalCompartir}
+                                  setShowModalCompartir={setShowModalCompartir}
+                                  onClick={() => { setSelectTask(elem._id) }}
+                                  tempPastedAndDropFiles={tempPastedAndDropFiles}
+                                  setTempPastedAndDropFiles={setTempPastedAndDropFiles}
+                                  minimalView={window?.location?.pathname === "/itinerario"}
+                                  setSelectTask={setSelectTask}
+                                  selectTask={selectTask}
+                                />
+                              </PermissionTaskActionWrapper>
+                            )
+                          })}
+                        </div>
+                      )
+                    })
+                    : <div className="relative overflow-x-auto md:overflow-x-visible h-full">
+                      <div className="w-[250%] md:w-[100%]">
+                        <div className="w-full">
+                          <PermissionTaskWrapper task={task} isTaskVisible={true}>
+                            <ItineraryColumns
+                              data={tasks}
+                              setModalStatus={setModalStatus}
+                              modalStatus={modalStatus}
+                              setModalWorkFlow={setModalWorkFlow}
+                              modalWorkFlow={modalWorkFlow}
+                              setModalCompartirTask={setModalCompartirTask}
+                              modalCompartirTask={modalCompartirTask}
+                              deleteTask={deleteTask}
+                              showEditTask={showEditTask}
+                              setShowEditTask={setShowEditTask}
+                              optionsItineraryButtonBox={optionsItineraryButtonBox}
+                              selectTask={selectTask}
+                              setSelectTask={setSelectTask}
+                              itinerario={itinerario}
+                            />
+                          </PermissionTaskWrapper>
+                        </div>
+                      </div>
+                    </div>
+            : isAllowed()
+              ?
               <div className="capitalize w-full h-full flex flex-col justify-center items-center bg-white rounded-lg mt-3 text-gray-500 space-y-2">
                 <div>
                   {t("noEvents")}
@@ -733,7 +733,8 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                 <div>
                   <VscFiles className="h-12 w-auto" />
                 </div>
-              </div> : <div className="capitalize w-full h-full flex flex-col justify-center items-center bg-white rounded-lg mt-3 text-gray-500 space-y-2">
+              </div>
+              : <div className="capitalize w-full h-full flex flex-col justify-center items-center bg-white rounded-lg mt-3 text-gray-500 space-y-2">
                 <div>
                   {t("noData")}
                 </div>
