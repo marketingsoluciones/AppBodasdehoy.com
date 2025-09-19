@@ -47,6 +47,8 @@ export const BoddyIter = () => {
     const [selectTask, setSelectTask] = useState<string>()
     const [orderAndDirection, setOrderAndDirection] = useState<SelectModeSortType>()
 
+    console.log("items", view)
+
     // Hidratar orderAndDirection desde localStorage al montar
     useEffect(() => {
         try {
@@ -84,11 +86,19 @@ export const BoddyIter = () => {
                     const parsed = JSON.parse(saved)
                     if (parsed?.view) {
                         setView(parsed.view)
+                    } else {
+                        // Si no hay view guardada, establecer "cards" por defecto
+                        setView("cards")
                     }
+                } else {
+                    // Si no hay información guardada, establecer "cards" por defecto
+                    setView("cards")
                 }
             }
         } catch (error) {
             console.warn(`No se pudo leer VIEW de localStorage`, error)
+            // En caso de error, establecer "cards" por defecto
+            setView("cards")
         }
     }, [])
 
