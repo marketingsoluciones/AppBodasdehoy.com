@@ -267,7 +267,7 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
         }
       });
       setLocalTask(prev => ({ ...prev, [fieldName]: value }));
-      !['horaActiva'].includes(fieldName) && toast("success", t("Campo actualizado"));
+      !['horaActiva'].includes(fieldName) && (fieldName === 'duracion' ? value !== 0 : true) && toast("success", t("Campo actualizado"));
     } catch (error) {
       console.error('Error al actualizar:', error);
       toast("error", t("Error al actualizar"));

@@ -18,6 +18,7 @@ import { ItineraryButtonBox } from './ItineraryButtonBox';
 import { StatusPriorityTask } from './StatusPriorityTask';
 import { AuthContextProvider } from '../../../context';
 import { InputCommentsOld } from '../Utils/InputCommentsOld';
+import { useDateTime } from '../../../hooks/useDateTime';
 
 interface TaskFullViewProps {
   task: Task;
@@ -53,7 +54,9 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
   const { user } = AuthContextProvider();
   const owner = user?.uid === event?.usuario_id;
   const [showAttachments, setShowAttachments] = useState(false);
-
+  const { dateTimeFormated } = useDateTime();
+  const [editingDate, setEditingDate] = useState(false);
+  const [editingTime, setEditingTime] = useState(false);
 
   // Auto-scroll al agregar nuevos comentarios
   useEffect(() => {
@@ -120,7 +123,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               owner={owner}
             />
             {/* Fechas con duración y hora */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-4 group relative">
               <div className="flex items-center space-x-2">
                 <Calendar className="w-4 h-4 text-gray-500" />
                 {/* <span className="text-xs text-gray-600">{t('Fecha y hora')}</span> */}
@@ -130,11 +133,15 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                   handleUpdate={handleUpdate}
                   canEdit={canEdit}
                   task={task}
+                  setEditing={setEditingDate}
+                  editing={editingDate}
                 />
                 <TimeTask
                   handleUpdate={handleUpdate}
                   canEdit={canEdit}
                   task={task}
+                  setEditing={setEditingTime}
+                  editing={editingTime}
                 />
                 {/* Duración mejorada con conversor */}
                 <DurationTask
@@ -143,6 +150,11 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                   task={task}
                 />
               </div>
+              {task.fecha && <div className={`absolute bottom-full left-6 transform -translate-y-1/4 mb-2 px-2 py-1 bg-gray-900 text-white text-[11px] rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 group-hover:delay-300 whitespace-nowrap z-10 flex flex-col ${editingDate || editingTime ? "hidden" : ""}`}>
+                <span className='font-bold text-yellow-500'>{dateTimeFormated(task.fecha, event?.timeZone)}</span>
+                <span className='text-gray-100'>{dateTimeFormated(task.fecha, "UTC")}</span>
+                <span className='text-gray-100'>{dateTimeFormated(task.fecha, Intl.DateTimeFormat().resolvedOptions().timeZone)} {`(${t("hora local")})`}</span>
+              </div>}
             </div>
             <TagsTask
               canEdit={canEdit}

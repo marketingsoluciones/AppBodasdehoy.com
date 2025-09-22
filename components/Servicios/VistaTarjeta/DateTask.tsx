@@ -1,22 +1,29 @@
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { formatDate, getDateString, getTimeString } from './TaskNewUtils';
 import { Task } from '../../../utils/Interfaces';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 import ClickAwayListener from 'react-click-away-listener';
-import i18n from '../../../utils/i18n';
+import { EventContextProvider } from '../../../context';
+import { getOffsetMinutes } from '../../../utils/FormatTime';
+import { useDateTime } from '../../../hooks/useDateTime';
 
 interface Props {
   handleUpdate: (field: string, value: any) => Promise<void>;
   canEdit: boolean;
   task: Task;
+  setEditing: (editing: boolean) => void;
+  editing: boolean;
 }
 
-export const DateTask: FC<Props> = ({ handleUpdate, canEdit, task }) => {
+export const DateTask: FC<Props> = ({ handleUpdate, canEdit, task, setEditing, editing }) => {
+  const { event } = EventContextProvider()
   const { t } = useTranslation();
-  const [editing, setEditing] = useState<boolean>(false);
   const [value, setValue] = useState<string>();
   const [blockUpdate, setBlockUpdate] = useState<boolean>(false);
+  const { utcDateTime, utcDateFormated2Digits } = useDateTime()
+
+
 
   return (
     <div className="w-[120px] h-full flex items-center">
@@ -31,40 +38,56 @@ export const DateTask: FC<Props> = ({ handleUpdate, canEdit, task }) => {
                   handleUpdate('horaActiva', false)
                 })
             }} className="absolute z-10 -right-[6px] cursor-pointer p-[2px]">
-              <div className='relative group'>
+              <div className='relative' onMouseEnter={() => {
+                document.getElementById(`date-task-tooltip_${task._id}`).classList.add('opacity-100');
+              }} onMouseLeave={() => {
+                document.getElementById(`date-task-tooltip_${task._id}`).classList.remove('opacity-100');
+              }}>
                 <X className="w-3 h-3" />
-                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
+                <div id={`date-task-tooltip_${task._id}`} className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity whitespace-nowrap z-20">
                   {t('Eliminar fecha')}
                 </div>
               </div>
             </div>
             <input
               type="date"
-              value={value ? value : task?.fecha ? getDateString(task.fecha) : ''}
-              onChange={(e) => {
+              value={value ? value : task?.fecha ? utcDateTime(task.fecha) : ''}
+              onClickCapture={(e) => {
+                setBlockUpdate(false);
+              }}
+              onChange={async (e) => {
                 setValue(e.currentTarget.value);
                 if (!blockUpdate) {
                   const value = task?.horaActiva !== false
                     ? new Date(`${e.currentTarget.value}T${getTimeString(task.fecha)}`)
-                    : new Date(new Date(e.currentTarget.value).getTime() + new Date().getTimezoneOffset() * 60000)
-                  if (typeof value !== "string") {
-                    handleUpdate('fecha', value)
-                  }
+                    : utcDateTime(e.currentTarget.value)
+                  await handleUpdate('fecha', value)
+                  setEditing(false);
                 }
                 setBlockUpdate(false);
               }}
-              onKeyDown={(e) => {
-                setBlockUpdate(true);
-                if (e.key === 'Enter') {
+              onKeyDown={async (e) => {
+                if (parseInt(e.key) > -1 || e.key === 'Backspace') {
+                  setBlockUpdate(true);
+                } else if (e.key === 'Enter') {
                   const value = task?.horaActiva !== false
                     ? new Date(`${e.currentTarget.value}T${getTimeString(task.fecha)}`)
-                    : new Date(new Date(e.currentTarget.value).getTime() + new Date().getTimezoneOffset() * 60000)
-                  handleUpdate('fecha', value)
-                    .then(() => {
-                      setEditing(false);
-                    })
-                } else if (e.key === 'Escape') {
+                    : utcDateTime(e.currentTarget.value)
+                  await handleUpdate('fecha', value)
                   setEditing(false);
+                } else if (e.key === 'Escape') {
+                  setBlockUpdate(false);
+                  setEditing(false);
+                  setValue(null);
+                }
+              }}
+              onBlur={async (e) => {
+                const valir = e.currentTarget.value !== (task?.fecha ? utcDateTime(task.fecha) : '')
+                if (e.currentTarget.value && valir) {
+                  const value = task?.horaActiva !== false
+                    ? new Date(`${e.currentTarget.value}T${getTimeString(task.fecha)}`)
+                    : utcDateTime(e.currentTarget.value)
+                  await handleUpdate('fecha', value)
                 }
               }}
               className="px-1 py-[1px] border-none rounded text-xs focus:ring-gray-400 focus:ring-[1px] focus:outline-none transition [&::-webkit-calendar-picker-indicator]:relative [&::-webkit-calendar-picker-indicator]:-left-[11px] [&::-webkit-calendar-picker-indicator]:cursor-pointer"
@@ -73,15 +96,14 @@ export const DateTask: FC<Props> = ({ handleUpdate, canEdit, task }) => {
           </div>
         </ClickAwayListener>
         : <span
-          className={`text-xs ${canEdit ? 'cursor-pointer text-gray-700 hover:text-gray-900' : 'cursor-default'}`}
+          className={`text-xs group ${canEdit ? 'cursor-pointer text-gray-700 hover:text-gray-900' : 'cursor-default'}`}
           onClick={() => {
             if (canEdit) {
               setEditing(true);
             }
           }}
-          title={canEdit && "Haz clic para editar fecha"}
         >
-          {task.fecha ? formatDate({ locale: navigator.language, date: task.fecha }) : t('Sin fecha')}
+          {task.fecha ? utcDateFormated2Digits(task.fecha, event?.timeZone) : t('Sin fecha')}
         </span>
       }
     </div>

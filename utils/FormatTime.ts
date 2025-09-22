@@ -18,25 +18,18 @@ export const getRelativeTime = (date: number) => {
 
 };
 
-export const getOffsetMinutes = (timeZone: string) => {
-  const now = new Date();
+export const getOffsetMinutes = (date?: Date | number | string, timeZone?: string) => {
+  const targetDate = date ? new Date(date) : new Date();
 
-  // Hora local en la zona deseada
-  const localTime = new Intl.DateTimeFormat('en-US', {
-    timeZone,
-    hour12: false,
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  }).formatToParts(now);
+  // Crear una fecha en UTC
+  const utcDate = new Date(targetDate.getTime() + (targetDate.getTimezoneOffset() * 60000));
 
-  // Extraer horas, minutos, segundos
-  const parts = Object.fromEntries(localTime.map(p => [p.type, p.value]));
-  const localDate = new Date(now.toDateString() + ' ' + parts.hour + ':' + parts.minute + ':' + parts.second + ' UTC');
+  // Crear una fecha en la zona horaria especificada
+  const timeInTimezone = new Date(targetDate.toLocaleString('en-US', { timeZone }));
 
-  // Calcular diferencia en milisegundos
-  const offsetMs = localDate.getTime() - now.getTime();
-  const offsetMin = offsetMs / 60000;
+  // Calcular la diferencia en minutos (timezone offset respecto a UTC)
+  const offsetMs = timeInTimezone.getTime() - utcDate.getTime();
+  const offsetMin = Math.round(offsetMs / 60000);
 
   return offsetMin;
 }
