@@ -34,13 +34,11 @@ import { ExtraTableView } from "../../Servicios/ExtraTableView";
 import { BoardView } from "../../Servicios/VistaKanban/BoardView";
 // Importar el tipo Event con un alias para evitar conflictos
 import { Event as EventInterface } from '../../../utils/Interfaces';
-import { TableView } from "../../Servicios/VistaTabla/NewTableView";
+import { NewTableView } from "../../Servicios/VistaTabla/NewTableView";
 import { PermissionTaskWrapper } from "../../Servicios/Utils/PermissionTaskWrapper";
 import { PermissionTaskActionWrapper } from "../../Servicios/Utils/PermissionTaskActionWrapper";
 import useSWR from 'swr';
 import { handleCopyLink } from "../../Servicios/VistaTarjeta/TaskNewUtils";
-import { el } from "date-fns/locale";
-
 
 interface props {
   itinerario: Itinerary
@@ -99,17 +97,76 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   const notification = useNotification()
   const [tempPastedAndDropFiles, setTempPastedAndDropFiles] = useState<TempPastedAndDropFile[]>([]);
   const [loading, setLoading] = useState<boolean>(false)
-  const [task, setTask] = useState<Task>()
   const [currentItinerario, setCurrentItinerario] = useState<Itinerary>(itinerario);
 
+  // Función para manejar actualización de campos
+  const handleUpdate = async (fieldName: string, value: any) => {
+    const task = tasks?.find(task => task._id === selectTask);
+    console.log(100114, "task", task)
+    const canEdit = !user?.uid ? false : isAllowed() || task.responsable?.includes(user?.uid);
+    if (!canEdit) {
+      ht();
+      return;
+    }
+    if (task[fieldName] === value) {
+      return;
+    }
+    try {
+      let apiValue: string;
+      fieldName === 'fecha' && console.log(100111, "value recibido en handleUpdate", fieldName, { value }, typeof value, "| instanceof:", value instanceof Date);
+      if (fieldName === 'horaActiva') {
+        apiValue = value ? "true" : "false";
+      } else if (['responsable', 'tags', 'attachments'].includes(fieldName)) {
+        apiValue = JSON.stringify(value || []);
+      } else if (fieldName === 'duracion') {
+        apiValue = String(value || "0");
+      } else if (fieldName === 'fecha' && value) {
+        // Manejar fecha para evitar problemas de zona horaria
+        if (value?.includes('T')) {
+          apiValue = value;
+          console.log(100112, "apiValue", apiValue);
+        }
+      } else if (fieldName === 'spectatorView') {
+        apiValue = `${value}`;
+      } else {
+        apiValue = String(value || "");
+      }
+      await fetchApiEventos({
+        query: queries.editTask,
+        variables: {
+          eventID: event._id,
+          itinerarioID: itinerario._id,
+          taskID: task._id,
+          variable: fieldName,
+          valor: apiValue,
+        },
+        domain: config.domain,
+      }).then((result) => {
+        const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
+        const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === task._id);
+        if (fieldName === 'spectatorView') {
+          event.itinerarios_array[f1].tasks[f2].spectatorView = value;
+          setEvent({ ...event });
+        } else {
+          event.itinerarios_array[f1].tasks[f2][fieldName] = value;
+          setEvent({ ...event });
+        }
+      });
+      !['horaActiva'].includes(fieldName) && (fieldName === 'duracion' ? value !== 0 : true) && toast("success", t("Campo actualizado"));
+    } catch (error) {
+      console.error('Error al actualizar:', error);
+      toast("error", t("Error al actualizar"));
+    }
+  };
+
   const optionsItineraryButtonBox: OptionsSelect[] = [
-    {
-      value: "edit",
-      icon: <PencilEdit className="w-5 h-5" />,
-      title: "editar",
-      onClick: (values: Task) => !isAllowed() ? ht() : user.uid === event.usuario_id ? setShowEditTask({ values, state: !showEditTask.state }) : setShowEditTask({ values, state: ["/itinerario"].includes(window?.location?.pathname) ? values?.estatus === false || values?.estatus === null || values?.estatus === undefined ? !showEditTask.state : null : !showEditTask.state }),
-      vew: "all"
-    },
+    // {
+    //   value: "edit",
+    //   icon: <PencilEdit className="w-5 h-5" />,
+    //   title: "editar",
+    //   onClick: (values: Task) => !isAllowed() ? ht() : user.uid === event.usuario_id ? setShowEditTask({ values, state: !showEditTask.state }) : setShowEditTask({ values, state: ["/itinerario"].includes(window?.location?.pathname) ? values?.estatus === false || values?.estatus === null || values?.estatus === undefined ? !showEditTask.state : null : !showEditTask.state }),
+    //   vew: "all"
+    // },
     {
       value: "status",
       icon: <GoEyeClosed className="w-5 h-5" />,
@@ -599,7 +656,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
           tasksReduce?.length > 0
             ? view === "boardView"
               ? (<div className="w-full flex-1">
-                <PermissionTaskWrapper task={task} isTaskVisible={true}>
+                <PermissionTaskWrapper isTaskVisible={true}>
                   <BoardView
                     data={tasks}
                     event={event as EventInterface}
@@ -622,8 +679,8 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
               </div>)
               : view === "newTable"
                 ? (<div className="w-full flex-1">
-                  <PermissionTaskWrapper task={task} isTaskVisible={true}>
-                    <TableView
+                  <PermissionTaskWrapper isTaskVisible={true}>
+                    <NewTableView
                       data={tasks}
                       itinerario={itinerario}
                       selectTask={selectTask}
@@ -641,7 +698,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                 </div>)
                 : view === "extraTable"
                   ? (<div className="w-full flex-1">
-                    <PermissionTaskWrapper task={task} isTaskVisible={true}>
+                    <PermissionTaskWrapper isTaskVisible={true}>
                       <ExtraTableView
                         data={tasks}
                         setModalStatus={setModalStatus}
@@ -693,6 +750,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                                   minimalView={window?.location?.pathname === "/itinerario"}
                                   setSelectTask={setSelectTask}
                                   selectTask={selectTask}
+                                  handleUpdate={handleUpdate}
                                 />
                               </PermissionTaskActionWrapper>
                             )
@@ -703,7 +761,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                     : <div className="relative overflow-x-auto md:overflow-x-visible h-full">
                       <div className="w-[250%] md:w-[100%]">
                         <div className="w-full">
-                          <PermissionTaskWrapper task={task} isTaskVisible={true}>
+                          <PermissionTaskWrapper isTaskVisible={true}>
                             <ItineraryColumns
                               data={tasks}
                               setModalStatus={setModalStatus}

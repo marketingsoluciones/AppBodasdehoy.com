@@ -92,6 +92,7 @@ export interface TableCellProps {
   onStopEdit: () => void;
   onCommentsClick?: () => void;
   itinerarioId?: string;
+  handleUpdate?: (field: string, value: any) => Promise<void>;
 }
 
 export interface TableDropdownProps {

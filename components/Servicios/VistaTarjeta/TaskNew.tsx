@@ -51,9 +51,10 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
   minimalView?: boolean;
   setSelectTask?: (taskId: string) => void;
   selectTask?: string;
+  handleUpdate?: (field: string, value: any) => Promise<void>;
 }
 
-export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryButtonBox, showModalCompartir, setShowModalCompartir, tempPastedAndDropFiles, setTempPastedAndDropFiles, isTaskPublic = false, minimalView = false, setSelectTask, selectTask, ...props }) => {
+export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryButtonBox, showModalCompartir, setShowModalCompartir, tempPastedAndDropFiles, setTempPastedAndDropFiles, isTaskPublic = false, minimalView = false, setSelectTask, selectTask, handleUpdate, ...props }) => {
   const { t } = useTranslation();
   const { config, user } = AuthContextProvider();
   const { event, setEvent } = EventContextProvider();
@@ -210,74 +211,6 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
       }
     }
   }, [event?.itinerarios_array, itinerario?._id, task?._id]);
-
-  // Función para manejar actualización de campos
-  const handleUpdate = async (fieldName: string, value: any) => {
-    if (!canEdit) {
-      ht();
-      return;
-    }
-    if (task[fieldName] === value) {
-      return;
-    }
-    try {
-      let apiValue: string;
-      fieldName === 'fecha' && console.log(100111, "value recibido en handleUpdate", fieldName, { value }, typeof value, "| instanceof:", value instanceof Date);
-      if (fieldName === 'horaActiva') {
-        apiValue = value ? "true" : "false";
-      } else if (['responsable', 'tags', 'attachments'].includes(fieldName)) {
-        apiValue = JSON.stringify(value || []);
-      } else if (fieldName === 'duracion') {
-        apiValue = String(value || "0");
-      } else if (fieldName === 'fecha' && value) {
-        // Manejar fecha para evitar problemas de zona horaria
-        if (value.includes('T')) {
-          apiValue = value;
-          console.log(100112, "apiValue", apiValue);
-        } else {
-          throw new Error("value fecha no tiene formato YYYY-MM-DDTHH:MM:SS.000Z");
-        }
-        // } else if (typeof value === 'string' && value.includes('-')) {
-        //   // Si viene en formato YYYY-MM-DD
-        //   const [year, month, day] = value.split('-');
-        //   const localDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 12, 0, 0);
-        //   apiValue = localDate.toISOString();
-        // } else {
-        //   apiValue = new Date(value).toISOString();
-        // }
-      } else if (fieldName === 'spectatorView') {
-        apiValue = `${value}`;
-      } else {
-        apiValue = String(value || "");
-      }
-      await fetchApiEventos({
-        query: queries.editTask,
-        variables: {
-          eventID: event._id,
-          itinerarioID: itinerario._id,
-          taskID: task._id,
-          variable: fieldName,
-          valor: apiValue,
-        },
-        domain: config.domain,
-      }).then((result) => {
-        const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
-        const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === task._id);
-        if (fieldName === 'spectatorView') {
-          event.itinerarios_array[f1].tasks[f2].spectatorView = value;
-          setEvent({ ...event });
-        } else {
-          event.itinerarios_array[f1].tasks[f2][fieldName] = value;
-          setEvent({ ...event });
-        }
-      });
-      setLocalTask(prev => ({ ...prev, [fieldName]: value }));
-      !['horaActiva'].includes(fieldName) && (fieldName === 'duracion' ? value !== 0 : true) && toast("success", t("Campo actualizado"));
-    } catch (error) {
-      console.error('Error al actualizar:', error);
-      toast("error", t("Error al actualizar"));
-    }
-  };
 
   // Función para duplicar tarea
   const handleDuplicate = async () => {

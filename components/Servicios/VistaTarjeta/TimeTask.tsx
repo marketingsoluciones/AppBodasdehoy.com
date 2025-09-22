@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, useState } from 'react';
 import { Task } from '../../../utils/Interfaces';
 import { Clock, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -17,38 +17,8 @@ interface TimeTaskProps {
 export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task, setEditing, editing }) => {
   const { t } = useTranslation();
   const [value, setValue] = useState<string>();
-  const [blockUpdate, setBlockUpdate] = useState<boolean>(false);
   const { utcDateTime, is12HourFormat, dateTimeFormated } = useDateTime()
   const { event } = EventContextProvider()
-
-  // const debounceRef = useRef<NodeJS.Timeout | null>(null);
-
-  // // Función debounce para manejar las actualizaciones
-  // const debouncedUpdate = useCallback(async (timeValue: string) => {
-  //   if (debounceRef.current) {
-  //     clearTimeout(debounceRef.current);
-  //   }
-  //   debounceRef.current = setTimeout(async () => {
-  //     if (!blockUpdate) {
-  //       const value = new Date(`${utcDateTime(task.fecha)}T${timeValue}:00.000Z`)
-  //       if (typeof value !== "string") {
-  //         await handleUpdate('fecha', value)
-  //         await handleUpdate('horaActiva', true)
-  //         setValue(null);
-  //       }
-  //     }
-  //     setBlockUpdate(false);
-  //   }, 600); // 500ms de delay
-  // }, [blockUpdate, utcDateTime, task.fecha, handleUpdate]);
-
-  // // Cleanup del timeout al desmontar el componente
-  // useEffect(() => {
-  //   return () => {
-  //     if (debounceRef.current) {
-  //       clearTimeout(debounceRef.current);
-  //     }
-  //   };
-  // }, []);
 
   return (
     <div className="w-[100px] h-full flex items-center">
@@ -65,7 +35,7 @@ export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task, setEd
                   .then(() => {
                     setEditing(false);
                   })
-                const value = new Date(`${utcDateTime(task.fecha)}T00:00:00.000Z`)
+                const value = `${utcDateTime(task.fecha)}T00:00:00.000Z`
                 handleUpdate('fecha', value)
                 handleUpdate('duracion', 0)
               } else {
@@ -89,34 +59,16 @@ export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task, setEd
                   await handleUpdate('horaActiva', true)
                 }
               }}
-              // onChange={async (e) => {
-              //   setValue(e.currentTarget.value);
-              //   // Usar la función debounce
-              //   debouncedUpdate(e.currentTarget.value);
-              // }}
               onChange={async (e) => {
                 setValue(e.currentTarget.value);
-                //funcion debounce
-                // if (!blockUpdate) {
-                // const value = new Date(`${utcDateTime(task.fecha)}T${e.currentTarget.value}:00.000Z`)
-                // setValue(e.currentTarget.value);
-                // if (typeof value !== "string") {
-                //   await handleUpdate('fecha', value)
-                //   await handleUpdate('horaActiva', true)
-                //   setValue(null);
-                // }
-                // }
-                setBlockUpdate(false);
               }}
               onKeyDown={async (e) => {
-                setBlockUpdate(true);
                 if (e.key === 'Enter') {
                   const value = `${utcDateTime(task.fecha)}T${e.currentTarget.value}:00.000Z`
                   await handleUpdate('fecha', value)
                   await handleUpdate('horaActiva', true)
                   setEditing(false);
                 } else if (e.key === 'Escape') {
-                  setBlockUpdate(false);
                   setEditing(false);
                   setValue(null);
                 }
@@ -137,6 +89,7 @@ export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task, setEd
         </ClickAwayListener>
         : <div onClick={() => {
           if (task?.fecha) {
+            console.log(100116, "clicked", canEdit)
             canEdit && setEditing(true)
           }
         }}

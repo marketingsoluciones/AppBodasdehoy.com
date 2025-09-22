@@ -1,61 +1,18 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import {
-  Check,
-  X,
-  Edit3,
-  Calendar,
-  Clock,
-  User,
-  Flag,
-  MessageSquare,
-  ChevronRight,
-  Tag,
-  FileText,
-  MoreHorizontal,
-  Paperclip,
-  Download
-} from 'lucide-react';
-import {
-  TableCellProps,
-  TASK_STATUSES,
-  TASK_PRIORITIES
-} from './NewTypes';
-import {
-  StatusDropdown,
-  PriorityDropdown,
-  DateSelector,
-  DateTask
-} from './NewDropdown';
+import { Edit3, User, } from 'lucide-react';
+import { TableCellProps } from './NewTypes';
+import { StatusDropdown, PriorityDropdown, DateTask } from './NewDropdown';
 import { ClickUpResponsableSelector } from './NewResponsableSelector';
 import { ImageAvatar } from '../../Utils/ImageAvatar';
 import { AuthContextProvider, EventContextProvider } from '../../../context';
-import { Interweave } from 'interweave';
-import { HashtagMatcher, UrlMatcher } from 'interweave-autolink';
 import { TagsEditor } from './NewTagsEditor';
-import { TipsEditor } from './NewTipsEditor';
-import { AttachmentsEditor } from '../Utils/AttachmentsEditor';
 import { useTranslation } from 'react-i18next';
-import { getStorage } from 'firebase/storage';
-import { downloadFile } from '../../Utils/storages';
 import { useToast } from '../../../hooks/useToast';
-import { fetchApiEventos, queries } from '../../../utils/Fetching';
 import { GruposResponsablesArry } from '../Utils/ResponsableSelector';
 import { DescriptionCell, AttachmentsCell, CommentsCell } from './NewCellRenderers';
-import { TimeTask } from '../VistaTarjeta/TimeTask';
 import { TimeTaskTable } from './TimeTaskTable';
 
-export const TableCell: React.FC<TableCellProps> = ({
-  column,
-  row,
-  value,
-  task,
-  onUpdate,
-  isEditing,
-  onStartEdit,
-  onStopEdit,
-  onCommentsClick,
-  itinerarioId
-}) => {
+export const NewTableCell: React.FC<TableCellProps> = ({ column, value, task, onUpdate, isEditing, onStartEdit, onStopEdit, onCommentsClick }) => {
   const [editValue, setEditValue] = useState(value);
   const [showEditControls, setShowEditControls] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -63,18 +20,12 @@ export const TableCell: React.FC<TableCellProps> = ({
   const [showResponsableSelector, setShowResponsableSelector] = useState(false);
   const [previousValue, setPreviousValue] = useState(value);
   const [showDescriptionModal, setShowDescriptionModal] = useState(false);
-  const [showAttachmentsModal, setShowAttachmentsModal] = useState(false);
-  const [showCommentsModal, setShowCommentsModal] = useState(false);
-
   const cellRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const selectorRef = useRef<HTMLDivElement>(null);
   const { user } = AuthContextProvider();
-  const { event, setEvent } = EventContextProvider();
+  const { event } = EventContextProvider();
   const { t } = useTranslation();
-  const storage = getStorage();
-  const toast = useToast();
-  const config = (event as any)?.config || {};
 
   useEffect(() => {
     setEditValue(value);
@@ -241,7 +192,7 @@ export const TableCell: React.FC<TableCellProps> = ({
         );
 
       case 'number':
-        return isEditing ? (
+        return false ? (
           <input
             ref={inputRef}
             type="number"
@@ -371,7 +322,6 @@ export const TableCell: React.FC<TableCellProps> = ({
           <AttachmentsCell
             value={value}
             onClick={() => {
-              setShowAttachmentsModal(true);
               if (onCommentsClick) {
                 onCommentsClick();
               }
@@ -384,7 +334,6 @@ export const TableCell: React.FC<TableCellProps> = ({
           <CommentsCell
             value={value}
             onClick={() => {
-              setShowCommentsModal(true);
               if (onCommentsClick) {
                 onCommentsClick();
               }

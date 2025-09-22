@@ -3,7 +3,7 @@ import { useTable, useSortBy, useRowSelect, useGlobalFilter } from 'react-table'
 import { TableProps, TableColumn, TableState, TableFilter, ViewConfig, TASK_STATUSES, TASK_PRIORITIES } from './NewTypes';
 import { TableHeader } from './NewTableHeader';
 import { TableFilters } from './NewTableFilters';
-import { TableCell } from './NewTableCell';
+import { NewTableCell } from './NewTableCell';
 import { AuthContextProvider, EventContextProvider } from '../../../context';
 import { fetchApiEventos, queries } from '../../../utils/Fetching';
 import { useTranslation } from 'react-i18next';
@@ -194,7 +194,7 @@ const getRowActions = (task: any, optionsItineraryButtonBox: any[], handlers: an
   return actions;
 };
 
-export const TableView: React.FC<TableProps> = ({ data, itinerario, selectTask, setSelectTask, onTaskUpdate, onTaskDelete, onTaskCreate }) => {
+export const NewTableView: React.FC<TableProps> = ({ data, itinerario, selectTask, setSelectTask, onTaskUpdate, onTaskDelete, onTaskCreate }) => {
   const { t } = useTranslation();
   const { config, user } = AuthContextProvider();
   const { event, setEvent } = EventContextProvider();
@@ -947,7 +947,7 @@ export const TableView: React.FC<TableProps> = ({ data, itinerario, selectTask, 
                               </div>
                             </div>
                           )}
-                          <TableCell
+                          <NewTableCell
                             column={cell.column as any}
                             row={row}
                             value={cell.value}
