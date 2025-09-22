@@ -34,9 +34,9 @@ export const IntegrateButtonsBox: FC<Props> = ({ task, handleUpdate, handleDupli
           title={t(task.spectatorView ? 'Tarea visible' : 'Tarea oculta')}
         >
           {task.spectatorView === true ? (
-            <Eye className="w-4 h-4 transition-transform duration-200" />
+            <Eye className="md:w-4 w-3 md:h-4 h-3 transition-transform duration-200" />
           ) : (
-            <EyeOff className="w-4 h-4 transition-transform duration-200" />
+            <EyeOff className="md:w-4 w-3 md:h-4 h-3 transition-transform duration-200" />
           )}
           {task.spectatorView &&
             <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
@@ -58,7 +58,7 @@ export const IntegrateButtonsBox: FC<Props> = ({ task, handleUpdate, handleDupli
           className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-md transition-all duration-200"
           title={t('Duplicar tarea')}
         >
-          <Copy className="w-4 h-4" />
+          <Copy className=" md:w-4 w-3 md:h-4 h-3" />
         </button>
         {/* Tooltip informativo */}
         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
@@ -72,7 +72,7 @@ export const IntegrateButtonsBox: FC<Props> = ({ task, handleUpdate, handleDupli
           className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-md transition-all duration-200"
           title={t('Copiar enlace')}
         >
-          <Link className="w-4 h-4" />
+          <Link className="md:w-4 w-3 md:h-4 h-3" />
         </button>
         {/* Tooltip informativo */}
         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">

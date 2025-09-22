@@ -258,9 +258,9 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ handleUpdate, task, itin
   };
 
   return (
-    <div className="flex flex-col w-full bg-white max-h-[144px]">
+    <div className="flex flex-col bg-white max-h-[144px] w-1/2. ">
       {/* Header fijo con título y botón de agregar */}
-      <div className="flex items-center justify-between flex-shrink-0">
+      <div className="flex items-center justify-between flex-shrink-0  ">
         <div className="flex items-center gap-1 cursor-pointer" onClick={() => setShowAttachments(!showAttachments)}>
           <span className="text-xs text-gray-700">{t('Archivos adjuntos')}</span>
           <div className={`w-5 h-5 rounded-full ${task.attachments.length > 0 ? 'bg-emerald-600' : 'bg-gray-300'} flex items-center justify-center`}>
@@ -309,7 +309,7 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ handleUpdate, task, itin
         )}
       </div>
       {/* Contenedor con scroll para archivos */}
-      <div className={`flex-1 overflow-y-auto px-3 py-1 space-y-0.5 border-[1px] border-gray-200 rounded-lg ${showAttachments ? 'block' : 'hidden'}`}
+      <div className={`flex-1  overflow-y-auto px-3 py-1 space-y-0.5 border-[1px] border-gray-200 rounded-lg ${showAttachments ? 'block' : 'hidden'}`}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDragOver={handleDragOver}
@@ -325,7 +325,7 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ handleUpdate, task, itin
                 : <X className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
             }
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-gray-700 truncate">{elem.file.name}</p>
+              <p className="text-xs font-medium text-gray-700 truncate w-[200px] md:w-full">{elem.file.name}</p>
               <div className="mt-0.5 w-full bg-gray-200 rounded-full h-1">
                 <div
                   className={`h-1 rounded-full transition-all ${elem.status === 'success'
@@ -348,12 +348,11 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ handleUpdate, task, itin
           ? task.attachments.map((file) => (
             <div
               key={file._id || file.name}
-              className={`group flex items-center gap-1 px-2 py-1 bg-gray-100 rounded-md hover:bg-gray-100 transition-colors ${deletingFiles.includes(file.name) ? 'opacity-50' : ''
-                }`}
+              className={`group flex items-center gap-1 px-2 py-1 bg-gray-100 rounded-md hover:bg-gray-100 transition-colors ${deletingFiles.includes(file.name) ? 'opacity-50' : ''}`}
             >
               {getFileIcon(file.name)}
               <div className="flex-1 min-w-0 -space-y-0.5">
-                <p className="text-xs font-medium text-gray-700 truncate">
+                <p className="text-xs font-medium text-gray-700 truncate w-[200px] md:w-full">
                   {file.name}
                 </p>
                 <p className="text-[10px] text-gray-500">

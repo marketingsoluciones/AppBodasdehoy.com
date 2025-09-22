@@ -308,7 +308,7 @@ export const BoddyIter = () => {
         <PermissionWrapper>
             <div
                 className={`bg-white ${view === "cards" ? "max-w-[1050px] mx-auto" : "w-auto"
-                    } h-[calc(100vh-212px)] flex flex-col items-center rounded-t-lg mt-3 relative overflow-hidden`}
+                    } md:h-[calc(100vh-212px)] flex flex-col items-center rounded-t-lg mt-3 relative overflow-hidden`}
             >
                 {
                     modal.state &&
