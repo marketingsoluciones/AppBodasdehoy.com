@@ -47,7 +47,6 @@ export const BoddyIter = () => {
     const [selectTask, setSelectTask] = useState<string>()
     const [orderAndDirection, setOrderAndDirection] = useState<SelectModeSortType>()
 
-    // Hidratar orderAndDirection desde localStorage al montar
     useEffect(() => {
         try {
             if (typeof window !== "undefined") {
@@ -64,7 +63,6 @@ export const BoddyIter = () => {
         }
     }, [])
 
-    // Persistir orderAndDirection en localStorage al cambiar
     useEffect(() => {
         try {
             if (typeof window !== "undefined" && orderAndDirection && itinerario) {
@@ -75,7 +73,6 @@ export const BoddyIter = () => {
         }
     }, [orderAndDirection])
 
-    // Hidratar view desde localStorage al montar
     useEffect(() => {
         try {
             if (typeof window !== "undefined") {
@@ -85,22 +82,18 @@ export const BoddyIter = () => {
                     if (parsed?.view) {
                         setView(parsed.view)
                     } else {
-                        // Si no hay view guardada, establecer "cards" por defecto
                         setView("cards")
                     }
                 } else {
-                    // Si no hay información guardada, establecer "cards" por defecto
                     setView("cards")
                 }
             }
         } catch (error) {
             console.warn(`No se pudo leer VIEW de localStorage`, error)
-            // En caso de error, establecer "cards" por defecto
             setView("cards")
         }
     }, [])
 
-    // Persistir view en localStorage al cambiar
     useEffect(() => {
         try {
             if (typeof window !== "undefined" && view && itinerario) {
@@ -229,7 +222,6 @@ export const BoddyIter = () => {
         setEditTitle(false)
     }
 
-    // Función para ordenar las tareas según orderAndDirection
     const sortTasks = (tasks: any[], orderAndDirection: SelectModeSortType | undefined) => {
         if (!orderAndDirection || !tasks || view === "schema") {
             return tasks;
@@ -294,20 +286,16 @@ export const BoddyIter = () => {
         const itinerarios = event?.itinerarios_array.filter(elem => elem?.tipo === window?.location?.pathname.slice(1))
         if (itinerarios.length) {
             let nuevoItinerario = itinerario;
-            // Solo cambiar el itinerario si realmente es necesario
             if (router?.query?.itinerary) {
                 nuevoItinerario = itinerarios.find(elem => elem?._id === router.query?.itinerary)
             } else if (!itinerario || !itinerarios.some(elem => elem._id === itinerario._id)) {
                 nuevoItinerario = itinerarios[0]
             }
-            // Solo actualizar si es un itinerario diferente o si no hay itinerario actual
             if (!itinerario || nuevoItinerario._id !== itinerario._id) {
-                // Aplicar ordenamiento a las tareas
                 const tasksOrdenadas = sortTasks(nuevoItinerario.tasks, orderAndDirection);
                 nuevoItinerario = { ...nuevoItinerario, tasks: tasksOrdenadas };
                 setItinerario(nuevoItinerario);
             } else if (itinerario && orderAndDirection) {
-                // Si es el mismo itinerario pero cambió el ordenamiento, solo reordenar las tareas
                 const tasksOrdenadas = sortTasks(itinerario.tasks, orderAndDirection);
                 setItinerario({ ...itinerario, tasks: tasksOrdenadas });
             }
@@ -320,7 +308,7 @@ export const BoddyIter = () => {
         <PermissionWrapper>
             <div
                 className={`bg-white ${view === "cards" ? "max-w-[1050px] mx-auto" : "w-auto"
-                    } h-[calc(100vh-212px)] flex flex-col items-center rounded-t-lg mt-3 relative overflow-hidden`}
+                    } md:h-[calc(100vh-212px)] flex flex-col items-center rounded-t-lg mt-3 relative overflow-hidden`}
             >
                 {
                     modal.state &&

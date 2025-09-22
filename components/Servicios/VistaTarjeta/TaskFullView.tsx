@@ -75,7 +75,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
   }, [task.comments.length, previousCountComments]);
 
   return (
-    <div {...props} className="w-full bg-white rounded-lg shadow-lg cursor-default">
+    <div {...props} className="w-full bg-white rounded-lg shadow-lg cursor-default md:scale-100 scale-90">
       <div id="task-container" className={`flex h-[553px] rounded-xl outline ${selectTask === task._id ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200"}`}>
         {/* Panel principal */}
         <div id='container-left' className="flex-1 flex flex-col h-full">
@@ -88,15 +88,13 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               owner={owner}
             />
             {canEdit &&
-              <div className="flex items-center">
-                {/* Botones de acción integrados - OCULTOS sin permisos */}
+              <div className="flex items-center mr-2 md:mr-0">
                 <IntegrateButtonsBox
                   task={task}
                   handleUpdate={handleUpdate}
                   handleDuplicate={handleDuplicate}
                   itinerario={itinerario}
                 />
-                {/* Botones de ItineraryButtonBox - OCULTOS sin permisos */}
                 {(optionsItineraryButtonBox && optionsItineraryButtonBox.length > 0) &&
                   <ItineraryButtonBox
                     optionsItineraryButtonBox={optionsItineraryButtonBox}
@@ -107,7 +105,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               </div>}
           </div>
           {/* Contenido principal */}
-          <div className="flex flex-col flex-1 px-6 py-2 space-y-2">
+          <div className="flex flex-col flex-1 px-6 py-2 space-y-2  ">
             {/* Fila de Estado y Prioridad */}
             <StatusPriorityTask
               task={task}
@@ -200,11 +198,9 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                 <div className="text-center">
                   <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-2" />
                   <p className="text-sm text-gray-500">{t('No hay comentarios')}</p>
-                  {/* <p className="text-xs text-gray-400 mt-1">{t('Sé el primero en comentar')}</p> */}
                 </div>
               </div>
               : <div className="flex flex-col h-full">
-                {/* Lista de comentarios */}
                 <div className="space-y-2 *p-4 flex-shrink-0">
                   {task.comments.map((comment) => (
                     <div key={comment._id} className="relative group">

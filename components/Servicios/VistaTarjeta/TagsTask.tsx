@@ -76,7 +76,7 @@ export const TagsTask: FC<Props> = ({ canEdit, task, handleUpdate, owner }) => {
                   }
                 }
               }}
-              className="px-3 py-0.5 border-gray-300 rounded-md text-xs border-[1px] focus:border-gray-400"
+              className="px-3 py-0.5 border-gray-300 rounded-md text-xs border-[1px] focus:border-gray-400 w-[200px] "
               autoFocus
             />
           </ClickAwayListener>

@@ -63,9 +63,9 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
   const commentsContainerRef = useRef<HTMLDivElement>(null);
   const [previousCountComments, setPreviousCountComments] = useState(0);
   const [comments, setComments] = useState<Comment[]>([]);
-  // Verificar permisos
+
   const canEdit = !user?.uid ? false : isAllowed() || task.responsable?.includes(user?.uid);
-  // Estados para la edición
+ 
   const [localTask, setLocalTask] = useState<TaskFormValues>({
     _id: task?._id,
     icon: task?.icon || '',
@@ -85,7 +85,6 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
     prioridad: task?.prioridad || 'media'
   });
 
-  // Efecto para sincronizar con la tarea
   useEffect(() => {
     setLocalTask({
       _id: task?._id,
@@ -107,7 +106,6 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
     });
   }, [task]);
 
-  // Efecto para ordenar comentarios
   useEffect(() => {
     if (task?.comments && Array.isArray(task?.comments)) {
       const sortedComments = sortCommentsByDate(task?.comments);
@@ -121,7 +119,6 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
     }
   }, [task?.comments]);
 
-  // Auto-scroll al agregar nuevos comentarios
   useEffect(() => {
     if (comments.length > previousCountComments && commentsContainerRef.current) {
       setTimeout(() => {
@@ -134,7 +131,6 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
     setPreviousCountComments(comments.length);
   }, [comments, previousCountComments]);
 
-  // Efecto para sincronizar comentarios desde el evento global
   useEffect(() => {
     if (event?.itinerarios_array) {
       const currentItinerary = event.itinerarios_array.find(it => it._id === itinerario._id);
@@ -154,7 +150,6 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
     }
   }, [event?.itinerarios_array, itinerario?._id, task?._id]);
 
-  // Detectar cuando la pestaña se vuelve activa para actualizar
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (!document.hidden) {
@@ -171,7 +166,6 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [event, itinerario?._id, task?._id]);
 
-  // Efecto para sincronizar adjuntos desde el evento global
   useEffect(() => {
     if (event?.itinerarios_array) {
       const currentItinerary = event.itinerarios_array.find(it => it._id === itinerario._id);
@@ -212,7 +206,6 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
     }
   }, [event?.itinerarios_array, itinerario?._id, task?._id]);
 
-  // Función para duplicar tarea
   const handleDuplicate = async () => {
     if (!canEdit) {
       ht();
@@ -256,7 +249,6 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
     }
   };
 
-  // Función para manejar la eliminación de comentarios
   const handleDeleteComment = async (commentId: string) => {
     if (!canEdit) {
       ht();

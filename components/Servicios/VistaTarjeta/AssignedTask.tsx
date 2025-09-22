@@ -28,7 +28,7 @@ export const AssignedTask: FC<Props> = ({ canEdit, task, handleUpdate, owner }) 
 
 
   return (
-    <div className="flex items-center space-x-2 w-full relative">
+    <div className="flex items-center space-x-2 w-full relative ">
       <div className="flex flex-col gap-1">
         <div className="flex items-center space-x-2">
           <User className="w-4 h-4 text-gray-500" />
@@ -72,7 +72,7 @@ export const AssignedTask: FC<Props> = ({ canEdit, task, handleUpdate, owner }) 
             )}
       </div>
       <div className="flex items-center flex-wrap w-full border border-gray-200 rounded-md relative p-0.5">
-        {(editing && canEdit) && <div className="absolute z-10 top-0 left-0">
+        {(editing && canEdit) && <div className="absolute z-10 top-0 md:left-0 right-0">
           <ClickUpResponsableSelector
             value={tempResponsable}
             onChange={(newValue) => {
