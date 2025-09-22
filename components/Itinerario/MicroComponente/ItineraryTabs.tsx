@@ -766,7 +766,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                         )}
                         <PermissionSelectModeView view={view} setView={setView} className="hidden md:block" />
                     </div>
-                )}
+                }
             </div>
         </div>
     )
