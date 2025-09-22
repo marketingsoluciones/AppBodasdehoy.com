@@ -1,9 +1,12 @@
-import React, { FC } from 'react';
+import React, { FC, useState } from 'react';
 import { Task } from '../../../utils/Interfaces';
 import { useTranslation } from 'react-i18next';
-import { Clock } from 'lucide-react';
+import { Calendar, Clock } from 'lucide-react';
 import { DurationTask } from './DurationTask';
 import { TimeIndicators } from './TimeIndicators';
+import { DateTask } from './DateTask';
+import { useDateTime } from '../../../hooks/useDateTime';
+import { EventContextProvider } from '../../../context';
 
 interface TimeDurationContainerProps {
   task: Task;
@@ -11,28 +14,47 @@ interface TimeDurationContainerProps {
   handleUpdate: (field: string, value: any) => Promise<void>;
 }
 
-export const TimeDurationContainer: FC<TimeDurationContainerProps> = ({ 
-  task, 
-  canEdit, 
-  handleUpdate 
-}) => {
+export const TimeDurationContainer: FC<TimeDurationContainerProps> = ({ task, canEdit, handleUpdate }) => {
   const { t } = useTranslation();
+  const { event } = EventContextProvider();
+  const [editingDate, setEditingDate] = useState(false);
+  const [editingStartTime, setEditingStartTime] = useState(false);
+  const [editingEndTime, setEditingEndTime] = useState(false);
+  const { dateTimeFormated } = useDateTime();
+
 
   if (!task.fecha) {
     return null;
   }
 
   return (
-    <div className="flex items-center gap-3 justify-start bg-gray-50 rounded-lg p-3">
-            {/* Indicadores de Hora */}
-            <TimeIndicators
-        task={task}
-        canEdit={canEdit}
-        handleUpdate={handleUpdate}
-      />
+    <div className="flex items-center gap-3 justify-start bg-gray-50 rounded-lg py-2 relative group">
+      {/* Indicadores de Hora */}
+      <div className="flex flex-col space-x-2">
+        <div className="flex items-center space-x-2">
+          <Calendar className="w-4 h-4 text-gray-500" />
+          <span className="text-xs text-gray-500">{t('Fecha')}</span>
+          <DateTask
+            handleUpdate={handleUpdate}
+            canEdit={canEdit}
+            task={task}
+            setEditing={setEditingDate}
+            editing={editingDate}
+          />
+        </div>
+        <TimeIndicators
+          task={task}
+          canEdit={canEdit}
+          handleUpdate={handleUpdate}
+          setEditingStartTime={setEditingStartTime}
+          editingStartTime={editingStartTime}
+          setEditingEndTime={setEditingEndTime}
+          editingEndTime={editingEndTime}
+        />
+      </div>
 
       {/* Duración */}
-      <div className="flex items-center space-x-3">
+      <div className="flex items-end space-x-3 translate-y-2">
         <Clock className="w-5 h-5 text-blue-600" />
         <div className="flex items-center space-x-2">
           <span className="text-xs text-gray-500">{t('Duración')}</span>
@@ -43,7 +65,11 @@ export const TimeDurationContainer: FC<TimeDurationContainerProps> = ({
           />
         </div>
       </div>
-
+      {task.fecha && <div className={`absolute bottom-full left-6 transform -translate-y-1/4 mb-2 px-2 py-1 bg-gray-900 text-white text-[11px] rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 group-hover:delay-300 whitespace-nowrap z-10 flex flex-col ${editingDate || editingStartTime || editingEndTime ? "hidden" : ""}`}>
+        <span className='font-bold text-yellow-500'>{dateTimeFormated(task.fecha, event?.timeZone)}</span>
+        <span className='text-gray-100'>{dateTimeFormated(task.fecha, "UTC")}</span>
+        <span className='text-gray-100'>{dateTimeFormated(task.fecha, Intl.DateTimeFormat().resolvedOptions().timeZone)} {`(${t("hora local")})`}</span>
+      </div>}
 
     </div>
   );

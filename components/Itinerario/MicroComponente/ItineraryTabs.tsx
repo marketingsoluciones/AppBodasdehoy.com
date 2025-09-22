@@ -11,6 +11,7 @@ import { useToast } from "../../../hooks/useToast"
 import { SelectModeSort } from "../../Utils/SelectModeSort"
 import { PermissionSelectModeView } from '../../Servicios/Utils/PermissionSelectModeView';
 import { PermissionAddButton } from "../../Servicios/Utils/PermissionAddButton"
+import { TimeZone } from "../../icons"
 
 interface props {
     itinerario: Itinerary
@@ -552,17 +553,27 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                                                 </div>}
                                             </div>
                                         </div>
-                                    )
-                                })}
-                            </div>
-                            <PermissionAddButton
-                                onClick={handleCreateItinerario} // ✅ función real
-                                className="flex w-8 items-center justify-start bg-white"
-                                iconClassName="w-4 h-4 text-primary cursor-pointer"
-                            />
-                        </>}
+                                    </div>
+                                )
+                            })}
+                        </div>
+                        <PermissionAddButton
+                            onClick={handleCreateItinerario} // ✅ función real
+                            className="flex w-8 items-center justify-start bg-white"
+                            iconClassName="w-4 h-4 text-primary cursor-pointer"
+                        />
+                    </>}
+                </div>
+                <div className="flex flex-1 items-center justify-end pl-2 pr-4 select-none">
+                    <div className="text-gray-600 flex flex-col justify-center items-center">
+                        <div className="flex justify-center space-x-0.5 w-full">
+                            <TimeZone />
+                            <span className="text-[11px]">{t("timeZone")}</span>
+                        </div>
+                        <span className="text-xs">{event?.timeZone.split("/")[1]}</span>
                     </div>
-                {isAllowed() && <div className="inline-flex md:space-x-4">
+                </div>
+                {isAllowed() && <div className="inline-flex space-x-4">
                     {["cards", "table"].includes(view) && (
                         <div className="flex items-center md:space-x-2">
                             <PermissionAddButton
@@ -579,6 +590,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             */}
                 {/* Vista Desktop */}
                 {!isMobile && (
+                <>
                     <div className="inline-flex max-w-full h-full items-center mr-2">
                         {showTabs && <>
                             <div ref={refTabs} id="azul" className={` ${event?.usuario_id === user?.uid && "max-w-[calc(100%-32px)]"} inline-flex h-full items-center select-none mx-2`}>
@@ -630,6 +642,8 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                                                 </div>}
                                             </div>
                                         </div>
+                                      
+                                      
                                     )
                                 })}
                             </div>
@@ -640,6 +654,16 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                             />
                         </>}
                     </div>
+                  <div className="flex flex-1 items-center justify-end pl-2 pr-4 select-none">
+                    <div className="text-gray-600 flex flex-col justify-center items-center">
+                        <div className="flex justify-center space-x-0.5 w-full">
+                            <TimeZone />
+                            <span className="text-[11px]">{t("timeZone")}</span>
+                        </div>
+                        <span className="text-xs">{event?.timeZone.split("/")[1]}</span>
+                    </div>
+                </div>
+                  </>
                 )}
 
                 {/* Vista Móvil - Menú Desplegable */}
@@ -729,8 +753,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                     </div>
                 )}
 
-                {isAllowed() && (
-                    <div className="inline-flex md:space-x-4">
+                {isAllowed() && <div className="inline-flex md:space-x-4">
                         {["cards", "table"].includes(view) && (
                             <div className="flex items-center md:space-x-2">
                                 <PermissionAddButton
