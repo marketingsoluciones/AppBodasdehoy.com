@@ -72,6 +72,14 @@ export const useDateTime = () => {
         return new Date(date).toJSON().slice(0, -14);
     };
 
+    /*usada en DateTask */
+    const utcTime = (date: Date | number | string) => {
+        if (typeof date === 'string' && !date.includes('T') && !date.includes('-')) {
+            return new Date(parseInt(date)).toJSON().slice(-13, -8);
+        }
+        return new Date(date).toJSON().slice(-13, -8);
+    };
+
     /*usada en dateTask y timeTask */
     const utcDateTime = (date: Date | number | string) => {
         if (typeof date === 'string' && !date.includes('T') && !date.includes('-')) {
@@ -84,5 +92,5 @@ export const useDateTime = () => {
         return hour12
     }
 
-    return { utcDateFormated, dateTimeFormated, utcDateTime, utcDate, utcDateFormated2Digits, dateTime, is12HourFormat };
+    return { utcDateFormated, dateTimeFormated, utcDateTime, utcDate, utcDateFormated2Digits, dateTime, is12HourFormat, utcTime };
 };

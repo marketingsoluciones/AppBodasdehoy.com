@@ -111,7 +111,7 @@ export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task, setEd
               onKeyDown={async (e) => {
                 setBlockUpdate(true);
                 if (e.key === 'Enter') {
-                  const value = new Date(`${utcDateTime(task.fecha)}T${e.currentTarget.value}:00.000Z`)
+                  const value = `${utcDateTime(task.fecha)}T${e.currentTarget.value}:00.000Z`
                   await handleUpdate('fecha', value)
                   await handleUpdate('horaActiva', true)
                   setEditing(false);
@@ -124,7 +124,7 @@ export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task, setEd
               onBlur={async (e) => {
                 const valir = e.currentTarget.value !== new Date(task.fecha).toJSON().slice(-13, -8)
                 if (e.currentTarget.value && valir) {
-                  const value = new Date(`${utcDateTime(task.fecha)}T${e.currentTarget.value}:00.000Z`)
+                  const value = `${utcDateTime(task.fecha)}T${e.currentTarget.value}:00.000Z`
                   await handleUpdate('fecha', value)
                   await handleUpdate('horaActiva', true)
                   setValue(null);

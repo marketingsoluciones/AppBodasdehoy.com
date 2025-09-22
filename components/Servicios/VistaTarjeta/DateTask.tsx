@@ -1,11 +1,9 @@
 import { FC, useEffect, useState } from 'react';
-import { formatDate, getDateString, getTimeString } from './TaskNewUtils';
 import { Task } from '../../../utils/Interfaces';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 import ClickAwayListener from 'react-click-away-listener';
 import { EventContextProvider } from '../../../context';
-import { getOffsetMinutes } from '../../../utils/FormatTime';
 import { useDateTime } from '../../../hooks/useDateTime';
 
 interface Props {
@@ -21,9 +19,7 @@ export const DateTask: FC<Props> = ({ handleUpdate, canEdit, task, setEditing, e
   const { t } = useTranslation();
   const [value, setValue] = useState<string>();
   const [blockUpdate, setBlockUpdate] = useState<boolean>(false);
-  const { utcDateTime, utcDateFormated2Digits } = useDateTime()
-
-
+  const { utcDateTime, utcDateFormated2Digits, utcTime } = useDateTime()
 
   return (
     <div className="w-[120px] h-full flex items-center">
@@ -59,8 +55,8 @@ export const DateTask: FC<Props> = ({ handleUpdate, canEdit, task, setEditing, e
                 setValue(e.currentTarget.value);
                 if (!blockUpdate) {
                   const value = task?.horaActiva !== false
-                    ? new Date(`${e.currentTarget.value}T${getTimeString(task.fecha)}`)
-                    : utcDateTime(e.currentTarget.value)
+                    ? `${e.currentTarget.value}T${utcTime(task.fecha)}:00.000Z`
+                    : `${e.currentTarget.value}T00:00:00.000Z`
                   await handleUpdate('fecha', value)
                   setEditing(false);
                 }
@@ -71,8 +67,8 @@ export const DateTask: FC<Props> = ({ handleUpdate, canEdit, task, setEditing, e
                   setBlockUpdate(true);
                 } else if (e.key === 'Enter') {
                   const value = task?.horaActiva !== false
-                    ? new Date(`${e.currentTarget.value}T${getTimeString(task.fecha)}`)
-                    : utcDateTime(e.currentTarget.value)
+                    ? `${e.currentTarget.value}T${utcTime(task.fecha)}:00.000Z`
+                    : `${e.currentTarget.value}T00:00:00.000Z`
                   await handleUpdate('fecha', value)
                   setEditing(false);
                 } else if (e.key === 'Escape') {
@@ -85,8 +81,8 @@ export const DateTask: FC<Props> = ({ handleUpdate, canEdit, task, setEditing, e
                 const valir = e.currentTarget.value !== (task?.fecha ? utcDateTime(task.fecha) : '')
                 if (e.currentTarget.value && valir) {
                   const value = task?.horaActiva !== false
-                    ? new Date(`${e.currentTarget.value}T${getTimeString(task.fecha)}`)
-                    : utcDateTime(e.currentTarget.value)
+                    ? `${e.currentTarget.value}T${utcTime(task.fecha)}:00.000Z`
+                    : `${e.currentTarget.value}T00:00:00.000Z`
                   await handleUpdate('fecha', value)
                 }
               }}

@@ -222,6 +222,7 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
     }
     try {
       let apiValue: string;
+      fieldName === 'fecha' && console.log(100111, "value recibido en handleUpdate", fieldName, { value }, typeof value, "| instanceof:", value instanceof Date);
       if (fieldName === 'horaActiva') {
         apiValue = value ? "true" : "false";
       } else if (['responsable', 'tags', 'attachments'].includes(fieldName)) {
@@ -230,16 +231,20 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
         apiValue = String(value || "0");
       } else if (fieldName === 'fecha' && value) {
         // Manejar fecha para evitar problemas de zona horaria
-        if (value instanceof Date) {
-          apiValue = value.toISOString();
-        } else if (typeof value === 'string' && value.includes('-')) {
-          // Si viene en formato YYYY-MM-DD
-          const [year, month, day] = value.split('-');
-          const localDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 12, 0, 0);
-          apiValue = localDate.toISOString();
+        if (value.includes('T')) {
+          apiValue = value;
+          console.log(100112, "apiValue", apiValue);
         } else {
-          apiValue = new Date(value).toISOString();
+          throw new Error("value fecha no tiene formato YYYY-MM-DDTHH:MM:SS.000Z");
         }
+        // } else if (typeof value === 'string' && value.includes('-')) {
+        //   // Si viene en formato YYYY-MM-DD
+        //   const [year, month, day] = value.split('-');
+        //   const localDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 12, 0, 0);
+        //   apiValue = localDate.toISOString();
+        // } else {
+        //   apiValue = new Date(value).toISOString();
+        // }
       } else if (fieldName === 'spectatorView') {
         apiValue = `${value}`;
       } else {

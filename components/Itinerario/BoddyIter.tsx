@@ -47,8 +47,6 @@ export const BoddyIter = () => {
     const [selectTask, setSelectTask] = useState<string>()
     const [orderAndDirection, setOrderAndDirection] = useState<SelectModeSortType>()
 
-    console.log("items", view)
-
     // Hidratar orderAndDirection desde localStorage al montar
     useEffect(() => {
         try {
