@@ -23,14 +23,8 @@ export const useDateTime = () => {
         const offsetMilliseconds = -1 * offsetMinutes * 60 * 1000;
         return new Date(dEpoch + offsetMilliseconds).toLocaleString(navigator.language, options);
     }
-    const getDate = (date: Date | number | string) => {
-        const offsetMinutes = getOffsetMinutes(date, event.timeZone)
-        const d = new Date(date);
-        const dEpoch = d.getTime();
-        const offsetMilliseconds = -1 * offsetMinutes * 60 * 1000;
-        return new Date(dEpoch + offsetMilliseconds);
-    }
-    /*usada en Cards y BlockPrincipal */
+
+    /*usada en Cards BlockPrincipal */
     const utcDateFormated = (date: Date | number | string) => {
         const options: object = { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" };
         if (typeof date === 'string' && !date.includes('T') && !date.includes('-')) {
@@ -39,7 +33,7 @@ export const useDateTime = () => {
         return getDateFormated(date, options);
     };
 
-    /*usada en dateTask */
+    /*usada en DateTask */
     const utcDateFormated2Digits = (date: Date | number | string, timeZone: string) => {
         const options: object = { year: "numeric", month: "2-digit", day: "2-digit", timeZone: timeZone || "UTC" };
         if (typeof date === 'string' && !date.includes('T') && !date.includes('-')) {
@@ -48,20 +42,13 @@ export const useDateTime = () => {
         return getDateFormated(date, options);
     };
 
-    /*usada en TaskFullView */
+    /*usada en TaskFullView TimeTask*/
     const dateTimeFormated = (date: Date | number | string, timeZone: string) => {
         const options: object = { year: "numeric", month: "2-digit", day: "2-digit", timeZone: timeZone || "UTC", hour: "2-digit", minute: "2-digit", hour12, timeZoneName: timeZone === "UTC" ? "short" : "long" };
         if (typeof date === 'string' && !date.includes('T') && !date.includes('-')) {
             return getDateFormated(parseInt(date), options);
         }
         return getDateFormated(date, options);
-    };
-
-    const dateTime = (date: Date | number | string) => {
-        if (typeof date === 'string' && !date.includes('T') && !date.includes('-')) {
-            return getDate(parseInt(date));
-        }
-        return getDate(date);
     };
 
     /*usada en FormCrearEvento */
@@ -80,7 +67,7 @@ export const useDateTime = () => {
         return new Date(date).toJSON().slice(-13, -8);
     };
 
-    /*usada en dateTask y timeTask */
+    /*usada en DateTask TimeTask */
     const utcDateTime = (date: Date | number | string) => {
         if (typeof date === 'string' && !date.includes('T') && !date.includes('-')) {
             return new Date(parseInt(date)).toJSON().slice(0, -14);
@@ -88,9 +75,10 @@ export const useDateTime = () => {
         return new Date(date).toJSON().slice(0, -14);
     };
 
+    /*usada en TimeTask */
     const is12HourFormat = () => {
         return hour12
     }
 
-    return { utcDateFormated, dateTimeFormated, utcDateTime, utcDate, utcDateFormated2Digits, dateTime, is12HourFormat, utcTime };
+    return { utcDateFormated, dateTimeFormated, utcDateTime, utcDate, utcDateFormated2Digits, is12HourFormat, utcTime };
 };
