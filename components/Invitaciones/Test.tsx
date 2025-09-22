@@ -76,12 +76,6 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
     email: yup.string().required("Campo requerido").test("Unico", "Correo inválido", async (value) => {
       const name = document.activeElement?.getAttribute("name")
       if (name !== "identifier" && !(!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(value))) {
-        // const result = await fetchApiBodas({
-        //   query: queries.getEmailValid,
-        //   variables: { email: value },
-        //   development: config.development
-        // })
-        // return result?.valid
         return true
       } else {
         return false
