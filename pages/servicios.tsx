@@ -41,7 +41,7 @@ const Itinerario: FC<any> = (props) => {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     className="mx-auto inset-x-0 w-full pl-2 pr-[1px] md:px-4 gap-4 relative">
-                    <BlockTitle title={"Tasks"} />{/*task planning o task management*/} {/* Flujo de tareas */}
+                    <BlockTitle title={"Tasks"} />
                     <BoddyIter />
                 </motion.div>
             </section>

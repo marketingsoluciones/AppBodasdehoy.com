@@ -146,9 +146,13 @@ export const DurationTask: FC<Props> = ({ handleUpdate, canEdit, task }) => {
                   setEditing(false);
                 });
             }} className="-right-[6px] cursor-pointer p-[2px]">
-              <div className='relative group'>
+              <div className='relative' onMouseEnter={() => {
+                document.getElementById(`duration-task-tooltip_${task._id}`).classList.add('opacity-100');
+              }} onMouseLeave={() => {
+                document.getElementById(`duration-task-tooltip_${task._id}`).classList.remove('opacity-100');
+              }}>
                 <X className="w-3 h-3" />
-                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
+                <div id={`duration-task-tooltip_${task._id}`} className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity whitespace-nowrap z-20">
                   {t('Eliminar duración')}
                 </div>
               </div>
@@ -158,7 +162,7 @@ export const DurationTask: FC<Props> = ({ handleUpdate, canEdit, task }) => {
             className={`text-xs ${canEdit && task?.horaActiva !== false ? 'text-gray-800 hover:text-gray-900' : ''}`}
             title={canEdit ? "Haz clic para editar duración" : "No tienes permisos para editar"}
           >
-            {task?.fecha && task?.horaActiva !== false ? formatDuration(task.duracion as number) : t('Sin duración')}
+            {task?.fecha && task?.horaActiva !== false && task.duracion ? formatDuration(task.duracion as number) : t('Sin duración')}
           </div>
         }
       </div>

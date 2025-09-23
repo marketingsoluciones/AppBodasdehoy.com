@@ -1,40 +1,22 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { 
-  ChevronDown, 
-  Search, 
-  X, 
-  Check, 
-  User, 
-  Flag, 
-  Clock,
-  Calendar
-} from 'lucide-react';
+import { ChevronDown, Search, X, Check, User, Calendar } from 'lucide-react';
 import { TableDropdownProps, SelectOption, TASK_STATUSES, TASK_PRIORITIES } from './NewTypes';
 import { useTranslation } from 'react-i18next';
 import { fetchApiEventos, queries } from '../../../utils/Fetching';
 
-export const TableDropdown: React.FC<TableDropdownProps> = ({
-  options,
-  value,
-  onChange,
-  placeholder = "Seleccionar...",
-  multiple = false,
-  searchable = false,
-  clearable = false,
-  size = 'md'
-}) => {
+export const TableDropdown: React.FC<TableDropdownProps> = ({ options, value, onChange, placeholder = "Seleccionar...", multiple = false, searchable = false, size = 'md' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
 
-  const filteredOptions = searchable 
-    ? options.filter(option => 
-        option.label.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+  const filteredOptions = searchable
+    ? options.filter(option =>
+      option.label.toLowerCase().includes(searchTerm.toLowerCase())
+    )
     : options;
 
-  const selectedOptions = multiple 
+  const selectedOptions = multiple
     ? options.filter(option => (value as string[]).includes(option.value))
     : options.find(option => option.value === value);
 
@@ -120,13 +102,13 @@ export const TableDropdown: React.FC<TableDropdownProps> = ({
               </div>
             </div>
           )}
-          
+
           <div className="py-1">
             {filteredOptions.length === 0 ? (
               <div className="px-3 py-2 text-gray-500 text-sm">{t('No hay opciones')}</div>
             ) : (
               filteredOptions.map((option, optionIndex) => {
-                const isSelected = multiple 
+                const isSelected = multiple
                   ? (value as string[]).includes(option.value)
                   : value === option.value;
 
@@ -141,23 +123,22 @@ export const TableDropdown: React.FC<TableDropdownProps> = ({
                     `}
                   >
                     {multiple && (
-                      <div className={`w-4 h-4 border rounded flex items-center justify-center ${
-                        isSelected ? 'bg-primary border-primary' : 'border-gray-300'
-                      }`}>
+                      <div className={`w-4 h-4 border rounded flex items-center justify-center ${isSelected ? 'bg-primary border-primary' : 'border-gray-300'
+                        }`}>
                         {isSelected && <Check className="w-3 h-3 text-white" />}
                       </div>
                     )}
-                    
+
                     {option.color && (
                       <div className={`w-3 h-3 rounded-full ${option.color}`} />
                     )}
-                    
+
                     {option.icon && (
                       <div className="w-4 h-4">{option.icon}</div>
                     )}
-                    
+
                     <span className="flex-1 truncate">{option.label}</span>
-                    
+
                     {!multiple && isSelected && (
                       <Check className="w-4 h-4 text-primary" />
                     )}
@@ -263,120 +244,120 @@ export const DateSelector: React.FC<{
   toast,
   t
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(value);
+    const [isOpen, setIsOpen] = useState(false);
+    const [selectedDate, setSelectedDate] = useState(value);
 
-  // Sincronizar el estado interno con la prop value
-  useEffect(() => {
-    setSelectedDate(value);
-  }, [value]);
+    // Sincronizar el estado interno con la prop value
+    useEffect(() => {
+      setSelectedDate(value);
+    }, [value]);
 
-  const formatDate = (dateString: string) => {
-    if (!dateString) return placeholder;
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
-  };
-
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newDate = e.target.value;
-    setSelectedDate(newDate);
-    onChange(newDate);
-    setIsOpen(false);
-  };
-
-  // Tu función para eliminar la fecha
-  const handleDeleteDate = useCallback(async () => {
-    if (!event || !task || !config || !itinerarioId) {
-      toast && toast('error', t ? t('Faltan datos para eliminar la fecha') : 'Faltan datos para eliminar la fecha');
-      return;
-    }
-    try {
-      await fetchApiEventos({
-        query: queries.editTask,
-        variables: {
-          eventID: event._id,
-          itinerarioID: itinerarioId,
-          taskID: task._id,
-          variable: "fecha",
-          valor: null
-        },
-        domain: config.domain
+    const formatDate = (dateString: string) => {
+      if (!dateString) return placeholder;
+      const date = new Date(dateString);
+      return date.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
       });
+    };
 
-      onUpdate && onUpdate(null);
+    const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newDate = e.target.value;
+      setSelectedDate(newDate);
+      onChange(newDate);
+      setIsOpen(false);
+    };
 
-      setEvent && setEvent((prevEvent: any) => {
-        const newEvent = { ...prevEvent };
-        const itineraryIndex = newEvent.itinerarios_array.findIndex(
-          (it: any) => it._id === itinerarioId
-        );
+    // Tu función para eliminar la fecha
+    const handleDeleteDate = useCallback(async () => {
+      if (!event || !task || !config || !itinerarioId) {
+        toast && toast('error', t ? t('Faltan datos para eliminar la fecha') : 'Faltan datos para eliminar la fecha');
+        return;
+      }
+      try {
+        await fetchApiEventos({
+          query: queries.editTask,
+          variables: {
+            eventID: event._id,
+            itinerarioID: itinerarioId,
+            taskID: task._id,
+            variable: "fecha",
+            valor: null
+          },
+          domain: config.domain
+        });
 
-        if (itineraryIndex !== -1) {
-          const taskIndex = newEvent.itinerarios_array[itineraryIndex].tasks.findIndex(
-            (t: any) => t._id === task._id
+        onUpdate && onUpdate(null);
+
+        setEvent && setEvent((prevEvent: any) => {
+          const newEvent = { ...prevEvent };
+          const itineraryIndex = newEvent.itinerarios_array.findIndex(
+            (it: any) => it._id === itinerarioId
           );
 
-          if (taskIndex !== -1) {
-            newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex].fecha = null;
+          if (itineraryIndex !== -1) {
+            const taskIndex = newEvent.itinerarios_array[itineraryIndex].tasks.findIndex(
+              (t: any) => t._id === task._id
+            );
+
+            if (taskIndex !== -1) {
+              newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex].fecha = null;
+            }
           }
-        }
 
-        return newEvent;
-      });
+          return newEvent;
+        });
 
-      toast && toast('success', t ? t('Fecha eliminada') : 'Fecha eliminada');
-    } catch (error) {
-      console.error('Error al eliminar fecha:', error);
-      toast && toast('error', t ? t('Error al eliminar la fecha') : 'Error al eliminar la fecha');
-    }
-  }, [task, event, itinerarioId, config, onUpdate, setEvent, toast, t]);
+        toast && toast('success', t ? t('Fecha eliminada') : 'Fecha eliminada');
+      } catch (error) {
+        console.error('Error al eliminar fecha:', error);
+        toast && toast('error', t ? t('Error al eliminar la fecha') : 'Error al eliminar la fecha');
+      }
+    }, [task, event, itinerarioId, config, onUpdate, setEvent, toast, t]);
 
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={() => setIsOpen(true)}
-        className="w-full flex items-center justify-between px-3 py-1.5 border border-gray-300 rounded-md hover:border-gray-400 text-sm transition-colors"
-      >
-        <span className="flex items-center space-x-2">
-          <Calendar className="w-4 h-4 text-gray-400" />
-          <span className={value ? 'text-gray-700' : 'text-gray-500'}>
-            {formatDate(value)}
+    return (
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setIsOpen(true)}
+          className="w-full flex items-center justify-between px-3 py-1.5 border border-gray-300 rounded-md hover:border-gray-400 text-sm transition-colors"
+        >
+          <span className="flex items-center space-x-2">
+            <Calendar className="w-4 h-4 text-gray-400" />
+            <span className={value ? 'text-gray-700' : 'text-gray-500'}>
+              {formatDate(value)}
+            </span>
           </span>
-        </span>
-        {value && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDeleteDate();
-              setSelectedDate('');
-            }}
-            className="p-1 hover:bg-gray-100 rounded transition-colors"
-          >
-            <X className="w-3 h-3 text-gray-400" />
-          </button>
-        )}
-      </button>
+          {value && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteDate();
+                setSelectedDate('');
+              }}
+              className="p-1 hover:bg-gray-100 rounded transition-colors"
+            >
+              <X className="w-3 h-3 text-gray-400" />
+            </button>
+          )}
+        </button>
 
-      {isOpen && (
-        <div className="absolute z-50 mt-1 p-3 bg-white border border-gray-300 rounded-md shadow-lg">
-          <input
-            type="date"
-            value={selectedDate || ''}
-            onChange={handleDateChange}
-            className="w-full p-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary/20"
-            autoFocus
-          />
-        </div>
-      )}
-    </div>
-  );
-};
+        {isOpen && (
+          <div className="absolute z-50 mt-1 p-3 bg-white border border-gray-300 rounded-md shadow-lg">
+            <input
+              type="date"
+              value={selectedDate || ''}
+              onChange={handleDateChange}
+              className="w-full p-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary/20"
+              autoFocus
+            />
+          </div>
+        )}
+      </div>
+    );
+  };
 
 export const DateTask: React.FC<{
   value: string;
@@ -426,7 +407,9 @@ export const DateTask: React.FC<{
 
   return (
     <div className="relative w-full">
-      <div className="px-3 py-2 flex items-center gap-2 cursor-pointer" onClick={() => setIsOpen(true)}>
+      <div className="px-3 py-2 flex items-center gap-2 cursor-not-allowed" onClick={() => {
+        //  setIsOpen(true)
+      }}>
         <Calendar className="w-4 h-4 text-gray-400" />
         <span className={value ? 'text-gray-700' : 'text-gray-500'}>
           {formatDate(value)}

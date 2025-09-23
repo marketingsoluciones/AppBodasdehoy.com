@@ -4,13 +4,14 @@ import { fetchApiEventos, queries } from "../../../utils/Fetching"
 import { AuthContextProvider, EventContextProvider } from "../../../context"
 import { ViewItinerary } from "../../../pages/invitados"
 import { ItineraryTabsMenu } from "./ItineraryTabsMenu"
-import { FaCheck } from "react-icons/fa"
+import { FaCheck, FaChevronDown, FaPlus } from "react-icons/fa"
 import { useAllowed, useAllowedViewer } from "../../../hooks/useAllowed"
 import { useTranslation } from "react-i18next"
 import { useToast } from "../../../hooks/useToast"
 import { SelectModeSort } from "../../Utils/SelectModeSort"
 import { PermissionSelectModeView } from '../../Servicios/Utils/PermissionSelectModeView';
 import { PermissionAddButton } from "../../Servicios/Utils/PermissionAddButton"
+import { TimeZone } from "../../icons"
 
 interface props {
     itinerario: Itinerary
@@ -45,9 +46,10 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
     const [iniX, setIiniX] = useState<{ left: number, right: number, cursor: number }>()
     const refTabs: LegacyRef<HTMLDivElement> = useRef()
     const [reverse, setReverse] = useState<{ direction: string, position: number }[]>([])
+    const [isMobileDropdownOpen, setIsMobileDropdownOpen] = useState<boolean>(false)
+    const [isMobile, setIsMobile] = useState<boolean>(false)
     const toast = useToast()
 
-    // Función para agregar nueva tarea
     const addTask = async () => {
         try {
             if (!itinerario) {
@@ -88,6 +90,33 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             toast("error", t("Error al añadir"));
         }
     }
+
+    useEffect(() => {
+        const checkIsMobile = () => {
+            setIsMobile(window.innerWidth < 768)
+        }
+
+        checkIsMobile()
+        window.addEventListener('resize', checkIsMobile)
+
+        return () => window.removeEventListener('resize', checkIsMobile)
+    }, [])
+
+    useEffect(() => {
+        const handleClickOutside = (event: globalThis.MouseEvent) => {
+            if (isMobileDropdownOpen && !(event.target as Element).closest('.mobile-dropdown')) {
+                setIsMobileDropdownOpen(false)
+            }
+        }
+
+        if (isMobileDropdownOpen) {
+            document.addEventListener('mousedown', handleClickOutside)
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside)
+        }
+    }, [isMobileDropdownOpen])
 
     useEffect(() => {
         const itineraries = event?.itinerarios_array?.filter(elem => elem?.tipo === window?.location?.pathname.slice(1))
@@ -157,8 +186,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                 setItineraries([...newItineraries])
             }
         }
-    }, [event])
-
+    }, [event, setEvent])
     const handleCreateItinerario = async () => {
         if (event.itinerarios_array.filter(elem => elem.tipo === window?.location?.pathname.slice(1)).length > 15) {
             toast("warning", t("maxLimitedItineraries"));
@@ -232,7 +260,6 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             setEditTitle(true)
         })
     }
-
     const handleSelectItinerario = (e: MouseEvent<HTMLDivElement, globalThis.MouseEvent>, item: Itinerary) => {
         localStorage.setItem(`E_${event._id}_${window?.location?.pathname.slice(1)}`, item._id)
         if (item?._id !== itinerario?._id) {
@@ -255,17 +282,14 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
         })
         setItinerariesInTabs([...itinerariesInTabs])
     }
-
     useEffect(() => {
         if (!showTabs) {
             setShowTabs(true)
         }
     }, [showTabs])
-
     const handleReleaseItinerarioCapture = (e: MouseEvent<HTMLDivElement, globalThis.MouseEvent>, item: Itinerary) => {
         setIsClicked(false)
     }
-
     const handleReleaseItinerario = (e: MouseEvent<HTMLDivElement, globalThis.MouseEvent>, item: Itinerary) => {
         if (parseInt(e.currentTarget.getAttribute("itemID")) !== positionInTabs) {
             releaseAndLeave(e, item)
@@ -273,7 +297,6 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             e.currentTarget.style.left = `${0}px`
         }
     }
-
     const handleMoveItinerario = (e: MouseEvent<HTMLDivElement, globalThis.MouseEvent>, item: Itinerary) => {
         if (isClidked) {
             const X = parseInt(e.currentTarget.getAttribute("cursor"))
@@ -345,7 +368,6 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             setShowTabs(false)
         }
     }
-
     const handleLeave = (e: MouseEvent<HTMLDivElement, globalThis.MouseEvent>, item: Itinerary) => {
         if (item?._id === itinerario?._id && isClidked) {
             setIsClicked(false)
@@ -356,7 +378,6 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             }
         }
     }
-
     async function updatedNextId(itinerary: Itinerary) {
         return await fetchApiEventos({
             query: queries.editItinerario,
@@ -379,7 +400,6 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             }
         })
     }
-
     const releaseAndLeave = (e: MouseEvent<HTMLDivElement, globalThis.MouseEvent>, item: Itinerary) => {
         const itinerariesCopy = [...itineraries]
         if (itineraries.length === 1) {
@@ -468,58 +488,70 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
         setShowTabs(false)
     }
 
+    const handleMobileSelectItinerario = (item: Itinerary) => {
+        localStorage.setItem(`E_${event._id}_${window?.location?.pathname.slice(1)}`, item._id)
+        setItinerario(item)
+        setEditTitle(false)
+        setIsMobileDropdownOpen(false)
+    }
+
+    const toggleMobileDropdown = () => {
+        setIsMobileDropdownOpen(!isMobileDropdownOpen)
+    }
+
     return (
         <div className="flex w-full max-w-[1050px] h-10 items-center justify-center border-b md:px-4 md:py-2 shadow-md">
-            <div id="content" className="flex-1 h-full  flex justify-between">
-                <div className="inline-flex max-w-full h-full items-center  mr-2">
-                    {showTabs && <>
-                        <div ref={refTabs} id="azul" className={` ${event?.usuario_id === user?.uid && "max-w-[calc(100%-32px)]"} inline-flex  h-full items-center select-none  mx-2`}>
-                            {itineraries?.map((item, idx) => {
-                                return (
-                                    (isAllowedViewer(item?.viewers) || window?.location?.pathname === "/itinerario") &&
-                                    <div key={idx} className="relative">
-                                        <div id={item?._id} itemID={idx.toString()}
-                                            className={`justify-start items-center cursor-pointer h-full ${itinerario?._id === item?._id ? `flex ${isClidked && "absolute py-20 z-20"}` : "inline-flex"} text-sm space-x-1 relative md:mr-2`}
-                                            onMouseDown={(e) => valirOnMouse && handleSelectItinerario(e, item)}
-                                            onMouseUpCapture={(e) => valirOnMouse && handleReleaseItinerarioCapture(e, item)}
-                                            onMouseUp={(e) => {
-                                                valirOnMouse
-                                                    ? !editTitle && handleReleaseItinerario(e, item)
-                                                    : setValirOnMouse(true)
-                                            }}
-                                            onMouseMove={(e) => valirOnMouse && handleMoveItinerario(e, item)}
-                                            onMouseEnter={(e) => { valirOnMouse && handleEnter(e, item) }}
-                                            onMouseLeave={(e) => {
-                                                valirOnMouse
-                                                    ? !editTitle && handleLeave(e, item)
-                                                    : null
-                                            }}
-                                        >
-                                            {<div className={`${"inline-flex"} items-center`} >
-                                                <div className={`bg-white ${itinerario?._id === item?._id ? `border-primary text-primary w-full` : "text-gray-600"} border-b-2 flex-1 `}>
-                                                    {!!item?.icon && <div className="flex w-5 h-5 mr-1 items-center justify-center">
-                                                        {item?.icon}
-                                                    </div>}
-                                                    <div className={`${itinerario?._id !== item?._id && "break-all"} line-clamp-1 flex-1 `}>
-                                                        {item?.title}
-                                                    </div>
-                                                    {(editTitle && itinerario?._id === item?._id && window?.location?.pathname !== "/itinerario") &&
-                                                        <div onMouseDown={(e) => e.stopPropagation()} className="fixed md:absolute w-full h-16 z-50 translate-y-6 flex left-16 items-center justify-center">
-                                                            <div className="h-full bg-white space-x-2 rounded-md flex px-2 items-center justify-center shadow-md border-[1px]">
-                                                                <input type="text" onChange={(e) => setTitle(e.target.value)} value={title} className={` font-display text-sm text-gray-500 border-[1px] border-primary focus:border-gray-400 w-min py-1 px-2 rounded-xl focus:ring-0 focus:outline-none transition`} />
-                                                                <button type="button" onClick={() => handleUpdateTitle()} className="border-primary border font-display focus:outline-none text-primary hover:text-white text-xs bg-white hover:bg-primary px-3 py-1 rounded-lg transition">
-                                                                    <FaCheck />
-                                                                </button>
-                                                            </div>
+            <div id="content" className="flex-1 h-full flex justify-between">
+                {/* <div className="inline-flex max-w-full h-full items-center  mr-2">
+                        {showTabs && <>
+                            <div ref={refTabs} id="azul" className={` ${event?.usuario_id === user?.uid && "max-w-[calc(100%-32px)]"} inline-flex  h-full items-center select-none  mx-2`}>
+                                {itineraries?.map((item, idx) => {
+                                    return (
+                                        (isAllowedViewer(item?.viewers) || window?.location?.pathname === "/itinerario") &&
+                                        <div key={idx} className="relative">
+                                            <div id={item?._id} itemID={idx.toString()}
+                                                className={`justify-start items-center cursor-pointer h-full ${itinerario?._id === item?._id ? `flex ${isClidked && "absolute py-20 z-20"}` : "inline-flex"} text-sm space-x-1 relative md:mr-2`}
+                                                onMouseDown={(e) => valirOnMouse && handleSelectItinerario(e, item)}
+                                                onMouseUpCapture={(e) => valirOnMouse && handleReleaseItinerarioCapture(e, item)}
+                                                onMouseUp={(e) => {
+                                                    valirOnMouse
+                                                        ? !editTitle && handleReleaseItinerario(e, item)
+                                                        : setValirOnMouse(true)
+                                                }}
+                                                onMouseMove={(e) => valirOnMouse && handleMoveItinerario(e, item)}
+                                                onMouseEnter={(e) => { valirOnMouse && handleEnter(e, item) }}
+                                                onMouseLeave={(e) => {
+                                                    valirOnMouse
+                                                        ? !editTitle && handleLeave(e, item)
+                                                        : null
+                                                }}
+                                            >
+                                                {<div className={`${"inline-flex"} items-center`} >
+                                                    <div className={`bg-white ${itinerario?._id === item?._id ? `border-primary text-primary w-full` : "text-gray-600"} border-b-2 flex-1 `}>
+                                                        {!!item?.icon && <div className="flex w-5 h-5 mr-1 items-center justify-center">
+                                                            {item?.icon}
+                                                        </div>}
+                                                        <div className={`${itinerario?._id !== item?._id && "break-all"} line-clamp-1 flex-1 `}>
+                                                            {item?.title}
                                                         </div>
-                                                    }
-                                                </div>
-                                                <div onMouseDownCapture={() => {
-                                                    setValirOnMouse(false)
-                                                }} >
-                                                    <ItineraryTabsMenu item={item} itinerario={itinerario} handleDeleteItinerario={handleDeleteItinerario} setEditTitle={setEditTitle} setTitle={setTitle} setModalDuplicate={setModalDuplicate} selectTask={selectTask} setSelectTask={setSelectTask} />
-                                                </div>
-                                            </div>}
+                                                        {(editTitle && itinerario?._id === item?._id && window?.location?.pathname !== "/itinerario") &&
+                                                            <div onMouseDown={(e) => e.stopPropagation()} className="fixed md:absolute w-full h-16 z-50 translate-y-6 flex left-16 items-center justify-center">
+                                                                <div className="h-full bg-white space-x-2 rounded-md flex px-2 items-center justify-center shadow-md border-[1px]">
+                                                                    <input type="text" onChange={(e) => setTitle(e.target.value)} value={title} className={` font-display text-sm text-gray-500 border-[1px] border-primary focus:border-gray-400 w-min py-1 px-2 rounded-xl focus:ring-0 focus:outline-none transition`} />
+                                                                    <button type="button" onClick={() => handleUpdateTitle()} className="border-primary border font-display focus:outline-none text-primary hover:text-white text-xs bg-white hover:bg-primary px-3 py-1 rounded-lg transition">
+                                                                        <FaCheck />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                    <div onMouseDownCapture={() => {
+                                                        setValirOnMouse(false)
+                                                    }} >
+                                                        <ItineraryTabsMenu item={item} itinerario={itinerario} handleDeleteItinerario={handleDeleteItinerario} setEditTitle={setEditTitle} setTitle={setTitle} setModalDuplicate={setModalDuplicate} selectTask={selectTask} setSelectTask={setSelectTask} />
+                                                    </div>
+                                                </div>}
+                                            </div>
                                         </div>
                                     </div>
                                 )
@@ -532,21 +564,208 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                         />
                     </>}
                 </div>
+                <div className="flex flex-1 items-center justify-end pl-2 pr-4 select-none">
+                    <div className="text-gray-600 flex flex-col justify-center items-center">
+                        <div className="flex justify-center space-x-0.5 w-full">
+                            <TimeZone />
+                            <span className="text-[11px]">{t("timeZone")}</span>
+                        </div>
+                        <span className="text-xs">{event?.timeZone.split("/")[1]}</span>
+                    </div>
+                </div>
                 {isAllowed() && <div className="inline-flex space-x-4">
                     {["cards", "table"].includes(view) && (
-                        <>
-                            {/* Reemplazar el botón de agregar servicio */}
+                        <div className="flex items-center md:space-x-2">
                             <PermissionAddButton
-                                onClick={addTask} // ✅ función real
+                                onClick={addTask}
                                 text={itinerario?.tipo === "itinerario" ? "" : ""}
                                 showText={true}
                             />
                             <SelectModeSort value={orderAndDirection} setValue={setOrderAndDirection} />
-                        </>
+                        </div>
                     )}
-                    {/* Reemplazar SelectModeView */}
-                    <PermissionSelectModeView view={view} setView={setView} />
+                    <PermissionSelectModeView view={view} setView={setView} className="hidden md:block" />
                 </div>
+                } 
+            */}
+                {/* Vista Desktop */}
+                {!isMobile && (
+                <>
+                    <div className="inline-flex max-w-full h-full items-center mr-2">
+                        {showTabs && <>
+                            <div ref={refTabs} id="azul" className={` ${event?.usuario_id === user?.uid && "max-w-[calc(100%-32px)]"} inline-flex h-full items-center select-none mx-2`}>
+                                {itineraries?.map((item, idx) => {
+                                    return (
+                                        (isAllowedViewer(item?.viewers) || window?.location?.pathname === "/itinerario") &&
+                                        <div key={idx} className="relative">
+                                            <div id={item?._id} itemID={idx.toString()}
+                                                className={`justify-start items-center cursor-pointer h-full ${itinerario?._id === item?._id ? `flex ${isClidked && "absolute py-20 z-20"}` : "inline-flex"} text-sm space-x-1 relative md:mr-2`}
+                                                onMouseDown={(e) => valirOnMouse && handleSelectItinerario(e, item)}
+                                                onMouseUpCapture={(e) => valirOnMouse && handleReleaseItinerarioCapture(e, item)}
+                                                onMouseUp={(e) => {
+                                                    valirOnMouse
+                                                        ? !editTitle && handleReleaseItinerario(e, item)
+                                                        : setValirOnMouse(true)
+                                                }}
+                                                onMouseMove={(e) => valirOnMouse && handleMoveItinerario(e, item)}
+                                                onMouseEnter={(e) => { valirOnMouse && handleEnter(e, item) }}
+                                                onMouseLeave={(e) => {
+                                                    valirOnMouse
+                                                        ? !editTitle && handleLeave(e, item)
+                                                        : null
+                                                }}
+                                            >
+                                                {<div className={`${"inline-flex"} items-center`} >
+                                                    <div className={`bg-white ${itinerario?._id === item?._id ? `border-primary text-primary w-full` : "text-gray-600"} border-b-2 flex-1 `}>
+                                                        {!!item?.icon && <div className="flex w-5 h-5 mr-1 items-center justify-center">
+                                                            {item?.icon}
+                                                        </div>}
+                                                        <div className={`${itinerario?._id !== item?._id && "break-all"} line-clamp-1 flex-1 `}>
+                                                            {item?.title}
+                                                        </div>
+                                                        {(editTitle && itinerario?._id === item?._id && window?.location?.pathname !== "/itinerario") &&
+                                                            <div onMouseDown={(e) => e.stopPropagation()} className="fixed md:absolute w-full h-16 z-50 translate-y-6 flex left-16 items-center justify-center">
+                                                                <div className="h-full bg-white space-x-2 rounded-md flex px-2 items-center justify-center shadow-md border-[1px]">
+                                                                    <input type="text" onChange={(e) => setTitle(e.target.value)} value={title} className={` font-display text-sm text-gray-500 border-[1px] border-primary focus:border-gray-400 w-min py-1 px-2 rounded-xl focus:ring-0 focus:outline-none transition`} />
+                                                                    <button type="button" onClick={() => handleUpdateTitle()} className="border-primary border font-display focus:outline-none text-primary hover:text-white text-xs bg-white hover:bg-primary px-3 py-1 rounded-lg transition">
+                                                                        <FaCheck />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                    <div onMouseDownCapture={() => {
+                                                        setValirOnMouse(false)
+                                                    }} >
+                                                        <ItineraryTabsMenu item={item} itinerario={itinerario} handleDeleteItinerario={handleDeleteItinerario} setEditTitle={setEditTitle} setTitle={setTitle} setModalDuplicate={setModalDuplicate} selectTask={selectTask} setSelectTask={setSelectTask} />
+                                                    </div>
+                                                </div>}
+                                            </div>
+                                        </div>
+                                      
+                                      
+                                    )
+                                })}
+                            </div>
+                            <PermissionAddButton
+                                onClick={handleCreateItinerario}
+                                className="flex w-8 items-center justify-start bg-white"
+                                iconClassName="w-4 h-4 text-primary cursor-pointer"
+                            />
+                        </>}
+                    </div>
+                  <div className="flex flex-1 items-center justify-end pl-2 pr-4 select-none">
+                    <div className="text-gray-600 flex flex-col justify-center items-center">
+                        <div className="flex justify-center space-x-0.5 w-full">
+                            <TimeZone />
+                            <span className="text-[11px]">{t("timeZone")}</span>
+                        </div>
+                        <span className="text-xs">{event?.timeZone.split("/")[1]}</span>
+                    </div>
+                </div>
+                  </>
+                )}
+
+                {/* Vista Móvil - Menú Desplegable */}
+                {isMobile && (
+                    <div className="flex-1 relative mobile-dropdown">
+                        <button
+                            onClick={toggleMobileDropdown}
+                            className="w-full flex items-center px-3 py-1 mt-1.5 bg-white text-sm text-gray-700 focus:outline-none focus:ring-0 focus:border-0 "
+                        >
+                            <div className="flex items-center space-x-2">
+                                {!!itinerario?.icon && (
+                                    <div className="flex w-4 h-4 items-center justify-center">
+                                        {itinerario.icon}
+                                    </div>
+                                )}
+                                <span className="truncate">
+                                    {itinerario?.title || t("Seleccionar itinerario")}
+                                </span>
+                            </div>
+                            <FaChevronDown className={`w-3 h-3  ml-1 transition-transform ${isMobileDropdownOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                        {(editTitle && window?.location?.pathname !== "/itinerario") &&
+                            <div onMouseDown={(e) => e.stopPropagation()} className="fixed w-full h-16 z-50 -translate-y-20 -translate-x-2 flex items-center justify-center">
+                                <div className="h-full bg-white space-x-2 rounded-md flex px-2 items-center justify-center shadow-md border-[1px]">
+                                    <input type="text" onChange={(e) => setTitle(e.target.value)} value={title} className={` font-display text-sm text-gray-500 border-[1px] border-primary focus:border-gray-400 w-min py-1 px-2 rounded-xl focus:ring-0 focus:outline-none transition`} />
+                                    <button type="button" onClick={() => handleUpdateTitle()} className="border-primary border font-display focus:outline-none text-primary hover:text-white text-xs bg-white hover:bg-primary px-3 py-1 rounded-lg transition">
+                                        <FaCheck />
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                      
+                        {isMobileDropdownOpen && (
+                            <div className="absolute z-40 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                {itineraries?.map((item, idx) => {
+                                    return (
+                                        (isAllowedViewer(item?.viewers) || window?.location?.pathname === "/itinerario") && (
+                                            <div key={idx} className="relative">
+                                                <div className={`flex items-center justify-between p-3 ${itinerario?._id === item?._id ? 'bg-primary/10 border-l-4 border-primary' : 'hover:bg-gray-50'}`}>
+                                                    <button
+                                                        onClick={() => handleMobileSelectItinerario(item)}
+                                                        className="flex-1 flex items-center space-x-2 text-left"
+                                                    >
+                                                        {!!item?.icon && (
+                                                            <div className={`flex w-4 h-4 items-center justify-center ${itinerario?._id === item?._id ? 'text-primary' : ''}`}>
+                                                                {item.icon}
+                                                            </div>
+                                                        )}
+                                                        <span className={`text-sm truncate ${itinerario?._id === item?._id ? 'text-primary font-medium' : 'text-gray-700'}`}>
+                                                            {item?.title}
+                                                        </span>
+                                                    </button>
+                                                    <div onClick={(e) => e.stopPropagation()} >
+                                                        <ItineraryTabsMenu
+                                                            className={`${idx >= itineraries.length - 3 ? '-top-[100px] right-10' : ''}`}
+                                                            item={item}
+                                                            itinerario={itinerario}
+                                                            handleDeleteItinerario={handleDeleteItinerario}
+                                                            setEditTitle={setEditTitle}
+                                                            setTitle={setTitle}
+                                                            setModalDuplicate={setModalDuplicate}
+                                                            selectTask={selectTask}
+                                                            setSelectTask={setSelectTask}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        )
+                                    )
+                                })}
+
+                                <div className="p-3 border-t border-gray-200">
+                                    <button
+                                        onClick={() => {
+                                            handleCreateItinerario()
+                                            setIsMobileDropdownOpen(false)
+                                        }}
+                                        className="w-full flex items-center justify-center space-x-2 px-3 py-2 text-sm text-primary border border-primary rounded-md hover:bg-primary hover:text-white transition-colors"
+                                    >
+                                        <FaPlus className="w-4 h-4" />
+                                        <span>{t("Crear nuevo")}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {isAllowed() && <div className="inline-flex md:space-x-4">
+                        {["cards", "table"].includes(view) && (
+                            <div className="flex items-center md:space-x-2">
+                                <PermissionAddButton
+                                    onClick={addTask}
+                                    text={itinerario?.tipo === "itinerario" ? "" : ""}
+                                    showText={true}
+                                />
+                                <SelectModeSort value={orderAndDirection} setValue={setOrderAndDirection} />
+                            </div>
+                        )}
+                        <PermissionSelectModeView view={view} setView={setView} className="hidden md:block" />
+                    </div>
                 }
             </div>
         </div>

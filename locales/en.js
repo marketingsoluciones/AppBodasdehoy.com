@@ -652,6 +652,7 @@ export const en = {
     'nodescription': "no description",
     'messages': "messages",
     'noEvents': "You still do not have tasks created in this event",
+    'hora local': 'local hour',
     'noData': "no data visible within this task",
     'waitOwner': "Wait for the event owner to share a task with you",
     'noData2': "No data available in this view",

@@ -98,7 +98,6 @@ interface HandleCopyLink {
 export const handleCopyLink = ({ task, type, event, navigator, toast, t, document, itinerario }: HandleCopyLink) => {
   if (type === "calendar") {
     const calendarLink = generateGoogleCalendarLink(task, event);
-    console.log(calendarLink);
     copyToClipboard({ link: calendarLink, navigator, toast, t, document });
   } else {
     copyToClipboard({ link: `${window.location.origin}/servicios?event=${event?._id}&itinerary=${itinerario?._id}&task=${task?._id}`, navigator, toast, t, document });
@@ -156,7 +155,7 @@ export const calculateEndTime = (startDate: string | Date, durationMinutes: numb
   if (!startDate || !durationMinutes) return '';
   const start = new Date(startDate);
   const end = new Date(start.getTime() + durationMinutes * 60 * 1000);
-  return formatTime(end);
+  return end.toJSON();
 };
 
 // Función para formatear texto con límite de líneas

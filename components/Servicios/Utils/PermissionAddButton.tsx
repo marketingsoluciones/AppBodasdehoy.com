@@ -16,8 +16,8 @@ interface PermissionAddButtonProps {
 export const PermissionAddButton: FC<PermissionAddButtonProps> = ({ 
   onClick,
   children,
-  className = "bg-primary text-white hover:bg-primary/90 transition-colors rounded-lg p-2 flex items-center space-x-2",
-  iconClassName = "w-5 h-5",
+  className = "bg-primary text-white hover:bg-primary/90 transition-colors rounded-lg p-1.5 flex items-center space-x-2",
+  iconClassName = "w-4 h-4",
   text = "Agregar",
   showText = false
 }) => {

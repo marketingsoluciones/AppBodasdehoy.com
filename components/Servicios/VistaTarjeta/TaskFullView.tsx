@@ -18,6 +18,7 @@ import { ItineraryButtonBox } from './ItineraryButtonBox';
 import { StatusPriorityTask } from './StatusPriorityTask';
 import { AuthContextProvider } from '../../../context';
 import { InputCommentsOld } from '../Utils/InputCommentsOld';
+import { useDateTime } from '../../../hooks/useDateTime';
 
 interface TaskFullViewProps {
   task: Task;
@@ -53,7 +54,9 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
   const { user } = AuthContextProvider();
   const owner = user?.uid === event?.usuario_id;
   const [showAttachments, setShowAttachments] = useState(false);
-
+  const { dateTimeFormated } = useDateTime();
+  const [editingDate, setEditingDate] = useState(false);
+  const [editingTime, setEditingTime] = useState(false);
 
   // Auto-scroll al agregar nuevos comentarios
   useEffect(() => {
@@ -72,7 +75,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
   }, [task.comments.length, previousCountComments]);
 
   return (
-    <div {...props} className="w-full bg-white rounded-lg shadow-lg cursor-default">
+    <div {...props} className="w-full bg-white rounded-lg shadow-lg cursor-default md:scale-100 scale-90">
       <div id="task-container" className={`flex h-[553px] rounded-xl outline ${selectTask === task._id ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200"}`}>
         {/* Panel principal */}
         <div id='container-left' className="flex-1 flex flex-col h-full">
@@ -85,15 +88,13 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               owner={owner}
             />
             {canEdit &&
-              <div className="flex items-center">
-                {/* Botones de acción integrados - OCULTOS sin permisos */}
+              <div className="flex items-center mr-2 md:mr-0">
                 <IntegrateButtonsBox
                   task={task}
                   handleUpdate={handleUpdate}
                   handleDuplicate={handleDuplicate}
                   itinerario={itinerario}
                 />
-                {/* Botones de ItineraryButtonBox - OCULTOS sin permisos */}
                 {(optionsItineraryButtonBox && optionsItineraryButtonBox.length > 0) &&
                   <ItineraryButtonBox
                     optionsItineraryButtonBox={optionsItineraryButtonBox}
@@ -104,7 +105,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               </div>}
           </div>
           {/* Contenido principal */}
-          <div className="flex flex-col flex-1 px-6 py-2 space-y-2">
+          <div className="flex flex-col flex-1 px-6 py-2 space-y-2  ">
             {/* Fila de Estado y Prioridad */}
             <StatusPriorityTask
               task={task}
@@ -120,7 +121,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
               owner={owner}
             />
             {/* Fechas con duración y hora */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-4 group relative">
               <div className="flex items-center space-x-2">
                 <Calendar className="w-4 h-4 text-gray-500" />
                 {/* <span className="text-xs text-gray-600">{t('Fecha y hora')}</span> */}
@@ -130,11 +131,15 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                   handleUpdate={handleUpdate}
                   canEdit={canEdit}
                   task={task}
+                  setEditing={setEditingDate}
+                  editing={editingDate}
                 />
                 <TimeTask
                   handleUpdate={handleUpdate}
                   canEdit={canEdit}
                   task={task}
+                  setEditing={setEditingTime}
+                  editing={editingTime}
                 />
                 {/* Duración mejorada con conversor */}
                 <DurationTask
@@ -143,6 +148,11 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                   task={task}
                 />
               </div>
+              {task.fecha && <div className={`absolute bottom-full left-6 transform -translate-y-1/4 mb-2 px-2 py-1 bg-gray-900 text-white text-[11px] rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 group-hover:delay-300 whitespace-nowrap z-10 flex flex-col ${editingDate || editingTime ? "hidden" : ""}`}>
+                <span className='font-bold text-yellow-500'>{dateTimeFormated(task.fecha, event?.timeZone)}</span>
+                <span className='text-gray-100'>{dateTimeFormated(task.fecha, "UTC")}</span>
+                <span className='text-gray-100'>{dateTimeFormated(task.fecha, Intl.DateTimeFormat().resolvedOptions().timeZone)} {`(${t("hora local")})`}</span>
+              </div>}
             </div>
             <TagsTask
               canEdit={canEdit}
@@ -188,11 +198,9 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                 <div className="text-center">
                   <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-2" />
                   <p className="text-sm text-gray-500">{t('No hay comentarios')}</p>
-                  {/* <p className="text-xs text-gray-400 mt-1">{t('Sé el primero en comentar')}</p> */}
                 </div>
               </div>
               : <div className="flex flex-col h-full">
-                {/* Lista de comentarios */}
                 <div className="space-y-2 *p-4 flex-shrink-0">
                   {task.comments.map((comment) => (
                     <div key={comment._id} className="relative group">

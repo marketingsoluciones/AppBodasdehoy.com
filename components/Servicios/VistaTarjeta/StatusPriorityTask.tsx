@@ -29,7 +29,7 @@ export const StatusPriorityTask: FC<StatusPriorityTaskProps> = ({
   const currentPriority = TASK_PRIORITIES.find(p => p.value === task.prioridad) || TASK_PRIORITIES[1];
 
   return (
-    <div className="flex items-center space-x-4">
+    <div className="flex items-center justify-between md:justify-start space-x-4 md:scale-100 scale-90">
       {/* Estado */}
       <div className="flex items-center space-x-2">
         <span className="text-xs text-gray-600">{t('Estado')}</span>

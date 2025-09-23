@@ -168,7 +168,8 @@ export const TimeTaskTable: FC<TimeTaskTableProps> = ({
     <div
       onClick={() => {
         if (canEdit && (task?.fecha || value)) {
-          setEditing(true);
+          // no editar porque la funcion está mala y daña la data
+          // setEditing (true);
           // Si no hay hora activa, inicializar con hora actual
           if (task?.horaActiva === false || !localTime) {
             const now = new Date();
@@ -177,7 +178,7 @@ export const TimeTaskTable: FC<TimeTaskTableProps> = ({
           }
         }
       }}
-      className={`flex items-center space-x-1 ${canEdit && (task?.fecha || value) ? 'cursor-pointer hover:text-primary' : ''
+      className={`flex items-center space-x-1 ${canEdit && (task?.fecha || value) ? 'cursor-not-allowed hover:text-primary' : ''
         }`}
       title={canEdit ? t('Haz clic para editar hora') : ''}
     >

@@ -81,15 +81,11 @@ export const PermissionItineraryTabs: FC<PermissionItineraryTabsProps> = ({
 
           {/* Controles del lado derecho */}
           <div className="flex items-center space-x-2">
-            
-            {/* Selector de vista */}
             <PermissionSelectModeView 
               view={view} 
               setView={setView}
               className="mr-2"
             />
-
-            {/* Botón para agregar servicio - solo si tiene permisos de edición */}
             {onAddService && (
               <PermissionAddButton
                 onClick={onAddService}

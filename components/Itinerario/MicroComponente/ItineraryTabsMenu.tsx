@@ -20,9 +20,10 @@ interface props {
     setModalDuplicate: any
     selectTask: string
     setSelectTask: any
+    className?: string
 }
 
-export const ItineraryTabsMenu: FC<props> = ({ setModalDuplicate, itinerario, item, handleDeleteItinerario, setEditTitle, setTitle }) => {
+export const ItineraryTabsMenu: FC<props> = ({ setModalDuplicate, itinerario, item, handleDeleteItinerario, setEditTitle, setTitle, className }) => {
     const [showMenu, setShowMenu] = useState<boolean>()
     const [valirShowMenu, setValirShowMenu] = useState<boolean>(false)
     const [showAddUsertoServices, setShowAddUsertoServices] = useState<boolean>()
@@ -102,8 +103,9 @@ export const ItineraryTabsMenu: FC<props> = ({ setModalDuplicate, itinerario, it
                             className={`w-6 h-6 rounded-full bg-gray-100 flex justify-center items-center text-gray-600 hover:bg-gray-200 hover:text-gray-900 ${showMenu && "bg-gray-200 text-gray-900"}`}>
                             <DotsOpcionesIcon className={""} />
                         </div>
-                        : <></>}
-                    {showMenu && <div className={`absolute -right-6 top-[28px] bg-white z-50 rounded-md shadow-md truncate`}>
+                        : <></>
+                    }
+                    {showMenu && <div className={`absolute md:-right-6 right-4 top-[28px] bg-white z-50 rounded-md shadow-md truncate ${className}`}>
                         {optionsSelect?.map((elem, idx) =>
                             (isAllowed() || elem.value === "details") && <div key={idx}
                                 onClick={() => {

@@ -382,6 +382,7 @@ export const es = {
     'noguestsseatedtable': 'No hay invitados sentados en esta mesa',
     'nohaveeventscreated': 'No tienes eventos creados',
     'NOMBRE': 'NOMBRE',
+    'hora local': 'hora local',
     'Nombre de evento requerido': 'Nombre de evento requerido',
     'Selecciona una zona horaria': 'Selecciona una zona horaria',
     'no_results': 'No hay resultados',
