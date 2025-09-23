@@ -19,11 +19,11 @@ interface TimeTaskProps {
 export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task, setEditing, editing, uso }) => {
   const { t } = useTranslation();
   const [value, setValue] = useState<string>();
-  const { utcDateTime, is12HourFormat, dateTimeFormated } = useDateTime()
+  const { utcDateTime, timeFormated } = useDateTime()
   const { event } = EventContextProvider()
 
   const endTime = task?.fecha && task?.duracion ? calculateEndTime(task.fecha, task.duracion as number) : null;
-  const endTimeFormated = endTime ? dateTimeFormated(endTime, event.timeZone).slice(11, 24) : null;
+  const endTimeFormated = endTime ? timeFormated(endTime, event.timeZone) : null;
 
   return (
     <div className="w-[100px] h-full flex items-center">
@@ -119,9 +119,7 @@ export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task, setEd
           <span className={`flex items-center space-x-1 text-xs`}>
             {uso !== 'endTime'
               ? task?.fecha && task?.horaActiva !== false
-                ? is12HourFormat()
-                  ? dateTimeFormated(task.fecha, event.timeZone).slice(11, 24)
-                  : dateTimeFormated(task.fecha, event.timeZone).slice(11, 17)
+                ? timeFormated(task.fecha, event.timeZone)
                 : t('Sin hora')
               : task?.fecha && task?.duracion
                 ? endTimeFormated

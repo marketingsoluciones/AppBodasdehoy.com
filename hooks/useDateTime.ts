@@ -42,9 +42,18 @@ export const useDateTime = () => {
         return getDateFormated(date, options);
     };
 
-    /*usada en TaskFullView TimeTask*/
+    /*usada en TaskFullView TaskDurationContainer*/
     const dateTimeFormated = (date: Date | number | string, timeZone: string) => {
         const options: object = { year: "numeric", month: "2-digit", day: "2-digit", timeZone: timeZone || "UTC", hour: "2-digit", minute: "2-digit", hour12, timeZoneName: timeZone === "UTC" ? "short" : "long" };
+        if (typeof date === 'string' && !date.includes('T') && !date.includes('-')) {
+            return getDateFormated(parseInt(date), options);
+        }
+        return getDateFormated(date, options);
+    };
+
+    /*usada en TaskSchemaView TimeTask*/
+    const timeFormated = (date: Date | number | string, timeZone: string) => {
+        const options: object = { timeZone: timeZone || "UTC", hour: "2-digit", minute: "2-digit", hour12 };
         if (typeof date === 'string' && !date.includes('T') && !date.includes('-')) {
             return getDateFormated(parseInt(date), options);
         }
@@ -80,5 +89,5 @@ export const useDateTime = () => {
         return hour12
     }
 
-    return { utcDateFormated, dateTimeFormated, utcDateTime, utcDate, utcDateFormated2Digits, is12HourFormat, utcTime };
+    return { utcDateFormated, dateTimeFormated, utcDateTime, utcDate, utcDateFormated2Digits, is12HourFormat, utcTime, timeFormated };
 };

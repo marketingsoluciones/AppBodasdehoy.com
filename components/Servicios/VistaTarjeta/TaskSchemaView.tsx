@@ -20,7 +20,7 @@ export const TaskSchemaView: FC<TaskSchemaViewProps> = ({ task, canEdit, ht, han
   const { t } = useTranslation();
   const [showIconSelector, setShowIconSelector] = useState<boolean>(false);
   const [tempIcon, setTempIcon] = useState<string>(task.icon);
-  const { is12HourFormat, dateTimeFormated } = useDateTime()
+  const { is12HourFormat, timeFormated } = useDateTime()
   const { event } = EventContextProvider()
 
   const handleIconChange = (newIcon: string) => {
@@ -85,9 +85,7 @@ export const TaskSchemaView: FC<TaskSchemaViewProps> = ({ task, canEdit, ht, han
               <div className="inline-flex flex-col justify-start items-start">
                 <span className="text-xl md:text-2xl text-gray-900">
                   {task.fecha
-                    ? is12HourFormat()
-                      ? dateTimeFormated(task.fecha, event?.timeZone).slice(11, 24)
-                      : dateTimeFormated(task.fecha, event?.timeZone).slice(11, 17)
+                    ? timeFormated(task.fecha, event?.timeZone)
                     : '00:00'
                   }
                 </span>
