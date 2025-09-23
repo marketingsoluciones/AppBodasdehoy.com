@@ -10,13 +10,15 @@ interface StatusPriorityTaskProps {
   canEdit: boolean;
   handleUpdate: (field: string, value: any) => Promise<void>;
   ht: () => void;
+  isMobile?: boolean;
 }
 
 export const StatusPriorityTask: FC<StatusPriorityTaskProps> = ({
   task,
   canEdit,
   handleUpdate,
-  ht
+  ht,
+  isMobile
 }) => {
   const { t } = useTranslation();
 
@@ -29,14 +31,14 @@ export const StatusPriorityTask: FC<StatusPriorityTaskProps> = ({
   const currentPriority = TASK_PRIORITIES.find(p => p.value === task.prioridad) || TASK_PRIORITIES[1];
 
   return (
-    <div className="flex items-center justify-between md:justify-start space-x-4 md:scale-100 scale-90">
+    <div className="flex items-center justify-between md:justify-start space-x-4 ">
       {/* Estado */}
       <div className="flex items-center space-x-2">
         <span className="text-xs text-gray-600">{t('Estado')}</span>
         <div className="relative">
           <button
             onClick={() => canEdit ? setShowStatusDropdown(!showStatusDropdown) : ht()}
-            className={`px-3 py-1 rounded text-white text-sm flex items-center space-x-1 ${currentStatus.color} ${canEdit ? 'hover:opacity-80 cursor-pointer' : 'cursor-default'
+            className={`px-3  rounded text-white ${isMobile ? "text-[13px]" : "text-sm py-1"} flex items-center space-x-1 ${currentStatus.color} ${canEdit ? 'hover:opacity-80 cursor-pointer' : 'cursor-default'
               }`}
             title={canEdit ? "Cambiar estado" : "No tienes permisos para editar"}
           >
@@ -45,7 +47,7 @@ export const StatusPriorityTask: FC<StatusPriorityTaskProps> = ({
           </button>
           {(showStatusDropdown && canEdit) &&
             <ClickAwayListener onClickAway={() => setShowStatusDropdown(false)}>
-              <div className="absolute mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+              <div className={`absolute mt-2 ${isMobile ? "" : "w-48"} bg-white border border-gray-200 rounded-lg shadow-lg z-50`}>
                 {TASK_STATUSES.map(status => (
                   <button
                     key={status.value}
@@ -71,7 +73,7 @@ export const StatusPriorityTask: FC<StatusPriorityTaskProps> = ({
         <div className="relative">
           <button
             onClick={() => canEdit ? setShowPriorityDropdown(!showPriorityDropdown) : ht()}
-            className={`px-3 py-1 rounded text-white text-sm flex items-center space-x-1 ${currentPriority.color} ${canEdit ? 'hover:opacity-80 cursor-pointer' : 'cursor-default'
+            className={`px-3  rounded text-white ${isMobile ? "text-[13px]" : "text-sm py-1"} flex items-center space-x-1 ${currentPriority.color} ${canEdit ? 'hover:opacity-80 cursor-pointer' : 'cursor-default'
               }`}
             title={canEdit ? "Cambiar prioridad" : "No tienes permisos para editar"}
           >
@@ -81,7 +83,7 @@ export const StatusPriorityTask: FC<StatusPriorityTaskProps> = ({
           </button>
           {(showPriorityDropdown && canEdit) &&
             <ClickAwayListener onClickAway={() => setShowPriorityDropdown(false)}>
-              <div className="absolute mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+              <div className={`absolute mt-2 ${isMobile ? "w-32 right-0" : " w-48"} bg-white border border-gray-200 rounded-lg shadow-lg z-50 `}>
                 {TASK_PRIORITIES.map(priority => (
                   <button
                     key={priority.value}
