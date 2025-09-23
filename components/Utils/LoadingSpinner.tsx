@@ -9,7 +9,7 @@ export const LoadingSpinner: FC<props> = ({ loading }) => {
 
   return (
     loading && <>
-      <div className="bg-white left-0 top-0 z-50 fixed w-full h-full opacity-100" />
+      <div className="bg-white left-0 top-0 z-50 fixed w-full h-full opacity-30" />
       <div className="absolute z-50  top-[calc(50%-20px)] left-[calc(50%-20px)] loader ease-linear rounded-full border-[7px] border-black border-opacity-35 w-10 h-10" />
       <style jsx>
         {`
