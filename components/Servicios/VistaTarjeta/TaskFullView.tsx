@@ -57,6 +57,19 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
   const { dateTimeFormated } = useDateTime();
   const [editingDate, setEditingDate] = useState(false);
   const [editingTime, setEditingTime] = useState(false);
+  const [isMobile, setIsMobile] = useState<boolean>(false)
+
+
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+
+    checkIsMobile()
+    window.addEventListener('resize', checkIsMobile)
+
+    return () => window.removeEventListener('resize', checkIsMobile)
+  }, [])
 
   // Auto-scroll al agregar nuevos comentarios
   useEffect(() => {
@@ -75,7 +88,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
   }, [task.comments.length, previousCountComments]);
 
   return (
-    <div {...props} className="w-full bg-white rounded-lg shadow-lg cursor-default md:scale-100 scale-90">
+    <div {...props} className={`w-full bg-white rounded-lg shadow-lg cursor-default  ${isMobile ? "scale-90" : ""}`}>
       <div id="task-container" className={`flex h-[553px] rounded-xl outline ${selectTask === task._id ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200"}`}>
         {/* Panel principal */}
         <div id='container-left' className="flex-1 flex flex-col h-full">

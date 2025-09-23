@@ -109,7 +109,7 @@ export const ModalTemplates: FC<props> = ({ action, use, optionSelect }) => {
             {t(elem)} {optionSelect === "email" ? t("email") : "Whatsapp"}
           </div>
           {optionSelect === "email"
-            ? <div className={`bg-gray-100 w-full flex-1 flex flex-wrap overflow-y-scroll gap-x-3 gap-y-2 p-2 rounded-b-md ${use === "edit" ? "px-9" : "px-34"}`}>
+            ? <div className={`bg-gray-100 w-full flex-1 flex md:flex-wrap flex-col items-center overflow-y-scroll gap-x-3 gap-y-2 p-2 rounded-b-md ${use === "edit" ? "px-9" : "px-34"}`}>
               {(elem === "templates" ? templatesEmail : myTemplatesEmail)?.map((template, idx) => (
                 <div key={idx} className={`${use === "edit" ? "w-20 h-[120px] pt-1 text-[10px]" : "w-40 h-[240px] space-y-2 pt-3 text-[11px]"} flex flex-col items-center rounded-md hover:bg-white transition-colors ease-in-out duration-200 cursor-pointer relative ${template._id === event?.templateEmailSelect && use === "load" ? "border-[1px] border-primary" : ""}`} onClick={() => action({ ...template } as TemplateDesign)}>
                   {(elem !== "templates" && use === "edit") && <div onClick={e => {
