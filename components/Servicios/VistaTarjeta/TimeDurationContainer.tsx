@@ -40,6 +40,7 @@ export const TimeDurationContainer: FC<TimeDurationContainerProps> = ({ task, ca
             task={task}
             setEditing={setEditingDate}
             editing={editingDate}
+            uso="itinerary"
           />
         </div>
         <TimeIndicators

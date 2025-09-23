@@ -724,7 +724,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                         <div key={i} className="w-full mt-4 flex flex-col gap-4">
                           {["/itinerario"].includes(window?.location?.pathname) && <div className={`w-full flex ${view === "schema" ? "justify-start" : "justify-center"}`}>
                             <span className={`${view === "schema" ? "border-primary border-dotted mb-1" : "border-gray-300 mb-1"} border-[1px] px-5 py-[1px] rounded-full text-[12px] font-semibold`}>
-                              {new Date(el?.fecha).toLocaleString(geoInfo?.acceptLanguage?.split(",")[0], { year: "numeric", month: "long", day: "2-digit" })}
+                              {new Date(el?.fecha).toLocaleString(navigator.language, { year: "numeric", month: "long", day: "2-digit" })}
                             </span>
                           </div>}
                           {el?.tasks?.map((elem, idx) => {

@@ -17,7 +17,7 @@ export const useDateTime = () => {
     const hour12 = regex.test(formattedTime);
 
     const getDateFormated = (date: Date | number | string, options?: object) => {
-        const offsetMinutes = getOffsetMinutes(date, event.timeZone)
+        const offsetMinutes = getOffsetMinutes(date, event?.timeZone)
         const d = new Date(date);
         const dEpoch = d.getTime();
         const offsetMilliseconds = -1 * offsetMinutes * 60 * 1000;

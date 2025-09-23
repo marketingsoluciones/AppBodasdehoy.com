@@ -17,11 +17,6 @@ interface TimeIndicatorsProps {
 export const TimeIndicators: FC<TimeIndicatorsProps> = ({ task, canEdit, handleUpdate, setEditingStartTime, editingStartTime, setEditingEndTime, editingEndTime }) => {
   const { t } = useTranslation();
 
-
-  if (!task.fecha || !task.duracion) {
-    return null;
-  }
-
   return (
     <div className="flex items-center space-x-6 bg-gray-50 rounded-lg p-3">
       {/* Hora de Inicio */}
@@ -34,7 +29,9 @@ export const TimeIndicators: FC<TimeIndicatorsProps> = ({ task, canEdit, handleU
             canEdit={canEdit}
             task={task}
             setEditing={setEditingStartTime}
-            editing={editingStartTime} />
+            editing={editingStartTime}
+            uso="startTime"
+          />
         </div>
       </div>
       {/* Separador */}

@@ -13,7 +13,7 @@ interface TimeTaskProps {
   task: Task;
   setEditing: (editing: boolean) => void;
   editing: boolean;
-  uso?: "endTime" | undefined;
+  uso?: "startTime" | "endTime" | undefined;
 }
 
 export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task, setEditing, editing, uso }) => {
@@ -51,12 +51,12 @@ export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task, setEd
               }
 
             }} className="absolute z-10 -right-[6px] cursor-pointer p-[2px]">
-              <div className='relative group'>
+              {uso !== "startTime" && <div className='relative group'>
                 <X className="w-3 h-3" />
                 <div id={`time-task-tooltip_${task._id}`} className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity whitespace-nowrap z-20">
                   {t('Eliminar hora')}
                 </div>
-              </div>
+              </div>}
             </div>
             <input
               type="time"
@@ -125,7 +125,7 @@ export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task, setEd
                 : t('Sin hora')
               : task?.fecha && task?.duracion
                 ? endTimeFormated
-                : t('Sin hora de fin')}
+                : t('Sin hora')}
           </span>
         </div>
       }

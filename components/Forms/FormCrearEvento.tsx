@@ -125,24 +125,31 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
 
   const updateEvent = async (values: any) => {
     try {
-      values.fecha = new Date(values.fecha).getTime()
-      await fetchApiEventos({
+      values.fecha = new Date(values.fecha).getTime().toString()
+      console.log(values.fecha, event.fecha)
+      values.nombre !== event.nombre && await fetchApiEventos({
         query: queries.eventUpdate,
         variables: {
           idEvento: values._id, variable: "nombre",
           value: values.nombre
         }, token: null
       })
-      await fetchApiEventos({
+      values.tipo !== event.tipo && await fetchApiEventos({
         query: queries.eventUpdate,
         variables: { idEvento: values._id, variable: "tipo", value: values.tipo }, token: null
       })
-      const result = await fetchApiEventos({
+      values.fecha !== event.fecha && await fetchApiEventos({
         query: queries.eventUpdate,
-        variables: { idEvento: values._id, variable: "fecha", value: values.fecha.toString() }, token: null
+        variables: { idEvento: values._id, variable: "fecha", value: values.fecha }, token: null
       })
-      setEvent({ ...event, ...values })
-      toast("success", t("Evento actualizado con exito"))
+      values.timeZone !== event.timeZone && await fetchApiEventos({
+        query: queries.eventUpdate,
+        variables: { idEvento: values._id, variable: "timeZone", value: values.timeZone }, token: null
+      })
+      if (values.fecha !== event.fecha || values.tipo !== event.tipo || values.nombre !== event.nombre || values.timeZone !== event.timeZone) {
+        setEvent({ ...event, ...values })
+        toast("success", t("Evento actualizado con exito"))
+      }
     } catch (error) {
       toast("error", t("Ha ocurrido un error al modificar el evento"));
       console.log(error)

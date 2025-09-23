@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import { Formik, Form, Field } from 'formik';
 
 import { Task, Itinerary } from '../../../utils/Interfaces';
@@ -6,6 +6,8 @@ import { formatTime } from './TaskNewUtils';
 import { useTranslation } from 'react-i18next';
 import { Interweave } from "interweave";
 import { HashtagMatcher, UrlMatcher } from "interweave-autolink";
+import { useDateTime } from '../../../hooks/useDateTime';
+import { EventContextProvider } from '../../../context';
 
 interface TaskSchemaViewProps {
   task: Task;
@@ -18,6 +20,8 @@ export const TaskSchemaView: FC<TaskSchemaViewProps> = ({ task, canEdit, ht, han
   const { t } = useTranslation();
   const [showIconSelector, setShowIconSelector] = useState<boolean>(false);
   const [tempIcon, setTempIcon] = useState<string>(task.icon);
+  const { is12HourFormat, dateTimeFormated } = useDateTime()
+  const { event } = EventContextProvider()
 
   const handleIconChange = (newIcon: string) => {
     if (!canEdit) {
@@ -80,7 +84,12 @@ export const TaskSchemaView: FC<TaskSchemaViewProps> = ({ task, canEdit, ht, han
             <div className="flex-1">
               <div className="inline-flex flex-col justify-start items-start">
                 <span className="text-xl md:text-2xl text-gray-900">
-                  {task.fecha ? formatTime(task.fecha) : '00:00'}
+                  {task.fecha
+                    ? is12HourFormat()
+                      ? dateTimeFormated(task.fecha, event?.timeZone).slice(11, 24)
+                      : dateTimeFormated(task.fecha, event?.timeZone).slice(11, 17)
+                    : '00:00'
+                  }
                 </span>
                 <div className="w-full flex justify-end items-end text-xs -mt-1">
                   <span>{t("duration")}</span>

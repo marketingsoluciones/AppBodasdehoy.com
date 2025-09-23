@@ -642,6 +642,7 @@ export const queries = {
     getItinerario(evento_id:$evento_id, itinerario_id:$itinerario_id){
       nombre
       tipo
+      timeZone
       itinerarios_array{
         _id
         next_id
