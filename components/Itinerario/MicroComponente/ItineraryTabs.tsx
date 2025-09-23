@@ -660,7 +660,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                             <TimeZone />
                             <span className="text-[11px]">{t("timeZone")}</span>
                         </div>
-                        <span className="text-xs">{event?.timeZone.split("/")[1]}</span>
+                        <span className="text-xs">{event?.timeZone?.split("/")[1]}</span>
                     </div>
                 </div>
                   </>
