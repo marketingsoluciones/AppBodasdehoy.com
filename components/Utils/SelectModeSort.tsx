@@ -47,14 +47,6 @@ export const SelectModeSort: FC<props> = ({ value, setValue }) => {
       value: "prioridad",
       title: t("priority")
     },
-      // {
-      //   value: "personalizada",
-      //   title: t("custom")
-      // },
-      // {
-      //   value: "ninguna",
-      //   title: t("none")
-      // }
     ]
   }
 
@@ -75,29 +67,32 @@ export const SelectModeSort: FC<props> = ({ value, setValue }) => {
 
   return (
     <ClickAwayListener onClickAway={() => setShow(false)} >
-      <div className={`relative flex cursor-pointer -translate-y-10 md:translate-y-0 select-none ${show && "z-50"}`}>
-        <div onClick={() => { setShow(!show) }} className="inline-flex md:text-sm md:gap-0.5 text-gray-700 items-center capitalize text-[10px]">
-          <span className="hidden md:block">{t("toOrder")}</span>
+      <div className={`relative flex cursor-pointer  md:translate-y-0 select-none ${show && "z-50"}`}>
+        <div onClick={() => { setShow(!show) }} className="inline-flex  gap-0.5 text-gray-700 items-center capitalize text-[10px]">
+          <span className="">{t("toOrder")}</span>
           <ArrowDownBodasIcon className="w-4 h-4 rotate-90" />
         </div>
-        {show && <div className={`absolute right-0 bg-white top-8 rounded-md shadow-md`}>
-          {[...orderOptions.map(elem => { return { ...elem, type: "order" } }),
-            null,
-          ...directionOptions.map(elem => { return { ...elem, type: "direction" } })]?.map((item, idx) => {
-            return item
-              ? <div key={idx}
-                onClick={() => {
-                  item.type === "order" ? setOrder(item.value as Order) : setDirection(item.value as Direction)
-                  // setShow(false)
-                }}
-                className={`py-1 pl-2 pr-8 text-gray-700 text-xs flex items-center gap-2 capitalize cursor-pointer hover:bg-gray-100 ${[order, direction].includes(item?.value) && "bg-gray-200"}`}
-              >
-                <div className={`w-2 h-2 rounded-full ${[order, direction].includes(item?.value) && "bg-green"}`} />
-                {item.title}
-              </div>
-              : <div key={idx} className="w-full border-t-[1px] border-gray-500" />
-          })}
-        </div>}
+
+        {show &&
+          <div className={`absolute right-0 bg-white top-8 rounded-md shadow-md`}>
+            {[...orderOptions.map(elem => { return { ...elem, type: "order" } }),
+              null,
+            ...directionOptions.map(elem => { return { ...elem, type: "direction" } })]?.map((item, idx) => {
+              return item
+                ? <div key={idx}
+                  onClick={() => {
+                    item.type === "order" ? setOrder(item.value as Order) : setDirection(item.value as Direction)
+                    // setShow(false)
+                  }}
+                  className={`py-1 pl-2 pr-8 text-gray-700 text-xs flex items-center gap-2 capitalize cursor-pointer hover:bg-gray-100 ${[order, direction].includes(item?.value) && "bg-gray-200"}`}
+                >
+                  <div className={`w-2 h-2 rounded-full ${[order, direction].includes(item?.value) && "bg-green"}`} />
+                  {item.title}
+                </div>
+                : <div key={idx} className="w-full border-t-[1px] border-gray-500" />
+            })}
+          </div>
+        }
       </div>
     </ClickAwayListener>
   )
