@@ -16,7 +16,7 @@ interface IconData {
   keywords: string[];
 }
 
-const IconArray: IconData[] = [
+export const IconArray: IconData[] = [
   {
     title: "Anillos",
     icon: <Anillos className="w-full h-full" />,
@@ -230,8 +230,8 @@ export const NewSelectIcon: React.FC<Props> = ({ value, onChange, onClose }) => 
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
                 className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${selectedCategory === category.id
-                    ? 'bg-primary text-white shadow-sm'
-                    : 'bg-white text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-gray-200'
+                  ? 'bg-primary text-white shadow-sm'
+                  : 'bg-white text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-gray-200'
                   }`}
               >
                 {category.name}
@@ -251,8 +251,8 @@ export const NewSelectIcon: React.FC<Props> = ({ value, onChange, onClose }) => 
                   onMouseEnter={() => setHoveredIcon(iconData.title)}
                   onMouseLeave={() => setHoveredIcon(null)}
                   className={`relative group aspect-square p-3 rounded-lg transition-all duration-200 ${value === iconData.title
-                      ? 'bg-primary text-white shadow-lg scale-105'
-                      : 'bg-gray-50 hover:bg-primary hover:scale-105 text-white'
+                    ? 'bg-primary text-white shadow-lg scale-105'
+                    : 'bg-gray-50 hover:bg-primary hover:scale-105 text-white'
                     }`}
                 >
                   <div className={`w-full h-full transition-colors ${value === iconData.title ? 'text-white' : 'text-primary'

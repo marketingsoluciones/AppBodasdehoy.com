@@ -10,7 +10,6 @@ import { WarningMessage } from "./WarningMessage";
 import { useTranslation } from 'react-i18next';
 import { ItineraryColumns } from "./ItineraryColumns";
 import ModalLeft from "../../Utils/ModalLeft";
-import { PencilEdit } from "../../icons";
 import { GoEye, GoEyeClosed, GoGitBranch } from "react-icons/go";
 import { LiaLinkSolid } from "react-icons/lia";
 import { MdOutlineDeleteOutline } from "react-icons/md";
@@ -102,7 +101,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   // Función para manejar actualización de campos
   const handleUpdate = async (fieldName: string, value: any) => {
     const task = tasks?.find(task => task._id === selectTask);
-    console.log(100114, "task", task)
     const canEdit = !user?.uid ? false : isAllowed() || task.responsable?.includes(user?.uid);
     if (!canEdit) {
       ht();
@@ -113,7 +111,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     }
     try {
       let apiValue: string;
-      fieldName === 'fecha' && console.log(100111, "value recibido en handleUpdate", fieldName, { value }, typeof value, "| instanceof:", value instanceof Date);
       if (fieldName === 'horaActiva') {
         apiValue = value ? "true" : "false";
       } else if (['responsable', 'tags', 'attachments'].includes(fieldName)) {
@@ -124,7 +121,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         // Manejar fecha para evitar problemas de zona horaria
         if (value?.includes('T')) {
           apiValue = value;
-          console.log(100112, "apiValue", apiValue);
         }
       } else if (fieldName === 'spectatorView') {
         apiValue = `${value}`;
@@ -312,9 +308,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     }
   }
   const handleChangeStatus = async (values: Task) => {
-
-
-
     try {
       fetchApiEventos({
         query: queries.editTask,
@@ -351,7 +344,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     } catch (error) {
       console.log(error)
     }
-
   }
 
   const deleteTask = (values: Task, itinerario: Itinerary) => {
@@ -370,13 +362,9 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
               domain: config.domain
             }).then(() => {
               const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
-              if (f1 !== -1 && event.itinerarios_array[f1]?.tasks) {
-                const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem && elem._id === values._id);
-                if (f2 !== -1) {
-                  event.itinerarios_array[f1].tasks.splice(f2, 1);
-                  setEvent({ ...event });
-                }
-              }
+              const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === values._id);
+              event.itinerarios_array[f1].tasks.splice(f2, 1);
+              setEvent({ ...event });
               setTimeout(() => {
                 setModal({ state: false, title: null, values: null, itinerario: null });
                 setLoading(false);
@@ -387,7 +375,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         )
 
     } catch (error) {
-      console.log(1000501, error)
+      console.log(error)
     }
   }
 
@@ -414,19 +402,14 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       }
       // Actualizar el estado global del evento inmediatamente
       setEvent((oldEvent) => {
-        const newEvent = { ...oldEvent };
-        const f1 = newEvent.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
-        if (f1 > -1) {
-          const f2 = newEvent.itinerarios_array[f1].tasks.findIndex(elem => elem._id === taskId);
-          if (f2 > -1) {
-            // Actualizar la tarea con los nuevos valores
-            newEvent.itinerarios_array[f1].tasks[f2] = {
-              ...newEvent.itinerarios_array[f1].tasks[f2],
-              ...updates
-            };
-          }
+        const f1 = oldEvent.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
+        const f2 = oldEvent.itinerarios_array[f1].tasks.findIndex(elem => elem._id === taskId);
+        // Actualizar la tarea con los nuevos valores
+        oldEvent.itinerarios_array[f1].tasks[f2] = {
+          ...oldEvent.itinerarios_array[f1].tasks[f2],
+          ...updates
         }
-        return newEvent;
+        return { ...oldEvent };
       });
       // Actualizar el estado local de las tareas
       setTasks(prevTasks => {

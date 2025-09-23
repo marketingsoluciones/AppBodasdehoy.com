@@ -1,11 +1,7 @@
 import { FC, useState, useRef, useEffect } from "react";
-import { PermissionWrapper } from './TaskNewComponents';
-import { NewSelectIcon } from "../VistaTabla/NewSelectIcon";
-import { Field, Form, Formik } from "formik";
 import { useTranslation } from "react-i18next";
 import { SelectIconNew } from "../Utils/SelectIconNew";
 import { Task } from "../../../utils/Interfaces";
-import { init } from "react-facebook-pixel";
 
 interface TitleTaskProps {
   canEdit: boolean;
@@ -18,13 +14,11 @@ export const TitleTask: FC<TitleTaskProps> = ({ canEdit, handleUpdate, task, own
   const { t } = useTranslation();
   const [value, setValue] = useState<string>();
   const [editing, setEditing] = useState<boolean>(false);
-  const [tempIcon, setTempIcon] = useState<string>();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const ruta = window.location.pathname;
 
   useEffect(() => {
     setValue(null);
-    setTempIcon(null);
   }, [task, task?.icon])
 
   const handleIconChange = (newIcon: string) => {
@@ -32,7 +26,6 @@ export const TitleTask: FC<TitleTaskProps> = ({ canEdit, handleUpdate, task, own
       null;
       return;
     }
-    setTempIcon(newIcon);
     handleUpdate('icon', newIcon);
   };
 
@@ -55,13 +48,8 @@ export const TitleTask: FC<TitleTaskProps> = ({ canEdit, handleUpdate, task, own
         <div className={`w-11 h-11 flex items-center justify-center rounded-full transition-colors`}
           title={canEdit && "Cambiar ícono"} >
           <SelectIconNew
+            handleChange={handleIconChange}
             task={task}
-            value={tempIcon ? tempIcon : task?.icon}
-            className="w-8 h-8"
-            handleChange={(value) => {
-              handleIconChange(value);
-            }}
-            data={task}
             owner={owner}
           />
         </div>
@@ -109,7 +97,7 @@ export const TitleTask: FC<TitleTaskProps> = ({ canEdit, handleUpdate, task, own
                     : null
                   : task.estatus
                     ? setEditing(true)
-                    : null          
+                    : null
               } else {
                 canEdit
                   ? setEditing(true)
