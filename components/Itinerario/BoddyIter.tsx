@@ -28,10 +28,7 @@ interface Modal {
 export const BoddyIter = () => {
     const { config } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
-    const [itinerario, setItinerario] = useState<Itinerary>(() => {
-        const itinerarioSeleccionado = localStorage.getItem(`E_${event._id}_${window?.location?.pathname.slice(1)}`)
-        return event.itinerarios_array.find(elem => elem._id === itinerarioSeleccionado)
-    })
+    const [itinerario, setItinerario] = useState<Itinerary>()
     const [editTitle, setEditTitle] = useState<boolean>(false)
     const [isAllowedViewer] = useAllowedViewer()
     const [isAllowed] = useAllowed()
@@ -284,6 +281,8 @@ export const BoddyIter = () => {
 
     useEffect(() => {
         const itinerarios = event?.itinerarios_array.filter(elem => elem?.tipo === window?.location?.pathname.slice(1))
+        const itinerarioSeleccionado = localStorage.getItem(`E_${event._id}_${window?.location?.pathname.slice(1)}`)
+        const itinerario = event.itinerarios_array.find(elem => elem._id === itinerarioSeleccionado)
         if (itinerarios.length) {
             let nuevoItinerario = itinerario;
             if (router?.query?.itinerary) {
@@ -300,7 +299,7 @@ export const BoddyIter = () => {
                 setItinerario({ ...itinerario, tasks: tasksOrdenadas });
             }
         } else {
-            setItinerario(null)
+            setItinerario({ ...itinerario })
         }
     }, [event, router, orderAndDirection, itinerario?._id, view])
 

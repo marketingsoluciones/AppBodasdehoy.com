@@ -15,7 +15,7 @@ const ModalDefault: FC<props> = ({ onClose, children }) => {
       <div className="bg-white rounded-lg shadow-lg p-6 w-full h-full md:w-[768px] md:h-[660px] relative">
         <div className="w-full h-full flex justify-center items-center">
           <button
-            className="w-10 h-10 rounded-full bg-white absolute top-2 right-1 md:-right-12 text-gray-500 hover:text-gray-800 text-2xl font-bold focus:outline-none flex items-center justify-center"
+            className="w-10 h-10 rounded-full bg-white absolute top-2 right-1 md:-right-12 text-gray-500 hover:text-gray-800 text-2xl font-bold focus:outline-none flex items-center justify-center z-50"
             onClick={onClose}
             aria-label="Cerrar"
           >
