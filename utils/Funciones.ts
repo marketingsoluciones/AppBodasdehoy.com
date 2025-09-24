@@ -61,7 +61,7 @@ export const getAllFilterGuest = (event: Event) => {
         }, [])
         sections.push(...guestsSection)
         return sections
-      }, [])
+      }, []) || []
       const guestsTables = planSpace?.tables?.reduce((tables, table) => {
         if (table?.guests?.length > 0) {
           const asd = table.guests.map(elem => {
@@ -77,7 +77,7 @@ export const getAllFilterGuest = (event: Event) => {
           tables = [...tables, ...asd]
         }
         return tables
-      }, [])
+      }, []) || []
       const guestsSentados = [...guestsSections, ...guestsTables]
       const guestsSentadosIds = guestsSentados.map(elem => elem.guestID)
       const filterGuest = event?.invitados_array?.reduce((acc, item) => {
