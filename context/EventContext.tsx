@@ -93,10 +93,26 @@ const EventProvider = ({ children }) => {
           const eventsPendientes = eventsGroup.filter(item => item.estatus === "pendiente")
           const eventsGroupSort = eventsPendientes?.sort((a: any, b: any) => { return b.fecha_creacion - a.fecha_creacion })
           let eventSelected = eventsGroupSort?.find(elem => elem._id === user?.eventSelected)
-          setEvent({ ...eventSelected, timeZone: eventSelected?.timeZone ?? config?.timeZone });
+          if (!eventSelected?.timeZone) {
+            eventSelected.timeZone = config?.timeZone
+            fetchApiEventos({
+              query: queries.eventUpdate,
+              variables: { idEvento: eventSelected?._id, variable: "timeZone", value: config?.timeZone },
+              token: null
+            })
+          }
+          setEvent({ ...eventSelected });
         } else {
           let eventSelected = eventsGroup[0]
-          setEvent({ ...eventSelected, timeZone: eventSelected?.timeZone ?? config?.timeZone });
+          if (!eventSelected?.timeZone) {
+            eventSelected.timeZone = config?.timeZone
+            fetchApiEventos({
+              query: queries.eventUpdate,
+              variables: { idEvento: eventSelected?._id, variable: "timeZone", value: config?.timeZone },
+              token: null
+            })
+          }
+          setEvent({ ...eventSelected });
         }
         eventsGroup[0] && setValir(true)
       }
