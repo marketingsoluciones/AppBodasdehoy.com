@@ -14,7 +14,7 @@ const BlockMesas: FC = () => {
   const { t } = useTranslation();
 
   const InvitadoSentados: guests[] = event?.invitados_array?.filter(
-    (invitado) => invitado.nombre_mesa.toLowerCase() !== "no asignado"
+    (invitado) => invitado?.nombre_mesa?.toLowerCase() !== "no asignado"
   );
 
   const ListaBlockMesas: { amount: number | string, subtitle: string }[] = [
@@ -35,7 +35,7 @@ const BlockMesas: FC = () => {
               return (
                 <div key={idx} className="grid md:grid-cols-3 justify-items-center items-center space-y-2">
                   <div className="text-regular font-display text-xs text-gray-700 capitalize col-span-1 font-semibold ">
-                    {t(item.title)}
+                    {t(item?.title || "")}
                   </div>
                   <div className="flex space-x-10 col-span-2">
 
@@ -52,14 +52,14 @@ const BlockMesas: FC = () => {
                     <span className="flex flex-col justify-center items-center gap-2* w-max">
                       <MesaIcon className="text-gray-500 w-9" />
                       {(() => {
-                        if (item.tables.length != 0) {
-                          const invi = item.tables.map((item) => {
+                        if (item?.tables?.length != 0) {
+                          const invi = item?.tables?.map((item) => {
                             return item.guests
                           })
-                          const inviReduce = invi.flat()
+                          const inviReduce = invi?.flat()
                           return (
                             < p key={idx} className="font-display font-semibold text-xl text-gray-700" >
-                              {inviReduce.length} de {event?.invitados_array?.length}
+                              {inviReduce?.length} de {event?.invitados_array?.length}
 
                             </p>
                           )
