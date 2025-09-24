@@ -208,14 +208,22 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       value: "delete",
       icon: <MdOutlineDeleteOutline className="w-5 h-5" />,
       title: "borrar",
-      onClick: (values: Task) => !isAllowed() ? ht() : user.uid === event.usuario_id ? setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }) : ["/itinerario"].includes(window?.location?.pathname) ? values?.estatus === false || values?.estatus === null || values?.estatus === undefined ? setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }) : null : setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }),
+      onClick: (values: Task) => !isAllowed()
+        ? ht()
+        : user.uid === event.usuario_id
+          ? setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion })
+          : ["/itinerario"].includes(window?.location?.pathname)
+            ? (values?.estatus === true || values?.estatus === null)
+              ? setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion })
+              : null
+            : setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }),
       vew: "all"
     },
     {
       value: "estatus",
       icon: <TbLock className="w-5 h-5" />,
       getIcon: (values: boolean) => {
-        if (values === false ) {
+        if (values === false) {
           return <TbLock className="w-8 h-8" />
         } else {
           return <TbLockOpen className="w-8 h-8" />
@@ -345,7 +353,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       console.log(error)
     }
   }
-
   const deleteTask = (values: Task, itinerario: Itinerary) => {
     try {
       setLoading(true)
