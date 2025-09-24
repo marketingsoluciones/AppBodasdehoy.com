@@ -48,7 +48,7 @@ export const AssignedTask: FC<Props> = ({ canEdit, task, handleUpdate, owner }) 
                   {task.responsable?.length > 0 ? t('Editar') : t('Asignar')}
                 </button>
               )
-              : task.estatus && (
+              : (task.estatus || task.estatus === null) && (
                 <button
                   onClick={() => {
                     setEditing(true);

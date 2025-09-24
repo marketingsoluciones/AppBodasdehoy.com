@@ -19,7 +19,7 @@ export const TagsTask: FC<Props> = ({ canEdit, task, handleUpdate, owner }) => {
   const isItinerarioRoute = ["/itinerario"].includes(ruta);
   const isOwner = Boolean(owner);
   const canUserEdit = Boolean(canEdit);
-  const hasTaskStatus = Boolean(task.estatus);
+  const hasTaskStatus = Boolean(task.estatus || task.estatus === null);
   
   const canShowAddButton = isItinerarioRoute
     ? isOwner

@@ -215,7 +215,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       value: "estatus",
       icon: <TbLock className="w-5 h-5" />,
       getIcon: (values: boolean) => {
-        if (values === false || values === null) {
+        if (values === false ) {
           return <TbLock className="w-8 h-8" />
         } else {
           return <TbLockOpen className="w-8 h-8" />
