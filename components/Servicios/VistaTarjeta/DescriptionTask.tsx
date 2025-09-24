@@ -18,27 +18,20 @@ const ReactQuill = dynamic(() => import('react-quill'), {
   loading: () => <div className="h-40 bg-gray-50 animate-pulse rounded-lg" />
 });
 
-// Configuración del editor Quill
 const quillModules = {
   toolbar: [
-    // [{ 'header': [1, 2, 3, false] }], 
     ['bold', 'italic', 'underline', 'strike'],
     ['clean'],
     [{ 'color': [] }, { 'background': [] }],
     [{ 'list': 'ordered' }, { 'list': 'bullet' }],
     [{ 'indent': '-1' }, { 'indent': '+1' }],
-    // [{ 'align': [] }],
-    // // ['link', 'image'], 
   ],
 };
 
 const quillFormats = [
-  //  'header', 
   'bold', 'italic', 'underline', 'strike',
   'color', 'background',
   'list', 'bullet', 'indent',
-  // 'align',
-  //  'link', 'image' 
 ];
 
 interface Props {
@@ -58,16 +51,7 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner,
     setCustomDescription(task?.tips || '');
   }, [task])
 
-  const isItinerarioRoute = ["/itinerario"].includes(ruta);
-  const isOwner = Boolean(owner);
-  const canUserEdit = Boolean(canEdit);
-  const hasTaskStatus = Boolean(task.estatus);
-  const canShowEditButton =  true /* isItinerarioRoute
-    ? !isOwner
-      ? canUserEdit
-      : (hasTaskStatus && canUserEdit)
-    : canUserEdit; */
-
+  const canShowEditButton = canEdit
   const shouldShowEditor = editing && canShowEditButton;
 
   return (
