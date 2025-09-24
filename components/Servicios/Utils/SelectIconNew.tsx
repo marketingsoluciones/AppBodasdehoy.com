@@ -26,7 +26,7 @@ export const SelectIconNew: FC<SelectIconNewProps> = ({ handleChange, owner, tas
               : ["/itinerario", "/servicios"].includes(window?.location?.pathname)
                 ? owner
                   ? setOpenIcon(!openIcon)
-                  : task?.estatus === false || task?.estatus === null || task?.estatus === undefined
+                  : task?.estatus === false  || task?.estatus === undefined
                     ? null
                     : setOpenIcon(!openIcon)
                 : setOpenIcon(!openIcon)

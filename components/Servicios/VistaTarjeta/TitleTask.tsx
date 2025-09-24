@@ -95,7 +95,7 @@ export const TitleTask: FC<TitleTaskProps> = ({ canEdit, handleUpdate, task, own
                   ? canEdit
                     ? setEditing(true)
                     : null
-                  : task.estatus
+                  : (task.estatus || task.estatus === null)
                     ? setEditing(true)
                     : null
               } else {
