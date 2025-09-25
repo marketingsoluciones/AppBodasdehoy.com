@@ -13,18 +13,20 @@ interface Props {
   setEditing: (editing: boolean) => void;
   editing: boolean;
   uso?: "itinerary" | undefined;
+  ValidationEdit?: boolean;
 }
 
-export const DateTask: FC<Props> = ({ handleUpdate, canEdit, task, setEditing, editing, uso }) => {
+export const DateTask: FC<Props> = ({ handleUpdate, canEdit, task, setEditing, editing, uso, ValidationEdit }) => {
   const { event } = EventContextProvider()
   const { t } = useTranslation();
   const [value, setValue] = useState<string>();
   const [blockUpdate, setBlockUpdate] = useState<boolean>(false);
   const { utcDateTime, utcDateFormated2Digits, utcTime } = useDateTime()
+  console.log(11, ValidationEdit)
 
   return (
     <div className="w-[120px] h-full flex items-center">
-      {editing
+      { ValidationEdit && editing
         ? <ClickAwayListener onClickAway={() => setEditing(false)}>
           <div className="w-full flex items-center relative">
             <div onClick={async () => {

@@ -14,9 +14,10 @@ interface TimeTaskProps {
   setEditing: (editing: boolean) => void;
   editing: boolean;
   uso?: "startTime" | "endTime" | undefined;
+  ValidationEdit?: boolean;
 }
 
-export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task, setEditing, editing, uso }) => {
+export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task, setEditing, editing, uso, ValidationEdit}) => {
   const { t } = useTranslation();
   const [value, setValue] = useState<string>();
   const { utcDateTime, timeFormated } = useDateTime()
@@ -27,7 +28,7 @@ export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task, setEd
 
   return (
     <div className="w-[100px] h-full flex items-center">
-      {editing
+      {ValidationEdit && editing
         ? <ClickAwayListener onClickAway={() => {
           setEditing(false)
           setValue(null);

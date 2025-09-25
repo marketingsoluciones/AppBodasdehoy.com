@@ -1,4 +1,4 @@
-import React, { FC, useState, useEffect } from 'react';
+import React, { FC, useState, useEffect, useMemo } from 'react';
 import { Task, Itinerary, OptionsSelect, Comment } from '../../../utils/Interfaces';
 import { useTranslation } from 'react-i18next';
 import { EventContextProvider } from "../../../context/EventContext";
@@ -60,6 +60,26 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
   const [editingTime, setEditingTime] = useState(false);
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [showChat, setShowChat] = useState(false);
+  const ruta = window.location.pathname;
+
+  const ValidationEdit = useMemo(() => {
+    if (["/itinerario"].includes(ruta)) {
+      if (owner) {
+        return true;
+      } else {
+        if (task.estatus || task.estatus === null) {
+          if (canEdit) {
+            return true;
+          } else {
+            return false;
+          }
+        }
+        return false;
+      }
+    } else {
+      return true;
+    }
+  }, [ruta, owner, task.estatus, canEdit]);
 
 
   useEffect(() => {
@@ -162,7 +182,8 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                     canEdit={canEdit}
                     task={task}
                     setEditing={setEditingDate}
-                    editing={editingDate}
+                    editing={editingDate} 
+                    ValidationEdit={ValidationEdit}
                   />
                   <TimeTask
                     handleUpdate={handleUpdate}
@@ -170,11 +191,13 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                     task={task}
                     setEditing={setEditingTime}
                     editing={editingTime}
+                    ValidationEdit={ValidationEdit}
                   />
                   <DurationTask
                     handleUpdate={handleUpdate}
                     canEdit={canEdit}
                     task={task}
+                    ValidationEdit={ValidationEdit}
                   />
                 </div>
                 {task.fecha && <div className={`absolute bottom-full left-6 transform -translate-y-1/4 mb-2 px-2 py-1 bg-gray-900 text-white text-[11px] rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 group-hover:delay-300 whitespace-nowrap z-10 flex flex-col ${editingDate || editingTime ? "hidden" : ""}`}>

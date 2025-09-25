@@ -261,13 +261,13 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ handleUpdate, task, itin
     <div className="flex flex-col bg-white max-h-[144px] w-1/2. ">
       {/* Header fijo con título y botón de agregar */}
       <div className="flex items-center justify-between flex-shrink-0  ">
-        <div className={`flex items-center gap-1 ${task.attachments.length > 0 ? 'cursor-pointer' : ''}`} onClick={() => task.attachments.length > 0 && setShowAttachments(!showAttachments)}>
+        <div className={`flex items-center gap-1 ${!canEdit? task.attachments.length > 0 && 'cursor-pointer' : ''}`} onClick={() => !canEdit ? task.attachments.length > 0 && setShowAttachments(!showAttachments) : setShowAttachments(!showAttachments)}>
           <span className="text-xs text-gray-700">{t('Archivos adjuntos')}</span>
           <div className={`w-5 h-5 rounded-full ${task.attachments.length > 0 ? 'bg-emerald-600' : 'bg-gray-300'} flex items-center justify-center`}>
             <span className="text-xs text-white font-extrabold">{task.attachments.length}</span>
           </div>
           <span className={`text-xs ${task.attachments.length > 0 ? 'text-emerald-600' : 'text-gray-500'} font-bold`}>{showAttachments ? t("Ocultar") : t("Ver")}</span>
-         {/*  {!canEdit && (
+          {/*  {!canEdit && (
             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600">
               <Lock className="w-3 h-3 mr-1" />
               {t('Solo lectura')}

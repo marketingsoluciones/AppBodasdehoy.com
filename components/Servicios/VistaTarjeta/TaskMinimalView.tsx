@@ -36,6 +36,8 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
   const owner = user?.uid === event?.usuario_id
   const [showAttachments, setShowAttachments] = useState(false);
 
+
+
   return (
     <div {...props} className={`w-full bg-white shadow-lg px-6 py-3 space-y-2  rounded-xl outline cursor-default ${isSelect ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200"}`}>
       {/* Header reducido con botones de optionsItineraryButtonBox (excepto 'link' y 'flow') */}
@@ -61,9 +63,9 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
                     icon = option.getIcon(task.estatus);
                   }
                 }
-                let isActive = false;
+                /* let isActive = false;
                 let activeColorClass = '';
-                let hoverColorClass = '';
+                let hoverColorClass = ''; */
                 /* switch (option.value) {
                   case 'status':
                     isActive = task.spectatorView;
@@ -122,6 +124,7 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
         task={task}
         canEdit={canEdit}
         handleUpdate={handleUpdate}
+        owner={owner}
       />
       {/* Etiquetas */}
       <TagsTask

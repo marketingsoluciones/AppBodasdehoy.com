@@ -12,9 +12,10 @@ interface TimeIndicatorsProps {
   editingStartTime: boolean;
   setEditingEndTime: (editing: boolean) => void;
   editingEndTime: boolean;
+  ValidationEdit: boolean;
 }
 
-export const TimeIndicators: FC<TimeIndicatorsProps> = ({ task, canEdit, handleUpdate, setEditingStartTime, editingStartTime, setEditingEndTime, editingEndTime }) => {
+export const TimeIndicators: FC<TimeIndicatorsProps> = ({ task, canEdit, handleUpdate, setEditingStartTime, editingStartTime, setEditingEndTime, editingEndTime, ValidationEdit }) => {
   const { t } = useTranslation();
 
   return (
@@ -31,13 +32,14 @@ export const TimeIndicators: FC<TimeIndicatorsProps> = ({ task, canEdit, handleU
             setEditing={setEditingStartTime}
             editing={editingStartTime}
             uso="startTime"
+            ValidationEdit={ValidationEdit}
           />
         </div>
       </div>
       {/* Separador */}
       <div className="w-px h-8 bg-gray-300"></div>
       {/* Hora de Fin */}
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-2 border-r border-gray-300 ">
         <StopCircle className="w-5 h-5 text-red" />
         <div>
           <span className="text-xs text-gray-500 block">{t('Final')}</span>
@@ -50,6 +52,7 @@ export const TimeIndicators: FC<TimeIndicatorsProps> = ({ task, canEdit, handleU
             setEditing={setEditingEndTime}
             editing={editingEndTime}
             uso="endTime"
+            ValidationEdit={ValidationEdit}
           />
         </div>
       </div>
