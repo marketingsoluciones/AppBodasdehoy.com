@@ -6,7 +6,6 @@ import VistaSinCookie from "./vista-sin-cookie"
 import { motion } from "framer-motion"
 
 const Itinerario = () => {
-    const [createPdf, setCreatePdf] = useState(false)
     const { event } = EventContextProvider()
     const { user, verificationDone, forCms } = AuthContextProvider()
 

@@ -2,7 +2,6 @@ import { User } from "lucide-react";
 import { FC, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ClickUpResponsableSelector } from "../VistaTabla/NewResponsableSelector";
-import { PermissionWrapper } from "./TaskNewComponents";
 import { GruposResponsablesArry } from "../Utils/ResponsableSelector";
 import { AuthContextProvider } from "../../../context/AuthContext";
 import { EventContextProvider } from "../../../context/EventContext";
@@ -59,7 +58,8 @@ export const AssignedTask: FC<Props> = ({ canEdit, task, handleUpdate, owner }) 
                   {task.responsable?.length > 0 ? t('Editar') : t('Asignar')}
                 </button>
               )
-            : (
+            :canEdit && (
+
               <button
                 onClick={() => {
                   setEditing(true);
@@ -69,7 +69,8 @@ export const AssignedTask: FC<Props> = ({ canEdit, task, handleUpdate, owner }) 
               >
                 {task.responsable?.length > 0 ? t('Editar') : t('Asignar')}
               </button>
-            )}
+            )
+        }
       </div>
       <div className="flex items-center flex-wrap w-full border border-gray-200 rounded-md relative p-0.5">
         {(editing && canEdit) && <div className="absolute z-10 top-0 md:left-0 right-0">

@@ -1,4 +1,4 @@
-import React, { FC, useState, useEffect } from 'react';
+import React, { FC, useState, useEffect, useMemo } from 'react';
 import { Task, Itinerary, OptionsSelect, Comment } from '../../../utils/Interfaces';
 import { useTranslation } from 'react-i18next';
 import { EventContextProvider } from "../../../context/EventContext";
@@ -60,6 +60,26 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
   const [editingTime, setEditingTime] = useState(false);
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [showChat, setShowChat] = useState(false);
+  const ruta = window.location.pathname;
+
+  const ValidationEdit = useMemo(() => {
+    if (["/itinerario"].includes(ruta)) {
+      if (owner) {
+        return true;
+      } else {
+        if (task.estatus || task.estatus === null) {
+          if (canEdit) {
+            return true;
+          } else {
+            return false;
+          }
+        }
+        return false;
+      }
+    } else {
+      return true;
+    }
+  }, [ruta, owner, task.estatus, canEdit]);
 
 
   useEffect(() => {
@@ -95,7 +115,6 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
         {/* Panel principal */}
         {(!isMobile || !showChat) &&
           <div id='container-left' className="flex-1 flex flex-col h-full relative">
-            {/* Header */}
             <div className="w-full flex items-center justify-between py-0.5 border-b border-gray-200">
               <TitleTask
                 canEdit={canEdit}
@@ -104,7 +123,6 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                 owner={owner}
               />
               <div className="flex items-center space-x-2 mr-2 md:mr-0">
-                {/* Botón compacto para chat en móvil */}
                 {isMobile && (
                   <button
                     onClick={() => setShowChat(!showChat)}
@@ -140,9 +158,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                   </div>}
               </div>
             </div>
-            {/* Contenido principal */}
             <div className="flex flex-col flex-1 px-6 py-2 space-y-2  ">
-              {/* Fila de Estado y Prioridad */}
               <StatusPriorityTask
                 isMobile={isMobile}
                 task={task}
@@ -150,18 +166,15 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                 handleUpdate={handleUpdate}
                 ht={ht}
               />
-              {/* Asignados con NewResponsableSelector */}
               <AssignedTask
                 canEdit={canEdit}
                 task={task}
                 handleUpdate={handleUpdate}
                 owner={owner}
               />
-              {/* Fechas con duración y hora */}
               <div className="flex items-center space-x-4 group relative">
                 <div className="flex items-center space-x-2">
                   <Calendar className="w-4 h-4 text-gray-500" />
-                  {/* <span className="text-xs text-gray-600">{t('Fecha y hora')}</span> */}
                 </div>
                 <div className="h-5 flex items-center space-x-4">
                   <DateTask
@@ -169,7 +182,8 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                     canEdit={canEdit}
                     task={task}
                     setEditing={setEditingDate}
-                    editing={editingDate}
+                    editing={editingDate} 
+                    ValidationEdit={ValidationEdit}
                   />
                   <TimeTask
                     handleUpdate={handleUpdate}
@@ -177,12 +191,13 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                     task={task}
                     setEditing={setEditingTime}
                     editing={editingTime}
+                    ValidationEdit={ValidationEdit}
                   />
-                  {/* Duración mejorada con conversor */}
                   <DurationTask
                     handleUpdate={handleUpdate}
                     canEdit={canEdit}
                     task={task}
+                    ValidationEdit={ValidationEdit}
                   />
                 </div>
                 {task.fecha && <div className={`absolute bottom-full left-6 transform -translate-y-1/4 mb-2 px-2 py-1 bg-gray-900 text-white text-[11px] rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 group-hover:delay-300 whitespace-nowrap z-10 flex flex-col ${editingDate || editingTime ? "hidden" : ""}`}>
@@ -197,8 +212,6 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                 handleUpdate={handleUpdate}
                 owner={owner}
               />
-              {/* Sección de Detalles */}
-              {/* Descripción larga con Editor */}
               <DescriptionTask
                 canEdit={canEdit}
                 task={task}
@@ -206,7 +219,6 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                 owner={owner}
                 showAttachments={showAttachments}
               />
-              {/* Adjuntos mejorados */}
               <NewAttachmentsEditor
                 handleUpdate={(files) => handleUpdate('attachments', files)}
                 task={task}
@@ -225,7 +237,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
             <div className="h-[49px] px-2 border-b border-gray-200 bg-white flex items-center">
               <div className="w-full flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                 {isMobile && <button
+                  {isMobile && <button
                     onClick={() => setShowChat(!showChat)}
                   >
                     <IoIosArrowRoundBack className="w-9 h-9 " />

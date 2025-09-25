@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react';
+import React, { FC, useMemo, useState } from 'react';
 import { Task } from '../../../utils/Interfaces';
 import { useTranslation } from 'react-i18next';
 import { Calendar, Clock } from 'lucide-react';
@@ -12,15 +12,36 @@ interface TimeDurationContainerProps {
   task: Task;
   canEdit: boolean;
   handleUpdate: (field: string, value: any) => Promise<void>;
+  owner?: boolean;
 }
 
-export const TimeDurationContainer: FC<TimeDurationContainerProps> = ({ task, canEdit, handleUpdate }) => {
+export const TimeDurationContainer: FC<TimeDurationContainerProps> = ({ task, canEdit, handleUpdate, owner }) => {
   const { t } = useTranslation();
   const { event } = EventContextProvider();
   const [editingDate, setEditingDate] = useState(false);
   const [editingStartTime, setEditingStartTime] = useState(false);
   const [editingEndTime, setEditingEndTime] = useState(false);
   const { dateTimeFormated } = useDateTime();
+  const ruta = window.location.pathname;
+
+  const ValidationEdit = useMemo(() => {
+    if (["/itinerario"].includes(ruta)) {
+      if (owner) {
+        return true;
+      } else {
+        if (task.estatus || task.estatus === null) {
+          if (canEdit) {
+            return true;
+          } else {
+            return false;
+          }
+        }
+        return false;
+      }
+    } else {
+      return true;
+    }
+  }, [ruta, owner, task.estatus, canEdit]);
 
 
   if (!task.fecha) {
@@ -41,6 +62,7 @@ export const TimeDurationContainer: FC<TimeDurationContainerProps> = ({ task, ca
             setEditing={setEditingDate}
             editing={editingDate}
             uso="itinerary"
+            ValidationEdit={ValidationEdit}
           />
         </div>
         <TimeIndicators
@@ -51,18 +73,20 @@ export const TimeDurationContainer: FC<TimeDurationContainerProps> = ({ task, ca
           editingStartTime={editingStartTime}
           setEditingEndTime={setEditingEndTime}
           editingEndTime={editingEndTime}
+          ValidationEdit={ValidationEdit}
         />
       </div>
 
       {/* Duración */}
-      <div className="flex items-end space-x-3 translate-y-2">
+      <div className="flex items-center space-x-3 translate-y-2">
         <Clock className="w-5 h-5 text-blue-600" />
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-col items-center space-x-2">
           <span className="text-xs text-gray-500">{t('Duración')}</span>
           <DurationTask
             handleUpdate={handleUpdate}
             canEdit={canEdit}
             task={task}
+            ValidationEdit={ValidationEdit}
           />
         </div>
       </div>

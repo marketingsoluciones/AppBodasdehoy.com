@@ -8,9 +8,10 @@ interface Props {
   handleUpdate: (field: string, value: any) => Promise<void>;
   canEdit: boolean;
   task: Task;
+  ValidationEdit?: boolean;
 }
 
-export const DurationTask: FC<Props> = ({ handleUpdate, canEdit, task }) => {
+export const DurationTask: FC<Props> = ({ handleUpdate, canEdit, task, ValidationEdit }) => {
   const { t } = useTranslation();
   const [editing, setEditing] = useState<boolean>(false);
   const [hours, setHours] = useState<string>('');
@@ -92,8 +93,8 @@ export const DurationTask: FC<Props> = ({ handleUpdate, canEdit, task }) => {
           task?.horaActiva !== false && setEditing(true);
         }
       }} className={`h-full flex items-center space-x-1  ${(task?.horaActiva !== false && canEdit) && "cursor-pointer"}`}>
-        {editing
-          ? <div className="flex items-center rounded px-0.5 border-[1px] border-gray-400 focus:border-gray-400">
+        {ValidationEdit && editing
+          ?  <div className="flex items-center rounded px-0.5 border-[1px] border-gray-400 focus:border-gray-400">
             {inputOptions.map((option, index) => (
               <div key={option.id} className="flex items-center">
                 <input

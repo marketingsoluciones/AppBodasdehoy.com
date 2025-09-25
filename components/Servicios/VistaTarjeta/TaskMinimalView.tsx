@@ -36,6 +36,8 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
   const owner = user?.uid === event?.usuario_id
   const [showAttachments, setShowAttachments] = useState(false);
 
+
+
   return (
     <div {...props} className={`w-full bg-white shadow-lg px-6 py-3 space-y-2  rounded-xl outline cursor-default ${isSelect ? "outline-2 outline-primary" : "outline-[1px] outline-gray-200"}`}>
       {/* Header reducido con botones de optionsItineraryButtonBox (excepto 'link' y 'flow') */}
@@ -61,10 +63,10 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
                     icon = option.getIcon(task.estatus);
                   }
                 }
-                let isActive = false;
+                /* let isActive = false;
                 let activeColorClass = '';
-                let hoverColorClass = '';
-                switch (option.value) {
+                let hoverColorClass = ''; */
+                /* switch (option.value) {
                   case 'status':
                     isActive = task.spectatorView;
                     activeColorClass = 'text-primary bg-primary/10';
@@ -78,9 +80,9 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
                     break;
                   default:
                     hoverColorClass = 'hover:text-gray-600 hover:bg-gray-100';
-                }
+                } */
                 return (
-                  <div key={idx} className="relative group">
+                  <div key={idx} className="h-full">
                     <button
                       onClick={() => {
                         if (owner) {
@@ -95,17 +97,11 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
                           }
                         }
                       }}
-                      className={`relative p-1.5 rounded-md transition-all duration-200 ${isActive ? `${activeColorClass} shadow-sm` : `text-gray-400 ${hoverColorClass}`}`}
+                      className={`relative p-1.5 rounded-md transition-all duration-200 text-gray-400  ${option.value === 'delete' ? 'border-x rounded-none' : ''}`}
                       title={t(option.title || option.value || '')}
                       disabled={option.idDisabled}
                     >
-                      <span className="w-4 h-4 flex items-center justify-center" style={{ transform: 'scale(0.8)' }}>{icon}</span>
-                      {isActive && (
-                        <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
-                          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${option.value === 'status' || option.value === 'estatus' ? 'bg-primary' : 'bg-primary'} opacity-75`}></span>
-                          <span className={`relative inline-flex rounded-full h-2 w-2 ${option.value === 'status' || option.value === 'estatus' ? 'bg-primary' : 'bg-primary'}`}></span>
-                        </span>
-                      )}
+                      <span className="flex items-center justify-center" style={{ transform: 'scale(0.8)' }}>{icon}</span>
                     </button>
                     <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">
                       {t(option.title || option.value || '')}
@@ -128,6 +124,7 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
         task={task}
         canEdit={canEdit}
         handleUpdate={handleUpdate}
+        owner={owner}
       />
       {/* Etiquetas */}
       <TagsTask

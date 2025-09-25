@@ -165,19 +165,19 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     // },
     {
       value: "status",
-      icon: <GoEyeClosed className="w-5 h-5" />,
+      icon: <GoEyeClosed className="w-4 h-4" />,
       getIcon: (value: boolean) => {
         if (["/itinerario"].includes(window?.location?.pathname)) {
           if (value !== true) {
-            return <GoEyeClosed className="w-5 h-5" />
+            return <GoEyeClosed className="w-4 h-4" />
           } else {
-            return <GoEye className="w-5 h-5" />
+            return <GoEye className="w-4 h-4 text-primary" />
           }
         } else {
           if (value) {
-            return <GoEyeClosed className="w-5 h-5" />
+            return <GoEyeClosed className="w-4 h-4" />
           }
-          return <GoEye className="w-5 h-5" />
+          return <GoEye className="w-4 h-4 text-primary" />
         }
       },
       title: "estado",
@@ -190,14 +190,14 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     },
     {
       value: "flujo",
-      icon: <GoGitBranch className="w-5 h-5" />,
+      icon: <GoGitBranch className="w-4 h-4" />,
       title: "flow",
       onClick: () => !isAllowed() ? ht() : setModalWorkFlow(!modalWorkFlow),
       vew: "tasks"
     },
     {
       value: "share",
-      icon: <LiaLinkSolid className="w-5 h-5" />,
+      icon: <LiaLinkSolid className="w-4 h-4" />,
       title: "Link calendario1",
       onClick: (values: Task, itinerario: Itinerary) => !isAllowed() ? ht() : handleCopyLink({
         task: values, type: "calendar", event, navigator, toast, t, document, itinerario
@@ -206,19 +206,27 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     },
     {
       value: "delete",
-      icon: <MdOutlineDeleteOutline className="w-5 h-5" />,
+      icon: <MdOutlineDeleteOutline className="w-4 h-4" />,
       title: "borrar",
-      onClick: (values: Task) => !isAllowed() ? ht() : user.uid === event.usuario_id ? setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }) : ["/itinerario"].includes(window?.location?.pathname) ? values?.estatus === false || values?.estatus === null || values?.estatus === undefined ? setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }) : null : setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }),
+      onClick: (values: Task) => !isAllowed()
+        ? ht()
+        : user.uid === event.usuario_id
+          ? setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion })
+          : ["/itinerario"].includes(window?.location?.pathname)
+            ? (values?.estatus === true || values?.estatus === null)
+              ? setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion })
+              : null
+            : setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }),
       vew: "all"
     },
     {
       value: "estatus",
-      icon: <TbLock className="w-5 h-5" />,
+      icon: <TbLock className="w-4 h-4" />,
       getIcon: (values: boolean) => {
-        if (values === false ) {
-          return <TbLock className="w-8 h-8" />
+        if (values === false) {
+          return <TbLock className="w-4 h-4" />
         } else {
-          return <TbLockOpen className="w-8 h-8" />
+          return <TbLockOpen className="w-4 h-4 text-primary" />
         }
       },
       title: "estatus",
@@ -345,7 +353,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       console.log(error)
     }
   }
-
   const deleteTask = (values: Task, itinerario: Itinerary) => {
     try {
       setLoading(true)
