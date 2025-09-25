@@ -214,7 +214,7 @@ const Card = ({ data, grupoStatus, idx }) => {
           if (resp) toast("warning", resp)
         }} className={`w-72 h-36 rounded-xl cardEvento z-[8] cursor-pointer shadow-lg relative overflow-hidden `}>
           <img
-            src={data[idx]?.imgEvento ? `https://apiapp.bodasdehoy.com/${data[idx].imgEvento.i800}` : defaultImagenes[data[idx]?.tipo]}
+            src={data[idx]?.imgEvento ? `https://apiapp.bodasdehoy.com/${data[idx].imgEvento.i320}` : defaultImagenes[data[idx]?.tipo]}
             className="object-cover w-full h-full absolute top-0 left-0 object-top "
           />
           <div className="relative w-full h-full z-10 p-4 pb-2 flex flex-col justify-between">

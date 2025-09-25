@@ -6,15 +6,12 @@ export const useDateTime = () => {
     const { event } = EventContextProvider();
     const { i18n } = useTranslation();
     const Lang = i18n?.language == "en" ? "en-CA" : "es-ES";
-    const formatter = new Intl.DateTimeFormat(navigator.language, {
+    const formatter = new Intl.DateTimeFormat(Intl.DateTimeFormat().resolvedOptions().locale, {
         hour: 'numeric',
         hour12: true
     });
-    const d = new Date();
-    d.setHours(13);
-    const formattedTime = formatter.format(d);
-    const regex = /(?=.*a)(?=.*m)|(?=.*p)(?=.*m)/i;
-    const hour12 = regex.test(formattedTime);
+    const { hourCycle } = formatter.resolvedOptions();
+    const hour12 = hourCycle === 'h11' || hourCycle === 'h12';
 
     const getDateFormated = (date: Date | number | string, options?: object) => {
         const offsetMinutes = getOffsetMinutes(date, event?.timeZone)

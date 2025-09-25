@@ -78,7 +78,7 @@ export const Details = undefined
 
 export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle, view, handleDeleteItinerario, handleUpdateTitle, title, setTitle, selectTask, setSelectTask, orderAndDirection }) => {
   const { t } = useTranslation();
-  const { config, geoInfo, user } = AuthContextProvider()
+  const { config, user } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
   const [isAllowed, ht] = useAllowed()
   const toast = useToast()
