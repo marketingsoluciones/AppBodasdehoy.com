@@ -106,9 +106,13 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       ht();
       return;
     }
-    if (task[fieldName] === value) {
+    
+   /*  if (task[fieldName] === value) {
       return;
-    }
+    } */
+
+
+
     try {
       let apiValue: string;
       if (fieldName === 'horaActiva') {
@@ -138,8 +142,8 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         },
         domain: config.domain,
       }).then((result) => {
-        const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
-        const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === task._id);
+        const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario?._id);
+        const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === task?._id);
         if (fieldName === 'spectatorView') {
           event.itinerarios_array[f1].tasks[f2].spectatorView = value;
           setEvent({ ...event });
