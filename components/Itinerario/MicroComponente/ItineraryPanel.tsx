@@ -184,7 +184,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
           return <GoEye className="w-4 h-4 text-primary" />
         }
       },
-      title: "estado",
+      title: "Visibilidad",
       onClick: (values: Task) => {
         !isAllowed()
           ? ht()
@@ -292,6 +292,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   }, [currentItinerario, itinerario]);
 
   const handleAddSpectatorView = async (values: Task) => {
+    console.log("values", values)
     try {
 
       const newSpectatorViewValue = values?.spectatorView === null ? true : !values?.spectatorView

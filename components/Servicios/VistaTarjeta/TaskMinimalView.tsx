@@ -90,7 +90,7 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
                             option.onClick(task, itinerario);
                           }
                         } else {
-                          if (task.estatus) {
+                          if (task.estatus || task.estatus == null) {
                             if (typeof option.onClick === 'function') {
                               option.onClick(task, itinerario);
                             }
