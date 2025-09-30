@@ -92,7 +92,7 @@ export const DurationTask: FC<Props> = ({ handleUpdate, canEdit, task, Validatio
         if (canEdit) {
           task?.horaActiva !== false && setEditing(true);
         }
-      }} className={`h-full flex items-center space-x-1  ${(task?.horaActiva !== false && canEdit) && "cursor-pointer"}`}>
+      }} className={`md:h-full flex items-center space-x-1  ${(task?.horaActiva !== false && canEdit) && "cursor-pointer"}`}>
         {ValidationEdit && editing
           ?  <div className="flex items-center rounded px-0.5 border-[1px] border-gray-400 focus:border-gray-400">
             {inputOptions.map((option, index) => (

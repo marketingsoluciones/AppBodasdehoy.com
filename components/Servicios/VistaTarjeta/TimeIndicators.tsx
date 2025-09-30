@@ -19,11 +19,11 @@ export const TimeIndicators: FC<TimeIndicatorsProps> = ({ task, canEdit, handleU
   const { t } = useTranslation();
 
   return (
-    <div className="flex items-center space-x-6 bg-gray-50 rounded-lg p-3">
+    <div className="flex flex-col md:flex-row md:items-center md:space-x-6 space-y-3 md:space-y-0 bg-gray-50 rounded-lg p-3 w-[170px] md:w-full ">
       {/* Hora de Inicio */}
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-2  ">
         <PlayCircle className="w-5 h-5 text-green" />
-        <div>
+        <div className='border-r border-gray-300 pr-2'>
           <span className="text-xs text-gray-500 block">{t('Inicio')}</span>
           <TimeTask
             handleUpdate={handleUpdate}
@@ -37,11 +37,11 @@ export const TimeIndicators: FC<TimeIndicatorsProps> = ({ task, canEdit, handleU
         </div>
       </div>
       {/* Separador */}
-      <div className="w-px h-8 bg-gray-300"></div>
+     
       {/* Hora de Fin */}
-      <div className="flex items-center space-x-2 border-r border-gray-300 ">
+      <div className="flex items-center space-x-2  ">
         <StopCircle className="w-5 h-5 text-red" />
-        <div>
+        <div className='border-r border-gray-300 pr-2'>
           <span className="text-xs text-gray-500 block">{t('Final')}</span>
           <TimeTask
             handleUpdate={() => {

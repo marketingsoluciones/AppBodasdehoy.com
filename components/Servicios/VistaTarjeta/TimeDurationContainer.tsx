@@ -51,8 +51,8 @@ export const TimeDurationContainer: FC<TimeDurationContainerProps> = ({ task, ca
   return (
     <div className="flex items-center gap-3 justify-start bg-gray-50 rounded-lg py-2 relative group">
       {/* Indicadores de Hora */}
-      <div className="flex flex-col space-x-2">
-        <div className="flex items-center space-x-2">
+      <div className="flex flex-col space-x-2  w-[170px] md:w-[34%] ">
+        <div className="flex items-center space-x-2 ml-[23px]">
           <Calendar className="w-4 h-4 text-gray-500" />
           <span className="text-xs text-gray-500">{t('Fecha')}</span>
           <DateTask
@@ -78,7 +78,7 @@ export const TimeDurationContainer: FC<TimeDurationContainerProps> = ({ task, ca
       </div>
 
       {/* Duración */}
-      <div className="flex items-center space-x-3 translate-y-2">
+      <div className="flex items-center space-x-3 translate-y-2 ">
         <Clock className="w-5 h-5 text-blue-600" />
         <div className="flex flex-col items-center space-x-2">
           <span className="text-xs text-gray-500">{t('Duración')}</span>
