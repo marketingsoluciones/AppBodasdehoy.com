@@ -7,12 +7,13 @@ import { IoTrashOutline } from "react-icons/io5";
 import { SimpleDeleteConfirmation } from "../Utils/SimpleDeleteConfirmation";
 import { HiOutlineMail } from "react-icons/hi";
 import { FaWhatsapp } from "react-icons/fa";
-import { TemplateWathsappValues } from "./WhatsappBusinessEditorComponent";
+import { TemplateWathsappBusinessValues } from "./WhatsappBusinessEditorComponent";
+import { TemplateWathsappValues } from "./WhatsappEditorComponent";
 import { Interweave } from "interweave";
 
 interface props {
   use: "load" | "edit"
-  action: (template: TemplateDesign | TemplateWathsappValues) => void;
+  action: (template: TemplateDesign | TemplateWathsappBusinessValues | TemplateWathsappValues) => void;
   optionSelect: string
 }
 
@@ -21,8 +22,8 @@ export const ModalTemplates: FC<props> = ({ action, use, optionSelect }) => {
   const { t } = useTranslation();
   const [templatesEmail, setTemplatesEmail] = useState<TemplateDesign[]>([]);
   const [myTemplatesEmail, setMyTemplatesEmail] = useState<TemplateDesign[]>([]);
-  const [templatesWhatsapp, setTemplatesWhatsapp] = useState<TemplateWathsappValues[]>([]);
-  const [myTemplatesWhatsapp, setMyTemplatesWhatsapp] = useState<TemplateWathsappValues[]>([]);
+  const [templatesWhatsapp, setTemplatesWhatsapp] = useState<TemplateWathsappBusinessValues[] | TemplateWathsappValues[]>([]);
+  const [myTemplatesWhatsapp, setMyTemplatesWhatsapp] = useState<TemplateWathsappBusinessValues[] | TemplateWathsappValues[]>([]);
   const [modal, setModal] = useState<ModalInterface>({ state: false });
   const [folders] = useState<string[]>(use === "edit" ? ["templates", "mytemplates"] : ["mytemplates"]);
 
@@ -58,7 +59,7 @@ export const ModalTemplates: FC<props> = ({ action, use, optionSelect }) => {
         const asd = res.map((elem: any) => {
           return { ...elem, ...elem.data, data: undefined }
         })
-        setMyTemplatesWhatsapp(asd as TemplateWathsappValues[]);
+        setMyTemplatesWhatsapp(asd as TemplateWathsappBusinessValues[] | TemplateWathsappValues[]);
         setTemplatesWhatsapp([]);
       })
     }
@@ -85,7 +86,7 @@ export const ModalTemplates: FC<props> = ({ action, use, optionSelect }) => {
           template_id: modal.values._id
         }
       }).then((res) => {
-        setMyTemplatesWhatsapp(myTemplatesWhatsapp.filter(template => template._id !== modal.values._id) as TemplateWathsappValues[])
+        setMyTemplatesWhatsapp(myTemplatesWhatsapp.filter(template => template._id !== modal.values._id) as TemplateWathsappBusinessValues[] | TemplateWathsappValues[])
         setModal({ state: false })
       })
     }

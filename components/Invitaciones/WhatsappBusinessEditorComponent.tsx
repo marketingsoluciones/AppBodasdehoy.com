@@ -31,7 +31,7 @@ interface ButtonOption {
     type: 'QUICK_REPLY' | 'URL' | 'PHONE_NUMBER' | 'WHATSAPP';
 }
 
-export interface TemplateWathsappValues {
+export interface TemplateWathsappBusinessValues {
     _id?: string;
     templateName: string;
     language: { _id: "es" | "en", title: string };
@@ -54,7 +54,7 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
     const { event, setEvent } = EventContextProvider()
     const { t } = useTranslation();
     const toast = useToast();
-    const [values, setValues] = useState<TemplateWathsappValues>()
+    const [values, setValues] = useState<TemplateWathsappBusinessValues>()
     const [cursorPosition, setCursorPosition] = useState(0)
 
     const variables = [
@@ -127,7 +127,7 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
         ),
     });
 
-    const initialValues: TemplateWathsappValues = {
+    const initialValues: TemplateWathsappBusinessValues = {
         templateName: '',
         language: { _id: "es", title: "ES" },
         category: { _id: "UTILITY", title: "UTILITY" },
@@ -217,7 +217,7 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
         setFieldValue(`buttons.${index}.${field}`, value);
     };
 
-    const generateTemplateJson = (values: TemplateWathsappValues) => {
+    const generateTemplateJson = (values: TemplateWathsappBusinessValues) => {
         values = { ...values, templateName: values.templateName.trim() }
         console.log(100038, values)
         fetchApiEventos({
@@ -369,7 +369,7 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
     }, [generatedJson])
 
 
-    const handleSubmit = async (values: TemplateWathsappValues, actions: any) => {
+    const handleSubmit = async (values: TemplateWathsappBusinessValues, actions: any) => {
         try {
             generateTemplateJson(values);
         } catch (error) {
