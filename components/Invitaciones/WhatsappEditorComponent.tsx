@@ -11,11 +11,6 @@ import InputField from '../Forms/InputField';
 import SelectField from '../Forms/SelectField';
 import * as yup from "yup";
 import { GoArrowLeft } from "react-icons/go";
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, } from '@dnd-kit/core';
-import { SortableButton } from './SortableButton';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, } from '@dnd-kit/sortable';
-import { useSortable, } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import dynamic from 'next/dynamic';
 import 'react-quill/dist/quill.bubble.css';
 import 'react-quill/dist/quill.snow.css';
@@ -27,18 +22,6 @@ const ReactQuill = dynamic(() => import('react-quill'), {
     ssr: false,
 });
 
-interface Button {
-    type: 'URL' | 'PHONE_NUMBER' | 'QUICK_REPLY';
-    text: string;
-    url?: string;
-    phoneNumber?: string;
-}
-
-interface ButtonOption {
-    title: string;
-    description: string;
-    type: 'URL' | 'PHONE_NUMBER' | 'QUICK_REPLY';
-}
 
 export interface TemplateWathsappValues {
     _id?: string;
@@ -47,7 +30,7 @@ export interface TemplateWathsappValues {
     mediaType: { _id: "none" | "image" | "video", title: string };
     mediaUrl: string;
     bodyContent: string;
-    buttons: Button[];
+    buttons?: any[]; // Opcional para compatibilidad con preview
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -80,22 +63,6 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
         { id: 9, name: "lugar", value: "{{params.placeEvent}}", sample: event?.lugar?.title },
     ];
 
-    const buttonOptions: ButtonOption[] = [{
-        title: t("Go to website"),
-        description: t("3 buttons maximum"),
-        type: "URL",
-    },
-    {
-        title: t("Call phone number"),
-        description: t("3 buttons maximum"),
-        type: "PHONE_NUMBER",
-    },
-    {
-        title: t("Quick reply"),
-        description: t("3 buttons maximum"),
-        type: "QUICK_REPLY",
-    },
-    ]
 
     const [generatedJson, setGeneratedJson] = useState('');
     const [variableMap, setVariableMap] = useState<any>({});
@@ -179,21 +146,6 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
             then: (schema) => schema.required(t("Media URL is required")),
             otherwise: (schema) => schema.optional(),
         }),
-        buttons: yup.array().of(
-            yup.object().shape({
-                text: yup.string().required(t("Button text is required")),
-                url: yup.string().when('type', {
-                    is: 'URL',
-                    then: (schema) => schema.required(t("URL is required for URL buttons")),
-                    otherwise: (schema) => schema.optional(),
-                }),
-                phoneNumber: yup.string().when('type', {
-                    is: 'PHONE_NUMBER',
-                    then: (schema) => schema.required(t("Phone number is required")),
-                    otherwise: (schema) => schema.optional(),
-                }),
-            })
-        ),
     });
 
     const initialValues: TemplateWathsappValues = {
@@ -202,7 +154,7 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
         mediaType: { _id: "none", title: "NONE" },
         mediaUrl: '',
         bodyContent: t("hello") + " {{params.nameGuest}}",
-        buttons: [],
+        buttons: [], // Array vacío para compatibilidad con preview
     };
 
     const handleVariableSelect = (e: React.ChangeEvent<HTMLSelectElement>, setFieldValue: any, fieldName: string) => {
@@ -227,67 +179,8 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
         }
     };
 
-    const addEmptyButton = (type: Button['type'], setFieldValue: any) => {
-        if (values?.buttons.length >= 3) {
-            toast("error", t("Maximum 3 buttons allowed"));
-            return;
-        }
 
-        // Encontrar el título correspondiente al tipo de botón
-        const buttonOption = buttonOptions.find(option => option.type === type);
-        const buttonTitle = buttonOption ? buttonOption.title : '';
 
-        const newButton: Button = { type, text: buttonTitle };
-        if (type === 'URL') newButton.url = 'https://example.com';
-        if (type === 'PHONE_NUMBER') newButton.phoneNumber = '+1234567890';
-        setFieldValue('buttons', [...values?.buttons || [], newButton])
-    };
-
-    const isButtonDisabled = (buttonType: string) => {
-        const currentButtons = values?.buttons || [];
-        const buttonCount = currentButtons.filter(btn => btn.type === buttonType).length;
-
-        switch (buttonType) {
-            case 'URL':
-                return buttonCount >= 3; // Máximo 3 botones URL
-            case 'PHONE_NUMBER':
-                return buttonCount >= 3; // Máximo 3 botones PHONE_NUMBER
-            case 'QUICK_REPLY':
-                return buttonCount >= 3; // Máximo 3 botones QUICK_REPLY
-            default:
-                return false;
-        }
-    };
-
-    const sensors = useSensors(
-        useSensor(PointerSensor),
-        useSensor(KeyboardSensor, {
-            coordinateGetter: sortableKeyboardCoordinates,
-        })
-    );
-
-    const handleDragEnd = (event: DragEndEvent, setFieldValue: any) => {
-        const { active, over } = event;
-
-        if (active.id !== over?.id) {
-            const oldIndex = active.id as number;
-            const newIndex = over?.id as number;
-
-            const currentButtons = [...(values?.buttons || [])];
-            const newButtons = arrayMove(currentButtons, oldIndex, newIndex);
-            setFieldValue('buttons', newButtons);
-            toast("success", t("Button order updated"));
-        }
-    };
-
-    const removeButton = (index: number, setFieldValue: any) => {
-        values?.buttons.splice(index, 1)
-        setFieldValue('buttons', [...values?.buttons || []])
-    };
-
-    const updateButton = (index: number, field: string, value: string, setFieldValue: any) => {
-        setFieldValue(`buttons.${index}.${field}`, value);
-    };
 
     const generateTemplateJson = (values: TemplateWathsappValues) => {
         values = { ...values, templateName: values.templateName.trim() }
@@ -315,20 +208,6 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                 type: values.mediaType._id,
                 url: values.mediaUrl
             } : undefined,
-            buttons: values.buttons.map(btn => {
-                const buttonData: any = {
-                    type: btn.type.toLowerCase(),
-                    text: btn.text
-                };
-
-                if (btn.type === 'URL') {
-                    buttonData.url = btn.url;
-                } else if (btn.type === 'PHONE_NUMBER') {
-                    buttonData.phoneNumber = btn.phoneNumber;
-                }
-
-                return buttonData;
-            }),
             variables: variables.map(v => ({
                 name: v.name,
                 placeholder: v.value,
@@ -524,66 +403,6 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                                 {(values?.bodyContent || '').replace(/<[^>]*>/g, '').length}/1048
                                             </span>
                                         </div>
-                                    </div>
-                                    {/* Buttons */}
-                                    <div className="mb-2">
-                                        <div className="flex gap-2 items-end mb-4">
-                                            <h2 className="text-sm font-semibold text-primary">{t("Buttons (Optional)")}</h2>
-                                            <span className="text-[11px] text-gray-500">{t("You can add up to 3 buttons")}</span>
-                                        </div>
-                                        <div id="buttons-container" className="flex space-x-2 mb-2">
-                                            {buttonOptions.map((buttonOption, index) => {
-                                                const getButtonColor = (type: string) => {
-                                                    switch (type) {
-                                                        case 'QUICK_REPLY':
-                                                            return 'bg-emerald-500 hover:bg-emerald-600';
-                                                        case 'URL':
-                                                            return 'bg-sky-500 hover:bg-sky-600';
-                                                        case 'PHONE_NUMBER':
-                                                            return 'bg-amber-500 hover:bg-amber-600';
-                                                        default:
-                                                            return 'bg-gray-500 hover:bg-gray-600';
-                                                    }
-                                                };
-                                                const isDisabled = isButtonDisabled(buttonOption.type);
-                                                const disabledColor = 'bg-gray-400 cursor-not-allowed opacity-50';
-                                                return (
-                                                    <button
-                                                        key={index}
-                                                        type="button"
-                                                        onClick={() => !isDisabled && addEmptyButton(buttonOption.type, setFieldValue)}
-                                                        disabled={isDisabled}
-                                                        className={`w-1/3 flex flex-col items-center justify-center px-1 md:px-2 py-2 text-white rounded-md transition-colors text-[10px] md:text-[11px] ${isDisabled ? disabledColor : getButtonColor(buttonOption.type)
-                                                            }`}
-                                                        title={isDisabled ? t("Maximum limit reached for this button type") : buttonOption.description}
-                                                    >
-                                                        <span className="text-center text-[11px]">{buttonOption.title}</span>
-                                                        <span className="text-center text-[10px]">{buttonOption.description}</span>
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                        <DndContext
-                                            sensors={sensors}
-                                            collisionDetection={closestCenter}
-                                            onDragEnd={(event) => handleDragEnd(event, setFieldValue)}
-                                        >
-                                            <SortableContext
-                                                items={values.buttons.map((_, index) => index)}
-                                                strategy={verticalListSortingStrategy}
-                                            >
-                                                {values.buttons.map((button, index) => (
-                                                    <SortableButton
-                                                        key={index}
-                                                        button={button}
-                                                        index={index}
-                                                        setFieldValue={setFieldValue}
-                                                        removeButton={removeButton}
-                                                        t={t}
-                                                    />
-                                                ))}
-                                            </SortableContext>
-                                        </DndContext>
                                     </div>
                                     <button
                                         className={`font-display rounded-full py-2 px-6 text-white font-medium transition w-full hover:opacity-70 ${isSubmitting ? "bg-secondary" : "bg-primary"}`}
