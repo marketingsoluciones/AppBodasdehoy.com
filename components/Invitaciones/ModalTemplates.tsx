@@ -7,7 +7,7 @@ import { IoTrashOutline } from "react-icons/io5";
 import { SimpleDeleteConfirmation } from "../Utils/SimpleDeleteConfirmation";
 import { HiOutlineMail } from "react-icons/hi";
 import { FaWhatsapp } from "react-icons/fa";
-import { TemplateWathsappValues } from "./WhatsappEditorComponent";
+import { TemplateWathsappValues } from "./WhatsappBusinessEditorComponent";
 import { Interweave } from "interweave";
 
 interface props {

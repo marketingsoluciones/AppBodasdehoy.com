@@ -5,7 +5,7 @@ import { HashtagMatcher, Link, UrlMatcher, UrlProps } from "interweave-autolink"
 import { IoMdCall } from 'react-icons/io';
 import { BiLinkExternal } from 'react-icons/bi';
 import { PiClipboardTextBold } from 'react-icons/pi';
-import { TemplateWathsappValues } from './WhatsappEditorComponent';
+import { TemplateWathsappValues } from './WhatsappBusinessEditorComponent';
 
 // Función auxiliar para formatear un número añadiendo un cero inicial si es menor que 10.
 const padZero = (num) => {
