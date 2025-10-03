@@ -61,22 +61,6 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
   const { user } = AuthContextProvider(); // Obtener el usuario actual
   const { event } = EventContextProvider(); // Obtener el evento actual
 
-  // Configurar sortable para la columna (para mover columnas)
-  /*   const {
-      attributes,
-      listeners,
-      setNodeRef: setSortableNodeRef,
-      transform,
-      transition,
-      isDragging,
-    } = useSortable({
-      id: column.id,
-      data: {
-        type: 'column',
-        column,
-      },
-    }); */
-
   // Configurar droppable para recibir tareas
   const { setNodeRef: setDroppableNodeRef, isOver } = useDroppable({
     id: `column-${column.id}`,
@@ -86,17 +70,6 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
     },
   });
 
-  // Combinar refs
-  /*   const setNodeRef = (node: HTMLElement | null) => {
-      setSortableNodeRef(node);
-      setDroppableNodeRef(node);
-    };
-  
-    const style = {
-      transform: CSS.Transform.toString(transform),
-      transition,
-      opacity: isDragging ? 0.5 : 1,
-    }; */
 
   // Crear nueva tarea con validación
   const handleCreateTask = useCallback(() => {
@@ -220,7 +193,6 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
 
       {/* Header de la columna */}
       <div
-        /*  {...listeners} */
         className={`
           flex items-center justify-between p-3 border-b cursor-grab active:cursor-grabbing 
           ${columnColors.bg} ${columnColors.border}
@@ -247,7 +219,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
               </div>
             )}
             {/* Título de la columna */}
-            <h3 className="font-medium select-none text-white">
+            <h3 className="font-medium select-none text-white text-[12px]">
               {column.title}
             </h3>
           </div>
@@ -257,21 +229,21 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
           </span>
         </div>
 
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center  space-x-1">
           {!column.isCollapsed && (
             <button
               onClick={handleAddTaskClick}
-              className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 hover:bg-opacity-50 rounded transition-colors"
+              className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 "
               title={t("Agregar tarea")}
             >
               <Plus className="w-4 h-4" />
             </button>
           )}
 
-          <div className="relative">
+          <div className="relative h-full">
             <button
               onClick={() => setShowColumnMenu(!showColumnMenu)}
-              className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 hover:bg-opacity-50 rounded transition-colors"
+              className=" text-gray-500 hover:text-gray-700 hover:bg-gray-100 flex items-center  "
               title={t("Opciones de columna")}
             >
               <MoreHorizontal className="w-4 h-4" />
