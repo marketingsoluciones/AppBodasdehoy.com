@@ -62,20 +62,20 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
   const { event } = EventContextProvider(); // Obtener el evento actual
 
   // Configurar sortable para la columna (para mover columnas)
-/*   const {
-    attributes,
-    listeners,
-    setNodeRef: setSortableNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
-    id: column.id,
-    data: {
-      type: 'column',
-      column,
-    },
-  }); */
+  /*   const {
+      attributes,
+      listeners,
+      setNodeRef: setSortableNodeRef,
+      transform,
+      transition,
+      isDragging,
+    } = useSortable({
+      id: column.id,
+      data: {
+        type: 'column',
+        column,
+      },
+    }); */
 
   // Configurar droppable para recibir tareas
   const { setNodeRef: setDroppableNodeRef, isOver } = useDroppable({
@@ -87,16 +87,16 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
   });
 
   // Combinar refs
-/*   const setNodeRef = (node: HTMLElement | null) => {
-    setSortableNodeRef(node);
-    setDroppableNodeRef(node);
-  };
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  }; */
+  /*   const setNodeRef = (node: HTMLElement | null) => {
+      setSortableNodeRef(node);
+      setDroppableNodeRef(node);
+    };
+  
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      opacity: isDragging ? 0.5 : 1,
+    }; */
 
   // Crear nueva tarea con validación
   const handleCreateTask = useCallback(() => {
@@ -157,7 +157,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, column.title);
     XLSX.writeFile(workbook, `columna-${column.title.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.xlsx`);
-    
+
     toast.success(t('Columna exportada'));
     setShowColumnMenu(false);
   }, [column, t]);
@@ -207,29 +207,22 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
 
   return (
     <div
-/*       ref={setNodeRef}
-      style={style} */
       ref={setDroppableNodeRef}
       className={`
-        flex flex-col bg-white rounded-lg shadow-sm border-2 transition-all duration-200
+        flex flex-col bg-white rounded-lg shadow-sm border-2 transition-all duration-200 h-[calc(100%-10px)].
         ${columnColors.border} ${columnColors.bg}
-         
         ${isCompact ? 'w-64' : 'w-80'}
         ${isList ? 'w-full max-w-4xl' : ''}
         ${column.isCollapsed ? 'h-16' : ''}
         ${isOver ? 'ring-2 ring-primary ring-opacity-50' : ''}
       `}
-      /* {...attributes} */
     >
-     {/* 
-        esto va en el div de arriba
-        ${isDragging ? 'shadow-lg rotate-1' : ''} 
-       */} 
+
       {/* Header de la columna */}
       <div
-       /*  {...listeners} */
+        /*  {...listeners} */
         className={`
-          flex items-center justify-between p-3 border-b cursor-grab active:cursor-grabbing
+          flex items-center justify-between p-3 border-b cursor-grab active:cursor-grabbing 
           ${columnColors.bg} ${columnColors.border}
         `}
       >
@@ -244,7 +237,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
               <ChevronDown className="w-4 h-4 text-gray-500" />
             )}
           </button>
-          
+
           {/* Título y Ícono de la columna */}
           <div className={`flex items-center gap-2 px-2 py-1 rounded-md ${getIconColorClass()}`}>
             {/* Ícono de la columna */}
@@ -258,7 +251,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
               {column.title}
             </h3>
           </div>
-          
+
           <span className="bg-white bg-opacity-60 text-gray-600 text-xs px-2 py-1 rounded-full select-none">
             {column.tasks.length}
           </span>
@@ -274,7 +267,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
               <Plus className="w-4 h-4" />
             </button>
           )}
-          
+
           <div className="relative">
             <button
               onClick={() => setShowColumnMenu(!showColumnMenu)}
@@ -283,7 +276,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
             >
               <MoreHorizontal className="w-4 h-4" />
             </button>
-            
+
             {showColumnMenu && (
               <div className="absolute right-0 top-8 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
                 <div className="py-1">
@@ -303,14 +296,14 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
 
       {/* Contenido de la columna */}
       {!column.isCollapsed && (
-        <div 
+        <div
           className={`
-            flex-1 w-full p-3 space-y-3 overflow-y-auto
-            ${isCompact ? 'max-h-full' : 'max-h-full'}
-            ${isList ? 'max-h-full' : ''}
+            flex-1 w-full p-3 space-y-3 overflow-y-auto  
+            ${isCompact ? 'max-h-full ' : ''}
+            ${isList ? 'max-h-full' : '  '}
             ${column.tasks.length === 0 ? 'min-h-[200px]' : 'min-h-[100px]'}
           `}
-          style={{ height: '100%' }}
+
         >
           {/* Formulario para crear nueva tarea */}
           {isCreatingTask && (

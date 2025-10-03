@@ -342,7 +342,7 @@ export const BoardView: React.FC<BoardViewProps> = ({ data, itinerario, event, s
   }, [toggleGlobalCollapse, handleManualSave]);
 
   return (
-    <div className="h-full flex flex-col bg-gray-50">
+    <div className="h-[calc(100vh-270px)] flex flex-col bg-gray-50 ">
       {/* Header del tablero */}
       <BoardHeader
         itinerario={itinerario}
@@ -381,7 +381,7 @@ export const BoardView: React.FC<BoardViewProps> = ({ data, itinerario, event, s
           onDragEnd={handleDragEnd}
           onDragOver={handleDragOver}
         >
-          <div className="flex h-full p-4 space-x-4" style={{ minWidth: 'fit-content' }}>
+          <div className="flex justify-center h-full p-4 space-x-4" style={{ minWidth: 'fit-content' }}>
             <SortableContext
               items={boardState.columnOrder}
               strategy={horizontalListSortingStrategy}
