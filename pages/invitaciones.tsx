@@ -20,6 +20,7 @@ import { Modal } from "../components/Utils/Modal";
 import { EmailReactEditorComponent } from "../components/Invitaciones/EmailReactEditorComponent";
 import { fetchApiEventos, queries } from "../utils/Fetching";
 import { TemplateWathsappValues, WhatsappEditorComponent } from "../components/Invitaciones/WhatsappEditorComponent";
+import { WhatsappBusinessEditorComponent } from "../components/Invitaciones/WhatsappBusinessEditorComponent";
 import { WhatsappPreview } from "../components/Invitaciones/WhatsappPreview";
 
 export type optionArryOptions = {
@@ -41,6 +42,7 @@ const Invitaciones = () => {
   const [previewEmailReactEditor, setPreviewEmailReactEditor] = useState(false)
   const [previewEmailTemplate, setPreviewEmailTemplate] = useState<string>()
   const [previewWhatsappTemplate, setPreviewWhatsappTemplate] = useState<TemplateWathsappValues>()
+  const [variablesTemplatesInvitaciones, setVariablesTemplatesInvitaciones] = useState<any[]>([])
 
   const arryOptions: optionArryOptions[] = [
     {
@@ -87,6 +89,14 @@ const Invitaciones = () => {
 
     reduce?.sent?.length != dataInvitationSent?.length && setDataInvitationSent(InvitationSent);
     reduce?.notSent.length != dataInvitationNotSent?.length && setDataInvitationNotSent(InvitationNotSent);
+    fetchApiEventos({
+      query: queries.getVariablesTemplatesInvitaciones,
+      variables: {
+        evento_id: event?._id
+      },
+    }).then((res: any) => {
+      setVariablesTemplatesInvitaciones(res)
+    })
     if (event?.templateEmailSelect && optionSelect === "email") {
       fetchApiEventos({
         query: queries.getVariableEmailTemplate,
@@ -128,8 +138,8 @@ const Invitaciones = () => {
           >
             {ShowEditorModal && <Modal classe={" md:w-[90%] h-[90%] "} >
               {optionSelect === "email"
-                ? < EmailReactEditorComponent setShowEditorModal={setShowEditorModal} previewEmailReactEditor={previewEmailReactEditor} />
-                : <WhatsappEditorComponent setShowEditorModal={setShowEditorModal} />
+                ? < EmailReactEditorComponent setShowEditorModal={setShowEditorModal} previewEmailReactEditor={previewEmailReactEditor} variablesTemplatesInvitaciones={variablesTemplatesInvitaciones} />
+                : <WhatsappEditorComponent setShowEditorModal={setShowEditorModal} variablesTemplatesInvitaciones={variablesTemplatesInvitaciones} />
               }
             </Modal>}
             <BlockTitle title="Invitaciones" />

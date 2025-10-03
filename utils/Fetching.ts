@@ -265,6 +265,10 @@ export const queries = {
     }
   }`,
 
+  getVariablesTemplatesInvitaciones: `query($evento_id:ID){
+    getVariablesTemplatesInvitaciones(evento_id:$evento_id)
+  }`,
+
   getWhatsappInvitationTemplates: `query($evento_id:ID){
     getWhatsappInvitationTemplates(evento_id:$evento_id)
   }`,

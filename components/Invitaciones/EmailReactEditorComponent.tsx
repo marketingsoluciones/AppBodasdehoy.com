@@ -21,6 +21,7 @@ import { Textarea } from '../Servicios/Utils/Textarea';
 interface props {
     setShowEditorModal: (value: boolean) => void
     previewEmailReactEditor?: boolean
+    variablesTemplatesInvitaciones: any[]
 }
 
 type showUnsavedModalType = {
@@ -40,7 +41,7 @@ type showSubjectModalType = {
     value: string
 }
 
-export const EmailReactEditorComponent: FC<props> = ({ setShowEditorModal, previewEmailReactEditor, ...props }) => {
+export const EmailReactEditorComponent: FC<props> = ({ setShowEditorModal, previewEmailReactEditor, variablesTemplatesInvitaciones, ...props }) => {
     const { config } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
     const { t } = useTranslation();
@@ -62,6 +63,17 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEditorModal, previ
     const [showSubjectModal, setShowSubjectModal] = useState<showSubjectModalType>({ state: false, value: '' });
     const [dispatchStorage, setDispatchStorage] = useState({ updatedAt: new Date, design: undefined });
     const nameNewtemplate = "new template";
+
+    const mergeTags = variablesTemplatesInvitaciones.reduce((acc: any, item: any) => {
+        const asd = {
+            [`tag${item.id}`]: {
+                name: item.name,
+                value: item.value,
+                sample: item.sample
+            }
+        }
+        return { ...acc, ...asd }
+    }, {})
 
     useEffect(() => {
         if (!previewEmailReactEditor) {
@@ -307,7 +319,7 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEditorModal, previ
         <div className='relative w-full h-full'>
             {showSaveModal && (
                 <ModalDefault onClose={() => { setShowSaveModal(false); setHtml(''); }} >
-                    <ModalHtmlPreview htmlToImageRef={htmlToImageRef} html={html} action={handleNextSaveDesign} title={template?.configTemplate?.name ? template.configTemplate.name : nameNewtemplate} setTitle={setTemplate}  template={template}/>
+                    <ModalHtmlPreview htmlToImageRef={htmlToImageRef} html={html} action={handleNextSaveDesign} title={template?.configTemplate?.name ? template.configTemplate.name : nameNewtemplate} setTitle={setTemplate} template={template} />
                 </ModalDefault>
             )}
             {showTemplatesModal && (
@@ -427,68 +439,7 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEditorModal, previ
                     translations: {
                         'en-US': i18next.language === 'es' ? translations : {}
                     },
-                    mergeTags: {
-                        tag1: {
-                            name: "tipo de evento",
-                            value: "{{params.typeEvent}}",
-                            sample: event?.tipo?.toUpperCase()
-                        },
-                        tag2: {
-                            name: "nombre del evento",
-                            value: "{{params.nameEvent}}",
-                            sample: event?.nombre?.toUpperCase()
-                        },
-                        tag3: {
-                            name: "invitado",
-                            value: "{{params.nameGuest}}",
-                            sample: event?.invitados_array[0]?.nombre || "sin invitados cargados"
-                        },
-                        tag4: {
-                            name: "fecha",
-                            value: "{{params.dateEvent}}",
-                            sample: new Date(parseInt(event?.fecha)).toLocaleDateString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                        },
-                        tag5: {
-                            name: "estilo",
-                            value: "{{params.styleEvent}}",
-                            sample: event?.estilo?.toUpperCase() || "sin estilo cargado"
-                        },
-                        tag6: {
-                            name: "tematica",
-                            value: "{{params.themeEvent}}",
-                            sample: event?.tematica?.toUpperCase() || "sin tematica cargada"
-                        },
-                        tag7: {
-                            name: "usuario_nombre",
-                            value: "{{params.userEvent}}",
-                            sample: event?.usuario_nombre
-                        },
-                        tag8: {
-                            name: "imgEvento",
-                            value: "{{params.imgEvent}}",
-                            sample: event?.imgEvento?.i640 ? `https://apiapp.bodasdehoy.com/${event?.imgEvento?.i640}` : "sin imagen cargada"
-                        },
-                        tag9: {
-                            name: "lugar",
-                            value: "{{params.placeEvent}}",
-                            sample: event?.lugar?.title || "sin lugar cargado"
-                        },
-                        tag10: {
-                            name: "Novio 1",
-                            value: "{{params.novio1}}",
-                            sample: event?.invitados_array?.filter(elem => elem.rol === "novios")[0]?.nombre.split(" ")[0] || "Agrega en invitados Novios"
-                        },
-                        tag11: {
-                            name: "Novio 2",
-                            value: "{{params.novio2}}",
-                            sample: event?.invitados_array?.filter(elem => elem.rol === "novios")[1]?.nombre.split(" ")[0] || "Agrega en invitados Novios"
-                        },
-                        tag12: {
-                            name: "Link Confirmacion de Asistencia",
-                            value: "{{params.confirmationAsistain}}",
-                            sample: `${window?.location?.origin}?pGuestEvent=${event?.invitados_array[0]?._id}${event._id?.slice(3, 9)}${event._id}` || "Agrega un invitado"
-                        },
-                    },
+                    mergeTags,
                     appearance: {
                         actionBar: {
                             placement: 'top'

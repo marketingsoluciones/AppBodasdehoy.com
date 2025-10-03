@@ -36,10 +36,11 @@ export interface TemplateWathsappValues {
 }
 
 interface props {
+    variablesTemplatesInvitaciones: any[]
     setShowEditorModal: (value: boolean) => void
 }
 
-export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...props }) => {
+export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, variablesTemplatesInvitaciones, ...props }) => {
     const { config } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
     const { t } = useTranslation();
@@ -51,17 +52,7 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
     const [isMounted, setIsMounted] = useState(false)
     const divEditableRef = useRef(null)
 
-    const variables = [
-        { id: 1, name: "tipo de evento", value: "{{params.typeEvent}}", sample: [`event`][`tipo`] },
-        { id: 2, name: "nombre del evento", value: "{{params.nameEvent}}", sample: event?.nombre },
-        { id: 3, name: "invitado", value: "{{params.nameGuest}}", sample: event?.invitados_array[0]?.nombre },
-        { id: 4, name: "fecha", value: "{{params.dateEvent}}", sample: new Date(parseInt(event?.fecha)).toLocaleDateString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric' }) },
-        { id: 5, name: "estilo", value: "{{params.styleEvent}}", sample: event?.estilo },
-        { id: 6, name: "tematica", value: "{{params.themeEvent}}", sample: event?.tematica },
-        { id: 7, name: "usuario_nombre", value: "{{params.userEvent}}", sample: event?.usuario_nombre },
-        { id: 8, name: "imgEvento", value: "{{params.imgEvent}}", sample: event?.imgEvento?.i640 ? `https://apiapp.bodasdehoy.com/${event?.imgEvento?.i640}` : "sin imagen cargada" },
-        { id: 9, name: "lugar", value: "{{params.placeEvent}}", sample: event?.lugar?.title },
-    ];
+    const variables = variablesTemplatesInvitaciones
 
 
     const [generatedJson, setGeneratedJson] = useState('');
