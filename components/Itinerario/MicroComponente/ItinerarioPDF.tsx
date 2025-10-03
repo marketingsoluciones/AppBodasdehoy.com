@@ -16,7 +16,6 @@ export const ItinerarioPDF = (props) => {
   console.log(2, props)
   const { t } = useTranslation()
   const event = props.props.evento
-  const { geoInfo } = AuthContextProvider()
   const [end, setEnd] = useState(false)
 
   useEffect(() => {
@@ -77,7 +76,7 @@ export const ItinerarioPDF = (props) => {
         </div>
         <div className='flex-1 md:flex-none md:w-[35%] h-[100%] flex flex-row-reverse md:flex-row items-center '>
           <img
-            src={event?.imgEvento ? `https://apiapp.bodasdehoy.com/${event.imgEvento.i800}` : defaultImagenes[event?.tipo]}
+            src={event?.imgEvento ? `https://apiapp.bodasdehoy.com/${event.imgEvento.i320}` : defaultImagenes[event?.tipo]}
             className=" h-[90%] object-cover object-top rounded-md border-1 border-gray-600  hidden md:block"
             alt={event?.nombre}
           />

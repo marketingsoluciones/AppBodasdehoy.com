@@ -17,14 +17,14 @@ interface TimeTaskProps {
   ValidationEdit?: boolean;
 }
 
-export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task, setEditing, editing, uso, ValidationEdit}) => {
+export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task, setEditing, editing, uso, ValidationEdit }) => {
   const { t } = useTranslation();
   const [value, setValue] = useState<string>();
   const { utcDateTime, timeFormated } = useDateTime()
   const { event } = EventContextProvider()
 
   const endTime = task?.fecha && task?.duracion ? calculateEndTime(task.fecha, task.duracion as number) : null;
-  const endTimeFormated = endTime ? timeFormated(endTime, event.timeZone) : null;
+  const endTimeFormated = endTime ? timeFormated(endTime, event?.timeZone) : null;
 
   return (
     <div className="w-[100px] h-full flex items-center">
@@ -120,7 +120,7 @@ export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task, setEd
           <span className={`flex items-center space-x-1 text-xs`}>
             {uso !== 'endTime'
               ? task?.fecha && task?.horaActiva !== false
-                ? timeFormated(task.fecha, event.timeZone)
+                ? timeFormated(task.fecha, event?.timeZone)
                 : t('Sin hora')
               : task?.fecha && task?.duracion
                 ? endTimeFormated

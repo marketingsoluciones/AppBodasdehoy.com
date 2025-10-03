@@ -11,6 +11,7 @@ import { IoShareSocial } from "react-icons/io5";
 import { useAllowed } from "../../hooks/useAllowed"
 import { useTranslation } from 'react-i18next';
 import { TimeZone } from "../icons";
+import { getTimeZoneCity } from "../../utils/FormatTime";
 import { useDateTime } from "../../hooks/useDateTime";
 
 interface propsBlockVista {
@@ -49,7 +50,7 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
       <div className="w-full bg-white shadow rounded-xl overflow-hidden relative flex flex-col-reverse md:flex-row md:h-72 gap-12  md:gap-0 pt-10 md:pt-0">
         {event?.tipo && (
           <img
-            src={event?.imgEvento ? `https://apiapp.bodasdehoy.com/${event.imgEvento.i800}` : defaultImagenes[event?.tipo]}
+            src={event?.imgEvento ? `https://apiapp.bodasdehoy.com/${event.imgEvento.i640}` : defaultImagenes[event?.tipo]}
             className="md:w-1/2 md:h-full h-60 object-cover object-top rounded-xl"
             alt={event?.nombre}
           />
@@ -70,7 +71,7 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
             <div className="text-gray-600 w-full flex justify-center items-center gap-1.5">
               <TimeZone />
               <span className="text-xs">{t("timeZone")}:</span>
-              <span className="text-xs">{event?.timeZone.split("/")[1]}</span>
+              <span className="text-xs">{getTimeZoneCity(event?.timeZone)}</span>
             </div>
           </div>
           <div className="w-full">

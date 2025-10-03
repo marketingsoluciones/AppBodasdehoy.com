@@ -6,15 +6,12 @@ export const useDateTime = () => {
     const { event } = EventContextProvider();
     const { i18n } = useTranslation();
     const Lang = i18n?.language == "en" ? "en-CA" : "es-ES";
-    const formatter = new Intl.DateTimeFormat(navigator.language, {
+    const formatter = new Intl.DateTimeFormat(Intl.DateTimeFormat().resolvedOptions().locale, {
         hour: 'numeric',
         hour12: true
     });
-    const d = new Date();
-    d.setHours(13);
-    const formattedTime = formatter.format(d);
-    const regex = /(?=.*a)(?=.*m)|(?=.*p)(?=.*m)/i;
-    const hour12 = regex.test(formattedTime);
+    const { hourCycle } = formatter.resolvedOptions();
+    const hour12 = hourCycle === 'h11' || hourCycle === 'h12';
 
     const getDateFormated = (date: Date | number | string, options?: object) => {
         const offsetMinutes = getOffsetMinutes(date, event?.timeZone)
@@ -34,8 +31,9 @@ export const useDateTime = () => {
     };
 
     /*usada en DateTask */
-    const utcDateFormated2Digits = (date: Date | number | string, timeZone: string) => {
-        const options: object = { year: "numeric", month: "2-digit", day: "2-digit", timeZone: timeZone || "UTC" };
+    const utcDateFormated2Digits = (date: Date | number | string, timeZone?: string) => {
+        const validTimeZone = timeZone && typeof timeZone === 'string' ? timeZone : "UTC";
+        const options: object = { year: "numeric", month: "2-digit", day: "2-digit", timeZone: validTimeZone };
         if (typeof date === 'string' && !date.includes('T') && !date.includes('-')) {
             return getDateFormated(parseInt(date), options);
         }
@@ -43,8 +41,9 @@ export const useDateTime = () => {
     };
 
     /*usada en TaskFullView TaskDurationContainer*/
-    const dateTimeFormated = (date: Date | number | string, timeZone: string) => {
-        const options: object = { year: "numeric", month: "2-digit", day: "2-digit", timeZone: timeZone || "UTC", hour: "2-digit", minute: "2-digit", hour12, timeZoneName: timeZone === "UTC" ? "short" : "long" };
+    const dateTimeFormated = (date: Date | number | string, timeZone?: string) => {
+        const validTimeZone = timeZone && typeof timeZone === 'string' ? timeZone : "UTC";
+        const options: object = { year: "numeric", month: "2-digit", day: "2-digit", timeZone: validTimeZone, hour: "2-digit", minute: "2-digit", hour12, timeZoneName: validTimeZone === "UTC" ? "short" : "long" };
         if (typeof date === 'string' && !date.includes('T') && !date.includes('-')) {
             return getDateFormated(parseInt(date), options);
         }
@@ -52,8 +51,9 @@ export const useDateTime = () => {
     };
 
     /*usada en TaskSchemaView TimeTask*/
-    const timeFormated = (date: Date | number | string, timeZone: string) => {
-        const options: object = { timeZone: timeZone || "UTC", hour: "2-digit", minute: "2-digit", hour12 };
+    const timeFormated = (date: Date | number | string, timeZone?: string) => {
+        const validTimeZone = timeZone && typeof timeZone === 'string' ? timeZone : "UTC";
+        const options: object = { timeZone: validTimeZone, hour: "2-digit", minute: "2-digit", hour12 };
         if (typeof date === 'string' && !date.includes('T') && !date.includes('-')) {
             return getDateFormated(parseInt(date), options);
         }

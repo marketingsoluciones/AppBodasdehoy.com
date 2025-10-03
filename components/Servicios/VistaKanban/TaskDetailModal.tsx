@@ -63,7 +63,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   setTempPastedAndDropFiles,
 }) => {
   const { t } = useTranslation();
-  const { config, user, geoInfo } = AuthContextProvider();
+  const { config, user } = AuthContextProvider();
   const { event, setEvent } = EventContextProvider();
   const toast = useToast();
   const notification = useNotification();
