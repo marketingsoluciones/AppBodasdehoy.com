@@ -11,6 +11,7 @@ import { IoShareSocial } from "react-icons/io5";
 import { useAllowed } from "../../hooks/useAllowed"
 import { useTranslation } from 'react-i18next';
 import { TimeZone } from "../icons";
+import { getTimeZoneCity } from "../../utils/FormatTime";
 import { useDateTime } from "../../hooks/useDateTime";
 
 interface propsBlockVista {
@@ -70,7 +71,7 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
             <div className="text-gray-600 w-full flex justify-center items-center gap-1.5">
               <TimeZone />
               <span className="text-xs">{t("timeZone")}:</span>
-              <span className="text-xs">{event?.timeZone.split("/")[1]}</span>
+              <span className="text-xs">{getTimeZoneCity(event?.timeZone)}</span>
             </div>
           </div>
           <div className="w-full">

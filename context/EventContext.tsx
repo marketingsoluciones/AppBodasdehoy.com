@@ -94,10 +94,11 @@ const EventProvider = ({ children }) => {
           const eventsGroupSort = eventsPendientes?.sort((a: any, b: any) => { return b.fecha_creacion - a.fecha_creacion })
           let eventSelected = eventsGroupSort?.find(elem => elem._id === user?.eventSelected)
           if (!eventSelected?.timeZone) {
-            eventSelected.timeZone = config?.timeZone
+            const defaultTimeZone = config?.timeZone || "UTC";
+            eventSelected.timeZone = defaultTimeZone;
             fetchApiEventos({
               query: queries.eventUpdate,
-              variables: { idEvento: eventSelected?._id, variable: "timeZone", value: config?.timeZone },
+              variables: { idEvento: eventSelected?._id, variable: "timeZone", value: defaultTimeZone },
               token: null
             })
           }
@@ -105,10 +106,11 @@ const EventProvider = ({ children }) => {
         } else {
           let eventSelected = eventsGroup[0]
           if (!eventSelected?.timeZone) {
-            eventSelected.timeZone = config?.timeZone
+            const defaultTimeZone = config?.timeZone || "UTC";
+            eventSelected.timeZone = defaultTimeZone;
             fetchApiEventos({
               query: queries.eventUpdate,
-              variables: { idEvento: eventSelected?._id, variable: "timeZone", value: config?.timeZone },
+              variables: { idEvento: eventSelected?._id, variable: "timeZone", value: defaultTimeZone },
               token: null
             })
           }

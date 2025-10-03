@@ -8,6 +8,7 @@ import { defaultImagenes } from "../../components/Home/Card";
 import { TaskNew } from "../../components/Servicios/VistaTarjeta/TaskNew";
 import { openGraphData } from "../_app";
 import { TimeZone } from "../../components/icons";
+import { getTimeZoneCity } from "../../utils/FormatTime";
 import { useTranslation } from "react-i18next";
 
 interface props {
@@ -93,7 +94,7 @@ const Slug: FC<props> = (props) => {
                   <TimeZone />
                   <span className="text-[11px]">{t("timeZone")}</span>
                 </div>
-                <span className="text-xs">{event?.timeZone ? event?.timeZone?.split("/")[1] : config?.timeZone?.split("/")[1]}</span>
+                <span className="text-xs">{getTimeZoneCity(event?.timeZone) || getTimeZoneCity(config?.timeZone)}</span>
               </div>
             </div>
             <div className='md:flex-none h-[100%] flex flex-row-reverse md:flex-row items-center '>
