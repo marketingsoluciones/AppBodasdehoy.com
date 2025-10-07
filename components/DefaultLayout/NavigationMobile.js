@@ -54,15 +54,9 @@ const NavigationMobile = () => {
       condicion: event?._id ? "verdadero" : "falso"
     },
     {
-      title: "Mesas",
-      icon: <MesasIcon className="text-primary w-7 h-7" />,
-      route: event?._id ? "/mesas" : "/",
-      condicion: event?._id ? "verdadero" : "falso"
-    },
-    {
-      title: "Presupuesto",
-      icon: <PresupuestoIcon className="text-primary w-7 h-7" />,
-      route: event?._id ? "/presupuesto" : "/",
+      title: "Itinerario",
+      icon: <BsCalendarHeartFill className="w-7 h-7" />,
+      route: "/itinerario",
       condicion: event?._id ? "verdadero" : "falso"
     },
     {
@@ -72,15 +66,21 @@ const NavigationMobile = () => {
       condicion: event?._id ? "verdadero" : "falso"
     },
     {
-      title: "Lista de regalos",
-      icon: <ListaRegalosIcon />,
-      route: "/lista-regalos",
+      title: "Presupuesto",
+      icon: <PresupuestoIcon className="text-primary w-7 h-7" />,
+      route: event?._id ? "/presupuesto" : "/",
       condicion: event?._id ? "verdadero" : "falso"
     },
     {
-      title: "Itinerario",
-      icon: <BsCalendarHeartFill className="w-7 h-7" />,
-      route: "/itinerario",
+      title: "Mesas",
+      icon: <MesasIcon className="text-primary w-7 h-7" />,
+      route: event?._id ? "/mesas" : "/",
+      condicion: event?._id ? "verdadero" : "falso"
+    },
+    {
+      title: "Lista de regalos",
+      icon: <ListaRegalosIcon />,
+      route: "/lista-regalos",
       condicion: event?._id ? "verdadero" : "falso"
     },
   ]
