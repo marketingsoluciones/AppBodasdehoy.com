@@ -50,7 +50,7 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
   minimalView?: boolean;
   setSelectTask?: (taskId: string) => void;
   selectTask?: string;
-  handleUpdate: (field: string, value: any) => Promise<void>;
+  handleUpdate?: (field: string, value: any) => Promise<void>;
 }
 
 export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryButtonBox, showModalCompartir, setShowModalCompartir, tempPastedAndDropFiles, setTempPastedAndDropFiles, isTaskPublic = false, minimalView = false, setSelectTask, selectTask, handleUpdate, ...props }) => {
@@ -64,7 +64,7 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
   const [comments, setComments] = useState<Comment[]>([]);
 
   const canEdit = !user?.uid ? false : isAllowed() || task.responsable?.includes(user?.uid);
- 
+
   const [localTask, setLocalTask] = useState<TaskFormValues>({
     _id: task?._id,
     icon: task?.icon || '',
